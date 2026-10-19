@@ -22,10 +22,9 @@ internal sealed class LightingController : IDisposable
     private readonly TimeProvider _time;
     private readonly long _epoch;
     private readonly AnimationLoop _animation;
-    private readonly DeviceOutput[][] _outputsByProvider;
+    private readonly DeviceOutputs _outputs;
     private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
-    private DeviceOutput[] _outputs = [];
     private bool _isPaused;
 
     // A restore that waits for the pause to end.
@@ -41,7 +40,7 @@ internal sealed class LightingController : IDisposable
         _time = timeProvider ?? TimeProvider.System;
         _epoch = _time.GetTimestamp();
         _animation = new AnimationLoop(_time, FramePeriodLocked, RenderAnimationFrame);
-        _outputsByProvider = [.. providers.Select(_ => Array.Empty<DeviceOutput>())];
+        _outputs = new DeviceOutputs(providers.Count);
         for (var index = 0; index < providers.Count; index++)
         {
             if (providers[index] is IDynamicDeviceProvider dynamicProvider)
@@ -114,7 +113,7 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return [.. _outputs.Select(output => output.Device)];
+                return [.. _outputs.All.Select(output => output.Device)];
             }
         }
     }
@@ -254,7 +253,7 @@ internal sealed class LightingController : IDisposable
     {
         lock (_gate)
         {
-            return new(_sequence, [.. _outputs.Select(output => new DeviceColors(output.Device.Id, [.. output.Buffer]))]);
+            return new(_sequence, [.. _outputs.All.Select(output => new DeviceColors(output.Device.Id, [.. output.Buffer]))]);
         }
     }
 
@@ -326,7 +325,7 @@ internal sealed class LightingController : IDisposable
             }
 
             var time = EffectTime;
-            foreach (var output in _outputs)
+            foreach (var output in _outputs.All)
             {
                 if (output.IsAnimated)
                 {
@@ -377,9 +376,7 @@ internal sealed class LightingController : IDisposable
             bool ledColorsMoved;
             lock (_gate)
             {
-                ledColorsMoved = MoveLedColorsOfResizedZonesLocked(_outputsByProvider[providerIndex], devices);
-                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device))];
-                _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
+                ledColorsMoved = _outputs.Replace(providerIndex, provider, devices, _ledColors);
                 rendered = render && RenderLocked();
             }
 
@@ -396,22 +393,6 @@ internal sealed class LightingController : IDisposable
         }
     }
 
-    // A zone that got another length, here or in the provider's own app, shifts the LEDs after it.
-    // The stored per-LED colors move along, so every zone keeps its own colors.
-    private bool MoveLedColorsOfResizedZonesLocked(DeviceOutput[] previous, IReadOnlyList<RgbDevice> devices)
-    {
-        var moved = false;
-        foreach (var device in devices)
-        {
-            if (previous.FirstOrDefault(output => output.Device.Id == device.Id) is { } old)
-            {
-                moved |= _ledColors.MoveWithZones(device.Id, old.Device.Zones, device.Zones);
-            }
-        }
-
-        return moved;
-    }
-
     // Gives every device the effect of its current lighting and renders it. Returns false when
     // there is no lighting to render yet.
     private bool RenderLocked()
@@ -422,7 +403,7 @@ internal sealed class LightingController : IDisposable
         }
 
         var time = EffectTime;
-        foreach (var output in _outputs)
+        foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
             output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
@@ -461,7 +442,7 @@ internal sealed class LightingController : IDisposable
 
     private void UpdateAnimationLocked()
     {
-        if (!_disposed && !_isPaused && _lighting.IsSet && _outputs.Any(output => output.IsAnimated))
+        if (!_disposed && !_isPaused && _lighting.IsSet && _outputs.All.Any(output => output.IsAnimated))
         {
             _animation.Start();
         }
@@ -482,6 +463,6 @@ internal sealed class LightingController : IDisposable
     private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
 
     private DeviceOutput KnownOutputLocked(string deviceId) =>
-        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)
+        _outputs.Find(deviceId)
             ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
 }
