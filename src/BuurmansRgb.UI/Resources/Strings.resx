@@ -45,6 +45,9 @@
   <data name="ZoneHeader" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
+  <data name="ZoneAccessibleName" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
   <data name="ZoneOtherLeds" xml:space="preserve">
     <value>Overige LED's</value>
   </data>

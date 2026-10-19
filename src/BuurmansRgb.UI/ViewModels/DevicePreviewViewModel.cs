@@ -63,6 +63,6 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
         }
 
         var showsNames = parts.Count > 1;
-        return [.. parts.Select(part => new ZonePreviewViewModel(part.Zone, part.FirstLed, part.LedCount, showsNames, onLedClicked))];
+        return [.. parts.Select(part => new ZonePreviewViewModel(device.Name, part.Zone, part.FirstLed, part.LedCount, showsNames, onLedClicked))];
     }
 }

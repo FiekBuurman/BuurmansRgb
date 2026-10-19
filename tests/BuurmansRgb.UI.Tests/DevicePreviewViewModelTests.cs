@@ -25,15 +25,18 @@ public sealed class DevicePreviewViewModelTests
         Assert.All(preview.Zones, zone => Assert.True(zone.ShowsHeader));
         Assert.Equal(["6 LED's", "1 LED", Strings.ZoneWithoutLedsResizable], preview.Zones.Select(zone => zone.Details));
         Assert.Equal("RGB header · 1 LED", preview.Zones[1].Header);
+        Assert.Equal("Motherboard – RGB header", preview.Zones[1].AccessibleName);
     }
 
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
-        var preview = new DevicePreviewViewModel(TestDevices.Create("ram", "RAM stick", DeviceType.Ram, 8));
+        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [new RgbZone("DRAM", 8, Resizable: false)]);
+        var preview = new DevicePreviewViewModel(device);
 
         var zone = Assert.Single(preview.Zones);
         Assert.False(zone.ShowsHeader);
+        Assert.Equal("ENE DRAM 2", zone.AccessibleName);
         Assert.Equal(8, zone.Colors.Count);
     }
 

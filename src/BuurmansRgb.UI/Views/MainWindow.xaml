@@ -182,7 +182,7 @@
                                                         <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
-                                                                            AutomationProperties.Name="{Binding Name}" />
+                                                                            AutomationProperties.Name="{Binding AccessibleName}" />
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>

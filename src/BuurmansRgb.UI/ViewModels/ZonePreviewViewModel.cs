@@ -7,7 +7,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // The LEDs FirstLed to FirstLed + LedCount of a device, such as one header of a motherboard.
 // Colors, selection and clicks count from the start of the zone; the device counts from its own.
-public sealed partial class ZonePreviewViewModel(RgbZone zone, int firstLed, int ledCount, bool showsName, Action<LedHit> onLedClicked)
+public sealed partial class ZonePreviewViewModel(string deviceName, RgbZone zone, int firstLed, int ledCount, bool showsName, Action<LedHit> onLedClicked)
     : ObservableObject
 {
     public string Name { get; } = zone.Name;
@@ -24,6 +24,11 @@ public sealed partial class ZonePreviewViewModel(RgbZone zone, int firstLed, int
         : Strings.ZoneWithoutLeds;
 
     public string Header => UiText.Format(Strings.ZoneHeader, Name, Details);
+
+    // What a screen reader calls the LED strip. Zone names such as "DRAM" repeat across devices,
+    // so the device name always comes first.
+    public string AccessibleName { get; } =
+        showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, zone.Name) : deviceName;
 
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; private set; } = new RgbColor[ledCount];
