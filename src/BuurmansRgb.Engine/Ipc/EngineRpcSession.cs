@@ -1,5 +1,5 @@
-using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Ipc;
 
