@@ -141,6 +141,17 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task WatcherDispose_Twice_DoesNotThrow()
+    {
+        var watcher = await OpenRgbServerWatcher.ConnectAsync(IPAddress.Loopback.ToString(), _server.Port, "Test watcher", Timeout, Ct);
+
+        watcher.Dispose();
+        watcher.Dispose();
+
+        Assert.True(watcher.IsClosed);
+    }
+
+    [Fact]
     public async Task ConnectAsync_NoServer_Throws()
     {
         var port = FreePort();

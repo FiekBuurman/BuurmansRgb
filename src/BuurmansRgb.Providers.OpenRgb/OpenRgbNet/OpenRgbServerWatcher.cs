@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Sockets;
 using OpenRGB.NET;
 
@@ -17,6 +18,7 @@ internal sealed class OpenRgbServerWatcher : IDisposable
     private readonly NetworkStream _stream;
     private readonly CancellationTokenSource _stop = new();
     private int _closed;
+    private int _disposed;
 
     private OpenRgbServerWatcher(Socket socket)
     {
@@ -64,6 +66,11 @@ internal sealed class OpenRgbServerWatcher : IDisposable
     // Disposing does not raise Closed: whoever disposes already knows.
     public void Dispose()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        {
+            return;
+        }
+
         Volatile.Write(ref _closed, 1);
         _stop.Cancel();
         _stream.Dispose();
@@ -95,10 +102,17 @@ internal sealed class OpenRgbServerWatcher : IDisposable
         {
             // The server went away, or Dispose stopped the read.
         }
-
-        if (Interlocked.Exchange(ref _closed, 1) == 0)
+        catch (Exception exception)
         {
-            Closed?.Invoke(this, EventArgs.Empty);
+            Trace.TraceWarning($"Watching the OpenRGB server failed: {exception}");
+        }
+        finally
+        {
+            // Whatever ended the read, the provider must learn that the connection is gone.
+            if (Interlocked.Exchange(ref _closed, 1) == 0)
+            {
+                Closed?.Invoke(this, EventArgs.Empty);
+            }
         }
     }
 
