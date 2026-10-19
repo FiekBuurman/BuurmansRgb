@@ -94,6 +94,14 @@ public sealed class ResumeRestorerTests : IDisposable
     public void Create_WithoutDelays_Throws() =>
         Assert.Throws<ArgumentOutOfRangeException>(() => new ResumeRestorer(_events, () => { }, _time, []));
 
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(10, 2)]
+    [InlineData(2, 2)]
+    public void Create_WithDelaysThatDoNotGoUp_Throws(params int[] seconds) =>
+        Assert.Throws<ArgumentException>(() =>
+            new ResumeRestorer(_events, () => { }, _time, [.. seconds.Select(second => TimeSpan.FromSeconds(second))]));
+
     private sealed class FakePowerEvents : IPowerEvents
     {
         public event EventHandler? Resumed;

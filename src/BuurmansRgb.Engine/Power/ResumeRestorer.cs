@@ -21,9 +21,18 @@ internal sealed class ResumeRestorer : IDisposable
     public ResumeRestorer(IPowerEvents events, Action restore, TimeProvider timeProvider, IReadOnlyList<TimeSpan> delays)
     {
         ArgumentOutOfRangeException.ThrowIfZero(delays.Count, nameof(delays));
+        for (var i = 0; i < delays.Count; i++)
+        {
+            // The timer waits for the step from one delay to the next, which cannot be negative.
+            if (delays[i] < TimeSpan.Zero || (i > 0 && delays[i] <= delays[i - 1]))
+            {
+                throw new ArgumentException("The delays must not be negative and must go up.", nameof(delays));
+            }
+        }
+
         _events = events;
         _restore = restore;
-        _delays = delays;
+        _delays = [.. delays];
         _timer = timeProvider.CreateTimer(_ => OnTimer(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _events.Resumed += OnResumed;
     }
