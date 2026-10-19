@@ -63,6 +63,33 @@ public sealed class OpenRgbDeviceMapperTests
             Assert.DoesNotMatch("-[0-9]$", item.Device.Id);
         });
         Assert.Equal([0, 1, 2, 3], mapped.Select(item => item.Index));
+        Assert.Equal(["ENE DRAM 1", "ENE DRAM 2", "ENE DRAM 3", "ENE DRAM 4"], mapped.Select(item => item.Device.Name));
+    }
+
+    [Fact]
+    public void Map_DevicesWithTheirOwnName_KeepTheirName()
+    {
+        var mapped = OpenRgbDeviceMapper.Map(
+        [
+            TestDevices.Create(index: 0, name: "ASUS TUF GAMING B650-PLUS"),
+            TestDevices.Create(index: 1, name: "ENE DRAM", location: "I2C: PIIX4, address 0x70"),
+            TestDevices.Create(index: 2, name: "Corsair Vengeance Pro RGB"),
+            TestDevices.Create(index: 3, name: "ENE DRAM", location: "I2C: PIIX4, address 0x71"),
+        ]);
+
+        Assert.Equal(
+            ["ASUS TUF GAMING B650-PLUS", "ENE DRAM 1", "Corsair Vengeance Pro RGB", "ENE DRAM 2"],
+            mapped.Select(item => item.Device.Name));
+    }
+
+    [Fact]
+    public void Map_NumberedName_DoesNotChangeTheId()
+    {
+        var stick = TestDevices.Create(name: "ENE DRAM", location: "I2C: PIIX4, address 0x70");
+
+        var mapped = OpenRgbDeviceMapper.Map([stick, stick with { Index = 1, Location = "I2C: PIIX4, address 0x71" }]);
+
+        Assert.Equal(OpenRgbDeviceMapper.CreateId(stick), mapped[0].Device.Id);
     }
 
     [Theory]
