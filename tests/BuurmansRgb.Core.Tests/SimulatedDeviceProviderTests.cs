@@ -60,11 +60,73 @@ public sealed class SimulatedDeviceProviderTests
     }
 
     [Fact]
-    public void SetLeds_WrongLedCount_Throws()
+    public void SetLeds_WrongLedCount_IsSkipped()
     {
         var provider = new SimulatedDeviceProvider();
 
-        Assert.Throws<ArgumentException>(() => provider.SetLeds("simulated-fan", new RgbColor[3]));
+        provider.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 3).ToArray());
+
+        Assert.All(provider.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+    }
+
+    [Fact]
+    public void SetLeds_UnknownDevice_Throws()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        Assert.Throws<ArgumentException>(() => provider.SetLeds("unknown", new RgbColor[3]));
+    }
+
+    [Fact]
+    public async Task ResizeZone_ChangesTheZoneAndRaisesDevicesChanged()
+    {
+        var provider = new SimulatedDeviceProvider();
+        var changed = 0;
+        provider.DevicesChanged += (_, _) => changed++;
+
+        provider.ResizeZone("simulated-motherboard", 2, 20);
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
+        Assert.Equal(1, changed);
+        Assert.Equal(new RgbZone("ARGB header", 20, 0, 120), motherboard.Zones[2]);
+        Assert.Equal(27, motherboard.LedCount);
+        Assert.Equal(27, provider.GetLeds("simulated-motherboard").Length);
+    }
+
+    [Fact]
+    public void ResizeZone_ThenSetLeds_TakesTheNewLength()
+    {
+        var provider = new SimulatedDeviceProvider();
+        provider.ResizeZone("simulated-strip", 0, 40);
+
+        provider.SetLeds("simulated-strip", Enumerable.Repeat(RgbColor.White, 40).ToArray());
+
+        Assert.All(provider.GetLeds("simulated-strip").ToArray(), led => Assert.Equal(RgbColor.White, led));
+    }
+
+    [Fact]
+    public void ResizeZone_SameLength_RaisesNothing()
+    {
+        var provider = new SimulatedDeviceProvider();
+        var changed = 0;
+        provider.DevicesChanged += (_, _) => changed++;
+
+        provider.ResizeZone("simulated-strip", 0, 30);
+
+        Assert.Equal(0, changed);
+    }
+
+    [Theory]
+    [InlineData("simulated-strip", 0, 0)]
+    [InlineData("simulated-strip", 0, 61)]
+    [InlineData("simulated-strip", 1, 10)]
+    [InlineData("simulated-fan", 0, 16)]
+    public void ResizeZone_OutsideTheRangeOrOfAFixedZone_Throws(string deviceId, int zoneIndex, int ledCount)
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => provider.ResizeZone(deviceId, zoneIndex, ledCount));
     }
 
     private static void AssertDevice(RgbDevice device, DeviceType type, int ledCount)

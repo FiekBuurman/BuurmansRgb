@@ -2,9 +2,11 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Providers.Simulated;
 
-public sealed class SimulatedDeviceProvider : IDeviceProvider
+// Resized zones keep their length until the provider is made again, so after a restart of the
+// engine they are back to their first length.
+public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
 {
-    private static readonly IReadOnlyList<RgbDevice> Devices =
+    private static readonly IReadOnlyList<RgbDevice> InitialDevices =
     [
         new("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, [new RgbZone("Strip", 30, 1, 60)]),
         new("simulated-fan", "Simulated fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]),
@@ -31,26 +33,91 @@ public sealed class SimulatedDeviceProvider : IDeviceProvider
         ]),
     ];
 
-    private readonly Dictionary<string, RgbColor[]> _leds = Devices.ToDictionary(device => device.Id, device => new RgbColor[device.LedCount]);
+    private readonly Lock _gate = new();
+    private readonly Dictionary<string, RgbColor[]> _leds = InitialDevices.ToDictionary(device => device.Id, device => new RgbColor[device.LedCount]);
+    private IReadOnlyList<RgbDevice> _devices = InitialDevices;
 
     public string Name => "Simulated";
 
-    public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct) => Task.FromResult(Devices);
+    public event EventHandler? DevicesChanged;
 
-    public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
+    public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
     {
-        var buffer = GetBuffer(deviceId);
-        if (colors.Length != buffer.Length)
+        lock (_gate)
         {
-            throw new ArgumentException($"Device '{deviceId}' has {buffer.Length} LEDs, got {colors.Length} colors.", nameof(colors));
+            return Task.FromResult(_devices);
         }
-
-        colors.CopyTo(buffer);
     }
 
-    public ReadOnlySpan<RgbColor> GetLeds(string deviceId) => GetBuffer(deviceId);
+    // Right after a resize the engine may send colors for the old length once more, before it has
+    // the new device list; those are skipped.
+    public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
+    {
+        lock (_gate)
+        {
+            var buffer = GetBufferLocked(deviceId);
+            if (colors.Length == buffer.Length)
+            {
+                colors.CopyTo(buffer);
+            }
+        }
+    }
 
-    private RgbColor[] GetBuffer(string deviceId) =>
+    public ReadOnlySpan<RgbColor> GetLeds(string deviceId)
+    {
+        lock (_gate)
+        {
+            return GetBufferLocked(deviceId);
+        }
+    }
+
+    // The LEDs of the device start dark again, as on a strip that was just plugged in.
+    public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+    {
+        lock (_gate)
+        {
+            var index = IndexOfLocked(deviceId);
+            var device = _devices[index];
+            ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, device.Zones.Count);
+            var zone = device.Zones[zoneIndex];
+            if (!zone.CanHold(ledCount))
+            {
+                throw new ArgumentOutOfRangeException(nameof(ledCount), ledCount,
+                    $"Zone '{zone.Name}' holds {zone.MinLedCount} to {zone.MaxLedCount} LEDs.");
+            }
+
+            if (zone.LedCount == ledCount)
+            {
+                return;
+            }
+
+            RgbZone[] zones = [.. device.Zones];
+            zones[zoneIndex] = zone with { LedCount = ledCount };
+            var resized = new RgbDevice(device.Id, device.Name, device.Type, zones);
+            RgbDevice[] devices = [.. _devices];
+            devices[index] = resized;
+            _devices = devices;
+            _leds[deviceId] = new RgbColor[resized.LedCount];
+        }
+
+        DevicesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private int IndexOfLocked(string deviceId)
+    {
+        for (var index = 0; index < _devices.Count; index++)
+        {
+            if (_devices[index].Id == deviceId)
+            {
+                return index;
+            }
+        }
+
+        throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+    }
+
+    private RgbColor[] GetBufferLocked(string deviceId) =>
         _leds.TryGetValue(deviceId, out var buffer)
             ? buffer
             : throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
