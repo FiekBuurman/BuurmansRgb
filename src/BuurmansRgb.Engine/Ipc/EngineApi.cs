@@ -27,7 +27,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
 
     public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
-        Task.FromResult(_lighting.GetLighting(deviceId).ToInfo());
+        Task.FromResult(ToInfo(_lighting.GetLighting(deviceId)));
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
 
@@ -71,7 +71,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.DevicesChanged -= OnDevicesChanged;
     }
 
-    // The wire format is made here, outside the controller's lock.
+    // The wire formats are made here, so the lighting model does not know them, and outside the
+    // controller's lock.
+    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId);
+
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
 
