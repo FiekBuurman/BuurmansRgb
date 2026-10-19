@@ -8,31 +8,31 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class EngineSettingsTests
 {
-    private static readonly DeviceLighting Orange = new(new RgbColor(255, 136, 0), 0.5, EffectIds.Static);
-    private static readonly DeviceLighting Green = new(new RgbColor(0, 255, 0), 1.0, EffectIds.Static);
+    private static readonly DeviceLighting HalfOrange = new(Orange, 0.5, EffectIds.Static);
+    private static readonly DeviceLighting FullGreen = new(Green, 1.0, EffectIds.Static);
 
     [Fact]
     public void From_ThenToLightingState_RoundTripsGlobalAndDevices()
     {
-        var state = LightingStates.WithDevices(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green });
+        var state = LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen });
 
         var roundTripped = EngineSettings.From(state).ToLightingState();
 
-        Assert.Equal(Orange, roundTripped.Global);
-        Assert.Equal(Green, Assert.Single(roundTripped.Devices, pair => pair.Key == "fan").Value);
+        Assert.Equal(HalfOrange, roundTripped.Global);
+        Assert.Equal(FullGreen, Assert.Single(roundTripped.Devices, pair => pair.Key == "fan").Value);
     }
 
     [Fact]
     public void WithLighting_ReplacesLightingAndKeepsStartupOptions()
     {
-        var settings = new EngineSettings { SimulatedDevices = false, Color = Green.Color };
+        var settings = new EngineSettings { SimulatedDevices = false, Color = Green };
 
-        var updated = settings.WithLighting(LightingStates.WithDevices(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green }));
+        var updated = settings.WithLighting(LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen }));
 
         Assert.False(updated.SimulatedDevices);
-        Assert.Equal(Orange, updated.ToDeviceLighting());
-        Assert.Equal(Green, updated.Devices!["fan"]!.ToDeviceLighting());
-        Assert.Equal(Green.Color, settings.Color);
+        Assert.Equal(HalfOrange, updated.ToDeviceLighting());
+        Assert.Equal(FullGreen, updated.Devices!["fan"]!.ToDeviceLighting());
+        Assert.Equal(Green, settings.Color);
     }
 
     // Guards options added later: each one must survive a lighting change without being copied by hand.
@@ -50,7 +50,7 @@ public sealed class EngineSettingsTests
             option.SetValue(settings, OtherValue(option.PropertyType, option.GetValue(settings)));
         }
 
-        var updated = settings.WithLighting(LightingStates.Uniform(Orange));
+        var updated = settings.WithLighting(LightingStates.Uniform(HalfOrange));
 
         Assert.All(options, option => Assert.Equal(option.GetValue(settings), option.GetValue(updated)));
     }
@@ -58,7 +58,7 @@ public sealed class EngineSettingsTests
     [Fact]
     public void From_WithoutDevices_LeavesDevicesNull()
     {
-        Assert.Null(EngineSettings.From(LightingStates.Uniform(Orange)).Devices);
+        Assert.Null(EngineSettings.From(LightingStates.Uniform(HalfOrange)).Devices);
     }
 
     [Fact]
