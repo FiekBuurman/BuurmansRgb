@@ -22,7 +22,40 @@ public sealed class SimulatedDeviceProviderTests
             gpu => AssertDevice(gpu, DeviceType.Gpu, 13),
             fan => AssertDevice(fan, DeviceType.Fan, 20),
             controller => AssertDevice(controller, DeviceType.LedStrip, 20),
-            lighting => AssertDevice(lighting, DeviceType.Case, 10));
+            lighting => AssertDevice(lighting, DeviceType.Case, 10),
+            mouse => AssertDevice(mouse, DeviceType.Mouse, 12),
+            headset => AssertDevice(headset, DeviceType.Headset, 2));
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_KeyboardHasAKeyMapWithEveryKeyOnce()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        var keys = Assert.Single(devices.Single(device => device.Type == DeviceType.Keyboard).Zones);
+        var matrix = Assert.IsType<LedMatrix>(keys.Matrix);
+        Assert.Equal((6, 24), (matrix.Height, matrix.Width));
+        Assert.Equal(Enumerable.Range(0, keys.LedCount), matrix.Cells.Where(cell => cell != LedMatrix.NoLed).Order());
+
+        // Esc on the far left of the top row, the 0 of the number pad at the bottom.
+        Assert.Equal(0, matrix[0, 0]);
+        Assert.Equal(LedMatrix.NoLed, matrix[0, 1]);
+        Assert.Equal(102, matrix[5, 20]);
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_MouseAndHeadsetHaveTheirZones()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(["Logo", "Scroll wheel", "Left side", "Right side"],
+            devices.Single(device => device.Type == DeviceType.Mouse).Zones.Select(zone => zone.Name));
+        Assert.Equal(["Left ear cup", "Right ear cup"],
+            devices.Single(device => device.Type == DeviceType.Headset).Zones.Select(zone => zone.Name));
     }
 
     [Fact]
