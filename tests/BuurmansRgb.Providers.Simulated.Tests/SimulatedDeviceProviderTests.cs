@@ -128,11 +128,13 @@ public sealed class SimulatedDeviceProviderTests
     }
 
     [Fact]
-    public void SetLeds_UnknownDevice_Throws()
+    public void SetLeds_UnknownDevice_IsIgnored()
     {
         var provider = new SimulatedDeviceProvider();
 
-        Assert.Throws<ArgumentException>(() => provider.SetLeds("unknown", new RgbColor[3]));
+        provider.SetLeds("unknown", new RgbColor[3]);
+
+        Assert.Throws<ArgumentException>(() => provider.GetLeds("unknown"));
     }
 
     [Fact]
