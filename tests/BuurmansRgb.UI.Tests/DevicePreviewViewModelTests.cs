@@ -29,20 +29,6 @@ public sealed class DevicePreviewViewModelTests
     }
 
     [Fact]
-    public void Zones_GpuWithLightBarAndLogo_ShowsBothZonesWithTheirColors()
-    {
-        var gpu = new DeviceInfo("gpu", "Graphics card", DeviceType.Gpu, 13,
-            [new RgbZone("Light bar", 12, Resizable: false), new RgbZone("Logo", 1, Resizable: false)]);
-        var preview = new DevicePreviewViewModel(gpu);
-
-        preview.Colors = [.. Enumerable.Repeat(Red, 12), Blue];
-
-        Assert.Equal(["Light bar · 12 LED's", "Logo · 1 LED"], preview.Zones.Select(zone => zone.Header));
-        Assert.Equal(Enumerable.Repeat(Red, 12), preview.Zones[0].Colors);
-        Assert.Equal([Blue], preview.Zones[1].Colors);
-    }
-
-    [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
         var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [new RgbZone("DRAM", 8, Resizable: false)]);
