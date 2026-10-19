@@ -112,6 +112,26 @@ public sealed class LightingControllerDeviceChangeTests
     }
 
     [Fact]
+    public async Task Dispose_WhileDiscoveryWaitsForTheProvider_EndsItAndTheQueuedOneWithoutError()
+    {
+        var slowProvider = new TaskCompletionSource();
+        _dynamic.DiscoverGate = slowProvider.Task;
+        var devicesChanged = 0;
+        _controller.DevicesChanged += (_, _) => devicesChanged++;
+        var running = _controller.DiscoverAsync(Ct);
+        await _dynamic.DiscoverStarted.Task.WaitAsync(Timeout, Ct);
+        var queued = _controller.DiscoverAsync(Ct);
+
+        _controller.Dispose();
+        slowProvider.SetResult();
+
+        // Both would throw or hang if the lock they share were disposed.
+        await running.WaitAsync(Timeout, Ct);
+        await queued.WaitAsync(Timeout, Ct);
+        Assert.Equal(1, devicesChanged);
+    }
+
+    [Fact]
     public void Dispose_Twice_IsFine()
     {
         _controller.Dispose();

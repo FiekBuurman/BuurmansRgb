@@ -18,6 +18,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly Lock _gate = new();
 
     // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
+    // Not disposed: a refresh may still hold it or wait for it when the controller is disposed, and
+    // without AvailableWaitHandle it holds no kernel handle.
     private readonly SemaphoreSlim _discovering = new(1, 1);
     private readonly TimeProvider _time;
     private readonly long _epoch;
@@ -365,8 +367,6 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             provider.DevicesChanged -= handler;
         }
-
-        _discovering.Dispose();
     }
 
     // A device that comes back keeps its own lighting: it stays in the state while the device is gone.
@@ -376,24 +376,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             await UpdateDevicesAsync(providerIndex, render: true, CancellationToken.None);
         }
-        catch (ObjectDisposedException) when (IsDisposed)
-        {
-            // A refresh that was under way while the engine shut down.
-        }
         catch (Exception exception)
         {
             Trace.TraceError(exception.ToString());
-        }
-    }
-
-    private bool IsDisposed
-    {
-        get
-        {
-            lock (_gate)
-            {
-                return _disposed;
-            }
         }
     }
 
