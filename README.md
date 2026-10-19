@@ -232,6 +232,12 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   ook, zonder zonenaam. Per-LED-kleuren van de zones erna schuiven mee, ook als je de lengte
   in OpenRGB zelf verandert. De gesimuleerde apparaten onthouden een nieuwe lengte tot de
   engine stopt.
+- **Let op bij per-LED-kleuren:** `settings.json` bewaart de kleuren per LED, maar niet de
+  zonelengtes waar ze bij horen. Heeft een zone bij de start van de engine een andere lengte
+  dan toen je de kleuren koos, dan staan de kleuren van de zones erna zoveel LED's verschoven.
+  Dat gebeurt bij de gesimuleerde apparaten na elke herstart van de engine (ze beginnen weer
+  met hun eerste lengte), en bij OpenRGB als het een lengte vergeet of als je die verandert
+  terwijl de engine niet draait. Kies de kleuren van die zones dan opnieuw.
 - **Een ring of zone kiezen:** klik in het voorbeeld op de naam van een zone, bijv. "Outer
   ring" van een fan of een kanaal van een controller. Alle LED's van die zone zijn dan
   geselecteerd in de per-LED-editor, en de kleur die je kiest geldt alleen voor die zone.

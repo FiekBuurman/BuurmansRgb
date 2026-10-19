@@ -104,7 +104,10 @@
   je ziet welke LED waar zit
 - Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
   OpenRGB ze na een herstart vergeet; dan houden ook de gesimuleerde apparaten een ingestelde
-  lengte na een herstart van de engine (nu alleen tot de engine stopt)
+  lengte na een herstart van de engine (nu alleen tot de engine stopt). Bewaar bij de
+  per-LED-kleuren ook de zonelengtes waarvoor ze gekozen zijn, zodat de kleuren ook bij de
+  eerste ontdekking na een start meeschuiven; nu staan ze verschoven als een zone dan een
+  andere lengte heeft (zie README, "Let op bij per-LED-kleuren")
 - De lengte van een zone met een schuif of met + en − instellen, met het voorbeeld dat direct
   meegroeit; nu typ je het aantal en kies je "Toepassen"
 - OpenRGB.NET bijwerken zodra het de nieuwere apparaattypes kent (storage, case, microphone,
