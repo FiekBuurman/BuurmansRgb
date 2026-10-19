@@ -464,5 +464,5 @@ internal sealed class LightingController : IDisposable
 
     private DeviceOutput KnownOutputLocked(string deviceId) =>
         _outputs.Find(deviceId)
-            ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+            ?? throw DeviceErrors.Unknown(deviceId);
 }

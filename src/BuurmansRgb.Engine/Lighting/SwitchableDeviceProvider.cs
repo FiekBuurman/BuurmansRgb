@@ -101,7 +101,7 @@ internal class SwitchableDeviceProvider : IDynamicDeviceProvider
         {
             if (!IsEnabled)
             {
-                throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+                throw DeviceErrors.Unknown(deviceId);
             }
 
             inner.ResizeZone(deviceId, zoneIndex, ledCount);

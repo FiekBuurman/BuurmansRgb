@@ -175,11 +175,9 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
             }
         }
 
-        throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+        throw DeviceErrors.Unknown(deviceId);
     }
 
     private RgbColor[] GetBufferLocked(string deviceId) =>
-        _leds.TryGetValue(deviceId, out var buffer)
-            ? buffer
-            : throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+        _leds.TryGetValue(deviceId, out var buffer) ? buffer : throw DeviceErrors.Unknown(deviceId);
 }
