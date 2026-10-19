@@ -24,6 +24,29 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task SetLedColorsAsync_StoresTheColorsOfTheDevice()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        using var api = new EngineApi(_lighting);
+
+        await api.SetLedColorsAsync("simulated-fan", 1, [new RgbColor(1, 2, 3)], TestContext.Current.CancellationToken);
+
+        var colors = await api.GetLedColorsAsync("simulated-fan", TestContext.Current.CancellationToken);
+        Assert.Equal(12, colors.Count);
+        Assert.Equal(new RgbColor(1, 2, 3), colors[1]);
+    }
+
+    [Fact]
+    public async Task SetLedColorsAsync_NoColors_Throws()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        using var api = new EngineApi(_lighting);
+
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => api.SetLedColorsAsync("simulated-fan", 0, null!, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task FrameRendered_ForwardsLightingFrames()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);

@@ -63,6 +63,16 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
+        Task.FromResult(_lighting.GetLedColors(deviceId));
+
+    public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        _lighting.SetLedColors(deviceId, firstLed, colors);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         _lighting.Rendered -= OnRendered;
