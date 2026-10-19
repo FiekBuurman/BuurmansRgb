@@ -1,0 +1,23 @@
+using BuurmansRgb.Core;
+
+namespace BuurmansRgb.Providers.OpenRgb;
+
+// One connection to the OpenRGB SDK server. The calls may be made from several threads; any of
+// them throws once the server is gone. Events are raised on a background thread.
+internal interface IOpenRgbConnection : IDisposable
+{
+    // Raised once when the server closes the connection or stops.
+    event EventHandler? Closed;
+
+    // Raised when the server rescanned its devices; the indexes may have shifted.
+    event EventHandler? DeviceListChanged;
+
+    int ProtocolVersion { get; }
+
+    Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct);
+
+    // Lets the device take colors from the SDK: OpenRGB picks its Direct or Custom mode.
+    void SetCustomMode(int deviceIndex);
+
+    void UpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors);
+}
