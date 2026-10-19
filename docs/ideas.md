@@ -118,3 +118,16 @@
   zonenaam om op te klikken), bijv. met een knop "Alles selecteren"
 - In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
   na het herladen nog de oude lengte); nu staat er dan gewoon weer de oude lengte
+- Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
+  uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
+  als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
+- De namen van de LED's uit OpenRGB (bijv. "Key: Escape") meegeven, zodat het voorbeeld de
+  toets als tooltip of op de toets zelf kan tonen en een schermlezer de toets kan noemen
+- Brede toetsen (spatiebalk, Enter, Shift) breder tekenen; de matrix-map van OpenRGB geeft
+  alleen een vakje per toets, dus dan zou een eigen indeling per toetsenbordtype nodig zijn
+- In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
+  van een reeks in LED-volgorde
+- Eigen types en iconen voor muismat, headsetstandaard, speaker en gamepad (OpenRGB kent ze);
+  nu staan ze als "overig" in de lijst
+- In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
+  link naar de lijst van OpenRGB; nu staat dat alleen in `README.md`
