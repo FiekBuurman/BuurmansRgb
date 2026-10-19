@@ -131,3 +131,6 @@
   nu staan ze als "overig" in de lijst
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `README.md`
+- Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
+  testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
+  gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
