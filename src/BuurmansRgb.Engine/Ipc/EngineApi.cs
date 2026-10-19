@@ -26,11 +26,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
 
-    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default)
-    {
-        var lighting = _lighting.GetLighting(deviceId);
-        return Task.FromResult(new LightingInfo(lighting.Color, lighting.Brightness, lighting.EffectId));
-    }
+    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
+        Task.FromResult(_lighting.GetLighting(deviceId).ToInfo());
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
 
