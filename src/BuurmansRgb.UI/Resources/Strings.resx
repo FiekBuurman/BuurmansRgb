@@ -27,6 +27,18 @@
   <data name="DeviceDetails" xml:space="preserve">
     <value>{0} LED's</value>
   </data>
+  <data name="DeviceDetailsZones" xml:space="preserve">
+    <value>{0} LED's in {1} zones</value>
+  </data>
+  <data name="DeviceDetailsWithType" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="DeviceType_Motherboard" xml:space="preserve">
+    <value>Moederbord</value>
+  </data>
+  <data name="DeviceType_Ram" xml:space="preserve">
+    <value>RAM</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>
