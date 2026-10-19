@@ -262,6 +262,16 @@ behuizing) zijn gebouwd en getest zonder hardware (nepdata van OpenRGB en een kl
 SDK-server). Ook hier vragen de vier criteria hierboven echte hardware; die test de gebruiker
 zelf, zie "Fans, case-LED en ARGB-strips" in `README.md`.
 
+Stand taak 8 (toetsenbord, muis en headset): iconen en Nederlandse typenamen ("Toetsenbord",
+"Muis", "Headset"), de matrix-map van OpenRGB als `LedMatrix` bij de zone (gelezen van de
+SDK-server, met vakjes zonder toets en vakjes buiten de zone als gat), een voorbeeld dat elke
+toets op zijn plek tekent en meekrimpt in een smal venster, en gesimuleerde apparaten
+(toetsenbord van 104 toetsen met matrix-map, muis met vier zones, headset met twee zones) zijn
+gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine SDK-server). Een headset
+die OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen driver. Ook
+hier vragen de vier criteria hierboven echte hardware; die test de gebruiker zelf, zie
+"Toetsenbord, muis en headset" in `README.md`.
+
 ## Risico's en aandachtspunten
 
 Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; sluit die af voordat je test.
