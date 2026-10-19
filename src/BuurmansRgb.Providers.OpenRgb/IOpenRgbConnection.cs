@@ -6,11 +6,14 @@ namespace BuurmansRgb.Providers.OpenRgb;
 // them throws once the server is gone. Events are raised on a background thread.
 internal interface IOpenRgbConnection : IDisposable
 {
-    // Raised once when the server closes the connection or stops.
+    // Raised once when the server closes the connection or stops. It may happen before anyone
+    // subscribed, so check IsClosed after subscribing.
     event EventHandler? Closed;
 
     // Raised when the server rescanned its devices; the indexes may have shifted.
     event EventHandler? DeviceListChanged;
+
+    bool IsClosed { get; }
 
     int ProtocolVersion { get; }
 

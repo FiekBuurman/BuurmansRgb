@@ -17,6 +17,9 @@ internal sealed class FakeOpenRgbServer : IOpenRgbConnector
 
     public bool CloseWhileLoadingDevices { get; set; }
 
+    // The connection reports IsClosed from the start, but raised Closed before anyone listened.
+    public bool CloseBeforeSubscribing { get; set; }
+
     public int ConnectCount { get; private set; }
 
     public List<(int Index, RgbColor[] Colors)> Updates { get; } = [];
@@ -35,7 +38,7 @@ internal sealed class FakeOpenRgbServer : IOpenRgbConnector
             return Task.FromException<IOpenRgbConnection>(new TimeoutException("Could not connect to OpenRGB"));
         }
 
-        var connection = new FakeOpenRgbConnection(this);
+        var connection = new FakeOpenRgbConnection(this, CloseBeforeSubscribing);
         _connections.Add(connection);
         return Task.FromResult<IOpenRgbConnection>(connection);
     }
@@ -50,13 +53,15 @@ internal sealed class FakeOpenRgbServer : IOpenRgbConnector
     }
 }
 
-internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server) : IOpenRgbConnection
+internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool closedSilently = false) : IOpenRgbConnection
 {
+    private bool _broken;
+
     public event EventHandler? Closed;
 
     public event EventHandler? DeviceListChanged;
 
-    public bool IsClosed { get; private set; }
+    public bool IsClosed { get; private set; } = closedSilently;
 
     public bool IsDisposed { get; private set; }
 
@@ -99,6 +104,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server) : IOpenRgb
         if (!IsClosed)
         {
             IsClosed = true;
+            _broken = true;
             Closed?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -110,7 +116,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server) : IOpenRgb
     private void ThrowIfGone()
     {
         ObjectDisposedException.ThrowIf(IsDisposed, this);
-        if (IsClosed)
+        if (_broken)
         {
             throw new SocketException((int)SocketError.ConnectionAborted);
         }

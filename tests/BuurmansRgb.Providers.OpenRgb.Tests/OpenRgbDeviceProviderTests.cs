@@ -239,6 +239,17 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task ClosedBeforeSubscribing_DropsTheConnection()
+    {
+        _server.CloseBeforeSubscribing = true;
+
+        Assert.Empty(await ConnectAsync());
+
+        Assert.True(_server.LastConnection.IsDisposed);
+        Assert.Equal(2, _devicesChanged);
+    }
+
+    [Fact]
     public async Task Dispose_ClosesTheConnectionAndStopsTrying()
     {
         await ConnectAsync();

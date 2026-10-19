@@ -179,6 +179,11 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
             var connected = connection;
             connection.Closed += (_, _) => EnqueueDrop(connected);
             connection.DeviceListChanged += (_, _) => Enqueue(token => ReloadAsync(connected, token));
+            if (connection.IsClosed)
+            {
+                EnqueueDrop(connected);
+            }
+
             devices = await LoadDevicesAsync(connection, ct).ConfigureAwait(false);
         }
         catch (Exception exception) when (!ct.IsCancellationRequested)
