@@ -24,6 +24,7 @@ public sealed class DevicePreviewViewModelTests
             preview.Zones.Select(zone => (zone.Name, zone.FirstLed, zone.LedCount)));
         Assert.All(preview.Zones, zone => Assert.True(zone.ShowsHeader));
         Assert.Equal(["6 LED's", "1 LED", Strings.ZoneWithoutLedsResizable], preview.Zones.Select(zone => zone.Details));
+        Assert.Equal("RGB header · 1 LED", preview.Zones[1].Header);
     }
 
     [Fact]

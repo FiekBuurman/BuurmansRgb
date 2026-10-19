@@ -42,6 +42,9 @@
   <data name="ZoneWithoutLedsResizable" xml:space="preserve">
     <value>Geen LED's: stel in OpenRGB in hoeveel LED's hierop zitten</value>
   </data>
+  <data name="ZoneHeader" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
   <data name="ZoneOtherLeds" xml:space="preserve">
     <value>Overige LED's</value>
   </data>

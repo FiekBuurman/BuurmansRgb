@@ -23,6 +23,8 @@ public sealed partial class ZonePreviewViewModel(RgbZone zone, int firstLed, int
         : zone.Resizable ? Strings.ZoneWithoutLedsResizable
         : Strings.ZoneWithoutLeds;
 
+    public string Header => UiText.Format(Strings.ZoneHeader, Name, Details);
+
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; private set; } = new RgbColor[ledCount];
 
