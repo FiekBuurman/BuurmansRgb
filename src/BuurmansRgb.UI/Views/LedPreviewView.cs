@@ -6,33 +6,34 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
 
-// Draws every LED as a dot, wrapping to the available width. With a Matrix, such as the key map
-// of a keyboard, every LED is a key at its own position instead, shrunk when the matrix is wider
-// than the available width. One element per zone instead of one per LED keeps a 104-key keyboard
+// Draws the LEDs of a zone in one of two ways. Without a Matrix, such as for a strip or a fan,
+// every LED is a dot, wrapping to the available width. With a Matrix, such as the key map of a
+// keyboard, every LED is a key at its own position, shrunk when the matrix is wider than the
+// available width. One element per zone instead of one per LED keeps a 104-key keyboard
 // cheap to redraw. A click on an LED runs ClickCommand with a LedHit; the LEDs SelectionFirst to
 // SelectionLast get a ring.
-public sealed class LedStripView : FrameworkElement
+public sealed class LedPreviewView : FrameworkElement
 {
     public static readonly DependencyProperty ColorsProperty = DependencyProperty.Register(
         nameof(Colors),
         typeof(IReadOnlyList<RgbColor>),
-        typeof(LedStripView),
+        typeof(LedPreviewView),
         new FrameworkPropertyMetadata(Array.Empty<RgbColor>(), FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty MatrixProperty = DependencyProperty.Register(
         nameof(Matrix),
         typeof(LedMatrix),
-        typeof(LedStripView),
+        typeof(LedPreviewView),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty SelectionFirstProperty = DependencyProperty.Register(
-        nameof(SelectionFirst), typeof(int), typeof(LedStripView), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.AffectsRender));
+        nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty SelectionLastProperty = DependencyProperty.Register(
-        nameof(SelectionLast), typeof(int), typeof(LedStripView), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.AffectsRender));
+        nameof(SelectionLast), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(-1, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty ClickCommandProperty = DependencyProperty.Register(
-        nameof(ClickCommand), typeof(ICommand), typeof(LedStripView), new PropertyMetadata(null, OnClickCommandChanged));
+        nameof(ClickCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null, OnClickCommandChanged));
 
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
@@ -162,7 +163,7 @@ public sealed class LedStripView : FrameworkElement
     }
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
-        ((LedStripView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
+        ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
 
     private static int ColumnsFor(double width, int count)
     {
