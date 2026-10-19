@@ -27,6 +27,15 @@ public sealed class WaveEffectTests
         RgbAssert.Close([Orange.Scale(0.5), Orange, Orange.Scale(0.5), RgbColor.Black], leds);
     }
 
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Constructor_SpeedNotFinite_Throws(double wavesPerSecond)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new WaveEffect(Orange, wavesPerSecond));
+    }
+
     [Fact]
     public void IsAnimated_IsTrue()
     {

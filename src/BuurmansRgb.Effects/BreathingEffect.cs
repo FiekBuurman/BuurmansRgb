@@ -27,7 +27,7 @@ public sealed class BreathingEffect : IEffect
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        var level = 0.5 - 0.5 * Math.Cos(2.0 * Math.PI * (time / Period));
+        var level = EffectMath.RaisedCosine(time / Period);
         leds.Fill(Color.Scale(level));
     }
 }

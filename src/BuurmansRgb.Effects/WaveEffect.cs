@@ -10,7 +10,7 @@ public sealed class WaveEffect(RgbColor color, double wavesPerSecond = WaveEffec
 
     public RgbColor Color { get; } = color;
 
-    public double WavesPerSecond { get; } = wavesPerSecond;
+    public double WavesPerSecond { get; } = EffectMath.FiniteSpeed(wavesPerSecond);
 
     public bool IsAnimated => true;
 
@@ -19,7 +19,8 @@ public sealed class WaveEffect(RgbColor color, double wavesPerSecond = WaveEffec
         var shift = time.TotalSeconds * WavesPerSecond;
         for (var i = 0; i < leds.Length; i++)
         {
-            var level = 0.5 + 0.5 * Math.Cos(2.0 * Math.PI * (i / (double)leds.Length - shift));
+            // Half a phase ahead, so the first LED is brightest at time zero.
+            var level = EffectMath.RaisedCosine(i / (double)leds.Length - shift + 0.5);
             leds[i] = Color.Scale(level);
         }
     }

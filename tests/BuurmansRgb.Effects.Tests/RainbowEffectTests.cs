@@ -45,6 +45,15 @@ public sealed class RainbowEffectTests
         Assert.Equal(start, later);
     }
 
+    [Theory]
+    [InlineData(double.NaN)]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NegativeInfinity)]
+    public void Constructor_SpeedNotFinite_Throws(double roundsPerSecond)
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RainbowEffect(roundsPerSecond));
+    }
+
     [Fact]
     public void IsAnimated_IsTrue()
     {

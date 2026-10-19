@@ -7,7 +7,7 @@ public sealed class RainbowEffect(double roundsPerSecond = RainbowEffect.Default
 {
     public const double DefaultRoundsPerSecond = 0.2;
 
-    public double RoundsPerSecond { get; } = roundsPerSecond;
+    public double RoundsPerSecond { get; } = EffectMath.FiniteSpeed(roundsPerSecond);
 
     public bool IsAnimated => true;
 
