@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using BuurmansRgb.Core;
+using BuurmansRgb.Providers.OpenRgb.OpenRgbNet;
 
 namespace BuurmansRgb.Providers.OpenRgb;
 
@@ -34,6 +35,10 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
         _retryTimer = timeProvider.CreateTimer(
             _ => Enqueue(ConnectAsync), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
+
+    // The OpenRGB SDK server on this pc, at its default port 6742.
+    public static OpenRgbDeviceProvider ForLocalServer() =>
+        new(OpenRgbNetConnector.ForLocalServer(), TimeProvider.System, RetryDelay);
 
     public string Name => "OpenRGB";
 
