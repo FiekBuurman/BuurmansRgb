@@ -145,8 +145,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
-            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, Resizable: true)]),
-            new("board", "Motherboard", DeviceType.Motherboard, 4, [new RgbZone("Mainboard", 4, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]),
+            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
         ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);

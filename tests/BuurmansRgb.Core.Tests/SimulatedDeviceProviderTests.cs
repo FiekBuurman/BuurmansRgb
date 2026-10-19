@@ -30,7 +30,7 @@ public sealed class SimulatedDeviceProviderTests
         var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
 
         var gpu = devices.Single(device => device.Type == DeviceType.Gpu);
-        Assert.Equal([new RgbZone("Light bar", 12, Resizable: false), new RgbZone("Logo", 1, Resizable: false)], gpu.Zones);
+        Assert.Equal([RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)], gpu.Zones);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public sealed class SimulatedDeviceProviderTests
 
         var motherboard = devices.Single(device => device.Type == DeviceType.Motherboard);
         Assert.Equal(
-            [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)],
+            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)],
             motherboard.Zones);
     }
 

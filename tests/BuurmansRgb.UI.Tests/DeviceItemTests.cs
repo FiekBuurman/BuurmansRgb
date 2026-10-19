@@ -34,7 +34,7 @@ public sealed class DeviceItemTests
     public void For_MotherboardWithZones_ShowsTypeLedsAndZones()
     {
         var motherboard = new DeviceInfo("board", "ASUS TUF GAMING B650-PLUS", DeviceType.Motherboard, 7,
-            [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]);
+            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
 
         var item = DeviceItem.For(motherboard);
 
@@ -58,7 +58,7 @@ public sealed class DeviceItemTests
     public void For_GpuWithLightBarAndLogo_ShowsTypeLedsAndZones()
     {
         var gpu = new DeviceInfo("gpu", "ASUS ROG STRIX RTX 4080", DeviceType.Gpu, 13,
-            [new RgbZone("Light bar", 12, Resizable: false), new RgbZone("Logo", 1, Resizable: false)]);
+            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]);
 
         var item = DeviceItem.For(gpu);
 

@@ -43,7 +43,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
-            [new RgbZone("Mainboard", 2, Resizable: false), new RgbZone("ARGB header", 2, Resizable: true)])];
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 2, 0, 120)])];
         Api.RaiseDevicesChanged();
 
         Click(viewModel, "board", 1);

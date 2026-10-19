@@ -12,7 +12,7 @@ public sealed class DevicePreviewViewModelTests
 
     // Six LEDs on the board, a 12 V header of one LED and an empty addressable header.
     private static readonly DeviceInfo Motherboard = new("board", "Motherboard", DeviceType.Motherboard, 7,
-        [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]);
+        [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
 
     [Fact]
     public void Zones_FollowEachOtherInLedOrder()
@@ -31,7 +31,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
-        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [new RgbZone("DRAM", 8, Resizable: false)]);
+        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [RgbZone.Fixed("DRAM", 8)]);
         var preview = new DevicePreviewViewModel(device);
 
         var zone = Assert.Single(preview.Zones);
@@ -43,7 +43,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [new RgbZone("Logo", 0, Resizable: false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [RgbZone.Fixed("Logo", 0)]);
 
         var zone = Assert.Single(new DevicePreviewViewModel(device).Zones);
 
@@ -54,7 +54,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_ClaimingMoreLedsThanTheDeviceHas_AreCutShort()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [new RgbZone("A", 2, false), new RgbZone("B", 5, false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 5)]);
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -64,7 +64,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_LedsWithoutZone_GetAZoneOfTheirOwn()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [new RgbZone("A", 2, false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
 
         var preview = new DevicePreviewViewModel(device);
 

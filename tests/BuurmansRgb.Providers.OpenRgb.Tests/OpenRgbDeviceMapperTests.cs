@@ -24,7 +24,7 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Equal(expectedType, mapped.Device.Type);
         Assert.Equal(4, mapped.Device.LedCount);
         Assert.Equal(
-            [new RgbZone("Aura LEDs", 4, Resizable: false), new RgbZone("Aura Addressable 1", 0, Resizable: true)],
+            [RgbZone.Fixed("Aura LEDs", 4), new RgbZone("Aura Addressable 1", 0, 0, 120)],
             mapped.Device.Zones);
     }
 

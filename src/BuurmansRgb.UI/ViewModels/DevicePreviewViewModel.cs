@@ -59,7 +59,7 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
         if (next < device.LedCount)
         {
             var rest = device.LedCount - next;
-            parts.Add((new RgbZone(parts.Count == 0 ? device.Name : Strings.ZoneOtherLeds, rest, Resizable: false), next, rest));
+            parts.Add((RgbZone.Fixed(parts.Count == 0 ? device.Name : Strings.ZoneOtherLeds, rest), next, rest));
         }
 
         var showsNames = parts.Count > 1;
