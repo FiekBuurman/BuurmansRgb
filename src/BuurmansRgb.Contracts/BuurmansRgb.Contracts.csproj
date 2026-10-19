@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BuurmansRgb.Core\BuurmansRgb.Core.csproj" />
   </ItemGroup>
 
