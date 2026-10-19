@@ -6,8 +6,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace BuurmansRgb.UI.ViewModels;
 
 // Colors, selection and clicks count from the first LED of the device. The view shows them per
-// zone: the zones show the selection and take the clicks.
-public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<LedClick>? onLedClicked = null)
+// zone: the zones show the selection and hand what the user does on to the actions.
+public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewActions? actions = null)
     : ObservableObject
 {
     public string DeviceId { get; } = device.Id;
@@ -16,8 +16,7 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
 
     public DeviceType Type { get; } = device.Type;
 
-    public IReadOnlyList<ZonePreviewViewModel> Zones { get; } =
-        CreateZones(device, hit => onLedClicked?.Invoke(new LedClick(device.Id, hit.Index, hit.Extend)));
+    public IReadOnlyList<ZonePreviewViewModel> Zones { get; } = CreateZones(device, actions);
 
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; set; } = new RgbColor[device.LedCount];
@@ -44,25 +43,25 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
 
     // The zones follow each other in LED order. Zones that claim more LEDs than the device has are
     // cut short, and LEDs that no zone claims get a zone of their own, so every LED shows once.
-    // A zone hands on its clicks counted from the start of the device.
-    private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, Action<LedHit> onLedClicked)
+    private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, IPreviewActions? actions)
     {
-        List<(RgbZone Zone, int FirstLed, int LedCount)> parts = [];
+        List<ZoneLayout> layouts = [];
         var next = 0;
-        foreach (var zone in device.Zones)
+        for (var index = 0; index < device.Zones.Count; index++)
         {
+            var zone = device.Zones[index];
             var count = Math.Clamp(zone.LedCount, 0, device.LedCount - next);
-            parts.Add((zone, next, count));
+            layouts.Add(new(zone, index, next, count));
             next += count;
         }
 
         if (next < device.LedCount)
         {
             var rest = device.LedCount - next;
-            parts.Add((RgbZone.Fixed(parts.Count == 0 ? device.Name : Strings.ZoneOtherLeds, rest), next, rest));
+            layouts.Add(new(RgbZone.Fixed(layouts.Count == 0 ? device.Name : Strings.ZoneOtherLeds, rest), ZoneLayout.NoZone, next, rest));
         }
 
-        var showsNames = parts.Count > 1;
-        return [.. parts.Select(part => new ZonePreviewViewModel(device.Name, part.Zone, part.FirstLed, part.LedCount, showsNames, onLedClicked))];
+        var showsNames = layouts.Count > 1;
+        return [.. layouts.Select(layout => new ZonePreviewViewModel(device.Id, device.Name, layout, showsNames, actions))];
     }
 }

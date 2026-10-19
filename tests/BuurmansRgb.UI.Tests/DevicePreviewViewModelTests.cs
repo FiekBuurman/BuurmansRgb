@@ -132,11 +132,11 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void ClickLed_InAZone_CountsFromTheStartOfTheDevice()
     {
-        LedClick? clicked = null;
-        var preview = new DevicePreviewViewModel(Motherboard, click => clicked = click);
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions);
 
         preview.Zones[1].ClickLedCommand.Execute(new LedHit(0, Extend: true));
 
-        Assert.Equal(new LedClick("board", 6, Extend: true), clicked);
+        Assert.Equal([new LedClick("board", 6, Extend: true)], actions.Requests);
     }
 }

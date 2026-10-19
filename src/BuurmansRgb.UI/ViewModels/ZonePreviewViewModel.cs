@@ -5,33 +5,49 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The LEDs FirstLed to FirstLed + LedCount of a device, such as one header of a motherboard.
-// Colors, selection and clicks count from the start of the zone; the device counts from its own.
-public sealed partial class ZonePreviewViewModel(string deviceName, RgbZone zone, int firstLed, int ledCount, bool showsName, Action<LedHit> onLedClicked)
-    : ObservableObject
+// The LEDs FirstLed to FirstLed + LedCount of a device, such as one header of a motherboard or one
+// ring of a fan. Colors, selection and clicks count from the start of the zone; what it hands on
+// to the actions counts from the start of the device.
+public sealed partial class ZonePreviewViewModel : ObservableObject
 {
-    public string Name { get; } = zone.Name;
+    private readonly string _deviceId;
+    private readonly ZoneLayout _layout;
+    private readonly IPreviewActions? _actions;
 
-    public int FirstLed { get; } = firstLed;
+    public ZonePreviewViewModel(string deviceId, string deviceName, ZoneLayout layout, bool showsName, IPreviewActions? actions)
+    {
+        _deviceId = deviceId;
+        _layout = layout;
+        _actions = actions;
+        Colors = new RgbColor[layout.LedCount];
 
-    public int LedCount { get; } = ledCount;
+        // A device with one zone needs no zone name; a zone without LEDs always says so.
+        ShowsHeader = showsName || layout.LedCount == 0;
+        Details = layout.LedCount > 0 ? UiText.LedCount(layout.LedCount)
+            : layout.Zone.Resizable ? Strings.ZoneWithoutLedsResizable
+            : Strings.ZoneWithoutLeds;
 
-    // A device with one zone needs no zone name; a zone without LEDs always says so.
-    public bool ShowsHeader { get; } = showsName || ledCount == 0;
+        // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
+        AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, Name) : deviceName;
+    }
 
-    public string Details { get; } = ledCount > 0 ? UiText.LedCount(ledCount)
-        : zone.Resizable ? Strings.ZoneWithoutLedsResizable
-        : Strings.ZoneWithoutLeds;
+    public string Name => _layout.Zone.Name;
+
+    public int FirstLed => _layout.FirstLed;
+
+    public int LedCount => _layout.LedCount;
+
+    public bool ShowsHeader { get; }
+
+    public string Details { get; }
 
     public string Header => UiText.Format(Strings.ZoneHeader, Name, Details);
 
-    // What a screen reader calls the LED strip. Zone names such as "DRAM" repeat across devices,
-    // so the device name always comes first.
-    public string AccessibleName { get; } =
-        showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, zone.Name) : deviceName;
+    // What a screen reader calls the LED strip.
+    public string AccessibleName { get; }
 
     [ObservableProperty]
-    public partial IReadOnlyList<RgbColor> Colors { get; private set; } = new RgbColor[ledCount];
+    public partial IReadOnlyList<RgbColor> Colors { get; private set; }
 
     [ObservableProperty]
     public partial int SelectionFirst { get; private set; } = -1;
@@ -56,5 +72,5 @@ public sealed partial class ZonePreviewViewModel(string deviceName, RgbZone zone
     }
 
     [RelayCommand]
-    private void ClickLed(LedHit hit) => onLedClicked(hit with { Index = FirstLed + hit.Index });
+    private void ClickLed(LedHit hit) => _actions?.ClickLed(new LedClick(_deviceId, FirstLed + hit.Index, hit.Extend));
 }
