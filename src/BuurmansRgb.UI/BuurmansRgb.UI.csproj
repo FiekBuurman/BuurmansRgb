@@ -24,7 +24,11 @@
   </ItemGroup>
 
   <!-- XAML uses the generated Strings class, but WPF compiles a temporary assembly for XAML before
-       the resources are generated. Generate them first and hand the class to that compile. -->
+       the resources are generated. Generate them first and hand the class to that compile.
+       _GeneratedCodeFiles is internal to the WPF targets (verified with SDK 10.0.302). If an SDK
+       update breaks it, the build fails with CS0234 "'Resources' does not exist in the namespace
+       'BuurmansRgb.UI'" in the *_wpftmp project;
+       a markup extension that reads Strings.ResourceManager would then replace x:Static. -->
   <Target Name="IncludeStringsInMarkupCompile" BeforeTargets="GenerateTemporaryTargetAssembly" DependsOnTargets="PrepareResourceNames;ResGen">
     <ItemGroup>
       <_GeneratedCodeFiles Include="$(IntermediateOutputPath)Strings.Designer.cs" />
