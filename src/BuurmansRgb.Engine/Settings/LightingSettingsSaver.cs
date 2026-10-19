@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using BuurmansRgb.Engine.Lighting;
-using Timer = System.Threading.Timer;
 
 namespace BuurmansRgb.Engine.Settings;
 
@@ -11,23 +10,25 @@ internal sealed class LightingSettingsSaver : IDisposable
     private readonly ISettingsStore _store;
     private readonly LightingController _lighting;
     private readonly TimeSpan _delay;
-    private readonly Timer _timer;
+    private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private bool _pending;
     private bool _disposed;
 
-    public LightingSettingsSaver(ISettingsStore store, LightingController lighting, TimeSpan delay)
+    public LightingSettingsSaver(ISettingsStore store, LightingController lighting, TimeSpan delay, TimeProvider? timeProvider = null)
     {
         _store = store;
         _lighting = lighting;
         _delay = delay;
-        _timer = new Timer(_ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
+            _ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _lighting.LightingChanged += OnLightingChanged;
     }
 
     public static TimeSpan DefaultDelay { get; } = TimeSpan.FromSeconds(1);
 
-    // Writes a pending change right away, so nothing is lost when the engine exits.
+    // Writes a pending change right away, so nothing is lost when the engine exits. A timer
+    // callback that is still running holds the lock, so this waits for it and does not save twice.
     public void Dispose()
     {
         _lighting.LightingChanged -= OnLightingChanged;
@@ -41,14 +42,7 @@ internal sealed class LightingSettingsSaver : IDisposable
             _disposed = true;
         }
 
-        using (var callbacksDone = new ManualResetEvent(initialState: false))
-        {
-            if (_timer.Dispose(callbacksDone))
-            {
-                callbacksDone.WaitOne();
-            }
-        }
-
+        _timer.Dispose();
         SavePending();
     }
 
