@@ -28,8 +28,9 @@ alleen nuget.org. Daar staat ook `MessagePack` vastgepind op een versie zonder b
 lek, omdat StreamJsonRpc een oudere versie meebrengt.
 
 Per project een testproject in `tests/`: `Core`, `Contracts` (IPC over een echte named
-pipe), `Effects`, `Engine` (instellingen, verlichting, IPC-server) en `UI` (viewmodels
-met een nep-engine).
+pipe), `Effects`, `Engine` (instellingen, verlichting, IPC-server), `Providers.OpenRgb`
+(de koppeling met OpenRGB, met een nep-server in het geheugen en een kleine SDK-server op
+een loopback-socket, dus zonder OpenRGB) en `UI` (viewmodels met een nep-engine).
 
 ## Engine starten
 
@@ -55,6 +56,7 @@ dotnet run --project src/BuurmansRgb.Engine
     "color": "#FF8800",
     "brightness": 0.8,
     "effect": "static",
+    "simulatedDevices": true,
     "devices": {
       "simulated-fan": { "color": "#0000FF", "brightness": 0.5 }
     }
@@ -62,8 +64,9 @@ dotnet run --project src/BuurmansRgb.Engine
   ```
 
   `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is voorlopig alleen
-  `static`. Onder `devices` staan alleen apparaten met een eigen kleur; de rest volgt de
-  algemene waarden. Een ongeldig of onleesbaar bestand laat de engine ongemoeid en draait
+  `static`. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
+  van de engine), handig zodra de echte apparaten via OpenRGB werken. Onder `devices` staan
+  alleen apparaten met een eigen kleur; de rest volgt de algemene waarden. Een ongeldig of onleesbaar bestand laat de engine ongemoeid en draait
   dan op de standaardwaarden. Dat geldt ook als de map `%AppData%\BuurmansRgb` niet
   beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
@@ -72,13 +75,42 @@ dotnet run --project src/BuurmansRgb.Engine
   meldt het tray-icoon dat.
 - **Starten met Windows** zet `BuurmansRgb` in
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
-- In deze fase stuurt de engine alleen de gesimuleerde apparaten aan; je ziet de kleur
-  in het voorbeeld van de instellingen-app.
+- **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
+  OpenRGB. Zie "OpenRGB koppelen" hieronder.
 - **IPC:** de engine luistert op named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor
   de eigen Windows-gebruiker) met StreamJsonRpc. Het sessienummer zorgt dat twee ingelogde
   gebruikers elk hun eigen engine hebben, net als de mutex. De interface is `IEngineApi` in
   `BuurmansRgb.Contracts`. Na het sluiten van de laatste instellingen-app geeft de engine
   zijn ongebruikte geheugen terug aan Windows.
+
+## OpenRGB koppelen
+
+De echte hardware loopt via de SDK-server van [OpenRGB](https://openrgb.org). BuurmansRgb
+zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM en GPU.
+
+1. Sluit fabrikantsoftware af die dezelfde LED's aanstuurt (iCUE, Armoury Crate, ...).
+2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
+   OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
+3. Start de engine (de volgorde maakt niet uit). Binnen enkele seconden staan de apparaten
+   van OpenRGB in de instellingen-app, onder de gesimuleerde. Een open venster werkt de
+   lijst vanzelf bij.
+
+- Bij het verbinden zet BuurmansRgb elk apparaat in de modus "Direct" of "Custom" (OpenRGB
+  kiest welke) en stuurt het de opgeslagen kleur. Een apparaat zonder zo'n modus staat wel
+  in de lijst, maar volgt de kleur misschien niet.
+- **OpenRGB stopt of is er nog niet:** de engine probeert elke 5 seconden opnieuw te
+  verbinden en stuurt daarna de kleuren opnieuw. De apparaten verdwijnen zolang uit de
+  lijst; hun eigen kleur blijft bewaard.
+- In de clientlijst van OpenRGB staat BuurmansRgb twee keer: `BuurmansRgb` stuurt de
+  kleuren, `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt naar
+  apparaten (OpenRGB.NET 3.1.1 meldt dat zelf niet goed).
+- Een OpenRGB-apparaat heet in `settings.json` bijvoorbeeld
+  `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam plus een code uit de locatie en het
+  serienummer, zodat het na een herstart van OpenRGB of de pc hetzelfde apparaat blijft.
+- ARGB-headers op het moederbord hebben in OpenRGB vaak 0 LED's tot je de zonegrootte daar
+  instelt (dat komt in taak 7 in BuurmansRgb zelf).
+- Meldingen over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken
+  met DebugView), zolang er nog geen logbestand is.
 
 ## Instellingen-app starten
 

@@ -208,7 +208,7 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 - [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI naast de gesimuleerde
 - [ ] Statische kleur komt aan op minstens één echt apparaat
 - [ ] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart
-- [ ] Gesimuleerde apparaten zijn uit te zetten in de instellingen
+- [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen
 
 ### Taak 4 – Effect-engine
 
