@@ -219,6 +219,39 @@ public sealed class LightingControllerAnimationTests : IDisposable
         Assert.Equal(expected, _controller.FramesPerSecond);
     }
 
+    // At the default 30 fps, half a frame later no tick would come yet.
+    [Fact]
+    public async Task FramesPerSecond_WhileAnimating_ChangesTheRunningTimer()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(EffectIds.Rainbow));
+
+        _controller.FramesPerSecond = LightingController.MaxFramesPerSecond;
+        _time.Advance(TimeSpan.FromSeconds(1.0 / LightingController.MaxFramesPerSecond));
+
+        await Eventually.TrueAsync(() => _provider.SetLedsCount == 2);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_WhileAnimating_AnimatesTheNewDevices()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        using var controller = new LightingController([dynamic], _time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(Uniform(EffectIds.Rainbow));
+        var devicesChanged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        controller.DevicesChanged += (_, _) => devicesChanged.TrySetResult();
+
+        dynamic.SetDevices(DynamicDeviceProvider.Device("new"));
+        await devicesChanged.Task.WaitAsync(TimeSpan.FromSeconds(5), Ct);
+        var first = dynamic.Leds["new"];
+        _time.Advance(Frame);
+
+        await Eventually.TrueAsync(() => !ReferenceEquals(first, dynamic.Leds["new"]));
+        Assert.NotEqual(first, dynamic.Leds["new"]);
+        Assert.True(controller.IsAnimating);
+    }
+
     [Fact]
     public async Task Dispose_StopsTheAnimationForGood()
     {
