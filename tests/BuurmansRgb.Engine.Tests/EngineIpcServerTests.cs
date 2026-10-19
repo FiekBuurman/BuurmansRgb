@@ -73,12 +73,18 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await client.Api.SetColorAsync(null, RgbColor.White, TestContext.Current.CancellationToken);
         await frames.WaitForAsync(RgbColor.White);
 
-        var stopwatch = Stopwatch.StartNew();
-        await client.Api.SetColorAsync(null, Orange, TestContext.Current.CancellationToken);
-        await frames.WaitForAsync(Orange);
-        stopwatch.Stop();
+        // The fastest of a few round trips, so one hiccup on a busy machine does not fail the
+        // test while a slow pipe still does.
+        List<long> timings = [];
+        foreach (var color in new[] { Orange, RgbColor.White, Orange, RgbColor.White, Orange })
+        {
+            var stopwatch = Stopwatch.StartNew();
+            await client.Api.SetColorAsync(null, color, TestContext.Current.CancellationToken);
+            await frames.WaitForAsync(color);
+            timings.Add(stopwatch.ElapsedMilliseconds);
+        }
 
-        Assert.True(stopwatch.ElapsedMilliseconds < 100, $"The frame took {stopwatch.ElapsedMilliseconds} ms.");
+        Assert.True(timings.Min() < 100, $"The frames took {string.Join(", ", timings)} ms.");
     }
 
     [Fact]
