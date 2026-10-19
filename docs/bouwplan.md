@@ -253,6 +253,15 @@ kaarten zonder "Direct"-modus, twee dezelfde kaarten en herstellen na het ontwak
 en getest zonder hardware. Ook hier vragen de vier criteria hierboven echte hardware; die test
 de gebruiker zelf, zie "Videokaart (GPU)" in `README.md`.
 
+Stand taak 7 (fans, case-LED en ARGB-strips): iconen en Nederlandse typenamen ("Ventilator",
+"LED-strip", "Behuizing"), het case-type van nieuwere OpenRGB-versies, de lengte van
+resizable zones instellen in de instellingen-app (via de engine naar OpenRGB of de
+gesimuleerde apparaten, met per-LED-kleuren die meeschuiven), een ring of andere zone kiezen
+door op de naam te klikken, en gesimuleerde apparaten (fan met twee ringen, ARGB-controller,
+behuizing) zijn gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine
+SDK-server). Ook hier vragen de vier criteria hierboven echte hardware; die test de gebruiker
+zelf, zie "Fans, case-LED en ARGB-strips" in `README.md`.
+
 ## Risico's en aandachtspunten
 
 Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; sluit die af voordat je test.
