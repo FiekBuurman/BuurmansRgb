@@ -33,9 +33,13 @@ met een nep-engine).
 
 ## Engine starten
 
-De engine draait zonder venster, alleen met een tray-icoon (rechtsonder bij de klok):
+De engine draait zonder venster, alleen met een tray-icoon (rechtsonder bij de klok).
+Engine en instellingen-app bouwen allebei naar `artifacts/app/<Debug|Release>/`, zodat de
+tray de instellingen-app naast de engine vindt. Bouw dus eerst de solution; alleen de
+engine bouwen neemt de instellingen-app niet mee:
 
 ```bash
+dotnet build BuurmansRgb.slnx
 dotnet run --project src/BuurmansRgb.Engine
 ```
 
@@ -78,9 +82,9 @@ dotnet run --project src/BuurmansRgb.Engine
 
 ## Instellingen-app starten
 
-De instellingen-app (`BuurmansRgb.UI`, WPF) komt bij het bouwen van de engine naast
-`BuurmansRgb.Engine.exe` te staan. Start hem via het tray-menu "Instellingen openen", of
-los:
+De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast
+`BuurmansRgb.Engine.exe` in `artifacts/app/<Debug|Release>/`. Start hem via het tray-menu
+"Instellingen openen", of los:
 
 ```bash
 dotnet run --project src/BuurmansRgb.UI

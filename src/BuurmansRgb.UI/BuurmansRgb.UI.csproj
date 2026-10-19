@@ -5,6 +5,8 @@
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <AssemblyName>BuurmansRgb.UI</AssemblyName>
+    <!-- Shared with BuurmansRgb.Engine, see Directory.Build.props. -->
+    <OutDir>$(AppOutputRoot)$(Configuration)\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>

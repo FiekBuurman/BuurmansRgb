@@ -10,6 +10,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <!-- LibraryImport generates its marshalling code as unsafe code. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Shared with BuurmansRgb.UI, see Directory.Build.props. -->
+    <OutDir>$(AppOutputRoot)$(Configuration)\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,23 +35,5 @@
     <ProjectReference Include="..\BuurmansRgb.Providers.Simulated\BuurmansRgb.Providers.Simulated.csproj" />
     <ProjectReference Include="..\BuurmansRgb.Providers.OpenRgb\BuurmansRgb.Providers.OpenRgb.csproj" />
   </ItemGroup>
-
-  <!-- The tray starts BuurmansRgb.UI.exe from the engine folder. The reference only makes the UI
-       build first; the engine does not use its code. CopySettingsApp copies the UI next to it. -->
-  <ItemGroup>
-    <ProjectReference Include="..\BuurmansRgb.UI\BuurmansRgb.UI.csproj" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-
-  <Target Name="CopySettingsApp" AfterTargets="Build">
-    <MSBuild Projects="..\BuurmansRgb.UI\BuurmansRgb.UI.csproj" Targets="GetTargetPath">
-      <Output TaskParameter="TargetOutputs" ItemName="_SettingsAppTargetPath" />
-    </MSBuild>
-    <ItemGroup>
-      <_SettingsAppFile Include="%(_SettingsAppTargetPath.RootDir)%(_SettingsAppTargetPath.Directory)**\*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(_SettingsAppFile)"
-          DestinationFiles="@(_SettingsAppFile->'$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')"
-          SkipUnchangedFiles="true" />
-  </Target>
 
 </Project>

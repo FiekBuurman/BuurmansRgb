@@ -3,8 +3,8 @@
 - Profielen per moment (gamen, werken, nacht)
 - Alle apparaten synchroon laten lopen
 - Eigen HID-providers voor apparaten die OpenRGB niet kent
-- `BuurmansRgb.UI.exe` ook in de publish-map van de engine zetten; nu kopieert alleen
-  `dotnet build` hem naast de engine
+- `BuurmansRgb.UI.exe` ook in de publish-map van de engine zetten; nu staan ze alleen na
+  `dotnet build` samen in `artifacts/app/`
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
   activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")
