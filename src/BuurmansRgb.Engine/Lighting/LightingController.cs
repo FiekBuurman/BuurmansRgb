@@ -242,6 +242,35 @@ internal sealed class LightingController : IDisposable
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Gives a resizable zone another length. The provider applies it, possibly in the background,
+    // and reports the device again through DevicesChanged; the lights follow then.
+    public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+    {
+        IResizableDeviceProvider provider;
+        lock (_gate)
+        {
+            var output = KnownOutputLocked(deviceId);
+            ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
+            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, output.Device.Zones.Count);
+            var zone = output.Device.Zones[zoneIndex];
+            if (!zone.Resizable || output.Provider is not IResizableDeviceProvider resizable)
+            {
+                throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
+            }
+
+            if (!zone.CanHold(ledCount))
+            {
+                throw new ArgumentOutOfRangeException(nameof(ledCount), ledCount,
+                    $"Zone '{zone.Name}' holds {zone.MinLedCount} to {zone.MaxLedCount} LEDs.");
+            }
+
+            provider = resizable;
+        }
+
+        // Outside the lock: a provider may report the change right away.
+        provider.ResizeZone(deviceId, zoneIndex, ledCount);
+    }
+
     // Copies the buffers, so the caller can convert them without holding the lock.
     public LightingOutput GetOutput()
     {
@@ -469,7 +498,9 @@ internal sealed class LightingController : IDisposable
         }
     }
 
-    private RgbDevice KnownDeviceLocked(string deviceId) =>
-        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)?.Device
+    private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
+
+    private DeviceOutput KnownOutputLocked(string deviceId) =>
+        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)
             ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
 }
