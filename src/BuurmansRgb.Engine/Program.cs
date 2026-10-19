@@ -21,7 +21,7 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
-        var host = new EngineHost(
+        using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             new LightingController([new SimulatedDeviceProvider()]));
 
