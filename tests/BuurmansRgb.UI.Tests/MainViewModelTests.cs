@@ -224,11 +224,11 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task DisposeAsync_ClosesConnection()
+    public async Task Dispose_ClosesConnection()
     {
         var viewModel = await ConnectAsync();
 
-        await viewModel.DisposeAsync();
+        viewModel.Dispose();
 
         Assert.True(_connector.Connection.IsDisposed);
     }

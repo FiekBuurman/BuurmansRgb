@@ -3,7 +3,7 @@ using StreamJsonRpc;
 
 namespace BuurmansRgb.Contracts.Tests;
 
-public sealed class EngineRpcTests : IAsyncDisposable
+public sealed class EngineRpcTests : IDisposable
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
 
@@ -12,13 +12,9 @@ public sealed class EngineRpcTests : IAsyncDisposable
     private JsonRpc? _server;
     private EngineConnection? _client;
 
-    public async ValueTask DisposeAsync()
+    public void Dispose()
     {
-        if (_client is not null)
-        {
-            await _client.DisposeAsync();
-        }
-
+        _client?.Dispose();
         _server?.Dispose();
     }
 

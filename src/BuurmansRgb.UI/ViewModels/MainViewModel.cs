@@ -13,7 +13,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // Engine events arrive on background threads and are handed to the thread that created this
 // view model. Property changes made while showing engine state are not sent back (_syncing).
-public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
+public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly IEngineConnector _connector;
     private readonly SynchronizationContext? _uiContext;
@@ -82,12 +82,12 @@ public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
     // The fully saturated color of the current hue, for the saturation slider's gradient.
     public RgbColor HueColor => RgbColor.FromHsv(Hue / 360.0, 1.0, 1.0);
 
-    public ValueTask DisposeAsync() => DropConnectionAsync();
+    public void Dispose() => DropConnection();
 
     [RelayCommand]
     private async Task ConnectAsync()
     {
-        await DropConnectionAsync();
+        DropConnection();
         ConnectionState = ConnectionState.Connecting;
         StatusMessage = Strings.StatusConnecting;
         try
@@ -103,12 +103,12 @@ public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
         }
         catch (TimeoutException)
         {
-            await FailAsync(Strings.EngineNotRunning);
+            Fail(Strings.EngineNotRunning);
         }
         catch (Exception exception)
         {
             Trace.TraceError(exception.ToString());
-            await FailAsync(Strings.ConnectFailed);
+            Fail(Strings.ConnectFailed);
         }
     }
 
@@ -303,7 +303,7 @@ public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
     {
         if (ReferenceEquals(sender, _connection))
         {
-            _ = FailAsync(Strings.ConnectionLost);
+            Fail(Strings.ConnectionLost);
         }
     });
 
@@ -318,14 +318,14 @@ public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
         }
     }
 
-    private async Task FailAsync(string message)
+    private void Fail(string message)
     {
         ConnectionState = ConnectionState.Failed;
         StatusMessage = message;
-        await DropConnectionAsync();
+        DropConnection();
     }
 
-    private async ValueTask DropConnectionAsync()
+    private void DropConnection()
     {
         if (_connection is not { } connection)
         {
@@ -335,7 +335,7 @@ public sealed partial class MainViewModel : ObservableObject, IAsyncDisposable
         _connection = null;
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
-        await connection.DisposeAsync();
+        connection.Dispose();
     }
 
     private void WithoutSending(Action update)

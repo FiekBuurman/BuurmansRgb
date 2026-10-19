@@ -38,9 +38,6 @@ public sealed class EngineConnection : IEngineConnection
         return new EngineConnection(EngineRpc.CreateClient(pipe));
     }
 
-    public ValueTask DisposeAsync()
-    {
-        _rpc.Dispose();
-        return ValueTask.CompletedTask;
-    }
+    // Synchronous on purpose: the UI closes the pipe on its UI thread while it shuts down.
+    public void Dispose() => _rpc.Dispose();
 }

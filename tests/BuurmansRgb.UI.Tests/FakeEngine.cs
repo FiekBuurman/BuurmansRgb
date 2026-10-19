@@ -38,11 +38,7 @@ internal sealed class FakeEngineConnection : IEngineConnection
 
     public void Disconnect() => Disconnected?.Invoke(this, EventArgs.Empty);
 
-    public ValueTask DisposeAsync()
-    {
-        IsDisposed = true;
-        return ValueTask.CompletedTask;
-    }
+    public void Dispose() => IsDisposed = true;
 }
 
 internal sealed class FakeEngineApi : IEngineApi

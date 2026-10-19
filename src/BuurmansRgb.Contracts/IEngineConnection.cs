@@ -1,6 +1,6 @@
 namespace BuurmansRgb.Contracts;
 
-public interface IEngineConnection : IAsyncDisposable
+public interface IEngineConnection : IDisposable
 {
     IEngineApi Api { get; }
 

@@ -23,7 +23,7 @@ public partial class App : Application
     protected override void OnExit(ExitEventArgs e)
     {
         // Closes the pipe right away instead of leaving the engine to notice a dead process.
-        _viewModel?.DisposeAsync().AsTask().GetAwaiter().GetResult();
+        _viewModel?.Dispose();
         base.OnExit(e);
     }
 }

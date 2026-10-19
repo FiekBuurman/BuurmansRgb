@@ -26,7 +26,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         foreach (var client in _clients)
         {
-            await client.DisposeAsync();
+            client.Dispose();
         }
 
         await _shutdown.CancelAsync();
@@ -203,7 +203,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private async Task DisconnectAsync(EngineConnection client)
     {
         _clients.Remove(client);
-        await client.DisposeAsync();
+        client.Dispose();
     }
 
     private async Task<EngineConnection> ConnectAsync()
