@@ -114,15 +114,15 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.Equal(0.5, (await client.Api.GetLightingAsync(null, TestContext.Current.CancellationToken)).Brightness);
     }
 
-    [Theory]
-    [InlineData(-0.1)]
-    [InlineData(1.1)]
-    public async Task SetBrightnessAsync_OutOfRange_IsRejected(double brightness)
+    // Only the mapping to the wire: the range itself is tested in EngineApiTests and
+    // LightingControllerValidationTests.
+    [Fact]
+    public async Task ArgumentError_ReachesTheUiAsRemoteInvocationException()
     {
         var client = await StartAndConnectAsync();
 
         await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetBrightnessAsync(null, brightness, TestContext.Current.CancellationToken));
+            () => client.Api.SetBrightnessAsync(null, 1.1, TestContext.Current.CancellationToken));
     }
 
     [Fact]
