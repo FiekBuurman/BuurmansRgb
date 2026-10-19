@@ -7,10 +7,4 @@ namespace BuurmansRgb.Engine.Lighting;
 internal sealed record LightingState(
     DeviceLighting Global,
     IReadOnlyDictionary<string, DeviceLighting> Devices,
-    IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> LedColors)
-{
-    public LightingState(DeviceLighting global, IReadOnlyDictionary<string, DeviceLighting> devices)
-        : this(global, devices, new Dictionary<string, IReadOnlyList<RgbColor?>>())
-    {
-    }
-}
+    IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> LedColors);

@@ -178,7 +178,7 @@ public sealed class LightingControllerAnimationTests : IDisposable
         var time = new SteppingTimeProvider(Frame);
         using var controller = new LightingController([animated, still], time);
         await controller.DiscoverAsync(Ct);
-        controller.Apply(new LightingState(
+        controller.Apply(LightingStates.WithDevices(
             new DeviceLighting(Orange, 1.0, EffectIds.Static),
             new Dictionary<string, DeviceLighting> { ["animated"] = new(Orange, 1.0, EffectIds.Rainbow) }));
 
