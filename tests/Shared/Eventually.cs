@@ -1,18 +1,21 @@
 using System.Diagnostics;
 
-namespace BuurmansRgb.Engine.Tests;
+namespace BuurmansRgb.Tests;
 
-// Polls for things that happen on background threads, such as a frame of the render loop.
+// Polls for things that happen on background threads, such as a frame of the render loop or a
+// socket that closes.
 internal static class Eventually
 {
+    public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+
     public static async Task TrueAsync(Func<bool> condition, TimeSpan? timeout = null)
     {
-        var limit = timeout ?? TimeSpan.FromSeconds(5);
+        var limit = timeout ?? DefaultTimeout;
         var stopwatch = Stopwatch.StartNew();
         while (!condition())
         {
             Assert.True(stopwatch.Elapsed < limit, "The condition did not come true in time.");
-            await Task.Delay(5, TestContext.Current.CancellationToken);
+            await Task.Delay(10, TestContext.Current.CancellationToken);
         }
     }
 }

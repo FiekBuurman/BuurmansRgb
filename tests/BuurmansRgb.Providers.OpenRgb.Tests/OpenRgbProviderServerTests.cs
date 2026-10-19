@@ -21,16 +21,16 @@ public sealed class OpenRgbProviderServerTests
         try
         {
             await provider.DiscoverAsync(Ct);
-            var device = Assert.Single(await Eventually.DeviceCountAsync(provider, 1, Timeout));
+            var device = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, Timeout));
             provider.SetLeds(device.Id, [Orange, Orange, Orange]);
             Assert.True(server.Updates.TryTake(out var update, Timeout));
             Assert.Equal([Orange, Orange, Orange], update.Colors);
 
             await server.DisposeAsync();
-            await Eventually.DeviceCountAsync(provider, 0, Timeout);
+            await EventuallyDevices.CountAsync(provider, 0, Timeout);
 
             server = new OpenRgbTestServer(port);
-            var restarted = Assert.Single(await Eventually.DeviceCountAsync(provider, 1, Timeout));
+            var restarted = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, Timeout));
             Assert.Equal(device.Id, restarted.Id);
             await Eventually.TrueAsync(() => !server.CustomModeIndexes.IsEmpty, Timeout);
             provider.SetLeds(restarted.Id, [Orange, Orange, Orange]);
