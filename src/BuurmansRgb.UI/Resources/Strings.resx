@@ -84,6 +84,15 @@
   <data name="DeviceType_Case" xml:space="preserve">
     <value>Behuizing</value>
   </data>
+  <data name="DeviceType_Keyboard" xml:space="preserve">
+    <value>Toetsenbord</value>
+  </data>
+  <data name="DeviceType_Mouse" xml:space="preserve">
+    <value>Muis</value>
+  </data>
+  <data name="DeviceType_Headset" xml:space="preserve">
+    <value>Headset</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>
