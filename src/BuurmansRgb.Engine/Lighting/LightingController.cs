@@ -400,7 +400,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     return;
                 }
 
-                ledColorsMoved = _outputs.Replace(providerIndex, provider, devices, _ledColors);
+                var previous = _outputs.Replace(providerIndex, provider, devices);
+                ledColorsMoved = MoveLedColorsLocked(previous, devices);
                 rendered = render && RenderLocked();
             }
 
@@ -441,6 +442,23 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         _sequence++;
         UpdateAnimationLocked();
         return true;
+    }
+
+    // A zone that got another length, here or in the provider's own app, shifts the LEDs after
+    // it: the stored per-LED colors move along, so every zone keeps its own colors. Returns true
+    // when any colors moved.
+    private bool MoveLedColorsLocked(IReadOnlyList<RgbDevice> previous, IReadOnlyList<RgbDevice> devices)
+    {
+        var moved = false;
+        foreach (var device in devices)
+        {
+            if (previous.FirstOrDefault(candidate => candidate.Id == device.Id) is { } old)
+            {
+                moved |= _ledColors.MoveWithZones(device.Id, old.Zones, device.Zones);
+            }
+        }
+
+        return moved;
     }
 
     private void RestoreProvidersLocked()
