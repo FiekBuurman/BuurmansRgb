@@ -30,6 +30,12 @@ public sealed class SwitchableDeviceProviderTests
     }
 
     [Fact]
+    public void For_RestorableProvider_IsRefused()
+    {
+        Assert.Throws<NotSupportedException>(() => SwitchableDeviceProvider.For(new RestorableDeviceProvider()));
+    }
+
+    [Fact]
     public async Task Disabled_HasNoDevicesAndSendsNothing()
     {
         _switchable.IsEnabled = false;

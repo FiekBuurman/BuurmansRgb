@@ -39,7 +39,9 @@
   draaien (`SwitchableDeviceProvider.IsEnabled`); er mist een `IEngineApi`-aanroep en een
   vinkje in de UI
 - Adres en poort van de OpenRGB-server instelbaar maken (nu vast `127.0.0.1:6742`), en
-  OpenRGB helemaal uit kunnen zetten
+  OpenRGB helemaal uit kunnen zetten (`SwitchableDeviceProvider.For` weigert OpenRGB nu nog,
+  omdat het herstellen na slaapstand anders verloren gaat; daarvoor is eerst een wrapper
+  nodig die `IRestorableDeviceProvider` doorgeeft)
 - Twee fouten in OpenRGB.NET 3.1.1 melden bij het project: `DeviceListUpdated` gaat nooit af
   (de client geeft de lege event-waarde bij het aanmaken door aan zijn verbinding) en na een
   nette sluiting door de server leest de read-loop op volle CPU nul bytes tot de volgende

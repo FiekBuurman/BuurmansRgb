@@ -65,8 +65,14 @@ internal class SwitchableDeviceProvider : IDynamicDeviceProvider
         }
     }
 
-    public static SwitchableDeviceProvider For(IDeviceProvider inner) =>
-        inner is IResizableDeviceProvider resizable ? new Resizable(resizable) : new SwitchableDeviceProvider(inner);
+    // A restorable provider is refused: the wrapper would hide RestoreDevices from the engine, so
+    // its devices would silently not come back after sleep. Add a restorable wrapper when needed.
+    public static SwitchableDeviceProvider For(IDeviceProvider inner) => inner switch
+    {
+        IRestorableDeviceProvider => throw new NotSupportedException($"Provider '{inner.Name}' can restore its devices, which a switchable provider does not pass on yet."),
+        IResizableDeviceProvider resizable => new Resizable(resizable),
+        _ => new SwitchableDeviceProvider(inner),
+    };
 
     public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
     {
