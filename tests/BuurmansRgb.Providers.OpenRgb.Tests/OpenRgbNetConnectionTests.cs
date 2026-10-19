@@ -179,15 +179,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         return ((IPEndPoint)listener.LocalEndpoint).Port;
     }
 
-    private static async Task WaitUntilAsync(Func<bool> condition)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        while (!condition())
-        {
-            Assert.True(stopwatch.Elapsed < Timeout, "The condition did not come true in time.");
-            await Task.Delay(10, Ct);
-        }
-    }
+    private static Task WaitUntilAsync(Func<bool> condition) => Eventually.TrueAsync(condition, Timeout);
 
     private async Task<IOpenRgbConnection> ConnectAsync()
     {

@@ -33,7 +33,7 @@ public sealed class OpenRgbProviderServerTests
             server = new OpenRgbTestServer(port);
             var restarted = Assert.Single(await WaitForDevicesAsync(provider, count: 1));
             Assert.Equal(device.Id, restarted.Id);
-            await WaitUntilAsync(() => !server.CustomModeIndexes.IsEmpty);
+            await Eventually.TrueAsync(() => !server.CustomModeIndexes.IsEmpty, Timeout);
             provider.SetLeds(restarted.Id, [Orange, Orange, Orange]);
             Assert.True(server.Updates.TryTake(out _, Timeout));
         }
@@ -73,16 +73,6 @@ public sealed class OpenRgbProviderServerTests
             }
 
             Assert.True(stopwatch.Elapsed < Timeout, $"Still {devices.Count} devices instead of {count}.");
-            await Task.Delay(10, Ct);
-        }
-    }
-
-    private static async Task WaitUntilAsync(Func<bool> condition)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        while (!condition())
-        {
-            Assert.True(stopwatch.Elapsed < Timeout, "The condition did not come true in time.");
             await Task.Delay(10, Ct);
         }
     }
