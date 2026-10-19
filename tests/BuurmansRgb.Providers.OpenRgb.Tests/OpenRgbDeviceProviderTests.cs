@@ -251,6 +251,54 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task RestoreDevices_SetsCustomModeAgainAndReportsTheDevices()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(index: 0, name: "Motherboard", type: OpenRgbDeviceType.Motherboard),
+            TestDevices.Create(index: 1, name: "ENE DRAM", type: OpenRgbDeviceType.Dram),
+        ];
+        await ConnectAsync();
+
+        _provider.RestoreDevices();
+        await _provider.WhenIdleAsync();
+
+        Assert.Equal([0, 1, 0, 1], _server.CustomModeIndexes);
+        Assert.Equal(2, _devicesChanged);
+        Assert.Equal(1, _server.ConnectCount);
+    }
+
+    [Fact]
+    public async Task RestoreDevices_UntilReloaded_SendsNoColors()
+    {
+        var device = Assert.Single(await ConnectAsync());
+        var answer = new TaskCompletionSource();
+        _server.DevicesAnswered = answer.Task;
+
+        _provider.RestoreDevices();
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+
+        Assert.Empty(_server.Updates);
+        answer.SetResult();
+        await _provider.WhenIdleAsync();
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+        Assert.Single(_server.Updates);
+    }
+
+    [Fact]
+    public async Task RestoreDevices_WithoutConnection_DoesNothing()
+    {
+        _server.IsRunning = false;
+        await ConnectAsync();
+
+        _provider.RestoreDevices();
+        await _provider.WhenIdleAsync();
+
+        Assert.Equal(1, _server.ConnectCount);
+        Assert.Equal(0, _devicesChanged);
+    }
+
+    [Fact]
     public async Task DeviceListChanged_ReloadFails_DropsTheConnection()
     {
         await ConnectAsync();
