@@ -14,6 +14,11 @@ internal static class OpenRgbDeviceMapper
 
     private const int MaxSlugLength = 40;
 
+    // OpenRGB 0.9 added storage (14) and case (15) before its unknown type (now 19), but
+    // OpenRGB.NET 3.1.1 still knows 14 as Unknown and has no name for case; it passes the
+    // number on as it is.
+    public const OpenRgbDeviceType CaseType = (OpenRgbDeviceType)15;
+
     // The modes in which OpenRGB takes a color per LED from the SDK, in order of preference.
     private static readonly string[] DirectModeNames = ["Direct", "Custom"];
 
@@ -45,6 +50,7 @@ internal static class OpenRgbDeviceMapper
         OpenRgbDeviceType.Gpu => DeviceType.Gpu,
         OpenRgbDeviceType.Cooler => DeviceType.Fan,
         OpenRgbDeviceType.Ledstrip => DeviceType.LedStrip,
+        CaseType => DeviceType.Case,
         OpenRgbDeviceType.Keyboard => DeviceType.Keyboard,
         OpenRgbDeviceType.Mouse => DeviceType.Mouse,
         OpenRgbDeviceType.Headset => DeviceType.Headset,

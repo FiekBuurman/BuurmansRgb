@@ -119,6 +119,7 @@ public sealed class OpenRgbDeviceMapperTests
     [InlineData(OpenRgbDeviceType.Gpu, DeviceType.Gpu)]
     [InlineData(OpenRgbDeviceType.Cooler, DeviceType.Fan)]
     [InlineData(OpenRgbDeviceType.Ledstrip, DeviceType.LedStrip)]
+    [InlineData(OpenRgbDeviceMapper.CaseType, DeviceType.Case)]
     [InlineData(OpenRgbDeviceType.Keyboard, DeviceType.Keyboard)]
     [InlineData(OpenRgbDeviceType.Mouse, DeviceType.Mouse)]
     [InlineData(OpenRgbDeviceType.Headset, DeviceType.Headset)]
