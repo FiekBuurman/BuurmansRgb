@@ -23,10 +23,9 @@ internal sealed class LightingController : IDisposable
     private readonly long _epoch;
     private readonly AnimationLoop _animation;
     private readonly DeviceOutput[][] _outputsByProvider;
-    private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
+    private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
     private DeviceOutput[] _outputs = [];
-    private DeviceLighting? _global;
     private bool _isPaused;
 
     // A restore that waits for the pause to end.
@@ -126,10 +125,7 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return new(
-                    GlobalLocked,
-                    new Dictionary<string, DeviceLighting>(_deviceLighting),
-                    _ledColors.Snapshot());
+                return new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
             }
         }
     }
@@ -146,21 +142,9 @@ internal sealed class LightingController : IDisposable
     public void Apply(LightingState state)
     {
         bool rendered;
-        Validate(state.Global);
-        foreach (var lighting in state.Devices.Values)
-        {
-            Validate(lighting);
-        }
-
         lock (_gate)
         {
-            _global = state.Global;
-            _deviceLighting.Clear();
-            foreach (var (deviceId, lighting) in state.Devices)
-            {
-                _deviceLighting[deviceId] = lighting;
-            }
-
+            _lighting.Replace(state.Global, state.Devices);
             _ledColors.Replace(state.LedColors);
 
             rendered = RenderLocked();
@@ -176,11 +160,11 @@ internal sealed class LightingController : IDisposable
         {
             if (deviceId is null)
             {
-                return GlobalLocked;
+                return _lighting.Global;
             }
 
             KnownDeviceLocked(deviceId);
-            return LightingForLocked(deviceId);
+            return _lighting.Get(deviceId);
         }
     }
 
@@ -195,27 +179,12 @@ internal sealed class LightingController : IDisposable
         {
             if (deviceId is null)
             {
-                var global = change(GlobalLocked);
-                Validate(global);
-                var devices = _deviceLighting.Select(pair => (pair.Key, Lighting: change(pair.Value))).ToArray();
-                foreach (var (_, lighting) in devices)
-                {
-                    Validate(lighting);
-                }
-
-                _global = global;
-                foreach (var (id, lighting) in devices)
-                {
-                    SetDeviceLightingLocked(id, lighting);
-                }
+                _lighting.SetGlobal(change);
             }
             else
             {
                 KnownDeviceLocked(deviceId);
-                var lighting = change(LightingForLocked(deviceId));
-                Validate(lighting);
-                _global = GlobalLocked;
-                SetDeviceLightingLocked(deviceId, lighting);
+                _lighting.Set(deviceId, change(_lighting.Get(deviceId)));
             }
 
             rendered = RenderLocked();
@@ -232,7 +201,7 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             var device = KnownDeviceLocked(deviceId);
-            return _ledColors.Resolve(deviceId, device.LedCount, LightingForLocked(deviceId).Color);
+            return _ledColors.Resolve(deviceId, device.LedCount, _lighting.Get(deviceId).Color);
         }
     }
 
@@ -250,8 +219,7 @@ internal sealed class LightingController : IDisposable
             ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
 
             _ledColors.Set(deviceId, firstLed, colors);
-            _global = GlobalLocked;
-            SetDeviceLightingLocked(deviceId, LightingForLocked(deviceId) with { EffectId = EffectIds.PerLed });
+            _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
         }
 
@@ -448,7 +416,7 @@ internal sealed class LightingController : IDisposable
     // there is no lighting to render yet.
     private bool RenderLocked()
     {
-        if (_global is null)
+        if (!_lighting.IsSet)
         {
             return false;
         }
@@ -456,7 +424,7 @@ internal sealed class LightingController : IDisposable
         var time = EffectTime;
         foreach (var output in _outputs)
         {
-            var lighting = LightingForLocked(output.Device.Id);
+            var lighting = _lighting.Get(output.Device.Id);
             output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
             output.Render(time);
             if (!_isPaused)
@@ -493,7 +461,7 @@ internal sealed class LightingController : IDisposable
 
     private void UpdateAnimationLocked()
     {
-        if (!_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated))
+        if (!_disposed && !_isPaused && _lighting.IsSet && _outputs.Any(output => output.IsAnimated))
         {
             _animation.Start();
         }
@@ -509,36 +477,6 @@ internal sealed class LightingController : IDisposable
         {
             Rendered?.Invoke(this, EventArgs.Empty);
         }
-    }
-
-    // Until the lighting is applied or first changed, everything counts as the default.
-    private DeviceLighting GlobalLocked => _global ?? DeviceLighting.Default;
-
-    private DeviceLighting LightingForLocked(string deviceId) => _deviceLighting.GetValueOrDefault(deviceId, GlobalLocked);
-
-    // A device that ends up equal to the global lighting follows it again, which keeps the
-    // settings file to the devices that really differ.
-    private void SetDeviceLightingLocked(string deviceId, DeviceLighting lighting)
-    {
-        if (lighting == GlobalLocked)
-        {
-            _deviceLighting.Remove(deviceId);
-        }
-        else
-        {
-            _deviceLighting[deviceId] = lighting;
-        }
-    }
-
-    // The parameter names are those of the IPC calls, so the UI gets the same error as before.
-    private static void Validate(DeviceLighting lighting)
-    {
-        if (!(lighting.Brightness is >= 0.0 and <= 1.0))
-        {
-            throw new ArgumentOutOfRangeException("brightness", lighting.Brightness, "Brightness runs from 0 to 1.");
-        }
-
-        EffectCatalog.ThrowIfUnknown(lighting.EffectId);
     }
 
     private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
