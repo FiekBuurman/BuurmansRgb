@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
 // An AnimationLoop renders the frames, and only while an animated effect shows and nothing is
 // paused; with static lighting no timer runs at all.
-internal sealed class LightingController : IDisposable
+internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
     public const int MaxFramesPerSecond = 60;
