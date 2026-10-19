@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO.Pipes;
+using BuurmansRgb.Core;
 using StreamJsonRpc;
 
 namespace BuurmansRgb.Contracts;

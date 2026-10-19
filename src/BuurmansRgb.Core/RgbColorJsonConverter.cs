@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Contracts;
+namespace BuurmansRgb.Core;
 
+// RgbColor as "#RRGGBB" in JSON, for the IPC and for the settings file.
 public sealed class RgbColorJsonConverter : JsonConverter<RgbColor>
 {
     public override RgbColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

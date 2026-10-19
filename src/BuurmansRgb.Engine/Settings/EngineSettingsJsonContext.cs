@@ -1,5 +1,5 @@
 using System.Text.Json.Serialization;
-using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Settings;
 

@@ -119,7 +119,7 @@ BuurmansRgb.slnx
 ├─ src/
 │  ├─ BuurmansRgb.Core                // modellen, interfaces, kleur-wiskunde
 │  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, PerLed
-│  ├─ BuurmansRgb.Contracts           // IPC-interface en DTO's
+│  ├─ BuurmansRgb.Contracts           // IPC-interface, DTO's en de pipe- en RPC-opzet
 │  ├─ BuurmansRgb.Providers.Simulated // nep-apparaten voor ontwikkeling
 │  ├─ BuurmansRgb.Providers.OpenRgb   // koppeling met OpenRGB SDK-server
 │  ├─ BuurmansRgb.Engine              // tray, render-loop, IPC-server, opslag
