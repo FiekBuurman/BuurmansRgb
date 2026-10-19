@@ -66,6 +66,8 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     public string LedCountAccessibleName => UiText.Format(Strings.ZoneLedCountAccessibleName, AccessibleName);
 
+    public string ApplyLedCountAccessibleName => UiText.Format(Strings.ApplyLedCountAccessibleName, AccessibleName);
+
     // The length the user types, in LEDs; ApplyLedCount asks for it.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyLedCountCommand))]

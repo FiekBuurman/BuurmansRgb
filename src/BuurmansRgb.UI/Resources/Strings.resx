@@ -51,6 +51,9 @@
   <data name="ApplyLedCount" xml:space="preserve">
     <value>Toepassen</value>
   </data>
+  <data name="ApplyLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's toepassen voor {0}</value>
+  </data>
   <data name="ApplyLedCountToolTip" xml:space="preserve">
     <value>Geeft deze zone het nieuwe aantal LED's, bijvoorbeeld de lengte van de strip die erop zit.</value>
   </data>

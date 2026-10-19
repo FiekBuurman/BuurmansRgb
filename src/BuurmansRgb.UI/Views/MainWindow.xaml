@@ -201,7 +201,8 @@
                                                                 </TextBox.InputBindings>
                                                             </TextBox>
                                                             <Button Margin="6,0,0,0" Padding="10,1" Content="{x:Static res:Strings.ApplyLedCount}"
-                                                                    ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding ApplyLedCountCommand}" />
+                                                                    ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding ApplyLedCountCommand}"
+                                                                    AutomationProperties.Name="{Binding ApplyLedCountAccessibleName}" />
                                                         </StackPanel>
                                                     </StackPanel>
                                                 </DataTemplate>

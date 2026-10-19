@@ -150,6 +150,7 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("0", header.LedCountText);
         Assert.Equal("Aantal LED's (0–120):", header.LedCountLabel);
         Assert.Equal("Aantal LED's van Motherboard – ARGB header", header.LedCountAccessibleName);
+        Assert.Equal("Aantal LED's toepassen voor Motherboard – ARGB header", header.ApplyLedCountAccessibleName);
         Assert.False(header.ApplyLedCountCommand.CanExecute(null));
 
         header.LedCountText = "30";
