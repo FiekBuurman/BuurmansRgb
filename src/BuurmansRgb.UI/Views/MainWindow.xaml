@@ -128,7 +128,7 @@
                                   AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.PreviewHeader}" />
-                        <ItemsControl ItemsSource="{Binding Preview}">
+                        <ItemsControl ItemsSource="{Binding Preview.Devices}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                                     <StackPanel Margin="0,0,0,12">

@@ -20,7 +20,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly CoalescingCallQueue _calls;
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
-    private LightingFrame _latestFrame = LightingFrame.Empty;
     private double _value = 1.0;
     private bool _syncing;
 
@@ -41,7 +40,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<EffectOption> Effects { get; } = [];
 
-    public ObservableCollection<DevicePreviewViewModel> Preview { get; } = [];
+    public PreviewViewModel Preview { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
@@ -94,7 +93,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var connection = await _connector.ConnectAsync(CancellationToken.None);
             _connection = connection;
-            _latestFrame = LightingFrame.Empty;
+            Preview.Reset();
             connection.Disconnected += OnDisconnected;
             connection.Api.FrameRendered += OnFrameRendered;
             await LoadAsync(connection.Api);
@@ -196,7 +195,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
 
         await ShowSelectionAsync();
-        ShowFrame(await api.GetFrameAsync());
+        Preview.ShowFrame(await api.GetFrameAsync());
     }
 
     private async Task ShowSelectionAsync()
@@ -281,36 +280,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
     }
 
-    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => ShowFrame(frame));
+    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));
 
-    private void ShowFrame(LightingFrame frame)
-    {
-        // Frames can overtake each other; an older one would show a color that is already gone.
-        if (frame.Sequence < _latestFrame.Sequence)
-        {
-            return;
-        }
-
-        _latestFrame = frame;
-        foreach (var preview in Preview)
-        {
-            if (frame.Devices.FirstOrDefault(device => device.DeviceId == preview.DeviceId) is { } deviceFrame)
-            {
-                preview.Colors = deviceFrame.ToColors();
-            }
-        }
-    }
-
+    // "All devices" shows every device.
     private void RebuildPreview()
     {
-        Preview.Clear();
         var deviceId = SelectedDevice?.DeviceId;
-        foreach (var device in _devices.Where(device => deviceId is null || device.Id == deviceId))
-        {
-            Preview.Add(new DevicePreviewViewModel(device.Id, device.Name, device.LedCount));
-        }
-
-        ShowFrame(_latestFrame);
+        Preview.ShowDevices(_devices.Where(device => deviceId is null || device.Id == deviceId));
     }
 
     private void OnDisconnected(object? sender, EventArgs e) => RunOnUi(() =>

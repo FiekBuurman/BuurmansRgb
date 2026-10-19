@@ -75,8 +75,8 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync(api => api.Frame = Frame(1, new RgbColor(9, 9, 9)));
 
-        Assert.Equal(["strip", "fan"], viewModel.Preview.Select(preview => preview.DeviceId));
-        Assert.All(viewModel.Preview.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(9, 9, 9), led));
+        Assert.Equal(["strip", "fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
+        Assert.All(viewModel.Preview.Devices.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(9, 9, 9), led));
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class MainViewModelTests
 
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.Color);
         Assert.Equal(50.0, viewModel.Brightness);
-        Assert.Equal(["fan"], viewModel.Preview.Select(preview => preview.DeviceId));
+        Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
         Assert.Empty(Api.Calls);
     }
 
@@ -187,7 +187,7 @@ public sealed class MainViewModelTests
         viewModel.Brightness = 30;
 
         Assert.Same(fan, viewModel.SelectedDevice);
-        Assert.Equal(["fan"], viewModel.Preview.Select(preview => preview.DeviceId));
+        Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
         Assert.Equal(["brightness fan 0.30"], Api.Calls);
     }
 
@@ -198,7 +198,7 @@ public sealed class MainViewModelTests
 
         Api.RaiseFrame(Frame(5, new RgbColor(1, 2, 3)));
 
-        Assert.All(viewModel.Preview.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(1, 2, 3), led));
+        Assert.All(viewModel.Preview.Devices.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(1, 2, 3), led));
     }
 
     [Fact]
@@ -209,7 +209,7 @@ public sealed class MainViewModelTests
 
         Api.RaiseFrame(Frame(4, new RgbColor(7, 7, 7)));
 
-        Assert.All(viewModel.Preview.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(1, 2, 3), led));
+        Assert.All(viewModel.Preview.Devices.SelectMany(preview => preview.Colors), led => Assert.Equal(new RgbColor(1, 2, 3), led));
     }
 
     [Fact]
