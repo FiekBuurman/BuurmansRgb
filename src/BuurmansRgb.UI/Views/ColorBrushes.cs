@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Views;
 // Frozen brushes, cached per color: a preview redraws the same few colors over and over.
 public static class ColorBrushes
 {
-    private const int MaxCached = 4096;
+    internal const int MaxCached = 4096;
 
     private static readonly Dictionary<RgbColor, SolidColorBrush> Cache = [];
 
