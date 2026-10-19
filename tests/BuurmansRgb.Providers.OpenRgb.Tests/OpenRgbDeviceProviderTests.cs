@@ -36,20 +36,24 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Equal(1, _server.ConnectCount);
     }
 
+    // Some graphics cards only know their own hardware effects in OpenRGB: they stay in the list,
+    // without a Direct mode being forced on them.
     [Fact]
     public async Task Connect_SetsCustomModeOnDevicesWithDirectMode()
     {
         _server.Devices =
         [
             TestDevices.Create(index: 0, name: "Strip", modes: ["Direct"]),
-            TestDevices.Create(index: 1, name: "Old GPU", modes: ["Static", "Breathing"]),
+            TestDevices.Create(index: 1, name: "Old GPU", type: OpenRgbDeviceType.Gpu, modes: ["Static", "Breathing"]),
             TestDevices.Create(index: 2, name: "Keyboard", modes: ["Custom"]),
         ];
 
         await ConnectAsync();
 
         Assert.Equal([0, 2], _server.CustomModeIndexes);
-        Assert.Equal(3, (await _provider.DiscoverAsync(Ct)).Count);
+        var devices = await _provider.DiscoverAsync(Ct);
+        Assert.Equal(3, devices.Count);
+        Assert.Equal(DeviceType.Gpu, devices[1].Type);
     }
 
     [Fact]
@@ -94,19 +98,6 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         var update = Assert.Single(_server.Updates);
         Assert.Equal(1, update.Index);
         Assert.Equal(22, update.Colors.Length);
-    }
-
-    // Some cards only know their own hardware effects in OpenRGB: they stay in the list, without
-    // a Direct mode being forced on them.
-    [Fact]
-    public async Task Connect_GpuWithoutDirectMode_StillAppears()
-    {
-        _server.Devices = [TestDevices.Create(name: "Gigabyte RTX 2070", type: OpenRgbDeviceType.Gpu, modes: ["Static", "Breathing", "Color Cycle"])];
-
-        var gpu = Assert.Single(await ConnectAsync());
-
-        Assert.Equal(DeviceType.Gpu, gpu.Type);
-        Assert.Empty(_server.CustomModeIndexes);
     }
 
     [Fact]
