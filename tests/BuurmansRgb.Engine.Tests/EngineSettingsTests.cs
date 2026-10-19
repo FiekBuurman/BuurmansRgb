@@ -22,6 +22,19 @@ public sealed class EngineSettingsTests
     }
 
     [Fact]
+    public void WithLighting_ReplacesLightingAndKeepsStartupOptions()
+    {
+        var settings = new EngineSettings { SimulatedDevices = false, Color = Green.Color };
+
+        var updated = settings.WithLighting(new LightingState(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green }));
+
+        Assert.False(updated.SimulatedDevices);
+        Assert.Equal(Orange, updated.ToDeviceLighting());
+        Assert.Equal(Green, updated.Devices!["fan"]!.ToDeviceLighting());
+        Assert.Equal(Green.Color, settings.Color);
+    }
+
+    [Fact]
     public void From_WithoutDevices_LeavesDevicesNull()
     {
         Assert.Null(EngineSettings.From(LightingStates.Uniform(Orange)).Devices);

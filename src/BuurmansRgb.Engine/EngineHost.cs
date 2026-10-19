@@ -8,7 +8,8 @@ internal sealed class EngineHost(
     ISettingsStore settingsStore,
     LightingController lighting,
     EngineIpcServer? ipcServer = null,
-    TimeSpan? saveDelay = null) : IEngineHost, IDisposable
+    TimeSpan? saveDelay = null,
+    SwitchableDeviceProvider? simulatedDevices = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -16,9 +17,10 @@ internal sealed class EngineHost(
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
+        simulatedDevices?.IsEnabled = settings.SimulatedDevices;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
-        _saver = new LightingSettingsSaver(settingsStore, lighting, saveDelay ?? LightingSettingsSaver.DefaultDelay);
+        _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay);
         _ = ipcServer?.RunAsync(ct);
     }
 
