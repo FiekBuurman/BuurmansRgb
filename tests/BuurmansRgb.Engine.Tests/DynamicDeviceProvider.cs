@@ -14,6 +14,8 @@ internal sealed class DynamicDeviceProvider : IDynamicDeviceProvider
 
     public ConcurrentDictionary<string, RgbColor[]> Leds { get; } = new();
 
+    public bool HasDevicesChangedListeners => DevicesChanged is not null;
+
     public static RgbDevice Device(string id, int ledCount = 2) =>
         new(id, $"Device {id}", DeviceType.Other, [RgbZone.Fixed("Zone", ledCount)]);
 

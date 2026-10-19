@@ -25,6 +25,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly DeviceOutputs _outputs;
     private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
+
+    // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
+    private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
     private bool _isPaused;
 
     // A restore that waits for the pause to end.
@@ -47,7 +50,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             {
                 var providerIndex = index;
                 // On the thread pool: the provider may raise this while the engine waits for it.
-                dynamicProvider.DevicesChanged += (_, _) => _ = Task.Run(() => RefreshAsync(providerIndex));
+                EventHandler handler = (_, _) => _ = Task.Run(() => RefreshAsync(providerIndex));
+                dynamicProvider.DevicesChanged += handler;
+                _devicesChangedHandlers.Add((dynamicProvider, handler));
             }
         }
     }
@@ -347,9 +352,21 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     {
         lock (_gate)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
             _animation.Dispose();
         }
+
+        foreach (var (provider, handler) in _devicesChangedHandlers)
+        {
+            provider.DevicesChanged -= handler;
+        }
+
+        _discovering.Dispose();
     }
 
     // A device that comes back keeps its own lighting: it stays in the state while the device is gone.
@@ -359,9 +376,24 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             await UpdateDevicesAsync(providerIndex, render: true, CancellationToken.None);
         }
+        catch (ObjectDisposedException) when (IsDisposed)
+        {
+            // A refresh that was under way while the engine shut down.
+        }
         catch (Exception exception)
         {
             Trace.TraceError(exception.ToString());
+        }
+    }
+
+    private bool IsDisposed
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _disposed;
+            }
         }
     }
 

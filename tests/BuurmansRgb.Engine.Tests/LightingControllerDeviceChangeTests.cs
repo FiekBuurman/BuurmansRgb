@@ -81,6 +81,24 @@ public sealed class LightingControllerDeviceChangeTests
         Assert.Empty(_dynamic.Leds);
     }
 
+    [Fact]
+    public void Dispose_StopsListeningToTheProviders()
+    {
+        Assert.True(_dynamic.HasDevicesChangedListeners);
+
+        _controller.Dispose();
+
+        Assert.False(_dynamic.HasDevicesChangedListeners);
+    }
+
+    [Fact]
+    public void Dispose_Twice_IsFine()
+    {
+        _controller.Dispose();
+
+        _controller.Dispose();
+    }
+
     private async Task ChangeDevicesAsync(params IReadOnlyList<RgbDevice> devices)
     {
         var changed = new TaskCompletionSource();
