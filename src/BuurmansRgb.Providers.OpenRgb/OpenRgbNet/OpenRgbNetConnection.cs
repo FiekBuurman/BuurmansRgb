@@ -97,9 +97,33 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         device.Name,
         device.Location,
         device.Serial,
-        [.. device.Zones.Select(zone => new OpenRgbZoneData(zone.Name, (int)zone.LedCount, (int)zone.LedsMin, (int)zone.LedsMax))],
+        [.. device.Zones.Select(zone => new OpenRgbZoneData(zone.Name, (int)zone.LedCount, (int)zone.LedsMin, (int)zone.LedsMax, ToMatrix(zone.MatrixMap)))],
         [.. device.Modes.Select(mode => mode.Name)],
         device.Leds.Length);
+
+    // OpenRGB.NET holds the map as [row, column]. OpenRGB marks a cell without a key with
+    // 0xFFFFFFFF; that and any other number too big for an LED index becomes NoLed.
+    private static LedMatrix? ToMatrix(MatrixMap? map)
+    {
+        if (map is null)
+        {
+            return null;
+        }
+
+        var height = map.Matrix.GetLength(0);
+        var width = map.Matrix.GetLength(1);
+        var cells = new int[height * width];
+        for (var row = 0; row < height; row++)
+        {
+            for (var column = 0; column < width; column++)
+            {
+                var cell = map.Matrix[row, column];
+                cells[row * width + column] = cell <= int.MaxValue ? (int)cell : LedMatrix.NoLed;
+            }
+        }
+
+        return new(height, width, cells);
+    }
 
     // One request per lock, so colors can still go out between the requests.
     private IReadOnlyList<OpenRgbDeviceData> ReadDevices()
