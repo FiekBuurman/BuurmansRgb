@@ -351,6 +351,22 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Equal(34, Assert.Single(_server.Updates).Colors.Length);
     }
 
+    // OpenRGB keeps the length, so waking up from sleep does not undo it.
+    [Fact]
+    public async Task RestoreDevices_AfterResize_KeepsTheNewLength()
+    {
+        _server.Devices = [TestDevices.Create(name: "ARGB controller", zones: [new("Channel 1", 10, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+        _provider.ResizeZone(device.Id, 0, 30);
+        await _provider.WhenIdleAsync();
+
+        _provider.RestoreDevices();
+        await _provider.WhenIdleAsync();
+
+        Assert.Equal(30, Assert.Single(await _provider.DiscoverAsync(Ct)).LedCount);
+        Assert.Equal([0, 0, 0], _server.CustomModeIndexes);
+    }
+
     [Fact]
     public async Task ResizeZone_UntilReloaded_SendsNoColors()
     {
