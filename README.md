@@ -34,6 +34,14 @@ render-loop, IPC-server), `Providers.OpenRgb`
 een loopback-socket, dus zonder OpenRGB), `Providers.Simulated` (de gesimuleerde
 apparaten) en `UI` (viewmodels met een nep-engine).
 
+Helpers die elk testproject gebruikt (`Eventually`, `TestColors`, `TestCancellation`) staan in
+`tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. Na de
+code-review kregen ook deze delen eigen tests: de invoercontrole van de verlichting
+(`LightingControllerValidationTests`, `LightingTableTests`), `EffectCatalogTests`,
+`DeviceOutputTests`, `OpenRgbPacketsTests`, `OpenRgbServerWatcherTests` (pakketten met data en
+een kapotte header), `ColorBrushesTests`, `ReentrancyGuardTests`, `DeviceErrorsTests` en
+`RgbColorJsonConverterTests`.
+
 ## Engine starten
 
 De engine draait zonder venster, alleen met een tray-icoon (rechtsonder bij de klok).
@@ -363,7 +371,7 @@ dotnet run --project src/BuurmansRgb.UI
 ## Mappen
 
 - `src/` – de projecten, zie de solution-indeling in `docs/bouwplan.md`
-- `tests/` – unit-tests, zonder hardware
+- `tests/` – unit-tests, zonder hardware; `tests/Shared` – helpers voor elk testproject
 
 - `docs/bouwplan.md` – architectuur, fasering en taken met acceptatiecriteria
 - `docs/prompts.md` – kant-en-klare opdrachten voor agents
