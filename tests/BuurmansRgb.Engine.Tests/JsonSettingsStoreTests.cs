@@ -19,7 +19,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = store.LoadOrCreate();
 
-        Assert.Equal(EngineSettings.Default, settings);
+        Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.True(File.Exists(path));
     }
 
@@ -65,7 +65,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(path).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.Default.Brightness, settings.Brightness);
+        Assert.Equal(EngineSettings.CreateDefault().Brightness, settings.Brightness);
         Assert.Equal(new RgbColor(0, 0, 255), settings.Color);
     }
 
@@ -81,7 +81,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(path).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.Default, settings);
+        Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.Equal(content, File.ReadAllText(path));
     }
 
@@ -93,7 +93,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(Path.Combine(blocker, "settings.json")).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.Default, settings);
+        Assert.Equal(EngineSettings.CreateDefault(), settings);
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(path).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.Default, settings);
+        Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.True(File.Exists(path));
     }
 

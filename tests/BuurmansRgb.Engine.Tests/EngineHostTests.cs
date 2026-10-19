@@ -32,7 +32,8 @@ public sealed class EngineHostTests : IDisposable
 
         await host.StartAsync(TestContext.Current.CancellationToken);
 
-        await AssertAllSimulatedLedsAsync(EngineSettings.Default.Color.Scale(EngineSettings.Default.Brightness));
+        var defaults = EngineSettings.CreateDefault();
+        await AssertAllSimulatedLedsAsync(defaults.Color.Scale(defaults.Brightness));
     }
 
     [Fact]

@@ -13,7 +13,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         if (!File.Exists(filePath))
         {
-            var defaults = EngineSettings.Default;
+            var defaults = EngineSettings.CreateDefault();
             TrySave(defaults);
             return defaults;
         }
@@ -21,12 +21,12 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         try
         {
             using var stream = File.OpenRead(filePath);
-            return JsonSerializer.Deserialize(stream, EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.Default;
+            return JsonSerializer.Deserialize(stream, EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.CreateDefault();
         }
         catch (Exception exception) when (exception is JsonException || IsFileAccessError(exception))
         {
             // Keep the user's file untouched so a typo can be fixed; run on defaults meanwhile.
-            return EngineSettings.Default;
+            return EngineSettings.CreateDefault();
         }
     }
 

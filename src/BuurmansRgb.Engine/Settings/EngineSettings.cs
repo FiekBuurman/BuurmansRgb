@@ -6,7 +6,7 @@ namespace BuurmansRgb.Engine.Settings;
 // replace the defaults below with zero when a property is missing from the file.
 internal sealed record EngineSettings
 {
-    public static EngineSettings Default => new();
+    public static EngineSettings CreateDefault() => new();
 
     public RgbColor Color { get; set; } = RgbColor.White;
 
