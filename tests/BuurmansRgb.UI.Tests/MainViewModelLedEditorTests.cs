@@ -39,6 +39,24 @@ public sealed class MainViewModelLedEditorTests
     }
 
     [Fact]
+    public async Task ClickLed_ExtendIntoTheNextZone_SelectsAcrossBothZones()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
+            [new RgbZone("Mainboard", 2, Resizable: false), new RgbZone("ARGB header", 2, Resizable: true)])];
+        Api.RaiseDevicesChanged();
+
+        Click(viewModel, "board", 1);
+        Click(viewModel, "board", 2, extend: true);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
+        var board = Assert.Single(viewModel.Preview.Devices);
+        Assert.Equal([(1, 1), (0, 0)], board.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
+        Assert.Equal(["leds board 1 #00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
     public async Task FillGradient_SendsTheGradientOfTheRange()
     {
         var viewModel = await ConnectAsync();
