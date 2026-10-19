@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Pipes;
 using StreamJsonRpc;
 
@@ -6,7 +7,9 @@ namespace BuurmansRgb.Contracts;
 // Both ends of the pipe are set up here, so the engine and the UI always agree on the wire format.
 public static class EngineRpc
 {
-    public const string PipeName = "BuurmansRgb.Engine";
+    // Pipe names are machine-wide, but the engine runs once per Windows session (its mutex is
+    // Local\). The session id keeps the engines of two logged-in users apart.
+    public static string PipeName { get; } = $"BuurmansRgb.Engine.{CurrentSessionId()}";
 
     // CurrentUserOnly: only processes of this Windows user can connect.
     public const PipeOptions SharedPipeOptions = PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly;
@@ -21,6 +24,12 @@ public static class EngineRpc
         rpc.AddLocalRpcTarget<IEngineApi>(api, new JsonRpcTargetOptions { NotifyClientOfEvents = true });
         rpc.StartListening();
         return rpc;
+    }
+
+    private static int CurrentSessionId()
+    {
+        using var process = Process.GetCurrentProcess();
+        return process.SessionId;
     }
 
     internal static JsonRpc CreateClient(Stream stream) => new(CreateMessageHandler(stream));

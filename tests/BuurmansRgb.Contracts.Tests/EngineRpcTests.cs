@@ -23,6 +23,14 @@ public sealed class EngineRpcTests : IAsyncDisposable
     }
 
     [Fact]
+    public void PipeName_IsPerWindowsSession()
+    {
+        using var process = System.Diagnostics.Process.GetCurrentProcess();
+
+        Assert.Equal($"BuurmansRgb.Engine.{process.SessionId}", EngineRpc.PipeName);
+    }
+
+    [Fact]
     public async Task GetDevicesAsync_ReturnsDevicesFromServer()
     {
         var client = await ConnectAsync();

@@ -70,8 +70,9 @@ dotnet run --project src/BuurmansRgb.Engine
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - In deze fase stuurt de engine alleen de gesimuleerde apparaten aan; je ziet de kleur
   in het voorbeeld van de instellingen-app.
-- **IPC:** de engine luistert op named pipe `BuurmansRgb.Engine` (alleen voor de eigen
-  Windows-gebruiker) met StreamJsonRpc; de interface is `IEngineApi` in
+- **IPC:** de engine luistert op named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor
+  de eigen Windows-gebruiker) met StreamJsonRpc. Het sessienummer zorgt dat twee ingelogde
+  gebruikers elk hun eigen engine hebben, net als de mutex. De interface is `IEngineApi` in
   `BuurmansRgb.Contracts`. Na het sluiten van de laatste instellingen-app geeft de engine
   zijn ongebruikte geheugen terug aan Windows.
 
