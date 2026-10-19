@@ -1,50 +1,204 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
 
+// Called from the tray thread and from IPC threads; the lock guards all state. Events are
+// raised outside the lock, so a frame can arrive late: LightingFrame.Sequence orders them.
 internal sealed class LightingController(IReadOnlyList<IDeviceProvider> providers)
 {
-    private readonly List<DeviceOutput> _outputs = [];
-    private RgbColor? _color;
+    private readonly Lock _gate = new();
+    private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
+    private IReadOnlyList<DeviceOutput> _outputs = [];
+    private DeviceLighting? _global;
+    private bool _isPaused;
+    private long _frameSequence;
 
-    public bool IsPaused { get; private set; }
+    // Raised after each render, also while paused, so a preview shows what the lights will show.
+    public event EventHandler<LightingFrame>? FrameRendered;
 
-    public async Task DiscoverAsync(CancellationToken ct)
+    // Raised when the lighting is changed through SetLighting, not when it is applied from settings.
+    public event EventHandler? LightingChanged;
+
+    public bool IsPaused
     {
-        _outputs.Clear();
-        foreach (var provider in providers)
+        get
         {
-            foreach (var device in await provider.DiscoverAsync(ct))
+            lock (_gate)
             {
-                _outputs.Add(new(provider, device, new RgbColor[device.LedCount]));
+                return _isPaused;
             }
         }
     }
 
-    public void ApplyStaticColor(RgbColor color, double brightness)
+    public IReadOnlyList<RgbDevice> Devices
     {
-        _color = color.Scale(brightness);
-        Render();
+        get
+        {
+            lock (_gate)
+            {
+                return [.. _outputs.Select(output => output.Device)];
+            }
+        }
     }
 
-    // Resuming sends the latest color again; pausing leaves the devices as they are.
+    public LightingState State
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return new(_global ?? DeviceLighting.Default, new Dictionary<string, DeviceLighting>(_deviceLighting));
+            }
+        }
+    }
+
+    public async Task DiscoverAsync(CancellationToken ct)
+    {
+        List<DeviceOutput> outputs = [];
+        foreach (var provider in providers)
+        {
+            foreach (var device in await provider.DiscoverAsync(ct))
+            {
+                outputs.Add(new(provider, device, new RgbColor[device.LedCount]));
+            }
+        }
+
+        lock (_gate)
+        {
+            _outputs = outputs;
+        }
+    }
+
+    public void Apply(LightingState state)
+    {
+        LightingFrame? frame;
+        lock (_gate)
+        {
+            _global = state.Global;
+            _deviceLighting.Clear();
+            foreach (var (deviceId, lighting) in state.Devices)
+            {
+                _deviceLighting[deviceId] = lighting;
+            }
+
+            frame = RenderLocked();
+        }
+
+        Publish(frame);
+    }
+
+    // A null deviceId means the global lighting.
+    public DeviceLighting GetLighting(string? deviceId)
+    {
+        lock (_gate)
+        {
+            var global = _global ?? DeviceLighting.Default;
+            if (deviceId is null)
+            {
+                return global;
+            }
+
+            EnsureKnownDevice(deviceId);
+            return _deviceLighting.GetValueOrDefault(deviceId, global);
+        }
+    }
+
+    // Changing the global lighting resets every device to it; changing one device starts from
+    // what that device shows now.
+    public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
+    {
+        LightingFrame? frame;
+        lock (_gate)
+        {
+            var global = _global ?? DeviceLighting.Default;
+            if (deviceId is null)
+            {
+                _global = change(global);
+                _deviceLighting.Clear();
+            }
+            else
+            {
+                EnsureKnownDevice(deviceId);
+                _global = global;
+                _deviceLighting[deviceId] = change(_deviceLighting.GetValueOrDefault(deviceId, global));
+            }
+
+            frame = RenderLocked();
+        }
+
+        Publish(frame);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public LightingFrame GetFrame()
+    {
+        lock (_gate)
+        {
+            return CreateFrameLocked();
+        }
+    }
+
+    // Resuming sends the latest lighting again; pausing leaves the devices as they are.
     public void SetPaused(bool paused)
     {
-        IsPaused = paused;
-        Render();
+        LightingFrame? frame;
+        lock (_gate)
+        {
+            if (_isPaused == paused)
+            {
+                return;
+            }
+
+            _isPaused = paused;
+            if (paused)
+            {
+                return;
+            }
+
+            frame = RenderLocked();
+        }
+
+        Publish(frame);
     }
 
-    private void Render()
+    // Returns the frame to publish, or null when nothing was rendered or nobody listens.
+    private LightingFrame? RenderLocked()
     {
-        if (IsPaused || _color is not { } color)
+        if (_global is not { } global)
         {
-            return;
+            return null;
         }
 
         foreach (var (provider, device, buffer) in _outputs)
         {
-            buffer.AsSpan().Fill(color);
-            provider.SetLeds(device.Id, buffer);
+            buffer.AsSpan().Fill(_deviceLighting.GetValueOrDefault(device.Id, global).OutputColor);
+            if (!_isPaused)
+            {
+                provider.SetLeds(device.Id, buffer);
+            }
+        }
+
+        _frameSequence++;
+        return FrameRendered is null ? null : CreateFrameLocked();
+    }
+
+    private LightingFrame CreateFrameLocked() =>
+        new(_frameSequence, [.. _outputs.Select(output => DeviceFrame.FromColors(output.Device.Id, output.Buffer))]);
+
+    private void Publish(LightingFrame? frame)
+    {
+        if (frame is not null)
+        {
+            FrameRendered?.Invoke(this, frame);
+        }
+    }
+
+    private void EnsureKnownDevice(string deviceId)
+    {
+        if (!_outputs.Any(output => output.Device.Id == deviceId))
+        {
+            throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
         }
     }
 
