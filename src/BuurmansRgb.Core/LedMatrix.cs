@@ -46,5 +46,17 @@ public sealed record LedMatrix
     public bool Equals(LedMatrix? other) =>
         other is not null && Height == other.Height && Width == other.Width && Cells.SequenceEqual(other.Cells);
 
-    public override int GetHashCode() => HashCode.Combine(Height, Width, Cells.Count);
+    // Every cell counts, like in Equals; a key map of 6 by 24 is cheap to hash.
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(Height);
+        hash.Add(Width);
+        foreach (var cell in Cells)
+        {
+            hash.Add(cell);
+        }
+
+        return hash.ToHashCode();
+    }
 }

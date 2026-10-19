@@ -76,6 +76,10 @@ public sealed class LedMatrixTests
     }
 
     [Fact]
+    public void GetHashCode_SameShapeOtherCells_Differs() =>
+        Assert.NotEqual(Keys().GetHashCode(), new LedMatrix(2, 3, [0, 1, 2, 3, 4, No]).GetHashCode());
+
+    [Fact]
     public void ZoneEquals_ComparesTheMatrix()
     {
         var zone = RgbZone.Fixed("Keys", 5) with { Matrix = Keys() };
