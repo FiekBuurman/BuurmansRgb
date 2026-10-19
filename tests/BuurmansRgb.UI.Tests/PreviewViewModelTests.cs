@@ -36,7 +36,7 @@ public sealed class PreviewViewModelTests
     public void ShowDevices_KeepsTheLedSelection()
     {
         var preview = new PreviewViewModel();
-        preview.ShowSelection(new LedSelection("fan", "Fan", 0, 1));
+        preview.ShowLedSelection(new LedSelection("fan", "Fan", 0, 1));
 
         preview.ShowDevices([Fan]);
 

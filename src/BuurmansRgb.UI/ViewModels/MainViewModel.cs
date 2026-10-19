@@ -315,7 +315,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             LedEditor.Start(device.Id, device.Name, colors, click.Index);
         }
 
-        Preview.ShowSelection(LedEditor.Selection);
+        Preview.ShowLedSelection(LedEditor.Selection);
         WithoutSending(() => ColorPicker.Show(LedEditor.AnchorColor));
     }
 
@@ -338,7 +338,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ClearLedSelection()
     {
         LedEditor.Clear();
-        Preview.ShowSelection(null);
+        Preview.ShowLedSelection(null);
     }
 
     private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));

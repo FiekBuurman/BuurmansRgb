@@ -21,7 +21,7 @@ public sealed partial class DevicePreviewViewModel(string deviceId, string name,
     [ObservableProperty]
     public partial int SelectionLast { get; private set; } = -1;
 
-    public void ShowSelection(LedSelection? selection)
+    public void ShowLedSelection(LedSelection? selection)
     {
         var mine = selection?.DeviceId == DeviceId;
         SelectionFirst = mine ? selection!.First : -1;

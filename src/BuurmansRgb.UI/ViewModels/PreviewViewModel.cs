@@ -8,7 +8,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed class PreviewViewModel
 {
     private LightingFrame _latestFrame = LightingFrame.Empty;
-    private LedSelection? _selection;
+    private LedSelection? _ledSelection;
 
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
@@ -24,19 +24,19 @@ public sealed class PreviewViewModel
         foreach (var device in devices)
         {
             var preview = new DevicePreviewViewModel(device.Id, device.Name, device.LedCount, click => LedClicked?.Invoke(this, click));
-            preview.ShowSelection(_selection);
+            preview.ShowLedSelection(_ledSelection);
             Devices.Add(preview);
         }
 
         ShowFrame(_latestFrame);
     }
 
-    public void ShowSelection(LedSelection? selection)
+    public void ShowLedSelection(LedSelection? selection)
     {
-        _selection = selection;
+        _ledSelection = selection;
         foreach (var preview in Devices)
         {
-            preview.ShowSelection(selection);
+            preview.ShowLedSelection(selection);
         }
     }
 
