@@ -31,6 +31,9 @@ public sealed partial class LedEditorViewModel : ObservableObject
     // The stored color of the LED that was clicked without Shift, for the color picker.
     public RgbColor AnchorColor => _colors.Length > 0 ? _colors[_anchor] : RgbColor.Black;
 
+    // The number of LEDs of the device being edited, or 0.
+    public int LedCount => _colors.Length;
+
     public bool IsEditing(string deviceId) => Selection?.DeviceId == deviceId;
 
     // Selects one LED of a device whose stored colors are given. An index the colors do not

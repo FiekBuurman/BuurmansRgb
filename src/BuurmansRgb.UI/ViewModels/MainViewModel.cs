@@ -179,7 +179,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
 
-        if (LedEditor.Selection is { } selection && !devices.Any(device => device.Id == selection.DeviceId))
+        // The edit ends when its device is gone or got another number of LEDs (a zone that was
+        // resized): the colors the editor holds no longer fit the device.
+        if (LedEditor.Selection is { } selection
+            && devices.FirstOrDefault(device => device.Id == selection.DeviceId)?.LedCount != LedEditor.LedCount)
         {
             ClearLedSelection();
         }

@@ -112,6 +112,30 @@ public sealed class MainViewModelLedEditorTests
         Assert.Null(viewModel.LedEditor.Selection);
     }
 
+    [Fact]
+    public async Task DevicesChanged_EditedDeviceGotFewerLeds_ClearsTheLedSelection()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 2);
+
+        Api.Devices = [Api.Devices[0] with { LedCount = 2 }, Api.Devices[1]];
+        Api.RaiseDevicesChanged();
+
+        Assert.Null(viewModel.LedEditor.Selection);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_EditedDeviceUnchanged_KeepsTheLedSelection()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 2);
+
+        Api.Devices = [.. Api.Devices];
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(new LedSelection("strip", "LED strip", 2, 2), viewModel.LedEditor.Selection);
+    }
+
     private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false) =>
         viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLedCommand.Execute(new LedHit(index, extend));
 
