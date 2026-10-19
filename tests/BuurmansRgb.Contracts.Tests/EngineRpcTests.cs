@@ -100,6 +100,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ResizeZoneAsync_SendsDeviceZoneAndLength()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ResizeZoneAsync("board", 1, 24, TestContext.Current.CancellationToken);
+
+        Assert.Equal([("board", 1, 24)], _api.ResizeCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -157,6 +167,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor> Colors)> LedColorCalls { get; } = [];
 
+        public List<(string DeviceId, int ZoneIndex, int LedCount)> ResizeCalls { get; } = [];
+
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
 
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
@@ -186,6 +198,12 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             LedColorCalls.Add((deviceId, firstLed, colors));
+            return Task.CompletedTask;
+        }
+
+        public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
+        {
+            ResizeCalls.Add((deviceId, zoneIndex, ledCount));
             return Task.CompletedTask;
         }
     }
