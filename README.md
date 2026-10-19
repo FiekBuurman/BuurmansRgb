@@ -162,9 +162,9 @@ Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt z
 via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
 
 - **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. De videokaart heeft ook een eigen icoon
-  (zie "Videokaart (GPU)"); fans, strips, toetsenbord, muis en headset krijgen voorlopig een algemeen icoon,
-  hun eigen icoon en naam komen in taak 7 en 8.
+  aantal LED's en, bij meer dan één zone, het aantal zones. De videokaart heeft ook een eigen
+  icoon (zie "Videokaart (GPU)"); fans, case-LED, strips, toetsenbord, muis en headset krijgen
+  voorlopig een algemeen icoon, hun eigen icoon en naam komen in taak 7 en 8.
 - **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
   OpenRGB ze geeft (bijv. "Aura Mainboard" en "Aura Addressable 1"). Een header zonder LED's
   staat er ook, met de melding dat je in OpenRGB instelt hoeveel LED's erop zitten. Een
