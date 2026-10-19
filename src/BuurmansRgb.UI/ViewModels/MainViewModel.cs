@@ -197,18 +197,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        IReadOnlyList<DeviceInfo> devices;
-        try
-        {
-            devices = await connection.Api.GetDevicesAsync();
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
-            return;
-        }
-
-        if (ReferenceEquals(connection, _connection))
+        var (ok, devices) = await TryCallAsync(connection, api => api.GetDevicesAsync());
+        if (ok && ReferenceEquals(connection, _connection))
         {
             ShowDevices(devices);
             await ShowSelectionAsync();
@@ -224,19 +214,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var deviceId = SelectedDevice?.DeviceId;
-        LightingInfo lighting;
-        try
-        {
-            lighting = await connection.Api.GetLightingAsync(deviceId);
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
-            return;
-        }
+        var (ok, lighting) = await TryCallAsync(connection, api => api.GetLightingAsync(deviceId));
 
         // The user may have picked another device while this one was loading.
-        if (SelectedDevice?.DeviceId != deviceId)
+        if (!ok || SelectedDevice?.DeviceId != deviceId)
         {
             return;
         }
@@ -303,18 +284,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!LedEditor.IsEditing(deviceId))
         {
-            IReadOnlyList<RgbColor> colors;
-            try
-            {
-                colors = await connection.Api.GetLedColorsAsync(deviceId);
-            }
-            catch (Exception exception)
-            {
-                OnCallFailed(exception);
-                return;
-            }
-
-            if (!ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
+            var (ok, colors) = await TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
+            if (!ok || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
@@ -377,6 +348,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Fail(Strings.ConnectionLost);
         }
     });
+
+    // One engine call whose answer is awaited. A failure goes to OnCallFailed and gives Ok false;
+    // the caller still checks that the answer is not out of date.
+    private async Task<(bool Ok, T Value)> TryCallAsync<T>(IEngineConnection connection, Func<IEngineApi, Task<T>> call)
+    {
+        try
+        {
+            return (true, await call(connection.Api));
+        }
+        catch (Exception exception)
+        {
+            OnCallFailed(exception);
+            return (false, default!);
+        }
+    }
 
     private void OnCallFailed(Exception exception)
     {
