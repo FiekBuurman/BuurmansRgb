@@ -32,6 +32,16 @@ public sealed class PerLedEffectTests
     }
 
     [Fact]
+    public void Render_LedWithoutAStoredColor_GetsTheFallback()
+    {
+        var leds = new RgbColor[3];
+
+        new PerLedEffect([null, Green, null], White).Render(leds, TimeSpan.Zero);
+
+        Assert.Equal([White, Green, White], leds);
+    }
+
+    [Fact]
     public void Render_FewerLedsThanColors_UsesTheFirstColors()
     {
         var leds = new RgbColor[2];
@@ -44,7 +54,7 @@ public sealed class PerLedEffectTests
     [Fact]
     public void Render_KeepsTheColorsItWasCreatedWith()
     {
-        var colors = new[] { Red, Green };
+        var colors = new RgbColor?[] { Red, Green };
         var effect = new PerLedEffect(colors, White);
         colors[0] = Blue;
         var leds = new RgbColor[2];

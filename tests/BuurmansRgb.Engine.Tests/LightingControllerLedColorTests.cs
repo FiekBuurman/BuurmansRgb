@@ -69,7 +69,21 @@ public sealed class LightingControllerLedColorTests
         _controller.SetLedColors(Device, 2, [Blue]);
 
         Assert.Equal(1, changes);
-        Assert.Equal([Orange, Orange, Blue], _controller.State.LedColors[Device]);
+        Assert.Equal([null, null, Blue], _controller.State.LedColors[Device]);
+    }
+
+    // The device color still reaches the LEDs that were never edited, also after an edit.
+    [Fact]
+    public async Task SetLighting_NewDeviceColorAfterAnEdit_ColorsTheLedsWithoutAColorOfTheirOwn()
+    {
+        await StartAsync();
+        _controller.SetLedColors(Device, 1, [Red]);
+
+        _controller.SetLighting(Device, lighting => lighting with { Color = Blue });
+
+        Assert.Equal(EffectIds.PerLed, _controller.GetLighting(Device).EffectId);
+        Assert.Equal([Blue, Red, Blue], _provider.LastColors);
+        Assert.Equal([Blue, Red, Blue], _controller.GetLedColors(Device));
     }
 
     [Fact]
@@ -80,7 +94,7 @@ public sealed class LightingControllerLedColorTests
         _controller.Apply(new LightingState(
             new DeviceLighting(Orange, 1.0, EffectIds.PerLed),
             new Dictionary<string, DeviceLighting>(),
-            new Dictionary<string, IReadOnlyList<RgbColor>> { [Device] = [Red, Blue, Red] }));
+            new Dictionary<string, IReadOnlyList<RgbColor?>> { [Device] = [Red, Blue, Red] }));
 
         Assert.Equal([Red, Blue, Red], _provider.LastColors);
     }
@@ -93,7 +107,7 @@ public sealed class LightingControllerLedColorTests
         _controller.Apply(new LightingState(
             new DeviceLighting(Orange, 1.0, EffectIds.Static),
             new Dictionary<string, DeviceLighting>(),
-            new Dictionary<string, IReadOnlyList<RgbColor>> { [Device] = [Red, Blue, Red] }));
+            new Dictionary<string, IReadOnlyList<RgbColor?>> { [Device] = [Red, Blue, Red] }));
 
         Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
         Assert.Equal([Red, Blue, Red], _controller.GetLedColors(Device));
@@ -107,7 +121,7 @@ public sealed class LightingControllerLedColorTests
         _controller.Apply(new LightingState(
             new DeviceLighting(Orange, 1.0, EffectIds.PerLed),
             new Dictionary<string, DeviceLighting>(),
-            new Dictionary<string, IReadOnlyList<RgbColor>> { [Device] = [Red] }));
+            new Dictionary<string, IReadOnlyList<RgbColor?>> { [Device] = [Red] }));
 
         Assert.Equal([Red, Orange, Orange], _controller.GetLedColors(Device));
         Assert.Equal([Red, Orange, Orange], _provider.LastColors);

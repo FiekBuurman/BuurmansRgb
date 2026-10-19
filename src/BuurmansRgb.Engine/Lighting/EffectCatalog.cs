@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // the device's color and its stored per-LED colors and uses what it needs.
 internal static class EffectCatalog
 {
-    private static readonly OrderedDictionary<string, Func<RgbColor, IReadOnlyList<RgbColor>, IEffect>> Factories = new()
+    private static readonly OrderedDictionary<string, Func<RgbColor, IReadOnlyList<RgbColor?>, IEffect>> Factories = new()
     {
         [EffectIds.Static] = (color, _) => new StaticEffect(color),
         [EffectIds.Breathing] = (color, _) => new BreathingEffect(color),
@@ -22,7 +22,7 @@ internal static class EffectCatalog
 
     public static bool IsKnown([NotNullWhen(true)] string? effectId) => effectId is not null && Factories.ContainsKey(effectId);
 
-    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor> ledColors) =>
+    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors) =>
         Factories.TryGetValue(effectId, out var create)
             ? create(color, ledColors)
             : throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));

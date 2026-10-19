@@ -16,8 +16,9 @@ internal sealed record EngineSettings : LightingSettings
     // Null instead of empty, so the default settings compare equal and stay out of the file.
     public Dictionary<string, LightingSettings?>? Devices { get; set; }
 
-    // One "#RRGGBB" per LED, by device. Null for the same reason as Devices.
-    public Dictionary<string, RgbColor[]?>? LedColors { get; set; }
+    // One "#RRGGBB" per LED, by device, or null for an LED that follows the device color. Null for
+    // the same reason as Devices.
+    public Dictionary<string, RgbColor?[]?>? LedColors { get; set; }
 
     public static EngineSettings CreateDefault() => new();
 
@@ -33,7 +34,7 @@ internal sealed record EngineSettings : LightingSettings
                 ? state.Devices.ToDictionary(pair => pair.Key, pair => (LightingSettings?)From(pair.Value))
                 : null,
             LedColors = state.LedColors.Count > 0
-                ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor[]?)[.. pair.Value])
+                ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value])
                 : null,
         };
         settings.CopyFrom(state.Global);
@@ -51,7 +52,7 @@ internal sealed record EngineSettings : LightingSettings
             }
         }
 
-        var ledColors = new Dictionary<string, IReadOnlyList<RgbColor>>();
+        var ledColors = new Dictionary<string, IReadOnlyList<RgbColor?>>();
         foreach (var (deviceId, colors) in LedColors ?? [])
         {
             if (colors is not null)

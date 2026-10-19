@@ -63,7 +63,7 @@ dotnet run --project src/BuurmansRgb.Engine
       "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led" }
     },
     "ledColors": {
-      "simulated-fan": ["#FF0000", "#FF0000", "#0000FF", "..."]
+      "simulated-fan": ["#FF0000", null, "#0000FF", "..."]
     }
   }
   ```
@@ -73,7 +73,8 @@ dotnet run --project src/BuurmansRgb.Engine
   van de engine), handig zodra de echte apparaten via OpenRGB werken. `framesPerSecond`
   (1–60, standaard 30) is de framerate van de bewegende effecten. Onder `devices` staan
   alleen apparaten met een eigen kleur of effect; de rest volgt de algemene waarden. Onder
-  `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`. Een ongeldig of
+  `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`; `null` (of een
+  LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Een ongeldig of
   onleesbaar bestand laat de engine ongemoeid en draait dan op de standaardwaarden. Dat
   geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
@@ -171,7 +172,9 @@ dotnet run --project src/BuurmansRgb.UI
   de reeks met een verloop van de kleur van de eerste naar die van de laatste LED (geef
   dus eerst de eerste en de laatste LED een kleur). "Selectie opheffen", of een ander
   apparaat in de lijst kiezen, geeft de kleurkiezer weer aan het apparaat. Het apparaat
-  krijgt bij de eerste wijziging het effect "Per LED"; de kleuren staan onder `ledColors` in
+  krijgt bij de eerste wijziging het effect "Per LED". LED's die je niet kleurt, volgen de
+  kleur van het apparaat: kies je zonder selectie een kleur, dan krijgen alleen die LED's de
+  nieuwe kleur. De kleuren staan onder `ledColors` in
   `settings.json` en blijven bewaard na een herstart, ook als je tussendoor een ander effect
   kiest.
 - Draait de engine niet, dan meldt het venster dat en kun je "Opnieuw proberen". Stopt de

@@ -31,10 +31,11 @@ public partial interface IEngineApi
 
     Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default);
 
-    // The stored colors of the per-LED effect, one per LED. A device without stored colors
-    // returns its own color on every LED.
+    // The colors of the per-LED effect, one per LED: the stored color, or the device color for an
+    // LED without one.
     Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default);
 
     // Stores colors for the LEDs from firstLed on and switches the device to the per-LED effect.
+    // The other LEDs keep following the device color.
     Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
 }

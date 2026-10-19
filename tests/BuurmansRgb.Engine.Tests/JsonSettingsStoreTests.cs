@@ -73,6 +73,18 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_LedWithoutAColorOfItsOwn_RoundTripsAsNull()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(new EngineSettings { LedColors = new() { ["simulated-fan"] = [null, new RgbColor(255, 0, 0)] } });
+
+        Assert.Contains("null", File.ReadAllText(path));
+        Assert.Equal([null, new RgbColor(255, 0, 0)], store.LoadOrCreate().LedColors!["simulated-fan"]!);
+    }
+
+    [Fact]
     public void Save_Defaults_LeavesLedColorsOutOfTheFile()
     {
         var path = _directory.File("settings.json");

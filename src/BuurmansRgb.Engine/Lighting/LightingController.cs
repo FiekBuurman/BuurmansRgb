@@ -23,7 +23,7 @@ internal sealed class LightingController : IDisposable
     private readonly long _epoch;
     private readonly DeviceOutput[][] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
-    private readonly Dictionary<string, RgbColor[]> _ledColors = [];
+    private readonly Dictionary<string, RgbColor?[]> _ledColors = [];
     private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
@@ -126,7 +126,7 @@ internal sealed class LightingController : IDisposable
                 return new(
                     GlobalLocked,
                     new Dictionary<string, DeviceLighting>(_deviceLighting),
-                    _ledColors.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor>)[.. pair.Value]));
+                    _ledColors.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor?>)[.. pair.Value]));
             }
         }
     }
@@ -210,19 +210,28 @@ internal sealed class LightingController : IDisposable
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    // The stored colors of the per-LED effect, one per LED. A device without stored colors gets
-    // its own color on every LED, which is also where editing them starts.
+    // The colors the per-LED effect shows, one per LED: the stored color, or the device color for
+    // an LED without one. That is also where editing them starts.
     public IReadOnlyList<RgbColor> GetLedColors(string deviceId)
     {
         lock (_gate)
         {
             var device = KnownDeviceLocked(deviceId);
-            return LedColorsLocked(device).AsSpan(0, device.LedCount).ToArray();
+            var stored = _ledColors.GetValueOrDefault(deviceId, []);
+            var fallback = LightingForLocked(deviceId).Color;
+            var colors = new RgbColor[device.LedCount];
+            for (var i = 0; i < colors.Length; i++)
+            {
+                colors[i] = (i < stored.Length ? stored[i] : null) ?? fallback;
+            }
+
+            return colors;
         }
     }
 
     // Stores colors for the LEDs from firstLed on and switches the device to the per-LED effect,
-    // so the change shows at once.
+    // so the change shows at once. Only these LEDs get a color of their own; the others keep
+    // following the device color.
     public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
     {
         bool rendered;
@@ -233,7 +242,13 @@ internal sealed class LightingController : IDisposable
             ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
 
-            var stored = LedColorsLocked(device);
+            // Colors past the end, kept from when a zone was longer, stay for when it grows back.
+            var stored = _ledColors.GetValueOrDefault(deviceId, []);
+            if (stored.Length < firstLed + colors.Count)
+            {
+                Array.Resize(ref stored, firstLed + colors.Count);
+            }
+
             for (var i = 0; i < colors.Count; i++)
             {
                 stored[firstLed + i] = colors[i];
@@ -466,17 +481,6 @@ internal sealed class LightingController : IDisposable
         {
             _deviceLighting[deviceId] = lighting;
         }
-    }
-
-    // A copy to edit, at least as long as the device, padded with the device's own color. A copy
-    // that is longer, because a zone got smaller, keeps its extra colors for when it grows back.
-    private RgbColor[] LedColorsLocked(RgbDevice device)
-    {
-        var stored = _ledColors.GetValueOrDefault(device.Id, []);
-        var colors = new RgbColor[Math.Max(stored.Length, device.LedCount)];
-        stored.CopyTo(colors);
-        colors.AsSpan(stored.Length).Fill(LightingForLocked(device.Id).Color);
-        return colors;
     }
 
     private RgbDevice KnownDeviceLocked(string deviceId) =>
