@@ -39,6 +39,25 @@ public readonly record struct RgbColor(byte R, byte G, byte B)
         };
     }
 
+    // Hue in [0, 1), like FromHsv; gray has hue 0 and saturation 0.
+    public (double Hue, double Saturation, double Value) ToHsv()
+    {
+        var max = Math.Max(R, Math.Max(G, B));
+        var min = Math.Min(R, Math.Min(G, B));
+        var range = (double)(max - min);
+        var value = max / 255.0;
+        if (range == 0)
+        {
+            return (0.0, 0.0, value);
+        }
+
+        var sector = max == R ? (G - B) / range
+            : max == G ? 2.0 + (B - R) / range
+            : 4.0 + (R - G) / range;
+        var hue = sector / 6.0;
+        return (hue < 0 ? hue + 1.0 : hue, range / max, value);
+    }
+
     public static RgbColor Lerp(RgbColor from, RgbColor to, double amount)
     {
         var t = Math.Clamp(amount, 0.0, 1.0);
