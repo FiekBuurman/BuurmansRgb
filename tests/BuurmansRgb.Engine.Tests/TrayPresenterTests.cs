@@ -32,14 +32,24 @@ public sealed class TrayPresenterTests
     }
 
     [Fact]
-    public async Task StartAsync_Cancelled_PropagatesWithoutNotification()
+    public async Task StartAsync_CancelledOnShutdown_ShowsNothing()
     {
-        _host.StartException = new OperationCanceledException();
+        var shutdown = new CancellationToken(canceled: true);
+        _host.StartException = new OperationCanceledException(shutdown);
 
-        await Assert.ThrowsAsync<OperationCanceledException>(
-            () => CreatePresenter().StartAsync(TestContext.Current.CancellationToken));
+        await CreatePresenter().StartAsync(shutdown);
 
         Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task StartAsync_CancelledWithoutShutdown_ShowsError()
+    {
+        _host.StartException = new TaskCanceledException("Discovery timed out.");
+
+        await CreatePresenter().StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal([(Strings.StartupFailed, TrayNotificationKind.Error)], _view.Notifications);
     }
 
     [Fact]

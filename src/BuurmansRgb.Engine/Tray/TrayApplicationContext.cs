@@ -13,6 +13,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly NotifyIcon _notifyIcon;
     private readonly ToolStripMenuItem _autoStartItem;
     private readonly SynchronizationContext _uiContext;
+    private readonly CancellationTokenSource _shutdown = new();
 
     public TrayApplicationContext(IEngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher)
     {
@@ -51,11 +52,12 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
         // Creating the menu control installed the WinForms context for this thread.
         _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No UI synchronization context.");
+
+        // Continues on the UI thread once Application.Run pumps messages; "Afsluiten" cancels it.
+        _ = _presenter.StartAsync(_shutdown.Token);
     }
 
     public void RequestOpenSettings() => _uiContext.Post(_ => _presenter.OpenSettings(), state: null);
-
-    public Task StartAsync(CancellationToken ct) => _presenter.StartAsync(ct);
 
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
@@ -66,6 +68,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     protected override void ExitThreadCore()
     {
+        _shutdown.Cancel();
         _notifyIcon.Visible = false;
         base.ExitThreadCore();
     }
@@ -77,6 +80,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             _notifyIcon.Icon?.Dispose();
             _notifyIcon.Dispose();
             _menu.Dispose();
+            _shutdown.Dispose();
         }
 
         base.Dispose(disposing);

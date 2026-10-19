@@ -27,7 +27,6 @@ internal static class Program
 
         using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
         instance.ListenForActivation(context.RequestOpenSettings);
-        _ = context.StartAsync(CancellationToken.None);
 
         Application.Run(context);
     }

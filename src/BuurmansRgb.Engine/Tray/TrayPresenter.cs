@@ -13,13 +13,18 @@ internal sealed class TrayPresenter(
     ISettingsAppLauncher settingsAppLauncher,
     ITrayView view)
 {
+    // Never throws, so the caller can start it without awaiting.
     public async Task StartAsync(CancellationToken ct)
     {
         try
         {
             await host.StartAsync(ct);
         }
-        catch (Exception exception) when (exception is not OperationCanceledException)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // The engine is shutting down; nothing to report.
+        }
+        catch (Exception exception)
         {
             ReportFailure(exception, Strings.StartupFailed, TrayNotificationKind.Error);
         }
