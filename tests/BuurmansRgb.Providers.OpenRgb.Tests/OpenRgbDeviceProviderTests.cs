@@ -298,7 +298,7 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
-    public async Task Dispose_BeforeServerAnswers_ConnectsNever()
+    public async Task Dispose_WhileWaitingToRetry_StopsTrying()
     {
         _server.IsRunning = false;
         await ConnectAsync();
