@@ -62,4 +62,43 @@ public sealed class SwitchableDeviceProviderTests
         _switchable.IsEnabled = true;
         Assert.Equal(2, _changes);
     }
+
+    [Fact]
+    public async Task ResizeZone_Enabled_ResizesTheInnerZoneAndPassesTheChangeOn()
+    {
+        _switchable.ResizeZone("simulated-strip", 0, 40);
+
+        var strip = (await _switchable.DiscoverAsync(Ct)).Single(device => device.Id == "simulated-strip");
+        Assert.Equal(40, strip.LedCount);
+        Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public void ResizeZone_Disabled_ThrowsAndLeavesTheZone()
+    {
+        _switchable.IsEnabled = false;
+
+        Assert.Throws<ArgumentException>(() => _switchable.ResizeZone("simulated-strip", 0, 40));
+        Assert.Equal(30, _simulated.GetLeds("simulated-strip").Length);
+    }
+
+    [Fact]
+    public async Task InnerDevicesChanged_WhileDisabled_RaisesNothing()
+    {
+        await _switchable.DiscoverAsync(Ct);
+        _switchable.IsEnabled = false;
+        _changes = 0;
+
+        _simulated.ResizeZone("simulated-strip", 0, 40);
+
+        Assert.Equal(0, _changes);
+    }
+
+    [Fact]
+    public void ResizeZone_InnerCannotResize_Throws()
+    {
+        var switchable = new SwitchableDeviceProvider(new RecordingDeviceProvider());
+
+        Assert.Throws<NotSupportedException>(() => switchable.ResizeZone("device", 0, 4));
+    }
 }
