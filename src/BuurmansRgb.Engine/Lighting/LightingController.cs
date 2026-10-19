@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // Called from the tray thread, from IPC threads and, when a provider's devices change, from the
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
-// A PeriodicTimer renders the frames, and only while an animated effect shows and nothing is
+// An AnimationLoop renders the frames, and only while an animated effect shows and nothing is
 // paused; with static lighting no timer runs at all.
 internal sealed class LightingController : IDisposable
 {
@@ -21,9 +21,10 @@ internal sealed class LightingController : IDisposable
     private readonly SemaphoreSlim _discovering = new(1, 1);
     private readonly TimeProvider _time;
     private readonly long _epoch;
+    private readonly AnimationLoop _animation;
     private readonly DeviceOutput[][] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
-    private readonly Dictionary<string, RgbColor?[]> _ledColors = [];
+    private readonly LedColorStore _ledColors = new();
     private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
@@ -31,15 +32,13 @@ internal sealed class LightingController : IDisposable
     private long _sequence;
     private int _framesPerSecond = DefaultFramesPerSecond;
 
-    // Disposing it ends the running animation loop.
-    private PeriodicTimer? _animation;
-
     // Effects run on the time of timeProvider, counted from the moment the controller was made.
     public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
     {
         _providers = providers;
         _time = timeProvider ?? TimeProvider.System;
         _epoch = _time.GetTimestamp();
+        _animation = new AnimationLoop(_time, FramePeriodLocked, RenderAnimationFrame);
         _outputsByProvider = [.. providers.Select(_ => Array.Empty<DeviceOutput>())];
         for (var index = 0; index < providers.Count; index++)
         {
@@ -80,7 +79,7 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return _animation is not null;
+                return _animation.IsRunning;
             }
         }
     }
@@ -101,7 +100,7 @@ internal sealed class LightingController : IDisposable
             lock (_gate)
             {
                 _framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
-                _animation?.Period = FramePeriodLocked;
+                _animation.Period = FramePeriodLocked;
             }
         }
     }
@@ -126,7 +125,7 @@ internal sealed class LightingController : IDisposable
                 return new(
                     GlobalLocked,
                     new Dictionary<string, DeviceLighting>(_deviceLighting),
-                    _ledColors.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor?>)[.. pair.Value]));
+                    _ledColors.Snapshot());
             }
         }
     }
@@ -152,11 +151,7 @@ internal sealed class LightingController : IDisposable
                 _deviceLighting[deviceId] = lighting;
             }
 
-            _ledColors.Clear();
-            foreach (var (deviceId, colors) in state.LedColors)
-            {
-                _ledColors[deviceId] = [.. colors];
-            }
+            _ledColors.Replace(state.LedColors);
 
             rendered = RenderLocked();
         }
@@ -217,15 +212,7 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             var device = KnownDeviceLocked(deviceId);
-            var stored = _ledColors.GetValueOrDefault(deviceId, []);
-            var fallback = LightingForLocked(deviceId).Color;
-            var colors = new RgbColor[device.LedCount];
-            for (var i = 0; i < colors.Length; i++)
-            {
-                colors[i] = (i < stored.Length ? stored[i] : null) ?? fallback;
-            }
-
-            return colors;
+            return _ledColors.Resolve(deviceId, device.LedCount, LightingForLocked(deviceId).Color);
         }
     }
 
@@ -242,19 +229,7 @@ internal sealed class LightingController : IDisposable
             ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
 
-            // Colors past the end, kept from when a zone was longer, stay for when it grows back.
-            var stored = _ledColors.GetValueOrDefault(deviceId, []);
-            if (stored.Length < firstLed + colors.Count)
-            {
-                Array.Resize(ref stored, firstLed + colors.Count);
-            }
-
-            for (var i = 0; i < colors.Count; i++)
-            {
-                stored[firstLed + i] = colors[i];
-            }
-
-            _ledColors[deviceId] = stored;
+            _ledColors.Set(deviceId, firstLed, colors);
             _global = GlobalLocked;
             SetDeviceLightingLocked(deviceId, LightingForLocked(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
@@ -308,7 +283,7 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             // A tick that was already on its way when the animation stopped.
-            if (_animation is null)
+            if (!_animation.IsRunning)
             {
                 return;
             }
@@ -337,7 +312,7 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             _disposed = true;
-            UpdateAnimationLocked();
+            _animation.Dispose();
         }
     }
 
@@ -390,7 +365,7 @@ internal sealed class LightingController : IDisposable
         var time = EffectTime;
         foreach (var output in _outputs)
         {
-            output.Show(LightingForLocked(output.Device.Id), _ledColors.GetValueOrDefault(output.Device.Id, []));
+            output.Show(LightingForLocked(output.Device.Id), _ledColors.For(output.Device.Id));
             output.Render(time);
             if (!_isPaused)
             {
@@ -410,53 +385,13 @@ internal sealed class LightingController : IDisposable
 
     private void UpdateAnimationLocked()
     {
-        var animate = !_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated);
-        if (animate == (_animation is not null))
+        if (!_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated))
         {
-            return;
-        }
-
-        if (animate)
-        {
-            var timer = new PeriodicTimer(FramePeriodLocked, _time);
-            _animation = timer;
-            _ = AnimateAsync(timer);
+            _animation.Start();
         }
         else
         {
-            StopAnimationLocked();
-        }
-    }
-
-    private void StopAnimationLocked()
-    {
-        // Disposing makes the waiting WaitForNextTickAsync return false, which ends the loop.
-        _animation?.Dispose();
-        _animation = null;
-    }
-
-    // A frame that throws, for example in a provider or a Rendered listener, does not stop the
-    // animation: the next frame tries again. Only the first error of a series is traced, so a
-    // device that keeps failing does not fill the log 30 times a second.
-    private async Task AnimateAsync(PeriodicTimer timer)
-    {
-        var failing = false;
-        while (await timer.WaitForNextTickAsync().ConfigureAwait(false))
-        {
-            try
-            {
-                RenderAnimationFrame();
-                failing = false;
-            }
-            catch (Exception exception)
-            {
-                if (!failing)
-                {
-                    Trace.TraceError(exception.ToString());
-                }
-
-                failing = true;
-            }
+            _animation.Stop();
         }
     }
 
