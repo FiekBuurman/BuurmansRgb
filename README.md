@@ -89,8 +89,10 @@ dotnet run --project src/BuurmansRgb.UI
 - **Links** de apparatenlijst, met bovenaan "Alle apparaten". **Rechts** de kleur (hex-code,
   vaste kleuren, schuiven voor tint en verzadiging), de helderheid (0–100%), het effect en
   een voorbeeld met een bolletje per LED.
-- Een wijziging bij "Alle apparaten" geldt voor alle apparaten en wist hun eigen kleuren;
-  een wijziging bij één apparaat geldt alleen voor dat apparaat.
+- Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
+  wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
+  andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat
+  weer gelijk aan "Alle apparaten", dan volgt het die weer en verdwijnt het uit `devices`.
 - Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn.
 - Draait de engine niet, dan meldt het venster dat en kun je "Opnieuw proberen". Stopt de
   engine terwijl het venster open is, dan meldt het dat de verbinding is verbroken.

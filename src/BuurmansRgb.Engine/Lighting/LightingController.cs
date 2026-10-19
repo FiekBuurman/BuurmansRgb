@@ -103,8 +103,9 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         }
     }
 
-    // Changing the global lighting resets every device to it; changing one device starts from
-    // what that device shows now.
+    // A global change also applies to every device with its own lighting, so a global color keeps
+    // a device's own brightness and the other way round. Changing one device starts from what
+    // that device shows now.
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
     {
         LightingFrame? frame;
@@ -113,13 +114,17 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
             if (deviceId is null)
             {
                 _global = change(GlobalLocked);
-                _deviceLighting.Clear();
+                foreach (var (id, lighting) in _deviceLighting.ToArray())
+                {
+                    SetDeviceLightingLocked(id, change(lighting));
+                }
             }
             else
             {
                 EnsureKnownDevice(deviceId);
-                _deviceLighting[deviceId] = change(LightingForLocked(deviceId));
+                var lighting = change(LightingForLocked(deviceId));
                 _global = GlobalLocked;
+                SetDeviceLightingLocked(deviceId, lighting);
             }
 
             frame = RenderLocked();
@@ -196,6 +201,20 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
     private DeviceLighting GlobalLocked => _global ?? DeviceLighting.Default;
 
     private DeviceLighting LightingForLocked(string deviceId) => _deviceLighting.GetValueOrDefault(deviceId, GlobalLocked);
+
+    // A device that ends up equal to the global lighting follows it again, which keeps the
+    // settings file to the devices that really differ.
+    private void SetDeviceLightingLocked(string deviceId, DeviceLighting lighting)
+    {
+        if (lighting == GlobalLocked)
+        {
+            _deviceLighting.Remove(deviceId);
+        }
+        else
+        {
+            _deviceLighting[deviceId] = lighting;
+        }
+    }
 
     private void EnsureKnownDevice(string deviceId)
     {

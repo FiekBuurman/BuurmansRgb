@@ -126,16 +126,53 @@ public sealed class LightingControllerTests
     }
 
     [Fact]
-    public async Task SetLighting_Global_ResetsDevicesToIt()
+    public async Task SetLighting_GlobalBrightness_KeepsDeviceColor()
     {
         var controller = await CreateSimulatedAsync();
         controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
 
         controller.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Orange.Scale(0.5), led));
-        Assert.Empty(controller.State.Devices);
+        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange.Scale(0.5), led));
         Assert.Equal(Lighting(Orange, 0.5), controller.State.Global);
+        Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
+    }
+
+    [Fact]
+    public async Task SetLighting_GlobalColor_KeepsDeviceBrightness()
+    {
+        var controller = await CreateSimulatedAsync();
+        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Orange, 0.5) }));
+
+        controller.SetLighting(null, lighting => lighting with { Color = Green });
+
+        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
+    }
+
+    [Fact]
+    public async Task SetLighting_GlobalMatchesDevice_DropsItsOwnLighting()
+    {
+        var controller = await CreateSimulatedAsync();
+        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
+
+        controller.SetLighting(null, lighting => lighting with { Color = Green });
+
+        Assert.Empty(controller.State.Devices);
+        Assert.Equal(Lighting(Green), controller.State.Global);
+    }
+
+    [Fact]
+    public async Task SetLighting_DeviceBackToGlobal_DropsItsOwnLighting()
+    {
+        var controller = await CreateSimulatedAsync();
+        controller.Apply(Uniform(Orange, 1.0));
+        controller.SetLighting(Fan, lighting => lighting with { Color = Green });
+
+        controller.SetLighting(Fan, lighting => lighting with { Color = Orange });
+
+        Assert.Empty(controller.State.Devices);
     }
 
     [Fact]
