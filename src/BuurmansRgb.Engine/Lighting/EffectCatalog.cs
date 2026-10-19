@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.Engine.Lighting;
@@ -7,5 +8,5 @@ internal static class EffectCatalog
 {
     public static IReadOnlyList<string> Ids { get; } = [EffectIds.Static];
 
-    public static bool IsKnown(string? effectId) => effectId is not null && Ids.Contains(effectId);
+    public static bool IsKnown([NotNullWhen(true)] string? effectId) => effectId is not null && Ids.Contains(effectId);
 }

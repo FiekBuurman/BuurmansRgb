@@ -21,9 +21,13 @@ internal record LightingSettings
         return settings;
     }
 
-    // An unknown or missing effect falls back to static, so an old or edited file still loads.
+    // An unknown or missing effect falls back to static and the brightness is kept between
+    // 0 and 1, so an old or edited file still loads into what the IPC would accept.
     public DeviceLighting ToDeviceLighting() =>
-        new(Color, Brightness, EffectCatalog.IsKnown(Effect) ? Effect! : EffectIds.Static);
+        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static);
+
+    private static double ClampBrightness(double brightness) =>
+        double.IsNaN(brightness) ? DeviceLighting.Default.Brightness : Math.Clamp(brightness, 0.0, 1.0);
 
     protected void CopyFrom(DeviceLighting lighting)
     {

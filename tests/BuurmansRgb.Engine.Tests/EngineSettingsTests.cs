@@ -46,6 +46,21 @@ public sealed class EngineSettingsTests
         Assert.Equal(EffectIds.Static, settings.ToLightingState().Global.EffectId);
     }
 
+    [Theory]
+    [InlineData(5.0, 1.0)]
+    [InlineData(-1.0, 0.0)]
+    [InlineData(double.NaN, 1.0)]
+    [InlineData(0.4, 0.4)]
+    public void ToLightingState_Brightness_IsKeptBetweenZeroAndOne(double stored, double expected)
+    {
+        var settings = new EngineSettings { Brightness = stored, Devices = new() { ["fan"] = new LightingSettings { Brightness = stored } } };
+
+        var state = settings.ToLightingState();
+
+        Assert.Equal(expected, state.Global.Brightness);
+        Assert.Equal(expected, state.Devices["fan"].Brightness);
+    }
+
     [Fact]
     public void ToLightingState_NullDeviceEntry_IsSkipped()
     {
