@@ -13,17 +13,22 @@ internal sealed class LightingController
 
     // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
     private readonly SemaphoreSlim _discovering = new(1, 1);
-    private readonly IReadOnlyList<DeviceOutput>[] _outputsByProvider;
+    private readonly TimeProvider _time;
+    private readonly long _epoch;
+    private readonly DeviceOutput[][] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
-    private IReadOnlyList<DeviceOutput> _outputs = [];
+    private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
     private long _sequence;
 
-    public LightingController(IReadOnlyList<IDeviceProvider> providers)
+    // Effects run on the time of timeProvider, counted from the moment the controller was made.
+    public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
     {
         _providers = providers;
-        _outputsByProvider = [.. providers.Select(_ => (IReadOnlyList<DeviceOutput>)[])];
+        _time = timeProvider ?? TimeProvider.System;
+        _epoch = _time.GetTimestamp();
+        _outputsByProvider = [.. providers.Select(_ => Array.Empty<DeviceOutput>())];
         for (var index = 0; index < providers.Count; index++)
         {
             if (providers[index] is IDynamicDeviceProvider dynamicProvider)
@@ -206,7 +211,7 @@ internal sealed class LightingController
             bool rendered;
             lock (_gate)
             {
-                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device, new RgbColor[device.LedCount]))];
+                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device))];
                 _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
                 rendered = render && RenderLocked();
             }
@@ -220,7 +225,8 @@ internal sealed class LightingController
         }
     }
 
-    // Returns false when there is no lighting to render yet.
+    // Gives every device the effect of its current lighting and renders it. Returns false when
+    // there is no lighting to render yet.
     private bool RenderLocked()
     {
         if (_global is null)
@@ -228,18 +234,23 @@ internal sealed class LightingController
             return false;
         }
 
-        foreach (var (provider, device, buffer) in _outputs)
+        var time = EffectTime;
+        foreach (var output in _outputs)
         {
-            buffer.AsSpan().Fill(LightingForLocked(device.Id).OutputColor);
+            output.Show(LightingForLocked(output.Device.Id));
+            output.Render(time);
             if (!_isPaused)
             {
-                provider.SetLeds(device.Id, buffer);
+                output.Send();
             }
         }
 
         _sequence++;
         return true;
     }
+
+    // Every device runs on the same clock, so the same animated effect stays in step on all of them.
+    private TimeSpan EffectTime => _time.GetElapsedTime(_epoch);
 
     private void Publish(bool rendered)
     {
@@ -275,6 +286,4 @@ internal sealed class LightingController
             throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
         }
     }
-
-    private sealed record DeviceOutput(IDeviceProvider Provider, RgbDevice Device, RgbColor[] Buffer);
 }

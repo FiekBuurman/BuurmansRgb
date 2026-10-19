@@ -51,6 +51,15 @@
   <data name="Effect_static" xml:space="preserve">
     <value>Statisch</value>
   </data>
+  <data name="Effect_breathing" xml:space="preserve">
+    <value>Ademen</value>
+  </data>
+  <data name="Effect_rainbow" xml:space="preserve">
+    <value>Regenboog</value>
+  </data>
+  <data name="Effect_wave" xml:space="preserve">
+    <value>Golf</value>
+  </data>
   <data name="StatusConnecting" xml:space="preserve">
     <value>Verbinden met de engine…</value>
   </data>
