@@ -212,8 +212,9 @@ OpenRGB de eerste keer met adminrechten draaien.
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
   `OpenRgbDeviceMapperTests` en `OpenRgbDeviceProviderTests` (videokaarten met nepdata van
   OpenRGB, ook zonder "Direct"-modus en na herstellen), `SimulatedDeviceProviderTests`,
-  `DeviceItemTests`, `DeviceIconsTests` en `DevicePreviewViewModelTests`. Start daarnaast de
-  engine en de instellingen-app: de gesimuleerde videokaart staat onderaan in de lijst.
+  `DeviceItemTests`, `DeviceIconsTests` en `DevicePreviewViewModelTests` (de zones, die voor
+  elk apparaattype hetzelfde werken). Start daarnaast de engine en de instellingen-app: de
+  gesimuleerde videokaart staat onderaan in de lijst.
 - **Testen met je eigen hardware:**
   1. Sluit de software van de fabrikant van de kaart af (bijv. Armoury Crate, MSI Center of
      RGB Fusion), start OpenRGB als administrator met de SDK-server aan, daarna de engine en
