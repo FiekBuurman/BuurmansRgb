@@ -5,7 +5,7 @@ using BuurmansRgb.Engine.Lighting;
 namespace BuurmansRgb.Engine.Ipc;
 
 // One instance per connected UI, so disposing it stops the frames for that UI only.
-// Invalid input throws ArgumentException, which reaches the UI as an RPC error.
+// LightingController checks the input; its ArgumentException reaches the UI as an RPC error.
 internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
@@ -42,22 +42,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default)
     {
-        if (!(brightness is >= 0.0 and <= 1.0))
-        {
-            throw new ArgumentOutOfRangeException(nameof(brightness), brightness, "Brightness runs from 0 to 1.");
-        }
-
         _lighting.SetLighting(deviceId, lighting => lighting with { Brightness = brightness });
         return Task.CompletedTask;
     }
 
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default)
     {
-        if (!EffectCatalog.IsKnown(effectId))
-        {
-            throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));
-        }
-
         _lighting.SetLighting(deviceId, lighting => lighting with { EffectId = effectId });
         return Task.CompletedTask;
     }
