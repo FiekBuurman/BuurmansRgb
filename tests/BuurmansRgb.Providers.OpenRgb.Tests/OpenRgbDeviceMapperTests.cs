@@ -25,6 +25,46 @@ public sealed class OpenRgbDeviceMapperTests
             mapped.Device.Zones);
     }
 
+    [Fact]
+    public void Map_MotherboardWithOnlyEmptyHeaders_HasNoLedsButKeepsItsZones()
+    {
+        var data = TestDevices.Create(
+            type: OpenRgbDeviceType.Motherboard,
+            zones: [new("Addressable 1", 0, 0, 120), new("Addressable 2", 0, 0, 120)]);
+
+        var mapped = Assert.Single(OpenRgbDeviceMapper.Map([data]));
+
+        Assert.Equal(0, mapped.Device.LedCount);
+        Assert.Equal(["Addressable 1", "Addressable 2"], mapped.Device.Zones.Select(zone => zone.Name));
+        Assert.All(mapped.Device.Zones, zone => Assert.True(zone.Resizable));
+    }
+
+    // OpenRGB shows every RAM stick as a device of its own, all with the same name; the SMBus
+    // address tells them apart.
+    [Fact]
+    public void Map_RamSticksOfTheSameModel_GetTheirOwnIdAndLedCount()
+    {
+        var sticks = Enumerable.Range(0, 4)
+            .Select(slot => TestDevices.Create(
+                index: slot,
+                name: "ENE DRAM",
+                type: OpenRgbDeviceType.Dram,
+                location: $"I2C: PIIX4, address 0x{0x70 + slot:X2}",
+                zones: [new("DRAM", 8, 8, 8)]))
+            .ToArray();
+
+        var mapped = OpenRgbDeviceMapper.Map(sticks);
+
+        Assert.Equal(4, mapped.Select(item => item.Device.Id).Distinct().Count());
+        Assert.All(mapped, item =>
+        {
+            Assert.Equal(DeviceType.Ram, item.Device.Type);
+            Assert.Equal(8, item.Device.LedCount);
+            Assert.DoesNotMatch("-[0-9]$", item.Device.Id);
+        });
+        Assert.Equal([0, 1, 2, 3], mapped.Select(item => item.Index));
+    }
+
     [Theory]
     [InlineData(OpenRgbDeviceType.Motherboard, DeviceType.Motherboard)]
     [InlineData(OpenRgbDeviceType.Dram, DeviceType.Ram)]

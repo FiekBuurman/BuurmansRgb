@@ -53,6 +53,27 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task Connect_MotherboardAndRamSticks_AllAppearWithTheirTypeAndLedCount()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(index: 0, name: "ASUS TUF GAMING B650-PLUS", type: OpenRgbDeviceType.Motherboard,
+                zones: [new("Aura Mainboard", 3, 3, 3), new("Aura Addressable 1", 0, 0, 120)]),
+            TestDevices.Create(index: 1, name: "ENE DRAM", type: OpenRgbDeviceType.Dram, location: "I2C: PIIX4, address 0x70", ledCount: 8),
+            TestDevices.Create(index: 2, name: "ENE DRAM", type: OpenRgbDeviceType.Dram, location: "I2C: PIIX4, address 0x71", ledCount: 8),
+        ];
+
+        var devices = await ConnectAsync();
+
+        Assert.Equal([(DeviceType.Motherboard, 3), (DeviceType.Ram, 8), (DeviceType.Ram, 8)], devices.Select(device => (device.Type, device.LedCount)));
+        Assert.Equal([0, 1, 2], _server.CustomModeIndexes);
+
+        _provider.SetLeds(devices[2].Id, [.. Enumerable.Repeat(Orange, 8)]);
+
+        Assert.Equal(2, Assert.Single(_server.Updates).Index);
+    }
+
+    [Fact]
     public async Task SetLeds_SendsColorsToTheServerIndexOfTheDevice()
     {
         _server.Devices = [TestDevices.Create(index: 0, name: "Fan"), TestDevices.Create(index: 1, name: "Strip", ledCount: 2)];
