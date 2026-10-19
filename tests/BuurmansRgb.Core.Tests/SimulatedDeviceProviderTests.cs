@@ -5,7 +5,7 @@ namespace BuurmansRgb.Core.Tests;
 public sealed class SimulatedDeviceProviderTests
 {
     [Fact]
-    public async Task DiscoverAsync_ReturnsStripFanKeyboardMotherboardRamAndGpuWithExpectedLedCounts()
+    public async Task DiscoverAsync_ReturnsEveryDeviceWithItsExpectedLedCount()
     {
         var provider = new SimulatedDeviceProvider();
 
@@ -19,7 +19,32 @@ public sealed class SimulatedDeviceProviderTests
             motherboard => AssertDevice(motherboard, DeviceType.Motherboard, 7),
             ram => AssertDevice(ram, DeviceType.Ram, 8),
             ram => AssertDevice(ram, DeviceType.Ram, 8),
-            gpu => AssertDevice(gpu, DeviceType.Gpu, 13));
+            gpu => AssertDevice(gpu, DeviceType.Gpu, 13),
+            fan => AssertDevice(fan, DeviceType.Fan, 20),
+            controller => AssertDevice(controller, DeviceType.LedStrip, 20),
+            lighting => AssertDevice(lighting, DeviceType.Case, 10));
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_DualRingFanHasARingPerZone()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        var fan = devices.Single(device => device.Id == "simulated-fan-dual");
+        Assert.Equal([RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)], fan.Zones);
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_ArgbControllerHasTwoResizableChannels()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        var controller = devices.Single(device => device.Id == "simulated-argb");
+        Assert.Equal([new RgbZone("ARGB 1", 20, 0, 60), new RgbZone("ARGB 2", 0, 0, 60)], controller.Zones);
     }
 
     [Fact]
@@ -51,7 +76,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
         var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
-        var fan = devices.Single(device => device.Type == DeviceType.Fan);
+        var fan = devices.Single(device => device.Id == "simulated-fan");
         var colors = Enumerable.Repeat(new RgbColor(10, 20, 30), fan.LedCount).ToArray();
 
         provider.SetLeds(fan.Id, colors);

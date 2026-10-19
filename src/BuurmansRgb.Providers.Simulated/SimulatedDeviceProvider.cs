@@ -31,6 +31,22 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
             RgbZone.Fixed("Light bar", 12),
             RgbZone.Fixed("Logo", 1),
         ]),
+
+        // A fan with a ring on each side; OpenRGB lists such rings as zones of their own.
+        new("simulated-fan-dual", "Simulated dual-ring fan", DeviceType.Fan,
+        [
+            RgbZone.Fixed("Inner ring", 8),
+            RgbZone.Fixed("Outer ring", 12),
+        ]),
+
+        // A controller with two addressable channels: one with a strip on it, one still empty.
+        new("simulated-argb", "Simulated ARGB controller", DeviceType.LedStrip,
+        [
+            new RgbZone("ARGB 1", 20, 0, 60),
+            new RgbZone("ARGB 2", 0, 0, 60),
+        ]),
+
+        new("simulated-case", "Simulated case lighting", DeviceType.Case, [RgbZone.Fixed("Front panel", 10)]),
     ];
 
     private readonly Lock _gate = new();
