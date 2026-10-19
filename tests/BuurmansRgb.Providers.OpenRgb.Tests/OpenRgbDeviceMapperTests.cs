@@ -66,6 +66,41 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Equal(["ENE DRAM 1", "ENE DRAM 2", "ENE DRAM 3", "ENE DRAM 4"], mapped.Select(item => item.Device.Name));
     }
 
+    // Many graphics cards have fixed LEDs on the card and some an addressable header of their own.
+    [Fact]
+    public void Map_GpuWithLedsAndAnAddressableHeader_KeepsItsZones()
+    {
+        var data = TestDevices.Create(
+            name: "ASUS ROG STRIX RTX 4080",
+            type: OpenRgbDeviceType.Gpu,
+            location: "I2C: NVIDIA GPU, address 0x67",
+            zones: [new("GPU", 22, 22, 22), new("Addressable header", 0, 0, 60)]);
+
+        var mapped = Assert.Single(OpenRgbDeviceMapper.Map([data]));
+
+        Assert.Equal(DeviceType.Gpu, mapped.Device.Type);
+        Assert.Equal("ASUS ROG STRIX RTX 4080", mapped.Device.Name);
+        Assert.Equal(22, mapped.Device.LedCount);
+        Assert.Equal(
+            [new RgbZone("GPU", 22, Resizable: false), new RgbZone("Addressable header", 0, Resizable: true)],
+            mapped.Device.Zones);
+    }
+
+    // Two cards of the same model differ only in their PCI or SMBus location.
+    [Fact]
+    public void Map_TwoGpusOfTheSameModel_GetTheirOwnIdAndANumber()
+    {
+        var first = TestDevices.Create(index: 0, name: "MSI GeForce RTX 3070", type: OpenRgbDeviceType.Gpu,
+            location: "I2C: NVIDIA GPU, address 0x68", ledCount: 1);
+        var second = first with { Index = 1, Location = "I2C: NVIDIA GPU 1, address 0x68" };
+
+        var mapped = OpenRgbDeviceMapper.Map([first, second]);
+
+        Assert.Equal(["MSI GeForce RTX 3070 1", "MSI GeForce RTX 3070 2"], mapped.Select(item => item.Device.Name));
+        Assert.NotEqual(mapped[0].Device.Id, mapped[1].Device.Id);
+        Assert.All(mapped, item => Assert.Equal((DeviceType.Gpu, 1), (item.Device.Type, item.Device.LedCount)));
+    }
+
     [Fact]
     public void Map_DevicesWithTheirOwnName_KeepTheirName()
     {
