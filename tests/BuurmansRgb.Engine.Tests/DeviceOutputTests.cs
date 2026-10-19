@@ -9,11 +9,7 @@ public sealed class DeviceOutputTests
     private readonly RecordingDeviceProvider _provider = new();
     private readonly DeviceOutput _output;
 
-    public DeviceOutputTests()
-    {
-        var device = Assert.Single(_provider.DiscoverAsync(Ct).Result);
-        _output = new DeviceOutput(_provider, device);
-    }
+    public DeviceOutputTests() => _output = new DeviceOutput(_provider, _provider.Device);
 
     [Fact]
     public void Render_ScalesTheEffectByTheBrightness()
