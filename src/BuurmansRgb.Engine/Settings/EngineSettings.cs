@@ -14,20 +14,21 @@ internal sealed record EngineSettings : LightingSettings
 
     public static EngineSettings CreateDefault() => new();
 
-    public static EngineSettings From(LightingState state)
-    {
-        var settings = new EngineSettings();
-        settings.CopyFrom(state.Global);
-        if (state.Devices.Count > 0)
-        {
-            settings.Devices = state.Devices.ToDictionary(pair => pair.Key, pair => (LightingSettings?)From(pair.Value));
-        }
+    public static EngineSettings From(LightingState state) => CreateDefault().WithLighting(state);
 
+    // A copy with the lighting of state. It starts from this, so every startup option, also one
+    // added later, stays as it is.
+    public EngineSettings WithLighting(LightingState state)
+    {
+        var settings = this with
+        {
+            Devices = state.Devices.Count > 0
+                ? state.Devices.ToDictionary(pair => pair.Key, pair => (LightingSettings?)From(pair.Value))
+                : null,
+        };
+        settings.CopyFrom(state.Global);
         return settings;
     }
-
-    // A copy with the lighting of state; the startup options stay as they are.
-    public EngineSettings WithLighting(LightingState state) => From(state) with { SimulatedDevices = SimulatedDevices };
 
     public LightingState ToLightingState()
     {
