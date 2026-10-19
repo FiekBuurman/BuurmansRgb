@@ -94,23 +94,14 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         {
             var index = IndexOfLocked(deviceId);
             var device = _devices[index];
-            ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, device.Zones.Count);
-            var zone = device.Zones[zoneIndex];
-            if (!zone.CanHold(ledCount))
-            {
-                throw new ArgumentOutOfRangeException(nameof(ledCount), ledCount,
-                    $"Zone '{zone.Name}' holds {zone.MinLedCount} to {zone.MaxLedCount} LEDs.");
-            }
+            var resized = device.WithZoneLength(zoneIndex, ledCount);
 
-            if (zone.LedCount == ledCount)
+            // Only the one zone changed, so the same total means the same length.
+            if (resized.LedCount == device.LedCount)
             {
                 return;
             }
 
-            RgbZone[] zones = [.. device.Zones];
-            zones[zoneIndex] = zone with { LedCount = ledCount };
-            var resized = new RgbDevice(device.Id, device.Name, device.Type, zones);
             RgbDevice[] devices = [.. _devices];
             devices[index] = resized;
             _devices = devices;

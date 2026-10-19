@@ -26,4 +26,15 @@ public sealed class RgbZoneTests
         Assert.True(zone.Resizable);
         Assert.Equal(expected, zone.CanHold(ledCount));
     }
+
+    [Fact]
+    public void ThrowIfCannotHold_OutsideTheRange_ThrowsWithTheRange()
+    {
+        var zone = new RgbZone("ARGB header", 0, 0, 120);
+
+        zone.ThrowIfCannotHold(120);
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => zone.ThrowIfCannotHold(121));
+        Assert.Equal("ledCount", exception.ParamName);
+        Assert.Contains("0 to 120", exception.Message);
+    }
 }

@@ -10,4 +10,13 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
     public static RgbZone Fixed(string name, int ledCount) => new(name, ledCount, ledCount, ledCount);
 
     public bool CanHold(int ledCount) => ledCount >= MinLedCount && ledCount <= MaxLedCount;
+
+    public void ThrowIfCannotHold(int ledCount)
+    {
+        if (!CanHold(ledCount))
+        {
+            throw new ArgumentOutOfRangeException(nameof(ledCount), ledCount,
+                $"Zone '{Name}' holds {MinLedCount} to {MaxLedCount} LEDs.");
+        }
+    }
 }

@@ -251,20 +251,13 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             var output = KnownOutputLocked(deviceId);
-            ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
-            ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, output.Device.Zones.Count);
-            var zone = output.Device.Zones[zoneIndex];
+            var zone = output.Device.GetZone(zoneIndex);
             if (!zone.Resizable || output.Provider is not IResizableDeviceProvider resizable)
             {
                 throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
             }
 
-            if (!zone.CanHold(ledCount))
-            {
-                throw new ArgumentOutOfRangeException(nameof(ledCount), ledCount,
-                    $"Zone '{zone.Name}' holds {zone.MinLedCount} to {zone.MaxLedCount} LEDs.");
-            }
-
+            zone.ThrowIfCannotHold(ledCount);
             provider = resizable;
         }
 
