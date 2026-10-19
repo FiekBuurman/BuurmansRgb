@@ -5,8 +5,6 @@ namespace BuurmansRgb.Contracts.Tests;
 
 public sealed class EngineRpcTests : IDisposable
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly FakeEngineApi _api = new();
     private JsonRpc? _server;
@@ -67,7 +65,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseFrame(new LightingFrame(7, [DeviceFrame.FromColors("fan", [new RgbColor(1, 2, 3)])]));
 
-        var frame = await received.Task.WaitAsync(Timeout, Ct);
+        var frame = await received.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Equal(7, frame.Sequence);
         Assert.Equal("fan", Assert.Single(frame.Devices).DeviceId);
         Assert.Equal([new RgbColor(1, 2, 3)], frame.Devices[0].ToColors());
@@ -82,7 +80,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseDevicesChanged();
 
-        await received.Task.WaitAsync(Timeout, Ct);
+        await received.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -135,7 +133,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _server!.Dispose();
 
-        await disconnected.Task.WaitAsync(Timeout, Ct);
+        await disconnected.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -149,7 +147,7 @@ public sealed class EngineRpcTests : IDisposable
     {
         var pipe = EngineRpc.CreateServerStream(_pipeName);
         var accepted = pipe.WaitForConnectionAsync(Ct);
-        _client = await EngineConnection.ConnectAsync(_pipeName, Timeout, Ct);
+        _client = await EngineConnection.ConnectAsync(_pipeName, TestTimeouts.Short, Ct);
         await accepted;
         _server = EngineRpc.StartServer(pipe, _api);
         return _client;

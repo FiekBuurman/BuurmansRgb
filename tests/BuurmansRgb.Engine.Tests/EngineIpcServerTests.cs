@@ -12,8 +12,6 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 {
     private const string Fan = "simulated-fan";
 
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
     private readonly CancellationTokenSource _shutdown = new();
@@ -50,7 +48,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.False(await _allClientsGone.WaitAsync(200, Ct));
 
         await DisconnectAsync(second);
-        Assert.True(await _allClientsGone.WaitAsync(Timeout, Ct));
+        Assert.True(await _allClientsGone.WaitAsync(TestTimeouts.Short, Ct));
     }
 
     [Fact]
@@ -188,7 +186,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await StartAndConnectAsync();
 
         await _shutdown.CancelAsync();
-        await _server!.WaitAsync(Timeout, Ct);
+        await _server!.WaitAsync(TestTimeouts.Short, Ct);
 
         await Assert.ThrowsAsync<TimeoutException>(
             () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(200), Ct));
@@ -210,7 +208,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
     private async Task<EngineConnection> ConnectAsync()
     {
-        var client = await EngineConnection.ConnectAsync(_pipeName, Timeout, Ct);
+        var client = await EngineConnection.ConnectAsync(_pipeName, TestTimeouts.Short, Ct);
         _clients.Add(client);
         return client;
     }
@@ -237,7 +235,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
                 _waiters.Add((color, seen));
             }
 
-            return seen.Task.WaitAsync(Timeout, Ct);
+            return seen.Task.WaitAsync(TestTimeouts.Short, Ct);
         }
 
         private static bool Shows(LightingFrame frame, RgbColor color) =>

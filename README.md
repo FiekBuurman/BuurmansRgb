@@ -34,7 +34,7 @@ render-loop, IPC-server), `Providers.OpenRgb`
 een loopback-socket, dus zonder OpenRGB), `Providers.Simulated` (de gesimuleerde
 apparaten) en `UI` (viewmodels met een nep-engine).
 
-Helpers die elk testproject gebruikt (`Eventually`, `TestColors`, `TestCancellation`) staan in
+Helpers die elk testproject gebruikt (`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`) staan in
 `tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. Na de
 code-review kregen ook deze delen eigen tests: de invoercontrole van de verlichting
 (`LightingControllerValidationTests`, `LightingTableTests`), `EffectCatalogTests`,

@@ -8,8 +8,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerDeviceChangeTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly SimulatedDeviceProvider _simulated = new();
     private readonly DynamicDeviceProvider _dynamic = new();
     private readonly LightingController _controller;
@@ -39,7 +37,7 @@ public sealed class LightingControllerDeviceChangeTests
 
         _dynamic.SetDevices(DynamicDeviceProvider.Device("real"));
 
-        var output = await rendered.Task.WaitAsync(Timeout, Ct);
+        var output = await rendered.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Equal([Orange, Orange], Assert.Single(output.Devices, device => device.DeviceId == "real").Colors);
     }
 
@@ -101,7 +99,7 @@ public sealed class LightingControllerDeviceChangeTests
         var devicesChanged = 0;
         _controller.DevicesChanged += (_, _) => devicesChanged++;
         _dynamic.SetDevices(DynamicDeviceProvider.Device("real"));
-        await _dynamic.DiscoverStarted.Task.WaitAsync(Timeout, Ct);
+        await _dynamic.DiscoverStarted.Task.WaitAsync(TestTimeouts.Short, Ct);
 
         _controller.Dispose();
         // The refresh continues on this thread, so it has ended when SetResult returns.
@@ -119,15 +117,15 @@ public sealed class LightingControllerDeviceChangeTests
         var devicesChanged = 0;
         _controller.DevicesChanged += (_, _) => devicesChanged++;
         var running = _controller.DiscoverAsync(Ct);
-        await _dynamic.DiscoverStarted.Task.WaitAsync(Timeout, Ct);
+        await _dynamic.DiscoverStarted.Task.WaitAsync(TestTimeouts.Short, Ct);
         var queued = _controller.DiscoverAsync(Ct);
 
         _controller.Dispose();
         slowProvider.SetResult();
 
         // Both would throw or hang if the lock they share were disposed.
-        await running.WaitAsync(Timeout, Ct);
-        await queued.WaitAsync(Timeout, Ct);
+        await running.WaitAsync(TestTimeouts.Short, Ct);
+        await queued.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Equal(1, devicesChanged);
     }
 
@@ -147,7 +145,7 @@ public sealed class LightingControllerDeviceChangeTests
         try
         {
             _dynamic.SetDevices(devices);
-            await changed.Task.WaitAsync(Timeout, Ct);
+            await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         }
         finally
         {

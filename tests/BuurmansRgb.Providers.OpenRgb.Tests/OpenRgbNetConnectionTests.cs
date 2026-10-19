@@ -11,8 +11,6 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 // OpenRGB itself.
 public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly OpenRgbTestServer _server = new();
     private readonly List<IOpenRgbConnection> _connections = [];
 
@@ -96,10 +94,10 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         Assert.True(connection.TryUpdateLeds(0, [Orange, RgbColor.White, new RgbColor(1, 2, 3)]));
         Assert.True(connection.TryUpdateLeds(0, [Orange]));
 
-        Assert.True(_server.Updates.TryTake(out var first, Timeout));
+        Assert.True(_server.Updates.TryTake(out var first, TestTimeouts.Short));
         Assert.Equal(0, first.Index);
         Assert.Equal([Orange, RgbColor.White, new RgbColor(1, 2, 3)], first.Colors);
-        Assert.True(_server.Updates.TryTake(out var second, Timeout));
+        Assert.True(_server.Updates.TryTake(out var second, TestTimeouts.Short));
         Assert.Equal([Orange], second.Colors);
         Assert.Equal([0], _server.CustomModeIndexes);
     }
@@ -111,7 +109,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
 
         connection.ResizeZone(2, 1, 45);
 
-        Assert.True(_server.Resizes.TryTake(out var resize, Timeout));
+        Assert.True(_server.Resizes.TryTake(out var resize, TestTimeouts.Short));
         Assert.Equal((2, 1, 45), resize);
     }
 
@@ -141,7 +139,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
 
         _server.NotifyDeviceListUpdated();
 
-        await changed.Task.WaitAsync(Timeout, Ct);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.False(connection.IsClosed);
     }
 
@@ -155,7 +153,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         var stopwatch = Stopwatch.StartNew();
         _server.CloseClients();
 
-        await closed.Task.WaitAsync(Timeout, Ct);
+        await closed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.True(connection.IsClosed);
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(1), $"Closed after {stopwatch.Elapsed}.");
     }
@@ -176,7 +174,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     [Fact]
     public async Task WatcherDispose_Twice_DoesNotThrow()
     {
-        var watcher = await OpenRgbServerWatcher.ConnectAsync(IPAddress.Loopback.ToString(), _server.Port, "Test watcher", Timeout, Ct);
+        var watcher = await OpenRgbServerWatcher.ConnectAsync(IPAddress.Loopback.ToString(), _server.Port, "Test watcher", TestTimeouts.Short, Ct);
 
         watcher.Dispose();
         watcher.Dispose();
@@ -188,7 +186,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     public async Task ConnectAsync_NoServer_Throws()
     {
         var port = FreePort();
-        var connector = new OpenRgbNetConnector(IPAddress.Loopback.ToString(), port, "Test", TimeSpan.FromMilliseconds(500), Timeout);
+        var connector = new OpenRgbNetConnector(IPAddress.Loopback.ToString(), port, "Test", TimeSpan.FromMilliseconds(500), TestTimeouts.Short);
 
         var exception = await Assert.ThrowsAnyAsync<Exception>(() => connector.ConnectAsync(Ct));
 
@@ -212,7 +210,7 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         return ((IPEndPoint)listener.LocalEndpoint).Port;
     }
 
-    private static Task WaitUntilAsync(Func<bool> condition) => Eventually.TrueAsync(condition, Timeout);
+    private static Task WaitUntilAsync(Func<bool> condition) => Eventually.TrueAsync(condition);
 
     private async Task<IOpenRgbConnection> ConnectAsync()
     {

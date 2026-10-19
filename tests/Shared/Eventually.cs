@@ -6,11 +6,9 @@ namespace BuurmansRgb.Tests;
 // socket that closes.
 internal static class Eventually
 {
-    public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
-
     public static async Task TrueAsync(Func<bool> condition, TimeSpan? timeout = null)
     {
-        var limit = timeout ?? DefaultTimeout;
+        var limit = timeout ?? TestTimeouts.Short;
         var stopwatch = Stopwatch.StartNew();
         while (!condition())
         {

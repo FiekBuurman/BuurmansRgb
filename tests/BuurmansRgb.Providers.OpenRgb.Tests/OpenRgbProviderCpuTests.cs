@@ -9,15 +9,13 @@ public sealed class OpenRgbProviderCpuTestsCollection;
 [Collection(nameof(OpenRgbProviderCpuTests))]
 public sealed class OpenRgbProviderCpuTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task ServerClosesTheConnection_ProviderLetsGoOfIt()
     {
         await using var server = new OpenRgbTestServer();
         using var provider = new OpenRgbDeviceProvider(server.CreateConnector(), TimeProvider.System, TimeSpan.FromHours(1));
         await provider.DiscoverAsync(Ct);
-        await EventuallyDevices.CountAsync(provider, 1, Timeout);
+        await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
 
         // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed,
         // which adds about a second of CPU per second. Whatever else the process does (tests that
@@ -26,7 +24,7 @@ public sealed class OpenRgbProviderCpuTests
         // gone, so the work of dropping itself does not count.
         var baseline = await CpuInOneSecondAsync();
         server.CloseClients();
-        await EventuallyDevices.CountAsync(provider, 0, Timeout);
+        await EventuallyDevices.CountAsync(provider, 0, TestTimeouts.Long);
         var afterDrop = await CpuInOneSecondAsync();
 
         var increase = afterDrop - baseline;

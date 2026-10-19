@@ -6,7 +6,6 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 // "stop OpenRGB and start it again" without OpenRGB itself.
 public sealed class OpenRgbProviderServerTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(100);
 
     [Fact]
@@ -18,20 +17,20 @@ public sealed class OpenRgbProviderServerTests
         try
         {
             await provider.DiscoverAsync(Ct);
-            var device = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, Timeout));
+            var device = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long));
             provider.SetLeds(device.Id, [Orange, Orange, Orange]);
-            Assert.True(server.Updates.TryTake(out var update, Timeout));
+            Assert.True(server.Updates.TryTake(out var update, TestTimeouts.Long));
             Assert.Equal([Orange, Orange, Orange], update.Colors);
 
             await server.DisposeAsync();
-            await EventuallyDevices.CountAsync(provider, 0, Timeout);
+            await EventuallyDevices.CountAsync(provider, 0, TestTimeouts.Long);
 
             server = new OpenRgbTestServer(port);
-            var restarted = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, Timeout));
+            var restarted = Assert.Single(await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long));
             Assert.Equal(device.Id, restarted.Id);
-            await Eventually.TrueAsync(() => !server.CustomModeIndexes.IsEmpty, Timeout);
+            await Eventually.TrueAsync(() => !server.CustomModeIndexes.IsEmpty, TestTimeouts.Long);
             provider.SetLeds(restarted.Id, [Orange, Orange, Orange]);
-            Assert.True(server.Updates.TryTake(out _, Timeout));
+            Assert.True(server.Updates.TryTake(out _, TestTimeouts.Long));
         }
         finally
         {

@@ -6,8 +6,6 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 public sealed class OpenRgbServerWatcherTests : IAsyncDisposable
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly OpenRgbTestServer _server = new();
 
     [Fact]
@@ -21,7 +19,7 @@ public sealed class OpenRgbServerWatcherTests : IAsyncDisposable
         _server.SendToClients(Packet(CommandId.RequestControllerData, new byte[10_000]));
         _server.NotifyDeviceListUpdated();
 
-        await changed.Task.WaitAsync(Timeout, Ct);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.False(watcher.IsClosed);
     }
 
@@ -36,7 +34,7 @@ public sealed class OpenRgbServerWatcherTests : IAsyncDisposable
 
         _server.SendToClients(header);
 
-        await closed.Task.WaitAsync(Timeout, Ct);
+        await closed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.True(watcher.IsClosed);
     }
 
@@ -52,8 +50,8 @@ public sealed class OpenRgbServerWatcherTests : IAsyncDisposable
 
     private async Task<OpenRgbServerWatcher> ConnectAsync()
     {
-        var watcher = await OpenRgbServerWatcher.ConnectAsync(IPAddress.Loopback.ToString(), _server.Port, "Test watcher", Timeout, Ct);
-        await Eventually.TrueAsync(() => _server.ClientNames.Contains("Test watcher"), Timeout);
+        var watcher = await OpenRgbServerWatcher.ConnectAsync(IPAddress.Loopback.ToString(), _server.Port, "Test watcher", TestTimeouts.Short, Ct);
+        await Eventually.TrueAsync(() => _server.ClientNames.Contains("Test watcher"));
         return watcher;
     }
 }
