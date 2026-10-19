@@ -45,7 +45,7 @@ public sealed class SingleInstanceTests
             second.SignalPrimary();
         }
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(Timeout, Ct);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class SingleInstanceTests
         var activated = new TaskCompletionSource();
         primary.ListenForActivation(() => activated.TrySetResult());
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(Timeout, Ct);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public sealed class SingleInstanceTests
             second.SignalPrimary();
         }
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(Timeout, Ct);
         Assert.Equal(0, Volatile.Read(ref oldCalls));
     }
 
@@ -95,13 +95,13 @@ public sealed class SingleInstanceTests
             Volatile.Write(ref callbackFinished, true);
         });
         primary.SignalPrimary();
-        Assert.True(callbackStarted.Wait(Timeout, TestContext.Current.CancellationToken));
+        Assert.True(callbackStarted.Wait(Timeout, Ct));
 
-        var dispose = Task.Run(listener.Dispose, TestContext.Current.CancellationToken);
-        await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        var dispose = Task.Run(listener.Dispose, Ct);
+        await Task.Delay(TimeSpan.FromMilliseconds(100), Ct);
         Assert.False(dispose.IsCompleted);
         releaseCallback.Set();
-        await dispose.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await dispose.WaitAsync(Timeout, Ct);
 
         Assert.True(Volatile.Read(ref callbackFinished));
     }
@@ -120,7 +120,7 @@ public sealed class SingleInstanceTests
 
         primary.SignalPrimary();
 
-        await disposed.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await disposed.Task.WaitAsync(Timeout, Ct);
     }
 
     [Fact]

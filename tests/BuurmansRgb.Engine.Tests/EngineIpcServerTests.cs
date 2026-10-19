@@ -44,13 +44,13 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var first = await StartAndConnectAsync();
         var second = await ConnectAsync();
-        await second.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        await second.Api.GetDevicesAsync(Ct);
 
         await DisconnectAsync(first);
-        Assert.False(await _allClientsGone.WaitAsync(200, TestContext.Current.CancellationToken));
+        Assert.False(await _allClientsGone.WaitAsync(200, Ct));
 
         await DisconnectAsync(second);
-        Assert.True(await _allClientsGone.WaitAsync(Timeout, TestContext.Current.CancellationToken));
+        Assert.True(await _allClientsGone.WaitAsync(Timeout, Ct));
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
 
-        var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var devices = await client.Api.GetDevicesAsync(Ct);
 
         Assert.Equal(
             [("simulated-strip", 30), (Fan, 12), ("simulated-keyboard", 104), ("simulated-motherboard", 7), ("simulated-ram-1", 8), ("simulated-ram-2", 8), ("simulated-gpu", 13),
@@ -72,7 +72,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
         var frames = new FrameCollector(client.Api);
-        await client.Api.SetColorAsync(null, RgbColor.White, TestContext.Current.CancellationToken);
+        await client.Api.SetColorAsync(null, RgbColor.White, Ct);
         await frames.WaitForAsync(RgbColor.White);
 
         // The fastest of a few round trips, so one hiccup on a busy machine does not fail the
@@ -81,7 +81,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         foreach (var color in new[] { Orange, RgbColor.White, Orange, RgbColor.White, Orange })
         {
             var stopwatch = Stopwatch.StartNew();
-            await client.Api.SetColorAsync(null, color, TestContext.Current.CancellationToken);
+            await client.Api.SetColorAsync(null, color, Ct);
             await frames.WaitForAsync(color);
             timings.Add(stopwatch.ElapsedMilliseconds);
         }
@@ -94,11 +94,11 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
 
-        await client.Api.SetColorAsync(Fan, Orange, TestContext.Current.CancellationToken);
+        await client.Api.SetColorAsync(Fan, Orange, Ct);
 
-        Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, TestContext.Current.CancellationToken)).Color);
-        Assert.Equal(RgbColor.White, (await client.Api.GetLightingAsync(null, TestContext.Current.CancellationToken)).Color);
-        var frame = await client.Api.GetFrameAsync(TestContext.Current.CancellationToken);
+        Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, Ct)).Color);
+        Assert.Equal(RgbColor.White, (await client.Api.GetLightingAsync(null, Ct)).Color);
+        var frame = await client.Api.GetFrameAsync(Ct);
         Assert.All(frame.Devices.Single(device => device.DeviceId == Fan).ToColors(), led => Assert.Equal(Orange, led));
     }
 
@@ -107,11 +107,11 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
 
-        await client.Api.SetBrightnessAsync(null, 0.5, TestContext.Current.CancellationToken);
+        await client.Api.SetBrightnessAsync(null, 0.5, Ct);
 
-        var frame = await client.Api.GetFrameAsync(TestContext.Current.CancellationToken);
+        var frame = await client.Api.GetFrameAsync(Ct);
         Assert.All(frame.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(RgbColor.White.Scale(0.5), led));
-        Assert.Equal(0.5, (await client.Api.GetLightingAsync(null, TestContext.Current.CancellationToken)).Brightness);
+        Assert.Equal(0.5, (await client.Api.GetLightingAsync(null, Ct)).Brightness);
     }
 
     // Only the mapping to the wire: the range itself is tested in EngineApiTests and
@@ -122,7 +122,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var client = await StartAndConnectAsync();
 
         await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetBrightnessAsync(null, 1.1, TestContext.Current.CancellationToken));
+            () => client.Api.SetBrightnessAsync(null, 1.1, Ct));
     }
 
     [Fact]
@@ -130,10 +130,10 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
 
-        await client.Api.SetEffectAsync(Fan, EffectIds.Rainbow, TestContext.Current.CancellationToken);
+        await client.Api.SetEffectAsync(Fan, EffectIds.Rainbow, Ct);
 
-        Assert.Equal(EffectCatalog.Ids, await client.Api.GetEffectsAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(EffectIds.Rainbow, (await client.Api.GetLightingAsync(Fan, TestContext.Current.CancellationToken)).EffectId);
+        Assert.Equal(EffectCatalog.Ids, await client.Api.GetEffectsAsync(Ct));
+        Assert.Equal(EffectIds.Rainbow, (await client.Api.GetLightingAsync(Fan, Ct)).EffectId);
     }
 
     [Fact]
@@ -142,7 +142,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var client = await StartAndConnectAsync();
 
         await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetEffectAsync(null, "disco", TestContext.Current.CancellationToken));
+            () => client.Api.SetEffectAsync(null, "disco", Ct));
     }
 
     [Fact]
@@ -151,7 +151,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var client = await StartAndConnectAsync();
 
         await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetColorAsync("missing", Orange, TestContext.Current.CancellationToken));
+            () => client.Api.SetColorAsync("missing", Orange, Ct));
     }
 
     [Fact]
@@ -162,7 +162,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var firstFrames = new FrameCollector(first.Api);
         var secondFrames = new FrameCollector(second.Api);
 
-        await first.Api.SetColorAsync(null, Orange, TestContext.Current.CancellationToken);
+        await first.Api.SetColorAsync(null, Orange, Ct);
 
         await firstFrames.WaitForAsync(Orange);
         await secondFrames.WaitForAsync(Orange);
@@ -172,12 +172,12 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     public async Task ClientDisconnects_ServerKeepsAcceptingAndStopsSendingToIt()
     {
         var first = await StartAndConnectAsync();
-        await first.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        await first.Api.GetDevicesAsync(Ct);
         await DisconnectAsync(first);
 
         var second = await ConnectAsync();
         var frames = new FrameCollector(second.Api);
-        await second.Api.SetColorAsync(null, Orange, TestContext.Current.CancellationToken);
+        await second.Api.SetColorAsync(null, Orange, Ct);
 
         await frames.WaitForAsync(Orange);
     }
@@ -188,15 +188,15 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await StartAndConnectAsync();
 
         await _shutdown.CancelAsync();
-        await _server!.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await _server!.WaitAsync(Timeout, Ct);
 
         await Assert.ThrowsAsync<TimeoutException>(
-            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken));
+            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(200), Ct));
     }
 
     private async Task<EngineConnection> StartAndConnectAsync()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
         _server = new EngineIpcServer(_pipeName, _lighting, () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
@@ -210,7 +210,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
     private async Task<EngineConnection> ConnectAsync()
     {
-        var client = await EngineConnection.ConnectAsync(_pipeName, Timeout, TestContext.Current.CancellationToken);
+        var client = await EngineConnection.ConnectAsync(_pipeName, Timeout, Ct);
         _clients.Add(client);
         return client;
     }
@@ -237,7 +237,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
                 _waiters.Add((color, seen));
             }
 
-            return seen.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+            return seen.Task.WaitAsync(Timeout, Ct);
         }
 
         private static bool Shows(LightingFrame frame, RgbColor color) =>

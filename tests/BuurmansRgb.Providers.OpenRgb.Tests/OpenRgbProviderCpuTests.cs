@@ -16,7 +16,7 @@ public sealed class OpenRgbProviderCpuTests
     {
         await using var server = new OpenRgbTestServer();
         using var provider = new OpenRgbDeviceProvider(server.CreateConnector(), TimeProvider.System, TimeSpan.FromHours(1));
-        await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        await provider.DiscoverAsync(Ct);
         await EventuallyDevices.CountAsync(provider, 1, Timeout);
 
         // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed,
@@ -38,7 +38,7 @@ public sealed class OpenRgbProviderCpuTests
     private static async Task<TimeSpan> CpuInOneSecondAsync()
     {
         var before = Process.GetCurrentProcess().TotalProcessorTime;
-        await Task.Delay(1000, TestContext.Current.CancellationToken);
+        await Task.Delay(1000, Ct);
         return Process.GetCurrentProcess().TotalProcessorTime - before;
     }
 }

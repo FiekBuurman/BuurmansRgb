@@ -11,7 +11,7 @@ public sealed class DeviceOutputTests
 
     public DeviceOutputTests()
     {
-        var device = Assert.Single(_provider.DiscoverAsync(TestContext.Current.CancellationToken).Result);
+        var device = Assert.Single(_provider.DiscoverAsync(Ct).Result);
         _output = new DeviceOutput(_provider, device);
     }
 

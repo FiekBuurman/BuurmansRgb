@@ -31,7 +31,7 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var devices = await client.Api.GetDevicesAsync(Ct);
 
         Assert.Equal(_api.Devices, devices);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
@@ -42,8 +42,8 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        await client.Api.SetColorAsync("fan", new RgbColor(255, 136, 0), TestContext.Current.CancellationToken);
-        await client.Api.SetColorAsync(null, RgbColor.White, TestContext.Current.CancellationToken);
+        await client.Api.SetColorAsync("fan", new RgbColor(255, 136, 0), Ct);
+        await client.Api.SetColorAsync(null, RgbColor.White, Ct);
 
         Assert.Equal([("fan", new RgbColor(255, 136, 0)), (null, RgbColor.White)], _api.ColorCalls);
     }
@@ -53,7 +53,7 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        var lighting = await client.Api.GetLightingAsync("fan", TestContext.Current.CancellationToken);
+        var lighting = await client.Api.GetLightingAsync("fan", Ct);
 
         Assert.Equal(_api.Lighting, lighting);
     }
@@ -67,7 +67,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseFrame(new LightingFrame(7, [DeviceFrame.FromColors("fan", [new RgbColor(1, 2, 3)])]));
 
-        var frame = await received.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        var frame = await received.Task.WaitAsync(Timeout, Ct);
         Assert.Equal(7, frame.Sequence);
         Assert.Equal("fan", Assert.Single(frame.Devices).DeviceId);
         Assert.Equal([new RgbColor(1, 2, 3)], frame.Devices[0].ToColors());
@@ -82,7 +82,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseDevicesChanged();
 
-        await received.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await received.Task.WaitAsync(Timeout, Ct);
     }
 
     [Fact]
@@ -91,8 +91,8 @@ public sealed class EngineRpcTests : IDisposable
         var client = await ConnectAsync();
         RgbColor[] colors = [new(255, 0, 0), new(0, 255, 0)];
 
-        await client.Api.SetLedColorsAsync("fan", 3, colors, TestContext.Current.CancellationToken);
-        var stored = await client.Api.GetLedColorsAsync("fan", TestContext.Current.CancellationToken);
+        await client.Api.SetLedColorsAsync("fan", 3, colors, Ct);
+        var stored = await client.Api.GetLedColorsAsync("fan", Ct);
 
         var call = Assert.Single(_api.LedColorCalls);
         Assert.Equal(("fan", 3), (call.DeviceId, call.FirstLed));
@@ -105,7 +105,7 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        await client.Api.ResizeZoneAsync("board", 1, 24, TestContext.Current.CancellationToken);
+        await client.Api.ResizeZoneAsync("board", 1, 24, Ct);
 
         Assert.Equal([("board", 1, 24)], _api.ResizeCalls);
     }
@@ -116,7 +116,7 @@ public sealed class EngineRpcTests : IDisposable
         var client = await ConnectAsync();
 
         var exception = await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetEffectAsync(null, "unknown", TestContext.Current.CancellationToken));
+            () => client.Api.SetEffectAsync(null, "unknown", Ct));
         Assert.True(EngineRpc.IsRejectedByEngine(exception));
     }
 
@@ -135,21 +135,21 @@ public sealed class EngineRpcTests : IDisposable
 
         _server!.Dispose();
 
-        await disconnected.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await disconnected.Task.WaitAsync(Timeout, Ct);
     }
 
     [Fact]
     public async Task ConnectAsync_NoServer_ThrowsTimeout()
     {
         await Assert.ThrowsAsync<TimeoutException>(
-            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken));
+            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(100), Ct));
     }
 
     private async Task<EngineConnection> ConnectAsync()
     {
         var pipe = EngineRpc.CreateServerStream(_pipeName);
-        var accepted = pipe.WaitForConnectionAsync(TestContext.Current.CancellationToken);
-        _client = await EngineConnection.ConnectAsync(_pipeName, Timeout, TestContext.Current.CancellationToken);
+        var accepted = pipe.WaitForConnectionAsync(Ct);
+        _client = await EngineConnection.ConnectAsync(_pipeName, Timeout, Ct);
         await accepted;
         _server = EngineRpc.StartServer(pipe, _api);
         return _client;

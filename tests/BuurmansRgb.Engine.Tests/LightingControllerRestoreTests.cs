@@ -86,7 +86,7 @@ public sealed class LightingControllerRestoreTests : IDisposable
     [Fact]
     public async Task RestoreDevices_BeforeAnyLighting_SendsNothing()
     {
-        await _controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _controller.DiscoverAsync(Ct);
 
         _controller.RestoreDevices();
 
@@ -96,7 +96,7 @@ public sealed class LightingControllerRestoreTests : IDisposable
 
     private async Task StartAsync()
     {
-        await _controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _controller.DiscoverAsync(Ct);
         _controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
     }
 }

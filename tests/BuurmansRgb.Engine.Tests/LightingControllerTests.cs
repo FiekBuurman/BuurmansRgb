@@ -21,7 +21,7 @@ public sealed class LightingControllerTests
         controller.Apply(Uniform(Orange, 0.5));
 
         var expected = Orange.Scale(0.5);
-        foreach (var device in await _simulated.DiscoverAsync(TestContext.Current.CancellationToken))
+        foreach (var device in await _simulated.DiscoverAsync(Ct))
         {
             var leds = _simulated.GetLeds(device.Id);
             Assert.Equal(device.LedCount, leds.Length);
@@ -35,7 +35,7 @@ public sealed class LightingControllerTests
         var first = new RecordingDeviceProvider();
         var second = new RecordingDeviceProvider();
         var controller = new LightingController([first, second]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
 
         controller.Apply(Uniform(Orange, 1.0));
 
@@ -71,7 +71,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
 
         controller.SetPaused(true);
         controller.Apply(Uniform(Orange, 1.0));
@@ -85,7 +85,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         controller.SetPaused(true);
         controller.Apply(Uniform(Orange, 1.0));
 
@@ -101,7 +101,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         controller.SetPaused(true);
 
         controller.SetPaused(false);
@@ -216,7 +216,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         LightingOutput? output = null;
         controller.Rendered += (_, _) => output = controller.GetOutput();
         controller.SetPaused(true);
@@ -246,7 +246,7 @@ public sealed class LightingControllerTests
     {
         var controller = await CreateSimulatedAsync();
 
-        Assert.Equal(await _simulated.DiscoverAsync(TestContext.Current.CancellationToken), controller.Devices);
+        Assert.Equal(await _simulated.DiscoverAsync(Ct), controller.Devices);
     }
 
     private static LightingState Uniform(RgbColor color, double brightness) => LightingStates.Uniform(StaticLighting(color, brightness));
@@ -254,7 +254,7 @@ public sealed class LightingControllerTests
     private async Task<LightingController> CreateSimulatedAsync()
     {
         var controller = new LightingController([_simulated]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         return controller;
     }
 }

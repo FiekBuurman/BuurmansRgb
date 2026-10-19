@@ -11,14 +11,14 @@ internal static class EventuallyDevices
         var stopwatch = Stopwatch.StartNew();
         while (true)
         {
-            var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+            var devices = await provider.DiscoverAsync(Ct);
             if (devices.Count == count)
             {
                 return devices;
             }
 
             Assert.True(stopwatch.Elapsed < timeout, $"Still {devices.Count} devices instead of {count}.");
-            await Task.Delay(10, TestContext.Current.CancellationToken);
+            await Task.Delay(10, Ct);
         }
     }
 }

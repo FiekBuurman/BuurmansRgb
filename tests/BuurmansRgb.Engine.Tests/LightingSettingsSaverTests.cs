@@ -16,7 +16,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task LightingChanged_SavesAfterDelay()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var saver = CreateSaver();
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
@@ -31,7 +31,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task ManyQuickChanges_SaveOnceWithTheLatest()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var saver = CreateSaver();
 
         for (var i = 1; i <= 10; i++)
@@ -51,7 +51,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task Dispose_WithPendingChange_SavesImmediately()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         var saver = CreateSaver();
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
@@ -72,7 +72,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task ChangeAfterDispose_IsNotSaved()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         CreateSaver().Dispose();
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
@@ -84,7 +84,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task SaveFails_DoesNotThrow()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         _store.SaveException = new IOException("Disk full.");
         var saver = CreateSaver();
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
@@ -97,7 +97,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task Save_KeepsTheStartupOptions()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = false }, Delay, _time);
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
@@ -110,7 +110,7 @@ public sealed class LightingSettingsSaverTests
     [Fact]
     public async Task DefaultTimeProvider_SavesOnItsOwn()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var saver = new LightingSettingsSaver(_store, _lighting, EngineSettings.CreateDefault(), TimeSpan.FromMilliseconds(1));
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
@@ -119,7 +119,7 @@ public sealed class LightingSettingsSaverTests
         while (_store.SaveCount == 0)
         {
             Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the save.");
-            await Task.Delay(10, TestContext.Current.CancellationToken);
+            await Task.Delay(10, Ct);
         }
     }
 

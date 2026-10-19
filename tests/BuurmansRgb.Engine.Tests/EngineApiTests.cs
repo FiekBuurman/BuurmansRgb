@@ -20,16 +20,16 @@ public sealed class EngineApiTests
         using var api = new EngineApi(_lighting);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => api.SetBrightnessAsync(null, brightness, TestContext.Current.CancellationToken));
+            () => api.SetBrightnessAsync(null, brightness, Ct));
     }
 
     [Fact]
     public async Task GetDevicesAsync_GivesTypeAndZonesOfEveryDevice()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
 
-        var devices = await api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var devices = await api.GetDevicesAsync(Ct);
 
         var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
         Assert.Equal(DeviceType.Motherboard, motherboard.Type);
@@ -40,12 +40,12 @@ public sealed class EngineApiTests
     [Fact]
     public async Task SetLedColorsAsync_StoresTheColorsOfTheDevice()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
 
-        await api.SetLedColorsAsync("simulated-fan", 1, [new RgbColor(1, 2, 3)], TestContext.Current.CancellationToken);
+        await api.SetLedColorsAsync("simulated-fan", 1, [new RgbColor(1, 2, 3)], Ct);
 
-        var colors = await api.GetLedColorsAsync("simulated-fan", TestContext.Current.CancellationToken);
+        var colors = await api.GetLedColorsAsync("simulated-fan", Ct);
         Assert.Equal(12, colors.Count);
         Assert.Equal(new RgbColor(1, 2, 3), colors[1]);
     }
@@ -53,25 +53,25 @@ public sealed class EngineApiTests
     [Fact]
     public async Task SetLedColorsAsync_NoColors_Throws()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
 
         await Assert.ThrowsAsync<ArgumentNullException>(
-            () => api.SetLedColorsAsync("simulated-fan", 0, null!, TestContext.Current.CancellationToken));
+            () => api.SetLedColorsAsync("simulated-fan", 0, null!, Ct));
     }
 
     [Fact]
     public async Task ResizeZoneAsync_ResizesTheZoneAndReportsTheNewDevice()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
-        await api.ResizeZoneAsync("simulated-strip", 0, 45, TestContext.Current.CancellationToken);
-        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await api.ResizeZoneAsync("simulated-strip", 0, 45, Ct);
+        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), Ct);
 
-        var devices = await api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var devices = await api.GetDevicesAsync(Ct);
         var strip = devices.Single(device => device.Id == "simulated-strip");
         Assert.Equal(45, strip.LedCount);
         Assert.Equal(new RgbZone("Strip", 45, 1, 60), Assert.Single(strip.Zones));
@@ -80,22 +80,22 @@ public sealed class EngineApiTests
     [Fact]
     public async Task ResizeZoneAsync_FixedZone_Throws()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
 
         await Assert.ThrowsAsync<ArgumentException>(
-            () => api.ResizeZoneAsync("simulated-fan", 0, 16, TestContext.Current.CancellationToken));
+            () => api.ResizeZoneAsync("simulated-fan", 0, 16, Ct));
     }
 
     [Fact]
     public async Task FrameRendered_ForwardsLightingFrames()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         using var api = new EngineApi(_lighting);
         LightingFrame? received = null;
         api.FrameRendered += (_, frame) => received = frame;
 
-        await api.SetColorAsync(null, new RgbColor(1, 2, 3), TestContext.Current.CancellationToken);
+        await api.SetColorAsync(null, new RgbColor(1, 2, 3), Ct);
 
         Assert.NotNull(received);
         Assert.All(received.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(new RgbColor(1, 2, 3), led));
@@ -111,16 +111,16 @@ public sealed class EngineApiTests
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
         dynamic.SetDevices(DynamicDeviceProvider.Device("real"));
-        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), Ct);
 
-        var device = Assert.Single(await api.GetDevicesAsync(TestContext.Current.CancellationToken));
+        var device = Assert.Single(await api.GetDevicesAsync(Ct));
         Assert.Equal("real", device.Id);
     }
 
     [Fact]
     public async Task Dispose_StopsForwardingFrames()
     {
-        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        await _lighting.DiscoverAsync(Ct);
         var api = new EngineApi(_lighting);
         var frames = 0;
         api.FrameRendered += (_, _) => frames++;

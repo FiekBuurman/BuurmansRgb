@@ -15,7 +15,7 @@ internal static class Eventually
         while (!condition())
         {
             Assert.True(stopwatch.Elapsed < limit, "The condition did not come true in time.");
-            await Task.Delay(10, TestContext.Current.CancellationToken);
+            await Task.Delay(10, Ct);
         }
     }
 }
