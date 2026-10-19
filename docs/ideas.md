@@ -12,3 +12,7 @@
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
 - Logging naar bestand (`Microsoft.Extensions.Logging`) voor fouten bij opstarten
+- Geheugen van de engine bewaken: het budget in `docs/bouwplan.md` is working set
+  (< 50 MB) en taak 1 zit daar met ~48 MB vlak onder. Bij taak 2 (StreamJsonRpc) en
+  taak 3 (OpenRGB.NET) meten met `dotnet-counters`, en eventueel na opstarten
+  `GC.Collect` plus `EmptyWorkingSet` proberen
