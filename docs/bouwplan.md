@@ -242,6 +242,11 @@ Gebruik deze opdracht vier keer, telkens met één type: **5** moederbord en RAM
 - [ ] Na slaapstand en hervatten staan de kleuren weer goed
 - [ ] `docs/hardware.md` bijgewerkt
 
+Stand taak 5 (moederbord en RAM): icoon, type en zones in de instellingen-app, een
+gesimuleerd moederbord en twee RAM-sticks, en herstellen na het ontwaken zijn gebouwd en
+getest zonder hardware (nepdata van OpenRGB en een nepklok). De vier criteria hierboven
+vragen echte hardware; die test de gebruiker zelf, zie "Moederbord en RAM" in `README.md`.
+
 ## Risico's en aandachtspunten
 
 Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; sluit die af voordat je test.
