@@ -69,6 +69,10 @@
 - Frames naar de UI begrenzen wordt na taak 4 belangrijker: met de regenboog op "Alle
   apparaten" zit de instellingen-app (Debug) op ~147 MB working set, vlak onder het budget van
   150 MB. Een lagere preview-framerate of alleen de zichtbare apparaten versturen helpt
+- De preview-frames loskoppelen van de render-loop: nu draait `EngineApi.OnRendered` op de
+  timer-thread en maakt per frame een kopie van alle buffers en een `LightingFrame`, dus met de
+  instellingen-app open alloceert elk frame en vertraagt UI-werk de animatie. Bijvoorbeeld de
+  laatste uitvoer markeren en die op een eigen thread of met een lagere framerate versturen
 - De animatie ook pauzeren bij vergrendelen of slaapstand (`SystemEvents.SessionSwitch`,
   `PowerModeChanged`), zoals het prestatiebudget noemt; nu stopt hij alleen via "Effecten
   pauzeren"

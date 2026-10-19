@@ -188,8 +188,10 @@ public sealed class LightingControllerAnimationTests : IDisposable
         Assert.Equal(1, still.SetLedsCount);
     }
 
+    // With a listener that does nothing, as with the settings app closed; an open settings app
+    // copies every frame for its preview.
     [Fact]
-    public async Task RenderAnimationFrame_AllocatesNothing()
+    public async Task RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing()
     {
         var simulated = new SimulatedDeviceProvider();
         using var controller = new LightingController([simulated], new SteppingTimeProvider(Frame));

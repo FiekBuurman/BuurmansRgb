@@ -300,6 +300,8 @@ internal sealed class LightingController : IDisposable
 
     // One step of the animation: renders the animated effects and sends only the devices whose
     // colors changed. Allocates nothing, so it can run 60 times a second without feeding the GC.
+    // The Rendered listeners run on this thread too; the one of a connected settings app copies
+    // the colors for its preview, so that does allocate.
     public void RenderAnimationFrame()
     {
         var rendered = false;
