@@ -92,6 +92,18 @@ public sealed class LightingControllerZoneTests
         Assert.Throws<ArgumentException>(() => _controller.ResizeZone("header", 0, 20));
     }
 
+    // The switch around such a provider does not claim it can resize either.
+    [Fact]
+    public async Task ResizeZone_SwitchableProviderThatCannotResize_Throws()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(new RgbDevice("header", "Header", DeviceType.LedStrip, [new RgbZone("Strip", 10, 0, 60)]));
+        using var controller = new LightingController([SwitchableDeviceProvider.For(dynamic)]);
+        await controller.DiscoverAsync(Ct);
+
+        Assert.Throws<ArgumentException>(() => controller.ResizeZone("header", 0, 20));
+    }
+
     // As when the header is resized in OpenRGB itself: the logo after it keeps its own color.
     [Fact]
     public async Task DevicesChanged_ZoneGotAnotherLength_MovesTheLedColorsAlong()

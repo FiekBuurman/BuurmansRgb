@@ -12,11 +12,13 @@ public sealed class SwitchableDeviceProviderTests
 
     public SwitchableDeviceProviderTests()
     {
-        _switchable = new SwitchableDeviceProvider(_simulated);
+        _switchable = SwitchableDeviceProvider.For(_simulated);
         _switchable.DevicesChanged += (_, _) => _changes++;
     }
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    private IResizableDeviceProvider Resizable => Assert.IsAssignableFrom<IResizableDeviceProvider>(_switchable);
 
     [Fact]
     public async Task Enabled_PassesDevicesAndColorsThrough()
@@ -66,7 +68,7 @@ public sealed class SwitchableDeviceProviderTests
     [Fact]
     public async Task ResizeZone_Enabled_ResizesTheInnerZoneAndPassesTheChangeOn()
     {
-        _switchable.ResizeZone("simulated-strip", 0, 40);
+        Resizable.ResizeZone("simulated-strip", 0, 40);
 
         var strip = (await _switchable.DiscoverAsync(Ct)).Single(device => device.Id == "simulated-strip");
         Assert.Equal(40, strip.LedCount);
@@ -78,7 +80,7 @@ public sealed class SwitchableDeviceProviderTests
     {
         _switchable.IsEnabled = false;
 
-        Assert.Throws<ArgumentException>(() => _switchable.ResizeZone("simulated-strip", 0, 40));
+        Assert.Throws<ArgumentException>(() => Resizable.ResizeZone("simulated-strip", 0, 40));
         Assert.Equal(30, _simulated.GetLeds("simulated-strip").Length);
     }
 
@@ -95,10 +97,11 @@ public sealed class SwitchableDeviceProviderTests
     }
 
     [Fact]
-    public void ResizeZone_InnerCannotResize_Throws()
+    public void For_InnerCannotResize_IsNotResizableEither()
     {
-        var switchable = new SwitchableDeviceProvider(new RecordingDeviceProvider());
+        var switchable = SwitchableDeviceProvider.For(new RecordingDeviceProvider());
 
-        Assert.Throws<NotSupportedException>(() => switchable.ResizeZone("device", 0, 4));
+        Assert.False(switchable is IResizableDeviceProvider);
+        Assert.Equal("Recording", switchable.Name);
     }
 }

@@ -25,7 +25,7 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
-        var simulatedDevices = new SwitchableDeviceProvider(new SimulatedDeviceProvider());
+        var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
         using var lighting = new LightingController([simulatedDevices, openRgb]);
 

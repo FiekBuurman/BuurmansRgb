@@ -5,15 +5,16 @@ namespace BuurmansRgb.Engine.Lighting;
 // Lets a setting hide the devices of a provider, such as the simulated ones. The engine sets it
 // once at startup; switching while it runs is groundwork for a toggle in the settings app (see
 // docs/ideas.md) and raises DevicesChanged, so the lighting picks up the change at once. Changes
-// and resizes of the inner provider pass through while it is enabled.
-internal sealed class SwitchableDeviceProvider : IResizableDeviceProvider
+// of the inner provider pass through while it is enabled. Made with For, which only gives a
+// resizable wrapper for a resizable provider, so the type tells what the inner provider can do.
+internal class SwitchableDeviceProvider : IDynamicDeviceProvider
 {
     private readonly IDeviceProvider _inner;
     private readonly Lock _gate = new();
     private bool _isEnabled = true;
     private bool _discovered;
 
-    public SwitchableDeviceProvider(IDeviceProvider inner)
+    private SwitchableDeviceProvider(IDeviceProvider inner)
     {
         _inner = inner;
         if (inner is IDynamicDeviceProvider dynamicProvider)
@@ -64,6 +65,9 @@ internal sealed class SwitchableDeviceProvider : IResizableDeviceProvider
         }
     }
 
+    public static SwitchableDeviceProvider For(IDeviceProvider inner) =>
+        inner is IResizableDeviceProvider resizable ? new Resizable(resizable) : new SwitchableDeviceProvider(inner);
+
     public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
     {
         bool enabled;
@@ -84,19 +88,17 @@ internal sealed class SwitchableDeviceProvider : IResizableDeviceProvider
         }
     }
 
-    // While disabled the devices are hidden, so they cannot be resized either.
-    public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+    private sealed class Resizable(IResizableDeviceProvider inner) : SwitchableDeviceProvider(inner), IResizableDeviceProvider
     {
-        if (_inner is not IResizableDeviceProvider resizable)
+        // While disabled the devices are hidden, so they cannot be resized either.
+        public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
         {
-            throw new NotSupportedException($"The devices of {_inner.Name} cannot be resized.");
-        }
+            if (!IsEnabled)
+            {
+                throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+            }
 
-        if (!IsEnabled)
-        {
-            throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+            inner.ResizeZone(deviceId, zoneIndex, ledCount);
         }
-
-        resizable.ResizeZone(deviceId, zoneIndex, ledCount);
     }
 }
