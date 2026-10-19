@@ -12,7 +12,7 @@ public sealed class DeviceItemTests
     {
         [DeviceType.Motherboard] = "Moederbord",
         [DeviceType.Ram] = "RAM",
-        [DeviceType.Gpu] = null,
+        [DeviceType.Gpu] = "Videokaart",
         [DeviceType.Fan] = null,
         [DeviceType.LedStrip] = null,
         [DeviceType.Case] = null,
@@ -52,6 +52,19 @@ public sealed class DeviceItemTests
 
         Assert.Equal("RAM", item.TypeName);
         Assert.Equal("RAM · 8 LED's", item.Details);
+    }
+
+    [Fact]
+    public void For_GpuWithLightBarAndLogo_ShowsTypeLedsAndZones()
+    {
+        var gpu = new DeviceInfo("gpu", "ASUS ROG STRIX RTX 4080", DeviceType.Gpu, 13,
+            [new RgbZone("Light bar", 12, Resizable: false), new RgbZone("Logo", 1, Resizable: false)]);
+
+        var item = DeviceItem.For(gpu);
+
+        Assert.Equal(DeviceType.Gpu, item.Type);
+        Assert.Equal("Videokaart", item.TypeName);
+        Assert.Equal("Videokaart · 13 LED's in 2 zones", item.Details);
     }
 
     [Fact]
