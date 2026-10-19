@@ -296,7 +296,8 @@ USB, niet via SMBus.
   en `OpenRgbDeviceProviderTests` (matrix-maps van OpenRGB met nepdata en een kleine
   SDK-server, rijen en kolommen, en herstellen na slaapstand), `EngineRpcTests` en
   `EngineIpcServerTests` (de matrix gaat mee naar de instellingen-app), en `DeviceItemTests`,
-  `DeviceIconsTests`, `LedLayoutTests` en `DevicePreviewViewModelTests` in de instellingen-app.
+  `DeviceIconsTests`, `LedLayoutTests` (plek van de toetsen, klikken en meekrimpen in een smal
+  venster) en `DevicePreviewViewModelTests` in de instellingen-app.
   Start daarnaast de engine en de instellingen-app: kies "Simulated keyboard" en klik op een
   toets, of kies bij "Simulated mouse" de zone "Scroll wheel".
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
