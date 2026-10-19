@@ -10,6 +10,7 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
     [
         new("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, [new RgbZone("Strip", 30, 1, 60)]),
         new("simulated-fan", "Simulated fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]),
+
         // A full-size keyboard: the main keys, the arrow block and the number pad, one LED per key.
         new("simulated-keyboard", "Simulated keyboard", DeviceType.Keyboard,
         [
