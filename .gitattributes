@@ -2,5 +2,7 @@
 *.cs text eol=crlf
 *.xaml text eol=crlf
 *.sln text eol=crlf
+*.slnx text eol=crlf
+*.props text eol=crlf
 *.csproj text eol=crlf
 *.md text eol=lf
