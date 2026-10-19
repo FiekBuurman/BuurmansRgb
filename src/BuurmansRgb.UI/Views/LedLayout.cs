@@ -20,6 +20,18 @@ public static class LedLayout
         return new(rows, columns, cells);
     }
 
+    // The LED in the cell under a point, with cells of pitch by pitch from the top left; NoLed for
+    // a gap between keys or a point outside the layout. The whole cell counts, so a click
+    // between two LEDs still picks one.
+    public static int LedAt(LedMatrix layout, double pitch, double x, double y)
+    {
+        var column = (int)Math.Floor(x / pitch);
+        var row = (int)Math.Floor(y / pitch);
+        return column >= 0 && column < layout.Width && row >= 0 && row < layout.Height
+            ? layout[row, column]
+            : LedMatrix.NoLed;
+    }
+
     // The positions of a matrix, such as the keys of a keyboard, for a zone of ledCount LEDs. A
     // cell that points past the zone stays empty. LEDs that the matrix does not place follow in
     // rows of their own below it, so every LED still shows and can be clicked.

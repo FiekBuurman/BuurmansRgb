@@ -49,7 +49,8 @@ public sealed class LedStripView : FrameworkElement
     // on every render, so the ring follows a theme change from the next redraw on.
     private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
 
-    // Made again only when the number of LEDs, the columns or the matrix change, not on every frame.
+    // Holds only LEDs below Colors.Count. Made again only when the number of LEDs, the columns or
+    // the matrix change, not on every frame.
     private LedMatrix _layout = LedLayout.Wrap(0, 1);
     private (int LedCount, int Columns, LedMatrix? Matrix) _layoutFor;
 
@@ -107,7 +108,7 @@ public sealed class LedStripView : FrameworkElement
         for (var cell = 0; cell < layout.Cells.Count; cell++)
         {
             var led = layout.Cells[cell];
-            if (led == LedMatrix.NoLed || led >= colors.Count)
+            if (led == LedMatrix.NoLed)
             {
                 continue;
             }
@@ -136,8 +137,7 @@ public sealed class LedStripView : FrameworkElement
         }
     }
 
-    // The whole cell around an LED counts, so a click between two LEDs still picks one. A click
-    // on a gap between keys picks nothing.
+    // A click on a gap between keys picks nothing.
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
@@ -147,17 +147,9 @@ public sealed class LedStripView : FrameworkElement
         }
 
         var layout = LayoutFor(ActualWidth);
-        var pitch = Pitch * ScaleFor(layout, ActualWidth);
         var position = e.GetPosition(this);
-        var column = (int)Math.Floor(position.X / pitch);
-        var row = (int)Math.Floor(position.Y / pitch);
-        if (column < 0 || column >= layout.Width || row < 0 || row >= layout.Height)
-        {
-            return;
-        }
-
-        var led = layout[row, column];
-        if (led == LedMatrix.NoLed || led >= Colors.Count)
+        var led = LedLayout.LedAt(layout, Pitch * ScaleFor(layout, ActualWidth), position.X, position.Y);
+        if (led == LedMatrix.NoLed)
         {
             return;
         }
