@@ -34,14 +34,8 @@ public sealed class LedStripView : FrameworkElement
     public static readonly DependencyProperty ClickCommandProperty = DependencyProperty.Register(
         nameof(ClickCommand), typeof(ICommand), typeof(LedStripView), new PropertyMetadata(null, OnClickCommandChanged));
 
-    private const double LedSize = 14.0;
-    private const double Spacing = 4.0;
-    private const double Pitch = LedSize + Spacing;
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
-
-    // A wide key map shrinks to fit, but no further than this, so the keys stay clickable.
-    private const double MinScale = 0.5;
 
     private static readonly Pen Outline = CreatePen(System.Windows.Media.Color.FromArgb(0x60, 0x80, 0x80, 0x80), 1.0);
 
@@ -91,18 +85,18 @@ public sealed class LedStripView : FrameworkElement
             return default;
         }
 
-        var layout = LayoutFor(availableSize.Width);
-        var scale = ScaleFor(layout, availableSize.Width);
-        return new Size((layout.Width * Pitch - Spacing) * scale, (layout.Height * Pitch - Spacing) * scale);
+        var (layout, pitch) = LayoutFor(availableSize.Width);
+        var scale = pitch / LedLayout.Pitch;
+        return new Size(
+            (layout.Width * LedLayout.Pitch - LedLayout.Spacing) * scale,
+            (layout.Height * LedLayout.Pitch - LedLayout.Spacing) * scale);
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
         var colors = Colors;
-        var layout = LayoutFor(ActualWidth);
-        var scale = ScaleFor(layout, ActualWidth);
-        var pitch = Pitch * scale;
-        var size = LedSize * scale;
+        var (layout, pitch) = LayoutFor(ActualWidth);
+        var size = LedLayout.LedSize * pitch / LedLayout.Pitch;
         var keys = Matrix is not null;
         var selectionRing = SelectionRing();
         for (var cell = 0; cell < layout.Cells.Count; cell++)
@@ -146,9 +140,9 @@ public sealed class LedStripView : FrameworkElement
             return;
         }
 
-        var layout = LayoutFor(ActualWidth);
+        var (layout, pitch) = LayoutFor(ActualWidth);
         var position = e.GetPosition(this);
-        var led = LedLayout.LedAt(layout, Pitch * ScaleFor(layout, ActualWidth), position.X, position.Y);
+        var led = LedLayout.LedAt(layout, pitch, position.X, position.Y);
         if (led == LedMatrix.NoLed)
         {
             return;
@@ -172,22 +166,18 @@ public sealed class LedStripView : FrameworkElement
             return Math.Max(count, 1);
         }
 
-        return Math.Clamp((int)((width + Spacing) / Pitch), 1, Math.Max(count, 1));
+        return Math.Clamp((int)((width + LedLayout.Spacing) / LedLayout.Pitch), 1, Math.Max(count, 1));
     }
 
-    // Only a matrix shrinks; dots wrap to the next row instead.
-    private double ScaleFor(LedMatrix layout, double width)
+    // The layout and its pitch for a width; Measure, OnRender and the click all use this, so a
+    // click lands on the key that is drawn there.
+    private (LedMatrix Layout, double Pitch) LayoutFor(double width)
     {
-        var naturalWidth = layout.Width * Pitch - Spacing;
-        if (Matrix is null || double.IsInfinity(width) || double.IsNaN(width) || naturalWidth <= width)
-        {
-            return 1.0;
-        }
-
-        return Math.Max(width / naturalWidth, MinScale);
+        var layout = PlaceLeds(width);
+        return (layout, LedLayout.PitchFor(layout, width, shrinks: Matrix is not null));
     }
 
-    private LedMatrix LayoutFor(double width)
+    private LedMatrix PlaceLeds(double width)
     {
         var count = Colors.Count;
         var matrix = Matrix;

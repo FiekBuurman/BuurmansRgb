@@ -5,6 +5,28 @@ namespace BuurmansRgb.UI.Views;
 // Where the preview draws the LEDs of a zone: a matrix of cells that each hold one LED, or a gap.
 public static class LedLayout
 {
+    // The size of an LED and the space between two LEDs at full size.
+    public const double LedSize = 14.0;
+    public const double Spacing = 4.0;
+    public const double Pitch = LedSize + Spacing;
+
+    // A wide key map shrinks to fit, but no further than this, so the keys stay clickable.
+    public const double MinScale = 0.5;
+
+    // The distance from one cell to the next when the layout is drawn in width. Only a layout
+    // that shrinks, such as a key map, gets a smaller pitch when it is wider than width; dots wrap
+    // to the next row instead. An unbounded width, as in a measure pass, keeps the full pitch.
+    public static double PitchFor(LedMatrix layout, double width, bool shrinks)
+    {
+        var naturalWidth = layout.Width * Pitch - Spacing;
+        if (!shrinks || !double.IsFinite(width) || naturalWidth <= width)
+        {
+            return Pitch;
+        }
+
+        return Pitch * Math.Max(width / naturalWidth, MinScale);
+    }
+
     // The LEDs in reading order, so many per row; the last row may hold fewer.
     public static LedMatrix Wrap(int ledCount, int columns)
     {

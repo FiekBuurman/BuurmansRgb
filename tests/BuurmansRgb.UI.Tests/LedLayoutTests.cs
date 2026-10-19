@@ -76,4 +76,35 @@ public sealed class LedLayoutTests
     {
         Assert.Equal(new LedMatrix(1, 3, [0, 1, 2]), LedLayout.Place(new LedMatrix(0, 0, []), 3));
     }
+
+    // Ten keys in a row are 10 * 18 - 4 = 176 wide at full size.
+    private static LedMatrix TenKeys() => LedLayout.Wrap(10, 10);
+
+    [Theory]
+    [InlineData(176.0)]
+    [InlineData(500.0)]
+    public void PitchFor_MatrixThatFits_KeepsTheFullPitch(double width) =>
+        Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), width, shrinks: true));
+
+    [Fact]
+    public void PitchFor_MatrixTooWide_ShrinksToTheWidth()
+    {
+        var pitch = LedLayout.PitchFor(TenKeys(), 132.0, shrinks: true);
+
+        Assert.Equal(LedLayout.Pitch * 0.75, pitch, 9);
+    }
+
+    [Fact]
+    public void PitchFor_MatrixFarTooWide_ShrinksNoFurtherThanMinScale() =>
+        Assert.Equal(LedLayout.Pitch * LedLayout.MinScale, LedLayout.PitchFor(TenKeys(), 20.0, shrinks: true));
+
+    [Theory]
+    [InlineData(double.PositiveInfinity)]
+    [InlineData(double.NaN)]
+    public void PitchFor_UnboundedWidth_KeepsTheFullPitch(double width) =>
+        Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), width, shrinks: true));
+
+    [Fact]
+    public void PitchFor_Dots_NeverShrink() =>
+        Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), 20.0, shrinks: false));
 }
