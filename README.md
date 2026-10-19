@@ -246,7 +246,7 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   draait. Of OpenRGB hem ook na een herstart nog weet, test je met je eigen hardware (stap 1
   hieronder).
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
-  `RgbZoneTests` en `SimulatedDeviceProviderTests` (bereik en lengte van zones),
+  `RgbZoneTests`, `RgbDeviceTests` en `SimulatedDeviceProviderTests` (bereik en lengte van zones),
   `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests` en `OpenRgbNetConnectionTests`
   (het type behuizing, lengte instellen bij OpenRGB met nepdata en een kleine SDK-server, ook
   na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
