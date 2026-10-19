@@ -365,7 +365,8 @@ internal sealed class LightingController : IDisposable
         var time = EffectTime;
         foreach (var output in _outputs)
         {
-            output.Show(LightingForLocked(output.Device.Id), _ledColors.For(output.Device.Id));
+            var lighting = LightingForLocked(output.Device.Id);
+            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
             output.Render(time);
             if (!_isPaused)
             {

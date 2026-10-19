@@ -1,4 +1,5 @@
 using BuurmansRgb.Core;
+using BuurmansRgb.Effects;
 
 namespace BuurmansRgb.Engine.Lighting;
 
@@ -8,7 +9,8 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device)
 {
     // What the device got last, so a frame that changes nothing is not sent.
     private readonly RgbColor[] _sent = new RgbColor[device.LedCount];
-    private IEffect _effect = EffectCatalog.Create(DeviceLighting.Default.EffectId, DeviceLighting.Default.Color, []);
+    // Until the first Show; LightingController shows the lighting before it renders.
+    private IEffect _effect = new StaticEffect(DeviceLighting.Default.Color);
     private double _brightness = DeviceLighting.Default.Brightness;
 
     public IDeviceProvider Provider { get; } = provider;
@@ -19,10 +21,11 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device)
 
     public bool IsAnimated => _effect.IsAnimated;
 
-    public void Show(DeviceLighting lighting, IReadOnlyList<RgbColor?> ledColors)
+    // Brightness runs from 0 to 1 and applies to whatever the effect renders.
+    public void Show(IEffect effect, double brightness)
     {
-        _effect = EffectCatalog.Create(lighting.EffectId, lighting.Color, ledColors);
-        _brightness = lighting.Brightness;
+        _effect = effect;
+        _brightness = brightness;
     }
 
     public void Render(TimeSpan time)
