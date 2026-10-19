@@ -48,6 +48,14 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         }
     }
 
+    public void ResizeZone(int deviceIndex, int zoneIndex, int ledCount)
+    {
+        lock (_calls)
+        {
+            _client.ResizeZone(deviceIndex, zoneIndex, ledCount);
+        }
+    }
+
     public bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
     {
         if (!_calls.TryEnter())

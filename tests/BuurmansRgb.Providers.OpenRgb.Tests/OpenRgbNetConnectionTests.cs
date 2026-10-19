@@ -95,6 +95,17 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ResizeZone_ReachesTheServer()
+    {
+        var connection = await ConnectAsync();
+
+        connection.ResizeZone(2, 1, 45);
+
+        Assert.True(_server.Resizes.TryTake(out var resize, Timeout));
+        Assert.Equal((2, 1, 45), resize);
+    }
+
+    [Fact]
     public async Task TryUpdateLeds_WhileDeviceDataIsPending_ReturnsFalseWithoutWaiting()
     {
         var connection = await ConnectAsync();
