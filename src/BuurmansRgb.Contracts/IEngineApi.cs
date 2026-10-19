@@ -12,6 +12,10 @@ public partial interface IEngineApi
     // Raised after every change to the lights, also while effects are paused.
     event EventHandler<LightingFrame> FrameRendered;
 
+    // Raised when devices come or go, for example when OpenRGB starts or stops. GetDevicesAsync
+    // then returns the new list.
+    event EventHandler DevicesChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);

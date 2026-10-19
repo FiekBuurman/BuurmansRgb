@@ -14,9 +14,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     {
         _lighting = lighting;
         _lighting.Rendered += OnRendered;
+        _lighting.DevicesChanged += OnDevicesChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
+
+    public event EventHandler? DevicesChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>(
@@ -60,11 +63,17 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public void Dispose() => _lighting.Rendered -= OnRendered;
+    public void Dispose()
+    {
+        _lighting.Rendered -= OnRendered;
+        _lighting.DevicesChanged -= OnDevicesChanged;
+    }
 
     // The wire format is made here, outside the controller's lock.
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
+
+    private void OnDevicesChanged(object? sender, EventArgs e) => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnRendered(object? sender, EventArgs e)
     {
