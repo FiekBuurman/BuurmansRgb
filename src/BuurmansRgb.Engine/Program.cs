@@ -31,7 +31,8 @@ internal static class Program
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
             new EngineIpcServer(EngineRpc.PipeName, lighting, MemoryTrimmer.Trim),
-            simulatedDevices: simulatedDevices);
+            simulatedDevices: simulatedDevices,
+            trimMemory: MemoryTrimmer.Trim);
 
         using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
         using (instance.ListenForActivation(context.RequestOpenSettings))

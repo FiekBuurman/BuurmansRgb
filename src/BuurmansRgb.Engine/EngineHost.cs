@@ -9,11 +9,13 @@ internal sealed class EngineHost(
     LightingController lighting,
     EngineIpcServer? ipcServer = null,
     TimeSpan? saveDelay = null,
-    SwitchableDeviceProvider? simulatedDevices = null) : IEngineHost, IDisposable
+    SwitchableDeviceProvider? simulatedDevices = null,
+    Action? trimMemory = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
     // The IPC server starts once the lights are on and keeps running until ct is cancelled.
+    // trimMemory then runs once, so the memory that only starting up needed goes back to Windows.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -22,6 +24,7 @@ internal sealed class EngineHost(
         lighting.Apply(settings.ToLightingState());
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay);
         _ = ipcServer?.RunAsync(ct);
+        trimMemory?.Invoke();
     }
 
     public void SetPaused(bool paused) => lighting.SetPaused(paused);

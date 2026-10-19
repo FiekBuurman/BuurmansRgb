@@ -93,6 +93,20 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_TrimsMemoryOnceAfterTheLightsAreOn()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = new RgbColor(0, 0, 255) } };
+        var ledsAtTrim = new List<RgbColor>();
+        using var host = new EngineHost(store, new LightingController([_simulated]),
+            trimMemory: () => ledsAtTrim.AddRange(_simulated.GetLeds("simulated-fan").ToArray()));
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(12, ledsAtTrim.Count);
+        Assert.All(ledsAtTrim, led => Assert.Equal(new RgbColor(0, 0, 255), led));
+    }
+
+    [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {
         var lighting = new LightingController([_simulated]);

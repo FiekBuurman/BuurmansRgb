@@ -19,8 +19,8 @@
   UI verbonden ~13 MB private, na het sluiten ~12 MB private. `MemoryTrimmer` brengt de
   working set daarna naar ~9 MB, maar dat zegt weinig: Windows zet de pagina's alleen op de
   standby-lijst en ze komen terug zodra de engine ze weer gebruikt (tray-menu, timer).
-  Vergelijk daarom private bytes. Trimmen direct na opstarten geeft dezelfde schijnwinst;
-  echte ruimte voor taak 3 (OpenRGB.NET) zit in minder geladen assemblies
+  Vergelijk daarom private bytes. Sinds taak 3 trimt de engine ook één keer na het opstarten
+  (zie hieronder); echte winst zit in minder geladen assemblies
 - Instellingen-app als enkele instantie: nu opent "Instellingen openen" bij een open
   venster een tweede venster in plaats van het bestaande naar voren te halen
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
@@ -50,10 +50,13 @@
   frame over zolang een herlaadactie op de server wacht (zodat de lock van
   `LightingController` niet tot de aanvraag-timeout vastzit); bij animaties uit taak 4 kan
   dat zichtbaar haperen tijdens een rescan
-- Geheugen na taak 3: zonder UI ~53 MB working set en ~12 MB private bytes (taak 2: ~49,6 en
-  ~11,0). Het verschil zit vooral in Winsock en `System.Net.Sockets`, die nu altijd laden.
-  Het budget van < 50 MB working set wordt daarmee net overschreden; private bytes blijven
-  klein
+- Geheugen na taak 3: zonder trim ~53 MB working set en ~12 MB private bytes (taak 2: ~49,6
+  en ~11,0); het verschil zit vooral in Winsock en `System.Net.Sockets`. Daarom roept de
+  engine `MemoryTrimmer.Trim` één keer aan als de lampen na het opstarten aan zijn. Gemeten
+  (Release, statische kleur, geen OpenRGB-server, dus elke 5 s een verbindpoging): ~20 MB
+  working set na 3 s, ~22 MB na 60 s, ~11 MB private bytes. Opent iemand het tray-menu of de
+  instellingen-app, dan komen pagina's terug; na het sluiten van de UI trimt de engine weer.
+  Het tray-menu zelf trimt niet; dat zou een volgende stap kunnen zijn
 - In het tray-icoon of de instellingen-app tonen of OpenRGB verbonden is, en waarom niet
 - OpenRGB.NET 3.1.1 spreekt hooguit SDK-protocol 4. Bij een nieuwere OpenRGB (1.0 en later)
   controleren of verbinden, de apparaatindexen en `UpdateLeds` nog werken

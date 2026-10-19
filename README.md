@@ -80,8 +80,8 @@ dotnet run --project src/BuurmansRgb.Engine
 - **IPC:** de engine luistert op named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor
   de eigen Windows-gebruiker) met StreamJsonRpc. Het sessienummer zorgt dat twee ingelogde
   gebruikers elk hun eigen engine hebben, net als de mutex. De interface is `IEngineApi` in
-  `BuurmansRgb.Contracts`. Na het sluiten van de laatste instellingen-app geeft de engine
-  zijn ongebruikte geheugen terug aan Windows.
+  `BuurmansRgb.Contracts`. Na het opstarten en na het sluiten van de laatste
+  instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows.
 
 ## OpenRGB koppelen
 
