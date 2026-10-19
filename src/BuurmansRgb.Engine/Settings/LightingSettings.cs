@@ -8,11 +8,11 @@ namespace BuurmansRgb.Engine.Settings;
 // replace the defaults below with zero when a property is missing from the file.
 internal record LightingSettings
 {
-    public RgbColor Color { get; set; } = RgbColor.White;
+    public RgbColor Color { get; set; } = DeviceLighting.Default.Color;
 
-    public double Brightness { get; set; } = 1.0;
+    public double Brightness { get; set; } = DeviceLighting.Default.Brightness;
 
-    public string? Effect { get; set; } = EffectIds.Static;
+    public string? Effect { get; set; } = DeviceLighting.Default.EffectId;
 
     public static LightingSettings From(DeviceLighting lighting)
     {
