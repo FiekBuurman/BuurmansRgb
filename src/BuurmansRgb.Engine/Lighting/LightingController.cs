@@ -48,7 +48,7 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         {
             lock (_gate)
             {
-                return new(_global ?? DeviceLighting.Default, new Dictionary<string, DeviceLighting>(_deviceLighting));
+                return new(GlobalLocked, new Dictionary<string, DeviceLighting>(_deviceLighting));
             }
         }
     }
@@ -93,14 +93,13 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
     {
         lock (_gate)
         {
-            var global = _global ?? DeviceLighting.Default;
             if (deviceId is null)
             {
-                return global;
+                return GlobalLocked;
             }
 
             EnsureKnownDevice(deviceId);
-            return _deviceLighting.GetValueOrDefault(deviceId, global);
+            return LightingForLocked(deviceId);
         }
     }
 
@@ -111,17 +110,16 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         LightingFrame? frame;
         lock (_gate)
         {
-            var global = _global ?? DeviceLighting.Default;
             if (deviceId is null)
             {
-                _global = change(global);
+                _global = change(GlobalLocked);
                 _deviceLighting.Clear();
             }
             else
             {
                 EnsureKnownDevice(deviceId);
-                _global = global;
-                _deviceLighting[deviceId] = change(_deviceLighting.GetValueOrDefault(deviceId, global));
+                _deviceLighting[deviceId] = change(LightingForLocked(deviceId));
+                _global = GlobalLocked;
             }
 
             frame = RenderLocked();
@@ -165,14 +163,14 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
     // Returns the frame to publish, or null when nothing was rendered or nobody listens.
     private LightingFrame? RenderLocked()
     {
-        if (_global is not { } global)
+        if (_global is null)
         {
             return null;
         }
 
         foreach (var (provider, device, buffer) in _outputs)
         {
-            buffer.AsSpan().Fill(_deviceLighting.GetValueOrDefault(device.Id, global).OutputColor);
+            buffer.AsSpan().Fill(LightingForLocked(device.Id).OutputColor);
             if (!_isPaused)
             {
                 provider.SetLeds(device.Id, buffer);
@@ -193,6 +191,11 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
             FrameRendered?.Invoke(this, frame);
         }
     }
+
+    // Until the lighting is applied or first changed, everything counts as the default.
+    private DeviceLighting GlobalLocked => _global ?? DeviceLighting.Default;
+
+    private DeviceLighting LightingForLocked(string deviceId) => _deviceLighting.GetValueOrDefault(deviceId, GlobalLocked);
 
     private void EnsureKnownDevice(string deviceId)
     {

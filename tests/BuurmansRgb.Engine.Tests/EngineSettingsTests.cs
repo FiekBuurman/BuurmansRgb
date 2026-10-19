@@ -24,7 +24,7 @@ public sealed class EngineSettingsTests
     [Fact]
     public void From_WithoutDevices_LeavesDevicesNull()
     {
-        Assert.Null(EngineSettings.From(LightingState.Uniform(Orange)).Devices);
+        Assert.Null(EngineSettings.From(LightingStates.Uniform(Orange)).Devices);
     }
 
     [Fact]

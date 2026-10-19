@@ -189,7 +189,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private async Task<EngineConnection> StartAndConnectAsync()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
-        _lighting.Apply(LightingState.Uniform(DeviceLighting.Default));
+        _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
         _server = new EngineIpcServer(_pipeName, _lighting, () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }

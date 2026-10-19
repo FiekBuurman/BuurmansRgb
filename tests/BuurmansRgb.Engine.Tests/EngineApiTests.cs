@@ -46,7 +46,7 @@ public sealed class EngineApiTests
         api.FrameRendered += (_, _) => frames++;
 
         api.Dispose();
-        _lighting.Apply(LightingState.Uniform(DeviceLighting.Default));
+        _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
 
         Assert.Equal(0, frames);
     }

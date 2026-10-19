@@ -215,7 +215,7 @@ public sealed class LightingControllerTests
 
     private static DeviceLighting Lighting(RgbColor color, double brightness = 1.0) => new(color, brightness, EffectIds.Static);
 
-    private static LightingState Uniform(RgbColor color, double brightness) => LightingState.Uniform(Lighting(color, brightness));
+    private static LightingState Uniform(RgbColor color, double brightness) => LightingStates.Uniform(Lighting(color, brightness));
 
     private async Task<LightingController> CreateSimulatedAsync()
     {
