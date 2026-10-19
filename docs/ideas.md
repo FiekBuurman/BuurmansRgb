@@ -136,3 +136,8 @@
 - Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
   testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
   gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
+- `MainViewModel` verder opsplitsen: het LED-bewerken (`EditLedsAsync`, `SendLeds`,
+  `ClearLedSelection`, `FillGradient`) naar een eigen `LedEditCoordinator`. Bij de refactor na
+  de review (F4) bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, de preview, de
+  kleurkiezer en de geselecteerde effectkeuze nodig, en de bewerk-logica zelf zit al in
+  `LedEditorViewModel`. Pas oppakken als het LED-bewerken groeit (bijv. per zone)
