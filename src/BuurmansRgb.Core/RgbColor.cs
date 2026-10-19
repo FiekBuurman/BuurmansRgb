@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace BuurmansRgb.Core;
 
 public readonly record struct RgbColor(byte R, byte G, byte B)
@@ -41,6 +43,21 @@ public readonly record struct RgbColor(byte R, byte G, byte B)
     {
         var t = Math.Clamp(amount, 0.0, 1.0);
         return new(LerpChannel(from.R, to.R, t), LerpChannel(from.G, to.G, t), LerpChannel(from.B, to.B, t));
+    }
+
+    public string ToHex() => $"#{R:X2}{G:X2}{B:X2}";
+
+    public static bool TryParseHex(ReadOnlySpan<char> text, out RgbColor color)
+    {
+        color = default;
+        var digits = text.StartsWith('#') ? text[1..] : text;
+        if (digits.Length != 6 || !uint.TryParse(digits, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out var value))
+        {
+            return false;
+        }
+
+        color = new((byte)(value >> 16), (byte)(value >> 8), (byte)value);
+        return true;
     }
 
     private static byte ScaleChannel(byte channel, double factor) => (byte)Math.Round(channel * factor);
