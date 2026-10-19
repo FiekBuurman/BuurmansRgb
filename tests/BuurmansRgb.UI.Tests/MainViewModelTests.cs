@@ -192,6 +192,32 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task SelectNothing_OnUiThread_RestoresSelectionAfterwards()
+    {
+        var context = new QueuedSynchronizationContext();
+        var previous = SynchronizationContext.Current;
+        SynchronizationContext.SetSynchronizationContext(context);
+        try
+        {
+            var viewModel = await ConnectAsync();
+            var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
+            viewModel.SelectedDevice = fan;
+
+            viewModel.SelectedDevice = null;
+            viewModel.Brightness = 30;
+            Assert.Null(viewModel.SelectedDevice);
+
+            context.RunPending();
+            Assert.Same(fan, viewModel.SelectedDevice);
+            Assert.Empty(Api.Calls);
+        }
+        finally
+        {
+            SynchronizationContext.SetSynchronizationContext(previous);
+        }
+    }
+
+    [Fact]
     public async Task FrameRendered_UpdatesPreview()
     {
         var viewModel = await ConnectAsync();

@@ -101,7 +101,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (oldValue is not null && Devices.Contains(oldValue))
             {
-                WithoutSending(() => SelectedDevice = oldValue);
+                // Posted: WPF ignores a change to the source it is updating, so setting it right
+                // away would leave the list showing no selection.
+                PostToUi(() =>
+                {
+                    if (SelectedDevice is null && Devices.Contains(oldValue))
+                    {
+                        WithoutSending(() => SelectedDevice = oldValue);
+                    }
+                });
             }
 
             return;
@@ -263,6 +271,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RunOnUi(Action action)
     {
         if (_uiContext is null || SynchronizationContext.Current == _uiContext)
+        {
+            action();
+        }
+        else
+        {
+            PostToUi(action);
+        }
+    }
+
+    // Runs after the current UI work, or right away without a UI thread (tests).
+    private void PostToUi(Action action)
+    {
+        if (_uiContext is null)
         {
             action();
         }
