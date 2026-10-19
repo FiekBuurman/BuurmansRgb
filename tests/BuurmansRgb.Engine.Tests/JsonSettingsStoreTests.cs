@@ -1,3 +1,5 @@
+using System.Security.AccessControl;
+using System.Security.Principal;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Settings;
 
@@ -81,5 +83,40 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(EngineSettings.Default, settings);
         Assert.Equal(content, File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void LoadOrCreate_DirectoryCannotBeCreated_ReturnsDefaults()
+    {
+        var blocker = _directory.File("blocker");
+        File.WriteAllText(blocker, "a file where the settings directory should be");
+
+        var settings = new JsonSettingsStore(Path.Combine(blocker, "settings.json")).LoadOrCreate();
+
+        Assert.Equal(EngineSettings.Default, settings);
+    }
+
+    [Fact]
+    public void LoadOrCreate_FileCannotBeRead_ReturnsDefaultsAndKeepsFile()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "color": "#00FF00" }""");
+        DenyReadForCurrentUser(path);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(EngineSettings.Default, settings);
+        Assert.True(File.Exists(path));
+    }
+
+    private static void DenyReadForCurrentUser(string path)
+    {
+        var file = new FileInfo(path);
+        var security = file.GetAccessControl();
+        security.AddAccessRule(new FileSystemAccessRule(
+            WindowsIdentity.GetCurrent().User!,
+            FileSystemRights.ReadData,
+            AccessControlType.Deny));
+        file.SetAccessControl(security);
     }
 }

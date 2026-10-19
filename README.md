@@ -47,8 +47,9 @@ dotnet run --project src/BuurmansRgb.Engine
   }
   ```
 
-  `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1. Een ongeldig bestand laat de engine
-  ongemoeid en draait dan op de standaardwaarden.
+  `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1. Een ongeldig of onleesbaar bestand
+  laat de engine ongemoeid en draait dan op de standaardwaarden. Dat geldt ook als de map
+  `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
   openen. Staat die er niet, dan meldt het tray-icoon dat.
