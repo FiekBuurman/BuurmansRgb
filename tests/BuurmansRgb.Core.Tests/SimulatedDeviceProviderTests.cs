@@ -5,7 +5,7 @@ namespace BuurmansRgb.Core.Tests;
 public sealed class SimulatedDeviceProviderTests
 {
     [Fact]
-    public async Task DiscoverAsync_ReturnsStripFanKeyboardMotherboardAndRamWithExpectedLedCounts()
+    public async Task DiscoverAsync_ReturnsStripFanKeyboardMotherboardRamAndGpuWithExpectedLedCounts()
     {
         var provider = new SimulatedDeviceProvider();
 
@@ -18,7 +18,19 @@ public sealed class SimulatedDeviceProviderTests
             keyboard => AssertDevice(keyboard, DeviceType.Keyboard, 104),
             motherboard => AssertDevice(motherboard, DeviceType.Motherboard, 7),
             ram => AssertDevice(ram, DeviceType.Ram, 8),
-            ram => AssertDevice(ram, DeviceType.Ram, 8));
+            ram => AssertDevice(ram, DeviceType.Ram, 8),
+            gpu => AssertDevice(gpu, DeviceType.Gpu, 13));
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_GpuHasALightBarAndALogo()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        var gpu = devices.Single(device => device.Type == DeviceType.Gpu);
+        Assert.Equal([new RgbZone("Light bar", 12, Resizable: false), new RgbZone("Logo", 1, Resizable: false)], gpu.Zones);
     }
 
     [Fact]

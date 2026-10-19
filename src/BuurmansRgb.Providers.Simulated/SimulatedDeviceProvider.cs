@@ -22,6 +22,13 @@ public sealed class SimulatedDeviceProvider : IDeviceProvider
         // OpenRGB lists every RAM stick as a device of its own.
         new("simulated-ram-1", "Simulated RAM stick 1", DeviceType.Ram, [new RgbZone("DRAM", 8, Resizable: false)]),
         new("simulated-ram-2", "Simulated RAM stick 2", DeviceType.Ram, [new RgbZone("DRAM", 8, Resizable: false)]),
+
+        // A graphics card with a light bar along its side and a lit logo.
+        new("simulated-gpu", "Simulated graphics card", DeviceType.Gpu,
+        [
+            new RgbZone("Light bar", 12, Resizable: false),
+            new RgbZone("Logo", 1, Resizable: false),
+        ]),
     ];
 
     private readonly Dictionary<string, RgbColor[]> _leds = Devices.ToDictionary(device => device.Id, device => new RgbColor[device.LedCount]);

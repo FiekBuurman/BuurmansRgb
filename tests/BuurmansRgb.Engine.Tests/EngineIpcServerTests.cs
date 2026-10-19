@@ -62,7 +62,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            [("simulated-strip", 30), (Fan, 12), ("simulated-keyboard", 104), ("simulated-motherboard", 7), ("simulated-ram-1", 8), ("simulated-ram-2", 8)],
+            [("simulated-strip", 30), (Fan, 12), ("simulated-keyboard", 104), ("simulated-motherboard", 7), ("simulated-ram-1", 8), ("simulated-ram-2", 8), ("simulated-gpu", 13)],
             devices.Select(device => (device.Id, device.LedCount)));
     }
 
