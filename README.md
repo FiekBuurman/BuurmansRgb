@@ -182,14 +182,8 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
   `ResumeRestorerTests`, met een nepklok) en de lijst en zones in de instellingen-app
   (`DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests`). Start daarnaast de
   engine en de instellingen-app: het gesimuleerde moederbord en de RAM-sticks staan in de lijst.
-- **Testen met je eigen hardware:**
-  1. Start OpenRGB als administrator met de SDK-server aan, daarna de engine en de
-     instellingen-app.
-  2. Vergelijk per moederbord en RAM-stick het aantal LED's en de zones met OpenRGB.
-  3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
-  4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
-     zijn.
-  5. Noteer in `docs/hardware.md` wat werkt.
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  elk moederbord en elke RAM-stick.
 
 ## Videokaart (GPU)
 
@@ -215,15 +209,23 @@ OpenRGB de eerste keer met adminrechten draaien.
   `DeviceItemTests`, `DeviceIconsTests` en `DevicePreviewViewModelTests` (de zones, die voor
   elk apparaattype hetzelfde werken). Start daarnaast de engine en de instellingen-app: de
   gesimuleerde videokaart staat onderaan in de lijst.
-- **Testen met je eigen hardware:**
-  1. Sluit de software van de fabrikant van de kaart af (bijv. Armoury Crate, MSI Center of
-     RGB Fusion), start OpenRGB als administrator met de SDK-server aan, daarna de engine en
-     de instellingen-app.
-  2. Vergelijk het aantal LED's en de zones van de videokaart met OpenRGB.
-  3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
-  4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
-     zijn.
-  5. Noteer in `docs/hardware.md` wat werkt, en of de kaart in OpenRGB een "Direct"-modus heeft.
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  de videokaart, en noteer in `docs/hardware.md` ook of de kaart in OpenRGB een
+  "Direct"-modus heeft.
+
+## Een apparaattype testen met je eigen hardware
+
+Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, ...). Wat per
+type extra is, staat in de sectie van dat type.
+
+1. Sluit de software van de fabrikant af (bijv. Armoury Crate, MSI Center, RGB Fusion of
+   iCUE), start OpenRGB als administrator met de SDK-server aan, daarna de engine en de
+   instellingen-app.
+2. Vergelijk per apparaat het aantal LED's en de zones met OpenRGB.
+3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
+4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
+   zijn.
+5. Noteer in `docs/hardware.md` wat werkt.
 
 ## Instellingen-app starten
 
