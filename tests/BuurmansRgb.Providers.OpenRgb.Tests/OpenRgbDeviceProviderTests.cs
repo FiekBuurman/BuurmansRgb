@@ -326,6 +326,77 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Equal(0, _devicesChanged);
     }
 
+    // An ARGB controller with two channels; the second one is resized.
+    [Fact]
+    public async Task ResizeZone_ResizesOnTheServerAndReportsTheNewLength()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(index: 0, name: "Fan"),
+            TestDevices.Create(index: 1, name: "ARGB controller", zones: [new("Channel 1", 10, 0, 60), new("Channel 2", 0, 0, 60)]),
+        ];
+        var devices = await ConnectAsync();
+
+        _provider.ResizeZone(devices[1].Id, 1, 24);
+        await _provider.WhenIdleAsync();
+
+        Assert.Equal([(1, 1, 24)], _server.Resizes);
+        Assert.Equal(2, _devicesChanged);
+        var controller = (await _provider.DiscoverAsync(Ct))[1];
+        Assert.Equal(34, controller.LedCount);
+        Assert.Equal(new RgbZone("Channel 2", 24, 0, 60), controller.Zones[1]);
+        Assert.Equal([0, 1, 0, 1], _server.CustomModeIndexes);
+
+        _provider.SetLeds(controller.Id, [.. Enumerable.Repeat(Orange, 34)]);
+        Assert.Equal(34, Assert.Single(_server.Updates).Colors.Length);
+    }
+
+    [Fact]
+    public async Task ResizeZone_UntilReloaded_SendsNoColors()
+    {
+        _server.Devices = [TestDevices.Create(zones: [new("Strip", 3, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+        var answer = new TaskCompletionSource();
+        _server.DevicesAnswered = answer.Task;
+
+        _provider.ResizeZone(device.Id, 0, 5);
+        await Eventually.TrueAsync(() => _server.Resizes.Count == 1, TimeSpan.FromSeconds(5));
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+
+        Assert.Empty(_server.Updates);
+        answer.SetResult();
+        await _provider.WhenIdleAsync();
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange, Orange, Orange]);
+        Assert.Single(_server.Updates);
+    }
+
+    [Fact]
+    public async Task ResizeZone_SendFails_DropsTheConnection()
+    {
+        _server.Devices = [TestDevices.Create(zones: [new("Strip", 3, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+        _server.LastConnection.FailSends = true;
+
+        _provider.ResizeZone(device.Id, 0, 5);
+        await _provider.WhenIdleAsync();
+
+        Assert.True(_server.LastConnection.IsDisposed);
+        Assert.Empty(await _provider.DiscoverAsync(Ct));
+    }
+
+    [Fact]
+    public async Task ResizeZone_WithoutConnection_DoesNothing()
+    {
+        _server.IsRunning = false;
+        await ConnectAsync();
+
+        _provider.ResizeZone(OpenRgbDeviceMapper.CreateId(_server.Devices[0]), 0, 5);
+        await _provider.WhenIdleAsync();
+
+        Assert.Empty(_server.Resizes);
+        Assert.Equal(0, _devicesChanged);
+    }
+
     [Fact]
     public async Task DeviceListChanged_ReloadFails_DropsTheConnection()
     {
