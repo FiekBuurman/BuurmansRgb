@@ -6,6 +6,30 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class DeviceItemTests
 {
+    // The Dutch name of every device type, or null while it has none in Strings.resx. A new type, a
+    // renamed type or a mistyped "DeviceType_<type>" key makes TypeName_OfEveryDeviceType fail.
+    private static readonly Dictionary<DeviceType, string?> DutchTypeNames = new()
+    {
+        [DeviceType.Motherboard] = "Moederbord",
+        [DeviceType.Ram] = "RAM",
+        [DeviceType.Gpu] = null,
+        [DeviceType.Fan] = null,
+        [DeviceType.LedStrip] = null,
+        [DeviceType.Case] = null,
+        [DeviceType.Keyboard] = null,
+        [DeviceType.Mouse] = null,
+        [DeviceType.Headset] = null,
+        [DeviceType.Other] = null,
+    };
+
+    [Fact]
+    public void TypeName_OfEveryDeviceType()
+    {
+        Assert.Equal(Enum.GetValues<DeviceType>(), DutchTypeNames.Keys.Order());
+        Assert.All(DutchTypeNames, pair =>
+            Assert.Equal(pair.Value, DeviceItem.For(TestDevices.Create("id", "Device", pair.Key, 1)).TypeName));
+    }
+
     [Fact]
     public void For_MotherboardWithZones_ShowsTypeLedsAndZones()
     {
