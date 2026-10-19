@@ -433,25 +433,27 @@ internal sealed class LightingController : IDisposable
         _animation = null;
     }
 
+    // A frame that throws, for example in a provider or a Rendered listener, does not stop the
+    // animation: the next frame tries again. Only the first error of a series is traced, so a
+    // device that keeps failing does not fill the log 30 times a second.
     private async Task AnimateAsync(PeriodicTimer timer)
     {
-        try
+        var failing = false;
+        while (await timer.WaitForNextTickAsync().ConfigureAwait(false))
         {
-            while (await timer.WaitForNextTickAsync().ConfigureAwait(false))
+            try
             {
                 RenderAnimationFrame();
+                failing = false;
             }
-        }
-        catch (Exception exception)
-        {
-            // For example a provider that throws; the next change of the lighting starts again.
-            Trace.TraceError(exception.ToString());
-            lock (_gate)
+            catch (Exception exception)
             {
-                if (_animation == timer)
+                if (!failing)
                 {
-                    StopAnimationLocked();
+                    Trace.TraceError(exception.ToString());
                 }
+
+                failing = true;
             }
         }
     }

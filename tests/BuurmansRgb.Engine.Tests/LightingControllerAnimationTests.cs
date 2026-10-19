@@ -94,6 +94,44 @@ public sealed class LightingControllerAnimationTests : IDisposable
     }
 
     [Fact]
+    public async Task Timer_ProviderThrowsOnce_KeepsAnimating()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(EffectIds.Rainbow));
+        _provider.ThrowOnNextSetLeds = true;
+
+        _time.Advance(Frame);
+        await Eventually.TrueAsync(() => !_provider.ThrowOnNextSetLeds);
+        _time.Advance(Frame);
+
+        await Eventually.TrueAsync(() => _provider.SetLedsCount == 2);
+        Assert.True(_controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task Timer_RenderedListenerThrowsOnce_KeepsAnimating()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(EffectIds.Rainbow));
+        var frames = 0;
+        _controller.Rendered += (_, _) =>
+        {
+            if (Interlocked.Increment(ref frames) == 1)
+            {
+                throw new InvalidOperationException("The listener failed.");
+            }
+        };
+
+        _time.Advance(Frame);
+        await Eventually.TrueAsync(() => Volatile.Read(ref frames) == 1);
+        _time.Advance(Frame);
+
+        await Eventually.TrueAsync(() => Volatile.Read(ref frames) == 2);
+        Assert.Equal(3, _provider.SetLedsCount);
+        Assert.True(_controller.IsAnimating);
+    }
+
+    [Fact]
     public async Task SetPaused_StopsTheAnimationAndResumingStartsIt()
     {
         await _controller.DiscoverAsync(Ct);

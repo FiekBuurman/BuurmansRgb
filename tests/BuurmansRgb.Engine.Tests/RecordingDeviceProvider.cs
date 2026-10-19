@@ -12,6 +12,7 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
 
     private readonly Lock _gate = new();
     private int _setLedsCount;
+    private bool _throwOnNextSetLeds;
     private RgbColor[] _lastColors = [];
 
     public string Name => "Recording";
@@ -40,10 +41,36 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
 
     public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct) => Task.FromResult(_devices);
 
+    // The next SetLeds throws once, like a device that fails for a moment.
+    public bool ThrowOnNextSetLeds
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _throwOnNextSetLeds;
+            }
+        }
+
+        set
+        {
+            lock (_gate)
+            {
+                _throwOnNextSetLeds = value;
+            }
+        }
+    }
+
     public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
     {
         lock (_gate)
         {
+            if (_throwOnNextSetLeds)
+            {
+                _throwOnNextSetLeds = false;
+                throw new InvalidOperationException("The device failed.");
+            }
+
             _setLedsCount++;
             _lastColors = colors.ToArray();
         }
