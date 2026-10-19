@@ -28,7 +28,8 @@ alleen nuget.org. Daar staat ook `MessagePack` vastgepind op een versie zonder b
 lek, omdat StreamJsonRpc een oudere versie meebrengt.
 
 Per project een testproject in `tests/`: `Core`, `Contracts` (IPC over een echte named
-pipe), `Effects`, `Engine` (instellingen, verlichting, IPC-server), `Providers.OpenRgb`
+pipe), `Effects` (elk effect op vaste tijdstippen), `Engine` (instellingen, verlichting,
+render-loop, IPC-server), `Providers.OpenRgb`
 (de koppeling met OpenRGB, met een nep-server in het geheugen en een kleine SDK-server op
 een loopback-socket, dus zonder OpenRGB) en `UI` (viewmodels met een nep-engine).
 
@@ -55,18 +56,24 @@ dotnet run --project src/BuurmansRgb.Engine
   {
     "color": "#FF8800",
     "brightness": 0.8,
-    "effect": "static",
+    "effect": "rainbow",
     "simulatedDevices": true,
+    "framesPerSecond": 30,
     "devices": {
-      "simulated-fan": { "color": "#0000FF", "brightness": 0.5 }
+      "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led" }
+    },
+    "ledColors": {
+      "simulated-fan": ["#FF0000", "#FF0000", "#0000FF", "..."]
     }
   }
   ```
 
-  `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is voorlopig alleen
-  `static`. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
-  van de engine), handig zodra de echte apparaten via OpenRGB werken. Onder `devices` staan
-  alleen apparaten met een eigen kleur; de rest volgt de algemene waarden. Een ongeldig of
+  `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is een van de effecten
+  hieronder. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
+  van de engine), handig zodra de echte apparaten via OpenRGB werken. `framesPerSecond`
+  (1–60, standaard 30) is de framerate van de bewegende effecten. Onder `devices` staan
+  alleen apparaten met een eigen kleur of effect; de rest volgt de algemene waarden. Onder
+  `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`. Een ongeldig of
   onleesbaar bestand laat de engine ongemoeid en draait dan op de standaardwaarden. Dat
   geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
@@ -82,6 +89,33 @@ dotnet run --project src/BuurmansRgb.Engine
   gebruikers elk hun eigen engine hebben, net als de mutex. De interface is `IEngineApi` in
   `BuurmansRgb.Contracts`. Na het opstarten en na het sluiten van de laatste
   instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows.
+
+## Effecten
+
+De effecten staan in `BuurmansRgb.Effects` en zijn tijdgebaseerd: ze schrijven per frame
+een kleur per LED in een buffer die de engine hergebruikt. De helderheid past de engine
+daarna toe, dus de schuif werkt op elk effect.
+
+| Effect | In `settings.json` | Wat het doet |
+| --- | --- | --- |
+| Statisch | `static` | Eén kleur op alle LED's |
+| Ademen | `breathing` | De kleur fadet in 4 seconden in en uit |
+| Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
+| Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
+| Per LED | `per-led` | Een opgeslagen kleur per LED (zie de per-LED-editor hieronder) |
+
+- **Render-loop:** alleen als minstens één apparaat een bewegend effect toont, draait een
+  `PeriodicTimer` op `framesPerSecond`. Een frame stuurt alleen de apparaten waarvan de
+  kleuren veranderden en alloceert niets. Bij statische kleuren of "Per LED" draait er geen
+  timer.
+- **Effecten pauzeren** in het tray-menu stopt ook de animatie; hervatten stuurt alles
+  opnieuw en start de animatie weer.
+- **Testen zonder hardware:** `dotnet test --project tests/BuurmansRgb.Effects.Tests` test
+  elk effect op vaste tijdstippen; de render-loop zelf zit in
+  `tests/BuurmansRgb.Engine.Tests` (`LightingControllerAnimationTests`, met een nepklok en
+  een test die controleert dat een frame 0 bytes alloceert).
+- **Zelf bekijken:** zet `"effect": "rainbow"` in `settings.json`, start de engine en open
+  de instellingen-app: het voorbeeld loopt mee met de gesimuleerde apparaten.
 
 ## OpenRGB koppelen
 
@@ -129,7 +163,17 @@ dotnet run --project src/BuurmansRgb.UI
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat
   weer gelijk aan "Alle apparaten", dan volgt het die weer en verdwijnt het uit `devices`.
-- Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn.
+- Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn. Bij
+  een bewegend effect loopt het mee.
+- **Per-LED-editor:** klik in het voorbeeld op een LED om hem te selecteren, Shift+klik
+  selecteert een reeks vanaf de vorige klik. Zolang er LED's geselecteerd zijn, staat boven
+  de kleur welke dat zijn en kleurt de kleurkiezer alleen die LED's. "Verloop vullen" vult
+  de reeks met een verloop van de kleur van de eerste naar die van de laatste LED (geef
+  dus eerst de eerste en de laatste LED een kleur). "Selectie opheffen", of een ander
+  apparaat in de lijst kiezen, geeft de kleurkiezer weer aan het apparaat. Het apparaat
+  krijgt bij de eerste wijziging het effect "Per LED"; de kleuren staan onder `ledColors` in
+  `settings.json` en blijven bewaard na een herstart, ook als je tussendoor een ander effect
+  kiest.
 - Draait de engine niet, dan meldt het venster dat en kun je "Opnieuw proberen". Stopt de
   engine terwijl het venster open is, dan meldt het dat de verbinding is verbroken.
 - Venster sluiten = proces stopt; de engine blijft draaien.
