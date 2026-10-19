@@ -96,7 +96,12 @@ public sealed class LedStripView : FrameworkElement
     {
         var colors = Colors;
         var (layout, pitch) = LayoutFor(ActualWidth);
-        var size = LedLayout.LedSize * pitch / LedLayout.Pitch;
+        var scale = pitch / LedLayout.Pitch;
+        var size = LedLayout.LedSize * scale;
+
+        // The corners shrink with a shrunk key map, so a small key still looks like a key. The
+        // gap to the selection ring stays, so the 2 px ring never covers the key.
+        var cornerRadius = KeyCornerRadius * scale;
         var keys = Matrix is not null;
         var selectionRing = SelectionRing();
         for (var cell = 0; cell < layout.Cells.Count; cell++)
@@ -112,11 +117,11 @@ public sealed class LedStripView : FrameworkElement
             var brush = ColorBrushes.Get(colors[led]);
             if (keys)
             {
-                drawingContext.DrawRoundedRectangle(brush, Outline, bounds, KeyCornerRadius, KeyCornerRadius);
+                drawingContext.DrawRoundedRectangle(brush, Outline, bounds, cornerRadius, cornerRadius);
                 if (selected)
                 {
                     bounds.Inflate(SelectionGap, SelectionGap);
-                    drawingContext.DrawRoundedRectangle(null, selectionRing, bounds, KeyCornerRadius + SelectionGap, KeyCornerRadius + SelectionGap);
+                    drawingContext.DrawRoundedRectangle(null, selectionRing, bounds, cornerRadius + SelectionGap, cornerRadius + SelectionGap);
                 }
             }
             else
