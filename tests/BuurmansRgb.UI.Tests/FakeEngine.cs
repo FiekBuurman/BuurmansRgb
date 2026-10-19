@@ -59,6 +59,8 @@ internal sealed class FakeEngineApi : IEngineApi
         ["fan"] = new(new RgbColor(0, 0, 255), 0.5, EffectIds.Static),
     };
 
+    public Dictionary<string, RgbColor[]> LedColors { get; } = [];
+
     public LightingFrame Frame { get; set; } = LightingFrame.Empty;
 
     public List<string> Calls { get; } = [];
@@ -74,7 +76,7 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<string>>([EffectIds.Static]);
+        Task.FromResult<IReadOnlyList<string>>([EffectIds.Static, EffectIds.PerLed]);
 
     public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
         Task.FromResult(Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]));
@@ -90,8 +92,11 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
         Record($"effect {deviceId ?? "all"} {effectId}");
 
+    // Like the engine: a device without stored colors has its own color on every LED.
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<RgbColor>>([]);
+        Task.FromResult<IReadOnlyList<RgbColor>>(
+            LedColors.GetValueOrDefault(deviceId)
+            ?? [.. Enumerable.Repeat(Lighting.GetValueOrDefault(deviceId, Lighting[""]).Color, Devices.Single(device => device.Id == deviceId).LedCount)]);
 
     public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"leds {deviceId} {firstLed} {string.Join(",", colors.Select(color => color.ToHex()))}");

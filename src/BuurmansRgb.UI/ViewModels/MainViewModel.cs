@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -26,7 +27,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connector = connector;
         _uiContext = SynchronizationContext.Current;
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
-        ColorPicker.ColorPicked += (_, color) => Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
+        ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
+        Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
+        LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -51,6 +54,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ColorPickerViewModel ColorPicker { get; } = new();
 
+    // While LEDs are selected in the preview, the color picker colors those LEDs instead of the device.
+    public LedEditorViewModel LedEditor { get; } = new();
+
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
     public partial double Brightness { get; set; } = 100;
@@ -64,6 +70,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task ConnectAsync()
     {
         DropConnection();
+        ClearLedSelection();
         ConnectionState = ConnectionState.Connecting;
         StatusMessage = Strings.StatusConnecting;
         try
@@ -116,6 +123,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ClearLedSelection();
         _ = ShowSelectionAsync();
     }
 
@@ -170,6 +178,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
+
+        if (LedEditor.Selection is { } selection && !devices.Any(device => device.Id == selection.DeviceId))
+        {
+            ClearLedSelection();
+        }
     }
 
     // Devices came or went in the engine, for example because OpenRGB started or stopped.
@@ -226,7 +239,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         WithoutSending(() =>
         {
-            ColorPicker.Show(lighting.Color);
+            ColorPicker.Show(LedEditor.HasSelection ? LedEditor.AnchorColor : lighting.Color);
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
         });
@@ -241,6 +254,91 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var deviceId = selected.DeviceId;
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
+    }
+
+    private void OnColorPicked(RgbColor color)
+    {
+        if (LedEditor.HasSelection)
+        {
+            SendLeds(LedEditor.Paint(color));
+        }
+        else
+        {
+            Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanFillGradient))]
+    private void FillGradient() => SendLeds(LedEditor.FillGradient());
+
+    private bool CanFillGradient() => LedEditor.CanFillGradient;
+
+    // Back to coloring the selected device.
+    [RelayCommand]
+    private async Task ClearLedSelectionAsync()
+    {
+        ClearLedSelection();
+        await ShowSelectionAsync();
+    }
+
+    // The stored colors are fetched when editing starts on a device; clicks on the same device
+    // reuse them, so they also hold the edits that are still on their way to the engine.
+    private async Task OnLedClickedAsync(LedClick click)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        if (LedEditor.IsEditing(click.DeviceId))
+        {
+            LedEditor.Select(click.Index, click.Extend);
+        }
+        else
+        {
+            IReadOnlyList<RgbColor> colors;
+            try
+            {
+                colors = await connection.Api.GetLedColorsAsync(click.DeviceId);
+            }
+            catch (Exception exception)
+            {
+                OnCallFailed(exception);
+                return;
+            }
+
+            if (!ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == click.DeviceId) is not { } device)
+            {
+                return;
+            }
+
+            LedEditor.Start(device.Id, device.Name, colors, click.Index);
+        }
+
+        Preview.ShowSelection(LedEditor.Selection);
+        WithoutSending(() => ColorPicker.Show(LedEditor.AnchorColor));
+    }
+
+    // The engine also switches the device to the per-LED effect, so the effect list shows that
+    // when the edited device is the selected one.
+    private void SendLeds(LedEdit? edit)
+    {
+        if (edit is null || _connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(("leds", edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        if (SelectedDevice?.DeviceId == edit.DeviceId)
+        {
+            WithoutSending(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+        }
+    }
+
+    private void ClearLedSelection()
+    {
+        LedEditor.Clear();
+        Preview.ShowSelection(null);
     }
 
     private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));

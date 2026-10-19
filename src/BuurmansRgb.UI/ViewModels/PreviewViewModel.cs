@@ -3,12 +3,17 @@ using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// Shows the frames the engine renders for the devices in view. Use it from the UI thread.
+// Shows the frames the engine renders for the devices in view, and the LEDs selected in the
+// per-LED editor. Use it from the UI thread.
 public sealed class PreviewViewModel
 {
     private LightingFrame _latestFrame = LightingFrame.Empty;
+    private LedSelection? _selection;
 
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
+
+    // Raised when the user clicks an LED in one of the device previews.
+    public event EventHandler<LedClick>? LedClicked;
 
     // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
     public void Reset() => _latestFrame = LightingFrame.Empty;
@@ -18,10 +23,21 @@ public sealed class PreviewViewModel
         Devices.Clear();
         foreach (var device in devices)
         {
-            Devices.Add(new DevicePreviewViewModel(device.Id, device.Name, device.LedCount));
+            var preview = new DevicePreviewViewModel(device.Id, device.Name, device.LedCount, click => LedClicked?.Invoke(this, click));
+            preview.ShowSelection(_selection);
+            Devices.Add(preview);
         }
 
         ShowFrame(_latestFrame);
+    }
+
+    public void ShowSelection(LedSelection? selection)
+    {
+        _selection = selection;
+        foreach (var preview in Devices)
+        {
+            preview.ShowSelection(selection);
+        }
     }
 
     public void ShowFrame(LightingFrame frame)

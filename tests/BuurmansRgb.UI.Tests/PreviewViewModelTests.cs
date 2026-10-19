@@ -32,6 +32,30 @@ public sealed class PreviewViewModelTests
         Assert.All(preview.Devices[0].Colors, led => Assert.Equal(new RgbColor(4, 5, 6), led));
     }
 
+    [Fact]
+    public void ShowDevices_KeepsTheLedSelection()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowSelection(new LedSelection("fan", "Fan", 0, 1));
+
+        preview.ShowDevices([Fan]);
+
+        Assert.Equal((0, 1), (preview.Devices[0].SelectionFirst, preview.Devices[0].SelectionLast));
+    }
+
+    [Fact]
+    public void ClickLed_RaisesLedClickedWithTheDevice()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Fan]);
+        LedClick? clicked = null;
+        preview.LedClicked += (_, click) => clicked = click;
+
+        preview.Devices[0].ClickLedCommand.Execute(new LedHit(1, Extend: true));
+
+        Assert.Equal(new LedClick("fan", 1, Extend: true), clicked);
+    }
+
     private static LightingFrame Frame(long sequence, RgbColor color) =>
         new(sequence, [DeviceFrame.FromColors("fan", [color, color])]);
 }
