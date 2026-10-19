@@ -1,4 +1,5 @@
 using BuurmansRgb.Core;
+using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -13,10 +14,17 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
     public event EventHandler<RgbColor>? ColorPicked;
 
-    public static IReadOnlyList<RgbColor> Presets { get; } =
+    public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
-        new(255, 0, 0), new(255, 136, 0), new(255, 221, 0), new(0, 255, 0), new(0, 255, 255),
-        new(0, 0, 255), new(136, 0, 255), new(255, 0, 170), RgbColor.White,
+        new(new(255, 0, 0), Strings.PresetRed),
+        new(new(255, 136, 0), Strings.PresetOrange),
+        new(new(255, 221, 0), Strings.PresetYellow),
+        new(new(0, 255, 0), Strings.PresetGreen),
+        new(new(0, 255, 255), Strings.PresetCyan),
+        new(new(0, 0, 255), Strings.PresetBlue),
+        new(new(136, 0, 255), Strings.PresetPurple),
+        new(new(255, 0, 170), Strings.PresetPink),
+        new(RgbColor.White, Strings.PresetWhite),
     ];
 
     // 0 to 360 degrees.

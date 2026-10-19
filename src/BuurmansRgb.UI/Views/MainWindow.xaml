@@ -61,7 +61,7 @@
                     <StackPanel Margin="12,12,16,16">
                         <TextBlock Style="{StaticResource Header}" Margin="0,0,0,6" Text="{x:Static res:Strings.ColorHeader}" />
                         <StackPanel Orientation="Horizontal">
-                            <Border Width="48" Height="48" CornerRadius="6" BorderThickness="1" BorderBrush="Gray"
+                            <Border Width="48" Height="48" CornerRadius="6" BorderThickness="1" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
                                     Background="{Binding ColorPicker.Color, Converter={StaticResource ColorToBrush}}" />
                             <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource Label}" Margin="0,0,0,2" Text="{x:Static res:Strings.HexLabel}" />
@@ -77,11 +77,13 @@
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button Width="28" Height="28" Margin="0,0,6,6" BorderBrush="Gray"
-                                            Background="{Binding Converter={StaticResource ColorToBrush}}"
+                                <DataTemplate DataType="{x:Type vm:ColorPreset}">
+                                    <Button Width="28" Height="28" Margin="0,0,6,6"
+                                            BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                            Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                            ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
                                             Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}" />
+                                            CommandParameter="{Binding Color}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -142,8 +144,9 @@
                 </ScrollViewer>
             </Grid>
 
-            <Border Background="#E6FFFFFF"
-                    Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}">
+            <Grid Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}">
+                <!-- The window color, so the overlay also fits dark and high-contrast themes. -->
+                <Rectangle Fill="{x:Static SystemColors.WindowBrush}" Opacity="0.9" />
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="420">
                     <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" TextAlignment="Center" FontSize="15"
                                AutomationProperties.AutomationId="ConnectionMessage" />
@@ -151,7 +154,7 @@
                             Content="{x:Static res:Strings.Retry}" Command="{Binding ConnectCommand}"
                             Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
-            </Border>
+            </Grid>
         </Grid>
     </DockPanel>
 </Window>

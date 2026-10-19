@@ -11,6 +11,14 @@ public sealed class ColorPickerViewModelTests
     public ColorPickerViewModelTests() => _picker.ColorPicked += (_, color) => _picked.Add(color);
 
     [Fact]
+    public void Presets_HaveDutchNames()
+    {
+        Assert.Equal("Rood", ColorPickerViewModel.Presets[0].Name);
+        Assert.All(ColorPickerViewModel.Presets, preset => Assert.False(string.IsNullOrWhiteSpace(preset.Name)));
+        Assert.Equal(ColorPickerViewModel.Presets.Count, ColorPickerViewModel.Presets.Select(preset => preset.Name).Distinct().Count());
+    }
+
+    [Fact]
     public void Show_UpdatesEverythingWithoutRaisingColorPicked()
     {
         _picker.Show(new RgbColor(0, 0, 255));

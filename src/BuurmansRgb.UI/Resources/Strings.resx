@@ -69,4 +69,31 @@
   <data name="Retry" xml:space="preserve">
     <value>Opnieuw proberen</value>
   </data>
+  <data name="PresetRed" xml:space="preserve">
+    <value>Rood</value>
+  </data>
+  <data name="PresetOrange" xml:space="preserve">
+    <value>Oranje</value>
+  </data>
+  <data name="PresetYellow" xml:space="preserve">
+    <value>Geel</value>
+  </data>
+  <data name="PresetGreen" xml:space="preserve">
+    <value>Groen</value>
+  </data>
+  <data name="PresetCyan" xml:space="preserve">
+    <value>Cyaan</value>
+  </data>
+  <data name="PresetBlue" xml:space="preserve">
+    <value>Blauw</value>
+  </data>
+  <data name="PresetPurple" xml:space="preserve">
+    <value>Paars</value>
+  </data>
+  <data name="PresetPink" xml:space="preserve">
+    <value>Roze</value>
+  </data>
+  <data name="PresetWhite" xml:space="preserve">
+    <value>Wit</value>
+  </data>
 </root>
