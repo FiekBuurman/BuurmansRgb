@@ -36,15 +36,16 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
-    public void SetPaused_TogglesPauseState()
+    public void SetPaused_TogglesPauseStateOfLighting()
     {
-        var host = new EngineHost(new JsonSettingsStore(_directory.File("settings.json")), new LightingController([_simulated]));
+        var lighting = new LightingController([_simulated]);
+        var host = new EngineHost(new JsonSettingsStore(_directory.File("settings.json")), lighting);
 
         host.SetPaused(true);
-        Assert.True(host.IsPaused);
+        Assert.True(lighting.IsPaused);
 
         host.SetPaused(false);
-        Assert.False(host.IsPaused);
+        Assert.False(lighting.IsPaused);
     }
 
     private async Task AssertAllSimulatedLedsAsync(RgbColor expected)

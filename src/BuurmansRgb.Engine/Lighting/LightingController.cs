@@ -27,11 +27,10 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         Render();
     }
 
-    public void Pause() => IsPaused = true;
-
-    public void Resume()
+    // Resuming sends the latest color again; pausing leaves the devices as they are.
+    public void SetPaused(bool paused)
     {
-        IsPaused = false;
+        IsPaused = paused;
         Render();
     }
 

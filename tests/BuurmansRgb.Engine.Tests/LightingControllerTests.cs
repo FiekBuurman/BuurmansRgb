@@ -47,7 +47,7 @@ public sealed class LightingControllerTests
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(TestContext.Current.CancellationToken);
 
-        controller.Pause();
+        controller.SetPaused(true);
         controller.ApplyStaticColor(Orange, 1.0);
 
         Assert.True(controller.IsPaused);
@@ -55,15 +55,15 @@ public sealed class LightingControllerTests
     }
 
     [Fact]
-    public async Task Resume_SendsLatestColor()
+    public async Task SetPausedFalse_SendsLatestColor()
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(TestContext.Current.CancellationToken);
-        controller.Pause();
+        controller.SetPaused(true);
         controller.ApplyStaticColor(Orange, 1.0);
 
-        controller.Resume();
+        controller.SetPaused(false);
 
         Assert.False(controller.IsPaused);
         Assert.Equal(1, provider.SetLedsCount);
@@ -71,14 +71,14 @@ public sealed class LightingControllerTests
     }
 
     [Fact]
-    public async Task Resume_WithoutColor_SendsNothing()
+    public async Task SetPausedFalse_WithoutColor_SendsNothing()
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(TestContext.Current.CancellationToken);
-        controller.Pause();
+        controller.SetPaused(true);
 
-        controller.Resume();
+        controller.SetPaused(false);
 
         Assert.Equal(0, provider.SetLedsCount);
     }

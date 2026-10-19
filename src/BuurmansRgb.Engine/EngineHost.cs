@@ -5,8 +5,6 @@ namespace BuurmansRgb.Engine;
 
 internal sealed class EngineHost(ISettingsStore settingsStore, LightingController lighting)
 {
-    public bool IsPaused => lighting.IsPaused;
-
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -14,15 +12,5 @@ internal sealed class EngineHost(ISettingsStore settingsStore, LightingControlle
         lighting.ApplyStaticColor(settings.Color, settings.Brightness);
     }
 
-    public void SetPaused(bool paused)
-    {
-        if (paused)
-        {
-            lighting.Pause();
-        }
-        else
-        {
-            lighting.Resume();
-        }
-    }
+    public void SetPaused(bool paused) => lighting.SetPaused(paused);
 }
