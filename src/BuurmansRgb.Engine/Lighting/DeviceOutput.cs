@@ -19,9 +19,9 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device)
 
     public bool IsAnimated => _effect.IsAnimated;
 
-    public void Show(DeviceLighting lighting)
+    public void Show(DeviceLighting lighting, IReadOnlyList<RgbColor> ledColors)
     {
-        _effect = EffectCatalog.Create(lighting.EffectId, lighting.Color, []);
+        _effect = EffectCatalog.Create(lighting.EffectId, lighting.Color, ledColors);
         _brightness = lighting.Brightness;
     }
 

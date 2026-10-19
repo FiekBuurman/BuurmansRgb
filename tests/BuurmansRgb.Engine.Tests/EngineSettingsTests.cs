@@ -42,7 +42,7 @@ public sealed class EngineSettingsTests
         var settings = new EngineSettings();
         var options = typeof(EngineSettings)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(property => property.Name != nameof(EngineSettings.Devices))
+            .Where(property => property.Name is not (nameof(EngineSettings.Devices) or nameof(EngineSettings.LedColors)))
             .ToArray();
         Assert.NotEmpty(options);
         foreach (var option in options)

@@ -61,6 +61,28 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_LedColorsAndFrameRateWrittenByHand_AreRead()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "framesPerSecond": 45, "ledColors": { "simulated-fan": ["#FF0000", "#0000FF"] } }""");
+
+        var loaded = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(45, loaded.FramesPerSecond);
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], loaded.LedColors!["simulated-fan"]!);
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesLedColorsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault());
+
+        Assert.DoesNotContain("ledColors", File.ReadAllText(path));
+    }
+
+    [Fact]
     public void Save_Defaults_LeavesDevicesOutOfTheFile()
     {
         var path = _directory.File("settings.json");

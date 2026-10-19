@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
@@ -22,6 +23,7 @@ internal sealed class LightingController : IDisposable
     private readonly long _epoch;
     private readonly DeviceOutput[][] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
+    private readonly Dictionary<string, RgbColor[]> _ledColors = [];
     private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
@@ -121,7 +123,10 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return new(GlobalLocked, new Dictionary<string, DeviceLighting>(_deviceLighting));
+                return new(
+                    GlobalLocked,
+                    new Dictionary<string, DeviceLighting>(_deviceLighting),
+                    _ledColors.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor>)[.. pair.Value]));
             }
         }
     }
@@ -147,6 +152,12 @@ internal sealed class LightingController : IDisposable
                 _deviceLighting[deviceId] = lighting;
             }
 
+            _ledColors.Clear();
+            foreach (var (deviceId, colors) in state.LedColors)
+            {
+                _ledColors[deviceId] = [.. colors];
+            }
+
             rendered = RenderLocked();
         }
 
@@ -163,7 +174,7 @@ internal sealed class LightingController : IDisposable
                 return GlobalLocked;
             }
 
-            EnsureKnownDevice(deviceId);
+            KnownDeviceLocked(deviceId);
             return LightingForLocked(deviceId);
         }
     }
@@ -186,12 +197,51 @@ internal sealed class LightingController : IDisposable
             }
             else
             {
-                EnsureKnownDevice(deviceId);
+                KnownDeviceLocked(deviceId);
                 var lighting = change(LightingForLocked(deviceId));
                 _global = GlobalLocked;
                 SetDeviceLightingLocked(deviceId, lighting);
             }
 
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    // The stored colors of the per-LED effect, one per LED. A device without stored colors gets
+    // its own color on every LED, which is also where editing them starts.
+    public IReadOnlyList<RgbColor> GetLedColors(string deviceId)
+    {
+        lock (_gate)
+        {
+            var device = KnownDeviceLocked(deviceId);
+            return LedColorsLocked(device).AsSpan(0, device.LedCount).ToArray();
+        }
+    }
+
+    // Stores colors for the LEDs from firstLed on and switches the device to the per-LED effect,
+    // so the change shows at once.
+    public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
+    {
+        bool rendered;
+        lock (_gate)
+        {
+            var device = KnownDeviceLocked(deviceId);
+            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+
+            var stored = LedColorsLocked(device);
+            for (var i = 0; i < colors.Count; i++)
+            {
+                stored[firstLed + i] = colors[i];
+            }
+
+            _ledColors[deviceId] = stored;
+            _global = GlobalLocked;
+            SetDeviceLightingLocked(deviceId, LightingForLocked(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
         }
 
@@ -323,7 +373,7 @@ internal sealed class LightingController : IDisposable
         var time = EffectTime;
         foreach (var output in _outputs)
         {
-            output.Show(LightingForLocked(output.Device.Id));
+            output.Show(LightingForLocked(output.Device.Id), _ledColors.GetValueOrDefault(output.Device.Id, []));
             output.Render(time);
             if (!_isPaused)
             {
@@ -418,11 +468,18 @@ internal sealed class LightingController : IDisposable
         }
     }
 
-    private void EnsureKnownDevice(string deviceId)
+    // A copy to edit, at least as long as the device, padded with the device's own color. A copy
+    // that is longer, because a zone got smaller, keeps its extra colors for when it grows back.
+    private RgbColor[] LedColorsLocked(RgbDevice device)
     {
-        if (!_outputs.Any(output => output.Device.Id == deviceId))
-        {
-            throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
-        }
+        var stored = _ledColors.GetValueOrDefault(device.Id, []);
+        var colors = new RgbColor[Math.Max(stored.Length, device.LedCount)];
+        stored.CopyTo(colors);
+        colors.AsSpan(stored.Length).Fill(LightingForLocked(device.Id).Color);
+        return colors;
     }
+
+    private RgbDevice KnownDeviceLocked(string deviceId) =>
+        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)?.Device
+            ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
 }

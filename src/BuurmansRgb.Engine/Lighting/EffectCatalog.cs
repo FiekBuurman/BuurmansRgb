@@ -15,6 +15,7 @@ internal static class EffectCatalog
         [EffectIds.Breathing] = (color, _) => new BreathingEffect(color),
         [EffectIds.Rainbow] = (_, _) => new RainbowEffect(),
         [EffectIds.Wave] = (color, _) => new WaveEffect(color),
+        [EffectIds.PerLed] = (color, ledColors) => new PerLedEffect(ledColors, color),
     };
 
     public static IReadOnlyList<string> Ids { get; } = [.. Factories.Keys];
