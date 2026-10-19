@@ -1,10 +1,10 @@
-using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
 
 // Called from the tray thread and from IPC threads; the lock guards all state. Events are
-// raised outside the lock, so a frame can arrive late: LightingFrame.Sequence orders them.
+// raised outside the lock, so a listener can see a newer output than the render that raised
+// the event: LightingOutput.Sequence orders them.
 internal sealed class LightingController(IReadOnlyList<IDeviceProvider> providers)
 {
     private readonly Lock _gate = new();
@@ -12,10 +12,11 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
     private IReadOnlyList<DeviceOutput> _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
-    private long _frameSequence;
+    private long _sequence;
 
     // Raised after each render, also while paused, so a preview shows what the lights will show.
-    public event EventHandler<LightingFrame>? FrameRendered;
+    // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
+    public event EventHandler? Rendered;
 
     // Raised when the lighting is changed through SetLighting, not when it is applied from settings.
     public event EventHandler? LightingChanged;
@@ -72,7 +73,7 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
 
     public void Apply(LightingState state)
     {
-        LightingFrame? frame;
+        bool rendered;
         lock (_gate)
         {
             _global = state.Global;
@@ -82,10 +83,10 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
                 _deviceLighting[deviceId] = lighting;
             }
 
-            frame = RenderLocked();
+            rendered = RenderLocked();
         }
 
-        Publish(frame);
+        Publish(rendered);
     }
 
     // A null deviceId means the global lighting.
@@ -108,7 +109,7 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
     // that device shows now.
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
     {
-        LightingFrame? frame;
+        bool rendered;
         lock (_gate)
         {
             if (deviceId is null)
@@ -127,25 +128,26 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
                 SetDeviceLightingLocked(deviceId, lighting);
             }
 
-            frame = RenderLocked();
+            rendered = RenderLocked();
         }
 
-        Publish(frame);
+        Publish(rendered);
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public LightingFrame GetFrame()
+    // Copies the buffers, so the caller can convert them without holding the lock.
+    public LightingOutput GetOutput()
     {
         lock (_gate)
         {
-            return CreateFrameLocked();
+            return new(_sequence, [.. _outputs.Select(output => new DeviceColors(output.Device.Id, [.. output.Buffer]))]);
         }
     }
 
     // Resuming sends the latest lighting again; pausing leaves the devices as they are.
     public void SetPaused(bool paused)
     {
-        LightingFrame? frame;
+        bool rendered;
         lock (_gate)
         {
             if (_isPaused == paused)
@@ -159,18 +161,18 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
                 return;
             }
 
-            frame = RenderLocked();
+            rendered = RenderLocked();
         }
 
-        Publish(frame);
+        Publish(rendered);
     }
 
-    // Returns the frame to publish, or null when nothing was rendered or nobody listens.
-    private LightingFrame? RenderLocked()
+    // Returns false when there is no lighting to render yet.
+    private bool RenderLocked()
     {
         if (_global is null)
         {
-            return null;
+            return false;
         }
 
         foreach (var (provider, device, buffer) in _outputs)
@@ -182,18 +184,15 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
             }
         }
 
-        _frameSequence++;
-        return FrameRendered is null ? null : CreateFrameLocked();
+        _sequence++;
+        return true;
     }
 
-    private LightingFrame CreateFrameLocked() =>
-        new(_frameSequence, [.. _outputs.Select(output => DeviceFrame.FromColors(output.Device.Id, output.Buffer))]);
-
-    private void Publish(LightingFrame? frame)
+    private void Publish(bool rendered)
     {
-        if (frame is not null)
+        if (rendered)
         {
-            FrameRendered?.Invoke(this, frame);
+            Rendered?.Invoke(this, EventArgs.Empty);
         }
     }
 

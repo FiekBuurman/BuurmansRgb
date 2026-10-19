@@ -197,49 +197,50 @@ public sealed class LightingControllerTests
     }
 
     [Fact]
-    public async Task FrameRendered_CarriesRenderedColorsWithGrowingSequence()
+    public async Task Rendered_OutputHasRenderedColorsWithGrowingSequence()
     {
         var controller = await CreateSimulatedAsync();
-        List<LightingFrame> frames = [];
-        controller.FrameRendered += (_, frame) => frames.Add(frame);
+        List<LightingOutput> outputs = [];
+        controller.Rendered += (_, _) => outputs.Add(controller.GetOutput());
 
         controller.Apply(Uniform(Orange, 1.0));
         controller.SetLighting(Fan, lighting => lighting with { Color = Green });
 
-        Assert.Equal(2, frames.Count);
-        Assert.True(frames[1].Sequence > frames[0].Sequence);
-        var fan = Assert.Single(frames[1].Devices, device => device.DeviceId == Fan);
-        Assert.All(fan.ToColors(), led => Assert.Equal(Green, led));
-        Assert.Equal(_simulated.GetLeds(Fan).Length, fan.ToColors().Length);
+        Assert.Equal(2, outputs.Count);
+        Assert.True(outputs[1].Sequence > outputs[0].Sequence);
+        var fan = Assert.Single(outputs[1].Devices, device => device.DeviceId == Fan);
+        Assert.All(fan.Colors, led => Assert.Equal(Green, led));
+        Assert.Equal(_simulated.GetLeds(Fan).Length, fan.Colors.Length);
     }
 
     [Fact]
-    public async Task FrameRendered_WhilePaused_StillPublishesWithoutSending()
+    public async Task Rendered_WhilePaused_StillRaisedWithoutSending()
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(TestContext.Current.CancellationToken);
-        LightingFrame? frame = null;
-        controller.FrameRendered += (_, rendered) => frame = rendered;
+        LightingOutput? output = null;
+        controller.Rendered += (_, _) => output = controller.GetOutput();
         controller.SetPaused(true);
 
         controller.Apply(Uniform(Orange, 1.0));
 
         Assert.Equal(0, provider.SetLedsCount);
-        Assert.NotNull(frame);
-        Assert.Equal([Orange, Orange, Orange], frame.Devices[0].ToColors());
+        Assert.NotNull(output);
+        Assert.Equal([Orange, Orange, Orange], output.Devices[0].Colors);
     }
 
     [Fact]
-    public async Task GetFrame_ReturnsLatestRenderedColors()
+    public async Task GetOutput_ReturnsCopyOfLatestRenderedColors()
     {
         var controller = await CreateSimulatedAsync();
         controller.Apply(Uniform(Orange, 1.0));
 
-        var frame = controller.GetFrame();
+        var output = controller.GetOutput();
+        controller.SetLighting(null, lighting => lighting with { Color = Green });
 
-        Assert.Equal(3, frame.Devices.Count);
-        Assert.All(frame.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(Orange, led));
+        Assert.Equal(3, output.Devices.Count);
+        Assert.All(output.Devices.SelectMany(device => device.Colors), led => Assert.Equal(Orange, led));
     }
 
     [Fact]

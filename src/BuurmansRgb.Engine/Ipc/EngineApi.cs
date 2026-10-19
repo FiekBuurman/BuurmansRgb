@@ -13,7 +13,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public EngineApi(LightingController lighting)
     {
         _lighting = lighting;
-        _lighting.FrameRendered += OnFrameRendered;
+        _lighting.Rendered += OnRendered;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -30,7 +30,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.FromResult(new LightingInfo(lighting.Color, lighting.Brightness, lighting.EffectId));
     }
 
-    public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(_lighting.GetFrame());
+    public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
 
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
     {
@@ -60,7 +60,17 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public void Dispose() => _lighting.FrameRendered -= OnFrameRendered;
+    public void Dispose() => _lighting.Rendered -= OnRendered;
 
-    private void OnFrameRendered(object? sender, LightingFrame frame) => FrameRendered?.Invoke(this, frame);
+    // The wire format is made here, outside the controller's lock.
+    private static LightingFrame ToFrame(LightingOutput output) =>
+        new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
+
+    private void OnRendered(object? sender, EventArgs e)
+    {
+        if (FrameRendered is { } frameRendered)
+        {
+            frameRendered(this, ToFrame(_lighting.GetOutput()));
+        }
+    }
 }

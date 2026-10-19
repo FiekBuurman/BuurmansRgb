@@ -27,3 +27,6 @@
   schuiven; "helderheid" van de kleur zelf zit nu alleen in de hex-code
 - De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de
   volgende geslaagde wijziging
+- Frames naar de UI begrenzen (bijv. max. 30 per seconde) zodra taak 4 animeert: nu maakt
+  `EngineApi` bij elke render per verbonden UI een kopie en een `LightingFrame`, buiten de
+  lock van `LightingController`
