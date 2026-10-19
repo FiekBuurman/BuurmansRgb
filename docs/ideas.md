@@ -14,9 +14,13 @@
 - Logging naar bestand (`Microsoft.Extensions.Logging`) voor fouten bij opstarten; nu gaan
   fouten van de IPC-server en de UI alleen naar `Trace`
 - Geheugen van de engine bewaken: het budget in `docs/bouwplan.md` is working set
-  (< 50 MB). Zonder UI zit de engine na taak 2 op ~49 MB (taak 1: ~48 MB). Na het sluiten
-  van de UI trimt de engine al (`MemoryTrimmer`, ~12 MB); hetzelfde direct na opstarten
-  proberen geeft ruimte voor taak 3 (OpenRGB.NET)
+  (< 50 MB). Zonder UI zit de engine na taak 2 op ~49 MB working set (taak 1: ~48 MB), maar
+  slechts ~11 MB private bytes: de rest zijn gedeelde pagina's van .NET en WinForms. Met een
+  UI verbonden ~13 MB private, na het sluiten ~12 MB private. `MemoryTrimmer` brengt de
+  working set daarna naar ~9 MB, maar dat zegt weinig: Windows zet de pagina's alleen op de
+  standby-lijst en ze komen terug zodra de engine ze weer gebruikt (tray-menu, timer).
+  Vergelijk daarom private bytes. Trimmen direct na opstarten geeft dezelfde schijnwinst;
+  echte ruimte voor taak 3 (OpenRGB.NET) zit in minder geladen assemblies
 - Instellingen-app als enkele instantie: nu opent "Instellingen openen" bij een open
   venster een tweede venster in plaats van het bestaande naar voren te halen
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de

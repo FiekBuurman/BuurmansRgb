@@ -6,8 +6,10 @@ internal static partial class MemoryTrimmer
 {
     private static readonly nint CurrentProcess = -1;
 
-    // Returns memory the engine no longer needs, for example after the UI closed: the collect
-    // releases freed heap memory and emptying the working set lets Windows reclaim idle pages.
+    // Returns memory the engine no longer needs, for example after the UI closed. The collect
+    // really frees heap memory (private bytes). Emptying the working set only moves pages to
+    // the standby list: they fault back in when used, so the low working set right after a
+    // trim is not the real footprint.
     public static void Trim()
     {
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
