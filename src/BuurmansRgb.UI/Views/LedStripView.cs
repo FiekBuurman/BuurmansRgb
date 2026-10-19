@@ -33,8 +33,9 @@ public sealed class LedStripView : FrameworkElement
 
     private static readonly Pen Outline = CreatePen(System.Windows.Media.Color.FromArgb(0x60, 0x80, 0x80, 0x80), 1.0);
 
-    // The system highlight color, so the ring also shows in dark and high-contrast themes.
-    private static readonly Pen SelectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
+    // In the system highlight color, so the ring also shows in dark and high-contrast themes. Read
+    // on every render, so the ring follows a theme change from the next redraw on.
+    private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
 
     public IReadOnlyList<RgbColor> Colors
     {
@@ -77,13 +78,14 @@ public sealed class LedStripView : FrameworkElement
     {
         var colors = Colors;
         var columns = ColumnsFor(ActualWidth, colors.Count);
+        var selectionRing = SelectionRing();
         for (var i = 0; i < colors.Count; i++)
         {
             var center = new Point((i % columns) * Pitch + Radius, (i / columns) * Pitch + Radius);
             drawingContext.DrawEllipse(ColorBrushes.Get(colors[i]), Outline, center, Radius, Radius);
             if (i >= SelectionFirst && i <= SelectionLast)
             {
-                drawingContext.DrawEllipse(null, SelectionRing, center, Radius + 1.5, Radius + 1.5);
+                drawingContext.DrawEllipse(null, selectionRing, center, Radius + 1.5, Radius + 1.5);
             }
         }
     }
@@ -125,6 +127,18 @@ public sealed class LedStripView : FrameworkElement
         }
 
         return Math.Clamp((int)((width + Spacing) / Pitch), 1, Math.Max(count, 1));
+    }
+
+    // Only made again when the highlight color changed. Rendering runs on the UI thread only.
+    private static Pen SelectionRing()
+    {
+        var color = SystemColors.HighlightColor;
+        if (((SolidColorBrush)_selectionRing.Brush).Color != color)
+        {
+            _selectionRing = CreatePen(color, 2.0);
+        }
+
+        return _selectionRing;
     }
 
     private static Pen CreatePen(Color color, double thickness)
