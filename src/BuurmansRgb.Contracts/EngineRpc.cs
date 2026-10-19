@@ -26,6 +26,11 @@ public static class EngineRpc
         return rpc;
     }
 
+    // True when the engine answered a call with an error, such as invalid input; false when the
+    // call failed for another reason, such as a lost connection. Keeps the transport library out
+    // of the UI.
+    public static bool IsRejectedByEngine(Exception exception) => exception is RemoteInvocationException;
+
     private static int CurrentSessionId()
     {
         using var process = Process.GetCurrentProcess();

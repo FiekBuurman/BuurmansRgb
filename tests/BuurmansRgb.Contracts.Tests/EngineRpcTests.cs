@@ -115,8 +115,15 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        await Assert.ThrowsAsync<RemoteInvocationException>(
+        var exception = await Assert.ThrowsAsync<RemoteInvocationException>(
             () => client.Api.SetEffectAsync(null, "unknown", TestContext.Current.CancellationToken));
+        Assert.True(EngineRpc.IsRejectedByEngine(exception));
+    }
+
+    [Fact]
+    public void IsRejectedByEngine_LostConnection_IsFalse()
+    {
+        Assert.False(EngineRpc.IsRejectedByEngine(new ConnectionLostException()));
     }
 
     [Fact]

@@ -6,7 +6,6 @@ using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.ViewModels;
 
@@ -370,7 +369,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Trace.TraceError(exception.ToString());
 
         // A lost connection is reported once, through Disconnected.
-        if (exception is RemoteInvocationException && IsConnected)
+        if (EngineRpc.IsRejectedByEngine(exception) && IsConnected)
         {
             StatusMessage = Strings.ChangeRejected;
         }
