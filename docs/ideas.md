@@ -93,7 +93,6 @@
   zodra OpenRGB de apparaten weer meldt
 - Bij RAM-sticks met dezelfde naam de OpenRGB-locatie (SMBus-adres) tonen, zodat je ziet welke
   stick in welk slot zit; nu krijgen ze alleen een nummer in de volgorde van OpenRGB
-- In de per-LED-editor een hele zone in één keer selecteren door op de zonenaam te klikken
 - In de instellingen-app tonen dat een apparaat in OpenRGB geen "Direct"- of "Custom"-modus
   heeft (veel videokaarten), zodat je ziet waarom de kleur niet aankomt; nu staat dat alleen in
   de debug-uitvoer
@@ -101,3 +100,18 @@
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Bij twee videokaarten van hetzelfde model de OpenRGB-locatie tonen, net als bij RAM-sticks;
   nu krijgen ze alleen een nummer in de volgorde van OpenRGB
+- Fans en fan-ringen in het voorbeeld als ring tekenen in plaats van als rij bolletjes, zodat
+  je ziet welke LED waar zit
+- Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
+  OpenRGB ze na een herstart vergeet; dan houden ook de gesimuleerde apparaten een ingestelde
+  lengte na een herstart van de engine (nu alleen tot de engine stopt)
+- De lengte van een zone met een schuif of met + en − instellen, met het voorbeeld dat direct
+  meegroeit; nu typ je het aantal en kies je "Toepassen"
+- OpenRGB.NET bijwerken zodra het de nieuwere apparaattypes kent (storage, case, microphone,
+  accessory, keypad); dan kan het vaste nummer 15 voor "case" in `OpenRgbDeviceMapper` weg
+- De segmenten van een zone (SDK-protocol 4) tonen en apart kunnen kiezen, bijv. als een
+  ARGB-kanaal uit een fan en een strip achter elkaar bestaat
+- Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
+  zonenaam om op te klikken), bijv. met een knop "Alles selecteren"
+- In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
+  na het herladen nog de oude lengte); nu staat er dan gewoon weer de oude lengte
