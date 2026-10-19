@@ -48,8 +48,8 @@ public sealed class EngineHostTests : IDisposable
 
         await host.StartAsync(TestContext.Current.CancellationToken);
 
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(new RgbColor(0, 0, 255), led));
-        Assert.All(_simulated.GetLeds("simulated-strip").ToArray(), led => Assert.Equal(RgbColor.White, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+        Assert.All(_simulated.GetLeds("simulated-strip"), led => Assert.Equal(RgbColor.White, led));
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class EngineHostTests : IDisposable
 
         Assert.False(simulatedDevices.IsEnabled);
         Assert.Empty(lighting.Devices);
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class EngineHostTests : IDisposable
         var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = new RgbColor(0, 0, 255) } };
         var ledsAtTrim = new List<RgbColor>();
         using var host = new EngineHost(store, new LightingController([_simulated]),
-            trimMemory: () => ledsAtTrim.AddRange(_simulated.GetLeds("simulated-fan").ToArray()));
+            trimMemory: () => ledsAtTrim.AddRange(_simulated.GetLeds("simulated-fan")));
 
         await host.StartAsync(TestContext.Current.CancellationToken);
 
@@ -124,7 +124,7 @@ public sealed class EngineHostTests : IDisposable
         await restartedHost.StartAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(EffectIds.PerLed, restartedLighting.GetLighting("simulated-fan").EffectId);
-        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3].ToArray());
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3]);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public sealed class EngineHostTests : IDisposable
         Assert.NotEmpty(devices);
         foreach (var device in devices)
         {
-            Assert.All(_simulated.GetLeds(device.Id).ToArray(), led => Assert.Equal(expected, led));
+            Assert.All(_simulated.GetLeds(device.Id), led => Assert.Equal(expected, led));
         }
     }
 }

@@ -28,7 +28,7 @@ public sealed class LightingControllerZoneTests
         await WhileDevicesChangeAsync(() => _controller.ResizeZone("simulated-strip", 0, 40));
 
         Assert.Equal(40, _controller.Devices.Single(device => device.Id == "simulated-strip").LedCount);
-        var leds = _simulated.GetLeds("simulated-strip").ToArray();
+        var leds = _simulated.GetLeds("simulated-strip");
         Assert.Equal(40, leds.Length);
         Assert.All(leds, led => Assert.Equal(Orange, led));
     }

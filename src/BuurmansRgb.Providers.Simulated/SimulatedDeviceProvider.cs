@@ -79,11 +79,12 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         }
     }
 
-    public ReadOnlySpan<RgbColor> GetLeds(string deviceId)
+    // A copy, so a resize or the next SetLeds cannot change it while the caller reads it.
+    public RgbColor[] GetLeds(string deviceId)
     {
         lock (_gate)
         {
-            return GetBufferLocked(deviceId);
+            return [.. GetBufferLocked(deviceId)];
         }
     }
 

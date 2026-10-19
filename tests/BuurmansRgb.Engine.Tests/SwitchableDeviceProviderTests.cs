@@ -27,7 +27,7 @@ public sealed class SwitchableDeviceProviderTests
 
         _switchable.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 12).ToArray());
 
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.White, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.White, led));
         Assert.Equal("Simulated", _switchable.Name);
     }
 
@@ -38,7 +38,7 @@ public sealed class SwitchableDeviceProviderTests
 
         Assert.Empty(await _switchable.DiscoverAsync(Ct));
         _switchable.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 12).ToArray());
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
     }
 
     [Fact]

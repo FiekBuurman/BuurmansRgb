@@ -81,7 +81,7 @@ public sealed class SimulatedDeviceProviderTests
 
         provider.SetLeds(fan.Id, colors);
 
-        Assert.Equal(colors, provider.GetLeds(fan.Id).ToArray());
+        Assert.Equal(colors, provider.GetLeds(fan.Id));
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public sealed class SimulatedDeviceProviderTests
 
         provider.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 3).ToArray());
 
-        Assert.All(provider.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+        Assert.All(provider.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public sealed class SimulatedDeviceProviderTests
 
         provider.SetLeds("simulated-strip", Enumerable.Repeat(RgbColor.White, 40).ToArray());
 
-        Assert.All(provider.GetLeds("simulated-strip").ToArray(), led => Assert.Equal(RgbColor.White, led));
+        Assert.All(provider.GetLeds("simulated-strip"), led => Assert.Equal(RgbColor.White, led));
     }
 
     [Fact]
