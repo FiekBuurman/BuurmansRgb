@@ -6,7 +6,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerValidationTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
     private static readonly DeviceLighting Valid = new(Orange, 0.5, EffectIds.Static);
 
     private readonly RecordingDeviceProvider _provider = new();

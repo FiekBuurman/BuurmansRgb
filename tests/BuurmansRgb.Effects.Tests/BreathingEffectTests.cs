@@ -4,8 +4,6 @@ namespace BuurmansRgb.Effects.Tests;
 
 public sealed class BreathingEffectTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     [Theory]
     [InlineData(0.0, 0.0)]
     [InlineData(1.0, 0.5)]

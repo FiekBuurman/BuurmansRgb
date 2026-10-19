@@ -7,7 +7,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingSettingsSaverTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
     private static readonly TimeSpan Delay = TimeSpan.FromMilliseconds(200);
 
     private readonly InMemorySettingsStore _store = new();

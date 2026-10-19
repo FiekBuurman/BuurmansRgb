@@ -8,8 +8,6 @@ namespace BuurmansRgb.Engine.Tests;
 public sealed class LightingControllerZoneTests
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-    private static readonly RgbColor Orange = new(255, 136, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
 
     private readonly SimulatedDeviceProvider _simulated = new();
     private readonly DynamicDeviceProvider _dynamic = new();

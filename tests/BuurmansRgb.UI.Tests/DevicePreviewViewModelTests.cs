@@ -7,9 +7,6 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class DevicePreviewViewModelTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
-
     // Six LEDs on the board, a 12 V header of one LED and an empty addressable header.
     private static readonly DeviceInfo Motherboard = new("board", "Motherboard", DeviceType.Motherboard, 7,
         [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);

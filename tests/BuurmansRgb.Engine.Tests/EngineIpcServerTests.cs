@@ -13,7 +13,6 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private const string Fan = "simulated-fan";
 
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-    private static readonly RgbColor Orange = new(255, 136, 0);
 
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);

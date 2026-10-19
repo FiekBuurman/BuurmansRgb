@@ -4,11 +4,8 @@ namespace BuurmansRgb.Effects.Tests;
 
 public sealed class RainbowEffectTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
     private static readonly RgbColor Yellow = new(255, 255, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
     private static readonly RgbColor Cyan = new(0, 255, 255);
-    private static readonly RgbColor Blue = new(0, 0, 255);
     private static readonly RgbColor Magenta = new(255, 0, 255);
 
     [Fact]

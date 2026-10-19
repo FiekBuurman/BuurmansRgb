@@ -8,7 +8,6 @@ public sealed class OpenRgbProviderServerTests
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(100);
-    private static readonly RgbColor Orange = new(255, 136, 0);
 
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 

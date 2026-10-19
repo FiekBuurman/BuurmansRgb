@@ -7,8 +7,6 @@ public sealed class LedColorStoreTests
 {
     private const string Device = "device";
 
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
     private static readonly RgbColor White = RgbColor.White;
 
     private readonly LedColorStore _store = new();

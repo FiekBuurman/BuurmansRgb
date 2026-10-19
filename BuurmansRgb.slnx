@@ -20,6 +20,7 @@
   <Folder Name="/tests/">
     <File Path="tests/Directory.Build.props" />
     <File Path="tests/Shared/Eventually.cs" />
+    <File Path="tests/Shared/TestColors.cs" />
   </Folder>
   <Project Path="src/BuurmansRgb.Contracts/BuurmansRgb.Contracts.csproj" />
   <Project Path="src/BuurmansRgb.Core/BuurmansRgb.Core.csproj" />

@@ -8,8 +8,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerEffectTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     private readonly FakeTimeProvider _time = new();
     private readonly RecordingDeviceProvider _provider = new();
     private readonly LightingController _controller;

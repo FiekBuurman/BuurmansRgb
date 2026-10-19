@@ -8,10 +8,6 @@ public sealed class LightingControllerLedColorTests
 {
     private const string Device = RecordingDeviceProvider.DeviceId;
 
-    private static readonly RgbColor Orange = new(255, 136, 0);
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
-
     private readonly RecordingDeviceProvider _provider = new();
     private readonly LightingController _controller;
 

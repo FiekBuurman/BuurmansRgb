@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
     <Using Include="BuurmansRgb.Tests" />
+    <Using Include="BuurmansRgb.Tests.TestColors" Static="true" />
   </ItemGroup>
 
 </Project>

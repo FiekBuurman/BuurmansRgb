@@ -6,8 +6,6 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 public sealed class OpenRgbDeviceProviderTests : IDisposable
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     private readonly FakeOpenRgbServer _server = new();
     private readonly FakeTimeProvider _time = new();
     private readonly OpenRgbDeviceProvider _provider;

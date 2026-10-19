@@ -6,8 +6,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerRestoreTests : IDisposable
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     private readonly RestorableDeviceProvider _restorable = new();
     private readonly RecordingDeviceProvider _recording = new();
     private readonly LightingController _controller;

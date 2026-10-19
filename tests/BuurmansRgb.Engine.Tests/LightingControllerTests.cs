@@ -10,9 +10,6 @@ public sealed class LightingControllerTests
     private const string Fan = "simulated-fan";
     private const string Strip = "simulated-strip";
 
-    private static readonly RgbColor Orange = new(255, 136, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
-
     private readonly SimulatedDeviceProvider _simulated = new();
 
     [Fact]

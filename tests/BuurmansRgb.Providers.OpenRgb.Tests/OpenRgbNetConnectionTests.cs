@@ -12,7 +12,6 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-    private static readonly RgbColor Orange = new(255, 136, 0);
 
     private readonly OpenRgbTestServer _server = new();
     private readonly List<IOpenRgbConnection> _connections = [];

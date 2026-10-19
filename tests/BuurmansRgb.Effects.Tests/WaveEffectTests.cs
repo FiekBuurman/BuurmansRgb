@@ -4,8 +4,6 @@ namespace BuurmansRgb.Effects.Tests;
 
 public sealed class WaveEffectTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     [Fact]
     public void Render_AtTimeZero_IsBrightestAtTheFirstLedAndDarkHalfway()
     {
