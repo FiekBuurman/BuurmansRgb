@@ -26,8 +26,9 @@ internal static class Program
             new LightingController([new SimulatedDeviceProvider()]));
 
         using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
-        instance.ListenForActivation(context.RequestOpenSettings);
-
-        Application.Run(context);
+        using (instance.ListenForActivation(context.RequestOpenSettings))
+        {
+            Application.Run(context);
+        }
     }
 }
