@@ -9,10 +9,10 @@ public static class EngineRpc
     public const string PipeName = "BuurmansRgb.Engine";
 
     // CurrentUserOnly: only processes of this Windows user can connect.
-    public const PipeOptions PipeOptions = System.IO.Pipes.PipeOptions.Asynchronous | System.IO.Pipes.PipeOptions.CurrentUserOnly;
+    public const PipeOptions SharedPipeOptions = PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly;
 
     public static NamedPipeServerStream CreateServerStream(string pipeName) =>
-        new(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, PipeOptions);
+        new(pipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte, SharedPipeOptions);
 
     public static JsonRpc StartServer(Stream stream, IEngineApi api)
     {

@@ -24,7 +24,7 @@ public sealed class EngineConnection : IEngineConnection
     // Throws TimeoutException when no engine answers within the timeout.
     public static async Task<EngineConnection> ConnectAsync(string pipeName, TimeSpan timeout, CancellationToken ct)
     {
-        var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, EngineRpc.PipeOptions);
+        var pipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, EngineRpc.SharedPipeOptions);
         try
         {
             await pipe.ConnectAsync(timeout, ct);
