@@ -195,9 +195,9 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 **Acceptatie:**
 
-- [ ] Kleur wijzigen in de UI is binnen 100 ms zichtbaar in de preview
-- [ ] UI sluiten laat de engine draaien; het UI-proces staat niet meer in Taakbeheer
-- [ ] UI geeft een nette melding als de engine niet draait
+- [x] Kleur wijzigen in de UI is binnen 100 ms zichtbaar in de preview
+- [x] UI sluiten laat de engine draaien; het UI-proces staat niet meer in Taakbeheer
+- [x] UI geeft een nette melding als de engine niet draait
 
 ### Taak 3 – OpenRGB-koppeling
 
