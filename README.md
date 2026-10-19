@@ -66,9 +66,9 @@ dotnet run --project src/BuurmansRgb.Engine
   `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is voorlopig alleen
   `static`. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
   van de engine), handig zodra de echte apparaten via OpenRGB werken. Onder `devices` staan
-  alleen apparaten met een eigen kleur; de rest volgt de algemene waarden. Een ongeldig of onleesbaar bestand laat de engine ongemoeid en draait
-  dan op de standaardwaarden. Dat geldt ook als de map `%AppData%\BuurmansRgb` niet
-  beschrijfbaar is.
+  alleen apparaten met een eigen kleur; de rest volgt de algemene waarden. Een ongeldig of
+  onleesbaar bestand laat de engine ongemoeid en draait dan op de standaardwaarden. Dat
+  geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
   openen. Staat die er niet of start hij niet (bijv. geblokkeerd door SmartScreen), dan
