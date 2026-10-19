@@ -1,4 +1,6 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
@@ -21,9 +23,11 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
+        var lighting = new LightingController([new SimulatedDeviceProvider()]);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
-            new LightingController([new SimulatedDeviceProvider()]));
+            lighting,
+            new EngineIpcServer(EngineRpc.PipeName, lighting));
 
         using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
         using (instance.ListenForActivation(context.RequestOpenSettings))

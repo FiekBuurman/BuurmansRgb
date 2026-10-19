@@ -56,7 +56,7 @@ public sealed class EngineHostTests : IDisposable
     {
         var store = new InMemorySettingsStore();
         var lighting = new LightingController([_simulated]);
-        var host = new EngineHost(store, lighting, TimeSpan.FromHours(1));
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1));
         await host.StartAsync(TestContext.Current.CancellationToken);
         lighting.SetLighting("simulated-fan", current => current with { Brightness = 0.3 });
 
@@ -69,7 +69,7 @@ public sealed class EngineHostTests : IDisposable
     public async Task StartAsync_DoesNotSaveTheLoadedSettingsAgain()
     {
         var store = new InMemorySettingsStore();
-        var host = new EngineHost(store, new LightingController([_simulated]), TimeSpan.FromHours(1));
+        var host = new EngineHost(store, new LightingController([_simulated]), saveDelay: TimeSpan.FromHours(1));
         await host.StartAsync(TestContext.Current.CancellationToken);
 
         host.Dispose();
