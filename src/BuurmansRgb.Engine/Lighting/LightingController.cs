@@ -6,8 +6,13 @@ namespace BuurmansRgb.Engine.Lighting;
 // Called from the tray thread, from IPC threads and, when a provider's devices change, from the
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
-internal sealed class LightingController
+// A PeriodicTimer renders the frames, and only while an animated effect shows and nothing is
+// paused; with static lighting no timer runs at all.
+internal sealed class LightingController : IDisposable
 {
+    public const int DefaultFramesPerSecond = 30;
+    public const int MaxFramesPerSecond = 60;
+
     private readonly IReadOnlyList<IDeviceProvider> _providers;
     private readonly Lock _gate = new();
 
@@ -20,7 +25,12 @@ internal sealed class LightingController
     private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
+    private bool _disposed;
     private long _sequence;
+    private int _framesPerSecond = DefaultFramesPerSecond;
+
+    // Disposing it ends the running animation loop.
+    private PeriodicTimer? _animation;
 
     // Effects run on the time of timeProvider, counted from the moment the controller was made.
     public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
@@ -57,6 +67,39 @@ internal sealed class LightingController
             lock (_gate)
             {
                 return _isPaused;
+            }
+        }
+    }
+
+    // True while the render loop runs.
+    public bool IsAnimating
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _animation is not null;
+            }
+        }
+    }
+
+    // Kept between 1 and MaxFramesPerSecond. Effects are time-based, so a lower rate only makes
+    // the animation less smooth, not slower.
+    public int FramesPerSecond
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _framesPerSecond;
+            }
+        }
+        set
+        {
+            lock (_gate)
+            {
+                _framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
+                _animation?.Period = FramePeriodLocked;
             }
         }
     }
@@ -165,7 +208,8 @@ internal sealed class LightingController
         }
     }
 
-    // Resuming sends the latest lighting again; pausing leaves the devices as they are.
+    // Resuming sends the latest lighting again; pausing stops the animation and leaves the
+    // devices as they are.
     public void SetPaused(bool paused)
     {
         bool rendered;
@@ -179,6 +223,7 @@ internal sealed class LightingController
             _isPaused = paused;
             if (paused)
             {
+                UpdateAnimationLocked();
                 return;
             }
 
@@ -186,6 +231,47 @@ internal sealed class LightingController
         }
 
         Publish(rendered);
+    }
+
+    // One step of the animation: renders the animated effects and sends only the devices whose
+    // colors changed. Allocates nothing, so it can run 60 times a second without feeding the GC.
+    public void RenderAnimationFrame()
+    {
+        var rendered = false;
+        lock (_gate)
+        {
+            // A tick that was already on its way when the animation stopped.
+            if (_animation is null)
+            {
+                return;
+            }
+
+            var time = EffectTime;
+            foreach (var output in _outputs)
+            {
+                if (output.IsAnimated)
+                {
+                    output.Render(time);
+                    rendered |= output.SendIfChanged();
+                }
+            }
+
+            if (rendered)
+            {
+                _sequence++;
+            }
+        }
+
+        Publish(rendered);
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            _disposed = true;
+            UpdateAnimationLocked();
+        }
     }
 
     // A device that comes back keeps its own lighting: it stays in the state while the device is gone.
@@ -246,11 +332,64 @@ internal sealed class LightingController
         }
 
         _sequence++;
+        UpdateAnimationLocked();
         return true;
     }
 
     // Every device runs on the same clock, so the same animated effect stays in step on all of them.
     private TimeSpan EffectTime => _time.GetElapsedTime(_epoch);
+
+    private TimeSpan FramePeriodLocked => TimeSpan.FromSeconds(1.0 / _framesPerSecond);
+
+    private void UpdateAnimationLocked()
+    {
+        var animate = !_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated);
+        if (animate == (_animation is not null))
+        {
+            return;
+        }
+
+        if (animate)
+        {
+            var timer = new PeriodicTimer(FramePeriodLocked, _time);
+            _animation = timer;
+            _ = AnimateAsync(timer);
+        }
+        else
+        {
+            StopAnimationLocked();
+        }
+    }
+
+    private void StopAnimationLocked()
+    {
+        // Disposing makes the waiting WaitForNextTickAsync return false, which ends the loop.
+        _animation?.Dispose();
+        _animation = null;
+    }
+
+    private async Task AnimateAsync(PeriodicTimer timer)
+    {
+        try
+        {
+            while (await timer.WaitForNextTickAsync().ConfigureAwait(false))
+            {
+                RenderAnimationFrame();
+            }
+        }
+        catch (Exception exception)
+        {
+            // For example a provider that throws; the next change of the lighting starts again.
+            Trace.TraceError(exception.ToString());
+            lock (_gate)
+            {
+                if (_animation == timer)
+                {
+                    StopAnimationLocked();
+                }
+            }
+        }
+    }
 
     private void Publish(bool rendered)
     {

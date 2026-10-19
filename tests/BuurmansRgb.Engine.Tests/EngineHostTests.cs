@@ -107,6 +107,18 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_UsesTheSavedFrameRate()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12 } };
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(store, lighting);
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(12, lighting.FramesPerSecond);
+    }
+
+    [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {
         var lighting = new LightingController([_simulated]);

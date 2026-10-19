@@ -37,6 +37,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         _shutdown.Dispose();
         _allClientsGone.Dispose();
+        _lighting.Dispose();
     }
 
     [Fact]
