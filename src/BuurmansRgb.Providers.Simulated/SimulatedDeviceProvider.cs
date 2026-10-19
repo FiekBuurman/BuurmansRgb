@@ -9,6 +9,19 @@ public sealed class SimulatedDeviceProvider : IDeviceProvider
         new("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, [new RgbZone("Strip", 30, Resizable: true)]),
         new("simulated-fan", "Simulated fan", DeviceType.Fan, [new RgbZone("Ring", 12, Resizable: false)]),
         new("simulated-keyboard", "Simulated keyboard", DeviceType.Keyboard, [new RgbZone("Keys", 104, Resizable: false)]),
+
+        // Like a real board in OpenRGB: LEDs on the board, a 12 V header that counts as one LED,
+        // and an addressable header that has no LEDs until its length is set.
+        new("simulated-motherboard", "Simulated motherboard", DeviceType.Motherboard,
+        [
+            new RgbZone("Mainboard", 6, Resizable: false),
+            new RgbZone("RGB header", 1, Resizable: false),
+            new RgbZone("ARGB header", 0, Resizable: true),
+        ]),
+
+        // OpenRGB lists every RAM stick as a device of its own.
+        new("simulated-ram-1", "Simulated RAM stick 1", DeviceType.Ram, [new RgbZone("DRAM", 8, Resizable: false)]),
+        new("simulated-ram-2", "Simulated RAM stick 2", DeviceType.Ram, [new RgbZone("DRAM", 8, Resizable: false)]),
     ];
 
     private readonly Dictionary<string, RgbColor[]> _leds = Devices.ToDictionary(device => device.Id, device => new RgbColor[device.LedCount]);

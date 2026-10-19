@@ -27,7 +27,8 @@ public sealed class LightingControllerDeviceChangeTests
 
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
 
-        Assert.Equal(["simulated-strip", "simulated-fan", "simulated-keyboard", "real"], _controller.Devices.Select(device => device.Id));
+        Assert.Equal("real", _controller.Devices[^1].Id);
+        Assert.Equal(["simulated-strip", "simulated-fan", "simulated-keyboard"], _controller.Devices.Take(3).Select(device => device.Id));
         Assert.Equal([Orange, Orange], _dynamic.Leds["real"]);
     }
 

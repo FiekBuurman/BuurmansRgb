@@ -239,7 +239,7 @@ public sealed class LightingControllerTests
         var output = controller.GetOutput();
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 
-        Assert.Equal(3, output.Devices.Count);
+        Assert.Equal(controller.Devices.Count, output.Devices.Count);
         Assert.All(output.Devices.SelectMany(device => device.Colors), led => Assert.Equal(Orange, led));
     }
 

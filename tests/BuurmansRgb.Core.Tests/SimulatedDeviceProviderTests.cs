@@ -5,7 +5,7 @@ namespace BuurmansRgb.Core.Tests;
 public sealed class SimulatedDeviceProviderTests
 {
     [Fact]
-    public async Task DiscoverAsync_ReturnsStripFanAndKeyboardWithExpectedLedCounts()
+    public async Task DiscoverAsync_ReturnsStripFanKeyboardMotherboardAndRamWithExpectedLedCounts()
     {
         var provider = new SimulatedDeviceProvider();
 
@@ -15,7 +15,23 @@ public sealed class SimulatedDeviceProviderTests
             devices,
             strip => AssertDevice(strip, DeviceType.LedStrip, 30),
             fan => AssertDevice(fan, DeviceType.Fan, 12),
-            keyboard => AssertDevice(keyboard, DeviceType.Keyboard, 104));
+            keyboard => AssertDevice(keyboard, DeviceType.Keyboard, 104),
+            motherboard => AssertDevice(motherboard, DeviceType.Motherboard, 7),
+            ram => AssertDevice(ram, DeviceType.Ram, 8),
+            ram => AssertDevice(ram, DeviceType.Ram, 8));
+    }
+
+    [Fact]
+    public async Task DiscoverAsync_MotherboardHasAnEmptyResizableHeader()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+
+        var motherboard = devices.Single(device => device.Type == DeviceType.Motherboard);
+        Assert.Equal(
+            [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)],
+            motherboard.Zones);
     }
 
     [Fact]
