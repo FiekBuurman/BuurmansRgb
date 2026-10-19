@@ -27,25 +27,13 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task GetDevicesAsync_ReturnsDevicesFromServer()
+    public async Task GetDevicesAsync_ReturnsDevicesWithTheirZonesFromServer()
     {
         var client = await ConnectAsync();
 
         var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
 
-        Assert.Equal(
-            _api.Devices.Select(device => (device.Id, device.Name, device.Type, device.LedCount)),
-            devices.Select(device => (device.Id, device.Name, device.Type, device.LedCount)));
-    }
-
-    [Fact]
-    public async Task GetDevicesAsync_ReturnsTheZonesOfEveryDevice()
-    {
-        var client = await ConnectAsync();
-
-        var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
-
-        Assert.Equal(_api.Devices.Select(device => device.Zones), devices.Select(device => device.Zones));
+        Assert.Equal(_api.Devices, devices);
     }
 
     [Fact]
