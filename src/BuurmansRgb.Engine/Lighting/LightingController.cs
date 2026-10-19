@@ -408,6 +408,13 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             bool ledColorsMoved;
             lock (_gate)
             {
+                // Disposed while the provider answered: the engine is shutting down, so the
+                // devices keep what they show.
+                if (_disposed)
+                {
+                    return;
+                }
+
                 ledColorsMoved = _outputs.Replace(providerIndex, provider, devices, _ledColors);
                 rendered = render && RenderLocked();
             }

@@ -92,6 +92,26 @@ public sealed class LightingControllerDeviceChangeTests
     }
 
     [Fact]
+    public async Task Dispose_WhileARefreshWaitsForTheProvider_LeavesTheDevicesAlone()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
+        var slowProvider = new TaskCompletionSource();
+        _dynamic.DiscoverGate = slowProvider.Task;
+        var devicesChanged = 0;
+        _controller.DevicesChanged += (_, _) => devicesChanged++;
+        _dynamic.SetDevices(DynamicDeviceProvider.Device("real"));
+        await _dynamic.DiscoverStarted.Task.WaitAsync(Timeout, Ct);
+
+        _controller.Dispose();
+        // The refresh continues on this thread, so it has ended when SetResult returns.
+        slowProvider.SetResult();
+
+        Assert.Empty(_dynamic.Leds);
+        Assert.Equal(0, devicesChanged);
+    }
+
+    [Fact]
     public void Dispose_Twice_IsFine()
     {
         _controller.Dispose();
