@@ -247,6 +247,12 @@ gesimuleerd moederbord en twee RAM-sticks, en herstellen na het ontwaken zijn ge
 getest zonder hardware (nepdata van OpenRGB en een nepklok). De vier criteria hierboven
 vragen echte hardware; die test de gebruiker zelf, zie "Moederbord en RAM" in `README.md`.
 
+Stand taak 6 (GPU): icoon en Nederlandse typenaam ("Videokaart") in de instellingen-app, een
+gesimuleerde videokaart met twee zones, en tests met nepdata van OpenRGB voor de vertaling,
+kaarten zonder "Direct"-modus, twee dezelfde kaarten en herstellen na het ontwaken zijn gebouwd
+en getest zonder hardware. Ook hier vragen de vier criteria hierboven echte hardware; die test
+de gebruiker zelf, zie "Videokaart (GPU)" in `README.md`.
+
 ## Risico's en aandachtspunten
 
 Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; sluit die af voordat je test.
