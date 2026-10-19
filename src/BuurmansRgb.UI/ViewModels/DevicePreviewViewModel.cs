@@ -2,12 +2,11 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// Colors, selection and clicks count from the first LED of the device; the zones show the same
-// LEDs per zone.
+// Colors, selection and clicks count from the first LED of the device. The view shows them per
+// zone: the zones show the selection and take the clicks.
 public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<LedClick>? onLedClicked = null)
     : ObservableObject
 {
@@ -23,21 +22,14 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; set; } = new RgbColor[device.LedCount];
 
-    // The selected LEDs of the per-LED editor, or -1 when none of this device are selected.
-    [ObservableProperty]
-    public partial int SelectionFirst { get; private set; } = -1;
-
-    [ObservableProperty]
-    public partial int SelectionLast { get; private set; } = -1;
-
     public void ShowLedSelection(LedSelection? selection)
     {
         var mine = selection?.DeviceId == DeviceId;
-        SelectionFirst = mine ? selection!.First : -1;
-        SelectionLast = mine ? selection!.Last : -1;
+        var first = mine ? selection!.First : -1;
+        var last = mine ? selection!.Last : -1;
         foreach (var zone in Zones)
         {
-            zone.ShowDeviceSelection(SelectionFirst, SelectionLast);
+            zone.ShowDeviceSelection(first, last);
         }
     }
 
@@ -50,11 +42,9 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, Action<Led
         }
     }
 
-    [RelayCommand]
-    private void ClickLed(LedHit hit) => onLedClicked?.Invoke(new LedClick(DeviceId, hit.Index, hit.Extend));
-
     // The zones follow each other in LED order. Zones that claim more LEDs than the device has are
     // cut short, and LEDs that no zone claims get a zone of their own, so every LED shows once.
+    // A zone hands on its clicks counted from the start of the device.
     private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, Action<LedHit> onLedClicked)
     {
         List<(RgbZone Zone, int FirstLed, int LedCount)> parts = [];

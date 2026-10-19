@@ -108,7 +108,7 @@ public sealed class DevicePreviewViewModelTests
 
         preview.ShowLedSelection(new LedSelection("board", "Motherboard", 4, 6));
 
-        Assert.Equal((4, 6), (preview.SelectionFirst, preview.SelectionLast));
+        Assert.Equal((4, 6), preview.ShownSelection());
         Assert.Equal(
             [(4, 5), (0, 0), (-1, -1)],
             preview.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
