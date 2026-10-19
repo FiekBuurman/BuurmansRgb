@@ -52,7 +52,8 @@ dotnet run --project src/BuurmansRgb.Engine
   `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
-  openen. Staat die er niet, dan meldt het tray-icoon dat.
+  openen. Staat die er niet of start hij niet (bijv. geblokkeerd door SmartScreen), dan
+  meldt het tray-icoon dat.
 - **Starten met Windows** zet `BuurmansRgb` in
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - In deze fase stuurt de engine alleen de gesimuleerde apparaten aan; je ziet de kleur

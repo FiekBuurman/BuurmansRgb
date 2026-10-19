@@ -27,9 +27,14 @@ internal sealed class TrayPresenter(
 
     public void OpenSettings()
     {
-        if (!settingsAppLauncher.TryLaunch())
+        switch (settingsAppLauncher.Launch())
         {
-            view.ShowNotification(Strings.SettingsAppNotFound, TrayNotificationKind.Info);
+            case SettingsAppLaunchResult.NotFound:
+                view.ShowNotification(Strings.SettingsAppNotFound, TrayNotificationKind.Info);
+                break;
+            case SettingsAppLaunchResult.Failed:
+                view.ShowNotification(Strings.SettingsAppLaunchFailed, TrayNotificationKind.Warning);
+                break;
         }
     }
 

@@ -54,11 +54,21 @@ public sealed class TrayPresenterTests
     [Fact]
     public void OpenSettings_AppMissing_ShowsInfo()
     {
-        _launcher.Result = false;
+        _launcher.Result = SettingsAppLaunchResult.NotFound;
 
         CreatePresenter().OpenSettings();
 
         Assert.Equal([(Strings.SettingsAppNotFound, TrayNotificationKind.Info)], _view.Notifications);
+    }
+
+    [Fact]
+    public void OpenSettings_LaunchFails_ShowsWarning()
+    {
+        _launcher.Result = SettingsAppLaunchResult.Failed;
+
+        CreatePresenter().OpenSettings();
+
+        Assert.Equal([(Strings.SettingsAppLaunchFailed, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     [Fact]
@@ -152,11 +162,11 @@ public sealed class TrayPresenterTests
 
     private sealed class FakeSettingsAppLauncher : ISettingsAppLauncher
     {
-        public bool Result { get; set; } = true;
+        public SettingsAppLaunchResult Result { get; set; } = SettingsAppLaunchResult.Launched;
 
         public int LaunchCount { get; private set; }
 
-        public bool TryLaunch()
+        public SettingsAppLaunchResult Launch()
         {
             LaunchCount++;
             return Result;
