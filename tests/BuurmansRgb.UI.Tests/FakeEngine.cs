@@ -1,0 +1,103 @@
+using System.Globalization;
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
+using BuurmansRgb.UI.Services;
+
+namespace BuurmansRgb.UI.Tests;
+
+internal sealed class FakeEngineConnector : IEngineConnector
+{
+    public Exception? ConnectException { get; set; }
+
+    public FakeEngineConnection Connection { get; private set; } = new();
+
+    public int ConnectCount { get; private set; }
+
+    public Task<IEngineConnection> ConnectAsync(CancellationToken ct)
+    {
+        ConnectCount++;
+        if (ConnectException is not null)
+        {
+            return Task.FromException<IEngineConnection>(ConnectException);
+        }
+
+        Connection = new FakeEngineConnection();
+        return Task.FromResult<IEngineConnection>(Connection);
+    }
+}
+
+internal sealed class FakeEngineConnection : IEngineConnection
+{
+    public FakeEngineApi FakeApi { get; } = new();
+
+    public IEngineApi Api => FakeApi;
+
+    public bool IsDisposed { get; private set; }
+
+    public event EventHandler? Disconnected;
+
+    public void Disconnect() => Disconnected?.Invoke(this, EventArgs.Empty);
+
+    public ValueTask DisposeAsync()
+    {
+        IsDisposed = true;
+        return ValueTask.CompletedTask;
+    }
+}
+
+internal sealed class FakeEngineApi : IEngineApi
+{
+    public event EventHandler<LightingFrame>? FrameRendered;
+
+    public IReadOnlyList<DeviceInfo> Devices { get; } =
+    [
+        new("strip", "LED strip", DeviceType.LedStrip, 3),
+        new("fan", "Fan", DeviceType.Fan, 2),
+    ];
+
+    public Dictionary<string, LightingInfo> Lighting { get; } = new()
+    {
+        [""] = new(new RgbColor(255, 0, 0), 0.8, EffectIds.Static),
+        ["fan"] = new(new RgbColor(0, 0, 255), 0.5, EffectIds.Static),
+    };
+
+    public LightingFrame Frame { get; set; } = LightingFrame.Empty;
+
+    public List<string> Calls { get; } = [];
+
+    public Exception? SetException { get; set; }
+
+    public bool HasFrameSubscribers => FrameRendered is not null;
+
+    public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
+
+    public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
+
+    public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<string>>([EffectIds.Static]);
+
+    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
+        Task.FromResult(Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]));
+
+    public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
+
+    public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
+        Record($"color {deviceId ?? "all"} {color.ToHex()}");
+
+    public Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default) =>
+        Record(string.Create(CultureInfo.InvariantCulture, $"brightness {deviceId ?? "all"} {brightness:0.00}"));
+
+    public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
+        Record($"effect {deviceId ?? "all"} {effectId}");
+
+    private Task Record(string call)
+    {
+        if (SetException is not null)
+        {
+            return Task.FromException(SetException);
+        }
+
+        Calls.Add(call);
+        return Task.CompletedTask;
+    }
+}

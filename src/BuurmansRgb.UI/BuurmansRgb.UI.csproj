@@ -4,7 +4,34 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <AssemblyName>BuurmansRgb.UI</AssemblyName>
   </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="BuurmansRgb.UI.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedNamespace>BuurmansRgb.UI.Resources</StronglyTypedNamespace>
+      <StronglyTypedClassName>Strings</StronglyTypedClassName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)Strings.Designer.cs</StronglyTypedFileName>
+      <PublicClass>true</PublicClass>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- XAML uses the generated Strings class, but WPF compiles a temporary assembly for XAML before
+       the resources are generated. Generate them first and hand the class to that compile. -->
+  <Target Name="IncludeStringsInMarkupCompile" BeforeTargets="GenerateTemporaryTargetAssembly" DependsOnTargets="PrepareResourceNames;ResGen">
+    <ItemGroup>
+      <_GeneratedCodeFiles Include="$(IntermediateOutputPath)Strings.Designer.cs" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\BuurmansRgb.Contracts\BuurmansRgb.Contracts.csproj" />

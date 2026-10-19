@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>BuurmansRgb – instellingen</value>
+  </data>
+  <data name="DevicesHeader" xml:space="preserve">
+    <value>Apparaten</value>
+  </data>
+  <data name="AllDevices" xml:space="preserve">
+    <value>Alle apparaten</value>
+  </data>
+  <data name="AllDevicesDetails" xml:space="preserve">
+    <value>{0} apparaten</value>
+  </data>
+  <data name="DeviceDetails" xml:space="preserve">
+    <value>{0} LED's</value>
+  </data>
+  <data name="ColorHeader" xml:space="preserve">
+    <value>Kleur</value>
+  </data>
+  <data name="HueLabel" xml:space="preserve">
+    <value>Tint</value>
+  </data>
+  <data name="SaturationLabel" xml:space="preserve">
+    <value>Verzadiging</value>
+  </data>
+  <data name="HexLabel" xml:space="preserve">
+    <value>Hex-code</value>
+  </data>
+  <data name="BrightnessHeader" xml:space="preserve">
+    <value>Helderheid</value>
+  </data>
+  <data name="EffectHeader" xml:space="preserve">
+    <value>Effect</value>
+  </data>
+  <data name="PreviewHeader" xml:space="preserve">
+    <value>Voorbeeld</value>
+  </data>
+  <data name="Effect_static" xml:space="preserve">
+    <value>Statisch</value>
+  </data>
+  <data name="StatusConnecting" xml:space="preserve">
+    <value>Verbinden met de engine…</value>
+  </data>
+  <data name="EngineNotRunning" xml:space="preserve">
+    <value>De engine draait niet. Start BuurmansRgb en probeer het opnieuw.</value>
+  </data>
+  <data name="ConnectFailed" xml:space="preserve">
+    <value>Er kon geen verbinding met de engine worden gemaakt.</value>
+  </data>
+  <data name="ConnectionLost" xml:space="preserve">
+    <value>De verbinding met de engine is verbroken.</value>
+  </data>
+  <data name="ChangeRejected" xml:space="preserve">
+    <value>De engine kon de wijziging niet verwerken.</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Opnieuw proberen</value>
+  </data>
+</root>

@@ -3,7 +3,7 @@ using StreamJsonRpc;
 
 namespace BuurmansRgb.Contracts;
 
-public sealed class EngineConnection : IAsyncDisposable
+public sealed class EngineConnection : IEngineConnection
 {
     private readonly JsonRpc _rpc;
 
@@ -19,7 +19,6 @@ public sealed class EngineConnection : IAsyncDisposable
 
     public IEngineApi Api { get; }
 
-    // Raised on a background thread when the engine stops or the pipe breaks.
     public event EventHandler? Disconnected;
 
     // Throws TimeoutException when no engine answers within the timeout.
