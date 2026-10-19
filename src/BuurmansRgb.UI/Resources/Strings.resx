@@ -60,6 +60,15 @@
   <data name="DeviceType_Gpu" xml:space="preserve">
     <value>Videokaart</value>
   </data>
+  <data name="DeviceType_Fan" xml:space="preserve">
+    <value>Ventilator</value>
+  </data>
+  <data name="DeviceType_LedStrip" xml:space="preserve">
+    <value>LED-strip</value>
+  </data>
+  <data name="DeviceType_Case" xml:space="preserve">
+    <value>Behuizing</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>

@@ -13,9 +13,9 @@ public sealed class DeviceItemTests
         [DeviceType.Motherboard] = "Moederbord",
         [DeviceType.Ram] = "RAM",
         [DeviceType.Gpu] = "Videokaart",
-        [DeviceType.Fan] = null,
-        [DeviceType.LedStrip] = null,
-        [DeviceType.Case] = null,
+        [DeviceType.Fan] = "Ventilator",
+        [DeviceType.LedStrip] = "LED-strip",
+        [DeviceType.Case] = "Behuizing",
         [DeviceType.Keyboard] = null,
         [DeviceType.Mouse] = null,
         [DeviceType.Headset] = null,
@@ -68,12 +68,21 @@ public sealed class DeviceItemTests
     }
 
     [Fact]
-    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    public void For_FanWithOneRing_ShowsTypeAndLeds()
     {
         var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12));
 
+        Assert.Equal("Ventilator", item.TypeName);
+        Assert.Equal("Ventilator · 12 LED's", item.Details);
+    }
+
+    [Fact]
+    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    {
+        var item = DeviceItem.For(TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104));
+
         Assert.Null(item.TypeName);
-        Assert.Equal("12 LED's", item.Details);
+        Assert.Equal("104 LED's", item.Details);
     }
 
     [Fact]
