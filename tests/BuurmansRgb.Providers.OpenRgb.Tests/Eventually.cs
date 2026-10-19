@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
@@ -11,6 +12,22 @@ internal static class Eventually
         while (!condition())
         {
             Assert.True(stopwatch.Elapsed < timeout, "The condition did not come true in time.");
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+    }
+
+    public static async Task<IReadOnlyList<RgbDevice>> DeviceCountAsync(IDeviceProvider provider, int count, TimeSpan timeout)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        while (true)
+        {
+            var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+            if (devices.Count == count)
+            {
+                return devices;
+            }
+
+            Assert.True(stopwatch.Elapsed < timeout, $"Still {devices.Count} devices instead of {count}.");
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
     }
