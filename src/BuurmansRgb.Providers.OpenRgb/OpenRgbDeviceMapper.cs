@@ -7,7 +7,7 @@ namespace BuurmansRgb.Providers.OpenRgb;
 
 internal static class OpenRgbDeviceMapper
 {
-    public const string IdPrefix = "openrgb-";
+    private const string IdPrefix = "openrgb-";
 
     private const int MaxSlugLength = 40;
 
