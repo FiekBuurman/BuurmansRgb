@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using BuurmansRgb.Contracts;
-using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -20,7 +19,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly CoalescingCallQueue _calls;
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
-    private double _value = 1.0;
     private bool _syncing;
 
     public MainViewModel(IEngineConnector connector)
@@ -28,13 +26,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connector = connector;
         _uiContext = SynchronizationContext.Current;
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
+        ColorPicker.ColorPicked += (_, color) => Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
     }
-
-    public static IReadOnlyList<RgbColor> Presets { get; } =
-    [
-        new(255, 0, 0), new(255, 136, 0), new(255, 221, 0), new(0, 255, 0), new(0, 255, 255),
-        new(0, 0, 255), new(136, 0, 255), new(255, 0, 170), RgbColor.White,
-    ];
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
 
@@ -56,20 +49,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial DeviceItem? SelectedDevice { get; set; }
 
-    // 0 to 360 degrees.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HueColor))]
-    public partial double Hue { get; set; }
-
-    // 0 to 100 percent.
-    [ObservableProperty]
-    public partial double Saturation { get; set; }
-
-    [ObservableProperty]
-    public partial string HexColor { get; set; } = RgbColor.White.ToHex();
-
-    [ObservableProperty]
-    public partial RgbColor Color { get; private set; } = RgbColor.White;
+    public ColorPickerViewModel ColorPicker { get; } = new();
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -77,9 +57,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial EffectOption? SelectedEffect { get; set; }
-
-    // The fully saturated color of the current hue, for the saturation slider's gradient.
-    public RgbColor HueColor => RgbColor.FromHsv(Hue / 360.0, 1.0, 1.0);
 
     public void Dispose() => DropConnection();
 
@@ -111,13 +88,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand]
-    private void SelectPreset(RgbColor color)
-    {
-        WithoutSending(() => ShowColor(color));
-        SendColor();
-    }
-
     // Ctrl+click in the list deselects the item. "Nothing" must not turn into "all devices",
     // which would send the next change to every device, so the previous item stays selected.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
@@ -138,21 +108,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _ = ShowSelectionAsync();
-    }
-
-    partial void OnHueChanged(double value) => ColorFromSliders();
-
-    partial void OnSaturationChanged(double value) => ColorFromSliders();
-
-    partial void OnHexColorChanged(string value)
-    {
-        if (_syncing || !RgbColor.TryParseHex(value.Trim(), out var color))
-        {
-            return;
-        }
-
-        WithoutSending(() => ShowColor(color, updateHex: false));
-        SendColor();
     }
 
     partial void OnBrightnessChanged(double value)
@@ -226,47 +181,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         WithoutSending(() =>
         {
-            ShowColor(lighting.Color);
+            ColorPicker.Show(lighting.Color);
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
         });
-    }
-
-    private void ColorFromSliders()
-    {
-        if (_syncing)
-        {
-            return;
-        }
-
-        var color = RgbColor.FromHsv(Hue / 360.0, Saturation / 100.0, _value);
-        WithoutSending(() =>
-        {
-            Color = color;
-            HexColor = color.ToHex();
-        });
-        SendColor();
-    }
-
-    // The sliders set hue and saturation; the value (darkness) of a typed color is kept, except
-    // black, which would make the sliders do nothing.
-    private void ShowColor(RgbColor color, bool updateHex = true)
-    {
-        Color = color;
-        var (hue, saturation, value) = color.ToHsv();
-        Hue = hue * 360.0;
-        Saturation = saturation * 100.0;
-        _value = value > 0.0 ? value : 1.0;
-        if (updateHex)
-        {
-            HexColor = color.ToHex();
-        }
-    }
-
-    private void SendColor()
-    {
-        var color = Color;
-        Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
     }
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)

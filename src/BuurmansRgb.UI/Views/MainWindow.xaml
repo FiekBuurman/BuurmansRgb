@@ -62,15 +62,15 @@
                         <TextBlock Style="{StaticResource Header}" Margin="0,0,0,6" Text="{x:Static res:Strings.ColorHeader}" />
                         <StackPanel Orientation="Horizontal">
                             <Border Width="48" Height="48" CornerRadius="6" BorderThickness="1" BorderBrush="Gray"
-                                    Background="{Binding Color, Converter={StaticResource ColorToBrush}}" />
+                                    Background="{Binding ColorPicker.Color, Converter={StaticResource ColorToBrush}}" />
                             <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                 <TextBlock Style="{StaticResource Label}" Margin="0,0,0,2" Text="{x:Static res:Strings.HexLabel}" />
-                                <TextBox Width="100" Text="{Binding HexColor, UpdateSourceTrigger=PropertyChanged}"
+                                <TextBox Width="100" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
                                          AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
                             </StackPanel>
                         </StackPanel>
 
-                        <ItemsControl Margin="0,10,0,0" ItemsSource="{x:Static vm:MainViewModel.Presets}">
+                        <ItemsControl Margin="0,10,0,0" ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel />
@@ -80,14 +80,14 @@
                                 <DataTemplate>
                                     <Button Width="28" Height="28" Margin="0,0,6,6" BorderBrush="Gray"
                                             Background="{Binding Converter={StaticResource ColorToBrush}}"
-                                            Command="{Binding DataContext.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                             CommandParameter="{Binding}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
                         <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.HueLabel}" />
-                        <Slider Minimum="0" Maximum="360" Value="{Binding Hue}" SmallChange="1" LargeChange="15"
+                        <Slider Minimum="0" Maximum="360" Value="{Binding ColorPicker.Hue}" SmallChange="1" LargeChange="15"
                                 AutomationProperties.Name="{x:Static res:Strings.HueLabel}">
                             <Slider.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
@@ -103,12 +103,12 @@
                         </Slider>
 
                         <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.SaturationLabel}" />
-                        <Slider Minimum="0" Maximum="100" Value="{Binding Saturation}" SmallChange="1" LargeChange="10"
+                        <Slider Minimum="0" Maximum="100" Value="{Binding ColorPicker.Saturation}" SmallChange="1" LargeChange="10"
                                 AutomationProperties.Name="{x:Static res:Strings.SaturationLabel}">
                             <Slider.Background>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                     <GradientStop Offset="0" Color="White" />
-                                    <GradientStop Offset="1" Color="{Binding HueColor, Converter={StaticResource ColorToMediaColor}}" />
+                                    <GradientStop Offset="1" Color="{Binding ColorPicker.HueColor, Converter={StaticResource ColorToMediaColor}}" />
                                 </LinearGradientBrush>
                             </Slider.Background>
                         </Slider>

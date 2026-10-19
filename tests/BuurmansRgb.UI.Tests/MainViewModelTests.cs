@@ -60,10 +60,10 @@ public sealed class MainViewModelTests
         Assert.Equal([null, "strip", "fan"], viewModel.Devices.Select(device => device.DeviceId));
         Assert.Equal(Strings.AllDevices, viewModel.Devices[0].Name);
         Assert.Same(viewModel.Devices[0], viewModel.SelectedDevice);
-        Assert.Equal(new RgbColor(255, 0, 0), viewModel.Color);
-        Assert.Equal("#FF0000", viewModel.HexColor);
-        Assert.Equal(0.0, viewModel.Hue);
-        Assert.Equal(100.0, viewModel.Saturation);
+        Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
+        Assert.Equal("#FF0000", viewModel.ColorPicker.HexColor);
+        Assert.Equal(0.0, viewModel.ColorPicker.Hue);
+        Assert.Equal(100.0, viewModel.ColorPicker.Saturation);
         Assert.Equal(80.0, viewModel.Brightness);
         Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         Assert.Equal("Statisch", viewModel.SelectedEffect?.DisplayName);
@@ -84,11 +84,11 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.Hue = 120;
+        viewModel.ColorPicker.Hue = 120;
 
         Assert.Equal(["color all #00FF00"], Api.Calls);
-        Assert.Equal("#00FF00", viewModel.HexColor);
-        Assert.Equal(new RgbColor(0, 255, 0), viewModel.Color);
+        Assert.Equal("#00FF00", viewModel.ColorPicker.HexColor);
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.Saturation = 0;
+        viewModel.ColorPicker.Saturation = 0;
 
         Assert.Equal(["color all #FFFFFF"], Api.Calls);
     }
@@ -106,11 +106,11 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.HexColor = "#0000ff";
+        viewModel.ColorPicker.HexColor = "#0000ff";
 
         Assert.Equal(["color all #0000FF"], Api.Calls);
-        Assert.Equal(240.0, viewModel.Hue, precision: 6);
-        Assert.Equal(100.0, viewModel.Saturation, precision: 6);
+        Assert.Equal(240.0, viewModel.ColorPicker.Hue, precision: 6);
+        Assert.Equal(100.0, viewModel.ColorPicker.Saturation, precision: 6);
     }
 
     [Theory]
@@ -121,10 +121,10 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.HexColor = text;
+        viewModel.ColorPicker.HexColor = text;
 
         Assert.Empty(Api.Calls);
-        Assert.Equal(new RgbColor(255, 0, 0), viewModel.Color);
+        Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
     }
 
     [Fact]
@@ -132,10 +132,10 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.SelectPresetCommand.Execute(new RgbColor(255, 136, 0));
+        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 136, 0));
 
         Assert.Equal(["color all #FF8800"], Api.Calls);
-        Assert.Equal("#FF8800", viewModel.HexColor);
+        Assert.Equal("#FF8800", viewModel.ColorPicker.HexColor);
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public sealed class MainViewModelTests
 
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
 
-        Assert.Equal(new RgbColor(0, 0, 255), viewModel.Color);
+        Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(50.0, viewModel.Brightness);
         Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
         Assert.Empty(Api.Calls);
@@ -167,7 +167,7 @@ public sealed class MainViewModelTests
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
 
-        viewModel.HexColor = "#00FF00";
+        viewModel.ColorPicker.HexColor = "#00FF00";
         viewModel.Brightness = 25;
         viewModel.SelectedEffect = viewModel.Effects[0];
         viewModel.SelectedEffect = null;
