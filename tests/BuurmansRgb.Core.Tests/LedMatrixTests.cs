@@ -34,6 +34,19 @@ public sealed class LedMatrixTests
         Assert.Equal("cells", exception.ParamName);
     }
 
+    // 65536 by 65536 wraps to 0 in int.
+    [Fact]
+    public void Constructor_ShapeOverflowsInt_Throws()
+    {
+        var exception = Assert.Throws<ArgumentException>(() => new LedMatrix(65536, 65536, []));
+
+        Assert.Equal("cells", exception.ParamName);
+    }
+
+    [Fact]
+    public void Constructor_NullCells_Throws() =>
+        Assert.Throws<ArgumentNullException>(() => new LedMatrix(1, 1, null!));
+
     [Fact]
     public void Constructor_CopiesTheCells()
     {

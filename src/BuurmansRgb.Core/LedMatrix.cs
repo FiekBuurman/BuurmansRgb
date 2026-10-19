@@ -11,9 +11,13 @@ public sealed record LedMatrix
     {
         ArgumentOutOfRangeException.ThrowIfNegative(height);
         ArgumentOutOfRangeException.ThrowIfNegative(width);
-        if (cells.Count != height * width)
+        ArgumentNullException.ThrowIfNull(cells);
+
+        // In long, so a shape from the pipe or the OpenRGB server that overflows int is rejected.
+        var cellCount = (long)height * width;
+        if (cells.Count != cellCount)
         {
-            throw new ArgumentException($"A matrix of {height} by {width} has {height * width} cells, not {cells.Count}.", nameof(cells));
+            throw new ArgumentException($"A matrix of {height} by {width} has {cellCount} cells, not {cells.Count}.", nameof(cells));
         }
 
         Height = height;
