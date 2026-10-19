@@ -43,15 +43,17 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Null(mapped.Device.Zones[1].Matrix);
     }
 
+    // The preview turns those cells into gaps (LedLayout.Place); the mapper does not own that rule.
     [Fact]
-    public void Map_KeyMapPointingPastTheZone_TurnsThoseCellsIntoGaps()
+    public void Map_KeyMapPointingPastTheZone_PassesTheMapOnAsItIs()
     {
+        var keys = new LedMatrix(1, 4, [0, 3, 2, 7]);
         var data = TestDevices.Create(type: OpenRgbDeviceType.Keyboard,
-            zones: [new("Keyboard", 3, 3, 3, new LedMatrix(1, 4, [0, 3, 2, 7])), new("Logo", 1, 1, 1)]);
+            zones: [new("Keyboard", 3, 3, 3, keys), new("Logo", 1, 1, 1)]);
 
         var zone = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones[0];
 
-        Assert.Equal(new LedMatrix(1, 4, [0, LedMatrix.NoLed, 2, LedMatrix.NoLed]), zone.Matrix);
+        Assert.Equal(keys, zone.Matrix);
     }
 
     [Fact]

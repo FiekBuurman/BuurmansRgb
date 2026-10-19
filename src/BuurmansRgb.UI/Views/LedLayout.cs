@@ -55,8 +55,10 @@ public static class LedLayout
     }
 
     // The positions of a matrix, such as the keys of a keyboard, for a zone of ledCount LEDs. A
-    // cell that points past the zone stays empty. LEDs that the matrix does not place follow in
-    // rows of their own below it, so every LED still shows and can be clicked.
+    // cell that points past the zone stays empty; this is the one place that guards that, since
+    // providers pass a key map on as they get it and Colors may hold fewer LEDs than the zone.
+    // LEDs that the matrix does not place follow in rows of their own below it, so every LED still
+    // shows and can be clicked.
     public static LedMatrix Place(LedMatrix matrix, int ledCount)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(ledCount);

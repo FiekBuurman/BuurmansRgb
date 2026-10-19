@@ -70,15 +70,8 @@ internal static class OpenRgbDeviceMapper
 
     private static RgbZone ToZone(OpenRgbZoneData zone) => new(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)
     {
-        Matrix = KeepLedsOfZone(zone.Matrix, zone.LedCount),
+        Matrix = zone.Matrix is { Cells.Count: > 0 } matrix ? matrix : null,
     };
-
-    // A cell that points past the LEDs of its zone becomes a gap, so a key map that does not fit
-    // can never show the LED of another zone. An empty map tells nothing.
-    private static LedMatrix? KeepLedsOfZone(LedMatrix? matrix, int ledCount) =>
-        matrix is null || matrix.Cells.Count == 0
-            ? null
-            : new(matrix.Height, matrix.Width, [.. matrix.Cells.Select(cell => cell < ledCount ? cell : LedMatrix.NoLed)]);
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.
