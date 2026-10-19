@@ -296,6 +296,32 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Equal(1, _server.ConnectCount);
     }
 
+    // USB keyboards, mice and headsets often go back to their own effect after sleep.
+    [Fact]
+    public async Task RestoreDevices_KeyboardMouseAndHeadset_TakeColorsAgainWithTheirKeyMap()
+    {
+        var keys = new LedMatrix(1, 3, [0, LedMatrix.NoLed, 1]);
+        _server.Devices =
+        [
+            TestDevices.Create(index: 0, name: "Keyboard", type: OpenRgbDeviceType.Keyboard, zones: [new("Keyboard", 2, 2, 2, keys)]),
+            TestDevices.Create(index: 1, name: "Mouse", type: OpenRgbDeviceType.Mouse, ledCount: 2),
+            TestDevices.Create(index: 2, name: "Headset", type: OpenRgbDeviceType.Headset, ledCount: 2),
+        ];
+        await ConnectAsync();
+
+        _provider.RestoreDevices();
+        await _provider.WhenIdleAsync();
+        var devices = await _provider.DiscoverAsync(Ct);
+        foreach (var device in devices)
+        {
+            _provider.SetLeds(device.Id, [Orange, Orange]);
+        }
+
+        Assert.Equal([0, 1, 2, 0, 1, 2], _server.CustomModeIndexes);
+        Assert.Equal(keys, devices[0].Zones[0].Matrix);
+        Assert.Equal([0, 1, 2], _server.Updates.Select(update => update.Index));
+    }
+
     [Fact]
     public async Task RestoreDevices_UntilReloaded_SendsNoColors()
     {
