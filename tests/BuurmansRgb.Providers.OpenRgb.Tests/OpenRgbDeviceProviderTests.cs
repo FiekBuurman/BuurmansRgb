@@ -212,6 +212,24 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task DeviceListChanged_UntilReloaded_SendsNoColorsToTheOldIndexes()
+    {
+        var device = Assert.Single(await ConnectAsync());
+        var answer = new TaskCompletionSource();
+        _server.DevicesAnswered = answer.Task;
+        _server.Devices = [TestDevices.Create(index: 0, name: "Mouse", type: OpenRgbDeviceType.Mouse), TestDevices.Create(index: 1)];
+
+        _server.LastConnection.RaiseDeviceListChanged();
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+
+        Assert.Empty(_server.Updates);
+        answer.SetResult();
+        await _provider.WhenIdleAsync();
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+        Assert.Equal(1, Assert.Single(_server.Updates).Index);
+    }
+
+    [Fact]
     public async Task DeviceListChanged_ReloadFails_DropsTheConnection()
     {
         await ConnectAsync();

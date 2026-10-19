@@ -17,6 +17,9 @@ internal sealed class FakeOpenRgbServer : IOpenRgbConnector
 
     public bool CloseWhileLoadingDevices { get; set; }
 
+    // The device list is answered once this completes.
+    public Task DevicesAnswered { get; set; } = Task.CompletedTask;
+
     // The connection reports IsClosed from the start, but raised Closed before anyone listened.
     public bool CloseBeforeSubscribing { get; set; }
 
@@ -80,9 +83,12 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool close
             Close();
         }
 
-        return server.GetDevicesException is { } exception
+        var answer = server.GetDevicesException is { } exception
             ? Task.FromException<IReadOnlyList<OpenRgbDeviceData>>(exception)
             : Task.FromResult(server.Devices);
+        return server.DevicesAnswered.IsCompleted
+            ? answer
+            : server.DevicesAnswered.ContinueWith(_ => answer, ct, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
     }
 
     public void SetCustomMode(int deviceIndex)

@@ -185,7 +185,7 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
             connection = await _connector.ConnectAsync(ct).ConfigureAwait(false);
             var connected = connection;
             connection.Closed += (_, _) => EnqueueDrop(connected);
-            connection.DeviceListChanged += (_, _) => Enqueue(token => ReloadAsync(connected, token));
+            connection.DeviceListChanged += (_, _) => OnDeviceListChanged(connected);
             if (connection.IsClosed)
             {
                 EnqueueDrop(connected);
@@ -225,6 +225,21 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
 
         Trace.TraceInformation($"Connected to OpenRGB with protocol version {connection.ProtocolVersion}, {devices.Count} devices.");
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    // The server indexes may have shifted, so no colors go out until the reload has mapped the
+    // devices again; its DevicesChanged makes the engine send them once more.
+    private void OnDeviceListChanged(IOpenRgbConnection connection)
+    {
+        lock (_gate)
+        {
+            if (_connection == connection)
+            {
+                _devicesById = [];
+            }
+        }
+
+        Enqueue(ct => ReloadAsync(connection, ct));
     }
 
     private async Task ReloadAsync(IOpenRgbConnection connection, CancellationToken ct)
