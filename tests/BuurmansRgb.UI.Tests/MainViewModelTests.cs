@@ -239,6 +239,46 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task DevicesChanged_ShowsNewListAndKeepsTheSelectedDevice()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Devices = [.. Api.Devices, new DeviceInfo("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal([null, "strip", "fan", "openrgb-gpu"], viewModel.Devices.Select(device => device.DeviceId));
+        Assert.Equal(string.Format(Strings.AllDevicesDetails, 3), viewModel.Devices[0].Details);
+        Assert.Equal("fan", viewModel.SelectedDevice?.DeviceId);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_SelectedDeviceGone_SelectsAllDevices()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Devices = [Api.Devices[0]];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Null(viewModel.SelectedDevice?.DeviceId);
+        Assert.Same(viewModel.Devices[0], viewModel.SelectedDevice);
+        Assert.Equal(80, viewModel.Brightness);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_AllDevicesSelected_PreviewShowsTheNewDevice()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [.. Api.Devices, new DeviceInfo("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(["strip", "fan", "openrgb-gpu"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
+    }
+
+    [Fact]
     public async Task Disconnected_ShowsMessageAndReleasesConnection()
     {
         var viewModel = await ConnectAsync();
