@@ -3,7 +3,7 @@ using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine;
 
-internal sealed class EngineHost(ISettingsStore settingsStore, LightingController lighting)
+internal sealed class EngineHost(ISettingsStore settingsStore, LightingController lighting) : IEngineHost
 {
     public async Task StartAsync(CancellationToken ct)
     {

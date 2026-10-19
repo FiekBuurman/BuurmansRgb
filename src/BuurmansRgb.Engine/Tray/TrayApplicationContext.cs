@@ -4,39 +4,35 @@ using BuurmansRgb.Engine.SettingsApp;
 
 namespace BuurmansRgb.Engine.Tray;
 
-internal sealed class TrayApplicationContext : ApplicationContext
+internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 {
     private const int BalloonTimeoutMs = 5000;
 
-    private readonly EngineHost _host;
-    private readonly IAutoStart _autoStart;
-    private readonly ISettingsAppLauncher _settingsAppLauncher;
+    private readonly TrayPresenter _presenter;
     private readonly ContextMenuStrip _menu;
     private readonly NotifyIcon _notifyIcon;
     private readonly ToolStripMenuItem _autoStartItem;
     private readonly SynchronizationContext _uiContext;
 
-    public TrayApplicationContext(EngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher)
+    public TrayApplicationContext(IEngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher)
     {
-        _host = host;
-        _autoStart = autoStart;
-        _settingsAppLauncher = settingsAppLauncher;
+        _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, this);
 
         var pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
-        pauseItem.CheckedChanged += (_, _) => SetPaused(pauseItem.Checked);
+        pauseItem.CheckedChanged += (_, _) => _presenter.SetPaused(pauseItem.Checked);
         _autoStartItem = new ToolStripMenuItem(Strings.MenuAutoStart) { CheckOnClick = true };
-        _autoStartItem.Click += (_, _) => SetAutoStart(_autoStartItem.Checked);
+        _autoStartItem.Click += (_, _) => _presenter.SetAutoStart(_autoStartItem.Checked);
 
         _menu = new ContextMenuStrip();
         _menu.Items.AddRange(
         [
-            new ToolStripMenuItem(Strings.MenuOpenSettings, image: null, (_, _) => OpenSettings()),
+            new ToolStripMenuItem(Strings.MenuOpenSettings, image: null, (_, _) => _presenter.OpenSettings()),
             pauseItem,
             _autoStartItem,
             new ToolStripSeparator(),
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
         ]);
-        _menu.Opening += (_, _) => _autoStartItem.Checked = _autoStart.IsEnabled;
+        _menu.Opening += (_, _) => _presenter.RefreshAutoStart();
 
         _notifyIcon = new NotifyIcon
         {
@@ -49,7 +45,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         {
             if (e.Button == MouseButtons.Left)
             {
-                OpenSettings();
+                _presenter.OpenSettings();
             }
         };
 
@@ -57,19 +53,16 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No UI synchronization context.");
     }
 
-    public void RequestOpenSettings() => _uiContext.Post(_ => OpenSettings(), state: null);
+    public void RequestOpenSettings() => _uiContext.Post(_ => _presenter.OpenSettings(), state: null);
 
-    public async Task StartAsync(CancellationToken ct)
-    {
-        try
-        {
-            await _host.StartAsync(ct);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            ShowBalloon(string.Format(Strings.StartupFailed, exception.Message), ToolTipIcon.Error);
-        }
-    }
+    public Task StartAsync(CancellationToken ct) => _presenter.StartAsync(ct);
+
+    void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
+
+    void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
+
+    void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>
+        _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, ToToolTipIcon(kind));
 
     protected override void ExitThreadCore()
     {
@@ -89,33 +82,10 @@ internal sealed class TrayApplicationContext : ApplicationContext
         base.Dispose(disposing);
     }
 
-    private void OpenSettings()
+    private static ToolTipIcon ToToolTipIcon(TrayNotificationKind kind) => kind switch
     {
-        if (!_settingsAppLauncher.TryLaunch())
-        {
-            ShowBalloon(Strings.SettingsAppNotFound, ToolTipIcon.Info);
-        }
-    }
-
-    private void SetPaused(bool paused)
-    {
-        _host.SetPaused(paused);
-        _notifyIcon.Text = paused ? Strings.TrayToolTipPaused : Strings.AppName;
-    }
-
-    private void SetAutoStart(bool enabled)
-    {
-        try
-        {
-            _autoStart.SetEnabled(enabled);
-        }
-        catch (Exception exception) when (exception is UnauthorizedAccessException or System.Security.SecurityException or IOException)
-        {
-            _autoStartItem.Checked = _autoStart.IsEnabled;
-            ShowBalloon(string.Format(Strings.AutoStartFailed, exception.Message), ToolTipIcon.Warning);
-        }
-    }
-
-    private void ShowBalloon(string text, ToolTipIcon icon) =>
-        _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, icon);
+        TrayNotificationKind.Warning => ToolTipIcon.Warning,
+        TrayNotificationKind.Error => ToolTipIcon.Error,
+        _ => ToolTipIcon.Info,
+    };
 }
