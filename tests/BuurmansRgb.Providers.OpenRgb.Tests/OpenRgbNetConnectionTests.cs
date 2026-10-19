@@ -16,8 +16,6 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     private readonly OpenRgbTestServer _server = new();
     private readonly List<IOpenRgbConnection> _connections = [];
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     public async ValueTask DisposeAsync()
     {
         foreach (var connection in _connections)

@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Providers.Simulated;
+using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -15,13 +16,11 @@ public sealed class LightingControllerDeviceChangeTests
 
     public LightingControllerDeviceChangeTests() => _controller = new LightingController([_simulated, _dynamic]);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     [Fact]
     public async Task DevicesChanged_NewDevicesFollowTheSimulatedOnesAndGetTheLighting()
     {
         await _controller.DiscoverAsync(Ct);
-        _controller.Apply(LightingStates.Uniform(Lighting(Orange)));
+        _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
 
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
 
@@ -34,7 +33,7 @@ public sealed class LightingControllerDeviceChangeTests
     public async Task DevicesChanged_RaisesRenderedWithTheNewDevice()
     {
         await _controller.DiscoverAsync(Ct);
-        _controller.Apply(LightingStates.Uniform(Lighting(Orange)));
+        _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
         var rendered = new TaskCompletionSource<LightingOutput>();
         _controller.Rendered += (_, _) => rendered.TrySetResult(_controller.GetOutput());
 
@@ -59,11 +58,11 @@ public sealed class LightingControllerDeviceChangeTests
     public async Task DevicesChanged_DeviceGone_KeepsItsOwnLightingForWhenItReturns()
     {
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
-        _controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { ["real"] = Lighting(Green) }));
+        _controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { ["real"] = StaticLighting(Green) }));
 
         await ChangeDevicesAsync();
         Assert.DoesNotContain(_controller.Devices, device => device.Id == "real");
-        Assert.Equal(Lighting(Green), _controller.State.Devices["real"]);
+        Assert.Equal(StaticLighting(Green), _controller.State.Devices["real"]);
 
         _dynamic.Leds.Clear();
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
@@ -74,15 +73,13 @@ public sealed class LightingControllerDeviceChangeTests
     public async Task DevicesChanged_WhilePaused_SendsNothing()
     {
         await _controller.DiscoverAsync(Ct);
-        _controller.Apply(LightingStates.Uniform(Lighting(Orange)));
+        _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
         _controller.SetPaused(true);
 
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
 
         Assert.Empty(_dynamic.Leds);
     }
-
-    private static DeviceLighting Lighting(RgbColor color) => new(color, 1.0, EffectIds.Static);
 
     private async Task ChangeDevicesAsync(params IReadOnlyList<RgbDevice> devices)
     {

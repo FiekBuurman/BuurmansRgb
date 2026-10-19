@@ -15,8 +15,6 @@ public sealed class LightingControllerZoneTests
 
     public LightingControllerZoneTests() => _controller = new LightingController([_simulated, _dynamic]);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     [Fact]
     public async Task ResizeZone_GivesTheNewLengthTheLighting()
     {

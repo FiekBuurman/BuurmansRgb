@@ -13,8 +13,6 @@ public sealed class LightingControllerValidationTests
 
     public LightingControllerValidationTests() => _controller = new LightingController([_provider]);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     [Theory]
     [InlineData(null)]
     [InlineData(RecordingDeviceProvider.DeviceId)]

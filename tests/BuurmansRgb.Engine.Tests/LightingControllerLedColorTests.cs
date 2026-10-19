@@ -13,8 +13,6 @@ public sealed class LightingControllerLedColorTests
 
     public LightingControllerLedColorTests() => _controller = new LightingController([_provider]);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     [Fact]
     public async Task GetLedColors_NothingStored_IsTheDeviceColorOnEveryLed()
     {

@@ -17,8 +17,6 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         _provider.DevicesChanged += (_, _) => Interlocked.Increment(ref _devicesChanged);
     }
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     public void Dispose() => _provider.Dispose();
 
     [Fact]

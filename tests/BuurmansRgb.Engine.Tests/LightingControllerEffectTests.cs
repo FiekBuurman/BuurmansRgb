@@ -14,8 +14,6 @@ public sealed class LightingControllerEffectTests
 
     public LightingControllerEffectTests() => _controller = new LightingController([_provider], _time);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     [Fact]
     public async Task Apply_Rainbow_GivesEachLedItsHue()
     {

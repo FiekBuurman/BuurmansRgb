@@ -16,8 +16,6 @@ public sealed class LightingControllerAnimationTests : IDisposable
 
     public LightingControllerAnimationTests() => _controller = new LightingController([_provider], _time);
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     public void Dispose() => _controller.Dispose();
 
     [Fact]

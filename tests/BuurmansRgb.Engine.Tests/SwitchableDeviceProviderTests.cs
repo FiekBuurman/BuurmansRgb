@@ -16,8 +16,6 @@ public sealed class SwitchableDeviceProviderTests
         _switchable.DevicesChanged += (_, _) => _changes++;
     }
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     private IResizableDeviceProvider Resizable => Assert.IsAssignableFrom<IResizableDeviceProvider>(_switchable);
 
     [Fact]
