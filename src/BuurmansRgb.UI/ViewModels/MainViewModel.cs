@@ -13,6 +13,14 @@ namespace BuurmansRgb.UI.ViewModels;
 // view model. Property changes made while showing engine state are not sent back (_syncing).
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
+    // The kinds of call in the call queue; with the device they make the key that lets a newer
+    // call replace one that still waits.
+    private const string BrightnessCall = "brightness";
+    private const string EffectCall = "effect";
+    private const string ColorCall = "color";
+    private const string LedsCall = "leds";
+    private const string ResizeCall = "resize";
+
     private readonly IEngineConnector _connector;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
@@ -132,7 +140,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!_syncing.IsActive)
         {
             var brightness = Math.Clamp(value / 100.0, 0.0, 1.0);
-            Send("brightness", (api, deviceId) => api.SetBrightnessAsync(deviceId, brightness));
+            Send(BrightnessCall, (api, deviceId) => api.SetBrightnessAsync(deviceId, brightness));
         }
     }
 
@@ -140,7 +148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!_syncing.IsActive && value is not null)
         {
-            Send("effect", (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
+            Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
         }
     }
 
@@ -249,7 +257,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         else
         {
-            Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
+            Send(ColorCall, (api, deviceId) => api.SetColorAsync(deviceId, color));
         }
     }
 
@@ -307,7 +315,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _calls.Post(("leds", edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
@@ -320,7 +328,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_connection is { } connection)
         {
-            _calls.Post(("resize", resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
+            _calls.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
         }
     }
 
