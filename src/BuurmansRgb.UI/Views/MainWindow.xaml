@@ -177,8 +177,14 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">
                                                     <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock Margin="0,0,0,3" TextWrapping="Wrap"
+                                                                   Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
+                                                            <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
+                                                                <Run Text="{Binding Header, Mode=OneWay}" />
+                                                            </Hyperlink>
+                                                        </TextBlock>
                                                         <TextBlock Margin="0,0,0,3" Text="{Binding Header}" TextWrapping="Wrap"
-                                                                   Visibility="{Binding ShowsHeader, Converter={StaticResource BoolToVisibility}}" />
+                                                                   Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
                                                         <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"

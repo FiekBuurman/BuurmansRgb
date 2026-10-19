@@ -57,6 +57,34 @@ public sealed class MainViewModelLedEditorTests
     }
 
     [Fact]
+    public async Task SelectZone_ColorsOnlyThatRingOfTheFan()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.RaiseDevicesChanged();
+
+        Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Assert.Equal(new LedSelection("fan", "Fan", 2, 4), viewModel.LedEditor.Selection);
+        Assert.Equal((2, 4), viewModel.Preview.Devices[0].ShownSelection());
+        Assert.Equal(["leds fan 2 #00FF00,#00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectZone_WhileEditingTheDevice_SelectsTheZoneInstead()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.RaiseDevicesChanged();
+        Click(viewModel, "fan", 3);
+
+        viewModel.Preview.Devices[0].Zones[0].SelectZoneCommand.Execute(null);
+
+        Assert.Equal(new LedSelection("fan", "Fan", 0, 1), viewModel.LedEditor.Selection);
+    }
+
+    [Fact]
     public async Task FillGradient_SendsTheGradientOfTheRange()
     {
         var viewModel = await ConnectAsync();

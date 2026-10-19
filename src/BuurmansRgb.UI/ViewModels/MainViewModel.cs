@@ -28,6 +28,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
+        Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
     }
 
@@ -283,25 +284,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
-    // The stored colors are fetched when editing starts on a device; clicks on the same device
-    // reuse them, so they also hold the edits that are still on their way to the engine.
-    private async Task OnLedClickedAsync(LedClick click)
+    private Task OnLedClickedAsync(LedClick click) =>
+        EditLedsAsync(click.DeviceId, click.Index, editor => editor.Select(click.Index, click.Extend));
+
+    private Task OnLedsSelectedAsync(LedSelection leds) =>
+        EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
+
+    // The stored colors are fetched when editing starts on a device, at the LED firstIndex; clicks
+    // on the same device reuse them, so they also hold the edits that are still on their way to
+    // the engine. select then picks the LEDs.
+    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select)
     {
         if (_connection is not { } connection)
         {
             return;
         }
 
-        if (LedEditor.IsEditing(click.DeviceId))
-        {
-            LedEditor.Select(click.Index, click.Extend);
-        }
-        else
+        if (!LedEditor.IsEditing(deviceId))
         {
             IReadOnlyList<RgbColor> colors;
             try
             {
-                colors = await connection.Api.GetLedColorsAsync(click.DeviceId);
+                colors = await connection.Api.GetLedColorsAsync(deviceId);
             }
             catch (Exception exception)
             {
@@ -309,14 +313,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 return;
             }
 
-            if (!ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == click.DeviceId) is not { } device)
+            if (!ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
 
-            LedEditor.Start(device.Id, device.Name, colors, click.Index);
+            LedEditor.Start(device.Id, device.Name, colors, firstIndex);
         }
 
+        select(LedEditor);
         Preview.ShowLedSelection(LedEditor.Selection);
         WithoutSending(() => ColorPicker.Show(LedEditor.AnchorColor));
     }

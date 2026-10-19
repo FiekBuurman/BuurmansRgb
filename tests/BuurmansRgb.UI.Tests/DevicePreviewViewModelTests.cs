@@ -139,4 +139,27 @@ public sealed class DevicePreviewViewModelTests
 
         Assert.Equal([new LedClick("board", 6, Extend: true)], actions.Requests);
     }
+
+    [Fact]
+    public void SelectZone_RingOfAFan_HandsOnAllItsLeds()
+    {
+        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]);
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(fan, actions);
+
+        Assert.True(preview.Zones[1].ShowsHeaderLink);
+        preview.Zones[1].SelectZoneCommand.Execute(null);
+
+        Assert.Equal([new LedSelection("fan", "Dual-ring fan", 8, 19)], actions.Requests);
+    }
+
+    [Fact]
+    public void SelectZone_ZoneWithoutLeds_CannotRunAndShowsPlainText()
+    {
+        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+
+        Assert.False(header.SelectZoneCommand.CanExecute(null));
+        Assert.False(header.ShowsHeaderLink);
+        Assert.True(header.ShowsHeaderText);
+    }
 }

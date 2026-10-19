@@ -11,12 +11,14 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class ZonePreviewViewModel : ObservableObject
 {
     private readonly string _deviceId;
+    private readonly string _deviceName;
     private readonly ZoneLayout _layout;
     private readonly IPreviewActions? _actions;
 
     public ZonePreviewViewModel(string deviceId, string deviceName, ZoneLayout layout, bool showsName, IPreviewActions? actions)
     {
         _deviceId = deviceId;
+        _deviceName = deviceName;
         _layout = layout;
         _actions = actions;
         Colors = new RgbColor[layout.LedCount];
@@ -46,6 +48,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     // What a screen reader calls the LED strip.
     public string AccessibleName { get; }
 
+    // The zone name selects the whole zone; a zone without LEDs has nothing to select.
+    public bool CanSelectZone => LedCount > 0;
+
+    // The header as a link that selects the zone, or as plain text when there is nothing to select.
+    public bool ShowsHeaderLink => ShowsHeader && CanSelectZone;
+
+    public bool ShowsHeaderText => ShowsHeader && !CanSelectZone;
+
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; private set; }
 
@@ -73,4 +83,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     [RelayCommand]
     private void ClickLed(LedHit hit) => _actions?.ClickLed(new LedClick(_deviceId, FirstLed + hit.Index, hit.Extend));
+
+    [RelayCommand(CanExecute = nameof(CanSelectZone))]
+    private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));
 }

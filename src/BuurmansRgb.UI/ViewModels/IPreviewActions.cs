@@ -4,4 +4,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public interface IPreviewActions
 {
     void ClickLed(LedClick click);
+
+    // A click on the name of a zone, such as one ring of a fan: all its LEDs.
+    void SelectLeds(LedSelection selection);
 }

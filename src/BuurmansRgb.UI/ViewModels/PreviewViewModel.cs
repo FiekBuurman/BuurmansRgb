@@ -15,6 +15,9 @@ public sealed class PreviewViewModel : IPreviewActions
     // Raised when the user clicks an LED in one of the device previews.
     public event EventHandler<LedClick>? LedClicked;
 
+    // Raised when the user clicks the name of a zone, to select all of its LEDs.
+    public event EventHandler<LedSelection>? LedsSelected;
+
     // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
     public void Reset() => _latestFrame = LightingFrame.Empty;
 
@@ -60,4 +63,6 @@ public sealed class PreviewViewModel : IPreviewActions
 
     // The device previews hand what the user does to these; the main view model listens to the events.
     void IPreviewActions.ClickLed(LedClick click) => LedClicked?.Invoke(this, click);
+
+    void IPreviewActions.SelectLeds(LedSelection selection) => LedsSelected?.Invoke(this, selection);
 }
