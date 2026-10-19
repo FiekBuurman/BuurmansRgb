@@ -16,9 +16,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IEngineConnector _connector;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
+    private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
-    private bool _syncing;
 
     public MainViewModel(IEngineConnector connector)
     {
@@ -100,7 +100,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // which would send the next change to every device, so the previous item stays selected.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
-        if (_syncing)
+        if (_syncing.IsActive)
         {
             return;
         }
@@ -115,7 +115,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 {
                     if (SelectedDevice is null && Devices.Contains(oldValue))
                     {
-                        WithoutSending(() => SelectedDevice = oldValue);
+                        _syncing.Run(() => SelectedDevice = oldValue);
                     }
                 });
             }
@@ -129,7 +129,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnBrightnessChanged(double value)
     {
-        if (!_syncing)
+        if (!_syncing.IsActive)
         {
             var brightness = Math.Clamp(value / 100.0, 0.0, 1.0);
             Send("brightness", (api, deviceId) => api.SetBrightnessAsync(deviceId, brightness));
@@ -138,7 +138,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
-        if (!_syncing && value is not null)
+        if (!_syncing.IsActive && value is not null)
         {
             Send("effect", (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
         }
@@ -148,7 +148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var devices = await api.GetDevicesAsync();
         var effects = await api.GetEffectsAsync();
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             Effects.Clear();
             foreach (var effect in effects)
@@ -167,7 +167,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var selectedId = SelectedDevice?.DeviceId;
         _devices = devices;
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             Devices.Clear();
             Devices.Add(DeviceItem.AllDevices(devices.Count));
@@ -222,7 +222,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             ColorPicker.Show(LedEditor.HasSelection ? LedEditor.AnchorColor : lighting.Color);
             Brightness = Math.Round(lighting.Brightness * 100.0);
@@ -295,7 +295,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         select(LedEditor);
         Preview.ShowLedSelection(LedEditor.Selection);
-        WithoutSending(() => ColorPicker.Show(LedEditor.AnchorColor));
+        _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
     }
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
@@ -310,7 +310,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post(("leds", edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
-            WithoutSending(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+            _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
         }
     }
 
@@ -394,20 +394,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Dispose();
-    }
-
-    private void WithoutSending(Action update)
-    {
-        var wasSyncing = _syncing;
-        _syncing = true;
-        try
-        {
-            update();
-        }
-        finally
-        {
-            _syncing = wasSyncing;
-        }
     }
 
     private void RunOnUi(Action action)

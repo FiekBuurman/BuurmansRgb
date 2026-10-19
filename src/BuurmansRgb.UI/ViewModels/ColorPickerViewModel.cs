@@ -9,8 +9,8 @@ namespace BuurmansRgb.UI.ViewModels;
 // change the user made, not for a color shown with Show.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
+    private readonly ReentrancyGuard _showing = new();
     private double _value = 1.0;
-    private bool _showing;
 
     public event EventHandler<RgbColor>? ColorPicked;
 
@@ -45,7 +45,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     // The fully saturated color of the current hue, for the saturation slider's gradient.
     public RgbColor HueColor => RgbColor.FromHsv(Hue / 360.0, 1.0, 1.0);
 
-    public void Show(RgbColor color) => Showing(() => ShowColor(color));
+    public void Show(RgbColor color) => _showing.Run(() => ShowColor(color));
 
     [RelayCommand]
     private void SelectPreset(RgbColor color)
@@ -60,24 +60,24 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
     partial void OnHexColorChanged(string value)
     {
-        if (_showing || !RgbColor.TryParseHex(value.Trim(), out var color))
+        if (_showing.IsActive || !RgbColor.TryParseHex(value.Trim(), out var color))
         {
             return;
         }
 
-        Showing(() => ShowColor(color, updateHex: false));
+        _showing.Run(() => ShowColor(color, updateHex: false));
         ColorPicked?.Invoke(this, color);
     }
 
     private void ColorFromSliders()
     {
-        if (_showing)
+        if (_showing.IsActive)
         {
             return;
         }
 
         var color = RgbColor.FromHsv(Hue / 360.0, Saturation / 100.0, _value);
-        Showing(() =>
+        _showing.Run(() =>
         {
             Color = color;
             HexColor = color.ToHex();
@@ -97,20 +97,6 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         if (updateHex)
         {
             HexColor = color.ToHex();
-        }
-    }
-
-    private void Showing(Action update)
-    {
-        var wasShowing = _showing;
-        _showing = true;
-        try
-        {
-            update();
-        }
-        finally
-        {
-            _showing = wasShowing;
         }
     }
 }
