@@ -16,7 +16,7 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
-        using var instance = SingleInstance.Acquire(SingleInstance.EngineName);
+        using var instance = SingleInstance.Acquire(EngineRpc.EngineName);
         if (!instance.IsPrimary)
         {
             instance.SignalPrimary();
