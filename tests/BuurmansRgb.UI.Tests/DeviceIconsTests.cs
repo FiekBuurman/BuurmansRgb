@@ -7,7 +7,10 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class DeviceIconsTests
 {
     private static readonly Geometry[] AllIcons =
-        [DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.Gpu, DeviceIcons.AllDevices, DeviceIcons.Device];
+    [
+        DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.Gpu, DeviceIcons.Fan, DeviceIcons.LedStrip, DeviceIcons.Case,
+        DeviceIcons.AllDevices, DeviceIcons.Device,
+    ];
 
     [Fact]
     public void For_TypesWithAnIconAndAllDevices_HaveTheirOwnIcon()
@@ -15,12 +18,14 @@ public sealed class DeviceIconsTests
         Assert.Same(DeviceIcons.Motherboard, DeviceIcons.For(DeviceType.Motherboard));
         Assert.Same(DeviceIcons.Ram, DeviceIcons.For(DeviceType.Ram));
         Assert.Same(DeviceIcons.Gpu, DeviceIcons.For(DeviceType.Gpu));
+        Assert.Same(DeviceIcons.Fan, DeviceIcons.For(DeviceType.Fan));
+        Assert.Same(DeviceIcons.LedStrip, DeviceIcons.For(DeviceType.LedStrip));
+        Assert.Same(DeviceIcons.Case, DeviceIcons.For(DeviceType.Case));
         Assert.Same(DeviceIcons.AllDevices, DeviceIcons.For(null));
         Assert.Equal(AllIcons.Length, AllIcons.Distinct().Count());
     }
 
     [Theory]
-    [InlineData(DeviceType.Fan)]
     [InlineData(DeviceType.Keyboard)]
     [InlineData(DeviceType.Other)]
     public void For_TypeWithoutIcon_GetsTheDeviceIcon(DeviceType type) => Assert.Same(DeviceIcons.Device, DeviceIcons.For(type));
