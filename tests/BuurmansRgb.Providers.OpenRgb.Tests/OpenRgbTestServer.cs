@@ -60,9 +60,15 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     {
         var header = new byte[OpenRgbPackets.HeaderLength];
         OpenRgbPackets.WriteHeader(header, 0, CommandId.DeviceListUpdated, 0);
+        SendToClients(header);
+    }
+
+    // Sends raw bytes to every client, also bytes that are no valid packet.
+    public void SendToClients(byte[] bytes)
+    {
         foreach (var client in _clients.Keys)
         {
-            client.Send(header);
+            client.Send(bytes);
         }
     }
 
