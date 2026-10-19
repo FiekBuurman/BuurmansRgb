@@ -24,10 +24,10 @@
   <data name="AllDevicesDetails" xml:space="preserve">
     <value>{0} apparaten</value>
   </data>
-  <data name="DeviceDetails" xml:space="preserve">
+  <data name="LedCount" xml:space="preserve">
     <value>{0} LED's</value>
   </data>
-  <data name="DeviceDetailsZones" xml:space="preserve">
+  <data name="LedCountInZones" xml:space="preserve">
     <value>{0} LED's in {1} zones</value>
   </data>
   <data name="DeviceDetailsWithType" xml:space="preserve">

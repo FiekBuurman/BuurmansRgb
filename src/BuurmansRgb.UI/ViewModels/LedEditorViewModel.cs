@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -24,8 +23,8 @@ public sealed partial class LedEditorViewModel : ObservableObject
     public string? SelectionText => Selection switch
     {
         null => null,
-        { Count: 1 } selection => Format(Strings.LedSelectionSingle, selection.First + 1, selection.DeviceName),
-        var selection => Format(Strings.LedSelectionRange, selection.First + 1, selection.Last + 1, selection.DeviceName),
+        { Count: 1 } selection => UiText.Format(Strings.LedSelectionSingle, selection.First + 1, selection.DeviceName),
+        var selection => UiText.Format(Strings.LedSelectionRange, selection.First + 1, selection.Last + 1, selection.DeviceName),
     };
 
     // The stored color of the LED that was clicked without Shift, for the color picker.
@@ -104,6 +103,4 @@ public sealed partial class LedEditorViewModel : ObservableObject
 
     private LedEdit EditOf(LedSelection selection) =>
         new(selection.DeviceId, selection.First, _colors.AsSpan(selection.First, selection.Count).ToArray());
-
-    private static string Format(string format, params object[] args) => string.Format(CultureInfo.CurrentCulture, format, args);
 }
