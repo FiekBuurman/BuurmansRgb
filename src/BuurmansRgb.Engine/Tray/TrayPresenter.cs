@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Resources;
@@ -20,7 +21,7 @@ internal sealed class TrayPresenter(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            view.ShowNotification(string.Format(Strings.StartupFailed, exception.Message), TrayNotificationKind.Error);
+            ReportFailure(exception, Strings.StartupFailed, TrayNotificationKind.Error);
         }
     }
 
@@ -49,7 +50,15 @@ internal sealed class TrayPresenter(
         catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException or IOException)
         {
             RefreshAutoStart();
-            view.ShowNotification(string.Format(Strings.AutoStartFailed, exception.Message), TrayNotificationKind.Warning);
+            ReportFailure(exception, Strings.AutoStartFailed, TrayNotificationKind.Warning);
         }
+    }
+
+    // .NET exception messages are English, so the user only sees the Dutch text; the details
+    // go to the debug output (DebugView) until the engine logs to a file.
+    private void ReportFailure(Exception exception, string text, TrayNotificationKind kind)
+    {
+        Trace.TraceError(exception.ToString());
+        view.ShowNotification(text, kind);
     }
 }

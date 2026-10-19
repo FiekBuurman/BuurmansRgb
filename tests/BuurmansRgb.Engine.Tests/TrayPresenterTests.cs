@@ -22,14 +22,13 @@ public sealed class TrayPresenterTests
     }
 
     [Fact]
-    public async Task StartAsync_HostFails_ShowsError()
+    public async Task StartAsync_HostFails_ShowsDutchErrorWithoutExceptionMessage()
     {
         _host.StartException = new IOException("Disk unavailable.");
 
         await CreatePresenter().StartAsync(TestContext.Current.CancellationToken);
 
-        var (_, kind) = Assert.Single(_view.Notifications);
-        Assert.Equal(TrayNotificationKind.Error, kind);
+        Assert.Equal([(Strings.StartupFailed, TrayNotificationKind.Error)], _view.Notifications);
     }
 
     [Fact]
@@ -107,8 +106,7 @@ public sealed class TrayPresenterTests
         CreatePresenter().SetAutoStart(true);
 
         Assert.False(_view.AutoStartChecked);
-        var (_, kind) = Assert.Single(_view.Notifications);
-        Assert.Equal(TrayNotificationKind.Warning, kind);
+        Assert.Equal([(Strings.AutoStartFailed, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _view);

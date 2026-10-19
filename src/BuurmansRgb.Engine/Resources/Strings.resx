@@ -34,9 +34,9 @@
     <value>De instellingen-app is niet gevonden.</value>
   </data>
   <data name="StartupFailed" xml:space="preserve">
-    <value>De verlichting kon niet worden gestart: {0}</value>
+    <value>De verlichting kon niet worden gestart.</value>
   </data>
   <data name="AutoStartFailed" xml:space="preserve">
-    <value>Starten met Windows kon niet worden aangepast: {0}</value>
+    <value>Starten met Windows kon niet worden aangepast.</value>
   </data>
 </root>
