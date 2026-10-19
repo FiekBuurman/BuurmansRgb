@@ -25,9 +25,10 @@ public sealed class OpenRgbProviderCpuTests
         // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed.
         // Measured after the drop, so the work of dropping itself and of tests that ran before
         // (sockets that still close, JIT) does not count; a spinning loop would use about a second.
+        // On a busy pc the rest of the process already uses about 300 ms, so the limit is halfway.
         var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
         await Task.Delay(1000, TestContext.Current.CancellationToken);
         var cpuUsed = Process.GetCurrentProcess().TotalProcessorTime - cpuBefore;
-        Assert.True(cpuUsed < TimeSpan.FromMilliseconds(300), $"Used {cpuUsed.TotalMilliseconds} ms CPU.");
+        Assert.True(cpuUsed < TimeSpan.FromMilliseconds(500), $"Used {cpuUsed.TotalMilliseconds} ms CPU.");
     }
 }
