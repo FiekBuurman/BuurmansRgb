@@ -119,12 +119,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SendColor();
     }
 
-    partial void OnSelectedDeviceChanged(DeviceItem? value)
+    // Ctrl+click in the list deselects the item. "Nothing" must not turn into "all devices",
+    // which would send the next change to every device, so the previous item stays selected.
+    partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
-        if (!_syncing)
+        if (_syncing)
         {
-            _ = ShowSelectionAsync();
+            return;
         }
+
+        if (newValue is null)
+        {
+            if (oldValue is not null && Devices.Contains(oldValue))
+            {
+                WithoutSending(() => SelectedDevice = oldValue);
+            }
+
+            return;
+        }
+
+        _ = ShowSelectionAsync();
     }
 
     partial void OnHueChanged(double value) => ColorFromSliders();
@@ -258,12 +272,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)
     {
-        if (_connection is not { } connection)
+        if (_connection is not { } connection || SelectedDevice is not { } selected)
         {
             return;
         }
 
-        var deviceId = SelectedDevice?.DeviceId;
+        var deviceId = selected.DeviceId;
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
     }
 

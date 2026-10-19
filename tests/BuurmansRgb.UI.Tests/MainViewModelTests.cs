@@ -177,6 +177,21 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task SelectNothing_KeepsPreviousDeviceSoChangesStayOnIt()
+    {
+        var viewModel = await ConnectAsync();
+        var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = fan;
+
+        viewModel.SelectedDevice = null;
+        viewModel.Brightness = 30;
+
+        Assert.Same(fan, viewModel.SelectedDevice);
+        Assert.Equal(["fan"], viewModel.Preview.Select(preview => preview.DeviceId));
+        Assert.Equal(["brightness fan 0.30"], Api.Calls);
+    }
+
+    [Fact]
     public async Task FrameRendered_UpdatesPreview()
     {
         var viewModel = await ConnectAsync();
