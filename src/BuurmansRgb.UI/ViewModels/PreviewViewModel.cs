@@ -23,7 +23,7 @@ public sealed class PreviewViewModel
         Devices.Clear();
         foreach (var device in devices)
         {
-            var preview = new DevicePreviewViewModel(device.Id, device.Name, device.LedCount, click => LedClicked?.Invoke(this, click));
+            var preview = new DevicePreviewViewModel(device, click => LedClicked?.Invoke(this, click));
             preview.ShowLedSelection(_ledSelection);
             Devices.Add(preview);
         }

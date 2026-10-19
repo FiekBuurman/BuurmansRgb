@@ -166,11 +166,31 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                                     <StackPanel Margin="0,0,0,12">
-                                        <TextBlock Text="{Binding Name}" Margin="0,0,0,4" />
-                                        <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
-                                                            SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
-                                                            ClickCommand="{Binding ClickLedCommand}"
-                                                            AutomationProperties.Name="{Binding Name}" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <Path Margin="0,0,6,0" VerticalAlignment="Center"
+                                                  Width="{x:Static views:DeviceIcons.Size}" Height="{x:Static views:DeviceIcons.Size}"
+                                                  Data="{Binding Type, Converter={StaticResource TypeToIcon}}" StrokeThickness="1"
+                                                  Stroke="{x:Static SystemColors.ControlTextBrush}" />
+                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Zones}" AutomationProperties.Name="{Binding Name}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">
+                                                    <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock Margin="0,0,0,3"
+                                                                   Visibility="{Binding ShowsHeader, Converter={StaticResource BoolToVisibility}}">
+                                                            <Run Text="{Binding Name, Mode=OneWay}" />
+                                                            <Run Text="·" Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                                            <Run Text="{Binding Details, Mode=OneWay}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                                        </TextBlock>
+                                                        <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
+                                                                            SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
+                                                                            ClickCommand="{Binding ClickLedCommand}"
+                                                                            AutomationProperties.Name="{Binding Name}" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

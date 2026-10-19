@@ -16,7 +16,7 @@ public sealed record DeviceItem(string? DeviceId, string Name, string Details, D
         var typeName = TypeNameOf(device.Type);
         var leds = device.Zones.Count > 1
             ? UiText.Format(Strings.LedCountInZones, device.LedCount, device.Zones.Count)
-            : UiText.Format(Strings.LedCount, device.LedCount);
+            : UiText.LedCount(device.LedCount);
         var details = typeName is null ? leds : UiText.Format(Strings.DeviceDetailsWithType, typeName, leds);
         return new(device.Id, device.Name, details, device.Type, typeName);
     }
