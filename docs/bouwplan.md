@@ -115,7 +115,7 @@ Gebruik .NET 10 (de huidige LTS-versie) met WPF voor de UI en een UI-loos engine
 Solution-indeling:
 
 ```text
-BuurmansRgb.sln
+BuurmansRgb.slnx
 ├─ src/
 │  ├─ BuurmansRgb.Core                // modellen, interfaces, kleur-wiskunde
 │  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, PerLed
@@ -175,9 +175,9 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 **Acceptatie:**
 
-- [ ] `dotnet build` en `dotnet test` slagen zonder waarschuwingen
-- [ ] Tests voor `RgbColor`: helderheid schalen, HSV naar RGB, interpolatie
-- [ ] De gesimuleerde provider levert de drie apparaten met juiste LED-aantallen
+- [x] `dotnet build` en `dotnet test` slagen zonder waarschuwingen
+- [x] Tests voor `RgbColor`: helderheid schalen, HSV naar RGB, interpolatie
+- [x] De gesimuleerde provider levert de drie apparaten met juiste LED-aantallen
 
 ### Taak 1 – Engine en tray
 
