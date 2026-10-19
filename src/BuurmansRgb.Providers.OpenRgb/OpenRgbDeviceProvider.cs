@@ -116,7 +116,8 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
     }
 
     // In the background, after any (re)load that is still on its way, so the device is looked up
-    // by its server index of that moment. The reload after it reports the device with its new
+    // by its server index of that moment; when a device list change has cleared the devices in the
+    // meantime, they are loaded again first. The reload after it reports the device with its new
     // zones. Without a connection, or when the device is gone by then, nothing happens.
     public void ResizeZone(string deviceId, int zoneIndex, int ledCount) =>
         Enqueue(ct => ResizeAsync(deviceId, zoneIndex, ledCount, ct));
@@ -300,22 +301,30 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
 
     private async Task ResizeAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct)
     {
-        IOpenRgbConnection connection;
-        int index;
+        IOpenRgbConnection? connection;
         lock (_gate)
         {
-            if (_connection is null || !_devicesById.TryGetValue(deviceId, out var device))
+            connection = _connection;
+        }
+
+        if (connection is null)
+        {
+            Trace.TraceWarning($"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB is not connected.");
+            return;
+        }
+
+        // A device list change (a rescan, or a restore after sleep) clears the devices at once,
+        // while its reload waits behind this job. Then the devices are mapped here first.
+        if (!TryStartResize(connection, deviceId, out var index))
+        {
+            await ReloadAsync(connection, ct).ConfigureAwait(false);
+            if (!TryStartResize(connection, deviceId, out index))
             {
-                Trace.TraceWarning($"Cannot resize a zone of OpenRGB device '{deviceId}': it is not connected.");
+                Trace.TraceWarning(IsCurrent(connection)
+                    ? $"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB does not know the device."
+                    : $"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB is not connected.");
                 return;
             }
-
-            connection = _connection;
-            index = device.Index;
-
-            // From here on the device has a length the engine does not know yet, so no colors go
-            // out until the reload has mapped it again.
-            _devicesById = [];
         }
 
         try
@@ -331,6 +340,24 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
 
         // The server sends no device list update for a resize.
         await ReloadAsync(connection, ct).ConfigureAwait(false);
+    }
+
+    // The server index of the device on this connection. From here on the device has a length the
+    // engine does not know yet, so no colors go out until the reload has mapped it again.
+    private bool TryStartResize(IOpenRgbConnection connection, string deviceId, out int index)
+    {
+        lock (_gate)
+        {
+            if (_connection != connection || !_devicesById.TryGetValue(deviceId, out var device))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = device.Index;
+            _devicesById = [];
+            return true;
+        }
     }
 
     private void EnqueueDrop(IOpenRgbConnection connection) => Enqueue(_ =>

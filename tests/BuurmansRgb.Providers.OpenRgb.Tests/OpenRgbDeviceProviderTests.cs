@@ -386,6 +386,47 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Single(_server.Updates);
     }
 
+    // A rescan clears the devices at once, while its reload waits behind the resize.
+    [Fact]
+    public async Task ResizeZone_DeviceListChangesBeforeItRuns_StillResizes()
+    {
+        _server.Devices = [TestDevices.Create(zones: [new("Strip", 3, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+        var answer = new TaskCompletionSource();
+        _server.DevicesAnswered = answer.Task;
+        _provider.RestoreDevices();
+        _provider.ResizeZone(device.Id, 0, 5);
+
+        // Raised by the reload in front of the resize, so the resize has not started yet.
+        var rescanned = false;
+        _provider.DevicesChanged += (_, _) =>
+        {
+            if (!rescanned)
+            {
+                rescanned = true;
+                _server.LastConnection.RaiseDeviceListChanged();
+            }
+        };
+        answer.SetResult();
+        await _provider.WhenIdleAsync();
+
+        Assert.True(rescanned);
+        Assert.Equal([(0, 0, 5)], _server.Resizes);
+        Assert.Equal(5, Assert.Single(await _provider.DiscoverAsync(Ct)).LedCount);
+    }
+
+    [Fact]
+    public async Task ResizeZone_UnknownDevice_ResizesNothing()
+    {
+        await ConnectAsync();
+
+        _provider.ResizeZone("openrgb-unknown", 0, 5);
+        await _provider.WhenIdleAsync();
+
+        Assert.Empty(_server.Resizes);
+        Assert.Single(await _provider.DiscoverAsync(Ct));
+    }
+
     [Fact]
     public async Task ResizeZone_SendFails_DropsTheConnection()
     {
