@@ -110,13 +110,15 @@ daarna toe, dus de schuif werkt op elk effect.
   kleuren veranderden. Met de instellingen-app dicht alloceert een frame niets; met de app
   open maakt de engine per frame een kopie van de kleuren voor het voorbeeld, dus dan wel.
   Meet allocaties (bijv. met `dotnet-counters`) daarom met de app dicht. Bij statische
-  kleuren of "Per LED" draait er geen timer.
+  kleuren of "Per LED" draait er geen timer. Gaat een frame mis, bijvoorbeeld omdat een
+  apparaat even faalt, dan probeert het volgende frame het gewoon opnieuw.
 - **Effecten pauzeren** in het tray-menu stopt ook de animatie; hervatten stuurt alles
   opnieuw en start de animatie weer.
 - **Testen zonder hardware:** `dotnet test --project tests/BuurmansRgb.Effects.Tests` test
   elk effect op vaste tijdstippen; de render-loop zelf zit in
-  `tests/BuurmansRgb.Engine.Tests` (`LightingControllerAnimationTests`, met een nepklok en
-  een test die controleert dat een frame zonder verbonden instellingen-app 0 bytes alloceert).
+  `tests/BuurmansRgb.Engine.Tests`
+  (`AnimationLoopTests` en `LightingControllerAnimationTests`, met een nepklok en een test die
+  controleert dat een frame zonder verbonden instellingen-app 0 bytes alloceert).
 - **Zelf bekijken:** zet `"effect": "rainbow"` in `settings.json`, start de engine en open
   de instellingen-app: het voorbeeld loopt mee met de gesimuleerde apparaten.
 
