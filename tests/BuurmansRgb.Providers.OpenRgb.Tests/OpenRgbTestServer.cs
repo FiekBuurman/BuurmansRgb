@@ -19,6 +19,7 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     private readonly CancellationTokenSource _stop = new();
     private readonly ConcurrentDictionary<Socket, bool> _clients = new();
     private readonly Task _acceptLoop;
+    private int _controllerDataRequests;
 
     public OpenRgbTestServer(int port = 0)
     {
@@ -35,6 +36,11 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
 
     // Off: the server never answers the protocol version request, like a hanging server.
     public bool AnswersProtocolVersion { get; set; } = true;
+
+    // Off: device data requests stay unanswered, like a server busy with a rescan.
+    public bool AnswersControllerData { get; set; } = true;
+
+    public int ControllerDataRequests => Volatile.Read(ref _controllerDataRequests);
 
     public ConcurrentQueue<string> ClientNames { get; } = new();
 
@@ -148,7 +154,8 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
             case CommandId.RequestControllerCount:
                 return Packet(command, 0, writer => writer.UInt32((uint)Devices.Count));
             case CommandId.RequestControllerData:
-                return Packet(command, deviceIndex, writer => WriteDevice(writer, Devices[deviceIndex]));
+                Interlocked.Increment(ref _controllerDataRequests);
+                return AnswersControllerData ? Packet(command, deviceIndex, writer => WriteDevice(writer, Devices[deviceIndex])) : null;
             case CommandId.SetCustomMode:
                 CustomModeIndexes.Enqueue(deviceIndex);
                 return null;

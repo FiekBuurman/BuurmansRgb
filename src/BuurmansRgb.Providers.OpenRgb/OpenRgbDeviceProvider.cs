@@ -63,8 +63,10 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
         return Task.FromResult(devices);
     }
 
-    // The engine calls this with its own lock held, so it never waits for the queued work. A
-    // device that is gone, or whose LED count changed, is skipped until the engine catches up.
+    // The engine calls this with its own lock held, so it must not wait for the server. A device
+    // that is gone, or whose LED count changed, is skipped until the engine catches up. While a
+    // (re)load still waits for the server the colors are skipped too: that load ends with
+    // DevicesChanged or a drop, and the engine then renders again.
     public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
     {
         IOpenRgbConnection connection;
@@ -85,7 +87,7 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
 
         try
         {
-            connection.UpdateLeds(index, colors);
+            _ = connection.TryUpdateLeds(index, colors);
         }
         catch (Exception exception)
         {

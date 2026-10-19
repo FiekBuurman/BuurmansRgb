@@ -46,9 +46,10 @@
   send faalt. Zodra dat is opgelost kan `OpenRgbServerWatcher` (de tweede verbinding) weg
 - Apparaten zonder "Direct"- of "Custom"-modus toch een kleur geven via de modus "Static"
   met `UpdateMode` en de kleur van die modus
-- Een vastgelopen OpenRGB-server kan `SetLeds` tot de aanvraag-timeout (5 s) laten wachten,
-  met de lock van `LightingController` vast; de UI hangt dan zo lang. Versturen buiten de
-  lock of via een eigen wachtrij voorkomt dat
+- Kleuren naar OpenRGB via een eigen wachtrij per verbinding sturen. Nu slaat `SetLeds` een
+  frame over zolang een herlaadactie op de server wacht (zodat de lock van
+  `LightingController` niet tot de aanvraag-timeout vastzit); bij animaties uit taak 4 kan
+  dat zichtbaar haperen tijdens een rescan
 - Geheugen na taak 3: zonder UI ~53 MB working set en ~12 MB private bytes (taak 2: ~49,6 en
   ~11,0). Het verschil zit vooral in Winsock en `System.Net.Sockets`, die nu altijd laden.
   Het budget van < 50 MB working set wordt daarmee net overschreden; private bytes blijven

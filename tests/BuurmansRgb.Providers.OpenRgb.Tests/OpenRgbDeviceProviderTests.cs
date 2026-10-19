@@ -184,6 +184,20 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
     }
 
     [Fact]
+    public async Task SetLeds_ConnectionBusy_SkipsTheColorsAndKeepsTheConnection()
+    {
+        var device = Assert.Single(await ConnectAsync());
+        _server.LastConnection.IsBusy = true;
+
+        _provider.SetLeds(device.Id, [Orange, Orange, Orange]);
+        await _provider.WhenIdleAsync();
+
+        Assert.Empty(_server.Updates);
+        Assert.False(_server.LastConnection.IsDisposed);
+        Assert.Single(await _provider.DiscoverAsync(Ct));
+    }
+
+    [Fact]
     public async Task DeviceListChanged_ReloadsTheDevices()
     {
         await ConnectAsync();

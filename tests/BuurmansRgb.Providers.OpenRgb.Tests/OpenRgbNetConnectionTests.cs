@@ -71,8 +71,8 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         var connection = await ConnectAsync();
 
         connection.SetCustomMode(0);
-        connection.UpdateLeds(0, [Orange, RgbColor.White, new RgbColor(1, 2, 3)]);
-        connection.UpdateLeds(0, [Orange]);
+        Assert.True(connection.TryUpdateLeds(0, [Orange, RgbColor.White, new RgbColor(1, 2, 3)]));
+        Assert.True(connection.TryUpdateLeds(0, [Orange]));
 
         Assert.True(_server.Updates.TryTake(out var first, Timeout));
         Assert.Equal(0, first.Index);
@@ -80,6 +80,23 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         Assert.True(_server.Updates.TryTake(out var second, Timeout));
         Assert.Equal([Orange], second.Colors);
         Assert.Equal([0], _server.CustomModeIndexes);
+    }
+
+    [Fact]
+    public async Task TryUpdateLeds_WhileDeviceDataIsPending_ReturnsFalseWithoutWaiting()
+    {
+        var connection = await ConnectAsync();
+        _server.AnswersControllerData = false;
+        var loading = connection.GetDevicesAsync(Ct);
+        await WaitUntilAsync(() => _server.ControllerDataRequests == 1);
+
+        var stopwatch = Stopwatch.StartNew();
+        var sent = connection.TryUpdateLeds(0, [Orange]);
+
+        Assert.False(sent);
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromMilliseconds(500), $"Waited {stopwatch.Elapsed}.");
+        await Assert.ThrowsAsync<TimeoutException>(() => loading);
+        Assert.Empty(_server.Updates);
     }
 
     [Fact]

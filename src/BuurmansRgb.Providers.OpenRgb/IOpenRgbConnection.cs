@@ -22,5 +22,8 @@ internal interface IOpenRgbConnection : IDisposable
     // Lets the device take colors from the SDK: OpenRGB picks its Direct or Custom mode.
     void SetCustomMode(int deviceIndex);
 
-    void UpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors);
+    // Returns false, without waiting and without sending, while another call still waits for the
+    // server, such as a device reload. Callers may hold a lock, and that wait can last until the
+    // request times out.
+    bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors);
 }

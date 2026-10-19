@@ -48,9 +48,14 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         }
     }
 
-    public void UpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
+    public bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
     {
-        lock (_calls)
+        if (!_calls.TryEnter())
+        {
+            return false;
+        }
+
+        try
         {
             if (_colors.Length < colors.Length)
             {
@@ -64,6 +69,11 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
             }
 
             _client.UpdateLeds(deviceIndex, buffer);
+            return true;
+        }
+        finally
+        {
+            _calls.Exit();
         }
     }
 

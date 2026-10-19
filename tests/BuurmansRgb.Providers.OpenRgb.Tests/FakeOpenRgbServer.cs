@@ -67,6 +67,9 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool close
 
     public bool FailSends { get; set; }
 
+    // As if another call still waits for the server: colors are skipped.
+    public bool IsBusy { get; set; }
+
     public int ProtocolVersion => 4;
 
     public Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct)
@@ -88,7 +91,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool close
         server.CustomModeIndexes.Add(deviceIndex);
     }
 
-    public void UpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
+    public bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
     {
         ThrowIfGone();
         if (FailSends)
@@ -96,7 +99,13 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool close
             throw new SocketException((int)SocketError.ConnectionReset);
         }
 
+        if (IsBusy)
+        {
+            return false;
+        }
+
         server.Updates.Add((deviceIndex, colors.ToArray()));
+        return true;
     }
 
     public void Close()
