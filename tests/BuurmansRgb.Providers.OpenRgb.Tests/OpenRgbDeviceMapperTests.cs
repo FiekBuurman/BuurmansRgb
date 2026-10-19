@@ -97,6 +97,9 @@ public sealed class OpenRgbDeviceMapperTests
         var mapped = OpenRgbDeviceMapper.Map([first, second]);
 
         Assert.Equal(["MSI GeForce RTX 3070 1", "MSI GeForce RTX 3070 2"], mapped.Select(item => item.Device.Name));
+        Assert.Equal(
+            [OpenRgbDeviceMapper.CreateId(first), OpenRgbDeviceMapper.CreateId(second)],
+            mapped.Select(item => item.Device.Id));
         Assert.NotEqual(mapped[0].Device.Id, mapped[1].Device.Id);
         Assert.All(mapped, item => Assert.Equal((DeviceType.Gpu, 1), (item.Device.Type, item.Device.LedCount)));
     }
