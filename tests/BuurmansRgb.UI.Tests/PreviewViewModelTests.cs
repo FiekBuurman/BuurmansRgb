@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class PreviewViewModelTests
 {
-    private static readonly DeviceInfo Fan = new("fan", "Fan", DeviceType.Fan, 2);
+    private static readonly DeviceInfo Fan = TestDevices.Create("fan", "Fan", DeviceType.Fan, 2);
 
     [Fact]
     public void ShowDevices_ShowsTheLatestFrameRightAway()

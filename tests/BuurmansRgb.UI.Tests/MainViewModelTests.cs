@@ -243,7 +243,7 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
-        Api.Devices = [.. Api.Devices, new DeviceInfo("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
 
         Api.RaiseDevicesChanged();
 
@@ -271,7 +271,7 @@ public sealed class MainViewModelTests
     public async Task DevicesChanged_AllDevicesSelected_PreviewShowsTheNewDevice()
     {
         var viewModel = await ConnectAsync();
-        Api.Devices = [.. Api.Devices, new DeviceInfo("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
 
         Api.RaiseDevicesChanged();
 

@@ -22,8 +22,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler? DevicesChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<DeviceInfo>>(
-            [.. _lighting.Devices.Select(device => new DeviceInfo(device.Id, device.Name, device.Type, device.LedCount))]);
+        Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
 
