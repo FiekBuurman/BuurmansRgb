@@ -19,6 +19,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
+    private readonly SemaphoreSlim _allClientsGone = new(0);
     private Task? _server;
 
     public async ValueTask DisposeAsync()
@@ -35,6 +36,21 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         }
 
         _shutdown.Dispose();
+        _allClientsGone.Dispose();
+    }
+
+    [Fact]
+    public async Task AllClientsGone_RunsOnlyAfterTheLastClientLeaves()
+    {
+        var first = await StartAndConnectAsync();
+        var second = await ConnectAsync();
+        await second.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+
+        await DisconnectAsync(first);
+        Assert.False(await _allClientsGone.WaitAsync(200, TestContext.Current.CancellationToken));
+
+        await DisconnectAsync(second);
+        Assert.True(await _allClientsGone.WaitAsync(Timeout, TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -149,8 +165,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var first = await StartAndConnectAsync();
         await first.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
-        await first.DisposeAsync();
-        _clients.Remove(first);
+        await DisconnectAsync(first);
 
         var second = await ConnectAsync();
         var frames = new FrameCollector(second.Api);
@@ -175,8 +190,14 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
         _lighting.Apply(LightingState.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, _lighting).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, _lighting, () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
+    }
+
+    private async Task DisconnectAsync(EngineConnection client)
+    {
+        _clients.Remove(client);
+        await client.DisposeAsync();
     }
 
     private async Task<EngineConnection> ConnectAsync()

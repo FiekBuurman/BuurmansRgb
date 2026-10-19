@@ -27,7 +27,7 @@ internal static class Program
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
-            new EngineIpcServer(EngineRpc.PipeName, lighting));
+            new EngineIpcServer(EngineRpc.PipeName, lighting, MemoryTrimmer.Trim));
 
         using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
         using (instance.ListenForActivation(context.RequestOpenSettings))
