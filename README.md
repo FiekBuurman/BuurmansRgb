@@ -31,7 +31,8 @@ Per project een testproject in `tests/`: `Core`, `Contracts` (IPC over een echte
 pipe), `Effects` (elk effect op vaste tijdstippen), `Engine` (instellingen, verlichting,
 render-loop, IPC-server), `Providers.OpenRgb`
 (de koppeling met OpenRGB, met een nep-server in het geheugen en een kleine SDK-server op
-een loopback-socket, dus zonder OpenRGB) en `UI` (viewmodels met een nep-engine).
+een loopback-socket, dus zonder OpenRGB), `Providers.Simulated` (de gesimuleerde
+apparaten) en `UI` (viewmodels met een nep-engine).
 
 ## Engine starten
 

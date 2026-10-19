@@ -1,6 +1,6 @@
-using BuurmansRgb.Providers.Simulated;
+using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Core.Tests;
+namespace BuurmansRgb.Providers.Simulated.Tests;
 
 public sealed class SimulatedDeviceProviderTests
 {
