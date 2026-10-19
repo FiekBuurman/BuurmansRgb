@@ -9,6 +9,7 @@ public sealed class LightingControllerZoneTests
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
     private static readonly RgbColor Orange = new(255, 136, 0);
+    private static readonly RgbColor Green = new(0, 255, 0);
 
     private readonly SimulatedDeviceProvider _simulated = new();
     private readonly DynamicDeviceProvider _dynamic = new();
@@ -90,6 +91,28 @@ public sealed class LightingControllerZoneTests
 
         Assert.Throws<ArgumentException>(() => _controller.ResizeZone("header", 0, 20));
     }
+
+    // As when the header is resized in OpenRGB itself: the logo after it keeps its own color.
+    [Fact]
+    public async Task DevicesChanged_ZoneGotAnotherLength_MovesTheLedColorsAlong()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(LightingStates.Uniform(new DeviceLighting(RgbColor.White, 1.0, EffectIds.Static)));
+        await WhileDevicesChangeAsync(() => _dynamic.SetDevices(Board(header: 1)));
+        _controller.SetLedColors("board", 0, [Orange, Orange, RgbColor.White, Green]);
+        var lightingChanges = 0;
+        _controller.LightingChanged += (_, _) => lightingChanges++;
+
+        await WhileDevicesChangeAsync(() => _dynamic.SetDevices(Board(header: 3)));
+
+        Assert.Equal([Orange, Orange, RgbColor.White, null, null, Green], _controller.State.LedColors["board"]);
+        Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _dynamic.Leds["board"]);
+        await Eventually.TrueAsync(() => lightingChanges == 1, Timeout);
+    }
+
+    private static RgbDevice Board(int header) =>
+        new("board", "Board", DeviceType.Motherboard,
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1)]);
 
     private async Task WhileDevicesChangeAsync(Action change)
     {

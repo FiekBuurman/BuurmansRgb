@@ -37,6 +37,51 @@ internal sealed class LedColorStore
         return colors;
     }
 
+    // Keeps the stored colors with their zone when zones got another length: the zones after a
+    // resized one move along. The colors of LEDs a zone lost are gone, except at the end of the
+    // last zone, where they stay for when it grows back. Returns false when nothing moved, also
+    // when the zones are not the same zones any more.
+    public bool MoveWithZones(string deviceId, IReadOnlyList<RgbZone> from, IReadOnlyList<RgbZone> to)
+    {
+        if (!_colors.TryGetValue(deviceId, out var stored)
+            || from.Count != to.Count
+            || from.Select(zone => zone.LedCount).SequenceEqual(to.Select(zone => zone.LedCount)))
+        {
+            return false;
+        }
+
+        List<RgbColor?> moved = [];
+        var start = 0;
+        for (var zone = 0; zone < from.Count; zone++)
+        {
+            var isLast = zone == from.Count - 1;
+            var kept = isLast ? Math.Max(stored.Length - start, 0) : Math.Min(from[zone].LedCount, to[zone].LedCount);
+            for (var i = 0; i < kept; i++)
+            {
+                moved.Add(start + i < stored.Length ? stored[start + i] : null);
+            }
+
+            for (var i = kept; !isLast && i < to[zone].LedCount; i++)
+            {
+                moved.Add(null);
+            }
+
+            start += from[zone].LedCount;
+        }
+
+        var length = moved.FindLastIndex(color => color is not null) + 1;
+        if (length == 0)
+        {
+            _colors.Remove(deviceId);
+        }
+        else
+        {
+            _colors[deviceId] = [.. moved.Take(length)];
+        }
+
+        return true;
+    }
+
     // Gives the LEDs from firstLed on a color of their own; the other LEDs stay as they are.
     public void Set(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
     {
