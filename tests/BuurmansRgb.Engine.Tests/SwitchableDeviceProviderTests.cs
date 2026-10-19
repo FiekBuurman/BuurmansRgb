@@ -40,8 +40,18 @@ public sealed class SwitchableDeviceProviderTests
     }
 
     [Fact]
-    public void IsEnabled_RaisesDevicesChangedOnlyWhenItChanges()
+    public async Task IsEnabled_BeforeFirstDiscover_RaisesNothing()
     {
+        _switchable.IsEnabled = false;
+
+        Assert.Empty(await _switchable.DiscoverAsync(Ct));
+        Assert.Equal(0, _changes);
+    }
+
+    [Fact]
+    public async Task IsEnabled_AfterDiscover_RaisesDevicesChangedOnlyWhenItChanges()
+    {
+        await _switchable.DiscoverAsync(Ct);
         _switchable.IsEnabled = true;
         Assert.Equal(0, _changes);
 
