@@ -189,6 +189,20 @@
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />
+                                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal"
+                                                                    Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
+                                                            <TextBlock VerticalAlignment="Center" Text="{Binding LedCountLabel}"
+                                                                       Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                                            <TextBox Width="56" Margin="6,0,0,0" VerticalContentAlignment="Center"
+                                                                     Text="{Binding LedCountText, UpdateSourceTrigger=PropertyChanged}"
+                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}">
+                                                                <TextBox.InputBindings>
+                                                                    <KeyBinding Key="Enter" Command="{Binding ApplyLedCountCommand}" />
+                                                                </TextBox.InputBindings>
+                                                            </TextBox>
+                                                            <Button Margin="6,0,0,0" Padding="10,1" Content="{x:Static res:Strings.ApplyLedCount}"
+                                                                    ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding ApplyLedCountCommand}" />
+                                                        </StackPanel>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>

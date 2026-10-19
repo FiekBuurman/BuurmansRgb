@@ -40,7 +40,19 @@
     <value>Geen LED's</value>
   </data>
   <data name="ZoneWithoutLedsResizable" xml:space="preserve">
-    <value>Geen LED's: stel in OpenRGB in hoeveel LED's hierop zitten</value>
+    <value>Geen LED's: stel hieronder in hoeveel LED's hierop zitten</value>
+  </data>
+  <data name="ZoneLedCountLabel" xml:space="preserve">
+    <value>Aantal LED's ({0}–{1}):</value>
+  </data>
+  <data name="ZoneLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's van {0}</value>
+  </data>
+  <data name="ApplyLedCount" xml:space="preserve">
+    <value>Toepassen</value>
+  </data>
+  <data name="ApplyLedCountToolTip" xml:space="preserve">
+    <value>Geeft deze zone het nieuwe aantal LED's, bijvoorbeeld de lengte van de strip die erop zit.</value>
   </data>
   <data name="ZoneHeader" xml:space="preserve">
     <value>{0} · {1}</value>

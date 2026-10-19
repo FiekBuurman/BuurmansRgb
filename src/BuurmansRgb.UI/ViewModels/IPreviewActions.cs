@@ -7,4 +7,6 @@ public interface IPreviewActions
 
     // A click on the name of a zone, such as one ring of a fan: all its LEDs.
     void SelectLeds(LedSelection selection);
+
+    void ResizeZone(ZoneResize resize);
 }

@@ -85,6 +85,36 @@ public sealed class MainViewModelLedEditorTests
     }
 
     [Fact]
+    public async Task ApplyLedCount_AsksTheEngineToResizeTheZone()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)])];
+        Api.RaiseDevicesChanged();
+        var header = Assert.Single(viewModel.Preview.Devices).Zones[1];
+
+        header.LedCountText = "24";
+        header.ApplyLedCountCommand.Execute(null);
+
+        Assert.Equal(["resize board 1 24"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_EditedZoneGrew_ClearsTheLedSelection()
+    {
+        var viewModel = await ConnectAsync();
+        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]);
+        Api.Devices = [board];
+        Api.RaiseDevicesChanged();
+        Click(viewModel, "board", 1);
+
+        Api.Devices = [board with { LedCount = 26, Zones = [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 24, 0, 120)] }];
+        Api.RaiseDevicesChanged();
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.Equal(24, viewModel.Preview.Devices[0].Zones[1].LedCount);
+    }
+
+    [Fact]
     public async Task FillGradient_SendsTheGradientOfTheRange()
     {
         var viewModel = await ConnectAsync();

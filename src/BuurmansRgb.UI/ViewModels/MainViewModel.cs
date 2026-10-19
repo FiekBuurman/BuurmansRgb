@@ -29,6 +29,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
+        Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
     }
 
@@ -339,6 +340,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
             WithoutSending(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+        }
+    }
+
+    // The engine reports the device with its new length through DevicesChanged, which rebuilds
+    // the preview; an LED edit of that device ends then, because its LEDs moved.
+    private void OnZoneResizeRequested(ZoneResize resize)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(("resize", resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
         }
     }
 

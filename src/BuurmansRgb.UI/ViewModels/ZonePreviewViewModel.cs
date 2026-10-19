@@ -1,3 +1,4 @@
+using System.Globalization;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -25,12 +26,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
         // A device with one zone needs no zone name; a zone without LEDs always says so.
         ShowsHeader = showsName || layout.LedCount == 0;
+        CanResize = layout.Index != ZoneLayout.NoZone && layout.Zone.Resizable;
         Details = layout.LedCount > 0 ? UiText.LedCount(layout.LedCount)
-            : layout.Zone.Resizable ? Strings.ZoneWithoutLedsResizable
+            : CanResize ? Strings.ZoneWithoutLedsResizable
             : Strings.ZoneWithoutLeds;
 
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
         AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, Name) : deviceName;
+        LedCountText = layout.Zone.LedCount.ToString(CultureInfo.CurrentCulture);
     }
 
     public string Name => _layout.Zone.Name;
@@ -55,6 +58,18 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     public bool ShowsHeaderLink => ShowsHeader && CanSelectZone;
 
     public bool ShowsHeaderText => ShowsHeader && !CanSelectZone;
+
+    // One of the device's own zones whose length can be set, such as an addressable header.
+    public bool CanResize { get; }
+
+    public string LedCountLabel => UiText.Format(Strings.ZoneLedCountLabel, _layout.Zone.MinLedCount, _layout.Zone.MaxLedCount);
+
+    public string LedCountAccessibleName => UiText.Format(Strings.ZoneLedCountAccessibleName, AccessibleName);
+
+    // The length the user types, in LEDs; ApplyLedCount asks for it.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ApplyLedCountCommand))]
+    public partial string LedCountText { get; set; }
 
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; private set; }
@@ -86,4 +101,21 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     [RelayCommand(CanExecute = nameof(CanSelectZone))]
     private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));
+
+    [RelayCommand(CanExecute = nameof(CanApplyLedCount))]
+    private void ApplyLedCount()
+    {
+        if (TryReadLedCount(out var ledCount))
+        {
+            _actions?.ResizeZone(new ZoneResize(_deviceId, _layout.Index, ledCount));
+        }
+    }
+
+    // Only a length the zone can hold, and not the one it has.
+    private bool CanApplyLedCount() => TryReadLedCount(out var ledCount) && ledCount != _layout.Zone.LedCount;
+
+    private bool TryReadLedCount(out int ledCount) =>
+        int.TryParse(LedCountText, NumberStyles.Integer, CultureInfo.CurrentCulture, out ledCount)
+        && CanResize
+        && _layout.Zone.CanHold(ledCount);
 }

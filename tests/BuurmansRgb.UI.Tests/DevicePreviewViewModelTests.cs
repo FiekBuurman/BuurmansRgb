@@ -141,6 +141,64 @@ public sealed class DevicePreviewViewModelTests
     }
 
     [Fact]
+    public void ApplyLedCount_EmptyHeader_AsksForTheNewLength()
+    {
+        var actions = new RecordingPreviewActions();
+        var header = new DevicePreviewViewModel(Motherboard, actions).Zones[2];
+
+        Assert.True(header.CanResize);
+        Assert.Equal("0", header.LedCountText);
+        Assert.Equal("Aantal LED's (0–120):", header.LedCountLabel);
+        Assert.Equal("Aantal LED's van Motherboard – ARGB header", header.LedCountAccessibleName);
+        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+
+        header.LedCountText = "30";
+        Assert.True(header.ApplyLedCountCommand.CanExecute(null));
+        header.ApplyLedCountCommand.Execute(null);
+
+        Assert.Equal([new ZoneResize("board", 2, 30)], actions.Requests);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("tien")]
+    [InlineData("-1")]
+    [InlineData("121")]
+    [InlineData("2.5")]
+    public void ApplyLedCount_NotALengthTheZoneCanHold_CannotRun(string text)
+    {
+        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+
+        header.LedCountText = text;
+
+        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void CanResize_FixedZonesAndLedsWithoutZone_CannotBeResized()
+    {
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.All(zones, zone => Assert.False(zone.CanResize));
+        Assert.All(new DevicePreviewViewModel(Motherboard).Zones.Take(2), zone => Assert.False(zone.CanResize));
+    }
+
+    // A strip with one zone shows no zone name, but its length can still be set.
+    [Fact]
+    public void CanResize_StripWithOneZone_WithoutHeader()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]);
+
+        var zone = Assert.Single(new DevicePreviewViewModel(strip).Zones);
+
+        Assert.False(zone.ShowsHeader);
+        Assert.True(zone.CanResize);
+        Assert.Equal("30", zone.LedCountText);
+    }
+
+    [Fact]
     public void SelectZone_RingOfAFan_HandsOnAllItsLeds()
     {
         var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]);
