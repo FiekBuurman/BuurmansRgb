@@ -216,8 +216,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var deviceId = SelectedDevice?.DeviceId;
         var (ok, lighting) = await TryCallAsync(connection, api => api.GetLightingAsync(deviceId));
 
-        // The user may have picked another device while this one was loading.
-        if (!ok || SelectedDevice?.DeviceId != deviceId)
+        // The user may have picked another device, or the connection may have been made again,
+        // while this one was loading.
+        if (!ok || !ReferenceEquals(connection, _connection) || SelectedDevice?.DeviceId != deviceId)
         {
             return;
         }
