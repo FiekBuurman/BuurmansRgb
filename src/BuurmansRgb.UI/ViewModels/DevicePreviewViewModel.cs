@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
@@ -10,6 +11,8 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewActions? actions = null)
     : ObservableObject
 {
+    private readonly IPreviewActions? _actions = actions;
+
     public string DeviceId { get; } = device.Id;
 
     public string Name { get; } = device.Name;
@@ -17,6 +20,9 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
     public DeviceType Type { get; } = device.Type;
 
     public IReadOnlyList<ZonePreviewViewModel> Zones { get; } = CreateZones(device, actions);
+
+    // What a screen reader calls the flash button; every device in the preview has one.
+    public string FlashAccessibleName { get; } = UiText.Format(Strings.FlashDeviceAccessibleName, device.Name);
 
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; set; } = new RgbColor[device.LedCount];
@@ -31,6 +37,9 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
             zone.ShowDeviceSelection(first, last);
         }
     }
+
+    [RelayCommand]
+    private void Flash() => _actions?.FlashDevice(DeviceId);
 
     partial void OnColorsChanged(IReadOnlyList<RgbColor> value)
     {

@@ -152,6 +152,18 @@ public sealed class DevicePreviewViewModelTests
     }
 
     [Fact]
+    public void Flash_AsksToFlashTheDevice()
+    {
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions);
+
+        preview.FlashCommand.Execute(null);
+
+        Assert.Equal(["board"], actions.Requests);
+        Assert.Equal("Motherboard laten knipperen", preview.FlashAccessibleName);
+    }
+
+    [Fact]
     public void ApplyLedCount_EmptyHeader_AsksForTheNewLength()
     {
         var actions = new RecordingPreviewActions();

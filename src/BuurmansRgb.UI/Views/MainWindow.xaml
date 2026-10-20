@@ -267,6 +267,9 @@
                                             <Path Style="{StaticResource DeviceIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                                   Stroke="{x:Static SystemColors.ControlTextBrush}" />
                                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                            <Button Margin="10,0,0,0" Padding="8,1" VerticalAlignment="Center"
+                                                    Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
+                                                    Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}" />
                                         </StackPanel>
                                         <ItemsControl ItemsSource="{Binding Zones}" AutomationProperties.Name="{Binding Name}">
                                             <ItemsControl.ItemTemplate>

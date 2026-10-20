@@ -271,4 +271,13 @@
   </data>
   <data name="ProfileDeleted" xml:space="preserve">
     <value>Profiel '{0}' verwijderd.</value>
+  </data>
+  <data name="FlashDevice" xml:space="preserve">
+    <value>Laat knipperen</value>
+  </data>
+  <data name="FlashDeviceToolTip" xml:space="preserve">
+    <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+  </data>
+  <data name="FlashDeviceAccessibleName" xml:space="preserve">
+    <value>{0} laten knipperen</value>
   </data></root>

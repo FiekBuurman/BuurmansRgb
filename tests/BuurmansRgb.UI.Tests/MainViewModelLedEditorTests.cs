@@ -148,7 +148,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.Equal(["leds fan 0 #00FF00"], Api.Calls);
+        Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
     }
 
     [Fact]
