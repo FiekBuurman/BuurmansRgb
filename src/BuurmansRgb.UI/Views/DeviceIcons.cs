@@ -64,6 +64,14 @@ public static class DeviceIcons
     public static Geometry Gamepad { get; } = Create(
         "M5.5,4.5 H12.5 A4,4 0 0 1 16.5,8.5 V12 A2,2 0 0 1 13,13.5 L11.5,11.5 H6.5 L5,13.5 A2,2 0 0 1 1.5,12 V8.5 A4,4 0 0 1 5.5,4.5 Z M5.5,7 V10 M4,8.5 H7 M11.5,9.5 A1,1 0 1 0 13.5,9.5 A1,1 0 1 0 11.5,9.5 Z M12.5,7 A0.5,0.5 0 1 0 13.5,7 A0.5,0.5 0 1 0 12.5,7 Z");
 
+    // A microphone in its holder on a stand.
+    public static Geometry Microphone { get; } = Create(
+        "M7.5,4 A2,2 0 0 1 11.5,4 V8.5 A2,2 0 0 1 7.5,8.5 Z M5.5,8.5 A4,4 0 0 0 13.5,8.5 M9.5,12.5 V15.5 M6.5,15.5 H12.5");
+
+    // A gaming keypad: two rows of keys above a palm rest.
+    public static Geometry Keypad { get; } = Create(
+        "M1.5,2.5 H16.5 V10.5 H1.5 Z M3.5,5.5 H5.5 M8,5.5 H10 M12.5,5.5 H14.5 M3.5,7.5 H5.5 M8,7.5 H10 M12.5,7.5 H14.5 M5.5,10.5 V15.5 H12.5 V10.5");
+
     // A housing with one LED.
     public static Geometry Device { get; } = Create(
         "M3.5,3.5 H14.5 V14.5 H3.5 Z M7,9 A2,2 0 1 0 11,9 A2,2 0 1 0 7,9 Z");
@@ -85,6 +93,8 @@ public static class DeviceIcons
         DeviceType.HeadsetStand => HeadsetStand,
         DeviceType.Speaker => Speaker,
         DeviceType.Gamepad => Gamepad,
+        DeviceType.Microphone => Microphone,
+        DeviceType.Keypad => Keypad,
         _ => Device,
     };
 

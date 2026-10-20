@@ -14,10 +14,14 @@ internal static partial class OpenRgbDeviceMapper
 
     private const string KeyPrefix = "Key: ";
 
-    // OpenRGB 0.9 added storage (14) and case (15) before its unknown type (now 19), but
-    // OpenRGB.NET 3.1.1 still knows 14 as Unknown and has no name for case; it passes the
-    // number on as it is.
+    // OpenRGB 0.9 added storage (14), case (15), microphone (16), accessory (17) and keypad (18)
+    // before its unknown type (then 19; later versions add more before it). OpenRGB.NET 3.1.1, its
+    // latest release, still knows 14 as Unknown and has no name for the others; it passes the
+    // number on as it is. 14 stays "other", since an older server sends it for an unknown device,
+    // and so does an accessory, which says no more than "other".
     public const OpenRgbDeviceType CaseType = (OpenRgbDeviceType)15;
+    public const OpenRgbDeviceType MicrophoneType = (OpenRgbDeviceType)16;
+    public const OpenRgbDeviceType KeypadType = (OpenRgbDeviceType)18;
 
     // The modes in which OpenRGB takes a color per LED from the SDK, in order of preference.
     private static readonly string[] DirectModeNames = ["Direct", "Custom"];
@@ -78,6 +82,8 @@ internal static partial class OpenRgbDeviceMapper
         OpenRgbDeviceType.HeadsetStand => DeviceType.HeadsetStand,
         OpenRgbDeviceType.Speaker => DeviceType.Speaker,
         OpenRgbDeviceType.Gamepad => DeviceType.Gamepad,
+        MicrophoneType => DeviceType.Microphone,
+        KeypadType => DeviceType.Keypad,
         _ => DeviceType.Other,
     };
 

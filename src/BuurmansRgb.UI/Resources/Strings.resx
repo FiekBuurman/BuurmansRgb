@@ -126,6 +126,12 @@
   <data name="DeviceType_Gamepad" xml:space="preserve">
     <value>Gamepad</value>
   </data>
+  <data name="DeviceType_Microphone" xml:space="preserve">
+    <value>Microfoon</value>
+  </data>
+  <data name="DeviceType_Keypad" xml:space="preserve">
+    <value>Keypad</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>

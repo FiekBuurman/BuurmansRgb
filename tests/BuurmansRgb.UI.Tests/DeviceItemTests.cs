@@ -23,6 +23,8 @@ public sealed class DeviceItemTests
         [DeviceType.HeadsetStand] = "Headsetstandaard",
         [DeviceType.Speaker] = "Speaker",
         [DeviceType.Gamepad] = "Gamepad",
+        [DeviceType.Microphone] = "Microfoon",
+        [DeviceType.Keypad] = "Keypad",
         [DeviceType.Other] = null,
     };
 

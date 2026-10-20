@@ -15,5 +15,7 @@ public enum DeviceType
     HeadsetStand,
     Speaker,
     Gamepad,
+    Microphone,
+    Keypad,
     Other,
 }

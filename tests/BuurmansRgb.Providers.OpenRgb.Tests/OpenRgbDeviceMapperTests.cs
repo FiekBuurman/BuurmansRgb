@@ -226,6 +226,9 @@ public sealed class OpenRgbDeviceMapperTests
     [InlineData(OpenRgbDeviceType.Speaker, DeviceType.Speaker)]
     [InlineData(OpenRgbDeviceType.Light, DeviceType.Other)]
     [InlineData(OpenRgbDeviceType.Virtual, DeviceType.Other)]
+    [InlineData(OpenRgbDeviceMapper.MicrophoneType, DeviceType.Microphone)]
+    [InlineData(OpenRgbDeviceMapper.KeypadType, DeviceType.Keypad)]
+    [InlineData((OpenRgbDeviceType)17, DeviceType.Other)]
     [InlineData(OpenRgbDeviceType.Unknown, DeviceType.Other)]
     [InlineData((OpenRgbDeviceType)99, DeviceType.Other)]
     public void ToDeviceType_MapsOpenRgbTypes(OpenRgbDeviceType type, DeviceType expected) =>
