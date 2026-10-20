@@ -323,9 +323,12 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   ring per zone. OpenRGB zegt niet waar de eerste LED van een fan zit of welke kant hij op
   telt, en heeft geen zonetype voor een ring; de wijzerplaat is dus een keuze, geen kaart van
   je fan. Alleen het apparaattype telt: een zone "Fan" op een videokaart of een ARGB-header met
-  een fan erop blijft een rij, omdat de naam daar niet betrouwbaar zegt wat erop zit. Een kanaal
-  met meer fans achter elkaar wordt één grote ring. Klikken, Shift+klik en de zonenaam werken
-  zoals in een rij; een klik naast of midden in de ring kiest niets.
+  een fan erop blijft een rij, omdat de naam daar niet betrouwbaar zegt wat erop zit. Ook een
+  zone waarvan je de lengte instelt blijft een rij: dat is een kanaal van een hub die OpenRGB
+  ook "cooler" noemt (bijv. een Lian Li Uni Hub of Corsair Commander), met een strip of meer
+  fans achter elkaar erop. Hetzelfde geldt voor een zone van meer dan 48 LED's, meer dan één
+  fan-ring heeft. Klikken, Shift+klik en de zonenaam werken zoals in een rij; een klik naast of
+  midden in de ring kiest niets.
 - **Lengte instellen:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header of
   -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone. Typ het
   aantal LED's van wat erop zit en kies "Toepassen" (of Enter). Heeft zo'n zone nog 0 LED's,

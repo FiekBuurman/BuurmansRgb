@@ -168,8 +168,8 @@
   bewaard per zone. OpenRGB zegt dat niet; het voorbeeld zet LED 1 nu bovenaan en telt met de
   klok mee
 - Een kanaal met meer fans achter elkaar (bijv. een Lian Li-hub met vier fans van 16 LED's in
-  één zone) als zoveel ringen tekenen in plaats van één grote ring, bijv. met een instelling
-  "fans in deze zone"
+  één zone) als zoveel ringen tekenen in plaats van een rij, bijv. met een instelling "fans in
+  deze zone"; nu blijft een aanpasbare of lange zone van een fan een rij
 - Een zone die geen fan-apparaat is toch als ring kunnen tekenen (een ARGB-header met een fan
   erop, een zone "Fan" van een videokaart): de naam is daar niet betrouwbaar genoeg om het
   vanzelf te doen. Past bij het idee om apparaten en zones zelf een naam te geven

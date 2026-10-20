@@ -93,16 +93,32 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal(["B (LED 3)", "C (LED 4)", "D (LED 5)"], zones[1].LedLabels);
     }
 
-    // A dual-ring fan: each ring is a zone of its own and shows as a ring of its own.
+    // A dual-ring fan: each ring is a zone of its own and shows as a ring of its own, up to the
+    // largest fan ring.
     [Fact]
     public void Zones_OfAFan_AreRings()
     {
-        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)])
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20 + ZonePreviewViewModel.MaxRingLeds,
+            [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12), RgbZone.Fixed("Big ring", ZonePreviewViewModel.MaxRingLeds)])
         {
             Source = DeviceSource.Hardware,
         };
 
         Assert.All(new DevicePreviewViewModel(fan).Zones, zone => Assert.True(zone.IsRing));
+    }
+
+    // OpenRGB calls a hub such as a Lian Li Uni Hub a cooler too; a channel of it can hold a strip
+    // or several fans in a row, and a zone longer than a fan ring is not one ring either.
+    [Fact]
+    public void Zones_OfAFanThatCanBeResizedOrAreLong_AreNoRings()
+    {
+        var hub = new DeviceInfo("hub", "Lian Li Uni Hub", DeviceType.Fan, 16 + ZonePreviewViewModel.MaxRingLeds + 1,
+            [new RgbZone("Channel 1", 16, 0, 200), RgbZone.Fixed("Fans", ZonePreviewViewModel.MaxRingLeds + 1)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.All(new DevicePreviewViewModel(hub).Zones, zone => Assert.False(zone.IsRing));
     }
 
     [Fact]
