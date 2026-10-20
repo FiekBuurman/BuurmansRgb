@@ -98,6 +98,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
+    public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
+
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
     public partial double Brightness { get; set; } = 100;
@@ -140,6 +142,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.FrameRendered += OnFrameRendered;
             connection.Api.DevicesChanged += OnDevicesChanged;
             connection.Api.SettingsSaved += OnSettingsSaved;
+            connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -237,6 +240,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowFrame(await api.GetFrameAsync());
         Profiles.Show(await api.GetProfilesAsync());
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
+        OpenRgbStatus.Show(await api.GetOpenRgbStatusAsync());
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
@@ -483,6 +487,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() => OpenRgbStatus.Show(status));
+
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
         var now = _time.GetLocalNow();
@@ -549,6 +555,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Api.SettingsSaved -= OnSettingsSaved;
+        connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
         connection.Dispose();
     }
 

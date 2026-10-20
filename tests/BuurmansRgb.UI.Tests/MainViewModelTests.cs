@@ -373,6 +373,29 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_ShowsTheOpenRgbStatusAndFollowsIt()
+    {
+        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        Assert.Equal(Strings.OpenRgbUnreachable, viewModel.OpenRgbStatus.Text);
+
+        Api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 3));
+
+        Assert.Equal("OpenRGB: verbonden, 3 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.False(viewModel.OpenRgbStatus.HasHint);
+    }
+
+    [Fact]
+    public async Task Disconnected_StopsFollowingTheOpenRgbStatus()
+    {
+        await ConnectAsync();
+        var api = Api;
+
+        _connector.Connection.Disconnect();
+
+        Assert.False(api.HasOpenRgbStatusSubscribers);
+    }
+
+    [Fact]
     public async Task Disconnected_ShowsMessageAndReleasesConnection()
     {
         var viewModel = await ConnectAsync();
