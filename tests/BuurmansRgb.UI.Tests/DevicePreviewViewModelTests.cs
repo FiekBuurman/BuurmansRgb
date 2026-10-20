@@ -60,6 +60,28 @@ public sealed class DevicePreviewViewModelTests
 
         Assert.True(zone.ShowsHeader);
         Assert.Equal(Strings.ZoneWithoutLeds, zone.Details);
+        Assert.False(zone.ShowsEmptyZoneHint);
+    }
+
+    // An addressable header of which OpenRGB does not know the length: the user is told to fill in
+    // the LEDs of the fan or strip on it.
+    [Fact]
+    public void Zones_EmptyZoneThatCanBeResized_ShowsTheHint()
+    {
+        var zones = new DevicePreviewViewModel(Motherboard).Zones;
+
+        Assert.Equal([false, false, true], zones.Select(zone => zone.ShowsEmptyZoneHint));
+        Assert.Equal("Nog geen LED's ingesteld", zones[2].Details);
+        Assert.Contains("fan of strip", Strings.EmptyZoneHint);
+        Assert.Contains(Strings.ApplyLedCount, Strings.EmptyZoneHint);
+    }
+
+    [Fact]
+    public void Zones_ResizableZoneWithLeds_ShowsNoHint()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]);
+
+        Assert.False(Assert.Single(new DevicePreviewViewModel(strip).Zones).ShowsEmptyZoneHint);
     }
 
     [Fact]

@@ -40,7 +40,10 @@
     <value>Geen LED's</value>
   </data>
   <data name="ZoneWithoutLedsResizable" xml:space="preserve">
-    <value>Geen LED's: stel hieronder in hoeveel LED's hierop zitten</value>
+    <value>Nog geen LED's ingesteld</value>
+  </data>
+  <data name="EmptyZoneHint" xml:space="preserve">
+    <value>Zit hier een fan of strip op? Vul hieronder in hoeveel LED's die heeft (staat vaak op de doos) en kies Toepassen. Tot dan blijft hij donker.</value>
   </data>
   <data name="ZoneLedCountLabel" xml:space="preserve">
     <value>Aantal LED's ({0}–{1}):</value>

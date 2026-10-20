@@ -27,8 +27,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
         // A device with one zone needs no zone name; a zone without LEDs always says so.
         ShowsHeader = showsName || layout.LedCount == 0;
         CanResize = layout.Index != ZoneLayout.NoZone && layout.Zone.Resizable;
+        ShowsEmptyZoneHint = layout.LedCount == 0 && CanResize;
         Details = layout.LedCount > 0 ? UiText.LedCount(layout.LedCount)
-            : CanResize ? Strings.ZoneWithoutLedsResizable
+            : ShowsEmptyZoneHint ? Strings.ZoneWithoutLedsResizable
             : Strings.ZoneWithoutLeds;
 
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
@@ -64,6 +65,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     // One of the device's own zones whose length can be set, such as an addressable header.
     public bool CanResize { get; }
+
+    // A zone whose length can be set but that has no LEDs yet, typically a header of which OpenRGB
+    // does not know what is on it: the view explains how to give it the LEDs of the fan or strip.
+    public bool ShowsEmptyZoneHint { get; }
 
     public string LedCountLabel => UiText.Format(Strings.ZoneLedCountLabel, _layout.Zone.MinLedCount, _layout.Zone.MaxLedCount);
 

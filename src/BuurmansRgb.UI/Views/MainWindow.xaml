@@ -321,6 +321,8 @@
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />
+                                                        <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Text="{x:Static res:Strings.EmptyZoneHint}"
+                                                                   Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />
                                                         <StackPanel Margin="0,4,0,0" Orientation="Horizontal"
                                                                     Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
                                                             <TextBlock VerticalAlignment="Center" Text="{Binding LedCountLabel}"
