@@ -22,8 +22,6 @@ dotnet publish src/BuurmansRgb.UI -c Release -o $dest
 Er verschijnt een tray-icoon rechtsonder bij de klok. Rechtsklik erop en kies
 **Starten met Windows**. Dubbelklik opent de instellingen.
 
-> Zolang de taak-PR's nog niet in `main` zitten: clone met `-b refactor-na-review`.
-
 ## OpenRGB koppelen
 
 1. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, Synapse, G Hub, ...).
