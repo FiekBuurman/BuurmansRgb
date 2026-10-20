@@ -344,7 +344,8 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   kies je snel een volgend, dan stopt het vorige meteen. Knipperen verandert niets aan de
   verlichting en wordt niet opgeslagen. Bij het verbinden of als de lijst ververst, knippert er
   niets. Zijn de effecten gepauzeerd, dan knippert er ook niets; pauzeer je tijdens het
-  knipperen, dan krijgt het apparaat eerst zijn eigen kleuren terug. De engine draait alleen
+  knipperen of sluit je de engine af, dan krijgt het apparaat eerst zijn eigen kleuren terug.
+  Een apparaat dat de engine niet (meer) kent, wordt overgeslagen. De engine draait alleen
   tijdens het knipperen een timer (`IEngineApi.FlashDeviceAsync`, in de engine
   `LightingController.Flash` en `DeviceFlash`).
 - **Echt of gesimuleerd:** de lijst toont de echte apparaten onder de kop "Echte apparaten

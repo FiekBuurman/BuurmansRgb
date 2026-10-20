@@ -405,6 +405,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return;
             }
 
+            // The engine leaves the devices as they are when it stops, but not white or dark from
+            // a flash that is still running.
+            StopFlashesLocked();
             _disposed = true;
             _animation.Dispose();
         }

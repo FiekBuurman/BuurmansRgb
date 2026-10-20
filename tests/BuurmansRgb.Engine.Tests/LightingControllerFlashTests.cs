@@ -248,6 +248,29 @@ public sealed class LightingControllerFlashTests : IDisposable
     }
 
     [Fact]
+    public async Task Dispose_WhileFlashing_GivesTheOwnColorsBack()
+    {
+        await StartAsync(EffectIds.Static);
+        _controller.Flash(RecordingDeviceProvider.DeviceId);
+        AdvanceAndRender(HalfBlink);
+
+        _controller.Dispose();
+
+        Assert.Equal(OwnColors, _provider.LastColors);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task Dispose_WithoutAFlash_SendsNothing()
+    {
+        await StartAsync(EffectIds.Static);
+
+        _controller.Dispose();
+
+        Assert.Equal(1, _provider.SetLedsCount);
+    }
+
+    [Fact]
     public async Task SetLighting_WhileFlashing_KeepsFlashing()
     {
         await StartAsync(EffectIds.Static);
