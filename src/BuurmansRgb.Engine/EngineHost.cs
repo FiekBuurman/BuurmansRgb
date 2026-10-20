@@ -1,0 +1,16 @@
+using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Settings;
+
+namespace BuurmansRgb.Engine;
+
+internal sealed class EngineHost(ISettingsStore settingsStore, LightingController lighting) : IEngineHost
+{
+    public async Task StartAsync(CancellationToken ct)
+    {
+        var settings = settingsStore.LoadOrCreate();
+        await lighting.DiscoverAsync(ct);
+        lighting.ApplyStaticColor(settings.Color, settings.Brightness);
+    }
+
+    public void SetPaused(bool paused) => lighting.SetPaused(paused);
+}

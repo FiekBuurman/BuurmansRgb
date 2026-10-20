@@ -185,9 +185,9 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 **Acceptatie:**
 
-- [ ] Engine start, toont tray-icoon, past een opgeslagen statische kleur toe op de gesimuleerde apparaten
-- [ ] Met statische kleur: geen actieve timers, ~0% CPU en < 50 MB in Taakbeheer
-- [ ] Tweede start opent geen tweede engine maar vraagt de bestaande om de UI te openen
+- [x] Engine start, toont tray-icoon, past een opgeslagen statische kleur toe op de gesimuleerde apparaten
+- [x] Met statische kleur: geen actieve timers, ~0% CPU en < 50 MB in Taakbeheer
+- [x] Tweede start opent geen tweede engine maar vraagt de bestaande om de UI te openen
 
 ### Taak 2 – UI en IPC
 

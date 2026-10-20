@@ -53,4 +53,42 @@ public sealed class RgbColorTests
 
         Assert.Equal(new RgbColor(r, g, b), RgbColor.Lerp(from, to, amount));
     }
+
+    [Fact]
+    public void ToHex_FormatsAsUppercaseHashRrGgBb()
+    {
+        Assert.Equal("#0AFF80", new RgbColor(10, 255, 128).ToHex());
+    }
+
+    [Theory]
+    [InlineData("#0AFF80", 10, 255, 128)]
+    [InlineData("0aff80", 10, 255, 128)]
+    [InlineData("#000000", 0, 0, 0)]
+    public void TryParseHex_ValidText_ReturnsColor(string text, byte r, byte g, byte b)
+    {
+        Assert.True(RgbColor.TryParseHex(text, out var color));
+        Assert.Equal(new RgbColor(r, g, b), color);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("#")]
+    [InlineData("#FFF")]
+    [InlineData("#FF00FF00")]
+    [InlineData("#GG0000")]
+    [InlineData(" #FF0000")]
+    [InlineData("#-F0000")]
+    public void TryParseHex_InvalidText_ReturnsFalse(string text)
+    {
+        Assert.False(RgbColor.TryParseHex(text, out _));
+    }
+
+    [Fact]
+    public void TryParseHex_RoundTripsToHex()
+    {
+        var color = new RgbColor(1, 2, 3);
+
+        Assert.True(RgbColor.TryParseHex(color.ToHex(), out var parsed));
+        Assert.Equal(color, parsed);
+    }
 }

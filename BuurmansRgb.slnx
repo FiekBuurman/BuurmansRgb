@@ -26,4 +26,5 @@
   <Project Path="src/BuurmansRgb.UI/BuurmansRgb.UI.csproj" />
   <Project Path="tests/BuurmansRgb.Core.Tests/BuurmansRgb.Core.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Effects.Tests/BuurmansRgb.Effects.Tests.csproj" />
+  <Project Path="tests/BuurmansRgb.Engine.Tests/BuurmansRgb.Engine.Tests.csproj" />
 </Solution>
