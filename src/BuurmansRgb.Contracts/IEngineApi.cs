@@ -23,6 +23,10 @@ public partial interface IEngineApi
     // starts or stops, or when it gives another number of devices.
     event EventHandler<ServerStatus> OpenRgbStatusChanged;
 
+    // Raised with the new reasons when the effects pause or run again: from the tray menu, while
+    // Windows is locked or asleep, or after ResumeEffectsAsync.
+    event EventHandler<PauseReasons> PauseChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
@@ -65,6 +69,13 @@ public partial interface IEngineApi
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
 
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
+
+    // Why the effects are paused; PauseReasons.None while they run.
+    Task<PauseReasons> GetPauseAsync(CancellationToken ct = default);
+
+    // Ends the pause from the tray menu, like unchecking "Effecten pauzeren" there. A pause because
+    // Windows is locked or asleep stays until that ends.
+    Task ResumeEffectsAsync(CancellationToken ct = default);
 
     Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default);
 

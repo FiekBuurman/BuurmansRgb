@@ -61,6 +61,40 @@ internal sealed class FakeEngineApi : IEngineApi
         OpenRgbStatusChanged?.Invoke(this, status);
     }
 
+    public PauseReasons Pause { get; set; }
+
+    public bool HasPauseSubscribers => PauseChanged is not null;
+
+    public event EventHandler<PauseReasons>? PauseChanged;
+
+    public void RaisePause(PauseReasons pause)
+    {
+        Pause = pause;
+        PauseChanged?.Invoke(this, pause);
+    }
+
+    // When set, the pause changes to this while GetPauseAsync answers with the older one, as when
+    // the event overtakes the answer.
+    public PauseReasons? PauseChangeWhileAnswering { get; set; }
+
+    public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default)
+    {
+        var answer = Pause;
+        if (PauseChangeWhileAnswering is { } newer)
+        {
+            RaisePause(newer);
+        }
+
+        return Task.FromResult(answer);
+    }
+
+    // Like the engine: ends the manual pause only, and reports the new pause.
+    public async Task ResumeEffectsAsync(CancellationToken ct = default)
+    {
+        await Record("resume");
+        RaisePause(Pause & ~PauseReasons.Manual);
+    }
+
     // When set, the status changes to this while GetOpenRgbStatusAsync answers with the older one,
     // as when the event overtakes the answer.
     public ServerStatus? StatusChangeWhileAnswering { get; set; }

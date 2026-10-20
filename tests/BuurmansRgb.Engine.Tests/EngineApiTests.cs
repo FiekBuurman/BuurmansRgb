@@ -241,6 +241,45 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task Pause_IsThePauseOfTheLightingAndFollowsIt()
+    {
+        using var api = CreateApi();
+        var changes = new List<PauseReasons>();
+        api.PauseChanged += (_, pause) => changes.Add(pause);
+        Assert.Equal(PauseReasons.None, await api.GetPauseAsync(Ct));
+
+        _lighting.SetPaused(PauseReasons.Locked, true);
+
+        Assert.Equal(PauseReasons.Locked, await api.GetPauseAsync(Ct));
+        Assert.Equal([PauseReasons.Locked], changes);
+    }
+
+    [Fact]
+    public async Task ResumeEffectsAsync_EndsTheManualPauseOnly()
+    {
+        using var api = CreateApi();
+        _lighting.SetPaused(PauseReasons.Manual, true);
+        _lighting.SetPaused(PauseReasons.Asleep, true);
+
+        await api.ResumeEffectsAsync(Ct);
+
+        Assert.Equal(PauseReasons.Asleep, _lighting.Pause);
+    }
+
+    [Fact]
+    public void Dispose_StopsFollowingThePause()
+    {
+        var api = CreateApi();
+        var changes = 0;
+        api.PauseChanged += (_, _) => changes++;
+
+        api.Dispose();
+        _lighting.SetPaused(PauseReasons.Manual, true);
+
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
     public async Task SetSimulatedDevicesAsync_Never_HidesThemAndReportsTheNewList()
     {
         await _lighting.DiscoverAsync(Ct);

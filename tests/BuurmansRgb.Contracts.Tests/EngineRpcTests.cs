@@ -150,6 +150,30 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Pause_CrossesThePipeAsAnswerAndAsEvent()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource<PauseReasons>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.PauseChanged += (_, pause) => received.TrySetResult(pause);
+
+        var pause = await client.Api.GetPauseAsync(Ct);
+        _api.RaisePause(PauseReasons.Asleep);
+
+        Assert.Equal(PauseReasons.Manual | PauseReasons.Locked, pause);
+        Assert.Equal(PauseReasons.Asleep, await received.Task.WaitAsync(TestTimeouts.Short, Ct));
+    }
+
+    [Fact]
+    public async Task ResumeEffectsAsync_ReachesServer()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ResumeEffectsAsync(Ct);
+
+        Assert.Equal(1, _api.ResumeCalls);
+    }
+
+    [Fact]
     public async Task SetColorLoopAsync_ReachesServerWithColorsInOrder()
     {
         var client = await ConnectAsync();
@@ -275,6 +299,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
 
+        public event EventHandler<PauseReasons>? PauseChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
@@ -310,6 +336,18 @@ public sealed class EngineRpcTests : IDisposable
         public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
 
         public void RaiseOpenRgbStatus(ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
+
+        public void RaisePause(PauseReasons pause) => PauseChanged?.Invoke(this, pause);
+
+        public int ResumeCalls { get; private set; }
+
+        public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default) => Task.FromResult(PauseReasons.Manual | PauseReasons.Locked);
+
+        public Task ResumeEffectsAsync(CancellationToken ct = default)
+        {
+            ResumeCalls++;
+            return Task.CompletedTask;
+        }
 
         public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) =>
             Task.FromResult(new ServerStatus(ServerState.Connected, 4));
