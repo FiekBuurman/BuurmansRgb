@@ -192,8 +192,8 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
 - **RAM:** OpenRGB toont elke RAM-stick als eigen apparaat, vaak met dezelfde naam. Die
   krijgen een nummer in de volgorde van OpenRGB ("ENE DRAM 1", "ENE DRAM 2"). Het id in
   `settings.json` verandert daardoor niet. Onder de naam staat het SMBus-adres dat OpenRGB
-  meegeeft, bijv. "adres 0x52 op PIIX4 SMBus Adapter at 0B00", zodat je ziet welke stick welke
-  is (zie "Welk apparaat is wat?").
+  meegeeft, bijv. "Adres 0x52". Zo zijn de sticks uit elkaar te houden; welke welke is in de pc,
+  zie je samen met "Laat knipperen" (zie "Welk apparaat is wat?").
 - **Na slaapstand** gaan veel moederborden en RAM-sticks terug naar hun eigen effect. De
   engine luistert naar `PowerModeChanged` en herstelt 2 en 10 seconden na het ontwaken: hij
   laadt de OpenRGB-apparaten opnieuw (dat zet ze weer in "Direct" of "Custom") en stuurt alle
@@ -220,8 +220,8 @@ OpenRGB de eerste keer met adminrechten draaien.
   eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, en ook daar stel
   je het aantal LED's in.
 - **Twee dezelfde kaarten** krijgen een nummer in de volgorde van OpenRGB, net als RAM-sticks,
-  en net als daar staat onder de naam het adres en de bus die OpenRGB meegeeft. Bij twee kaarten
-  verschilt meestal de bus (de naam van de I2C-bus van elke kaart), niet het adres.
+  en net als daar staat onder de naam wat hun locatie in OpenRGB onderscheidt. Bij twee kaarten
+  is dat meestal niet het adres maar de bus van elke kaart, bijv. "Op NVIDIA GPU 1".
 - **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
   (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
   misschien niet; de debug-uitvoer meldt dat bij het verbinden.
@@ -350,10 +350,12 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
 - **Echt of gesimuleerd:** de lijst toont de echte apparaten onder de kop "Echte apparaten
   (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde apparaten". De provider geeft elk
   apparaat zijn bron mee (`DeviceInfo.Source`).
-- **Plek:** bij een apparaat op de SMBus (RAM, veel videokaarten en moederborden) staat onder de
-  naam het adres en de bus uit de OpenRGB-locatie, bijv. "adres 0x52 op PIIX4 SMBus Adapter at
-  0B00". Bij andere apparaten, zoals USB-apparaten, staat de locatie van OpenRGB alleen in de
-  tooltip van het apparaat (`DeviceInfo.Location`).
+- **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam (op het
+  volgnummer na) in de lijst, zoals de RAM-sticks van een kit, dan staat onder de naam het deel
+  van hun OpenRGB-locatie dat verschilt: het adres ("Adres 0x52"), of als dat gelijk is de bus
+  ("Op NVIDIA GPU 1"). Dat houdt ze uit elkaar; welke welke is in de pc, zie je samen met "Laat
+  knipperen". De hele locatie staat in de tooltip van elk apparaat dat er een heeft
+  (`DeviceInfo.Location`, in de app `DeviceLocationLabels`).
 - **Lege ARGB-header:** een zone die in lengte instelbaar is maar 0 LED's heeft, zegt in het
   voorbeeld "Nog geen LED's ingesteld" en legt uit dat je het aantal LED's van de fan of strip
   invult en "Toepassen" kiest.
@@ -363,17 +365,18 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   `EngineRpcTests` (knipperen, bron en locatie over de pipe), `OpenRgbDeviceMapperTests` en
   `OpenRgbDeviceProviderTests` (SMBus-adressen van RAM-sticks en twee videokaarten met nepdata),
   `SimulatedDeviceProviderTests`, `DeviceInfoTests`, `RgbDeviceTests` en in de instellingen-app
-  `DeviceItemTests`, `DevicePreviewViewModelTests` en `MainViewModelTests`. Start daarnaast de
-  engine en de instellingen-app: de gesimuleerde apparaten staan onder hun eigen kop, het
-  voorbeeld van een gekozen apparaat knippert kort wit, en bij "Simulated ARGB controller" staat
-  bij "ARGB 2" de uitleg voor een lege zone. De gesimuleerde apparaten hebben geen locatie.
+  `DeviceItemTests`, `DeviceLocationLabelsTests`, `DevicePreviewViewModelTests` en
+  `MainViewModelTests`. Start daarnaast de engine en de instellingen-app: de gesimuleerde
+  apparaten staan onder hun eigen kop, het voorbeeld van een gekozen apparaat knippert kort wit,
+  en bij "Simulated ARGB controller" staat bij "ARGB 2" de uitleg voor een lege zone. De
+  gesimuleerde apparaten hebben geen locatie.
 - **Testen met je eigen hardware:**
   1. Kies elk apparaat in de lijst en kijk of precies dat apparaat in de pc knippert en daarna
      zijn eigen kleur terugkrijgt, ook bij een bewegend effect.
   2. Pauzeer de effecten in het tray-menu en kies een apparaat: er hoort niets te knipperen.
   3. Kijk of de RAM-sticks (en eventueel twee dezelfde videokaarten) een verschillend adres of
-     een verschillende bus hebben, en of dat klopt met de slots. Noteer in `docs/hardware.md` wat
-     OpenRGB als locatie geeft (tooltip).
+     een verschillende bus tonen, en zoek met "Laat knipperen" uit welke welke is. Noteer in
+     `docs/hardware.md` wat OpenRGB als locatie geeft (tooltip).
   4. Zet bij een ARGB-header met 0 LED's het aantal LED's van je fan of strip en controleer met
      "Laat knipperen" dat de hele fan of strip oplicht.
 

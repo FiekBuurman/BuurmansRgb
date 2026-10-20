@@ -86,6 +86,19 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_TwinsShowTheAddressThatTellsThemApart()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices =
+        [
+            TestDevices.Create("ram-1", "ENE DRAM 1", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x70") },
+            TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x71") },
+            TestDevices.Create("fan", "Fan", DeviceType.Fan, 12),
+        ]);
+
+        Assert.Equal([null, "Adres 0x70", "Adres 0x71", null], viewModel.Devices.Select(device => device.LocationLabel));
+    }
+
+    [Fact]
     public async Task Connect_ShowsPreviewForEveryDeviceFromCurrentFrame()
     {
         var viewModel = await ConnectAsync(api => api.Frame = Frame(1, new RgbColor(9, 9, 9)));

@@ -70,10 +70,16 @@
     <value>Overige LED's</value>
   </data>
   <data name="DeviceLocationAddress" xml:space="preserve">
-    <value>adres {0} op {1}</value>
+    <value>Adres {0}</value>
+  </data>
+  <data name="DeviceLocationPort" xml:space="preserve">
+    <value>Op {0}</value>
   </data>
   <data name="DeviceLocationToolTip" xml:space="preserve">
     <value>Locatie: {0}</value>
+  </data>
+  <data name="DeviceLocationToolTipWithAddress" xml:space="preserve">
+    <value>Locatie: {0}, adres {1}</value>
   </data>
   <data name="DeviceSource_Hardware" xml:space="preserve">
     <value>Echte apparaten (OpenRGB)</value>

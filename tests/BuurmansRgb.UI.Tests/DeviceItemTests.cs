@@ -123,28 +123,27 @@ public sealed class DeviceItemTests
         Assert.All(Enum.GetValues<DeviceSource>(), source =>
             Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source)).Group));
 
-    // Two sticks of a kit have the same name; their address on the SMBus says which slot is which.
     [Fact]
-    public void For_RamStickWithAnAddress_ShowsWhereItIs()
+    public void For_WithALocationLabel_ShowsItAndTheWholeLocationAsToolTip()
     {
         var stick = TestDevices.Create("ram", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x52") };
 
-        var item = DeviceItem.For(stick);
+        var item = DeviceItem.For(stick, "Adres 0x52");
 
-        Assert.Equal("adres 0x52 op PIIX4", item.Location);
-        Assert.True(item.ShowsLocation);
-        Assert.Equal("Locatie: adres 0x52 op PIIX4", item.LocationToolTip);
+        Assert.Equal("Adres 0x52", item.LocationLabel);
+        Assert.True(item.ShowsLocationLabel);
+        Assert.Equal("Locatie: PIIX4, adres 0x52", item.LocationToolTip);
     }
 
-    // A USB path tells the user little, so it is only a tooltip.
+    // A device without a twin needs no label; its location stays in the tooltip.
     [Fact]
-    public void For_DeviceWithoutAddress_HasTheLocationOnlyAsToolTip()
+    public void For_WithoutALocationLabel_HasTheLocationOnlyAsToolTip()
     {
         var keyboard = TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104) with { Location = new DeviceLocation(@"HID: \\?\hid#vid_1b1c") };
 
         var item = DeviceItem.For(keyboard);
 
-        Assert.False(item.ShowsLocation);
+        Assert.False(item.ShowsLocationLabel);
         Assert.Equal(@"Locatie: HID: \\?\hid#vid_1b1c", item.LocationToolTip);
     }
 
@@ -153,8 +152,8 @@ public sealed class DeviceItemTests
     {
         var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12));
 
-        Assert.Null(item.Location);
-        Assert.False(item.ShowsLocation);
+        Assert.Null(item.LocationLabel);
+        Assert.False(item.ShowsLocationLabel);
         Assert.Null(item.LocationToolTip);
     }
 

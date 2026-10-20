@@ -241,13 +241,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var selectedId = SelectedDevice?.DeviceId;
         IReadOnlyList<DeviceInfo> devices = [.. engineDevices.OrderBy(device => device.Source == DeviceSource.Simulated)];
         _devices = devices;
+        var locationLabels = DeviceLocationLabels.For(devices);
         _syncing.Run(() =>
         {
             Devices.Clear();
             Devices.Add(DeviceItem.AllDevices(devices.Count));
             foreach (var device in devices)
             {
-                Devices.Add(DeviceItem.For(device));
+                Devices.Add(DeviceItem.For(device, locationLabels.GetValueOrDefault(device.Id)));
             }
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
