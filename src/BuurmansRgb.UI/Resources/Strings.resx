@@ -461,6 +461,9 @@
   <data name="EffectsPausedAsleep" xml:space="preserve">
     <value>Effecten gepauzeerd voor de slaapstand – ze lopen weer na het ontwaken.</value>
   </data>
+  <data name="EffectsResumed" xml:space="preserve">
+    <value>Effecten lopen weer.</value>
+  </data>
   <data name="EffectsPausedSymbol" xml:space="preserve">
     <value>Gepauzeerd</value>
   </data>

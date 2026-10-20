@@ -53,6 +53,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
+        EffectsPause = new EffectsPauseViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
@@ -120,7 +121,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
-    public EffectsPauseViewModel EffectsPause { get; } = new();
+    public EffectsPauseViewModel EffectsPause { get; }
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -150,6 +151,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         Preview.Dispose();
+        EffectsPause.Dispose();
         DropConnection();
     }
 

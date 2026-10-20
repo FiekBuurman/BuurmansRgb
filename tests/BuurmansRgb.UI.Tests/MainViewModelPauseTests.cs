@@ -30,6 +30,7 @@ public sealed class MainViewModelPauseTests
 
         Api.RaisePause(PauseReasons.None);
         Assert.False(viewModel.EffectsPause.IsPaused);
+        Assert.Equal(Strings.EffectsResumed, viewModel.EffectsPause.Text);
     }
 
     [Fact]

@@ -213,7 +213,9 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 - **In de instellingen-app** staat boven het voorbeeld een melding met de reden, bijv.
   "Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten", met
   de knop "Hervatten". Bij vergrendelen en slaapstand staat er alleen de reden: die pauze eindigt
-  met Windows. Een schermlezer leest een nieuwe melding voor. De engine meldt de stand via
+  met Windows. Eindigt de pauze, dan staat er 5 seconden "Effecten lopen weer." voordat de
+  melding verdwijnt, en na "Hervatten" staat de focus van het toetsenbord op de effectkeuze. Een
+  schermlezer leest elke nieuwe melding voor, ook die laatste. De engine meldt de stand via
   `IEngineApi.GetPauseAsync`, het event `PauseChanged` en `ResumeEffectsAsync`.
 - **Hoe de engine het merkt:** via `SystemEvents.SessionSwitch` (vergrendelen, ontgrendelen,
   verbinden en verbreken van de sessie) en `SystemEvents.PowerModeChanged` (slapen en ontwaken),
