@@ -36,10 +36,6 @@
 - Frames naar de UI begrenzen (bijv. max. 30 per seconde) zodra taak 4 animeert: nu maakt
   `EngineApi` bij elke render per verbonden UI een kopie en een `LightingFrame`, buiten de
   lock van `LightingController`
-- Gesimuleerde apparaten aan- en uitzetten vanuit de instellingen-app in plaats van alleen
-  met `simulatedDevices` in `settings.json` en een herstart. De engine kan het al tijdens het
-  draaien (`SwitchableDeviceProvider.IsEnabled`); er mist een `IEngineApi`-aanroep en een
-  vinkje in de UI
 - Adres en poort van de OpenRGB-server instelbaar maken (nu vast `127.0.0.1:6742`), en
   OpenRGB helemaal uit kunnen zetten (`SwitchableDeviceProvider.For` weigert OpenRGB nu nog,
   omdat het herstellen na slaapstand anders verloren gaat; daarvoor is eerst een wrapper
@@ -61,7 +57,6 @@
   working set na 3 s, ~22 MB na 60 s, ~11 MB private bytes. Opent iemand het tray-menu of de
   instellingen-app, dan komen pagina's terug; na het sluiten van de UI trimt de engine weer.
   Het tray-menu zelf trimt niet; dat zou een volgende stap kunnen zijn
-- In het tray-icoon of de instellingen-app tonen of OpenRGB verbonden is, en waarom niet
 - OpenRGB.NET 3.1.1 spreekt hooguit SDK-protocol 4. Bij een nieuwere OpenRGB (1.0 en later)
   controleren of verbinden, de apparaatindexen en `UpdateLeds` nog werken
 - Alleen de nieuwe apparaten aansturen als de lijst verandert; nu krijgen alle apparaten de
@@ -96,9 +91,6 @@
   of bij ontgrendelen (`SessionSwitch`), als apparaten dan ook terug naar hun eigen effect gaan
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
-- In de instellingen-app tonen dat een apparaat in OpenRGB geen "Direct"- of "Custom"-modus
-  heeft (veel videokaarten), zodat je ziet waarom de kleur niet aankomt; nu staat dat alleen in
-  de debug-uitvoer
 - Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Fans en fan-ringen in het voorbeeld als ring tekenen in plaats van als rij bolletjes, zodat
@@ -140,8 +132,6 @@
   de review (F4) bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, de preview, de
   kleurkiezer en de geselecteerde effectkeuze nodig, en de bewerk-logica zelf zit al in
   `LedEditorViewModel`. Pas oppakken als het LED-bewerken groeit (bijv. per zone)
-- Gesimuleerde apparaten vanzelf uit zodra OpenRGB echte apparaten levert, zodat na de
-  installer niemand `settings.json` hoeft aan te passen
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Ook één zone laten knipperen (bijv. met een knop naast de zonenaam), zodat je bij een
   moederbord met meer ARGB-headers ziet welke header welke fan of strip is; nu knippert het hele
@@ -159,3 +149,17 @@
   PCI-locatie zouden dan helpen
 - Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
   per id in `settings.json`
+- De effectkeuze voor schermlezers: een schermlezer noemt een item van een ComboBox bij zijn
+  `ToString`, en dat is bij `EffectOption` de hele record ("EffectOption { Id = static, ... }").
+  `SimulatedDevicesOption` geeft daarom zijn Nederlandse naam terug; `EffectOption` kan dat ook
+- Bij het starten van de engine in de stand "Automatisch" staan de gesimuleerde apparaten even
+  in de lijst tot OpenRGB verbonden is (ongeveer een seconde). Eventueel pas na de eerste
+  verbindpoging beslissen
+- Een andere keuze voor de gesimuleerde apparaten ook naar een tweede open instellingen-app
+  sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
+- Na het wegvallen van de verbinding staat er 5 seconden "OpenRGB: verbinden…" tot de volgende
+  poging; een eigen stand "verbinding verbroken" kan duidelijker zijn
+- Bij "OpenRGB: niet bereikbaar" een knop om de service `OpenRGB` te starten (vraagt
+  adminrechten, dus via UAC) in plaats van alleen de tip
+- De versie van OpenRGB en het SDK-protocol in de tooltip van de OpenRGB-status tonen, handig
+  bij "geen goed antwoord"
