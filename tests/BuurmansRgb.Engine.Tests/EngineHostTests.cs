@@ -229,6 +229,27 @@ public sealed class EngineHostTests : IDisposable
         await Eventually.TrueAsync(() => restarted.GetLeds("simulated-argb").SequenceEqual(expected));
     }
 
+    // Hand-edited zone lengths that add up past an int: the engine still starts and shows the colors.
+    [Fact]
+    public async Task StartAsync_LedColorZoneLengthsThatOverflow_StillStarts()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings
+            {
+                Devices = new() { ["simulated-motherboard"] = new LightingSettings { Effect = EffectIds.PerLed } },
+                LedColors = new() { ["simulated-motherboard"] = [Red] },
+                LedColorZoneLengths = new() { ["simulated-motherboard"] = [2_000_000_000, 2_000_000_000, 5] },
+            },
+        };
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(store, lighting);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(Red, _simulated.GetLeds("simulated-motherboard")[0]);
+    }
+
     [Fact]
     public async Task StartAsync_UsesTheSavedFrameRate()
     {

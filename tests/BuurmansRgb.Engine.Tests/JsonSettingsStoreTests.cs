@@ -132,6 +132,21 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColors["simulated-argb"].ZoneLengths!);
     }
 
+    // Counts that add up past what an int can hold would make the colors land at a negative index.
+    [Theory]
+    [InlineData("[2000000000, 2000000000, 5]")]
+    [InlineData("[100000, 1]")]
+    public void Load_ZoneLengthsOfFarMoreLedsThanADeviceHas_AreLeftOut(string lengths)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "ledColors": { "a": ["#FF0000"] }, "ledColorZoneLengths": { "a": {{lengths}} } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal([Red], state.LedColors["a"].Colors);
+        Assert.Null(state.LedColors["a"].ZoneLengths);
+    }
+
     // A file from before the zone lengths were stored, or with a count that cannot be right.
     [Fact]
     public void Load_LedColorsWithoutOrWithWrongZoneLengths_HaveNone()

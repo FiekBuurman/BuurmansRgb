@@ -8,6 +8,10 @@ namespace BuurmansRgb.Engine.Settings;
 // under "ledColorZoneLengths", the zone lengths they were chosen for.
 internal record LightingStateSettings : LightingSettings
 {
+    // More LEDs than a device has, by far; a hand-edited list of zone lengths over it would make the
+    // layout of the colors run past what an int can count.
+    private const long MaxLedCount = 100_000;
+
     // Null instead of empty, so the default settings compare equal and stay out of the file.
     public Dictionary<string, LightingSettings?>? Devices { get; set; }
 
@@ -58,7 +62,12 @@ internal record LightingStateSettings : LightingSettings
             : null;
     }
 
-    // Null when the file has none for the device, or a count that cannot be right.
+    // Null when the file has none for the device, or counts that cannot be right: a negative one,
+    // or more LEDs in all than any device has.
     private int[]? ReadZoneLengths(string deviceId) =>
-        LedColorZoneLengths?.GetValueOrDefault(deviceId) is { } lengths && lengths.All(length => length >= 0) ? lengths : null;
+        LedColorZoneLengths?.GetValueOrDefault(deviceId) is { } lengths
+        && lengths.All(length => length >= 0)
+        && lengths.Sum(length => (long)length) <= MaxLedCount
+            ? lengths
+            : null;
 }
