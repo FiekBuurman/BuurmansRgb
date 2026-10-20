@@ -75,6 +75,11 @@ internal sealed class LightingTable
             throw new ArgumentOutOfRangeException("speed", lighting.Speed, $"Speed runs from {EffectSpeed.Min} to {EffectSpeed.Max}.");
         }
 
+        if (!lighting.Loop.IsValid)
+        {
+            throw new ArgumentException($"A color loop has {ColorLoop.MinColors} to {ColorLoop.MaxColors} colors.", "colors");
+        }
+
         EffectCatalog.ThrowIfUnknown(lighting.EffectId);
     }
 

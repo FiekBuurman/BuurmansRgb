@@ -212,4 +212,24 @@
   </data>
   <data name="SaveFailedAt" xml:space="preserve">
     <value>Opslaan mislukt ({0:HH:mm:ss}): na een herstart zijn je laatste wijzigingen weg.</value>
+  </data>  <data name="Effect_color-loop" xml:space="preserve">
+    <value>Kleurenloop</value>
+  </data>
+  <data name="ColorLoopHeader" xml:space="preserve">
+    <value>Kleuren van de loop</value>
+  </data>
+  <data name="ColorLoopHint" xml:space="preserve">
+    <value>Klik op een kleur en kies hierboven een nieuwe. Na de laatste kleur begint de loop weer bij de eerste.</value>
+  </data>
+  <data name="ColorLoopAdd" xml:space="preserve">
+    <value>Kleur toevoegen</value>
+  </data>
+  <data name="ColorLoopRemove" xml:space="preserve">
+    <value>Kleur weghalen</value>
+  </data>
+  <data name="ColorLoopSpread" xml:space="preserve">
+    <value>Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)</value>
+  </data>
+  <data name="ColorLoopSwatch" xml:space="preserve">
+    <value>Kleur {0}: {1}</value>
   </data></root>

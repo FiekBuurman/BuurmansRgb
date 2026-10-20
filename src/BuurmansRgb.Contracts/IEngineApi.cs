@@ -37,6 +37,10 @@ public partial interface IEngineApi
     // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
     Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default);
 
+    // The colors of the color-loop effect, ColorLoop.MinColors to ColorLoop.MaxColors of them,
+    // and whether they spread over the LEDs. Does not switch the effect.
+    Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default);
+
     // The colors of the per-LED effect, one per LED: the stored color, or the device color for an
     // LED without one.
     Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default);

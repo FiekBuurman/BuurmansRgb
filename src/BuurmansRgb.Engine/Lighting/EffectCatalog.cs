@@ -6,16 +6,17 @@ using BuurmansRgb.Effects;
 namespace BuurmansRgb.Engine.Lighting;
 
 // The effects the engine can render, in the order the settings app lists them. An effect gets
-// the device's color and its stored per-LED colors and uses what it needs.
+// the device's color, its stored per-LED colors and its color loop, and uses what it needs.
 internal static class EffectCatalog
 {
-    private static readonly OrderedDictionary<string, Func<RgbColor, IReadOnlyList<RgbColor?>, IEffect>> Factories = new()
+    private static readonly OrderedDictionary<string, Func<RgbColor, IReadOnlyList<RgbColor?>, ColorLoop, IEffect>> Factories = new()
     {
-        [EffectIds.Static] = (color, _) => new StaticEffect(color),
-        [EffectIds.Breathing] = (color, _) => new BreathingEffect(color),
-        [EffectIds.Rainbow] = (_, _) => new RainbowEffect(),
-        [EffectIds.Wave] = (color, _) => new WaveEffect(color),
-        [EffectIds.PerLed] = (color, ledColors) => new PerLedEffect(ledColors, color),
+        [EffectIds.Static] = (color, _, _) => new StaticEffect(color),
+        [EffectIds.Breathing] = (color, _, _) => new BreathingEffect(color),
+        [EffectIds.Rainbow] = (_, _, _) => new RainbowEffect(),
+        [EffectIds.Wave] = (color, _, _) => new WaveEffect(color),
+        [EffectIds.ColorLoop] = (_, _, loop) => new ColorLoopEffect(loop.Colors, loop.Spread),
+        [EffectIds.PerLed] = (color, ledColors, _) => new PerLedEffect(ledColors, color),
     };
 
     public static IReadOnlyList<string> Ids { get; } = [.. Factories.Keys];
@@ -30,8 +31,8 @@ internal static class EffectCatalog
         }
     }
 
-    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors) =>
-        Factories.TryGetValue(effectId, out var create) ? create(color, ledColors) : throw UnknownEffect(effectId);
+    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors, ColorLoop? loop = null) =>
+        Factories.TryGetValue(effectId, out var create) ? create(color, ledColors, loop ?? ColorLoop.Default) : throw UnknownEffect(effectId);
 
     private static ArgumentException UnknownEffect(string? effectId) => new($"Unknown effect '{effectId}'.", nameof(effectId));
 }

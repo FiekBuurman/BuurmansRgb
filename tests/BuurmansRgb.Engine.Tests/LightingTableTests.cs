@@ -84,6 +84,29 @@ public sealed class LightingTableTests
         Assert.Equal(speed, _table.Get("device").Speed);
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(ColorLoop.MaxColors + 1)]
+    public void Set_ColorLoopWithWrongNumberOfColors_ThrowsForColors(int count)
+    {
+        var loop = new ColorLoop([.. Enumerable.Repeat(Orange, count)]);
+
+        var exception = Assert.Throws<ArgumentException>(() => _table.Set("device", HalfOrange with { Loop = loop }));
+
+        Assert.Equal("colors", exception.ParamName);
+        Assert.False(_table.IsSet);
+    }
+
+    [Fact]
+    public void Set_SameLoopAsGlobalInANewList_FollowsTheGlobalAgain()
+    {
+        _table.Set("device", HalfOrange);
+
+        _table.Set("device", DeviceLighting.Default with { Loop = new ColorLoop([.. ColorLoop.Default.Colors]) });
+
+        Assert.Empty(_table.Snapshot());
+    }
+
     [Fact]
     public void Replace_KeepsDevicesEqualToGlobal()
     {

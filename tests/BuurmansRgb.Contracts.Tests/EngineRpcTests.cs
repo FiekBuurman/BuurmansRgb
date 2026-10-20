@@ -47,7 +47,7 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task GetLightingAsync_RoundTripsColorBrightnessEffectAndSpeed()
+    public async Task GetLightingAsync_RoundTripsEveryField()
     {
         var client = await ConnectAsync();
 
@@ -93,6 +93,20 @@ public sealed class EngineRpcTests : IDisposable
         _api.RaiseSaved(succeeded: false);
 
         Assert.False((await received.Task.WaitAsync(TestTimeouts.Short, Ct)).Succeeded);
+    }
+
+    [Fact]
+    public async Task SetColorLoopAsync_ReachesServerWithColorsInOrder()
+    {
+        var client = await ConnectAsync();
+        RgbColor[] colors = [new(255, 255, 0), new(0, 255, 0), new(0, 0, 255)];
+
+        await client.Api.SetColorLoopAsync("fan", colors, spread: false, Ct);
+
+        var call = Assert.Single(_api.ColorLoopCalls);
+        Assert.Equal("fan", call.DeviceId);
+        Assert.Equal(colors, call.Colors);
+        Assert.False(call.Spread);
     }
 
     [Fact]
@@ -191,7 +205,7 @@ public sealed class EngineRpcTests : IDisposable
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5);
+        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false));
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -232,6 +246,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default)
         {
             SpeedCalls.Add((deviceId, speed));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, IReadOnlyList<RgbColor> Colors, bool Spread)> ColorLoopCalls { get; } = [];
+
+        public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default)
+        {
+            ColorLoopCalls.Add((deviceId, colors, spread));
             return Task.CompletedTask;
         }
 
