@@ -44,20 +44,26 @@
   </data>
   <data name="TrayOpenRgbConnecting" xml:space="preserve">
     <value>OpenRGB: verbinden…</value>
+    <comment>Gelijk houden met OpenRgbConnecting in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnected" xml:space="preserve">
     <value>OpenRGB: verbonden, {0} apparaten</value>
+    <comment>Gelijk houden met OpenRgbConnected in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnectedOneDevice" xml:space="preserve">
     <value>OpenRGB: verbonden, 1 apparaat</value>
+    <comment>Gelijk houden met OpenRgbConnectedOneDevice in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, geen apparaten</value>
+    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <comment>Gelijk houden met OpenRgbConnectedNoDevices in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbUnreachable" xml:space="preserve">
     <value>OpenRGB: niet bereikbaar</value>
+    <comment>Gelijk houden met OpenRgbUnreachable in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
+    <comment>Gelijk houden met OpenRgbFailed in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
 </root>

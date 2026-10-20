@@ -4,6 +4,7 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
+// The texts are spelled out, the same as in TrayPresenterTests, so the app and the tray say the same.
 public sealed class OpenRgbStatusViewModelTests
 {
     private readonly OpenRgbStatusViewModel _status = new();
@@ -16,7 +17,7 @@ public sealed class OpenRgbStatusViewModelTests
     }
 
     [Theory]
-    [InlineData(0, "OpenRGB: verbonden, maar OpenRGB vindt geen apparaten")]
+    [InlineData(0, "OpenRGB: verbonden, geen apparaten gevonden")]
     [InlineData(1, "OpenRGB: verbonden, 1 apparaat")]
     [InlineData(5, "OpenRGB: verbonden, 5 apparaten")]
     public void Connected_TellsTheNumberOfDevices(int deviceCount, string text)
@@ -43,7 +44,7 @@ public sealed class OpenRgbStatusViewModelTests
     {
         _status.Show(new ServerStatus(ServerState.Failed));
 
-        Assert.Equal(Strings.OpenRgbFailed, _status.Text);
+        Assert.Equal("OpenRGB: geen goed antwoord", _status.Text);
         Assert.Equal(Strings.OpenRgbFailedHint, _status.Hint);
     }
 

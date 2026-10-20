@@ -95,10 +95,11 @@ public sealed class TrayPresenterTests
         Assert.Equal($"{Strings.AppName}\nOpenRGB: verbinden…", _view.ToolTip);
     }
 
+    // The same texts as in OpenRgbStatusViewModelTests, so the tray and the app say the same.
     [Theory]
     [InlineData(ServerState.Connected, 4, "OpenRGB: verbonden, 4 apparaten")]
     [InlineData(ServerState.Connected, 1, "OpenRGB: verbonden, 1 apparaat")]
-    [InlineData(ServerState.Connected, 0, "OpenRGB: verbonden, geen apparaten")]
+    [InlineData(ServerState.Connected, 0, "OpenRGB: verbonden, geen apparaten gevonden")]
     [InlineData(ServerState.Unreachable, 0, "OpenRGB: niet bereikbaar")]
     [InlineData(ServerState.Failed, 0, "OpenRGB: geen goed antwoord")]
     [InlineData(ServerState.Connecting, 0, "OpenRGB: verbinden…")]

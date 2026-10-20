@@ -325,24 +325,30 @@
   </data>
   <data name="OpenRgbConnecting" xml:space="preserve">
     <value>OpenRGB: verbinden…</value>
+    <comment>Gelijk houden met TrayOpenRgbConnecting in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnected" xml:space="preserve">
     <value>OpenRGB: verbonden, {0} apparaten</value>
+    <comment>Gelijk houden met TrayOpenRgbConnected in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedOneDevice" xml:space="preserve">
     <value>OpenRGB: verbonden, 1 apparaat</value>
+    <comment>Gelijk houden met TrayOpenRgbConnectedOneDevice in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, maar OpenRGB vindt geen apparaten</value>
+    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <comment>Gelijk houden met TrayOpenRgbConnectedNoDevices in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachable" xml:space="preserve">
     <value>OpenRGB: niet bereikbaar</value>
+    <comment>Gelijk houden met TrayOpenRgbUnreachable in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachableHint" xml:space="preserve">
     <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van BuurmansRgb opnieuw; BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
   </data>
   <data name="OpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
+    <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbFailedHint" xml:space="preserve">
     <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. BuurmansRgb blijft het proberen.</value>
