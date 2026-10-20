@@ -35,6 +35,15 @@ public sealed class DeviceItemTests
     }
 
     [Fact]
+    public void ToString_OfATwin_TakesTheLocationLabelAlong()
+    {
+        var stick = DeviceItem.For(TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8), "Adres 0x71");
+
+        Assert.Equal("ENE DRAM 2 · Adres 0x71", stick.ToString());
+        Assert.Equal(stick.ToString(), stick.DisplayName);
+    }
+
+    [Fact]
     public void TypeName_OfEveryDeviceType()
     {
         Assert.Equal(Enum.GetValues<DeviceType>(), DutchTypeNames.Keys.Order());

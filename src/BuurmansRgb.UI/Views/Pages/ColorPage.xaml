@@ -50,8 +50,16 @@
             <DockPanel Margin="0,0,0,18">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <ComboBox MinWidth="280" VerticalAlignment="Center"
-                              ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}" DisplayMemberPath="Name"
+                              ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
+                        <!-- The location label tells twins apart, such as the RAM sticks of a kit. -->
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:DeviceItem}">
+                                <TextBlock>
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{StaticResource TextMutedBrush}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
                         <ComboBox.GroupStyle>
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>
@@ -89,7 +97,7 @@
                 <StackPanel>
                     <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" />
                     <TextBlock Style="{StaticResource SubText}">
-                        <Run Text="{Binding SelectedDevice.Name, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
+                        <Run Text="{Binding SelectedDevice.DisplayName, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </DockPanel>
