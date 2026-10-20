@@ -1,4 +1,4 @@
-<#
+﻿<#
 Builds artifacts\installer\out\BuurmansRgb-setup.exe:
   1. publishes the engine and the settings app self-contained (no .NET runtime needed),
   2. fetches the OpenRGB MSI and the PawnIO setup, and checks their SHA-256,

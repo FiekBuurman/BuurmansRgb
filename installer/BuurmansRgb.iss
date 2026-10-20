@@ -1,4 +1,4 @@
-; BuurmansRgb with OpenRGB as a service and the PawnIO driver, in one setup with one UAC prompt.
+﻿; BuurmansRgb with OpenRGB as a service and the PawnIO driver, in one setup with one UAC prompt.
 ; Build it with installer\build.ps1, which publishes the apps and fetches the dependencies first.
 ; See docs\openrgb-meeleveren.md for why it works this way.
 

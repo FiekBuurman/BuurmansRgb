@@ -1,4 +1,4 @@
-<#
+﻿<#
 Runs inside Windows Sandbox (see artifacts\installer\BuurmansRgb-test.wsb, made by build.ps1).
 Installs BuurmansRgb silently, checks the result, uninstalls it and checks again. The results go
 to C:\Results, which is artifacts\installer\sandbox-results on the host.
