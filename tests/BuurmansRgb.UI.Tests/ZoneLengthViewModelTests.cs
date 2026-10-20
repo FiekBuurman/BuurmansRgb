@@ -58,15 +58,19 @@ public sealed class ZoneLengthViewModelTests
         Assert.Empty(_actions.Requests);
     }
 
+    // They stay enabled, so a keyboard user who presses on at the end of the range keeps the focus.
     [Fact]
-    public void DecreaseAndIncrease_StopAtTheEndsOfTheRange()
+    public void DecreaseAndIncrease_StayEnabledAndStopAtTheEndsOfTheRange()
     {
         var empty = Create(new RgbZone("ARGB 2", 0, 0, 1));
 
-        Assert.False(empty.DecreaseCommand.CanExecute(null));
-        empty.IncreaseCommand.Execute(null);
-        Assert.False(empty.IncreaseCommand.CanExecute(null));
         Assert.True(empty.DecreaseCommand.CanExecute(null));
+        empty.DecreaseCommand.Execute(null);
+        Assert.Equal(0, empty.LedCount);
+        empty.IncreaseCommand.Execute(null);
+        empty.IncreaseCommand.Execute(null);
+        Assert.Equal(1, empty.LedCount);
+        Assert.True(empty.IncreaseCommand.CanExecute(null));
     }
 
     // Like the slider while its thumb is held: the preview follows, the engine gets the length once.

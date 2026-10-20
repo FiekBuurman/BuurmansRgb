@@ -80,7 +80,7 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     // The length the preview shows, within Minimum and Maximum. The slider sets it; a new value is
     // sent after SendDelay, or when the drag ends.
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DecreaseCommand), nameof(IncreaseCommand), nameof(ApplyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial int LedCount { get; set; }
 
     // The length the user types; Apply shows and sends it. Follows LedCount.
@@ -154,15 +154,13 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         }
     }
 
-    [RelayCommand(CanExecute = nameof(CanDecrease))]
-    private void Decrease() => LedCount--;
+    // − and + stay enabled at the ends of the range and then change nothing: a button that turns
+    // off while it has the keyboard focus drops the focus.
+    [RelayCommand]
+    private void Decrease() => LedCount = Math.Max(LedCount - 1, Minimum);
 
-    private bool CanDecrease() => LedCount > Minimum;
-
-    [RelayCommand(CanExecute = nameof(CanIncrease))]
-    private void Increase() => LedCount++;
-
-    private bool CanIncrease() => LedCount < Maximum;
+    [RelayCommand]
+    private void Increase() => LedCount = Math.Min(LedCount + 1, Maximum);
 
     // Only a length the zone can hold, and not the one the engine was asked for last.
     [RelayCommand(CanExecute = nameof(CanApply))]
