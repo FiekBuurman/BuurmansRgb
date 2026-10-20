@@ -55,6 +55,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 ShowPickerColor();
             }
         };
+        Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
+        Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, showLighting: true);
+        Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -86,6 +89,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
+
+    public ProfilesViewModel Profiles { get; } = new();
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -218,6 +223,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowDevices(devices);
         await ShowSelectionAsync();
         Preview.ShowFrame(await api.GetFrameAsync());
+        Profiles.Show(await api.GetProfilesAsync());
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
@@ -399,6 +405,38 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _calls.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
         }
+    }
+
+    // In the queue behind the changes that still wait, so a profile saves what the user set last.
+    // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
+    // profiles of the engine with this one selected, and a loaded profile shows its lighting.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, bool showLighting = false)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(new object(), async () =>
+        {
+            await call(connection.Api);
+            var names = await connection.Api.GetProfilesAsync();
+            RunOnUi(() =>
+            {
+                if (!ReferenceEquals(connection, _connection))
+                {
+                    return;
+                }
+
+                Profiles.Show(names, select: name);
+                StatusMessage = UiText.Format(doneMessage, name);
+                if (showLighting)
+                {
+                    ClearLedSelection();
+                    _ = ShowSelectionAsync();
+                }
+            });
+        });
     }
 
     private void ClearLedSelection()
