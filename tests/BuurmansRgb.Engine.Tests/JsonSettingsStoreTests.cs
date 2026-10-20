@@ -104,6 +104,26 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(EngineSettings.CreateDefault().Brightness, settings.Brightness);
         Assert.Equal(new RgbColor(0, 0, 255), settings.Color);
+        Assert.True(settings.SimulatedDevices);
+    }
+
+    [Fact]
+    public void LoadOrCreate_SimulatedDevicesOff_ReadsIt()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "simulatedDevices": false }""");
+
+        Assert.False(new JsonSettingsStore(path).LoadOrCreate().SimulatedDevices);
+    }
+
+    [Fact]
+    public void LoadOrCreate_NoFile_WritesTheSimulatedDevicesOption()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Contains("\"simulatedDevices\": true", File.ReadAllText(path));
     }
 
     [Theory]

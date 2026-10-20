@@ -1,3 +1,4 @@
+using System.Reflection;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
@@ -19,6 +20,39 @@ public sealed class EngineSettingsTests
 
         Assert.Equal(Orange, roundTripped.Global);
         Assert.Equal(Green, Assert.Single(roundTripped.Devices, pair => pair.Key == "fan").Value);
+    }
+
+    [Fact]
+    public void WithLighting_ReplacesLightingAndKeepsStartupOptions()
+    {
+        var settings = new EngineSettings { SimulatedDevices = false, Color = Green.Color };
+
+        var updated = settings.WithLighting(new LightingState(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green }));
+
+        Assert.False(updated.SimulatedDevices);
+        Assert.Equal(Orange, updated.ToDeviceLighting());
+        Assert.Equal(Green, updated.Devices!["fan"]!.ToDeviceLighting());
+        Assert.Equal(Green.Color, settings.Color);
+    }
+
+    // Guards options added later: each one must survive a lighting change without being copied by hand.
+    [Fact]
+    public void WithLighting_KeepsEveryStartupOption()
+    {
+        var settings = new EngineSettings();
+        var options = typeof(EngineSettings)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(property => property.Name != nameof(EngineSettings.Devices))
+            .ToArray();
+        Assert.NotEmpty(options);
+        foreach (var option in options)
+        {
+            option.SetValue(settings, OtherValue(option.PropertyType, option.GetValue(settings)));
+        }
+
+        var updated = settings.WithLighting(LightingStates.Uniform(Orange));
+
+        Assert.All(options, option => Assert.Equal(option.GetValue(settings), option.GetValue(updated)));
     }
 
     [Fact]
@@ -68,4 +102,12 @@ public sealed class EngineSettingsTests
 
         Assert.Empty(settings.ToLightingState().Devices);
     }
+
+    private static object OtherValue(Type type, object? current) => type switch
+    {
+        _ when type == typeof(bool) => !(bool)current!,
+        _ when type == typeof(int) => (int)current! + 1,
+        _ when type == typeof(string) => current + "-changed",
+        _ => throw new NotSupportedException($"Give {type} a value in {nameof(WithLighting_KeepsEveryStartupOption)}."),
+    };
 }

@@ -73,6 +73,18 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task DevicesChanged_OnServer_ReachesClient()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.DevicesChanged += (_, _) => received.TrySetResult();
+
+        _api.RaiseDevicesChanged();
+
+        await received.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -114,6 +126,8 @@ public sealed class EngineRpcTests : IDisposable
     {
         public event EventHandler<LightingFrame>? FrameRendered;
 
+        public event EventHandler? DevicesChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
             [new("strip", "LED strip", DeviceType.LedStrip, 30), new("fan", "Fan", DeviceType.Fan, 12)];
 
@@ -122,6 +136,8 @@ public sealed class EngineRpcTests : IDisposable
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
+
+        public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
         public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 

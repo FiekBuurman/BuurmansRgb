@@ -9,16 +9,25 @@ internal sealed class LightingSettingsSaver : IDisposable
 {
     private readonly ISettingsStore _store;
     private readonly LightingController _lighting;
+    private readonly EngineSettings _startupSettings;
     private readonly TimeSpan _delay;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private bool _pending;
     private bool _disposed;
 
-    public LightingSettingsSaver(ISettingsStore store, LightingController lighting, TimeSpan delay, TimeProvider? timeProvider = null)
+    // startupSettings are the settings the engine started with: the saver keeps their other options
+    // and only replaces the lighting.
+    public LightingSettingsSaver(
+        ISettingsStore store,
+        LightingController lighting,
+        EngineSettings startupSettings,
+        TimeSpan delay,
+        TimeProvider? timeProvider = null)
     {
         _store = store;
         _lighting = lighting;
+        _startupSettings = startupSettings;
         _delay = delay;
         _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
             _ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
@@ -72,7 +81,7 @@ internal sealed class LightingSettingsSaver : IDisposable
             _pending = false;
             try
             {
-                _store.Save(EngineSettings.From(_lighting.State));
+                _store.Save(_startupSettings.WithLighting(_lighting.State));
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {

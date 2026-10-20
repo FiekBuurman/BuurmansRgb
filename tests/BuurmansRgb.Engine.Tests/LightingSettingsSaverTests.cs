@@ -96,10 +96,23 @@ public sealed class LightingSettingsSaverTests
     }
 
     [Fact]
+    public async Task Save_KeepsTheStartupOptions()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = false }, Delay, _time);
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+
+        saver.Dispose();
+
+        Assert.False(_store.Settings.SimulatedDevices);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    [Fact]
     public async Task DefaultTimeProvider_SavesOnItsOwn()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
-        using var saver = new LightingSettingsSaver(_store, _lighting, TimeSpan.FromMilliseconds(1));
+        using var saver = new LightingSettingsSaver(_store, _lighting, EngineSettings.CreateDefault(), TimeSpan.FromMilliseconds(1));
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
@@ -111,5 +124,5 @@ public sealed class LightingSettingsSaverTests
         }
     }
 
-    private LightingSettingsSaver CreateSaver() => new(_store, _lighting, Delay, _time);
+    private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time);
 }

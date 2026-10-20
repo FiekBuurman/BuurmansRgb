@@ -73,6 +73,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Preview.Reset();
             connection.Disconnected += OnDisconnected;
             connection.Api.FrameRendered += OnFrameRendered;
+            connection.Api.DevicesChanged += OnDevicesChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -137,28 +138,64 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private async Task LoadAsync(IEngineApi api)
     {
-        _devices = await api.GetDevicesAsync();
+        var devices = await api.GetDevicesAsync();
         var effects = await api.GetEffectsAsync();
         WithoutSending(() =>
         {
-            Devices.Clear();
-            Devices.Add(new DeviceItem(null, Strings.AllDevices, Format(Strings.AllDevicesDetails, _devices.Count)));
-            foreach (var device in _devices)
-            {
-                Devices.Add(new DeviceItem(device.Id, device.Name, Format(Strings.DeviceDetails, device.LedCount)));
-            }
-
             Effects.Clear();
             foreach (var effect in effects)
             {
                 Effects.Add(EffectOption.Create(effect));
             }
-
-            SelectedDevice = Devices[0];
         });
 
+        ShowDevices(devices);
         await ShowSelectionAsync();
         Preview.ShowFrame(await api.GetFrameAsync());
+    }
+
+    // Keeps the selected device when it is still there, and falls back to "all devices" when not.
+    private void ShowDevices(IReadOnlyList<DeviceInfo> devices)
+    {
+        var selectedId = SelectedDevice?.DeviceId;
+        _devices = devices;
+        WithoutSending(() =>
+        {
+            Devices.Clear();
+            Devices.Add(new DeviceItem(null, Strings.AllDevices, Format(Strings.AllDevicesDetails, devices.Count)));
+            foreach (var device in devices)
+            {
+                Devices.Add(new DeviceItem(device.Id, device.Name, Format(Strings.DeviceDetails, device.LedCount)));
+            }
+
+            SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
+        });
+    }
+
+    // Devices came or went in the engine, for example because OpenRGB started or stopped.
+    private async Task ReloadDevicesAsync()
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        IReadOnlyList<DeviceInfo> devices;
+        try
+        {
+            devices = await connection.Api.GetDevicesAsync();
+        }
+        catch (Exception exception)
+        {
+            OnCallFailed(exception);
+            return;
+        }
+
+        if (ReferenceEquals(connection, _connection))
+        {
+            ShowDevices(devices);
+            await ShowSelectionAsync();
+        }
     }
 
     private async Task ShowSelectionAsync()
@@ -208,6 +245,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));
 
+    private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
+
     // "All devices" shows every device.
     private void RebuildPreview()
     {
@@ -251,6 +290,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connection = null;
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
+        connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Dispose();
     }
 

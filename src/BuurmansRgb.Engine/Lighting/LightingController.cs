@@ -1,18 +1,39 @@
+using System.Diagnostics;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
 
-// Called from the tray thread and from IPC threads; the lock guards all state. Events are
-// raised outside the lock, so a listener can see a newer output than the render that raised
-// the event: LightingOutput.Sequence orders them.
-internal sealed class LightingController(IReadOnlyList<IDeviceProvider> providers)
+// Called from the tray thread, from IPC threads and, when a provider's devices change, from the
+// thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
+// see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
+internal sealed class LightingController
 {
+    private readonly IReadOnlyList<IDeviceProvider> _providers;
     private readonly Lock _gate = new();
+
+    // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
+    private readonly SemaphoreSlim _discovering = new(1, 1);
+    private readonly IReadOnlyList<DeviceOutput>[] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
     private IReadOnlyList<DeviceOutput> _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
     private long _sequence;
+
+    public LightingController(IReadOnlyList<IDeviceProvider> providers)
+    {
+        _providers = providers;
+        _outputsByProvider = [.. providers.Select(_ => (IReadOnlyList<DeviceOutput>)[])];
+        for (var index = 0; index < providers.Count; index++)
+        {
+            if (providers[index] is IDynamicDeviceProvider dynamicProvider)
+            {
+                var providerIndex = index;
+                // On the thread pool: the provider may raise this while the engine waits for it.
+                dynamicProvider.DevicesChanged += (_, _) => _ = Task.Run(() => RefreshAsync(providerIndex));
+            }
+        }
+    }
 
     // Raised after each render, also while paused, so a preview shows what the lights will show.
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
@@ -20,6 +41,9 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
 
     // Raised when the lighting is changed through SetLighting, not when it is applied from settings.
     public event EventHandler? LightingChanged;
+
+    // Raised when the device list changed, before the render that gives new devices their lighting.
+    public event EventHandler? DevicesChanged;
 
     public bool IsPaused
     {
@@ -54,20 +78,12 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         }
     }
 
+    // Fetches the devices of every provider; the lights follow with Apply.
     public async Task DiscoverAsync(CancellationToken ct)
     {
-        List<DeviceOutput> outputs = [];
-        foreach (var provider in providers)
+        for (var index = 0; index < _providers.Count; index++)
         {
-            foreach (var device in await provider.DiscoverAsync(ct))
-            {
-                outputs.Add(new(provider, device, new RgbColor[device.LedCount]));
-            }
-        }
-
-        lock (_gate)
-        {
-            _outputs = outputs;
+            await UpdateDevicesAsync(index, render: false, ct);
         }
     }
 
@@ -165,6 +181,43 @@ internal sealed class LightingController(IReadOnlyList<IDeviceProvider> provider
         }
 
         Publish(rendered);
+    }
+
+    // A device that comes back keeps its own lighting: it stays in the state while the device is gone.
+    private async Task RefreshAsync(int providerIndex)
+    {
+        try
+        {
+            await UpdateDevicesAsync(providerIndex, render: true, CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+        }
+    }
+
+    private async Task UpdateDevicesAsync(int providerIndex, bool render, CancellationToken ct)
+    {
+        await _discovering.WaitAsync(ct);
+        try
+        {
+            var provider = _providers[providerIndex];
+            var devices = await provider.DiscoverAsync(ct);
+            bool rendered;
+            lock (_gate)
+            {
+                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device, new RgbColor[device.LedCount]))];
+                _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
+                rendered = render && RenderLocked();
+            }
+
+            DevicesChanged?.Invoke(this, EventArgs.Empty);
+            Publish(rendered);
+        }
+        finally
+        {
+            _discovering.Release();
+        }
     }
 
     // Returns false when there is no lighting to render yet.

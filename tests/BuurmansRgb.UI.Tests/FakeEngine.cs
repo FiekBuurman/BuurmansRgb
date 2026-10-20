@@ -45,7 +45,9 @@ internal sealed class FakeEngineApi : IEngineApi
 {
     public event EventHandler<LightingFrame>? FrameRendered;
 
-    public IReadOnlyList<DeviceInfo> Devices { get; } =
+    public event EventHandler? DevicesChanged;
+
+    public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [
         new("strip", "LED strip", DeviceType.LedStrip, 3),
         new("fan", "Fan", DeviceType.Fan, 2),
@@ -66,6 +68,8 @@ internal sealed class FakeEngineApi : IEngineApi
     public bool HasFrameSubscribers => FrameRendered is not null;
 
     public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
+
+    public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 

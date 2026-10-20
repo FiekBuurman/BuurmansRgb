@@ -38,6 +38,22 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task DevicesChanged_IsForwardedWithTheNewDeviceList()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        var lighting = new LightingController([dynamic]);
+        using var api = new EngineApi(lighting);
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        api.DevicesChanged += (_, _) => changed.TrySetResult();
+
+        dynamic.SetDevices(DynamicDeviceProvider.Device("real"));
+        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        var device = Assert.Single(await api.GetDevicesAsync(TestContext.Current.CancellationToken));
+        Assert.Equal("real", device.Id);
+    }
+
+    [Fact]
     public async Task Dispose_StopsForwardingFrames()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
