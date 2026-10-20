@@ -30,6 +30,18 @@
   <data name="MenuExit" xml:space="preserve">
     <value>Afsluiten</value>
   </data>
+  <data name="MenuLoadProfile" xml:space="preserve">
+    <value>Profiel laden</value>
+  </data>
+  <data name="MenuNoProfiles" xml:space="preserve">
+    <value>Nog geen profielen – maak ze in Instellingen</value>
+  </data>
+  <data name="ProfilesUnreadable" xml:space="preserve">
+    <value>De profielen konden niet worden gelezen.</value>
+  </data>
+  <data name="ProfileLoadFailed" xml:space="preserve">
+    <value>Profiel '{0}' kon niet worden geladen.</value>
+  </data>
   <data name="SettingsAppNotFound" xml:space="preserve">
     <value>De instellingen-app is niet gevonden.</value>
   </data>

@@ -50,7 +50,7 @@ internal static class Program
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), openRgb);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         {
             Application.Run(context);

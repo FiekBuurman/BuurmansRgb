@@ -1,5 +1,6 @@
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
 
@@ -13,6 +14,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly ContextMenuStrip _menu;
     private readonly NotifyIcon _notifyIcon;
     private readonly ToolStripMenuItem _autoStartItem;
+    private readonly ToolStripMenuItem _profilesItem;
     private readonly SynchronizationContext _uiContext;
     private readonly IServerStatusSource _openRgb;
     private readonly CancellationTokenSource _shutdown = new();
@@ -21,9 +23,11 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         IEngineHost host,
         IAutoStart autoStart,
         ISettingsAppLauncher settingsAppLauncher,
+        ProfileLibrary profiles,
         IServerStatusSource openRgb)
     {
-        _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, this);
+        _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, profiles, this);
+        _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
 
         var pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
         pauseItem.CheckedChanged += (_, _) => _presenter.SetPaused(pauseItem.Checked);
@@ -34,12 +38,17 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _menu.Items.AddRange(
         [
             new ToolStripMenuItem(Strings.MenuOpenSettings, image: null, (_, _) => _presenter.OpenSettings()),
+            _profilesItem,
             pauseItem,
             _autoStartItem,
             new ToolStripSeparator(),
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
         ]);
-        _menu.Opening += (_, _) => _presenter.RefreshAutoStart();
+        _menu.Opening += (_, _) =>
+        {
+            _presenter.RefreshAutoStart();
+            _presenter.RefreshProfiles();
+        };
 
         _notifyIcon = new NotifyIcon
         {
@@ -73,6 +82,28 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
     void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
+
+    // Without profiles the submenu explains where to make them; when they could not be read, the
+    // whole item is greyed out and the notification tells why.
+    void ITrayView.ShowProfiles(IReadOnlyList<string>? names)
+    {
+        var oldItems = _profilesItem.DropDownItems.Cast<ToolStripItem>().ToList();
+        _profilesItem.DropDownItems.Clear();
+        oldItems.ForEach(item => item.Dispose());
+
+        _profilesItem.Enabled = names is not null;
+        if (names is null or [])
+        {
+            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(Strings.MenuNoProfiles) { Enabled = false });
+            return;
+        }
+
+        foreach (var name in names)
+        {
+            // A single & would underline the next letter instead of showing itself.
+            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(name.Replace("&", "&&", StringComparison.Ordinal), image: null, (_, _) => _presenter.LoadProfile(name)));
+        }
+    }
 
     void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>
         _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, ToToolTipIcon(kind));

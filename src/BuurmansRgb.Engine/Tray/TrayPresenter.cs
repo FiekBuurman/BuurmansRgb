@@ -4,6 +4,8 @@ using System.Security;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Resources;
+using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 
 namespace BuurmansRgb.Engine.Tray;
@@ -14,6 +16,7 @@ internal sealed class TrayPresenter(
     IEngineHost host,
     IAutoStart autoStart,
     ISettingsAppLauncher settingsAppLauncher,
+    ProfileLibrary profiles,
     ITrayView view)
 {
     private bool _paused;
@@ -63,6 +66,36 @@ internal sealed class TrayPresenter(
     }
 
     public void RefreshAutoStart() => view.SetAutoStartChecked(autoStart.IsEnabled);
+
+    // Called when the menu opens, so the list is the current one, also after the settings app
+    // saved or deleted a profile. The library reads profiles.json only on its first use, so an
+    // engine whose menu nobody opens does not hold the profiles.
+    public void RefreshProfiles()
+    {
+        try
+        {
+            view.ShowProfiles(profiles.Names);
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            view.ShowProfiles(null);
+            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
+        }
+    }
+
+    // Any failure is reported, so a click in the menu never takes the engine down: the profile can
+    // be gone since the menu opened, or a device can fail.
+    public void LoadProfile(string name)
+    {
+        try
+        {
+            profiles.Load(name);
+        }
+        catch (Exception exception)
+        {
+            ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.ProfileLoadFailed, name), TrayNotificationKind.Warning);
+        }
+    }
 
     public void SetAutoStart(bool enabled)
     {

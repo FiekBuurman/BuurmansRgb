@@ -6,5 +6,8 @@ internal interface ITrayView
 
     void SetAutoStartChecked(bool isChecked);
 
+    // The profiles to load from the menu, or null when they could not be read.
+    void ShowProfiles(IReadOnlyList<string>? names);
+
     void ShowNotification(string text, TrayNotificationKind kind);
 }
