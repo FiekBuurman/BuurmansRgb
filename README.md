@@ -543,9 +543,9 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   tijdens een spel), `ProgramWatcherTests` (met een nep-proceslijst: starten, stoppen, terug naar
   daarvoor, iets veranderd, twee programma's, de engine die stopt of start terwijl een programma
   draait), `ProcessListTests` (de echte proceslijst, met een eigen kopie van `ping.exe` die start
-  en stopt), `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de
-  pipe), `EngineHostTests` en in de instellingen-app `ProfileAutomationViewModelTests`,
-  `ProfilesViewModelTests` en `MainViewModelProfileTests`. Start daarnaast de engine en de
+  en stopt), `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests`
+  (over de pipe), `EngineHostTests`, `SystemClockEventsTests` en in de instellingen-app
+  `ProfileAutomationViewModelTests`, `ProfilesViewModelTests` en `MainViewModelProfileTests`. Start daarnaast de engine en de
   instellingen-app: sla twee profielen op, open het tray-menu en kies er een; zet bij een profiel
   een tijd een minuut verder en wacht; zet bij een profiel `notepad.exe`, start Kladblok en sluit
   het weer.
