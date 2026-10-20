@@ -90,8 +90,6 @@
   zodra OpenRGB de apparaten weer meldt
 - Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
-- Fans en fan-ringen in het voorbeeld als ring tekenen in plaats van als rij bolletjes, zodat
-  je ziet welke LED waar zit
 - Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
   OpenRGB ze na een herstart vergeet; dan houden ook de gesimuleerde apparaten een ingestelde
   lengte na een herstart van de engine (nu alleen tot de engine stopt). Bewaar bij de
@@ -100,8 +98,6 @@
   andere lengte heeft (zie README, "Let op bij per-LED-kleuren")
 - De lengte van een zone met een schuif of met + en − instellen, met het voorbeeld dat direct
   meegroeit; nu typ je het aantal en kies je "Toepassen"
-- OpenRGB.NET bijwerken zodra het de nieuwere apparaattypes kent (storage, case, microphone,
-  accessory, keypad); dan kan het vaste nummer 15 voor "case" in `OpenRgbDeviceMapper` weg
 - De segmenten van een zone (SDK-protocol 4) tonen en apart kunnen kiezen, bijv. als een
   ARGB-kanaal uit een fan en een strip achter elkaar bestaat
 - Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
@@ -111,14 +107,8 @@
 - Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
   uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
   als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
-- De namen van de LED's uit OpenRGB (bijv. "Key: Escape") meegeven, zodat het voorbeeld de
-  toets als tooltip of op de toets zelf kan tonen en een schermlezer de toets kan noemen
-- Brede toetsen (spatiebalk, Enter, Shift) breder tekenen; de matrix-map van OpenRGB geeft
-  alleen een vakje per toets, dus dan zou een eigen indeling per toetsenbordtype nodig zijn
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
   van een reeks in LED-volgorde
-- Eigen types en iconen voor muismat, headsetstandaard, speaker en gamepad (OpenRGB kent ze);
-  nu staan ze als "overig" in de lijst
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `README.md`
 - Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
@@ -174,3 +164,31 @@
   draait, zodat je de naam niet hoeft te weten
 - Een melding bij een fout in de instellingen-app die preciezer is dan "De engine kon de
   wijziging niet verwerken", bijv. als het profiel van "Automatisch laden" net verwijderd is
+- Per fan-ring kunnen kiezen waar LED 1 zit en welke kant hij op telt (draaien en spiegelen),
+  bewaard per zone. OpenRGB zegt dat niet; het voorbeeld zet LED 1 nu bovenaan en telt met de
+  klok mee
+- Een kanaal met meer fans achter elkaar (bijv. een Lian Li-hub met vier fans van 16 LED's in
+  één zone) als zoveel ringen tekenen in plaats van één grote ring, bijv. met een instelling
+  "fans in deze zone"
+- Een zone die geen fan-apparaat is toch als ring kunnen tekenen (een ARGB-header met een fan
+  erop, een zone "Fan" van een videokaart): de naam is daar niet betrouwbaar genoeg om het
+  vanzelf te doen. Past bij het idee om apparaten en zones zelf een naam te geven
+- De ringen van een fan met binnen- en buitenring in elkaar tekenen (concentrisch) in plaats
+  van onder elkaar; nu is elke zone een eigen element met een eigen kop
+- Hoge toetsen (Enter en + van het numerieke blok, de ISO-Enter) over twee rijen tekenen; nu
+  worden brede toetsen alleen breder, niet hoger. Alt, Windows, Fn en Menu (net iets breder
+  dan een letter) blijven één vakje, omdat ze anders lege vakjes van de spatiebalk afsnoepen
+- Eigen types voor lampen (11), "accessory" (17) en de nieuwe types van OpenRGB 1.0 (laptop
+  19, monitor 20, daarna pas "unknown"). "Storage" (14) is alleen van "unknown" van oudere
+  OpenRGB-versies te onderscheiden via de protocolversie; OpenRGB.NET 3.1.1 is nog steeds de
+  nieuwste versie (gecontroleerd op 20-10-2026)
+- In het voorbeeld zien schermlezers per apparaat en per zone een item met de klassenaam
+  ("BuurmansRgb.UI.ViewModels.DevicePreviewViewModel"); `ToString` of een
+  `AutomationProperties.Name` op de items geven ze een echte naam. De LED's zelf hebben sinds
+  de toetsnamen wel een naam
+- Een LED in het voorbeeld via UI Automation in beeld laten schuiven (`ScrollItem`) en hem
+  `IsOffscreen` laten melden als hij buiten de zichtbare rand valt; nu volgen de LED's daarin de
+  hele zone
+- `ProcessListTests.Find_SeesAProgramStartAndStop` faalt op deze pc ongeveer één op de drie
+  keer: na `Kill` en `WaitForExitAsync` staat de kopie van ping soms nog even in de lijst. De
+  test (of `ProcessList`) zou kort op het verdwijnen moeten wachten
