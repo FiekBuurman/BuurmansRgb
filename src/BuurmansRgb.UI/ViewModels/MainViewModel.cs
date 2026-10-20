@@ -187,6 +187,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var connection = await _connector.ConnectAsync(CancellationToken.None);
             _connection = connection;
             Preview.Reset();
+            Lamps.Reset();
             connection.Disconnected += OnDisconnected;
             connection.Api.FrameRendered += OnFrameRendered;
             connection.Api.DevicesChanged += OnDevicesChanged;

@@ -172,6 +172,19 @@ public sealed class LampsViewModelTests
     }
 
     [Fact]
+    public void ShowFrame_OlderFrame_IsIgnoredUntilReset()
+    {
+        _lamps.ShowFrame(new LightingFrame(5, [DeviceFrame.FromColors("fan", [Blue, Blue])]));
+
+        _lamps.ShowFrame(new LightingFrame(4, [DeviceFrame.FromColors("fan", [Red, Red])]));
+        Assert.Equal(Blue, _lamps.Lamps[1].Color);
+
+        _lamps.Reset();
+        _lamps.ShowFrame(new LightingFrame(1, [DeviceFrame.FromColors("fan", [Red, Red])]));
+        Assert.Equal(Red, _lamps.Lamps[1].Color);
+    }
+
+    [Fact]
     public void Lamp_NamesItsSwitchAndItsCardForAScreenReader()
     {
         Assert.Equal("Fan aan of uit", _lamps.Lamps[1].SwitchAccessibleName);

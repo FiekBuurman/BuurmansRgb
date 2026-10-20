@@ -21,6 +21,9 @@ public sealed partial class LampsViewModel : ObservableObject
     // The way to ask the lighting that the last RefreshAsync gave, such as of a new connection.
     private Func<string, Task<LightingInfo>>? _getLighting;
 
+    // The sequence of the last frame shown; frames can overtake each other.
+    private long _sequence;
+
     public LampsViewModel() => Strip = [.. Enumerable.Range(0, StripLength).Select(_ => new StripLed())];
 
     public event EventHandler<LampSwitch>? SwitchRequested;
@@ -130,9 +133,18 @@ public sealed partial class LampsViewModel : ObservableObject
         }
     }
 
+    // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
+    public void Reset() => _sequence = 0;
+
     // The colors of every lamp, and the strip spread evenly over all their LEDs one after the other.
     public void ShowFrame(LightingFrame frame)
     {
+        if (frame.Sequence < _sequence)
+        {
+            return;
+        }
+
+        _sequence = frame.Sequence;
         var total = 0;
         List<(LampItem Lamp, byte[] Leds)> lit = [];
         foreach (var lamp in Lamps)
