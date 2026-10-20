@@ -301,4 +301,19 @@
   </data>
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
+  </data>
+  <data name="SimulatedDevicesLabel" xml:space="preserve">
+    <value>Gesimuleerde apparaten tonen</value>
+  </data>
+  <data name="SimulatedDevicesHint" xml:space="preserve">
+    <value>Nep-apparaten om BuurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
+  </data>
+  <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
+    <value>Automatisch</value>
+  </data>
+  <data name="SimulatedDevicesMode_Always" xml:space="preserve">
+    <value>Altijd</value>
+  </data>
+  <data name="SimulatedDevicesMode_Never" xml:space="preserve">
+    <value>Nooit</value>
   </data></root>

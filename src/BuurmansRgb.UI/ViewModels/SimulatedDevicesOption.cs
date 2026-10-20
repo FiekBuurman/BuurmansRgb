@@ -1,0 +1,11 @@
+using BuurmansRgb.Contracts;
+
+namespace BuurmansRgb.UI.ViewModels;
+
+// The Dutch name of a mode comes from Strings.resx ("SimulatedDevicesMode_<mode>"); a mode without
+// one shows its English name.
+public sealed record SimulatedDevicesOption(SimulatedDevicesMode Mode, string DisplayName)
+{
+    public static SimulatedDevicesOption Create(SimulatedDevicesMode mode) =>
+        new(mode, UiText.Lookup(nameof(SimulatedDevicesMode), mode) ?? mode.ToString());
+}

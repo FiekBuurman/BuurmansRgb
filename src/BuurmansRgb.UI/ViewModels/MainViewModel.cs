@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
+    private const string SimulatedDevicesCall = "simulated-devices";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -60,6 +61,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, showLighting: true);
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -93,6 +95,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
     public ProfilesViewModel Profiles { get; } = new();
+
+    public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -232,6 +236,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
         Preview.ShowFrame(await api.GetFrameAsync());
         Profiles.Show(await api.GetProfilesAsync());
+        SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
@@ -423,6 +428,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
+        }
+    }
+
+    // The engine shows or hides the simulated devices and reports the new list through
+    // DevicesChanged, so the list here follows by itself.
+    private void SendSimulatedDevices(SimulatedDevicesMode mode)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(SimulatedDevicesCall, () => connection.Api.SetSimulatedDevicesAsync(mode));
         }
     }
 

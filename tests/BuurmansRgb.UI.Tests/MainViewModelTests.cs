@@ -351,6 +351,28 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_ShowsTheModeOfTheSimulatedDevices()
+    {
+        var viewModel = await ConnectAsync(api => api.SimulatedDevices = SimulatedDevicesMode.Never);
+
+        Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task SimulatedDevicesPicked_SendsTheModeAndFollowsTheNewList()
+    {
+        var viewModel = await ConnectAsync();
+
+        viewModel.SimulatedDevices.SelectedOption = SimulatedDevicesViewModel.Options.Single(option => option.Mode == SimulatedDevicesMode.Never);
+        Api.Devices = [];
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(["simulated Never"], Api.Calls);
+        Assert.Equal([null], viewModel.Devices.Select(device => device.DeviceId));
+    }
+
+    [Fact]
     public async Task Disconnected_ShowsMessageAndReleasesConnection()
     {
         var viewModel = await ConnectAsync();

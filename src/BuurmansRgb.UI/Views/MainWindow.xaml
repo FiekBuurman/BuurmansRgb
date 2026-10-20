@@ -97,6 +97,16 @@
                         </DockPanel>
                     </StackPanel>
 
+                    <!-- Docked after the profiles, so it sits right under the list it changes. -->
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <TextBlock Style="{StaticResource Label}" Margin="0,0,0,2" Text="{x:Static res:Strings.SimulatedDevicesLabel}" />
+                        <ComboBox ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding SimulatedDevices.SelectedOption}"
+                                  ToolTip="{x:Static res:Strings.SimulatedDevicesHint}"
+                                  AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
+                    </StackPanel>
+
                     <ListBox ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                              AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
                         <ListBox.GroupStyle>
