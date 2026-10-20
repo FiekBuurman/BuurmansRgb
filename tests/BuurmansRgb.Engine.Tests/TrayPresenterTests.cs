@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
@@ -92,17 +93,56 @@ public sealed class TrayPresenterTests : IDisposable
     }
 
     [Fact]
-    public void SetPaused_PausesHostAndSwitchesToolTip()
+    public void SetPaused_PausesAndResumesTheHost()
     {
         var presenter = CreatePresenter();
 
         presenter.SetPaused(true);
         Assert.True(_host.Paused);
-        Assert.Equal($"{Strings.TrayToolTipPaused}\nOpenRGB: verbinden…", _view.ToolTip);
 
         presenter.SetPaused(false);
         Assert.False(_host.Paused);
+    }
+
+    [Fact]
+    public void ShowPause_Manual_ChecksTheMenuItemAndSwitchesToolTip()
+    {
+        var presenter = CreatePresenter();
+
+        presenter.ShowPause(PauseReasons.Manual);
+        Assert.True(_view.PauseChecked);
+        Assert.Equal($"{Strings.TrayToolTipPaused}\nOpenRGB: verbinden…", _view.ToolTip);
+
+        presenter.ShowPause(PauseReasons.None);
+        Assert.False(_view.PauseChecked);
         Assert.Equal($"{Strings.AppName}\nOpenRGB: verbinden…", _view.ToolTip);
+    }
+
+    // The menu item is the pause from the menu only; the tooltip tells any pause.
+    [Theory]
+    [InlineData(PauseReasons.Locked, false)]
+    [InlineData(PauseReasons.Asleep, false)]
+    [InlineData(PauseReasons.Manual | PauseReasons.Locked, true)]
+    public void ShowPause_OtherReasons_CheckTheMenuItemOnlyForTheManualPause(PauseReasons pause, bool isChecked)
+    {
+        CreatePresenter().ShowPause(pause);
+
+        Assert.Equal(isChecked, _view.PauseChecked);
+        Assert.StartsWith(Strings.TrayToolTipPaused + "\n", _view.ToolTip);
+    }
+
+    // The settings app ended the pause: the engine reports it, and the menu item follows.
+    [Fact]
+    public void ShowPause_EndedElsewhere_UnchecksTheMenuItem()
+    {
+        var presenter = CreatePresenter();
+        presenter.SetPaused(true);
+        presenter.ShowPause(_host.Pause);
+
+        presenter.ShowPause(PauseReasons.None);
+
+        Assert.False(_view.PauseChecked);
+        Assert.StartsWith(Strings.AppName + "\n", _view.ToolTip);
     }
 
     // The same texts as in OpenRgbStatusViewModelTests, so the tray and the app say the same.
@@ -124,7 +164,7 @@ public sealed class TrayPresenterTests : IDisposable
     public void ShowOpenRgbStatus_WhilePaused_KeepsThePauseInTheToolTip()
     {
         var presenter = CreatePresenter();
-        presenter.SetPaused(true);
+        presenter.ShowPause(PauseReasons.Manual);
 
         presenter.ShowOpenRgbStatus(new ServerStatus(ServerState.Unreachable));
 
@@ -136,7 +176,7 @@ public sealed class TrayPresenterTests : IDisposable
     public void ToolTip_FitsTheTrayIconInEveryState()
     {
         var presenter = CreatePresenter();
-        presenter.SetPaused(true);
+        presenter.ShowPause(PauseReasons.Manual);
 
         foreach (var state in Enum.GetValues<ServerState>())
         {
@@ -313,7 +353,11 @@ public sealed class TrayPresenterTests : IDisposable
 
         public bool Started { get; private set; }
 
-        public bool Paused { get; private set; }
+        public bool Paused => Pause.HasFlag(PauseReasons.Manual);
+
+        public PauseReasons Pause { get; private set; }
+
+        public event EventHandler<PauseReasons>? PauseChanged;
 
         public Task StartAsync(CancellationToken ct)
         {
@@ -326,7 +370,12 @@ public sealed class TrayPresenterTests : IDisposable
             return Task.CompletedTask;
         }
 
-        public void SetPaused(bool paused) => Paused = paused;
+        // Like the engine: the change comes back through PauseChanged.
+        public void SetPaused(bool paused)
+        {
+            Pause = paused ? PauseReasons.Manual : PauseReasons.None;
+            PauseChanged?.Invoke(this, Pause);
+        }
     }
 
     private sealed class FakeSettingsAppLauncher : ISettingsAppLauncher
@@ -348,6 +397,8 @@ public sealed class TrayPresenterTests : IDisposable
 
         public bool AutoStartChecked { get; set; }
 
+        public bool PauseChecked { get; private set; }
+
         public IReadOnlyList<string>? Profiles { get; private set; } = ["not shown yet"];
 
         public List<(string Text, TrayNotificationKind Kind)> Notifications { get; } = [];
@@ -355,6 +406,8 @@ public sealed class TrayPresenterTests : IDisposable
         public void SetToolTip(string text) => ToolTip = text;
 
         public void SetAutoStartChecked(bool isChecked) => AutoStartChecked = isChecked;
+
+        public void SetPauseChecked(bool isChecked) => PauseChecked = isChecked;
 
         public void ShowProfiles(IReadOnlyList<string>? names) => Profiles = names;
 

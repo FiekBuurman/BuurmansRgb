@@ -48,6 +48,14 @@ internal sealed class EngineHost(
         trimMemory?.Invoke();
     }
 
+    public PauseReasons Pause => lighting.Pause;
+
+    public event EventHandler<PauseReasons>? PauseChanged
+    {
+        add => lighting.PauseChanged += value;
+        remove => lighting.PauseChanged -= value;
+    }
+
     public void SetPaused(bool paused) => lighting.SetPaused(PauseReasons.Manual, paused);
 
     public void Dispose()

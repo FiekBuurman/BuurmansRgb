@@ -291,6 +291,21 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(PauseReasons.None, lighting.Pause);
     }
 
+    // The tray follows a pause from elsewhere through the host, such as Windows that is locked.
+    [Fact]
+    public void Pause_IsThePauseOfTheLightingAndFollowsIt()
+    {
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(new InMemorySettingsStore(), lighting);
+        var changes = new List<PauseReasons>();
+        host.PauseChanged += (_, pause) => changes.Add(pause);
+
+        lighting.SetPaused(PauseReasons.Locked, true);
+
+        Assert.Equal(PauseReasons.Locked, host.Pause);
+        Assert.Equal([PauseReasons.Locked], changes);
+    }
+
     // A profile they load is not overwritten by the saved lighting, and is saved like a change.
     [Fact]
     public async Task StartAsync_StartsTheProfileTriggersAfterTheSavedLighting()

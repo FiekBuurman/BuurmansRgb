@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Profiles;
@@ -19,7 +20,7 @@ internal sealed class TrayPresenter(
     ProfileLibrary profiles,
     ITrayView view)
 {
-    private bool _paused;
+    private PauseReasons _pause;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
 
     // Profiles can be loaded once the engine has put on the saved lighting, which would overwrite a
@@ -57,10 +58,15 @@ internal sealed class TrayPresenter(
         }
     }
 
-    public void SetPaused(bool paused)
+    // The menu follows through ShowPause, like a pause from elsewhere.
+    public void SetPaused(bool paused) => host.SetPaused(paused);
+
+    // The pause as the engine has it, also after the settings app ended it or Windows was locked.
+    // The menu item shows the pause from the menu; the tooltip tells any pause.
+    public void ShowPause(PauseReasons pause)
     {
-        host.SetPaused(paused);
-        _paused = paused;
+        _pause = pause;
+        view.SetPauseChecked(pause.HasFlag(PauseReasons.Manual));
         ShowToolTip();
     }
 
@@ -122,7 +128,7 @@ internal sealed class TrayPresenter(
 
     // The first line tells whether the effects run, the second how it goes with OpenRGB.
     private void ShowToolTip() =>
-        view.SetToolTip($"{(_paused ? Strings.TrayToolTipPaused : Strings.AppName)}\n{OpenRgbText(_openRgbStatus)}");
+        view.SetToolTip($"{(_pause != PauseReasons.None ? Strings.TrayToolTipPaused : Strings.AppName)}\n{OpenRgbText(_openRgbStatus)}");
 
     private static string OpenRgbText(ServerStatus status) => status.State switch
     {

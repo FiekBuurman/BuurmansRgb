@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Profiles;
@@ -14,8 +15,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly ContextMenuStrip _menu;
     private readonly NotifyIcon _notifyIcon;
     private readonly ToolStripMenuItem _autoStartItem;
+    private readonly ToolStripMenuItem _pauseItem;
     private readonly ToolStripMenuItem _profilesItem;
     private readonly SynchronizationContext _uiContext;
+    private readonly IEngineHost _host;
     private readonly IServerStatusSource _openRgb;
     private readonly CancellationTokenSource _shutdown = new();
 
@@ -29,8 +32,9 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, profiles, this);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
 
-        var pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
-        pauseItem.CheckedChanged += (_, _) => _presenter.SetPaused(pauseItem.Checked);
+        // Click, not CheckedChanged: the check also follows a pause that ends elsewhere (ShowPause).
+        _pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
+        _pauseItem.Click += (_, _) => _presenter.SetPaused(_pauseItem.Checked);
         _autoStartItem = new ToolStripMenuItem(Strings.MenuAutoStart) { CheckOnClick = true };
         _autoStartItem.Click += (_, _) => _presenter.SetAutoStart(_autoStartItem.Checked);
 
@@ -39,7 +43,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         [
             new ToolStripMenuItem(Strings.MenuOpenSettings, image: null, (_, _) => _presenter.OpenSettings()),
             _profilesItem,
-            pauseItem,
+            _pauseItem,
             _autoStartItem,
             new ToolStripSeparator(),
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
@@ -72,6 +76,9 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _openRgb = openRgb;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
         _presenter.ShowOpenRgbStatus(_openRgb.Status);
+        _host = host;
+        _host.PauseChanged += OnPauseChanged;
+        _presenter.ShowPause(_host.Pause);
 
         // Continues on the UI thread once Application.Run pumps messages; "Afsluiten" cancels it.
         _ = _presenter.StartAsync(_shutdown.Token);
@@ -82,6 +89,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
     void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
+
+    void ITrayView.SetPauseChecked(bool isChecked) => _pauseItem.Checked = isChecked;
 
     // Without profiles the submenu explains where to make them; when they cannot be loaded now,
     // the whole item is greyed out (an unreadable file also gets a notification).
@@ -120,6 +129,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         if (disposing)
         {
             _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
+            _host.PauseChanged -= OnPauseChanged;
             _notifyIcon.Icon?.Dispose();
             _notifyIcon.Dispose();
             _menu.Dispose();
@@ -132,6 +142,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     // The status changes on the provider's thread; the tray icon belongs to this one.
     private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) =>
         _uiContext.Post(_ => _presenter.ShowOpenRgbStatus(status), state: null);
+
+    // Also raised on an IPC thread, when the settings app ends the pause.
+    private void OnPauseChanged(object? sender, PauseReasons pause) =>
+        _uiContext.Post(_ => _presenter.ShowPause(pause), state: null);
 
     private static ToolTipIcon ToToolTipIcon(TrayNotificationKind kind) => kind switch
     {
