@@ -5,9 +5,11 @@ namespace BuurmansRgb.Engine.Lighting;
 
 // Shows or hides the simulated devices by their mode. In Automatic mode it follows the device list
 // of the lighting: once a real device is in it, the simulated devices go, and when the last real
-// device goes they come back. Every change of the list or the mode decides again under one lock,
-// from the list and the mode of that moment, so the last decision always sees the last change.
-// Switching makes the lighting fetch the simulated devices again, which raises DevicesChanged.
+// device goes they come back. Every change of the list or the mode decides again, from the list and
+// the mode of that moment. Switching makes the lighting fetch the simulated devices again, which
+// raises DevicesChanged and so decides once more: the end state always follows the last change.
+// The lock keeps the reading and the switching of one decision together, so two decisions that
+// cross each other do not make the devices come and go an extra time.
 internal sealed class SimulatedDevicesSwitch : IDisposable
 {
     private readonly SwitchableDeviceProvider _simulated;

@@ -121,20 +121,28 @@ public sealed class SimulatedDevicesSwitchTests : IDisposable
     }
 
     // OpenRGB can come and go while the user switches modes: whatever the order, the end state
-    // follows the last device list and the last mode.
-    [Fact]
-    public async Task RealDevicesAndModesChangingAtTheSameTime_EndInTheRightState()
+    // follows the last device list and the last mode, without anything set afterwards.
+    [Theory]
+    [InlineData(SimulatedDevicesMode.Automatic, true, false)]
+    [InlineData(SimulatedDevicesMode.Automatic, false, true)]
+    [InlineData(SimulatedDevicesMode.Always, true, true)]
+    [InlineData(SimulatedDevicesMode.Never, false, false)]
+    public async Task RealDevicesAndModesChangingAtTheSameTime_EndInTheStateOfTheLastChanges(
+        SimulatedDevicesMode lastMode, bool lastWithRealDevice, bool simulatedShown)
     {
         await _lighting.DiscoverAsync(Ct);
         SimulatedDevicesMode[] modes = [SimulatedDevicesMode.Always, SimulatedDevicesMode.Never, SimulatedDevicesMode.Automatic];
+        IReadOnlyList<RgbDevice>[] deviceLists = [[DynamicDeviceProvider.Device("real")], []];
 
         await Task.WhenAll(
             Task.Run(() =>
             {
                 for (var i = 0; i < 200; i++)
                 {
-                    _openRgb.SetDevices(i % 2 == 0 ? [DynamicDeviceProvider.Device("real")] : []);
+                    _openRgb.SetDevices(deviceLists[i % 2]);
                 }
+
+                _openRgb.SetDevices(lastWithRealDevice ? deviceLists[0] : deviceLists[1]);
             }, Ct),
             Task.Run(() =>
             {
@@ -142,14 +150,19 @@ public sealed class SimulatedDevicesSwitchTests : IDisposable
                 {
                     _switch.Mode = modes[i % modes.Length];
                 }
+
+                _switch.Mode = lastMode;
             }, Ct));
 
-        _switch.Mode = SimulatedDevicesMode.Automatic;
-        _openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
-        await Eventually.TrueAsync(() => DeviceIds() is ["real"]);
+        bool InTheEndState() =>
+            _simulated.IsEnabled == simulatedShown
+            && SimulatedCount() == (simulatedShown ? 12 : 0)
+            && DeviceIds().Contains("real") == lastWithRealDevice;
 
-        _openRgb.SetDevices();
-        await Eventually.TrueAsync(() => SimulatedCount() == 12 && DeviceIds().Count == 12);
+        // Checked again a moment later, so a list that only passes by on its way does not count.
+        await Eventually.TrueAsync(InTheEndState);
+        await Task.Delay(200, Ct);
+        Assert.True(InTheEndState());
     }
 
     [Fact]
