@@ -78,6 +78,24 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         Assert.Equal(["LED 3"], device.Zones[2].LedNames!);
     }
 
+    // A zone whose LEDs the server does not send gets no names, and neither do the zones after it,
+    // since their LEDs would be shifted.
+    [Fact]
+    public async Task GetDevicesAsync_FewerLedsThanTheZonesClaim_LeavesTheRestWithoutNames()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(name: "Strip", zones: [new("A", 2, 2, 2), new("B", 2, 2, 2), new("C", 1, 1, 1)]) with { LedCount = 3 },
+        ];
+        var connection = await ConnectAsync();
+
+        var device = Assert.Single(await connection.GetDevicesAsync(Ct));
+
+        Assert.Equal(["LED 1", "LED 2"], device.Zones[0].LedNames!);
+        Assert.Null(device.Zones[1].LedNames);
+        Assert.Null(device.Zones[2].LedNames);
+    }
+
     // Three rows of two, so a mix-up of rows and columns shows; the gap arrives as 0xFFFFFFFF.
     [Fact]
     public async Task GetDevicesAsync_ReadsTheKeyMapRowAfterRow()
