@@ -91,6 +91,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public PreviewViewModel Preview { get; }
 
+    public NavigationViewModel Navigation { get; } = new();
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
     public partial ConnectionState ConnectionState { get; private set; } = ConnectionState.Connecting;

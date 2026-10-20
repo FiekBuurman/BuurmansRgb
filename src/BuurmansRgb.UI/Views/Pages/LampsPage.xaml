@@ -1,0 +1,50 @@
+<!-- Lampen: every lamp in the house. -->
+<UserControl x:Class="BuurmansRgb.UI.Views.Pages.LampsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+             xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="Group" />
+            </CollectionViewSource.GroupDescriptions>
+        </CollectionViewSource>
+    </UserControl.Resources>
+
+    <DockPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,18">
+            <ContentControl Style="{StaticResource Wordmark}" VerticalAlignment="Center" />
+        </DockPanel>
+        <ListBox ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
+                 Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextBrush}"
+                 AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock x:Name="Heading" Margin="2,10,0,2" Style="{StaticResource SubText}" Text="{Binding Name}" />
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                    <Setter TargetName="Heading" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </GroupStyle.HeaderTemplate>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:DeviceItem}">
+                    <StackPanel Margin="2,4">
+                        <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Name}" />
+                        <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>

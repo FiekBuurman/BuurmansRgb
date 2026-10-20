@@ -49,6 +49,7 @@
     <Color x:Key="LedKlusWhiteColor">#FFF4E5</Color>
 
     <SolidColorBrush x:Key="LedRedBrush" Color="{StaticResource LedRedColor}" />
+    <SolidColorBrush x:Key="LedYellowBrush" Color="{StaticResource LedYellowColor}" />
     <SolidColorBrush x:Key="LedGreenBrush" Color="{StaticResource LedGreenColor}" />
     <SolidColorBrush x:Key="LedBlueBrush" Color="{StaticResource LedBlueColor}" />
 
