@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
@@ -99,12 +100,12 @@ public sealed class LightingSettingsSaverTests
     public async Task Save_KeepsTheStartupOptions()
     {
         await _lighting.DiscoverAsync(Ct);
-        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = false }, Delay, _time);
+        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never }, Delay, _time);
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
         saver.Dispose();
 
-        Assert.False(_store.Settings.SimulatedDevices);
+        Assert.Equal(SimulatedDevicesMode.Never, _store.Settings.SimulatedDevices);
         Assert.Equal(Orange, _store.Settings.Color);
     }
 

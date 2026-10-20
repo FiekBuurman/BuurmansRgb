@@ -9,7 +9,7 @@ internal sealed class EngineHost(
     LightingController lighting,
     EngineIpcServer? ipcServer = null,
     TimeSpan? saveDelay = null,
-    SwitchableDeviceProvider? simulatedDevices = null,
+    SimulatedDevicesSwitch? simulatedDevices = null,
     Action? trimMemory = null,
     SettingsSaveEvents? saveEvents = null) : IEngineHost, IDisposable
 {
@@ -20,7 +20,7 @@ internal sealed class EngineHost(
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
-        simulatedDevices?.IsEnabled = settings.SimulatedDevices;
+        simulatedDevices?.Mode = settings.SimulatedDevices;
         lighting.FramesPerSecond = settings.FramesPerSecond;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());

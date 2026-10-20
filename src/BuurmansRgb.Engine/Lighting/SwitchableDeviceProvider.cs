@@ -2,11 +2,11 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
 
-// Lets a setting hide the devices of a provider, such as the simulated ones. The engine sets it
-// once at startup; switching while it runs is groundwork for a toggle in the settings app (see
-// docs/ideas.md) and raises DevicesChanged, so the lighting picks up the change at once. Changes
-// of the inner provider pass through while it is enabled. Made with For, which only gives a
-// resizable wrapper for a resizable provider, so the type tells what the inner provider can do.
+// Lets a setting hide the devices of a provider, such as the simulated ones (see
+// SimulatedDevicesSwitch). Switching raises DevicesChanged, so the lighting picks up the change at
+// once. Changes of the inner provider pass through while it is enabled. Made with For, which only
+// gives a resizable wrapper for a resizable provider, so the type tells what the inner provider
+// can do.
 internal class SwitchableDeviceProvider : IDynamicDeviceProvider
 {
     private readonly IDeviceProvider _inner;

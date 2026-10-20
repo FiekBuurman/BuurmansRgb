@@ -79,18 +79,33 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
-    public async Task StartAsync_SimulatedDevicesOff_HidesThemAndLeavesThemDark()
+    public async Task StartAsync_SimulatedDevicesNever_HidesThemAndLeavesThemDark()
     {
-        var store = new InMemorySettingsStore { Settings = new EngineSettings { SimulatedDevices = false } };
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never } };
         var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
         var lighting = new LightingController([simulatedDevices]);
-        using var host = new EngineHost(store, lighting, simulatedDevices: simulatedDevices);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        using var host = new EngineHost(store, lighting, simulatedDevices: simulatedSwitch);
 
         await host.StartAsync(Ct);
 
-        Assert.False(simulatedDevices.IsEnabled);
+        Assert.Equal(SimulatedDevicesMode.Never, simulatedSwitch.Mode);
         Assert.Empty(lighting.Devices);
         Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
+    }
+
+    [Fact]
+    public async Task StartAsync_SimulatedDevicesAutomaticWithoutRealDevices_ShowsThem()
+    {
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var lighting = new LightingController([simulatedDevices]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        using var host = new EngineHost(new InMemorySettingsStore(), lighting, simulatedDevices: simulatedSwitch);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(SimulatedDevicesMode.Automatic, simulatedSwitch.Mode);
+        Assert.Equal(12, lighting.Devices.Count);
     }
 
     [Fact]
