@@ -7,14 +7,16 @@ namespace BuurmansRgb.Engine.Lighting;
 // (again) with another one: OpenRGB may forget a length after a restart, and the simulated devices
 // start with their first length again. A device that was there already and reports another length
 // that the engine did not ask for got it from elsewhere, such as the app of OpenRGB itself: that
-// length is remembered from then on, except 0, which looks more like a length that was forgotten. Zones are known by name, not by index: the name stays the same when
-// a provider lists the zones in another order, and a zone whose name is gone (or that two zones of
-// the device share) is left alone instead of getting the length of another zone. The engine asks a
-// device for a length only when the device shows up, and waits until the device reported it: a
-// provider that refuses it cannot make a loop of resizes and new device lists, nor is its refusal
-// taken for a length from elsewhere.
-// A length the zone cannot hold (any more) is kept, but not asked for. LedColors and the lighting
-// are not involved. Thread-safe; the lighting is called outside the lock.
+// length is remembered from then on, except 0, which looks more like a length that was forgotten.
+// Zones are known by name, not by index: the name stays the same when a provider lists the zones in
+// another order, and a zone whose name is gone (or that two zones of the device share) is left
+// alone instead of getting the length of another zone. The engine asks a device for a length only
+// when the device shows up, and waits until the device reported it: a provider that refuses it
+// cannot make a loop of resizes and new device lists, nor is its refusal taken for a length from
+// elsewhere. A length the zone cannot hold (any more) is kept, but not asked for. LedColors and the
+// lighting are not involved. Thread-safe. The provider gets a length under the lock, so a length
+// the user sets and one given back from a device list cannot overtake each other; the lighting
+// never calls into this while it holds its own lock, and fetches a new device list on another thread.
 internal sealed class ZoneLengthKeeper : IDisposable
 {
     private readonly LightingController _lighting;
@@ -69,47 +71,39 @@ internal sealed class ZoneLengthKeeper : IDisposable
     }
 
     // The user's choice: the zone gets the length, and keeps it from now on. Throws like
-    // LightingController.ResizeZone, and then remembers nothing.
-    // It is remembered before the provider gets it: a provider may report the new length before
-    // this returns, and the old length must not come back then. A zone name the device has twice
-    // gives nothing to remember it by, so that zone only gets the length.
+    // LightingController.ResizeZone, and then remembers nothing. It is remembered before the
+    // provider gets it, as a provider may report the new length before this returns. A zone name
+    // the device has twice gives nothing to remember it by, so that zone only gets the length.
     public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
     {
-        var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
-        var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Name) == zoneIndex
-            ? device.Zones[zoneIndex].Name
-            : null;
-        if (zone is null)
-        {
-            _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
-            return;
-        }
-
-        var key = (deviceId, zone);
-        Dictionary<string, int>? before;
-        bool wasAsked;
-        int asked;
         lock (_gate)
         {
-            before = _lengths.TryGetValue(deviceId, out var zones) ? new Dictionary<string, int>(zones) : null;
-            wasAsked = _asked.TryGetValue(key, out asked);
-            if (zones is null)
+            var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
+            var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Name) == zoneIndex
+                ? device.Zones[zoneIndex]
+                : null;
+            if (zone is null)
             {
-                zones = [];
-                _lengths[deviceId] = zones;
+                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+                return;
             }
 
-            zones[zone] = ledCount;
-            _asked[key] = ledCount;
-        }
+            var key = (deviceId, zone.Name);
+            var before = _lengths.TryGetValue(deviceId, out var zones) ? new Dictionary<string, int>(zones) : null;
+            var wasAsked = _asked.TryGetValue(key, out var asked);
+            RememberLocked(deviceId, zone.Name, ledCount);
 
-        try
-        {
-            _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
-        }
-        catch
-        {
-            lock (_gate)
+            // A length the zone has already brings no new device list to wait for.
+            if (zone.LedCount != ledCount)
+            {
+                _asked[key] = ledCount;
+            }
+
+            try
+            {
+                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+            }
+            catch
             {
                 RestoreLocked(deviceId, before);
                 if (wasAsked)
@@ -120,15 +114,29 @@ internal sealed class ZoneLengthKeeper : IDisposable
                 {
                     _asked.Remove(key);
                 }
-            }
 
-            throw;
+                throw;
+            }
         }
 
         LengthsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public void Dispose() => _lighting.DevicesChanged -= OnDevicesChanged;
+
+    // Returns true when it is another length than the one remembered.
+    private bool RememberLocked(string deviceId, string zone, int ledCount)
+    {
+        if (!_lengths.TryGetValue(deviceId, out var zones))
+        {
+            zones = [];
+            _lengths[deviceId] = zones;
+        }
+
+        var changed = !zones.TryGetValue(zone, out var remembered) || remembered != ledCount;
+        zones[zone] = ledCount;
+        return changed;
+    }
 
     private void RestoreLocked(string deviceId, Dictionary<string, int>? zones)
     {
@@ -165,9 +173,11 @@ internal sealed class ZoneLengthKeeper : IDisposable
     {
         List<(string DeviceId, int ZoneIndex, int LedCount)> resizes = [];
         var changed = false;
-        var devices = _lighting.Devices;
         lock (_gate)
         {
+            // Read under the lock, so a resize of the user that happens meanwhile is in the list or
+            // in _asked, and the zone is not asked for the length it had before.
+            var devices = _lighting.Devices;
             foreach (var key in _asked.Keys.Where(key => !devices.Any(device => device.Id == key.DeviceId)).ToList())
             {
                 _asked.Remove(key);
@@ -191,18 +201,18 @@ internal sealed class ZoneLengthKeeper : IDisposable
 
                 _reported[device.Id] = ResizableZonesOf(device).ToDictionary(zone => zone.Zone.Name, zone => zone.Zone.LedCount);
             }
-        }
 
-        foreach (var (deviceId, zoneIndex, ledCount) in resizes)
-        {
-            try
+            foreach (var (deviceId, zoneIndex, ledCount) in resizes)
             {
-                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
-            }
-            catch (ArgumentException exception)
-            {
-                // The device went or changed after this list; it is asked again when it comes back.
-                Trace.TraceWarning($"Could not give a zone of '{deviceId}' its length again: {exception.Message}");
+                try
+                {
+                    _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+                }
+                catch (ArgumentException exception)
+                {
+                    // The device went or changed after this list; it is asked again when it comes back.
+                    Trace.TraceWarning($"Could not give a zone of '{deviceId}' its length again: {exception.Message}");
+                }
             }
         }
 
@@ -270,14 +280,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
                 continue;
             }
 
-            if (!_lengths.TryGetValue(device.Id, out var zones))
-            {
-                zones = [];
-                _lengths[device.Id] = zones;
-            }
-
-            changed |= !zones.TryGetValue(zone.Name, out var remembered) || remembered != zone.LedCount;
-            zones[zone.Name] = zone.LedCount;
+            changed |= RememberLocked(device.Id, zone.Name, zone.LedCount);
         }
 
         return changed;

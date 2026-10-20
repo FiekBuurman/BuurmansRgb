@@ -166,6 +166,51 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Equal(2, _provider.Resizes.Count);
     }
 
+    // The keeper gives the zone its stored length back while the user sets a new one: the user's
+    // length must win, not the one the keeper read before it.
+    [Fact]
+    public async Task ResizeZone_WhileTheStoredLengthIsGivenBack_EndsWithTheNewLength()
+    {
+        using var keeperResizing = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        _provider.BeforeResize = ledCount =>
+        {
+            if (ledCount == 30)
+            {
+                keeperResizing.Set();
+                release.Wait(TestTimeouts.Short, Ct);
+            }
+        };
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        var discovering = Task.Run(() => _lighting.DiscoverAsync(Ct), Ct);
+        Assert.True(keeperResizing.Wait(TestTimeouts.Short, Ct));
+
+        var userResize = Task.Run(() => _keeper.ResizeZone("board", 1, 12), Ct);
+        await Task.Delay(Quiet, Ct);
+        release.Set();
+        await Task.WhenAll(discovering, userResize);
+
+        await ZoneLengthsAsync([2, 12, 1]);
+        await Task.Delay(Quiet, Ct);
+        Assert.Equal([2, 12, 1], _lighting.Devices.Single().Zones.Select(zone => zone.LedCount));
+        Assert.Equal(12, _keeper.Lengths["board"]["ARGB header"]);
+    }
+
+    // Asking for the length the zone has brings no device list to wait for, so a length from
+    // elsewhere after it still counts.
+    [Fact]
+    public async Task ResizeZone_LengthTheZoneHasAlready_WaitsForNothing()
+    {
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+
+        _keeper.ResizeZone("board", 1, 30);
+        _provider.SetDevices(Board(header: 10));
+
+        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 10);
+    }
+
     [Fact]
     public async Task ResizeZone_LengthTheZoneCannotHold_ThrowsAndRemembersNothing()
     {

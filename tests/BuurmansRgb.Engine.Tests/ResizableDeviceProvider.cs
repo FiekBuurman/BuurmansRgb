@@ -3,7 +3,8 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Tests;
 
-// A provider whose zones get a new length, and that reports every resize with a new device list.
+// A provider whose zones get a new length, and that reports every resize to another length with a
+// new device list.
 // With RefusesLengths it keeps the old length, like a device or server that does not take it.
 internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
 {
@@ -16,6 +17,9 @@ internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
     public bool RefusesLengths { get; set; }
 
     public ConcurrentQueue<(string DeviceId, int ZoneIndex, int LedCount)> Resizes { get; } = new();
+
+    // Runs at the start of every resize, with the new length; a test can hold a resize there.
+    public Action<int>? BeforeResize { get; set; }
 
     public IReadOnlyList<RgbDevice> Devices => _devices;
 
@@ -36,7 +40,15 @@ internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
 
     public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
     {
+        BeforeResize?.Invoke(ledCount);
         Resizes.Enqueue((deviceId, zoneIndex, ledCount));
+
+        // Like the simulated devices: the length the zone has already changes nothing to report.
+        if (_devices.Single(device => device.Id == deviceId).Zones[zoneIndex].LedCount == ledCount)
+        {
+            return;
+        }
+
         if (!RefusesLengths)
         {
             _devices = [.. _devices.Select(device => device.Id == deviceId ? device.WithZoneLength(zoneIndex, ledCount) : device)];
