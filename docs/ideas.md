@@ -197,8 +197,9 @@
 - In de instellingen-app tonen dat een bewaarde zonelengte niet past bij het bereik dat de zone nu
   meldt (bijv. na een update van OpenRGB); nu staat dat alleen in de debug-uitvoer
 - Een ongeldige kleur in `ledColors` of `devices` maakt het hele `settings.json` onleesbaar; de
-  engine draait dan op de standaardwaarden. Zo'n kleur liever overslaan, zoals `zoneLengths`,
-  `ledColorZoneLengths` en `simulatedDevices` een waarde overslaan die ze niet kunnen lezen
+  engine zet het dan opzij als `settings.json.broken` en draait op de standaardwaarden. Zo'n kleur
+  liever overslaan, zoals `zoneLengths`, `ledColorZoneLengths` en `simulatedDevices` een waarde
+  overslaan die ze niet kunnen lezen
 - − en + van de zonelengte laten herhalen zolang je ze ingedrukt houdt (`RepeatButton`); nu is het
   één LED per klik, en voor grote stappen de schuif (PageUp/PageDown: 10 LED's)
 - Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt, maar

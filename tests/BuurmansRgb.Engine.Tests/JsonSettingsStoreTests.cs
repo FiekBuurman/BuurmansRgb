@@ -307,20 +307,35 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Contains("\"simulatedDevices\": \"automatic\"", File.ReadAllText(path));
     }
 
+    // Set aside, so saving the defaults later does not overwrite what the user had.
     [Theory]
     [InlineData("not json")]
     [InlineData("""{ "color": "purple" }""")]
     [InlineData("""{ "color": 42 }""")]
-    [InlineData("null")]
-    public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndKeepsFile(string content)
+    public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndMovesTheFileAside(string content)
     {
         var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
         File.WriteAllText(path, content);
 
-        var settings = new JsonSettingsStore(path).LoadOrCreate();
+        var settings = store.LoadOrCreate();
+        store.Save(settings);
 
         Assert.Equal(EngineSettings.CreateDefault(), settings);
-        Assert.Equal(content, File.ReadAllText(path));
+        Assert.Equal(content, File.ReadAllText(store.BrokenFilePath));
+    }
+
+    [Fact]
+    public void LoadOrCreate_FileWithNull_ReturnsDefaultsAndKeepsFile()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, "null");
+
+        var store = new JsonSettingsStore(path);
+
+        Assert.Equal(EngineSettings.CreateDefault(), store.LoadOrCreate());
+        Assert.Equal("null", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
     }
 
     [Fact]

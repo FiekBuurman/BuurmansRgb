@@ -108,9 +108,15 @@ dotnet run --project src/BuurmansRgb.Engine
   `ledColorZoneLengths` staat per apparaat het aantal LED's van elke zone (in de volgorde van de
   zones) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen (zie
   "Fans, case-LED en ARGB-strips"); oudere bestanden hebben dat niet. Onder `zoneLengths` staat per
-  apparaat de lengte die je een instelbare zone gaf, op de naam van de zone. Een ongeldig of
-  onleesbaar bestand laat de engine ongemoeid en draait dan op de
-  standaardwaarden. Dat geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
+  apparaat de lengte die je een instelbare zone gaf, op de naam van de zone. Een waarde in
+  `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over (bij
+  `ledColorZoneLengths` de hele lijst van dat apparaat); de rest van het bestand blijft gelden. Is
+  het bestand geen geldige JSON of klopt er iets anders niet (bijv. een kleur als `"purple"`), dan
+  zet de engine het opzij als `settings.json.broken` en draait hij op de standaardwaarden; die
+  schrijft hij bij de volgende wijziging weg. Verbeter de fout in `settings.json.broken` en zet
+  het terug als `settings.json` terwijl de engine niet draait. Kan de engine het bestand niet
+  lezen (bijv. omdat een ander programma het open heeft), of is de map `%AppData%\BuurmansRgb`
+  niet beschrijfbaar, dan laat hij het ongemoeid en draait hij op de standaardwaarden.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
   openen. Staat die er niet of start hij niet (bijv. geblokkeerd door SmartScreen), dan
