@@ -358,9 +358,9 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
   engine, per-LED-kleuren die meeschuiven), `SwitchableDeviceProviderTests`, `EngineApiTests`,
   `EngineRpcTests` en in de instellingen-app `DeviceItemTests`, `DeviceIconsTests`,
-  `DevicePreviewViewModelTests`, `LedLayoutTests` en `LedPreviewViewTests` (de ring: plek van
-  elke LED, klikken op en naast een LED), `LedEditorViewModelTests` en
-  `MainViewModelLedEditorTests`.
+  `DevicePreviewViewModelTests` (welke zones een ring zijn), `RingLayoutTests`,
+  `LedArrangementTests` en `LedPreviewViewTests` (de ring: plek van elke LED, klikken op en
+  naast een LED), `LedEditorViewModelTests` en `MainViewModelLedEditorTests`.
   Start daarnaast de engine en de instellingen-app: kies "Simulated ARGB controller", zet
   "ARGB 2" op bijv. 15 en kies "Toepassen", of klik bij "Simulated dual-ring fan" op "Outer
   ring" en kies een kleur. "Simulated fan" en de twee ringen van "Simulated dual-ring fan"
@@ -435,8 +435,9 @@ USB, niet via SMBus.
   brede toetsen: `RgbZoneTests` en `RgbDeviceTests` (namen in een zone, gelijkheid en JSON
   zonder namen), `OpenRgbNetConnectionTests` en `OpenRgbDeviceMapperTests` (namen per zone,
   zonder "Key: "), `SimulatedDeviceProviderTests` (elke toets de naam van zijn plek),
-  `EngineRpcTests` (namen over de pipe), `LedLayoutTests` (`Widen`) en `LedPreviewViewTests`
-  (de items voor UI Automation, selecteren zoals een klik). Voor de types: `DeviceItemTests`,
+  `EngineRpcTests` (namen over de pipe), `WideKeysTests` en `LedPreviewViewTests`
+  (de items voor UI Automation, selecteren zoals een klik, meldingen aan een schermlezer). Voor
+  de types: `DeviceTypeTests` (vaste nummers over de pipe), `DeviceItemTests`,
   `DeviceIconsTests` en `OpenRgbDeviceMapperTests`.
   Start daarnaast de engine en de instellingen-app: kies "Simulated keyboard", wijs een toets
   aan voor zijn naam en klik op een toets (ook op het brede deel van de spatiebalk), of kies
