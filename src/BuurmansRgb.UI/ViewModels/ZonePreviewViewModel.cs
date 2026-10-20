@@ -45,6 +45,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
         // hub, a Corsair Commander), with a strip or several fans in a row on it, and so is a
         // zone longer than one fan ring; those stay a row.
         IsRing = device.Type == DeviceType.Fan && Matrix is null && !layout.Zone.Resizable && layout.LedCount <= MaxRingLeds;
+        LedLabels = [.. Enumerable.Range(0, layout.LedCount).Select(LabelOf)];
         LedCountText = layout.Zone.LedCount.ToString(CultureInfo.CurrentCulture);
     }
 
@@ -65,9 +66,8 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     // What the tooltip and a screen reader call each LED of the zone: its number in the device,
     // as the per-LED editor counts, after its name if the provider gave one, such as
-    // "Escape (LED 1)". Made when first asked, since the view only asks on hover or for a screen
-    // reader.
-    public IReadOnlyList<string> LedLabels => field ??= [.. Enumerable.Range(0, LedCount).Select(LabelOf)];
+    // "Escape (LED 1)". Made once with the zone; the view binds to it right away.
+    public IReadOnlyList<string> LedLabels { get; }
 
     public bool ShowsHeader { get; }
 
