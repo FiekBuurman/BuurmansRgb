@@ -41,12 +41,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // overtook does not bring back the older status.
     private int _openRgbStatusChanges;
 
-    // time gives the clock time in the save status; tests pass a fake one.
+    // time gives the clock time in the save status and the delay before a new zone length goes to
+    // the engine; tests pass a fake one.
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
     {
         _connector = connector;
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
+        Preview = new PreviewViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
@@ -81,7 +83,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<EffectOption> Effects { get; } = [];
 
-    public PreviewViewModel Preview { get; } = new();
+    public PreviewViewModel Preview { get; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]

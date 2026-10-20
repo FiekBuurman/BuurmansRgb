@@ -43,13 +43,31 @@
     <value>Nog geen LED's ingesteld</value>
   </data>
   <data name="EmptyZoneHint" xml:space="preserve">
-    <value>Zit hier een fan of strip op? Vul hieronder in hoeveel LED's die heeft (staat vaak op de doos) en kies Toepassen. Tot dan blijft hij donker.</value>
+    <value>Zit hier een fan of strip op? Stel hieronder in hoeveel LED's die heeft (staat vaak op de doos): met + en −, met de schuif, of typ het aantal en kies Toepassen. Tot dan blijft hij donker.</value>
   </data>
   <data name="ZoneLedCountLabel" xml:space="preserve">
     <value>Aantal LED's ({0}–{1}):</value>
   </data>
   <data name="ZoneLedCountAccessibleName" xml:space="preserve">
     <value>Aantal LED's van {0}</value>
+  </data>
+  <data name="ZoneLedCountTextAccessibleName" xml:space="preserve">
+    <value>Aantal LED's van {0} typen</value>
+  </data>
+  <data name="ZoneLedCountToolTip" xml:space="preserve">
+    <value>Het voorbeeld past zich meteen aan. De zone krijgt de nieuwe lengte zodra je even stopt of de schuif loslaat.</value>
+  </data>
+  <data name="DecreaseLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's van {0} verlagen</value>
+  </data>
+  <data name="DecreaseLedCountToolTip" xml:space="preserve">
+    <value>Eén LED minder</value>
+  </data>
+  <data name="IncreaseLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's van {0} verhogen</value>
+  </data>
+  <data name="IncreaseLedCountToolTip" xml:space="preserve">
+    <value>Eén LED meer</value>
   </data>
   <data name="ApplyLedCount" xml:space="preserve">
     <value>Toepassen</value>
