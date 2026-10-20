@@ -55,7 +55,7 @@
     <value>OpenRGB: verbonden, geen apparaten</value>
   </data>
   <data name="TrayOpenRgbUnreachable" xml:space="preserve">
-    <value>OpenRGB niet bereikbaar: draait de OpenRGB-service?</value>
+    <value>OpenRGB: niet bereikbaar</value>
   </data>
   <data name="TrayOpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>

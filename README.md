@@ -201,7 +201,7 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   | OpenRGB: verbinden… | De engine is net gestart, of de verbinding viel weg en de volgende poging komt zo |
   | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
   | OpenRGB: verbonden, maar OpenRGB vindt geen apparaten | Verbonden, maar OpenRGB gaf geen apparaten |
-  | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`; waarschijnlijk draait de OpenRGB-service niet. Met een tip: start de service, of draai de installer opnieuw |
+  | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Met een tip: herstart de pc of draai de installer opnieuw |
   | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte (bijv. een antwoord dat niet klopte of te laat kwam) |
 
 - **Gesimuleerde apparaten:** onder de apparatenlijst kies je bij "Gesimuleerd:" uit

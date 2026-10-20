@@ -28,14 +28,14 @@ public sealed class OpenRgbStatusViewModelTests
     }
 
     [Fact]
-    public void Unreachable_GivesTheTipAboutTheService()
+    public void Unreachable_GivesTheTipToStartOpenRgb()
     {
         _status.Show(new ServerStatus(ServerState.Unreachable));
 
         Assert.Equal("OpenRGB: niet bereikbaar", _status.Text);
         Assert.Equal(Strings.OpenRgbUnreachableHint, _status.Hint);
         Assert.True(_status.HasHint);
-        Assert.Contains("OpenRGB-service", _status.Hint);
+        Assert.Contains("SDK-server", _status.Hint);
     }
 
     [Fact]

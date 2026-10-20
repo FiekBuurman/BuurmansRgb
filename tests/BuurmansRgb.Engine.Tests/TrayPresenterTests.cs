@@ -99,7 +99,7 @@ public sealed class TrayPresenterTests
     [InlineData(ServerState.Connected, 4, "OpenRGB: verbonden, 4 apparaten")]
     [InlineData(ServerState.Connected, 1, "OpenRGB: verbonden, 1 apparaat")]
     [InlineData(ServerState.Connected, 0, "OpenRGB: verbonden, geen apparaten")]
-    [InlineData(ServerState.Unreachable, 0, "OpenRGB niet bereikbaar: draait de OpenRGB-service?")]
+    [InlineData(ServerState.Unreachable, 0, "OpenRGB: niet bereikbaar")]
     [InlineData(ServerState.Failed, 0, "OpenRGB: geen goed antwoord")]
     [InlineData(ServerState.Connecting, 0, "OpenRGB: verbinden…")]
     public void ShowOpenRgbStatus_PutsItUnderTheNameInTheToolTip(ServerState state, int deviceCount, string text)

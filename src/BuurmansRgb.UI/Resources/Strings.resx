@@ -339,7 +339,7 @@
     <value>OpenRGB: niet bereikbaar</value>
   </data>
   <data name="OpenRgbUnreachableHint" xml:space="preserve">
-    <value>Waarschijnlijk draait de OpenRGB-service niet. Start die service, of draai de installer van BuurmansRgb opnieuw. BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
+    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van BuurmansRgb opnieuw; BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
   </data>
   <data name="OpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
