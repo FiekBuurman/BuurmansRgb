@@ -6,6 +6,8 @@
     <UseWPF>true</UseWPF>
     <!-- A window without an icon of its own takes this one, also on the taskbar. -->
     <ApplicationIcon>$(AppIconPath)</ApplicationIcon>
+    <!-- LibraryImport generates its marshalling code as unsafe code (WindowFrame). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <AssemblyName>BuurmansRgb.UI</AssemblyName>
     <!-- Shared with BuurmansRgb.Engine, see Directory.Build.props. -->
     <OutDir>$(AppOutputRoot)$(Configuration)$(AppOutputSuffix)\</OutDir>

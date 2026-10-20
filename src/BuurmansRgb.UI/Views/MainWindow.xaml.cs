@@ -6,14 +6,6 @@ namespace BuurmansRgb.UI.Views;
 
 public partial class MainWindow : Window
 {
-    // The border Windows adds around a window; with our own title bar the maximized window would
-    // lose that much of its content past the screen edges. Windows 10 and 11 pad it by 4 more.
-    private static readonly Thickness MaximizedFrame = new(
-        SystemParameters.WindowResizeBorderThickness.Left + 4,
-        SystemParameters.WindowResizeBorderThickness.Top + 4,
-        SystemParameters.WindowResizeBorderThickness.Right + 4,
-        SystemParameters.WindowResizeBorderThickness.Bottom + 4);
-
     public MainWindow()
     {
         InitializeComponent();
@@ -24,7 +16,7 @@ public partial class MainWindow : Window
                 viewModel.Profiles.ConfirmDelete = ConfirmDelete;
             }
         };
-        StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? MaximizedFrame : default;
+        StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
     }
 
     private void OnMinimizeClick(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
