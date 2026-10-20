@@ -188,8 +188,10 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 
 ## OpenRGB-status en gesimuleerde apparaten
 
-- **OpenRGB-status:** in de instellingen-app staat onder "Apparaten" hoe het met OpenRGB
-  gaat, en het tray-icoon zegt het in zijn tooltip. De engine houdt het bij met de
+- **OpenRGB-status:** in de instellingen-app staat onder "Apparaten" in één regel hoe het met
+  OpenRGB gaat; een tip staat achter de ⓘ ernaast (bij aanwijzen of met Tab) en een
+  schermlezer leest een nieuwe status voor. Het tray-icoon zegt het in zijn tooltip. De
+  engine houdt het bij met de
   verbindpogingen die hij toch al doet (elke 5 seconden zolang er geen verbinding is), dus
   zonder extra werk. De standen (`ServerStatus` in `BuurmansRgb.Core`, via
   `IEngineApi.GetOpenRgbStatusAsync` en het event `OpenRgbStatusChanged`):
@@ -202,8 +204,8 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`; waarschijnlijk draait de OpenRGB-service niet. Met een tip: start de service, of draai de installer opnieuw |
   | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte (bijv. een antwoord dat niet klopte of te laat kwam) |
 
-- **Gesimuleerde apparaten:** onder de apparatenlijst kies je bij "Gesimuleerde apparaten
-  tonen" uit "Automatisch" (standaard), "Altijd" of "Nooit". Automatisch toont ze alleen
+- **Gesimuleerde apparaten:** onder de apparatenlijst kies je bij "Gesimuleerd:" uit
+  "Automatisch" (standaard), "Altijd" of "Nooit". Automatisch toont ze alleen
   zolang er geen echt apparaat is: zodra OpenRGB echte apparaten levert, verdwijnen ze, en
   vallen die weg (OpenRGB stopt), dan komen ze terug. De engine wisselt meteen, zonder
   herstart, en bewaart de keuze in `settings.json` (`simulatedDevices`, zie "Engine
@@ -226,8 +228,10 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   `TrayPresenterTests` (tooltip) en in de instellingen-app
   `SimulatedDevicesViewModelTests`, `OpenRgbStatusViewModelTests`, `DeviceItemTests`,
   `DevicePreviewViewModelTests` en `MainViewModelTests`. Start daarnaast de engine en de
-  instellingen-app zonder OpenRGB: er staat "OpenRGB: niet bereikbaar" met de tip, en met
-  "Nooit" verdwijnen de gesimuleerde apparaten meteen.
+  instellingen-app zonder OpenRGB: er staat "OpenRGB: niet bereikbaar" met de tip achter de
+  ⓘ, en met "Nooit" verdwijnen de gesimuleerde apparaten meteen. Ook in het kleinste venster
+  (640 × 520) houdt de apparatenlijst ruimte voor drie apparaten; de lijst en de profielen
+  delen de rest van de hoogte.
 - **Testen met je eigen hardware:**
   1. Start de engine en de instellingen-app met de OpenRGB-service uit: "niet bereikbaar" met
      de tip, en de gesimuleerde apparaten staan er. Start de service: binnen 5 seconden staat er

@@ -305,6 +305,12 @@
   <data name="SimulatedDevicesLabel" xml:space="preserve">
     <value>Gesimuleerde apparaten tonen</value>
   </data>
+  <data name="SimulatedDevicesShortLabel" xml:space="preserve">
+    <value>Gesimuleerd:</value>
+  </data>
+  <data name="OpenRgbHintAccessibleName" xml:space="preserve">
+    <value>Tip bij de OpenRGB-status</value>
+  </data>
   <data name="SimulatedDevicesHint" xml:space="preserve">
     <value>Nep-apparaten om BuurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
   </data>
