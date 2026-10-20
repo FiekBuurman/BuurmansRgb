@@ -14,7 +14,7 @@ namespace BuurmansRgb.Engine;
 internal static class Program
 {
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
         using var instance = SingleInstance.Acquire(EngineRpc.EngineName);
         if (!instance.IsPrimary)
@@ -24,6 +24,9 @@ internal static class Program
         }
 
         ApplicationConfiguration.Initialize();
+
+        var autoStart = RegistryAutoStart.ForCurrentProcess();
+        autoStart.EnableOnFirstRun(EngineOptions.Parse(args));
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
@@ -39,7 +42,7 @@ internal static class Program
             simulatedDevices: simulatedDevices,
             trimMemory: MemoryTrimmer.Trim);
 
-        using var context = new TrayApplicationContext(host, RegistryAutoStart.ForCurrentProcess(), SettingsAppLauncher.NextToEngine());
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine());
         using (instance.ListenForActivation(context.RequestOpenSettings))
         {
             Application.Run(context);
