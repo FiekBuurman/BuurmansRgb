@@ -1,3 +1,4 @@
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
@@ -13,9 +14,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly NotifyIcon _notifyIcon;
     private readonly ToolStripMenuItem _autoStartItem;
     private readonly SynchronizationContext _uiContext;
+    private readonly IServerStatusSource _openRgb;
     private readonly CancellationTokenSource _shutdown = new();
 
-    public TrayApplicationContext(IEngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher)
+    public TrayApplicationContext(IEngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher, IServerStatusSource openRgb)
     {
         _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, this);
 
@@ -53,6 +55,11 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         // Creating the menu control installed the WinForms context for this thread.
         _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No UI synchronization context.");
 
+        // Listening first, so no change gets lost between reading the status and listening.
+        _openRgb = openRgb;
+        _openRgb.StatusChanged += OnOpenRgbStatusChanged;
+        _presenter.ShowOpenRgbStatus(_openRgb.Status);
+
         // Continues on the UI thread once Application.Run pumps messages; "Afsluiten" cancels it.
         _ = _presenter.StartAsync(_shutdown.Token);
     }
@@ -77,6 +84,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     {
         if (disposing)
         {
+            _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
             _notifyIcon.Icon?.Dispose();
             _notifyIcon.Dispose();
             _menu.Dispose();
@@ -85,6 +93,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
         base.Dispose(disposing);
     }
+
+    // The status changes on the provider's thread; the tray icon belongs to this one.
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) =>
+        _uiContext.Post(_ => _presenter.ShowOpenRgbStatus(status), state: null);
 
     private static ToolTipIcon ToToolTipIcon(TrayNotificationKind kind) => kind switch
     {

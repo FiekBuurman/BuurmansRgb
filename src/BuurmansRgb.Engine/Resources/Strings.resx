@@ -42,4 +42,22 @@
   <data name="AutoStartFailed" xml:space="preserve">
     <value>Starten met Windows kon niet worden aangepast.</value>
   </data>
+  <data name="TrayOpenRgbConnecting" xml:space="preserve">
+    <value>OpenRGB: verbinden…</value>
+  </data>
+  <data name="TrayOpenRgbConnected" xml:space="preserve">
+    <value>OpenRGB: verbonden, {0} apparaten</value>
+  </data>
+  <data name="TrayOpenRgbConnectedOneDevice" xml:space="preserve">
+    <value>OpenRGB: verbonden, 1 apparaat</value>
+  </data>
+  <data name="TrayOpenRgbConnectedNoDevices" xml:space="preserve">
+    <value>OpenRGB: verbonden, geen apparaten</value>
+  </data>
+  <data name="TrayOpenRgbUnreachable" xml:space="preserve">
+    <value>OpenRGB niet bereikbaar: draait de OpenRGB-service?</value>
+  </data>
+  <data name="TrayOpenRgbFailed" xml:space="preserve">
+    <value>OpenRGB: geen goed antwoord</value>
+  </data>
 </root>
