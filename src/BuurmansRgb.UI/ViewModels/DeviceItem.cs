@@ -5,8 +5,9 @@ using BuurmansRgb.UI.Resources;
 namespace BuurmansRgb.UI.ViewModels;
 
 // A null DeviceId and Type stand for "all devices". TypeName is null for a type without a Dutch
-// name in Strings.resx ("DeviceType_<type>") yet.
-public sealed record DeviceItem(string? DeviceId, string Name, string Details, DeviceType? Type = null, string? TypeName = null)
+// name in Strings.resx ("DeviceType_<type>") yet. Group is the heading the list shows the device
+// under, such as the simulated devices; "all devices" has none.
+public sealed record DeviceItem(string? DeviceId, string Name, string Details, DeviceType? Type = null, string? TypeName = null, string? Group = null)
 {
     public static DeviceItem AllDevices(int deviceCount) =>
         new(null, Strings.AllDevices, UiText.Format(Strings.AllDevicesDetails, deviceCount));
@@ -18,7 +19,7 @@ public sealed record DeviceItem(string? DeviceId, string Name, string Details, D
             ? UiText.Format(Strings.LedCountInZones, device.LedCount, device.Zones.Count)
             : UiText.LedCount(device.LedCount);
         var details = typeName is null ? leds : UiText.Format(Strings.DeviceDetailsWithType, typeName, leds);
-        return new(device.Id, device.Name, details, device.Type, typeName);
+        return new(device.Id, device.Name, details, device.Type, typeName, UiText.Lookup("DeviceSource", device.Source));
     }
 
     private static string? TypeNameOf(DeviceType type) => UiText.Lookup("DeviceType", type);

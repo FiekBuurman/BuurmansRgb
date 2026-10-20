@@ -107,13 +107,30 @@ public sealed class DeviceItemTests
         Assert.Equal("15 LED's", item.Details);
     }
 
+    [Theory]
+    [InlineData(DeviceSource.OpenRgb, "Echte apparaten (OpenRGB)")]
+    [InlineData(DeviceSource.Simulated, "Gesimuleerde apparaten")]
+    public void For_RealOrSimulated_HasItsHeading(DeviceSource source, string group)
+    {
+        var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12) with { Source = source };
+
+        Assert.Equal(group, DeviceItem.For(device).Group);
+    }
+
+    // A new source without "DeviceSource_<source>" in Strings.resx would end up with "all devices".
     [Fact]
-    public void AllDevices_HasNoIdAndNoType()
+    public void For_EverySource_HasAHeading() =>
+        Assert.All(Enum.GetValues<DeviceSource>(), source =>
+            Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12) with { Source = source }).Group));
+
+    [Fact]
+    public void AllDevices_HasNoIdNoTypeAndNoHeading()
     {
         var item = DeviceItem.AllDevices(3);
 
         Assert.Null(item.DeviceId);
         Assert.Null(item.Type);
+        Assert.Null(item.Group);
         Assert.Equal("3 apparaten", item.Details);
     }
 }

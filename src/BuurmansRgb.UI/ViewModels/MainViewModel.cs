@@ -235,9 +235,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
-    private void ShowDevices(IReadOnlyList<DeviceInfo> devices)
+    // The real devices come first and the simulated ones after them, each under their own heading.
+    private void ShowDevices(IReadOnlyList<DeviceInfo> engineDevices)
     {
         var selectedId = SelectedDevice?.DeviceId;
+        IReadOnlyList<DeviceInfo> devices = [.. engineDevices.OrderBy(device => device.Source == DeviceSource.Simulated)];
         _devices = devices;
         _syncing.Run(() =>
         {

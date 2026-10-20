@@ -55,6 +55,15 @@
                 </Grid.ColumnDefinitions>
 
                 <DockPanel Margin="12">
+                    <!-- The device list grouped by heading: the real devices and the simulated ones.
+                         "All devices" has no heading. -->
+                    <DockPanel.Resources>
+                        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+                            <CollectionViewSource.GroupDescriptions>
+                                <PropertyGroupDescription PropertyName="Group" />
+                            </CollectionViewSource.GroupDescriptions>
+                        </CollectionViewSource>
+                    </DockPanel.Resources>
                     <TextBlock DockPanel.Dock="Top" Style="{StaticResource Header}" Margin="0,0,0,6"
                                Text="{x:Static res:Strings.DevicesHeader}" />
 
@@ -88,8 +97,33 @@
                         </DockPanel>
                     </StackPanel>
 
-                    <ListBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}"
+                    <ListBox ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                              AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="GroupItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.AllDevices}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="Heading" Margin="2,10,0,2" FontWeight="SemiBold" Text="{Binding Name}"
+                                                   Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                <Setter TargetName="Heading" Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />

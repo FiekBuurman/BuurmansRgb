@@ -66,6 +66,12 @@
   <data name="ZoneOtherLeds" xml:space="preserve">
     <value>Overige LED's</value>
   </data>
+  <data name="DeviceSource_OpenRgb" xml:space="preserve">
+    <value>Echte apparaten (OpenRGB)</value>
+  </data>
+  <data name="DeviceSource_Simulated" xml:space="preserve">
+    <value>Gesimuleerde apparaten</value>
+  </data>
   <data name="DeviceType_Motherboard" xml:space="preserve">
     <value>Moederbord</value>
   </data>
