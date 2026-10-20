@@ -130,15 +130,27 @@ public sealed class ProfilesViewModelTests
         Assert.Equal(["Nacht"], _automationRequests);
     }
 
-    // After a save, load or new automation the list is shown again: the fields show what was saved.
+    // After a save, load or delete the list is shown again, and a ListBox selects nothing while it
+    // is cleared: what the user typed for the same profile stays.
     [Fact]
-    public void Show_SameSelection_AsksForItsAutomationAgain()
+    public void Show_SameProfile_KeepsWhatWasTypedAndDoesNotAskAgain()
     {
+        _profiles.Names.CollectionChanged += (_, e) =>
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+            {
+                _profiles.SelectedName = null;
+            }
+        };
         _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.Automation.LoadAtText = "7:";
 
-        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Show(["Gamen", "Nacht", "Werk"]);
 
-        Assert.Equal(["Nacht", "Nacht"], _automationRequests);
+        Assert.Equal("Nacht", _profiles.SelectedName);
+        Assert.Equal("7:", _profiles.Automation.LoadAtText);
+        Assert.Equal(["Nacht"], _automationRequests);
     }
 
     [Fact]
