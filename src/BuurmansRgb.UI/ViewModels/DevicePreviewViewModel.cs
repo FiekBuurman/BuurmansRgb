@@ -19,6 +19,9 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
 
     public DeviceType Type { get; } = device.Type;
 
+    // The preview then explains that the device may not show these colors.
+    public bool LacksDirectMode { get; } = !device.HasDirectMode;
+
     public IReadOnlyList<ZonePreviewViewModel> Zones { get; } = CreateZones(device, actions);
 
     // What a screen reader calls the flash button; every device in the preview has one.

@@ -8,6 +8,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // name in Strings.resx ("DeviceType_<type>") yet. Group is the heading the list shows the device
 // under, such as the simulated devices; "all devices" has none. LocationLabel tells twins apart
 // (DeviceLocationLabels) and shows under the device; LocationToolTip holds the whole location.
+// LacksDirectMode warns that the device may not show the colors (DeviceInfo.HasDirectMode).
 public sealed record DeviceItem(
     string? DeviceId,
     string Name,
@@ -16,9 +17,15 @@ public sealed record DeviceItem(
     string? TypeName = null,
     string? Group = null,
     string? LocationLabel = null,
-    string? LocationToolTip = null)
+    string? LocationToolTip = null,
+    bool LacksDirectMode = false)
 {
     public bool ShowsLocationLabel => LocationLabel is not null;
+
+    // What a screen reader says after the name: the short texts the list shows under it.
+    public string? AccessibleHelpText => LacksDirectMode
+        ? (LocationLabel is null ? Strings.NoDirectModeWarning : $"{LocationLabel}. {Strings.NoDirectModeWarning}")
+        : LocationLabel;
 
     public static DeviceItem AllDevices(int deviceCount) =>
         new(null, Strings.AllDevices, UiText.Format(Strings.AllDevicesDetails, deviceCount));
@@ -31,7 +38,7 @@ public sealed record DeviceItem(
             : UiText.LedCount(device.LedCount);
         var details = typeName is null ? leds : UiText.Format(Strings.DeviceDetailsWithType, typeName, leds);
         return new(device.Id, device.Name, details, device.Type, typeName, UiText.Lookup("DeviceSource", device.Source),
-            locationLabel, ToolTipOf(device.Location));
+            locationLabel, ToolTipOf(device.Location), !device.HasDirectMode);
     }
 
     private static string? TypeNameOf(DeviceType type) => UiText.Lookup("DeviceType", type);

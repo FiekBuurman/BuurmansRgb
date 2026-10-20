@@ -147,8 +147,8 @@
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                                <!-- The label that tells twins apart, as the list shows it; null for a device without one. -->
-                                <Setter Property="AutomationProperties.HelpText" Value="{Binding LocationLabel}" />
+                                <!-- The short texts under the name, as the list shows them; null for a device without any. -->
+                                <Setter Property="AutomationProperties.HelpText" Value="{Binding AccessibleHelpText}" />
                                 <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
                             </Style>
                         </ListBox.ItemContainerStyle>
@@ -164,6 +164,10 @@
                                         <TextBlock Text="{Binding Details}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
                                         <TextBlock Text="{Binding LocationLabel}" Foreground="{x:Static SystemColors.GrayTextBrush}"
                                                    Visibility="{Binding ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock TextWrapping="Wrap" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
+                                                   Visibility="{Binding LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
+                                            <Run Text="⚠" FontFamily="Segoe UI Symbol" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
+                                        </TextBlock>
                                     </StackPanel>
                                 </DockPanel>
                             </DataTemplate>
@@ -330,6 +334,11 @@
                                                     Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
                                                     Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}" />
                                         </StackPanel>
+                                        <DockPanel Margin="0,0,0,6" Visibility="{Binding LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
+                                            <TextBlock DockPanel.Dock="Left" Margin="0,0,6,0" Text="⚠" FontFamily="Segoe UI Symbol"
+                                                       AutomationProperties.Name="{x:Static res:Strings.NoDirectModeWarning}" />
+                                            <TextBlock TextWrapping="Wrap" Text="{x:Static res:Strings.NoDirectModeHint}" />
+                                        </DockPanel>
                                         <ItemsControl ItemsSource="{Binding Zones}" AutomationProperties.Name="{Binding Name}">
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">

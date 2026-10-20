@@ -158,6 +158,36 @@ public sealed class DeviceItemTests
     }
 
     [Fact]
+    public void For_DeviceWithDirectMode_WarnsNothing()
+    {
+        var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12), "Adres 0x52");
+
+        Assert.False(item.LacksDirectMode);
+        Assert.Equal("Adres 0x52", item.AccessibleHelpText);
+    }
+
+    [Fact]
+    public void For_DeviceWithoutDirectMode_WarnsAndSaysSoToScreenReaders()
+    {
+        var gpu = TestDevices.Create("gpu", "Old GPU", DeviceType.Gpu, 4) with { HasDirectMode = false };
+
+        var item = DeviceItem.For(gpu);
+
+        Assert.True(item.LacksDirectMode);
+        Assert.Equal("Volgt de kleur misschien niet", item.AccessibleHelpText);
+    }
+
+    [Fact]
+    public void For_TwinWithoutDirectMode_GivesScreenReadersBothTexts()
+    {
+        var gpu = TestDevices.Create("gpu", "Old GPU 2", DeviceType.Gpu, 4) with { HasDirectMode = false };
+
+        var item = DeviceItem.For(gpu, "Op NVIDIA GPU 1");
+
+        Assert.Equal("Op NVIDIA GPU 1. Volgt de kleur misschien niet", item.AccessibleHelpText);
+    }
+
+    [Fact]
     public void AllDevices_HasNoIdNoTypeAndNoHeading()
     {
         var item = DeviceItem.AllDevices(3);
