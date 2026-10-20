@@ -40,13 +40,9 @@
 
     <!-- LED colors, always with a glow (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>
-    <Color x:Key="LedOrangeColor">#FF9A3D</Color>
     <Color x:Key="LedYellowColor">#FFD84D</Color>
     <Color x:Key="LedGreenColor">#3DDC84</Color>
-    <Color x:Key="LedCyanColor">#3DD6D0</Color>
     <Color x:Key="LedBlueColor">#5B93FF</Color>
-    <Color x:Key="LedPurpleColor">#A97BFF</Color>
-    <Color x:Key="LedKlusWhiteColor">#FFF4E5</Color>
 
     <SolidColorBrush x:Key="LedRedBrush" Color="{StaticResource LedRedColor}" />
     <SolidColorBrush x:Key="LedYellowBrush" Color="{StaticResource LedYellowColor}" />
@@ -79,7 +75,6 @@
     <CornerRadius x:Key="CardRadius">18</CornerRadius>
     <CornerRadius x:Key="TileRadius">12</CornerRadius>
     <CornerRadius x:Key="StripRadius">8</CornerRadius>
-    <CornerRadius x:Key="PillRadius">999</CornerRadius>
     <sys:Double x:Key="MinClickSize">44</sys:Double>
     <!-- The page margin on the desktop (§ 6). -->
     <Thickness x:Key="PageMargin">32</Thickness>

@@ -23,4 +23,10 @@ public sealed class EffectOptionTests
     {
         Assert.Equal("sparkle", EffectOption.Create("sparkle").DisplayName);
     }
+
+    [Fact]
+    public void ToString_IsTheDutchNameForAScreenReader()
+    {
+        Assert.Equal("Regenboog", EffectOption.Create(EffectIds.Rainbow).ToString());
+    }
 }

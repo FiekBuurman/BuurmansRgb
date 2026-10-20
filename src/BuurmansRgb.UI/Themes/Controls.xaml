@@ -26,15 +26,6 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style x:Key="FocusRingCard">
-        <Setter Property="Control.Template">
-            <Setter.Value>
-                <ControlTemplate>
-                    <Border Margin="-3" CornerRadius="21" BorderThickness="2" BorderBrush="{StaticResource TextBrush}" SnapsToDevicePixels="True" />
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
 
     <!-- Line icons (§ 4): 24 by 24 like the screens of the design, drawn 22 px with a 2 px stroke. -->
     <Geometry x:Key="IconLamps">M9,18 H15 M10,21 H14 M12,3 A6,6 0 0 0 8,13.5 C8.8,14.3 9,15 9,16 H15 C15,15 15.2,14.3 16,13.5 A6,6 0 0 0 12,3 Z</Geometry>
@@ -43,7 +34,6 @@
     <Geometry x:Key="IconNeighbours">M2,12 L7,7 L12,12 L17,7 L22,12 M4,12 V20 H10 V12 M14,12 V20 H20 V12</Geometry>
     <!-- The wrench of the settings button in the design. -->
     <Geometry x:Key="IconSettings">M14.7,6.3 A4,4 0 0 0 9.3,11.7 L3,18 V21 H6 L12.3,14.7 A4,4 0 0 0 17.7,9.3 L15.1,11.9 L12.7,11.3 L12.1,8.9 Z</Geometry>
-    <Geometry x:Key="IconBack">M15,5 L8,12 L15,19</Geometry>
     <Geometry x:Key="IconChevronDown">M6,9 L12,15 L18,9</Geometry>
 
     <Style x:Key="LineIcon" TargetType="Path">
@@ -163,11 +153,6 @@
         <Setter Property="FontSize" Value="{StaticResource SubTextSize}" />
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
         <Setter Property="TextWrapping" Value="Wrap" />
-    </Style>
-    <Style x:Key="HexCode" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
-        <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="FontSize" Value="{StaticResource HexCodeSize}" />
     </Style>
     <!-- Numbers beside a slider, in the mono font. -->
     <Style x:Key="MonoValue" TargetType="TextBlock">

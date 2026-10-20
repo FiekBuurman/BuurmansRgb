@@ -15,9 +15,6 @@
   <data name="WindowTitle" xml:space="preserve">
     <value>buurmansRgb</value>
   </data>
-  <data name="DevicesHeader" xml:space="preserve">
-    <value>Apparaten</value>
-  </data>
   <data name="AllDevices" xml:space="preserve">
     <value>Hele huis</value>
   </data>
@@ -149,9 +146,6 @@
   </data>
   <data name="DeviceType_Keypad" xml:space="preserve">
     <value>Keypad</value>
-  </data>
-  <data name="ColorHeader" xml:space="preserve">
-    <value>Kleur</value>
   </data>
   <data name="HexLabel" xml:space="preserve">
     <value>Hex-code</value>
@@ -373,9 +367,6 @@
   </data>
   <data name="SimulatedDevicesLabel" xml:space="preserve">
     <value>Gesimuleerde apparaten tonen</value>
-  </data>
-  <data name="SimulatedDevicesShortLabel" xml:space="preserve">
-    <value>Gesimuleerd:</value>
   </data>
   <data name="OpenRgbHintAccessibleName" xml:space="preserve">
     <value>Tip bij de OpenRGB-status</value>

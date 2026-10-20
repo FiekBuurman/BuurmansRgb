@@ -88,11 +88,8 @@
                 </StackPanel>
                 <StackPanel>
                     <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" />
-                    <TextBlock Style="{StaticResource SubText}" Visibility="{Binding SelectedLamp, Converter={StaticResource NullToCollapsed}}">
-                        <Run Text="{Binding SelectedDevice.Name, Mode=OneWay}" /> · <Run Text="{Binding SelectedLamp.Details, Mode=OneWay}" />
-                    </TextBlock>
-                    <TextBlock Style="{StaticResource SubText}" Visibility="{Binding SelectedLamp, Converter={StaticResource NullToVisible}}">
-                        <Run Text="{Binding SelectedDevice.Name, Mode=OneWay}" /> · <Run Text="{Binding Lamps.Summary, Mode=OneWay}" />
+                    <TextBlock Style="{StaticResource SubText}">
+                        <Run Text="{Binding SelectedDevice.Name, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </DockPanel>

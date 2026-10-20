@@ -41,6 +41,9 @@ public sealed record DeviceItem(
             locationLabel, ToolTipOf(device.Location), !device.HasDirectMode);
     }
 
+    // A screen reader names a ComboBox item, such as in the lamp choice, by its ToString.
+    public override string ToString() => Name;
+
     private static string? TypeNameOf(DeviceType type) => UiText.Lookup("DeviceType", type);
 
     private static string? ToolTipOf(DeviceLocation? location) => location switch

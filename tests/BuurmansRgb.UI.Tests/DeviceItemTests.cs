@@ -29,6 +29,12 @@ public sealed class DeviceItemTests
     };
 
     [Fact]
+    public void ToString_IsTheNameForAScreenReader()
+    {
+        Assert.Equal("Fan", DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12)).ToString());
+    }
+
+    [Fact]
     public void TypeName_OfEveryDeviceType()
     {
         Assert.Equal(Enum.GetValues<DeviceType>(), DutchTypeNames.Keys.Order());
