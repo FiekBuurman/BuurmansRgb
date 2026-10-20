@@ -78,7 +78,8 @@
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
   verloop met meer dan twee kleuren
 - Per-LED-kleuren van een apparaat dat langer niet meer verschijnt opruimen; nu blijven ze
-  in `ledColors` staan, net als de eigen kleur onder `devices`
+  in `ledColors` en `ledColorZoneLengths` staan, net als de eigen kleur onder `devices` en de
+  lengtes onder `zoneLengths`
 - `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
   0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
 - Golf en Regenboog per zone laten lopen in plaats van over het hele apparaat (bijv. elke
@@ -90,14 +91,6 @@
   zodra OpenRGB de apparaten weer meldt
 - Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
-- Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
-  OpenRGB ze na een herstart vergeet; dan houden ook de gesimuleerde apparaten een ingestelde
-  lengte na een herstart van de engine (nu alleen tot de engine stopt). Bewaar bij de
-  per-LED-kleuren ook de zonelengtes waarvoor ze gekozen zijn, zodat de kleuren ook bij de
-  eerste ontdekking na een start meeschuiven; nu staan ze verschoven als een zone dan een
-  andere lengte heeft (zie README, "Let op bij per-LED-kleuren")
-- De lengte van een zone met een schuif of met + en − instellen, met het voorbeeld dat direct
-  meegroeit; nu typ je het aantal en kies je "Toepassen"
 - De segmenten van een zone (SDK-protocol 4) tonen en apart kunnen kiezen, bijv. als een
   ARGB-kanaal uit een fan en een strip achter elkaar bestaat
 - Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
@@ -195,3 +188,23 @@
 - `ProcessListTests.Find_SeesAProgramStartAndStop` faalt op deze pc ongeveer één op de drie
   keer: na `Kill` en `WaitForExitAsync` staat de kopie van ping soms nog even in de lijst. De
   test (of `ProcessList`) zou kort op het verdwijnen moeten wachten
+- Een zonelengte die je in de app van OpenRGB zelf verandert terwijl de engine draait, zet
+  BuurmansRgb nu terug naar de bewaarde lengte. Eventueel overnemen als nieuwe lengte, maar alleen
+  als het zeker geen lengte is die OpenRGB vergat (bijv. alleen als het apparaat al de bewaarde
+  lengte had en de nieuwe lengte niet 0 is)
+- Een zone waarvan het apparaat de naam twee keer heeft, krijgt nu geen bewaarde lengte (er is
+  niet te zeggen welke van de twee het was). Eventueel naam plus volgnummer binnen die naam
+- In de instellingen-app tonen dat een bewaarde zonelengte niet past bij het bereik dat de zone nu
+  meldt (bijv. na een update van OpenRGB); nu staat dat alleen in de debug-uitvoer
+- Een getal als tekst of een ander type in `zoneLengths` of `ledColorZoneLengths` maakt het hele
+  `settings.json` onleesbaar, net als een ongeldige kleur in `ledColors`; de engine draait dan op
+  de standaardwaarden en overschrijft het bestand bij de volgende wijziging. Zo'n waarde liever
+  overslaan, zoals `simulatedDevices` doet
+- − en + van de zonelengte laten herhalen zolang je ze ingedrukt houdt (`RepeatButton`); nu is het
+  één LED per klik, en voor grote stappen de schuif (PageUp/PageDown: 10 LED's)
+- Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt, maar
+  alleen de apparaten en zones die veranderden; nu houdt `FocusKeeper` de focus vast, maar een
+  sleep over een schuif breekt af als er midden in het slepen een nieuwe apparatenlijst komt
+- UI Automation (`InvokePattern.Invoke`) op een knop van de instellingen-app duurt op deze pc
+  zo'n 2 seconden; uitzoeken of de app zelf dan bezig is (bijv. met het voorbeeld) of dat het aan
+  UI Automation ligt
