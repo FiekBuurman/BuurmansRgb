@@ -13,6 +13,10 @@
        next to the engine. Both apps set their OutDir to it, so neither references the other. -->
   <PropertyGroup>
     <AppOutputRoot>$(MSBuildThisFileDirectory)artifacts\app\</AppOutputRoot>
+    <!-- A build for one runtime (-r win-x64, as the installer's self-contained publish does) gets a
+         folder of its own; mixed with the normal build, the engine looks for its own runtime
+         there and does not start. -->
+    <AppOutputSuffix Condition="'$(RuntimeIdentifier)' != ''">-$(RuntimeIdentifier)</AppOutputSuffix>
   </PropertyGroup>
 
 </Project>
