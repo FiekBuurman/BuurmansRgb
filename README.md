@@ -485,7 +485,9 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   het profiel van de tijd meteen.
 - **Bij een programma (spel):** vul bij "Laden als dit programma start" de naam van het
   .exe-bestand in (bijv. `eldenring.exe`; `eldenring` of een heel pad mag ook, de app maakt er
-  `eldenring.exe` van). Start het programma, dan laadt de engine het profiel binnen 2 seconden.
+  `eldenring.exe` van). Een snelkoppeling (`.lnk`, `.url`) of script (`.bat`, `.cmd`) weigert de
+  app: dat is niet het programma dat draait; het doel van de snelkoppeling staat bij
+  Eigenschappen. Start het programma, dan laadt de engine het profiel binnen 2 seconden.
   Stopt het, dan komt de verlichting van vóór de start terug, tenzij die intussen veranderde (in
   de instellingen-app of vanuit het tray-menu): dan blijft die. Een tijd die intussen kwam, komt
   dan (zie "Op tijd"). Starten er twee

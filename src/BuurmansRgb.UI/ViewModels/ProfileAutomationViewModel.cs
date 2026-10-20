@@ -45,6 +45,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // What is wrong with the fields, or null.
     public string? Error =>
         !TryParseTime(LoadAtText, out _) ? Strings.ProfileLoadAtInvalid
+        : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
         : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
         : null;
 

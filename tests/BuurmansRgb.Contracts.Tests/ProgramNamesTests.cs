@@ -24,6 +24,24 @@ public sealed class ProgramNamesTests
     public void Normalize_EmptyOrNotAFileName_ReturnsNull(string? program) =>
         Assert.Null(ProgramNames.Normalize(program));
 
+    [Theory]
+    [InlineData(@"C:\Users\Fiek\Desktop\Elden Ring.lnk")]
+    [InlineData("Elden Ring.url")]
+    [InlineData("start-game.BAT")]
+    [InlineData("start-game.cmd")]
+    public void Normalize_ShortcutOrScript_ReturnsNull(string program)
+    {
+        Assert.True(ProgramNames.IsShortcutOrScript(program));
+        Assert.Null(ProgramNames.Normalize(program));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("eldenring.exe")]
+    [InlineData("eldenring")]
+    [InlineData("lnk")]
+    public void IsShortcutOrScript_ProgramOrEmpty_IsFalse(string? program) => Assert.False(ProgramNames.IsShortcutOrScript(program));
+
     [Fact]
     public void Normalize_MaxLength_IsValidAndOneMoreIsNot()
     {

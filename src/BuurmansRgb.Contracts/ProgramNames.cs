@@ -8,27 +8,39 @@ public static class ProgramNames
 
     private const string Extension = ".exe";
 
+    // What a user may pick instead of the program itself; the process that runs is another one.
+    private static readonly string[] ShortcutsAndScripts = [".lnk", ".url", ".bat", ".cmd"];
+
     // Windows does not tell file names apart by case.
     public static StringComparer Comparer { get; } = StringComparer.OrdinalIgnoreCase;
 
-    // The file name with ".exe", or null when it is empty, too long or holds a character that a
-    // file name cannot have. A path gives its file name, and a name without ".exe" gets it, so
-    // "C:\Games\eldenring.exe" and "eldenring" both give "eldenring.exe".
+    // The file name with ".exe", or null when it is empty, too long, a shortcut or script, or holds
+    // a character that a file name cannot have. A path gives its file name, and a name without
+    // ".exe" gets it, so "C:\Games\eldenring.exe" and "eldenring" both give "eldenring.exe".
     public static string? Normalize(string? program)
     {
-        var name = program?.Trim().Trim('"');
-        if (string.IsNullOrEmpty(name))
+        var name = FileName(program);
+        if (string.IsNullOrEmpty(name) || IsShortcutOrScript(name))
         {
             return null;
         }
 
-        name = name[(name.LastIndexOfAny(['\\', '/']) + 1)..].Trim();
         if (!name.EndsWith(Extension, StringComparison.OrdinalIgnoreCase))
         {
             name += Extension;
         }
 
         return name.Length > Extension.Length && name.Length <= MaxLength && !name.Any(IsInvalid) ? name : null;
+    }
+
+    // A shortcut or script (.lnk, .url, .bat, .cmd), such as a game's shortcut on the desktop.
+    public static bool IsShortcutOrScript(string? program) =>
+        FileName(program) is { } name && ShortcutsAndScripts.Any(extension => name.EndsWith(extension, StringComparison.OrdinalIgnoreCase));
+
+    private static string? FileName(string? program)
+    {
+        var name = program?.Trim().Trim('"');
+        return string.IsNullOrEmpty(name) ? null : name[(name.LastIndexOfAny(['\\', '/']) + 1)..].Trim();
     }
 
     private static bool IsInvalid(char character) => char.IsControl(character) || ":*?\"<>|".Contains(character);

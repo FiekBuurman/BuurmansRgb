@@ -329,6 +329,9 @@
   <data name="ProfileLoadAtInvalid" xml:space="preserve">
     <value>Vul een tijd in zoals 23:00, of laat het leeg.</value>
   </data>
+  <data name="ProfileProgramShortcut" xml:space="preserve">
+    <value>Dit is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
+  </data>
   <data name="ProfileProgramInvalid" xml:space="preserve">
     <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
   </data>

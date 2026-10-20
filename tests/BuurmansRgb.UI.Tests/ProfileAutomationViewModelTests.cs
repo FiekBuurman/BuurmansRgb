@@ -83,6 +83,19 @@ public sealed class ProfileAutomationViewModelTests
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
+    [Theory]
+    [InlineData(@"C:\Users\Fiek\Desktop\Elden Ring.lnk")]
+    [InlineData("start-game.bat")]
+    public void ShortcutOrScript_SaysToPickTheExeAndCannotApply(string program)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = program;
+
+        Assert.StartsWith("Dit is een snelkoppeling of script.", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
     [Fact]
     public void Apply_EmptyFields_TurnsItOff()
     {
