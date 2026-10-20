@@ -15,9 +15,10 @@
         Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
         FontFamily="{StaticResource TextFont}" FontSize="{StaticResource BodySize}">
     <!-- A title bar of our own in bg (§ 6). Windows still moves, snaps and sizes the window, and a
-         double click or Alt+Space on the bar work as usual. -->
+         double click or Alt+Space on the bar work as usual. One pixel of glass keeps the shadow of
+         Windows around the window, and on Windows 11 its rounded corners. -->
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False" />
+        <WindowChrome CaptionHeight="44" ResizeBorderThickness="6" GlassFrameThickness="0,0,0,1" CornerRadius="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
     <Window.Resources>

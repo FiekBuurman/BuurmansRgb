@@ -240,3 +240,5 @@
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
+- De Snap Layouts van Windows 11 (het menu bij het aanwijzen van de maximaliseerknop) ook bij de
+  eigen titelbalk: dat vraagt `WM_NCHITTEST` met `HTMAXBUTTON` voor die knop
