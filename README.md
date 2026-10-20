@@ -340,7 +340,8 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
 - **Knipperen:** kies je in de lijst een apparaat (niet "Alle apparaten"), dan knippert het op de
   echte hardware 1,5 seconde: drie keer fel wit en uit, ook als de helderheid laag staat. Daarna
   krijgt het zijn eigen verlichting terug. In het voorbeeld staat bij elk apparaat de knop "Laat
-  knipperen" om het nog eens te doen, ook bij "Alle apparaten". Knipperen verandert niets aan de
+  knipperen" om het nog eens te doen, ook bij "Alle apparaten". Er knippert steeds één apparaat:
+  kies je snel een volgend, dan stopt het vorige meteen. Knipperen verandert niets aan de
   verlichting en wordt niet opgeslagen. Bij het verbinden of als de lijst ververst, knippert er
   niets. Zijn de effecten gepauzeerd, dan knippert er ook niets; pauzeer je tijdens het
   knipperen, dan krijgt het apparaat eerst zijn eigen kleuren terug. De engine draait alleen

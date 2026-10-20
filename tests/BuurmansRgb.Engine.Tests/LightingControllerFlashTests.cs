@@ -125,6 +125,26 @@ public sealed class LightingControllerFlashTests : IDisposable
     }
 
     [Fact]
+    public async Task Flash_AnotherDevice_StopsTheFirstFlash()
+    {
+        var first = new RecordingDeviceProvider("first");
+        var second = new RecordingDeviceProvider("second");
+        using var controller = new LightingController([first, second], _time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        controller.Flash("first");
+
+        controller.Flash("second");
+
+        Assert.Equal(OwnColors, first.LastColors);
+        Assert.Equal(White, second.LastColors);
+        _time.Advance(DeviceFlash.Duration);
+        controller.RenderAnimationFrame();
+        Assert.Equal(OwnColors, second.LastColors);
+        Assert.False(controller.IsAnimating);
+    }
+
+    [Fact]
     public async Task Flash_UnknownDevice_Throws()
     {
         await StartAsync(EffectIds.Static);

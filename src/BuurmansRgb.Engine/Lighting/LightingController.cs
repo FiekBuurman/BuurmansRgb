@@ -264,7 +264,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // Lets the device blink for a moment (DeviceFlash), so the user can find it in the pc; then it
     // shows its own lighting again. Nothing is stored and LightingChanged is not raised. The render
-    // loop runs only until the flash is over. While paused the devices stay as they are, so
+    // loop runs only until the flash is over. One device flashes at a time, so the user who clicks
+    // through the list sees only the last one. While paused the devices stay as they are, so
     // nothing happens then.
     public void Flash(string deviceId)
     {
@@ -276,6 +277,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return;
             }
 
+            StopFlashesLocked(except: output);
             var time = EffectTime;
             output.StartFlash(time);
             output.Render(time);
@@ -505,14 +507,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         return moved;
     }
 
-    // Gives every device that is flashing its own colors again. Returns true when there was one.
-    private bool StopFlashesLocked()
+    // Gives every device that is flashing, but except, its own colors again. Returns true when
+    // there was one.
+    private bool StopFlashesLocked(DeviceOutput? except = null)
     {
         var time = EffectTime;
         var stopped = false;
         foreach (var output in _outputs.All)
         {
-            if (output.IsFlashing)
+            if (output.IsFlashing && output != except)
             {
                 output.StopFlash();
                 output.Render(time);
