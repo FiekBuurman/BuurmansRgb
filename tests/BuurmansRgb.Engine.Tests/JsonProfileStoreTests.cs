@@ -25,7 +25,10 @@ public sealed class JsonProfileStoreTests : IDisposable
         var lighting = new LightingState(
             StaticLighting(Orange, 0.5) with { Loop = loop },
             new Dictionary<string, DeviceLighting> { ["fan"] = new(Blue, 0.25, EffectIds.Rainbow, 2.0) },
-            new Dictionary<string, IReadOnlyList<RgbColor?>> { ["strip"] = [Red, null, Green] });
+            new Dictionary<string, IReadOnlyList<RgbColor?>> { ["strip"] = [Red, null, Green] })
+        {
+            LedColorZoneLengths = new Dictionary<string, IReadOnlyList<int>> { ["strip"] = [1, 2] },
+        };
 
         _store.Save([new Profile("Gamen", lighting), new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))]);
 
@@ -35,6 +38,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(lighting.Global, gamen.Global);
         Assert.Equal(lighting.Devices["fan"], gamen.Devices["fan"]);
         Assert.Equal(lighting.LedColors["strip"], gamen.LedColors["strip"]);
+        Assert.Equal(lighting.LedColorZoneLengths["strip"], gamen.LedColorZoneLengths["strip"]);
         Assert.Equal(StaticLighting(Red, 0.1), loaded[1].Lighting.Global);
     }
 

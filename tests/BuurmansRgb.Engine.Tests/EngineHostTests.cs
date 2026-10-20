@@ -201,6 +201,34 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(35, restarted.GetLeds("simulated-argb").Length);
     }
 
+    // The simulated controller starts with 20 and 0 LEDs again. Until the engine has given both
+    // channels their lengths back, the second channel must not get colors of the first, and after
+    // it each channel shows its own colors.
+    [Fact]
+    public async Task LedColorsOfResizedZones_AreRightAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        using (var lighting = new LightingController([_simulated]))
+        using (var zoneLengths = new ZoneLengthKeeper(lighting))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), zoneLengths: zoneLengths))
+        {
+            await host.StartAsync(Ct);
+            zoneLengths.ResizeZone("simulated-argb", 0, 30);
+            zoneLengths.ResizeZone("simulated-argb", 1, 10);
+            await Eventually.TrueAsync(() => lighting.Devices.Single(device => device.Id == "simulated-argb").LedCount == 40);
+            lighting.SetLedColors("simulated-argb", 0, [.. Enumerable.Repeat(Orange, 30), .. Enumerable.Repeat(Blue, 10)]);
+        }
+
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedZoneLengths = new ZoneLengthKeeper(restartedLighting);
+        using var restartedHost = new EngineHost(store, restartedLighting, zoneLengths: restartedZoneLengths);
+        await restartedHost.StartAsync(Ct);
+
+        RgbColor[] expected = [.. Enumerable.Repeat(Orange, 30), .. Enumerable.Repeat(Blue, 10)];
+        await Eventually.TrueAsync(() => restarted.GetLeds("simulated-argb").SequenceEqual(expected));
+    }
+
     [Fact]
     public async Task StartAsync_UsesTheSavedFrameRate()
     {

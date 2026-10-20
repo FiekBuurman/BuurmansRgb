@@ -17,14 +17,12 @@ internal sealed class DeviceOutputs
     public DeviceOutput? Find(string deviceId) => All.FirstOrDefault(output => output.Device.Id == deviceId);
 
     // Gives the devices of one provider new outputs; a device that was there already keeps its
-    // effect clock. Returns the devices it had before, so the caller can compare their zones with
-    // the new ones.
-    public IReadOnlyList<RgbDevice> Replace(int providerIndex, IDeviceProvider provider, IReadOnlyList<RgbDevice> devices)
+    // effect clock.
+    public void Replace(int providerIndex, IDeviceProvider provider, IReadOnlyList<RgbDevice> devices)
     {
         var previous = _byProvider[providerIndex];
         var clocks = previous.ToDictionary(output => output.Device.Id, output => output.Clock);
         _byProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device, clocks.GetValueOrDefault(device.Id)))];
         All = [.. _byProvider.SelectMany(outputs => outputs)];
-        return [.. previous.Select(output => output.Device)];
     }
 }

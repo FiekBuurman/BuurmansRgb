@@ -121,6 +121,31 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_LedColorZoneLengths_RoundTrip()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(new EngineSettings { LedColors = new() { ["simulated-argb"] = [Red] }, LedColorZoneLengths = new() { ["simulated-argb"] = [30, 10] } });
+
+        Assert.Contains("\"ledColorZoneLengths\"", File.ReadAllText(path));
+        Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColorZoneLengths["simulated-argb"]);
+    }
+
+    // A file from before the zone lengths were stored, or with a count that cannot be right.
+    [Fact]
+    public void Load_LedColorsWithoutOrWithWrongZoneLengths_HaveNone()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "ledColors": { "a": ["#FF0000"], "b": ["#FF0000"] }, "ledColorZoneLengths": { "b": [3, -1] } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal(2, state.LedColors.Count);
+        Assert.Empty(state.LedColorZoneLengths);
+    }
+
+    [Fact]
     public void Save_Defaults_LeavesLedColorsOutOfTheFile()
     {
         var path = _directory.File("settings.json");

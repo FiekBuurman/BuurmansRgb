@@ -98,9 +98,10 @@ public sealed class LightingControllerZoneTests
         Assert.Throws<ArgumentException>(() => controller.ResizeZone("header", 0, 20));
     }
 
-    // As when the header is resized in OpenRGB itself: the logo after it keeps its own color.
+    // As when the header is resized in OpenRGB itself: the logo after it keeps its own color. The
+    // colors are stored as chosen, with their zone lengths, so nothing changes that needs saving.
     [Fact]
-    public async Task DevicesChanged_ZoneGotAnotherLength_MovesTheLedColorsAlong()
+    public async Task DevicesChanged_ZoneGotAnotherLength_LedColorsFollowTheZones()
     {
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(LightingStates.Uniform(new DeviceLighting(RgbColor.White, 1.0, EffectIds.Static)));
@@ -111,9 +112,36 @@ public sealed class LightingControllerZoneTests
 
         await WhileDevicesChangeAsync(() => _dynamic.SetDevices(Board(header: 3)));
 
-        Assert.Equal([Orange, Orange, RgbColor.White, null, null, Green], _controller.State.LedColors["board"]);
         Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _dynamic.Leds["board"]);
-        await Eventually.TrueAsync(() => lightingChanges == 1);
+        Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _controller.GetLedColors("board"));
+        Assert.Equal([Orange, Orange, RgbColor.White, Green], _controller.State.LedColors["board"]);
+        Assert.Equal([2, 1, 1], _controller.State.LedColorZoneLengths["board"]);
+        Assert.Equal(0, lightingChanges);
+    }
+
+    // The first discovery after a start: the header has another length than when the colors were
+    // chosen (OpenRGB forgot it, or the simulated devices start with their first length). The logo
+    // still gets its own color, and once the header is long again it has all its colors back.
+    [Fact]
+    public async Task Apply_ColorsChosenForOtherZoneLengths_FollowTheZones()
+    {
+        await _controller.DiscoverAsync(Ct);
+        await WhileDevicesChangeAsync(() => _dynamic.SetDevices(Board(header: 0)));
+        var state = LightingStates.WithDevices(
+            new DeviceLighting(RgbColor.White, 1.0, EffectIds.Static),
+            new Dictionary<string, DeviceLighting> { ["board"] = new(RgbColor.White, 1.0, EffectIds.PerLed) })
+            with
+            {
+                LedColors = new Dictionary<string, IReadOnlyList<RgbColor?>> { ["board"] = [Orange, Orange, Blue, Blue, Green] },
+                LedColorZoneLengths = new Dictionary<string, IReadOnlyList<int>> { ["board"] = [2, 2, 1] },
+            };
+
+        _controller.Apply(state);
+
+        Assert.Equal([Orange, Orange, Green], _dynamic.Leds["board"]);
+        _dynamic.SetDevices(Board(header: 2));
+        RgbColor[] grownBack = [Orange, Orange, Blue, Blue, Green];
+        await Eventually.TrueAsync(() => _dynamic.Leds["board"].SequenceEqual(grownBack));
     }
 
     private static RgbDevice Board(int header) =>
