@@ -15,6 +15,13 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- The OpenRGB fakes, so the engine is tested against the provider with a server in memory. -->
+  <ItemGroup>
+    <Compile Include="..\BuurmansRgb.Providers.OpenRgb.Tests\FakeOpenRgbConnector.cs" Link="OpenRgb\FakeOpenRgbConnector.cs" />
+    <Compile Include="..\BuurmansRgb.Providers.OpenRgb.Tests\FakeOpenRgbConnection.cs" Link="OpenRgb\FakeOpenRgbConnection.cs" />
+    <Compile Include="..\BuurmansRgb.Providers.OpenRgb.Tests\TestDevices.cs" Link="OpenRgb\TestDevices.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.Engine\BuurmansRgb.Engine.csproj" />
   </ItemGroup>
