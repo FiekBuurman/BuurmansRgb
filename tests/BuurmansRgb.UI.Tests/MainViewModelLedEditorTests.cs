@@ -34,7 +34,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "strip", 0);
         Click(viewModel, "strip", 1, extend: true);
 
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
@@ -49,7 +49,7 @@ public sealed class MainViewModelLedEditorTests
 
         Click(viewModel, "board", 1);
         Click(viewModel, "board", 2, extend: true);
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
         var board = Assert.Single(viewModel.Preview.Devices);
@@ -65,7 +65,7 @@ public sealed class MainViewModelLedEditorTests
         Api.RaiseDevicesChanged();
 
         Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("fan", "Fan", 2, 4), viewModel.LedEditor.Selection);
         Assert.Equal((2, 4), viewModel.Preview.Devices[0].ShownSelection());
@@ -182,7 +182,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Click(viewModel, "fan", 0);
 
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
         Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
@@ -195,7 +195,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "fan", 0);
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Null(viewModel.LedEditor.Selection);
         Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));

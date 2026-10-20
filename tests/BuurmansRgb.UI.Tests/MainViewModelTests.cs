@@ -62,8 +62,8 @@ public sealed class MainViewModelTests
         Assert.Same(viewModel.Devices[0], viewModel.SelectedDevice);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
         Assert.Equal("#FF0000", viewModel.ColorPicker.HexColor);
-        Assert.Equal(0.0, viewModel.ColorPicker.Hue);
-        Assert.Equal(100.0, viewModel.ColorPicker.Saturation);
+        Assert.Equal((255.0, 0.0, 0.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
         Assert.Equal(80.0, viewModel.Brightness);
         Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         Assert.Equal("Statisch", viewModel.SelectedEffect?.DisplayName);
@@ -108,37 +108,31 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task Hue_Changed_SendsColorForAllDevices()
+    public async Task Green_Changed_MixesTheColorButSendsItOnlyWhenApplied()
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.ColorPicker.Hue = 120;
+        viewModel.ColorPicker.Green = 255;
 
-        Assert.Equal(["color all #00FF00"], Api.Calls);
-        Assert.Equal("#00FF00", viewModel.ColorPicker.HexColor);
-        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        Assert.Empty(Api.Calls);
+        Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
+        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+
+        viewModel.ColorPicker.ApplyCommand.Execute(null);
+
+        Assert.Equal(["color all #FFFF00"], Api.Calls);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
     }
 
     [Fact]
-    public async Task Saturation_Changed_SendsLighterColor()
+    public async Task HexColor_ValidAndApplied_SendsAndUpdatesSliders()
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.ColorPicker.Saturation = 0;
-
-        Assert.Equal(["color all #FFFFFF"], Api.Calls);
-    }
-
-    [Fact]
-    public async Task HexColor_Valid_SendsAndUpdatesSliders()
-    {
-        var viewModel = await ConnectAsync();
-
-        viewModel.ColorPicker.HexColor = "#0000ff";
+        viewModel.ColorPicker.Pick("#0000ff");
 
         Assert.Equal(["color all #0000FF"], Api.Calls);
-        Assert.Equal(240.0, viewModel.ColorPicker.Hue, precision: 6);
-        Assert.Equal(100.0, viewModel.ColorPicker.Saturation, precision: 6);
+        Assert.Equal((0.0, 0.0, 255.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
     }
 
     [Theory]
@@ -156,14 +150,17 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task SelectPreset_SendsColorAndShowsIt()
+    public async Task SelectPreset_ShowsTheColorAndApplySendsIt()
     {
         var viewModel = await ConnectAsync();
 
-        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 136, 0));
+        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 154, 61));
+        Assert.Empty(Api.Calls);
+        Assert.Equal("#FF9A3D", viewModel.ColorPicker.HexColor);
 
-        Assert.Equal(["color all #FF8800"], Api.Calls);
-        Assert.Equal("#FF8800", viewModel.ColorPicker.HexColor);
+        viewModel.ColorPicker.ApplyCommand.Execute(null);
+
+        Assert.Equal(["color all #FF9A3D"], Api.Calls);
     }
 
     [Fact]
@@ -235,7 +232,7 @@ public sealed class MainViewModelTests
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
 
-        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Pick("#00FF00");
         viewModel.Brightness = 25;
         viewModel.SelectedEffect = viewModel.Effects[0];
         viewModel.SelectedEffect = null;

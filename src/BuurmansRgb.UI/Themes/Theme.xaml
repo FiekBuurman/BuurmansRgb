@@ -13,6 +13,9 @@
     <views:DeviceTypeToIconConverter x:Key="TypeToIcon" />
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     <views:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibility" />
+    <views:EqualValuesConverter x:Key="EqualValues" />
+    <views:NullToVisibilityConverter x:Key="NullToCollapsed" />
+    <views:NullToVisibilityConverter x:Key="NullToVisible" WhenNull="True" />
 
     <!-- The icon of a device's type, in the line style of the design; the DataContext needs a Type property. -->
     <Style x:Key="DeviceIcon" TargetType="Path">

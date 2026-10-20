@@ -5,68 +5,82 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// Hex code, presets and hue/saturation sliders for one color. ColorPicked is raised only for a
-// change the user made, not for a color shown with Show.
+// Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code and the
+// presets change Color at once, so the preview shows it, but the color only goes to the lamp with
+// Apply ("Op de strip zetten"), which raises ColorPicked. Show shows the color the lamp has.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
-    private double _value = 1.0;
+
+    // The color last shown or applied: what the lamp has.
+    private RgbColor _applied = RgbColor.White;
 
     public event EventHandler<RgbColor>? ColorPicked;
 
+    // "Uit de gereedschapskist", with the colors of the design.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
-        new(new(255, 0, 0), Strings.PresetRed),
-        new(new(255, 136, 0), Strings.PresetOrange),
-        new(new(255, 221, 0), Strings.PresetYellow),
-        new(new(0, 255, 0), Strings.PresetGreen),
-        new(new(0, 255, 255), Strings.PresetCyan),
-        new(new(0, 0, 255), Strings.PresetBlue),
-        new(new(136, 0, 255), Strings.PresetPurple),
-        new(new(255, 0, 170), Strings.PresetPink),
-        new(RgbColor.White, Strings.PresetWhite),
+        new(new(255, 244, 229), Strings.PresetKlusWhite),
+        new(new(255, 59, 59), Strings.PresetRed),
+        new(new(255, 154, 61), Strings.PresetOrange),
+        new(new(31, 196, 106), Strings.PresetGreen),
+        new(new(47, 107, 255), Strings.PresetBlue),
+        new(new(169, 123, 255), Strings.PresetPurple),
     ];
 
-    // 0 to 360 degrees.
+    // 0 to 255 each.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HueColor))]
-    public partial double Hue { get; set; }
+    public partial double Red { get; set; } = 255;
 
-    // 0 to 100 percent.
     [ObservableProperty]
-    public partial double Saturation { get; set; }
+    public partial double Green { get; set; } = 255;
+
+    [ObservableProperty]
+    public partial double Blue { get; set; } = 255;
 
     [ObservableProperty]
     public partial string HexColor { get; set; } = RgbColor.White.ToHex();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
-    // The fully saturated color of the current hue, for the saturation slider's gradient.
-    public RgbColor HueColor => RgbColor.FromHsv(Hue / 360.0, 1.0, 1.0);
+    // "255 · 154 · 61", as the preview of the design shows it.
+    public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
 
-    public void Show(RgbColor color) => _showing.Run(() => ShowColor(color));
+    // The mixed color is not on the lamp yet.
+    public bool HasUnappliedChange => Color != _applied;
+
+    public void Show(RgbColor color) => _showing.Run(() =>
+    {
+        _applied = color;
+        ShowColor(color);
+        OnPropertyChanged(nameof(HasUnappliedChange));
+    });
 
     [RelayCommand]
-    private void SelectPreset(RgbColor color)
+    private void Apply()
     {
-        Show(color);
-        ColorPicked?.Invoke(this, color);
+        _applied = Color;
+        OnPropertyChanged(nameof(HasUnappliedChange));
+        ColorPicked?.Invoke(this, Color);
     }
 
-    partial void OnHueChanged(double value) => ColorFromSliders();
+    [RelayCommand]
+    private void SelectPreset(RgbColor color) => _showing.Run(() => ShowColor(color));
 
-    partial void OnSaturationChanged(double value) => ColorFromSliders();
+    partial void OnRedChanged(double value) => ColorFromSliders();
+
+    partial void OnGreenChanged(double value) => ColorFromSliders();
+
+    partial void OnBlueChanged(double value) => ColorFromSliders();
 
     partial void OnHexColorChanged(string value)
     {
-        if (_showing.IsActive || !RgbColor.TryParseHex(value.Trim(), out var color))
+        if (!_showing.IsActive && RgbColor.TryParseHex(value.Trim(), out var color))
         {
-            return;
+            _showing.Run(() => ShowColor(color, updateHex: false));
         }
-
-        _showing.Run(() => ShowColor(color, updateHex: false));
-        ColorPicked?.Invoke(this, color);
     }
 
     private void ColorFromSliders()
@@ -76,27 +90,25 @@ public sealed partial class ColorPickerViewModel : ObservableObject
             return;
         }
 
-        var color = RgbColor.FromHsv(Hue / 360.0, Saturation / 100.0, _value);
+        var color = new RgbColor(ToByte(Red), ToByte(Green), ToByte(Blue));
         _showing.Run(() =>
         {
             Color = color;
             HexColor = color.ToHex();
         });
-        ColorPicked?.Invoke(this, color);
     }
 
-    // The sliders set hue and saturation; the value (darkness) of a typed color is kept, except
-    // black, which would make the sliders do nothing.
     private void ShowColor(RgbColor color, bool updateHex = true)
     {
         Color = color;
-        var (hue, saturation, value) = color.ToHsv();
-        Hue = hue * 360.0;
-        Saturation = saturation * 100.0;
-        _value = value > 0.0 ? value : 1.0;
+        Red = color.R;
+        Green = color.G;
+        Blue = color.B;
         if (updateHex)
         {
             HexColor = color.ToHex();
         }
     }
+
+    private static byte ToByte(double value) => (byte)Math.Clamp(Math.Round(value), 0, 255);
 }

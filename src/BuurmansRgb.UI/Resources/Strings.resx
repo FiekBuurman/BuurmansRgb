@@ -19,7 +19,7 @@
     <value>Apparaten</value>
   </data>
   <data name="AllDevices" xml:space="preserve">
-    <value>Alle apparaten</value>
+    <value>Hele huis</value>
   </data>
   <data name="AllDevicesDetails" xml:space="preserve">
     <value>{0} apparaten</value>
@@ -153,12 +153,6 @@
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>
-  <data name="HueLabel" xml:space="preserve">
-    <value>Tint</value>
-  </data>
-  <data name="SaturationLabel" xml:space="preserve">
-    <value>Verzadiging</value>
-  </data>
   <data name="HexLabel" xml:space="preserve">
     <value>Hex-code</value>
   </data>
@@ -240,26 +234,14 @@
   <data name="PresetOrange" xml:space="preserve">
     <value>Oranje</value>
   </data>
-  <data name="PresetYellow" xml:space="preserve">
-    <value>Geel</value>
-  </data>
   <data name="PresetGreen" xml:space="preserve">
     <value>Groen</value>
-  </data>
-  <data name="PresetCyan" xml:space="preserve">
-    <value>Cyaan</value>
   </data>
   <data name="PresetBlue" xml:space="preserve">
     <value>Blauw</value>
   </data>
   <data name="PresetPurple" xml:space="preserve">
     <value>Paars</value>
-  </data>
-  <data name="PresetPink" xml:space="preserve">
-    <value>Roze</value>
-  </data>
-  <data name="PresetWhite" xml:space="preserve">
-    <value>Wit</value>
   </data>
   <data name="SpeedHeader" xml:space="preserve">
     <value>Snelheid</value>
@@ -567,5 +549,44 @@
   </data>
   <data name="NoLamps" xml:space="preserve">
     <value>Nog geen lampen gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde lampen aan.</value>
+  </data>
+  <data name="PresetKlusWhite" xml:space="preserve">
+    <value>Klus-wit</value>
+  </data>
+  <data name="RgbText" xml:space="preserve">
+    <value>{0} · {1} · {2}</value>
+  </data>
+  <data name="ChannelRed" xml:space="preserve">
+    <value>Rood</value>
+  </data>
+  <data name="ChannelGreen" xml:space="preserve">
+    <value>Groen</value>
+  </data>
+  <data name="ChannelBlue" xml:space="preserve">
+    <value>Blauw</value>
+  </data>
+  <data name="CurrentColorLabel" xml:space="preserve">
+    <value>Huidige kleur</value>
+  </data>
+  <data name="ColorPreviewAccessibleName" xml:space="preserve">
+    <value>Voorbeeld van de kleur</value>
+  </data>
+  <data name="ToolboxHeader" xml:space="preserve">
+    <value>Uit de gereedschapskist</value>
+  </data>
+  <data name="ApplyColor" xml:space="preserve">
+    <value>Op de strip zetten</value>
+  </data>
+  <data name="ApplyColorToLeds" xml:space="preserve">
+    <value>Op de gekozen LED's zetten</value>
+  </data>
+  <data name="ApplyColorToLoop" xml:space="preserve">
+    <value>In de loop zetten</value>
+  </data>
+  <data name="ColorNotApplied" xml:space="preserve">
+    <value>Nog niet op de lamp</value>
+  </data>
+  <data name="LightingHeader" xml:space="preserve">
+    <value>Licht en beweging</value>
   </data>
 </root>

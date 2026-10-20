@@ -61,7 +61,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
-        LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
+        LedEditor.PropertyChanged += (_, _) =>
+        {
+            FillGradientCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(ApplyColorLabel));
+        };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         ColorLoopEditor.PropertyChanged += (_, e) =>
         {
@@ -110,7 +114,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial string? StatusMessage { get; private set; } = Strings.StatusConnecting;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedLamp))]
     public partial DeviceItem? SelectedDevice { get; set; }
+
+    // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
+    public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
 
     public ColorPickerViewModel ColorPicker { get; } = new();
 
@@ -121,6 +129,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
+
+    // Where "Op de strip zetten" puts the mixed color, in the order of OnColorPicked.
+    public string ApplyColorLabel => LedEditor.HasSelection ? Strings.ApplyColorToLeds
+        : IsColorLoop ? Strings.ApplyColorToLoop
+        : Strings.ApplyColor;
 
     public ProfilesViewModel Profiles { get; } = new();
 
@@ -135,7 +148,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(ApplyColorLabel))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -317,6 +330,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
         Lamps.ShowDevices(Devices);
+        OnPropertyChanged(nameof(SelectedLamp));
         _ = RefreshLampsAsync();
 
         // The edit ends when its device is gone or got another number of LEDs (a zone that was
