@@ -2,9 +2,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Engine.Settings;
+namespace BuurmansRgb.Contracts;
 
-internal sealed class RgbColorJsonConverter : JsonConverter<RgbColor>
+public sealed class RgbColorJsonConverter : JsonConverter<RgbColor>
 {
     public override RgbColor Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {

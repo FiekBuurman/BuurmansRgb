@@ -37,6 +37,47 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_AppliesSavedDeviceColor()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Color = new RgbColor(0, 0, 255) } } },
+        };
+        using var host = new EngineHost(store, new LightingController([_simulated]));
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+        Assert.All(_simulated.GetLeds("simulated-strip").ToArray(), led => Assert.Equal(RgbColor.White, led));
+    }
+
+    [Fact]
+    public async Task Dispose_AfterChange_SavesLighting()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1));
+        await host.StartAsync(TestContext.Current.CancellationToken);
+        lighting.SetLighting("simulated-fan", current => current with { Brightness = 0.3 });
+
+        host.Dispose();
+
+        Assert.Equal(0.3, store.Settings.Devices!["simulated-fan"]!.Brightness);
+    }
+
+    [Fact]
+    public async Task StartAsync_DoesNotSaveTheLoadedSettingsAgain()
+    {
+        var store = new InMemorySettingsStore();
+        var host = new EngineHost(store, new LightingController([_simulated]), saveDelay: TimeSpan.FromHours(1));
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        host.Dispose();
+
+        Assert.Equal(0, store.SaveCount);
+    }
+
+    [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {
         var lighting = new LightingController([_simulated]);

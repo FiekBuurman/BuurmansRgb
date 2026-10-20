@@ -9,4 +9,10 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
+  <!-- The engine and the settings app run from one folder: the tray starts BuurmansRgb.UI.exe
+       next to the engine. Both apps set their OutDir to it, so neither references the other. -->
+  <PropertyGroup>
+    <AppOutputRoot>$(MSBuildThisFileDirectory)artifacts\app\</AppOutputRoot>
+  </PropertyGroup>
+
 </Project>

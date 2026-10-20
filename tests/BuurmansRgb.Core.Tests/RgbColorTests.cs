@@ -42,6 +42,42 @@ public sealed class RgbColorTests
     }
 
     [Theory]
+    [InlineData(255, 0, 0, 0.0)]
+    [InlineData(255, 255, 0, 1.0 / 6.0)]
+    [InlineData(0, 255, 0, 2.0 / 6.0)]
+    [InlineData(0, 255, 255, 3.0 / 6.0)]
+    [InlineData(0, 0, 255, 4.0 / 6.0)]
+    [InlineData(255, 0, 255, 5.0 / 6.0)]
+    public void ToHsv_PrimaryAndSecondaryColors_ReturnsHueWithFullSaturationAndValue(byte r, byte g, byte b, double hue)
+    {
+        var (h, s, v) = new RgbColor(r, g, b).ToHsv();
+
+        Assert.Equal(hue, h, precision: 6);
+        Assert.Equal(1.0, s, precision: 6);
+        Assert.Equal(1.0, v, precision: 6);
+    }
+
+    [Fact]
+    public void ToHsv_Gray_ReturnsZeroHueAndSaturation()
+    {
+        Assert.Equal((0.0, 0.0, 128 / 255.0), new RgbColor(128, 128, 128).ToHsv());
+    }
+
+    [Theory]
+    [InlineData(255, 136, 0)]
+    [InlineData(10, 200, 128)]
+    [InlineData(80, 40, 120)]
+    [InlineData(200, 10, 60)]
+    [InlineData(0, 0, 0)]
+    public void ToHsv_RoundTripsThroughFromHsv(byte r, byte g, byte b)
+    {
+        var color = new RgbColor(r, g, b);
+        var (h, s, v) = color.ToHsv();
+
+        Assert.Equal(color, RgbColor.FromHsv(h, s, v));
+    }
+
+    [Theory]
     [InlineData(0.0, 0, 100, 200)]
     [InlineData(0.5, 100, 150, 100)]
     [InlineData(1.0, 200, 200, 0)]

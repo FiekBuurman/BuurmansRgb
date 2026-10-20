@@ -1,5 +1,6 @@
 using System.Security.AccessControl;
 using System.Security.Principal;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Settings;
 
@@ -44,6 +45,42 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var json = File.ReadAllText(path);
         Assert.Contains("\"color\": \"#FF8800\"", json);
         Assert.Contains("\"brightness\": 0.5", json);
+    }
+
+    [Fact]
+    public void Save_ThenLoad_RoundTripsEffectAndDevices()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        var fan = new LightingSettings { Color = new RgbColor(0, 255, 0), Brightness = 0.25 };
+
+        store.Save(new EngineSettings { Devices = new() { ["simulated-fan"] = fan } });
+
+        var loaded = store.LoadOrCreate();
+        Assert.Equal(EffectIds.Static, loaded.Effect);
+        Assert.Equal(fan, Assert.Single(loaded.Devices!).Value);
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesDevicesOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault());
+
+        Assert.DoesNotContain("devices", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void LoadOrCreate_HandWrittenDevices_ReadsThem()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "color": "#FF0000", "devices": { "simulated-fan": { "color": "#0000FF" } } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal(new RgbColor(255, 0, 0), state.Global.Color);
+        Assert.Equal(new RgbColor(0, 0, 255), state.For("simulated-fan").Color);
+        Assert.Equal(1.0, state.For("simulated-fan").Brightness);
     }
 
     [Fact]

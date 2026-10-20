@@ -8,6 +8,10 @@
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- LibraryImport generates its marshalling code as unsafe code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Shared with BuurmansRgb.UI, see Directory.Build.props. -->
+    <OutDir>$(AppOutputRoot)$(Configuration)\</OutDir>
   </PropertyGroup>
 
   <ItemGroup>
