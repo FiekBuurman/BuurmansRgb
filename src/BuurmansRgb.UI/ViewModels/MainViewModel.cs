@@ -594,7 +594,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
     }
 
-    // What each scene looks like and when it loads by itself, for its card.
+    // What each scene looks like and when it loads by itself, for its card. Only reads, so a scene
+    // that fails, such as one deleted from the tray menu meanwhile, keeps its dark card and the user
+    // gets no message about a change; the other scenes still get theirs.
     private async Task ShowSceneCardsAsync()
     {
         if (_connection is not { } connection)
@@ -604,14 +606,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         foreach (var name in Profiles.Names.ToArray())
         {
-            var (ok, lighting) = await TryCallAsync(connection, api => api.GetProfileLightingAsync(name));
-            var (automationOk, automation) = ok ? await TryCallAsync(connection, api => api.GetProfileAutomationAsync(name)) : default;
-            if (!automationOk || !ReferenceEquals(connection, _connection))
+            try
             {
-                return;
-            }
+                var lighting = await connection.Api.GetProfileLightingAsync(name);
+                var automation = await connection.Api.GetProfileAutomationAsync(name);
+                if (!ReferenceEquals(connection, _connection))
+                {
+                    return;
+                }
 
-            Profiles.ShowCard(name, lighting, automation);
+                Profiles.ShowCard(name, lighting, automation);
+            }
+            catch (Exception exception)
+            {
+                Trace.TraceError(exception.ToString());
+            }
         }
     }
 

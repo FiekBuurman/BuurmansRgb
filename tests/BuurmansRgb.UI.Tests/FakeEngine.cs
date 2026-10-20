@@ -248,9 +248,14 @@ internal sealed class FakeEngineApi : IEngineApi
         Profiles.Remove(name);
     }
 
+    // Profiles that are gone by the time they are asked, such as deleted from the tray menu.
+    public HashSet<string> GoneProfiles { get; } = [];
+
     // Like the engine: the lighting a profile gives all devices; the default lighting without one.
     public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
-        Task.FromResult(ProfileLighting.GetValueOrDefault(name, new LightingInfo(RgbColor.White, 1.0, EffectIds.Static)));
+        GoneProfiles.Contains(name)
+            ? Task.FromException<LightingInfo>(new ArgumentException($"There is no profile '{name}'.", nameof(name)))
+            : Task.FromResult(ProfileLighting.GetValueOrDefault(name, new LightingInfo(RgbColor.White, 1.0, EffectIds.Static)));
 
     // By profile name; a profile without one never loads by itself.
     public Dictionary<string, ProfileAutomation> ProfileAutomations { get; } = [];

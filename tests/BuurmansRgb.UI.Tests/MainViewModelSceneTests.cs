@@ -24,6 +24,20 @@ public sealed class MainViewModelSceneTests
     }
 
     [Fact]
+    public async Task Connect_SceneThatIsGone_IsSkippedWithoutAMessage()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Filmavond", "Nacht"]);
+            api.GoneProfiles.Add("Filmavond");
+            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+        });
+
+        Assert.Equal(["", "Elke dag om 23:00"], viewModel.Profiles.Cards.Select(card => card.Description));
+        Assert.Null(viewModel.StatusMessage);
+    }
+
+    [Fact]
     public async Task LoadScene_PutsItOnAndShowsTheLightingOfIt()
     {
         var viewModel = await ConnectAsync(api =>
