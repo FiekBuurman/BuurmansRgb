@@ -334,6 +334,34 @@ type extra is, staat in de sectie van dat type.
    zijn.
 5. Noteer in `docs/hardware.md` wat werkt.
 
+## Installer (taak 9)
+
+`installer\build.ps1` bouwt `artifacts\installer\out\BuurmansRgb-setup.exe` (Inno Setup 7.1,
+ongeveer 77 MB): engine en instellingen-app self-contained, de MSI van OpenRGB 1.1 (installeert
+de service `OpenRGB`) en de setup van PawnIO 2.2.0. Het script controleert de SHA-256 van beide
+downloads en haalt de Inno Setup-compiler van NuGet. Alles komt in `artifacts\installer`, dat
+git negeert. Met `-Iscc <pad>` gebruik je een eigen `ISCC.exe`, met `-Version 1.2.3` een andere
+versie. Hoe het werkt en waarom: `docs/openrgb-meeleveren.md`.
+
+- **Na installeren** start de installer de engine als de gewone gebruiker met `--first-run`.
+  Die zet "Starten met Windows" aan, alleen als dat nog uit staat. Zonder `--first-run`
+  verandert er niets.
+- **Verwijderen** stopt de engine, haalt de autostart weg en vraagt dan of OpenRGB en PawnIO
+  ook weg moeten (alleen als deze installer ze heeft geïnstalleerd), en of je instellingen weg
+  moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee".
+- **Testen in Windows Sandbox**, zonder iets op je eigen pc te installeren:
+  1. Zet eenmalig Windows Sandbox aan (Windows-onderdelen → "Windows Sandbox", vraagt een
+     herstart).
+  2. Draai `.\installer\build.ps1` en dubbelklik daarna op
+     `artifacts\installer\BuurmansRgb-test.wsb`.
+  3. De Sandbox installeert stil, controleert de service, poort 6742, de engine, de autostart
+     en de verbinding, verwijdert weer en controleert opnieuw. De uitkomst staat in
+     `artifacts\installer\sandbox-results\result.json`, met `setup.log`, `uninstall.log` en
+     `transcript.txt` erbij. In de Sandbox is er geen RGB-hardware, dus 0 apparaten via OpenRGB
+     is normaal.
+- **Tests zonder installer:** `EngineOptionsTests` en `AutoStartExtensionsTests` testen
+  `--first-run` met een nep-autostart, nooit tegen de echte Run-sleutel.
+
 ## Instellingen-app starten
 
 De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast

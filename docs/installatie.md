@@ -1,58 +1,56 @@
 # Installeren – TL;DR
 
-## Nodig
+## Met de installer (aanbevolen)
 
-- Windows 10/11
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) en Git
-- [OpenRGB](https://openrgb.org) voor echte hardware
+1. Bouw de installer, of pak een `BuurmansRgb-setup.exe` die je eerder bouwde:
 
-## Installeren
+   ```powershell
+   git clone https://github.com/FiekBuurman/BuurmansRgb.git
+   cd BuurmansRgb
+   .\installer\build.ps1
+   ```
 
-In PowerShell, zonder adminrechten:
+   Nodig: Windows 10/11, [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) en Git.
+   De installer staat daarna in `artifacts\installer\out\`.
+2. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, Synapse, G Hub, ...).
+3. Draai `BuurmansRgb-setup.exe` en geef één keer toestemming (UAC). SmartScreen kan
+   waarschuwen omdat de installer niet ondertekend is: **Meer info → Toch uitvoeren**.
 
-```powershell
-git clone https://github.com/FiekBuurman/BuurmansRgb.git
-cd BuurmansRgb
-$dest = "$env:LOCALAPPDATA\Programs\BuurmansRgb"
-dotnet publish src/BuurmansRgb.Engine -c Release -o $dest
-dotnet publish src/BuurmansRgb.UI -c Release -o $dest
-& "$dest\BuurmansRgb.Engine.exe"
-```
+De installer zet in één keer neer:
 
-Er verschijnt een tray-icoon rechtsonder bij de klok. Rechtsklik erop en kies
-**Starten met Windows**. Dubbelklik opent de instellingen.
+- **BuurmansRgb** in `C:\Program Files\BuurmansRgb`, met alles erin (geen losse .NET nodig);
+- de driver **PawnIO**, voor moederbord, RAM en videokaart;
+- **OpenRGB 1.1** als Windows-service, met de SDK-server op `127.0.0.1:6742`.
 
-## OpenRGB koppelen
-
-1. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, Synapse, G Hub, ...).
-2. Start OpenRGB **als administrator** (nodig voor moederbord, RAM en GPU).
-3. Tabblad **SDK Server** → **Start Server** (poort 6742). Tip: zet in de instellingen van
-   OpenRGB "Start at login", "Start minimized" en "Start server" aan.
-4. Binnen een paar seconden staan je apparaten in de instellingen-app.
+Na afloop start BuurmansRgb met een tray-icoon rechtsonder bij de klok, en staat
+**Starten met Windows** aan. Dubbelklik op het icoon opent de instellingen. Vraagt de
+installer om een herstart, dan heeft PawnIO die nodig.
 
 Echte apparaten werken? Zet dan `"simulatedDevices": false` in
 `%AppData%\BuurmansRgb\settings.json` en start de engine opnieuw (tray → **Afsluiten**,
-daarna opnieuw starten).
+daarna BuurmansRgb uit het Startmenu).
 
 ## Bijwerken
 
-Tray → **Afsluiten**, dan in de repo:
+`git pull`, `.\installer\build.ps1` en de nieuwe `BuurmansRgb-setup.exe` draaien. De installer
+stopt de draaiende engine zelf. Een OpenRGB-service die er al staat, laat hij met rust.
+
+## Verwijderen
+
+Via **Instellingen → Apps → BuurmansRgb → Verwijderen**. Dat haalt BuurmansRgb en de autostart
+weg, en vraagt of OpenRGB, PawnIO en je instellingen ook weg moeten.
+
+## Zonder installer (voor ontwikkelaars)
+
+Zonder adminrechten, met OpenRGB zelf geïnstalleerd en de SDK-server aan (tabblad
+**SDK Server** → **Start Server**, OpenRGB als administrator voor moederbord, RAM en GPU):
 
 ```powershell
-git pull
 $dest = "$env:LOCALAPPDATA\Programs\BuurmansRgb"
 dotnet publish src/BuurmansRgb.Engine -c Release -o $dest
 dotnet publish src/BuurmansRgb.UI -c Release -o $dest
 & "$dest\BuurmansRgb.Engine.exe"
 ```
 
-## Verwijderen
-
-Tray → **Starten met Windows** uitzetten → **Afsluiten**, dan:
-
-```powershell
-Remove-Item "$env:LOCALAPPDATA\Programs\BuurmansRgb", "$env:APPDATA\BuurmansRgb" -Recurse
-```
-
 Meer uitleg over effecten, de per-LED-editor en per apparaattype staat in de
-[README](../README.md).
+[README](../README.md); hoe de installer werkt in [openrgb-meeleveren.md](openrgb-meeleveren.md).

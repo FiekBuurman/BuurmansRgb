@@ -1,4 +1,3 @@
-using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -151,23 +150,6 @@ public sealed class TrayPresenterTests
         }
 
         public void SetPaused(bool paused) => Paused = paused;
-    }
-
-    private sealed class FakeAutoStart : IAutoStart
-    {
-        public Exception? SetEnabledException { get; set; }
-
-        public bool IsEnabled { get; set; }
-
-        public void SetEnabled(bool enabled)
-        {
-            if (SetEnabledException is not null)
-            {
-                throw SetEnabledException;
-            }
-
-            IsEnabled = enabled;
-        }
     }
 
     private sealed class FakeSettingsAppLauncher : ISettingsAppLauncher

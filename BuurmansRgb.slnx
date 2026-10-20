@@ -19,6 +19,12 @@
     <File Path="docs/openrgb-meeleveren.md" />
     <File Path="docs/prompts.md" />
   </Folder>
+  <Folder Name="/installer/">
+    <File Path="installer/build.ps1" />
+    <File Path="installer/BuurmansRgb.iss" />
+    <File Path="installer/sandbox/test-install.ps1" />
+    <File Path="installer/THIRD-PARTY-NOTICES.txt" />
+  </Folder>
   <Folder Name="/tests/">
     <File Path="tests/Directory.Build.props" />
     <File Path="tests/Shared/Eventually.cs" />
