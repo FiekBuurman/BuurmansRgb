@@ -135,8 +135,9 @@ daarna toe, dus de schuif werkt op elk effect.
   kleuren veranderden. Met de instellingen-app dicht alloceert een frame niets; met de app
   open maakt de engine per frame een kopie van de kleuren voor het voorbeeld, dus dan wel.
   Meet allocaties (bijv. met `dotnet-counters`) daarom met de app dicht. Bij statische
-  kleuren of "Per LED" draait er geen timer, behalve de 1,5 seconde dat een apparaat knippert. Gaat een frame mis, bijvoorbeeld omdat een
-  apparaat even faalt, dan probeert het volgende frame het gewoon opnieuw.
+  kleuren of "Per LED" draait er geen timer, behalve de 1,5 seconde dat een apparaat knippert.
+  Gaat een frame mis, bijvoorbeeld omdat een apparaat even faalt, dan probeert het volgende
+  frame het gewoon opnieuw.
 - **Effecten pauzeren** in het tray-menu stopt ook de animatie; hervatten stuurt alles
   opnieuw en start de animatie weer.
 - **Testen zonder hardware:** `dotnet test --project tests/BuurmansRgb.Effects.Tests` test
@@ -435,10 +436,10 @@ dotnet run --project src/BuurmansRgb.UI
 
 - **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
   het type, de echte en de gesimuleerde apparaten elk onder een eigen kop. Een apparaat dat je
-  kiest, knippert even op de hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
-  verzadiging), de helderheid (0–100%), het effect, de snelheid en een voorbeeld met een
-  bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op
-  zijn plek.
+  kiest, knippert even op de hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur
+  (hex-code, vaste kleuren, schuiven voor tint en verzadiging), de helderheid (0–100%), het
+  effect, de snelheid en een voorbeeld met een bolletje per LED, per zone. Een toetsenbord met
+  een matrix-map toont een toets per LED, op zijn plek.
 - **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder de kleurkiezer de
   kleuren van de loop. Klik op een kleur en kies hierboven een nieuwe; met + voeg je een kleur
   toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg. Voorbeeld:
