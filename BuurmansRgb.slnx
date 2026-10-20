@@ -15,6 +15,8 @@
     <File Path="docs/bouwplan.md" />
     <File Path="docs/hardware.md" />
     <File Path="docs/ideas.md" />
+    <File Path="docs/installatie.md" />
+    <File Path="docs/openrgb-meeleveren.md" />
     <File Path="docs/prompts.md" />
   </Folder>
   <Folder Name="/tests/">

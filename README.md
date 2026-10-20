@@ -379,3 +379,5 @@ dotnet run --project src/BuurmansRgb.UI
 - `docs/prompts.md` – kant-en-klare opdrachten voor agents
 - `docs/hardware.md` – jouw hardware en wat werkt
 - `docs/ideas.md` – ideeën voor later
+- `docs/installatie.md` – installeren in het kort
+- `docs/openrgb-meeleveren.md` – hoe OpenRGB en PawnIO mee kunnen in één installer
