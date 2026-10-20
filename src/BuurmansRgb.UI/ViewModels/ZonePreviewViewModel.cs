@@ -80,10 +80,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     public partial IReadOnlyList<RgbColor> Colors { get; private set; }
 
     [ObservableProperty]
-    public partial int SelectionFirst { get; private set; } = -1;
+    public partial int SelectionFirst { get; private set; } = LedSelection.NoSelection;
 
     [ObservableProperty]
-    public partial int SelectionLast { get; private set; } = -1;
+    public partial int SelectionLast { get; private set; } = LedSelection.NoSelection;
 
     // A view on the colors of the whole device, so a frame is not copied once more per zone.
     internal void ShowDeviceColors(RgbColor[] deviceColors)
@@ -92,13 +92,13 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
         Colors = new ArraySegment<RgbColor>(deviceColors, Math.Min(FirstLed, deviceColors.Length), count);
     }
 
-    // first and last count from the start of the device, -1 for no selection.
+    // first and last count from the start of the device, LedSelection.NoSelection for no selection.
     internal void ShowDeviceSelection(int first, int last)
     {
         var zoneLast = FirstLed + LedCount - 1;
         var overlaps = first >= 0 && first <= zoneLast && last >= FirstLed;
-        SelectionFirst = overlaps ? Math.Max(first, FirstLed) - FirstLed : -1;
-        SelectionLast = overlaps ? Math.Min(last, zoneLast) - FirstLed : -1;
+        SelectionFirst = overlaps ? Math.Max(first, FirstLed) - FirstLed : LedSelection.NoSelection;
+        SelectionLast = overlaps ? Math.Min(last, zoneLast) - FirstLed : LedSelection.NoSelection;
     }
 
     [RelayCommand]

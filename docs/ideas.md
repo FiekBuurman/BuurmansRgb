@@ -39,7 +39,9 @@
   draaien (`SwitchableDeviceProvider.IsEnabled`); er mist een `IEngineApi`-aanroep en een
   vinkje in de UI
 - Adres en poort van de OpenRGB-server instelbaar maken (nu vast `127.0.0.1:6742`), en
-  OpenRGB helemaal uit kunnen zetten
+  OpenRGB helemaal uit kunnen zetten (`SwitchableDeviceProvider.For` weigert OpenRGB nu nog,
+  omdat het herstellen na slaapstand anders verloren gaat; daarvoor is eerst een wrapper
+  nodig die `IRestorableDeviceProvider` doorgeeft)
 - Twee fouten in OpenRGB.NET 3.1.1 melden bij het project: `DeviceListUpdated` gaat nooit af
   (de client geeft de lege event-waarde bij het aanmaken door aan zijn verbinding) en na een
   nette sluiting door de server leest de read-loop op volle CPU nul bytes tot de volgende
@@ -134,3 +136,8 @@
 - Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
   testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
   gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
+- `MainViewModel` verder opsplitsen: het LED-bewerken (`EditLedsAsync`, `SendLeds`,
+  `ClearLedSelection`, `FillGradient`) naar een eigen `LedEditCoordinator`. Bij de refactor na
+  de review (F4) bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, de preview, de
+  kleurkiezer en de geselecteerde effectkeuze nodig, en de bewerk-logica zelf zit al in
+  `LedEditorViewModel`. Pas oppakken als het LED-bewerken groeit (bijv. per zone)

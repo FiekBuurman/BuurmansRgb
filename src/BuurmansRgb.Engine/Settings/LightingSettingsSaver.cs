@@ -8,7 +8,7 @@ namespace BuurmansRgb.Engine.Settings;
 internal sealed class LightingSettingsSaver : IDisposable
 {
     private readonly ISettingsStore _store;
-    private readonly LightingController _lighting;
+    private readonly ILightingStateSource _lighting;
     private readonly EngineSettings _startupSettings;
     private readonly TimeSpan _delay;
     private readonly ITimer _timer;
@@ -20,7 +20,7 @@ internal sealed class LightingSettingsSaver : IDisposable
     // and only replaces the lighting.
     public LightingSettingsSaver(
         ISettingsStore store,
-        LightingController lighting,
+        ILightingStateSource lighting,
         EngineSettings startupSettings,
         TimeSpan delay,
         TimeProvider? timeProvider = null)

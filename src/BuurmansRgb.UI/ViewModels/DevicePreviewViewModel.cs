@@ -24,8 +24,8 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
     public void ShowLedSelection(LedSelection? selection)
     {
         var mine = selection?.DeviceId == DeviceId;
-        var first = mine ? selection!.First : -1;
-        var last = mine ? selection!.Last : -1;
+        var first = mine ? selection!.First : LedSelection.NoSelection;
+        var last = mine ? selection!.Last : LedSelection.NoSelection;
         foreach (var zone in Zones)
         {
             zone.ShowDeviceSelection(first, last);

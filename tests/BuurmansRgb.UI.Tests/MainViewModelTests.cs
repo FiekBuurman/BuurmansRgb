@@ -162,6 +162,24 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task SelectDevice_AnswerArrivesAfterReconnect_IsIgnored()
+    {
+        var viewModel = await ConnectAsync();
+        var oldApi = Api;
+        var slowAnswer = new TaskCompletionSource();
+        oldApi.LightingGate = slowAnswer.Task;
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        oldApi.Lighting["fan"] = new(new RgbColor(0, 255, 0), 0.3, EffectIds.Static);
+        slowAnswer.SetResult();
+
+        Assert.Equal("fan", viewModel.SelectedDevice?.DeviceId);
+        Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
+        Assert.Equal(50.0, viewModel.Brightness);
+    }
+
+    [Fact]
     public async Task SelectDevice_ThenChange_SendsForThatDevice()
     {
         var viewModel = await ConnectAsync();

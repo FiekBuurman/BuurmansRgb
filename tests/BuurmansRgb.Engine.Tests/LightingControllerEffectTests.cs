@@ -8,15 +8,11 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerEffectTests
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
-
     private readonly FakeTimeProvider _time = new();
     private readonly RecordingDeviceProvider _provider = new();
     private readonly LightingController _controller;
 
     public LightingControllerEffectTests() => _controller = new LightingController([_provider], _time);
-
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task Apply_Rainbow_GivesEachLedItsHue()

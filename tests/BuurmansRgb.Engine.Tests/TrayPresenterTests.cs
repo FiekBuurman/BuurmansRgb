@@ -15,7 +15,7 @@ public sealed class TrayPresenterTests
     [Fact]
     public async Task StartAsync_StartsHostWithoutNotification()
     {
-        await CreatePresenter().StartAsync(TestContext.Current.CancellationToken);
+        await CreatePresenter().StartAsync(Ct);
 
         Assert.True(_host.Started);
         Assert.Empty(_view.Notifications);
@@ -26,7 +26,7 @@ public sealed class TrayPresenterTests
     {
         _host.StartException = new IOException("Disk unavailable.");
 
-        await CreatePresenter().StartAsync(TestContext.Current.CancellationToken);
+        await CreatePresenter().StartAsync(Ct);
 
         Assert.Equal([(Strings.StartupFailed, TrayNotificationKind.Error)], _view.Notifications);
     }
@@ -47,7 +47,7 @@ public sealed class TrayPresenterTests
     {
         _host.StartException = new TaskCanceledException("Discovery timed out.");
 
-        await CreatePresenter().StartAsync(TestContext.Current.CancellationToken);
+        await CreatePresenter().StartAsync(Ct);
 
         Assert.Equal([(Strings.StartupFailed, TrayNotificationKind.Error)], _view.Notifications);
     }

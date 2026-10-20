@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 
@@ -5,6 +6,9 @@ namespace BuurmansRgb.Engine.Tests;
 
 internal static class LightingStates
 {
+    // Static lighting, the effect most tests start from.
+    public static DeviceLighting StaticLighting(RgbColor color, double brightness = 1.0) => new(color, brightness, EffectIds.Static);
+
     public static LightingState Uniform(DeviceLighting global) => WithDevices(global, new Dictionary<string, DeviceLighting>());
 
     // Without stored per-LED colors.

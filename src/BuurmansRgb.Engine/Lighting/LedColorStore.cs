@@ -1,4 +1,5 @@
 using BuurmansRgb.Core;
+using BuurmansRgb.Effects;
 
 namespace BuurmansRgb.Engine.Lighting;
 
@@ -24,16 +25,12 @@ internal sealed class LedColorStore
 
     public IReadOnlyList<RgbColor?> For(string deviceId) => _colors.GetValueOrDefault(deviceId, []);
 
-    // What the LEDs show: the stored color, or fallback for an LED without one.
+    // What the per-LED effect shows: the stored color, or fallback for an LED without one. The
+    // effect itself renders it, so the rule lives in one place.
     public RgbColor[] Resolve(string deviceId, int ledCount, RgbColor fallback)
     {
-        var stored = _colors.GetValueOrDefault(deviceId, []);
         var colors = new RgbColor[ledCount];
-        for (var i = 0; i < colors.Length; i++)
-        {
-            colors[i] = (i < stored.Length ? stored[i] : null) ?? fallback;
-        }
-
+        new PerLedEffect(For(deviceId), fallback).Render(colors, TimeSpan.Zero);
         return colors;
     }
 

@@ -2,8 +2,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class SingleInstanceTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly string _name = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
 
     [Fact]
@@ -45,7 +43,7 @@ public sealed class SingleInstanceTests
             second.SignalPrimary();
         }
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -60,7 +58,7 @@ public sealed class SingleInstanceTests
         var activated = new TaskCompletionSource();
         primary.ListenForActivation(() => activated.TrySetResult());
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -77,7 +75,7 @@ public sealed class SingleInstanceTests
             second.SignalPrimary();
         }
 
-        await activated.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await activated.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Equal(0, Volatile.Read(ref oldCalls));
     }
 
@@ -91,17 +89,17 @@ public sealed class SingleInstanceTests
         var listener = primary.ListenForActivation(() =>
         {
             callbackStarted.Set();
-            releaseCallback.Wait(Timeout);
+            releaseCallback.Wait(TestTimeouts.Short);
             Volatile.Write(ref callbackFinished, true);
         });
         primary.SignalPrimary();
-        Assert.True(callbackStarted.Wait(Timeout, TestContext.Current.CancellationToken));
+        Assert.True(callbackStarted.Wait(TestTimeouts.Short, Ct));
 
-        var dispose = Task.Run(listener.Dispose, TestContext.Current.CancellationToken);
-        await Task.Delay(TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken);
+        var dispose = Task.Run(listener.Dispose, Ct);
+        await Task.Delay(TimeSpan.FromMilliseconds(100), Ct);
         Assert.False(dispose.IsCompleted);
         releaseCallback.Set();
-        await dispose.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await dispose.WaitAsync(TestTimeouts.Short, Ct);
 
         Assert.True(Volatile.Read(ref callbackFinished));
     }
@@ -120,7 +118,7 @@ public sealed class SingleInstanceTests
 
         primary.SignalPrimary();
 
-        await disposed.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await disposed.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]

@@ -17,6 +17,12 @@
     <File Path="docs/ideas.md" />
     <File Path="docs/prompts.md" />
   </Folder>
+  <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
+    <File Path="tests/Shared/Eventually.cs" />
+    <File Path="tests/Shared/TestCancellation.cs" />
+    <File Path="tests/Shared/TestColors.cs" />
+  </Folder>
   <Project Path="src/BuurmansRgb.Contracts/BuurmansRgb.Contracts.csproj" />
   <Project Path="src/BuurmansRgb.Core/BuurmansRgb.Core.csproj" />
   <Project Path="src/BuurmansRgb.Effects/BuurmansRgb.Effects.csproj" />
@@ -29,5 +35,6 @@
   <Project Path="tests/BuurmansRgb.Effects.Tests/BuurmansRgb.Effects.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Engine.Tests/BuurmansRgb.Engine.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Providers.OpenRgb.Tests/BuurmansRgb.Providers.OpenRgb.Tests.csproj" />
+  <Project Path="tests/BuurmansRgb.Providers.Simulated.Tests/BuurmansRgb.Providers.Simulated.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.UI.Tests/BuurmansRgb.UI.Tests.csproj" />
 </Solution>

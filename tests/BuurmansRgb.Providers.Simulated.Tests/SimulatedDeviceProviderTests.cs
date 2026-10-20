@@ -1,6 +1,6 @@
-using BuurmansRgb.Providers.Simulated;
+using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Core.Tests;
+namespace BuurmansRgb.Providers.Simulated.Tests;
 
 public sealed class SimulatedDeviceProviderTests
 {
@@ -9,7 +9,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         Assert.Collection(
             devices,
@@ -32,7 +32,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         var keys = Assert.Single(devices.Single(device => device.Type == DeviceType.Keyboard).Zones);
         var matrix = Assert.IsType<LedMatrix>(keys.Matrix);
@@ -50,7 +50,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         Assert.Equal(["Logo", "Scroll wheel", "Left side", "Right side"],
             devices.Single(device => device.Type == DeviceType.Mouse).Zones.Select(zone => zone.Name));
@@ -63,7 +63,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         var fan = devices.Single(device => device.Id == "simulated-fan-dual");
         Assert.Equal([RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)], fan.Zones);
@@ -74,7 +74,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         var controller = devices.Single(device => device.Id == "simulated-argb");
         Assert.Equal([new RgbZone("ARGB 1", 20, 0, 60), new RgbZone("ARGB 2", 0, 0, 60)], controller.Zones);
@@ -85,7 +85,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         var gpu = devices.Single(device => device.Type == DeviceType.Gpu);
         Assert.Equal([RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)], gpu.Zones);
@@ -96,7 +96,7 @@ public sealed class SimulatedDeviceProviderTests
     {
         var provider = new SimulatedDeviceProvider();
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
 
         var motherboard = devices.Single(device => device.Type == DeviceType.Motherboard);
         Assert.Equal(
@@ -108,7 +108,7 @@ public sealed class SimulatedDeviceProviderTests
     public async Task SetLeds_StoresColorsForDevice()
     {
         var provider = new SimulatedDeviceProvider();
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
         var fan = devices.Single(device => device.Id == "simulated-fan");
         var colors = Enumerable.Repeat(new RgbColor(10, 20, 30), fan.LedCount).ToArray();
 
@@ -128,11 +128,13 @@ public sealed class SimulatedDeviceProviderTests
     }
 
     [Fact]
-    public void SetLeds_UnknownDevice_Throws()
+    public void SetLeds_UnknownDevice_IsIgnored()
     {
         var provider = new SimulatedDeviceProvider();
 
-        Assert.Throws<ArgumentException>(() => provider.SetLeds("unknown", new RgbColor[3]));
+        provider.SetLeds("unknown", new RgbColor[3]);
+
+        Assert.Throws<ArgumentException>(() => provider.GetLeds("unknown"));
     }
 
     [Fact]
@@ -144,7 +146,7 @@ public sealed class SimulatedDeviceProviderTests
 
         provider.ResizeZone("simulated-motherboard", 2, 20);
 
-        var devices = await provider.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await provider.DiscoverAsync(Ct);
         var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
         Assert.Equal(1, changed);
         Assert.Equal(new RgbZone("ARGB header", 20, 0, 120), motherboard.Zones[2]);

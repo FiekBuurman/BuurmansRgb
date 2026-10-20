@@ -5,8 +5,6 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class LedEditorViewModelTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
     private static readonly RgbColor White = RgbColor.White;
 
     private readonly LedEditorViewModel _editor = new();

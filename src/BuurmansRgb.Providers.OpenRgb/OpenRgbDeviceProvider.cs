@@ -309,7 +309,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
 
         if (connection is null)
         {
-            Trace.TraceWarning($"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB is not connected.");
+            WarnCannotResize("OpenRGB is not connected.");
             return;
         }
 
@@ -320,9 +320,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
             await ReloadAsync(connection, ct).ConfigureAwait(false);
             if (!TryStartResize(connection, deviceId, out index))
             {
-                Trace.TraceWarning(IsCurrent(connection)
-                    ? $"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB does not know the device."
-                    : $"Cannot resize a zone of OpenRGB device '{deviceId}': OpenRGB is not connected.");
+                WarnCannotResize(IsCurrent(connection) ? "OpenRGB does not know the device." : "OpenRGB is not connected.");
                 return;
             }
         }
@@ -340,6 +338,9 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
 
         // The server sends no device list update for a resize.
         await ReloadAsync(connection, ct).ConfigureAwait(false);
+
+        void WarnCannotResize(string reason) =>
+            Trace.TraceWarning($"Cannot resize a zone of OpenRGB device '{deviceId}': {reason}");
     }
 
     // The server index of the device on this connection. From here on the device has a length the

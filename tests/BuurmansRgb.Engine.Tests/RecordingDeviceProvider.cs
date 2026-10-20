@@ -17,6 +17,9 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
 
     public string Name => "Recording";
 
+    // The one device DiscoverAsync reports.
+    public RgbDevice Device => _devices[0];
+
     public int SetLedsCount
     {
         get

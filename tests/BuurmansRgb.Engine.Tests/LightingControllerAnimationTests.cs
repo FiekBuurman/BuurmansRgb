@@ -8,7 +8,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerAnimationTests : IDisposable
 {
-    private static readonly RgbColor Orange = new(255, 136, 0);
     private static readonly TimeSpan Frame = TimeSpan.FromSeconds(1.0 / LightingController.DefaultFramesPerSecond);
 
     private readonly FakeTimeProvider _time = new();
@@ -16,8 +15,6 @@ public sealed class LightingControllerAnimationTests : IDisposable
     private readonly LightingController _controller;
 
     public LightingControllerAnimationTests() => _controller = new LightingController([_provider], _time);
-
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     public void Dispose() => _controller.Dispose();
 

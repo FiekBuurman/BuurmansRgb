@@ -4,9 +4,6 @@ namespace BuurmansRgb.Effects.Tests;
 
 public sealed class PerLedEffectTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
     private static readonly RgbColor White = RgbColor.White;
 
     [Theory]

@@ -7,17 +7,11 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class LightingControllerZoneTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-    private static readonly RgbColor Orange = new(255, 136, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
-
     private readonly SimulatedDeviceProvider _simulated = new();
     private readonly DynamicDeviceProvider _dynamic = new();
     private readonly LightingController _controller;
 
     public LightingControllerZoneTests() => _controller = new LightingController([_simulated, _dynamic]);
-
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
     public async Task ResizeZone_GivesTheNewLengthTheLighting()
@@ -119,7 +113,7 @@ public sealed class LightingControllerZoneTests
 
         Assert.Equal([Orange, Orange, RgbColor.White, null, null, Green], _controller.State.LedColors["board"]);
         Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _dynamic.Leds["board"]);
-        await Eventually.TrueAsync(() => lightingChanges == 1, Timeout);
+        await Eventually.TrueAsync(() => lightingChanges == 1);
     }
 
     private static RgbDevice Board(int header) =>
@@ -134,7 +128,7 @@ public sealed class LightingControllerZoneTests
         try
         {
             change();
-            await changed.Task.WaitAsync(Timeout, Ct);
+            await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         }
         finally
         {

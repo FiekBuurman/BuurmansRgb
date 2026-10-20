@@ -26,6 +26,13 @@
             <Setter Property="Margin" Value="0,6,0,2" />
             <Setter Property="Foreground" Value="{x:Static SystemColors.GrayTextBrush}" />
         </Style>
+        <!-- The icon of a device's type; the DataContext needs a Type property. -->
+        <Style x:Key="DeviceIcon" TargetType="Path">
+            <Setter Property="Width" Value="{x:Static views:DeviceIcons.Size}" />
+            <Setter Property="Height" Value="{x:Static views:DeviceIcons.Size}" />
+            <Setter Property="Data" Value="{Binding Type, Converter={StaticResource TypeToIcon}}" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
     </Window.Resources>
 
     <DockPanel>
@@ -56,9 +63,7 @@
                             <DataTemplate DataType="{x:Type vm:DeviceItem}">
                                 <DockPanel Margin="2,4">
                                     <!-- The item's text color, so the icon also shows on the selection highlight. -->
-                                    <Path DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
-                                          Width="{x:Static views:DeviceIcons.Size}" Height="{x:Static views:DeviceIcons.Size}"
-                                          Data="{Binding Type, Converter={StaticResource TypeToIcon}}" StrokeThickness="1"
+                                    <Path Style="{StaticResource DeviceIcon}" DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
                                           ToolTip="{Binding TypeName}" />
                                     <StackPanel>
@@ -167,9 +172,7 @@
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                                     <StackPanel Margin="0,0,0,12">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <Path Margin="0,0,6,0" VerticalAlignment="Center"
-                                                  Width="{x:Static views:DeviceIcons.Size}" Height="{x:Static views:DeviceIcons.Size}"
-                                                  Data="{Binding Type, Converter={StaticResource TypeToIcon}}" StrokeThickness="1"
+                                            <Path Style="{StaticResource DeviceIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                                   Stroke="{x:Static SystemColors.ControlTextBrush}" />
                                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                                         </StackPanel>

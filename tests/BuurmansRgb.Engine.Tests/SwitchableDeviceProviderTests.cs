@@ -16,8 +16,6 @@ public sealed class SwitchableDeviceProviderTests
         _switchable.DevicesChanged += (_, _) => _changes++;
     }
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
-
     private IResizableDeviceProvider Resizable => Assert.IsAssignableFrom<IResizableDeviceProvider>(_switchable);
 
     [Fact]
@@ -29,6 +27,12 @@ public sealed class SwitchableDeviceProviderTests
 
         Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.White, led));
         Assert.Equal("Simulated", _switchable.Name);
+    }
+
+    [Fact]
+    public void For_RestorableProvider_IsRefused()
+    {
+        Assert.Throws<NotSupportedException>(() => SwitchableDeviceProvider.For(new RestorableDeviceProvider()));
     }
 
     [Fact]

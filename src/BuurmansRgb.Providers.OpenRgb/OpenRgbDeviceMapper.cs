@@ -5,12 +5,9 @@ using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 
 namespace BuurmansRgb.Providers.OpenRgb;
 
-// A device as the engine sees it, plus where to send its colors on the server.
-internal sealed record MappedDevice(RgbDevice Device, int Index);
-
 internal static class OpenRgbDeviceMapper
 {
-    public const string IdPrefix = "openrgb-";
+    private const string IdPrefix = "openrgb-";
 
     private const int MaxSlugLength = 40;
 

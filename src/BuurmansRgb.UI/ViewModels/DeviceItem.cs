@@ -21,6 +21,5 @@ public sealed record DeviceItem(string? DeviceId, string Name, string Details, D
         return new(device.Id, device.Name, details, device.Type, typeName);
     }
 
-    private static string? TypeNameOf(DeviceType type) =>
-        Strings.ResourceManager.GetString($"DeviceType_{type}", Strings.Culture);
+    private static string? TypeNameOf(DeviceType type) => UiText.Lookup("DeviceType", type);
 }

@@ -2,8 +2,6 @@ namespace BuurmansRgb.Engine;
 
 internal sealed class SingleInstance : IDisposable
 {
-    public const string EngineName = "BuurmansRgb.Engine";
-
     private readonly Mutex _mutex;
     private readonly EventWaitHandle _activation;
     private ActivationListener? _listener;

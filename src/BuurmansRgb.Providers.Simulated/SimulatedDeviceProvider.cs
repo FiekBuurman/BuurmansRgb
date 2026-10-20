@@ -96,13 +96,13 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
     }
 
     // Right after a resize the engine may send colors for the old length once more, before it has
-    // the new device list; those are skipped.
+    // the new device list; those are skipped. An unknown device is ignored, as IDynamicDeviceProvider
+    // asks; the simulated devices never go away, so that only happens with a wrong id.
     public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
     {
         lock (_gate)
         {
-            var buffer = GetBufferLocked(deviceId);
-            if (colors.Length == buffer.Length)
+            if (_leds.TryGetValue(deviceId, out var buffer) && colors.Length == buffer.Length)
             {
                 colors.CopyTo(buffer);
             }
@@ -175,11 +175,9 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
             }
         }
 
-        throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+        throw DeviceErrors.Unknown(deviceId);
     }
 
     private RgbColor[] GetBufferLocked(string deviceId) =>
-        _leds.TryGetValue(deviceId, out var buffer)
-            ? buffer
-            : throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+        _leds.TryGetValue(deviceId, out var buffer) ? buffer : throw DeviceErrors.Unknown(deviceId);
 }
