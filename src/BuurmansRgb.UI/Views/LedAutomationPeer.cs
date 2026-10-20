@@ -1,13 +1,31 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
-using BuurmansRgb.UI.Resources;
+using System.Windows.Automation.Provider;
 
 namespace BuurmansRgb.UI.Views;
 
 // One LED of a LedPreviewView for UI Automation: its name, where it is drawn and whether it is
-// selected. It has no element of its own, so it asks the view for all of that.
-internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPreviewView view, int led) : AutomationPeer
+// selected. Selecting it does what a click does, and adding it to the selection what Shift+click
+// does. It has no element of its own, so it asks the view for all of that.
+internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPreviewView view, int led) : AutomationPeer, ISelectionItemProvider
 {
+    public int Index => led;
+
+    public bool IsSelected => view.IsSelected(led);
+
+    public IRawElementProviderSimple SelectionContainer => ProviderFromPeer(list);
+
+    public void Select() => Click(extend: false);
+
+    public void AddToSelection() => Click(extend: true);
+
+    // The editor has no way to drop one LED from a range.
+    public void RemoveFromSelection() => throw new InvalidOperationException("An LED cannot leave the selection on its own.");
+
+    public override object? GetPattern(PatternInterface patternInterface) =>
+        patternInterface == PatternInterface.SelectionItem ? this : null;
+
     protected override string GetNameCore() => view.LabelOf(led) ?? string.Empty;
 
     protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.ListItem;
@@ -15,9 +33,6 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
     protected override string GetClassNameCore() => "Led";
 
     protected override string GetAutomationIdCore() => $"Led{led}";
-
-    // Like the selection ring, so the selection does not rest on color alone.
-    protected override string GetItemStatusCore() => view.IsSelected(led) ? Strings.LedSelectedStatus : string.Empty;
 
     // In screen pixels, as UI Automation wants it.
     protected override Rect GetBoundingRectangleCore()
@@ -63,6 +78,8 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     protected override string GetHelpTextCore() => string.Empty;
 
+    protected override string GetItemStatusCore() => string.Empty;
+
     protected override string GetItemTypeCore() => string.Empty;
 
     protected override AutomationOrientation GetOrientationCore() => AutomationOrientation.None;
@@ -71,5 +88,11 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     protected override List<AutomationPeer>? GetChildrenCore() => null;
 
-    public override object? GetPattern(PatternInterface patternInterface) => null;
+    private void Click(bool extend)
+    {
+        if (!view.ClickLed(led, extend))
+        {
+            throw new ElementNotEnabledException();
+        }
+    }
 }

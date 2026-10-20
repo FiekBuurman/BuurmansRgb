@@ -189,9 +189,6 @@
   <data name="LedLabelWithName" xml:space="preserve">
     <value>{0} (LED {1})</value>
   </data>
-  <data name="LedSelectedStatus" xml:space="preserve">
-    <value>Geselecteerd</value>
-  </data>
   <data name="FillGradient" xml:space="preserve">
     <value>Verloop vullen</value>
   </data>

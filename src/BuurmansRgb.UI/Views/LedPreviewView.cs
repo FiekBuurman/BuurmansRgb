@@ -193,23 +193,25 @@ public sealed class LedPreviewView : FrameworkElement
     {
         base.OnMouseLeftButtonDown(e);
         _toolTip?.Hide();
-        if (ClickCommand is not { } command)
-        {
-            return;
-        }
-
         var led = LedAt(e.GetPosition(this));
-        if (led == LedMatrix.NoLed)
+        if (led != LedMatrix.NoLed && ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
         {
-            return;
-        }
-
-        var hit = new LedHit(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift));
-        if (command.CanExecute(hit))
-        {
-            command.Execute(hit);
             e.Handled = true;
         }
+    }
+
+    // Runs ClickCommand for an LED, as a click (with Shift: extend) on it does; UI Automation
+    // selects an LED this way too. False when there is no command or it cannot run.
+    internal bool ClickLed(int led, bool extend)
+    {
+        var hit = new LedHit(led, extend);
+        if (ClickCommand is not { } command || !command.CanExecute(hit))
+        {
+            return false;
+        }
+
+        command.Execute(hit);
+        return true;
     }
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>

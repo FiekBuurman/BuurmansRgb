@@ -1,8 +1,11 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using BuurmansRgb.Core;
-using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -22,7 +25,33 @@ public sealed class LedPreviewViewTests
         Assert.Equal(Labels, leds.Select(led => led.GetName()));
         Assert.All(leds, led => Assert.Equal(AutomationControlType.ListItem, led.GetAutomationControlType()));
         Assert.Equal(["Led0", "Led1", "Led2"], leds.Select(led => led.GetAutomationId()));
-        Assert.Equal(["", Strings.LedSelectedStatus, ""], leds.Select(led => led.GetItemStatus()));
+        Assert.Equal([false, true, false], leds.Select(led => SelectionItem(led).IsSelected));
+        Assert.Single(((ISelectionProvider)peer.GetPattern(PatternInterface.Selection)).GetSelection());
+    });
+
+    // Selecting an LED item does what a click does, adding it what Shift+click does.
+    [Fact]
+    public void AutomationPeer_SelectingAnItem_ClicksTheLed() => Sta.Run(() =>
+    {
+        List<LedHit> hits = [];
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], ClickCommand = new RelayCommand<LedHit>(hit => hits.Add(hit!)) });
+        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+
+        SelectionItem(leds[2]).Select();
+        SelectionItem(leds[0]).AddToSelection();
+
+        Assert.Equal([new LedHit(2, false), new LedHit(0, true)], hits);
+        Assert.Throws<InvalidOperationException>(() => SelectionItem(leds[0]).RemoveFromSelection());
+    });
+
+    [Fact]
+    public void AutomationPeer_SelectingWithoutClickCommand_SaysItIsNotEnabled() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[1] });
+
+        var led = Assert.Single(UIElementAutomationPeer.CreatePeerForElement(view).GetChildren());
+
+        Assert.Throws<ElementNotEnabledException>(() => SelectionItem(led).Select());
     });
 
     // A screen reader keeps hold of an item, so the next frame should not make new ones.
@@ -82,6 +111,9 @@ public sealed class LedPreviewViewTests
         Assert.Null(view.LabelOf(LedMatrix.NoLed));
         Assert.Null(view.LabelOf(3));
     });
+
+    private static ISelectionItemProvider SelectionItem(AutomationPeer led) =>
+        (ISelectionItemProvider)led.GetPattern(PatternInterface.SelectionItem);
 
     private static LedPreviewView Arranged(LedPreviewView view, double width = 300.0)
     {
