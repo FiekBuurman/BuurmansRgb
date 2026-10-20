@@ -1,4 +1,5 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using Microsoft.Extensions.Time.Testing;
@@ -61,6 +62,20 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     // Switching users locks the session and then disconnects it; coming back goes the other way.
+    // The engine of the other user drives the same devices meanwhile.
+    [Fact]
+    public async Task BackAfterSwitchingUsers_GivesTheDevicesTheirOwnLightingAgain()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Orange)));
+        _session.Raise(SessionSwitchReason.ConsoleDisconnect);
+        _provider.SetLeds(RecordingDeviceProvider.DeviceId, [RgbColor.White, RgbColor.White, RgbColor.White]);
+
+        _session.Raise(SessionSwitchReason.ConsoleConnect);
+
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
     [Fact]
     public async Task LockedAndDisconnected_RunsOnlyWhenBothEnd()
     {
@@ -130,7 +145,7 @@ public sealed class AutoPauseTests : IDisposable
         _time.Advance(ResumeRestorer.DefaultDelays[0]);
 
         Assert.Equal(PauseReasons.Locked, _lighting.Pause);
-        Assert.Equal(["restore", "leds"], _restorable.Calls);
+        Assert.Equal(["leds", "restore", "leds"], _restorable.Calls);
         Assert.False(_lighting.IsAnimating);
         _session.Raise(SessionSwitchReason.SessionUnlock);
         Assert.True(_lighting.IsAnimating);

@@ -52,6 +52,35 @@ public sealed class LightingControllerPauseTests : IDisposable
         Assert.Equal(sent, _provider.SetLedsCount);
     }
 
+    // Another user's engine may have changed the devices meanwhile, such as after switching users.
+    [Theory]
+    [InlineData(PauseReasons.Locked)]
+    [InlineData(PauseReasons.Asleep)]
+    public async Task ReasonEnds_SendsTheLightingAgain(PauseReasons reason)
+    {
+        await StartAsync(EffectIds.Static);
+        _controller.SetPaused(reason, true);
+        _provider.SetLeds(RecordingDeviceProvider.DeviceId, [RgbColor.White, RgbColor.White, RgbColor.White]);
+
+        _controller.SetPaused(reason, false);
+
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
+    [Fact]
+    public async Task OneOfTwoReasonsEnds_SendsTheLightingAgainButKeepsTheAnimationStopped()
+    {
+        await StartAsync(EffectIds.Rainbow);
+        _controller.SetPaused(PauseReasons.Locked, true);
+        _controller.SetPaused(PauseReasons.Asleep, true);
+        var sent = _provider.SetLedsCount;
+
+        _controller.SetPaused(PauseReasons.Asleep, false);
+
+        Assert.Equal(sent + 1, _provider.SetLedsCount);
+        Assert.False(_controller.IsAnimating);
+    }
+
     [Fact]
     public async Task Locked_AChangeStillReachesTheDevices()
     {

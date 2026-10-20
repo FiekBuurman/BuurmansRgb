@@ -311,10 +311,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Adds or ends one reason to pause. The first reason stops the animation and leaves the devices
-    // as they are, except that a flash ends first, so no device stays white or dark. When the
-    // manual pause ends, the latest lighting goes out again, with a restore that waited for it;
-    // when the last reason ends, the animation runs again. The new pause holds and is reported
-    // even when a device fails while its colors go out.
+    // as they are, except that a flash ends first, so no device stays white or dark. When a reason
+    // ends and no manual pause is left, the latest lighting goes out again, with a restore that
+    // waited for the manual pause: while Windows was locked another user's engine may have changed
+    // the devices. When the last reason ends, the animation runs again. The new pause holds and is
+    // reported even when a device fails while its colors go out.
     public void SetPaused(PauseReasons reason, bool paused)
     {
         lock (_pausing)
@@ -340,7 +341,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     {
                         rendered = StopFlashesLocked();
                     }
-                    else if (IsManual(old) && !IsManual(pause))
+                    else if (!paused && !IsManual(pause))
                     {
                         if (_restorePending)
                         {

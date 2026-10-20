@@ -197,7 +197,9 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
   frame. De lampen gaan niet uit.
 - **Los van elkaar:** ontgrendelen heft een pauze uit het tray-menu niet op, en hervatten in het
   menu laat de animatie niet lopen zolang Windows vergrendeld is. Pas als alle redenen weg zijn,
-  loopt de animatie weer.
+  loopt de animatie weer. Eindigt een reden en is er geen pauze uit het tray-menu (meer), dan stuurt
+  de engine alle kleuren nog een keer: na van gebruiker wisselen kan de engine van de andere
+  gebruiker de lampen veranderd hebben.
 - **Bij vergrendelen en slaapstand** gaat een wijziging wel naar de lampen: een profiel dat op
   tijd laadt (bijv. "Nacht" om 23:00 terwijl de pc vergrendeld is) en het herstellen 2 en 10
   seconden na het ontwaken, ook als Windows dan nog op het vergrendelscherm staat. Alleen de
