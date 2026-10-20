@@ -109,39 +109,33 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:LampItem}">
-                        <Border Style="{StaticResource HoverCard}">
-                            <!-- Columns in the order a keyboard user goes through them: the card, then its switch. -->
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Button Style="{StaticResource BareButton}" HorizontalContentAlignment="Stretch"
-                                        Command="{Binding DataContext.Lamps.OpenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" ToolTip="{Binding Device.LocationToolTip}"
-                                        AutomationProperties.Name="{Binding OpenAccessibleName}"
-                                        AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
-                                    <DockPanel Background="Transparent">
-                                        <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
-                                                       IsLit="{Binding IsOn}" Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
-                                            <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
-                                            <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
-                                                       Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
-                                            <TextBlock Style="{StaticResource SubText}" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
-                                                       Visibility="{Binding Device.LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
-                                                <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{StaticResource LedYellowBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </DockPanel>
-                                </Button>
-                                <ToggleButton Grid.Column="1" Margin="12,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
-                                              Tag="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                              AutomationProperties.Name="{Binding SwitchAccessibleName}"
-                                              AutomationProperties.HelpText="{Binding Details}" />
-                            </Grid>
-                        </Border>
+                        <!-- The card itself opens the lamp; its switch sits on it, after it for the keyboard. -->
+                        <Grid>
+                            <Button Style="{StaticResource CardButton}" Padding="16,14,82,14"
+                                    Command="{Binding DataContext.Lamps.OpenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" ToolTip="{Binding Device.LocationToolTip}"
+                                    AutomationProperties.Name="{Binding OpenAccessibleName}"
+                                    AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
+                                <DockPanel Background="Transparent">
+                                    <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
+                                                   IsLit="{Binding IsOn}" Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
+                                        <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
+                                        <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
+                                                   Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
+                                        <TextBlock Style="{StaticResource SubText}" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
+                                                   Visibility="{Binding Device.LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
+                                            <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{StaticResource LedYellowBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                            <ToggleButton Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
+                                          Tag="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                          AutomationProperties.Name="{Binding SwitchAccessibleName}"
+                                          AutomationProperties.HelpText="{Binding Details}" />
+                        </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

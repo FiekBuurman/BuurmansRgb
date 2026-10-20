@@ -36,36 +36,34 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:SceneCard}">
                         <!-- The chosen scene has a 2 px text border, and its name stands above its settings below. -->
-                        <Border x:Name="Card" Style="{StaticResource HoverCard}" Padding="0" MinHeight="132">
-                            <Grid>
-                                <Button Style="{StaticResource BareButton}" Padding="16" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
-                                        AutomationProperties.Name="{Binding LoadAccessibleName}" AutomationProperties.HelpText="{Binding Description}">
-                                    <StackPanel Background="Transparent">
-                                        <ItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False">
-                                            <ItemsControl.ItemsPanel>
-                                                <ItemsPanelTemplate>
-                                                    <StackPanel Orientation="Horizontal" />
-                                                </ItemsPanelTemplate>
-                                            </ItemsControl.ItemsPanel>
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate DataType="{x:Type vm:SceneDot}">
-                                                    <views:LedBulb Margin="0,0,6,0" Diameter="12" GlowBlur="8" GlowSpread="1" IsLit="{Binding IsLit}"
-                                                                   Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                        <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
-                                        <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
-                                    </StackPanel>
-                                </Button>
-                                <Button Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource IconButton}"
-                                        Command="{Binding DataContext.Profiles.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
-                                        ToolTip="{x:Static res:Strings.SceneEditToolTip}" AutomationProperties.Name="{Binding EditAccessibleName}">
-                                    <Path Style="{StaticResource LineIcon}" Data="{StaticResource IconSettings}" />
-                                </Button>
-                            </Grid>
-                        </Border>
+                        <Grid>
+                            <Button x:Name="Card" Style="{StaticResource CardButton}" Padding="16" MinHeight="132" VerticalContentAlignment="Top" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
+                                    AutomationProperties.Name="{Binding LoadAccessibleName}" AutomationProperties.HelpText="{Binding Description}">
+                                <StackPanel Background="Transparent">
+                                    <ItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:SceneDot}">
+                                                <views:LedBulb Margin="0,0,6,0" Diameter="12" GlowBlur="8" GlowSpread="1" IsLit="{Binding IsLit}"
+                                                               Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
+                                    <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
+                                </StackPanel>
+                            </Button>
+                            <Button Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource IconButton}"
+                                    Command="{Binding DataContext.Profiles.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
+                                    ToolTip="{x:Static res:Strings.SceneEditToolTip}" AutomationProperties.Name="{Binding EditAccessibleName}">
+                                <Path Style="{StaticResource LineIcon}" Data="{StaticResource IconSettings}" />
+                            </Button>
+                        </Grid>
                         <DataTemplate.Triggers>
                             <DataTrigger Value="True">
                                 <DataTrigger.Binding>

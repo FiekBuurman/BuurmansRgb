@@ -17,6 +17,16 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!-- Around a card with the corners of a card (18), so the ring follows the whole card. -->
+    <Style x:Key="FocusRingCard">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="21" BorderThickness="2" BorderBrush="{StaticResource TextBrush}" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="FocusRingPill">
         <Setter Property="Control.Template">
             <Setter.Value>
@@ -174,15 +184,6 @@
         <Setter Property="CornerRadius" Value="{StaticResource LargeCardRadius}" />
         <Setter Property="Padding" Value="18" />
     </Style>
-    <!-- A card whose border shows the hover of § 6, for a card that opens something. -->
-    <Style x:Key="HoverCard" TargetType="Border" BasedOn="{StaticResource Card}">
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
     <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->
     <Style x:Key="StripBoard" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource StripBgBrush}" />
@@ -204,11 +205,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Track" CornerRadius="999" Background="{StaticResource LedOffBrush}" Padding="{TemplateBinding Padding}">
-                        <Ellipse x:Name="Knob" HorizontalAlignment="Left" Fill="{StaticResource KnobOffBrush}"
+                    <Grid>
+                        <Border x:Name="Track" CornerRadius="999" Background="{StaticResource LedOffBrush}" />
+                        <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
+                        <Border x:Name="Shine" CornerRadius="999" Background="{StaticResource TextBrush}" Opacity="0" />
+                        <Ellipse x:Name="Knob" Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" Fill="{StaticResource KnobOffBrush}"
                                  Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" />
-                    </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Shine" Property="Opacity" Value="0.15" />
+                        </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
                             <Setter TargetName="Knob" Property="Fill" Value="{StaticResource BgBrush}" />
@@ -380,18 +387,32 @@
         </Style.Triggers>
     </Style>
 
-    <!-- A button with no look of its own around content that brings its own, such as a lamp card. -->
-    <Style x:Key="BareButton" TargetType="Button">
+    <!-- A card that opens something (§ 4, § 6): the whole card is the button, so the hover border and the
+         focus ring follow the card. Other controls on the card sit beside it, not in it. -->
+    <Style x:Key="CardButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16,14" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingCard}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <ContentPresenter Margin="{TemplateBinding Padding}" />
+                    <Border CornerRadius="{StaticResource CardRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style TargetType="Hyperlink">
