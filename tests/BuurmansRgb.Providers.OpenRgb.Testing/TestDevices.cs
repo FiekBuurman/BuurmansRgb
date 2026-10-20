@@ -1,6 +1,6 @@
 using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 
-namespace BuurmansRgb.Providers.OpenRgb.Tests;
+namespace BuurmansRgb.Providers.OpenRgb.Testing;
 
 internal static class TestDevices
 {

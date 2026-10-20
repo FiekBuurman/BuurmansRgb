@@ -1,7 +1,7 @@
 using System.Net.Sockets;
 using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Providers.OpenRgb.Tests;
+namespace BuurmansRgb.Providers.OpenRgb.Testing;
 
 // One connection of FakeOpenRgbConnector; it reads and changes the connector's server state.
 internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool closedSilently = false) : IOpenRgbConnection

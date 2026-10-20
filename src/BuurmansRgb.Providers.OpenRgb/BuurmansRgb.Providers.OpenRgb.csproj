@@ -2,8 +2,8 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="BuurmansRgb.Providers.OpenRgb.Tests" />
-    <!-- The engine tests run the zone lengths against the same OpenRGB fakes. -->
-    <InternalsVisibleTo Include="BuurmansRgb.Engine.Tests" />
+    <!-- The OpenRGB server in memory that the tests use. -->
+    <InternalsVisibleTo Include="BuurmansRgb.Providers.OpenRgb.Testing" />
   </ItemGroup>
 
   <ItemGroup>

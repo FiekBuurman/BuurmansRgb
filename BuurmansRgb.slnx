@@ -42,6 +42,7 @@
   <Project Path="tests/BuurmansRgb.Core.Tests/BuurmansRgb.Core.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Effects.Tests/BuurmansRgb.Effects.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Engine.Tests/BuurmansRgb.Engine.Tests.csproj" />
+  <Project Path="tests/BuurmansRgb.Providers.OpenRgb.Testing/BuurmansRgb.Providers.OpenRgb.Testing.csproj" />
   <Project Path="tests/BuurmansRgb.Providers.OpenRgb.Tests/BuurmansRgb.Providers.OpenRgb.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.Providers.Simulated.Tests/BuurmansRgb.Providers.Simulated.Tests.csproj" />
   <Project Path="tests/BuurmansRgb.UI.Tests/BuurmansRgb.UI.Tests.csproj" />

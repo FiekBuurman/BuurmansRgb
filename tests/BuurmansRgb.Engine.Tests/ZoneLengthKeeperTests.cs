@@ -5,17 +5,20 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class ZoneLengthKeeperTests : IDisposable
 {
-    // Long enough for a loop of resizes and new device lists to show.
-    private static readonly TimeSpan Quiet = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan UserResizeStarts = TimeSpan.FromMilliseconds(200);
 
     private readonly ResizableDeviceProvider _provider = new();
     private readonly LightingController _lighting;
     private readonly ZoneLengthKeeper _keeper;
 
+    // The device lists the lighting (and the keeper before it) handled.
+    private int _listsHandled;
+
     public ZoneLengthKeeperTests()
     {
         _lighting = new LightingController([_provider]);
         _keeper = new ZoneLengthKeeper(_lighting);
+        _lighting.DevicesChanged += (_, _) => Interlocked.Increment(ref _listsHandled);
     }
 
     public void Dispose()
@@ -44,7 +47,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _provider.SetDevices(Board(header: 30));
 
         await _lighting.DiscoverAsync(Ct);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Empty(_provider.Resizes);
     }
@@ -60,7 +63,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
 
         await _lighting.DiscoverAsync(Ct);
         _provider.SetDevices(Board(header: 0));
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Single(_provider.Resizes);
     }
@@ -104,7 +107,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _provider.SetDevices(Board(header: 0));
 
         await _lighting.DiscoverAsync(Ct);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Empty(_provider.Resizes);
         Assert.Equal(200, _keeper.Lengths["board"]["ARGB header"]);
@@ -118,7 +121,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _provider.SetDevices(ResizableDeviceProvider.Board(new RgbZone("ARGB", 0, 0, 120), new RgbZone("ARGB", 0, 0, 120)));
 
         await _lighting.DiscoverAsync(Ct);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Empty(_provider.Resizes);
     }
@@ -161,7 +164,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _keeper.ResizeZone("board", 1, 12);
 
         await ZoneLengthsAsync([2, 12, 1]);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
         Assert.Equal([2, 12, 1], _lighting.Devices.Single().Zones.Select(zone => zone.LedCount));
         Assert.Equal(2, _provider.Resizes.Count);
     }
@@ -187,12 +190,14 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.True(keeperResizing.Wait(TestTimeouts.Short, Ct));
 
         var userResize = Task.Run(() => _keeper.ResizeZone("board", 1, 12), Ct);
-        await Task.Delay(Quiet, Ct);
+
+        // Time for the user's resize to reach the keeper, where it waits for the one that is held.
+        await Task.Delay(UserResizeStarts, Ct);
         release.Set();
         await Task.WhenAll(discovering, userResize);
 
         await ZoneLengthsAsync([2, 12, 1]);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
         Assert.Equal([2, 12, 1], _lighting.Devices.Single().Zones.Select(zone => zone.LedCount));
         Assert.Equal(12, _keeper.Lengths["board"]["ARGB header"]);
     }
@@ -275,7 +280,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
 
         _provider.SetDevices(Board(header: 0));
         await ZoneLengthsAsync([2, 0, 1]);
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
         Assert.Empty(_provider.Resizes);
@@ -292,7 +297,7 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         await Eventually.TrueAsync(() => _provider.Resizes.Count == 1);
 
         _provider.SetDevices(Board(header: 10));
-        await Task.Delay(Quiet, Ct);
+        await SettledAsync();
 
         Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
         Assert.Single(_provider.Resizes);
@@ -306,6 +311,11 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         lengths.GroupBy(length => length.DeviceId).ToDictionary(
             device => device.Key,
             device => (IReadOnlyDictionary<string, int>)device.ToDictionary(length => length.Zone, length => length.LedCount));
+
+    // Until the lighting, and so the keeper, has handled the discovery and every device list the
+    // provider reported, also those that resizes on the way bring: then a loop would have shown.
+    private async Task SettledAsync() =>
+        await Eventually.TrueAsync(() => Volatile.Read(ref _listsHandled) == 1 + _provider.ListsReported);
 
     // Until the lighting has the device with these zone lengths.
     private async Task ZoneLengthsAsync(int[] lengths) =>

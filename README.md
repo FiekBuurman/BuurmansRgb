@@ -37,7 +37,9 @@ een loopback-socket, dus zonder OpenRGB), `Providers.Simulated` (de gesimuleerde
 apparaten) en `UI` (viewmodels met een nep-engine).
 
 Helpers die elk testproject gebruikt (`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`) staan in
-`tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. Na de
+`tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. De OpenRGB-server in
+het geheugen (`FakeOpenRgbConnector`, en voor tests buiten de provider zelf `InMemoryOpenRgb`)
+staat in het hulpproject `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests. Na de
 code-review kregen ook deze delen eigen tests: de invoercontrole van de verlichting
 (`LightingControllerValidationTests`, `LightingTableTests`), `EffectCatalogTests`,
 `DeviceOutputTests`, `OpenRgbPacketsTests`, `OpenRgbServerWatcherTests` (pakketten met data en

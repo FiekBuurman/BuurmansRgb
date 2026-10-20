@@ -2,8 +2,9 @@
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
 
-  <!-- Helpers that every test project shares, compiled into each of them. -->
-  <ItemGroup>
+  <!-- Helpers that every test project shares, compiled into each of them; not into a project that
+       only helps the tests and has no xUnit. -->
+  <ItemGroup Condition="'$(IsTestHelperProject)' != 'true'">
     <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
     <Using Include="BuurmansRgb.Tests" />
     <Using Include="BuurmansRgb.Tests.TestCancellation" Static="true" />

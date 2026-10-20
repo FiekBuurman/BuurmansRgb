@@ -9,6 +9,7 @@ namespace BuurmansRgb.Engine.Tests;
 internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
 {
     private volatile IReadOnlyList<RgbDevice> _devices = [];
+    private int _listsReported;
 
     public string Name => "Resizable";
 
@@ -23,12 +24,16 @@ internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
 
     public IReadOnlyList<RgbDevice> Devices => _devices;
 
+    // How often DevicesChanged was raised, so a test can wait until every new list is handled.
+    public int ListsReported => Volatile.Read(ref _listsReported);
+
     public static RgbDevice Board(params IReadOnlyList<RgbZone> zones) =>
         new("board", "Board", DeviceType.Motherboard, zones) { Source = DeviceSource.Hardware };
 
     public void SetDevices(params IReadOnlyList<RgbDevice> devices)
     {
         _devices = devices;
+        Interlocked.Increment(ref _listsReported);
         DevicesChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -54,6 +59,7 @@ internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
             _devices = [.. _devices.Select(device => device.Id == deviceId ? device.WithZoneLength(zoneIndex, ledCount) : device)];
         }
 
+        Interlocked.Increment(ref _listsReported);
         DevicesChanged?.Invoke(this, EventArgs.Empty);
     }
 }
