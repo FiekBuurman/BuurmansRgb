@@ -36,10 +36,12 @@ internal static class Program
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
-        // On this thread, which pumps the tray messages and so also the power and clock events.
+        // On this thread, which pumps the tray messages and so also the power, session and clock events.
         using var powerEvents = new SystemPowerEvents();
+        using var sessionEvents = new SystemSessionEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
+        using var autoPause = new AutoPause(powerEvents, sessionEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // The host disposes them, before it saves for the last time.

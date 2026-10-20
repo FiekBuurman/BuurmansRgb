@@ -313,47 +313,54 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Adds or ends one reason to pause. The first reason stops the animation and leaves the devices
     // as they are, except that a flash ends first, so no device stays white or dark. When the
     // manual pause ends, the latest lighting goes out again, with a restore that waited for it;
-    // when the last reason ends, the animation runs again.
+    // when the last reason ends, the animation runs again. The new pause holds and is reported
+    // even when a device fails while its colors go out.
     public void SetPaused(PauseReasons reason, bool paused)
     {
         lock (_pausing)
         {
-            bool rendered;
-            PauseReasons pause;
-            lock (_gate)
+            var pause = PauseReasons.None;
+            var changed = false;
+            try
             {
-                var old = _pause;
-                pause = paused ? old | reason : old & ~reason;
-                if (pause == old)
+                var rendered = false;
+                lock (_gate)
                 {
-                    return;
-                }
-
-                _pause = pause;
-                if (old == PauseReasons.None)
-                {
-                    rendered = StopFlashesLocked();
-                    UpdateAnimationLocked();
-                }
-                else if (IsManual(old) && !IsManual(pause))
-                {
-                    if (_restorePending)
+                    var old = _pause;
+                    pause = paused ? old | reason : old & ~reason;
+                    if (pause == old)
                     {
-                        _restorePending = false;
-                        RestoreProvidersLocked();
+                        return;
                     }
 
-                    rendered = RenderLocked();
-                }
-                else
-                {
-                    rendered = false;
+                    _pause = pause;
+                    changed = true;
                     UpdateAnimationLocked();
+                    if (old == PauseReasons.None)
+                    {
+                        rendered = StopFlashesLocked();
+                    }
+                    else if (IsManual(old) && !IsManual(pause))
+                    {
+                        if (_restorePending)
+                        {
+                            _restorePending = false;
+                            RestoreProvidersLocked();
+                        }
+
+                        rendered = RenderLocked();
+                    }
+                }
+
+                Publish(rendered);
+            }
+            finally
+            {
+                if (changed)
+                {
+                    PauseChanged?.Invoke(this, pause);
                 }
             }
-
-            Publish(rendered);
-            PauseChanged?.Invoke(this, pause);
         }
     }
 
