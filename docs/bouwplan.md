@@ -272,6 +272,18 @@ die OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen d
 hier vragen de vier criteria hierboven echte hardware; die test de gebruiker zelf, zie
 "Toetsenbord, muis en headset" in `README.md`.
 
+### Taak 9 – Installer
+
+**Opdracht:** Maak één `BuurmansRgb-setup.exe` (Inno Setup 6) volgens `docs/openrgb-meeleveren.md`. De installer zet BuurmansRgb self-contained in `Program Files`, installeert stil PawnIO (`-install -silent`) en OpenRGB als service (de MSI met `ADDLOCAL=OpenRGBApplication,OpenRGBRegisterService`, overgeslagen als de service `OpenRGB` al bestaat), en start daarna de engine als de gewone gebruiker met `--first-run`, die "Starten met Windows" aanzet. Een build-script publiceert de apps, haalt de MSI en PawnIO op met een SHA-256-controle, en bouwt de installer. Verwijderen haalt BuurmansRgb en de autostart weg, en vraagt of OpenRGB en PawnIO ook weg moeten als de installer die zelf heeft geïnstalleerd.
+
+**Acceptatie:**
+
+- [ ] Eén `BuurmansRgb-setup.exe`, met één UAC-vraag en zonder losse .NET-runtime
+- [ ] Na installeren draait de service `OpenRGB` en luistert er iets op `127.0.0.1:6742`
+- [ ] De engine draait als de gewone gebruiker, staat in "Starten met Windows" en verbindt met OpenRGB
+- [ ] Verwijderen haalt BuurmansRgb, de autostart en (op verzoek) OpenRGB en PawnIO weg
+- [ ] Getest in Windows Sandbox, niet op de pc van de gebruiker
+
 ## Risico's en aandachtspunten
 
 Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; sluit die af voordat je test.
