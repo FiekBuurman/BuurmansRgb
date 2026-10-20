@@ -12,22 +12,17 @@ namespace BuurmansRgb.Engine.Lighting;
 // of the device as it is first seen. Not thread-safe: LightingController uses it under its lock.
 internal sealed class LedColorStore
 {
-    private readonly Dictionary<string, Entry> _entries = [];
+    private readonly Dictionary<string, LedColorEntry> _entries = [];
 
-    public IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> Snapshot() =>
-        _entries.ToDictionary(pair => pair.Key, pair => (IReadOnlyList<RgbColor?>)[.. pair.Value.Colors]);
+    public IReadOnlyDictionary<string, LedColorEntry> Snapshot() =>
+        _entries.ToDictionary(pair => pair.Key, pair => Copy(pair.Value));
 
-    // The zone lengths of the devices whose colors have them.
-    public IReadOnlyDictionary<string, IReadOnlyList<int>> SnapshotZoneLengths() =>
-        _entries.Where(pair => pair.Value.ZoneLengths is not null)
-            .ToDictionary(pair => pair.Key, pair => (IReadOnlyList<int>)[.. pair.Value.ZoneLengths!]);
-
-    public void Replace(IReadOnlyDictionary<string, IReadOnlyList<RgbColor?>> colors, IReadOnlyDictionary<string, IReadOnlyList<int>> zoneLengths)
+    public void Replace(IReadOnlyDictionary<string, LedColorEntry> entries)
     {
         _entries.Clear();
-        foreach (var (deviceId, deviceColors) in colors)
+        foreach (var (deviceId, entry) in entries)
         {
-            _entries[deviceId] = new([.. deviceColors], zoneLengths.TryGetValue(deviceId, out var lengths) ? [.. lengths] : null);
+            _entries[deviceId] = Copy(entry);
         }
     }
 
@@ -75,17 +70,19 @@ internal sealed class LedColorStore
         _entries[device.Id] = new(stored, ZoneLengthsOf(device));
     }
 
+    private static LedColorEntry Copy(LedColorEntry entry) => new([.. entry.Colors], entry.ZoneLengths is null ? null : [.. entry.ZoneLengths]);
+
     private static int[] ZoneLengthsOf(RgbDevice device) => [.. device.Zones.Select(zone => zone.LedCount)];
 
     // Every zone keeps its own colors: a zone that is longer now gets LEDs that follow the device
     // color, one that is shorter shows fewer of its colors. Colors past the end of the last zone
     // stay, for when it grows back. Without zone lengths, or with another number of zones (the
     // device is not the same any more), the colors stay as they are.
-    private static IReadOnlyList<RgbColor?> Layout(Entry entry, RgbDevice device)
+    private static IReadOnlyList<RgbColor?> Layout(LedColorEntry entry, RgbDevice device)
     {
         var from = entry.ZoneLengths;
         var to = device.Zones;
-        if (from is null || from.Length != to.Count || from.SequenceEqual(to.Select(zone => zone.LedCount)))
+        if (from is null || from.Count != to.Count || from.SequenceEqual(to.Select(zone => zone.LedCount)))
         {
             return entry.Colors;
         }
@@ -93,13 +90,13 @@ internal sealed class LedColorStore
         var stored = entry.Colors;
         List<RgbColor?> laidOut = [];
         var start = 0;
-        for (var zone = 0; zone < from.Length; zone++)
+        for (var zone = 0; zone < from.Count; zone++)
         {
-            var isLast = zone == from.Length - 1;
-            var kept = isLast ? Math.Max(stored.Length - start, 0) : Math.Min(from[zone], to[zone].LedCount);
+            var isLast = zone == from.Count - 1;
+            var kept = isLast ? Math.Max(stored.Count - start, 0) : Math.Min(from[zone], to[zone].LedCount);
             for (var i = 0; i < kept; i++)
             {
-                laidOut.Add(start + i < stored.Length ? stored[start + i] : null);
+                laidOut.Add(start + i < stored.Count ? stored[start + i] : null);
             }
 
             for (var i = kept; !isLast && i < to[zone].LedCount; i++)
@@ -112,6 +109,4 @@ internal sealed class LedColorStore
 
         return laidOut;
     }
-
-    private sealed record Entry(RgbColor?[] Colors, int[]? ZoneLengths);
 }

@@ -132,7 +132,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             lock (_gate)
             {
-                return new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot()) { LedColorZoneLengths = _ledColors.SnapshotZoneLengths() };
+                return new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
             }
         }
     }
@@ -152,7 +152,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         lock (_gate)
         {
             _lighting.Replace(state.Global, state.Devices);
-            _ledColors.Replace(state.LedColors, state.LedColorZoneLengths);
+            _ledColors.Replace(state.LedColors);
             _ledColors.Adopt(_outputs.All.Select(output => output.Device));
 
             rendered = RenderLocked();

@@ -31,25 +31,16 @@ internal record LightingStateSettings : LightingSettings
             }
         }
 
-        var ledColors = new Dictionary<string, IReadOnlyList<RgbColor?>>();
+        var ledColors = new Dictionary<string, LedColorEntry>();
         foreach (var (deviceId, colors) in LedColors ?? [])
         {
             if (colors is not null)
             {
-                ledColors[deviceId] = colors;
+                ledColors[deviceId] = new(colors, ReadZoneLengths(deviceId));
             }
         }
 
-        var zoneLengths = new Dictionary<string, IReadOnlyList<int>>();
-        foreach (var (deviceId, lengths) in LedColorZoneLengths ?? [])
-        {
-            if (lengths is not null && lengths.All(length => length >= 0))
-            {
-                zoneLengths[deviceId] = lengths;
-            }
-        }
-
-        return new(ToDeviceLighting(), devices, ledColors) { LedColorZoneLengths = zoneLengths };
+        return new(ToDeviceLighting(), devices, ledColors);
     }
 
     protected void CopyFrom(LightingState state)
@@ -59,10 +50,15 @@ internal record LightingStateSettings : LightingSettings
             ? state.Devices.ToDictionary(pair => pair.Key, pair => (LightingSettings?)From(pair.Value))
             : null;
         LedColors = state.LedColors.Count > 0
-            ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value])
+            ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value.Colors])
             : null;
-        LedColorZoneLengths = state.LedColorZoneLengths.Count > 0
-            ? state.LedColorZoneLengths.ToDictionary(pair => pair.Key, pair => (int[]?)[.. pair.Value])
+        var zoneLengths = state.LedColors.Where(pair => pair.Value.ZoneLengths is not null).ToList();
+        LedColorZoneLengths = zoneLengths.Count > 0
+            ? zoneLengths.ToDictionary(pair => pair.Key, pair => (int[]?)[.. pair.Value.ZoneLengths!])
             : null;
     }
+
+    // Null when the file has none for the device, or a count that cannot be right.
+    private int[]? ReadZoneLengths(string deviceId) =>
+        LedColorZoneLengths?.GetValueOrDefault(deviceId) is { } lengths && lengths.All(length => length >= 0) ? lengths : null;
 }

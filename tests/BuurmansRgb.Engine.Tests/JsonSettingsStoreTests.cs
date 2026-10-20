@@ -129,7 +129,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         store.Save(new EngineSettings { LedColors = new() { ["simulated-argb"] = [Red] }, LedColorZoneLengths = new() { ["simulated-argb"] = [30, 10] } });
 
         Assert.Contains("\"ledColorZoneLengths\"", File.ReadAllText(path));
-        Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColorZoneLengths["simulated-argb"]);
+        Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColors["simulated-argb"].ZoneLengths!);
     }
 
     // A file from before the zone lengths were stored, or with a count that cannot be right.
@@ -142,7 +142,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
 
         Assert.Equal(2, state.LedColors.Count);
-        Assert.Empty(state.LedColorZoneLengths);
+        Assert.All(state.LedColors.Values, entry => Assert.Null(entry.ZoneLengths));
     }
 
     // One odd value leaves out only itself; the rest of the file, lighting included, still counts.
@@ -183,7 +183,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(Orange, settings.Color);
         Assert.Empty(settings.ReadZoneLengths());
-        Assert.Empty(settings.ToLightingState().LedColorZoneLengths);
+        Assert.Empty(settings.ToLightingState().LedColors);
     }
 
     [Fact]

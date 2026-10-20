@@ -31,7 +31,7 @@ public sealed class LedColorStoreTests
     [Fact]
     public void Set_InsideStoredColors_KeepsTheColorsPastIt()
     {
-        _store.Replace(Colors(Red, Red, Red, Red), NoZoneLengths());
+        _store.Replace(Colors(null, Red, Red, Red, Red));
 
         _store.Set(Strip, 0, [Blue]);
 
@@ -43,7 +43,7 @@ public sealed class LedColorStoreTests
     {
         _store.Set(Board(header: 2), 0, [Red]);
 
-        Assert.Equal([2, 2, 1], _store.SnapshotZoneLengths()[Strip.Id]);
+        Assert.Equal([2, 2, 1], _store.Snapshot()[Strip.Id].ZoneLengths!);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class LedColorStoreTests
 
         _store.Set(Strip, 0, [Blue]);
 
-        Assert.Equal([Red], snapshot[Strip.Id]);
+        Assert.Equal([Red], snapshot[Strip.Id].Colors);
     }
 
     // A board with two fixed LEDs, a header and one more fixed LED.
@@ -82,7 +82,7 @@ public sealed class LedColorStoreTests
 
         Assert.Equal([Red, Red, White], _store.For(Board(header: 0)));
         Assert.Equal([Red, Red, Blue, Green, White], _store.For(Board(header: 2)));
-        Assert.Equal([Red, Red, Blue, Green, White], _store.Snapshot()[Strip.Id]);
+        Assert.Equal([Red, Red, Blue, Green, White], _store.Snapshot()[Strip.Id].Colors);
     }
 
     [Fact]
@@ -106,23 +106,23 @@ public sealed class LedColorStoreTests
     [Fact]
     public void Adopt_ColorsWithoutZoneLengths_TakeThoseOfTheDevice()
     {
-        _store.Replace(Colors(Red, Red, Blue, Blue, White), NoZoneLengths());
-        Assert.Empty(_store.SnapshotZoneLengths());
+        _store.Replace(Colors(null, Red, Red, Blue, Blue, White));
+        Assert.Null(_store.Snapshot()[Strip.Id].ZoneLengths);
 
         _store.Adopt([Board(header: 2)]);
 
-        Assert.Equal([2, 2, 1], _store.SnapshotZoneLengths()[Strip.Id]);
+        Assert.Equal([2, 2, 1], _store.Snapshot()[Strip.Id].ZoneLengths!);
         Assert.Equal([Red, Red, Blue, Blue, null, null, White], _store.For(Board(header: 4)));
     }
 
     [Fact]
     public void Adopt_ColorsWithZoneLengths_KeepTheirOwn()
     {
-        _store.Replace(Colors(Red, Red, Blue, Blue, White), new Dictionary<string, IReadOnlyList<int>> { [Strip.Id] = [2, 2, 1] });
+        _store.Replace(Colors([2, 2, 1], Red, Red, Blue, Blue, White));
 
         _store.Adopt([Board(header: 0)]);
 
-        Assert.Equal([2, 2, 1], _store.SnapshotZoneLengths()[Strip.Id]);
+        Assert.Equal([2, 2, 1], _store.Snapshot()[Strip.Id].ZoneLengths!);
         Assert.Equal([Red, Red, Blue, Blue, White], _store.For(Board(header: 2)));
     }
 
@@ -134,8 +134,8 @@ public sealed class LedColorStoreTests
 
         _store.Set(Board(header: 1), 0, [Green]);
 
-        Assert.Equal([Green, Red, Blue, White], _store.Snapshot()[Strip.Id]);
-        Assert.Equal([2, 1, 1], _store.SnapshotZoneLengths()[Strip.Id]);
+        Assert.Equal([Green, Red, Blue, White], _store.Snapshot()[Strip.Id].Colors);
+        Assert.Equal([2, 1, 1], _store.Snapshot()[Strip.Id].ZoneLengths!);
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class LedColorStoreTests
         _store.Set(Strip, 0, [Red]);
         var other = Strip with { Id = "other" };
 
-        _store.Replace(new Dictionary<string, IReadOnlyList<RgbColor?>> { ["other"] = [Blue] }, NoZoneLengths());
+        _store.Replace(LightingStates.LedColors("other", Blue));
 
         Assert.Empty(_store.For(Strip));
         Assert.Equal([Blue], _store.For(other));
@@ -156,7 +156,5 @@ public sealed class LedColorStoreTests
     private static RgbDevice Board(int header) =>
         Device(RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1));
 
-    private static Dictionary<string, IReadOnlyList<RgbColor?>> Colors(params RgbColor?[] colors) => new() { [Strip.Id] = colors };
-
-    private static Dictionary<string, IReadOnlyList<int>> NoZoneLengths() => [];
+    private static Dictionary<string, LedColorEntry> Colors(int[]? zoneLengths, params RgbColor?[] colors) => new() { [Strip.Id] = new(colors, zoneLengths) };
 }

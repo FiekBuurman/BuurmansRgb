@@ -114,8 +114,8 @@ public sealed class LightingControllerZoneTests
 
         Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _dynamic.Leds["board"]);
         Assert.Equal([Orange, Orange, RgbColor.White, RgbColor.White, RgbColor.White, Green], _controller.GetLedColors("board"));
-        Assert.Equal([Orange, Orange, RgbColor.White, Green], _controller.State.LedColors["board"]);
-        Assert.Equal([2, 1, 1], _controller.State.LedColorZoneLengths["board"]);
+        Assert.Equal([Orange, Orange, RgbColor.White, Green], _controller.State.LedColors["board"].Colors);
+        Assert.Equal([2, 1, 1], _controller.State.LedColors["board"].ZoneLengths!);
         Assert.Equal(0, lightingChanges);
     }
 
@@ -132,8 +132,7 @@ public sealed class LightingControllerZoneTests
             new Dictionary<string, DeviceLighting> { ["board"] = new(RgbColor.White, 1.0, EffectIds.PerLed) })
             with
             {
-                LedColors = new Dictionary<string, IReadOnlyList<RgbColor?>> { ["board"] = [Orange, Orange, Blue, Blue, Green] },
-                LedColorZoneLengths = new Dictionary<string, IReadOnlyList<int>> { ["board"] = [2, 2, 1] },
+                LedColors = new Dictionary<string, LedColorEntry> { ["board"] = new([Orange, Orange, Blue, Blue, Green], [2, 2, 1]) },
             };
 
         _controller.Apply(state);
