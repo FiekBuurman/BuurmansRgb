@@ -54,147 +54,200 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Rows, so the device list and the profile list share the height that is left and the
-                     device list keeps room for a few devices in the smallest window. -->
-                <Grid Margin="12">
-                    <!-- The device list grouped by heading: the real devices and the simulated ones.
-                         "All devices" has no heading. -->
-                    <Grid.Resources>
-                        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
-                            <CollectionViewSource.GroupDescriptions>
-                                <PropertyGroupDescription PropertyName="Group" />
-                            </CollectionViewSource.GroupDescriptions>
-                        </CollectionViewSource>
-                    </Grid.Resources>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="3*" MinHeight="144" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" MinHeight="48" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock Style="{StaticResource Header}" Margin="0,0,0,6" Text="{x:Static res:Strings.DevicesHeader}" />
+                <!-- Scrolls only when the window is too low for everything, such as with the automatic loading
+                     unfolded in the smallest window; otherwise the lists fill the height. -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                    <!-- Rows, so the device list and the profile list share the height that is left and the
+                         device list keeps room for a few devices in the smallest window. -->
+                    <views:ViewportGrid Margin="12">
+                        <!-- The device list grouped by heading: the real devices and the simulated ones.
+                             "All devices" has no heading. -->
+                        <Grid.Resources>
+                            <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+                                <CollectionViewSource.GroupDescriptions>
+                                    <PropertyGroupDescription PropertyName="Group" />
+                                </CollectionViewSource.GroupDescriptions>
+                            </CollectionViewSource>
+                        </Grid.Resources>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="3*" MinHeight="144" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" MinHeight="48" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Style="{StaticResource Header}" Margin="0,0,0,6" Text="{x:Static res:Strings.DevicesHeader}" />
 
-                    <!-- Whether the real devices can come: the state of OpenRGB in one line, read out when it
-                         changes. A tip stays behind the ⓘ, which shows it on hover and on keyboard focus. -->
-                    <DockPanel Grid.Row="1" Margin="0,0,0,8">
-                        <TextBlock DockPanel.Dock="Right" Margin="6,0,0,0" Text="ⓘ" FontFamily="Segoe UI Symbol" Focusable="True"
-                                   ToolTip="{Binding OpenRgbStatus.Hint}" ToolTipService.ShowsToolTipOnKeyboardFocus="True"
-                                   Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
-                                   AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}"
-                                   AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}" />
-                        <TextBlock Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}" TextWrapping="Wrap"
-                                   ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
-                                   AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
-                                   views:LiveRegion.AnnouncesUpdates="True" />
-                    </DockPanel>
-
-                    <!-- Right under the list it changes; a short label keeps it on one line. -->
-                    <Grid Grid.Row="3" Margin="0,8,0,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Style="{StaticResource Label}" Margin="0,0,6,0" VerticalAlignment="Center"
-                                   Text="{x:Static res:Strings.SimulatedDevicesShortLabel}" />
-                        <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
-                                  SelectedItem="{Binding SimulatedDevices.SelectedOption}"
-                                  ToolTip="{x:Static res:Strings.SimulatedDevicesHint}"
-                                  AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
-                                  AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
-                    </Grid>
-
-                    <!-- Profiles hold the lighting of every device, so they sit apart from the device list. -->
-                    <StackPanel Grid.Row="4" Margin="0,12,0,0">
-                        <TextBlock Style="{StaticResource Header}" Margin="0,0,0,2" Text="{x:Static res:Strings.ProfilesHeader}" />
-                        <TextBlock Style="{StaticResource Label}" Margin="0,0,0,6" TextWrapping="Wrap" Text="{x:Static res:Strings.ProfilesHint}" />
-                    </StackPanel>
-                    <ListBox Grid.Row="5" ItemsSource="{Binding Profiles.Names}" SelectedItem="{Binding Profiles.SelectedName}"
-                             AutomationProperties.Name="{x:Static res:Strings.ProfilesHeader}">
-                        <ListBox.InputBindings>
-                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Profiles.LoadCommand}" />
-                        </ListBox.InputBindings>
-                    </ListBox>
-                    <StackPanel Grid.Row="6">
-                        <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
-                            <Button Padding="10,3" Content="{x:Static res:Strings.ProfileLoad}"
-                                    ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
-                            <Button Margin="6,0,0,0" Padding="10,3" Content="{x:Static res:Strings.ProfileDelete}"
-                                    Command="{Binding Profiles.DeleteCommand}" />
-                        </StackPanel>
-                        <TextBlock Style="{StaticResource Label}" Margin="0,10,0,2" Text="{x:Static res:Strings.ProfileNameLabel}" />
-                        <DockPanel>
-                            <Button DockPanel.Dock="Right" Margin="6,0,0,0" Padding="10,3" Content="{Binding Profiles.SaveLabel}"
-                                    ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
-                            <TextBox VerticalContentAlignment="Center" MaxLength="{x:Static contracts:ProfileNames.MaxLength}"
-                                     Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
-                                <TextBox.InputBindings>
-                                    <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
+                        <!-- Whether the real devices can come: the state of OpenRGB in one line, read out when it
+                             changes. A tip stays behind the ⓘ, which shows it on hover and on keyboard focus. -->
+                        <DockPanel Grid.Row="1" Margin="0,0,0,8">
+                            <TextBlock DockPanel.Dock="Right" Margin="6,0,0,0" Text="ⓘ" FontFamily="Segoe UI Symbol" Focusable="True"
+                                       ToolTip="{Binding OpenRgbStatus.Hint}" ToolTipService.ShowsToolTipOnKeyboardFocus="True"
+                                       Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
+                                       AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}"
+                                       AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}" />
+                            <TextBlock Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}" TextWrapping="Wrap"
+                                       ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
+                                       AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
+                                       views:LiveRegion.AnnouncesUpdates="True" />
                         </DockPanel>
-                    </StackPanel>
 
-                    <ListBox Grid.Row="2" ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
-                             AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
-                        <ListBox.GroupStyle>
-                            <GroupStyle>
-                                <GroupStyle.ContainerStyle>
-                                    <Style TargetType="GroupItem">
-                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
-                                                <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.AllDevices}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </GroupStyle.ContainerStyle>
-                                <GroupStyle.HeaderTemplate>
-                                    <DataTemplate>
-                                        <TextBlock x:Name="Heading" Margin="2,10,0,2" FontWeight="SemiBold" Text="{Binding Name}"
-                                                   Foreground="{x:Static SystemColors.GrayTextBrush}" />
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
-                                                <Setter TargetName="Heading" Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
-                                    </DataTemplate>
-                                </GroupStyle.HeaderTemplate>
-                            </GroupStyle>
-                        </ListBox.GroupStyle>
-                        <ListBox.ItemContainerStyle>
-                            <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                                <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                                <!-- The short texts under the name, as the list shows them; null for a device without any. -->
-                                <Setter Property="AutomationProperties.HelpText" Value="{Binding AccessibleHelpText}" />
-                                <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
-                            </Style>
-                        </ListBox.ItemContainerStyle>
-                        <ListBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:DeviceItem}">
-                                <DockPanel Margin="2,4">
-                                    <!-- The item's text color, so the icon also shows on the selection highlight. -->
-                                    <Path Style="{StaticResource DeviceIcon}" DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
-                                          Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                          ToolTip="{Binding TypeName}" />
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
-                                        <TextBlock Text="{Binding Details}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
-                                        <TextBlock Text="{Binding LocationLabel}" Foreground="{x:Static SystemColors.GrayTextBrush}"
-                                                   Visibility="{Binding ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
-                                        <TextBlock TextWrapping="Wrap" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
-                                                   Visibility="{Binding LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
-                                            <Run Text="⚠" FontFamily="Segoe UI Symbol" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                </DockPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </Grid>
+                        <!-- Right under the list it changes; a short label keeps it on one line. -->
+                        <Grid Grid.Row="3" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource Label}" Margin="0,0,6,0" VerticalAlignment="Center"
+                                       Text="{x:Static res:Strings.SimulatedDevicesShortLabel}" />
+                            <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
+                                      SelectedItem="{Binding SimulatedDevices.SelectedOption}"
+                                      ToolTip="{x:Static res:Strings.SimulatedDevicesHint}"
+                                      AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
+                                      AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
+                        </Grid>
+
+                        <!-- Profiles hold the lighting of every device, so they sit apart from the device list. The
+                             explanation stays behind the ⓘ, like the OpenRGB tip, so the smallest window keeps room. -->
+                        <DockPanel Grid.Row="4" Margin="0,12,0,6">
+                            <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Text="ⓘ" FontFamily="Segoe UI Symbol" Focusable="True"
+                                       ToolTip="{x:Static res:Strings.ProfilesHint}" ToolTipService.ShowsToolTipOnKeyboardFocus="True"
+                                       AutomationProperties.Name="{x:Static res:Strings.ProfilesHintAccessibleName}"
+                                       AutomationProperties.HelpText="{x:Static res:Strings.ProfilesHint}" />
+                            <TextBlock Style="{StaticResource Header}" Margin="0" Text="{x:Static res:Strings.ProfilesHeader}" />
+                        </DockPanel>
+                        <ListBox Grid.Row="5" ItemsSource="{Binding Profiles.Names}" SelectedItem="{Binding Profiles.SelectedName}"
+                                 AutomationProperties.Name="{x:Static res:Strings.ProfilesHeader}"
+                                 AutomationProperties.HelpText="{x:Static res:Strings.ProfilesHint}">
+                            <ListBox.InputBindings>
+                                <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Profiles.LoadCommand}" />
+                            </ListBox.InputBindings>
+                        </ListBox>
+                        <StackPanel Grid.Row="6">
+                            <StackPanel Margin="0,6,0,0" Orientation="Horizontal">
+                                <Button Padding="10,3" Content="{x:Static res:Strings.ProfileLoad}"
+                                        ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
+                                <Button Margin="6,0,0,0" Padding="10,3" Content="{x:Static res:Strings.ProfileDelete}"
+                                        Command="{Binding Profiles.DeleteCommand}" />
+                            </StackPanel>
+                            <TextBlock Style="{StaticResource Label}" Margin="0,10,0,2" Text="{x:Static res:Strings.ProfileNameLabel}" />
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Margin="6,0,0,0" Padding="10,3" Content="{Binding Profiles.SaveLabel}"
+                                        ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
+                                <TextBox VerticalContentAlignment="Center" MaxLength="{x:Static contracts:ProfileNames.MaxLength}"
+                                         Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
+                                         AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </DockPanel>
+                        </StackPanel>
+
+                        <!-- When the selected profile loads by itself. Folded up at first, so the lists keep their room. -->
+                        <Expander Grid.Row="7" Margin="0,10,0,0" Header="{Binding Profiles.Automation.Header}"
+                                  AutomationProperties.Name="{Binding Profiles.Automation.Header}">
+                            <StackPanel Margin="0,4,0,0">
+                                <TextBlock Style="{StaticResource Label}" Margin="0,0,0,2" TextWrapping="Wrap"
+                                           Text="{x:Static res:Strings.ProfileAutomationNoSelection}"
+                                           Visibility="{Binding Profiles.Automation.HasProfile, Converter={StaticResource InverseBoolToVisibility}}" />
+                                <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">
+                                    <TextBlock Style="{StaticResource Label}" Margin="0,0,0,2" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
+                                    <TextBox Width="64" HorizontalAlignment="Left" VerticalContentAlignment="Center" MaxLength="5"
+                                             Text="{Binding Profiles.Automation.LoadAtText, UpdateSourceTrigger=PropertyChanged}"
+                                             ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
+                                             AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}"
+                                             AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
+                                        <TextBox.InputBindings>
+                                            <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
+                                        </TextBox.InputBindings>
+                                    </TextBox>
+                                    <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ProfileProgramLabel}" />
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Margin="6,0,0,0" Padding="10,3" Content="{x:Static res:Strings.ProfileAutomationApply}"
+                                                ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}" Command="{Binding Profiles.Automation.ApplyCommand}"
+                                                AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
+                                        <TextBox VerticalContentAlignment="Center"
+                                                 Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="{x:Static res:Strings.ProfileProgramHint}"
+                                                 AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
+                                                 AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                    </DockPanel>
+                                    <DockPanel Margin="0,4,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
+                                        <TextBlock DockPanel.Dock="Left" Margin="0,0,6,0" Text="⚠" FontFamily="Segoe UI Symbol"
+                                                   AutomationProperties.Name="{Binding Profiles.Automation.Error}" />
+                                        <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error}"
+                                                   AutomationProperties.AutomationId="ProfileAutomationError" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Expander>
+
+                        <ListBox Grid.Row="2" ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
+                                 AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
+                            <ListBox.GroupStyle>
+                                <GroupStyle>
+                                    <GroupStyle.ContainerStyle>
+                                        <Style TargetType="GroupItem">
+                                            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                    <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.AllDevices}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </GroupStyle.ContainerStyle>
+                                    <GroupStyle.HeaderTemplate>
+                                        <DataTemplate>
+                                            <TextBlock x:Name="Heading" Margin="2,10,0,2" FontWeight="SemiBold" Text="{Binding Name}"
+                                                       Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                    <Setter TargetName="Heading" Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </GroupStyle.HeaderTemplate>
+                                </GroupStyle>
+                            </ListBox.GroupStyle>
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                    <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                    <!-- The short texts under the name, as the list shows them; null for a device without any. -->
+                                    <Setter Property="AutomationProperties.HelpText" Value="{Binding AccessibleHelpText}" />
+                                    <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:DeviceItem}">
+                                    <DockPanel Margin="2,4">
+                                        <!-- The item's text color, so the icon also shows on the selection highlight. -->
+                                        <Path Style="{StaticResource DeviceIcon}" DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
+                                              Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
+                                              ToolTip="{Binding TypeName}" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Details}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                            <TextBlock Text="{Binding LocationLabel}" Foreground="{x:Static SystemColors.GrayTextBrush}"
+                                                       Visibility="{Binding ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
+                                            <TextBlock TextWrapping="Wrap" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
+                                                       Visibility="{Binding LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
+                                                <Run Text="⚠" FontFamily="Segoe UI Symbol" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </views:ViewportGrid>
+                </ScrollViewer>
 
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12,12,16,16">
