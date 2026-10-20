@@ -1,3 +1,4 @@
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 
@@ -19,6 +20,15 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
     {
         var view = (LedPreviewView)Owner;
         return [.. GetChildren().OfType<LedAutomationPeer>().Where(led => view.IsSelected(led.Index)).Select(ProviderFromPeer)];
+    }
+
+    // The item of the LED says it is no longer selected, or now is.
+    public void RaiseSelectionChanged(int led, bool wasSelected)
+    {
+        if (GetChildren()?.ElementAtOrDefault(led) is LedAutomationPeer item)
+        {
+            item.RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, wasSelected, !wasSelected);
+        }
     }
 
     public override object? GetPattern(PatternInterface patternInterface) =>

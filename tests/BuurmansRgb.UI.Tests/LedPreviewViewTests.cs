@@ -63,12 +63,37 @@ public sealed class LedPreviewViewTests
         var first = peer.GetChildren();
 
         view.Colors = new RgbColor[3];
-        peer.ResetChildrenCache();
         Assert.Equal(first, peer.GetChildren());
 
         view.Colors = new RgbColor[2];
-        peer.ResetChildrenCache();
         Assert.Equal(first.Take(2), peer.GetChildren());
+    });
+
+    // Frames and selections come all the time; without a screen reader or other client, the view
+    // makes no automation peer for them.
+    [Fact]
+    public void NewColorsOrSelection_WithoutAutomationPeer_MakeNone() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3] });
+
+        view.Colors = new RgbColor[2];
+        view.SelectionFirst = 0;
+        view.SelectionLast = 1;
+
+        Assert.Null(UIElementAutomationPeer.FromElement(view));
+    });
+
+    // The selection changes in two steps; the items follow both.
+    [Fact]
+    public void AutomationPeer_SelectionOfTheView_IsTheSelectionOfTheItems() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[4] });
+        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+
+        view.SelectionFirst = 1;
+        view.SelectionLast = 2;
+
+        Assert.Equal([false, true, true, false], leds.Select(led => SelectionItem(led).IsSelected));
     });
 
     // Where the view says an LED is drawn is where a click picks that LED: on a ring, in a row

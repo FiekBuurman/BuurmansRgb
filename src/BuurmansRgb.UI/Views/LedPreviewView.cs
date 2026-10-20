@@ -20,7 +20,7 @@ public sealed class LedPreviewView : FrameworkElement
         nameof(Colors),
         typeof(IReadOnlyList<RgbColor>),
         typeof(LedPreviewView),
-        new FrameworkPropertyMetadata(Array.Empty<RgbColor>(), FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+        new FrameworkPropertyMetadata(Array.Empty<RgbColor>(), FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender, OnColorsChanged));
 
     public static readonly DependencyProperty MatrixProperty = DependencyProperty.Register(
         nameof(Matrix),
@@ -38,10 +38,10 @@ public sealed class LedPreviewView : FrameworkElement
         nameof(LedLabels), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new PropertyMetadata(null));
 
     public static readonly DependencyProperty SelectionFirstProperty = DependencyProperty.Register(
-        nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender));
+        nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender, OnSelectionFirstChanged));
 
     public static readonly DependencyProperty SelectionLastProperty = DependencyProperty.Register(
-        nameof(SelectionLast), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender));
+        nameof(SelectionLast), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender, OnSelectionLastChanged));
 
     public static readonly DependencyProperty ClickCommandProperty = DependencyProperty.Register(
         nameof(ClickCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null, OnClickCommandChanged));
@@ -221,6 +221,49 @@ public sealed class LedPreviewView : FrameworkElement
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
         ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
+
+    // A new frame comes many times a second, but only another number of LEDs changes the items
+    // UI Automation sees. Without a peer, nobody asked for them yet, so there is nothing to tell.
+    private static void OnColorsChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    {
+        if (((IReadOnlyList<RgbColor>)e.OldValue).Count != ((IReadOnlyList<RgbColor>)e.NewValue).Count
+            && UIElementAutomationPeer.FromElement((LedPreviewView)element) is LedPreviewAutomationPeer peer)
+        {
+            peer.ResetChildrenCache();
+        }
+    }
+
+    private static void OnSelectionFirstChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    {
+        var view = (LedPreviewView)element;
+        view.RaiseSelectionChanged((int)e.OldValue, view.SelectionLast);
+    }
+
+    private static void OnSelectionLastChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    {
+        var view = (LedPreviewView)element;
+        view.RaiseSelectionChanged(view.SelectionFirst, (int)e.OldValue);
+    }
+
+    // Tells a screen reader which LEDs left or joined the selection, from the range oldFirst to
+    // oldLast to the one of now.
+    private void RaiseSelectionChanged(int oldFirst, int oldLast)
+    {
+        if (UIElementAutomationPeer.FromElement(this) is not LedPreviewAutomationPeer peer
+            || !AutomationPeer.ListenerExists(AutomationEvents.PropertyChanged))
+        {
+            return;
+        }
+
+        for (var led = 0; led < Colors.Count; led++)
+        {
+            var wasSelected = led >= oldFirst && led <= oldLast;
+            if (wasSelected != IsSelected(led))
+            {
+                peer.RaiseSelectionChanged(led, wasSelected);
+            }
+        }
+    }
 
     private static int ColumnsFor(double width, int count)
     {
