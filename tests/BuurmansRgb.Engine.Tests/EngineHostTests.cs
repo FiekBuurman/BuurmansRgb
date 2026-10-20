@@ -220,9 +220,26 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(Blue, store.Settings.Color);
     }
 
-    private sealed class RecordingTrigger(Action started) : IProfileTrigger
+    // What a trigger puts back when it stops, such as the lighting from before a program, is saved.
+    [Fact]
+    public async Task Dispose_StopsTheProfileTriggersBeforeTheLastSave()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = Orange } };
+        var lighting = new LightingController([_simulated]);
+        var trigger = new RecordingTrigger(() => { }, () => lighting.Replace(LightingStates.Uniform(LightingStates.StaticLighting(Blue))));
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [trigger]);
+        await host.StartAsync(Ct);
+
+        host.Dispose();
+
+        Assert.Equal(Blue, store.Settings.Color);
+    }
+
+    private sealed class RecordingTrigger(Action started, Action? disposed = null) : IProfileTrigger
     {
         public void Start() => started();
+
+        public void Dispose() => disposed?.Invoke();
     }
 
     private async Task AssertAllSimulatedLedsAsync(RgbColor expected)

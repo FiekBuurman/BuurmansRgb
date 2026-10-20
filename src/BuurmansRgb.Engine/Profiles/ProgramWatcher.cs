@@ -13,7 +13,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // the engine starts or when its profile gets it counts from its next start. Called from the tray
 // thread, IPC threads and the timer; the lock guards the rest. Loading and restoring happen under
 // the lock, so the LightingChanged they raise themselves is counted before the next change.
-internal sealed class ProgramWatcher : IProfileTrigger, IDisposable
+internal sealed class ProgramWatcher : IProfileTrigger
 {
     public static TimeSpan DefaultPollInterval { get; } = TimeSpan.FromSeconds(2);
 

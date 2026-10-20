@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // (a new time or time zone, or waking up). A time that passed meanwhile is skipped, not caught up
 // on: after a night asleep the "night" profile would be wrong in the morning. Called from the tray
 // thread, IPC threads and the timer; the lock guards the timer.
-internal sealed class ProfileTimer : IProfileTrigger, IDisposable
+internal sealed class ProfileTimer : IProfileTrigger
 {
     // How late the timer may go off and still load the profile. A timer is a little late now and
     // then; much later means the pc slept or the clock jumped, and that time is skipped.

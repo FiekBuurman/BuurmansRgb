@@ -45,6 +45,11 @@ internal sealed class EngineHost(
     public void Dispose()
     {
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
+        foreach (var trigger in profileTriggers ?? [])
+        {
+            trigger.Dispose();
+        }
+
         _saver?.Dispose();
     }
 

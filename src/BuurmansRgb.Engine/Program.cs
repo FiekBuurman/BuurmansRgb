@@ -41,8 +41,9 @@ internal static class Program
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         var saveEvents = new SettingsSaveEvents();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
-        using var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System);
-        using var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
+        // The host disposes them, before it saves for the last time.
+        var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System);
+        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
