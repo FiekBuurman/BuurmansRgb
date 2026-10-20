@@ -101,5 +101,4 @@ public sealed class ResumeRestorerTests : IDisposable
     public void Create_WithDelaysThatDoNotGoUp_Throws(params int[] seconds) =>
         Assert.Throws<ArgumentException>(() =>
             new ResumeRestorer(_events, () => { }, _time, [.. seconds.Select(second => TimeSpan.FromSeconds(second))]));
-
 }
