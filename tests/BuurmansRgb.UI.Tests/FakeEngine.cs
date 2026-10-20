@@ -110,6 +110,9 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default) =>
         Record(string.Create(CultureInfo.InvariantCulture, $"speed {deviceId ?? "all"} {speed:0.00}"));
 
+    public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default) =>
+        Record($"loop {deviceId ?? "all"} {string.Join(",", colors.Select(color => color.ToHex()))} {(spread ? "spread" : "together")}");
+
     // Like the engine: a device without stored colors has its own color on every LED.
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<RgbColor>>(

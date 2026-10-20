@@ -16,6 +16,9 @@ internal record LightingSettings
 
     public double Speed { get; set; } = DeviceLighting.Default.Speed;
 
+    // Null for the default loop.
+    public ColorLoopSettings? ColorLoop { get; set; }
+
     public static LightingSettings From(DeviceLighting lighting)
     {
         var settings = new LightingSettings();
@@ -26,7 +29,10 @@ internal record LightingSettings
     // An unknown or missing effect falls back to static and brightness and speed are kept within
     // their range, so an old or edited file still loads into what the IPC would accept.
     public DeviceLighting ToDeviceLighting() =>
-        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed));
+        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed))
+        {
+            Loop = ColorLoop?.ToColorLoop() ?? Contracts.ColorLoop.Default,
+        };
 
     private static double ClampBrightness(double brightness) =>
         double.IsNaN(brightness) ? DeviceLighting.Default.Brightness : Math.Clamp(brightness, 0.0, 1.0);
@@ -40,5 +46,6 @@ internal record LightingSettings
         Brightness = lighting.Brightness;
         Effect = lighting.EffectId;
         Speed = lighting.Speed;
+        ColorLoop = ColorLoopSettings.From(lighting.Loop);
     }
 }

@@ -48,6 +48,29 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task SetColorLoopAsync_StoresACopyOfTheColors()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = new EngineApi(_lighting);
+        RgbColor[] colors = [new(255, 255, 0), new(0, 255, 0), new(0, 0, 255)];
+
+        await api.SetColorLoopAsync(null, colors, spread: false, Ct);
+        colors[0] = new RgbColor(1, 1, 1);
+
+        var loop = (await api.GetLightingAsync(null, Ct)).Loop;
+        Assert.Equal([new RgbColor(255, 255, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], loop!.Colors);
+        Assert.False(loop.Spread);
+    }
+
+    [Fact]
+    public async Task SetColorLoopAsync_OneColor_Throws()
+    {
+        using var api = new EngineApi(_lighting);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [new RgbColor(1, 2, 3)], spread: true, Ct));
+    }
+
+    [Fact]
     public void SettingsSaved_FollowsTheSaveEvents()
     {
         var saveEvents = new SettingsSaveEvents();

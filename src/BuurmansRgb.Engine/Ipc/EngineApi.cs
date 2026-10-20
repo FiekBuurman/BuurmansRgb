@@ -61,6 +61,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // A copy of the colors, so the caller cannot change the loop afterwards.
+    public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        var loop = new ColorLoop([.. colors], spread);
+        _lighting.SetLighting(deviceId, lighting => lighting with { Loop = loop });
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
         Task.FromResult(_lighting.GetLedColors(deviceId));
 
@@ -86,7 +95,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     // The wire formats are made here, so the lighting model does not know them, and outside the
     // controller's lock.
-    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed);
+    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop);
 
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);

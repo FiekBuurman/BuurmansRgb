@@ -18,6 +18,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string BrightnessCall = "brightness";
     private const string EffectCall = "effect";
     private const string SpeedCall = "speed";
+    private const string LoopCall = "loop";
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
@@ -29,6 +30,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
+
+    // The color of the selected device, which the color picker shows again when the effect
+    // changes from the color loop to another one.
+    private RgbColor _deviceColor = RgbColor.White;
 
     // time gives the clock time in the save status; tests pass a fake one.
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
@@ -42,6 +47,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
+        ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
+        ColorLoopEditor.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ColorLoopEditorViewModel.SelectedColor))
+            {
+                ShowPickerColor();
+            }
+        };
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -69,12 +82,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // While LEDs are selected in the preview, the color picker colors those LEDs instead of the device.
     public LedEditorViewModel LedEditor { get; } = new();
 
+    // With the color-loop effect, the color picker colors the selected color of the loop.
+    public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
+
+    public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
+
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -171,6 +189,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!_syncing.IsActive && value is not null)
         {
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
+            ShowPickerColor();
         }
     }
 
@@ -263,11 +282,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _syncing.Run(() =>
         {
-            ColorPicker.Show(LedEditor.HasSelection ? LedEditor.AnchorColor : lighting.Color);
+            _deviceColor = lighting.Color;
+            ColorLoopEditor.Show(lighting.Loop ?? ColorLoop.Default);
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
             Speed = Math.Round(lighting.Speed * 100.0);
         });
+        ShowPickerColor();
     }
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)
@@ -281,16 +302,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
     }
 
+    // The picker colors, in this order: the selected LEDs, the selected color of the loop, or the
+    // device.
     private void OnColorPicked(RgbColor color)
     {
         if (LedEditor.HasSelection)
         {
             SendLeds(LedEditor.Paint(color));
         }
+        else if (IsColorLoop)
+        {
+            ColorLoopEditor.Paint(color);
+        }
         else
         {
+            _deviceColor = color;
             Send(ColorCall, (api, deviceId) => api.SetColorAsync(deviceId, color));
         }
+    }
+
+    // What the picker shows follows the same order as OnColorPicked.
+    private void ShowPickerColor()
+    {
+        var color = LedEditor.HasSelection ? LedEditor.AnchorColor
+            : IsColorLoop ? ColorLoopEditor.SelectedColor
+            : _deviceColor;
+        _syncing.Run(() => ColorPicker.Show(color));
     }
 
     [RelayCommand(CanExecute = nameof(CanFillGradient))]

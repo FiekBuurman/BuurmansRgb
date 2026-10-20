@@ -69,6 +69,7 @@ dotnet run --project src/BuurmansRgb.Engine
     "brightness": 0.8,
     "effect": "rainbow",
     "speed": 1.5,
+    "colorLoop": { "colors": ["#FFFF00", "#00FF00", "#0000FF"], "spread": true },
     "simulatedDevices": true,
     "framesPerSecond": 30,
     "devices": {
@@ -82,7 +83,10 @@ dotnet run --project src/BuurmansRgb.Engine
 
   `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is een van de effecten
   hieronder. `speed` is de snelheid van een bewegend effect: 1 is normaal, van 0,1 (tien keer
-  zo langzaam) tot 3 (drie keer zo snel); ook per apparaat onder `devices`. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
+  zo langzaam) tot 3 (drie keer zo snel); ook per apparaat onder `devices`. `colorLoop` zijn de
+  2–8 kleuren van de Kleurenloop, met `spread` op `false` voor alle LED's tegelijk; zonder
+  `colorLoop` (of met te weinig of te veel kleuren) is het geel, groen, blauw.
+  `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
   van de engine), handig zodra de echte apparaten via OpenRGB werken. `framesPerSecond`
   (1–60, standaard 30) is de framerate van de bewegende effecten. Onder `devices` staan
   alleen apparaten met een eigen kleur of effect; de rest volgt de algemene waarden. Onder
@@ -123,6 +127,7 @@ daarna toe, dus de schuif werkt op elk effect.
 | Ademen | `breathing` | De kleur fadet in 4 seconden in en uit |
 | Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
 | Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
+| Kleurenloop | `color-loop` | Je eigen 2–8 kleuren die in elkaar overlopen en na de laatste weer bij de eerste beginnen, 0,2 loop per seconde. Over de LED's verdeeld (zoals de regenboog) of alle LED's tegelijk |
 | Per LED | `per-led` | Een opgeslagen kleur per LED (zie de per-LED-editor hieronder) |
 
 - **Render-loop:** alleen als minstens één apparaat een bewegend effect toont, draait een
@@ -379,8 +384,14 @@ dotnet run --project src/BuurmansRgb.UI
   verzadiging), de helderheid (0–100%), het effect, de snelheid en een voorbeeld met een
   bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op
   zijn plek.
+- **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder de kleurkiezer de
+  kleuren van de loop. Klik op een kleur en kies hierboven een nieuwe; met + voeg je een kleur
+  toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg. Voorbeeld:
+  geel, groen, blauw loopt van geel naar groen naar blauw en weer naar geel. Met "Kleuren over
+  de LED's verdelen" uit krijgen alle LED's tegelijk dezelfde kleur. De Snelheid werkt ook hier.
+  Een apparaat onthoudt zijn loop, ook als je tussendoor een ander effect kiest.
 - **Snelheid** (10–300%, standaard 100%) werkt alleen bij een bewegend effect (Ademen,
-  Regenboog, Golf); bij Statisch en Per LED staat de schuif grijs. Een nieuwe snelheid gaat
+  Regenboog, Golf, Kleurenloop); bij Statisch en Per LED staat de schuif grijs. Een nieuwe snelheid gaat
   verder waar de animatie was, zonder te verspringen, en apparaten die samen een nieuwe
   snelheid krijgen blijven gelijk lopen. Zie de tabel bij "Effecten" voor de normale snelheid.
 - **Opslaan gaat vanzelf.** Rechtsonder staat "Opgeslagen ✓" met de tijd zodra de engine je

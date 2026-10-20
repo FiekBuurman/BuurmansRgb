@@ -44,6 +44,34 @@ public sealed class EngineSettingsTests
     }
 
     [Fact]
+    public void From_ThenToLightingState_RoundTripsTheColorLoop()
+    {
+        var loop = new ColorLoop([Orange, Green, Blue, Orange], Spread: false);
+        var state = LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen with { Loop = loop } });
+
+        var settings = EngineSettings.From(state);
+        var roundTripped = settings.ToLightingState();
+
+        Assert.Null(settings.ColorLoop);
+        Assert.Equal(ColorLoop.Default, roundTripped.Global.Loop);
+        Assert.Equal(loop, roundTripped.For("fan").Loop);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(ColorLoop.MaxColors + 1)]
+    public void ToDeviceLighting_ColorLoopWithWrongNumberOfColors_FallsBackToTheDefaultColors(int count)
+    {
+        var settings = new LightingSettings { ColorLoop = new ColorLoopSettings { Colors = [.. Enumerable.Repeat(Orange, count)], Spread = false } };
+
+        var loop = settings.ToDeviceLighting().Loop;
+
+        Assert.Equal(ColorLoop.Default.Colors, loop.Colors);
+        Assert.False(loop.Spread);
+    }
+
+    [Fact]
     public void New_HasTheNormalSpeed()
     {
         Assert.Equal(EffectSpeed.Default, new EngineSettings().ToDeviceLighting().Speed);
