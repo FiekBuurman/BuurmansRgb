@@ -66,6 +66,7 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         var devices = await ConnectAsync();
 
         Assert.Equal([(DeviceType.Motherboard, 3), (DeviceType.Ram, 8), (DeviceType.Ram, 8)], devices.Select(device => (device.Type, device.LedCount)));
+        Assert.Equal([null, "0x70", "0x71"], devices.Select(device => device.Location?.Address));
         Assert.Equal([0, 1, 2], _connector.CustomModeIndexes);
 
         _provider.SetLeds(devices[2].Id, [.. Enumerable.Repeat(Orange, 8)]);

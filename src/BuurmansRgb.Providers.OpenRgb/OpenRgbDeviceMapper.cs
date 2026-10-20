@@ -1,11 +1,12 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using BuurmansRgb.Core;
 using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 
 namespace BuurmansRgb.Providers.OpenRgb;
 
-internal static class OpenRgbDeviceMapper
+internal static partial class OpenRgbDeviceMapper
 {
     private const string IdPrefix = "openrgb-";
 
@@ -31,11 +32,29 @@ internal static class OpenRgbDeviceMapper
             var id = UniqueId(CreateId(device), usedIds);
             var name = nameCounts[device.Name] > 1 ? NumberedName(device.Name, nameNumbers) : device.Name;
             var zones = device.Zones.Select(ToZone).ToArray();
-            var mappedDevice = new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount) { Source = DeviceSource.OpenRgb };
+            var mappedDevice = new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount)
+            {
+                Source = DeviceSource.OpenRgb,
+                Location = ToLocation(device.Location),
+            };
             mapped.Add(new(mappedDevice, device.Index));
         }
 
         return mapped;
+    }
+
+    // OpenRGB gives a device on the SMBus (RAM, many graphics cards and motherboards) as
+    // "I2C: <bus>, address 0x52"; the address is what tells the RAM sticks of a kit apart. Other
+    // locations, such as "HID: <path>" of a USB device, stay as they are.
+    public static DeviceLocation? ToLocation(string location)
+    {
+        if (string.IsNullOrWhiteSpace(location))
+        {
+            return null;
+        }
+
+        var match = SmBusLocation().Match(location);
+        return match.Success ? new(match.Groups["bus"].Value, match.Groups["address"].Value) : new(location);
     }
 
     public static bool HasDirectMode(OpenRgbDeviceData device) =>
@@ -91,6 +110,9 @@ internal static class OpenRgbDeviceMapper
 
         return unique;
     }
+
+    [GeneratedRegex(@"^I2C: (?<bus>.+), address (?<address>0x[0-9A-Fa-f]+)$")]
+    private static partial Regex SmBusLocation();
 
     private static string Slug(string name)
     {

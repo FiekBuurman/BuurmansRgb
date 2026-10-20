@@ -35,10 +35,26 @@ public sealed class DeviceInfoTests
     }
 
     [Fact]
-    public void From_TakesTheSourceOfTheDevice()
+    public void Equals_TheLocationDiffers_IsNotEqual()
     {
-        var device = new RgbDevice("fan", "Fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]) { Source = DeviceSource.Simulated };
+        var board = Board(2) with { Location = new DeviceLocation("PIIX4", "0x70") };
 
-        Assert.Equal(DeviceSource.Simulated, DeviceInfo.From(device).Source);
+        Assert.NotEqual(board, board with { Location = new DeviceLocation("PIIX4", "0x71") });
+        Assert.Equal(board, board with { Location = new DeviceLocation("PIIX4", "0x70") });
+    }
+
+    [Fact]
+    public void From_TakesTheSourceAndLocationOfTheDevice()
+    {
+        var device = new RgbDevice("fan", "Fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)])
+        {
+            Source = DeviceSource.Simulated,
+            Location = new DeviceLocation("HID: fan"),
+        };
+
+        var info = DeviceInfo.From(device);
+
+        Assert.Equal(DeviceSource.Simulated, info.Source);
+        Assert.Equal(new DeviceLocation("HID: fan"), info.Location);
     }
 }

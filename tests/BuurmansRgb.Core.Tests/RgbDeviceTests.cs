@@ -31,11 +31,14 @@ public sealed class RgbDeviceTests
     }
 
     [Fact]
-    public void WithZoneLength_KeepsTheSource()
+    public void WithZoneLength_KeepsTheSourceAndLocation()
     {
-        var simulated = Board with { Source = DeviceSource.Simulated };
+        var board = Board with { Source = DeviceSource.Simulated, Location = new DeviceLocation("PIIX4", "0x4E") };
 
-        Assert.Equal(DeviceSource.Simulated, simulated.WithZoneLength(1, 30).Source);
+        var resized = board.WithZoneLength(1, 30);
+
+        Assert.Equal(DeviceSource.Simulated, resized.Source);
+        Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), resized.Location);
     }
 
     [Theory]

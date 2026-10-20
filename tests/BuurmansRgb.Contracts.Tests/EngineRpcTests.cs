@@ -33,6 +33,8 @@ public sealed class EngineRpcTests : IDisposable
 
         Assert.Equal(_api.Devices, devices);
         Assert.Equal(DeviceSource.Simulated, devices[0].Source);
+        Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), devices[1].Location);
+        Assert.Null(devices[0].Location);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
     }
 
@@ -225,7 +227,10 @@ public sealed class EngineRpcTests : IDisposable
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
-            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)])
+            {
+                Location = new DeviceLocation("PIIX4", "0x4E"),
+            },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
         ];
