@@ -177,6 +177,30 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3]);
     }
 
+    // The simulated devices start with their first length again; the engine gives them the saved one.
+    [Fact]
+    public async Task ZoneLengths_AreKeptAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        using (var lighting = new LightingController([_simulated]))
+        using (var zoneLengths = new ZoneLengthKeeper(lighting))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), zoneLengths: zoneLengths))
+        {
+            await host.StartAsync(Ct);
+            zoneLengths.ResizeZone("simulated-argb", 1, 15);
+        }
+
+        Assert.Equal(15, store.LoadOrCreate().ReadZoneLengths()["simulated-argb"]["ARGB 2"]);
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedZoneLengths = new ZoneLengthKeeper(restartedLighting);
+        using var restartedHost = new EngineHost(store, restartedLighting, zoneLengths: restartedZoneLengths);
+        await restartedHost.StartAsync(Ct);
+
+        await Eventually.TrueAsync(() => restartedLighting.Devices.Single(device => device.Id == "simulated-argb").Zones[1].LedCount == 15);
+        Assert.Equal(35, restarted.GetLeds("simulated-argb").Length);
+    }
+
     [Fact]
     public async Task StartAsync_UsesTheSavedFrameRate()
     {

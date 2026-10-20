@@ -12,7 +12,23 @@ internal sealed record EngineSettings : LightingStateSettings
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;
 
+    // "zoneLengths": by device id, the LED count the user gave each resizable zone, by zone name.
+    // Null instead of empty, so the default settings stay out of the file.
+    public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }
+
     public static EngineSettings CreateDefault() => new();
+
+    // The zone lengths as ZoneLengthKeeper takes them; a device without zones (null) is left out.
+    public IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> ReadZoneLengths() =>
+        (ZoneLengths ?? []).Where(pair => pair.Value is not null)
+            .ToDictionary(pair => pair.Key, pair => (IReadOnlyDictionary<string, int>)pair.Value!);
+
+    public EngineSettings WithZoneLengths(IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> lengths) => this with
+    {
+        ZoneLengths = lengths.Count > 0
+            ? lengths.ToDictionary(pair => pair.Key, pair => (Dictionary<string, int>?)new Dictionary<string, int>(pair.Value))
+            : null,
+    };
 
     public static EngineSettings From(LightingState state) => CreateDefault().WithLighting(state);
 

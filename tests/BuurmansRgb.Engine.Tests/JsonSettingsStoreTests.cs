@@ -85,6 +85,42 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_ZoneLengthsWrittenByHand_AreReadByDeviceAndZoneName()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "zoneLengths": { "simulated-argb": { "ARGB 2": 15 }, "gone": null } }""");
+
+        var lengths = new JsonSettingsStore(path).LoadOrCreate().ReadZoneLengths();
+
+        var device = Assert.Single(lengths);
+        Assert.Equal("simulated-argb", device.Key);
+        Assert.Equal(15, device.Value["ARGB 2"]);
+    }
+
+    [Fact]
+    public void Save_ZoneLengths_RoundTrip()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var lengths = new Dictionary<string, IReadOnlyDictionary<string, int>> { ["simulated-argb"] = new Dictionary<string, int> { ["ARGB 2"] = 15 } };
+
+        store.Save(EngineSettings.CreateDefault().WithZoneLengths(lengths));
+
+        Assert.Contains("\"zoneLengths\"", File.ReadAllText(path));
+        Assert.Equal(lengths, store.LoadOrCreate().ReadZoneLengths());
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesZoneLengthsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithZoneLengths(new Dictionary<string, IReadOnlyDictionary<string, int>>()));
+
+        Assert.DoesNotContain("zoneLengths", File.ReadAllText(path));
+    }
+
+    [Fact]
     public void Save_Defaults_LeavesLedColorsOutOfTheFile()
     {
         var path = _directory.File("settings.json");

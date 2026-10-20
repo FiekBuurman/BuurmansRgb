@@ -54,7 +54,9 @@ public partial interface IEngineApi
     Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
 
     // Gives a resizable zone (an index into the device's zones) another number of LEDs, within its
-    // range. The device may get its new length a little later; DevicesChanged then follows.
+    // range. The device may get its new length a little later; DevicesChanged then follows. The
+    // engine saves the length and gives it back when the device reports another one, for example
+    // after OpenRGB restarted.
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 
     // Lets the device blink white a few times, so the user can see which one it is; then it shows

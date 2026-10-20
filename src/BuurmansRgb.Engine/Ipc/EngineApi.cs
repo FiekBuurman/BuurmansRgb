@@ -11,6 +11,7 @@ namespace BuurmansRgb.Engine.Ipc;
 internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
+    private readonly ZoneLengthKeeper _zoneLengths;
     private readonly ProfileLibrary _profiles;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly IServerStatusSource _openRgb;
@@ -18,12 +19,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public EngineApi(
         LightingController lighting,
+        ZoneLengthKeeper zoneLengths,
         ProfileLibrary profiles,
         SimulatedDevicesSwitch simulatedDevices,
         IServerStatusSource openRgb,
         SettingsSaveEvents? saveEvents = null)
     {
         _lighting = lighting;
+        _zoneLengths = zoneLengths;
         _profiles = profiles;
         _simulatedDevices = simulatedDevices;
         _openRgb = openRgb;
@@ -97,7 +100,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
     {
-        _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+        _zoneLengths.ResizeZone(deviceId, zoneIndex, ledCount);
         return Task.CompletedTask;
     }
 
