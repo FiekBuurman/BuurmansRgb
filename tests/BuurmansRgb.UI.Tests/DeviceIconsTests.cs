@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Views;
 
@@ -5,25 +6,35 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class DeviceIconsTests
 {
+    private static readonly Geometry[] AllIcons =
+    [
+        DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.Gpu, DeviceIcons.Fan, DeviceIcons.LedStrip, DeviceIcons.Case,
+        DeviceIcons.Keyboard, DeviceIcons.Mouse, DeviceIcons.Headset, DeviceIcons.AllDevices, DeviceIcons.Device,
+    ];
+
     [Fact]
-    public void For_MotherboardRamAndAllDevices_HaveTheirOwnIcon()
+    public void For_TypesWithAnIconAndAllDevices_HaveTheirOwnIcon()
     {
         Assert.Same(DeviceIcons.Motherboard, DeviceIcons.For(DeviceType.Motherboard));
         Assert.Same(DeviceIcons.Ram, DeviceIcons.For(DeviceType.Ram));
+        Assert.Same(DeviceIcons.Gpu, DeviceIcons.For(DeviceType.Gpu));
+        Assert.Same(DeviceIcons.Fan, DeviceIcons.For(DeviceType.Fan));
+        Assert.Same(DeviceIcons.LedStrip, DeviceIcons.For(DeviceType.LedStrip));
+        Assert.Same(DeviceIcons.Case, DeviceIcons.For(DeviceType.Case));
+        Assert.Same(DeviceIcons.Keyboard, DeviceIcons.For(DeviceType.Keyboard));
+        Assert.Same(DeviceIcons.Mouse, DeviceIcons.For(DeviceType.Mouse));
+        Assert.Same(DeviceIcons.Headset, DeviceIcons.For(DeviceType.Headset));
         Assert.Same(DeviceIcons.AllDevices, DeviceIcons.For(null));
-        Assert.Equal(4, new[] { DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.AllDevices, DeviceIcons.Device }.Distinct().Count());
+        Assert.Equal(AllIcons.Length, AllIcons.Distinct().Count());
     }
 
-    [Theory]
-    [InlineData(DeviceType.Gpu)]
-    [InlineData(DeviceType.Fan)]
-    [InlineData(DeviceType.Other)]
-    public void For_TypeWithoutIcon_GetsTheDeviceIcon(DeviceType type) => Assert.Same(DeviceIcons.Device, DeviceIcons.For(type));
+    [Fact]
+    public void For_TypeWithoutIcon_GetsTheDeviceIcon() => Assert.Same(DeviceIcons.Device, DeviceIcons.For(DeviceType.Other));
 
     [Fact]
     public void Icons_FitTheIconSquare()
     {
-        foreach (var icon in new[] { DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.AllDevices, DeviceIcons.Device })
+        foreach (var icon in AllIcons)
         {
             Assert.True(icon.IsFrozen);
             Assert.InRange(icon.Bounds.Left, 0, DeviceIcons.Size);

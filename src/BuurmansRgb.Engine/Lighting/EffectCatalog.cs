@@ -22,8 +22,16 @@ internal static class EffectCatalog
 
     public static bool IsKnown([NotNullWhen(true)] string? effectId) => effectId is not null && Factories.ContainsKey(effectId);
 
+    public static void ThrowIfUnknown(string? effectId)
+    {
+        if (!IsKnown(effectId))
+        {
+            throw UnknownEffect(effectId);
+        }
+    }
+
     public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors) =>
-        Factories.TryGetValue(effectId, out var create)
-            ? create(color, ledColors)
-            : throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));
+        Factories.TryGetValue(effectId, out var create) ? create(color, ledColors) : throw UnknownEffect(effectId);
+
+    private static ArgumentException UnknownEffect(string? effectId) => new($"Unknown effect '{effectId}'.", nameof(effectId));
 }

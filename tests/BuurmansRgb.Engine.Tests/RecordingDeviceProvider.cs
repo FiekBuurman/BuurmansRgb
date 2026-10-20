@@ -8,7 +8,7 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
     public const string DeviceId = "recording-device";
 
     private readonly IReadOnlyList<RgbDevice> _devices =
-        [new(deviceId, "Recording device", DeviceType.Other, [new RgbZone("Zone", 3, Resizable: false)])];
+        [new(deviceId, "Recording device", DeviceType.Other, [RgbZone.Fixed("Zone", 3)])];
 
     private readonly Lock _gate = new();
     private int _setLedsCount;
@@ -16,6 +16,9 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
     private RgbColor[] _lastColors = [];
 
     public string Name => "Recording";
+
+    // The one device DiscoverAsync reports.
+    public RgbDevice Device => _devices[0];
 
     public int SetLedsCount
     {

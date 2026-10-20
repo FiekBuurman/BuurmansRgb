@@ -12,13 +12,13 @@ public sealed class DeviceItemTests
     {
         [DeviceType.Motherboard] = "Moederbord",
         [DeviceType.Ram] = "RAM",
-        [DeviceType.Gpu] = null,
-        [DeviceType.Fan] = null,
-        [DeviceType.LedStrip] = null,
-        [DeviceType.Case] = null,
-        [DeviceType.Keyboard] = null,
-        [DeviceType.Mouse] = null,
-        [DeviceType.Headset] = null,
+        [DeviceType.Gpu] = "Videokaart",
+        [DeviceType.Fan] = "Ventilator",
+        [DeviceType.LedStrip] = "LED-strip",
+        [DeviceType.Case] = "Behuizing",
+        [DeviceType.Keyboard] = "Toetsenbord",
+        [DeviceType.Mouse] = "Muis",
+        [DeviceType.Headset] = "Headset",
         [DeviceType.Other] = null,
     };
 
@@ -34,7 +34,7 @@ public sealed class DeviceItemTests
     public void For_MotherboardWithZones_ShowsTypeLedsAndZones()
     {
         var motherboard = new DeviceInfo("board", "ASUS TUF GAMING B650-PLUS", DeviceType.Motherboard, 7,
-            [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]);
+            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
 
         var item = DeviceItem.For(motherboard);
 
@@ -55,12 +55,56 @@ public sealed class DeviceItemTests
     }
 
     [Fact]
-    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    public void For_GpuWithLightBarAndLogo_ShowsTypeLedsAndZones()
+    {
+        var gpu = new DeviceInfo("gpu", "ASUS ROG STRIX RTX 4080", DeviceType.Gpu, 13,
+            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]);
+
+        var item = DeviceItem.For(gpu);
+
+        Assert.Equal(DeviceType.Gpu, item.Type);
+        Assert.Equal("Videokaart", item.TypeName);
+        Assert.Equal("Videokaart · 13 LED's in 2 zones", item.Details);
+    }
+
+    [Fact]
+    public void For_FanWithOneRing_ShowsTypeAndLeds()
     {
         var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12));
 
+        Assert.Equal("Ventilator", item.TypeName);
+        Assert.Equal("Ventilator · 12 LED's", item.Details);
+    }
+
+    [Fact]
+    public void For_KeyboardWithOneZone_ShowsTypeAndLeds()
+    {
+        var item = DeviceItem.For(TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104));
+
+        Assert.Equal("Toetsenbord", item.TypeName);
+        Assert.Equal("Toetsenbord · 104 LED's", item.Details);
+    }
+
+    [Fact]
+    public void For_MouseWithZones_ShowsTypeLedsAndZones()
+    {
+        var mouse = new DeviceInfo("mouse", "Logitech G502 HERO", DeviceType.Mouse, 2,
+            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]);
+
+        var item = DeviceItem.For(mouse);
+
+        Assert.Equal(DeviceType.Mouse, item.Type);
+        Assert.Equal("Muis", item.TypeName);
+        Assert.Equal("Muis · 2 LED's in 2 zones", item.Details);
+    }
+
+    [Fact]
+    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    {
+        var item = DeviceItem.For(TestDevices.Create("mousemat", "Mousemat", DeviceType.Other, 15));
+
         Assert.Null(item.TypeName);
-        Assert.Equal("12 LED's", item.Details);
+        Assert.Equal("15 LED's", item.Details);
     }
 
     [Fact]

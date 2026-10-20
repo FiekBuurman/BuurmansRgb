@@ -18,4 +18,11 @@ internal static class TestDevices
         zones ??= [new OpenRgbZoneData("Zone", ledCount, ledCount, ledCount)];
         return new(index, type, name, location, serial, zones, modes ?? ["Direct", "Static"], zones.Sum(zone => zone.LedCount));
     }
+
+    public static OpenRgbDeviceData Resize(OpenRgbDeviceData device, int zoneIndex, int ledCount)
+    {
+        OpenRgbZoneData[] zones = [.. device.Zones];
+        zones[zoneIndex] = zones[zoneIndex] with { LedCount = ledCount };
+        return device with { Zones = zones, LedCount = zones.Sum(zone => zone.LedCount) };
+    }
 }

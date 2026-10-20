@@ -8,7 +8,7 @@ internal sealed class RestorableDeviceProvider : IRestorableDeviceProvider
     public const string DeviceId = "restorable-device";
 
     private static readonly IReadOnlyList<RgbDevice> Devices =
-        [new(DeviceId, "Restorable device", DeviceType.Motherboard, [new RgbZone("Mainboard", 2, Resizable: false)])];
+        [new(DeviceId, "Restorable device", DeviceType.Motherboard, [RgbZone.Fixed("Mainboard", 2)])];
 
     public List<string> Calls { get; } = [];
 

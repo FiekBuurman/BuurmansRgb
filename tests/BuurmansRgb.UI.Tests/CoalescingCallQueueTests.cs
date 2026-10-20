@@ -99,7 +99,7 @@ public sealed class CoalescingCallQueueTests
             }
 
             Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the calls.");
-            await Task.Delay(10, TestContext.Current.CancellationToken);
+            await Task.Delay(10, Ct);
         }
     }
 }

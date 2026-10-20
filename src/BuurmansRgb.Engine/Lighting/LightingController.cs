@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
 // An AnimationLoop renders the frames, and only while an animated effect shows and nothing is
 // paused; with static lighting no timer runs at all.
-internal sealed class LightingController : IDisposable
+internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
     public const int MaxFramesPerSecond = 60;
@@ -18,15 +18,18 @@ internal sealed class LightingController : IDisposable
     private readonly Lock _gate = new();
 
     // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
+    // Not disposed: a refresh may still hold it or wait for it when the controller is disposed, and
+    // without AvailableWaitHandle it holds no kernel handle.
     private readonly SemaphoreSlim _discovering = new(1, 1);
     private readonly TimeProvider _time;
     private readonly long _epoch;
     private readonly AnimationLoop _animation;
-    private readonly DeviceOutput[][] _outputsByProvider;
-    private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
+    private readonly DeviceOutputs _outputs;
+    private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
-    private DeviceOutput[] _outputs = [];
-    private DeviceLighting? _global;
+
+    // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
+    private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
     private bool _isPaused;
 
     // A restore that waits for the pause to end.
@@ -42,14 +45,16 @@ internal sealed class LightingController : IDisposable
         _time = timeProvider ?? TimeProvider.System;
         _epoch = _time.GetTimestamp();
         _animation = new AnimationLoop(_time, FramePeriodLocked, RenderAnimationFrame);
-        _outputsByProvider = [.. providers.Select(_ => Array.Empty<DeviceOutput>())];
+        _outputs = new DeviceOutputs(providers.Count);
         for (var index = 0; index < providers.Count; index++)
         {
             if (providers[index] is IDynamicDeviceProvider dynamicProvider)
             {
                 var providerIndex = index;
                 // On the thread pool: the provider may raise this while the engine waits for it.
-                dynamicProvider.DevicesChanged += (_, _) => _ = Task.Run(() => RefreshAsync(providerIndex));
+                EventHandler handler = (_, _) => _ = Task.Run(() => RefreshAsync(providerIndex));
+                dynamicProvider.DevicesChanged += handler;
+                _devicesChangedHandlers.Add((dynamicProvider, handler));
             }
         }
     }
@@ -58,7 +63,8 @@ internal sealed class LightingController : IDisposable
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
     public event EventHandler? Rendered;
 
-    // Raised when the lighting is changed through SetLighting, not when it is applied from settings.
+    // Raised when the lighting is changed through SetLighting or SetLedColors, or when stored LED
+    // colors moved with a resized zone; not when it is applied from settings.
     public event EventHandler? LightingChanged;
 
     // Raised when the device list changed, before the render that gives new devices their lighting.
@@ -114,7 +120,7 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return [.. _outputs.Select(output => output.Device)];
+                return [.. _outputs.All.Select(output => output.Device)];
             }
         }
     }
@@ -125,10 +131,7 @@ internal sealed class LightingController : IDisposable
         {
             lock (_gate)
             {
-                return new(
-                    GlobalLocked,
-                    new Dictionary<string, DeviceLighting>(_deviceLighting),
-                    _ledColors.Snapshot());
+                return new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
             }
         }
     }
@@ -147,13 +150,7 @@ internal sealed class LightingController : IDisposable
         bool rendered;
         lock (_gate)
         {
-            _global = state.Global;
-            _deviceLighting.Clear();
-            foreach (var (deviceId, lighting) in state.Devices)
-            {
-                _deviceLighting[deviceId] = lighting;
-            }
-
+            _lighting.Replace(state.Global, state.Devices);
             _ledColors.Replace(state.LedColors);
 
             rendered = RenderLocked();
@@ -169,17 +166,18 @@ internal sealed class LightingController : IDisposable
         {
             if (deviceId is null)
             {
-                return GlobalLocked;
+                return _lighting.Global;
             }
 
             KnownDeviceLocked(deviceId);
-            return LightingForLocked(deviceId);
+            return _lighting.Get(deviceId);
         }
     }
 
     // A global change also applies to every device with its own lighting, so a global color keeps
     // a device's own brightness and the other way round. Changing one device starts from what
-    // that device shows now.
+    // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect
+    // throws ArgumentException and changes nothing.
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
     {
         bool rendered;
@@ -187,18 +185,12 @@ internal sealed class LightingController : IDisposable
         {
             if (deviceId is null)
             {
-                _global = change(GlobalLocked);
-                foreach (var (id, lighting) in _deviceLighting.ToArray())
-                {
-                    SetDeviceLightingLocked(id, change(lighting));
-                }
+                _lighting.SetGlobal(change);
             }
             else
             {
                 KnownDeviceLocked(deviceId);
-                var lighting = change(LightingForLocked(deviceId));
-                _global = GlobalLocked;
-                SetDeviceLightingLocked(deviceId, lighting);
+                _lighting.Set(deviceId, change(_lighting.Get(deviceId)));
             }
 
             rendered = RenderLocked();
@@ -215,7 +207,7 @@ internal sealed class LightingController : IDisposable
         lock (_gate)
         {
             var device = KnownDeviceLocked(deviceId);
-            return _ledColors.Resolve(deviceId, device.LedCount, LightingForLocked(deviceId).Color);
+            return _ledColors.Resolve(deviceId, device.LedCount, _lighting.Get(deviceId).Color);
         }
     }
 
@@ -233,8 +225,7 @@ internal sealed class LightingController : IDisposable
             ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
 
             _ledColors.Set(deviceId, firstLed, colors);
-            _global = GlobalLocked;
-            SetDeviceLightingLocked(deviceId, LightingForLocked(deviceId) with { EffectId = EffectIds.PerLed });
+            _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
         }
 
@@ -242,12 +233,34 @@ internal sealed class LightingController : IDisposable
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Gives a resizable zone another length. The provider applies it, possibly in the background,
+    // and reports the device again through DevicesChanged; the lights follow then.
+    public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+    {
+        IResizableDeviceProvider provider;
+        lock (_gate)
+        {
+            var output = KnownOutputLocked(deviceId);
+            var zone = output.Device.GetZone(zoneIndex);
+            if (!zone.Resizable || output.Provider is not IResizableDeviceProvider resizable)
+            {
+                throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
+            }
+
+            zone.ThrowIfCannotHold(ledCount);
+            provider = resizable;
+        }
+
+        // Outside the lock: a provider may report the change right away.
+        provider.ResizeZone(deviceId, zoneIndex, ledCount);
+    }
+
     // Copies the buffers, so the caller can convert them without holding the lock.
     public LightingOutput GetOutput()
     {
         lock (_gate)
         {
-            return new(_sequence, [.. _outputs.Select(output => new DeviceColors(output.Device.Id, [.. output.Buffer]))]);
+            return new(_sequence, [.. _outputs.All.Select(output => new DeviceColors(output.Device.Id, [.. output.Buffer]))]);
         }
     }
 
@@ -319,7 +332,7 @@ internal sealed class LightingController : IDisposable
             }
 
             var time = EffectTime;
-            foreach (var output in _outputs)
+            foreach (var output in _outputs.All)
             {
                 if (output.IsAnimated)
                 {
@@ -341,8 +354,18 @@ internal sealed class LightingController : IDisposable
     {
         lock (_gate)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
             _animation.Dispose();
+        }
+
+        foreach (var (provider, handler) in _devicesChangedHandlers)
+        {
+            provider.DevicesChanged -= handler;
         }
     }
 
@@ -367,15 +390,27 @@ internal sealed class LightingController : IDisposable
             var provider = _providers[providerIndex];
             var devices = await provider.DiscoverAsync(ct);
             bool rendered;
+            bool ledColorsMoved;
             lock (_gate)
             {
-                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device))];
-                _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
+                // Disposed while the provider answered: the engine is shutting down, so the
+                // devices keep what they show.
+                if (_disposed)
+                {
+                    return;
+                }
+
+                var previous = _outputs.Replace(providerIndex, provider, devices);
+                ledColorsMoved = MoveLedColorsLocked(previous, devices);
                 rendered = render && RenderLocked();
             }
 
             DevicesChanged?.Invoke(this, EventArgs.Empty);
             Publish(rendered);
+            if (ledColorsMoved)
+            {
+                LightingChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
         finally
         {
@@ -387,15 +422,15 @@ internal sealed class LightingController : IDisposable
     // there is no lighting to render yet.
     private bool RenderLocked()
     {
-        if (_global is null)
+        if (!_lighting.IsSet)
         {
             return false;
         }
 
         var time = EffectTime;
-        foreach (var output in _outputs)
+        foreach (var output in _outputs.All)
         {
-            var lighting = LightingForLocked(output.Device.Id);
+            var lighting = _lighting.Get(output.Device.Id);
             output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
             output.Render(time);
             if (!_isPaused)
@@ -407,6 +442,23 @@ internal sealed class LightingController : IDisposable
         _sequence++;
         UpdateAnimationLocked();
         return true;
+    }
+
+    // A zone that got another length, here or in the provider's own app, shifts the LEDs after
+    // it: the stored per-LED colors move along, so every zone keeps its own colors. Returns true
+    // when any colors moved.
+    private bool MoveLedColorsLocked(IReadOnlyList<RgbDevice> previous, IReadOnlyList<RgbDevice> devices)
+    {
+        var moved = false;
+        foreach (var device in devices)
+        {
+            if (previous.FirstOrDefault(candidate => candidate.Id == device.Id) is { } old)
+            {
+                moved |= _ledColors.MoveWithZones(device.Id, old.Zones, device.Zones);
+            }
+        }
+
+        return moved;
     }
 
     private void RestoreProvidersLocked()
@@ -432,7 +484,7 @@ internal sealed class LightingController : IDisposable
 
     private void UpdateAnimationLocked()
     {
-        if (!_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated))
+        if (!_disposed && !_isPaused && _lighting.IsSet && _outputs.All.Any(output => output.IsAnimated))
         {
             _animation.Start();
         }
@@ -450,26 +502,9 @@ internal sealed class LightingController : IDisposable
         }
     }
 
-    // Until the lighting is applied or first changed, everything counts as the default.
-    private DeviceLighting GlobalLocked => _global ?? DeviceLighting.Default;
+    private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
 
-    private DeviceLighting LightingForLocked(string deviceId) => _deviceLighting.GetValueOrDefault(deviceId, GlobalLocked);
-
-    // A device that ends up equal to the global lighting follows it again, which keeps the
-    // settings file to the devices that really differ.
-    private void SetDeviceLightingLocked(string deviceId, DeviceLighting lighting)
-    {
-        if (lighting == GlobalLocked)
-        {
-            _deviceLighting.Remove(deviceId);
-        }
-        else
-        {
-            _deviceLighting[deviceId] = lighting;
-        }
-    }
-
-    private RgbDevice KnownDeviceLocked(string deviceId) =>
-        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)?.Device
-            ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+    private DeviceOutput KnownOutputLocked(string deviceId) =>
+        _outputs.Find(deviceId)
+            ?? throw DeviceErrors.Unknown(deviceId);
 }

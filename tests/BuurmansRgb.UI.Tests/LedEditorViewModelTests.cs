@@ -5,8 +5,6 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class LedEditorViewModelTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
     private static readonly RgbColor White = RgbColor.White;
 
     private readonly LedEditorViewModel _editor = new();
@@ -43,6 +41,38 @@ public sealed class LedEditorViewModelTests
         Assert.Equal((1, 3), (_editor.Selection!.First, _editor.Selection.Last));
         Assert.Equal("LED 2 t/m 4 van Strip", _editor.SelectionText);
         Assert.True(_editor.CanFillGradient);
+    }
+
+    [Fact]
+    public void SelectRange_SelectsTheLedsAndAnchorsTheFirst()
+    {
+        _editor.Start("fan", "Fan", [White, Red, White, Blue, White], 0);
+
+        _editor.SelectRange(1, 3);
+
+        Assert.Equal(new LedSelection("fan", "Fan", 1, 3), _editor.Selection);
+        Assert.Equal(Red, _editor.AnchorColor);
+    }
+
+    [Theory]
+    [InlineData(-1, 2)]
+    [InlineData(2, 1)]
+    [InlineData(1, 5)]
+    public void SelectRange_OutsideTheColors_KeepsTheSelection(int first, int last)
+    {
+        _editor.Start("fan", "Fan", [White, White, White, White, White], 0);
+
+        _editor.SelectRange(first, last);
+
+        Assert.Equal(new LedSelection("fan", "Fan", 0, 0), _editor.Selection);
+    }
+
+    [Fact]
+    public void SelectRange_BeforeStart_SelectsNothing()
+    {
+        _editor.SelectRange(0, 1);
+
+        Assert.Null(_editor.Selection);
     }
 
     [Fact]

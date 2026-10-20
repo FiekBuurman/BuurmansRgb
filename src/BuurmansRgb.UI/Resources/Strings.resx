@@ -40,7 +40,22 @@
     <value>Geen LED's</value>
   </data>
   <data name="ZoneWithoutLedsResizable" xml:space="preserve">
-    <value>Geen LED's: stel in OpenRGB in hoeveel LED's hierop zitten</value>
+    <value>Geen LED's: stel hieronder in hoeveel LED's hierop zitten</value>
+  </data>
+  <data name="ZoneLedCountLabel" xml:space="preserve">
+    <value>Aantal LED's ({0}–{1}):</value>
+  </data>
+  <data name="ZoneLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's van {0}</value>
+  </data>
+  <data name="ApplyLedCount" xml:space="preserve">
+    <value>Toepassen</value>
+  </data>
+  <data name="ApplyLedCountAccessibleName" xml:space="preserve">
+    <value>Aantal LED's toepassen voor {0}</value>
+  </data>
+  <data name="ApplyLedCountToolTip" xml:space="preserve">
+    <value>Geeft deze zone het nieuwe aantal LED's, bijvoorbeeld de lengte van de strip die erop zit.</value>
   </data>
   <data name="ZoneHeader" xml:space="preserve">
     <value>{0} · {1}</value>
@@ -56,6 +71,27 @@
   </data>
   <data name="DeviceType_Ram" xml:space="preserve">
     <value>RAM</value>
+  </data>
+  <data name="DeviceType_Gpu" xml:space="preserve">
+    <value>Videokaart</value>
+  </data>
+  <data name="DeviceType_Fan" xml:space="preserve">
+    <value>Ventilator</value>
+  </data>
+  <data name="DeviceType_LedStrip" xml:space="preserve">
+    <value>LED-strip</value>
+  </data>
+  <data name="DeviceType_Case" xml:space="preserve">
+    <value>Behuizing</value>
+  </data>
+  <data name="DeviceType_Keyboard" xml:space="preserve">
+    <value>Toetsenbord</value>
+  </data>
+  <data name="DeviceType_Mouse" xml:space="preserve">
+    <value>Muis</value>
+  </data>
+  <data name="DeviceType_Headset" xml:space="preserve">
+    <value>Headset</value>
   </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
@@ -94,7 +130,10 @@
     <value>Per LED</value>
   </data>
   <data name="PreviewHint" xml:space="preserve">
-    <value>Klik op een LED om hem een eigen kleur te geven. Met Shift+klik kies je een reeks.</value>
+    <value>Klik op een LED om hem een eigen kleur te geven. Met Shift+klik kies je een reeks, met een klik op de naam van een zone (bijv. een ring van een ventilator) de hele zone.</value>
+  </data>
+  <data name="SelectZoneToolTip" xml:space="preserve">
+    <value>Selecteert alle LED's van deze zone, zodat je ze samen een kleur geeft.</value>
   </data>
   <data name="LedSelectionSingle" xml:space="preserve">
     <value>LED {0} van {1}</value>

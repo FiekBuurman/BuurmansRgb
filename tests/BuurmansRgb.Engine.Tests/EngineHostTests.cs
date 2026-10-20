@@ -20,7 +20,7 @@ public sealed class EngineHostTests : IDisposable
         store.Save(new EngineSettings { Color = new RgbColor(0, 200, 100), Brightness = 0.5 });
         var host = new EngineHost(store, new LightingController([_simulated]));
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         await AssertAllSimulatedLedsAsync(new RgbColor(0, 100, 50));
     }
@@ -31,7 +31,7 @@ public sealed class EngineHostTests : IDisposable
         var store = new JsonSettingsStore(_directory.File("settings.json"));
         var host = new EngineHost(store, new LightingController([_simulated]));
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         var defaults = EngineSettings.CreateDefault();
         await AssertAllSimulatedLedsAsync(defaults.Color.Scale(defaults.Brightness));
@@ -46,10 +46,10 @@ public sealed class EngineHostTests : IDisposable
         };
         using var host = new EngineHost(store, new LightingController([_simulated]));
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(new RgbColor(0, 0, 255), led));
-        Assert.All(_simulated.GetLeds("simulated-strip").ToArray(), led => Assert.Equal(RgbColor.White, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+        Assert.All(_simulated.GetLeds("simulated-strip"), led => Assert.Equal(RgbColor.White, led));
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public sealed class EngineHostTests : IDisposable
         var store = new InMemorySettingsStore();
         var lighting = new LightingController([_simulated]);
         var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1));
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
         lighting.SetLighting("simulated-fan", current => current with { Brightness = 0.3 });
 
         host.Dispose();
@@ -71,7 +71,7 @@ public sealed class EngineHostTests : IDisposable
     {
         var store = new InMemorySettingsStore();
         var host = new EngineHost(store, new LightingController([_simulated]), saveDelay: TimeSpan.FromHours(1));
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         host.Dispose();
 
@@ -82,15 +82,15 @@ public sealed class EngineHostTests : IDisposable
     public async Task StartAsync_SimulatedDevicesOff_HidesThemAndLeavesThemDark()
     {
         var store = new InMemorySettingsStore { Settings = new EngineSettings { SimulatedDevices = false } };
-        var simulatedDevices = new SwitchableDeviceProvider(_simulated);
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
         var lighting = new LightingController([simulatedDevices]);
         using var host = new EngineHost(store, lighting, simulatedDevices: simulatedDevices);
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         Assert.False(simulatedDevices.IsEnabled);
         Assert.Empty(lighting.Devices);
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
     }
 
     [Fact]
@@ -99,9 +99,9 @@ public sealed class EngineHostTests : IDisposable
         var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = new RgbColor(0, 0, 255) } };
         var ledsAtTrim = new List<RgbColor>();
         using var host = new EngineHost(store, new LightingController([_simulated]),
-            trimMemory: () => ledsAtTrim.AddRange(_simulated.GetLeds("simulated-fan").ToArray()));
+            trimMemory: () => ledsAtTrim.AddRange(_simulated.GetLeds("simulated-fan")));
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         Assert.Equal(12, ledsAtTrim.Count);
         Assert.All(ledsAtTrim, led => Assert.Equal(new RgbColor(0, 0, 255), led));
@@ -114,17 +114,17 @@ public sealed class EngineHostTests : IDisposable
         using (var lighting = new LightingController([_simulated]))
         using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1)))
         {
-            await host.StartAsync(TestContext.Current.CancellationToken);
+            await host.StartAsync(Ct);
             lighting.SetLedColors("simulated-fan", 0, [new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)]);
         }
 
         var restarted = new SimulatedDeviceProvider();
         using var restartedLighting = new LightingController([restarted]);
         using var restartedHost = new EngineHost(store, restartedLighting);
-        await restartedHost.StartAsync(TestContext.Current.CancellationToken);
+        await restartedHost.StartAsync(Ct);
 
         Assert.Equal(EffectIds.PerLed, restartedLighting.GetLighting("simulated-fan").EffectId);
-        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3].ToArray());
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3]);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public sealed class EngineHostTests : IDisposable
         using var lighting = new LightingController([_simulated]);
         using var host = new EngineHost(store, lighting);
 
-        await host.StartAsync(TestContext.Current.CancellationToken);
+        await host.StartAsync(Ct);
 
         Assert.Equal(12, lighting.FramesPerSecond);
     }
@@ -154,11 +154,11 @@ public sealed class EngineHostTests : IDisposable
 
     private async Task AssertAllSimulatedLedsAsync(RgbColor expected)
     {
-        var devices = await _simulated.DiscoverAsync(TestContext.Current.CancellationToken);
+        var devices = await _simulated.DiscoverAsync(Ct);
         Assert.NotEmpty(devices);
         foreach (var device in devices)
         {
-            Assert.All(_simulated.GetLeds(device.Id).ToArray(), led => Assert.Equal(expected, led));
+            Assert.All(_simulated.GetLeds(device.Id), led => Assert.Equal(expected, led));
         }
     }
 }

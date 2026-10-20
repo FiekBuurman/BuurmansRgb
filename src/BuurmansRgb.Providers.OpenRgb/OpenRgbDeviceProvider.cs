@@ -8,7 +8,7 @@ namespace BuurmansRgb.Providers.OpenRgb;
 // DiscoverAsync starts it and returns no devices; they follow through DevicesChanged once the
 // server answers. When connecting fails or the connection is lost, the provider tries again
 // after RetryDelay. That timer only runs while there is no connection.
-public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IRestorableDeviceProvider, IDisposable
+public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorableDeviceProvider, IDisposable
 {
     public static TimeSpan RetryDelay { get; } = TimeSpan.FromSeconds(5);
 
@@ -114,6 +114,13 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IRestorableD
             OnDeviceListChanged(connection);
         }
     }
+
+    // In the background, after any (re)load that is still on its way, so the device is looked up
+    // by its server index of that moment; when a device list change has cleared the devices in the
+    // meantime, they are loaded again first. The reload after it reports the device with its new
+    // zones. Without a connection, or when the device is gone by then, nothing happens.
+    public void ResizeZone(string deviceId, int zoneIndex, int ledCount) =>
+        Enqueue(ct => ResizeAsync(deviceId, zoneIndex, ledCount, ct));
 
     public void Dispose()
     {
@@ -290,6 +297,68 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IRestorableD
         }
 
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private async Task ResizeAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct)
+    {
+        IOpenRgbConnection? connection;
+        lock (_gate)
+        {
+            connection = _connection;
+        }
+
+        if (connection is null)
+        {
+            WarnCannotResize("OpenRGB is not connected.");
+            return;
+        }
+
+        // A device list change (a rescan, or a restore after sleep) clears the devices at once,
+        // while its reload waits behind this job. Then the devices are mapped here first.
+        if (!TryStartResize(connection, deviceId, out var index))
+        {
+            await ReloadAsync(connection, ct).ConfigureAwait(false);
+            if (!TryStartResize(connection, deviceId, out index))
+            {
+                WarnCannotResize(IsCurrent(connection) ? "OpenRGB does not know the device." : "OpenRGB is not connected.");
+                return;
+            }
+        }
+
+        try
+        {
+            connection.ResizeZone(index, zoneIndex, ledCount);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceWarning($"Resizing a zone in OpenRGB failed: {exception.Message}");
+            Drop(connection);
+            return;
+        }
+
+        // The server sends no device list update for a resize.
+        await ReloadAsync(connection, ct).ConfigureAwait(false);
+
+        void WarnCannotResize(string reason) =>
+            Trace.TraceWarning($"Cannot resize a zone of OpenRGB device '{deviceId}': {reason}");
+    }
+
+    // The server index of the device on this connection. From here on the device has a length the
+    // engine does not know yet, so no colors go out until the reload has mapped it again.
+    private bool TryStartResize(IOpenRgbConnection connection, string deviceId, out int index)
+    {
+        lock (_gate)
+        {
+            if (_connection != connection || !_devicesById.TryGetValue(deviceId, out var device))
+            {
+                index = -1;
+                return false;
+            }
+
+            index = device.Index;
+            _devicesById = [];
+            return true;
+        }
     }
 
     private void EnqueueDrop(IOpenRgbConnection connection) => Enqueue(_ =>

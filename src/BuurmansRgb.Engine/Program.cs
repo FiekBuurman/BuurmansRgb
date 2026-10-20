@@ -16,7 +16,7 @@ internal static class Program
     [STAThread]
     private static void Main()
     {
-        using var instance = SingleInstance.Acquire(SingleInstance.EngineName);
+        using var instance = SingleInstance.Acquire(EngineRpc.EngineName);
         if (!instance.IsPrimary)
         {
             instance.SignalPrimary();
@@ -25,7 +25,7 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
-        var simulatedDevices = new SwitchableDeviceProvider(new SimulatedDeviceProvider());
+        var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
         using var lighting = new LightingController([simulatedDevices, openRgb]);
 

@@ -43,7 +43,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
-            [new RgbZone("Mainboard", 2, Resizable: false), new RgbZone("ARGB header", 2, Resizable: true)])];
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 2, 0, 120)])];
         Api.RaiseDevicesChanged();
 
         Click(viewModel, "board", 1);
@@ -54,6 +54,64 @@ public sealed class MainViewModelLedEditorTests
         var board = Assert.Single(viewModel.Preview.Devices);
         Assert.Equal([(1, 1), (0, 0)], board.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
         Assert.Equal(["leds board 1 #00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectZone_ColorsOnlyThatRingOfTheFan()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.RaiseDevicesChanged();
+
+        Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Assert.Equal(new LedSelection("fan", "Fan", 2, 4), viewModel.LedEditor.Selection);
+        Assert.Equal((2, 4), viewModel.Preview.Devices[0].ShownSelection());
+        Assert.Equal(["leds fan 2 #00FF00,#00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectZone_WhileEditingTheDevice_SelectsTheZoneInstead()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.RaiseDevicesChanged();
+        Click(viewModel, "fan", 3);
+
+        viewModel.Preview.Devices[0].Zones[0].SelectZoneCommand.Execute(null);
+
+        Assert.Equal(new LedSelection("fan", "Fan", 0, 1), viewModel.LedEditor.Selection);
+    }
+
+    [Fact]
+    public async Task ApplyLedCount_AsksTheEngineToResizeTheZone()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)])];
+        Api.RaiseDevicesChanged();
+        var header = Assert.Single(viewModel.Preview.Devices).Zones[1];
+
+        header.LedCountText = "24";
+        header.ApplyLedCountCommand.Execute(null);
+
+        Assert.Equal(["resize board 1 24"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task DevicesChanged_EditedZoneGrew_ClearsTheLedSelection()
+    {
+        var viewModel = await ConnectAsync();
+        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]);
+        Api.Devices = [board];
+        Api.RaiseDevicesChanged();
+        Click(viewModel, "board", 1);
+
+        Api.Devices = [board with { LedCount = 26, Zones = [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 24, 0, 120)] }];
+        Api.RaiseDevicesChanged();
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.Equal(24, viewModel.Preview.Devices[0].Zones[1].LedCount);
     }
 
     [Fact]

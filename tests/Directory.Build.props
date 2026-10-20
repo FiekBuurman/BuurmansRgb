@@ -1,0 +1,13 @@
+<Project>
+
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <!-- Helpers that every test project shares, compiled into each of them. -->
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared\*.cs" Link="Shared\%(Filename)%(Extension)" />
+    <Using Include="BuurmansRgb.Tests" />
+    <Using Include="BuurmansRgb.Tests.TestCancellation" Static="true" />
+    <Using Include="BuurmansRgb.Tests.TestColors" Static="true" />
+  </ItemGroup>
+
+</Project>

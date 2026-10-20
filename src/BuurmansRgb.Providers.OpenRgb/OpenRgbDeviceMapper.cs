@@ -5,14 +5,16 @@ using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 
 namespace BuurmansRgb.Providers.OpenRgb;
 
-// A device as the engine sees it, plus where to send its colors on the server.
-internal sealed record MappedDevice(RgbDevice Device, int Index);
-
 internal static class OpenRgbDeviceMapper
 {
-    public const string IdPrefix = "openrgb-";
+    private const string IdPrefix = "openrgb-";
 
     private const int MaxSlugLength = 40;
+
+    // OpenRGB 0.9 added storage (14) and case (15) before its unknown type (now 19), but
+    // OpenRGB.NET 3.1.1 still knows 14 as Unknown and has no name for case; it passes the
+    // number on as it is.
+    public const OpenRgbDeviceType CaseType = (OpenRgbDeviceType)15;
 
     // The modes in which OpenRGB takes a color per LED from the SDK, in order of preference.
     private static readonly string[] DirectModeNames = ["Direct", "Custom"];
@@ -28,7 +30,7 @@ internal static class OpenRgbDeviceMapper
         {
             var id = UniqueId(CreateId(device), usedIds);
             var name = nameCounts[device.Name] > 1 ? NumberedName(device.Name, nameNumbers) : device.Name;
-            var zones = device.Zones.Select(zone => new RgbZone(zone.Name, zone.LedCount, IsResizable(zone))).ToArray();
+            var zones = device.Zones.Select(ToZone).ToArray();
             mapped.Add(new(new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount), device.Index));
         }
 
@@ -45,6 +47,7 @@ internal static class OpenRgbDeviceMapper
         OpenRgbDeviceType.Gpu => DeviceType.Gpu,
         OpenRgbDeviceType.Cooler => DeviceType.Fan,
         OpenRgbDeviceType.Ledstrip => DeviceType.LedStrip,
+        CaseType => DeviceType.Case,
         OpenRgbDeviceType.Keyboard => DeviceType.Keyboard,
         OpenRgbDeviceType.Mouse => DeviceType.Mouse,
         OpenRgbDeviceType.Headset => DeviceType.Headset,
@@ -62,7 +65,10 @@ internal static class OpenRgbDeviceMapper
         return slug.Length == 0 ? $"{IdPrefix}{hash}" : $"{IdPrefix}{slug}-{hash}";
     }
 
-    private static bool IsResizable(OpenRgbZoneData zone) => zone.MinLedCount != zone.MaxLedCount;
+    private static RgbZone ToZone(OpenRgbZoneData zone) => new(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)
+    {
+        Matrix = zone.Matrix is { Cells.Count: > 0 } matrix ? matrix : null,
+    };
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.

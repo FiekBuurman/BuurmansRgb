@@ -10,7 +10,8 @@ using OpenRGB.NET;
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // A small OpenRGB SDK server on a real loopback socket, speaking protocol version 4: enough of
-// the protocol for OpenRGB.NET to connect, read devices, set the custom mode and send colors.
+// the protocol for OpenRGB.NET to connect, read devices, set the custom mode, send colors and
+// resize zones.
 internal sealed class OpenRgbTestServer : IAsyncDisposable
 {
     private const uint ProtocolVersion = 4;
@@ -48,6 +49,8 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
 
     public BlockingCollection<(int Index, RgbColor[] Colors)> Updates { get; } = [];
 
+    public BlockingCollection<(int Index, int Zone, int LedCount)> Resizes { get; } = [];
+
     public int ClientCount => _clients.Count;
 
     public OpenRgbNetConnector CreateConnector() =>
@@ -57,9 +60,15 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     {
         var header = new byte[OpenRgbPackets.HeaderLength];
         OpenRgbPackets.WriteHeader(header, 0, CommandId.DeviceListUpdated, 0);
+        SendToClients(header);
+    }
+
+    // Sends raw bytes to every client, also bytes that are no valid packet.
+    public void SendToClients(byte[] bytes)
+    {
         foreach (var client in _clients.Keys)
         {
-            client.Send(header);
+            client.Send(bytes);
         }
     }
 
@@ -162,6 +171,10 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
             case CommandId.UpdateLeds:
                 Updates.Add((deviceIndex, ReadColors(data)));
                 return null;
+            case CommandId.ResizeZone:
+                // Zone index and new size, each an int32.
+                Resizes.Add((deviceIndex, BinaryPrimitives.ReadInt32LittleEndian(data), BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(4))));
+                return null;
             default:
                 return null;
         }
@@ -212,11 +225,11 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
         foreach (var zone in device.Zones)
         {
             body.String(zone.Name);
-            body.UInt32(1); // linear
+            body.UInt32(zone.Matrix is null ? 1u : 2u); // linear or matrix
             body.UInt32((uint)zone.MinLedCount);
             body.UInt32((uint)zone.MaxLedCount);
             body.UInt32((uint)zone.LedCount);
-            body.UInt16(0); // no matrix map
+            WriteMatrix(body, zone.Matrix);
             body.UInt16(0); // no segments
         }
 
@@ -235,6 +248,25 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
 
         writer.UInt32((uint)(body.Length + sizeof(uint)));
         writer.Bytes(body.ToArray());
+    }
+
+    // The size in bytes (uint16), height and width (uint32), then the cells row after row, with
+    // 0xFFFFFFFF for a cell without a key. Size 0 means no matrix.
+    private static void WriteMatrix(PacketWriter writer, LedMatrix? matrix)
+    {
+        if (matrix is null)
+        {
+            writer.UInt16(0);
+            return;
+        }
+
+        writer.UInt16((ushort)((2 + matrix.Cells.Count) * sizeof(uint)));
+        writer.UInt32((uint)matrix.Height);
+        writer.UInt32((uint)matrix.Width);
+        foreach (var cell in matrix.Cells)
+        {
+            writer.UInt32(cell == LedMatrix.NoLed ? uint.MaxValue : (uint)cell);
+        }
     }
 
     private static byte[] Packet(CommandId command, int deviceIndex, Action<PacketWriter> writeData)

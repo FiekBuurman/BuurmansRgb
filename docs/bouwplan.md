@@ -119,7 +119,7 @@ BuurmansRgb.slnx
 ├─ src/
 │  ├─ BuurmansRgb.Core                // modellen, interfaces, kleur-wiskunde
 │  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, PerLed
-│  ├─ BuurmansRgb.Contracts           // IPC-interface en DTO's
+│  ├─ BuurmansRgb.Contracts           // IPC-interface, DTO's en de pipe- en RPC-opzet
 │  ├─ BuurmansRgb.Providers.Simulated // nep-apparaten voor ontwikkeling
 │  ├─ BuurmansRgb.Providers.OpenRgb   // koppeling met OpenRGB SDK-server
 │  ├─ BuurmansRgb.Engine              // tray, render-loop, IPC-server, opslag
@@ -246,6 +246,31 @@ Stand taak 5 (moederbord en RAM): icoon, type en zones in de instellingen-app, e
 gesimuleerd moederbord en twee RAM-sticks, en herstellen na het ontwaken zijn gebouwd en
 getest zonder hardware (nepdata van OpenRGB en een nepklok). De vier criteria hierboven
 vragen echte hardware; die test de gebruiker zelf, zie "Moederbord en RAM" in `README.md`.
+
+Stand taak 6 (GPU): icoon en Nederlandse typenaam ("Videokaart") in de instellingen-app, een
+gesimuleerde videokaart met twee zones, en tests met nepdata van OpenRGB voor de vertaling,
+kaarten zonder "Direct"-modus, twee dezelfde kaarten en herstellen na het ontwaken zijn gebouwd
+en getest zonder hardware. Ook hier vragen de vier criteria hierboven echte hardware; die test
+de gebruiker zelf, zie "Videokaart (GPU)" in `README.md`.
+
+Stand taak 7 (fans, case-LED en ARGB-strips): iconen en Nederlandse typenamen ("Ventilator",
+"LED-strip", "Behuizing"), het case-type van nieuwere OpenRGB-versies, de lengte van
+resizable zones instellen in de instellingen-app (via de engine naar OpenRGB of de
+gesimuleerde apparaten, met per-LED-kleuren die meeschuiven), een ring of andere zone kiezen
+door op de naam te klikken, en gesimuleerde apparaten (fan met twee ringen, ARGB-controller,
+behuizing) zijn gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine
+SDK-server). Ook hier vragen de vier criteria hierboven echte hardware; die test de gebruiker
+zelf, zie "Fans, case-LED en ARGB-strips" in `README.md`.
+
+Stand taak 8 (toetsenbord, muis en headset): iconen en Nederlandse typenamen ("Toetsenbord",
+"Muis", "Headset"), de matrix-map van OpenRGB als `LedMatrix` bij de zone (gelezen van de
+SDK-server, met vakjes zonder toets en vakjes buiten de zone als gat), een voorbeeld dat elke
+toets op zijn plek tekent en meekrimpt in een smal venster, en gesimuleerde apparaten
+(toetsenbord van 104 toetsen met matrix-map, muis met vier zones, headset met twee zones) zijn
+gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine SDK-server). Een headset
+die OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen driver. Ook
+hier vragen de vier criteria hierboven echte hardware; die test de gebruiker zelf, zie
+"Toetsenbord, muis en headset" in `README.md`.
 
 ## Risico's en aandachtspunten
 

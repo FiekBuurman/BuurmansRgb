@@ -5,8 +5,6 @@ namespace BuurmansRgb.Contracts.Tests;
 
 public sealed class EngineRpcTests : IDisposable
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly FakeEngineApi _api = new();
     private JsonRpc? _server;
@@ -31,9 +29,10 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var devices = await client.Api.GetDevicesAsync(Ct);
 
         Assert.Equal(_api.Devices, devices);
+        Assert.NotNull(devices[^1].Zones[0].Matrix);
     }
 
     [Fact]
@@ -41,8 +40,8 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        await client.Api.SetColorAsync("fan", new RgbColor(255, 136, 0), TestContext.Current.CancellationToken);
-        await client.Api.SetColorAsync(null, RgbColor.White, TestContext.Current.CancellationToken);
+        await client.Api.SetColorAsync("fan", new RgbColor(255, 136, 0), Ct);
+        await client.Api.SetColorAsync(null, RgbColor.White, Ct);
 
         Assert.Equal([("fan", new RgbColor(255, 136, 0)), (null, RgbColor.White)], _api.ColorCalls);
     }
@@ -52,7 +51,7 @@ public sealed class EngineRpcTests : IDisposable
     {
         var client = await ConnectAsync();
 
-        var lighting = await client.Api.GetLightingAsync("fan", TestContext.Current.CancellationToken);
+        var lighting = await client.Api.GetLightingAsync("fan", Ct);
 
         Assert.Equal(_api.Lighting, lighting);
     }
@@ -66,7 +65,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseFrame(new LightingFrame(7, [DeviceFrame.FromColors("fan", [new RgbColor(1, 2, 3)])]));
 
-        var frame = await received.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        var frame = await received.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Equal(7, frame.Sequence);
         Assert.Equal("fan", Assert.Single(frame.Devices).DeviceId);
         Assert.Equal([new RgbColor(1, 2, 3)], frame.Devices[0].ToColors());
@@ -81,7 +80,7 @@ public sealed class EngineRpcTests : IDisposable
 
         _api.RaiseDevicesChanged();
 
-        await received.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await received.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -90,8 +89,8 @@ public sealed class EngineRpcTests : IDisposable
         var client = await ConnectAsync();
         RgbColor[] colors = [new(255, 0, 0), new(0, 255, 0)];
 
-        await client.Api.SetLedColorsAsync("fan", 3, colors, TestContext.Current.CancellationToken);
-        var stored = await client.Api.GetLedColorsAsync("fan", TestContext.Current.CancellationToken);
+        await client.Api.SetLedColorsAsync("fan", 3, colors, Ct);
+        var stored = await client.Api.GetLedColorsAsync("fan", Ct);
 
         var call = Assert.Single(_api.LedColorCalls);
         Assert.Equal(("fan", 3), (call.DeviceId, call.FirstLed));
@@ -100,12 +99,29 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ResizeZoneAsync_SendsDeviceZoneAndLength()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ResizeZoneAsync("board", 1, 24, Ct);
+
+        Assert.Equal([("board", 1, 24)], _api.ResizeCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
 
-        await Assert.ThrowsAsync<RemoteInvocationException>(
-            () => client.Api.SetEffectAsync(null, "unknown", TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<RemoteInvocationException>(
+            () => client.Api.SetEffectAsync(null, "unknown", Ct));
+        Assert.True(EngineRpc.IsRejectedByEngine(exception));
+    }
+
+    [Fact]
+    public void IsRejectedByEngine_LostConnection_IsFalse()
+    {
+        Assert.False(EngineRpc.IsRejectedByEngine(new ConnectionLostException()));
     }
 
     [Fact]
@@ -117,21 +133,21 @@ public sealed class EngineRpcTests : IDisposable
 
         _server!.Dispose();
 
-        await disconnected.Task.WaitAsync(Timeout, TestContext.Current.CancellationToken);
+        await disconnected.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
     public async Task ConnectAsync_NoServer_ThrowsTimeout()
     {
         await Assert.ThrowsAsync<TimeoutException>(
-            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(100), TestContext.Current.CancellationToken));
+            () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(100), Ct));
     }
 
     private async Task<EngineConnection> ConnectAsync()
     {
         var pipe = EngineRpc.CreateServerStream(_pipeName);
-        var accepted = pipe.WaitForConnectionAsync(TestContext.Current.CancellationToken);
-        _client = await EngineConnection.ConnectAsync(_pipeName, Timeout, TestContext.Current.CancellationToken);
+        var accepted = pipe.WaitForConnectionAsync(Ct);
+        _client = await EngineConnection.ConnectAsync(_pipeName, TestTimeouts.Short, Ct);
         await accepted;
         _server = EngineRpc.StartServer(pipe, _api);
         return _client;
@@ -145,8 +161,10 @@ public sealed class EngineRpcTests : IDisposable
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
-            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, Resizable: true)]),
-            new("board", "Motherboard", DeviceType.Motherboard, 4, [new RgbZone("Mainboard", 4, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]),
+            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
+            new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
+                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
         ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);
@@ -156,6 +174,8 @@ public sealed class EngineRpcTests : IDisposable
         public IReadOnlyList<RgbColor> LedColors { get; } = [new(1, 1, 1), new(2, 2, 2)];
 
         public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor> Colors)> LedColorCalls { get; } = [];
+
+        public List<(string DeviceId, int ZoneIndex, int LedCount)> ResizeCalls { get; } = [];
 
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
 
@@ -186,6 +206,12 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             LedColorCalls.Add((deviceId, firstLed, colors));
+            return Task.CompletedTask;
+        }
+
+        public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
+        {
+            ResizeCalls.Add((deviceId, zoneIndex, ledCount));
             return Task.CompletedTask;
         }
     }

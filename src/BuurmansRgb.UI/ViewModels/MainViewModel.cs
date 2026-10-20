@@ -6,7 +6,6 @@ using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.ViewModels;
 
@@ -14,12 +13,20 @@ namespace BuurmansRgb.UI.ViewModels;
 // view model. Property changes made while showing engine state are not sent back (_syncing).
 public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
+    // The kinds of call in the call queue; with the device they make the key that lets a newer
+    // call replace one that still waits.
+    private const string BrightnessCall = "brightness";
+    private const string EffectCall = "effect";
+    private const string ColorCall = "color";
+    private const string LedsCall = "leds";
+    private const string ResizeCall = "resize";
+
     private readonly IEngineConnector _connector;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
+    private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
-    private bool _syncing;
 
     public MainViewModel(IEngineConnector connector)
     {
@@ -28,6 +35,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
+        Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
+        Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
     }
 
@@ -99,7 +108,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // which would send the next change to every device, so the previous item stays selected.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
-        if (_syncing)
+        if (_syncing.IsActive)
         {
             return;
         }
@@ -114,7 +123,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 {
                     if (SelectedDevice is null && Devices.Contains(oldValue))
                     {
-                        WithoutSending(() => SelectedDevice = oldValue);
+                        _syncing.Run(() => SelectedDevice = oldValue);
                     }
                 });
             }
@@ -128,18 +137,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnBrightnessChanged(double value)
     {
-        if (!_syncing)
+        if (!_syncing.IsActive)
         {
             var brightness = Math.Clamp(value / 100.0, 0.0, 1.0);
-            Send("brightness", (api, deviceId) => api.SetBrightnessAsync(deviceId, brightness));
+            Send(BrightnessCall, (api, deviceId) => api.SetBrightnessAsync(deviceId, brightness));
         }
     }
 
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
-        if (!_syncing && value is not null)
+        if (!_syncing.IsActive && value is not null)
         {
-            Send("effect", (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
+            Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
         }
     }
 
@@ -147,7 +156,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var devices = await api.GetDevicesAsync();
         var effects = await api.GetEffectsAsync();
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             Effects.Clear();
             foreach (var effect in effects)
@@ -166,7 +175,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var selectedId = SelectedDevice?.DeviceId;
         _devices = devices;
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             Devices.Clear();
             Devices.Add(DeviceItem.AllDevices(devices.Count));
@@ -195,18 +204,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        IReadOnlyList<DeviceInfo> devices;
-        try
-        {
-            devices = await connection.Api.GetDevicesAsync();
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
-            return;
-        }
-
-        if (ReferenceEquals(connection, _connection))
+        var (ok, devices) = await TryCallAsync(connection, api => api.GetDevicesAsync());
+        if (ok && ReferenceEquals(connection, _connection))
         {
             ShowDevices(devices);
             await ShowSelectionAsync();
@@ -222,24 +221,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var deviceId = SelectedDevice?.DeviceId;
-        LightingInfo lighting;
-        try
-        {
-            lighting = await connection.Api.GetLightingAsync(deviceId);
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
-            return;
-        }
+        var (ok, lighting) = await TryCallAsync(connection, api => api.GetLightingAsync(deviceId));
 
-        // The user may have picked another device while this one was loading.
-        if (SelectedDevice?.DeviceId != deviceId)
+        // The user may have picked another device, or the connection may have been made again,
+        // while this one was loading.
+        if (!ok || !ReferenceEquals(connection, _connection) || SelectedDevice?.DeviceId != deviceId)
         {
             return;
         }
 
-        WithoutSending(() =>
+        _syncing.Run(() =>
         {
             ColorPicker.Show(LedEditor.HasSelection ? LedEditor.AnchorColor : lighting.Color);
             Brightness = Math.Round(lighting.Brightness * 100.0);
@@ -266,7 +257,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         else
         {
-            Send("color", (api, deviceId) => api.SetColorAsync(deviceId, color));
+            Send(ColorCall, (api, deviceId) => api.SetColorAsync(deviceId, color));
         }
     }
 
@@ -283,42 +274,36 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
-    // The stored colors are fetched when editing starts on a device; clicks on the same device
-    // reuse them, so they also hold the edits that are still on their way to the engine.
-    private async Task OnLedClickedAsync(LedClick click)
+    private Task OnLedClickedAsync(LedClick click) =>
+        EditLedsAsync(click.DeviceId, click.Index, editor => editor.Select(click.Index, click.Extend));
+
+    private Task OnLedsSelectedAsync(LedSelection leds) =>
+        EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
+
+    // The stored colors are fetched when editing starts on a device, at the LED firstIndex; clicks
+    // on the same device reuse them, so they also hold the edits that are still on their way to
+    // the engine. select then picks the LEDs.
+    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select)
     {
         if (_connection is not { } connection)
         {
             return;
         }
 
-        if (LedEditor.IsEditing(click.DeviceId))
+        if (!LedEditor.IsEditing(deviceId))
         {
-            LedEditor.Select(click.Index, click.Extend);
-        }
-        else
-        {
-            IReadOnlyList<RgbColor> colors;
-            try
-            {
-                colors = await connection.Api.GetLedColorsAsync(click.DeviceId);
-            }
-            catch (Exception exception)
-            {
-                OnCallFailed(exception);
-                return;
-            }
-
-            if (!ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == click.DeviceId) is not { } device)
+            var (ok, colors) = await TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
+            if (!ok || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
 
-            LedEditor.Start(device.Id, device.Name, colors, click.Index);
+            LedEditor.Start(device.Id, device.Name, colors, firstIndex);
         }
 
+        select(LedEditor);
         Preview.ShowLedSelection(LedEditor.Selection);
-        WithoutSending(() => ColorPicker.Show(LedEditor.AnchorColor));
+        _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
     }
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
@@ -330,10 +315,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _calls.Post(("leds", edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
-            WithoutSending(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+            _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+        }
+    }
+
+    // The engine reports the device with its new length through DevicesChanged, which rebuilds
+    // the preview; an LED edit of that device ends then, because its LEDs moved.
+    private void OnZoneResizeRequested(ZoneResize resize)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
         }
     }
 
@@ -362,12 +357,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     });
 
+    // One engine call whose answer is awaited. A failure goes to OnCallFailed and gives Ok false;
+    // the caller still checks that the answer is not out of date.
+    private async Task<(bool Ok, T Value)> TryCallAsync<T>(IEngineConnection connection, Func<IEngineApi, Task<T>> call)
+    {
+        try
+        {
+            return (true, await call(connection.Api));
+        }
+        catch (Exception exception)
+        {
+            OnCallFailed(exception);
+            return (false, default!);
+        }
+    }
+
     private void OnCallFailed(Exception exception)
     {
         Trace.TraceError(exception.ToString());
 
         // A lost connection is reported once, through Disconnected.
-        if (exception is RemoteInvocationException && IsConnected)
+        if (EngineRpc.IsRejectedByEngine(exception) && IsConnected)
         {
             StatusMessage = Strings.ChangeRejected;
         }
@@ -392,20 +402,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Dispose();
-    }
-
-    private void WithoutSending(Action update)
-    {
-        var wasSyncing = _syncing;
-        _syncing = true;
-        try
-        {
-            update();
-        }
-        finally
-        {
-            _syncing = wasSyncing;
-        }
     }
 
     private void RunOnUi(Action action)

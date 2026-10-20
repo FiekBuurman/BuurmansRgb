@@ -5,7 +5,7 @@ using BuurmansRgb.Engine.Lighting;
 namespace BuurmansRgb.Engine.Ipc;
 
 // One instance per connected UI, so disposing it stops the frames for that UI only.
-// Invalid input throws ArgumentException, which reaches the UI as an RPC error.
+// LightingController checks the input; its ArgumentException reaches the UI as an RPC error.
 internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
@@ -26,11 +26,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
 
-    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default)
-    {
-        var lighting = _lighting.GetLighting(deviceId);
-        return Task.FromResult(new LightingInfo(lighting.Color, lighting.Brightness, lighting.EffectId));
-    }
+    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
+        Task.FromResult(ToInfo(_lighting.GetLighting(deviceId)));
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
 
@@ -42,22 +39,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default)
     {
-        if (!(brightness is >= 0.0 and <= 1.0))
-        {
-            throw new ArgumentOutOfRangeException(nameof(brightness), brightness, "Brightness runs from 0 to 1.");
-        }
-
         _lighting.SetLighting(deviceId, lighting => lighting with { Brightness = brightness });
         return Task.CompletedTask;
     }
 
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default)
     {
-        if (!EffectCatalog.IsKnown(effectId))
-        {
-            throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));
-        }
-
         _lighting.SetLighting(deviceId, lighting => lighting with { EffectId = effectId });
         return Task.CompletedTask;
     }
@@ -72,13 +59,22 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
+    {
+        _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         _lighting.Rendered -= OnRendered;
         _lighting.DevicesChanged -= OnDevicesChanged;
     }
 
-    // The wire format is made here, outside the controller's lock.
+    // The wire formats are made here, so the lighting model does not know them, and outside the
+    // controller's lock.
+    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId);
+
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
 

@@ -78,8 +78,18 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<string>>([EffectIds.Static, EffectIds.PerLed]);
 
-    public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
-        Task.FromResult(Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]));
+    // When set, GetLightingAsync answers once this task completes, like a slow engine.
+    public Task? LightingGate { get; set; }
+
+    public async Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default)
+    {
+        if (LightingGate is { } gate)
+        {
+            await gate;
+        }
+
+        return Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]);
+    }
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
 
@@ -100,6 +110,9 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"leds {deviceId} {firstLed} {string.Join(",", colors.Select(color => color.ToHex()))}");
+
+    public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default) =>
+        Record($"resize {deviceId} {zoneIndex} {ledCount}");
 
     private Task Record(string call)
     {

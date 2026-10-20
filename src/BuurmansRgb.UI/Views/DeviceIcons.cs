@@ -20,6 +20,34 @@ public static class DeviceIcons
     public static Geometry Ram { get; } = Create(
         "M1.5,5.5 H16.5 V12.5 H1.5 Z M3.5,7.5 H5.5 V10.5 H3.5 Z M7.5,7.5 H10.5 V10.5 H7.5 Z M12.5,7.5 H14.5 V10.5 H12.5 Z M2.5,14.5 H8 M10,14.5 H15.5");
 
+    // A card with two fans, its slot bracket on the left and the PCIe contacts below.
+    public static Geometry Gpu { get; } = Create(
+        "M1.5,2.5 V15.5 M1.5,4.5 H16.5 V12.5 H1.5 M4.5,8.5 A2,2 0 1 0 8.5,8.5 A2,2 0 1 0 4.5,8.5 Z M9.5,8.5 A2,2 0 1 0 13.5,8.5 A2,2 0 1 0 9.5,8.5 Z M5.5,12.5 V14.5 H12.5 V12.5");
+
+    // A fan in its square frame: the LED ring, the hub and four blades.
+    public static Geometry Fan { get; } = Create(
+        "M1.5,1.5 H16.5 V16.5 H1.5 Z M3,9 A6,6 0 1 0 15,9 A6,6 0 1 0 3,9 Z M7.5,9 A1.5,1.5 0 1 0 10.5,9 A1.5,1.5 0 1 0 7.5,9 Z M9,7.5 V4.5 M10.5,9 H13.5 M9,10.5 V13.5 M7.5,9 H4.5");
+
+    // A strip with three LEDs on it.
+    public static Geometry LedStrip { get; } = Create(
+        "M0.5,6.5 H17.5 V11.5 H0.5 Z M2.5,9 A1,1 0 1 0 4.5,9 A1,1 0 1 0 2.5,9 Z M8,9 A1,1 0 1 0 10,9 A1,1 0 1 0 8,9 Z M13.5,9 A1,1 0 1 0 15.5,9 A1,1 0 1 0 13.5,9 Z");
+
+    // A tower with a light bar along its front and a fan.
+    public static Geometry Case { get; } = Create(
+        "M4.5,0.5 H13.5 V17.5 H4.5 Z M6.5,2.5 V15.5 M8.5,11 A2,2 0 1 0 12.5,11 A2,2 0 1 0 8.5,11 Z M9.5,3.5 H11.5");
+
+    // A keyboard with two rows of keys and a space bar.
+    public static Geometry Keyboard { get; } = Create(
+        "M0.5,4.5 H17.5 V13.5 H0.5 Z M2,6.5 H4 M5,6.5 H7 M8,6.5 H10 M11,6.5 H13 M14,6.5 H16 M3,8.5 H5 M6,8.5 H8 M9,8.5 H11 M12,8.5 H14 M5,11.5 H13");
+
+    // A mouse with its two buttons.
+    public static Geometry Mouse { get; } = Create(
+        "M9.5,1.5 A5,5 0 0 0 4.5,6.5 V11.5 A5,5 0 0 0 14.5,11.5 V6.5 A5,5 0 0 0 9.5,1.5 Z M9.5,1.5 V7.5 M4.5,7.5 H14.5");
+
+    // A headband with two ear cups and a microphone.
+    public static Geometry Headset { get; } = Create(
+        "M3.5,9.5 V8 A5.5,5.5 0 0 1 14.5,8 V9.5 M2.5,9.5 H5.5 V14.5 H2.5 Z M12.5,9.5 H15.5 V14.5 H12.5 Z M4.5,14.5 V16.5 H8.5");
+
     // A housing with one LED.
     public static Geometry Device { get; } = Create(
         "M3.5,3.5 H14.5 V14.5 H3.5 Z M7,9 A2,2 0 1 0 11,9 A2,2 0 1 0 7,9 Z");
@@ -30,6 +58,13 @@ public static class DeviceIcons
         null => AllDevices,
         DeviceType.Motherboard => Motherboard,
         DeviceType.Ram => Ram,
+        DeviceType.Gpu => Gpu,
+        DeviceType.Fan => Fan,
+        DeviceType.LedStrip => LedStrip,
+        DeviceType.Case => Case,
+        DeviceType.Keyboard => Keyboard,
+        DeviceType.Mouse => Mouse,
+        DeviceType.Headset => Headset,
         _ => Device,
     };
 

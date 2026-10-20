@@ -15,7 +15,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.Core\BuurmansRgb.Core.csproj" />
-    <ProjectReference Include="..\..\src\BuurmansRgb.Providers.Simulated\BuurmansRgb.Providers.Simulated.csproj" />
   </ItemGroup>
 
 </Project>

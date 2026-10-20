@@ -13,5 +13,3 @@ internal sealed record OpenRgbDeviceData(
     IReadOnlyList<OpenRgbZoneData> Zones,
     IReadOnlyList<string> ModeNames,
     int LedCount);
-
-internal sealed record OpenRgbZoneData(string Name, int LedCount, int MinLedCount, int MaxLedCount);

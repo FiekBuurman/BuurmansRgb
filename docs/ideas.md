@@ -39,7 +39,9 @@
   draaien (`SwitchableDeviceProvider.IsEnabled`); er mist een `IEngineApi`-aanroep en een
   vinkje in de UI
 - Adres en poort van de OpenRGB-server instelbaar maken (nu vast `127.0.0.1:6742`), en
-  OpenRGB helemaal uit kunnen zetten
+  OpenRGB helemaal uit kunnen zetten (`SwitchableDeviceProvider.For` weigert OpenRGB nu nog,
+  omdat het herstellen na slaapstand anders verloren gaat; daarvoor is eerst een wrapper
+  nodig die `IRestorableDeviceProvider` doorgeeft)
 - Twee fouten in OpenRGB.NET 3.1.1 melden bij het project: `DeviceListUpdated` gaat nooit af
   (de client geeft de lege event-waarde bij het aanmaken door aan zijn verbinding) en na een
   nette sluiting door de server leest de read-loop op volle CPU nul bytes tot de volgende
@@ -93,4 +95,49 @@
   zodra OpenRGB de apparaten weer meldt
 - Bij RAM-sticks met dezelfde naam de OpenRGB-locatie (SMBus-adres) tonen, zodat je ziet welke
   stick in welk slot zit; nu krijgen ze alleen een nummer in de volgorde van OpenRGB
-- In de per-LED-editor een hele zone in één keer selecteren door op de zonenaam te klikken
+- In de instellingen-app tonen dat een apparaat in OpenRGB geen "Direct"- of "Custom"-modus
+  heeft (veel videokaarten), zodat je ziet waarom de kleur niet aankomt; nu staat dat alleen in
+  de debug-uitvoer
+- Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
+  GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
+- Bij twee videokaarten van hetzelfde model de OpenRGB-locatie tonen, net als bij RAM-sticks;
+  nu krijgen ze alleen een nummer in de volgorde van OpenRGB
+- Fans en fan-ringen in het voorbeeld als ring tekenen in plaats van als rij bolletjes, zodat
+  je ziet welke LED waar zit
+- Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
+  OpenRGB ze na een herstart vergeet; dan houden ook de gesimuleerde apparaten een ingestelde
+  lengte na een herstart van de engine (nu alleen tot de engine stopt). Bewaar bij de
+  per-LED-kleuren ook de zonelengtes waarvoor ze gekozen zijn, zodat de kleuren ook bij de
+  eerste ontdekking na een start meeschuiven; nu staan ze verschoven als een zone dan een
+  andere lengte heeft (zie README, "Let op bij per-LED-kleuren")
+- De lengte van een zone met een schuif of met + en − instellen, met het voorbeeld dat direct
+  meegroeit; nu typ je het aantal en kies je "Toepassen"
+- OpenRGB.NET bijwerken zodra het de nieuwere apparaattypes kent (storage, case, microphone,
+  accessory, keypad); dan kan het vaste nummer 15 voor "case" in `OpenRgbDeviceMapper` weg
+- De segmenten van een zone (SDK-protocol 4) tonen en apart kunnen kiezen, bijv. als een
+  ARGB-kanaal uit een fan en een strip achter elkaar bestaat
+- Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
+  zonenaam om op te klikken), bijv. met een knop "Alles selecteren"
+- In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
+  na het herladen nog de oude lengte); nu staat er dan gewoon weer de oude lengte
+- Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
+  uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
+  als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
+- De namen van de LED's uit OpenRGB (bijv. "Key: Escape") meegeven, zodat het voorbeeld de
+  toets als tooltip of op de toets zelf kan tonen en een schermlezer de toets kan noemen
+- Brede toetsen (spatiebalk, Enter, Shift) breder tekenen; de matrix-map van OpenRGB geeft
+  alleen een vakje per toets, dus dan zou een eigen indeling per toetsenbordtype nodig zijn
+- In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
+  van een reeks in LED-volgorde
+- Eigen types en iconen voor muismat, headsetstandaard, speaker en gamepad (OpenRGB kent ze);
+  nu staan ze als "overig" in de lijst
+- In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
+  link naar de lijst van OpenRGB; nu staat dat alleen in `README.md`
+- Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
+  testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
+  gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
+- `MainViewModel` verder opsplitsen: het LED-bewerken (`EditLedsAsync`, `SendLeds`,
+  `ClearLedSelection`, `FillGradient`) naar een eigen `LedEditCoordinator`. Bij de refactor na
+  de review (F4) bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, de preview, de
+  kleurkiezer en de geselecteerde effectkeuze nodig, en de bewerk-logica zelf zit al in
+  `LedEditorViewModel`. Pas oppakken als het LED-bewerken groeit (bijv. per zone)

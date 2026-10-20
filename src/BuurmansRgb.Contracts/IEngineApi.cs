@@ -38,4 +38,8 @@ public partial interface IEngineApi
     // Stores colors for the LEDs from firstLed on and switches the device to the per-LED effect.
     // The other LEDs keep following the device color.
     Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
+
+    // Gives a resizable zone (an index into the device's zones) another number of LEDs, within its
+    // range. The device may get its new length a little later; DevicesChanged then follows.
+    Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 }

@@ -26,6 +26,13 @@
             <Setter Property="Margin" Value="0,6,0,2" />
             <Setter Property="Foreground" Value="{x:Static SystemColors.GrayTextBrush}" />
         </Style>
+        <!-- The icon of a device's type; the DataContext needs a Type property. -->
+        <Style x:Key="DeviceIcon" TargetType="Path">
+            <Setter Property="Width" Value="{x:Static views:DeviceIcons.Size}" />
+            <Setter Property="Height" Value="{x:Static views:DeviceIcons.Size}" />
+            <Setter Property="Data" Value="{Binding Type, Converter={StaticResource TypeToIcon}}" />
+            <Setter Property="StrokeThickness" Value="1" />
+        </Style>
     </Window.Resources>
 
     <DockPanel>
@@ -56,9 +63,7 @@
                             <DataTemplate DataType="{x:Type vm:DeviceItem}">
                                 <DockPanel Margin="2,4">
                                     <!-- The item's text color, so the icon also shows on the selection highlight. -->
-                                    <Path DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
-                                          Width="{x:Static views:DeviceIcons.Size}" Height="{x:Static views:DeviceIcons.Size}"
-                                          Data="{Binding Type, Converter={StaticResource TypeToIcon}}" StrokeThickness="1"
+                                    <Path Style="{StaticResource DeviceIcon}" DockPanel.Dock="Left" Margin="0,1,8,0" VerticalAlignment="Top"
                                           Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
                                           ToolTip="{Binding TypeName}" />
                                     <StackPanel>
@@ -167,9 +172,7 @@
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                                     <StackPanel Margin="0,0,0,12">
                                         <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                            <Path Margin="0,0,6,0" VerticalAlignment="Center"
-                                                  Width="{x:Static views:DeviceIcons.Size}" Height="{x:Static views:DeviceIcons.Size}"
-                                                  Data="{Binding Type, Converter={StaticResource TypeToIcon}}" StrokeThickness="1"
+                                            <Path Style="{StaticResource DeviceIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                                   Stroke="{x:Static SystemColors.ControlTextBrush}" />
                                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
                                         </StackPanel>
@@ -177,12 +180,33 @@
                                             <ItemsControl.ItemTemplate>
                                                 <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">
                                                     <StackPanel Margin="0,0,0,6">
+                                                        <TextBlock Margin="0,0,0,3" TextWrapping="Wrap"
+                                                                   Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
+                                                            <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
+                                                                <Run Text="{Binding Header, Mode=OneWay}" />
+                                                            </Hyperlink>
+                                                        </TextBlock>
                                                         <TextBlock Margin="0,0,0,3" Text="{Binding Header}" TextWrapping="Wrap"
-                                                                   Visibility="{Binding ShowsHeader, Converter={StaticResource BoolToVisibility}}" />
-                                                        <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
+                                                                   Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
+                                                        <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />
+                                                        <StackPanel Margin="0,4,0,0" Orientation="Horizontal"
+                                                                    Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
+                                                            <TextBlock VerticalAlignment="Center" Text="{Binding LedCountLabel}"
+                                                                       Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                                            <TextBox Width="56" Margin="6,0,0,0" VerticalContentAlignment="Center"
+                                                                     Text="{Binding LedCountText, UpdateSourceTrigger=PropertyChanged}"
+                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}">
+                                                                <TextBox.InputBindings>
+                                                                    <KeyBinding Key="Enter" Command="{Binding ApplyLedCountCommand}" />
+                                                                </TextBox.InputBindings>
+                                                            </TextBox>
+                                                            <Button Margin="6,0,0,0" Padding="10,1" Content="{x:Static res:Strings.ApplyLedCount}"
+                                                                    ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding ApplyLedCountCommand}"
+                                                                    AutomationProperties.Name="{Binding ApplyLedCountAccessibleName}" />
+                                                        </StackPanel>
                                                     </StackPanel>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>

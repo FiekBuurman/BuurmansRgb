@@ -9,23 +9,34 @@ public sealed class OpenRgbProviderCpuTestsCollection;
 [Collection(nameof(OpenRgbProviderCpuTests))]
 public sealed class OpenRgbProviderCpuTests
 {
-    private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(10);
-
     [Fact]
     public async Task ServerClosesTheConnection_ProviderLetsGoOfIt()
     {
         await using var server = new OpenRgbTestServer();
         using var provider = new OpenRgbDeviceProvider(server.CreateConnector(), TimeProvider.System, TimeSpan.FromHours(1));
-        await provider.DiscoverAsync(TestContext.Current.CancellationToken);
-        await Eventually.DeviceCountAsync(provider, 1, Timeout);
-        var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
+        await provider.DiscoverAsync(Ct);
+        await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
 
+        // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed,
+        // which adds about a second of CPU per second. Whatever else the process does (tests that
+        // ran before, the test host, GC) counts in a window before the drop as well, so only the
+        // increase over that baseline tells. The window after the drop starts once the device is
+        // gone, so the work of dropping itself does not count.
+        var baseline = await CpuInOneSecondAsync();
         server.CloseClients();
-        await Eventually.DeviceCountAsync(provider, 0, Timeout);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
+        await EventuallyDevices.CountAsync(provider, 0, TestTimeouts.Long);
+        var afterDrop = await CpuInOneSecondAsync();
 
-        // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed.
-        var cpuUsed = Process.GetCurrentProcess().TotalProcessorTime - cpuBefore;
-        Assert.True(cpuUsed < TimeSpan.FromMilliseconds(300), $"Used {cpuUsed.TotalMilliseconds} ms CPU.");
+        var increase = afterDrop - baseline;
+        Assert.True(
+            increase < TimeSpan.FromMilliseconds(500),
+            $"Used {afterDrop.TotalMilliseconds} ms CPU after the drop, against {baseline.TotalMilliseconds} ms before.");
+    }
+
+    private static async Task<TimeSpan> CpuInOneSecondAsync()
+    {
+        var before = Process.GetCurrentProcess().TotalProcessorTime;
+        await Task.Delay(1000, Ct);
+        return Process.GetCurrentProcess().TotalProcessorTime - before;
     }
 }

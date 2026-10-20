@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Providers.Simulated;
+using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -9,9 +10,6 @@ public sealed class LightingControllerTests
 {
     private const string Fan = "simulated-fan";
     private const string Strip = "simulated-strip";
-
-    private static readonly RgbColor Orange = new(255, 136, 0);
-    private static readonly RgbColor Green = new(0, 255, 0);
 
     private readonly SimulatedDeviceProvider _simulated = new();
 
@@ -23,9 +21,9 @@ public sealed class LightingControllerTests
         controller.Apply(Uniform(Orange, 0.5));
 
         var expected = Orange.Scale(0.5);
-        foreach (var device in await _simulated.DiscoverAsync(TestContext.Current.CancellationToken))
+        foreach (var device in await _simulated.DiscoverAsync(Ct))
         {
-            var leds = _simulated.GetLeds(device.Id).ToArray();
+            var leds = _simulated.GetLeds(device.Id);
             Assert.Equal(device.LedCount, leds.Length);
             Assert.All(leds, led => Assert.Equal(expected, led));
         }
@@ -37,7 +35,7 @@ public sealed class LightingControllerTests
         var first = new RecordingDeviceProvider();
         var second = new RecordingDeviceProvider();
         var controller = new LightingController([first, second]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
 
         controller.Apply(Uniform(Orange, 1.0));
 
@@ -50,10 +48,10 @@ public sealed class LightingControllerTests
     {
         var controller = await CreateSimulatedAsync();
 
-        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green, 0.5) }));
+        controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = StaticLighting(Green, 0.5) }));
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange, led));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange, led));
     }
 
     [Fact]
@@ -73,7 +71,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
 
         controller.SetPaused(true);
         controller.Apply(Uniform(Orange, 1.0));
@@ -87,7 +85,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         controller.SetPaused(true);
         controller.Apply(Uniform(Orange, 1.0));
 
@@ -103,7 +101,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         controller.SetPaused(true);
 
         controller.SetPaused(false);
@@ -119,48 +117,48 @@ public sealed class LightingControllerTests
 
         controller.SetLighting(Fan, lighting => lighting with { Color = Green });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green, led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange, led));
-        Assert.Equal(Lighting(Green), controller.GetLighting(Fan));
-        Assert.Equal(Lighting(Orange), controller.GetLighting(Strip));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green, led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange, led));
+        Assert.Equal(StaticLighting(Green), controller.GetLighting(Fan));
+        Assert.Equal(StaticLighting(Orange), controller.GetLighting(Strip));
     }
 
     [Fact]
     public async Task SetLighting_GlobalBrightness_KeepsDeviceColor()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
+        controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = StaticLighting(Green) }));
 
         controller.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange.Scale(0.5), led));
-        Assert.Equal(Lighting(Orange, 0.5), controller.State.Global);
-        Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange.Scale(0.5), led));
+        Assert.Equal(StaticLighting(Orange, 0.5), controller.State.Global);
+        Assert.Equal(StaticLighting(Green, 0.5), controller.State.Devices[Fan]);
     }
 
     [Fact]
     public async Task SetLighting_GlobalColor_KeepsDeviceBrightness()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Orange, 0.5) }));
+        controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = StaticLighting(Orange, 0.5) }));
 
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
-        Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.Equal(StaticLighting(Green, 0.5), controller.State.Devices[Fan]);
     }
 
     [Fact]
     public async Task SetLighting_GlobalMatchesDevice_DropsItsOwnLighting()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
+        controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = StaticLighting(Green) }));
 
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 
         Assert.Empty(controller.State.Devices);
-        Assert.Equal(Lighting(Green), controller.State.Global);
+        Assert.Equal(StaticLighting(Green), controller.State.Global);
     }
 
     [Fact]
@@ -218,7 +216,7 @@ public sealed class LightingControllerTests
     {
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         LightingOutput? output = null;
         controller.Rendered += (_, _) => output = controller.GetOutput();
         controller.SetPaused(true);
@@ -248,17 +246,15 @@ public sealed class LightingControllerTests
     {
         var controller = await CreateSimulatedAsync();
 
-        Assert.Equal(await _simulated.DiscoverAsync(TestContext.Current.CancellationToken), controller.Devices);
+        Assert.Equal(await _simulated.DiscoverAsync(Ct), controller.Devices);
     }
 
-    private static DeviceLighting Lighting(RgbColor color, double brightness = 1.0) => new(color, brightness, EffectIds.Static);
-
-    private static LightingState Uniform(RgbColor color, double brightness) => LightingStates.Uniform(Lighting(color, brightness));
+    private static LightingState Uniform(RgbColor color, double brightness) => LightingStates.Uniform(StaticLighting(color, brightness));
 
     private async Task<LightingController> CreateSimulatedAsync()
     {
         var controller = new LightingController([_simulated]);
-        await controller.DiscoverAsync(TestContext.Current.CancellationToken);
+        await controller.DiscoverAsync(Ct);
         return controller;
     }
 }

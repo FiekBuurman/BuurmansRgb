@@ -12,11 +12,11 @@ public sealed class SwitchableDeviceProviderTests
 
     public SwitchableDeviceProviderTests()
     {
-        _switchable = new SwitchableDeviceProvider(_simulated);
+        _switchable = SwitchableDeviceProvider.For(_simulated);
         _switchable.DevicesChanged += (_, _) => _changes++;
     }
 
-    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+    private IResizableDeviceProvider Resizable => Assert.IsAssignableFrom<IResizableDeviceProvider>(_switchable);
 
     [Fact]
     public async Task Enabled_PassesDevicesAndColorsThrough()
@@ -25,8 +25,14 @@ public sealed class SwitchableDeviceProviderTests
 
         _switchable.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 12).ToArray());
 
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.White, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.White, led));
         Assert.Equal("Simulated", _switchable.Name);
+    }
+
+    [Fact]
+    public void For_RestorableProvider_IsRefused()
+    {
+        Assert.Throws<NotSupportedException>(() => SwitchableDeviceProvider.For(new RestorableDeviceProvider()));
     }
 
     [Fact]
@@ -36,7 +42,7 @@ public sealed class SwitchableDeviceProviderTests
 
         Assert.Empty(await _switchable.DiscoverAsync(Ct));
         _switchable.SetLeds("simulated-fan", Enumerable.Repeat(RgbColor.White, 12).ToArray());
-        Assert.All(_simulated.GetLeds("simulated-fan").ToArray(), led => Assert.Equal(RgbColor.Black, led));
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(RgbColor.Black, led));
     }
 
     [Fact]
@@ -61,5 +67,45 @@ public sealed class SwitchableDeviceProviderTests
 
         _switchable.IsEnabled = true;
         Assert.Equal(2, _changes);
+    }
+
+    [Fact]
+    public async Task ResizeZone_Enabled_ResizesTheInnerZoneAndPassesTheChangeOn()
+    {
+        Resizable.ResizeZone("simulated-strip", 0, 40);
+
+        var strip = (await _switchable.DiscoverAsync(Ct)).Single(device => device.Id == "simulated-strip");
+        Assert.Equal(40, strip.LedCount);
+        Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public void ResizeZone_Disabled_ThrowsAndLeavesTheZone()
+    {
+        _switchable.IsEnabled = false;
+
+        Assert.Throws<ArgumentException>(() => Resizable.ResizeZone("simulated-strip", 0, 40));
+        Assert.Equal(30, _simulated.GetLeds("simulated-strip").Length);
+    }
+
+    [Fact]
+    public async Task InnerDevicesChanged_WhileDisabled_RaisesNothing()
+    {
+        await _switchable.DiscoverAsync(Ct);
+        _switchable.IsEnabled = false;
+        _changes = 0;
+
+        _simulated.ResizeZone("simulated-strip", 0, 40);
+
+        Assert.Equal(0, _changes);
+    }
+
+    [Fact]
+    public void For_InnerCannotResize_IsNotResizableEither()
+    {
+        var switchable = SwitchableDeviceProvider.For(new RecordingDeviceProvider());
+
+        Assert.False(switchable is IResizableDeviceProvider);
+        Assert.Equal("Recording", switchable.Name);
     }
 }
