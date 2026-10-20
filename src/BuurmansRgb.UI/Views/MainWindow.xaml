@@ -11,7 +11,8 @@
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
         Title="{x:Static res:Strings.WindowTitle}"
         Width="900" Height="640" MinWidth="640" MinHeight="520"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}" FontFamily="{StaticResource TextFont}">
     <Window.Resources>
         <views:RgbColorToBrushConverter x:Key="ColorToBrush" />
         <views:RgbColorToMediaColorConverter x:Key="ColorToMediaColor" />

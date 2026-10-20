@@ -39,6 +39,13 @@
     </ItemGroup>
   </Target>
 
+  <!-- The fonts of the design (design/DESIGN.md § 2), one static file per weight: WPF only shows the
+       default instance of a variable font. Their licence goes along in the app folder. -->
+  <ItemGroup>
+    <Resource Include="Fonts\*.ttf" />
+    <None Update="Fonts\OFL-*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
   </ItemGroup>

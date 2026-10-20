@@ -1,0 +1,86 @@
+<!-- The design tokens of design/DESIGN.md (§ 1–3): colors, fonts and sizes. The app is always dark,
+     so the LED colors glow; there is no light theme. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <!-- § 1 Colors -->
+    <Color x:Key="BgColor">#16161A</Color>
+    <Color x:Key="SurfaceColor">#212128</Color>
+    <Color x:Key="SurfaceRaisedColor">#24242B</Color>
+    <Color x:Key="NavBgColor">#1A1A1F</Color>
+    <Color x:Key="BorderColor">#2E2E36</Color>
+    <Color x:Key="BorderStrongColor">#4A4A54</Color>
+    <Color x:Key="TextColor">#F4F1EA</Color>
+    <Color x:Key="TextMutedColor">#A9A6A0</Color>
+    <Color x:Key="LedOffColor">#3A3A42</Color>
+    <Color x:Key="KnobOffColor">#8C8A85</Color>
+    <Color x:Key="PreviewBgColor">#0E0E11</Color>
+    <Color x:Key="StripBgColor">#26262D</Color>
+
+    <SolidColorBrush x:Key="BgBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
+    <SolidColorBrush x:Key="NavBgBrush" Color="{StaticResource NavBgColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="LedOffBrush" Color="{StaticResource LedOffColor}" />
+    <SolidColorBrush x:Key="KnobOffBrush" Color="{StaticResource KnobOffColor}" />
+    <SolidColorBrush x:Key="PreviewBgBrush" Color="{StaticResource PreviewBgColor}" />
+    <SolidColorBrush x:Key="StripBgBrush" Color="{StaticResource StripBgColor}" />
+
+    <!-- The hover border of cards and buttons (§ 6), which is border-strong. -->
+    <SolidColorBrush x:Key="HoverBorderBrush" Color="{StaticResource BorderStrongColor}" />
+
+    <!-- Links, as in the screens of the design. -->
+    <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
+    <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
+
+    <!-- LED colors, always with a glow (LedBulb). -->
+    <Color x:Key="LedRedColor">#FF5A5A</Color>
+    <Color x:Key="LedOrangeColor">#FF9A3D</Color>
+    <Color x:Key="LedYellowColor">#FFD84D</Color>
+    <Color x:Key="LedGreenColor">#3DDC84</Color>
+    <Color x:Key="LedCyanColor">#3DD6D0</Color>
+    <Color x:Key="LedBlueColor">#5B93FF</Color>
+    <Color x:Key="LedPurpleColor">#A97BFF</Color>
+    <Color x:Key="LedKlusWhiteColor">#FFF4E5</Color>
+
+    <SolidColorBrush x:Key="LedRedBrush" Color="{StaticResource LedRedColor}" />
+    <SolidColorBrush x:Key="LedGreenBrush" Color="{StaticResource LedGreenColor}" />
+    <SolidColorBrush x:Key="LedBlueBrush" Color="{StaticResource LedBlueColor}" />
+
+    <!-- Everything that has to do with the neighbour. -->
+    <SolidColorBrush x:Key="BurenBgBrush" Color="#1C2433" />
+    <SolidColorBrush x:Key="BurenBorderBrush" Color="#2B3B57" />
+    <SolidColorBrush x:Key="BurenTextMutedBrush" Color="#A9B8D4" />
+    <SolidColorBrush x:Key="BurenIconBrush" Color="#A9C9FF" />
+
+    <!-- § 2 Typography. The fonts ship with the app (Fonts\, SIL Open Font License); the families after
+         the first are the fallback of the design. -->
+    <FontFamily x:Key="TextFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Text, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#IBM Plex Mono, Cascadia Mono, Consolas</FontFamily>
+
+    <sys:Double x:Key="ScreenTitleSize">30</sys:Double>
+    <sys:Double x:Key="BigValueSize">26</sys:Double>
+    <sys:Double x:Key="WordmarkSize">22</sys:Double>
+    <sys:Double x:Key="SectionHeaderSize">18</sys:Double>
+    <sys:Double x:Key="CardTitleSize">16</sys:Double>
+    <sys:Double x:Key="BodySize">15</sys:Double>
+    <sys:Double x:Key="SubTextSize">13</sys:Double>
+    <sys:Double x:Key="NavLabelSize">12</sys:Double>
+    <sys:Double x:Key="HexCodeSize">30</sys:Double>
+
+    <!-- § 3 Sizes -->
+    <CornerRadius x:Key="LargeCardRadius">22</CornerRadius>
+    <CornerRadius x:Key="CardRadius">18</CornerRadius>
+    <CornerRadius x:Key="TileRadius">12</CornerRadius>
+    <CornerRadius x:Key="StripRadius">8</CornerRadius>
+    <CornerRadius x:Key="PillRadius">999</CornerRadius>
+    <sys:Double x:Key="MinClickSize">44</sys:Double>
+    <!-- The page margin on the desktop (§ 6). -->
+    <Thickness x:Key="PageMargin">32</Thickness>
+    <sys:Double x:Key="PageMaxWidth">1200</sys:Double>
+</ResourceDictionary>
