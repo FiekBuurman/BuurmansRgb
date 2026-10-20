@@ -99,6 +99,22 @@ public static class LedLayout
             : LedMatrix.NoLed;
     }
 
+    // Where an LED is drawn in a layout with cells of pitch by pitch, from the top left; Rect.Empty
+    // for an LED the layout does not hold.
+    public static Rect BoundsOf(LedMatrix layout, double pitch, int led)
+    {
+        var size = LedSize * pitch / Pitch;
+        for (var cell = 0; cell < layout.Cells.Count; cell++)
+        {
+            if (layout.Cells[cell] == led)
+            {
+                return new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, size, size);
+            }
+        }
+
+        return Rect.Empty;
+    }
+
     // The positions of a matrix, such as the keys of a keyboard, for a zone of ledCount LEDs. A
     // cell that points past the zone stays empty; this is the one place that guards that, since
     // providers pass a key map on as they get it and Colors may hold fewer LEDs than the zone.

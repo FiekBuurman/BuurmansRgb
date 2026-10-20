@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using System.Windows.Media;
 using BuurmansRgb.Core;
@@ -29,6 +30,9 @@ public sealed class LedPreviewView : FrameworkElement
     public static readonly DependencyProperty IsRingProperty = DependencyProperty.Register(
         nameof(IsRing), typeof(bool), typeof(LedPreviewView), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty LedLabelsProperty = DependencyProperty.Register(
+        nameof(LedLabels), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new PropertyMetadata(null));
+
     public static readonly DependencyProperty SelectionFirstProperty = DependencyProperty.Register(
         nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender));
 
@@ -52,6 +56,11 @@ public sealed class LedPreviewView : FrameworkElement
     private LedMatrix _layout = LedLayout.Wrap(0, 1);
     private (int LedCount, int Columns, LedMatrix? Matrix) _layoutFor;
 
+    // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
+    private LedToolTip? _toolTip;
+
+    public LedPreviewView() => Unloaded += (_, _) => _toolTip?.Hide();
+
     public IReadOnlyList<RgbColor> Colors
     {
         get => (IReadOnlyList<RgbColor>)GetValue(ColorsProperty);
@@ -71,6 +80,13 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(IsRingProperty, value);
     }
 
+    // What the tooltip and a screen reader call each LED; see ZonePreviewViewModel.LedLabels.
+    public IReadOnlyList<string>? LedLabels
+    {
+        get => (IReadOnlyList<string>?)GetValue(LedLabelsProperty);
+        set => SetValue(LedLabelsProperty, value);
+    }
+
     public int SelectionFirst
     {
         get => (int)GetValue(SelectionFirstProperty);
@@ -87,6 +103,46 @@ public sealed class LedPreviewView : FrameworkElement
     {
         get => (ICommand?)GetValue(ClickCommandProperty);
         set => SetValue(ClickCommandProperty, value);
+    }
+
+    // The label of an LED from LedLabels; null for no LED or when there are no labels.
+    internal string? LabelOf(int led) => LedLabels is { } labels && led >= 0 && led < labels.Count ? labels[led] : null;
+
+    internal bool IsSelected(int led) => led >= SelectionFirst && led <= SelectionLast;
+
+    // Where an LED is drawn, from the top left of the view; Rect.Empty for an LED it does not show.
+    internal Rect BoundsOf(int led)
+    {
+        if (led < 0 || led >= Colors.Count)
+        {
+            return Rect.Empty;
+        }
+
+        if (ShowsRing)
+        {
+            var scale = RingScale(ActualWidth);
+            var center = LedLayout.RingCenter(led, Colors.Count);
+            var size = LedLayout.LedSize * scale;
+            return new Rect(center.X * scale - size / 2.0, center.Y * scale - size / 2.0, size, size);
+        }
+
+        var (layout, pitch) = LayoutFor(ActualWidth);
+        return LedLayout.BoundsOf(layout, pitch, led);
+    }
+
+    protected override AutomationPeer OnCreateAutomationPeer() => new LedPreviewAutomationPeer(this);
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        var led = LedAt(e.GetPosition(this));
+        (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
+    }
+
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+        _toolTip?.Hide();
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -125,6 +181,7 @@ public sealed class LedPreviewView : FrameworkElement
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
+        _toolTip?.Hide();
         if (ClickCommand is not { } command)
         {
             return;
@@ -164,7 +221,7 @@ public sealed class LedPreviewView : FrameworkElement
 
     // The LED under a point; Measure, OnRender and the click all use the same layout, so a click
     // lands on the LED that is drawn there.
-    private int LedAt(Point position)
+    internal int LedAt(Point position)
     {
         if (ShowsRing)
         {
@@ -232,8 +289,6 @@ public sealed class LedPreviewView : FrameworkElement
             drawingContext.DrawEllipse(null, selectionRing, center, radius + SelectionGap, radius + SelectionGap);
         }
     }
-
-    private bool IsSelected(int led) => led >= SelectionFirst && led <= SelectionLast;
 
     // The layout of a row or key map and its pitch for a width.
     private (LedMatrix Layout, double Pitch) LayoutFor(double width)

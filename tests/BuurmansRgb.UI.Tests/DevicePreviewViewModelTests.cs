@@ -61,6 +61,38 @@ public sealed class DevicePreviewViewModelTests
         Assert.Null(preview.Zones[1].Matrix);
     }
 
+    // The number counts from the start of the device, as the per-LED editor says "LED 4".
+    [Fact]
+    public void LedLabels_GiveTheNameAndTheNumberInTheDevice()
+    {
+        var device = new DeviceInfo("keyboard", "Keyboard", DeviceType.Keyboard, 4,
+            [RgbZone.Fixed("Keys", 3) with { LedNames = ["Escape", " ", "F1"] }, RgbZone.Fixed("Logo", 1)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.Equal(["Escape (LED 1)", "LED 2", "F1 (LED 3)"], zones[0].LedLabels);
+        Assert.Equal(["LED 4"], zones[1].LedLabels);
+    }
+
+    // The list of names may be shorter or longer than the zone.
+    [Fact]
+    public void LedLabels_NamesThatDoNotMatchTheZone_StillGiveALabelPerLed()
+    {
+        var device = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 5,
+            [RgbZone.Fixed("Short", 2) with { LedNames = ["A"] }, RgbZone.Fixed("Long", 3) with { LedNames = ["B", "C", "D", "E"] }])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.Equal(["A (LED 1)", "LED 2"], zones[0].LedLabels);
+        Assert.Equal(["B (LED 3)", "C (LED 4)", "D (LED 5)"], zones[1].LedLabels);
+    }
+
     // A dual-ring fan: each ring is a zone of its own and shows as a ring of its own.
     [Fact]
     public void Zones_OfAFan_AreRings()

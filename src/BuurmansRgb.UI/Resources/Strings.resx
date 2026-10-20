@@ -165,6 +165,15 @@
   <data name="LedSelectionHint" xml:space="preserve">
     <value>De kleur hieronder geldt nu alleen voor deze LED's.</value>
   </data>
+  <data name="LedLabel" xml:space="preserve">
+    <value>LED {0}</value>
+  </data>
+  <data name="LedLabelWithName" xml:space="preserve">
+    <value>{0} (LED {1})</value>
+  </data>
+  <data name="LedSelectedStatus" xml:space="preserve">
+    <value>Geselecteerd</value>
+  </data>
   <data name="FillGradient" xml:space="preserve">
     <value>Verloop vullen</value>
   </data>

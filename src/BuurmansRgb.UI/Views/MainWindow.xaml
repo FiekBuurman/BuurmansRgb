@@ -426,7 +426,7 @@
                                                         </TextBlock>
                                                         <TextBlock Margin="0,0,0,3" Text="{Binding Header}" TextWrapping="Wrap"
                                                                    Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                                        <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" IsRing="{Binding IsRing}" HorizontalAlignment="Stretch"
+                                                        <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" IsRing="{Binding IsRing}" LedLabels="{Binding LedLabels}" HorizontalAlignment="Stretch"
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />

@@ -55,6 +55,12 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     // The LEDs of a fan, which the view draws as a ring instead of a row.
     public bool IsRing { get; }
 
+    // What the tooltip and a screen reader call each LED of the zone: its number in the device,
+    // as the per-LED editor counts, after its name if the provider gave one, such as
+    // "Escape (LED 1)". Made when first asked, since the view only asks on hover or for a screen
+    // reader.
+    public IReadOnlyList<string> LedLabels => field ??= [.. Enumerable.Range(0, LedCount).Select(LabelOf)];
+
     public bool ShowsHeader { get; }
 
     public string Details { get; }
@@ -131,6 +137,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
         {
             _actions?.ResizeZone(new ZoneResize(_deviceId, _layout.Index, ledCount));
         }
+    }
+
+    private string LabelOf(int led)
+    {
+        var number = FirstLed + led + 1;
+        return _layout.Zone.LedNames is { } names && led < names.Count && !string.IsNullOrWhiteSpace(names[led])
+            ? UiText.Format(Strings.LedLabelWithName, names[led], number)
+            : UiText.Format(Strings.LedLabel, number);
     }
 
     // Only a length the zone can hold, and not the one it has.

@@ -73,6 +73,16 @@ public sealed class LedLayoutTests
         Assert.Equal(4, LedLayout.LedAt(new LedMatrix(2, 3, [0, 1, 2, 3, No, 4]), 9.0, 19.0, 10.0));
 
     [Fact]
+    public void BoundsOf_LedInTheLayout_IsTheLedInItsCell()
+    {
+        var layout = new LedMatrix(2, 3, [0, 1, 2, 3, No, 4]);
+
+        Assert.Equal(new Rect(36.0, 18.0, LedLayout.LedSize, LedLayout.LedSize), LedLayout.BoundsOf(layout, LedLayout.Pitch, 4));
+        Assert.Equal(new Rect(9.0, 0.0, 7.0, 7.0), LedLayout.BoundsOf(layout, LedLayout.Pitch / 2.0, 1));
+        Assert.True(LedLayout.BoundsOf(layout, LedLayout.Pitch, 5).IsEmpty);
+    }
+
+    [Fact]
     public void Place_EmptyMatrix_ShowsTheLedsInOneRow()
     {
         Assert.Equal(new LedMatrix(1, 3, [0, 1, 2]), LedLayout.Place(new LedMatrix(0, 0, []), 3));
