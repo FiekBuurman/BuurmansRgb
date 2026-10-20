@@ -85,7 +85,8 @@ dotnet run --project src/BuurmansRgb.Engine
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
   OpenRGB. Zie "OpenRGB koppelen" hieronder. Gesimuleerd zijn er een strip (30 LED's), een
-  fan (12), een toetsenbord (104), een moederbord (7, in drie zones) en twee RAM-sticks (8).
+  fan (12), een toetsenbord (104), een moederbord (7, in drie zones), twee RAM-sticks (8) en een
+  videokaart (13, in twee zones).
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
   RAM" hieronder.
@@ -161,8 +162,9 @@ Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt z
 via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
 
 - **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. Andere types krijgen voorlopig een
-  algemeen icoon; hun eigen icoon en naam komen in taak 6–8.
+  aantal LED's en, bij meer dan één zone, het aantal zones. De videokaart heeft ook een eigen
+  icoon (zie "Videokaart (GPU)"); fans, case-LED, strips, toetsenbord, muis en headset krijgen
+  voorlopig een algemeen icoon, hun eigen icoon en naam komen in taak 7 en 8.
 - **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
   OpenRGB ze geeft (bijv. "Aura Mainboard" en "Aura Addressable 1"). Een header zonder LED's
   staat er ook, met de melding dat je in OpenRGB instelt hoeveel LED's erop zitten. Een
@@ -180,14 +182,50 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
   `ResumeRestorerTests`, met een nepklok) en de lijst en zones in de instellingen-app
   (`DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests`). Start daarnaast de
   engine en de instellingen-app: het gesimuleerde moederbord en de RAM-sticks staan in de lijst.
-- **Testen met je eigen hardware:**
-  1. Start OpenRGB als administrator met de SDK-server aan, daarna de engine en de
-     instellingen-app.
-  2. Vergelijk per moederbord en RAM-stick het aantal LED's en de zones met OpenRGB.
-  3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
-  4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
-     zijn.
-  5. Noteer in `docs/hardware.md` wat werkt.
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  elk moederbord en elke RAM-stick.
+
+## Videokaart (GPU)
+
+De videokaart is het tweede echte apparaattype (taak 6) en werkt net als moederbord en RAM.
+Ook de LED's van een videokaart bereikt OpenRGB meestal via SMBus (I2C), dus ook hier moet
+OpenRGB de eerste keer met adminrechten draaien.
+
+- **In de lijst** staat een videokaart met een eigen icoon en het type "Videokaart", met het
+  aantal LED's en, bij meer dan één zone, het aantal zones. De gesimuleerde videokaart heeft
+  een lichtbalk van 12 LED's en een logo van 1 LED.
+- **Zones:** het voorbeeld toont de zones zoals OpenRGB ze geeft. Sommige kaarten hebben een
+  eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, met de melding
+  dat je in OpenRGB instelt hoeveel LED's erop zitten.
+- **Twee dezelfde kaarten** krijgen een nummer in de volgorde van OpenRGB, net als RAM-sticks.
+- **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
+  (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
+  misschien niet; de debug-uitvoer meldt dat bij het verbinden.
+- **Na slaapstand** herstelt de engine ook de videokaart, zoals beschreven bij "Moederbord en
+  RAM".
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `OpenRgbDeviceMapperTests` en `OpenRgbDeviceProviderTests` (videokaarten met nepdata van
+  OpenRGB, ook zonder "Direct"-modus en na herstellen), `SimulatedDeviceProviderTests`,
+  `DeviceItemTests`, `DeviceIconsTests` en `DevicePreviewViewModelTests` (de zones, die voor
+  elk apparaattype hetzelfde werken). Start daarnaast de engine en de instellingen-app: de
+  gesimuleerde videokaart staat onderaan in de lijst.
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  de videokaart, en noteer in `docs/hardware.md` ook of de kaart in OpenRGB een
+  "Direct"-modus heeft.
+
+## Een apparaattype testen met je eigen hardware
+
+Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, ...). Wat per
+type extra is, staat in de sectie van dat type.
+
+1. Sluit de software van de fabrikant af (bijv. Armoury Crate, MSI Center, RGB Fusion of
+   iCUE), start OpenRGB als administrator met de SDK-server aan, daarna de engine en de
+   instellingen-app.
+2. Vergelijk per apparaat het aantal LED's en de zones met OpenRGB.
+3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
+4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
+   zijn.
+5. Noteer in `docs/hardware.md` wat werkt.
 
 ## Instellingen-app starten
 

@@ -94,3 +94,10 @@
 - Bij RAM-sticks met dezelfde naam de OpenRGB-locatie (SMBus-adres) tonen, zodat je ziet welke
   stick in welk slot zit; nu krijgen ze alleen een nummer in de volgorde van OpenRGB
 - In de per-LED-editor een hele zone in één keer selecteren door op de zonenaam te klikken
+- In de instellingen-app tonen dat een apparaat in OpenRGB geen "Direct"- of "Custom"-modus
+  heeft (veel videokaarten), zodat je ziet waarom de kleur niet aankomt; nu staat dat alleen in
+  de debug-uitvoer
+- Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
+  GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
+- Bij twee videokaarten van hetzelfde model de OpenRGB-locatie tonen, net als bij RAM-sticks;
+  nu krijgen ze alleen een nummer in de volgorde van OpenRGB

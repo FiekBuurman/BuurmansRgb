@@ -20,6 +20,10 @@ public static class DeviceIcons
     public static Geometry Ram { get; } = Create(
         "M1.5,5.5 H16.5 V12.5 H1.5 Z M3.5,7.5 H5.5 V10.5 H3.5 Z M7.5,7.5 H10.5 V10.5 H7.5 Z M12.5,7.5 H14.5 V10.5 H12.5 Z M2.5,14.5 H8 M10,14.5 H15.5");
 
+    // A card with two fans, its slot bracket on the left and the PCIe contacts below.
+    public static Geometry Gpu { get; } = Create(
+        "M1.5,2.5 V15.5 M1.5,4.5 H16.5 V12.5 H1.5 M4.5,8.5 A2,2 0 1 0 8.5,8.5 A2,2 0 1 0 4.5,8.5 Z M9.5,8.5 A2,2 0 1 0 13.5,8.5 A2,2 0 1 0 9.5,8.5 Z M5.5,12.5 V14.5 H12.5 V12.5");
+
     // A housing with one LED.
     public static Geometry Device { get; } = Create(
         "M3.5,3.5 H14.5 V14.5 H3.5 Z M7,9 A2,2 0 1 0 11,9 A2,2 0 1 0 7,9 Z");
@@ -30,6 +34,7 @@ public static class DeviceIcons
         null => AllDevices,
         DeviceType.Motherboard => Motherboard,
         DeviceType.Ram => Ram,
+        DeviceType.Gpu => Gpu,
         _ => Device,
     };
 

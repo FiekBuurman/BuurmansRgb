@@ -5,23 +5,26 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 public sealed class OpenRgbDeviceMapperTests
 {
-    [Fact]
-    public void Map_CopiesNameZonesAndLedCount()
+    // Motherboards and many graphics cards have fixed LEDs and an addressable header of their own.
+    [Theory]
+    [InlineData(OpenRgbDeviceType.Motherboard, DeviceType.Motherboard)]
+    [InlineData(OpenRgbDeviceType.Gpu, DeviceType.Gpu)]
+    public void Map_CopiesNameZonesAndLedCount(OpenRgbDeviceType type, DeviceType expectedType)
     {
         var data = TestDevices.Create(
             index: 3,
-            name: "ASUS ROG STRIX B550-F",
-            type: OpenRgbDeviceType.Motherboard,
-            zones: [new("Aura Mainboard", 4, 4, 4), new("Aura Addressable 1", 0, 0, 120)]);
+            name: "ASUS ROG STRIX",
+            type: type,
+            zones: [new("Aura LEDs", 4, 4, 4), new("Aura Addressable 1", 0, 0, 120)]);
 
         var mapped = Assert.Single(OpenRgbDeviceMapper.Map([data]));
 
         Assert.Equal(3, mapped.Index);
-        Assert.Equal("ASUS ROG STRIX B550-F", mapped.Device.Name);
-        Assert.Equal(DeviceType.Motherboard, mapped.Device.Type);
+        Assert.Equal("ASUS ROG STRIX", mapped.Device.Name);
+        Assert.Equal(expectedType, mapped.Device.Type);
         Assert.Equal(4, mapped.Device.LedCount);
         Assert.Equal(
-            [new RgbZone("Aura Mainboard", 4, Resizable: false), new RgbZone("Aura Addressable 1", 0, Resizable: true)],
+            [new RgbZone("Aura LEDs", 4, Resizable: false), new RgbZone("Aura Addressable 1", 0, Resizable: true)],
             mapped.Device.Zones);
     }
 
@@ -64,6 +67,24 @@ public sealed class OpenRgbDeviceMapperTests
         });
         Assert.Equal([0, 1, 2, 3], mapped.Select(item => item.Index));
         Assert.Equal(["ENE DRAM 1", "ENE DRAM 2", "ENE DRAM 3", "ENE DRAM 4"], mapped.Select(item => item.Device.Name));
+    }
+
+    // Two cards of the same model differ only in their PCI or SMBus location.
+    [Fact]
+    public void Map_TwoGpusOfTheSameModel_GetTheirOwnIdAndANumber()
+    {
+        var first = TestDevices.Create(index: 0, name: "MSI GeForce RTX 3070", type: OpenRgbDeviceType.Gpu,
+            location: "I2C: NVIDIA GPU, address 0x68", ledCount: 1);
+        var second = first with { Index = 1, Location = "I2C: NVIDIA GPU 1, address 0x68" };
+
+        var mapped = OpenRgbDeviceMapper.Map([first, second]);
+
+        Assert.Equal(["MSI GeForce RTX 3070 1", "MSI GeForce RTX 3070 2"], mapped.Select(item => item.Device.Name));
+        Assert.Equal(
+            [OpenRgbDeviceMapper.CreateId(first), OpenRgbDeviceMapper.CreateId(second)],
+            mapped.Select(item => item.Device.Id));
+        Assert.NotEqual(mapped[0].Device.Id, mapped[1].Device.Id);
+        Assert.All(mapped, item => Assert.Equal((DeviceType.Gpu, 1), (item.Device.Type, item.Device.LedCount)));
     }
 
     [Fact]

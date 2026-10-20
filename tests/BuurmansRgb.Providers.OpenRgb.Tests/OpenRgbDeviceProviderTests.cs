@@ -36,20 +36,24 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Equal(1, _server.ConnectCount);
     }
 
+    // Some graphics cards only know their own hardware effects in OpenRGB: they stay in the list,
+    // without a Direct mode being forced on them.
     [Fact]
     public async Task Connect_SetsCustomModeOnDevicesWithDirectMode()
     {
         _server.Devices =
         [
             TestDevices.Create(index: 0, name: "Strip", modes: ["Direct"]),
-            TestDevices.Create(index: 1, name: "Old GPU", modes: ["Static", "Breathing"]),
+            TestDevices.Create(index: 1, name: "Old GPU", type: OpenRgbDeviceType.Gpu, modes: ["Static", "Breathing"]),
             TestDevices.Create(index: 2, name: "Keyboard", modes: ["Custom"]),
         ];
 
         await ConnectAsync();
 
         Assert.Equal([0, 2], _server.CustomModeIndexes);
-        Assert.Equal(3, (await _provider.DiscoverAsync(Ct)).Count);
+        var devices = await _provider.DiscoverAsync(Ct);
+        Assert.Equal(3, devices.Count);
+        Assert.Equal(DeviceType.Gpu, devices[1].Type);
     }
 
     [Fact]
@@ -71,6 +75,29 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         _provider.SetLeds(devices[2].Id, [.. Enumerable.Repeat(Orange, 8)]);
 
         Assert.Equal(2, Assert.Single(_server.Updates).Index);
+    }
+
+    [Fact]
+    public async Task Connect_Gpu_AppearsWithItsTypeAndLedCountAndTakesColors()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(index: 0, name: "Strip"),
+            TestDevices.Create(index: 1, name: "ASUS ROG STRIX RTX 4080", type: OpenRgbDeviceType.Gpu,
+                location: "I2C: NVIDIA GPU, address 0x67", zones: [new("GPU", 22, 22, 22), new("Addressable header", 0, 0, 60)]),
+        ];
+
+        var devices = await ConnectAsync();
+
+        var gpu = devices[1];
+        Assert.Equal((DeviceType.Gpu, 22, 2), (gpu.Type, gpu.LedCount, gpu.Zones.Count));
+        Assert.Equal([0, 1], _server.CustomModeIndexes);
+
+        _provider.SetLeds(gpu.Id, [.. Enumerable.Repeat(Orange, 22)]);
+
+        var update = Assert.Single(_server.Updates);
+        Assert.Equal(1, update.Index);
+        Assert.Equal(22, update.Colors.Length);
     }
 
     [Fact]
@@ -257,13 +284,14 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         [
             TestDevices.Create(index: 0, name: "Motherboard", type: OpenRgbDeviceType.Motherboard),
             TestDevices.Create(index: 1, name: "ENE DRAM", type: OpenRgbDeviceType.Dram),
+            TestDevices.Create(index: 2, name: "GPU", type: OpenRgbDeviceType.Gpu),
         ];
         await ConnectAsync();
 
         _provider.RestoreDevices();
         await _provider.WhenIdleAsync();
 
-        Assert.Equal([0, 1, 0, 1], _server.CustomModeIndexes);
+        Assert.Equal([0, 1, 2, 0, 1, 2], _server.CustomModeIndexes);
         Assert.Equal(2, _devicesChanged);
         Assert.Equal(1, _server.ConnectCount);
     }
