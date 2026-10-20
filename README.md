@@ -88,8 +88,9 @@ dotnet run --project src/BuurmansRgb.Engine
   `colorLoop` (of met te weinig of te veel kleuren) is het geel, groen, blauw.
   `simulatedDevices` zegt wanneer de gesimuleerde apparaten er zijn: `"automatic"`
   (standaard: alleen zolang OpenRGB geen echte apparaten levert), `"always"` of `"never"`
-  (zie "OpenRGB-status en gesimuleerde apparaten"). Een woord dat de engine niet kent, leest
-  als `"automatic"`. Oudere bestanden hebben hier `true` of `false`: `true` schreef de engine
+  (zie "OpenRGB-status en gesimuleerde apparaten"). Een woord dat de engine niet kent, of een
+  andere waarde (een getal, `null`, ...), leest als `"automatic"`; de rest van het bestand
+  blijft gewoon gelden. Oudere bestanden hebben hier `true` of `false`: `true` schreef de engine
   zelf als standaard weg en leest dus als `"automatic"`, `false` blijft `"never"`. Kies het
   liever in de instellingen-app: dan wisselt de engine meteen, zonder herstart.
   `framesPerSecond` (1–60, standaard 30) is de framerate van de bewegende effecten. Onder

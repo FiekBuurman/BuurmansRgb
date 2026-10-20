@@ -162,13 +162,22 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(new RgbColor(0, 255, 0), settings.Color);
     }
 
-    [Fact]
-    public void LoadOrCreate_SimulatedDevicesAsANumber_ReturnsDefaults()
+    // Anything else must not cost the rest of the file, or the next save would overwrite the lighting.
+    [Theory]
+    [InlineData("2")]
+    [InlineData("null")]
+    [InlineData("""{ "mode": "never" }""")]
+    [InlineData("""["never", 1]""")]
+    public void LoadOrCreate_SimulatedDevicesNoWord_ReadsAutomaticAndKeepsTheRest(string value)
     {
         var path = _directory.File("settings.json");
-        File.WriteAllText(path, """{ "color": "#00FF00", "simulatedDevices": 2 }""");
+        File.WriteAllText(path, $$"""{ "color": "#00FF00", "simulatedDevices": {{value}}, "brightness": 0.25 }""");
 
-        Assert.Equal(EngineSettings.CreateDefault(), new JsonSettingsStore(path).LoadOrCreate());
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(SimulatedDevicesMode.Automatic, settings.SimulatedDevices);
+        Assert.Equal(new RgbColor(0, 255, 0), settings.Color);
+        Assert.Equal(0.25, settings.Brightness);
     }
 
     [Theory]
