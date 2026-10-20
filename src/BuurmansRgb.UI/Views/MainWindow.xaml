@@ -334,7 +334,8 @@
                                                                        Foreground="{x:Static SystemColors.GrayTextBrush}" />
                                                             <TextBox Width="56" Margin="6,0,0,0" VerticalContentAlignment="Center"
                                                                      Text="{Binding LedCountText, UpdateSourceTrigger=PropertyChanged}"
-                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}">
+                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}"
+                                                                     AutomationProperties.HelpText="{Binding LedCountHelpText}">
                                                                 <TextBox.InputBindings>
                                                                     <KeyBinding Key="Enter" Command="{Binding ApplyLedCountCommand}" />
                                                                 </TextBox.InputBindings>

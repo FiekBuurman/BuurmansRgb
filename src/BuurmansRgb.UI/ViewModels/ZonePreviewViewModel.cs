@@ -70,6 +70,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     // does not know what is on it: the view explains how to give it the LEDs of the fan or strip.
     public bool ShowsEmptyZoneHint { get; }
 
+    // The hint for the input box too, so a screen reader reads it where the LEDs are filled in.
+    public string? LedCountHelpText => ShowsEmptyZoneHint ? Strings.EmptyZoneHint : null;
+
     public string LedCountLabel => UiText.Format(Strings.ZoneLedCountLabel, _layout.Zone.MinLedCount, _layout.Zone.MaxLedCount);
 
     public string LedCountAccessibleName => UiText.Format(Strings.ZoneLedCountAccessibleName, AccessibleName);

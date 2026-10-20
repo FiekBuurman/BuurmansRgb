@@ -74,6 +74,7 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("Nog geen LED's ingesteld", zones[2].Details);
         Assert.Contains("fan of strip", Strings.EmptyZoneHint);
         Assert.Contains(Strings.ApplyLedCount, Strings.EmptyZoneHint);
+        Assert.Equal([null, null, Strings.EmptyZoneHint], zones.Select(zone => zone.LedCountHelpText));
     }
 
     [Fact]
@@ -81,7 +82,9 @@ public sealed class DevicePreviewViewModelTests
     {
         var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Hardware };
 
-        Assert.False(Assert.Single(new DevicePreviewViewModel(strip).Zones).ShowsEmptyZoneHint);
+        var zone = Assert.Single(new DevicePreviewViewModel(strip).Zones);
+        Assert.False(zone.ShowsEmptyZoneHint);
+        Assert.Null(zone.LedCountHelpText);
     }
 
     [Fact]
