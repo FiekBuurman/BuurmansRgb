@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Programs;
+using Microsoft.Win32.SafeHandles;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -47,16 +48,21 @@ public sealed class ProcessListTests
         try
         {
             Assert.Equal([program], _processes.Find(names));
+
+            ping.Kill();
+            await ping.WaitForExitAsync(Ct);
+
+            // Right away: ping has its exit code, but under load Windows often signals its handle
+            // only later. And the handle to ping is still open, as a game launcher keeps one.
+            // Ended is ended.
+            Assert.Empty(_processes.Find(names));
+            Assert.Empty(_processes.Find(names));
         }
         finally
         {
             ping.Kill();
-            await ping.WaitForExitAsync(Ct);
+            WaitUntilGone(ping);
         }
-
-        // The handle to ping is still open, as a game launcher keeps one: ended is ended.
-        Assert.Empty(_processes.Find(names));
-        Assert.Empty(_processes.Find(names));
     }
 
     // It runs every few seconds while a profile has a program, so it should not feed the GC. A
@@ -79,4 +85,19 @@ public sealed class ProcessListTests
     }
 
     private static HashSet<string> Names(params string[] names) => new(names, ProgramNames.Comparer);
+
+    // Only once its handle is signalled is a process really gone, and its exe free to delete;
+    // WaitForExitAsync already returns when the exit code is set.
+    private static void WaitUntilGone(Process process)
+    {
+        using var gone = new ProcessWaitHandle(process);
+        Assert.True(gone.WaitOne(TestTimeouts.Short));
+    }
+
+    // Waits on the handle of the process, without owning it.
+    private sealed class ProcessWaitHandle : WaitHandle
+    {
+        public ProcessWaitHandle(Process process) =>
+            SafeWaitHandle = new SafeWaitHandle(process.SafeHandle.DangerousGetHandle(), ownsHandle: false);
+    }
 }
