@@ -260,6 +260,9 @@
   <data name="ProfilesHint" xml:space="preserve">
     <value>Bewaar de verlichting van alle apparaten onder een naam, zodat je er later naar terug kunt.</value>
   </data>
+  <data name="ProfilesHintAccessibleName" xml:space="preserve">
+    <value>Uitleg bij profielen</value>
+  </data>
   <data name="ProfileNameLabel" xml:space="preserve">
     <value>Naam van het profiel</value>
   </data>
@@ -292,6 +295,45 @@
   </data>
   <data name="ProfileDeleted" xml:space="preserve">
     <value>Profiel '{0}' verwijderd.</value>
+  </data>
+  <data name="ProfileAutomationOff" xml:space="preserve">
+    <value>Automatisch laden: uit</value>
+  </data>
+  <data name="ProfileAutomationOn" xml:space="preserve">
+    <value>Automatisch laden: aan</value>
+  </data>
+  <data name="ProfileAutomationNoSelection" xml:space="preserve">
+    <value>Kies eerst een profiel in de lijst.</value>
+  </data>
+  <data name="ProfileLoadAtLabel" xml:space="preserve">
+    <value>Automatisch laden om</value>
+  </data>
+  <data name="ProfileLoadAtHint" xml:space="preserve">
+    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat BuurmansRgb die keer over.</value>
+  </data>
+  <data name="ProfileProgramLabel" xml:space="preserve">
+    <value>Laden als dit programma start</value>
+  </data>
+  <data name="ProfileProgramHint" xml:space="preserve">
+    <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
+  </data>
+  <data name="ProfileAutomationApply" xml:space="preserve">
+    <value>Toepassen</value>
+  </data>
+  <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
+    <value>Bewaart de tijd en het programma bij het gekozen profiel.</value>
+  </data>
+  <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
+    <value>Automatisch laden toepassen</value>
+  </data>
+  <data name="ProfileLoadAtInvalid" xml:space="preserve">
+    <value>Vul een tijd in zoals 23:00, of laat het leeg.</value>
+  </data>
+  <data name="ProfileProgramInvalid" xml:space="preserve">
+    <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
+  </data>
+  <data name="ProfileAutomationSaved" xml:space="preserve">
+    <value>Automatisch laden van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
     <value>Laat knipperen</value>

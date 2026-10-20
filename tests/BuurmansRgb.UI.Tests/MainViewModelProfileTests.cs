@@ -79,6 +79,54 @@ public sealed class MainViewModelProfileTests
         Assert.Equal("De engine kon de wijziging niet verwerken.", viewModel.StatusMessage);
     }
 
+    [Fact]
+    public async Task SelectProfile_ShowsWhenItLoadsByItself()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Gamen", "Nacht"]);
+            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe");
+        });
+
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        Assert.Equal("Nacht", viewModel.Profiles.Automation.ProfileName);
+        Assert.Equal("23:00", viewModel.Profiles.Automation.LoadAtText);
+        Assert.Equal("eldenring.exe", viewModel.Profiles.Automation.ProgramText);
+    }
+
+    [Fact]
+    public async Task ApplyAutomation_SendsItAndShowsWhatTheEngineSaved()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.Add("Gamen"));
+        viewModel.Profiles.SelectedName = "Gamen";
+
+        viewModel.Profiles.Automation.ProgramText = "eldenring";
+        viewModel.Profiles.Automation.ApplyCommand.Execute(null);
+
+        Assert.Equal(["profile automation Gamen - eldenring.exe"], Api.Calls);
+        Assert.Equal("eldenring.exe", viewModel.Profiles.Automation.ProgramText);
+        Assert.Equal("Automatisch laden: aan", viewModel.Profiles.Automation.Header);
+        Assert.False(viewModel.Profiles.Automation.ApplyCommand.CanExecute(null));
+        Assert.Equal("Automatisch laden van 'Gamen' opgeslagen.", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public async Task DeleteProfile_EmptiesItsAutomation()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Nacht");
+            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+        });
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        viewModel.Profiles.DeleteCommand.Execute(null);
+
+        Assert.False(viewModel.Profiles.Automation.HasProfile);
+        Assert.Equal("", viewModel.Profiles.Automation.LoadAtText);
+    }
+
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>

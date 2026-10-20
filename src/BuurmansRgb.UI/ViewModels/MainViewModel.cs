@@ -65,6 +65,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, showLighting: true);
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        Profiles.Automation.ApplyRequested += (_, change) =>
+            SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved);
+        Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
     }
 
@@ -484,6 +487,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             });
         });
+    }
+
+    // Unless the user picked another profile, or the connection was made again, in the meantime.
+    private async Task ShowProfileAutomationAsync(string name)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var (ok, automation) = await TryCallAsync(connection, api => api.GetProfileAutomationAsync(name));
+        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        {
+            Profiles.Automation.Show(name, automation);
+        }
     }
 
     private void ClearLedSelection()

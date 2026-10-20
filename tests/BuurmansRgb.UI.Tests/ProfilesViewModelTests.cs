@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -6,12 +7,14 @@ public sealed class ProfilesViewModelTests
 {
     private readonly ProfilesViewModel _profiles = new();
     private readonly List<string> _requests = [];
+    private readonly List<string> _automationRequests = [];
 
     public ProfilesViewModelTests()
     {
         _profiles.SaveRequested += (_, name) => _requests.Add($"save {name}");
         _profiles.LoadRequested += (_, name) => _requests.Add($"load {name}");
         _profiles.DeleteRequested += (_, name) => _requests.Add($"delete {name}");
+        _profiles.AutomationNeeded += (_, name) => _automationRequests.Add(name);
     }
 
     [Fact]
@@ -115,5 +118,50 @@ public sealed class ProfilesViewModelTests
 
         Assert.Equal("Gamen", asked);
         Assert.Equal(expected, _requests);
+    }
+
+    [Fact]
+    public void SelectName_AsksForItsAutomation()
+    {
+        _profiles.Show(["Gamen", "Nacht"]);
+
+        _profiles.SelectedName = "Nacht";
+
+        Assert.Equal(["Nacht"], _automationRequests);
+    }
+
+    // After a save, load or new automation the list is shown again: the fields show what was saved.
+    [Fact]
+    public void Show_SameSelection_AsksForItsAutomationAgain()
+    {
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+
+        Assert.Equal(["Nacht", "Nacht"], _automationRequests);
+    }
+
+    [Fact]
+    public void SelectAnotherName_EmptiesTheFieldsOfTheFirstRightAway()
+    {
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+
+        _profiles.SelectedName = "Gamen";
+
+        Assert.Null(_profiles.Automation.ProfileName);
+        Assert.Equal("", _profiles.Automation.LoadAtText);
+    }
+
+    [Fact]
+    public void SelectedProfileIsGone_EmptiesTheFieldsWithoutAsking()
+    {
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+
+        _profiles.Show(["Gamen"]);
+
+        Assert.False(_profiles.Automation.HasProfile);
+        Assert.Equal(["Nacht"], _automationRequests);
     }
 }

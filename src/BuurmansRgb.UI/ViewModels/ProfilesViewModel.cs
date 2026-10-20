@@ -16,6 +16,13 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     public event EventHandler<string>? DeleteRequested;
 
+    // Raised with the selected profile when its automation is to be shown: when the user picks it,
+    // and after every change, so the fields show what the engine saved.
+    public event EventHandler<string>? AutomationNeeded;
+
+    // When the selected profile loads by itself.
+    public ProfileAutomationViewModel Automation { get; } = new();
+
     // In the order of the engine, which is alphabetical.
     public ObservableCollection<string> Names { get; } = [];
 
@@ -47,8 +54,13 @@ public sealed partial class ProfilesViewModel : ObservableObject
             Names.Add(name);
         }
 
+        var before = SelectedName;
         SelectedName = Find(selected);
         OnPropertyChanged(nameof(SaveLabel));
+        if (SelectedName == before)
+        {
+            RequestAutomation();
+        }
     }
 
     partial void OnSelectedNameChanged(string? value)
@@ -57,6 +69,25 @@ public sealed partial class ProfilesViewModel : ObservableObject
         {
             Name = value;
         }
+
+        RequestAutomation();
+    }
+
+    // The fields of another profile are emptied right away, so they never show another profile's.
+    private void RequestAutomation()
+    {
+        if (SelectedName is not { } name)
+        {
+            Automation.Clear();
+            return;
+        }
+
+        if (Automation.ProfileName != name)
+        {
+            Automation.Clear();
+        }
+
+        AutomationNeeded?.Invoke(this, name);
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]
