@@ -21,6 +21,7 @@ internal sealed partial class ProcessList : IRunningPrograms
     private const uint QueryLimitedInformation = 0x1000;
     private const uint Synchronize = 0x0010_0000;
     private const uint WaitObject0 = 0;
+    private const uint StillActive = 259;
     private const int ErrorAccessDenied = 5;
     private const int ErrorInsufficientBuffer = 122;
     private const int MaxPath = 32_767;
@@ -154,6 +155,10 @@ internal sealed partial class ProcessList : IRunningPrograms
     private static partial bool QueryFullProcessImageName(SafeProcessHandle process, uint flags, [Out] char[] path, ref uint length);
 
     [LibraryImport("kernel32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetExitCodeProcess(SafeProcessHandle process, out uint exitCode);
+
+    [LibraryImport("kernel32.dll")]
     private static partial uint WaitForSingleObject(SafeProcessHandle handle, uint milliseconds);
 
     // One process id as last seen: its exe name, or null when it cannot be read (such as the
@@ -168,24 +173,31 @@ internal sealed partial class ProcessList : IRunningPrograms
         public int Round { get; set; }
 
         // A process that ended stays in the list while a program still holds a handle to it, such
-        // as a game launcher, or this one. A process that cannot be opened to wait on counts as
-        // running while it is in the list.
+        // as a game launcher, or this one. It has ended once it has an exit code: Windows sets that
+        // right away, but signals the handle only once all its threads are gone, which can take a
+        // while under load (Process.HasExited also goes by the exit code). The handle stays open
+        // until it is signalled, so the id cannot go to another process while this one is still on
+        // its way out. A process that cannot be opened to wait on counts as running while it is in
+        // the list.
         public bool IsRunning(uint processId)
         {
-            if (_ended)
+            if (!_ended)
             {
-                return false;
+                _handle ??= OpenProcess(Synchronize | QueryLimitedInformation, inheritHandle: false, processId);
+                if (_handle.IsInvalid)
+                {
+                    return true;
+                }
+
+                _ended = IsSignaled(_handle) || (GetExitCodeProcess(_handle, out var exitCode) && exitCode != StillActive);
             }
 
-            _handle ??= OpenProcess(Synchronize | QueryLimitedInformation, inheritHandle: false, processId);
-            if (_handle.IsInvalid || WaitForSingleObject(_handle, 0) != WaitObject0)
+            if (_ended && _handle is not null && IsSignaled(_handle))
             {
-                return true;
+                Release();
             }
 
-            _ended = true;
-            Release();
-            return false;
+            return !_ended;
         }
 
         public void Release()
@@ -193,5 +205,7 @@ internal sealed partial class ProcessList : IRunningPrograms
             _handle?.Dispose();
             _handle = null;
         }
+
+        private static bool IsSignaled(SafeProcessHandle handle) => WaitForSingleObject(handle, 0) == WaitObject0;
     }
 }
