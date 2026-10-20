@@ -202,7 +202,9 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
   gebruiker de lampen veranderd hebben.
 - **Bij vergrendelen en slaapstand** gaat een wijziging wel naar de lampen: een profiel dat op
   tijd laadt (bijv. "Nacht" om 23:00 terwijl de pc vergrendeld is) en het herstellen 2 en 10
-  seconden na het ontwaken, ook als Windows dan nog op het vergrendelscherm staat. Alleen de
+  seconden na het ontwaken, ook als Windows dan nog op het vergrendelscherm staat. Gaat de pc binnen
+  die 10 seconden weer slapen, dan vervalt het herstellen dat nog moest komen; het volgende
+  ontwaken begint opnieuw. Alleen de
   pauze uit het tray-menu houdt alles tegen tot hervatten. Knipperen gebeurt bij geen enkele
   pauze.
 - **Uitzetten:** zet `"pauseOnLockAndSleep": false` in `settings.json` en start de engine opnieuw;

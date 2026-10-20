@@ -4,7 +4,8 @@ namespace BuurmansRgb.Engine.Power;
 
 // Many devices go back to their own effect after sleep, and not all of them are back at once: USB
 // devices can take a few seconds to return. So the lights are restored a little after waking up,
-// and once more a bit later. Another wake-up starts over.
+// and once more a bit later. Another wake-up starts over; going to sleep again before the last
+// restore drops the restores that are left, so none comes while the pc sleeps or just wakes up.
 internal sealed class ResumeRestorer : IDisposable
 {
     public static IReadOnlyList<TimeSpan> DefaultDelays { get; } = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
@@ -35,11 +36,13 @@ internal sealed class ResumeRestorer : IDisposable
         _delays = [.. delays];
         _timer = timeProvider.CreateTimer(_ => OnTimer(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _events.Resumed += OnResumed;
+        _events.Suspending += OnSuspending;
     }
 
     public void Dispose()
     {
         _events.Resumed -= OnResumed;
+        _events.Suspending -= OnSuspending;
         lock (_gate)
         {
             _disposed = true;
@@ -58,6 +61,18 @@ internal sealed class ResumeRestorer : IDisposable
 
             _next = 0;
             _timer.Change(_delays[0], Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void OnSuspending(object? sender, EventArgs e)
+    {
+        lock (_gate)
+        {
+            if (!_disposed)
+            {
+                _next = _delays.Count;
+                _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            }
         }
     }
 

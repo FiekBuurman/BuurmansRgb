@@ -47,6 +47,31 @@ public sealed class ResumeRestorerTests : IDisposable
     }
 
     [Fact]
+    public void SuspendingBeforeTheLastRestore_DropsTheRestoresThatAreLeft()
+    {
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        _events.RaiseSuspending();
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Equal(1, _restores);
+    }
+
+    [Fact]
+    public void SuspendingAndResumedAgain_RestoresAfterEachDelayOnceMore()
+    {
+        _events.RaiseResumed();
+        _events.RaiseSuspending();
+
+        _events.RaiseResumed();
+        _time.Advance(First);
+        _time.Advance(Second - First);
+
+        Assert.Equal(2, _restores);
+    }
+
+    [Fact]
     public void ResumedAgain_StartsOver()
     {
         _events.RaiseResumed();
