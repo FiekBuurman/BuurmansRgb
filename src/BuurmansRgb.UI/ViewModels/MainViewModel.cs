@@ -25,6 +25,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string ResumeCall = "resume";
+    private const string OnCall = "on";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -83,6 +84,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        Lamps.SwitchRequested += (_, lamp) => SwitchLamp(lamp);
+        Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -92,6 +95,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public PreviewViewModel Preview { get; }
 
     public NavigationViewModel Navigation { get; } = new();
+
+    public LampsViewModel Lamps { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
@@ -175,6 +180,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.SettingsSaved += OnSettingsSaved;
             connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             connection.Api.PauseChanged += OnPauseChanged;
+            connection.Api.LightingChanged += OnLightingChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -269,7 +275,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ShowDevices(devices);
         await ShowSelectionAsync();
-        Preview.ShowFrame(await api.GetFrameAsync());
+        var frame = await api.GetFrameAsync();
+        Preview.ShowFrame(frame);
+        Lamps.ShowFrame(frame);
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
@@ -308,6 +316,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
+        Lamps.ShowDevices(Devices);
+        _ = RefreshLampsAsync();
 
         // The edit ends when its device is gone or got another number of LEDs (a zone that was
         // resized): the colors the editor holds no longer fit the device.
@@ -500,6 +510,44 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // The engine reports the change through LightingChanged, after which the lamps show what it did.
+    private void SwitchLamp(LampSwitch lamp)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((OnCall, lamp.DeviceId), () => connection.Api.SetOnAsync(lamp.DeviceId, lamp.On));
+        }
+    }
+
+    // The lamp's color and effect are on the Kleur page; picking it there lets it blink too.
+    private void OpenLamp(string deviceId)
+    {
+        if (Devices.FirstOrDefault(device => device.DeviceId == deviceId) is { } device)
+        {
+            SelectedDevice = device;
+            Navigation.GoTo(AppPage.Color);
+        }
+    }
+
+    // A connection made again in the meantime asks once more when this one is done, so the lamps end
+    // up showing what that engine has.
+    private async Task RefreshLampsAsync()
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        try
+        {
+            await Lamps.RefreshAsync(deviceId => connection.Api.GetLightingAsync(deviceId));
+        }
+        catch (Exception exception)
+        {
+            OnCallFailed(exception);
+        }
+    }
+
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
@@ -550,7 +598,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowLedSelection(null);
     }
 
-    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));
+    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() =>
+    {
+        Preview.ShowFrame(frame);
+        Lamps.ShowFrame(frame);
+    });
+
+    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = RefreshLampsAsync());
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
@@ -636,6 +690,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.SettingsSaved -= OnSettingsSaved;
         connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
         connection.Api.PauseChanged -= OnPauseChanged;
+        connection.Api.LightingChanged -= OnLightingChanged;
         connection.Dispose();
     }
 

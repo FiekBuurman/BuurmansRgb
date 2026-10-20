@@ -535,4 +535,37 @@
   <data name="NeighboursEmptyText" xml:space="preserve">
     <value>Samen met de buren je lampen kleuren komt later. Hier valt nu nog niets te doen.</value>
   </data>
+  <data name="WholeHouse" xml:space="preserve">
+    <value>Hele huis</value>
+  </data>
+  <data name="WholeHouseOnCount" xml:space="preserve">
+    <value>{0} van {1} aan</value>
+  </data>
+  <data name="WholeHouseSwitchAccessibleName" xml:space="preserve">
+    <value>Alles aan of uit</value>
+  </data>
+  <data name="LampsHeader" xml:space="preserve">
+    <value>Lampen in huis</value>
+  </data>
+  <data name="AddLamps" xml:space="preserve">
+    <value>+ Erbij knutselen</value>
+  </data>
+  <data name="AddLampsToolTip" xml:space="preserve">
+    <value>Gesimuleerde lampen en de koppeling met OpenRGB vind je bij Instellingen.</value>
+  </data>
+  <data name="LampSwitchAccessibleName" xml:space="preserve">
+    <value>{0} aan of uit</value>
+  </data>
+  <data name="LampOpenAccessibleName" xml:space="preserve">
+    <value>{0}: kleur en effect</value>
+  </data>
+  <data name="LampBrightness" xml:space="preserve">
+    <value>{0:0}%</value>
+  </data>
+  <data name="LampOff" xml:space="preserve">
+    <value>uit</value>
+  </data>
+  <data name="NoLamps" xml:space="preserve">
+    <value>Nog geen lampen gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde lampen aan.</value>
+  </data>
 </root>
