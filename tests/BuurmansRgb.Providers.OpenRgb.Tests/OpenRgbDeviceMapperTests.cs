@@ -251,4 +251,17 @@ public sealed class OpenRgbDeviceMapperTests
     [Fact]
     public void HasDirectMode_WithOnlyHardwareModes_IsFalse() =>
         Assert.False(OpenRgbDeviceMapper.HasDirectMode(TestDevices.Create(modes: ["Static", "Breathing"])));
+
+    [Fact]
+    public void Map_PassesOnWhetherTheDeviceHasADirectMode()
+    {
+        var mapped = OpenRgbDeviceMapper.Map(
+        [
+            TestDevices.Create(index: 0, name: "Strip", modes: ["Direct"]),
+            TestDevices.Create(index: 1, name: "Old GPU", modes: ["Static", "Breathing"]),
+            TestDevices.Create(index: 2, name: "Keyboard", modes: ["Custom"]),
+        ]);
+
+        Assert.Equal([true, false, true], mapped.Select(item => item.Device.HasDirectMode));
+    }
 }

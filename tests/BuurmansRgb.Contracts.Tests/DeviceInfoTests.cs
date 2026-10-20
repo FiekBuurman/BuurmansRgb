@@ -47,17 +47,28 @@ public sealed class DeviceInfoTests
     }
 
     [Fact]
-    public void From_TakesTheSourceAndLocationOfTheDevice()
+    public void Equals_DirectModeDiffers_IsNotEqual()
+    {
+        var board = Board(2);
+
+        Assert.True(board.HasDirectMode);
+        Assert.NotEqual(board, board with { HasDirectMode = false });
+    }
+
+    [Fact]
+    public void From_TakesTheSourceLocationAndDirectModeOfTheDevice()
     {
         var device = new RgbDevice("fan", "Fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)])
         {
             Source = DeviceSource.Simulated,
             Location = new DeviceLocation("HID: fan"),
+            HasDirectMode = false,
         };
 
         var info = DeviceInfo.From(device);
 
         Assert.Equal(DeviceSource.Simulated, info.Source);
         Assert.Equal(new DeviceLocation("HID: fan"), info.Location);
+        Assert.False(info.HasDirectMode);
     }
 }

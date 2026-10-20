@@ -36,6 +36,7 @@ internal static partial class OpenRgbDeviceMapper
             {
                 Source = DeviceSource.Hardware,
                 Location = ToLocation(device.Location),
+                HasDirectMode = HasDirectMode(device),
             };
             mapped.Add(new(mappedDevice, device.Index));
         }

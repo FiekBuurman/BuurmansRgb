@@ -50,6 +50,7 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         var devices = await _provider.DiscoverAsync(Ct);
         Assert.Equal(3, devices.Count);
         Assert.Equal(DeviceType.Gpu, devices[1].Type);
+        Assert.Equal([true, false, true], devices.Select(device => device.HasDirectMode));
     }
 
     [Fact]

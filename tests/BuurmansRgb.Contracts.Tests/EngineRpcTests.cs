@@ -36,6 +36,7 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), devices[1].Location);
         Assert.Null(devices[0].Location);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
+        Assert.Equal([true, false, true], devices.Select(device => device.HasDirectMode));
     }
 
     [Fact]
@@ -259,6 +260,7 @@ public sealed class EngineRpcTests : IDisposable
             {
                 Source = DeviceSource.Hardware,
                 Location = new DeviceLocation("PIIX4", "0x4E"),
+                HasDirectMode = false,
             },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }])
