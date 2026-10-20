@@ -68,8 +68,7 @@ internal sealed class TrayPresenter(
     public void RefreshAutoStart() => view.SetAutoStartChecked(autoStart.IsEnabled);
 
     // Called when the menu opens, so the list is the current one, also after the settings app
-    // saved or deleted a profile. The library reads profiles.json only on its first use, so an
-    // engine whose menu nobody opens does not hold the profiles.
+    // saved or deleted a profile.
     public void RefreshProfiles()
     {
         try
