@@ -9,7 +9,8 @@ namespace BuurmansRgb.UI.Views;
 
 // Draws the LEDs of a zone in one of three ways. Without a Matrix, such as for a strip, every LED
 // is a dot, wrapping to the available width; with IsRing, such as for a fan, the dots form a
-// ring. With a Matrix, such as the key map of a keyboard, every LED is a key at its own position.
+// ring. With a Matrix, such as the key map of a keyboard, every LED is a key at its own position,
+// and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them.
 // A ring and a key map shrink when they are wider than the available width. One element per
 // zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
 // ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
@@ -29,6 +30,9 @@ public sealed class LedPreviewView : FrameworkElement
 
     public static readonly DependencyProperty IsRingProperty = DependencyProperty.Register(
         nameof(IsRing), typeof(bool), typeof(LedPreviewView), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty LedNamesProperty = DependencyProperty.Register(
+        nameof(LedNames), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty LedLabelsProperty = DependencyProperty.Register(
         nameof(LedLabels), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new PropertyMetadata(null));
@@ -51,10 +55,10 @@ public sealed class LedPreviewView : FrameworkElement
     // on every render, so the ring follows a theme change from the next redraw on.
     private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
 
-    // Holds only LEDs below Colors.Count. Made again only when the number of LEDs, the columns or
-    // the matrix change, not on every frame.
+    // Holds only LEDs below Colors.Count. Made again only when the number of LEDs, the columns, the
+    // matrix or the LED names change, not on every frame.
     private LedMatrix _layout = LedLayout.Wrap(0, 1);
-    private (int LedCount, int Columns, LedMatrix? Matrix) _layoutFor;
+    private (int LedCount, int Columns, LedMatrix? Matrix, IReadOnlyList<string>? Names) _layoutFor;
 
     // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
     private LedToolTip? _toolTip;
@@ -78,6 +82,13 @@ public sealed class LedPreviewView : FrameworkElement
     {
         get => (bool)GetValue(IsRingProperty);
         set => SetValue(IsRingProperty, value);
+    }
+
+    // The names of the LEDs, such as "Space"; with a Matrix they tell which keys are wide.
+    public IReadOnlyList<string>? LedNames
+    {
+        get => (IReadOnlyList<string>?)GetValue(LedNamesProperty);
+        set => SetValue(LedNamesProperty, value);
     }
 
     // What the tooltip and a screen reader call each LED; see ZonePreviewViewModel.LedLabels.
@@ -258,13 +269,14 @@ public sealed class LedPreviewView : FrameworkElement
         var selectionRing = SelectionRing();
         for (var cell = 0; cell < layout.Cells.Count; cell++)
         {
+            // A wide key is drawn once, from its first cell.
             var led = layout.Cells[cell];
-            if (led == LedMatrix.NoLed)
+            if (led == LedMatrix.NoLed || (cell % layout.Width > 0 && layout.Cells[cell - 1] == led))
             {
                 continue;
             }
 
-            var bounds = new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, size, size);
+            var bounds = LedLayout.CellBounds(layout, pitch, cell);
             if (keys)
             {
                 drawingContext.DrawRoundedRectangle(ColorBrushes.Get(colors[led]), Outline, bounds, cornerRadius, cornerRadius);
@@ -301,11 +313,13 @@ public sealed class LedPreviewView : FrameworkElement
     {
         var count = Colors.Count;
         var matrix = Matrix;
+        var names = LedNames;
         var columns = matrix is null ? ColumnsFor(width, count) : 0;
-        if (_layoutFor.LedCount != count || _layoutFor.Columns != columns || !ReferenceEquals(_layoutFor.Matrix, matrix))
+        if (_layoutFor.LedCount != count || _layoutFor.Columns != columns || !ReferenceEquals(_layoutFor.Matrix, matrix)
+            || !ReferenceEquals(_layoutFor.Names, names))
         {
-            _layout = matrix is null ? LedLayout.Wrap(count, columns) : LedLayout.Place(matrix, count);
-            _layoutFor = (count, columns, matrix);
+            _layout = matrix is null ? LedLayout.Wrap(count, columns) : LedLayout.Widen(LedLayout.Place(matrix, count), names);
+            _layoutFor = (count, columns, matrix, names);
         }
 
         return _layout;

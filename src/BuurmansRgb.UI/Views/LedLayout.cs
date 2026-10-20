@@ -15,6 +15,25 @@ public static class LedLayout
     // A wide key map shrinks to fit, but no further than this, so the keys stay clickable.
     public const double MinScale = 0.5;
 
+    // The keys that are clearly wider than a letter on most keyboards, by their OpenRGB name
+    // (without "Key: "), and the side they reach to from the cell of their LED. Keys at the left
+    // of the main block grow to the right and keys at its right grow to the left, so none reaches
+    // into the arrow block or the number pad. Keys only a little wider, such as Alt, stay one cell.
+    private static readonly Dictionary<string, Growth> WideKeys = new(StringComparer.Ordinal)
+    {
+        ["Tab"] = Growth.Right,
+        ["Caps Lock"] = Growth.Right,
+        ["Left Shift"] = Growth.Right,
+        ["Left Control"] = Growth.Right,
+        ["Number Pad 0"] = Growth.Right,
+        ["Backspace"] = Growth.Left,
+        ["Enter"] = Growth.Left,
+        ["Enter (ISO)"] = Growth.Left,
+        ["Right Shift"] = Growth.Left,
+        ["Right Control"] = Growth.Left,
+        ["Space"] = Growth.Left | Growth.Right,
+    };
+
     // The distance from one cell to the next when the layout is drawn in width. Only a layout
     // that shrinks, such as a key map, gets a smaller pitch when it is wider than width; dots wrap
     // to the next row instead. An unbounded width, as in a measure pass, keeps the full pitch.
@@ -99,20 +118,94 @@ public static class LedLayout
             : LedMatrix.NoLed;
     }
 
-    // Where an LED is drawn in a layout with cells of pitch by pitch, from the top left; Rect.Empty
-    // for an LED the layout does not hold.
+    // Where an LED is drawn in a layout with cells of pitch by pitch, from the top left, as wide as
+    // its cells in a row (see Widen); Rect.Empty for an LED the layout does not hold.
     public static Rect BoundsOf(LedMatrix layout, double pitch, int led)
     {
-        var size = LedSize * pitch / Pitch;
         for (var cell = 0; cell < layout.Cells.Count; cell++)
         {
             if (layout.Cells[cell] == led)
             {
-                return new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, size, size);
+                return CellBounds(layout, pitch, cell);
             }
         }
 
         return Rect.Empty;
+    }
+
+    // The LED of a cell drawn over SpanAt cells, from the top left of the layout.
+    public static Rect CellBounds(LedMatrix layout, double pitch, int cell)
+    {
+        var size = LedSize * pitch / Pitch;
+        return new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, (SpanAt(layout, cell) - 1) * pitch + size, size);
+    }
+
+    // How many cells from this one on in its row hold the same LED: the width of a wide key.
+    public static int SpanAt(LedMatrix layout, int cell)
+    {
+        var led = layout.Cells[cell];
+        var rowEnd = (cell / layout.Width + 1) * layout.Width;
+        var span = 1;
+        while (cell + span < rowEnd && layout.Cells[cell + span] == led)
+        {
+            span++;
+        }
+
+        return span;
+    }
+
+    // A key map from OpenRGB has one cell per key, also for the space bar, and leaves empty cells
+    // where a wide key reaches. A key whose name says it is wide (see WideKeys) takes the empty
+    // cells between itself and the next key in its row, on the side it grows to; two wide keys
+    // that grow into the same gap share it, the left one taking the larger half. Empty cells at
+    // the end of a row stay empty, since nothing says a key reaches that far. Without names the
+    // layout stays as it is.
+    public static LedMatrix Widen(LedMatrix layout, IReadOnlyList<string>? names)
+    {
+        if (names is null)
+        {
+            return layout;
+        }
+
+        var cells = layout.Cells.ToArray();
+        for (var rowStart = 0; rowStart < cells.Length; rowStart += layout.Width)
+        {
+            var left = -1;
+            for (var column = 0; column < layout.Width; column++)
+            {
+                var led = cells[rowStart + column];
+                if (led == LedMatrix.NoLed)
+                {
+                    continue;
+                }
+
+                if (left >= 0 && column - left > 1)
+                {
+                    var gap = column - left - 1;
+                    var leftGrows = GrowthOf(cells[rowStart + left], names).HasFlag(Growth.Right);
+                    var rightGrows = GrowthOf(led, names).HasFlag(Growth.Left);
+                    var leftShare = leftGrows ? (rightGrows ? (gap + 1) / 2 : gap) : 0;
+                    var rightShare = rightGrows ? gap - leftShare : 0;
+                    cells.AsSpan(rowStart + left + 1, leftShare).Fill(cells[rowStart + left]);
+                    cells.AsSpan(rowStart + column - rightShare, rightShare).Fill(led);
+                }
+
+                left = column;
+            }
+        }
+
+        return new(layout.Height, layout.Width, cells);
+    }
+
+    private static Growth GrowthOf(int led, IReadOnlyList<string> names) =>
+        led < names.Count && names[led] is { } name && WideKeys.TryGetValue(name, out var growth) ? growth : Growth.None;
+
+    [Flags]
+    private enum Growth
+    {
+        None = 0,
+        Left = 1,
+        Right = 2,
     }
 
     // The positions of a matrix, such as the keys of a keyboard, for a zone of ledCount LEDs. A

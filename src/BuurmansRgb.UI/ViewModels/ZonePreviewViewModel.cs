@@ -52,6 +52,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     // Where the LEDs sit, such as the keys of a keyboard; null for LEDs in a row.
     public LedMatrix? Matrix => _layout.Zone.Matrix;
 
+    // The names of the LEDs as the provider gave them, such as "Space"; null without names.
+    public IReadOnlyList<string>? LedNames => _layout.Zone.LedNames;
+
     // The LEDs of a fan, which the view draws as a ring instead of a row.
     public bool IsRing { get; }
 
@@ -142,7 +145,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     private string LabelOf(int led)
     {
         var number = FirstLed + led + 1;
-        return _layout.Zone.LedNames is { } names && led < names.Count && !string.IsNullOrWhiteSpace(names[led])
+        return LedNames is { } names && led < names.Count && !string.IsNullOrWhiteSpace(names[led])
             ? UiText.Format(Strings.LedLabelWithName, names[led], number)
             : UiText.Format(Strings.LedLabel, number);
     }

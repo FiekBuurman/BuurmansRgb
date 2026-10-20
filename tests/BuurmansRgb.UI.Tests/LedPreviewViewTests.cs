@@ -43,17 +43,19 @@ public sealed class LedPreviewViewTests
     });
 
     // Where the view says an LED is drawn is where a click picks that LED: on a ring, in a row
-    // that wraps and on a key map.
+    // that wraps and on a key map, also with a wide key.
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, false)]
-    [InlineData(false, true)]
-    public void BoundsOf_EveryLed_IsWhereAClickPicksIt(bool ring, bool keys) => Sta.Run(() =>
+    [InlineData(true, false, false)]
+    [InlineData(false, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    public void BoundsOf_EveryLed_IsWhereAClickPicksIt(bool ring, bool keys, bool named) => Sta.Run(() =>
     {
         var view = Arranged(new LedPreviewView
         {
             Colors = new RgbColor[12],
             IsRing = ring,
+            LedNames = named ? ["Escape", "1", "2", "3", "4", "5", "Tab"] : null,
             Matrix = keys ? new LedMatrix(2, 7, [0, 1, 2, 3, 4, 5, LedMatrix.NoLed, 6, LedMatrix.NoLed, 7, 8, 9, 10, 11]) : null,
         }, width: 100);
 
