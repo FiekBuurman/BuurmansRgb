@@ -172,8 +172,6 @@
   pollen
 - Bij "Laden als dit programma start" een knop om een .exe te kiezen of een lijst met wat nu
   draait, zodat je de naam niet hoeft te weten
-- De verlichting van vóór een programma ook bewaren als de engine afsluit terwijl het programma
-  draait; nu blijft dan het profiel van het programma staan
 - Het tray-menu werkt al voordat de engine de opgeslagen verlichting heeft gezet (de eerste
   seconde na het starten); een profiel dat je dan kiest, wordt meteen overschreven. "Profiel
   laden" pas aanzetten als de engine klaar is

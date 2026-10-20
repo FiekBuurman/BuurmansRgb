@@ -10,9 +10,12 @@ namespace BuurmansRgb.Engine.Profiles;
 // then that stays. Two programs stack: when the last one stops, the one before it shows again.
 // It looks for the programs every PollInterval, and only while a profile has a program; the
 // process list holds no event for this without admin rights. A program that already runs when
-// the engine starts or when its profile gets it counts from its next start. Called from the tray
-// thread, IPC threads and the timer; the lock guards the rest. Loading and restoring happen under
-// the lock, so the LightingChanged they raise themselves is counted before the next change.
+// the engine starts loads its profile right away, with the saved lighting to go back to; one that
+// already runs when its profile gets it counts from its next start. When the engine stops while a
+// program runs, the lighting from before is put back as the program's stop would, so that is what
+// the engine saves. Called from the tray thread, IPC threads and the timer; the lock guards the
+// rest. Loading and restoring happen under the lock, so the LightingChanged they raise themselves
+// is counted before the next change.
 internal sealed class ProgramWatcher : IProfileTrigger
 {
     public static TimeSpan DefaultPollInterval { get; } = TimeSpan.FromSeconds(2);
@@ -63,7 +66,8 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
         _lighting.LightingChanged += OnLightingChanged;
         _profiles.Changed += OnProfilesChanged;
-        UpdateRules();
+        UpdateRules(baseline: false);
+        Poll();
     }
 
     public void Dispose()
@@ -72,8 +76,14 @@ internal sealed class ProgramWatcher : IProfileTrigger
         _profiles.Changed -= OnProfilesChanged;
         lock (_gate)
         {
+            if (_disposed)
+            {
+                return;
+            }
+
             _disposed = true;
             _timer.Dispose();
+            RestoreAll();
         }
     }
 
@@ -85,9 +95,10 @@ internal sealed class ProgramWatcher : IProfileTrigger
         }
     }
 
-    private void OnProfilesChanged(object? sender, EventArgs e) => UpdateRules();
+    private void OnProfilesChanged(object? sender, EventArgs e) => UpdateRules(baseline: true);
 
-    private void UpdateRules()
+    // With baseline, what already runs of a newly watched program counts as running, not as started.
+    private void UpdateRules(bool baseline)
     {
         lock (_gate)
         {
@@ -116,10 +127,9 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 }
             }
 
-            // What already runs of a newly watched program counts as running, not as started.
             var added = new HashSet<string>(watched.Except(_watched, ProgramNames.Comparer), ProgramNames.Comparer);
             var running = new HashSet<string>(_running.Where(watched.Contains), ProgramNames.Comparer);
-            if (added.Count > 0)
+            if (baseline && added.Count > 0)
             {
                 running.UnionWith(Find(added) ?? NoPrograms);
             }
@@ -200,18 +210,8 @@ internal sealed class ProgramWatcher : IProfileTrigger
             return;
         }
 
-        if (!restore || activation.ChangesAfter != _changes)
+        if (!restore || activation.ChangesAfter != _changes || !Show(activation.Before))
         {
-            return;
-        }
-
-        try
-        {
-            _lighting.Replace(activation.Before);
-        }
-        catch (Exception exception)
-        {
-            Trace.TraceError(exception.ToString());
             return;
         }
 
@@ -219,6 +219,38 @@ internal sealed class ProgramWatcher : IProfileTrigger
         if (activation.CoveredUntouched && _activations.Count > 0)
         {
             _activations[^1].ChangesAfter = _changes;
+        }
+    }
+
+    // Where stopping every program from the last one down would end: the lighting from before the
+    // first untouched one in that chain.
+    private void RestoreAll()
+    {
+        if (_activations.Count > 0 && _activations[^1].ChangesAfter == _changes)
+        {
+            var index = _activations.Count - 1;
+            while (index > 0 && _activations[index].CoveredUntouched)
+            {
+                index--;
+            }
+
+            Show(_activations[index].Before);
+        }
+
+        _activations.Clear();
+    }
+
+    private bool Show(LightingState lighting)
+    {
+        try
+        {
+            _lighting.Replace(lighting);
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+            return false;
         }
     }
 

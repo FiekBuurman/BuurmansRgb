@@ -484,10 +484,13 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   Stopt het, dan komt de verlichting van vóór de start terug, tenzij die intussen veranderde (in
   de instellingen-app, vanuit het tray-menu of door een tijd): dan blijft die. Starten er twee
   programma's met een profiel, dan toont het laatste zijn profiel; stopt dat, dan komt het
-  profiel van het eerste terug, en als beide gestopt zijn de verlichting van daarvoor. Een
-  programma dat al draait als de engine start of als je het instelt, telt pas bij zijn volgende
-  start. Sluit je de engine af terwijl het programma draait, dan blijft het profiel staan. Hebben
-  twee profielen hetzelfde programma, dan laadt het eerste op alfabet.
+  profiel van het eerste terug, en als beide gestopt zijn de verlichting van daarvoor. Draait
+  het programma al als de engine start, dan laadt de engine het profiel meteen en gaat hij bij het
+  stoppen terug naar de opgeslagen verlichting. Een programma dat al draait als je het instelt,
+  telt pas bij zijn volgende start. Sluit je de engine af terwijl het programma draait (bijv. bij
+  het afsluiten van Windows met Steam nog open), dan zet de engine eerst de verlichting van
+  daarvoor terug en bewaart hij die, zodat die na een herstart niet kwijt is. Hebben twee
+  profielen hetzelfde programma, dan laadt het eerste op alfabet.
 - **Hoe de engine programma's ziet:** zonder adminrechten is er geen melding van Windows als
   een programma start (`Win32_ProcessStartTrace` vraagt admin). Daarom kijkt de engine elke 2
   seconden in de proceslijst, en alleen zolang minstens één profiel een programma heeft. Hij
@@ -543,6 +546,9 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
      daarvoor hoort terug te komen. Verander tijdens het spel iets en kijk dat dat blijft.
   4. Start een spel dat als administrator draait of anti-cheat heeft, en kijk of de engine het
      ziet.
+  5. Sluit de engine af (tray, "Afsluiten") terwijl het spel draait: de verlichting van daarvoor
+     hoort terug te komen. Start de engine weer: het spelprofiel komt terug, en na het sluiten
+     van het spel weer de verlichting van daarvoor.
 
 ## Een apparaattype testen met je eigen hardware
 

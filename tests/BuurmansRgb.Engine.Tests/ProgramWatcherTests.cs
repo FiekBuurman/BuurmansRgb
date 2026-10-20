@@ -111,17 +111,79 @@ public sealed class ProgramWatcherTests : IDisposable
     }
 
     [Fact]
-    public void AlreadyRunningAtStart_LoadsOnlyAtItsNextStart()
+    public void AlreadyRunningAtStart_LoadsItsProfileRightAwayAndGoesBackToTheSavedLighting()
     {
         _programs.Running.Add(EldenRing);
-        StartWatcher();
 
-        _time.Advance(Interval);
-        Assert.Equal(Green, ShownColor());
+        StartWatcher();
+        Assert.Equal(Red, ShownColor());
 
         StopProgram(EldenRing);
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // So the engine saves the lighting from before the program, not the program's profile.
+    [Fact]
+    public void Dispose_WhileAProgramRuns_PutsTheLightingFromBeforeBack()
+    {
+        StartWatcher();
         StartProgram(EldenRing);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    [Fact]
+    public void Dispose_AfterAChangeWhileAProgramRuns_KeepsThatChange()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        ShowColor(Orange);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    [Fact]
+    public void Dispose_WhileTwoProgramsRun_PutsTheLightingFromBeforeBothBack()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        StartProgram(Forza);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    [Fact]
+    public void Dispose_AfterAChangeBeforeTheSecondProgram_GoesBackToThatChange()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        ShowColor(Orange);
+        StartProgram(Forza);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    // The next start loads the program's profile again, on top of the lighting saved at the stop.
+    [Fact]
+    public void EngineRestartsWhileAProgramRuns_EndsWithTheLightingFromBeforeTheProgram()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        _watcher!.Dispose();
+
+        StartWatcher();
         Assert.Equal(Red, ShownColor());
+        StopProgram(EldenRing);
+
+        Assert.Equal(Green, ShownColor());
     }
 
     [Fact]
