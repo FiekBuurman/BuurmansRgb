@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Effects;
 using BuurmansRgb.Engine.Lighting;
@@ -14,7 +15,7 @@ public sealed class DeviceOutputTests
     [Fact]
     public void Render_ScalesTheEffectByTheBrightness()
     {
-        _output.Show(new StaticEffect(Orange), 0.5);
+        _output.Show(new StaticEffect(Orange), 0.5, EffectSpeed.Default);
 
         _output.Render(TimeSpan.Zero);
 
@@ -24,7 +25,7 @@ public sealed class DeviceOutputTests
     [Fact]
     public void Render_FullBrightness_KeepsTheColor()
     {
-        _output.Show(new StaticEffect(Orange), 1.0);
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
 
         _output.Render(TimeSpan.Zero);
 
@@ -34,7 +35,7 @@ public sealed class DeviceOutputTests
     [Fact]
     public void Send_SendsTheBufferToTheProvider()
     {
-        _output.Show(new StaticEffect(Orange), 1.0);
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
         _output.Render(TimeSpan.Zero);
 
         _output.Send();
@@ -45,7 +46,7 @@ public sealed class DeviceOutputTests
     [Fact]
     public void SendIfChanged_SameColorsAsLastSent_SendsNothing()
     {
-        _output.Show(new StaticEffect(Orange), 1.0);
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
         _output.Render(TimeSpan.Zero);
         _output.Send();
 
@@ -58,10 +59,10 @@ public sealed class DeviceOutputTests
     [Fact]
     public void SendIfChanged_OtherColors_SendsThem()
     {
-        _output.Show(new StaticEffect(Orange), 1.0);
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
         _output.Render(TimeSpan.Zero);
         _output.Send();
-        _output.Show(new StaticEffect(Blue), 1.0);
+        _output.Show(new StaticEffect(Blue), 1.0, EffectSpeed.Default);
         _output.Render(TimeSpan.Zero);
 
         Assert.True(_output.SendIfChanged());
@@ -73,7 +74,7 @@ public sealed class DeviceOutputTests
     {
         Assert.False(_output.IsAnimated);
 
-        _output.Show(new RainbowEffect(), 1.0);
+        _output.Show(new RainbowEffect(), 1.0, EffectSpeed.Default);
 
         Assert.True(_output.IsAnimated);
     }

@@ -10,7 +10,8 @@ internal sealed class EngineHost(
     EngineIpcServer? ipcServer = null,
     TimeSpan? saveDelay = null,
     SwitchableDeviceProvider? simulatedDevices = null,
-    Action? trimMemory = null) : IEngineHost, IDisposable
+    Action? trimMemory = null,
+    SettingsSaveEvents? saveEvents = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -23,7 +24,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecond = settings.FramesPerSecond;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
-        _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay);
+        _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }

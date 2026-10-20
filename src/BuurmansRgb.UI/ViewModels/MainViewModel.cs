@@ -17,20 +17,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // call replace one that still waits.
     private const string BrightnessCall = "brightness";
     private const string EffectCall = "effect";
+    private const string SpeedCall = "speed";
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
 
     private readonly IEngineConnector _connector;
+    private readonly TimeProvider _time;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
     private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
 
-    public MainViewModel(IEngineConnector connector)
+    // time gives the clock time in the save status; tests pass a fake one.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
     {
         _connector = connector;
+        _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
@@ -70,7 +74,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled))]
     public partial EffectOption? SelectedEffect { get; set; }
+
+    // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
+    [ObservableProperty]
+    public partial double Speed { get; set; } = EffectSpeed.Default * 100.0;
+
+    // The range of Speed, for the slider.
+    public static double MinSpeed { get; } = EffectSpeed.Min * 100.0;
+
+    public static double MaxSpeed { get; } = EffectSpeed.Max * 100.0;
+
+    // Only an effect that moves has a speed to set.
+    public bool IsSpeedEnabled => EffectIds.IsAnimated(SelectedEffect?.Id);
+
+    // Whether the engine wrote the last change to its settings file, with the clock time.
+    [ObservableProperty]
+    public partial string SaveStatus { get; private set; } = Strings.SaveAutomatic;
 
     public void Dispose() => DropConnection();
 
@@ -89,6 +110,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Disconnected += OnDisconnected;
             connection.Api.FrameRendered += OnFrameRendered;
             connection.Api.DevicesChanged += OnDevicesChanged;
+            connection.Api.SettingsSaved += OnSettingsSaved;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -149,6 +171,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!_syncing.IsActive && value is not null)
         {
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
+        }
+    }
+
+    partial void OnSpeedChanged(double value)
+    {
+        if (!_syncing.IsActive)
+        {
+            var speed = Math.Clamp(value / 100.0, EffectSpeed.Min, EffectSpeed.Max);
+            Send(SpeedCall, (api, deviceId) => api.SetSpeedAsync(deviceId, speed));
         }
     }
 
@@ -235,6 +266,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             ColorPicker.Show(LedEditor.HasSelection ? LedEditor.AnchorColor : lighting.Color);
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
+            Speed = Math.Round(lighting.Speed * 100.0);
         });
     }
 
@@ -342,6 +374,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
+    private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
+    {
+        var now = _time.GetLocalNow();
+        SaveStatus = UiText.Format(result.Succeeded ? Strings.SavedAt : Strings.SaveFailedAt, now);
+    });
+
     // "All devices" shows every device.
     private void RebuildPreview()
     {
@@ -401,6 +439,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
+        connection.Api.SettingsSaved -= OnSettingsSaved;
         connection.Dispose();
     }
 

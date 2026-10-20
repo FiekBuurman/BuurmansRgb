@@ -68,6 +68,7 @@ dotnet run --project src/BuurmansRgb.Engine
     "color": "#FF8800",
     "brightness": 0.8,
     "effect": "rainbow",
+    "speed": 1.5,
     "simulatedDevices": true,
     "framesPerSecond": 30,
     "devices": {
@@ -80,7 +81,8 @@ dotnet run --project src/BuurmansRgb.Engine
   ```
 
   `color` is `#RRGGBB`, `brightness` loopt van 0 tot 1, `effect` is een van de effecten
-  hieronder. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
+  hieronder. `speed` is de snelheid van een bewegend effect: 1 is normaal, van 0,1 (tien keer
+  zo langzaam) tot 3 (drie keer zo snel); ook per apparaat onder `devices`. `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
   van de engine), handig zodra de echte apparaten via OpenRGB werken. `framesPerSecond`
   (1–60, standaard 30) is de framerate van de bewegende effecten. Onder `devices` staan
   alleen apparaten met een eigen kleur of effect; de rest volgt de algemene waarden. Onder
@@ -374,8 +376,17 @@ dotnet run --project src/BuurmansRgb.UI
 
 - **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
   het type. **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
-  verzadiging), de helderheid (0–100%), het effect en een voorbeeld met een bolletje per
-  LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op zijn plek.
+  verzadiging), de helderheid (0–100%), het effect, de snelheid en een voorbeeld met een
+  bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op
+  zijn plek.
+- **Snelheid** (10–300%, standaard 100%) werkt alleen bij een bewegend effect (Ademen,
+  Regenboog, Golf); bij Statisch en Per LED staat de schuif grijs. Een nieuwe snelheid gaat
+  verder waar de animatie was, zonder te verspringen, en apparaten die samen een nieuwe
+  snelheid krijgen blijven gelijk lopen. Zie de tabel bij "Effecten" voor de normale snelheid.
+- **Opslaan gaat vanzelf.** Rechtsonder staat "Opgeslagen ✓" met de tijd zodra de engine je
+  wijziging heeft weggeschreven, een seconde na de laatste wijziging. Lukt dat niet, dan staat
+  er "Opslaan mislukt": de lampen werken dan wel, maar na een herstart is de wijziging weg.
+  Zonelengtes bewaart OpenRGB zelf, niet BuurmansRgb.
 - Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat

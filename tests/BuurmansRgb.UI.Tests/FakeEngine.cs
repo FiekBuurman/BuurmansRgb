@@ -47,6 +47,8 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public event EventHandler? DevicesChanged;
 
+    public event EventHandler<SettingsSaveResult>? SettingsSaved;
+
     public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [
         TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 3),
@@ -73,10 +75,13 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
+    public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
+
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 
-    public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<string>>([EffectIds.Static, EffectIds.PerLed]);
+    public IReadOnlyList<string> Effects { get; set; } = [EffectIds.Static, EffectIds.PerLed];
+
+    public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(Effects);
 
     // When set, GetLightingAsync answers once this task completes, like a slow engine.
     public Task? LightingGate { get; set; }
@@ -101,6 +106,9 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
         Record($"effect {deviceId ?? "all"} {effectId}");
+
+    public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default) =>
+        Record(string.Create(CultureInfo.InvariantCulture, $"speed {deviceId ?? "all"} {speed:0.00}"));
 
     // Like the engine: a device without stored colors has its own color on every LED.
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>

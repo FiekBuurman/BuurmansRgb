@@ -37,6 +37,10 @@
 
     <DockPanel>
         <StatusBar DockPanel.Dock="Bottom">
+            <!-- The panel of a StatusBar is a DockPanel: docked right, before the message that fills the rest. -->
+            <StatusBarItem DockPanel.Dock="Right">
+                <TextBlock Text="{Binding SaveStatus}" AutomationProperties.AutomationId="SaveStatus" />
+            </StatusBarItem>
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
             </StatusBarItem>
@@ -164,6 +168,18 @@
                         <ComboBox Width="200" HorizontalAlignment="Left" ItemsSource="{Binding Effects}"
                                   SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
                                   AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
+
+                        <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.SpeedHeader}" />
+                        <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
+                            <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right"
+                                       Text="{Binding Speed, StringFormat={}{0:0} %}" />
+                            <Slider Minimum="{x:Static vm:MainViewModel.MinSpeed}" Maximum="{x:Static vm:MainViewModel.MaxSpeed}"
+                                    Value="{Binding Speed}" SmallChange="5" LargeChange="25"
+                                    IsSnapToTickEnabled="True" TickFrequency="5"
+                                    AutomationProperties.Name="{x:Static res:Strings.SpeedHeader}" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.SpeedOnlyAnimated}"
+                                   Visibility="{Binding IsSpeedEnabled, Converter={StaticResource InverseBoolToVisibility}}" />
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.PreviewHeader}" />
                         <TextBlock Style="{StaticResource Label}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{x:Static res:Strings.PreviewHint}" />

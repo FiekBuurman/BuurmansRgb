@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>BuurmansRgb.UI</AssemblyName>
     <!-- Shared with BuurmansRgb.Engine, see Directory.Build.props. -->
-    <OutDir>$(AppOutputRoot)$(Configuration)\</OutDir>
+    <OutDir>$(AppOutputRoot)$(Configuration)$(AppOutputSuffix)\</OutDir>
   </PropertyGroup>
 
   <!-- Unlike the engine and the providers, the view models, views and converters stay public,

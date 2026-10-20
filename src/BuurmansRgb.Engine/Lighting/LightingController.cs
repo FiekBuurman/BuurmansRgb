@@ -431,7 +431,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
-            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
+            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness, lighting.Speed);
             output.Render(time);
             if (!_isPaused)
             {

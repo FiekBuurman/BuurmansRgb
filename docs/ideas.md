@@ -64,10 +64,11 @@
   controleren of verbinden, de apparaatindexen en `UpdateLeds` nog werken
 - Alleen de nieuwe apparaten aansturen als de lijst verandert; nu krijgen alle apparaten de
   kleur opnieuw als OpenRGB (opnieuw) verbindt
-- Snelheid van de effecten instelbaar maken (periode van Ademen, rondes per seconde van
-  Regenboog, golven per seconde van Golf), in `settings.json` en in de instellingen-app; nu
-  vaste standaardwaarden in `EffectCatalog`. Ook `framesPerSecond` staat nog alleen in
-  `settings.json`
+- `framesPerSecond` ook in de instellingen-app; nu staat het alleen in `settings.json` (de
+  snelheid van de effecten kan sinds de snelheidsschuif wel in de app)
+- Na een wijziging aan de apparatenlijst lopen nieuwe apparaten pas weer gelijk met de rest
+  als ze dezelfde snelheid hebben én die nooit veranderd is; `EffectClock` zou de klok van
+  "Alle apparaten" kunnen delen met elk apparaat zonder eigen snelheid
 - Frames naar de UI begrenzen wordt na taak 4 belangrijker: met de regenboog op "Alle
   apparaten" zit de instellingen-app (Debug) op ~147 MB working set, vlak onder het budget van
   150 MB. Een lagere preview-framerate of alleen de zichtbare apparaten versturen helpt
