@@ -141,3 +141,6 @@
   de review (F4) bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, de preview, de
   kleurkiezer en de geselecteerde effectkeuze nodig, en de bewerk-logica zelf zit al in
   `LedEditorViewModel`. Pas oppakken als het LED-bewerken groeit (bijv. per zone)
+- Gesimuleerde apparaten vanzelf uit zodra OpenRGB echte apparaten levert, zodat na de
+  installer niemand `settings.json` hoeft aan te passen
+- Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
