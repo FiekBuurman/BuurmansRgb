@@ -433,6 +433,7 @@
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />
                                                         <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Text="{x:Static res:Strings.EmptyZoneHint}"
                                                                    Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />
+                                                        <!-- The controls keep the focus when the preview is made again after a resize. -->
                                                         <StackPanel Margin="0,4,0,0" Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
                                                             <TextBlock Text="{Binding Length.Label}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
                                                             <Grid Margin="0,2,0,0">
@@ -445,7 +446,8 @@
                                                                 </Grid.ColumnDefinitions>
                                                                 <Button Grid.Column="0" Width="26" Content="−" ToolTip="{x:Static res:Strings.DecreaseLedCountToolTip}"
                                                                         Command="{Binding Length.DecreaseCommand}"
-                                                                        AutomationProperties.Name="{Binding Length.DecreaseAccessibleName}" />
+                                                                        AutomationProperties.Name="{Binding Length.DecreaseAccessibleName}"
+                                                                        views:FocusKeeper.Key="{Binding Length.DecreaseAccessibleName}" />
                                                                 <Slider Grid.Column="1" Margin="6,0" MinWidth="80" VerticalAlignment="Center"
                                                                         Minimum="{Binding Length.Minimum}" Maximum="{Binding Length.Maximum}"
                                                                         Value="{Binding Length.LedCount}" SmallChange="1" LargeChange="10"
@@ -453,21 +455,25 @@
                                                                         ToolTip="{x:Static res:Strings.ZoneLedCountToolTip}"
                                                                         Thumb.DragStarted="OnZoneLengthDragStarted" Thumb.DragCompleted="OnZoneLengthDragCompleted"
                                                                         AutomationProperties.Name="{Binding Length.SliderAccessibleName}"
-                                                                        AutomationProperties.HelpText="{Binding LedCountHelpText}" />
+                                                                        AutomationProperties.HelpText="{Binding LedCountHelpText}"
+                                                                        views:FocusKeeper.Key="{Binding Length.SliderAccessibleName}" />
                                                                 <Button Grid.Column="2" Width="26" Content="+" ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}"
                                                                         Command="{Binding Length.IncreaseCommand}"
-                                                                        AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}" />
+                                                                        AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
+                                                                        views:FocusKeeper.Key="{Binding Length.IncreaseAccessibleName}" />
                                                                 <TextBox Grid.Column="3" Width="48" Margin="6,0,0,0" VerticalContentAlignment="Center"
                                                                          Text="{Binding Length.LedCountText, UpdateSourceTrigger=PropertyChanged}"
                                                                          AutomationProperties.Name="{Binding Length.TextAccessibleName}"
-                                                                         AutomationProperties.HelpText="{Binding LedCountHelpText}">
+                                                                         AutomationProperties.HelpText="{Binding LedCountHelpText}"
+                                                                         views:FocusKeeper.Key="{Binding Length.TextAccessibleName}">
                                                                     <TextBox.InputBindings>
                                                                         <KeyBinding Key="Enter" Command="{Binding Length.ApplyCommand}" />
                                                                     </TextBox.InputBindings>
                                                                 </TextBox>
                                                                 <Button Grid.Column="4" Margin="6,0,0,0" Padding="10,1" Content="{x:Static res:Strings.ApplyLedCount}"
                                                                         ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding Length.ApplyCommand}"
-                                                                        AutomationProperties.Name="{Binding Length.ApplyAccessibleName}" />
+                                                                        AutomationProperties.Name="{Binding Length.ApplyAccessibleName}"
+                                                                        views:FocusKeeper.Key="{Binding Length.ApplyAccessibleName}" />
                                                             </Grid>
                                                         </StackPanel>
                                                     </StackPanel>
