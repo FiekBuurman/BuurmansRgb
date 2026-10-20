@@ -17,7 +17,11 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly IServerStatusSource _openRgb;
     private readonly CancellationTokenSource _shutdown = new();
 
-    public TrayApplicationContext(IEngineHost host, IAutoStart autoStart, ISettingsAppLauncher settingsAppLauncher, IServerStatusSource openRgb)
+    public TrayApplicationContext(
+        IEngineHost host,
+        IAutoStart autoStart,
+        ISettingsAppLauncher settingsAppLauncher,
+        IServerStatusSource openRgb)
     {
         _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, this);
 

@@ -10,17 +10,19 @@ internal sealed class LightingSettingsSaver : IDisposable
 {
     private readonly ISettingsStore _store;
     private readonly ILightingStateSource _lighting;
-    private EngineSettings _settings;
     private readonly TimeSpan _delay;
     private readonly SettingsSaveEvents? _saveEvents;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
+
+    // The options besides the lighting that the next save writes.
+    private EngineSettings _settings;
     private bool _pending;
     private bool _disposed;
 
-    // startupSettings are the settings the engine started with: the saver keeps their other options,
-    // unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about every
-    // save, also a failed one.
+    // startupSettings are the settings the engine started with: the saver keeps their other
+    // options, unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about
+    // every save, also a failed one.
     public LightingSettingsSaver(
         ISettingsStore store,
         ILightingStateSource lighting,
