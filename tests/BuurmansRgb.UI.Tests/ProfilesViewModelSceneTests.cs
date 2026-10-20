@@ -56,11 +56,13 @@ public sealed class ProfilesViewModelSceneTests
     public void Edit_ChoosesTheSceneAndOverwriteSavesUnderIt()
     {
         Assert.False(_profiles.OverwriteCommand.CanExecute(null));
+        Assert.Null(_profiles.EditTitle);
 
         _profiles.EditCommand.Execute(_profiles.Cards[0]);
         _profiles.OverwriteCommand.Execute(null);
 
         Assert.Equal("Filmavond", _profiles.SelectedName);
+        Assert.Equal("Filmavond aanpassen", _profiles.EditTitle);
         Assert.True(_profiles.HasSelection);
         Assert.Equal(["save Filmavond"], _requests);
     }

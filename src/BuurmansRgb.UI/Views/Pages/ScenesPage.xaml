@@ -35,7 +35,8 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:SceneCard}">
-                        <!-- The chosen scene has a 2 px text border, and its name stands above its settings below. -->
+                        <!-- The scene chosen with its wrench has a lighter border, and its name heads its settings below.
+                             The 2 px text border of the design means the scene that is on; that is not known yet. -->
                         <Grid>
                             <Button x:Name="Card" Style="{StaticResource CardButton}" Padding="16" MinHeight="132" VerticalContentAlignment="Top" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
@@ -72,8 +73,7 @@
                                         <Binding Path="DataContext.Profiles.SelectedName" RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                     </MultiBinding>
                                 </DataTrigger.Binding>
-                                <Setter TargetName="Card" Property="BorderThickness" Value="2" />
-                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource TextBrush}" />
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
@@ -108,7 +108,7 @@
             <!-- The chosen scene: put it on, overwrite it, delete it, or let it go on by itself. -->
             <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.SelectedName}" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.EditTitle}" />
                     <WrapPanel Margin="0,12,0,0">
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
                                 ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />

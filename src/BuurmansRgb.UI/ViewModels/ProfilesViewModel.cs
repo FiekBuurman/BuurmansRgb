@@ -41,11 +41,14 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyPropertyChangedFor(nameof(HasSelection), nameof(EditTitle))]
     [NotifyCanExecuteChangedFor(nameof(LoadCommand), nameof(DeleteCommand), nameof(OverwriteCommand))]
     public partial string? SelectedName { get; set; }
 
     public bool HasSelection => SelectedName is not null;
+
+    // The heading of the settings of the chosen scene, such as "Klusmodus aanpassen".
+    public string? EditTitle => SelectedName is { } name ? UiText.Format(Strings.SceneEditAccessibleName, name) : null;
 
     // The name field for a new scene shows, after "+ Nieuwe scène in elkaar zetten".
     [ObservableProperty]

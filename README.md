@@ -889,7 +889,8 @@ engine blijft draaien.
   eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"). Een klik op een kaart zet de
   scène aan: de verlichting van alle apparaten (kleur, helderheid, aan/uit, effect, snelheid,
   kleurenloop en per-LED-kleuren) wordt die van de scène en ook de opgeslagen verlichting. De
-  moersleutel op een kaart kiest de scène (die krijgt een rand van 2 px) en toont eronder
+  moersleutel op een kaart kiest de scène (die krijgt een lichtere rand) en toont eronder, onder
+  de kop "<naam> aanpassen",
   "Aanzetten", "Overschrijven met wat nu brandt", "Verwijderen" (vraagt eerst of het zeker is) en
   "Vanzelf aanzetten" op een tijd of bij een programma (zie "Scènes (profielen)"). "+ Nieuwe
   scène in elkaar zetten" vraagt een naam en bewaart de verlichting zoals die nu is. Scènes staan
