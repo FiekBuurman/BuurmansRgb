@@ -188,7 +188,6 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         }
     }
 
-
     private void StopTimer() => _sendTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
     private static string FormatCount(int ledCount) => ledCount.ToString(CultureInfo.CurrentCulture);
