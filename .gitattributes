@@ -6,3 +6,5 @@
 *.props text eol=crlf
 *.csproj text eol=crlf
 *.md text eol=lf
+*.iss text eol=crlf
+*.ps1 text eol=crlf

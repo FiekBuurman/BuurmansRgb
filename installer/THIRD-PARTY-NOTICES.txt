@@ -1,0 +1,11 @@
+BuurmansRgb installs the following programs alongside itself. They are separate programs with
+their own licences; BuurmansRgb talks to OpenRGB over its local SDK network protocol.
+
+OpenRGB 1.1
+  Licence: GNU General Public License v2.0
+  Source:  https://codeberg.org/OpenRGB/OpenRGB (tag release_1.1)
+  Website: https://openrgb.org
+
+PawnIO 2.2.0
+  Licence: freeware, see https://pawnio.eu
+  Source:  https://github.com/namazso/PawnIO.Setup
