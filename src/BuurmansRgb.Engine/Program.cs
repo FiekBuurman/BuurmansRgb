@@ -35,12 +35,14 @@ internal static class Program
         // On this thread, which pumps the tray messages and so also the power events.
         using var powerEvents = new SystemPowerEvents();
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
+        var saveEvents = new SettingsSaveEvents();
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
-            new EngineIpcServer(EngineRpc.PipeName, lighting, MemoryTrimmer.Trim),
+            new EngineIpcServer(EngineRpc.PipeName, lighting, MemoryTrimmer.Trim, saveEvents),
             simulatedDevices: simulatedDevices,
-            trimMemory: MemoryTrimmer.Trim);
+            trimMemory: MemoryTrimmer.Trim,
+            saveEvents: saveEvents);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine());
         using (instance.ListenForActivation(context.RequestOpenSettings))

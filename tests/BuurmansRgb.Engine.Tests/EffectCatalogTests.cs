@@ -34,6 +34,13 @@ public sealed class EffectCatalogTests
         Assert.StartsWith("Unknown effect 'unknown'.", exception.Message, StringComparison.Ordinal);
     }
 
+    // The settings app only offers the speed for the effects EffectIds calls animated.
+    [Fact]
+    public void Ids_AnimateExactlyAsEffectIdsSays()
+    {
+        Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectIds.IsAnimated(id), EffectCatalog.Create(id, Orange, []).IsAnimated));
+    }
+
     [Fact]
     public void Create_UnknownEffect_Throws()
     {

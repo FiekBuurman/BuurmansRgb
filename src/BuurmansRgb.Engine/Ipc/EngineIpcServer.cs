@@ -2,13 +2,18 @@ using System.Diagnostics;
 using System.IO.Pipes;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Ipc;
 
 // Waiting for a UI is an overlapped pipe read: no thread and no timer while nobody connects.
 // StreamJsonRpc is only loaded once the first UI connects, which keeps the idle engine small.
 // onAllClientsGone runs on a pool thread each time the last connected UI goes away.
-internal sealed class EngineIpcServer(string pipeName, LightingController lighting, Action? onAllClientsGone = null)
+internal sealed class EngineIpcServer(
+    string pipeName,
+    LightingController lighting,
+    Action? onAllClientsGone = null,
+    SettingsSaveEvents? saveEvents = null)
 {
     private int _activeSessions;
 
@@ -50,7 +55,7 @@ internal sealed class EngineIpcServer(string pipeName, LightingController lighti
         {
             await using (pipe)
             {
-                await new EngineRpcSession(pipe, lighting).RunAsync(ct).ConfigureAwait(false);
+                await new EngineRpcSession(pipe, lighting, saveEvents).RunAsync(ct).ConfigureAwait(false);
             }
         }
         catch (Exception exception)

@@ -11,24 +11,27 @@ internal sealed class LightingSettingsSaver : IDisposable
     private readonly ILightingStateSource _lighting;
     private readonly EngineSettings _startupSettings;
     private readonly TimeSpan _delay;
+    private readonly SettingsSaveEvents? _saveEvents;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private bool _pending;
     private bool _disposed;
 
     // startupSettings are the settings the engine started with: the saver keeps their other options
-    // and only replaces the lighting.
+    // and only replaces the lighting. saveEvents hears about every save, also a failed one.
     public LightingSettingsSaver(
         ISettingsStore store,
         ILightingStateSource lighting,
         EngineSettings startupSettings,
         TimeSpan delay,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        SettingsSaveEvents? saveEvents = null)
     {
         _store = store;
         _lighting = lighting;
         _startupSettings = startupSettings;
         _delay = delay;
+        _saveEvents = saveEvents;
         _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
             _ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _lighting.LightingChanged += OnLightingChanged;
@@ -69,8 +72,10 @@ internal sealed class LightingSettingsSaver : IDisposable
         }
     }
 
+    // The listeners hear about the save outside the lock, so a slow one does not hold up the next.
     private void SavePending()
     {
+        bool succeeded;
         lock (_gate)
         {
             if (!_pending)
@@ -82,12 +87,16 @@ internal sealed class LightingSettingsSaver : IDisposable
             try
             {
                 _store.Save(_startupSettings.WithLighting(_lighting.State));
+                succeeded = true;
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 // The lights keep working; the change is only lost after a restart.
                 Trace.TraceError(exception.ToString());
+                succeeded = false;
             }
         }
+
+        _saveEvents?.Raise(succeeded);
     }
 }

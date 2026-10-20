@@ -14,6 +14,8 @@ internal record LightingSettings
 
     public string? Effect { get; set; } = DeviceLighting.Default.EffectId;
 
+    public double Speed { get; set; } = DeviceLighting.Default.Speed;
+
     public static LightingSettings From(DeviceLighting lighting)
     {
         var settings = new LightingSettings();
@@ -21,18 +23,22 @@ internal record LightingSettings
         return settings;
     }
 
-    // An unknown or missing effect falls back to static and the brightness is kept between
-    // 0 and 1, so an old or edited file still loads into what the IPC would accept.
+    // An unknown or missing effect falls back to static and brightness and speed are kept within
+    // their range, so an old or edited file still loads into what the IPC would accept.
     public DeviceLighting ToDeviceLighting() =>
-        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static);
+        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed));
 
     private static double ClampBrightness(double brightness) =>
         double.IsNaN(brightness) ? DeviceLighting.Default.Brightness : Math.Clamp(brightness, 0.0, 1.0);
+
+    private static double ClampSpeed(double speed) =>
+        double.IsNaN(speed) ? DeviceLighting.Default.Speed : Math.Clamp(speed, EffectSpeed.Min, EffectSpeed.Max);
 
     protected void CopyFrom(DeviceLighting lighting)
     {
         Color = lighting.Color;
         Brightness = lighting.Brightness;
         Effect = lighting.EffectId;
+        Speed = lighting.Speed;
     }
 }

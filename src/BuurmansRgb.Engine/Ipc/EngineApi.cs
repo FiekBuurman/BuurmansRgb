@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Ipc;
 
@@ -9,17 +10,22 @@ namespace BuurmansRgb.Engine.Ipc;
 internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
+    private readonly SettingsSaveEvents? _saveEvents;
 
-    public EngineApi(LightingController lighting)
+    public EngineApi(LightingController lighting, SettingsSaveEvents? saveEvents = null)
     {
         _lighting = lighting;
+        _saveEvents = saveEvents;
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
+        _saveEvents?.Saved += OnSaved;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
 
     public event EventHandler? DevicesChanged;
+
+    public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
@@ -49,6 +55,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default)
+    {
+        _lighting.SetLighting(deviceId, lighting => lighting with { Speed = speed });
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
         Task.FromResult(_lighting.GetLedColors(deviceId));
 
@@ -69,16 +81,19 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     {
         _lighting.Rendered -= OnRendered;
         _lighting.DevicesChanged -= OnDevicesChanged;
+        _saveEvents?.Saved -= OnSaved;
     }
 
     // The wire formats are made here, so the lighting model does not know them, and outside the
     // controller's lock.
-    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId);
+    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed);
 
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
 
     private void OnDevicesChanged(object? sender, EventArgs e) => DevicesChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnSaved(object? sender, bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
 
     private void OnRendered(object? sender, EventArgs e)
     {

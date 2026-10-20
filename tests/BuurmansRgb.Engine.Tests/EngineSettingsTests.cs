@@ -23,6 +23,33 @@ public sealed class EngineSettingsTests
     }
 
     [Fact]
+    public void From_ThenToLightingState_RoundTripsTheSpeed()
+    {
+        var state = LightingStates.WithDevices(HalfOrange with { Speed = 0.5 }, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen with { Speed = 2.5 } });
+
+        var roundTripped = EngineSettings.From(state).ToLightingState();
+
+        Assert.Equal(0.5, roundTripped.Global.Speed);
+        Assert.Equal(2.5, roundTripped.For("fan").Speed);
+    }
+
+    [Theory]
+    [InlineData(10.0, EffectSpeed.Max)]
+    [InlineData(0.0, EffectSpeed.Min)]
+    [InlineData(-1.0, EffectSpeed.Min)]
+    [InlineData(double.NaN, EffectSpeed.Default)]
+    public void ToDeviceLighting_SpeedOutOfRange_IsKeptInRange(double speed, double expected)
+    {
+        Assert.Equal(expected, new LightingSettings { Speed = speed }.ToDeviceLighting().Speed);
+    }
+
+    [Fact]
+    public void New_HasTheNormalSpeed()
+    {
+        Assert.Equal(EffectSpeed.Default, new EngineSettings().ToDeviceLighting().Speed);
+    }
+
+    [Fact]
     public void WithLighting_ReplacesLightingAndKeepsStartupOptions()
     {
         var settings = new EngineSettings { SimulatedDevices = false, Color = Green };

@@ -47,7 +47,7 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task GetLightingAsync_RoundTripsColorBrightnessAndEffect()
+    public async Task GetLightingAsync_RoundTripsColorBrightnessEffectAndSpeed()
     {
         var client = await ConnectAsync();
 
@@ -81,6 +81,28 @@ public sealed class EngineRpcTests : IDisposable
         _api.RaiseDevicesChanged();
 
         await received.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
+    [Fact]
+    public async Task SettingsSaved_OnServer_ReachesClient()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource<SettingsSaveResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.SettingsSaved += (_, result) => received.TrySetResult(result);
+
+        _api.RaiseSaved(succeeded: false);
+
+        Assert.False((await received.Task.WaitAsync(TestTimeouts.Short, Ct)).Succeeded);
+    }
+
+    [Fact]
+    public async Task SetSpeedAsync_ReachesServer()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetSpeedAsync(null, 2.5, Ct);
+
+        Assert.Equal([(null, 2.5)], _api.SpeedCalls);
     }
 
     [Fact]
@@ -159,6 +181,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler? DevicesChanged;
 
+        public event EventHandler<SettingsSaveResult>? SettingsSaved;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
@@ -167,7 +191,7 @@ public sealed class EngineRpcTests : IDisposable
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);
+        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5);
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -179,7 +203,11 @@ public sealed class EngineRpcTests : IDisposable
 
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
 
+        public List<(string? DeviceId, double Speed)> SpeedCalls { get; } = [];
+
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
+
+        public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
 
         public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 
@@ -200,6 +228,12 @@ public sealed class EngineRpcTests : IDisposable
 
         public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
             throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));
+
+        public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default)
+        {
+            SpeedCalls.Add((deviceId, speed));
+            return Task.CompletedTask;
+        }
 
         public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) => Task.FromResult(LedColors);
 

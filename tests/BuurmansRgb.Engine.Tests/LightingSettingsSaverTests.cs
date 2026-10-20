@@ -12,6 +12,7 @@ public sealed class LightingSettingsSaverTests
     private readonly InMemorySettingsStore _store = new();
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly FakeTimeProvider _time = new();
+    private readonly SettingsSaveEvents _saveEvents = new();
 
     [Fact]
     public async Task LightingChanged_SavesAfterDelay()
@@ -123,5 +124,45 @@ public sealed class LightingSettingsSaverTests
         }
     }
 
-    private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time);
+    [Fact]
+    public async Task Save_TellsTheSaveEvents()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var saves = new List<bool>();
+        _saveEvents.Saved += (_, succeeded) => saves.Add(succeeded);
+        using var saver = CreateSaver();
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        Assert.Equal([true], saves);
+    }
+
+    [Fact]
+    public async Task SaveFails_TellsTheSaveEventsItFailed()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var saves = new List<bool>();
+        _saveEvents.Saved += (_, succeeded) => saves.Add(succeeded);
+        _store.SaveException = new IOException("Disk full.");
+        using var saver = CreateSaver();
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        Assert.Equal([false], saves);
+    }
+
+    [Fact]
+    public void NothingToSave_TellsNothing()
+    {
+        var saves = 0;
+        _saveEvents.Saved += (_, _) => saves++;
+
+        CreateSaver().Dispose();
+
+        Assert.Equal(0, saves);
+    }
+
+    private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
 }

@@ -61,6 +61,29 @@ public sealed class LightingTableTests
         Assert.Equal(HalfOrange, _table.Get("device"));
     }
 
+    [Theory]
+    [InlineData(EffectSpeed.Min - 0.01)]
+    [InlineData(EffectSpeed.Max + 0.01)]
+    [InlineData(0.0)]
+    [InlineData(double.NaN)]
+    public void Set_SpeedOutOfRange_ThrowsForSpeed(double speed)
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => _table.Set("device", HalfOrange with { Speed = speed }));
+
+        Assert.Equal("speed", exception.ParamName);
+        Assert.False(_table.IsSet);
+    }
+
+    [Theory]
+    [InlineData(EffectSpeed.Min)]
+    [InlineData(EffectSpeed.Max)]
+    public void Set_SpeedAtTheEdges_IsAccepted(double speed)
+    {
+        _table.Set("device", HalfOrange with { Speed = speed });
+
+        Assert.Equal(speed, _table.Get("device").Speed);
+    }
+
     [Fact]
     public void Replace_KeepsDevicesEqualToGlobal()
     {

@@ -16,6 +16,9 @@ public partial interface IEngineApi
     // then returns the new list.
     event EventHandler DevicesChanged;
 
+    // Raised when the engine has written its settings file, a moment after the last change.
+    event EventHandler<SettingsSaveResult> SettingsSaved;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
@@ -30,6 +33,9 @@ public partial interface IEngineApi
     Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default);
 
     Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default);
+
+    // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
+    Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default);
 
     // The colors of the per-LED effect, one per LED: the stored color, or the device color for an
     // LED without one.
