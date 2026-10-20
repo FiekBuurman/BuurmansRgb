@@ -63,8 +63,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
     public event EventHandler? Rendered;
 
-    // Raised when the lighting is changed through SetLighting or SetLedColors, or when stored LED
-    // colors moved with a resized zone; not when it is applied from settings.
+    // Raised when the lighting is changed through SetLighting, SetLedColors or Replace, or when
+    // stored LED colors moved with a resized zone; not when it is applied from settings.
     public event EventHandler? LightingChanged;
 
     // Raised when the device list changed, before the render that gives new devices their lighting.
@@ -157,6 +157,13 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         Publish(rendered);
+    }
+
+    // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
+    public void Replace(LightingState state)
+    {
+        Apply(state);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
     // A null deviceId means the global lighting.
