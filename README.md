@@ -58,9 +58,9 @@ dotnet build BuurmansRgb.slnx
 dotnet run --project src/BuurmansRgb.Engine
 ```
 
-- **Tray-menu:** "Instellingen openen", "Profiel laden", "Effecten pauzeren", "Starten met
-  Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen. Zie "Profielen"
-  voor "Profiel laden". Zie "Pauzeren" voor "Effecten pauzeren".
+- **Tray-menu:** "Instellingen openen", "Scène aanzetten", "Effecten pauzeren", "Starten met
+  Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen. Zie "Scènes
+  (profielen)" voor "Scène aanzetten". Zie "Pauzeren" voor "Effecten pauzeren".
 - **Instellingen** staan in `%AppData%\BuurmansRgb\settings.json`. Bij de eerste start
   schrijft de engine de standaardwaarden weg. Wijzigingen uit de instellingen-app slaat
   de engine een seconde na de laatste wijziging op, en bij afsluiten. Je kunt het bestand
@@ -195,15 +195,15 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 - **Geen CPU voor effecten:** bij elke reden stopt de timer van de animatie, net als bij een
   statische kleur. Een bewegend effect staat stil op het laatste frame. De lampen gaan niet uit.
   Wat los van de effecten loopt, loopt wel door: de engine kijkt elke 2 seconden in de proceslijst
-  als een profiel een programma heeft, de timer van "Automatisch laden om" wacht op zijn tijd, en
+  als een scène een programma heeft, de timer van "Elke dag aanzetten om" wacht op zijn tijd, en
   zonder OpenRGB probeert hij elke 5 seconden te verbinden.
 - **Los van elkaar:** ontgrendelen heft een pauze uit het tray-menu niet op, en hervatten in het
   menu laat de animatie niet lopen zolang Windows vergrendeld is. Pas als alle redenen weg zijn,
   loopt de animatie weer. Eindigt een reden en is er geen pauze uit het tray-menu (meer), dan stuurt
   de engine alle kleuren nog een keer: na van gebruiker wisselen kan de engine van de andere
   gebruiker de lampen veranderd hebben.
-- **Bij vergrendelen en slaapstand** gaat een wijziging wel naar de lampen: een profiel dat op
-  tijd laadt (bijv. "Nacht" om 23:00 terwijl de pc vergrendeld is) en het herstellen 2 en 10
+- **Bij vergrendelen en slaapstand** gaat een wijziging wel naar de lampen: een scène die op
+  tijd aangaat (bijv. "Nacht" om 23:00 terwijl de pc vergrendeld is) en het herstellen 2 en 10
   seconden na het ontwaken, ook als Windows dan nog op het vergrendelscherm staat. Gaat de pc binnen
   die 10 seconden weer slapen, dan vervalt het herstellen dat nog moest komen; het volgende
   ontwaken begint opnieuw. Alleen de
@@ -214,11 +214,12 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 - **In het tray-menu** staat het vinkje bij "Effecten pauzeren" alleen voor de pauze uit het
   menu; hervat je in de instellingen-app, dan verdwijnt het vinkje. De tooltip zegt "effecten
   gepauzeerd" bij elke reden.
-- **In de instellingen-app** staat boven het voorbeeld een melding met de reden, bijv.
+- **In de instellingen-app** staat bovenaan de pagina's Lampen en Kleur een melding met de reden, bijv.
   "Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten", met
   de knop "Hervatten". Bij vergrendelen en slaapstand staat er alleen de reden: die pauze eindigt
   met Windows. Eindigt de pauze, dan staat er 5 seconden "Effecten lopen weer." voordat de
-  melding verdwijnt, en na "Hervatten" staat de focus van het toetsenbord op de effectkeuze. Een
+  melding verdwijnt, en na "Hervatten" gaat de focus van het toetsenbord naar het volgende
+  element (bij Kleur de lampkeuze, bij Lampen de grote schakelaar). Een
   schermlezer leest elke nieuwe melding voor, ook die laatste. De engine meldt de stand via
   `IEngineApi.GetPauseAsync`, het event `PauseChanged` en `ResumeEffectsAsync`.
 - **Hoe de engine het merkt:** via `SystemEvents.SessionSwitch` (vergrendelen, ontgrendelen,
@@ -267,11 +268,11 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 3. Start de engine (de volgorde maakt niet uit). Binnen enkele seconden staan de apparaten
    van OpenRGB in de instellingen-app, onder de kop "Echte apparaten (OpenRGB)", en
    verdwijnen de gesimuleerde (zie "OpenRGB-status en gesimuleerde apparaten"). Een open
-   venster werkt de lijst vanzelf bij.
+   venster werkt de lampen vanzelf bij.
 
 - Bij het verbinden zet BuurmansRgb elk apparaat in de modus "Direct" of "Custom" (OpenRGB
   kiest welke) en stuurt het de opgeslagen kleur. Een apparaat zonder zo'n modus staat wel
-  in de lijst, maar volgt de kleur misschien niet; de instellingen-app waarschuwt daarvoor.
+  bij de lampen, maar volgt de kleur misschien niet; de instellingen-app waarschuwt daarvoor.
 - **OpenRGB stopt of is er nog niet:** de engine probeert elke 5 seconden opnieuw te
   verbinden en stuurt daarna de kleuren opnieuw. De apparaten verdwijnen zolang uit de
   lijst; hun eigen kleur blijft bewaard.
@@ -289,9 +290,10 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 
 ## OpenRGB-status en gesimuleerde apparaten
 
-- **OpenRGB-status:** in de instellingen-app staat onder "Apparaten" in één regel hoe het met
-  OpenRGB gaat; een tip staat achter de ⓘ ernaast (bij aanwijzen of met Tab) en een
-  schermlezer leest een nieuwe status voor. Het tray-icoon zegt het in zijn tooltip. De
+- **OpenRGB-status:** in de instellingen-app staat op de pagina Lampen rechtsboven in één regel
+  hoe het met OpenRGB gaat; een tip staat achter de ⓘ ernaast (bij aanwijzen of met Tab) en een
+  schermlezer leest een nieuwe status voor. Bij Instellingen staat dezelfde status met de tip
+  uitgeschreven. Het tray-icoon zegt het in zijn tooltip. De
   engine houdt het bij met de
   verbindpogingen die hij toch al doet (elke 5 seconden zolang er geen verbinding is), dus
   zonder extra werk. De standen (`ServerStatus` in `BuurmansRgb.Core`, via
@@ -305,7 +307,7 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Met een tip: herstart de pc of draai de installer opnieuw |
   | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte (bijv. een antwoord dat niet klopte of te laat kwam) |
 
-- **Gesimuleerde apparaten:** onder de apparatenlijst kies je bij "Gesimuleerd:" uit
+- **Gesimuleerde apparaten:** bij Instellingen kies je onder "Gesimuleerde lampen" uit
   "Automatisch" (standaard), "Altijd" of "Nooit". Automatisch toont ze alleen
   zolang er geen echt apparaat is: zodra OpenRGB echte apparaten levert, verdwijnen ze, en
   vallen die weg (OpenRGB stopt), dan komen ze terug. De engine wisselt meteen, zonder
@@ -314,7 +316,7 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   beslist bij elke wijziging van de lijst of de keuze opnieuw, onder één lock, dus ook als
   OpenRGB en de keuze tegelijk veranderen klopt de lijst daarna.
 - **Apparaat zonder "Direct"- of "Custom"-modus:** zo'n apparaat (vaak een videokaart)
-  krijgt in de lijst "⚠ Volgt de kleur misschien niet", en het voorbeeld legt uit dat het in
+  krijgt op zijn lampkaart "⚠ Volgt de kleur misschien niet", en het voorbeeld legt uit dat het in
   OpenRGB geen modus heeft om kleuren per LED over te nemen: BuurmansRgb stuurt de kleuren
   wel, maar het apparaat kan zijn eigen effect blijven tonen; stel het dan in OpenRGB zelf in
   (`DeviceInfo.HasDirectMode`).
@@ -330,15 +332,13 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   `SimulatedDevicesViewModelTests`, `OpenRgbStatusViewModelTests`, `DeviceItemTests`,
   `DevicePreviewViewModelTests` en `MainViewModelTests`. Start daarnaast de engine en de
   instellingen-app zonder OpenRGB: er staat "OpenRGB: niet bereikbaar" met de tip achter de
-  ⓘ, en met "Nooit" verdwijnen de gesimuleerde apparaten meteen. Ook in het kleinste venster
-  (640 × 520) houdt de apparatenlijst ruimte voor drie apparaten; de lijst en de profielen
-  delen de rest van de hoogte.
+  ⓘ, en met "Nooit" verdwijnen de gesimuleerde apparaten meteen.
 - **Testen met je eigen hardware:**
   1. Start de engine en de instellingen-app met de OpenRGB-service uit: "niet bereikbaar" met
      de tip, en de gesimuleerde apparaten staan er. Start de service: binnen 5 seconden staat er
      "verbonden" met het aantal apparaten, verschijnen de echte apparaten en verdwijnen de
      gesimuleerde. Stop de service weer: de gesimuleerde komen terug.
-  2. Kies "Altijd" en "Nooit" en kijk of de lijst meteen meeverandert; herstart de engine en
+  2. Kies "Altijd" en "Nooit" en kijk of de lampen meteen meeveranderen; herstart de engine en
      kijk of de keuze bewaard is.
   3. Kijk in de tooltip van het tray-icoon of hij hetzelfde zegt.
   4. Heeft een apparaat geen "Direct"-modus in OpenRGB (vaak een videokaart), kijk dan of het
@@ -349,8 +349,8 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt ze meestal
 via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
 
-- **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. De andere types hebben ook een
+- **Bij de lampen** staat per apparaat het type: "Moederbord" of "RAM"; bij Kleur staat ook het
+  aantal LED's en, bij meer dan één zone, het aantal zones, en in het voorbeeld het icoon. De andere types hebben ook een
   eigen icoon en naam (zie hun secties); alleen wat OpenRGB niet als een van deze types kent,
   zoals een muismat, krijgt een algemeen icoon zonder type.
 - **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
@@ -370,9 +370,9 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Wat dit deel test:
   de vertaling van OpenRGB-moederborden en -RAM met nepdata (`OpenRgbDeviceMapperTests`,
   `OpenRgbDeviceProviderTests`), herstellen na slaapstand (`LightingControllerRestoreTests`,
-  `ResumeRestorerTests`, met een nepklok) en de lijst en zones in de instellingen-app
+  `ResumeRestorerTests`, met een nepklok) en de lampen en zones in de instellingen-app
   (`DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests`). Start daarnaast de
-  engine en de instellingen-app: het gesimuleerde moederbord en de RAM-sticks staan in de lijst.
+  engine en de instellingen-app: het gesimuleerde moederbord en de RAM-sticks staan bij de lampen.
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
   elk moederbord en elke RAM-stick.
 
@@ -382,8 +382,8 @@ De videokaart is het tweede echte apparaattype (taak 6) en werkt net als moederb
 Ook de LED's van een videokaart bereikt OpenRGB meestal via SMBus (I2C), dus ook hier moet
 OpenRGB de eerste keer met adminrechten draaien.
 
-- **In de lijst** staat een videokaart met een eigen icoon en het type "Videokaart", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. De gesimuleerde videokaart heeft
+- **Bij de lampen** staat een videokaart met het type "Videokaart"; bij Kleur met het aantal
+  LED's en, bij meer dan één zone, het aantal zones, en in het voorbeeld met een eigen icoon. De gesimuleerde videokaart heeft
   een lichtbalk van 12 LED's en een logo van 1 LED.
 - **Zones:** het voorbeeld toont de zones zoals OpenRGB ze geeft. Sommige kaarten hebben een
   eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, en ook daar stel
@@ -392,7 +392,7 @@ OpenRGB de eerste keer met adminrechten draaien.
   en net als daar staat onder de naam wat hun locatie in OpenRGB onderscheidt. Bij twee kaarten
   is dat meestal niet het adres maar de bus van elke kaart, bijv. "Op NVIDIA GPU 1".
 - **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
-  (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
+  (bijv. "Static" en "Breathing"). Zo'n kaart staat wel bij de lampen, maar volgt de kleur
   misschien niet; de instellingen-app waarschuwt daarvoor (zie "OpenRGB-status en
   gesimuleerde apparaten").
 - **Na slaapstand** herstelt de engine ook de videokaart, zoals beschreven bij "Moederbord en
@@ -402,7 +402,7 @@ OpenRGB de eerste keer met adminrechten draaien.
   OpenRGB, ook zonder "Direct"-modus en na herstellen), `SimulatedDeviceProviderTests`,
   `DeviceItemTests`, `DeviceIconsTests` en `DevicePreviewViewModelTests` (de zones, die voor
   elk apparaattype hetzelfde werken). Start daarnaast de engine en de instellingen-app: de
-  gesimuleerde videokaart staat onderaan in de lijst.
+  gesimuleerde videokaart staat bij de lampen.
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
   de videokaart, en noteer in `docs/hardware.md` ook of de kaart in OpenRGB een
   "Direct"-modus heeft.
@@ -413,7 +413,7 @@ Fans, strips en de verlichting in de behuizing zijn het derde echte apparaattype
 hangen meestal aan een ARGB-header van het moederbord of aan een controller (bijv. een
 Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
 
-- **In de lijst** heeft elk type een eigen icoon en naam: "Ventilator", "LED-strip" (ook voor
+- **Bij de lampen en in het voorbeeld** heeft elk type een eigen naam en icoon: "Ventilator", "LED-strip" (ook voor
   controllers met ARGB-kanalen, zo noemt OpenRGB ze) en "Behuizing". OpenRGB.NET 3.1.1 kent het
   type "case" van nieuwere OpenRGB-versies niet bij naam; BuurmansRgb herkent het aan zijn
   nummer.
@@ -523,11 +523,12 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
 Toetsenbord, muis en headset zijn het laatste apparaattype (taak 8). OpenRGB bereikt ze via
 USB, niet via SMBus.
 
-- **In de lijst** heeft elk type een eigen icoon en naam: "Toetsenbord", "Muis" en "Headset".
+- **Bij de lampen en in het voorbeeld** heeft elk type een eigen naam en icoon: "Toetsenbord",
+  "Muis" en "Headset".
   Ook de andere types van OpenRGB hebben er een: "Muismat", "Headsetstandaard", "Speaker",
   "Gamepad", "Microfoon" en "Keypad". Microfoon en keypad kent OpenRGB.NET 3.1.1 (de nieuwste
   versie) niet bij naam; BuurmansRgb herkent ze aan hun nummer, net als "case". Lampen,
-  virtuele apparaten, "accessory" en "storage" staan zonder type in de lijst: "storage" heeft
+  virtuele apparaten, "accessory" en "storage" staan zonder type bij de lampen: "storage" heeft
   hetzelfde nummer als "unknown" van oudere OpenRGB-versies, dus dat valt niet uit elkaar te
   houden.
 - **Toetsenbord als matrix:** bij veel toetsenborden geeft OpenRGB per zone een matrix-map:
@@ -597,12 +598,13 @@ USB, niet via SMBus.
 ## Welk apparaat is wat?
 
 Met een paar dezelfde fans, een ledstrip op een ARGB-header en RAM-sticks met dezelfde naam is
-in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
+bij de lampen niet altijd te zien welk apparaat of welke zone in de pc zit.
 
-- **Knipperen:** kies je in de lijst een apparaat (niet "Alle apparaten"), dan knippert het op de
+- **Knipperen:** open je een lamp (een klik op zijn kaart bij Lampen, of de keuze bovenaan bij
+  Kleur; niet "Hele huis"), dan knippert hij op de
   echte hardware 1,5 seconde: drie keer fel wit en uit, ook als de helderheid laag staat. Daarna
   krijgt het zijn eigen verlichting terug. In het voorbeeld staat bij elk apparaat de knop "Laat
-  knipperen" om het nog eens te doen, ook bij "Alle apparaten". Er knippert steeds één apparaat:
+  knipperen" om het nog eens te doen, ook bij "Hele huis". Er knippert steeds één apparaat:
   kies je snel een volgend, dan stopt het vorige meteen. Knipperen verandert niets aan de
   verlichting en wordt niet opgeslagen. Bij het verbinden of als de lijst ververst, knippert er
   niets. Zijn de effecten gepauzeerd, dan knippert er ook niets; pauzeer je tijdens het
@@ -610,15 +612,16 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   Een apparaat dat de engine niet (meer) kent, wordt overgeslagen. De engine draait alleen
   tijdens het knipperen een timer (`IEngineApi.FlashDeviceAsync`, in de engine
   `LightingController.Flash` en `DeviceFlash`).
-- **Echt of gesimuleerd:** de lijst toont de echte apparaten onder de kop "Echte apparaten
-  (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde apparaten". De provider geeft elk
+- **Echt of gesimuleerd:** de pagina Lampen (en de lampkeuze bij Kleur) toont de echte apparaten
+  onder de kop "Echte apparaten (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde
+  apparaten". De provider geeft elk
   apparaat zijn bron mee (`DeviceInfo.Source`). Standaard staan de gesimuleerde er alleen
   zolang er geen echte zijn (zie "OpenRGB-status en gesimuleerde apparaten").
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam (op het
-  volgnummer na) in de lijst, zoals de RAM-sticks van een kit, dan staat onder de naam het deel
+  volgnummer na), zoals de RAM-sticks van een kit, dan staat op hun lampkaart onder de naam het deel
   van hun OpenRGB-locatie dat verschilt: het adres ("Adres 0x52"), of als dat gelijk is de bus
   ("Op NVIDIA GPU 1"). Dat houdt ze uit elkaar; welke welke is in de pc, zie je samen met "Laat
-  knipperen". De hele locatie staat in de tooltip van elk apparaat dat er een heeft
+  knipperen". De hele locatie staat in de tooltip van de lampkaart van elk apparaat dat er een heeft
   (`DeviceInfo.Location`, in de app `DeviceLocationLabels`).
 - **Lege ARGB-header:** een zone die in lengte instelbaar is maar 0 LED's heeft, zegt in het
   voorbeeld "Nog geen LED's ingesteld" en legt uit dat je het aantal LED's van de fan of strip
@@ -636,33 +639,35 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   en bij "Simulated ARGB controller" staat bij "ARGB 2" de uitleg voor een lege zone. De
   gesimuleerde apparaten hebben geen locatie.
 - **Testen met je eigen hardware:**
-  1. Kies elk apparaat in de lijst en kijk of precies dat apparaat in de pc knippert en daarna
+  1. Open elke lamp en kijk of precies dat apparaat in de pc knippert en daarna
      zijn eigen kleur terugkrijgt, ook bij een bewegend effect.
-  2. Pauzeer de effecten in het tray-menu en kies een apparaat: er hoort niets te knipperen.
+  2. Pauzeer de effecten in het tray-menu en open een lamp: er hoort niets te knipperen.
   3. Kijk of de RAM-sticks (en eventueel twee dezelfde videokaarten) een verschillend adres of
      een verschillende bus tonen, en zoek met "Laat knipperen" uit welke welke is. Noteer in
      `docs/hardware.md` wat OpenRGB als locatie geeft (tooltip).
   4. Zet bij een ARGB-header met 0 LED's het aantal LED's van je fan of strip en controleer met
      "Laat knipperen" dat de hele fan of strip oplicht.
 
-## Profielen
+## Scènes (profielen)
 
-Een profiel bewaart de verlichting van alle apparaten onder een naam (opslaan, laden en
-verwijderen in de instellingen-app, zie "Instellingen-app starten"). Laden kan ook zonder de
+Een scène (in de code en in `profiles.json`: een profiel) bewaart de verlichting van alle
+apparaten onder een naam (in elkaar zetten, aanzetten, overschrijven en verwijderen op de pagina
+Scènes van de instellingen-app, zie "Instellingen-app starten"). Aanzetten kan ook zonder de
 instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een programma draait.
 
-- **Vanuit het tray-menu:** "Profiel laden" toont de opgeslagen profielen; klik er een aan om
-  het te laden. Zonder profielen staat er "Nog geen profielen – maak ze in Instellingen". De
+- **Vanuit het tray-menu:** "Scène aanzetten" toont de opgeslagen scènes; klik er een aan om
+  hem aan te zetten. Zonder scènes staat er "Nog geen scènes – zet ze in elkaar in de
+  instellingen". De
   engine leest de lijst als het menu opengaat, dus ook een profiel dat je net in de
   instellingen-app opsloeg of verwijderde klopt. Kan `profiles.json` niet gelezen worden
-  (bijvoorbeeld omdat een ander programma het open heeft), dan is "Profiel laden" grijs en meldt
+  (bijvoorbeeld omdat een ander programma het open heeft), dan is "Scène aanzetten" grijs en meldt
   het tray-icoon dat; de engine draait gewoon door. Ook de eerste seconden na het starten, tot
-  de engine de opgeslagen verlichting heeft gezet, is "Profiel laden" grijs: anders zou die
+  de engine de opgeslagen verlichting heeft gezet, is "Scène aanzetten" grijs: anders zou die
   verlichting een gekozen profiel meteen overschrijven.
-- **Op tijd:** klap in de instellingen-app onder de profielen "Automatisch laden" open, kies een
-  profiel en vul bij "Automatisch laden om" een tijd in (bijv. `23:00` of `23.00`) en kies
-  "Toepassen" (of Enter). Elke dag om die tijd laadt de engine het profiel, net alsof je op
-  "Laden" klikte: het wordt ook de opgeslagen verlichting. Leeg en "Toepassen" zet het uit. Er
+- **Op tijd:** kies op de pagina Scènes bij een scène de moersleutel, vul onder "Vanzelf
+  aanzetten" bij "Elke dag aanzetten om" een tijd in (bijv. `23:00` of `23.00`) en kies
+  "Toepassen" (of Enter). Op de kaart staat dan "Elke dag om 23:00". Elke dag om die tijd laadt
+  de engine het profiel, net alsof je op de kaart klikte: het wordt ook de opgeslagen verlichting. Leeg en "Toepassen" zet het uit. Er
   loopt één timer, alleen als minstens één profiel een tijd heeft, en die gaat precies op de
   volgende tijd af. Die tijd is de klok van Windows: bij de overgang naar zomer- of wintertijd
   blijft 23:00 gewoon 23:00. Een tijd in het uur dat bij zomertijd wegvalt (bijv. 02:30) komt
@@ -676,7 +681,7 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   blijft dat profiel staan en komt het profiel van de tijd zodra het programma stopt: 23:00
   midden in een spel laat het spel met rust. Heb je tijdens het spel zelf iets veranderd, dan komt
   het profiel van de tijd meteen.
-- **Bij een programma (spel):** vul bij "Laden als dit programma start" de naam van het
+- **Bij een programma (spel):** vul bij "Aanzetten als dit programma start" de naam van het
   .exe-bestand in (bijv. `eldenring.exe`; `eldenring` of een heel pad mag ook, de app maakt er
   `eldenring.exe` van). Een snelkoppeling (`.lnk`, `.url`) of script (`.bat`, `.cmd`) weigert de
   app: dat is niet het programma dat draait; het doel van de snelkoppeling staat bij
@@ -738,12 +743,14 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   draait), `ProcessListTests` (de echte proceslijst, met een eigen kopie van `ping.exe` die start
   en stopt), `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests`
   (over de pipe), `EngineHostTests`, `SystemClockEventsTests` en in de instellingen-app
-  `ProfileAutomationViewModelTests`, `ProfilesViewModelTests` en `MainViewModelProfileTests`. Start daarnaast de engine en de
-  instellingen-app: sla twee profielen op, open het tray-menu en kies er een; zet bij een profiel
+  `ProfileAutomationViewModelTests`, `ProfilesViewModelTests`, `ProfilesViewModelSceneTests`,
+  `SceneCardTests`, `MainViewModelProfileTests` en `MainViewModelSceneTests`. Start daarnaast de
+  engine en de instellingen-app: zet twee scènes in elkaar, open het tray-menu en kies er een; zet bij een profiel
   een tijd een minuut verder en wacht; zet bij een profiel `notepad.exe`, start Kladblok en sluit
   het weer.
 - **Testen met je eigen hardware:**
-  1. Maak profielen "Werk", "Nacht" en "Gamen" en wissel via het tray-menu; kijk of alle
+  1. Maak scènes "Werk", "Nacht" en "Gamen" en wissel via het tray-menu en met een klik op hun
+     kaart; kijk of alle
      apparaten meegaan.
   2. Geef "Nacht" een tijd een paar minuten verder en wacht. Zet daarna een tijd, laat de pc
      erover heen slapen en kijk dat het profiel na het ontwaken niet alsnog komt.
@@ -807,70 +814,166 @@ De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast
 dotnet run --project src/BuurmansRgb.UI
 ```
 
-- **Links** de apparatenlijst, met daarboven hoe het met OpenRGB gaat, bovenaan "Alle
-  apparaten" en per apparaat een icoon en het type, de echte en de gesimuleerde apparaten elk
-  onder een eigen kop. Onder de lijst kies je wanneer de gesimuleerde apparaten er zijn (zie
-  "OpenRGB-status en gesimuleerde apparaten"). Een apparaat dat je kiest, knippert even op de
-  hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur (hex-code, vaste kleuren,
-  schuiven voor tint en verzadiging), de helderheid (0–100%), het effect, de snelheid en een
-  voorbeeld met een bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een
-  toets per LED, op zijn plek (brede toetsen breder), en een fan een ring per zone. Wijs een
-  LED aan voor zijn naam en nummer (zie "Toetsenbord, muis en headset").
-- **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder de kleurkiezer de
-  kleuren van de loop. Klik op een kleur en kies hierboven een nieuwe; met + voeg je een kleur
-  toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg. Voorbeeld:
-  geel, groen, blauw loopt van geel naar groen naar blauw en weer naar geel. Met "Kleuren over
-  de LED's verdelen" uit krijgen alle LED's tegelijk dezelfde kleur. De Snelheid werkt ook hier.
-  Een apparaat onthoudt zijn loop, ook als je tussendoor een ander effect kiest.
+De app volgt het ontwerp in `design/DESIGN.md` ("Werkplaats bij nacht"): altijd donker, zodat
+de kleuren van de lampen gloeien, met een eigen titelbalk en links een navigatiebalk met
+Lampen, Kleur, Scènes, Buren en onderaan Instellingen. Venster sluiten = proces stopt; de
+engine blijft draaien.
+
+- **Venster:** een donkere titelbalk met het kleine icoon en het woordmerk. Slepen, dubbelklikken
+  om te maximaliseren, Aero Snap (Windows-toets+pijltjes, naar de rand slepen) en Alt+Spatie
+  werken zoals altijd; de knoppen rechtsboven heten voor een schermlezer "Minimaliseren",
+  "Maximaliseren" (of "Vorige grootte") en "Sluiten". Het venster is minstens 960 × 640.
+- **Navigatie:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke knop,
+  kaart en schuif laat bij toetsenbordfocus een ring van 2 px zien, en een rand wordt lichter als
+  je de muis erop houdt. Onderaan staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.")
+  en rechts "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een
+  seconde na de laatste wijziging. Lukt dat niet, dan staat er "Opslaan mislukt": de lampen
+  werken dan wel, maar na een herstart is de wijziging weg.
+- **Lampen:** bovenaan het woordmerk en hoe het met OpenRGB gaat (met de tip achter de ⓘ). De
+  kaart "Hele huis" zegt hoeveel lampen aan zijn ("11 van 12 aan"), heeft een grote schakelaar
+  voor alles en een strip met 14 bolletjes die laat zien wat de lampen nu echt doen: elk bolletje
+  is een LED uit alle lampen achter elkaar, dus bij een regenboog loopt hij mee en een lamp die uit
+  is, is donker. (Het ontwerp tekent hier een vaste regenboog; de echte kleuren zeggen meer over
+  het huis.) Daaronder elke lamp (elk apparaat) als kaart, de echte en de gesimuleerde elk onder
+  een eigen kop, twee of drie naast elkaar naar de breedte: een bolletje in de kleur van zijn
+  felste LED, de naam, het type met de helderheid of "uit", eventueel het adres dat twee dezelfde
+  apparaten uit elkaar houdt en "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur
+  van de lamp ("Fan aan of uit" voor een schermlezer). Een klik op de kaart opent de lamp bij
+  Kleur (en laat hem knipperen); "+ Erbij knutselen" gaat naar Instellingen, waar de gesimuleerde
+  lampen en OpenRGB staan.
+- **Kleur** ("Kleur mengen"): bovenaan kies je de lamp (of "Hele huis"), met zijn schakelaar.
+  Links een groot voorbeeld met een strip in de gemengde kleur, de hex-code (in IBM Plex Mono; je
+  kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw (0–255,
+  in hun eigen kleur, ook met de pijltjes), "Uit de gereedschapskist" met zes vaste kleuren en de
+  knop "Op de strip zetten". Schuiven, hex-code en vaste kleuren laten de kleur meteen in het
+  voorbeeld zien ("Nog niet op de lamp"); pas de knop zet hem op de lamp. Zijn er LED's gekozen in
+  het voorbeeld, dan heet de knop "Op de gekozen LED's zetten", bij de kleurenloop "In de loop
+  zetten". Daaronder "Licht en beweging": de helderheid (0–100%), het effect en de snelheid, en
+  dan het voorbeeld met een bolletje per LED, per zone (zie hieronder). Zijn de effecten
+  gepauzeerd, dan staat de melding met "Hervatten" bovenaan (zie "Pauzeren").
+- **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder het voorbeeld de kleuren
+  van de loop. Klik op een kleur, meng een nieuwe en kies "In de loop zetten"; met + voeg je een
+  kleur toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg.
+  Voorbeeld: geel, groen, blauw loopt van geel naar groen naar blauw en weer naar geel. Met
+  "Kleuren over de LED's verdelen" uit krijgen alle LED's tegelijk dezelfde kleur. De Snelheid
+  werkt ook hier. Een apparaat onthoudt zijn loop, ook als je tussendoor een ander effect kiest.
 - **Snelheid** (10–300%, standaard 100%) werkt alleen bij een bewegend effect (Ademen,
-  Regenboog, Golf, Kleurenloop); bij Statisch en Per LED staat de schuif grijs. Een nieuwe snelheid gaat
-  verder waar de animatie was, zonder te verspringen, en apparaten die samen een nieuwe
-  snelheid krijgen blijven gelijk lopen. Zie de tabel bij "Effecten" voor de normale snelheid.
-- **Opslaan gaat vanzelf.** Rechtsonder staat "Opgeslagen ✓" met de tijd zodra de engine je
-  wijziging heeft weggeschreven, een seconde na de laatste wijziging. Lukt dat niet, dan staat
-  er "Opslaan mislukt": de lampen werken dan wel, maar na een herstart is de wijziging weg.
-  Ook een zonelengte die je instelt, bewaart de engine zo (zie "Fans, case-LED en ARGB-strips").
-- **Profielen** (links onder de apparaten): typ een naam en kies "Opslaan" om de verlichting
-  van alle apparaten te bewaren (kleur, helderheid, effect, snelheid, kleurenloop en
-  per-LED-kleuren). Kies later het profiel en "Laden" (of dubbelklik) om terug te gaan; de
-  geladen verlichting wordt dan ook de gewone, opgeslagen verlichting. Een profiel kiezen
-  vult zijn naam in, en de knop heet dan "Overschrijven". "Verwijderen" vraagt eerst of het
-  zeker is. Profielen staan in `%AppData%\BuurmansRgb\profiles.json`, naast `settings.json`.
-  Is dat bestand geen geldige JSON meer, dan zet de engine het opzij als
-  `profiles.json.broken` en begint met een lege lijst. Zonelengtes horen niet bij een profiel (wel bij
-  `settings.json`); per-LED-kleuren in een profiel weten wel voor welke zonelengtes ze gekozen zijn.
-  De uitleg staat achter de ⓘ naast de kop. Onder de profielen klap je "Automatisch laden" open
-  om het gekozen profiel op een tijd of bij een programma te laten laden (zie "Profielen").
-  In het kleinste venster past alles zolang dat dichtgeklapt is; opengeklapt schuift de
-  linkerkolom (met Tab komt elk veld vanzelf in beeld).
-- Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
-  wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
-  andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat
-  weer gelijk aan "Alle apparaten", dan volgt het die weer en verdwijnt het uit `devices`.
-- Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn. Bij
-  een bewegend effect loopt het mee. Zijn de effecten gepauzeerd, dan staat boven het voorbeeld
-  een melding met de reden, en bij een pauze uit het tray-menu de knop "Hervatten" (zie
-  "Pauzeren").
+  Regenboog, Golf, Kleurenloop); bij Statisch en Per LED staat de schuif grijs. Een nieuwe
+  snelheid gaat verder waar de animatie was, zonder te verspringen, en apparaten die samen een
+  nieuwe snelheid krijgen blijven gelijk lopen. Zie de tabel bij "Effecten" voor de normale
+  snelheid.
+- **Voorbeeld:** per apparaat een kaart met het icoon van zijn type, de naam en "Laat
+  knipperen", en per zone een bolletje per LED. Een toetsenbord met een matrix-map toont een
+  toets per LED, op zijn plek (brede toetsen breder), en een fan een ring per zone. Wijs een LED
+  aan voor zijn naam en nummer (zie "Toetsenbord, muis en headset"). Bij een zone die je in lengte
+  kunt instellen staan −, +, een schuif en een vak met "Toepassen" (zie "Fans, case-LED en
+  ARGB-strips"). Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd
+  zijn.
 - **Per-LED-editor:** klik in het voorbeeld op een LED om hem te selecteren, Shift+klik
-  selecteert een reeks vanaf de vorige klik, en een klik op de naam van een zone selecteert
-  die hele zone (bijv. één ring van een fan). Zolang er LED's geselecteerd zijn, staat boven
-  de kleur welke dat zijn en kleurt de kleurkiezer alleen die LED's. "Verloop vullen" vult
-  de reeks met een verloop van de kleur van de eerste naar die van de laatste LED (geef
-  dus eerst de eerste en de laatste LED een kleur). "Selectie opheffen", of een ander
-  apparaat in de lijst kiezen, geeft de kleurkiezer weer aan het apparaat. Het apparaat
-  krijgt bij de eerste wijziging het effect "Per LED". LED's die je niet kleurt, volgen de
-  kleur van het apparaat: kies je zonder selectie een kleur, dan krijgen alleen die LED's de
-  nieuwe kleur. De kleuren staan onder `ledColors` in
-  `settings.json` en blijven bewaard na een herstart, ook als je tussendoor een ander effect
-  kiest.
+  selecteert een reeks vanaf de vorige klik, en een klik op de naam van een zone selecteert die
+  hele zone (bijv. één ring van een fan). Zolang er LED's geselecteerd zijn, staat boven het
+  mengpaneel welke dat zijn en gaat de gemengde kleur alleen naar die LED's. "Verloop vullen"
+  vult de reeks met een verloop van de kleur van de eerste naar die van de laatste LED (geef dus
+  eerst de eerste en de laatste LED een kleur). "Selectie opheffen", of een andere lamp kiezen,
+  geeft het mengpaneel weer aan de lamp. Het apparaat krijgt bij de eerste wijziging het effect
+  "Per LED". LED's die je niet kleurt, volgen de kleur van het apparaat. De kleuren staan onder
+  `ledColors` in `settings.json` en blijven bewaard na een herstart, ook als je tussendoor een
+  ander effect kiest.
+- **Een wijziging bij "Hele huis"** geldt voor alle apparaten, maar alleen voor wat je wijzigt:
+  zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en andersom. Een
+  wijziging bij één lamp geldt alleen voor die lamp. Is een apparaat weer gelijk aan "Hele huis",
+  dan volgt het die weer en verdwijnt het uit `devices`.
+- **Scènes:** de opgeslagen scènes (profielen) als kaarten, drie of vier naast elkaar: vijf
+  bolletjes met de kleuren van de scène (van zijn verlichting voor alle apparaten; donker als hij
+  alles uit zet), de naam en wanneer hij vanzelf aangaat ("Elke dag om 23:00", "Bij
+  eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"). Een klik op een kaart zet de
+  scène aan: de verlichting van alle apparaten (kleur, helderheid, aan/uit, effect, snelheid,
+  kleurenloop en per-LED-kleuren) wordt die van de scène en ook de opgeslagen verlichting. De
+  moersleutel op een kaart kiest de scène (die krijgt een rand van 2 px) en toont eronder
+  "Aanzetten", "Overschrijven met wat nu brandt", "Verwijderen" (vraagt eerst of het zeker is) en
+  "Vanzelf aanzetten" op een tijd of bij een programma (zie "Scènes (profielen)"). "+ Nieuwe
+  scène in elkaar zetten" vraagt een naam en bewaart de verlichting zoals die nu is. Scènes staan
+  in `%AppData%\BuurmansRgb\profiles.json`, naast `settings.json`. Is dat bestand geen geldige
+  JSON meer, dan zet de engine het opzij als `profiles.json.broken` en begint met een lege lijst.
+  Zonelengtes horen niet bij een scène (wel bij `settings.json`); per-LED-kleuren in een scène
+  weten wel voor welke zonelengtes ze gekozen zijn. Welke scène het laatst aanging, weet de app
+  niet; daarom heeft geen kaart de rand van "actief".
+- **Buren:** nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
+- **Instellingen:** hoe het met OpenRGB gaat, met de tip uitgeschreven; wanneer de gesimuleerde
+  lampen er zijn ("Automatisch", "Altijd" of "Nooit", zie "OpenRGB-status en gesimuleerde
+  apparaten"); en of je wijzigingen zijn opgeslagen.
 - Draait de engine niet, dan meldt het venster dat en kun je "Opnieuw proberen". Stopt de
   engine terwijl het venster open is, dan meldt het dat de verbinding is verbroken.
-- Venster sluiten = proces stopt; de engine blijft draaien.
+
+### Aan en uit
+
+Elke lamp, en met "Hele huis" alles tegelijk, kan aan en uit. Een lamp die uit is, krijgt zwart
+en houdt de rest van zijn verlichting (kleur, effect, helderheid) voor als hij weer aan gaat. De
+grote schakelaar staat aan zolang er minstens één lamp aan is; uitzetten zet alle lampen uit,
+aanzetten alle lampen aan. "Aan" staat per apparaat en voor alles als `"on"` in `settings.json`
+en in elke scène in `profiles.json` (zonder `"on"` is een lamp aan, dus oudere bestanden werken
+gewoon). Een lamp die uit is, heeft een statisch zwart effect: met alles uit loopt er geen timer
+in de engine, ook niet als het effect een regenboog is. "Laat knipperen" werkt ook bij een lamp
+die uit is; daarna is hij weer zwart.
+
+- **Hoe de app het weet:** de engine meldt elke wijziging van de verlichting (`IEngineApi`-event
+  `LightingChanged`, ook voor een scène uit het tray-menu of op tijd), en de app vraagt dan de
+  verlichting van de lampen opnieuw (`GetLightingAsync`, met `LightingInfo.On`). Aan en uit
+  zetten gaat met `SetOnAsync` (null voor alles).
+- **Gemeten** (Release, 12 gesimuleerde apparaten, zonder OpenRGB, instellingen-app dicht, 30 s
+  per meting, Windows vergrendeld en daarom met `"pauseOnLockAndSleep": false`): statisch ~0,10 %
+  van één kern, 24,3 MB working set en 12,5 MB private bytes; regenboog ~0,10 %, 23,6 / 12,0 MB;
+  alles uit (met de regenboog als effect) ~0,05 %, 23,6 / 12,1 MB, en de render-timer staat stil.
+  Vóór aan/uit: statisch ~0,10 %, 23,8 / 12,1 MB; regenboog ~0,52 %, 22,8 / 12,1 MB. Bij deze
+  kleine getallen zit de meting op de ruis van de klok (15,6 ms).
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `LightingControllerOnTests` (uit is zwart, weer aan, alles uit ook voor lampen met een eigen
+  verlichting, geen timer, knipperen), `EngineSettingsTests` en `JsonSettingsStoreTests` (`"on"`
+  bewaren en oude bestanden), `EngineApiTests` en `EngineRpcTests` (over de pipe, en
+  `LightingChanged`), en in de instellingen-app `LampsViewModelTests` en
+  `MainViewModelLampTests`.
+- **Testen met je eigen hardware:** zet een lamp uit en weer aan, en alles uit en aan; kijk of
+  de lampen echt zwart worden en daarna hun eigen kleur en effect terugkrijgen. Zet alles uit,
+  herstart de engine en kijk of ze uit blijven. Kijk of een apparaat zonder "Direct"-modus ook
+  uit gaat.
+
+### Ontwerp, lettertypes en icoon
+
+- **Ontwerp:** `design/` bevat het ontwerppakket (`DESIGN.md`, het icoon en drie schermen als
+  referentie). De kleuren, maten en lettertypes staan als resources in
+  `src/BuurmansRgb.UI/Themes/Tokens.xaml`, de componenten (kaart, LED-bolletje met gloed, strip,
+  schakelaar, knoppen, vaste-kleurtegel, lijniconen van 2 px) en de donkere stijl van de gewone
+  controls in `Themes/Controls.xaml`, en wat de pagina's delen in `Themes/Theme.xaml`. De pagina's
+  zelf staan in `Views/Pages`. De gloed van een LED-bolletje is een radiale gradiënt (`LedBulb`)
+  in plaats van een `DropShadowEffect`, zodat niet elk bolletje elk frame apart gerenderd wordt.
+  WPF kent geen letterafstand (de −0,02em van de koppen); die ontbreekt dus.
+- **Lettertypes:** Bricolage Grotesque (Regular, SemiBold, ExtraBold, de statische bestanden uit
+  github.com/ateliertriay/bricolage) en IBM Plex Mono Medium (uit github.com/google/fonts) zitten
+  als resource in `BuurmansRgb.UI.dll` (`src/BuurmansRgb.UI/Fonts`). Een variabel lettertype laat
+  WPF alleen in zijn standaardgewicht zien, daarom per gewicht een eigen bestand. Ze vallen onder
+  de SIL Open Font License; de licentieteksten gaan als `Fonts\OFL-*.txt` mee naast de app en
+  staan in `installer/THIRD-PARTY-NOTICES.txt`. Ontbreekt een letter, dan valt WPF terug op Segoe
+  UI (Variable) of Cascadia Mono/Consolas, zoals het ontwerp vraagt.
+- **Icoon:** `design/icon/buurmansrgb.ico` is het icoon van beide exe's, het venster en de
+  taakbalk, het tray-icoon en de installer (`AppIconPath` in `Directory.Build.props`). In de
+  titelbalk staat de kleine donkere versie, als vector (`AppIconSmallDark`).
+- **Gemeten** (instellingen-app Debug, engine Release, 12 gesimuleerde apparaten, 30 s per
+  meting, Windows vergrendeld): vóór het nieuwe ontwerp met "Alle apparaten" gekozen statisch 0 %
+  CPU, 122 MB working set en 49 MB private bytes, regenboog 3,3 % van één kern, 119 / 42 MB. Nu
+  op Lampen statisch 0 %, 112 / 34 MB, regenboog 2,5 %, 118 / 38 MB; op Kleur met "Hele huis"
+  (het voorbeeld van alle apparaten) statisch 0 %, 145 / 57 MB, regenboog 2,1 %, 133 / 43 MB.
+  Zolang Windows vergrendeld is tekent WPF niets op het scherm, dus het tekenen zelf (ook van de
+  gloed) zit hier niet in; meet dat met de app zichtbaar nog eens in Taakbeheer.
+- **Testen zonder hardware:** `NavigationViewModelTests`, `LampsViewModelTests`,
+  `MainViewModelLampTests`, `ColorPickerViewModelTests`, `SceneCardTests`,
+  `ProfilesViewModelSceneTests` en `MainViewModelSceneTests`. Start daarnaast de engine en de
+  instellingen-app en loop de pagina's langs met muis en toetsenbord.
 
 ## Mappen
 
 - `src/` – de projecten, zie de solution-indeling in `docs/bouwplan.md`
 - `tests/` – unit-tests, zonder hardware; `tests/Shared` – helpers voor elk testproject
+- `design/` – het ontwerppakket van de instellingen-app (`DESIGN.md`, icoon, referentieschermen)
 
 - `docs/bouwplan.md` – architectuur, fasering en taken met acceptatiecriteria
 - `docs/prompts.md` – kant-en-klare opdrachten voor agents

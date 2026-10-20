@@ -24,8 +24,8 @@
   venster een tweede venster in plaats van het bestaande naar voren te halen
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
-- Een echte kleurkiezer (vlak of wiel voor verzadiging en helderheid) in plaats van twee
-  schuiven; "helderheid" van de kleur zelf zit nu alleen in de hex-code
+- Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
+  verzadiging kiest (de oude schuiven Tint en Verzadiging zijn met het nieuwe ontwerp vervangen)
 - De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de
   volgende geslaagde wijziging
 - Frames naar de UI begrenzen (bijv. max. 30 per seconde) zodra taak 4 animeert: nu maakt
@@ -124,9 +124,6 @@
   PCI-locatie zouden dan helpen
 - Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
   per id in `settings.json`
-- De effectkeuze voor schermlezers: een schermlezer noemt een item van een ComboBox bij zijn
-  `ToString`, en dat is bij `EffectOption` de hele record ("EffectOption { Id = static, ... }").
-  `SimulatedDevicesOption` geeft daarom zijn Nederlandse naam terug; `EffectOption` kan dat ook
 - Bij het starten van de engine in de stand "Automatisch" staan de gesimuleerde apparaten even
   in de lijst tot OpenRGB verbonden is (ongeveer een seconde). Eventueel pas na de eerste
   verbindpoging beslissen
@@ -138,9 +135,9 @@
   adminrechten, dus via UAC) in plaats van alleen de tip
 - De versie van OpenRGB en het SDK-protocol in de tooltip van de OpenRGB-status tonen, handig
   bij "geen goed antwoord"
-- In het tray-menu een vinkje bij het profiel dat het laatst geladen is (en weghalen zodra de
-  verlichting daarna verandert), en in de lijst van de instellingen-app een teken bij profielen
-  die vanzelf laden; nu zie je dat pas bij "Automatisch laden"
+- Bijhouden welke scène het laatst aanging (en dat vergeten zodra de verlichting daarna
+  verandert), zodat de kaart op de pagina Scènes de rand van "actief" krijgt zoals in het ontwerp
+  en het tray-menu er een vinkje bij zet; nu houdt niemand dat bij
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
   per profiel
 - Na het ontwaken of bij het starten het profiel laden dat volgens de tijden nu zou gelden (het
@@ -215,3 +212,31 @@
 - Ook het pollen van de proceslijst (`ProgramWatcher`, elke 2 seconden) stilzetten zolang Windows
   vergrendeld is of slaapt, en bij ontgrendelen meteen één keer kijken; nu loopt het door, al kost
   het minder dan 0,1 ms per keer
+- Letterafstand van de koppen (−0,02em in het ontwerp): WPF kent geen letterafstand voor een
+  `TextBlock`; eventueel met `Glyphs` of een eigen tekstelement voor de grote koppen
+- De optische maten van Bricolage Grotesque gebruiken (de statische `12pt`- en `96pt`-bestanden):
+  nu draaien alle maten op de standaardversie, terwijl een browser bij 30 px een grotere optische
+  maat kiest
+- De pagina Buren echt maken zodra het ontwerp er is (§ 5.4), met de buren-kaart op Lampen en
+  "Samen aan de slag" op Scènes uit de schermen van het ontwerp; die zijn nu weggelaten, omdat er
+  nog niets achter zit
+- Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp
+  kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
+- Een kleur kiezen voor een lamp die uit staat, zet hem niet aan; misschien moet "Op de strip
+  zetten" de lamp dan ook aanzetten, zoals veel lamp-apps doen
+- Wijzigt de verlichting buiten de app (een scène uit het tray-menu of op tijd), dan volgen de
+  lampen op de pagina Lampen wel, maar de schuiven bij Kleur pas als je een andere lamp kiest;
+  `LightingChanged` zou die ook kunnen verversen, als dat een sleepbeweging niet stoort
+- Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
+  opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
+- "Alles uit" en "Alles aan" ook in het tray-menu, en eventueel een sneltoets
+- Het spoor van een schakelaar heeft de kleur van de lamp; bij een heel donkere kleur (lage
+  helderheid) valt de donkere knop daarop weg. Eventueel een minimale helderheid voor het spoor
+- De instellingen-app opnieuw meten met het venster zichtbaar (de metingen bij het nieuwe ontwerp
+  zijn gedaan terwijl Windows vergrendeld was, dan tekent WPF niets), vooral de gloed van de
+  bolletjes bij een regenboog op de pagina Lampen
+- Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
+  zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
+  Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
+- De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
+  § 6 van het ontwerp
