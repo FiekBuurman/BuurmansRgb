@@ -35,6 +35,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.DevicesChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
         _lighting.PauseChanged += OnPauseChanged;
+        _lighting.LightingChanged += OnLightingChanged;
         _saveEvents?.Saved += OnSaved;
     }
 
@@ -47,6 +48,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
 
     public event EventHandler<PauseReasons>? PauseChanged;
+
+    public event EventHandler? LightingChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
@@ -73,6 +76,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default)
     {
         _lighting.SetLighting(deviceId, lighting => lighting with { EffectId = effectId });
+        return Task.CompletedTask;
+    }
+
+    public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default)
+    {
+        _lighting.SetLighting(deviceId, lighting => lighting with { On = on });
         return Task.CompletedTask;
     }
 
@@ -166,12 +175,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.DevicesChanged -= OnDevicesChanged;
         _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
         _lighting.PauseChanged -= OnPauseChanged;
+        _lighting.LightingChanged -= OnLightingChanged;
         _saveEvents?.Saved -= OnSaved;
     }
 
     // The wire formats are made here, so the lighting model does not know them, and outside the
     // controller's lock.
-    private static LightingInfo ToInfo(DeviceLighting lighting) => new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop);
+    private static LightingInfo ToInfo(DeviceLighting lighting) =>
+        new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On);
 
     private static LightingFrame ToFrame(LightingOutput output) =>
         new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
@@ -183,6 +194,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
 
     private void OnPauseChanged(object? sender, PauseReasons pause) => PauseChanged?.Invoke(this, pause);
+
+    private void OnLightingChanged(object? sender, EventArgs e) => LightingChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnRendered(object? sender, EventArgs e)
     {

@@ -27,6 +27,11 @@ public partial interface IEngineApi
     // Windows is locked or asleep, or after ResumeEffectsAsync.
     event EventHandler<PauseReasons> PauseChanged;
 
+    // Raised when the lighting changed: from this or another settings app, or from the engine
+    // itself, such as a profile that loads on time or from the tray menu. GetLightingAsync then
+    // gives the new lighting.
+    event EventHandler LightingChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
@@ -41,6 +46,10 @@ public partial interface IEngineApi
     Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default);
 
     Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default);
+
+    // Switched off, a device shows black and keeps its lighting for when it goes on again. For all
+    // devices it switches every device.
+    Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default);
 
     // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
     Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default);

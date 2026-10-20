@@ -47,6 +47,52 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task SetOnAsync_SwitchesTheDeviceOffAndOn()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+
+        await api.SetOnAsync("simulated-fan", on: false, Ct);
+
+        Assert.False((await api.GetLightingAsync("simulated-fan", Ct)).On);
+        Assert.True((await api.GetLightingAsync(null, Ct)).On);
+
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SetOnAsync(null, on: true, Ct);
+
+        Assert.True((await api.GetLightingAsync("simulated-fan", Ct)).On);
+    }
+
+    [Fact]
+    public async Task LightingChanged_FollowsEveryChangeOfTheLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SaveProfileAsync("Uit", Ct);
+        _profiles.Load("Uit");
+
+        Assert.Equal(2, changes);
+    }
+
+    [Fact]
+    public async Task Dispose_StopsFollowingTheLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        api.Dispose();
+        _lighting.SetLighting(null, lighting => lighting with { On = false });
+
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
     public async Task SetSpeedAsync_SetsTheSpeedOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);

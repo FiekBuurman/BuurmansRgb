@@ -19,6 +19,9 @@ internal record LightingSettings
     // Null for the default loop.
     public ColorLoopSettings? ColorLoop { get; set; }
 
+    // False for a device that is switched off.
+    public bool On { get; set; } = DeviceLighting.Default.On;
+
     public static LightingSettings From(DeviceLighting lighting)
     {
         var settings = new LightingSettings();
@@ -32,6 +35,7 @@ internal record LightingSettings
         new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed))
         {
             Loop = ColorLoop?.ToColorLoop() ?? Contracts.ColorLoop.Default,
+            On = On,
         };
 
     private static double ClampBrightness(double brightness) =>
@@ -47,5 +51,6 @@ internal record LightingSettings
         Effect = lighting.EffectId;
         Speed = lighting.Speed;
         ColorLoop = ColorLoopSettings.From(lighting.Loop);
+        On = lighting.On;
     }
 }

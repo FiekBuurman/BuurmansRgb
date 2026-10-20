@@ -73,6 +73,12 @@ internal sealed class FakeEngineApi : IEngineApi
         PauseChanged?.Invoke(this, pause);
     }
 
+    public event EventHandler? LightingChanged;
+
+    public bool HasLightingSubscribers => LightingChanged is not null;
+
+    public void RaiseLightingChanged() => LightingChanged?.Invoke(this, EventArgs.Empty);
+
     // When set, the pause changes to this while GetPauseAsync answers with the older one, as when
     // the event overtakes the answer.
     public PauseReasons? PauseChangeWhileAnswering { get; set; }
@@ -167,6 +173,9 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
         Record($"effect {deviceId ?? "all"} {effectId}");
+
+    public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default) =>
+        Record($"on {deviceId ?? "all"} {(on ? "on" : "off")}");
 
     public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default) =>
         Record(string.Create(CultureInfo.InvariantCulture, $"speed {deviceId ?? "all"} {speed:0.00}"));

@@ -188,6 +188,29 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetOnAsync_ReachesServer()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetOnAsync("fan", on: false, Ct);
+        await client.Api.SetOnAsync(null, on: true, Ct);
+
+        Assert.Equal([("fan", false), (null, true)], _api.OnCalls);
+    }
+
+    [Fact]
+    public async Task LightingChanged_OnServer_ReachesClient()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.LightingChanged += (_, _) => received.TrySetResult();
+
+        _api.RaiseLightingChanged();
+
+        await received.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
+    [Fact]
     public async Task SetSpeedAsync_ReachesServer()
     {
         var client = await ConnectAsync();
@@ -301,6 +324,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler<PauseReasons>? PauseChanged;
 
+        public event EventHandler? LightingChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
@@ -317,7 +342,7 @@ public sealed class EngineRpcTests : IDisposable
             },
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false));
+        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false);
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -331,6 +356,14 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<(string? DeviceId, double Speed)> SpeedCalls { get; } = [];
 
+        public List<(string? DeviceId, bool On)> OnCalls { get; } = [];
+
+        public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default)
+        {
+            OnCalls.Add((deviceId, on));
+            return Task.CompletedTask;
+        }
+
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
         public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
@@ -338,6 +371,8 @@ public sealed class EngineRpcTests : IDisposable
         public void RaiseOpenRgbStatus(ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
 
         public void RaisePause(PauseReasons pause) => PauseChanged?.Invoke(this, pause);
+
+        public void RaiseLightingChanged() => LightingChanged?.Invoke(this, EventArgs.Empty);
 
         public int ResumeCalls { get; private set; }
 
