@@ -3,6 +3,7 @@ using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -36,10 +37,11 @@ internal static class Program
         using var powerEvents = new SystemPowerEvents();
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         var saveEvents = new SettingsSaveEvents();
+        var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
-            new EngineIpcServer(EngineRpc.PipeName, lighting, MemoryTrimmer.Trim, saveEvents),
+            new EngineIpcServer(EngineRpc.PipeName, () => new EngineApi(lighting, profiles, saveEvents), MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevices,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents);

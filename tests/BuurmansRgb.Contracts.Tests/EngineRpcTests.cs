@@ -57,6 +57,20 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Profiles_NamesAndCallsCrossThePipe()
+    {
+        var client = await ConnectAsync();
+
+        var names = await client.Api.GetProfilesAsync(Ct);
+        await client.Api.SaveProfileAsync("Werk", Ct);
+        await client.Api.LoadProfileAsync("Gamen", Ct);
+        await client.Api.DeleteProfileAsync("Nacht", Ct);
+
+        Assert.Equal(["Gamen", "Nacht"], names);
+        Assert.Equal(["save Werk", "load Gamen", "delete Nacht"], _api.ProfileCalls);
+    }
+
+    [Fact]
     public async Task FrameRendered_OnServer_ReachesClient()
     {
         var client = await ConnectAsync();
@@ -268,6 +282,23 @@ public sealed class EngineRpcTests : IDisposable
         public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
         {
             ResizeCalls.Add((deviceId, zoneIndex, ledCount));
+            return Task.CompletedTask;
+        }
+
+        public List<string> ProfileCalls { get; } = [];
+
+        public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<string>>(["Gamen", "Nacht"]);
+
+        public Task SaveProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"save {name}");
+
+        public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
+
+        public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        private Task RecordProfile(string call)
+        {
+            ProfileCalls.Add(call);
             return Task.CompletedTask;
         }
     }
