@@ -163,7 +163,7 @@ Bouw in negen fasen; na fase 3 heb je al een werkende app met één echte kleur 
 7. **Fans, case-LED en ARGB-strips.** Zones instelbaar in lengte (aantal LED's per strip), ventilatoren per ring.
 8. **Toetsenbord, muis en headset.** Toetsenbord met matrixweergave per toets, muis met zones, headset waar OpenRGB het ondersteunt.
 
-Na fase 8 als losse uitbreidingen: profielen per moment (gamen, werken, nacht), alle apparaten synchroon laten lopen, en eventueel eigen HID-providers voor apparaten die OpenRGB niet kent.
+Na fase 8 als losse uitbreidingen: profielen per moment (gamen, werken, nacht; opslaan en laden in de instellingen-app is er, wisselen vanuit de tray nog niet), alle apparaten synchroon laten lopen, en eventueel eigen HID-providers voor apparaten die OpenRGB niet kent.
 
 ## Agent-taken
 
