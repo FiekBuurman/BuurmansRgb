@@ -137,7 +137,7 @@ dotnet run --project src/BuurmansRgb.Engine
   behuizing (10), een muis (12, in vier zones) en een headset (2, in twee zones).
 - **Tooltip van het tray-icoon:** de naam (of "effecten gepauzeerd", ook bij een pauze door
   vergrendelen of slaapstand) en daaronder hoe het met
-  OpenRGB gaat, bijv. "OpenRGB: verbonden, 5 apparaten".
+  OpenRGB gaat, bijv. "OpenRGB: verbonden, 5 lampen".
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
   RAM" hieronder.
@@ -266,7 +266,7 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
    OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
 3. Start de engine (de volgorde maakt niet uit). Binnen enkele seconden staan de apparaten
-   van OpenRGB in de instellingen-app, onder de kop "Echte apparaten (OpenRGB)", en
+   van OpenRGB in de instellingen-app, onder de kop "Echte lampen (OpenRGB)", en
    verdwijnen de gesimuleerde (zie "OpenRGB-status en gesimuleerde apparaten"). Een open
    venster werkt de lampen vanzelf bij.
 
@@ -302,8 +302,8 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   | Wat je ziet | Wat er aan de hand is |
   | --- | --- |
   | OpenRGB: verbinden… | De engine is net gestart, of de verbinding viel weg en de volgende poging komt zo |
-  | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
-  | OpenRGB: verbonden, geen apparaten gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
+  | OpenRGB: verbonden, 5 lampen | Verbonden; OpenRGB gaf zoveel apparaten |
+  | OpenRGB: verbonden, geen lampen gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
   | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Met een tip: herstart de pc of draai de installer opnieuw |
   | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte (bijv. een antwoord dat niet klopte of te laat kwam) |
 
@@ -613,8 +613,8 @@ bij de lampen niet altijd te zien welk apparaat of welke zone in de pc zit.
   tijdens het knipperen een timer (`IEngineApi.FlashDeviceAsync`, in de engine
   `LightingController.Flash` en `DeviceFlash`).
 - **Echt of gesimuleerd:** de pagina Lampen (en de lampkeuze bij Kleur) toont de echte apparaten
-  onder de kop "Echte apparaten (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde
-  apparaten". De provider geeft elk
+  onder de kop "Echte lampen (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde
+  lampen". De provider geeft elk
   apparaat zijn bron mee (`DeviceInfo.Source`). Standaard staan de gesimuleerde er alleen
   zolang er geen echte zijn (zie "OpenRGB-status en gesimuleerde apparaten").
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam (op het

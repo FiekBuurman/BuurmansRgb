@@ -19,7 +19,7 @@
     <value>Hele huis</value>
   </data>
   <data name="AllDevicesDetails" xml:space="preserve">
-    <value>{0} apparaten</value>
+    <value>{0} lampen</value>
   </data>
   <data name="LedCount" xml:space="preserve">
     <value>{0} LED's</value>
@@ -97,10 +97,10 @@
     <value>Locatie: {0}, adres {1}</value>
   </data>
   <data name="DeviceSource_Hardware" xml:space="preserve">
-    <value>Echte apparaten (OpenRGB)</value>
+    <value>Echte lampen (OpenRGB)</value>
   </data>
   <data name="DeviceSource_Simulated" xml:space="preserve">
-    <value>Gesimuleerde apparaten</value>
+    <value>Gesimuleerde lampen</value>
   </data>
   <data name="DeviceType_Motherboard" xml:space="preserve">
     <value>Moederbord</value>
@@ -208,7 +208,7 @@
     <value>Verbinden met de engine…</value>
   </data>
   <data name="EngineNotRunning" xml:space="preserve">
-    <value>De engine draait niet. Start BuurmansRgb en probeer het opnieuw.</value>
+    <value>De engine draait niet. Start buurmansRgb en probeer het opnieuw.</value>
   </data>
   <data name="ConnectFailed" xml:space="preserve">
     <value>Er kon geen verbinding met de engine worden gemaakt.</value>
@@ -327,7 +327,7 @@
     <value>Elke dag aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
-    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat BuurmansRgb die keer over.</value>
+    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
   </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
     <value>Aanzetten als dit programma start</value>
@@ -360,19 +360,19 @@
     <value>Laat knipperen</value>
   </data>
   <data name="FlashDeviceToolTip" xml:space="preserve">
-    <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+    <value>Laat deze lamp even wit knipperen, zodat je in de pc ziet welke het is. Werkt niet als de effecten gepauzeerd zijn.</value>
   </data>
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
   </data>
   <data name="SimulatedDevicesLabel" xml:space="preserve">
-    <value>Gesimuleerde apparaten tonen</value>
+    <value>Gesimuleerde lampen tonen</value>
   </data>
   <data name="OpenRgbHintAccessibleName" xml:space="preserve">
     <value>Tip bij de OpenRGB-status</value>
   </data>
   <data name="SimulatedDevicesHint" xml:space="preserve">
-    <value>Nep-apparaten om BuurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
+    <value>Nep-lampen om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte lampen levert.</value>
   </data>
   <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
     <value>Automatisch</value>
@@ -388,15 +388,15 @@
     <comment>Gelijk houden met TrayOpenRgbConnecting in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnected" xml:space="preserve">
-    <value>OpenRGB: verbonden, {0} apparaten</value>
+    <value>OpenRGB: verbonden, {0} lampen</value>
     <comment>Gelijk houden met TrayOpenRgbConnected in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedOneDevice" xml:space="preserve">
-    <value>OpenRGB: verbonden, 1 apparaat</value>
+    <value>OpenRGB: verbonden, 1 lamp</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedOneDevice in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <value>OpenRGB: verbonden, geen lampen gevonden</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedNoDevices in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachable" xml:space="preserve">
@@ -404,20 +404,20 @@
     <comment>Gelijk houden met TrayOpenRgbUnreachable in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachableHint" xml:space="preserve">
-    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van BuurmansRgb opnieuw; BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
+    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van buurmansRgb opnieuw; buurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
   </data>
   <data name="OpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
     <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbFailedHint" xml:space="preserve">
-    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. BuurmansRgb blijft het proberen.</value>
+    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de lampen mislukte. buurmansRgb blijft het proberen.</value>
   </data>
   <data name="NoDirectModeWarning" xml:space="preserve">
     <value>Volgt de kleur misschien niet</value>
   </data>
   <data name="NoDirectModeHint" xml:space="preserve">
-    <value>Dit apparaat heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. BuurmansRgb stuurt de kleuren wel, maar het apparaat kan zijn eigen effect blijven tonen. Gebeurt dat, stel het dan in OpenRGB zelf in.</value>
+    <value>Deze lamp heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. buurmansRgb stuurt de kleuren wel, maar de lamp kan zijn eigen effect blijven tonen. Gebeurt dat, stel hem dan in OpenRGB zelf in.</value>
   </data>
   <data name="EffectsPausedManual" xml:space="preserve">
     <value>Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.</value>

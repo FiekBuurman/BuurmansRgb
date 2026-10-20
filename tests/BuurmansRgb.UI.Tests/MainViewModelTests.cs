@@ -377,7 +377,7 @@ public sealed class MainViewModelTests
 
         Api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 3));
 
-        Assert.Equal("OpenRGB: verbonden, 3 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.Equal("OpenRGB: verbonden, 3 lampen", viewModel.OpenRgbStatus.Text);
         Assert.False(viewModel.OpenRgbStatus.HasHint);
     }
 
@@ -390,7 +390,7 @@ public sealed class MainViewModelTests
             api.StatusChangeWhileAnswering = new ServerStatus(ServerState.Connected, 2);
         });
 
-        Assert.Equal("OpenRGB: verbonden, 2 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.Equal("OpenRGB: verbonden, 2 lampen", viewModel.OpenRgbStatus.Text);
     }
 
     [Fact]
