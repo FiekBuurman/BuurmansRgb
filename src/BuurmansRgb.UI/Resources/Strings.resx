@@ -69,6 +69,12 @@
   <data name="ZoneOtherLeds" xml:space="preserve">
     <value>Overige LED's</value>
   </data>
+  <data name="DeviceLocationAddress" xml:space="preserve">
+    <value>adres {0} op {1}</value>
+  </data>
+  <data name="DeviceLocationToolTip" xml:space="preserve">
+    <value>Locatie: {0}</value>
+  </data>
   <data name="DeviceSource_OpenRgb" xml:space="preserve">
     <value>Echte apparaten (OpenRGB)</value>
   </data>

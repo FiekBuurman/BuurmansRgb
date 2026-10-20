@@ -123,6 +123,41 @@ public sealed class DeviceItemTests
         Assert.All(Enum.GetValues<DeviceSource>(), source =>
             Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12) with { Source = source }).Group));
 
+    // Two sticks of a kit have the same name; their address on the SMBus says which slot is which.
+    [Fact]
+    public void For_RamStickWithAnAddress_ShowsWhereItIs()
+    {
+        var stick = TestDevices.Create("ram", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x52") };
+
+        var item = DeviceItem.For(stick);
+
+        Assert.Equal("adres 0x52 op PIIX4", item.Location);
+        Assert.True(item.ShowsLocation);
+        Assert.Equal("Locatie: adres 0x52 op PIIX4", item.LocationToolTip);
+    }
+
+    // A USB path tells the user little, so it is only a tooltip.
+    [Fact]
+    public void For_DeviceWithoutAddress_HasTheLocationOnlyAsToolTip()
+    {
+        var keyboard = TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104) with { Location = new DeviceLocation(@"HID: \\?\hid#vid_1b1c") };
+
+        var item = DeviceItem.For(keyboard);
+
+        Assert.False(item.ShowsLocation);
+        Assert.Equal(@"Locatie: HID: \\?\hid#vid_1b1c", item.LocationToolTip);
+    }
+
+    [Fact]
+    public void For_DeviceWithoutLocation_ShowsNone()
+    {
+        var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12));
+
+        Assert.Null(item.Location);
+        Assert.False(item.ShowsLocation);
+        Assert.Null(item.LocationToolTip);
+    }
+
     [Fact]
     public void AllDevices_HasNoIdNoTypeAndNoHeading()
     {

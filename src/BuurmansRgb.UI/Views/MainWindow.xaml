@@ -127,6 +127,8 @@
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                <Setter Property="AutomationProperties.HelpText" Value="{Binding Location}" />
+                                <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
@@ -139,6 +141,8 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding Details}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                        <TextBlock Text="{Binding Location}" Foreground="{x:Static SystemColors.GrayTextBrush}"
+                                                   Visibility="{Binding ShowsLocation, Converter={StaticResource BoolToVisibility}}" />
                                     </StackPanel>
                                 </DockPanel>
                             </DataTemplate>
