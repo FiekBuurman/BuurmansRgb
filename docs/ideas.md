@@ -212,3 +212,6 @@
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat
 - `pauseOnLockAndSleep` ook in de instellingen-app en zonder herstart van de engine; nu staat het
   alleen in `settings.json`
+- Ook het pollen van de proceslijst (`ProgramWatcher`, elke 2 seconden) stilzetten zolang Windows
+  vergrendeld is of slaapt, en bij ontgrendelen meteen één keer kijken; nu loopt het door, al kost
+  het minder dan 0,1 ms per keer

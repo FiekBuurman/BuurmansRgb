@@ -192,9 +192,11 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 | Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een extern bureaublad dat verbroken is zonder af te melden | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan |
 | Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden; ook ontgrendelen of de sessie weer op een scherm, voor als Windows het wakker worden niet meldt | Het laatste frame blijft staan |
 
-- **Geen CPU voor effecten:** bij elke reden stopt de timer van de animatie; er draait dan geen
-  timer meer, net als bij een statische kleur. Een bewegend effect staat stil op het laatste
-  frame. De lampen gaan niet uit.
+- **Geen CPU voor effecten:** bij elke reden stopt de timer van de animatie, net als bij een
+  statische kleur. Een bewegend effect staat stil op het laatste frame. De lampen gaan niet uit.
+  Wat los van de effecten loopt, loopt wel door: de engine kijkt elke 2 seconden in de proceslijst
+  als een profiel een programma heeft, de timer van "Automatisch laden om" wacht op zijn tijd, en
+  zonder OpenRGB probeert hij elke 5 seconden te verbinden.
 - **Los van elkaar:** ontgrendelen heft een pauze uit het tray-menu niet op, en hervatten in het
   menu laat de animatie niet lopen zolang Windows vergrendeld is. Pas als alle redenen weg zijn,
   loopt de animatie weer. Eindigt een reden en is er geen pauze uit het tray-menu (meer), dan stuurt
@@ -234,9 +236,10 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
   `LightingControllerPauseTests` (de redenen naast elkaar, wijzigingen en herstellen tijdens
   vergrendelen, knipperen), `AutoPauseTests` (met nep-events van Windows: vergrendelen,
-  verbreken, slaapstand, de pauze uit het menu die blijft, wakker worden op het
-  vergrendelscherm met `ResumeRestorer`, uitzetten), `SystemSessionEventsTests` (de beginstand uit Windows lezen), `EngineHostTests` en
-  `JsonSettingsStoreTests` (`pauseOnLockAndSleep`), `TrayPresenterTests` (vinkje en tooltip),
+  verbreken, slaapstand, reeksen van events, de pauze uit het menu die blijft, wakker worden op
+  het vergrendelscherm met `ResumeRestorer`, uitzetten), `ResumeRestorerTests` (weer slapen
+  binnen 10 seconden), `SystemSessionEventsTests` (de beginstand uit Windows lezen),
+  `EngineHostTests` en `JsonSettingsStoreTests` (`pauseOnLockAndSleep`), `TrayPresenterTests` (vinkje en tooltip),
   `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de pipe), en in de
   instellingen-app `EffectsPauseViewModelTests` en `MainViewModelPauseTests`. Start daarnaast de
   engine en de instellingen-app, vink in het tray-menu "Effecten pauzeren" aan: de melding met
