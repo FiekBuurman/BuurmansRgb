@@ -59,7 +59,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:StripLed}">
                                 <views:LedBulb Diameter="12" GlowBlur="10" GlowSpread="2" IsLit="{Binding IsLit}"
-                                               Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                               Color="{Binding Color}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -118,7 +118,7 @@
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
                                 <DockPanel Background="Transparent">
                                     <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
-                                                   IsLit="{Binding IsOn}" Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                                   IsLit="{Binding IsOn}" Color="{Binding Color}" />
                                     <StackPanel VerticalAlignment="Center">
                                         <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
                                         <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />

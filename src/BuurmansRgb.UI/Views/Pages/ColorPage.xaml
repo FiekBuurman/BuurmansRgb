@@ -142,7 +142,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4"
-                                                           Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource ColorToMediaColor}}" />
+                                                           Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>

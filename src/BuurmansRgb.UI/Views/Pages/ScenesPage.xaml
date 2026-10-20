@@ -50,7 +50,7 @@
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type vm:SceneDot}">
                                                 <views:LedBulb Margin="0,0,6,0" Diameter="12" GlowBlur="8" GlowSpread="1" IsLit="{Binding IsLit}"
-                                                               Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                                               Color="{Binding Color}" />
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>

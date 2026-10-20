@@ -1,16 +1,21 @@
 using System.Windows;
 using System.Windows.Media;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
 
 // An LED of the design (§ 4): a dot in its color with a glow around it, like the CSS box-shadow
 // "0 0 <GlowBlur> <GlowSpread> <color>". The glow is a radial gradient drawn past the bounds
 // instead of a DropShadowEffect, which would render every bulb off screen on each frame. Off, it
-// is led-off without a glow. Only decoration: what it shows is also said in text nearby.
+// shows OffBrush (led-off of the tokens, set by its style in Controls.xaml) without a glow. Only
+// decoration: what it shows is also said in text nearby.
 public sealed class LedBulb : FrameworkElement
 {
     public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(
-        nameof(Color), typeof(Color), typeof(LedBulb), new FrameworkPropertyMetadata(Colors.Black, FrameworkPropertyMetadataOptions.AffectsRender, OnLookChanged));
+        nameof(Color), typeof(RgbColor), typeof(LedBulb), new FrameworkPropertyMetadata(RgbColor.Black, FrameworkPropertyMetadataOptions.AffectsRender, OnLookChanged));
+
+    public static readonly DependencyProperty OffBrushProperty = DependencyProperty.Register(
+        nameof(OffBrush), typeof(Brush), typeof(LedBulb), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty IsLitProperty = DependencyProperty.Register(
         nameof(IsLit), typeof(bool), typeof(LedBulb), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, OnLookChanged));
@@ -24,17 +29,19 @@ public sealed class LedBulb : FrameworkElement
     public static readonly DependencyProperty GlowSpreadProperty = DependencyProperty.Register(
         nameof(GlowSpread), typeof(double), typeof(LedBulb), new FrameworkPropertyMetadata(2.0, FrameworkPropertyMetadataOptions.AffectsRender, OnLookChanged));
 
-    // led-off of the design tokens.
-    private static readonly SolidColorBrush OffBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x3A, 0x3A, 0x42)));
-
     // Made again only when the look changes, not on every render.
-    private Brush? _fill;
     private Brush? _glow;
 
-    public Color Color
+    public RgbColor Color
     {
-        get => (Color)GetValue(ColorProperty);
+        get => (RgbColor)GetValue(ColorProperty);
         set => SetValue(ColorProperty, value);
+    }
+
+    public Brush? OffBrush
+    {
+        get => (Brush?)GetValue(OffBrushProperty);
+        set => SetValue(OffBrushProperty, value);
     }
 
     public bool IsLit
@@ -76,8 +83,7 @@ public sealed class LedBulb : FrameworkElement
             drawingContext.DrawEllipse(_glow, null, center, GlowRadius, GlowRadius);
         }
 
-        _fill ??= IsLit ? Freeze(new SolidColorBrush(Color)) : OffBrush;
-        drawingContext.DrawEllipse(_fill, null, center, radius, radius);
+        drawingContext.DrawEllipse(IsLit ? ColorBrushes.Get(Color) : OffBrush, null, center, radius, radius);
     }
 
     // A blur of b around the spread edge fades from about half its color there to nothing b further
@@ -100,13 +106,11 @@ public sealed class LedBulb : FrameworkElement
         return Freeze(brush);
     }
 
-    private Color WithAlpha(byte alpha) => Color.FromArgb(alpha, Color.R, Color.G, Color.B);
+    private System.Windows.Media.Color WithAlpha(byte alpha) => System.Windows.Media.Color.FromArgb(alpha, Color.R, Color.G, Color.B);
 
     private static void OnLookChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
-        var bulb = (LedBulb)d;
-        bulb._fill = null;
-        bulb._glow = null;
+        ((LedBulb)d)._glow = null;
     }
 
     private static T Freeze<T>(T brush)
