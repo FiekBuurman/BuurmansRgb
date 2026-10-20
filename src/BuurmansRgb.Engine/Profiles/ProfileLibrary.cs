@@ -5,9 +5,12 @@ using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Profiles;
 
-// The saved profiles. The file is read on first use, so an engine that nobody asks for profiles
-// never reads it, and written on every change. Called from IPC threads; the lock guards the list.
-// An invalid or unknown name throws ArgumentException, which reaches the UI as an RPC error.
+// The saved profiles, all of them kept in memory once read (about 5 KB for a profile with a color
+// per LED for 250 LEDs). The file is read on first use: when the tray menu opens or the settings
+// app asks, and right at the start when the file exists, because the profile triggers need the
+// times and programs then. Written on every change. Called from the tray thread, IPC threads and
+// the timers of the triggers; the lock guards the list. An invalid or unknown name throws
+// ArgumentException, which reaches the UI as an RPC error.
 internal sealed class ProfileLibrary(IProfileStore store, LightingController lighting)
 {
     private readonly Lock _gate = new();

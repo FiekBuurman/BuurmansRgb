@@ -512,9 +512,12 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   met een tijd net zoveel als vóór deze functies (~220 miljoen, vooral de verbindpogingen naar
   OpenRGB), met een programma ~100 miljoen meer, ongeveer 0,05 % van één kern. Het geheugen van
   de namen is ~0,3 MB.
-- **Geheugen en starten:** zonder regels leest de engine `profiles.json` pas als je het
-  tray-menu opent of de instellingen-app de profielen vraagt. Staat er een bestand, dan leest de
-  engine het bij het starten één keer, om de tijden en programma's te weten.
+- **Geheugen en starten:** staat er een `profiles.json`, dan leest de engine het bij het starten
+  één keer, om de tijden en programma's te weten, en houdt hij alle profielen in het geheugen.
+  Dat kost weinig: tien profielen met een tijd en een eigen kleur voor elk van de 246 gesimuleerde
+  LED's (een bestand van 34 KB) nemen ~51 KB op de heap, ~5 KB per profiel; aan de hele engine
+  gemeten 0,1 tot 0,35 MB meer private bytes, binnen de meetruis. Zonder bestand leest de engine
+  niets tot je het tray-menu opent of de instellingen-app de profielen vraagt.
 - **In `profiles.json`** staan bij een profiel de lichtvelden van `settings.json`, en als het
   vanzelf laadt `loadAt` (`"HH:mm"`) en/of `program`:
 
@@ -536,10 +539,11 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   is), `ProfileLibraryTests` en `JsonProfileStoreTests` (opslaan, oude en kapotte waarden),
   `DailyTimeTests` (de volgende tijd, ook rond zomer- en wintertijd), `ProfileTimerTests` (met
   een nepklok waarvan de timers en de klok los kunnen bewegen: op tijd, elke dag, slaapstand,
-  klok vooruit en terug, wintertijd, geen timer zonder tijden), `ProfileTriggersTests` (een tijd tijdens een spel), `ProgramWatcherTests` (met een
-  nep-proceslijst: starten, stoppen, terug naar daarvoor, iets veranderd, twee programma's),
-  `ProcessListTests` (de echte proceslijst, met `ping.exe` dat start en stopt),
-  `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de
+  klok vooruit en terug, wintertijd, geen timer zonder tijden), `ProfileTriggersTests` (een tijd
+  tijdens een spel), `ProgramWatcherTests` (met een nep-proceslijst: starten, stoppen, terug naar
+  daarvoor, iets veranderd, twee programma's, de engine die stopt of start terwijl een programma
+  draait), `ProcessListTests` (de echte proceslijst, met een eigen kopie van `ping.exe` die start
+  en stopt), `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de
   pipe), `EngineHostTests` en in de instellingen-app `ProfileAutomationViewModelTests`,
   `ProfilesViewModelTests` en `MainViewModelProfileTests`. Start daarnaast de engine en de
   instellingen-app: sla twee profielen op, open het tray-menu en kies er een; zet bij een profiel
