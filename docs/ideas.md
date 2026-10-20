@@ -182,6 +182,9 @@
   19, monitor 20, daarna pas "unknown"). "Storage" (14) is alleen van "unknown" van oudere
   OpenRGB-versies te onderscheiden via de protocolversie; OpenRGB.NET 3.1.1 is nog steeds de
   nieuwste versie (gecontroleerd op 20-10-2026)
+- OpenRGB.NET bijwerken zodra het de nieuwere apparaattypes kent (storage, case, microphone,
+  accessory, keypad); dan kunnen de vaste nummers 15 (case), 16 (microphone) en 18 (keypad) in
+  `OpenRgbDeviceMapper` weg
 - In het voorbeeld zien schermlezers per apparaat en per zone een item met de klassenaam
   ("BuurmansRgb.UI.ViewModels.DevicePreviewViewModel"); `ToString` of een
   `AutomationProperties.Name` op de items geven ze een echte naam. De LED's zelf hebben sinds
