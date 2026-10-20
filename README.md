@@ -135,7 +135,7 @@ daarna toe, dus de schuif werkt op elk effect.
   kleuren veranderden. Met de instellingen-app dicht alloceert een frame niets; met de app
   open maakt de engine per frame een kopie van de kleuren voor het voorbeeld, dus dan wel.
   Meet allocaties (bijv. met `dotnet-counters`) daarom met de app dicht. Bij statische
-  kleuren of "Per LED" draait er geen timer. Gaat een frame mis, bijvoorbeeld omdat een
+  kleuren of "Per LED" draait er geen timer, behalve de 1,5 seconde dat een apparaat knippert. Gaat een frame mis, bijvoorbeeld omdat een
   apparaat even faalt, dan probeert het volgende frame het gewoon opnieuw.
 - **Effecten pauzeren** in het tray-menu stopt ook de animatie; hervatten stuurt alles
   opnieuw en start de animatie weer.
@@ -156,8 +156,8 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
    OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
 3. Start de engine (de volgorde maakt niet uit). Binnen enkele seconden staan de apparaten
-   van OpenRGB in de instellingen-app, onder de gesimuleerde. Een open venster werkt de
-   lijst vanzelf bij.
+   van OpenRGB in de instellingen-app, onder de kop "Echte apparaten (OpenRGB)", boven de
+   gesimuleerde. Een open venster werkt de lijst vanzelf bij.
 
 - Bij het verbinden zet BuurmansRgb elk apparaat in de modus "Direct" of "Custom" (OpenRGB
   kiest welke) en stuurt het de opgeslagen kleur. Een apparaat zonder zo'n modus staat wel
@@ -191,7 +191,9 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
   ARGB-strips"). Een apparaat met één zone toont geen zonenaam.
 - **RAM:** OpenRGB toont elke RAM-stick als eigen apparaat, vaak met dezelfde naam. Die
   krijgen een nummer in de volgorde van OpenRGB ("ENE DRAM 1", "ENE DRAM 2"). Het id in
-  `settings.json` verandert daardoor niet.
+  `settings.json` verandert daardoor niet. Onder de naam staat het SMBus-adres dat OpenRGB
+  meegeeft, bijv. "adres 0x52 op PIIX4 SMBus Adapter at 0B00", zodat je ziet welke stick welke
+  is (zie "Welk apparaat is wat?").
 - **Na slaapstand** gaan veel moederborden en RAM-sticks terug naar hun eigen effect. De
   engine luistert naar `PowerModeChanged` en herstelt 2 en 10 seconden na het ontwaken: hij
   laadt de OpenRGB-apparaten opnieuw (dat zet ze weer in "Direct" of "Custom") en stuurt alle
@@ -217,7 +219,9 @@ OpenRGB de eerste keer met adminrechten draaien.
 - **Zones:** het voorbeeld toont de zones zoals OpenRGB ze geeft. Sommige kaarten hebben een
   eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, en ook daar stel
   je het aantal LED's in.
-- **Twee dezelfde kaarten** krijgen een nummer in de volgorde van OpenRGB, net als RAM-sticks.
+- **Twee dezelfde kaarten** krijgen een nummer in de volgorde van OpenRGB, net als RAM-sticks,
+  en net als daar staat onder de naam het adres en de bus die OpenRGB meegeeft. Bij twee kaarten
+  verschilt meestal de bus (de naam van de I2C-bus van elke kaart), niet het adres.
 - **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
   (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
   misschien niet; de debug-uitvoer meldt dat bij het verbinden.
@@ -245,7 +249,8 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   nummer.
 - **Lengte instellen:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header of
   -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone. Typ het
-  aantal LED's van wat erop zit en kies "Toepassen" (of Enter). OpenRGB geeft de zone de
+  aantal LED's van wat erop zit en kies "Toepassen" (of Enter). Heeft zo'n zone nog 0 LED's,
+  dan staat er "Nog geen LED's ingesteld" met een korte uitleg erbij. OpenRGB geeft de zone de
   nieuwe lengte; daarna laadt BuurmansRgb de apparaten opnieuw en stuurt het de kleuren weer.
   Bij een apparaat met één zone, zoals de gesimuleerde strip (1–60 LED's), staat het vak er
   ook, zonder zonenaam. Per-LED-kleuren van de zones erna schuiven mee, ook als je de lengte
@@ -327,6 +332,50 @@ USB, niet via SMBus.
   3. Staat de headset niet in OpenRGB, noteer dan het model in `docs/hardware.md`.
   4. Noteer in `docs/hardware.md` per apparaat het model en wat werkt.
 
+## Welk apparaat is wat?
+
+Met een paar dezelfde fans, een ledstrip op een ARGB-header en RAM-sticks met dezelfde naam is
+in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
+
+- **Knipperen:** kies je in de lijst een apparaat (niet "Alle apparaten"), dan knippert het op de
+  echte hardware 1,5 seconde: drie keer fel wit en uit, ook als de helderheid laag staat. Daarna
+  krijgt het zijn eigen verlichting terug. In het voorbeeld staat bij elk apparaat de knop "Laat
+  knipperen" om het nog eens te doen, ook bij "Alle apparaten". Knipperen verandert niets aan de
+  verlichting en wordt niet opgeslagen. Bij het verbinden of als de lijst ververst, knippert er
+  niets. Zijn de effecten gepauzeerd, dan knippert er ook niets; pauzeer je tijdens het
+  knipperen, dan krijgt het apparaat eerst zijn eigen kleuren terug. De engine draait alleen
+  tijdens het knipperen een timer (`IEngineApi.FlashDeviceAsync`, in de engine
+  `LightingController.Flash` en `DeviceFlash`).
+- **Echt of gesimuleerd:** de lijst toont de echte apparaten onder de kop "Echte apparaten
+  (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde apparaten". De provider geeft elk
+  apparaat zijn bron mee (`DeviceInfo.Source`).
+- **Plek:** bij een apparaat op de SMBus (RAM, veel videokaarten en moederborden) staat onder de
+  naam het adres en de bus uit de OpenRGB-locatie, bijv. "adres 0x52 op PIIX4 SMBus Adapter at
+  0B00". Bij andere apparaten, zoals USB-apparaten, staat de locatie van OpenRGB alleen in de
+  tooltip van het apparaat (`DeviceInfo.Location`).
+- **Lege ARGB-header:** een zone die in lengte instelbaar is maar 0 LED's heeft, zegt in het
+  voorbeeld "Nog geen LED's ingesteld" en legt uit dat je het aantal LED's van de fan of strip
+  invult en "Toepassen" kiest.
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `LightingControllerFlashTests` (knipperen met een nepklok: wit en uit, daarna de eigen kleur
+  en geen timer meer, pauze en herstellen na slaapstand), `EngineIpcServerTests` en
+  `EngineRpcTests` (knipperen, bron en locatie over de pipe), `OpenRgbDeviceMapperTests` en
+  `OpenRgbDeviceProviderTests` (SMBus-adressen van RAM-sticks en twee videokaarten met nepdata),
+  `SimulatedDeviceProviderTests`, `DeviceInfoTests`, `RgbDeviceTests` en in de instellingen-app
+  `DeviceItemTests`, `DevicePreviewViewModelTests` en `MainViewModelTests`. Start daarnaast de
+  engine en de instellingen-app: de gesimuleerde apparaten staan onder hun eigen kop, het
+  voorbeeld van een gekozen apparaat knippert kort wit, en bij "Simulated ARGB controller" staat
+  bij "ARGB 2" de uitleg voor een lege zone. De gesimuleerde apparaten hebben geen locatie.
+- **Testen met je eigen hardware:**
+  1. Kies elk apparaat in de lijst en kijk of precies dat apparaat in de pc knippert en daarna
+     zijn eigen kleur terugkrijgt, ook bij een bewegend effect.
+  2. Pauzeer de effecten in het tray-menu en kies een apparaat: er hoort niets te knipperen.
+  3. Kijk of de RAM-sticks (en eventueel twee dezelfde videokaarten) een verschillend adres of
+     een verschillende bus hebben, en of dat klopt met de slots. Noteer in `docs/hardware.md` wat
+     OpenRGB als locatie geeft (tooltip).
+  4. Zet bij een ARGB-header met 0 LED's het aantal LED's van je fan of strip en controleer met
+     "Laat knipperen" dat de hele fan of strip oplicht.
+
 ## Een apparaattype testen met je eigen hardware
 
 Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, fans, ...). Wat per
@@ -380,7 +429,8 @@ dotnet run --project src/BuurmansRgb.UI
 ```
 
 - **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
-  het type. **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
+  het type, de echte en de gesimuleerde apparaten elk onder een eigen kop. Een apparaat dat je
+  kiest, knippert even op de hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
   verzadiging), de helderheid (0–100%), het effect, de snelheid en een voorbeeld met een
   bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op
   zijn plek.
