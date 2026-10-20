@@ -55,9 +55,27 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
             var actual = devices[i];
             Assert.Equal((expected.Index, expected.Type, expected.Name, expected.Location, expected.Serial, expected.LedCount),
                 (actual.Index, actual.Type, actual.Name, actual.Location, actual.Serial, actual.LedCount));
-            Assert.Equal(expected.Zones, actual.Zones);
+            Assert.Equal(expected.Zones, actual.Zones.Select(zone => zone with { LedNames = null }));
             Assert.Equal(expected.ModeNames, actual.ModeNames);
         }
+    }
+
+    // The server sends the names per device; each zone takes the names of its own LEDs.
+    [Fact]
+    public async Task GetDevicesAsync_SplitsTheLedNamesOverTheZones()
+    {
+        _server.Devices =
+        [
+            TestDevices.Create(name: "Keyboard", type: OpenRgbDeviceType.Keyboard,
+                zones: [new("Keys", 2, 2, 2, LedNames: ["Key: Escape", "Key: F1"]), new("Header", 0, 0, 60), new("Logo", 1, 1, 1)]),
+        ];
+        var connection = await ConnectAsync();
+
+        var device = Assert.Single(await connection.GetDevicesAsync(Ct));
+
+        Assert.Equal(["Key: Escape", "Key: F1"], device.Zones[0].LedNames!);
+        Assert.Empty(device.Zones[1].LedNames!);
+        Assert.Equal(["LED 3"], device.Zones[2].LedNames!);
     }
 
     // Three rows of two, so a mix-up of rows and columns shows; the gap arrives as 0xFFFFFFFF.

@@ -12,6 +12,8 @@ internal static partial class OpenRgbDeviceMapper
 
     private const int MaxSlugLength = 40;
 
+    private const string KeyPrefix = "Key: ";
+
     // OpenRGB 0.9 added storage (14) and case (15) before its unknown type (now 19), but
     // OpenRGB.NET 3.1.1 still knows 14 as Unknown and has no name for case; it passes the
     // number on as it is.
@@ -89,7 +91,21 @@ internal static partial class OpenRgbDeviceMapper
     private static RgbZone ToZone(OpenRgbZoneData zone) => new(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)
     {
         Matrix = zone.Matrix is { Cells.Count: > 0 } matrix ? matrix : null,
+        LedNames = ToLedNames(zone.LedNames),
     };
+
+    // OpenRGB names every key "Key: <key>", such as "Key: Escape"; the prefix says nothing next
+    // to a key, so it goes. Other names stay as they are. A zone whose LEDs all have no name
+    // gets no list, so it costs nothing on the pipe.
+    public static IReadOnlyList<string>? ToLedNames(IReadOnlyList<string>? names)
+    {
+        if (names is null || names.All(string.IsNullOrWhiteSpace))
+        {
+            return null;
+        }
+
+        return [.. names.Select(name => name.StartsWith(KeyPrefix, StringComparison.Ordinal) ? name[KeyPrefix.Length..] : name)];
+    }
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.

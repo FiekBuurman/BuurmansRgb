@@ -97,9 +97,27 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         device.Name,
         device.Location,
         device.Serial,
-        [.. device.Zones.Select(zone => new OpenRgbZoneData(zone.Name, (int)zone.LedCount, (int)zone.LedsMin, (int)zone.LedsMax, ToMatrix(zone.MatrixMap)))],
+        ToZones(device),
         [.. device.Modes.Select(mode => mode.Name)],
         device.Leds.Length);
+
+    // The LEDs of a device follow its zones in order, so each zone takes the names of the next
+    // LedCount LEDs.
+    private static OpenRgbZoneData[] ToZones(Device device)
+    {
+        var zones = new OpenRgbZoneData[device.Zones.Length];
+        var first = 0;
+        for (var index = 0; index < zones.Length; index++)
+        {
+            var zone = device.Zones[index];
+            var count = (int)zone.LedCount;
+            string[]? names = first + count <= device.Leds.Length ? [.. device.Leds.Skip(first).Take(count).Select(led => led.Name)] : null;
+            zones[index] = new(zone.Name, count, (int)zone.LedsMin, (int)zone.LedsMax, ToMatrix(zone.MatrixMap), names);
+            first += count;
+        }
+
+        return zones;
+    }
 
     // OpenRGB.NET holds the map as [row, column]. OpenRGB marks a cell without a key with
     // 0xFFFFFFFF; that and any other number too big for an LED index becomes NoLed.
