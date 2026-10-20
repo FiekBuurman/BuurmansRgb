@@ -102,12 +102,4 @@ public sealed class ResumeRestorerTests : IDisposable
         Assert.Throws<ArgumentException>(() =>
             new ResumeRestorer(_events, () => { }, _time, [.. seconds.Select(second => TimeSpan.FromSeconds(second))]));
 
-    private sealed class FakePowerEvents : IPowerEvents
-    {
-        public event EventHandler? Resumed;
-
-        public bool HasListeners => Resumed is not null;
-
-        public void RaiseResumed() => Resumed?.Invoke(this, EventArgs.Empty);
-    }
 }

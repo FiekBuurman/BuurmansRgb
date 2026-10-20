@@ -5,10 +5,13 @@ namespace BuurmansRgb.Engine.Power;
 // Like SystemPowerEvents: create this on the tray thread, which keeps pumping messages.
 internal sealed class SystemClockEvents : IClockEvents, IDisposable
 {
-    public SystemClockEvents()
+    private readonly IPowerEvents _power;
+
+    public SystemClockEvents(IPowerEvents power)
     {
+        _power = power;
         SystemEvents.TimeChanged += OnTimeChanged;
-        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+        _power.Resumed += OnResumed;
     }
 
     public event EventHandler? Changed;
@@ -16,7 +19,7 @@ internal sealed class SystemClockEvents : IClockEvents, IDisposable
     public void Dispose()
     {
         SystemEvents.TimeChanged -= OnTimeChanged;
-        SystemEvents.PowerModeChanged -= OnPowerModeChanged;
+        _power.Resumed -= OnResumed;
     }
 
     // TimeZoneInfo.Local keeps the zone it read first, so a new time zone needs this.
@@ -26,11 +29,5 @@ internal sealed class SystemClockEvents : IClockEvents, IDisposable
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
-    {
-        if (e.Mode == PowerModes.Resume)
-        {
-            Changed?.Invoke(this, EventArgs.Empty);
-        }
-    }
+    private void OnResumed(object? sender, EventArgs e) => Changed?.Invoke(this, EventArgs.Empty);
 }

@@ -1,7 +1,5 @@
 using System.Diagnostics;
-using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
-using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Profiles;
 
@@ -79,7 +77,7 @@ internal sealed class ProfileTimer : IProfileTrigger, IDisposable
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
             _next = null;
-            foreach (var (name, automation) in ReadAutomated())
+            foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
                 if (automation.LoadAt is not { } loadAt)
                 {
@@ -94,20 +92,6 @@ internal sealed class ProfileTimer : IProfileTrigger, IDisposable
             }
 
             _timer.Change(_next is { } next ? next.At - now : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        }
-    }
-
-    private IReadOnlyList<(string Name, ProfileAutomation Automation)> ReadAutomated()
-    {
-        try
-        {
-            return _profiles.Automated;
-        }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
-        {
-            // The next change to the profiles or the clock reads them again.
-            Trace.TraceError(exception.ToString());
-            return [];
         }
     }
 

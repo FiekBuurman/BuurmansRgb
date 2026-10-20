@@ -1,5 +1,7 @@
+using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Profiles;
 
@@ -27,15 +29,21 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
         }
     }
 
-    // The profiles that load by themselves, in alphabetical order.
-    public IReadOnlyList<(string Name, ProfileAutomation Automation)> Automated
+    // The profiles that load by themselves, in alphabetical order. None when profiles.json cannot
+    // be read, so whoever loads them keeps running; the next change reads the file again.
+    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated()
     {
-        get
+        try
         {
             lock (_gate)
             {
                 return [.. ProfilesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
             }
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError(exception.ToString());
+            return [];
         }
     }
 

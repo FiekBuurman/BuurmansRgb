@@ -37,7 +37,7 @@ internal static class Program
 
         // On this thread, which pumps the tray messages and so also the power and clock events.
         using var powerEvents = new SystemPowerEvents();
-        using var clockEvents = new SystemClockEvents();
+        using var clockEvents = new SystemClockEvents(powerEvents);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         var saveEvents = new SettingsSaveEvents();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);

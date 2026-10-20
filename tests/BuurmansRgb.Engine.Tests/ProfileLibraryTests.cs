@@ -123,12 +123,25 @@ public sealed class ProfileLibraryTests
     }
 
     [Fact]
-    public void Automated_ListsOnlyTheProfilesWithAnAutomation()
+    public void TryGetAutomated_ListsOnlyTheProfilesWithAnAutomation()
     {
         var night = new ProfileAutomation(new TimeOnly(23, 0));
         _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = night }];
 
-        Assert.Equal([("Nacht", night)], _library.Automated);
+        Assert.Equal([("Nacht", night)], _library.TryGetAutomated());
+    }
+
+    [Fact]
+    public void TryGetAutomated_FileCannotBeRead_ReturnsNoneAndReadsAgainNextTime()
+    {
+        var night = new ProfileAutomation(new TimeOnly(23, 0));
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = night }];
+        _store.LoadException = new IOException("The file is in use.");
+
+        Assert.Empty(_library.TryGetAutomated());
+
+        _store.LoadException = null;
+        Assert.Equal([("Nacht", night)], _library.TryGetAutomated());
     }
 
     [Fact]

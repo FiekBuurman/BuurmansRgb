@@ -2,7 +2,6 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Programs;
-using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Profiles;
 
@@ -98,7 +97,7 @@ internal sealed class ProgramWatcher : IProfileTrigger, IDisposable
             }
 
             var rules = new Dictionary<string, string>(ProgramNames.Comparer);
-            foreach (var (name, automation) in ReadAutomated())
+            foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
                 if (automation.Program is { } program)
                 {
@@ -233,20 +232,6 @@ internal sealed class ProgramWatcher : IProfileTrigger, IDisposable
         {
             Trace.TraceError(exception.ToString());
             return null;
-        }
-    }
-
-    private IReadOnlyList<(string Name, ProfileAutomation Automation)> ReadAutomated()
-    {
-        try
-        {
-            return _profiles.Automated;
-        }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
-        {
-            // The next change to the profiles reads them again.
-            Trace.TraceError(exception.ToString());
-            return [];
         }
     }
 
