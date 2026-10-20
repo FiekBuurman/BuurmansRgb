@@ -17,6 +17,8 @@
          folder of its own; mixed with the normal build, the engine looks for its own runtime
          there and does not start. -->
     <AppOutputSuffix Condition="'$(RuntimeIdentifier)' != ''">-$(RuntimeIdentifier)</AppOutputSuffix>
+    <!-- The app icon of the design, for both exes, the window, the tray and the installer. -->
+    <AppIconPath>$(MSBuildThisFileDirectory)design\icon\buurmansrgb.ico</AppIconPath>
   </PropertyGroup>
 
 </Project>

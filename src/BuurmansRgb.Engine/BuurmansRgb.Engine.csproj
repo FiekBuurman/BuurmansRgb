@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationIcon>Assets\BuurmansRgb.ico</ApplicationIcon>
+    <ApplicationIcon>$(AppIconPath)</ApplicationIcon>
     <ServerGarbageCollection>false</ServerGarbageCollection>
     <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
     <InvariantGlobalization>true</InvariantGlobalization>
@@ -19,7 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Assets\BuurmansRgb.ico" LogicalName="BuurmansRgb.ico" />
+    <!-- The same icon for the tray. -->
+    <EmbeddedResource Include="$(AppIconPath)" LogicalName="BuurmansRgb.ico" />
     <EmbeddedResource Update="Resources\Strings.resx">
       <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
       <StronglyTypedNamespace>BuurmansRgb.Engine.Resources</StronglyTypedNamespace>
