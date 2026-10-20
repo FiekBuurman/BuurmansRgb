@@ -1,10 +1,14 @@
 <Solution>
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
     <File Path="AGENTS.md" />
+    <File Path="CLAUDE.md" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="global.json" />
+    <File Path="nuget.config" />
     <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/docs/">
@@ -13,17 +17,13 @@
     <File Path="docs/ideas.md" />
     <File Path="docs/prompts.md" />
   </Folder>
-  <Folder Name="/src/">
-    <Project Path="src/BuurmansRgb.Contracts/BuurmansRgb.Contracts.csproj" />
-    <Project Path="src/BuurmansRgb.Core/BuurmansRgb.Core.csproj" />
-    <Project Path="src/BuurmansRgb.Effects/BuurmansRgb.Effects.csproj" />
-    <Project Path="src/BuurmansRgb.Engine/BuurmansRgb.Engine.csproj" />
-    <Project Path="src/BuurmansRgb.Providers.OpenRgb/BuurmansRgb.Providers.OpenRgb.csproj" />
-    <Project Path="src/BuurmansRgb.Providers.Simulated/BuurmansRgb.Providers.Simulated.csproj" />
-    <Project Path="src/BuurmansRgb.UI/BuurmansRgb.UI.csproj" />
-  </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/BuurmansRgb.Core.Tests/BuurmansRgb.Core.Tests.csproj" />
-    <Project Path="tests/BuurmansRgb.Effects.Tests/BuurmansRgb.Effects.Tests.csproj" />
-  </Folder>
+  <Project Path="src/BuurmansRgb.Contracts/BuurmansRgb.Contracts.csproj" />
+  <Project Path="src/BuurmansRgb.Core/BuurmansRgb.Core.csproj" />
+  <Project Path="src/BuurmansRgb.Effects/BuurmansRgb.Effects.csproj" />
+  <Project Path="src/BuurmansRgb.Engine/BuurmansRgb.Engine.csproj" />
+  <Project Path="src/BuurmansRgb.Providers.OpenRgb/BuurmansRgb.Providers.OpenRgb.csproj" />
+  <Project Path="src/BuurmansRgb.Providers.Simulated/BuurmansRgb.Providers.Simulated.csproj" />
+  <Project Path="src/BuurmansRgb.UI/BuurmansRgb.UI.csproj" />
+  <Project Path="tests/BuurmansRgb.Core.Tests/BuurmansRgb.Core.Tests.csproj" />
+  <Project Path="tests/BuurmansRgb.Effects.Tests/BuurmansRgb.Effects.Tests.csproj" />
 </Solution>
