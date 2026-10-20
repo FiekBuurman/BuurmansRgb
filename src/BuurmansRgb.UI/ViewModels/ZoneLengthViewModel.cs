@@ -53,6 +53,11 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     // The index of the zone in the zones of its device.
     public int ZoneIndex { get; }
 
+    // Tells the controls of this zone from those of every other zone, also of a device with the same
+    // name, so the view can give them the focus back after the preview is made again (FocusKeeper).
+    // The view adds the role of each control.
+    public string FocusKey => $"zone-length/{DeviceId}/{ZoneIndex}";
+
     public int Minimum => _zone.MinLedCount;
 
     public int Maximum => _zone.MaxLedCount;

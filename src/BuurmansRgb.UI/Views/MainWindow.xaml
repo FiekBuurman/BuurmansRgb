@@ -447,7 +447,7 @@
                                                                 <Button Grid.Column="0" Width="26" Content="−" ToolTip="{x:Static res:Strings.DecreaseLedCountToolTip}"
                                                                         Command="{Binding Length.DecreaseCommand}"
                                                                         AutomationProperties.Name="{Binding Length.DecreaseAccessibleName}"
-                                                                        views:FocusKeeper.Key="{Binding Length.DecreaseAccessibleName}" />
+                                                                        views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/decrease}" />
                                                                 <Slider Grid.Column="1" Margin="6,0" MinWidth="80" VerticalAlignment="Center"
                                                                         Minimum="{Binding Length.Minimum}" Maximum="{Binding Length.Maximum}"
                                                                         Value="{Binding Length.LedCount}" SmallChange="1" LargeChange="10"
@@ -456,16 +456,16 @@
                                                                         Thumb.DragStarted="OnZoneLengthDragStarted" Thumb.DragCompleted="OnZoneLengthDragCompleted"
                                                                         AutomationProperties.Name="{Binding Length.SliderAccessibleName}"
                                                                         AutomationProperties.HelpText="{Binding LedCountHelpText}"
-                                                                        views:FocusKeeper.Key="{Binding Length.SliderAccessibleName}" />
+                                                                        views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/slider}" />
                                                                 <Button Grid.Column="2" Width="26" Content="+" ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}"
                                                                         Command="{Binding Length.IncreaseCommand}"
                                                                         AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
-                                                                        views:FocusKeeper.Key="{Binding Length.IncreaseAccessibleName}" />
+                                                                        views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/increase}" />
                                                                 <TextBox Grid.Column="3" Width="48" Margin="6,0,0,0" VerticalContentAlignment="Center"
                                                                          Text="{Binding Length.LedCountText, UpdateSourceTrigger=PropertyChanged}"
                                                                          AutomationProperties.Name="{Binding Length.TextAccessibleName}"
                                                                          AutomationProperties.HelpText="{Binding LedCountHelpText}"
-                                                                         views:FocusKeeper.Key="{Binding Length.TextAccessibleName}">
+                                                                         views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/text}">
                                                                     <TextBox.InputBindings>
                                                                         <KeyBinding Key="Enter" Command="{Binding Length.ApplyCommand}" />
                                                                     </TextBox.InputBindings>
@@ -473,7 +473,7 @@
                                                                 <Button Grid.Column="4" Margin="6,0,0,0" Padding="10,1" Content="{x:Static res:Strings.ApplyLedCount}"
                                                                         ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding Length.ApplyCommand}"
                                                                         AutomationProperties.Name="{Binding Length.ApplyAccessibleName}"
-                                                                        views:FocusKeeper.Key="{Binding Length.ApplyAccessibleName}" />
+                                                                        views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/apply}" />
                                                             </Grid>
                                                         </StackPanel>
                                                     </StackPanel>

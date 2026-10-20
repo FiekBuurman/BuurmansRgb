@@ -181,6 +181,19 @@ public sealed class ZoneLengthViewModelTests
         Assert.Equal([new ZoneResize("argb", 1, 21)], _actions.Requests);
     }
 
+    // Two identical controllers have the same names; their controls must still not share a focus key.
+    [Fact]
+    public void FocusKey_ComesFromTheDeviceAndTheZone()
+    {
+        var first = new ZoneLengthViewModel("controller-1", 1, Header, "Controller – ARGB 2", _actions, _time);
+        var second = new ZoneLengthViewModel("controller-2", 1, Header, "Controller – ARGB 2", _actions, _time);
+        var again = new ZoneLengthViewModel("controller-1", 1, Header, "Controller – ARGB 2", _actions, _time);
+
+        Assert.NotEqual(first.FocusKey, second.FocusKey);
+        Assert.NotEqual(first.FocusKey, Create().FocusKey);
+        Assert.Equal(first.FocusKey, again.FocusKey);
+    }
+
     [Fact]
     public void AccessibleNames_NameTheZone()
     {
