@@ -237,9 +237,86 @@ public sealed class AutoPauseTests : IDisposable
         Assert.True(_lighting.IsAnimating);
     }
 
+    // Series of events as Windows can give them; the animation runs only when nothing pauses it.
+    [Theory]
+    [InlineData("resume", PauseReasons.None)]
+    [InlineData("unlock", PauseReasons.None)]
+    [InlineData("lock lock unlock", PauseReasons.None)]
+    [InlineData("suspend suspend resume", PauseReasons.None)]
+    [InlineData("suspend resume resume", PauseReasons.None)]
+    [InlineData("lock suspend resume", PauseReasons.Locked)]
+    [InlineData("lock suspend unlock resume", PauseReasons.None)]
+    [InlineData("lock suspend resume unlock", PauseReasons.None)]
+    [InlineData("lock disconnect unlock", PauseReasons.Locked)]
+    [InlineData("disconnect connect connect", PauseReasons.None)]
+    [InlineData("manual suspend resume", PauseReasons.Manual)]
+    [InlineData("manual lock suspend unlock", PauseReasons.Manual)]
+    [InlineData("lock manual unlock unmanual", PauseReasons.None)]
+    public async Task EventSeries_EndInTheRightPause(string events, PauseReasons pause)
+    {
+        await StartAnimatedAsync();
+
+        foreach (var name in events.Split(' '))
+        {
+            Raise(name);
+        }
+
+        Assert.Equal(pause, _lighting.Pause);
+        Assert.Equal(pause == PauseReasons.None, _lighting.IsAnimating);
+    }
+
+    // The restore after waking up waits for the pause from the tray menu, also through the sleep.
+    [Fact]
+    public async Task SleepDuringAManualPause_TheRestoreWaitsForTheManualPause()
+    {
+        using var restorer = new ResumeRestorer(_power, _lighting.RestoreDevices, _time, ResumeRestorer.DefaultDelays);
+        await StartAnimatedAsync();
+        _lighting.SetPaused(PauseReasons.Manual, true);
+        _power.RaiseSuspending();
+        _restorable.Calls.Clear();
+
+        _power.RaiseResumed();
+        _time.Advance(ResumeRestorer.DefaultDelays[0]);
+        Assert.Empty(_restorable.Calls);
+
+        _lighting.SetPaused(PauseReasons.Manual, false);
+        Assert.Equal(["restore", "leds"], _restorable.Calls);
+    }
+
     private async Task StartAnimatedAsync()
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(Uniform(StaticLighting(Orange) with { EffectId = EffectIds.Rainbow }));
+    }
+
+    // "manual" and "unmanual" are the pause from the tray menu.
+    private void Raise(string name)
+    {
+        switch (name)
+        {
+            case "lock":
+                _session.Raise(SessionSwitchReason.SessionLock);
+                break;
+            case "unlock":
+                _session.Raise(SessionSwitchReason.SessionUnlock);
+                break;
+            case "disconnect":
+                _session.Raise(SessionSwitchReason.ConsoleDisconnect);
+                break;
+            case "connect":
+                _session.Raise(SessionSwitchReason.ConsoleConnect);
+                break;
+            case "suspend":
+                _power.RaiseSuspending();
+                break;
+            case "resume":
+                _power.RaiseResumed();
+                break;
+            case "manual" or "unmanual":
+                _lighting.SetPaused(PauseReasons.Manual, name == "manual");
+                break;
+            default:
+                throw new ArgumentException($"Unknown event '{name}'.", nameof(name));
+        }
     }
 }
