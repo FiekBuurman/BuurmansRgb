@@ -69,12 +69,14 @@
 
                     <!-- Whether the real devices can come: the state of OpenRGB, read out when it changes. -->
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
-                        <TextBlock Text="{Binding OpenRgbStatus.Text}" TextWrapping="Wrap"
-                                   AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite" />
-                        <TextBlock Margin="0,2,0,0" Text="{Binding OpenRgbStatus.Hint}" TextWrapping="Wrap"
+                        <TextBlock Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}" TextWrapping="Wrap"
+                                   AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
+                                   views:LiveRegion.AnnouncesUpdates="True" />
+                        <TextBlock Margin="0,2,0,0" Text="{Binding OpenRgbStatus.Hint, NotifyOnTargetUpdated=True}" TextWrapping="Wrap"
                                    Foreground="{x:Static SystemColors.GrayTextBrush}"
                                    Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
-                                   AutomationProperties.AutomationId="OpenRgbStatusHint" AutomationProperties.LiveSetting="Polite" />
+                                   AutomationProperties.AutomationId="OpenRgbStatusHint" AutomationProperties.LiveSetting="Polite"
+                                   views:LiveRegion.AnnouncesUpdates="True" />
                     </StackPanel>
 
                     <!-- Profiles hold the lighting of every device, so they sit apart from the device list. -->
