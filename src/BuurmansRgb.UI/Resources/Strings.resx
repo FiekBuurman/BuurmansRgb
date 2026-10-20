@@ -75,7 +75,7 @@
   <data name="DeviceLocationToolTip" xml:space="preserve">
     <value>Locatie: {0}</value>
   </data>
-  <data name="DeviceSource_OpenRgb" xml:space="preserve">
+  <data name="DeviceSource_Hardware" xml:space="preserve">
     <value>Echte apparaten (OpenRGB)</value>
   </data>
   <data name="DeviceSource_Simulated" xml:space="preserve">

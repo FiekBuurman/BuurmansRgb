@@ -75,13 +75,13 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync(api => api.Devices =
         [
-            TestDevices.Create("simulated-fan", "Simulated fan", DeviceType.Fan, 12) with { Source = DeviceSource.Simulated },
+            TestDevices.Create("simulated-fan", "Simulated fan", DeviceType.Fan, 12, DeviceSource.Simulated),
             TestDevices.Create("openrgb-ram", "ENE DRAM", DeviceType.Ram, 8),
-            TestDevices.Create("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, 30) with { Source = DeviceSource.Simulated },
+            TestDevices.Create("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, 30, DeviceSource.Simulated),
         ]);
 
         Assert.Equal([null, "openrgb-ram", "simulated-fan", "simulated-strip"], viewModel.Devices.Select(device => device.DeviceId));
-        Assert.Equal([null, Strings.DeviceSource_OpenRgb, Strings.DeviceSource_Simulated, Strings.DeviceSource_Simulated], viewModel.Devices.Select(device => device.Group));
+        Assert.Equal([null, Strings.DeviceSource_Hardware, Strings.DeviceSource_Simulated, Strings.DeviceSource_Simulated], viewModel.Devices.Select(device => device.Group));
         Assert.Equal(["openrgb-ram", "simulated-fan", "simulated-strip"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
     }
 

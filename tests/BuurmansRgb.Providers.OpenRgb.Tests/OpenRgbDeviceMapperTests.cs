@@ -22,7 +22,7 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Equal(3, mapped.Index);
         Assert.Equal("ASUS ROG STRIX", mapped.Device.Name);
         Assert.Equal(expectedType, mapped.Device.Type);
-        Assert.Equal(DeviceSource.OpenRgb, mapped.Device.Source);
+        Assert.Equal(DeviceSource.Hardware, mapped.Device.Source);
         Assert.Equal(4, mapped.Device.LedCount);
         Assert.Equal(
             [RgbZone.Fixed("Aura LEDs", 4), new RgbZone("Aura Addressable 1", 0, 0, 120)],

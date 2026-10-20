@@ -34,7 +34,7 @@ internal static partial class OpenRgbDeviceMapper
             var zones = device.Zones.Select(ToZone).ToArray();
             var mappedDevice = new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount)
             {
-                Source = DeviceSource.OpenRgb,
+                Source = DeviceSource.Hardware,
                 Location = ToLocation(device.Location),
             };
             mapped.Add(new(mappedDevice, device.Index));

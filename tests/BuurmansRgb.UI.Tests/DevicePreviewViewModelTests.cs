@@ -9,7 +9,7 @@ public sealed class DevicePreviewViewModelTests
 {
     // Six LEDs on the board, a 12 V header of one LED and an empty addressable header.
     private static readonly DeviceInfo Motherboard = new("board", "Motherboard", DeviceType.Motherboard, 7,
-        [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
+        [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware };
 
     [Fact]
     public void Zones_FollowEachOtherInLedOrder()
@@ -28,7 +28,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
-        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [RgbZone.Fixed("DRAM", 8)]);
+        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [RgbZone.Fixed("DRAM", 8)]) { Source = DeviceSource.Hardware };
         var preview = new DevicePreviewViewModel(device);
 
         var zone = Assert.Single(preview.Zones);
@@ -43,7 +43,7 @@ public sealed class DevicePreviewViewModelTests
     {
         var keys = new LedMatrix(2, 2, [0, 1, 2, LedMatrix.NoLed]);
         var device = new DeviceInfo("keyboard", "Keyboard", DeviceType.Keyboard, 4,
-            [RgbZone.Fixed("Keys", 3) with { Matrix = keys }, RgbZone.Fixed("Logo", 1)]);
+            [RgbZone.Fixed("Keys", 3) with { Matrix = keys }, RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -54,7 +54,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [RgbZone.Fixed("Logo", 0)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [RgbZone.Fixed("Logo", 0)]) { Source = DeviceSource.Hardware };
 
         var zone = Assert.Single(new DevicePreviewViewModel(device).Zones);
 
@@ -79,7 +79,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_ResizableZoneWithLeds_ShowsNoHint()
     {
-        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]);
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Hardware };
 
         Assert.False(Assert.Single(new DevicePreviewViewModel(strip).Zones).ShowsEmptyZoneHint);
     }
@@ -87,7 +87,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_ClaimingMoreLedsThanTheDeviceHas_AreCutShort()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 5)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 5)]) { Source = DeviceSource.Hardware };
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -97,7 +97,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_LedsWithoutZone_GetAZoneOfTheirOwn()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]) { Source = DeviceSource.Hardware };
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -107,7 +107,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_DeviceWithoutZones_ShowsAllLedsInOneZone()
     {
-        var device = new DeviceInfo("ram", "RAM stick", DeviceType.Ram, 4, []);
+        var device = new DeviceInfo("ram", "RAM stick", DeviceType.Ram, 4, []) { Source = DeviceSource.Hardware };
 
         var zone = Assert.Single(new DevicePreviewViewModel(device).Zones);
 
@@ -223,7 +223,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void CanResize_FixedZonesAndLedsWithoutZone_CannotBeResized()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]) { Source = DeviceSource.Hardware };
 
         var zones = new DevicePreviewViewModel(device).Zones;
 
@@ -235,7 +235,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void CanResize_StripWithOneZone_WithoutHeader()
     {
-        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]);
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Hardware };
 
         var zone = Assert.Single(new DevicePreviewViewModel(strip).Zones);
 
@@ -247,7 +247,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void SelectZone_RingOfAFan_HandsOnAllItsLeds()
     {
-        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]);
+        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]) { Source = DeviceSource.Hardware };
         var actions = new RecordingPreviewActions();
         var preview = new DevicePreviewViewModel(fan, actions);
 

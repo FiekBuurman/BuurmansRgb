@@ -7,7 +7,7 @@ public sealed record RgbDevice(string Id, string Name, DeviceType Type, IReadOnl
     {
     }
 
-    public DeviceSource Source { get; init; }
+    public required DeviceSource Source { get; init; }
 
     // Null when the provider does not know it, as with the simulated devices.
     public DeviceLocation? Location { get; init; }

@@ -6,8 +6,8 @@ namespace BuurmansRgb.Contracts;
 // are equal when their zones are equal one by one, not only when they share the same zone list.
 public sealed record DeviceInfo(string Id, string Name, DeviceType Type, int LedCount, IReadOnlyList<RgbZone> Zones)
 {
-    // A real device through OpenRGB or a simulated one, as its provider says.
-    public DeviceSource Source { get; init; }
+    // A real device or a simulated one, as its provider says.
+    public required DeviceSource Source { get; init; }
 
     // Where the device is connected, such as the SMBus address of a RAM stick; null when unknown.
     public DeviceLocation? Location { get; init; }

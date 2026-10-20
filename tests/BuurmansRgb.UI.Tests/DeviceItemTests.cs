@@ -34,7 +34,7 @@ public sealed class DeviceItemTests
     public void For_MotherboardWithZones_ShowsTypeLedsAndZones()
     {
         var motherboard = new DeviceInfo("board", "ASUS TUF GAMING B650-PLUS", DeviceType.Motherboard, 7,
-            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
+            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(motherboard);
 
@@ -58,7 +58,7 @@ public sealed class DeviceItemTests
     public void For_GpuWithLightBarAndLogo_ShowsTypeLedsAndZones()
     {
         var gpu = new DeviceInfo("gpu", "ASUS ROG STRIX RTX 4080", DeviceType.Gpu, 13,
-            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]);
+            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(gpu);
 
@@ -89,7 +89,7 @@ public sealed class DeviceItemTests
     public void For_MouseWithZones_ShowsTypeLedsAndZones()
     {
         var mouse = new DeviceInfo("mouse", "Logitech G502 HERO", DeviceType.Mouse, 2,
-            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]);
+            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(mouse);
 
@@ -108,11 +108,11 @@ public sealed class DeviceItemTests
     }
 
     [Theory]
-    [InlineData(DeviceSource.OpenRgb, "Echte apparaten (OpenRGB)")]
+    [InlineData(DeviceSource.Hardware, "Echte apparaten (OpenRGB)")]
     [InlineData(DeviceSource.Simulated, "Gesimuleerde apparaten")]
     public void For_RealOrSimulated_HasItsHeading(DeviceSource source, string group)
     {
-        var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12) with { Source = source };
+        var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source);
 
         Assert.Equal(group, DeviceItem.For(device).Group);
     }
@@ -121,7 +121,7 @@ public sealed class DeviceItemTests
     [Fact]
     public void For_EverySource_HasAHeading() =>
         Assert.All(Enum.GetValues<DeviceSource>(), source =>
-            Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12) with { Source = source }).Group));
+            Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source)).Group));
 
     // Two sticks of a kit have the same name; their address on the SMBus says which slot is which.
     [Fact]

@@ -6,7 +6,10 @@ public sealed class RgbDeviceTests
     [
         RgbZone.Fixed("Mainboard", 6),
         new RgbZone("ARGB header", 0, 0, 120),
-    ]);
+    ])
+    {
+        Source = DeviceSource.Hardware,
+    };
 
     [Theory]
     [InlineData(-1)]

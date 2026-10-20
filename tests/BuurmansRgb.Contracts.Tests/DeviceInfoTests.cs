@@ -6,7 +6,10 @@ public sealed class DeviceInfoTests
 {
     private static DeviceInfo Board(int headerLeds) =>
         new("board", "Board", DeviceType.Motherboard, 6 + headerLeds,
-            [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", headerLeds, 0, 120)]);
+            [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", headerLeds, 0, 120)])
+        {
+            Source = DeviceSource.Hardware,
+        };
 
     [Fact]
     public void Equals_SameZonesInAnotherList_IsEqual()
