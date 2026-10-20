@@ -42,7 +42,7 @@ internal static class Program
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
-            new EngineIpcServer(EngineRpc.PipeName, () => new EngineApi(lighting, profiles, simulatedDevicesSwitch, saveEvents), MemoryTrimmer.Trim),
+            new EngineIpcServer(EngineRpc.PipeName, () => new EngineApi(lighting, profiles, simulatedDevicesSwitch, openRgb, saveEvents), MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents);

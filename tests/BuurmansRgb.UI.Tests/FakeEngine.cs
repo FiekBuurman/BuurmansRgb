@@ -49,6 +49,20 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
+    public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
+
+    public ServerStatus OpenRgbStatus { get; set; } = new(ServerState.Connected, 2);
+
+    public bool HasOpenRgbStatusSubscribers => OpenRgbStatusChanged is not null;
+
+    public void RaiseOpenRgbStatus(ServerStatus status)
+    {
+        OpenRgbStatus = status;
+        OpenRgbStatusChanged?.Invoke(this, status);
+    }
+
+    public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(OpenRgbStatus);
+
     public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [
         TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 3),

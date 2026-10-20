@@ -16,6 +16,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly LightingController _lighting;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
+    private readonly FakeServerStatus _openRgb = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
     private readonly SemaphoreSlim _allClientsGone = new(0);
@@ -211,6 +212,19 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task OpenRgbStatus_ReachesTheClient()
+    {
+        var client = await StartAndConnectAsync();
+        var received = new TaskCompletionSource<ServerStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.OpenRgbStatusChanged += (_, status) => received.TrySetResult(status);
+        Assert.Equal(ServerStatus.Connecting, await client.Api.GetOpenRgbStatusAsync(Ct));
+
+        _openRgb.Change(new ServerStatus(ServerState.Unreachable));
+
+        Assert.Equal(new ServerStatus(ServerState.Unreachable), await received.Task.WaitAsync(TestTimeouts.Short, Ct));
+    }
+
+    [Fact]
     public async Task TwoClients_BothReceiveFrames()
     {
         var first = await StartAndConnectAsync();
@@ -254,7 +268,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

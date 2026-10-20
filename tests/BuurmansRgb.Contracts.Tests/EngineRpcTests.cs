@@ -113,6 +113,20 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task OpenRgbStatus_CrossesThePipeAsAnswerAndAsEvent()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource<ServerStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.OpenRgbStatusChanged += (_, status) => received.TrySetResult(status);
+
+        var status = await client.Api.GetOpenRgbStatusAsync(Ct);
+        _api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Failed));
+
+        Assert.Equal(new ServerStatus(ServerState.Connected, 4), status);
+        Assert.Equal(new ServerStatus(ServerState.Failed), await received.Task.WaitAsync(TestTimeouts.Short, Ct));
+    }
+
+    [Fact]
     public async Task SetColorLoopAsync_ReachesServerWithColorsInOrder()
     {
         var client = await ConnectAsync();
@@ -236,6 +250,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
+        public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
@@ -268,6 +284,11 @@ public sealed class EngineRpcTests : IDisposable
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
         public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
+
+        public void RaiseOpenRgbStatus(ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
+
+        public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) =>
+            Task.FromResult(new ServerStatus(ServerState.Connected, 4));
 
         public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 

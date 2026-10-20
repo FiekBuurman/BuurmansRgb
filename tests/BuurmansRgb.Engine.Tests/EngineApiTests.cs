@@ -15,6 +15,7 @@ public sealed class EngineApiTests
     private readonly InMemoryProfileStore _profileStore = new();
     private readonly ProfileLibrary _profiles;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
+    private readonly FakeServerStatus _openRgb = new();
 
     public EngineApiTests()
     {
@@ -30,7 +31,7 @@ public sealed class EngineApiTests
     [InlineData(1.01)]
     public async Task SetBrightnessAsync_OutOfRange_Throws(double brightness)
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             () => api.SetBrightnessAsync(null, brightness, Ct));
@@ -40,7 +41,7 @@ public sealed class EngineApiTests
     public async Task SetSpeedAsync_SetsTheSpeedOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await api.SetSpeedAsync("simulated-fan", 2.5, Ct);
 
@@ -54,7 +55,7 @@ public sealed class EngineApiTests
     [InlineData(EffectSpeed.Max + 0.01)]
     public async Task SetSpeedAsync_OutOfRange_Throws(double speed)
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => api.SetSpeedAsync(null, speed, Ct));
     }
@@ -63,7 +64,7 @@ public sealed class EngineApiTests
     public async Task SetColorLoopAsync_StoresACopyOfTheColors()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         RgbColor[] colors = [new(255, 255, 0), new(0, 255, 0), new(0, 0, 255)];
 
         await api.SetColorLoopAsync(null, colors, spread: false, Ct);
@@ -77,7 +78,7 @@ public sealed class EngineApiTests
     [Fact]
     public async Task SetColorLoopAsync_OneColor_Throws()
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [new RgbColor(1, 2, 3)], spread: true, Ct));
     }
@@ -86,7 +87,7 @@ public sealed class EngineApiTests
     public void SettingsSaved_FollowsTheSaveEvents()
     {
         var saveEvents = new SettingsSaveEvents();
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, saveEvents);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb, saveEvents);
         var results = new List<SettingsSaveResult>();
         api.SettingsSaved += (_, result) => results.Add(result);
 
@@ -100,7 +101,7 @@ public sealed class EngineApiTests
     public void Dispose_StopsFollowingTheSaveEvents()
     {
         var saveEvents = new SettingsSaveEvents();
-        var api = new EngineApi(_lighting, _profiles, _simulatedDevices, saveEvents);
+        var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb, saveEvents);
         var results = 0;
         api.SettingsSaved += (_, _) => results++;
 
@@ -114,7 +115,7 @@ public sealed class EngineApiTests
     public async Task GetDevicesAsync_GivesTypeAndZonesOfEveryDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         var devices = await api.GetDevicesAsync(Ct);
 
@@ -128,7 +129,7 @@ public sealed class EngineApiTests
     public async Task SetLedColorsAsync_StoresTheColorsOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await api.SetLedColorsAsync("simulated-fan", 1, [new RgbColor(1, 2, 3)], Ct);
 
@@ -141,7 +142,7 @@ public sealed class EngineApiTests
     public async Task SetLedColorsAsync_NoColors_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentNullException>(
             () => api.SetLedColorsAsync("simulated-fan", 0, null!, Ct));
@@ -151,7 +152,7 @@ public sealed class EngineApiTests
     public async Task ResizeZoneAsync_ResizesTheZoneAndReportsTheNewDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -168,7 +169,7 @@ public sealed class EngineApiTests
     public async Task ResizeZoneAsync_FixedZone_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentException>(
             () => api.ResizeZoneAsync("simulated-fan", 0, 16, Ct));
@@ -178,7 +179,7 @@ public sealed class EngineApiTests
     public async Task FrameRendered_ForwardsLightingFrames()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         LightingFrame? received = null;
         api.FrameRendered += (_, frame) => received = frame;
 
@@ -193,7 +194,7 @@ public sealed class EngineApiTests
     {
         var dynamic = new DynamicDeviceProvider();
         var lighting = new LightingController([dynamic]);
-        using var api = new EngineApi(lighting, new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices);
+        using var api = new EngineApi(lighting, new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices, _openRgb);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -205,10 +206,34 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task OpenRgbStatus_IsTheStatusOfTheProviderAndFollowsIt()
+    {
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
+        var changes = new List<ServerStatus>();
+        api.OpenRgbStatusChanged += (_, status) => changes.Add(status);
+        Assert.Equal(ServerStatus.Connecting, await api.GetOpenRgbStatusAsync(Ct));
+
+        _openRgb.Change(new ServerStatus(ServerState.Connected, 3));
+
+        Assert.Equal(new ServerStatus(ServerState.Connected, 3), await api.GetOpenRgbStatusAsync(Ct));
+        Assert.Equal([new ServerStatus(ServerState.Connected, 3)], changes);
+    }
+
+    [Fact]
+    public void Dispose_StopsFollowingTheOpenRgbStatus()
+    {
+        var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
+
+        api.Dispose();
+
+        Assert.False(_openRgb.HasListeners);
+    }
+
+    [Fact]
     public async Task SetSimulatedDevicesAsync_Never_HidesThemAndReportsTheNewList()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -222,7 +247,7 @@ public sealed class EngineApiTests
     [Fact]
     public async Task SetSimulatedDevicesAsync_UnknownMode_Throws()
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => api.SetSimulatedDevicesAsync((SimulatedDevicesMode)7, Ct));
         Assert.Equal(SimulatedDevicesMode.Automatic, await api.GetSimulatedDevicesAsync(Ct));
@@ -232,7 +257,7 @@ public sealed class EngineApiTests
     public async Task Dispose_StopsForwardingFrames()
     {
         await _lighting.DiscoverAsync(Ct);
-        var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         var frames = 0;
         api.FrameRendered += (_, _) => frames++;
 
@@ -246,7 +271,7 @@ public sealed class EngineApiTests
     public async Task SaveProfileAsync_ThenLoadProfileAsync_BringsTheLightingBack()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         await api.SetColorAsync(null, Orange, Ct);
         await api.SetSpeedAsync("simulated-fan", 2.0, Ct);
 
@@ -263,7 +288,7 @@ public sealed class EngineApiTests
     [Fact]
     public async Task DeleteProfileAsync_RemovesTheName()
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
         await api.SaveProfileAsync("Gamen", Ct);
 
         await api.DeleteProfileAsync("Gamen", Ct);
@@ -274,7 +299,7 @@ public sealed class EngineApiTests
     [Fact]
     public async Task LoadProfileAsync_UnknownName_Throws()
     {
-        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices);
+        using var api = new EngineApi(_lighting, _profiles, _simulatedDevices, _openRgb);
 
         await Assert.ThrowsAsync<ArgumentException>(() => api.LoadProfileAsync("Gamen", Ct));
     }

@@ -13,16 +13,24 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly LightingController _lighting;
     private readonly ProfileLibrary _profiles;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
+    private readonly IServerStatusSource _openRgb;
     private readonly SettingsSaveEvents? _saveEvents;
 
-    public EngineApi(LightingController lighting, ProfileLibrary profiles, SimulatedDevicesSwitch simulatedDevices, SettingsSaveEvents? saveEvents = null)
+    public EngineApi(
+        LightingController lighting,
+        ProfileLibrary profiles,
+        SimulatedDevicesSwitch simulatedDevices,
+        IServerStatusSource openRgb,
+        SettingsSaveEvents? saveEvents = null)
     {
         _lighting = lighting;
         _profiles = profiles;
         _simulatedDevices = simulatedDevices;
+        _openRgb = openRgb;
         _saveEvents = saveEvents;
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
+        _openRgb.StatusChanged += OnOpenRgbStatusChanged;
         _saveEvents?.Saved += OnSaved;
     }
 
@@ -31,6 +39,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler? DevicesChanged;
 
     public event EventHandler<SettingsSaveResult>? SettingsSaved;
+
+    public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
@@ -97,6 +107,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
+
     public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(_simulatedDevices.Mode);
 
     public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
@@ -129,6 +141,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     {
         _lighting.Rendered -= OnRendered;
         _lighting.DevicesChanged -= OnDevicesChanged;
+        _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
         _saveEvents?.Saved -= OnSaved;
     }
 
@@ -142,6 +155,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnDevicesChanged(object? sender, EventArgs e) => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnSaved(object? sender, bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
+
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
 
     private void OnRendered(object? sender, EventArgs e)
     {
