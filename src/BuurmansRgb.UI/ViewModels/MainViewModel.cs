@@ -37,6 +37,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // changes from the color loop to another one.
     private RgbColor _deviceColor = RgbColor.White;
 
+    // Counts the OpenRGB status changes shown, so an answer to GetOpenRgbStatusAsync that an event
+    // overtook does not bring back the older status.
+    private int _openRgbStatusChanges;
+
     // time gives the clock time in the save status; tests pass a fake one.
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
     {
@@ -240,7 +244,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowFrame(await api.GetFrameAsync());
         Profiles.Show(await api.GetProfilesAsync());
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
-        OpenRgbStatus.Show(await api.GetOpenRgbStatusAsync());
+        var openRgbStatusChanges = _openRgbStatusChanges;
+        var openRgbStatus = await api.GetOpenRgbStatusAsync();
+        if (openRgbStatusChanges == _openRgbStatusChanges)
+        {
+            OpenRgbStatus.Show(openRgbStatus);
+        }
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
@@ -487,7 +496,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
-    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() => OpenRgbStatus.Show(status));
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() =>
+    {
+        _openRgbStatusChanges++;
+        OpenRgbStatus.Show(status);
+    });
 
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {

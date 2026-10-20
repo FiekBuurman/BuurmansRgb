@@ -61,7 +61,20 @@ internal sealed class FakeEngineApi : IEngineApi
         OpenRgbStatusChanged?.Invoke(this, status);
     }
 
-    public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(OpenRgbStatus);
+    // When set, the status changes to this while GetOpenRgbStatusAsync answers with the older one,
+    // as when the event overtakes the answer.
+    public ServerStatus? StatusChangeWhileAnswering { get; set; }
+
+    public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default)
+    {
+        var answer = OpenRgbStatus;
+        if (StatusChangeWhileAnswering is { } newer)
+        {
+            RaiseOpenRgbStatus(newer);
+        }
+
+        return Task.FromResult(answer);
+    }
 
     public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [

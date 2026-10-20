@@ -385,6 +385,18 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_StatusEventOvertakesTheAnswer_KeepsTheNewerStatus()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.StatusChangeWhileAnswering = new ServerStatus(ServerState.Connected, 2);
+        });
+
+        Assert.Equal("OpenRGB: verbonden, 2 apparaten", viewModel.OpenRgbStatus.Text);
+    }
+
+    [Fact]
     public async Task Disconnected_StopsFollowingTheOpenRgbStatus()
     {
         await ConnectAsync();
