@@ -96,11 +96,13 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         StopTimer();
     }
 
+    // Also when the zone goes from view or the window closes halfway a drag or the delay: a length
+    // the user set is sent then instead of lost.
     [RelayCommand]
     public void EndDrag()
     {
         _dragging = false;
-        SendNow();
+        Send();
     }
 
     // Goes on with a length that an earlier view model of this zone did not send yet, for example
@@ -112,20 +114,6 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         {
             LedCount = ledCount;
         }
-    }
-
-    // Hands the length to the actions, unless the engine was asked for it already or a drag goes on.
-    public void SendNow()
-    {
-        StopTimer();
-        if (_disposed || _dragging || !HasUnsentChange)
-        {
-            return;
-        }
-
-        _sent = LedCount;
-        ApplyCommand.NotifyCanExecuteChanged();
-        _actions?.ResizeZone(new ZoneResize(DeviceId, ZoneIndex, LedCount));
     }
 
     public void Dispose()
@@ -171,7 +159,7 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         if (TryReadText(out var ledCount))
         {
             LedCount = ledCount;
-            SendNow();
+            Send();
         }
     }
 
@@ -185,12 +173,26 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     {
         if (_uiContext is null)
         {
-            SendNow();
+            Send();
         }
         else
         {
-            _uiContext.Post(_ => SendNow(), state: null);
+            _uiContext.Post(_ => Send(), state: null);
         }
+    }
+
+    // Hands the length to the actions, unless the engine was asked for it already or a drag goes on.
+    private void Send()
+    {
+        StopTimer();
+        if (_disposed || _dragging || !HasUnsentChange)
+        {
+            return;
+        }
+
+        _sent = LedCount;
+        ApplyCommand.NotifyCanExecuteChanged();
+        _actions?.ResizeZone(new ZoneResize(DeviceId, ZoneIndex, LedCount));
     }
 
     private void StopTimer() => _sendTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);

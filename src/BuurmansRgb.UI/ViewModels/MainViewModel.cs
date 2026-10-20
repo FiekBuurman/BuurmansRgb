@@ -139,7 +139,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial string SaveStatus { get; private set; } = Strings.SaveAutomatic;
 
-    public void Dispose() => DropConnection();
+    // Zone lengths that still wait go to the engine before the connection closes.
+    public void Dispose()
+    {
+        Preview.Dispose();
+        DropConnection();
+    }
 
     [RelayCommand]
     private async Task ConnectAsync()

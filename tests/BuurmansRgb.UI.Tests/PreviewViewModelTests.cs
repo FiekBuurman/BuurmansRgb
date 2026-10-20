@@ -97,6 +97,42 @@ public sealed class PreviewViewModelTests
     }
 
     [Fact]
+    public void ShowDevices_ZoneGoesHalfwayADrag_SendsItsLength()
+    {
+        var preview = new PreviewViewModel(new FakeTimeProvider());
+        var resizes = new List<ZoneResize>();
+        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        preview.ShowDevices([Strip(10)]);
+        var length = preview.Devices[0].Zones[0].Length!;
+        length.BeginDrag();
+        length.LedCount = 20;
+
+        preview.ShowDevices([Fan]);
+
+        Assert.Equal([new ZoneResize("strip", 0, 20)], resizes);
+    }
+
+    // The window closes before the delay is over, or while the thumb is held.
+    [Fact]
+    public void Dispose_SendsTheLengthsThatWait()
+    {
+        var time = new FakeTimeProvider();
+        var preview = new PreviewViewModel(time);
+        var resizes = new List<ZoneResize>();
+        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        preview.ShowDevices([Strip(10), Strip(10) with { Id = "other" }]);
+        preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
+        var dragged = preview.Devices[1].Zones[0].Length!;
+        dragged.BeginDrag();
+        dragged.LedCount = 30;
+
+        preview.Dispose();
+        time.Advance(ZoneLengthViewModel.SendDelay);
+
+        Assert.Equal([new ZoneResize("strip", 0, 11), new ZoneResize("other", 0, 30)], resizes);
+    }
+
+    [Fact]
     public void ShowDevices_LengthAlreadySent_ShowsWhatTheEngineReports()
     {
         var time = new FakeTimeProvider();

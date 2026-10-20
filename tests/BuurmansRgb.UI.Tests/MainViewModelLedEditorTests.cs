@@ -119,6 +119,22 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["resize board 1 3"], Api.Calls);
     }
 
+    // The window closes before the pause is over: the length still reaches the engine.
+    [Fact]
+    public async Task Dispose_SendsAZoneLengthThatWaitsBeforeTheConnectionCloses()
+    {
+        var viewModel = new MainViewModel(_connector, new FakeTimeProvider());
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware }];
+        Api.RaiseDevicesChanged();
+        Assert.Single(viewModel.Preview.Devices).Zones[1].Length!.IncreaseCommand.Execute(null);
+
+        viewModel.Dispose();
+
+        Assert.Equal(["resize board 1 1"], Api.Calls);
+        Assert.True(_connector.Connection.IsDisposed);
+    }
+
     [Fact]
     public async Task DevicesChanged_EditedZoneGrew_ClearsTheLedSelection()
     {

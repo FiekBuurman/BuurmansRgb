@@ -352,7 +352,9 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   groeit of krimpt het voorbeeld meteen; LED's die er nog bij komen zijn donker tot de zone ze
   heeft. De zone zelf krijgt de nieuwe lengte pas als je 0,6 seconde niets verandert of de schuif
   loslaat: OpenRGB laadt bij elke nieuwe lengte zijn apparaten opnieuw, dus tien keer op + of een
-  sleep over de schuif is één aanpassing. Een getal typen werkt zoals eerst: typ het en kies
+  sleep over de schuif is één aanpassing. Sluit je het venster of kies je een ander apparaat
+  voordat het zover is, dan gaat de lengte meteen. Aan het eind van het bereik blijven − en +
+  aan, maar veranderen ze niets meer. Een getal typen werkt zoals eerst: typ het en kies
   "Toepassen" (of Enter); dat gaat meteen. Heeft zo'n zone 0 LED's, dan staat er "Nog geen LED's
   ingesteld" met een korte uitleg erbij, en die verdwijnt zodra je er LED's bij zet. Daarna laadt
   BuurmansRgb de apparaten opnieuw, stuurt het de kleuren weer, en staat de focus van het
