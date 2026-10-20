@@ -408,9 +408,10 @@
                                         Command="{Binding EffectsPause.ResumeCommand}" Click="OnResumeEffectsClick"
                                         Visibility="{Binding EffectsPause.CanResume, Converter={StaticResource BoolToVisibility}}"
                                         AutomationProperties.Name="{x:Static res:Strings.ResumeEffectsAccessibleName}" />
-                                <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Text="⏸" FontFamily="Segoe UI Symbol"
-                                           Visibility="{Binding EffectsPause.IsPaused, Converter={StaticResource BoolToVisibility}}"
-                                           AutomationProperties.Name="{x:Static res:Strings.EffectsPausedSymbol}" />
+                                <!-- A pause sign drawn as a shape, which a screen reader skips: the text already says it. -->
+                                <Path DockPanel.Dock="Left" Margin="0,0,10,0" VerticalAlignment="Center" Data="M0,0 H3.5 V12 H0 Z M6.5,0 H10 V12 H6.5 Z"
+                                      Fill="{x:Static SystemColors.ControlTextBrush}"
+                                      Visibility="{Binding EffectsPause.IsPaused, Converter={StaticResource BoolToVisibility}}" />
                                 <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding EffectsPause.Text, NotifyOnTargetUpdated=True}"
                                            AutomationProperties.AutomationId="EffectsPause" AutomationProperties.LiveSetting="Polite"
                                            views:LiveRegion.AnnouncesUpdates="True" />

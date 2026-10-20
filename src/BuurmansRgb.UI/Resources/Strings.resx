@@ -459,13 +459,10 @@
     <value>Effecten gepauzeerd zolang Windows vergrendeld is – ze lopen weer na het ontgrendelen.</value>
   </data>
   <data name="EffectsPausedAsleep" xml:space="preserve">
-    <value>Effecten gepauzeerd voor de slaapstand – ze lopen weer na het ontwaken.</value>
+    <value>Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.</value>
   </data>
   <data name="EffectsResumed" xml:space="preserve">
     <value>Effecten lopen weer.</value>
-  </data>
-  <data name="EffectsPausedSymbol" xml:space="preserve">
-    <value>Gepauzeerd</value>
   </data>
   <data name="ResumeEffects" xml:space="preserve">
     <value>Hervatten</value>

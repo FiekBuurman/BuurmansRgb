@@ -26,7 +26,7 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     [Theory]
     [InlineData(PauseReasons.Manual, "Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.")]
     [InlineData(PauseReasons.Locked, "Effecten gepauzeerd zolang Windows vergrendeld is – ze lopen weer na het ontgrendelen.")]
-    [InlineData(PauseReasons.Asleep, "Effecten gepauzeerd voor de slaapstand – ze lopen weer na het ontwaken.")]
+    [InlineData(PauseReasons.Asleep, "Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.")]
     public void Show_TellsTheReason(PauseReasons reasons, string text)
     {
         _pause.Show(reasons);
