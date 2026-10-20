@@ -34,16 +34,19 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     protected override string GetAutomationIdCore() => $"Led{led}";
 
-    // In screen pixels, as UI Automation wants it.
+    // In screen pixels, as UI Automation wants it. One PointToScreen per LED: the size only needs
+    // the scale of the screen, as the preview has no transforms of its own.
     protected override Rect GetBoundingRectangleCore()
     {
         var bounds = view.BoundsOf(led);
-        if (bounds.IsEmpty || PresentationSource.FromVisual(view) is null)
+        if (bounds.IsEmpty || PresentationSource.FromVisual(view) is not { CompositionTarget: { } target })
         {
             return Rect.Empty;
         }
 
-        return new Rect(view.PointToScreen(bounds.TopLeft), view.PointToScreen(bounds.BottomRight));
+        var size = target.TransformToDevice.Transform(new Vector(bounds.Width, bounds.Height));
+        var topLeft = view.PointToScreen(bounds.TopLeft);
+        return new Rect(topLeft.X, topLeft.Y, size.X, size.Y);
     }
 
     protected override Point GetClickablePointCore()
@@ -52,7 +55,8 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
         return bounds.IsEmpty ? new Point(double.NaN, double.NaN) : new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0);
     }
 
-    protected override bool IsOffscreenCore() => list.IsOffscreen();
+    // Asking the list would walk up the tree once per LED; the LEDs show when the view does.
+    protected override bool IsOffscreenCore() => !view.IsVisible;
 
     protected override bool IsEnabledCore() => view.IsEnabled;
 
