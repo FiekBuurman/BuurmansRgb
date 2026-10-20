@@ -310,6 +310,35 @@ public sealed class EngineApiTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => api.LoadProfileAsync("Gamen", Ct));
     }
 
+    [Fact]
+    public async Task SetProfileAutomationAsync_ThenGet_ReturnsItAsSaved()
+    {
+        using var api = CreateApi();
+        await api.SaveProfileAsync("Nacht", Ct);
+
+        await api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(23, 0, 15), " eldenring "), Ct);
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), await api.GetProfileAutomationAsync("nacht", Ct));
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), _profileStore.Profiles[0].Automation);
+    }
+
+    [Fact]
+    public async Task SetProfileAutomationAsync_InvalidProgram_Throws()
+    {
+        using var api = CreateApi();
+        await api.SaveProfileAsync("Gamen", Ct);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "game?.exe"), Ct));
+    }
+
+    [Fact]
+    public async Task GetProfileAutomationAsync_UnknownName_Throws()
+    {
+        using var api = CreateApi();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.GetProfileAutomationAsync("Gamen", Ct));
+    }
+
     private EngineApi CreateApi(SettingsSaveEvents? saveEvents = null) =>
         new(_lighting, _profiles, _simulatedDevices, _openRgb, saveEvents);
 }

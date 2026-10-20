@@ -75,6 +75,26 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ProfileAutomation_CrossesThePipe()
+    {
+        var client = await ConnectAsync();
+
+        var automation = await client.Api.GetProfileAutomationAsync("Nacht", Ct);
+        await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30)), Ct);
+        await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "eldenring.exe"), Ct);
+        await client.Api.SetProfileAutomationAsync("Werk", ProfileAutomation.None, Ct);
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), automation);
+        Assert.Equal(
+            [
+                ("Nacht", new ProfileAutomation(new TimeOnly(7, 30))),
+                ("Gamen", new ProfileAutomation(Program: "eldenring.exe")),
+                ("Werk", ProfileAutomation.None),
+            ],
+            _api.AutomationCalls);
+    }
+
+    [Fact]
     public async Task FrameRendered_OnServer_ReachesClient()
     {
         var client = await ConnectAsync();
@@ -369,6 +389,17 @@ public sealed class EngineRpcTests : IDisposable
         public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
 
         public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        public List<(string Name, ProfileAutomation Automation)> AutomationCalls { get; } = [];
+
+        public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
+            Task.FromResult(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"));
+
+        public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
+        {
+            AutomationCalls.Add((name, automation));
+            return Task.CompletedTask;
+        }
 
         private Task RecordProfile(string call)
         {

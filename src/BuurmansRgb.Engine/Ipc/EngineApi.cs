@@ -137,6 +137,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(_profiles.GetAutomation(name));
+
+    public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
+    {
+        _profiles.SetAutomation(name, automation);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         _lighting.Rendered -= OnRendered;
