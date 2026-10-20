@@ -52,6 +52,7 @@ public sealed class ProcessListTests
 
         // The handle to ping is still open, as a game launcher keeps one: ended is ended.
         Assert.Empty(_processes.Find(names));
+        Assert.Empty(_processes.Find(names));
     }
 
     // It runs every few seconds while a profile has a program, so it should not feed the GC.
