@@ -24,8 +24,6 @@
   venster een tweede venster in plaats van het bestaande naar voren te halen
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
-- In de instellingen-app tonen dat de effecten gepauzeerd zijn (nu laat het voorbeeld de
-  kleur zien die na hervatten terugkomt)
 - Een echte kleurkiezer (vlak of wiel voor verzadiging en helderheid) in plaats van twee
   schuiven; "helderheid" van de kleur zelf zit nu alleen in de hex-code
 - De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de
@@ -70,9 +68,6 @@
   timer-thread en maakt per frame een kopie van alle buffers en een `LightingFrame`, dus met de
   instellingen-app open alloceert elk frame en vertraagt UI-werk de animatie. Bijvoorbeeld de
   laatste uitvoer markeren en die op een eigen thread of met een lagere framerate versturen
-- De animatie ook pauzeren bij vergrendelen of slaapstand (`SystemEvents.SessionSwitch`,
-  `PowerModeChanged`), zoals het prestatiebudget noemt; nu stopt hij alleen via "Effecten
-  pauzeren"
 - De per-LED-editor met het toetsenbord bedienen (pijltjes, Shift+pijltje, Enter); nu kan
   het alleen met de muis in het voorbeeld
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
@@ -122,8 +117,8 @@
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
 - Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
   het apparaat krijgt dan wel zijn eigen kleuren terug
-- In de instellingen-app laten zien dat knipperen niet kan omdat de effecten gepauzeerd zijn
-  (hoort bij het idee hierboven om de pauze in de app te tonen)
+- De knop "Laat knipperen" grijs maken zolang de effecten gepauzeerd zijn; nu staat er alleen de
+  melding over de pauze boven het voorbeeld, en de tooltip van de knop zegt dat het dan niet werkt
 - Bij twee dezelfde videokaarten controleren wat OpenRGB op Windows als locatie geeft: als bus
   en adres gelijk zijn, valt er alleen op volgorde te kiezen. Nieuwere SDK-versies of een
   PCI-locatie zouden dan helpen
@@ -207,3 +202,16 @@
 - UI Automation (`InvokePattern.Invoke`) op een knop van de instellingen-app duurt op deze pc
   zo'n 2 seconden; uitzoeken of de app zelf dan bezig is (bijv. met het voorbeeld) of dat het aan
   UI Automation ligt
+- Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
+  "laatste frame blijft staan"
+- Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
+  (`RegisterPowerSettingNotification` met `GUID_CONSOLE_DISPLAY_STATE`); nu loopt de animatie dan
+  door
+- Bij het starten van de engine vragen of Windows vergrendeld is (`WTSQuerySessionInformation`
+  met `WTSSessionInfoEx`); nu telt de engine bij het starten als ontgrendeld en pauzeert hij pas bij
+  de volgende vergrendeling
+- Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een profiel
+  op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
+  aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat
+- `pauseOnLockAndSleep` ook in de instellingen-app en zonder herstart van de engine; nu staat het
+  alleen in `settings.json`

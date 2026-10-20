@@ -60,7 +60,7 @@ dotnet run --project src/BuurmansRgb.Engine
 
 - **Tray-menu:** "Instellingen openen", "Profiel laden", "Effecten pauzeren", "Starten met
   Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen. Zie "Profielen"
-  voor "Profiel laden".
+  voor "Profiel laden". Zie "Pauzeren" voor "Effecten pauzeren".
 - **Instellingen** staan in `%AppData%\BuurmansRgb\settings.json`. Bij de eerste start
   schrijft de engine de standaardwaarden weg. Wijzigingen uit de instellingen-app slaat
   de engine een seconde na de laatste wijziging op, en bij afsluiten. Je kunt het bestand
@@ -75,6 +75,7 @@ dotnet run --project src/BuurmansRgb.Engine
     "colorLoop": { "colors": ["#FFFF00", "#00FF00", "#0000FF"], "spread": true },
     "simulatedDevices": "automatic",
     "framesPerSecond": 30,
+    "pauseOnLockAndSleep": true,
     "devices": {
       "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led" }
     },
@@ -103,7 +104,9 @@ dotnet run --project src/BuurmansRgb.Engine
   blijft gewoon gelden. Oudere bestanden hebben hier `true` of `false`: `true` schreef de engine
   zelf als standaard weg en leest dus als `"automatic"`, `false` blijft `"never"`. Kies het
   liever in de instellingen-app: dan wisselt de engine meteen, zonder herstart.
-  `framesPerSecond` (1–60, standaard 30) is de framerate van de bewegende effecten. Onder
+  `framesPerSecond` (1–60, standaard 30) is de framerate van de bewegende effecten.
+  `pauseOnLockAndSleep` (standaard `true`) pauzeert de bewegende effecten zolang Windows
+  vergrendeld is of slaapt; `false` laat ze doorlopen (zie "Pauzeren"). Onder
   `devices` staan alleen apparaten met een eigen kleur of effect; de rest volgt de algemene
   waarden. Onder `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`;
   `null` (of een LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Onder
@@ -132,7 +135,8 @@ dotnet run --project src/BuurmansRgb.Engine
   moederbord (7, in drie zones), twee RAM-sticks (8), een videokaart (13, in twee zones), een
   fan met twee ringen (20), een ARGB-controller (20, in twee kanalen), verlichting in de
   behuizing (10), een muis (12, in vier zones) en een headset (2, in twee zones).
-- **Tooltip van het tray-icoon:** de naam (of "effecten gepauzeerd") en daaronder hoe het met
+- **Tooltip van het tray-icoon:** de naam (of "effecten gepauzeerd", ook bij een pauze door
+  vergrendelen of slaapstand) en daaronder hoe het met
   OpenRGB gaat, bijv. "OpenRGB: verbonden, 5 apparaten".
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
@@ -167,7 +171,8 @@ daarna toe, dus de schuif werkt op elk effect.
   Gaat een frame mis, bijvoorbeeld omdat een apparaat even faalt, dan probeert het volgende
   frame het gewoon opnieuw.
 - **Effecten pauzeren** in het tray-menu stopt ook de animatie; hervatten stuurt alles
-  opnieuw en start de animatie weer.
+  opnieuw en start de animatie weer. Ook bij vergrendelen en slaapstand stopt de animatie, zie
+  "Pauzeren".
 - **Testen zonder hardware:** `dotnet test --project tests/BuurmansRgb.Effects.Tests` test
   elk effect op vaste tijdstippen; de render-loop zelf zit in
   `tests/BuurmansRgb.Engine.Tests`
@@ -175,6 +180,71 @@ daarna toe, dus de schuif werkt op elk effect.
   controleert dat een frame zonder verbonden instellingen-app 0 bytes alloceert).
 - **Zelf bekijken:** zet `"effect": "rainbow"` in `settings.json`, start de engine en open
   de instellingen-app: het voorbeeld loopt mee met de gesimuleerde apparaten.
+
+## Pauzeren
+
+De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
+(`PauseReasons` in `BuurmansRgb.Contracts`):
+
+| Reden | Begint | Eindigt | Wat de lampen doen |
+| --- | --- | --- | --- |
+| Tray-menu | "Effecten pauzeren" aanvinken | Uitvinken, of "Hervatten" in de instellingen-app | Blijven zoals ze zijn; de engine stuurt niets tot hervatten |
+| Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een extern bureaublad dat verbroken is zonder af te melden | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan |
+| Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden | Het laatste frame blijft staan |
+
+- **Geen CPU voor effecten:** bij elke reden stopt de timer van de animatie; er draait dan geen
+  timer meer, net als bij een statische kleur. Een bewegend effect staat stil op het laatste
+  frame. De lampen gaan niet uit.
+- **Los van elkaar:** ontgrendelen heft een pauze uit het tray-menu niet op, en hervatten in het
+  menu laat de animatie niet lopen zolang Windows vergrendeld is. Pas als alle redenen weg zijn,
+  loopt de animatie weer.
+- **Bij vergrendelen en slaapstand** gaat een wijziging wel naar de lampen: een profiel dat op
+  tijd laadt (bijv. "Nacht" om 23:00 terwijl de pc vergrendeld is) en het herstellen 2 en 10
+  seconden na het ontwaken, ook als Windows dan nog op het vergrendelscherm staat. Alleen de
+  pauze uit het tray-menu houdt alles tegen tot hervatten. Knipperen gebeurt bij geen enkele
+  pauze.
+- **Uitzetten:** zet `"pauseOnLockAndSleep": false` in `settings.json` en start de engine opnieuw;
+  dan loopt de animatie ook door als Windows vergrendeld is of in slaapstand gaat.
+- **In het tray-menu** staat het vinkje bij "Effecten pauzeren" alleen voor de pauze uit het
+  menu; hervat je in de instellingen-app, dan verdwijnt het vinkje. De tooltip zegt "effecten
+  gepauzeerd" bij elke reden.
+- **In de instellingen-app** staat boven het voorbeeld een melding met de reden, bijv.
+  "Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten", met
+  de knop "Hervatten". Bij vergrendelen en slaapstand staat er alleen de reden: die pauze eindigt
+  met Windows. Een schermlezer leest een nieuwe melding voor. De engine meldt de stand via
+  `IEngineApi.GetPauseAsync`, het event `PauseChanged` en `ResumeEffectsAsync`.
+- **Hoe de engine het merkt:** via `SystemEvents.SessionSwitch` (vergrendelen, ontgrendelen,
+  verbinden en verbreken van de sessie) en `SystemEvents.PowerModeChanged` (slapen en ontwaken),
+  op de thread van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`).
+  Windows meldt alleen veranderingen; start de engine terwijl Windows vergrendeld is, dan pauzeert
+  hij pas bij de volgende vergrendeling.
+- **Gemeten** (Release, gesimuleerde apparaten, zonder OpenRGB, instellingen-app dicht): de hele
+  engine met de regenboog op 30 fps ~0,31 % van één kern (~0,02 % van de pc), ~25 MB working
+  set en ~12 MB private bytes; met een statische kleur ~0,08 % van één kern (vooral de
+  verbindpogingen naar OpenRGB). De render-loop met dezelfde apparaten los gemeten: lopend 910
+  frames per 30 s, vergrendeld of in slaapstand 0 frames en geen timer, en daarmee net zo stil
+  als een statische kleur.
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `LightingControllerPauseTests` (de redenen naast elkaar, wijzigingen en herstellen tijdens
+  vergrendelen, knipperen), `AutoPauseTests` (met nep-events van Windows: vergrendelen,
+  verbreken, slaapstand, de pauze uit het menu die blijft, wakker worden op het
+  vergrendelscherm met `ResumeRestorer`, uitzetten), `EngineHostTests` en
+  `JsonSettingsStoreTests` (`pauseOnLockAndSleep`), `TrayPresenterTests` (vinkje en tooltip),
+  `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de pipe), en in de
+  instellingen-app `EffectsPauseViewModelTests` en `MainViewModelPauseTests`. Start daarnaast de
+  engine en de instellingen-app, vink in het tray-menu "Effecten pauzeren" aan: de melding met
+  "Hervatten" verschijnt; klik erop en het vinkje in het menu verdwijnt.
+- **Testen op je eigen pc** (vergrendelen en slaapstand zijn niet na te bootsen in de tests):
+  1. Kies "Regenboog", vergrendel Windows (Windows-toets+L): de lampen blijven op één frame
+     staan. Ontgrendel: de regenboog loopt weer. Kijk in Taakbeheer (tabblad Details, kolom
+     CPU-tijd) dat de CPU-tijd van `BuurmansRgb.Engine.exe` tijdens het vergrendelen niet oploopt.
+  2. Pauzeer in het tray-menu, vergrendel en ontgrendel: de effecten blijven gepauzeerd en het
+     vinkje blijft staan. Hervat in de instellingen-app: het vinkje verdwijnt.
+  3. Zet de pc in slaapstand en maak hem wakker: op het vergrendelscherm horen de kleuren binnen
+     10 seconden terug te zijn (stilstaand), na het ontgrendelen loopt de animatie weer.
+  4. Wissel van gebruiker en kom terug, of verbind met Extern bureaublad en verbreek: de animatie
+     stopt en loopt daarna weer.
+  5. Zet `"pauseOnLockAndSleep": false`, herstart de engine en vergrendel: de regenboog loopt door.
 
 ## OpenRGB koppelen
 
@@ -285,7 +355,8 @@ via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRG
 - **Na slaapstand** gaan veel moederborden en RAM-sticks terug naar hun eigen effect. De
   engine luistert naar `PowerModeChanged` en herstelt 2 en 10 seconden na het ontwaken: hij
   laadt de OpenRGB-apparaten opnieuw (dat zet ze weer in "Direct" of "Custom") en stuurt alle
-  kleuren opnieuw. Zijn de effecten gepauzeerd, dan gebeurt dat pas bij hervatten.
+  kleuren opnieuw. Zijn de effecten via het tray-menu gepauzeerd, dan gebeurt dat pas bij
+  hervatten; is Windows na het ontwaken nog vergrendeld, dan gebeurt het gewoon (zie "Pauzeren").
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Wat dit deel test:
   de vertaling van OpenRGB-moederborden en -RAM met nepdata (`OpenRgbDeviceMapperTests`,
   `OpenRgbDeviceProviderTests`), herstellen na slaapstand (`LightingControllerRestoreTests`,
@@ -767,7 +838,9 @@ dotnet run --project src/BuurmansRgb.UI
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat
   weer gelijk aan "Alle apparaten", dan volgt het die weer en verdwijnt het uit `devices`.
 - Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn. Bij
-  een bewegend effect loopt het mee.
+  een bewegend effect loopt het mee. Zijn de effecten gepauzeerd, dan staat boven het voorbeeld
+  een melding met de reden, en bij een pauze uit het tray-menu de knop "Hervatten" (zie
+  "Pauzeren").
 - **Per-LED-editor:** klik in het voorbeeld op een LED om hem te selecteren, Shift+klik
   selecteert een reeks vanaf de vorige klik, en een klik op de naam van een zone selecteert
   die hele zone (bijv. één ring van een fan). Zolang er LED's geselecteerd zijn, staat boven
