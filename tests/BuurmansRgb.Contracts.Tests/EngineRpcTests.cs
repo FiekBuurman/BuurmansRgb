@@ -159,6 +159,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task FlashDeviceAsync_SendsTheDevice()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.FlashDeviceAsync("fan", Ct);
+
+        Assert.Equal(["fan"], _api.FlashCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -282,6 +292,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
         {
             ResizeCalls.Add((deviceId, zoneIndex, ledCount));
+            return Task.CompletedTask;
+        }
+
+        public List<string> FlashCalls { get; } = [];
+
+        public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
+        {
+            FlashCalls.Add(deviceId);
             return Task.CompletedTask;
         }
 

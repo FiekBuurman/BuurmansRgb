@@ -53,6 +53,10 @@ public partial interface IEngineApi
     // range. The device may get its new length a little later; DevicesChanged then follows.
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 
+    // Lets the device blink white a few times, so the user can see which one it is; then it shows
+    // its own lighting again. Changes no lighting, and does nothing while effects are paused.
+    Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
+
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);
 

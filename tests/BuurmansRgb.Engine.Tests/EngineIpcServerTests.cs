@@ -154,6 +154,35 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task FlashDeviceAsync_FlashesOnlyThatDeviceAndKeepsItsLighting()
+    {
+        var client = await StartAndConnectAsync();
+        await client.Api.SetColorAsync(null, Orange, Ct);
+        var flashed = new TaskCompletionSource<LightingFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.FrameRendered += (_, frame) =>
+        {
+            if (frame.Devices.Single(device => device.DeviceId == Fan).ToColors().All(led => led == RgbColor.White))
+            {
+                flashed.TrySetResult(frame);
+            }
+        };
+
+        await client.Api.FlashDeviceAsync(Fan, Ct);
+
+        var frame = await flashed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.All(frame.Devices.Where(device => device.DeviceId != Fan).SelectMany(device => device.ToColors()), led => Assert.Equal(Orange, led));
+        Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, Ct)).Color);
+    }
+
+    [Fact]
+    public async Task FlashDeviceAsync_UnknownDevice_IsRejected()
+    {
+        var client = await StartAndConnectAsync();
+
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => client.Api.FlashDeviceAsync("missing", Ct));
+    }
+
+    [Fact]
     public async Task TwoClients_BothReceiveFrames()
     {
         var first = await StartAndConnectAsync();
