@@ -24,13 +24,14 @@ public sealed record RgbDevice(string Id, string Name, DeviceType Type, IReadOnl
         return Zones[zoneIndex];
     }
 
-    // The same device with another length for one zone; that zone must be able to hold it.
+    // The same device with another length for one zone; that zone must be able to hold it. The
+    // LED names of that zone belonged to the old length, so they go.
     public RgbDevice WithZoneLength(int zoneIndex, int ledCount)
     {
         var zone = GetZone(zoneIndex);
         zone.ThrowIfCannotHold(ledCount);
         RgbZone[] zones = [.. Zones];
-        zones[zoneIndex] = zone with { LedCount = ledCount };
+        zones[zoneIndex] = zone with { LedCount = ledCount, LedNames = null };
         return this with { Zones = zones, LedCount = zones.Sum(each => each.LedCount) };
     }
 }

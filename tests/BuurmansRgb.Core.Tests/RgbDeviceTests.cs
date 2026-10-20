@@ -44,6 +44,21 @@ public sealed class RgbDeviceTests
         Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), resized.Location);
     }
 
+    [Fact]
+    public void WithZoneLength_DropsTheLedNamesOfThatZone()
+    {
+        var strip = new RgbDevice("strip", "Strip", DeviceType.LedStrip,
+            [RgbZone.Fixed("Logo", 1) with { LedNames = ["Logo"] }, new RgbZone("ARGB", 2, 0, 60) with { LedNames = ["LED 1", "LED 2"] }])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var resized = strip.WithZoneLength(1, 3);
+
+        Assert.Null(resized.Zones[1].LedNames);
+        Assert.Equal(["Logo"], resized.Zones[0].LedNames!);
+    }
+
     [Theory]
     [InlineData(1, 121)]
     [InlineData(0, 5)]
