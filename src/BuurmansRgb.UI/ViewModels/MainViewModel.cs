@@ -25,12 +25,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string ResumeCall = "resume";
-    private const string OnCall = "on";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
+    private readonly LampSync _lampSync;
+    private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
@@ -56,6 +57,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         EffectsPause = new EffectsPauseViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
+        _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
+        _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
@@ -88,7 +91,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
-        Lamps.SwitchRequested += (_, lamp) => SwitchLamp(lamp);
+        Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
     }
 
@@ -295,7 +298,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
-        _ = ShowSceneCardsAsync();
+        _ = _sceneCards.ShowAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -333,7 +336,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         Lamps.ShowDevices(Devices);
         OnPropertyChanged(nameof(SelectedLamp));
-        _ = RefreshLampsAsync();
+        _ = _lampSync.RefreshAsync();
 
         // The edit ends when its device is gone or got another number of LEDs (a zone that was
         // resized): the colors the editor holds no longer fit the device.
@@ -526,15 +529,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // The engine reports the change through LightingChanged, after which the lamps show what it did.
-    private void SwitchLamp(LampSwitch lamp)
-    {
-        if (_connection is { } connection)
-        {
-            _calls.Post((OnCall, lamp.DeviceId), () => connection.Api.SetOnAsync(lamp.DeviceId, lamp.On));
-        }
-    }
-
     // The lamp's color and effect are on the Kleur page; picking it there lets it blink too.
     private void OpenLamp(string deviceId)
     {
@@ -542,25 +536,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             SelectedDevice = device;
             Navigation.GoTo(AppPage.Color);
-        }
-    }
-
-    // A connection made again in the meantime asks once more when this one is done, so the lamps end
-    // up showing what that engine has.
-    private async Task RefreshLampsAsync()
-    {
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        try
-        {
-            await Lamps.RefreshAsync(() => connection.Api.GetAllLightingAsync());
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
         }
     }
 
@@ -587,41 +562,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
 
                 Profiles.Show(names, select: name);
-                _ = ShowSceneCardsAsync();
+                _ = _sceneCards.ShowAsync();
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
         });
-    }
-
-    // What each scene looks like and when it loads by itself, for its card. Only reads, so a scene
-    // that fails, such as one deleted from the tray menu meanwhile, keeps its dark card and the user
-    // gets no message about a change; the other scenes still get theirs.
-    private async Task ShowSceneCardsAsync()
-    {
-        if (_connection is not { } connection)
-        {
-            return;
-        }
-
-        foreach (var name in Profiles.Names.ToArray())
-        {
-            try
-            {
-                var lighting = await connection.Api.GetProfileLightingAsync(name);
-                var automation = await connection.Api.GetProfileAutomationAsync(name);
-                if (!ReferenceEquals(connection, _connection))
-                {
-                    return;
-                }
-
-                Profiles.ShowCard(name, lighting, automation);
-            }
-            catch (Exception exception)
-            {
-                Trace.TraceError(exception.ToString());
-            }
-        }
     }
 
     // Unless the user picked another profile, or the connection was made again, in the meantime.
@@ -651,7 +596,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Lamps.ShowFrame(frame);
     });
 
-    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = RefreshLampsAsync());
+    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = _lampSync.RefreshAsync());
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
