@@ -463,7 +463,9 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   engine leest de lijst als het menu opengaat, dus ook een profiel dat je net in de
   instellingen-app opsloeg of verwijderde klopt. Kan `profiles.json` niet gelezen worden
   (bijvoorbeeld omdat een ander programma het open heeft), dan is "Profiel laden" grijs en meldt
-  het tray-icoon dat; de engine draait gewoon door.
+  het tray-icoon dat; de engine draait gewoon door. Ook de eerste seconden na het starten, tot
+  de engine de opgeslagen verlichting heeft gezet, is "Profiel laden" grijs: anders zou die
+  verlichting een gekozen profiel meteen overschrijven.
 - **Op tijd:** klap in de instellingen-app onder de profielen "Automatisch laden" open, kies een
   profiel en vul bij "Automatisch laden om" een tijd in (bijv. `23:00` of `23.00`) en kies
   "Toepassen" (of Enter). Elke dag om die tijd laadt de engine het profiel, net alsof je op

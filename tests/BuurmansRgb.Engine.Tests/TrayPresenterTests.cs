@@ -187,21 +187,44 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Equal(0, _profileStore.LoadCount);
     }
 
+    // The saved lighting that the start puts on would overwrite a profile loaded before it.
     [Fact]
-    public void RefreshProfiles_ShowsTheNamesInAlphabeticalOrder()
+    public void RefreshProfiles_BeforeTheEngineStarted_GreysOutTheMenuWithoutReading()
+    {
+        CreatePresenter().RefreshProfiles();
+
+        Assert.Null(_view.Profiles);
+        Assert.Equal(0, _profileStore.LoadCount);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_StartFailed_KeepsTheMenuGreyedOut()
+    {
+        _host.StartException = new IOException("Disk unavailable.");
+        var presenter = CreatePresenter();
+        await presenter.StartAsync(Ct);
+
+        presenter.RefreshProfiles();
+
+        Assert.Null(_view.Profiles);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_ShowsTheNamesInAlphabeticalOrder()
     {
         _profileStore.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), new Profile("gamen", Uniform(StaticLighting(Green)))];
 
-        CreatePresenter().RefreshProfiles();
+        (await StartedPresenterAsync()).RefreshProfiles();
 
         Assert.Equal(["gamen", "Werk"], _view.Profiles);
         Assert.Empty(_view.Notifications);
     }
 
     [Fact]
-    public void RefreshProfiles_NoProfiles_ShowsAnEmptyList()
+    public async Task RefreshProfiles_NoProfiles_ShowsAnEmptyList()
     {
-        CreatePresenter().RefreshProfiles();
+        (await StartedPresenterAsync()).RefreshProfiles();
 
         Assert.Equal([], _view.Profiles);
     }
@@ -209,10 +232,10 @@ public sealed class TrayPresenterTests : IDisposable
     // The settings app saves and deletes through the same library, so the next time the menu
     // opens it shows the new list.
     [Fact]
-    public void RefreshProfiles_AfterAChangeFromTheApp_ShowsTheNewList()
+    public async Task RefreshProfiles_AfterAChangeFromTheApp_ShowsTheNewList()
     {
         _profileStore.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
-        var presenter = CreatePresenter();
+        var presenter = await StartedPresenterAsync();
         presenter.RefreshProfiles();
 
         _profiles.Save("Nacht");
@@ -223,21 +246,21 @@ public sealed class TrayPresenterTests : IDisposable
     }
 
     [Fact]
-    public void RefreshProfiles_FileCannotBeRead_GreysOutTheMenuAndWarns()
+    public async Task RefreshProfiles_FileCannotBeRead_GreysOutTheMenuAndWarns()
     {
         _profileStore.LoadException = new IOException("The file is in use.");
 
-        CreatePresenter().RefreshProfiles();
+        (await StartedPresenterAsync()).RefreshProfiles();
 
         Assert.Null(_view.Profiles);
         Assert.Equal([(Strings.ProfilesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     [Fact]
-    public void RefreshProfiles_FileReadableAgain_ShowsTheProfiles()
+    public async Task RefreshProfiles_FileReadableAgain_ShowsTheProfiles()
     {
         _profileStore.LoadException = new UnauthorizedAccessException();
-        var presenter = CreatePresenter();
+        var presenter = await StartedPresenterAsync();
         presenter.RefreshProfiles();
 
         _profileStore.LoadException = null;
@@ -263,10 +286,10 @@ public sealed class TrayPresenterTests : IDisposable
     }
 
     [Fact]
-    public void LoadProfile_DeletedSinceTheMenuOpened_WarnsWithoutThrowing()
+    public async Task LoadProfile_DeletedSinceTheMenuOpened_WarnsWithoutThrowing()
     {
         _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
-        var presenter = CreatePresenter();
+        var presenter = await StartedPresenterAsync();
         presenter.RefreshProfiles();
         _profiles.Delete("Nacht");
 
@@ -276,6 +299,13 @@ public sealed class TrayPresenterTests : IDisposable
     }
 
     private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _profiles, _view);
+
+    private async Task<TrayPresenter> StartedPresenterAsync()
+    {
+        var presenter = CreatePresenter();
+        await presenter.StartAsync(Ct);
+        return presenter;
+    }
 
     private sealed class FakeEngineHost : IEngineHost
     {

@@ -22,12 +22,17 @@ internal sealed class TrayPresenter(
     private bool _paused;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
 
+    // Profiles can be loaded once the engine has put on the saved lighting, which would overwrite a
+    // profile loaded before it, and keeps what is loaded from then on.
+    private bool _started;
+
     // Never throws, so the caller can start it without awaiting.
     public async Task StartAsync(CancellationToken ct)
     {
         try
         {
             await host.StartAsync(ct);
+            _started = true;
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -68,9 +73,15 @@ internal sealed class TrayPresenter(
     public void RefreshAutoStart() => view.SetAutoStartChecked(autoStart.IsEnabled);
 
     // Called when the menu opens, so the list is the current one, also after the settings app
-    // saved or deleted a profile.
+    // saved or deleted a profile. Until the engine has started, the item is greyed out.
     public void RefreshProfiles()
     {
+        if (!_started)
+        {
+            view.ShowProfiles(null);
+            return;
+        }
+
         try
         {
             view.ShowProfiles(profiles.Names);

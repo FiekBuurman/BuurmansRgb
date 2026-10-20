@@ -83,8 +83,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
 
-    // Without profiles the submenu explains where to make them; when they could not be read, the
-    // whole item is greyed out and the notification tells why.
+    // Without profiles the submenu explains where to make them; when they cannot be loaded now,
+    // the whole item is greyed out (an unreadable file also gets a notification).
     void ITrayView.ShowProfiles(IReadOnlyList<string>? names)
     {
         var oldItems = _profilesItem.DropDownItems.Cast<ToolStripItem>().ToList();

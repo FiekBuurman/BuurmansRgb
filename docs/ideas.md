@@ -172,8 +172,5 @@
   pollen
 - Bij "Laden als dit programma start" een knop om een .exe te kiezen of een lijst met wat nu
   draait, zodat je de naam niet hoeft te weten
-- Het tray-menu werkt al voordat de engine de opgeslagen verlichting heeft gezet (de eerste
-  seconde na het starten); een profiel dat je dan kiest, wordt meteen overschreven. "Profiel
-  laden" pas aanzetten als de engine klaar is
 - Een melding bij een fout in de instellingen-app die preciezer is dan "De engine kon de
   wijziging niet verwerken", bijv. als het profiel van "Automatisch laden" net verwijderd is
