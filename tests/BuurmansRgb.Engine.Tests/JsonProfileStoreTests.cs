@@ -76,6 +76,29 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.DoesNotContain("program", json);
     }
 
+    // The next save writes the profile without them, so the trace says what went.
+    [Fact]
+    public void Load_TimeOrProgramThatDoesNotRead_IsTraced()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "Tijd", "loadAt": "25:00" },
+                { "name": "Getal", "loadAt": 2300 },
+                { "name": "Spel", "program": "game?.exe" },
+                { "name": "Leeg", "loadAt": "", "program": " " }
+            ] }
+            """);
+        using var trace = new TraceCapture();
+
+        _store.Load();
+
+        var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
+        Assert.Contains(messages, message => message.Contains("'Tijd' has loadAt 25:00", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Getal' has loadAt 2300", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Spel' has program game?.exe", StringComparison.Ordinal));
+        Assert.DoesNotContain(messages, message => message.Contains("'Leeg'", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void Load_ProgramMissingOrInvalid_LeavesTheProgramOff()
     {

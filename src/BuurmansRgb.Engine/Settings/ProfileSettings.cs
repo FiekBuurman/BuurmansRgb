@@ -1,5 +1,5 @@
+using System.Diagnostics;
 using System.Globalization;
-using System.Text.Json.Serialization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 
@@ -17,31 +17,66 @@ internal sealed record ProfileSettings : LightingStateSettings
 
     public string? Name { get; set; }
 
-    [JsonConverter(typeof(LenientStringJsonConverter))]
-    public string? LoadAt { get; set; }
+    public JsonText? LoadAt { get; set; }
 
-    [JsonConverter(typeof(LenientStringJsonConverter))]
-    public string? Program { get; set; }
+    public JsonText? Program { get; set; }
 
     public static ProfileSettings From(Profile profile)
     {
         var settings = new ProfileSettings
         {
             Name = profile.Name,
-            LoadAt = profile.Automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture),
-            Program = profile.Automation.Program,
+            LoadAt = JsonText.From(profile.Automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture)),
+            Program = JsonText.From(profile.Automation.Program),
         };
         settings.CopyFrom(profile.Lighting);
         return settings;
     }
 
-    // name is the checked spelling of Name.
-    public Profile ToProfile(string name) => new(name, ToLightingState())
+    // name is the checked spelling of Name. A time or program that does not read is left out, and
+    // so gone from the file after the next save; the trace says which, for whoever edited it.
+    public Profile ToProfile(string name) =>
+        new(name, ToLightingState()) { Automation = new ProfileAutomation(ReadLoadAt(name), ReadProgram(name)) };
+
+    // Empty text is off, without a word.
+    private static bool IsEmpty(JsonText? value) => value is null || (value.Value.IsText && string.IsNullOrWhiteSpace(value.Value.Value));
+
+    private static void LeaveOut(string name, string field, JsonText value, string expected) =>
+        Trace.TraceWarning($"profiles.json: profile '{name}' has {field} {value.Value}, which is not {expected}; it is left out.");
+
+    private TimeOnly? ReadLoadAt(string name)
     {
-        Automation = new ProfileAutomation(
-            TimeOnly.TryParseExact(LoadAt?.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ? time : null,
-            ProgramNames.Normalize(Program)),
-    };
+        if (IsEmpty(LoadAt))
+        {
+            return null;
+        }
+
+        var value = LoadAt!.Value;
+        if (value.IsText && TimeOnly.TryParseExact(value.Value.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        {
+            return time;
+        }
+
+        LeaveOut(name, "loadAt", value, "a time like \"23:00\"");
+        return null;
+    }
+
+    private string? ReadProgram(string name)
+    {
+        if (IsEmpty(Program))
+        {
+            return null;
+        }
+
+        var value = Program!.Value;
+        if (value.IsText && ProgramNames.Normalize(value.Value) is { } program)
+        {
+            return program;
+        }
+
+        LeaveOut(name, "program", value, "the name of an .exe");
+        return null;
+    }
 }
 
 // The root of profiles.json.
