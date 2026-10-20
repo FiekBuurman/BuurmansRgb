@@ -85,6 +85,21 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task LedColors_RoundTripThroughThePipe()
+    {
+        var client = await ConnectAsync();
+        RgbColor[] colors = [new(255, 0, 0), new(0, 255, 0)];
+
+        await client.Api.SetLedColorsAsync("fan", 3, colors, TestContext.Current.CancellationToken);
+        var stored = await client.Api.GetLedColorsAsync("fan", TestContext.Current.CancellationToken);
+
+        var call = Assert.Single(_api.LedColorCalls);
+        Assert.Equal(("fan", 3), (call.DeviceId, call.FirstLed));
+        Assert.Equal(colors, call.Colors);
+        Assert.Equal(_api.LedColors, stored);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -135,6 +150,10 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
+        public IReadOnlyList<RgbColor> LedColors { get; } = [new(1, 1, 1), new(2, 2, 2)];
+
+        public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor> Colors)> LedColorCalls { get; } = [];
+
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
 
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
@@ -158,5 +177,13 @@ public sealed class EngineRpcTests : IDisposable
 
         public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
             throw new ArgumentException($"Unknown effect '{effectId}'.", nameof(effectId));
+
+        public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) => Task.FromResult(LedColors);
+
+        public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+        {
+            LedColorCalls.Add((deviceId, firstLed, colors));
+            return Task.CompletedTask;
+        }
     }
 }

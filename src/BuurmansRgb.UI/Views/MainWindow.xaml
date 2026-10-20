@@ -65,6 +65,23 @@
                 <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12,12,16,16">
                         <TextBlock Style="{StaticResource Header}" Margin="0,0,0,6" Text="{x:Static res:Strings.ColorHeader}" />
+                        <Border Margin="0,0,0,10" Padding="10,8" CornerRadius="4" BorderThickness="1"
+                                BorderBrush="{x:Static SystemColors.HighlightBrush}"
+                                Visibility="{Binding LedEditor.HasSelection, Converter={StaticResource BoolToVisibility}}">
+                            <DockPanel>
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Margin="8,0,0,0" Padding="10,3" Content="{x:Static res:Strings.FillGradient}"
+                                            ToolTip="{x:Static res:Strings.FillGradientToolTip}" Command="{Binding FillGradientCommand}" />
+                                    <Button Margin="8,0,0,0" Padding="10,3" Content="{x:Static res:Strings.ClearLedSelection}"
+                                            Command="{Binding ClearLedSelectionCommand}" />
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock FontWeight="SemiBold" Text="{Binding LedEditor.SelectionText}" />
+                                    <TextBlock Foreground="{x:Static SystemColors.GrayTextBrush}" TextWrapping="Wrap"
+                                               Text="{x:Static res:Strings.LedSelectionHint}" />
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
                         <StackPanel Orientation="Horizontal">
                             <Border Width="48" Height="48" CornerRadius="6" BorderThickness="1" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
                                     Background="{Binding ColorPicker.Color, Converter={StaticResource ColorToBrush}}" />
@@ -135,12 +152,16 @@
                                   AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.PreviewHeader}" />
+                        <TextBlock Style="{StaticResource Label}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{x:Static res:Strings.PreviewHint}" />
                         <ItemsControl ItemsSource="{Binding Preview.Devices}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                                     <StackPanel Margin="0,0,0,12">
                                         <TextBlock Text="{Binding Name}" Margin="0,0,0,4" />
-                                        <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch" />
+                                        <views:LedStripView Colors="{Binding Colors}" HorizontalAlignment="Stretch"
+                                                            SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
+                                                            ClickCommand="{Binding ClickLedCommand}"
+                                                            AutomationProperties.Name="{Binding Name}" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

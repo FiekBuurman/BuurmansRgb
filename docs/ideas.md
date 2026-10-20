@@ -62,3 +62,27 @@
   controleren of verbinden, de apparaatindexen en `UpdateLeds` nog werken
 - Alleen de nieuwe apparaten aansturen als de lijst verandert; nu krijgen alle apparaten de
   kleur opnieuw als OpenRGB (opnieuw) verbindt
+- Snelheid van de effecten instelbaar maken (periode van Ademen, rondes per seconde van
+  Regenboog, golven per seconde van Golf), in `settings.json` en in de instellingen-app; nu
+  vaste standaardwaarden in `EffectCatalog`. Ook `framesPerSecond` staat nog alleen in
+  `settings.json`
+- Frames naar de UI begrenzen wordt na taak 4 belangrijker: met de regenboog op "Alle
+  apparaten" zit de instellingen-app (Debug) op ~147 MB working set, vlak onder het budget van
+  150 MB. Een lagere preview-framerate of alleen de zichtbare apparaten versturen helpt
+- De preview-frames loskoppelen van de render-loop: nu draait `EngineApi.OnRendered` op de
+  timer-thread en maakt per frame een kopie van alle buffers en een `LightingFrame`, dus met de
+  instellingen-app open alloceert elk frame en vertraagt UI-werk de animatie. Bijvoorbeeld de
+  laatste uitvoer markeren en die op een eigen thread of met een lagere framerate versturen
+- De animatie ook pauzeren bij vergrendelen of slaapstand (`SystemEvents.SessionSwitch`,
+  `PowerModeChanged`), zoals het prestatiebudget noemt; nu stopt hij alleen via "Effecten
+  pauzeren"
+- De per-LED-editor met het toetsenbord bedienen (pijltjes, Shift+pijltje, Enter); nu kan
+  het alleen met de muis in het voorbeeld
+- In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
+  verloop met meer dan twee kleuren
+- Per-LED-kleuren van een apparaat dat langer niet meer verschijnt opruimen; nu blijven ze
+  in `ledColors` staan, net als de eigen kleur onder `devices`
+- `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
+  0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
+- Golf en Regenboog per zone laten lopen in plaats van over het hele apparaat (bijv. elke
+  fan-ring een eigen golf)

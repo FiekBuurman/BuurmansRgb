@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
@@ -104,6 +105,38 @@ public sealed class EngineHostTests : IDisposable
 
         Assert.Equal(12, ledsAtTrim.Count);
         Assert.All(ledsAtTrim, led => Assert.Equal(new RgbColor(0, 0, 255), led));
+    }
+
+    [Fact]
+    public async Task LedColors_AreKeptAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        using (var lighting = new LightingController([_simulated]))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1)))
+        {
+            await host.StartAsync(TestContext.Current.CancellationToken);
+            lighting.SetLedColors("simulated-fan", 0, [new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)]);
+        }
+
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedHost = new EngineHost(store, restartedLighting);
+        await restartedHost.StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(EffectIds.PerLed, restartedLighting.GetLighting("simulated-fan").EffectId);
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3].ToArray());
+    }
+
+    [Fact]
+    public async Task StartAsync_UsesTheSavedFrameRate()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12 } };
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(store, lighting);
+
+        await host.StartAsync(TestContext.Current.CancellationToken);
+
+        Assert.Equal(12, lighting.FramesPerSecond);
     }
 
     [Fact]

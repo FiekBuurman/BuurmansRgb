@@ -1,0 +1,22 @@
+using BuurmansRgb.Core;
+
+namespace BuurmansRgb.Effects;
+
+// Spreads the whole hue circle over the LEDs by index and shifts it along with time.
+public sealed class RainbowEffect(double roundsPerSecond = RainbowEffect.DefaultRoundsPerSecond) : IEffect
+{
+    public const double DefaultRoundsPerSecond = 0.2;
+
+    public double RoundsPerSecond { get; } = EffectMath.FiniteSpeed(roundsPerSecond);
+
+    public bool IsAnimated => true;
+
+    public void Render(Span<RgbColor> leds, TimeSpan time)
+    {
+        var shift = time.TotalSeconds * RoundsPerSecond;
+        for (var i = 0; i < leds.Length; i++)
+        {
+            leds[i] = RgbColor.FromHsv(i / (double)leds.Length + shift, 1.0, 1.0);
+        }
+    }
+}

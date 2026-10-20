@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Lighting;
@@ -6,24 +7,39 @@ namespace BuurmansRgb.Engine.Lighting;
 // Called from the tray thread, from IPC threads and, when a provider's devices change, from the
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
-internal sealed class LightingController
+// An AnimationLoop renders the frames, and only while an animated effect shows and nothing is
+// paused; with static lighting no timer runs at all.
+internal sealed class LightingController : IDisposable
 {
+    public const int DefaultFramesPerSecond = 30;
+    public const int MaxFramesPerSecond = 60;
+
     private readonly IReadOnlyList<IDeviceProvider> _providers;
     private readonly Lock _gate = new();
 
     // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
     private readonly SemaphoreSlim _discovering = new(1, 1);
-    private readonly IReadOnlyList<DeviceOutput>[] _outputsByProvider;
+    private readonly TimeProvider _time;
+    private readonly long _epoch;
+    private readonly AnimationLoop _animation;
+    private readonly DeviceOutput[][] _outputsByProvider;
     private readonly Dictionary<string, DeviceLighting> _deviceLighting = [];
-    private IReadOnlyList<DeviceOutput> _outputs = [];
+    private readonly LedColorStore _ledColors = new();
+    private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
+    private bool _disposed;
     private long _sequence;
+    private int _framesPerSecond = DefaultFramesPerSecond;
 
-    public LightingController(IReadOnlyList<IDeviceProvider> providers)
+    // Effects run on the time of timeProvider, counted from the moment the controller was made.
+    public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
     {
         _providers = providers;
-        _outputsByProvider = [.. providers.Select(_ => (IReadOnlyList<DeviceOutput>)[])];
+        _time = timeProvider ?? TimeProvider.System;
+        _epoch = _time.GetTimestamp();
+        _animation = new AnimationLoop(_time, FramePeriodLocked, RenderAnimationFrame);
+        _outputsByProvider = [.. providers.Select(_ => Array.Empty<DeviceOutput>())];
         for (var index = 0; index < providers.Count; index++)
         {
             if (providers[index] is IDynamicDeviceProvider dynamicProvider)
@@ -56,6 +72,39 @@ internal sealed class LightingController
         }
     }
 
+    // True while the render loop runs.
+    public bool IsAnimating
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _animation.IsRunning;
+            }
+        }
+    }
+
+    // Kept between 1 and MaxFramesPerSecond. Effects are time-based, so a lower rate only makes
+    // the animation less smooth, not slower.
+    public int FramesPerSecond
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _framesPerSecond;
+            }
+        }
+        set
+        {
+            lock (_gate)
+            {
+                _framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
+                _animation.Period = FramePeriodLocked;
+            }
+        }
+    }
+
     public IReadOnlyList<RgbDevice> Devices
     {
         get
@@ -73,7 +122,10 @@ internal sealed class LightingController
         {
             lock (_gate)
             {
-                return new(GlobalLocked, new Dictionary<string, DeviceLighting>(_deviceLighting));
+                return new(
+                    GlobalLocked,
+                    new Dictionary<string, DeviceLighting>(_deviceLighting),
+                    _ledColors.Snapshot());
             }
         }
     }
@@ -99,6 +151,8 @@ internal sealed class LightingController
                 _deviceLighting[deviceId] = lighting;
             }
 
+            _ledColors.Replace(state.LedColors);
+
             rendered = RenderLocked();
         }
 
@@ -115,7 +169,7 @@ internal sealed class LightingController
                 return GlobalLocked;
             }
 
-            EnsureKnownDevice(deviceId);
+            KnownDeviceLocked(deviceId);
             return LightingForLocked(deviceId);
         }
     }
@@ -138,12 +192,46 @@ internal sealed class LightingController
             }
             else
             {
-                EnsureKnownDevice(deviceId);
+                KnownDeviceLocked(deviceId);
                 var lighting = change(LightingForLocked(deviceId));
                 _global = GlobalLocked;
                 SetDeviceLightingLocked(deviceId, lighting);
             }
 
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    // The colors the per-LED effect shows, one per LED: the stored color, or the device color for
+    // an LED without one. That is also where editing them starts.
+    public IReadOnlyList<RgbColor> GetLedColors(string deviceId)
+    {
+        lock (_gate)
+        {
+            var device = KnownDeviceLocked(deviceId);
+            return _ledColors.Resolve(deviceId, device.LedCount, LightingForLocked(deviceId).Color);
+        }
+    }
+
+    // Stores colors for the LEDs from firstLed on and switches the device to the per-LED effect,
+    // so the change shows at once. Only these LEDs get a color of their own; the others keep
+    // following the device color.
+    public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
+    {
+        bool rendered;
+        lock (_gate)
+        {
+            var device = KnownDeviceLocked(deviceId);
+            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+
+            _ledColors.Set(deviceId, firstLed, colors);
+            _global = GlobalLocked;
+            SetDeviceLightingLocked(deviceId, LightingForLocked(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
         }
 
@@ -160,7 +248,8 @@ internal sealed class LightingController
         }
     }
 
-    // Resuming sends the latest lighting again; pausing leaves the devices as they are.
+    // Resuming sends the latest lighting again; pausing stops the animation and leaves the
+    // devices as they are.
     public void SetPaused(bool paused)
     {
         bool rendered;
@@ -174,6 +263,7 @@ internal sealed class LightingController
             _isPaused = paused;
             if (paused)
             {
+                UpdateAnimationLocked();
                 return;
             }
 
@@ -181,6 +271,49 @@ internal sealed class LightingController
         }
 
         Publish(rendered);
+    }
+
+    // One step of the animation: renders the animated effects and sends only the devices whose
+    // colors changed. Allocates nothing, so it can run 60 times a second without feeding the GC.
+    // The Rendered listeners run on this thread too; the one of a connected settings app copies
+    // the colors for its preview, so that does allocate.
+    public void RenderAnimationFrame()
+    {
+        var rendered = false;
+        lock (_gate)
+        {
+            // A tick that was already on its way when the animation stopped.
+            if (!_animation.IsRunning)
+            {
+                return;
+            }
+
+            var time = EffectTime;
+            foreach (var output in _outputs)
+            {
+                if (output.IsAnimated)
+                {
+                    output.Render(time);
+                    rendered |= output.SendIfChanged();
+                }
+            }
+
+            if (rendered)
+            {
+                _sequence++;
+            }
+        }
+
+        Publish(rendered);
+    }
+
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            _disposed = true;
+            _animation.Dispose();
+        }
     }
 
     // A device that comes back keeps its own lighting: it stays in the state while the device is gone.
@@ -206,7 +339,7 @@ internal sealed class LightingController
             bool rendered;
             lock (_gate)
             {
-                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device, new RgbColor[device.LedCount]))];
+                _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device))];
                 _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
                 rendered = render && RenderLocked();
             }
@@ -220,7 +353,8 @@ internal sealed class LightingController
         }
     }
 
-    // Returns false when there is no lighting to render yet.
+    // Gives every device the effect of its current lighting and renders it. Returns false when
+    // there is no lighting to render yet.
     private bool RenderLocked()
     {
         if (_global is null)
@@ -228,17 +362,38 @@ internal sealed class LightingController
             return false;
         }
 
-        foreach (var (provider, device, buffer) in _outputs)
+        var time = EffectTime;
+        foreach (var output in _outputs)
         {
-            buffer.AsSpan().Fill(LightingForLocked(device.Id).OutputColor);
+            var lighting = LightingForLocked(output.Device.Id);
+            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id)), lighting.Brightness);
+            output.Render(time);
             if (!_isPaused)
             {
-                provider.SetLeds(device.Id, buffer);
+                output.Send();
             }
         }
 
         _sequence++;
+        UpdateAnimationLocked();
         return true;
+    }
+
+    // Every device runs on the same clock, so the same animated effect stays in step on all of them.
+    private TimeSpan EffectTime => _time.GetElapsedTime(_epoch);
+
+    private TimeSpan FramePeriodLocked => TimeSpan.FromSeconds(1.0 / _framesPerSecond);
+
+    private void UpdateAnimationLocked()
+    {
+        if (!_disposed && !_isPaused && _global is not null && _outputs.Any(output => output.IsAnimated))
+        {
+            _animation.Start();
+        }
+        else
+        {
+            _animation.Stop();
+        }
     }
 
     private void Publish(bool rendered)
@@ -268,13 +423,7 @@ internal sealed class LightingController
         }
     }
 
-    private void EnsureKnownDevice(string deviceId)
-    {
-        if (!_outputs.Any(output => output.Device.Id == deviceId))
-        {
-            throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
-        }
-    }
-
-    private sealed record DeviceOutput(IDeviceProvider Provider, RgbDevice Device, RgbColor[] Buffer);
+    private RgbDevice KnownDeviceLocked(string deviceId) =>
+        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)?.Device
+            ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
 }

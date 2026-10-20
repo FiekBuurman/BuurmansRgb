@@ -216,10 +216,14 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 **Acceptatie:**
 
-- [ ] Unit-tests per effect op vaste tijdstippen
-- [ ] 0 allocaties per frame in de render-loop (controleren met `dotnet-counters`)
-- [ ] Animatie op 30 fps met UI dicht: < 1% CPU
-- [ ] Per-LED-kleuren blijven bewaard na herstart
+- [x] Unit-tests per effect op vaste tijdstippen
+- [ ] 0 allocaties per frame in de render-loop (controleren met `dotnet-counters`) (een test
+  meet 0 bytes per frame met `GC.GetAllocatedBytesForCurrentThread`; `dotnet-counters` staat
+  niet op de bouw-pc, dus die controle doet de gebruiker nog, met de instellingen-app dicht:
+  met de app open maakt de engine per frame een kopie voor het voorbeeld)
+- [x] Animatie op 30 fps met UI dicht: < 1% CPU (Release, regenboog op de gesimuleerde
+  apparaten: ~0,02% van de pc, < 0,5% van één kern)
+- [x] Per-LED-kleuren blijven bewaard na herstart
 
 ### Taak 5 t/m 8 – Per apparaattype
 

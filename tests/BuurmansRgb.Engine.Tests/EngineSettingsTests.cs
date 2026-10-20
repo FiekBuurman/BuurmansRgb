@@ -14,7 +14,7 @@ public sealed class EngineSettingsTests
     [Fact]
     public void From_ThenToLightingState_RoundTripsGlobalAndDevices()
     {
-        var state = new LightingState(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green });
+        var state = LightingStates.WithDevices(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green });
 
         var roundTripped = EngineSettings.From(state).ToLightingState();
 
@@ -27,7 +27,7 @@ public sealed class EngineSettingsTests
     {
         var settings = new EngineSettings { SimulatedDevices = false, Color = Green.Color };
 
-        var updated = settings.WithLighting(new LightingState(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green }));
+        var updated = settings.WithLighting(LightingStates.WithDevices(Orange, new Dictionary<string, DeviceLighting> { ["fan"] = Green }));
 
         Assert.False(updated.SimulatedDevices);
         Assert.Equal(Orange, updated.ToDeviceLighting());
@@ -42,7 +42,7 @@ public sealed class EngineSettingsTests
         var settings = new EngineSettings();
         var options = typeof(EngineSettings)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-            .Where(property => property.Name != nameof(EngineSettings.Devices))
+            .Where(property => property.Name is not (nameof(EngineSettings.Devices) or nameof(EngineSettings.LedColors)))
             .ToArray();
         Assert.NotEmpty(options);
         foreach (var option in options)

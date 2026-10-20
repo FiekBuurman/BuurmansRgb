@@ -60,7 +60,7 @@ public sealed class LightingControllerDeviceChangeTests
     public async Task DevicesChanged_DeviceGone_KeepsItsOwnLightingForWhenItReturns()
     {
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
-        _controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { ["real"] = Lighting(Green) }));
+        _controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { ["real"] = Lighting(Green) }));
 
         await ChangeDevicesAsync();
         Assert.DoesNotContain(_controller.Devices, device => device.Id == "real");

@@ -20,6 +20,7 @@ internal sealed class EngineHost(
     {
         var settings = settingsStore.LoadOrCreate();
         simulatedDevices?.IsEnabled = settings.SimulatedDevices;
+        lighting.FramesPerSecond = settings.FramesPerSecond;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay);

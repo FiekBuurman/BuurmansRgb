@@ -51,6 +51,39 @@
   <data name="Effect_static" xml:space="preserve">
     <value>Statisch</value>
   </data>
+  <data name="Effect_breathing" xml:space="preserve">
+    <value>Ademen</value>
+  </data>
+  <data name="Effect_rainbow" xml:space="preserve">
+    <value>Regenboog</value>
+  </data>
+  <data name="Effect_wave" xml:space="preserve">
+    <value>Golf</value>
+  </data>
+  <data name="Effect_per-led" xml:space="preserve">
+    <value>Per LED</value>
+  </data>
+  <data name="PreviewHint" xml:space="preserve">
+    <value>Klik op een LED om hem een eigen kleur te geven. Met Shift+klik kies je een reeks.</value>
+  </data>
+  <data name="LedSelectionSingle" xml:space="preserve">
+    <value>LED {0} van {1}</value>
+  </data>
+  <data name="LedSelectionRange" xml:space="preserve">
+    <value>LED {0} t/m {1} van {2}</value>
+  </data>
+  <data name="LedSelectionHint" xml:space="preserve">
+    <value>De kleur hieronder geldt nu alleen voor deze LED's.</value>
+  </data>
+  <data name="FillGradient" xml:space="preserve">
+    <value>Verloop vullen</value>
+  </data>
+  <data name="FillGradientToolTip" xml:space="preserve">
+    <value>Vult de reeks met een verloop van de kleur van de eerste naar die van de laatste LED.</value>
+  </data>
+  <data name="ClearLedSelection" xml:space="preserve">
+    <value>Selectie opheffen</value>
+  </data>
   <data name="StatusConnecting" xml:space="preserve">
     <value>Verbinden met de engine…</value>
   </data>

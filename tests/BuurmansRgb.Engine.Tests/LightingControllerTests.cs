@@ -50,7 +50,7 @@ public sealed class LightingControllerTests
     {
         var controller = await CreateSimulatedAsync();
 
-        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green, 0.5) }));
+        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green, 0.5) }));
 
         Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
         Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange, led));
@@ -129,7 +129,7 @@ public sealed class LightingControllerTests
     public async Task SetLighting_GlobalBrightness_KeepsDeviceColor()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
+        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
 
         controller.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
 
@@ -143,7 +143,7 @@ public sealed class LightingControllerTests
     public async Task SetLighting_GlobalColor_KeepsDeviceBrightness()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Orange, 0.5) }));
+        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Orange, 0.5) }));
 
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 
@@ -155,7 +155,7 @@ public sealed class LightingControllerTests
     public async Task SetLighting_GlobalMatchesDevice_DropsItsOwnLighting()
     {
         var controller = await CreateSimulatedAsync();
-        controller.Apply(new LightingState(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
+        controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green) }));
 
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 

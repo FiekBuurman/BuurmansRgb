@@ -26,7 +26,7 @@ internal static class Program
 
         var simulatedDevices = new SwitchableDeviceProvider(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
-        var lighting = new LightingController([simulatedDevices, openRgb]);
+        using var lighting = new LightingController([simulatedDevices, openRgb]);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,

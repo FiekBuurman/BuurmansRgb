@@ -37,6 +37,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         _shutdown.Dispose();
         _allClientsGone.Dispose();
+        _lighting.Dispose();
     }
 
     [Fact]
@@ -128,10 +129,10 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         var client = await StartAndConnectAsync();
 
-        await client.Api.SetEffectAsync(Fan, EffectIds.Static, TestContext.Current.CancellationToken);
+        await client.Api.SetEffectAsync(Fan, EffectIds.Rainbow, TestContext.Current.CancellationToken);
 
-        Assert.Equal([EffectIds.Static], await client.Api.GetEffectsAsync(TestContext.Current.CancellationToken));
-        Assert.Equal(EffectIds.Static, (await client.Api.GetLightingAsync(Fan, TestContext.Current.CancellationToken)).EffectId);
+        Assert.Equal(EffectCatalog.Ids, await client.Api.GetEffectsAsync(TestContext.Current.CancellationToken));
+        Assert.Equal(EffectIds.Rainbow, (await client.Api.GetLightingAsync(Fan, TestContext.Current.CancellationToken)).EffectId);
     }
 
     [Fact]
