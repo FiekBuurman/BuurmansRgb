@@ -58,7 +58,8 @@ internal static class Program
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents,
             profileTriggers: [profileTimer, programWatcher],
-            zoneLengths: zoneLengths);
+            zoneLengths: zoneLengths,
+            autoPause: autoPause);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))

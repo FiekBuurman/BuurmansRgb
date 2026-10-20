@@ -12,6 +12,9 @@ internal sealed record EngineSettings : LightingStateSettings
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;
 
+    // Whether the animation pauses while Windows is locked or asleep (AutoPause).
+    public bool PauseOnLockAndSleep { get; set; } = true;
+
     // "zoneLengths": by device id, the LED count the user gave each resizable zone, by zone name.
     // Null instead of empty, so the default settings stay out of the file.
     public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }

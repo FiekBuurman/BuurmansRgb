@@ -154,6 +154,32 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     [Fact]
+    public async Task Disabled_IgnoresLockAndSleep()
+    {
+        await StartAnimatedAsync();
+        _autoPause.Enabled = false;
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _power.RaiseSuspending();
+
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    [Fact]
+    public async Task DisabledWhileLocked_EndsThePauseAndEnabledStartsItAgain()
+    {
+        await StartAnimatedAsync();
+        _session.Raise(SessionSwitchReason.SessionLock);
+
+        _autoPause.Enabled = false;
+        Assert.True(_lighting.IsAnimating);
+
+        _autoPause.Enabled = true;
+        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+    }
+
+    [Fact]
     public async Task Dispose_StopsListening()
     {
         await StartAnimatedAsync();

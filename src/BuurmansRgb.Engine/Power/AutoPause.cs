@@ -16,6 +16,7 @@ internal sealed class AutoPause : IDisposable
     private readonly ISessionEvents _session;
     private readonly Action<PauseReasons, bool> _setPaused;
     private readonly Lock _gate = new();
+    private bool _enabled = true;
     private bool _locked;
     private bool _disconnected;
     private bool _asleep;
@@ -28,6 +29,27 @@ internal sealed class AutoPause : IDisposable
         _power.Suspending += OnSuspending;
         _power.Resumed += OnResumed;
         _session.Switched += OnSessionSwitched;
+    }
+
+    // On unless settings.json turns it off. Turning it off ends the pauses it made; turning it on
+    // pauses at once when Windows is locked.
+    public bool Enabled
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _enabled;
+            }
+        }
+        set
+        {
+            lock (_gate)
+            {
+                _enabled = value;
+                ApplyLocked();
+            }
+        }
     }
 
     public void Dispose()
@@ -71,8 +93,8 @@ internal sealed class AutoPause : IDisposable
 
     private void ApplyLocked()
     {
-        SetPaused(PauseReasons.Locked, _locked || _disconnected);
-        SetPaused(PauseReasons.Asleep, _asleep);
+        SetPaused(PauseReasons.Locked, _enabled && (_locked || _disconnected));
+        SetPaused(PauseReasons.Asleep, _enabled && _asleep);
     }
 
     // The events come from Windows on the tray thread; a device that fails while its colors go

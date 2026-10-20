@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
@@ -260,6 +261,21 @@ public sealed class EngineHostTests : IDisposable
         await host.StartAsync(Ct);
 
         Assert.Equal(12, lighting.FramesPerSecond);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StartAsync_TurnsThePauseOnLockAndSleepOnOrOff(bool enabled)
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { PauseOnLockAndSleep = enabled } };
+        using var lighting = new LightingController([_simulated]);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused) { Enabled = !enabled };
+        using var host = new EngineHost(store, lighting, autoPause: autoPause);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(enabled, autoPause.Enabled);
     }
 
     [Fact]
