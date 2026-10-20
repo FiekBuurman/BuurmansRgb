@@ -58,6 +58,12 @@ public partial interface IEngineApi
     // paused or for a device the engine does not know (any more).
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
 
+    Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default);
+
+    // Saved like the lighting. When the new mode shows or hides the simulated devices,
+    // DevicesChanged follows.
+    Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
+
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);
 

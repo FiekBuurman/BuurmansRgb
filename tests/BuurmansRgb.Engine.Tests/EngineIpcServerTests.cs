@@ -14,11 +14,19 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private const string Fan = "simulated-fan";
 
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
-    private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
+    private readonly LightingController _lighting;
+    private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
     private readonly SemaphoreSlim _allClientsGone = new(0);
     private Task? _server;
+
+    public EngineIpcServerTests()
+    {
+        var simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
+        _lighting = new LightingController([simulated]);
+        _simulatedDevices = new SimulatedDevicesSwitch(simulated, _lighting);
+    }
 
     public async ValueTask DisposeAsync()
     {
@@ -35,6 +43,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         _shutdown.Dispose();
         _allClientsGone.Dispose();
+        _simulatedDevices.Dispose();
         _lighting.Dispose();
     }
 
@@ -188,6 +197,20 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task SetSimulatedDevicesAsync_HidesThemAndTheClientHearsOfIt()
+    {
+        var client = await StartAndConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.DevicesChanged += (_, _) => changed.TrySetResult();
+
+        await client.Api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
+
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal(SimulatedDevicesMode.Never, await client.Api.GetSimulatedDevicesAsync(Ct));
+        Assert.Empty(await client.Api.GetDevicesAsync(Ct));
+    }
+
+    [Fact]
     public async Task TwoClients_BothReceiveFrames()
     {
         var first = await StartAndConnectAsync();
@@ -231,7 +254,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting)), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

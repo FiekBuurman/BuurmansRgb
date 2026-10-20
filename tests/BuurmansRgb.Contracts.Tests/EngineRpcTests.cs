@@ -172,6 +172,18 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+
+        var mode = await client.Api.GetSimulatedDevicesAsync(Ct);
+        await client.Api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
+
+        Assert.Equal(SimulatedDevicesMode.Always, mode);
+        Assert.Equal([SimulatedDevicesMode.Never], _api.SimulatedDevicesCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -310,6 +322,17 @@ public sealed class EngineRpcTests : IDisposable
         public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
         {
             FlashCalls.Add(deviceId);
+            return Task.CompletedTask;
+        }
+
+        public List<SimulatedDevicesMode> SimulatedDevicesCalls { get; } = [];
+
+        public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) =>
+            Task.FromResult(SimulatedDevicesMode.Always);
+
+        public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
+        {
+            SimulatedDevicesCalls.Add(mode);
             return Task.CompletedTask;
         }
 

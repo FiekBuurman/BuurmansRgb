@@ -127,6 +127,16 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default) => Record($"flash {deviceId}");
 
+    public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
+
+    public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(SimulatedDevices);
+
+    public async Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
+    {
+        await Record($"simulated {mode}");
+        SimulatedDevices = mode;
+    }
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

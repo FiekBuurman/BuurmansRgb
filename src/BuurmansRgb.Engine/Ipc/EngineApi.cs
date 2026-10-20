@@ -12,12 +12,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
     private readonly ProfileLibrary _profiles;
+    private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly SettingsSaveEvents? _saveEvents;
 
-    public EngineApi(LightingController lighting, ProfileLibrary profiles, SettingsSaveEvents? saveEvents = null)
+    public EngineApi(LightingController lighting, ProfileLibrary profiles, SimulatedDevicesSwitch simulatedDevices, SettingsSaveEvents? saveEvents = null)
     {
         _lighting = lighting;
         _profiles = profiles;
+        _simulatedDevices = simulatedDevices;
         _saveEvents = saveEvents;
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
@@ -92,6 +94,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
     {
         _lighting.Flash(deviceId);
+        return Task.CompletedTask;
+    }
+
+    public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(_simulatedDevices.Mode);
+
+    public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
+    {
+        _simulatedDevices.Mode = mode;
         return Task.CompletedTask;
     }
 
