@@ -24,6 +24,20 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task GetDevicesAsync_GivesTypeAndZonesOfEveryDevice()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        using var api = new EngineApi(_lighting);
+
+        var devices = await api.GetDevicesAsync(TestContext.Current.CancellationToken);
+
+        var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
+        Assert.Equal(DeviceType.Motherboard, motherboard.Type);
+        Assert.Equal(7, motherboard.LedCount);
+        Assert.Equal(["Mainboard", "RGB header", "ARGB header"], motherboard.Zones.Select(zone => zone.Name));
+    }
+
+    [Fact]
     public async Task SetLedColorsAsync_StoresTheColorsOfTheDevice()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);

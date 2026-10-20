@@ -19,13 +19,17 @@ internal static class OpenRgbDeviceMapper
 
     public static IReadOnlyList<MappedDevice> Map(IEnumerable<OpenRgbDeviceData> devices)
     {
+        var list = devices.ToArray();
+        var nameCounts = list.CountBy(device => device.Name).ToDictionary();
+        Dictionary<string, int> nameNumbers = [];
         HashSet<string> usedIds = [];
         List<MappedDevice> mapped = [];
-        foreach (var device in devices)
+        foreach (var device in list)
         {
             var id = UniqueId(CreateId(device), usedIds);
+            var name = nameCounts[device.Name] > 1 ? NumberedName(device.Name, nameNumbers) : device.Name;
             var zones = device.Zones.Select(zone => new RgbZone(zone.Name, zone.LedCount, IsResizable(zone))).ToArray();
-            mapped.Add(new(new RgbDevice(id, device.Name, ToDeviceType(device.Type), zones, device.LedCount), device.Index));
+            mapped.Add(new(new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount), device.Index));
         }
 
         return mapped;
@@ -59,6 +63,15 @@ internal static class OpenRgbDeviceMapper
     }
 
     private static bool IsResizable(OpenRgbZoneData zone) => zone.MinLedCount != zone.MaxLedCount;
+
+    // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
+    // in the device list; the id does not use it.
+    private static string NumberedName(string name, Dictionary<string, int> numbers)
+    {
+        var number = numbers.GetValueOrDefault(name) + 1;
+        numbers[name] = number;
+        return $"{name} {number}";
+    }
 
     // Two devices with the same name, location and serial still get their own id, in server order.
     private static string UniqueId(string id, HashSet<string> usedIds)

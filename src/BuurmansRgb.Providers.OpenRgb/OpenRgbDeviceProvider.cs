@@ -8,7 +8,7 @@ namespace BuurmansRgb.Providers.OpenRgb;
 // DiscoverAsync starts it and returns no devices; they follow through DevicesChanged once the
 // server answers. When connecting fails or the connection is lost, the provider tries again
 // after RetryDelay. That timer only runs while there is no connection.
-public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
+public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IRestorableDeviceProvider, IDisposable
 {
     public static TimeSpan RetryDelay { get; } = TimeSpan.FromSeconds(5);
 
@@ -94,6 +94,24 @@ public sealed class OpenRgbDeviceProvider : IDynamicDeviceProvider, IDisposable
             // Whatever went wrong on the wire, the connection can no longer be trusted.
             Trace.TraceWarning($"Sending colors to OpenRGB failed: {exception.Message}");
             EnqueueDrop(connection);
+        }
+    }
+
+    // After sleep the devices may show their own effect again, and OpenRGB may have reset them.
+    // A reload puts every device in its Direct or Custom mode again and ends with DevicesChanged,
+    // so the engine sends the colors once more. Without a connection there is nothing to restore:
+    // connecting again does the same.
+    public void RestoreDevices()
+    {
+        IOpenRgbConnection? connection;
+        lock (_gate)
+        {
+            connection = _connection;
+        }
+
+        if (connection is not null)
+        {
+            OnDeviceListChanged(connection);
         }
     }
 

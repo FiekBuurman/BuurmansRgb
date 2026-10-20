@@ -21,8 +21,8 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new LedSelection("fan", "Fan", 1, 1), viewModel.LedEditor.Selection);
         Assert.Equal(new RgbColor(9, 8, 7), viewModel.ColorPicker.Color);
         var fan = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan");
-        Assert.Equal((1, 1), (fan.SelectionFirst, fan.SelectionLast));
-        Assert.Equal(-1, viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").SelectionFirst);
+        Assert.Equal((1, 1), fan.ShownSelection());
+        Assert.Equal((-1, -1), viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").ShownSelection());
         Assert.Empty(Api.Calls);
     }
 
@@ -36,6 +36,24 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task ClickLed_ExtendIntoTheNextZone_SelectsAcrossBothZones()
+    {
+        var viewModel = await ConnectAsync();
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
+            [new RgbZone("Mainboard", 2, Resizable: false), new RgbZone("ARGB header", 2, Resizable: true)])];
+        Api.RaiseDevicesChanged();
+
+        Click(viewModel, "board", 1);
+        Click(viewModel, "board", 2, extend: true);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
+        var board = Assert.Single(viewModel.Preview.Devices);
+        Assert.Equal([(1, 1), (0, 0)], board.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
+        Assert.Equal(["leds board 1 #00FF00,#00FF00"], Api.Calls);
     }
 
     [Fact]
@@ -85,7 +103,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Assert.Null(viewModel.LedEditor.Selection);
-        Assert.All(viewModel.Preview.Devices, preview => Assert.Equal(-1, preview.SelectionFirst));
+        Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
@@ -137,7 +155,7 @@ public sealed class MainViewModelLedEditorTests
     }
 
     private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false) =>
-        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLedCommand.Execute(new LedHit(index, extend));
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend);
 
     private async Task<MainViewModel> ConnectAsync()
     {

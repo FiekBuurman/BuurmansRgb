@@ -28,6 +28,9 @@ internal sealed class LightingController : IDisposable
     private DeviceOutput[] _outputs = [];
     private DeviceLighting? _global;
     private bool _isPaused;
+
+    // A restore that waits for the pause to end.
+    private bool _restorePending;
     private bool _disposed;
     private long _sequence;
     private int _framesPerSecond = DefaultFramesPerSecond;
@@ -267,6 +270,33 @@ internal sealed class LightingController : IDisposable
                 return;
             }
 
+            if (_restorePending)
+            {
+                _restorePending = false;
+                RestoreProvidersLocked();
+            }
+
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+    }
+
+    // After sleep many devices show an effect of their own again. The providers that can set their
+    // devices up again do so, and every device gets its lighting once more, also the ones that
+    // did not change. While paused the devices stay as they are until the pause ends.
+    public void RestoreDevices()
+    {
+        bool rendered;
+        lock (_gate)
+        {
+            if (_isPaused)
+            {
+                _restorePending = true;
+                return;
+            }
+
+            RestoreProvidersLocked();
             rendered = RenderLocked();
         }
 
@@ -377,6 +407,22 @@ internal sealed class LightingController : IDisposable
         _sequence++;
         UpdateAnimationLocked();
         return true;
+    }
+
+    private void RestoreProvidersLocked()
+    {
+        foreach (var provider in _providers.OfType<IRestorableDeviceProvider>())
+        {
+            try
+            {
+                provider.RestoreDevices();
+            }
+            catch (Exception exception)
+            {
+                // The other providers still get their turn, and the colors still go out.
+                Trace.TraceError(exception.ToString());
+            }
+        }
     }
 
     // Every device runs on the same clock, so the same animated effect stays in step on all of them.

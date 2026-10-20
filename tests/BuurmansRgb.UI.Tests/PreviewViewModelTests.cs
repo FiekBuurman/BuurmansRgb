@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class PreviewViewModelTests
 {
-    private static readonly DeviceInfo Fan = new("fan", "Fan", DeviceType.Fan, 2);
+    private static readonly DeviceInfo Fan = TestDevices.Create("fan", "Fan", DeviceType.Fan, 2);
 
     [Fact]
     public void ShowDevices_ShowsTheLatestFrameRightAway()
@@ -40,7 +40,7 @@ public sealed class PreviewViewModelTests
 
         preview.ShowDevices([Fan]);
 
-        Assert.Equal((0, 1), (preview.Devices[0].SelectionFirst, preview.Devices[0].SelectionLast));
+        Assert.Equal((0, 1), preview.Devices[0].ShownSelection());
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public sealed class PreviewViewModelTests
         LedClick? clicked = null;
         preview.LedClicked += (_, click) => clicked = click;
 
-        preview.Devices[0].ClickLedCommand.Execute(new LedHit(1, Extend: true));
+        preview.Devices[0].ClickLed(1, extend: true);
 
         Assert.Equal(new LedClick("fan", 1, Extend: true), clicked);
     }

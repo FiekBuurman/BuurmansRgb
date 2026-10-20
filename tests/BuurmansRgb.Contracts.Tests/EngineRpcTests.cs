@@ -27,7 +27,7 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task GetDevicesAsync_ReturnsDevicesFromServer()
+    public async Task GetDevicesAsync_ReturnsDevicesWithTheirZonesFromServer()
     {
         var client = await ConnectAsync();
 
@@ -144,7 +144,10 @@ public sealed class EngineRpcTests : IDisposable
         public event EventHandler? DevicesChanged;
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
-            [new("strip", "LED strip", DeviceType.LedStrip, 30), new("fan", "Fan", DeviceType.Fan, 12)];
+        [
+            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, Resizable: true)]),
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [new RgbZone("Mainboard", 4, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]),
+        ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);
 

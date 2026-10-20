@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -170,10 +169,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         WithoutSending(() =>
         {
             Devices.Clear();
-            Devices.Add(new DeviceItem(null, Strings.AllDevices, Format(Strings.AllDevicesDetails, devices.Count)));
+            Devices.Add(DeviceItem.AllDevices(devices.Count));
             foreach (var device in devices)
             {
-                Devices.Add(new DeviceItem(device.Id, device.Name, Format(Strings.DeviceDetails, device.LedCount)));
+                Devices.Add(DeviceItem.For(device));
             }
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
@@ -433,6 +432,4 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _uiContext.Post(_ => action(), state: null);
         }
     }
-
-    private static string Format(string format, int count) => string.Format(CultureInfo.CurrentCulture, format, count);
 }

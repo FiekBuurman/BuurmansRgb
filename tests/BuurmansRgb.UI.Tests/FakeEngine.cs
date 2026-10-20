@@ -49,8 +49,8 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [
-        new("strip", "LED strip", DeviceType.LedStrip, 3),
-        new("fan", "Fan", DeviceType.Fan, 2),
+        TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 3),
+        TestDevices.Create("fan", "Fan", DeviceType.Fan, 2),
     ];
 
     public Dictionary<string, LightingInfo> Lighting { get; } = new()

@@ -84,7 +84,11 @@ dotnet run --project src/BuurmansRgb.Engine
 - **Starten met Windows** zet `BuurmansRgb` in
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
-  OpenRGB. Zie "OpenRGB koppelen" hieronder.
+  OpenRGB. Zie "OpenRGB koppelen" hieronder. Gesimuleerd zijn er een strip (30 LED's), een
+  fan (12), een toetsenbord (104), een moederbord (7, in drie zones) en twee RAM-sticks (8).
+- **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
+  klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
+  RAM" hieronder.
 - **IPC:** de engine luistert op named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor
   de eigen Windows-gebruiker) met StreamJsonRpc. Het sessienummer zorgt dat twee ingelogde
   gebruikers elk hun eigen engine hebben, net als de mutex. De interface is `IEngineApi` in
@@ -151,6 +155,40 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 - Meldingen over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken
   met DebugView), zolang er nog geen logbestand is.
 
+## Moederbord en RAM
+
+Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt ze meestal
+via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
+
+- **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
+  aantal LED's en, bij meer dan één zone, het aantal zones. Andere types krijgen voorlopig een
+  algemeen icoon; hun eigen icoon en naam komen in taak 6–8.
+- **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
+  OpenRGB ze geeft (bijv. "Aura Mainboard" en "Aura Addressable 1"). Een header zonder LED's
+  staat er ook, met de melding dat je in OpenRGB instelt hoeveel LED's erop zitten. Een
+  apparaat met één zone toont geen zonenaam.
+- **RAM:** OpenRGB toont elke RAM-stick als eigen apparaat, vaak met dezelfde naam. Die
+  krijgen een nummer in de volgorde van OpenRGB ("ENE DRAM 1", "ENE DRAM 2"). Het id in
+  `settings.json` verandert daardoor niet.
+- **Na slaapstand** gaan veel moederborden en RAM-sticks terug naar hun eigen effect. De
+  engine luistert naar `PowerModeChanged` en herstelt 2 en 10 seconden na het ontwaken: hij
+  laadt de OpenRGB-apparaten opnieuw (dat zet ze weer in "Direct" of "Custom") en stuurt alle
+  kleuren opnieuw. Zijn de effecten gepauzeerd, dan gebeurt dat pas bij hervatten.
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Wat dit deel test:
+  de vertaling van OpenRGB-moederborden en -RAM met nepdata (`OpenRgbDeviceMapperTests`,
+  `OpenRgbDeviceProviderTests`), herstellen na slaapstand (`LightingControllerRestoreTests`,
+  `ResumeRestorerTests`, met een nepklok) en de lijst en zones in de instellingen-app
+  (`DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests`). Start daarnaast de
+  engine en de instellingen-app: het gesimuleerde moederbord en de RAM-sticks staan in de lijst.
+- **Testen met je eigen hardware:**
+  1. Start OpenRGB als administrator met de SDK-server aan, daarna de engine en de
+     instellingen-app.
+  2. Vergelijk per moederbord en RAM-stick het aantal LED's en de zones met OpenRGB.
+  3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
+  4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
+     zijn.
+  5. Noteer in `docs/hardware.md` wat werkt.
+
 ## Instellingen-app starten
 
 De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast
@@ -161,9 +199,10 @@ De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast
 dotnet run --project src/BuurmansRgb.UI
 ```
 
-- **Links** de apparatenlijst, met bovenaan "Alle apparaten". **Rechts** de kleur (hex-code,
-  vaste kleuren, schuiven voor tint en verzadiging), de helderheid (0–100%), het effect en
-  een voorbeeld met een bolletje per LED.
+- **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
+  het type. **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
+  verzadiging), de helderheid (0–100%), het effect en een voorbeeld met een bolletje per
+  LED, per zone.
 - Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat

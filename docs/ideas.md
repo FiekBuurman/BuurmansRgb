@@ -86,3 +86,11 @@
   0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
 - Golf en Regenboog per zone laten lopen in plaats van over het hele apparaat (bijv. elke
   fan-ring een eigen golf)
+- Herstellen na het ontwaken ook bij Modern Standby (S0) controleren: of `PowerModeChanged`
+  dan `Resume` meldt, verschilt per pc. Eventueel ook herstellen bij het aangaan van het scherm
+  of bij ontgrendelen (`SessionSwitch`), als apparaten dan ook terug naar hun eigen effect gaan
+- De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
+  zodra OpenRGB de apparaten weer meldt
+- Bij RAM-sticks met dezelfde naam de OpenRGB-locatie (SMBus-adres) tonen, zodat je ziet welke
+  stick in welk slot zit; nu krijgen ze alleen een nummer in de volgorde van OpenRGB
+- In de per-LED-editor een hele zone in één keer selecteren door op de zonenaam te klikken

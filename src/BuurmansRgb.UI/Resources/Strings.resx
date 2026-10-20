@@ -24,8 +24,38 @@
   <data name="AllDevicesDetails" xml:space="preserve">
     <value>{0} apparaten</value>
   </data>
-  <data name="DeviceDetails" xml:space="preserve">
+  <data name="LedCount" xml:space="preserve">
     <value>{0} LED's</value>
+  </data>
+  <data name="LedCountOne" xml:space="preserve">
+    <value>1 LED</value>
+  </data>
+  <data name="LedCountInZones" xml:space="preserve">
+    <value>{0} LED's in {1} zones</value>
+  </data>
+  <data name="DeviceDetailsWithType" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="ZoneWithoutLeds" xml:space="preserve">
+    <value>Geen LED's</value>
+  </data>
+  <data name="ZoneWithoutLedsResizable" xml:space="preserve">
+    <value>Geen LED's: stel in OpenRGB in hoeveel LED's hierop zitten</value>
+  </data>
+  <data name="ZoneHeader" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="ZoneAccessibleName" xml:space="preserve">
+    <value>{0} – {1}</value>
+  </data>
+  <data name="ZoneOtherLeds" xml:space="preserve">
+    <value>Overige LED's</value>
+  </data>
+  <data name="DeviceType_Motherboard" xml:space="preserve">
+    <value>Moederbord</value>
+  </data>
+  <data name="DeviceType_Ram" xml:space="preserve">
+    <value>RAM</value>
   </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
