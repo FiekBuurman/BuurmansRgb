@@ -222,8 +222,9 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 - **Hoe de engine het merkt:** via `SystemEvents.SessionSwitch` (vergrendelen, ontgrendelen,
   verbinden en verbreken van de sessie) en `SystemEvents.PowerModeChanged` (slapen en ontwaken),
   op de thread van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`).
-  Windows meldt alleen veranderingen; start de engine terwijl Windows vergrendeld is, dan pauzeert
-  hij pas bij de volgende vergrendeling.
+  Windows meldt alleen veranderingen, dus bij het starten vraagt de engine één keer of Windows
+  vergrendeld is (`WTSQuerySessionInformation`): start hij laat na het aanmelden, terwijl je al
+  vergrendeld hebt, dan pauzeert hij meteen. Lukt die vraag niet, dan telt hij als ontgrendeld.
 - **Gemeten** (Release, gesimuleerde apparaten, zonder OpenRGB, instellingen-app dicht): de hele
   engine met de regenboog op 30 fps ~0,31 % van één kern (~0,02 % van de pc), ~25 MB working
   set en ~12 MB private bytes; met een statische kleur ~0,08 % van één kern (vooral de
@@ -234,7 +235,7 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
   `LightingControllerPauseTests` (de redenen naast elkaar, wijzigingen en herstellen tijdens
   vergrendelen, knipperen), `AutoPauseTests` (met nep-events van Windows: vergrendelen,
   verbreken, slaapstand, de pauze uit het menu die blijft, wakker worden op het
-  vergrendelscherm met `ResumeRestorer`, uitzetten), `EngineHostTests` en
+  vergrendelscherm met `ResumeRestorer`, uitzetten), `SystemSessionEventsTests` (de beginstand uit Windows lezen), `EngineHostTests` en
   `JsonSettingsStoreTests` (`pauseOnLockAndSleep`), `TrayPresenterTests` (vinkje en tooltip),
   `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de pipe), en in de
   instellingen-app `EffectsPauseViewModelTests` en `MainViewModelPauseTests`. Start daarnaast de

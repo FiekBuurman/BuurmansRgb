@@ -5,6 +5,8 @@ namespace BuurmansRgb.Engine.Tests;
 
 internal sealed class FakeSessionEvents : ISessionEvents
 {
+    public bool IsLocked { get; set; }
+
     public event EventHandler<SessionSwitchReason>? Switched;
 
     public bool HasListeners => Switched is not null;

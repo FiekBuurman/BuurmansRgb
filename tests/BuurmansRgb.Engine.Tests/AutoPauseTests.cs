@@ -104,6 +104,20 @@ public sealed class AutoPauseTests : IDisposable
         Assert.True(_lighting.IsAnimating);
     }
 
+    // An engine that starts late after sign-in may start on the lock screen.
+    [Fact]
+    public async Task StartedWhileLocked_PausesUntilUnlocked()
+    {
+        await StartAnimatedAsync();
+        var session = new FakeSessionEvents { IsLocked = true };
+
+        using var autoPause = new AutoPause(_power, session, _lighting.SetPaused);
+        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+
+        session.Raise(SessionSwitchReason.SessionUnlock);
+        Assert.True(_lighting.IsAnimating);
+    }
+
     [Fact]
     public async Task Suspending_StopsTheAnimationUntilResumed()
     {

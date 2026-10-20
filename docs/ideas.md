@@ -207,9 +207,6 @@
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
   (`RegisterPowerSettingNotification` met `GUID_CONSOLE_DISPLAY_STATE`); nu loopt de animatie dan
   door
-- Bij het starten van de engine vragen of Windows vergrendeld is (`WTSQuerySessionInformation`
-  met `WTSSessionInfoEx`); nu telt de engine bij het starten als ontgrendeld en pauzeert hij pas bij
-  de volgende vergrendeling
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een profiel
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat

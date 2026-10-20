@@ -8,8 +8,8 @@ namespace BuurmansRgb.Engine.Power;
 // locked or the session is on no screen (another user took over, or a remote desktop was left
 // without signing out), and from going to sleep until waking up. Each pause ends on its own; the
 // pause from the tray menu is a reason of its own, which this leaves alone (LightingController).
-// Windows reports changes only, so the engine counts as unlocked when it starts: it starts at
-// sign-in.
+// Windows reports changes only, so whether the session is locked is asked once at the start: an
+// engine that starts late after sign-in may start on the lock screen.
 internal sealed class AutoPause : IDisposable
 {
     private readonly IPowerEvents _power;
@@ -29,6 +29,9 @@ internal sealed class AutoPause : IDisposable
         _power.Suspending += OnSuspending;
         _power.Resumed += OnResumed;
         _session.Switched += OnSessionSwitched;
+
+        // After listening, so a lock in between is not missed.
+        Change(() => _locked = _session.IsLocked);
     }
 
     // On unless settings.json turns it off. Turning it off ends the pauses it made; turning it on
