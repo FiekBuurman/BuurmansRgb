@@ -105,17 +105,26 @@ internal static partial class OpenRgbDeviceMapper
     };
 
     // OpenRGB names every key "Key: <key>", such as "Key: Escape"; the prefix says nothing next
-    // to a key, so it goes. Other names stay as they are. A zone whose LEDs all have no name
-    // gets no list, so it costs nothing on the pipe.
+    // to a key, so it goes. Outside keyboards it mostly names an LED by a number of its own, such
+    // as "LED 3" or "Aura Addressable 1 LED 3", counted per zone or per device; next to the number
+    // of the LED in the device that only confuses, so such a name counts as no name. Other names
+    // stay as they are. A zone whose LEDs all have no name gets no list, so it costs nothing on
+    // the pipe.
     public static IReadOnlyList<string>? ToLedNames(IReadOnlyList<string>? names)
     {
-        if (names is null || names.All(string.IsNullOrWhiteSpace))
+        if (names is null)
         {
             return null;
         }
 
-        return [.. names.Select(name => name.StartsWith(KeyPrefix, StringComparison.Ordinal) ? name[KeyPrefix.Length..] : name)];
+        string[] cleaned = [.. names.Select(ToLedName)];
+        return cleaned.All(string.IsNullOrWhiteSpace) ? null : cleaned;
     }
+
+    private static string ToLedName(string name) =>
+        LedNumberName().IsMatch(name) ? string.Empty
+        : name.StartsWith(KeyPrefix, StringComparison.Ordinal) ? name[KeyPrefix.Length..]
+        : name;
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.
@@ -140,6 +149,9 @@ internal static partial class OpenRgbDeviceMapper
 
     [GeneratedRegex(@"^I2C: (?<bus>.+), address (?<address>0x[0-9A-Fa-f]+)$")]
     private static partial Regex SmBusLocation();
+
+    [GeneratedRegex(@"^(.* )?LED \d+$")]
+    private static partial Regex LedNumberName();
 
     private static string Slug(string name)
     {

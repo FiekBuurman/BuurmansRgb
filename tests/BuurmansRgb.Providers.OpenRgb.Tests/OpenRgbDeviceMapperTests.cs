@@ -33,19 +33,42 @@ public sealed class OpenRgbDeviceMapperTests
     public void Map_KeyNames_LoseTheirKeyPrefix()
     {
         var data = TestDevices.Create(type: OpenRgbDeviceType.Keyboard,
-            zones: [new("Keys", 3, 3, 3, LedNames: ["Key: Escape", "Key: Number Pad 0", "Logo"]), new("Strip", 2, 2, 2, LedNames: ["LED 1", "LED 2"])]);
+            zones: [new("Keys", 3, 3, 3, LedNames: ["Key: Escape", "Key: Number Pad 0", "Logo"]), new("Strip", 2, 2, 2, LedNames: ["Left", "Right"])]);
 
         var zones = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones;
 
         Assert.Equal(["Escape", "Number Pad 0", "Logo"], zones[0].LedNames!);
-        Assert.Equal(["LED 1", "LED 2"], zones[1].LedNames!);
+        Assert.Equal(["Left", "Right"], zones[1].LedNames!);
     }
 
-    // Only "Key: " at the start is OpenRGB's prefix.
+    // A name that only numbers the LED, per zone or per device, says nothing next to the number of
+    // the LED in the device, so a zone with only such names has no list.
+    [Fact]
+    public void Map_NamesThatOnlyNumberTheLeds_AreNoNames()
+    {
+        var data = TestDevices.Create(zones:
+        [
+            new("Strip", 2, 2, 2, LedNames: ["LED 1", "LED 2"]),
+            new("Header", 2, 2, 2, LedNames: ["Aura Addressable 1 LED 1", "Aura Addressable 1 LED 2"]),
+            new("Mixed", 2, 2, 2, LedNames: ["Logo", "LED 2"]),
+        ]);
+
+        var zones = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones;
+
+        Assert.Null(zones[0].LedNames);
+        Assert.Null(zones[1].LedNames);
+        Assert.Equal(["Logo", ""], zones[2].LedNames!);
+    }
+
+    // Only "Key: " at the start is OpenRGB's prefix, and only a number at the end after "LED " is
+    // a number name.
     [Theory]
     [InlineData("Key:Escape")]
     [InlineData("key: Escape")]
     [InlineData("Left Key: 1")]
+    [InlineData("LED 1 Logo")]
+    [InlineData("LEDs 1")]
+    [InlineData("RGBLED 1")]
     public void ToLedNames_OtherNames_StayAsTheyAre(string name) =>
         Assert.Equal([name], OpenRgbDeviceMapper.ToLedNames([name])!);
 

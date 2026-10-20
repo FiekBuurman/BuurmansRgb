@@ -395,10 +395,13 @@ USB, niet via SMBus.
   Regenboog en Golf lopen ook over die LED-volgorde, niet over de plek van de toetsen.
 - **Toetsnamen:** OpenRGB geeft elke LED een naam, bij een toetsenbord bijv. "Key: Escape".
   Wijs je in het voorbeeld een LED of toets aan, dan noemt een tooltip hem met zijn nummer,
-  bijv. "Escape (LED 1)" (zonder "Key: "), of "LED 5" als hij geen naam heeft. Een schermlezer
-  noemt de LED's zo ook, en kan ze selecteren zoals een klik (en met "toevoegen aan de
-  selectie" zoals Shift+klik). De namen gaan alleen mee naar de instellingen-app als OpenRGB ze
-  geeft; het gesimuleerde toetsenbord heeft de namen van een gewoon Amerikaans toetsenbord.
+  bijv. "Escape (LED 1)" (zonder "Key: "), of "LED 5" als hij geen naam heeft. Een naam die
+  alleen een eigen nummer is, zoals "LED 3" of "Aura Addressable 1 LED 3", telt als geen naam:
+  OpenRGB telt die per zone of apparaat, en naast het nummer in het apparaat verwart dat alleen.
+  Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik (en met "toevoegen
+  aan de selectie" zoals Shift+klik). De namen gaan alleen mee naar de instellingen-app als
+  OpenRGB echte namen geeft; het gesimuleerde toetsenbord heeft de namen van een gewoon
+  Amerikaans toetsenbord.
 - **Brede toetsen:** in de matrix-map heeft ook de spatiebalk maar één vakje, met lege vakjes
   ernaast. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, linker Shift en Ctrl en de 0 van
   het numerieke blok breder naar rechts, Backspace, Enter, rechter Shift en Ctrl breder naar
