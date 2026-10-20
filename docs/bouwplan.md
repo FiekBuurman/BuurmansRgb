@@ -205,7 +205,7 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 **Acceptatie:**
 
-- [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI naast de gesimuleerde
+- [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI; met "Gesimuleerd: Altijd" naast de gesimuleerde (standaard, "Automatisch", verdwijnen de gesimuleerde zodra er echte zijn)
 - [ ] Statische kleur komt aan op minstens één echt apparaat
 - [ ] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart
 - [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app: "Gesimuleerde apparaten tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
