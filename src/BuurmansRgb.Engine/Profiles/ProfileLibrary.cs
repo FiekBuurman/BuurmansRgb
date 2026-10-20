@@ -65,17 +65,16 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    // Shows the lighting of the profile and saves it as the current lighting.
-    public void Load(string name)
+    // Shows the lighting of the profile and saves it as the current lighting. Outside the lock: the
+    // controller has its own.
+    public void Load(string name) => lighting.Replace(GetLighting(name));
+
+    public LightingState GetLighting(string name)
     {
-        Profile profile;
         lock (_gate)
         {
-            profile = FindLocked(name);
+            return FindLocked(name).Lighting;
         }
-
-        // Outside the lock: the controller has its own.
-        lighting.Replace(profile.Lighting);
     }
 
     public void Delete(string name)

@@ -477,12 +477,16 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   het "nacht"-profiel 's ochtends niet alsnog te komen. Gaat de timer meer dan een minuut te laat
   af, dan telt dat ook als gemist. Na het ontwaken en na een andere tijd of tijdzone rekent de
   engine de volgende tijd opnieuw uit. Hebben twee profielen dezelfde tijd, dan laadt het eerste
-  op alfabet.
+  op alfabet. Komt de tijd terwijl een programma zijn profiel toont (zie hieronder), dan
+  blijft dat profiel staan en komt het profiel van de tijd zodra het programma stopt: 23:00
+  midden in een spel laat het spel met rust. Heb je tijdens het spel zelf iets veranderd, dan komt
+  het profiel van de tijd meteen.
 - **Bij een programma (spel):** vul bij "Laden als dit programma start" de naam van het
   .exe-bestand in (bijv. `eldenring.exe`; `eldenring` of een heel pad mag ook, de app maakt er
   `eldenring.exe` van). Start het programma, dan laadt de engine het profiel binnen 2 seconden.
   Stopt het, dan komt de verlichting van vóór de start terug, tenzij die intussen veranderde (in
-  de instellingen-app, vanuit het tray-menu of door een tijd): dan blijft die. Starten er twee
+  de instellingen-app of vanuit het tray-menu): dan blijft die. Een tijd die intussen kwam, komt
+  dan (zie "Op tijd"). Starten er twee
   programma's met een profiel, dan toont het laatste zijn profiel; stopt dat, dan komt het
   profiel van het eerste terug, en als beide gestopt zijn de verlichting van daarvoor. Draait
   het programma al als de engine start, dan laadt de engine het profiel meteen en gaat hij bij het
@@ -528,7 +532,7 @@ instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een prog
   is), `ProfileLibraryTests` en `JsonProfileStoreTests` (opslaan, oude en kapotte waarden),
   `DailyTimeTests` (de volgende tijd, ook rond zomer- en wintertijd), `ProfileTimerTests` (met
   een nepklok waarvan de timers en de klok los kunnen bewegen: op tijd, elke dag, slaapstand,
-  klok vooruit en terug, wintertijd, geen timer zonder tijden), `ProgramWatcherTests` (met een
+  klok vooruit en terug, wintertijd, geen timer zonder tijden), `ProfileTriggersTests` (een tijd tijdens een spel), `ProgramWatcherTests` (met een
   nep-proceslijst: starten, stoppen, terug naar daarvoor, iets veranderd, twee programma's),
   `ProcessListTests` (de echte proceslijst, met `ping.exe` dat start en stopt),
   `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de

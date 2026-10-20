@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 
 namespace BuurmansRgb.Engine.Profiles;
@@ -7,8 +8,9 @@ namespace BuurmansRgb.Engine.Profiles;
 // while a profile has one: no polling. A timer counts elapsed time, not the clock, and on Windows
 // it stands still while the pc sleeps, so the next time is worked out again when the clock jumps
 // (a new time or time zone, or waking up). A time that passed meanwhile is skipped, not caught up
-// on: after a night asleep the "night" profile would be wrong in the morning. Called from the tray
-// thread, IPC threads and the timer; the lock guards the timer.
+// on: after a night asleep the "night" profile would be wrong in the morning. While a program shows
+// its profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
+// Called from the tray thread, IPC threads and the timer; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
 {
     // How late the timer may go off and still load the profile. A timer is a little late now and
@@ -18,14 +20,18 @@ internal sealed class ProfileTimer : IProfileTrigger
     private readonly ProfileLibrary _profiles;
     private readonly IClockEvents _clock;
     private readonly TimeProvider _time;
+    private readonly Func<LightingState, bool>? _holdWhileProgramsRun;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private (DateTimeOffset At, string Name)? _next;
     private bool _started;
     private bool _disposed;
 
-    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time)
+    // holdWhileProgramsRun gets the lighting of a profile whose time came, and returns true when it
+    // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop).
+    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<LightingState, bool>? holdWhileProgramsRun = null)
     {
+        _holdWhileProgramsRun = holdWhileProgramsRun;
         _profiles = profiles;
         _clock = clock;
         _time = time;
@@ -129,7 +135,10 @@ internal sealed class ProfileTimer : IProfileTrigger
     {
         try
         {
-            _profiles.Load(name);
+            if (_holdWhileProgramsRun?.Invoke(_profiles.GetLighting(name)) != true)
+            {
+                _profiles.Load(name);
+            }
         }
         catch (Exception exception)
         {

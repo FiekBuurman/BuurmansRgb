@@ -222,22 +222,50 @@ internal sealed class ProgramWatcher : IProfileTrigger
         }
     }
 
-    // Where stopping every program from the last one down would end: the lighting from before the
-    // first untouched one in that chain.
-    private void RestoreAll()
+    // While a program shows its profile untouched, lighting (such as a profile whose time came)
+    // becomes what comes back once the programs stop, instead of showing now: 23:00 in the middle
+    // of a game. False when no program shows its own profile; then the caller shows it.
+    public bool HoldUntilProgramsStop(LightingState lighting)
     {
-        if (_activations.Count > 0 && _activations[^1].ChangesAfter == _changes)
+        lock (_gate)
         {
-            var index = _activations.Count - 1;
-            while (index > 0 && _activations[index].CoveredUntouched)
+            if (_disposed || RestoreIndexLocked() is not { } index)
             {
-                index--;
+                return false;
             }
 
+            _activations[index].Before = lighting;
+            return true;
+        }
+    }
+
+    // Where stopping every program from the last one down would end, so what the engine saves.
+    private void RestoreAll()
+    {
+        if (RestoreIndexLocked() is { } index)
+        {
             Show(_activations[index].Before);
         }
 
         _activations.Clear();
+    }
+
+    // The program whose lighting from before comes back once all programs stopped: the first
+    // untouched one going down from the last; null when the last one was touched.
+    private int? RestoreIndexLocked()
+    {
+        if (_activations.Count == 0 || _activations[^1].ChangesAfter != _changes)
+        {
+            return null;
+        }
+
+        var index = _activations.Count - 1;
+        while (index > 0 && _activations[index].CoveredUntouched)
+        {
+            index--;
+        }
+
+        return index;
     }
 
     private bool Show(LightingState lighting)

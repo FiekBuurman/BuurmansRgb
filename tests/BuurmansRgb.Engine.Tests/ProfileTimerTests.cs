@@ -236,6 +236,24 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     [Fact]
+    public void HeldWhileAProgramRuns_DoesNotShowTheProfile()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        var held = new List<RgbColor>();
+        _timer = new ProfileTimer(_profiles, _clock, _time, lighting =>
+        {
+            held.Add(lighting.Global.Color);
+            return true;
+        });
+        _timer.Start();
+
+        _time.Advance(UntilElevenPm);
+
+        Assert.Equal([Red], held);
+        Assert.Equal(StartColor, ShownColor());
+    }
+
+    [Fact]
     public void ProfilesCannotBeRead_StartsWithoutATimerAndWithoutThrowing()
     {
         _store.LoadException = new IOException("The file is in use.");
