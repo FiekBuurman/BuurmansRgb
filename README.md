@@ -3,6 +3,8 @@
 Lichtgewicht RGB-aansturing voor Windows: fans, strips, moederbord, GPU, toetsenbord,
 muis en headset vanuit één app. Draait rustig op de achtergrond met een tray-icoon.
 
+**Installeren:** zie [docs/installatie.md](docs/installatie.md) (TL;DR).
+
 ## Status
 
 Nog in opbouw. Zie `docs/bouwplan.md` voor het plan en de voortgang.
