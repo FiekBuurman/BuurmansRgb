@@ -191,18 +191,66 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Empty(_keeper.Lengths);
     }
 
-    // BuurmansRgb keeps the length it remembers, also when another app changes it while it runs.
+    // As when the user sets the length in the app of OpenRGB itself: that is the length from now on.
     [Fact]
-    public async Task LengthChangedElsewhere_IsSetBack()
+    public async Task LengthChangedElsewhere_IsRememberedAndSaid()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        _provider.SetDevices(Board(header: 10));
+
+        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 10);
+        Assert.Equal(1, changes);
+        Assert.Empty(_provider.Resizes);
+    }
+
+    [Fact]
+    public async Task LengthChangedElsewhere_OfAZoneWithoutALength_IsRemembered()
+    {
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+
+        _provider.SetDevices(Board(header: 12));
+
+        await Eventually.TrueAsync(() => _keeper.Lengths.TryGetValue("board", out var zones) && zones["ARGB header"] == 12);
+    }
+
+    // 0 looks more like a length that was forgotten than like a choice; it is neither remembered nor
+    // set back while the device stays, only when it shows up again.
+    [Fact]
+    public async Task LengthChangedElsewhereToZero_IsNotRemembered()
     {
         _keeper.Load(Lengths(("board", "ARGB header", 30)));
         _provider.SetDevices(Board(header: 30));
         await _lighting.DiscoverAsync(Ct);
 
-        _provider.SetDevices(Board(header: 10));
+        _provider.SetDevices(Board(header: 0));
+        await ZoneLengthsAsync([2, 0, 1]);
+        await Task.Delay(Quiet, Ct);
 
+        Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.Empty(_provider.Resizes);
+    }
+
+    // A provider that does not take the length reports the old one again; that is no length from elsewhere.
+    [Fact]
+    public async Task RefusedLength_IsNotTakenForALengthFromElsewhere()
+    {
+        _provider.RefusesLengths = true;
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 10));
+        await _lighting.DiscoverAsync(Ct);
         await Eventually.TrueAsync(() => _provider.Resizes.Count == 1);
-        await ZoneLengthsAsync([2, 30, 1]);
+
+        _provider.SetDevices(Board(header: 10));
+        await Task.Delay(Quiet, Ct);
+
+        Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.Single(_provider.Resizes);
     }
 
     // A board with two fixed LEDs, an addressable header and a fixed logo.

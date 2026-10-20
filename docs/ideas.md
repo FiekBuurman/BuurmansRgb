@@ -188,10 +188,9 @@
 - `ProcessListTests.Find_SeesAProgramStartAndStop` faalt op deze pc ongeveer één op de drie
   keer: na `Kill` en `WaitForExitAsync` staat de kopie van ping soms nog even in de lijst. De
   test (of `ProcessList`) zou kort op het verdwijnen moeten wachten
-- Een zonelengte die je in de app van OpenRGB zelf verandert terwijl de engine draait, zet
-  BuurmansRgb nu terug naar de bewaarde lengte. Eventueel overnemen als nieuwe lengte, maar alleen
-  als het zeker geen lengte is die OpenRGB vergat (bijv. alleen als het apparaat al de bewaarde
-  lengte had en de nieuwe lengte niet 0 is)
+- Vergeet OpenRGB een zonelengte terwijl de engine verbonden blijft (bijv. bij opnieuw zoeken),
+  dan meldt het apparaat 0 LED's en komt de bewaarde lengte pas terug als het apparaat opnieuw
+  verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
 - Een zone waarvan het apparaat de naam twee keer heeft, krijgt nu geen bewaarde lengte (er is
   niet te zeggen welke van de twee het was). Eventueel naam plus volgnummer binnen die naam
 - In de instellingen-app tonen dat een bewaarde zonelengte niet past bij het bereik dat de zone nu

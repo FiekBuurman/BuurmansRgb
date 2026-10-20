@@ -364,13 +364,14 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   een zone met een andere lengte de bewaarde lengte terug; ook de gesimuleerde apparaten houden zo
   hun lengte na een herstart. Op naam en niet op volgorde, omdat OpenRGB de zones in een andere
   volgorde kan geven; een zone waarvan de naam weg is, of die twee zones van het apparaat delen,
-  blijft met rust. De engine vraagt een lengte één keer per keer dat het apparaat verschijnt, en
-  pas weer als het apparaat die lengte heeft gemeld: neemt OpenRGB hem niet over, dan blijft het
-  bij één poging (tot het apparaat opnieuw verschijnt) in plaats van een lus van aanpassingen. Een
-  lengte buiten het bereik dat de zone nu meldt, blijft bewaard maar wordt niet gevraagd. Een
-  apparaat dat er (nog) niet is, krijgt zijn lengte zodra het verschijnt. Let op: verander je de
-  lengte van zo'n zone in OpenRGB zelf terwijl de engine draait, dan zet BuurmansRgb hem terug;
-  stel hem dus in BuurmansRgb in.
+  blijft met rust. De engine vraagt een lengte alleen als het apparaat verschijnt, en wacht dan tot
+  het apparaat die lengte meldt: neemt OpenRGB hem niet over, dan blijft het bij één poging (tot
+  het apparaat opnieuw verschijnt) in plaats van een lus van aanpassingen. Een lengte buiten het
+  bereik dat de zone nu meldt, blijft bewaard maar wordt niet gevraagd. Een apparaat dat er (nog)
+  niet is, krijgt zijn lengte zodra het verschijnt. Verander je de lengte in OpenRGB zelf terwijl
+  de engine draait, dan neemt BuurmansRgb die over als de nieuwe bewaarde lengte, behalve 0: dat
+  lijkt eerder een vergeten lengte dan een keuze, en bij het volgende verschijnen van het apparaat
+  komt de bewaarde lengte terug.
 - **Per-LED-kleuren en zonelengtes:** `settings.json` (en `profiles.json`) bewaart bij de kleuren
   per LED ook de zonelengtes waarvoor je ze koos (`ledColorZoneLengths`). Heeft een zone nu een
   andere lengte, ook bij de eerste ontdekking na een start of als OpenRGB een lengte even
@@ -395,7 +396,8 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
   engine, per-LED-kleuren die de zones volgen, ook bij de eerste ontdekking na een start),
   `ZoneLengthKeeperTests` (lengtes teruggeven: één keer per verschijnen, geen lus als het apparaat
-  weigert, zones op naam, buiten het bereik, een apparaat dat later komt),
+  weigert, zones op naam, buiten het bereik, een apparaat dat later komt, een lengte uit OpenRGB zelf
+  overnemen behalve 0),
   `ZoneLengthKeeperOpenRgbTests` (hetzelfde met de nep-OpenRGB-server: verbinden, een herstart
   die de lengte vergeet, opnieuw zoeken), `EngineHostTests` (lengtes en per-LED-kleuren na een
   herstart met de gesimuleerde apparaten), `JsonSettingsStoreTests` en `JsonProfileStoreTests`
