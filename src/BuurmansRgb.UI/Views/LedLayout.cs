@@ -1,8 +1,10 @@
+using System.Windows;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
 
-// Where the preview draws the LEDs of a zone: a matrix of cells that each hold one LED, or a gap.
+// Where the preview draws the LEDs of a zone: a matrix of cells that each hold one LED, or a gap,
+// or a ring for the LEDs of a fan.
 public static class LedLayout
 {
     // The size of an LED and the space between two LEDs at full size.
@@ -16,15 +18,58 @@ public static class LedLayout
     // The distance from one cell to the next when the layout is drawn in width. Only a layout
     // that shrinks, such as a key map, gets a smaller pitch when it is wider than width; dots wrap
     // to the next row instead. An unbounded width, as in a measure pass, keeps the full pitch.
-    public static double PitchFor(LedMatrix layout, double width, bool shrinks)
+    public static double PitchFor(LedMatrix layout, double width, bool shrinks) =>
+        shrinks ? Pitch * ScaleFor(layout.Width * Pitch - Spacing, width) : Pitch;
+
+    // How much a layout of naturalWidth at full size shrinks to fit in width, down to MinScale.
+    public static double ScaleFor(double naturalWidth, double width) =>
+        !double.IsFinite(width) || naturalWidth <= width ? 1.0 : Math.Max(width / naturalWidth, MinScale);
+
+    // The distance from the middle of a fan ring to the middle of its LEDs at full size. Two
+    // neighbours are a pitch apart, as in a row, but the ring is never smaller than two pitches
+    // across, so a ring of three LEDs still looks like a ring. A single LED sits in the middle.
+    public static double RingRadius(int ledCount)
     {
-        var naturalWidth = layout.Width * Pitch - Spacing;
-        if (!shrinks || !double.IsFinite(width) || naturalWidth <= width)
+        ArgumentOutOfRangeException.ThrowIfNegative(ledCount);
+        return ledCount <= 1 ? 0.0 : Math.Max(Pitch / (2.0 * Math.Sin(Math.PI / ledCount)), Pitch);
+    }
+
+    // The width and height of a ring of ledCount LEDs at full size.
+    public static double RingSize(int ledCount) => ledCount == 0 ? 0.0 : 2.0 * RingRadius(ledCount) + LedSize;
+
+    // The middle of an LED of a ring at full size, from the top left of the ring. OpenRGB tells
+    // neither where a fan starts nor which way it counts, so the ring reads like a clock: LED 0 at
+    // the top, then clockwise.
+    public static Point RingCenter(int led, int ledCount)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(led);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(led, ledCount);
+        var radius = RingRadius(ledCount);
+        var middle = radius + LedSize / 2.0;
+        var angle = 2.0 * Math.PI * led / ledCount;
+        return new(middle + radius * Math.Sin(angle), middle - radius * Math.Cos(angle));
+    }
+
+    // The LED of a ring drawn at scale under a point, from the top left of the ring; NoLed
+    // outside the LEDs. Like a cell of a matrix, an LED counts up to half a pitch from its
+    // middle, so a click just beside a dot still picks it. Neighbours are at least a pitch apart,
+    // so these circles never overlap, and the LED nearest in angle is the only one to check.
+    public static int RingLedAt(int ledCount, double scale, double x, double y)
+    {
+        if (ledCount == 0)
         {
-            return Pitch;
+            return LedMatrix.NoLed;
         }
 
-        return Pitch * Math.Max(width / naturalWidth, MinScale);
+        var radius = RingRadius(ledCount);
+        var middle = radius + LedSize / 2.0;
+        var dx = x / scale - middle;
+        var dy = y / scale - middle;
+        var turn = Math.Atan2(dx, -dy) / (2.0 * Math.PI);
+        var led = (int)Math.Round((turn < 0 ? turn + 1.0 : turn) * ledCount) % ledCount;
+        var center = RingCenter(led, ledCount);
+        var distance = Math.Sqrt(Math.Pow(x / scale - center.X, 2) + Math.Pow(y / scale - center.Y, 2));
+        return distance <= Pitch / 2.0 ? led : LedMatrix.NoLed;
     }
 
     // The LEDs in reading order, so many per row; the last row may hold fewer.

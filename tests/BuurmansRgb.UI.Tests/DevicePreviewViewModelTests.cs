@@ -61,6 +61,39 @@ public sealed class DevicePreviewViewModelTests
         Assert.Null(preview.Zones[1].Matrix);
     }
 
+    // A dual-ring fan: each ring is a zone of its own and shows as a ring of its own.
+    [Fact]
+    public void Zones_OfAFan_AreRings()
+    {
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.All(new DevicePreviewViewModel(fan).Zones, zone => Assert.True(zone.IsRing));
+    }
+
+    [Fact]
+    public void Zones_OfOtherDevices_AreNoRings()
+    {
+        var strip = TestDevices.Create("strip", "Fan strip", DeviceType.LedStrip, 10);
+
+        Assert.All(new DevicePreviewViewModel(Motherboard).Zones, zone => Assert.False(zone.IsRing));
+        Assert.False(Assert.Single(new DevicePreviewViewModel(strip).Zones).IsRing);
+    }
+
+    // A key map tells where the LEDs sit, so it wins over the ring.
+    [Fact]
+    public void Zones_OfAFanWithAKeyMap_AreNoRings()
+    {
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 2, [RgbZone.Fixed("Panel", 2) with { Matrix = new LedMatrix(1, 2, [0, 1]) }])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.False(Assert.Single(new DevicePreviewViewModel(fan).Zones).IsRing);
+    }
+
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {

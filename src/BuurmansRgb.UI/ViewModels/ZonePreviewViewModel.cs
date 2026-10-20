@@ -1,4 +1,5 @@
 using System.Globalization;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -16,10 +17,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
     private readonly ZoneLayout _layout;
     private readonly IPreviewActions? _actions;
 
-    public ZonePreviewViewModel(string deviceId, string deviceName, ZoneLayout layout, bool showsName, IPreviewActions? actions)
+    public ZonePreviewViewModel(DeviceInfo device, ZoneLayout layout, bool showsName, IPreviewActions? actions)
     {
-        _deviceId = deviceId;
-        _deviceName = deviceName;
+        _deviceId = device.Id;
+        _deviceName = device.Name;
         _layout = layout;
         _actions = actions;
         Colors = new RgbColor[layout.LedCount];
@@ -33,7 +34,12 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
             : Strings.ZoneWithoutLeds;
 
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
-        AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, Name) : deviceName;
+        AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, device.Name, Name) : device.Name;
+
+        // OpenRGB has no zone type for a ring, and zone names differ per controller ("Fan" on a
+        // graphics card may well be a bar), so only the device type tells a fan: every zone of a
+        // fan or cooler is a ring.
+        IsRing = device.Type == DeviceType.Fan && Matrix is null;
         LedCountText = layout.Zone.LedCount.ToString(CultureInfo.CurrentCulture);
     }
 
@@ -45,6 +51,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     // Where the LEDs sit, such as the keys of a keyboard; null for LEDs in a row.
     public LedMatrix? Matrix => _layout.Zone.Matrix;
+
+    // The LEDs of a fan, which the view draws as a ring instead of a row.
+    public bool IsRing { get; }
 
     public bool ShowsHeader { get; }
 

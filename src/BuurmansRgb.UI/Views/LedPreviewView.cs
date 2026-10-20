@@ -6,12 +6,12 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
 
-// Draws the LEDs of a zone in one of two ways. Without a Matrix, such as for a strip or a fan,
-// every LED is a dot, wrapping to the available width. With a Matrix, such as the key map of a
-// keyboard, every LED is a key at its own position, shrunk when the matrix is wider than the
-// available width. One element per zone instead of one per LED keeps a 104-key keyboard
-// cheap to redraw. A click on an LED runs ClickCommand with a LedHit; the LEDs SelectionFirst to
-// SelectionLast get a ring.
+// Draws the LEDs of a zone in one of three ways. Without a Matrix, such as for a strip, every LED
+// is a dot, wrapping to the available width; with IsRing, such as for a fan, the dots form a
+// ring. With a Matrix, such as the key map of a keyboard, every LED is a key at its own position.
+// A ring and a key map shrink when they are wider than the available width. One element per
+// zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
+// ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
 public sealed class LedPreviewView : FrameworkElement
 {
     public static readonly DependencyProperty ColorsProperty = DependencyProperty.Register(
@@ -25,6 +25,9 @@ public sealed class LedPreviewView : FrameworkElement
         typeof(LedMatrix),
         typeof(LedPreviewView),
         new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty IsRingProperty = DependencyProperty.Register(
+        nameof(IsRing), typeof(bool), typeof(LedPreviewView), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty SelectionFirstProperty = DependencyProperty.Register(
         nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender));
@@ -61,6 +64,13 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(MatrixProperty, value);
     }
 
+    // Ignored for a zone with a Matrix.
+    public bool IsRing
+    {
+        get => (bool)GetValue(IsRingProperty);
+        set => SetValue(IsRingProperty, value);
+    }
+
     public int SelectionFirst
     {
         get => (int)GetValue(SelectionFirstProperty);
@@ -86,6 +96,12 @@ public sealed class LedPreviewView : FrameworkElement
             return default;
         }
 
+        if (ShowsRing)
+        {
+            var side = LedLayout.RingSize(Colors.Count) * RingScale(availableSize.Width);
+            return new Size(side, side);
+        }
+
         var (layout, pitch) = LayoutFor(availableSize.Width);
         var scale = pitch / LedLayout.Pitch;
         return new Size(
@@ -95,49 +111,17 @@ public sealed class LedPreviewView : FrameworkElement
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        var colors = Colors;
-        var (layout, pitch) = LayoutFor(ActualWidth);
-        var scale = pitch / LedLayout.Pitch;
-        var size = LedLayout.LedSize * scale;
-
-        // The corners shrink with a shrunk key map, so a small key still looks like a key. The
-        // gap to the selection ring stays, so the 2 px ring never covers the key.
-        var cornerRadius = KeyCornerRadius * scale;
-        var keys = Matrix is not null;
-        var selectionRing = SelectionRing();
-        for (var cell = 0; cell < layout.Cells.Count; cell++)
+        if (ShowsRing)
         {
-            var led = layout.Cells[cell];
-            if (led == LedMatrix.NoLed)
-            {
-                continue;
-            }
-
-            var bounds = new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, size, size);
-            var selected = led >= SelectionFirst && led <= SelectionLast;
-            var brush = ColorBrushes.Get(colors[led]);
-            if (keys)
-            {
-                drawingContext.DrawRoundedRectangle(brush, Outline, bounds, cornerRadius, cornerRadius);
-                if (selected)
-                {
-                    bounds.Inflate(SelectionGap, SelectionGap);
-                    drawingContext.DrawRoundedRectangle(null, selectionRing, bounds, cornerRadius + SelectionGap, cornerRadius + SelectionGap);
-                }
-            }
-            else
-            {
-                var center = new Point(bounds.X + size / 2.0, bounds.Y + size / 2.0);
-                drawingContext.DrawEllipse(brush, Outline, center, size / 2.0, size / 2.0);
-                if (selected)
-                {
-                    drawingContext.DrawEllipse(null, selectionRing, center, size / 2.0 + SelectionGap, size / 2.0 + SelectionGap);
-                }
-            }
+            RenderRing(drawingContext);
+        }
+        else
+        {
+            RenderCells(drawingContext);
         }
     }
 
-    // A click on a gap between keys picks nothing.
+    // A click on a gap between keys or beside a ring picks nothing.
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
@@ -146,9 +130,7 @@ public sealed class LedPreviewView : FrameworkElement
             return;
         }
 
-        var (layout, pitch) = LayoutFor(ActualWidth);
-        var position = e.GetPosition(this);
-        var led = LedLayout.LedAt(layout, pitch, position.X, position.Y);
+        var led = LedAt(e.GetPosition(this));
         if (led == LedMatrix.NoLed)
         {
             return;
@@ -175,8 +157,85 @@ public sealed class LedPreviewView : FrameworkElement
         return Math.Clamp((int)((width + LedLayout.Spacing) / LedLayout.Pitch), 1, Math.Max(count, 1));
     }
 
-    // The layout and its pitch for a width; Measure, OnRender and the click all use this, so a
-    // click lands on the key that is drawn there.
+    // A key map always shows as keys, also on a fan.
+    private bool ShowsRing => IsRing && Matrix is null;
+
+    private double RingScale(double width) => LedLayout.ScaleFor(LedLayout.RingSize(Colors.Count), width);
+
+    // The LED under a point; Measure, OnRender and the click all use the same layout, so a click
+    // lands on the LED that is drawn there.
+    private int LedAt(Point position)
+    {
+        if (ShowsRing)
+        {
+            return LedLayout.RingLedAt(Colors.Count, RingScale(ActualWidth), position.X, position.Y);
+        }
+
+        var (layout, pitch) = LayoutFor(ActualWidth);
+        return LedLayout.LedAt(layout, pitch, position.X, position.Y);
+    }
+
+    private void RenderRing(DrawingContext drawingContext)
+    {
+        var colors = Colors;
+        var scale = RingScale(ActualWidth);
+        var selectionRing = SelectionRing();
+        for (var led = 0; led < colors.Count; led++)
+        {
+            var center = LedLayout.RingCenter(led, colors.Count);
+            DrawDot(drawingContext, ColorBrushes.Get(colors[led]), IsSelected(led), new Point(center.X * scale, center.Y * scale), LedLayout.LedSize * scale / 2.0, selectionRing);
+        }
+    }
+
+    private void RenderCells(DrawingContext drawingContext)
+    {
+        var colors = Colors;
+        var (layout, pitch) = LayoutFor(ActualWidth);
+        var scale = pitch / LedLayout.Pitch;
+        var size = LedLayout.LedSize * scale;
+
+        // The corners shrink with a shrunk key map, so a small key still looks like a key. The
+        // gap to the selection ring stays, so the 2 px ring never covers the key.
+        var cornerRadius = KeyCornerRadius * scale;
+        var keys = Matrix is not null;
+        var selectionRing = SelectionRing();
+        for (var cell = 0; cell < layout.Cells.Count; cell++)
+        {
+            var led = layout.Cells[cell];
+            if (led == LedMatrix.NoLed)
+            {
+                continue;
+            }
+
+            var bounds = new Rect((cell % layout.Width) * pitch, (cell / layout.Width) * pitch, size, size);
+            if (keys)
+            {
+                drawingContext.DrawRoundedRectangle(ColorBrushes.Get(colors[led]), Outline, bounds, cornerRadius, cornerRadius);
+                if (IsSelected(led))
+                {
+                    bounds.Inflate(SelectionGap, SelectionGap);
+                    drawingContext.DrawRoundedRectangle(null, selectionRing, bounds, cornerRadius + SelectionGap, cornerRadius + SelectionGap);
+                }
+            }
+            else
+            {
+                DrawDot(drawingContext, ColorBrushes.Get(colors[led]), IsSelected(led), new Point(bounds.X + size / 2.0, bounds.Y + size / 2.0), size / 2.0, selectionRing);
+            }
+        }
+    }
+
+    private static void DrawDot(DrawingContext drawingContext, Brush brush, bool selected, Point center, double radius, Pen selectionRing)
+    {
+        drawingContext.DrawEllipse(brush, Outline, center, radius, radius);
+        if (selected)
+        {
+            drawingContext.DrawEllipse(null, selectionRing, center, radius + SelectionGap, radius + SelectionGap);
+        }
+    }
+
+    private bool IsSelected(int led) => led >= SelectionFirst && led <= SelectionLast;
+
+    // The layout of a row or key map and its pitch for a width.
     private (LedMatrix Layout, double Pitch) LayoutFor(double width)
     {
         var layout = PlaceLeds(width);
