@@ -165,6 +165,23 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(Red, profile.Lighting.Global.Color);
     }
 
+    // A hand-edited count that does not read leaves out the zone lengths of that device, not the file.
+    [Fact]
+    public void Load_LedColorZoneLengthsThatAreNotNumbers_KeepsTheProfiles()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Gamen", "color": "#FF0000", "ledColors": { "strip": ["#00FF00"] },
+              "ledColorZoneLengths": { "strip": ["1"], "fan": [2, 3] } } ] }
+            """);
+
+        var profile = Assert.Single(_store.Load());
+
+        Assert.False(File.Exists(_store.BrokenFilePath));
+        Assert.Equal(Red, profile.Lighting.Global.Color);
+        Assert.Equal([Green], profile.Lighting.LedColors["strip"]);
+        Assert.Equal(["fan"], profile.Lighting.LedColorZoneLengths.Keys);
+    }
+
     [Fact]
     public void Load_InvalidJson_MovesTheFileAsideAndReturnsNoProfiles()
     {

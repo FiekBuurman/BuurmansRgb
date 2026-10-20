@@ -145,6 +145,47 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Empty(state.LedColorZoneLengths);
     }
 
+    // One odd value leaves out only itself; the rest of the file, lighting included, still counts.
+    [Fact]
+    public void Load_ZoneLengthsThatAreNotNumbers_LeavesOutOnlyThose()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """
+            {
+              "color": "#FF8800",
+              "framesPerSecond": 12,
+              "zoneLengths": { "a": { "One": "30", "Two": 12, "Three": 2.5, "Four": null }, "b": 5, "c": { "Five": 7 } },
+              "ledColorZoneLengths": { "a": [1, "x"], "b": 4, "c": [3, 4] }
+            }
+            """);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Orange, settings.Color);
+        Assert.Equal(12, settings.FramesPerSecond);
+        var lengths = settings.ReadZoneLengths();
+        Assert.Equal(["a", "c"], lengths.Keys.Order());
+        Assert.Equal(new Dictionary<string, int> { ["Two"] = 12 }, lengths["a"]);
+        Assert.Equal(new Dictionary<string, int> { ["Five"] = 7 }, lengths["c"]);
+        Assert.Equal(["c"], settings.LedColorZoneLengths!.Keys);
+        Assert.Equal([3, 4], settings.LedColorZoneLengths["c"]!);
+    }
+
+    [Theory]
+    [InlineData("""{ "color": "#FF8800", "zoneLengths": [1, 2] }""")]
+    [InlineData("""{ "color": "#FF8800", "ledColorZoneLengths": "none" }""")]
+    public void Load_ZoneLengthsOfAnotherShape_LeavesOutOnlyThose(string content)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, content);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Orange, settings.Color);
+        Assert.Empty(settings.ReadZoneLengths());
+        Assert.Empty(settings.ToLightingState().LedColorZoneLengths);
+    }
+
     [Fact]
     public void Save_Defaults_LeavesLedColorsOutOfTheFile()
     {
