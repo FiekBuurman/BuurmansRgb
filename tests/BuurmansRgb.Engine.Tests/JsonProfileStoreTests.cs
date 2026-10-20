@@ -58,11 +58,42 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
-    public void Save_WithoutAutomation_WritesNoTime()
+    public void Save_WritesTheProgram()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
+
+        Assert.Contains("\"program\": \"eldenring.exe\"", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal("eldenring.exe", Assert.Single(_store.Load()).Automation.Program);
+    }
+
+    [Fact]
+    public void Save_WithoutAutomation_WritesNoTimeOrProgram()
     {
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red)))]);
 
-        Assert.DoesNotContain("loadAt", File.ReadAllText(_directory.File("profiles.json")));
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+        Assert.DoesNotContain("loadAt", json);
+        Assert.DoesNotContain("program", json);
+    }
+
+    [Fact]
+    public void Load_ProgramMissingOrInvalid_LeavesTheProgramOff()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "A", "loadAt": "23:00" },
+                { "name": "B", "program": "game?.exe" },
+                { "name": "C", "program": 42 },
+                { "name": "D", "program": "eldenring" }
+            ] }
+            """);
+
+        var profiles = _store.Load();
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[0].Automation);
+        Assert.Equal(ProfileAutomation.None, profiles[1].Automation);
+        Assert.Equal(ProfileAutomation.None, profiles[2].Automation);
+        Assert.Equal("eldenring.exe", profiles[3].Automation.Program);
     }
 
     // Files from before the automation have no "loadAt"; a value that does not read leaves the

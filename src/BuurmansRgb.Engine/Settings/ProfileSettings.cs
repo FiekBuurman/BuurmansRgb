@@ -6,8 +6,8 @@ using BuurmansRgb.Engine.Profiles;
 namespace BuurmansRgb.Engine.Settings;
 
 // One profile in profiles.json: its name, the same lighting fields as settings.json and, when it
-// loads by itself, "loadAt" as "HH:mm". Older files have no "loadAt"; a time that does not read
-// leaves it off, and the rest of the profile still counts.
+// loads by itself, "loadAt" as "HH:mm" and "program" as "eldenring.exe". Older files have neither;
+// a value that does not read leaves that one off, and the rest of the profile still counts.
 internal sealed record ProfileSettings : LightingStateSettings
 {
     private const string TimeFormat = "HH:mm";
@@ -20,12 +20,16 @@ internal sealed record ProfileSettings : LightingStateSettings
     [JsonConverter(typeof(LenientStringJsonConverter))]
     public string? LoadAt { get; set; }
 
+    [JsonConverter(typeof(LenientStringJsonConverter))]
+    public string? Program { get; set; }
+
     public static ProfileSettings From(Profile profile)
     {
         var settings = new ProfileSettings
         {
             Name = profile.Name,
             LoadAt = profile.Automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture),
+            Program = profile.Automation.Program,
         };
         settings.CopyFrom(profile.Lighting);
         return settings;
@@ -35,7 +39,8 @@ internal sealed record ProfileSettings : LightingStateSettings
     public Profile ToProfile(string name) => new(name, ToLightingState())
     {
         Automation = new ProfileAutomation(
-            TimeOnly.TryParseExact(LoadAt?.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ? time : null),
+            TimeOnly.TryParseExact(LoadAt?.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ? time : null,
+            ProgramNames.Normalize(Program)),
     };
 }
 

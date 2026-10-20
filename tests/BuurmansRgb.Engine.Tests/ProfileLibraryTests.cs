@@ -132,6 +132,25 @@ public sealed class ProfileLibraryTests
     }
 
     [Fact]
+    public void SetAutomation_InvalidProgram_ThrowsAndStoresNothing()
+    {
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
+
+        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", new ProfileAutomation(Program: "game?.exe")));
+        Assert.Equal(ProfileAutomation.None, _store.Profiles[0].Automation);
+    }
+
+    [Fact]
+    public void SetAutomation_StoresTheProgramAsAFileName()
+    {
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
+
+        _library.SetAutomation("Gamen", new ProfileAutomation(Program: @"C:\Games\eldenring"));
+
+        Assert.Equal("eldenring.exe", _store.Profiles[0].Automation.Program);
+    }
+
+    [Fact]
     public void SetAutomation_UnknownName_Throws() =>
         Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", ProfileAutomation.None));
 
