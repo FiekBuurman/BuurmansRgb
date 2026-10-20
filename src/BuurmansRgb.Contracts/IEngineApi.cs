@@ -54,7 +54,8 @@ public partial interface IEngineApi
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 
     // Lets the device blink white a few times, so the user can see which one it is; then it shows
-    // its own lighting again. Changes no lighting, and does nothing while effects are paused.
+    // its own lighting again. Changes no lighting. Best effort: does nothing while effects are
+    // paused or for a device the engine does not know (any more).
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.

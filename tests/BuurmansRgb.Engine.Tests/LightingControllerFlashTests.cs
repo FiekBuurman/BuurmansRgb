@@ -210,11 +210,14 @@ public sealed class LightingControllerFlashTests : IDisposable
     }
 
     [Fact]
-    public async Task Flash_UnknownDevice_Throws()
+    public async Task Flash_UnknownDevice_DoesNothing()
     {
         await StartAsync(EffectIds.Static);
 
-        Assert.Throws<ArgumentException>(() => _controller.Flash("unknown"));
+        _controller.Flash("unknown");
+
+        Assert.Equal(1, _provider.SetLedsCount);
+        Assert.False(_controller.IsAnimating);
     }
 
     [Fact]

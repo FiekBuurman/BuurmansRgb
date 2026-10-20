@@ -175,12 +175,16 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, Ct)).Color);
     }
 
+    // Flashing changes nothing, so a device that just went away is no error for the settings app.
     [Fact]
-    public async Task FlashDeviceAsync_UnknownDevice_IsRejected()
+    public async Task FlashDeviceAsync_UnknownDevice_IsIgnored()
     {
         var client = await StartAndConnectAsync();
+        var sequence = (await client.Api.GetFrameAsync(Ct)).Sequence;
 
-        await Assert.ThrowsAsync<RemoteInvocationException>(() => client.Api.FlashDeviceAsync("missing", Ct));
+        await client.Api.FlashDeviceAsync("missing", Ct);
+
+        Assert.Equal(sequence, (await client.Api.GetFrameAsync(Ct)).Sequence);
     }
 
     [Fact]

@@ -266,13 +266,13 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // shows its own lighting again. Nothing is stored and LightingChanged is not raised. The render
     // loop runs only until the flash is over. One device flashes at a time, so the user who clicks
     // through the list sees only the last one. While paused the devices stay as they are, so
-    // nothing happens then.
+    // nothing happens then. A flash changes no lighting, so a device that is gone (the list in
+    // the settings app may be behind) is skipped instead of reported as an error.
     public void Flash(string deviceId)
     {
         lock (_gate)
         {
-            var output = KnownOutputLocked(deviceId);
-            if (_isPaused || !_lighting.IsSet)
+            if (_outputs.Find(deviceId) is not { } output || _isPaused || !_lighting.IsSet)
             {
                 return;
             }
