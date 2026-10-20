@@ -30,6 +30,14 @@ public sealed class RgbDeviceTests
         Assert.Equal(0, Board.Zones[1].LedCount);
     }
 
+    [Fact]
+    public void WithZoneLength_KeepsTheSource()
+    {
+        var simulated = Board with { Source = DeviceSource.Simulated };
+
+        Assert.Equal(DeviceSource.Simulated, simulated.WithZoneLength(1, 30).Source);
+    }
+
     [Theory]
     [InlineData(1, 121)]
     [InlineData(0, 5)]

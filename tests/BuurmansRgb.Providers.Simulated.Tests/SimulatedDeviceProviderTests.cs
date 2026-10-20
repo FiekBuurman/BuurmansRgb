@@ -151,6 +151,7 @@ public sealed class SimulatedDeviceProviderTests
         Assert.Equal(1, changed);
         Assert.Equal(new RgbZone("ARGB header", 20, 0, 120), motherboard.Zones[2]);
         Assert.Equal(27, motherboard.LedCount);
+        Assert.Equal(DeviceSource.Simulated, motherboard.Source);
         Assert.Equal(27, provider.GetLeds("simulated-motherboard").Length);
     }
 
@@ -192,6 +193,7 @@ public sealed class SimulatedDeviceProviderTests
     private static void AssertDevice(RgbDevice device, DeviceType type, int ledCount)
     {
         Assert.Equal(type, device.Type);
+        Assert.Equal(DeviceSource.Simulated, device.Source);
         Assert.Equal(ledCount, device.LedCount);
         Assert.Equal(ledCount, device.Zones.Sum(zone => zone.LedCount));
     }

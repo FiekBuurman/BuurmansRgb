@@ -64,6 +64,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
                 ("simulated-fan-dual", 20), ("simulated-argb", 20), ("simulated-case", 10), ("simulated-mouse", 12), ("simulated-headset", 2)],
             devices.Select(device => (device.Id, device.LedCount)));
         Assert.NotNull(devices.Single(device => device.Id == "simulated-keyboard").Zones[0].Matrix);
+        Assert.All(devices, device => Assert.Equal(DeviceSource.Simulated, device.Source));
     }
 
     [Fact]

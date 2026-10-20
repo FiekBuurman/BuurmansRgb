@@ -25,4 +25,20 @@ public sealed class DeviceInfoTests
 
         Assert.NotEqual(board, board with { Zones = Board(3).Zones });
     }
+
+    [Fact]
+    public void Equals_TheSourceDiffers_IsNotEqual()
+    {
+        var board = Board(2);
+
+        Assert.NotEqual(board, board with { Source = DeviceSource.Simulated });
+    }
+
+    [Fact]
+    public void From_TakesTheSourceOfTheDevice()
+    {
+        var device = new RgbDevice("fan", "Fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]) { Source = DeviceSource.Simulated };
+
+        Assert.Equal(DeviceSource.Simulated, DeviceInfo.From(device).Source);
+    }
 }

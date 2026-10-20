@@ -31,7 +31,8 @@ internal static class OpenRgbDeviceMapper
             var id = UniqueId(CreateId(device), usedIds);
             var name = nameCounts[device.Name] > 1 ? NumberedName(device.Name, nameNumbers) : device.Name;
             var zones = device.Zones.Select(ToZone).ToArray();
-            mapped.Add(new(new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount), device.Index));
+            var mappedDevice = new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount) { Source = DeviceSource.OpenRgb };
+            mapped.Add(new(mappedDevice, device.Index));
         }
 
         return mapped;
