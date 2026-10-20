@@ -33,16 +33,20 @@ public sealed class ProcessListTests
     [Fact]
     public void Find_NoneRunning_ReturnsNothing() => Assert.Empty(_processes.Find(Names(NotRunning)));
 
+    // A copy of ping under a name of its own, so a ping that runs elsewhere does not count.
     [Fact]
     public async Task Find_SeesAProgramStartAndStop()
     {
-        var names = Names("ping.exe");
+        using var directory = new TempDirectory();
+        var program = $"buurmansrgb-test-{Guid.NewGuid():N}.exe";
+        File.Copy(Path.Combine(Environment.SystemDirectory, "ping.exe"), directory.File(program));
+        var names = Names(program);
         Assert.Empty(_processes.Find(names));
 
-        using var ping = Process.Start(new ProcessStartInfo("ping.exe", "-n 60 127.0.0.1") { CreateNoWindow = true, UseShellExecute = false })!;
+        using var ping = Process.Start(new ProcessStartInfo(directory.File(program), "-n 60 127.0.0.1") { CreateNoWindow = true, UseShellExecute = false })!;
         try
         {
-            Assert.Equal(["ping.exe"], _processes.Find(names));
+            Assert.Equal([program], _processes.Find(names));
         }
         finally
         {
@@ -55,19 +59,23 @@ public sealed class ProcessListTests
         Assert.Empty(_processes.Find(names));
     }
 
-    // It runs every few seconds while a profile has a program, so it should not feed the GC.
+    // It runs every few seconds while a profile has a program, so it should not feed the GC. A
+    // process that starts in between costs its name, so the least of a few calls counts.
     [Fact]
     public void Find_NoNewProcessAndNoneRunning_AllocatesNothing()
     {
         var names = Names(NotRunning);
         _processes.Find(names);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        _processes.Find(names);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        var least = long.MaxValue;
+        for (var i = 0; i < 5; i++)
+        {
+            var before = GC.GetAllocatedBytesForCurrentThread();
+            _processes.Find(names);
+            least = Math.Min(least, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
 
-        // A process that started in between costs its name; that is rare in one call.
-        Assert.True(allocated < 200, $"{allocated} bytes");
+        Assert.Equal(0, least);
     }
 
     private static HashSet<string> Names(params string[] names) => new(names, ProgramNames.Comparer);
