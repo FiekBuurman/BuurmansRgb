@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Providers.Simulated;
 using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -142,6 +143,70 @@ public sealed class LightingControllerFlashTests : IDisposable
         controller.RenderAnimationFrame();
         Assert.Equal(OwnColors, second.LastColors);
         Assert.False(controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task Flash_SameDeviceAgain_StartsTheFlashOver()
+    {
+        await StartAsync(EffectIds.Static);
+        _controller.Flash(RecordingDeviceProvider.DeviceId);
+        AdvanceAndRender(DeviceFlash.Duration - HalfBlink);
+        Assert.Equal(Dark, _provider.LastColors);
+
+        _controller.Flash(RecordingDeviceProvider.DeviceId);
+
+        Assert.Equal(White, _provider.LastColors);
+        AdvanceAndRender(DeviceFlash.Duration - HalfBlink);
+        Assert.Equal(Dark, _provider.LastColors);
+        Assert.True(_controller.IsAnimating);
+        AdvanceAndRender(HalfBlink);
+        Assert.Equal(OwnColors, _provider.LastColors);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // A rescan in OpenRGB gives the devices new outputs: the flash ends there and then.
+    [Fact]
+    public async Task DevicesChanged_WhileFlashing_ShowsOwnColorsAndStopsTheTimer()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(DynamicDeviceProvider.Device("fan"));
+        using var controller = new LightingController([dynamic], _time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        controller.Flash("fan");
+        Assert.Equal([RgbColor.White, RgbColor.White], dynamic.Leds["fan"]);
+        var devicesChanged = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        controller.Rendered += (_, _) => devicesChanged.TrySetResult();
+
+        dynamic.SetDevices(DynamicDeviceProvider.Device("fan"));
+
+        await devicesChanged.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal([Orange, Orange], dynamic.Leds["fan"]);
+        Assert.False(controller.IsAnimating);
+    }
+
+    // As RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing in the animation tests: a
+    // frame of a flash allocates nothing either. Each frame is one step of the clock, so 30 frames
+    // stay well inside the flash.
+    [Fact]
+    public async Task RenderAnimationFrame_WhileFlashing_AllocatesNothing()
+    {
+        var simulated = new SimulatedDeviceProvider();
+        using var controller = new LightingController([simulated], new SteppingTimeProvider(Frame));
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 0.5, EffectIds.Static)));
+        controller.Rendered += (_, _) => { };
+        controller.Flash("simulated-keyboard");
+        controller.RenderAnimationFrame();
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var frame = 0; frame < 30; frame++)
+        {
+            controller.RenderAnimationFrame();
+        }
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.True(controller.IsAnimating);
     }
 
     [Fact]
