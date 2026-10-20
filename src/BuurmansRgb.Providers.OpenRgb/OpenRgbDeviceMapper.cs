@@ -74,6 +74,10 @@ internal static partial class OpenRgbDeviceMapper
         OpenRgbDeviceType.Keyboard => DeviceType.Keyboard,
         OpenRgbDeviceType.Mouse => DeviceType.Mouse,
         OpenRgbDeviceType.Headset => DeviceType.Headset,
+        OpenRgbDeviceType.Mousemat => DeviceType.Mousemat,
+        OpenRgbDeviceType.HeadsetStand => DeviceType.HeadsetStand,
+        OpenRgbDeviceType.Speaker => DeviceType.Speaker,
+        OpenRgbDeviceType.Gamepad => DeviceType.Gamepad,
         _ => DeviceType.Other,
     };
 

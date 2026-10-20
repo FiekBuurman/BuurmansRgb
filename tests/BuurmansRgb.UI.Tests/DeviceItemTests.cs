@@ -19,6 +19,10 @@ public sealed class DeviceItemTests
         [DeviceType.Keyboard] = "Toetsenbord",
         [DeviceType.Mouse] = "Muis",
         [DeviceType.Headset] = "Headset",
+        [DeviceType.Mousemat] = "Muismat",
+        [DeviceType.HeadsetStand] = "Headsetstandaard",
+        [DeviceType.Speaker] = "Speaker",
+        [DeviceType.Gamepad] = "Gamepad",
         [DeviceType.Other] = null,
     };
 

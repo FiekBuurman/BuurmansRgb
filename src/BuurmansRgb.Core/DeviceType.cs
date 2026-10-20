@@ -11,5 +11,9 @@ public enum DeviceType
     Keyboard,
     Mouse,
     Headset,
+    Mousemat,
+    HeadsetStand,
+    Speaker,
+    Gamepad,
     Other,
 }

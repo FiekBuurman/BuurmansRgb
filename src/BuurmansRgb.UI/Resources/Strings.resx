@@ -114,6 +114,18 @@
   <data name="DeviceType_Headset" xml:space="preserve">
     <value>Headset</value>
   </data>
+  <data name="DeviceType_Mousemat" xml:space="preserve">
+    <value>Muismat</value>
+  </data>
+  <data name="DeviceType_HeadsetStand" xml:space="preserve">
+    <value>Headsetstandaard</value>
+  </data>
+  <data name="DeviceType_Speaker" xml:space="preserve">
+    <value>Speaker</value>
+  </data>
+  <data name="DeviceType_Gamepad" xml:space="preserve">
+    <value>Gamepad</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>
