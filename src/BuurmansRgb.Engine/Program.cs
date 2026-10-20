@@ -4,6 +4,7 @@ using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -41,6 +42,7 @@ internal static class Program
         var saveEvents = new SettingsSaveEvents();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         using var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System);
+        using var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
@@ -51,7 +53,7 @@ internal static class Program
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents,
-            profileTriggers: [profileTimer]);
+            profileTriggers: [profileTimer, programWatcher]);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))
