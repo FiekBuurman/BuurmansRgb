@@ -182,9 +182,10 @@
                                     </DockPanel>
                                     <DockPanel Margin="0,4,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
                                         <TextBlock DockPanel.Dock="Left" Margin="0,0,6,0" Text="⚠" FontFamily="Segoe UI Symbol"
-                                                   AutomationProperties.Name="{Binding Profiles.Automation.Error}" />
-                                        <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error}"
-                                                   AutomationProperties.AutomationId="ProfileAutomationError" />
+                                                   AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                                        <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error, NotifyOnTargetUpdated=True}"
+                                                   AutomationProperties.AutomationId="ProfileAutomationError" AutomationProperties.LiveSetting="Polite"
+                                                   views:LiveRegion.AnnouncesUpdates="True" />
                                     </DockPanel>
                                 </StackPanel>
                             </StackPanel>

@@ -296,6 +296,12 @@
   <data name="ProfileDeleted" xml:space="preserve">
     <value>Profiel '{0}' verwijderd.</value>
   </data>
+  <data name="ProfileAutomationHeader" xml:space="preserve">
+    <value>Automatisch laden</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Waarschuwing</value>
+  </data>
   <data name="ProfileAutomationOff" xml:space="preserve">
     <value>Automatisch laden: uit</value>
   </data>

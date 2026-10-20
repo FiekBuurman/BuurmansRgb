@@ -15,7 +15,7 @@ public sealed class ProfileAutomationViewModelTests
     {
         Assert.False(_automation.HasProfile);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
-        Assert.Equal("Automatisch laden: uit", _automation.Header);
+        Assert.Equal("Automatisch laden", _automation.Header);
         Assert.Null(_automation.Error);
     }
 
@@ -29,6 +29,30 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal("eldenring.exe", _automation.ProgramText);
         Assert.Equal("Automatisch laden: aan", _automation.Header);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Show_ProfileWithoutAutomation_SaysOff()
+    {
+        _automation.Show("Werk", ProfileAutomation.None);
+
+        Assert.Equal("Automatisch laden: uit", _automation.Header);
+    }
+
+    // A screen reader reads the error out when it changes, so not on every key that keeps it.
+    [Fact]
+    public void Error_IsOnlyRaisedWhenItChanges()
+    {
+        _automation.Show("Nacht", ProfileAutomation.None);
+        var raised = 0;
+        _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
+
+        _automation.LoadAtText = "2";
+        _automation.LoadAtText = "23";
+        _automation.LoadAtText = "23:";
+        _automation.LoadAtText = "23:00";
+
+        Assert.Equal(2, raised);
     }
 
     [Theory]
@@ -131,6 +155,6 @@ public sealed class ProfileAutomationViewModelTests
 
         Assert.False(_automation.HasProfile);
         Assert.Equal("", _automation.LoadAtText);
-        Assert.Equal("Automatisch laden: uit", _automation.Header);
+        Assert.Equal("Automatisch laden", _automation.Header);
     }
 }

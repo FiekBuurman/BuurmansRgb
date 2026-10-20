@@ -30,26 +30,31 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     public bool HasProfile => ProfileName is not null;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Error), nameof(HasError))]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string LoadAtText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Error), nameof(HasError))]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string ProgramText { get; set; } = string.Empty;
 
-    // Whether the saved profile loads by itself, for the heading that stays when folded up.
-    public string Header => _saved == ProfileAutomation.None ? Strings.ProfileAutomationOff : Strings.ProfileAutomationOn;
+    // Whether the saved profile loads by itself, for the heading that stays when folded up; without
+    // a profile there is nothing to tell.
+    public string Header =>
+        ProfileName is null ? Strings.ProfileAutomationHeader
+        : _saved == ProfileAutomation.None ? Strings.ProfileAutomationOff
+        : Strings.ProfileAutomationOn;
 
-    // What is wrong with the fields, or null.
-    public string? Error =>
-        !TryParseTime(LoadAtText, out _) ? Strings.ProfileLoadAtInvalid
-        : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
-        : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
-        : null;
+    // What is wrong with the fields, or null. Only raised when it really changes, so a screen
+    // reader hears it once and not on every key.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    public partial string? Error { get; private set; }
 
     public bool HasError => Error is not null;
+
+    partial void OnLoadAtTextChanged(string value) => Error = FindError();
+
+    partial void OnProgramTextChanged(string value) => Error = FindError();
 
     // Shows what the engine saved for the profile.
     public void Show(string profileName, ProfileAutomation automation) => Display(profileName, automation);
@@ -81,6 +86,12 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
         return new ProfileAutomation(loadAt, ProgramText).Normalize();
     }
+
+    private string? FindError() =>
+        !TryParseTime(LoadAtText, out _) ? Strings.ProfileLoadAtInvalid
+        : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
+        : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
+        : null;
 
     // An empty text is no time, which is valid: off.
     private static bool TryParseTime(string text, out TimeOnly? time)
