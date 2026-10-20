@@ -38,6 +38,10 @@ public partial interface IEngineApi
 
     Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default);
 
+    // The lighting of every device the engine knows now, taken at one moment: one call for a list of
+    // lamps instead of one per device, and no device that went away halfway.
+    Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default);
+
     Task<LightingFrame> GetFrameAsync(CancellationToken ct = default);
 
     Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default);

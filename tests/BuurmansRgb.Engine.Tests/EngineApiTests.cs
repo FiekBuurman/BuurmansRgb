@@ -64,6 +64,22 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task GetAllLightingAsync_GivesEveryDeviceWithItsOwnOrTheGlobalLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetColorAsync(null, Orange, Ct);
+        await api.SetOnAsync("simulated-fan", on: false, Ct);
+
+        var lighting = await api.GetAllLightingAsync(Ct);
+
+        Assert.Equal((await api.GetDevicesAsync(Ct)).Select(device => device.Id), lighting.Select(device => device.DeviceId));
+        Assert.False(Assert.Single(lighting, device => device.DeviceId == "simulated-fan").Lighting.On);
+        Assert.All(lighting.Where(device => device.DeviceId != "simulated-fan"), device => Assert.True(device.Lighting.On));
+        Assert.All(lighting, device => Assert.Equal(Orange, device.Lighting.Color));
+    }
+
+    [Fact]
     public async Task LightingChanged_FollowsEveryChangeOfTheLighting()
     {
         await _lighting.DiscoverAsync(Ct);

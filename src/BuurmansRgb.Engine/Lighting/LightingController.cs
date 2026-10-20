@@ -197,6 +197,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
+    // The lighting of every device, in the order of the devices, under one lock.
+    public IReadOnlyList<(string DeviceId, DeviceLighting Lighting)> GetAllLighting()
+    {
+        lock (_gate)
+        {
+            return [.. _outputs.All.Select(output => (output.Device.Id, _lighting.Get(output.Device.Id)))];
+        }
+    }
+
     // A global change also applies to every device with its own lighting, so a global color keeps
     // a device's own brightness and the other way round. Changing one device starts from what
     // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect

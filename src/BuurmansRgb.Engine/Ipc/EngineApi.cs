@@ -59,6 +59,9 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
         Task.FromResult(ToInfo(_lighting.GetLighting(deviceId)));
 
+    public Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. _lighting.GetAllLighting().Select(device => new DeviceLightingInfo(device.DeviceId, ToInfo(device.Lighting)))]);
+
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
 
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)

@@ -556,7 +556,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         try
         {
-            await Lamps.RefreshAsync(deviceId => connection.Api.GetLightingAsync(deviceId));
+            await Lamps.RefreshAsync(() => connection.Api.GetAllLightingAsync());
         }
         catch (Exception exception)
         {

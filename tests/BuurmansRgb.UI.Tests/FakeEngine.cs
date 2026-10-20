@@ -163,6 +163,15 @@ internal sealed class FakeEngineApi : IEngineApi
         return Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]);
     }
 
+    // Like the engine: every device, with its own lighting or else that of all devices.
+    public int AllLightingCalls { get; private set; }
+
+    public Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default)
+    {
+        AllLightingCalls++;
+        return Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting.GetValueOrDefault(device.Id, Lighting[""])))]);
+    }
+
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
 
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>

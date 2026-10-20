@@ -51,6 +51,7 @@ public sealed class MainViewModelLampTests
 
         Assert.Equal("1 van 2 aan", viewModel.Lamps.Summary);
         Assert.Equal("LED-strip · 30%", viewModel.Lamps.Lamps[0].Details);
+        Assert.Equal(2, Api.AllLightingCalls);
     }
 
     [Fact]

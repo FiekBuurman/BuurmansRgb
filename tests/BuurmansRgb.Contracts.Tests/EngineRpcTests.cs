@@ -63,6 +63,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task GetAllLightingAsync_GivesEveryDeviceWithEveryField()
+    {
+        var client = await ConnectAsync();
+
+        var lighting = await client.Api.GetAllLightingAsync(Ct);
+
+        Assert.Equal(_api.Devices.Select(device => device.Id), lighting.Select(device => device.DeviceId));
+        Assert.All(lighting, device => Assert.Equal(_api.Lighting, device.Lighting));
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -402,6 +413,9 @@ public sealed class EngineRpcTests : IDisposable
             Task.FromResult<IReadOnlyList<string>>([EffectIds.Static]);
 
         public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) => Task.FromResult(Lighting);
+
+        public Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting))]);
 
         public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(LightingFrame.Empty);
 

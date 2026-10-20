@@ -19,7 +19,7 @@ public sealed partial class LampsViewModel : ObservableObject
     private bool _refreshAgain;
 
     // The way to ask the lighting that the last RefreshAsync gave, such as of a new connection.
-    private Func<string, Task<LightingInfo>>? _getLighting;
+    private Func<Task<IReadOnlyList<DeviceLightingInfo>>>? _getLighting;
 
     // The sequence of the last frame shown; frames can overtake each other.
     private long _sequence;
@@ -94,10 +94,11 @@ public sealed partial class LampsViewModel : ObservableObject
         OnPropertyChanged(nameof(HasLamps));
     }
 
-    // Asks the lighting of every lamp. A refresh asked while one runs makes it go round once more
-    // when it is done, with the getLighting of the last call, so the last change always shows and two
-    // refreshes never interleave.
-    public async Task RefreshAsync(Func<string, Task<LightingInfo>> getLighting)
+    // Asks the lighting of all lamps in one go. A refresh asked while one runs makes it go round once
+    // more when it is done, with the getLighting of the last call, so the last change always shows and
+    // two refreshes never interleave. A device the answer does not have, or a lamp that is gone by
+    // then, is left as it is.
+    public async Task RefreshAsync(Func<Task<IReadOnlyList<DeviceLightingInfo>>> getLighting)
     {
         _getLighting = getLighting;
         if (_refreshing)
@@ -114,9 +115,9 @@ public sealed partial class LampsViewModel : ObservableObject
                 _refreshAgain = false;
                 try
                 {
-                    foreach (var lamp in Lamps.ToArray())
+                    foreach (var device in await _getLighting())
                     {
-                        lamp.Show(await _getLighting(lamp.DeviceId));
+                        Lamps.FirstOrDefault(lamp => lamp.DeviceId == device.DeviceId)?.Show(device.Lighting);
                     }
                 }
                 catch when (_refreshAgain)

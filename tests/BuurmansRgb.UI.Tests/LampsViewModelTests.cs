@@ -33,7 +33,7 @@ public sealed class LampsViewModelTests
     [Fact]
     public async Task RefreshAsync_ShowsWhichLampsAreOnInWordsToo()
     {
-        await _lamps.RefreshAsync(deviceId => Task.FromResult(Lighting(on: deviceId != "fan", brightness: 0.8)));
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId != "fan", brightness: 0.8)));
 
         Assert.Equal(2, _lamps.OnCount);
         Assert.Equal("2 van 3 aan", _lamps.Summary);
@@ -66,7 +66,7 @@ public sealed class LampsViewModelTests
     [Fact]
     public async Task IsAnyOn_SwitchedOnWithOneLampOn_SwitchesEveryLampOn()
     {
-        await _lamps.RefreshAsync(deviceId => Task.FromResult(Lighting(on: deviceId == "fan")));
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId == "fan")));
         Assert.True(_lamps.IsAnyOn);
 
         _lamps.IsAnyOn = false;
@@ -91,7 +91,7 @@ public sealed class LampsViewModelTests
     [Fact]
     public async Task ShowDevices_LampThatStays_KeepsWhetherItIsOn()
     {
-        await _lamps.RefreshAsync(deviceId => Task.FromResult(Lighting(on: deviceId != "fan")));
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId != "fan")));
 
         _lamps.ShowDevices([DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 2))]);
 
@@ -103,23 +103,23 @@ public sealed class LampsViewModelTests
     {
         var gate = new TaskCompletionSource();
         List<string> asked = [];
-        var first = _lamps.RefreshAsync(async deviceId =>
+        var first = _lamps.RefreshAsync(async () =>
         {
-            asked.Add($"old {deviceId}");
+            asked.Add("old");
             await gate.Task;
-            return Lighting(on: true);
+            return await All(_ => Lighting(on: true))();
         });
 
-        var second = _lamps.RefreshAsync(deviceId =>
+        var second = _lamps.RefreshAsync(() =>
         {
-            asked.Add($"new {deviceId}");
-            return Task.FromResult(Lighting(on: false));
+            asked.Add("new");
+            return All(_ => Lighting(on: false))();
         });
         Assert.True(second.IsCompleted);
         gate.SetResult();
         await first;
 
-        Assert.Equal(["old strip", "new fan", "new sim", "new strip", "new fan", "new sim"], asked);
+        Assert.Equal(["old", "new"], asked);
         Assert.Equal(0, _lamps.OnCount);
     }
 
@@ -127,13 +127,13 @@ public sealed class LampsViewModelTests
     public async Task RefreshAsync_FailsWhileANewerOneWaits_GoesOnWithTheNewerOne()
     {
         var gate = new TaskCompletionSource();
-        var first = _lamps.RefreshAsync(async _ =>
+        var first = _lamps.RefreshAsync(async () =>
         {
             await gate.Task;
             throw new ObjectDisposedException("connection");
         });
 
-        _ = _lamps.RefreshAsync(_ => Task.FromResult(Lighting(on: false)));
+        _ = _lamps.RefreshAsync(All(_ => Lighting(on: false)));
         gate.SetResult();
         await first;
 
@@ -143,17 +143,29 @@ public sealed class LampsViewModelTests
     [Fact]
     public async Task RefreshAsync_Fails_TellsTheCaller()
     {
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _lamps.RefreshAsync(_ => throw new InvalidOperationException()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _lamps.RefreshAsync(() => throw new InvalidOperationException()));
 
         // And the next refresh runs again.
-        await _lamps.RefreshAsync(_ => Task.FromResult(Lighting(on: false)));
+        await _lamps.RefreshAsync(All(_ => Lighting(on: false)));
         Assert.Equal(0, _lamps.OnCount);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_DeviceThatIsNoLamp_IsSkippedAndAMissingLampKeepsItsState()
+    {
+        await _lamps.RefreshAsync(() => Task.FromResult<IReadOnlyList<DeviceLightingInfo>>(
+        [
+            new("gone", Lighting(on: false)),
+            new("fan", Lighting(on: false)),
+        ]));
+
+        Assert.Equal([true, false, true], _lamps.Lamps.Select(lamp => lamp.IsOn));
     }
 
     [Fact]
     public async Task ShowFrame_GivesEachLampItsBrightestLedAndSpreadsTheStripOverAllLeds()
     {
-        await _lamps.RefreshAsync(deviceId => Task.FromResult(Lighting(on: deviceId != "sim")));
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId != "sim")));
 
         _lamps.ShowFrame(new LightingFrame(1,
         [
@@ -191,6 +203,10 @@ public sealed class LampsViewModelTests
         Assert.Equal("Fan: kleur en effect", _lamps.Lamps[1].OpenAccessibleName);
         Assert.Equal(Strings.DeviceSource_Simulated, _lamps.Lamps[2].Device.Group);
     }
+
+    // The lighting of the three lamps of the test, as the engine gives it in one call.
+    private static Func<Task<IReadOnlyList<DeviceLightingInfo>>> All(Func<string, LightingInfo> lighting) =>
+        () => Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. new[] { "strip", "fan", "sim" }.Select(id => new DeviceLightingInfo(id, lighting(id)))]);
 
     private static LightingInfo Lighting(bool on, double brightness = 1.0) => new(Red, brightness, EffectIds.Static, On: on);
 }
