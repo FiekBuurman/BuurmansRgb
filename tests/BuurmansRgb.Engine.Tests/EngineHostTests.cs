@@ -109,6 +109,40 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task SimulatedDevicesModeChanged_IsSavedAndHidesThem()
+    {
+        var store = new InMemorySettingsStore();
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var lighting = new LightingController([simulatedDevices]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), simulatedDevices: simulatedSwitch);
+        await host.StartAsync(Ct);
+
+        simulatedSwitch.Mode = SimulatedDevicesMode.Never;
+        host.Dispose();
+
+        Assert.Equal(SimulatedDevicesMode.Never, store.Settings.SimulatedDevices);
+        Assert.Equal(1, store.SaveCount);
+        await Eventually.TrueAsync(() => lighting.Devices.Count == 0);
+    }
+
+    [Fact]
+    public async Task Dispose_StopsSavingTheSimulatedDevicesMode()
+    {
+        var store = new InMemorySettingsStore();
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var lighting = new LightingController([simulatedDevices]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), simulatedDevices: simulatedSwitch);
+        await host.StartAsync(Ct);
+        host.Dispose();
+
+        simulatedSwitch.Mode = SimulatedDevicesMode.Always;
+
+        Assert.Equal(0, store.SaveCount);
+    }
+
+    [Fact]
     public async Task StartAsync_TrimsMemoryOnceAfterTheLightsAreOn()
     {
         var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = new RgbColor(0, 0, 255) } };
