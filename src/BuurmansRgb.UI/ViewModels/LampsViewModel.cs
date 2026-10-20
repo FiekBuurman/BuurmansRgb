@@ -65,29 +65,51 @@ public sealed partial class LampsViewModel : ObservableObject
         }
     }
 
-    // The devices of the list, without "all devices". A lamp that stays keeps what it showed until
-    // the next refresh.
+    // The devices of the list, without "all devices". A lamp whose device stays the same stays the same
+    // item, so its card keeps the keyboard focus; one whose device changed (such as another location
+    // label) keeps what it showed until the next refresh. The list changes item by item, not all at once.
     public void ShowDevices(IEnumerable<DeviceItem> devices)
     {
         var old = Lamps.ToDictionary(lamp => lamp.DeviceId);
-        foreach (var lamp in Lamps)
-        {
-            lamp.SwitchRequested -= OnLampSwitchRequested;
-            lamp.PropertyChanged -= OnLampChanged;
-        }
-
-        Lamps.Clear();
+        List<LampItem> lamps = [];
         foreach (var device in devices.Where(device => device.DeviceId is not null))
         {
-            var lamp = new LampItem(device);
-            if (old.TryGetValue(lamp.DeviceId, out var previous))
+            if (old.TryGetValue(device.DeviceId!, out var previous) && previous.Device == device)
             {
-                lamp.Show(previous.IsOn);
+                lamps.Add(previous);
+                continue;
+            }
+
+            var lamp = new LampItem(device);
+            if (previous is not null)
+            {
+                lamp.ShowAs(previous);
             }
 
             lamp.SwitchRequested += OnLampSwitchRequested;
             lamp.PropertyChanged += OnLampChanged;
-            Lamps.Add(lamp);
+            lamps.Add(lamp);
+        }
+
+        for (var i = 0; i < lamps.Count; i++)
+        {
+            var at = Lamps.IndexOf(lamps[i]);
+            if (at < 0)
+            {
+                Lamps.Insert(i, lamps[i]);
+            }
+            else if (at != i)
+            {
+                Lamps.Move(at, i);
+            }
+        }
+
+        while (Lamps.Count > lamps.Count)
+        {
+            var gone = Lamps[^1];
+            gone.SwitchRequested -= OnLampSwitchRequested;
+            gone.PropertyChanged -= OnLampChanged;
+            Lamps.RemoveAt(Lamps.Count - 1);
         }
 
         OnLampsChanged();

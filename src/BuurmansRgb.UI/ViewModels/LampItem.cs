@@ -54,6 +54,14 @@ public sealed partial class LampItem(DeviceItem device) : ObservableObject
     // On or off as the whole house was just switched, until the engine tells what it did.
     public void Show(bool on) => _showing.Run(() => IsOn = on);
 
+    // What the lamp of the same device showed before its device changed, until the next refresh.
+    public void ShowAs(LampItem previous) => _showing.Run(() =>
+    {
+        IsOn = previous.IsOn;
+        Brightness = previous.Brightness;
+        Color = previous.Color;
+    });
+
     // Leds holds three bytes per LED, as a DeviceFrame has them.
     internal void ShowLeds(byte[] leds)
     {
