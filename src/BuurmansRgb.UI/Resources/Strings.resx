@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
@@ -198,4 +198,18 @@
   <data name="PresetWhite" xml:space="preserve">
     <value>Wit</value>
   </data>
-</root>
+  <data name="SpeedHeader" xml:space="preserve">
+    <value>Snelheid</value>
+  </data>
+  <data name="SpeedOnlyAnimated" xml:space="preserve">
+    <value>Alleen voor bewegende effecten.</value>
+  </data>
+  <data name="SaveAutomatic" xml:space="preserve">
+    <value>Wijzigingen worden automatisch opgeslagen.</value>
+  </data>
+  <data name="SavedAt" xml:space="preserve">
+    <value>Opgeslagen ✓ ({0:HH:mm:ss})</value>
+  </data>
+  <data name="SaveFailedAt" xml:space="preserve">
+    <value>Opslaan mislukt ({0:HH:mm:ss}): na een herstart zijn je laatste wijzigingen weg.</value>
+  </data></root>

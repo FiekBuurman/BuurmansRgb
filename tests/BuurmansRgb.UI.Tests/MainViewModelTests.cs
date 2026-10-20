@@ -342,15 +342,4 @@ public sealed class MainViewModelTests
         Assert.True(viewModel.IsConnected);
         return viewModel;
     }
-
-    // Lets a test prepare the fake engine before the view model loads from it.
-    private sealed class ArrangingConnector(FakeEngineConnector inner, Action<FakeEngineApi> arrange) : Services.IEngineConnector
-    {
-        public async Task<IEngineConnection> ConnectAsync(CancellationToken ct)
-        {
-            var connection = await inner.ConnectAsync(ct);
-            arrange(inner.Connection.FakeApi);
-            return connection;
-        }
-    }
 }
