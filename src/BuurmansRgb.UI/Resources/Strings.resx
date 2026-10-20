@@ -451,4 +451,25 @@
   </data>
   <data name="NoDirectModeHint" xml:space="preserve">
     <value>Dit apparaat heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. BuurmansRgb stuurt de kleuren wel, maar het apparaat kan zijn eigen effect blijven tonen. Gebeurt dat, stel het dan in OpenRGB zelf in.</value>
+  </data>
+  <data name="EffectsPausedManual" xml:space="preserve">
+    <value>Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.</value>
+  </data>
+  <data name="EffectsPausedLocked" xml:space="preserve">
+    <value>Effecten gepauzeerd zolang Windows vergrendeld is – ze lopen weer na het ontgrendelen.</value>
+  </data>
+  <data name="EffectsPausedAsleep" xml:space="preserve">
+    <value>Effecten gepauzeerd voor de slaapstand – ze lopen weer na het ontwaken.</value>
+  </data>
+  <data name="EffectsPausedSymbol" xml:space="preserve">
+    <value>Gepauzeerd</value>
+  </data>
+  <data name="ResumeEffects" xml:space="preserve">
+    <value>Hervatten</value>
+  </data>
+  <data name="ResumeEffectsAccessibleName" xml:space="preserve">
+    <value>Effecten hervatten</value>
+  </data>
+  <data name="ResumeEffectsToolTip" xml:space="preserve">
+    <value>Laat de effecten weer lopen, net als "Effecten pauzeren" uitzetten in het tray-menu.</value>
   </data></root>

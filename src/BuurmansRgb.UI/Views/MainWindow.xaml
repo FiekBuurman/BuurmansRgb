@@ -397,6 +397,23 @@
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.PreviewHeader}" />
                         <TextBlock Style="{StaticResource Label}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{x:Static res:Strings.PreviewHint}" />
+                        <!-- Calm on purpose: a pause is a choice or Windows being locked, not an error. Read out when it changes. -->
+                        <Border Margin="0,0,0,10" Padding="10,8" CornerRadius="4" BorderThickness="1"
+                                Background="{x:Static SystemColors.ControlBrush}" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                Visibility="{Binding EffectsPause.IsPaused, Converter={StaticResource BoolToVisibility}}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="10,3" VerticalAlignment="Center"
+                                        Content="{x:Static res:Strings.ResumeEffects}" ToolTip="{x:Static res:Strings.ResumeEffectsToolTip}"
+                                        Command="{Binding EffectsPause.ResumeCommand}"
+                                        Visibility="{Binding EffectsPause.CanResume, Converter={StaticResource BoolToVisibility}}"
+                                        AutomationProperties.Name="{x:Static res:Strings.ResumeEffectsAccessibleName}" />
+                                <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Text="⏸" FontFamily="Segoe UI Symbol"
+                                           AutomationProperties.Name="{x:Static res:Strings.EffectsPausedSymbol}" />
+                                <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding EffectsPause.Text, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.AutomationId="EffectsPause" AutomationProperties.LiveSetting="Polite"
+                                           views:LiveRegion.AnnouncesUpdates="True" />
+                            </DockPanel>
+                        </Border>
                         <ItemsControl ItemsSource="{Binding Preview.Devices}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">

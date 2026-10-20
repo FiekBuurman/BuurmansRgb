@@ -24,6 +24,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
+    private const string ResumeCall = "resume";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -40,6 +41,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Counts the OpenRGB status changes shown, so an answer to GetOpenRgbStatusAsync that an event
     // overtook does not bring back the older status.
     private int _openRgbStatusChanges;
+
+    // The same for the pause of the effects.
+    private int _pauseChanges;
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
@@ -77,6 +81,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
+        EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -114,6 +119,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
+
+    public EffectsPauseViewModel EffectsPause { get; } = new();
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -163,6 +170,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.DevicesChanged += OnDevicesChanged;
             connection.Api.SettingsSaved += OnSettingsSaved;
             connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
+            connection.Api.PauseChanged += OnPauseChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -267,6 +275,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (openRgbStatusChanges == _openRgbStatusChanges)
         {
             OpenRgbStatus.Show(openRgbStatus);
+        }
+
+        var pauseChanges = _pauseChanges;
+        var pause = await api.GetPauseAsync();
+        if (pauseChanges == _pauseChanges)
+        {
+            EffectsPause.Show(pause);
         }
     }
 
@@ -472,6 +487,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // The engine reports the pause that is left through PauseChanged, so the message follows by itself.
+    private void ResumeEffects()
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(ResumeCall, () => connection.Api.ResumeEffectsAsync());
+        }
+    }
+
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
@@ -532,6 +556,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenRgbStatus.Show(status);
     });
 
+    private void OnPauseChanged(object? sender, PauseReasons pause) => RunOnUi(() =>
+    {
+        _pauseChanges++;
+        EffectsPause.Show(pause);
+    });
+
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
         var now = _time.GetLocalNow();
@@ -584,6 +614,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ConnectionState = ConnectionState.Failed;
         StatusMessage = message;
         OpenRgbStatus.Clear();
+        EffectsPause.Clear();
         DropConnection();
     }
 
@@ -600,6 +631,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Api.SettingsSaved -= OnSettingsSaved;
         connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
+        connection.Api.PauseChanged -= OnPauseChanged;
         connection.Dispose();
     }
 
