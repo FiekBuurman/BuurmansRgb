@@ -8,4 +8,7 @@ public sealed record SimulatedDevicesOption(SimulatedDevicesMode Mode, string Di
 {
     public static SimulatedDevicesOption Create(SimulatedDevicesMode mode) =>
         new(mode, UiText.Lookup(nameof(SimulatedDevicesMode), mode) ?? mode.ToString());
+
+    // A screen reader names a ComboBox item by its ToString, not by DisplayMemberPath.
+    public override string ToString() => DisplayName;
 }

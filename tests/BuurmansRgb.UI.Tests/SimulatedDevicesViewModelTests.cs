@@ -16,6 +16,7 @@ public sealed class SimulatedDevicesViewModelTests
         Assert.Equal(
             [(SimulatedDevicesMode.Automatic, "Automatisch"), (SimulatedDevicesMode.Always, "Altijd"), (SimulatedDevicesMode.Never, "Nooit")],
             SimulatedDevicesViewModel.Options.Select(option => (option.Mode, option.DisplayName)));
+        Assert.Equal(["Automatisch", "Altijd", "Nooit"], SimulatedDevicesViewModel.Options.Select(option => option.ToString()));
     }
 
     [Fact]
