@@ -73,10 +73,10 @@ public sealed class LightingControllerTests
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(Ct);
 
-        controller.SetPaused(true);
+        controller.SetPaused(PauseReasons.Manual, true);
         controller.Apply(Uniform(Orange, 1.0));
 
-        Assert.True(controller.IsPaused);
+        Assert.Equal(PauseReasons.Manual, controller.Pause);
         Assert.Equal(0, provider.SetLedsCount);
     }
 
@@ -86,12 +86,12 @@ public sealed class LightingControllerTests
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(Ct);
-        controller.SetPaused(true);
+        controller.SetPaused(PauseReasons.Manual, true);
         controller.Apply(Uniform(Orange, 1.0));
 
-        controller.SetPaused(false);
+        controller.SetPaused(PauseReasons.Manual, false);
 
-        Assert.False(controller.IsPaused);
+        Assert.Equal(PauseReasons.None, controller.Pause);
         Assert.Equal(1, provider.SetLedsCount);
         Assert.Equal([Orange, Orange, Orange], provider.LastColors);
     }
@@ -102,9 +102,9 @@ public sealed class LightingControllerTests
         var provider = new RecordingDeviceProvider();
         var controller = new LightingController([provider]);
         await controller.DiscoverAsync(Ct);
-        controller.SetPaused(true);
+        controller.SetPaused(PauseReasons.Manual, true);
 
-        controller.SetPaused(false);
+        controller.SetPaused(PauseReasons.Manual, false);
 
         Assert.Equal(0, provider.SetLedsCount);
     }
@@ -219,7 +219,7 @@ public sealed class LightingControllerTests
         await controller.DiscoverAsync(Ct);
         LightingOutput? output = null;
         controller.Rendered += (_, _) => output = controller.GetOutput();
-        controller.SetPaused(true);
+        controller.SetPaused(PauseReasons.Manual, true);
 
         controller.Apply(Uniform(Orange, 1.0));
 

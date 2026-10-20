@@ -134,10 +134,10 @@ public sealed class LightingControllerAnimationTests : IDisposable
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(Uniform(EffectIds.Rainbow));
 
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
         Assert.False(_controller.IsAnimating);
 
-        _controller.SetPaused(false);
+        _controller.SetPaused(PauseReasons.Manual, false);
         Assert.True(_controller.IsAnimating);
     }
 
@@ -145,7 +145,7 @@ public sealed class LightingControllerAnimationTests : IDisposable
     public async Task Apply_WhilePaused_RunsNoTimer()
     {
         await _controller.DiscoverAsync(Ct);
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
         _controller.Apply(Uniform(EffectIds.Rainbow));
 

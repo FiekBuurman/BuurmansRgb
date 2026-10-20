@@ -72,7 +72,7 @@ public sealed class LightingControllerDeviceChangeTests
     {
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
         await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
 

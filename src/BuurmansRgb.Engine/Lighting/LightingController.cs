@@ -9,6 +9,10 @@ namespace BuurmansRgb.Engine.Lighting;
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
 // An AnimationLoop renders the frames, and only while an animated effect shows or a device
 // flashes, and nothing is paused; with static lighting no timer runs at all.
+//
+// A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
+// manual pause also leaves the devices alone; while Windows is locked or asleep, a change such as
+// a profile that loads on time, or the restore after waking up, still reaches the devices.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
@@ -16,6 +20,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     private readonly IReadOnlyList<IDeviceProvider> _providers;
     private readonly Lock _gate = new();
+
+    // Held around a whole pause change, outside _gate, so PauseChanged follows the order of the changes.
+    private readonly Lock _pausing = new();
 
     // Device lists are fetched one provider at a time, so a slow provider cannot overtake a newer list.
     // Not disposed: a refresh may still hold it or wait for it when the controller is disposed, and
@@ -30,9 +37,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
     private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
-    private bool _isPaused;
+    private PauseReasons _pause;
 
-    // A restore that waits for the pause to end.
+    // A restore that waits for the manual pause to end.
     private bool _restorePending;
     private bool _disposed;
     private long _sequence;
@@ -71,13 +78,16 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Raised when the device list changed, before the render that gives new devices their lighting.
     public event EventHandler? DevicesChanged;
 
-    public bool IsPaused
+    // Raised with the new reasons when the pause changes, in the order of the changes.
+    public event EventHandler<PauseReasons>? PauseChanged;
+
+    public PauseReasons Pause
     {
         get
         {
             lock (_gate)
             {
-                return _isPaused;
+                return _pause;
             }
         }
     }
@@ -274,7 +284,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     {
         lock (_gate)
         {
-            if (_outputs.Find(deviceId) is not { } output || _isPaused || !_lighting.IsSet)
+            if (_outputs.Find(deviceId) is not { } output || _pause != PauseReasons.None || !_lighting.IsSet)
             {
                 return;
             }
@@ -300,49 +310,63 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
-    // Resuming sends the latest lighting again; pausing stops the animation and leaves the
-    // devices as they are, except that a flash ends first, so no device stays white or dark.
-    public void SetPaused(bool paused)
+    // Adds or ends one reason to pause. The first reason stops the animation and leaves the devices
+    // as they are, except that a flash ends first, so no device stays white or dark. When the
+    // manual pause ends, the latest lighting goes out again, with a restore that waited for it;
+    // when the last reason ends, the animation runs again.
+    public void SetPaused(PauseReasons reason, bool paused)
     {
-        bool rendered;
-        lock (_gate)
+        lock (_pausing)
         {
-            if (_isPaused == paused)
+            bool rendered;
+            PauseReasons pause;
+            lock (_gate)
             {
-                return;
-            }
-
-            if (paused)
-            {
-                rendered = StopFlashesLocked();
-                _isPaused = true;
-                UpdateAnimationLocked();
-            }
-            else
-            {
-                _isPaused = false;
-                if (_restorePending)
+                var old = _pause;
+                pause = paused ? old | reason : old & ~reason;
+                if (pause == old)
                 {
-                    _restorePending = false;
-                    RestoreProvidersLocked();
+                    return;
                 }
 
-                rendered = RenderLocked();
-            }
-        }
+                _pause = pause;
+                if (old == PauseReasons.None)
+                {
+                    rendered = StopFlashesLocked();
+                    UpdateAnimationLocked();
+                }
+                else if (IsManual(old) && !IsManual(pause))
+                {
+                    if (_restorePending)
+                    {
+                        _restorePending = false;
+                        RestoreProvidersLocked();
+                    }
 
-        Publish(rendered);
+                    rendered = RenderLocked();
+                }
+                else
+                {
+                    rendered = false;
+                    UpdateAnimationLocked();
+                }
+            }
+
+            Publish(rendered);
+            PauseChanged?.Invoke(this, pause);
+        }
     }
 
     // After sleep many devices show an effect of their own again. The providers that can set their
     // devices up again do so, and every device gets its lighting once more, also the ones that
-    // did not change. While paused the devices stay as they are until the pause ends.
+    // did not change. That also happens while Windows is locked, so the lock screen after waking
+    // up has the lighting too; during a manual pause the devices stay as they are until it ends.
     public void RestoreDevices()
     {
         bool rendered;
         lock (_gate)
         {
-            if (_isPaused)
+            if (IsManual(_pause))
             {
                 _restorePending = true;
                 return;
@@ -479,7 +503,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             var lighting = _lighting.Get(output.Device.Id);
             output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop), lighting.Brightness, lighting.Speed);
             output.Render(time);
-            if (!_isPaused)
+            if (!IsManual(_pause))
             {
                 output.Send();
             }
@@ -538,7 +562,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     private void UpdateAnimationLocked()
     {
-        if (!_disposed && !_isPaused && _lighting.IsSet && _outputs.All.Any(output => output.IsAnimated))
+        if (!_disposed && _pause == PauseReasons.None && _lighting.IsSet && _outputs.All.Any(output => output.IsAnimated))
         {
             _animation.Start();
         }
@@ -547,6 +571,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             _animation.Stop();
         }
     }
+
+    private static bool IsManual(PauseReasons pause) => pause.HasFlag(PauseReasons.Manual);
 
     private void Publish(bool rendered)
     {

@@ -269,10 +269,10 @@ public sealed class EngineHostTests : IDisposable
         var host = new EngineHost(new JsonSettingsStore(_directory.File("settings.json")), lighting);
 
         host.SetPaused(true);
-        Assert.True(lighting.IsPaused);
+        Assert.Equal(PauseReasons.Manual, lighting.Pause);
 
         host.SetPaused(false);
-        Assert.False(lighting.IsPaused);
+        Assert.Equal(PauseReasons.None, lighting.Pause);
     }
 
     // A profile they load is not overwritten by the saved lighting, and is saved like a change.

@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
@@ -44,7 +45,7 @@ internal sealed class EngineHost(
         trimMemory?.Invoke();
     }
 
-    public void SetPaused(bool paused) => lighting.SetPaused(paused);
+    public void SetPaused(bool paused) => lighting.SetPaused(PauseReasons.Manual, paused);
 
     public void Dispose()
     {
