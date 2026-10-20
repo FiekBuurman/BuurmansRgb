@@ -9,4 +9,5 @@ namespace BuurmansRgb.Engine.Settings;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     Converters = [typeof(RgbColorJsonConverter)])]
 [JsonSerializable(typeof(EngineSettings))]
+[JsonSerializable(typeof(ProfilesFile))]
 internal sealed partial class EngineSettingsJsonContext : JsonSerializerContext;

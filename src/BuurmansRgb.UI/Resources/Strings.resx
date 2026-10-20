@@ -232,4 +232,43 @@
   </data>
   <data name="ColorLoopSwatch" xml:space="preserve">
     <value>Kleur {0}: {1}</value>
+  </data>
+  <data name="ProfilesHeader" xml:space="preserve">
+    <value>Profielen</value>
+  </data>
+  <data name="ProfilesHint" xml:space="preserve">
+    <value>Bewaar de verlichting van alle apparaten onder een naam, zodat je er later naar terug kunt.</value>
+  </data>
+  <data name="ProfileNameLabel" xml:space="preserve">
+    <value>Naam van het profiel</value>
+  </data>
+  <data name="ProfileSave" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="ProfileOverwrite" xml:space="preserve">
+    <value>Overschrijven</value>
+  </data>
+  <data name="ProfileSaveToolTip" xml:space="preserve">
+    <value>Bewaart de verlichting zoals die nu is onder deze naam.</value>
+  </data>
+  <data name="ProfileLoad" xml:space="preserve">
+    <value>Laden</value>
+  </data>
+  <data name="ProfileLoadToolTip" xml:space="preserve">
+    <value>Zet de verlichting terug zoals die in dit profiel is bewaard. Dubbelklikken kan ook.</value>
+  </data>
+  <data name="ProfileDelete" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="ProfileDeleteConfirm" xml:space="preserve">
+    <value>Profiel '{0}' verwijderen?</value>
+  </data>
+  <data name="ProfileSaved" xml:space="preserve">
+    <value>Profiel '{0}' opgeslagen.</value>
+  </data>
+  <data name="ProfileLoaded" xml:space="preserve">
+    <value>Profiel '{0}' geladen.</value>
+  </data>
+  <data name="ProfileDeleted" xml:space="preserve">
+    <value>Profiel '{0}' verwijderd.</value>
   </data></root>

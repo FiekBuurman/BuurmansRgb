@@ -3,6 +3,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Providers.Simulated;
 using StreamJsonRpc;
 
@@ -196,7 +197,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, _lighting, () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting)), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

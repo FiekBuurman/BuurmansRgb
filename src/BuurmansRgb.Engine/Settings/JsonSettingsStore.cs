@@ -23,28 +23,14 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             using var stream = File.OpenRead(filePath);
             return JsonSerializer.Deserialize(stream, EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.CreateDefault();
         }
-        catch (Exception exception) when (exception is JsonException || IsFileAccessError(exception))
+        catch (Exception exception) when (exception is JsonException || JsonFile.IsAccessError(exception))
         {
             // Keep the user's file untouched so a typo can be fixed; run on defaults meanwhile.
             return EngineSettings.CreateDefault();
         }
     }
 
-    public void Save(EngineSettings settings)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(filePath))!);
-
-        var tempPath = filePath + ".tmp";
-        using (var stream = File.Create(tempPath))
-        {
-            JsonSerializer.Serialize(stream, settings, EngineSettingsJsonContext.Default.EngineSettings);
-        }
-
-        File.Move(tempPath, filePath, overwrite: true);
-    }
-
-    private static bool IsFileAccessError(Exception exception) =>
-        exception is IOException or UnauthorizedAccessException;
+    public void Save(EngineSettings settings) => JsonFile.Write(filePath, settings, EngineSettingsJsonContext.Default.EngineSettings);
 
     // Writing the defaults is a convenience for the user; the lights must start without it.
     private void TrySave(EngineSettings settings)
@@ -53,7 +39,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         {
             Save(settings);
         }
-        catch (Exception exception) when (IsFileAccessError(exception))
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
         }
     }

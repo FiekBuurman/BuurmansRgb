@@ -52,4 +52,17 @@ public partial interface IEngineApi
     // Gives a resizable zone (an index into the device's zones) another number of LEDs, within its
     // range. The device may get its new length a little later; DevicesChanged then follows.
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
+
+    // The names of the saved profiles, in alphabetical order.
+    Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);
+
+    // Saves all the lighting as it is now under name, which follows ProfileNames. A profile with
+    // that name is replaced.
+    Task SaveProfileAsync(string name, CancellationToken ct = default);
+
+    // Shows the lighting of the profile on every device; it becomes the current lighting and is
+    // saved as such.
+    Task LoadProfileAsync(string name, CancellationToken ct = default);
+
+    Task DeleteProfileAsync(string name, CancellationToken ct = default);
 }

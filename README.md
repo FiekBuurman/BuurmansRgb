@@ -398,6 +398,14 @@ dotnet run --project src/BuurmansRgb.UI
   wijziging heeft weggeschreven, een seconde na de laatste wijziging. Lukt dat niet, dan staat
   er "Opslaan mislukt": de lampen werken dan wel, maar na een herstart is de wijziging weg.
   Zonelengtes bewaart OpenRGB zelf, niet BuurmansRgb.
+- **Profielen** (links onder de apparaten): typ een naam en kies "Opslaan" om de verlichting
+  van alle apparaten te bewaren (kleur, helderheid, effect, snelheid, kleurenloop en
+  per-LED-kleuren). Kies later het profiel en "Laden" (of dubbelklik) om terug te gaan; de
+  geladen verlichting wordt dan ook de gewone, opgeslagen verlichting. Een profiel kiezen
+  vult zijn naam in, en de knop heet dan "Overschrijven". "Verwijderen" vraagt eerst of het
+  zeker is. Profielen staan in `%AppData%\BuurmansRgb\profiles.json`, naast `settings.json`.
+  Is dat bestand geen geldige JSON meer, dan zet de engine het opzij als
+  `profiles.json.broken` en begint met een lege lijst. Zonelengtes horen niet bij een profiel.
 - Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat

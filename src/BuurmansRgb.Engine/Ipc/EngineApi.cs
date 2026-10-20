@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Ipc;
@@ -10,11 +11,13 @@ namespace BuurmansRgb.Engine.Ipc;
 internal sealed class EngineApi : IEngineApi, IDisposable
 {
     private readonly LightingController _lighting;
+    private readonly ProfileLibrary _profiles;
     private readonly SettingsSaveEvents? _saveEvents;
 
-    public EngineApi(LightingController lighting, SettingsSaveEvents? saveEvents = null)
+    public EngineApi(LightingController lighting, ProfileLibrary profiles, SettingsSaveEvents? saveEvents = null)
     {
         _lighting = lighting;
+        _profiles = profiles;
         _saveEvents = saveEvents;
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
@@ -83,6 +86,26 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
     {
         _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+        return Task.CompletedTask;
+    }
+
+    public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
+
+    public Task SaveProfileAsync(string name, CancellationToken ct = default)
+    {
+        _profiles.Save(name);
+        return Task.CompletedTask;
+    }
+
+    public Task LoadProfileAsync(string name, CancellationToken ct = default)
+    {
+        _profiles.Load(name);
+        return Task.CompletedTask;
+    }
+
+    public Task DeleteProfileAsync(string name, CancellationToken ct = default)
+    {
+        _profiles.Delete(name);
         return Task.CompletedTask;
     }
 

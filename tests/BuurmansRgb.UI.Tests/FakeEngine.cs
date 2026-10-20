@@ -125,6 +125,38 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default) =>
         Record($"resize {deviceId} {zoneIndex} {ledCount}");
 
+    // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
+    public List<string> Profiles { get; } = [];
+
+    // The lighting a loaded profile shows, by profile name.
+    public Dictionary<string, LightingInfo> ProfileLighting { get; } = [];
+
+    public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<string>>([.. Profiles]);
+
+    public async Task SaveProfileAsync(string name, CancellationToken ct = default)
+    {
+        await Record($"profile save {name}");
+        Profiles.Add(name);
+        Profiles.Sort(StringComparer.CurrentCultureIgnoreCase);
+    }
+
+    public async Task LoadProfileAsync(string name, CancellationToken ct = default)
+    {
+        await Record($"profile load {name}");
+        if (ProfileLighting.TryGetValue(name, out var lighting))
+        {
+            Lighting.Clear();
+            Lighting[""] = lighting;
+        }
+    }
+
+    public async Task DeleteProfileAsync(string name, CancellationToken ct = default)
+    {
+        await Record($"profile delete {name}");
+        Profiles.Remove(name);
+    }
+
     private Task Record(string call)
     {
         if (SetException is not null)

@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -10,6 +11,10 @@ namespace BuurmansRgb.Engine.Tests;
 public sealed class EngineApiTests
 {
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
+    private readonly InMemoryProfileStore _profileStore = new();
+    private readonly ProfileLibrary _profiles;
+
+    public EngineApiTests() => _profiles = new ProfileLibrary(_profileStore, _lighting);
 
     [Theory]
     [InlineData(double.NaN)]
@@ -18,7 +23,7 @@ public sealed class EngineApiTests
     [InlineData(1.01)]
     public async Task SetBrightnessAsync_OutOfRange_Throws(double brightness)
     {
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             () => api.SetBrightnessAsync(null, brightness, Ct));
@@ -28,7 +33,7 @@ public sealed class EngineApiTests
     public async Task SetSpeedAsync_SetsTheSpeedOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await api.SetSpeedAsync("simulated-fan", 2.5, Ct);
 
@@ -42,7 +47,7 @@ public sealed class EngineApiTests
     [InlineData(EffectSpeed.Max + 0.01)]
     public async Task SetSpeedAsync_OutOfRange_Throws(double speed)
     {
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => api.SetSpeedAsync(null, speed, Ct));
     }
@@ -51,7 +56,7 @@ public sealed class EngineApiTests
     public async Task SetColorLoopAsync_StoresACopyOfTheColors()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
         RgbColor[] colors = [new(255, 255, 0), new(0, 255, 0), new(0, 0, 255)];
 
         await api.SetColorLoopAsync(null, colors, spread: false, Ct);
@@ -65,7 +70,7 @@ public sealed class EngineApiTests
     [Fact]
     public async Task SetColorLoopAsync_OneColor_Throws()
     {
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [new RgbColor(1, 2, 3)], spread: true, Ct));
     }
@@ -74,7 +79,7 @@ public sealed class EngineApiTests
     public void SettingsSaved_FollowsTheSaveEvents()
     {
         var saveEvents = new SettingsSaveEvents();
-        using var api = new EngineApi(_lighting, saveEvents);
+        using var api = new EngineApi(_lighting, _profiles, saveEvents);
         var results = new List<SettingsSaveResult>();
         api.SettingsSaved += (_, result) => results.Add(result);
 
@@ -88,7 +93,7 @@ public sealed class EngineApiTests
     public void Dispose_StopsFollowingTheSaveEvents()
     {
         var saveEvents = new SettingsSaveEvents();
-        var api = new EngineApi(_lighting, saveEvents);
+        var api = new EngineApi(_lighting, _profiles, saveEvents);
         var results = 0;
         api.SettingsSaved += (_, _) => results++;
 
@@ -102,7 +107,7 @@ public sealed class EngineApiTests
     public async Task GetDevicesAsync_GivesTypeAndZonesOfEveryDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         var devices = await api.GetDevicesAsync(Ct);
 
@@ -116,7 +121,7 @@ public sealed class EngineApiTests
     public async Task SetLedColorsAsync_StoresTheColorsOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await api.SetLedColorsAsync("simulated-fan", 1, [new RgbColor(1, 2, 3)], Ct);
 
@@ -129,7 +134,7 @@ public sealed class EngineApiTests
     public async Task SetLedColorsAsync_NoColors_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await Assert.ThrowsAsync<ArgumentNullException>(
             () => api.SetLedColorsAsync("simulated-fan", 0, null!, Ct));
@@ -139,7 +144,7 @@ public sealed class EngineApiTests
     public async Task ResizeZoneAsync_ResizesTheZoneAndReportsTheNewDevice()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -156,7 +161,7 @@ public sealed class EngineApiTests
     public async Task ResizeZoneAsync_FixedZone_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
 
         await Assert.ThrowsAsync<ArgumentException>(
             () => api.ResizeZoneAsync("simulated-fan", 0, 16, Ct));
@@ -166,7 +171,7 @@ public sealed class EngineApiTests
     public async Task FrameRendered_ForwardsLightingFrames()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting);
+        using var api = new EngineApi(_lighting, _profiles);
         LightingFrame? received = null;
         api.FrameRendered += (_, frame) => received = frame;
 
@@ -181,7 +186,7 @@ public sealed class EngineApiTests
     {
         var dynamic = new DynamicDeviceProvider();
         var lighting = new LightingController([dynamic]);
-        using var api = new EngineApi(lighting);
+        using var api = new EngineApi(lighting, new ProfileLibrary(new InMemoryProfileStore(), lighting));
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -196,7 +201,7 @@ public sealed class EngineApiTests
     public async Task Dispose_StopsForwardingFrames()
     {
         await _lighting.DiscoverAsync(Ct);
-        var api = new EngineApi(_lighting);
+        var api = new EngineApi(_lighting, _profiles);
         var frames = 0;
         api.FrameRendered += (_, _) => frames++;
 
@@ -204,5 +209,42 @@ public sealed class EngineApiTests
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
 
         Assert.Equal(0, frames);
+    }
+
+    [Fact]
+    public async Task SaveProfileAsync_ThenLoadProfileAsync_BringsTheLightingBack()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = new EngineApi(_lighting, _profiles);
+        await api.SetColorAsync(null, Orange, Ct);
+        await api.SetSpeedAsync("simulated-fan", 2.0, Ct);
+
+        await api.SaveProfileAsync("Gamen", Ct);
+        await api.SetColorAsync(null, Blue, Ct);
+        await api.SetSpeedAsync("simulated-fan", 0.5, Ct);
+        await api.LoadProfileAsync("Gamen", Ct);
+
+        Assert.Equal(["Gamen"], await api.GetProfilesAsync(Ct));
+        Assert.Equal(Orange, (await api.GetLightingAsync(null, Ct)).Color);
+        Assert.Equal(2.0, (await api.GetLightingAsync("simulated-fan", Ct)).Speed);
+    }
+
+    [Fact]
+    public async Task DeleteProfileAsync_RemovesTheName()
+    {
+        using var api = new EngineApi(_lighting, _profiles);
+        await api.SaveProfileAsync("Gamen", Ct);
+
+        await api.DeleteProfileAsync("Gamen", Ct);
+
+        Assert.Empty(await api.GetProfilesAsync(Ct));
+    }
+
+    [Fact]
+    public async Task LoadProfileAsync_UnknownName_Throws()
+    {
+        using var api = new EngineApi(_lighting, _profiles);
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.LoadProfileAsync("Gamen", Ct));
     }
 }

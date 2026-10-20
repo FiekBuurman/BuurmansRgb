@@ -1,6 +1,8 @@
 # Ideeën voor later
 
-- Profielen per moment (gamen, werken, nacht)
+- Een profiel kiezen vanuit het tray-menu (submenu "Profiel laden"), zodat wisselen tussen
+  gamen, werken en nacht kan zonder de instellingen-app te openen
+- Profielen automatisch laten wisselen, bijv. op tijd (nacht) of als een spel start
 - Alle apparaten synchroon laten lopen
 - Eigen HID-providers voor apparaten die OpenRGB niet kent
 - `BuurmansRgb.UI.exe` ook in de publish-map van de engine zetten; nu staan ze alleen na
