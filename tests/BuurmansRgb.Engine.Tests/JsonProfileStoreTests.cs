@@ -49,6 +49,47 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_WritesTheTimeAsHoursAndMinutes()
+    {
+        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);
+
+        Assert.Contains("\"loadAt\": \"07:05\"", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal(new TimeOnly(7, 5), Assert.Single(_store.Load()).Automation.LoadAt);
+    }
+
+    [Fact]
+    public void Save_WithoutAutomation_WritesNoTime()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red)))]);
+
+        Assert.DoesNotContain("loadAt", File.ReadAllText(_directory.File("profiles.json")));
+    }
+
+    // Files from before the automation have no "loadAt"; a value that does not read leaves the
+    // time off but keeps the profile and the other profiles.
+    [Fact]
+    public void Load_TimeMissingOrInvalid_LeavesTheTimeOff()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "A", "color": "#FF0000" },
+                { "name": "B", "loadAt": "25:00" },
+                { "name": "C", "loadAt": 2300 },
+                { "name": "D", "loadAt": { "hour": 23 } },
+                { "name": "E", "loadAt": null },
+                { "name": "F", "loadAt": " 7:30 " }
+            ] }
+            """);
+
+        var profiles = _store.Load();
+
+        Assert.Equal(["A", "B", "C", "D", "E", "F"], profiles.Select(profile => profile.Name));
+        Assert.Equal(Red, profiles[0].Lighting.Global.Color);
+        Assert.All(profiles.Take(5), profile => Assert.Equal(ProfileAutomation.None, profile.Automation));
+        Assert.Equal(new TimeOnly(7, 30), profiles[5].Automation.LoadAt);
+    }
+
+    [Fact]
     public void Load_SkipsProfilesWithoutAValidOrWithADoubleName()
     {
         File.WriteAllText(_directory.File("profiles.json"), """

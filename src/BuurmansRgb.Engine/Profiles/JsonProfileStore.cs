@@ -44,7 +44,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
         {
             if (ProfileNames.Normalize(settings?.Name) is { } name && !profiles.Exists(profile => ProfileNames.Comparer.Equals(profile.Name, name)))
             {
-                profiles.Add(new Profile(name, settings!.ToLightingState()));
+                profiles.Add(settings!.ToProfile(name));
             }
         }
 

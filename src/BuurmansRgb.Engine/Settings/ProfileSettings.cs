@@ -1,19 +1,42 @@
-using BuurmansRgb.Engine.Lighting;
+using System.Globalization;
+using System.Text.Json.Serialization;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 
 namespace BuurmansRgb.Engine.Settings;
 
-// One profile in profiles.json: its name and the same lighting fields as settings.json.
+// One profile in profiles.json: its name, the same lighting fields as settings.json and, when it
+// loads by itself, "loadAt" as "HH:mm". Older files have no "loadAt"; a time that does not read
+// leaves it off, and the rest of the profile still counts.
 internal sealed record ProfileSettings : LightingStateSettings
 {
+    private const string TimeFormat = "HH:mm";
+
+    // "H:mm" also reads "07:30", and "7:30" from a hand-edited file.
+    private const string LenientTimeFormat = "H:mm";
+
     public string? Name { get; set; }
+
+    [JsonConverter(typeof(LenientStringJsonConverter))]
+    public string? LoadAt { get; set; }
 
     public static ProfileSettings From(Profile profile)
     {
-        var settings = new ProfileSettings { Name = profile.Name };
+        var settings = new ProfileSettings
+        {
+            Name = profile.Name,
+            LoadAt = profile.Automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture),
+        };
         settings.CopyFrom(profile.Lighting);
         return settings;
     }
+
+    // name is the checked spelling of Name.
+    public Profile ToProfile(string name) => new(name, ToLightingState())
+    {
+        Automation = new ProfileAutomation(
+            TimeOnly.TryParseExact(LoadAt?.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time) ? time : null),
+    };
 }
 
 // The root of profiles.json.

@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using static BuurmansRgb.Engine.Tests.LightingStates;
@@ -97,4 +98,65 @@ public sealed class ProfileLibraryTests
 
     [Fact]
     public void Delete_UnknownName_Throws() => Assert.Throws<ArgumentException>(() => _library.Delete("Gamen"));
+
+    [Fact]
+    public void Save_ExistingProfile_KeepsItsAutomation()
+    {
+        var automation = new ProfileAutomation(new TimeOnly(23, 0));
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = automation }];
+
+        _library.Save("nacht");
+
+        Assert.Equal(automation, Assert.Single(_store.Profiles).Automation);
+    }
+
+    [Fact]
+    public void SetAutomation_StoresItInWholeMinutes()
+    {
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))), new Profile("Werk", Uniform(StaticLighting(Green)))];
+
+        _library.SetAutomation("NACHT", new ProfileAutomation(new TimeOnly(23, 0, 30)));
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), _store.Profiles[0].Automation);
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), _library.GetAutomation("Nacht"));
+        Assert.Equal(ProfileAutomation.None, _library.GetAutomation("Werk"));
+    }
+
+    [Fact]
+    public void Automated_ListsOnlyTheProfilesWithAnAutomation()
+    {
+        var night = new ProfileAutomation(new TimeOnly(23, 0));
+        _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = night }];
+
+        Assert.Equal([("Nacht", night)], _library.Automated);
+    }
+
+    [Fact]
+    public void SetAutomation_UnknownName_Throws() =>
+        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", ProfileAutomation.None));
+
+    [Fact]
+    public void Changed_IsRaisedAfterEachChangeToTheList()
+    {
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        _library.Save("Nacht");
+        _library.SetAutomation("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _library.Load("Nacht");
+        _library.Delete("Nacht");
+
+        Assert.Equal(3, changes);
+    }
+
+    [Fact]
+    public void Changed_NotRaisedWhenTheFileCannotBeWritten()
+    {
+        _store.SaveException = new IOException("Disk full");
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        Assert.Throws<IOException>(() => _library.Save("Nacht"));
+        Assert.Equal(0, changes);
+    }
 }
