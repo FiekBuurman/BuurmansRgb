@@ -190,7 +190,7 @@ De engine pauzeert de effecten om drie redenen, die elk op zichzelf aflopen
 | --- | --- | --- | --- |
 | Tray-menu | "Effecten pauzeren" aanvinken | Uitvinken, of "Hervatten" in de instellingen-app | Blijven zoals ze zijn; de engine stuurt niets tot hervatten |
 | Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een extern bureaublad dat verbroken is zonder af te melden | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan |
-| Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden | Het laatste frame blijft staan |
+| Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden; ook ontgrendelen of de sessie weer op een scherm, voor als Windows het wakker worden niet meldt | Het laatste frame blijft staan |
 
 - **Geen CPU voor effecten:** bij elke reden stopt de timer van de animatie; er draait dan geen
   timer meer, net als bij een statische kleur. Een bewegend effect staat stil op het laatste

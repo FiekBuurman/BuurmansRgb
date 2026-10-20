@@ -63,6 +63,9 @@ internal sealed class AutoPause : IDisposable
 
     private void OnResumed(object? sender, EventArgs e) => Change(() => _asleep = false);
 
+    // Unlocking or connecting the session also ends the sleep: SystemEvents reports no Resume when
+    // Windows wakes up without the user (PBT_APMRESUMEAUTOMATIC), and the animation must not stay
+    // still for good after the user is back.
     private void OnSessionSwitched(object? sender, SessionSwitchReason reason)
     {
         switch (reason)
@@ -71,13 +74,13 @@ internal sealed class AutoPause : IDisposable
                 Change(() => _locked = true);
                 break;
             case SessionSwitchReason.SessionUnlock:
-                Change(() => _locked = false);
+                Change(() => (_locked, _asleep) = (false, false));
                 break;
             case SessionSwitchReason.ConsoleDisconnect or SessionSwitchReason.RemoteDisconnect:
                 Change(() => _disconnected = true);
                 break;
             case SessionSwitchReason.ConsoleConnect or SessionSwitchReason.RemoteConnect:
-                Change(() => _disconnected = false);
+                Change(() => (_disconnected, _asleep) = (false, false));
                 break;
         }
     }

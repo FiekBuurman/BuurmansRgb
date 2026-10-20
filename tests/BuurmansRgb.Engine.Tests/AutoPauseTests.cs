@@ -117,6 +117,22 @@ public sealed class AutoPauseTests : IDisposable
         Assert.True(_lighting.IsAnimating);
     }
 
+    // Windows can wake up without a Resume from SystemEvents; the user coming back ends the sleep.
+    [Theory]
+    [InlineData(SessionSwitchReason.SessionUnlock)]
+    [InlineData(SessionSwitchReason.ConsoleConnect)]
+    [InlineData(SessionSwitchReason.RemoteConnect)]
+    public async Task SuspendingWithoutResume_EndsWhenTheUserIsBack(SessionSwitchReason back)
+    {
+        await StartAnimatedAsync();
+        _power.RaiseSuspending();
+
+        _session.Raise(back);
+
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
     [Fact]
     public async Task Unlock_KeepsTheManualPause()
     {
