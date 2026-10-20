@@ -127,7 +127,8 @@
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
-                                <Setter Property="AutomationProperties.HelpText" Value="{Binding LocationToolTip}" />
+                                <!-- The label that tells twins apart, as the list shows it; null for a device without one. -->
+                                <Setter Property="AutomationProperties.HelpText" Value="{Binding LocationLabel}" />
                                 <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
                             </Style>
                         </ListBox.ItemContainerStyle>
