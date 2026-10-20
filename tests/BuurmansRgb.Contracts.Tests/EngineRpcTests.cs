@@ -77,6 +77,15 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task GetProfileLightingAsync_RoundTripsEveryField()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal(_api.Lighting, await client.Api.GetProfileLightingAsync("Nacht", Ct));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => client.Api.GetProfileLightingAsync("Gamen", Ct));
+    }
+
+    [Fact]
     public async Task ProfileAutomation_CrossesThePipe()
     {
         var client = await ConnectAsync();
@@ -464,6 +473,9 @@ public sealed class EngineRpcTests : IDisposable
         public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
 
         public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
+            Task.FromResult(name == "Nacht" ? Lighting : throw new ArgumentException($"There is no profile '{name}'.", nameof(name)));
 
         public List<(string Name, ProfileAutomation Automation)> AutomationCalls { get; } = [];
 

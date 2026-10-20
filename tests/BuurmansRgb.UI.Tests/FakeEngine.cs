@@ -239,6 +239,10 @@ internal sealed class FakeEngineApi : IEngineApi
         Profiles.Remove(name);
     }
 
+    // Like the engine: the lighting a profile gives all devices; the default lighting without one.
+    public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(ProfileLighting.GetValueOrDefault(name, new LightingInfo(RgbColor.White, 1.0, EffectIds.Static)));
+
     // By profile name; a profile without one never loads by itself.
     public Dictionary<string, ProfileAutomation> ProfileAutomations { get; } = [];
 

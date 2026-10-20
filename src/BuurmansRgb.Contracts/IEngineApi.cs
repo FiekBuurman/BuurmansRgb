@@ -105,6 +105,10 @@ public partial interface IEngineApi
 
     Task DeleteProfileAsync(string name, CancellationToken ct = default);
 
+    // The lighting the profile gives all devices, without the devices that differ from it, such as
+    // to show what the profile looks like.
+    Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default);
+
     // When the engine loads the profile by itself; ProfileAutomation.None when it never does.
     Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);
 

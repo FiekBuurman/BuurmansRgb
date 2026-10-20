@@ -15,7 +15,7 @@ public sealed class ProfileAutomationViewModelTests
     {
         Assert.False(_automation.HasProfile);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
-        Assert.Equal("Automatisch laden", _automation.Header);
+        Assert.Equal("Vanzelf aanzetten", _automation.Header);
         Assert.Null(_automation.Error);
     }
 
@@ -27,7 +27,7 @@ public sealed class ProfileAutomationViewModelTests
         Assert.True(_automation.HasProfile);
         Assert.Equal("07:05", _automation.LoadAtText);
         Assert.Equal("eldenring.exe", _automation.ProgramText);
-        Assert.Equal("Automatisch laden: aan", _automation.Header);
+        Assert.Equal("Vanzelf aanzetten: aan", _automation.Header);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
@@ -36,7 +36,7 @@ public sealed class ProfileAutomationViewModelTests
     {
         _automation.Show("Werk", ProfileAutomation.None);
 
-        Assert.Equal("Automatisch laden: uit", _automation.Header);
+        Assert.Equal("Vanzelf aanzetten: uit", _automation.Header);
     }
 
     // A screen reader reads the error out when it changes, so not on every key that keeps it.
@@ -155,6 +155,6 @@ public sealed class ProfileAutomationViewModelTests
 
         Assert.False(_automation.HasProfile);
         Assert.Equal("", _automation.LoadAtText);
-        Assert.Equal("Automatisch laden", _automation.Header);
+        Assert.Equal("Vanzelf aanzetten", _automation.Header);
     }
 }

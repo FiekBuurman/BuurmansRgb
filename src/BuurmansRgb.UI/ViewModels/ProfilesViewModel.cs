@@ -6,8 +6,9 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The saved profiles: a name to save the lighting under, and a list to load or delete one from.
-// This only asks; MainViewModel sends the request to the engine and shows the new list.
+// The saved profiles, which the app calls scenes: a name to save the lighting under, and a list to
+// load or delete one from, also as cards (Cards). This only asks; MainViewModel sends the request to
+// the engine and shows the new list.
 public sealed partial class ProfilesViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
@@ -28,6 +29,11 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // In the order of the engine, which is alphabetical.
     public ObservableCollection<string> Names { get; } = [];
 
+    // The same profiles as cards on the Scènes page, in the same order.
+    public ObservableCollection<SceneCard> Cards { get; } = [];
+
+    public bool HasScenes => Names.Count > 0;
+
     // Picking a profile in the list fills in its name, so saving then updates that profile.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SaveLabel))]
@@ -35,8 +41,15 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(LoadCommand), nameof(DeleteCommand))]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    [NotifyCanExecuteChangedFor(nameof(LoadCommand), nameof(DeleteCommand), nameof(OverwriteCommand))]
     public partial string? SelectedName { get; set; }
+
+    public bool HasSelection => SelectedName is not null;
+
+    // The name field for a new scene shows, after "+ Nieuwe scène in elkaar zetten".
+    [ObservableProperty]
+    public partial bool IsNaming { get; private set; }
 
     // Says so when saving replaces a profile that exists.
     public string SaveLabel => Find(Name) is null ? Strings.ProfileSave : Strings.ProfileOverwrite;
@@ -54,17 +67,25 @@ public sealed partial class ProfilesViewModel : ObservableObject
         var selected = select ?? SelectedName;
         _showing.Run(() =>
         {
+            var cards = Cards.ToDictionary(card => card.Name);
             Names.Clear();
+            Cards.Clear();
             foreach (var name in names)
             {
                 Names.Add(name);
+                Cards.Add(cards.GetValueOrDefault(name) ?? new SceneCard(name));
             }
 
             SelectedName = Find(selected);
         });
         OnPropertyChanged(nameof(SaveLabel));
+        OnPropertyChanged(nameof(HasScenes));
         RequestAutomation();
     }
+
+    // What the engine says the scene looks like and when it loads by itself.
+    public void ShowCard(string name, LightingInfo lighting, ProfileAutomation automation) =>
+        Cards.FirstOrDefault(card => card.Name == name)?.Show(lighting, automation);
 
     partial void OnSelectedNameChanged(string? value)
     {
@@ -95,12 +116,39 @@ public sealed partial class ProfilesViewModel : ObservableObject
     }
 
     [RelayCommand(CanExecute = nameof(CanSave))]
-    private void Save() => SaveRequested?.Invoke(this, ProfileNames.Normalize(Name)!);
+    private void Save()
+    {
+        IsNaming = false;
+        SaveRequested?.Invoke(this, ProfileNames.Normalize(Name)!);
+    }
 
     private bool CanSave() => ProfileNames.Normalize(Name) is not null;
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void Load() => LoadRequested?.Invoke(this, SelectedName!);
+
+    // A click on a scene card: one click, and the whole house joins in.
+    [RelayCommand]
+    private void LoadScene(SceneCard card) => LoadRequested?.Invoke(this, card.Name);
+
+    // Chooses the scene to overwrite, delete or load by itself.
+    [RelayCommand]
+    private void Edit(SceneCard card) => SelectedName = card.Name;
+
+    // Saves the lighting as it is now under the chosen scene.
+    [RelayCommand(CanExecute = nameof(HasSelection))]
+    private void Overwrite() => SaveRequested?.Invoke(this, SelectedName!);
+
+    // An empty name, so saving makes a new scene instead of overwriting the chosen one.
+    [RelayCommand]
+    private void StartNew()
+    {
+        Name = string.Empty;
+        IsNaming = true;
+    }
+
+    [RelayCommand]
+    private void CancelNew() => IsNaming = false;
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void Delete()
@@ -111,8 +159,6 @@ public sealed partial class ProfilesViewModel : ObservableObject
             DeleteRequested?.Invoke(this, name);
         }
     }
-
-    private bool HasSelection() => SelectedName is not null;
 
     private string? Find(string? name) =>
         ProfileNames.Normalize(name) is { } normalized

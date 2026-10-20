@@ -31,16 +31,16 @@
     <value>Afsluiten</value>
   </data>
   <data name="MenuLoadProfile" xml:space="preserve">
-    <value>Profiel laden</value>
+    <value>Scène aanzetten</value>
   </data>
   <data name="MenuNoProfiles" xml:space="preserve">
-    <value>Nog geen profielen – maak ze in Instellingen</value>
+    <value>Nog geen scènes – zet ze in elkaar in de instellingen</value>
   </data>
   <data name="ProfilesUnreadable" xml:space="preserve">
-    <value>De profielen konden niet worden gelezen.</value>
+    <value>De scènes konden niet worden gelezen.</value>
   </data>
   <data name="ProfileLoadFailed" xml:space="preserve">
-    <value>Profiel '{0}' kon niet worden geladen.</value>
+    <value>Scène '{0}' kon niet worden aangezet.</value>
   </data>
   <data name="SettingsAppNotFound" xml:space="preserve">
     <value>De instellingen-app is niet gevonden.</value>

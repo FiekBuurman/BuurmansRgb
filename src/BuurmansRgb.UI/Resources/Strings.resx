@@ -279,16 +279,13 @@
     <value>Kleur {0}: {1}</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">
-    <value>Profielen</value>
+    <value>Scènes</value>
   </data>
   <data name="ProfilesHint" xml:space="preserve">
-    <value>Bewaar de verlichting van alle apparaten onder een naam, zodat je er later naar terug kunt.</value>
-  </data>
-  <data name="ProfilesHintAccessibleName" xml:space="preserve">
-    <value>Uitleg bij profielen</value>
+    <value>Eén klik, en het hele huis doet mee</value>
   </data>
   <data name="ProfileNameLabel" xml:space="preserve">
-    <value>Naam van het profiel</value>
+    <value>Naam van de scène</value>
   </data>
   <data name="ProfileSave" xml:space="preserve">
     <value>Opslaan</value>
@@ -297,52 +294,49 @@
     <value>Overschrijven</value>
   </data>
   <data name="ProfileSaveToolTip" xml:space="preserve">
-    <value>Bewaart de verlichting zoals die nu is onder deze naam.</value>
+    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze naam.</value>
   </data>
   <data name="ProfileLoad" xml:space="preserve">
-    <value>Laden</value>
+    <value>Aanzetten</value>
   </data>
   <data name="ProfileLoadToolTip" xml:space="preserve">
-    <value>Zet de verlichting terug zoals die in dit profiel is bewaard. Dubbelklikken kan ook.</value>
+    <value>Zet de verlichting terug zoals die in deze scène is bewaard. Een klik op de kaart kan ook.</value>
   </data>
   <data name="ProfileDelete" xml:space="preserve">
     <value>Verwijderen</value>
   </data>
   <data name="ProfileDeleteConfirm" xml:space="preserve">
-    <value>Profiel '{0}' verwijderen?</value>
+    <value>Scène '{0}' verwijderen?</value>
   </data>
   <data name="ProfileSaved" xml:space="preserve">
-    <value>Profiel '{0}' opgeslagen.</value>
+    <value>Scène '{0}' in elkaar gezet.</value>
   </data>
   <data name="ProfileLoaded" xml:space="preserve">
-    <value>Profiel '{0}' geladen.</value>
+    <value>Scène '{0}' staat aan.</value>
   </data>
   <data name="ProfileDeleted" xml:space="preserve">
-    <value>Profiel '{0}' verwijderd.</value>
+    <value>Scène '{0}' verwijderd.</value>
   </data>
   <data name="ProfileAutomationHeader" xml:space="preserve">
-    <value>Automatisch laden</value>
+    <value>Vanzelf aanzetten</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Waarschuwing</value>
   </data>
   <data name="ProfileAutomationOff" xml:space="preserve">
-    <value>Automatisch laden: uit</value>
+    <value>Vanzelf aanzetten: uit</value>
   </data>
   <data name="ProfileAutomationOn" xml:space="preserve">
-    <value>Automatisch laden: aan</value>
-  </data>
-  <data name="ProfileAutomationNoSelection" xml:space="preserve">
-    <value>Kies eerst een profiel in de lijst.</value>
+    <value>Vanzelf aanzetten: aan</value>
   </data>
   <data name="ProfileLoadAtLabel" xml:space="preserve">
-    <value>Automatisch laden om</value>
+    <value>Elke dag aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
     <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat BuurmansRgb die keer over.</value>
   </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
-    <value>Laden als dit programma start</value>
+    <value>Aanzetten als dit programma start</value>
   </data>
   <data name="ProfileProgramHint" xml:space="preserve">
     <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
@@ -351,10 +345,10 @@
     <value>Toepassen</value>
   </data>
   <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
-    <value>Bewaart de tijd en het programma bij het gekozen profiel.</value>
+    <value>Bewaart de tijd en het programma bij de gekozen scène.</value>
   </data>
   <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
-    <value>Automatisch laden toepassen</value>
+    <value>Vanzelf aanzetten toepassen</value>
   </data>
   <data name="ProfileLoadAtInvalid" xml:space="preserve">
     <value>Vul een tijd in zoals 23:00, of laat het leeg.</value>
@@ -366,7 +360,7 @@
     <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
   </data>
   <data name="ProfileAutomationSaved" xml:space="preserve">
-    <value>Automatisch laden van '{0}' opgeslagen.</value>
+    <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
     <value>Laat knipperen</value>
@@ -588,5 +582,47 @@
   </data>
   <data name="LightingHeader" xml:space="preserve">
     <value>Licht en beweging</value>
+  </data>
+  <data name="NewScene" xml:space="preserve">
+    <value>+ Nieuwe scène in elkaar zetten</value>
+  </data>
+  <data name="NewSceneHint" xml:space="preserve">
+    <value>Bewaart de verlichting van alle lampen zoals die nu is, onder een naam die je kiest.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="NoScenes" xml:space="preserve">
+    <value>Nog geen scènes. Zet de lampen zoals je ze wilt en zet er hieronder een in elkaar.</value>
+  </data>
+  <data name="SceneLoadAccessibleName" xml:space="preserve">
+    <value>{0} aanzetten</value>
+  </data>
+  <data name="SceneEditAccessibleName" xml:space="preserve">
+    <value>{0} aanpassen</value>
+  </data>
+  <data name="SceneEditToolTip" xml:space="preserve">
+    <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
+  </data>
+  <data name="SceneOverwrite" xml:space="preserve">
+    <value>Overschrijven met wat nu brandt</value>
+  </data>
+  <data name="SceneOverwriteToolTip" xml:space="preserve">
+    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze scène.</value>
+  </data>
+  <data name="SceneAtTime" xml:space="preserve">
+    <value>Elke dag om {0:HH:mm}</value>
+  </data>
+  <data name="SceneWithProgram" xml:space="preserve">
+    <value>Bij {0}</value>
+  </data>
+  <data name="SceneAtTimeAndProgram" xml:space="preserve">
+    <value>Elke dag om {0:HH:mm} · bij {1}</value>
+  </data>
+  <data name="SceneOff" xml:space="preserve">
+    <value>Alles uit</value>
+  </data>
+  <data name="SceneLighting" xml:space="preserve">
+    <value>{0} · {1:0}%</value>
   </data>
 </root>

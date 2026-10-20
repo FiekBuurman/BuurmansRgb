@@ -382,6 +382,23 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task GetProfileLightingAsync_GivesTheLightingOfAllDevicesInTheProfile()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetColorAsync(null, Orange, Ct);
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SaveProfileAsync("Uit", Ct);
+        await api.SetColorAsync(null, Blue, Ct);
+
+        var lighting = await api.GetProfileLightingAsync("uit", Ct);
+
+        Assert.Equal(Orange, lighting.Color);
+        Assert.False(lighting.On);
+        await Assert.ThrowsAsync<ArgumentException>(() => api.GetProfileLightingAsync("Gamen", Ct));
+    }
+
+    [Fact]
     public async Task DeleteProfileAsync_RemovesTheName()
     {
         using var api = CreateApi();

@@ -335,7 +335,7 @@ public sealed class TrayPresenterTests : IDisposable
 
         presenter.LoadProfile("Nacht");
 
-        Assert.Equal([("Profiel 'Nacht' kon niet worden geladen.", TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Equal([("Scène 'Nacht' kon niet worden aangezet.", TrayNotificationKind.Warning)], _view.Notifications);
     }
 
     private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _profiles, _view);

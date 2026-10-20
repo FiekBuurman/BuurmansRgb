@@ -294,6 +294,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
+        _ = ShowSceneCardsAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -585,10 +586,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
 
                 Profiles.Show(names, select: name);
+                _ = ShowSceneCardsAsync();
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
         });
+    }
+
+    // What each scene looks like and when it loads by itself, for its card.
+    private async Task ShowSceneCardsAsync()
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        foreach (var name in Profiles.Names.ToArray())
+        {
+            var (ok, lighting) = await TryCallAsync(connection, api => api.GetProfileLightingAsync(name));
+            var (automationOk, automation) = ok ? await TryCallAsync(connection, api => api.GetProfileAutomationAsync(name)) : default;
+            if (!automationOk || !ReferenceEquals(connection, _connection))
+            {
+                return;
+            }
+
+            Profiles.ShowCard(name, lighting, automation);
+        }
     }
 
     // Unless the user picked another profile, or the connection was made again, in the meantime.

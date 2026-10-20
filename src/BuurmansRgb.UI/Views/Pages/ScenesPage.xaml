@@ -1,4 +1,6 @@
-<!-- Scènes: the saved profiles, to load, save, delete and load by themselves. -->
+<!-- Scènes (§ 5.3 and § 6): the saved profiles as cards in three or four columns. A click on a card puts
+     the scene on; its wrench chooses it to overwrite, delete or put on by itself, below the cards.
+     "+ Nieuwe scène in elkaar zetten" saves the lighting as it is now under a new name. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ScenesPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -10,73 +12,160 @@
              xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <UserControl.Resources>
+        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+            <Setter Property="Margin" Value="0,0,0,6" />
+        </Style>
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" />
-            <TextBlock Margin="0,2,0,18" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfilesHint}" />
+            <TextBlock Margin="0,2,0,20" FontSize="14" Foreground="{StaticResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
 
-            <ListBox MaxHeight="240" ItemsSource="{Binding Profiles.Names}" SelectedItem="{Binding Profiles.SelectedName}"
-                     Background="{StaticResource SurfaceBrush}" Foreground="{StaticResource TextBrush}" BorderBrush="{StaticResource BorderBrush}"
-                     AutomationProperties.Name="{x:Static res:Strings.ProfilesHeader}"
-                     AutomationProperties.HelpText="{x:Static res:Strings.ProfilesHint}">
-                <ListBox.InputBindings>
-                    <MouseBinding Gesture="LeftDoubleClick" Command="{Binding Profiles.LoadCommand}" />
-                </ListBox.InputBindings>
-            </ListBox>
-            <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
-                <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
-                        ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
-                <Button Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileDelete}"
-                        Command="{Binding Profiles.DeleteCommand}" />
-            </StackPanel>
+            <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
+                       Visibility="{Binding Profiles.HasScenes, Converter={StaticResource InverseBoolToVisibility}}" />
 
-            <TextBlock Margin="0,18,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileNameLabel}" />
-            <DockPanel>
-                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding Profiles.SaveLabel}"
-                        ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
-                <TextBox MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                         AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
-                    </TextBox.InputBindings>
-                </TextBox>
-            </DockPanel>
+            <ItemsControl ItemsSource="{Binding Profiles.Cards}" Focusable="False" IsTabStop="False"
+                          AutomationProperties.Name="{x:Static res:Strings.ProfilesHeader}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <views:CardGrid MinColumnWidth="220" MaxColumns="4" Gap="12" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:SceneCard}">
+                        <!-- The chosen scene has a 2 px text border, and its name stands above its settings below. -->
+                        <Border x:Name="Card" Style="{StaticResource HoverCard}" Padding="0" MinHeight="132">
+                            <Grid>
+                                <Button Style="{StaticResource BareButton}" Padding="16" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
+                                        AutomationProperties.Name="{Binding LoadAccessibleName}" AutomationProperties.HelpText="{Binding Description}">
+                                    <StackPanel Background="Transparent">
+                                        <ItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:SceneDot}">
+                                                    <views:LedBulb Margin="0,0,6,0" Diameter="12" GlowBlur="8" GlowSpread="1" IsLit="{Binding IsLit}"
+                                                                   Color="{Binding Color, Converter={StaticResource ColorToMediaColor}}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
+                                        <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
+                                    </StackPanel>
+                                </Button>
+                                <Button Margin="0,8,8,0" HorizontalAlignment="Right" VerticalAlignment="Top" Style="{StaticResource IconButton}"
+                                        Command="{Binding DataContext.Profiles.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}"
+                                        ToolTip="{x:Static res:Strings.SceneEditToolTip}" AutomationProperties.Name="{Binding EditAccessibleName}">
+                                    <Path Style="{StaticResource LineIcon}" Data="{StaticResource IconSettings}" />
+                                </Button>
+                            </Grid>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource EqualValues}">
+                                        <Binding Path="Name" />
+                                        <Binding Path="DataContext.Profiles.SelectedName" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter TargetName="Card" Property="BorderThickness" Value="2" />
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource TextBrush}" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
-            <TextBlock Margin="0,22,0,6" Style="{StaticResource SectionHeader}" Text="{Binding Profiles.Automation.Header}" />
-            <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileAutomationNoSelection}"
-                       Visibility="{Binding Profiles.Automation.HasProfile, Converter={StaticResource InverseBoolToVisibility}}" />
-            <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">
-                <TextBlock Margin="0,6,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
-                <TextBox Width="90" HorizontalAlignment="Left" MaxLength="5" FontFamily="{StaticResource MonoFont}"
-                         Text="{Binding Profiles.Automation.LoadAtText, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
-                         AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}"
-                         AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
-                    </TextBox.InputBindings>
-                </TextBox>
-                <TextBlock Margin="0,12,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileProgramLabel}" />
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileAutomationApply}"
-                            ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}" Command="{Binding Profiles.Automation.ApplyCommand}"
-                            AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
-                    <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="{x:Static res:Strings.ProfileProgramHint}"
-                             AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
-                             AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
-                        </TextBox.InputBindings>
-                    </TextBox>
-                </DockPanel>
-                <DockPanel Margin="0,6,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
-                    <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error, NotifyOnTargetUpdated=True}"
-                               AutomationProperties.AutomationId="ProfileAutomationError" AutomationProperties.LiveSetting="Polite"
-                               views:LiveRegion.AnnouncesUpdates="True" />
-                </DockPanel>
-            </StackPanel>
+            <Button Margin="0,16,0,0" Style="{StaticResource NewButton}" Content="{x:Static res:Strings.NewScene}"
+                    ToolTip="{x:Static res:Strings.NewSceneHint}" Command="{Binding Profiles.StartNewCommand}" Click="OnNewSceneClick"
+                    Visibility="{Binding Profiles.IsNaming, Converter={StaticResource InverseBoolToVisibility}}" />
+
+            <!-- The name of the new scene. -->
+            <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.IsNaming, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ProfileNameLabel}" />
+                    <TextBlock Margin="0,0,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NewSceneHint}" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.Cancel}"
+                                Command="{Binding Profiles.CancelNewCommand}" />
+                        <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding Profiles.SaveLabel}"
+                                ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
+                        <TextBox x:Name="NewSceneName" MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
+                                <KeyBinding Key="Escape" Command="{Binding Profiles.CancelNewCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- The chosen scene: put it on, overwrite it, delete it, or let it go on by itself. -->
+            <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.SelectedName}" />
+                    <WrapPanel Margin="0,12,0,0">
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
+                                ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneOverwrite}"
+                                ToolTip="{x:Static res:Strings.SceneOverwriteToolTip}" Command="{Binding Profiles.OverwriteCommand}" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileDelete}"
+                                Command="{Binding Profiles.DeleteCommand}" />
+                    </WrapPanel>
+
+                    <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" />
+                    <Grid IsEnabled="{Binding Profiles.Automation.HasProfile}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="20" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
+                            <TextBox Width="110" HorizontalAlignment="Left" MaxLength="5" FontFamily="{StaticResource MonoFont}"
+                                     Text="{Binding Profiles.Automation.LoadAtText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
+                                     AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}"
+                                     AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileProgramLabel}" />
+                            <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="{x:Static res:Strings.ProfileProgramHint}"
+                                     AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
+                                     AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
+                                </TextBox.InputBindings>
+                            </TextBox>
+                        </StackPanel>
+                        <Button Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Bottom" Style="{StaticResource SecondaryButton}"
+                                Content="{x:Static res:Strings.ProfileAutomationApply}" ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}"
+                                Command="{Binding Profiles.Automation.ApplyCommand}"
+                                AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
+                    </Grid>
+                    <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileLoadAtHint}" />
+                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileProgramHint}" />
+                    <DockPanel Margin="0,8,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                        <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.Automation.Error, NotifyOnTargetUpdated=True}"
+                                   AutomationProperties.AutomationId="ProfileAutomationError" AutomationProperties.LiveSetting="Polite"
+                                   views:LiveRegion.AnnouncesUpdates="True" />
+                    </DockPanel>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
