@@ -16,6 +16,9 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
 
     public bool HasHint => Hint is not null;
 
+    // Without the engine there is nothing known about OpenRGB, so nothing stays shown.
+    public void Clear() => (Text, Hint) = (string.Empty, null);
+
     public void Show(ServerStatus status)
     {
         (Text, Hint) = status.State switch

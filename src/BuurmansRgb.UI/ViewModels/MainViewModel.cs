@@ -553,6 +553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ConnectionState = ConnectionState.Failed;
         StatusMessage = message;
+        OpenRgbStatus.Clear();
         DropConnection();
     }
 

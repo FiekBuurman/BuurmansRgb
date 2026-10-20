@@ -48,6 +48,17 @@ public sealed class OpenRgbStatusViewModelTests
     }
 
     [Fact]
+    public void Clear_ShowsNothing()
+    {
+        _status.Show(new ServerStatus(ServerState.Unreachable));
+
+        _status.Clear();
+
+        Assert.Equal(string.Empty, _status.Text);
+        Assert.False(_status.HasHint);
+    }
+
+    [Fact]
     public void BackToConnecting_DropsTheHint()
     {
         var changed = new List<string?>();

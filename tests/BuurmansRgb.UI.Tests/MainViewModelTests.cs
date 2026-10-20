@@ -408,6 +408,17 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Disconnected_ShowsNoOpenRgbStatusAnyMore()
+    {
+        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+
+        _connector.Connection.Disconnect();
+
+        Assert.Equal(string.Empty, viewModel.OpenRgbStatus.Text);
+        Assert.False(viewModel.OpenRgbStatus.HasHint);
+    }
+
+    [Fact]
     public async Task Disconnected_ShowsMessageAndReleasesConnection()
     {
         var viewModel = await ConnectAsync();
