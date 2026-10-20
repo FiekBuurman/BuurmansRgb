@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Security;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
-using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 
