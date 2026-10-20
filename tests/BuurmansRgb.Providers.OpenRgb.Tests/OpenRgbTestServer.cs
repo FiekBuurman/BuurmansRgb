@@ -10,7 +10,8 @@ using OpenRGB.NET;
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // A small OpenRGB SDK server on a real loopback socket, speaking protocol version 4: enough of
-// the protocol for OpenRGB.NET to connect, read devices, set the custom mode and send colors.
+// the protocol for OpenRGB.NET to connect, read devices, set the custom mode, send colors and
+// resize zones.
 internal sealed class OpenRgbTestServer : IAsyncDisposable
 {
     private const uint ProtocolVersion = 4;
@@ -47,6 +48,8 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     public ConcurrentQueue<int> CustomModeIndexes { get; } = new();
 
     public BlockingCollection<(int Index, RgbColor[] Colors)> Updates { get; } = [];
+
+    public BlockingCollection<(int Index, int Zone, int LedCount)> Resizes { get; } = [];
 
     public int ClientCount => _clients.Count;
 
@@ -161,6 +164,10 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
                 return null;
             case CommandId.UpdateLeds:
                 Updates.Add((deviceIndex, ReadColors(data)));
+                return null;
+            case CommandId.ResizeZone:
+                // Zone index and new size, each an int32.
+                Resizes.Add((deviceIndex, BinaryPrimitives.ReadInt32LittleEndian(data), BinaryPrimitives.ReadInt32LittleEndian(data.AsSpan(4))));
                 return null;
             default:
                 return null;

@@ -24,6 +24,18 @@ public static class DeviceIcons
     public static Geometry Gpu { get; } = Create(
         "M1.5,2.5 V15.5 M1.5,4.5 H16.5 V12.5 H1.5 M4.5,8.5 A2,2 0 1 0 8.5,8.5 A2,2 0 1 0 4.5,8.5 Z M9.5,8.5 A2,2 0 1 0 13.5,8.5 A2,2 0 1 0 9.5,8.5 Z M5.5,12.5 V14.5 H12.5 V12.5");
 
+    // A fan in its square frame: the LED ring, the hub and four blades.
+    public static Geometry Fan { get; } = Create(
+        "M1.5,1.5 H16.5 V16.5 H1.5 Z M3,9 A6,6 0 1 0 15,9 A6,6 0 1 0 3,9 Z M7.5,9 A1.5,1.5 0 1 0 10.5,9 A1.5,1.5 0 1 0 7.5,9 Z M9,7.5 V4.5 M10.5,9 H13.5 M9,10.5 V13.5 M7.5,9 H4.5");
+
+    // A strip with three LEDs on it.
+    public static Geometry LedStrip { get; } = Create(
+        "M0.5,6.5 H17.5 V11.5 H0.5 Z M2.5,9 A1,1 0 1 0 4.5,9 A1,1 0 1 0 2.5,9 Z M8,9 A1,1 0 1 0 10,9 A1,1 0 1 0 8,9 Z M13.5,9 A1,1 0 1 0 15.5,9 A1,1 0 1 0 13.5,9 Z");
+
+    // A tower with a light bar along its front and a fan.
+    public static Geometry Case { get; } = Create(
+        "M4.5,0.5 H13.5 V17.5 H4.5 Z M6.5,2.5 V15.5 M8.5,11 A2,2 0 1 0 12.5,11 A2,2 0 1 0 8.5,11 Z M9.5,3.5 H11.5");
+
     // A housing with one LED.
     public static Geometry Device { get; } = Create(
         "M3.5,3.5 H14.5 V14.5 H3.5 Z M7,9 A2,2 0 1 0 11,9 A2,2 0 1 0 7,9 Z");
@@ -35,6 +47,9 @@ public static class DeviceIcons
         DeviceType.Motherboard => Motherboard,
         DeviceType.Ram => Ram,
         DeviceType.Gpu => Gpu,
+        DeviceType.Fan => Fan,
+        DeviceType.LedStrip => LedStrip,
+        DeviceType.Case => Case,
         _ => Device,
     };
 

@@ -12,7 +12,7 @@ public sealed class DevicePreviewViewModelTests
 
     // Six LEDs on the board, a 12 V header of one LED and an empty addressable header.
     private static readonly DeviceInfo Motherboard = new("board", "Motherboard", DeviceType.Motherboard, 7,
-        [new RgbZone("Mainboard", 6, Resizable: false), new RgbZone("RGB header", 1, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]);
+        [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
 
     [Fact]
     public void Zones_FollowEachOtherInLedOrder()
@@ -31,7 +31,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
-        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [new RgbZone("DRAM", 8, Resizable: false)]);
+        var device = new DeviceInfo("ram", "ENE DRAM 2", DeviceType.Ram, 8, [RgbZone.Fixed("DRAM", 8)]);
         var preview = new DevicePreviewViewModel(device);
 
         var zone = Assert.Single(preview.Zones);
@@ -43,7 +43,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [new RgbZone("Logo", 0, Resizable: false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 0, [RgbZone.Fixed("Logo", 0)]);
 
         var zone = Assert.Single(new DevicePreviewViewModel(device).Zones);
 
@@ -54,7 +54,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_ClaimingMoreLedsThanTheDeviceHas_AreCutShort()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [new RgbZone("A", 2, false), new RgbZone("B", 5, false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 3, [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 5)]);
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -64,7 +64,7 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_LedsWithoutZone_GetAZoneOfTheirOwn()
     {
-        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [new RgbZone("A", 2, false)]);
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
 
         var preview = new DevicePreviewViewModel(device);
 
@@ -132,11 +132,93 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void ClickLed_InAZone_CountsFromTheStartOfTheDevice()
     {
-        LedClick? clicked = null;
-        var preview = new DevicePreviewViewModel(Motherboard, click => clicked = click);
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions);
 
         preview.Zones[1].ClickLedCommand.Execute(new LedHit(0, Extend: true));
 
-        Assert.Equal(new LedClick("board", 6, Extend: true), clicked);
+        Assert.Equal([new LedClick("board", 6, Extend: true)], actions.Requests);
+    }
+
+    [Fact]
+    public void ApplyLedCount_EmptyHeader_AsksForTheNewLength()
+    {
+        var actions = new RecordingPreviewActions();
+        var header = new DevicePreviewViewModel(Motherboard, actions).Zones[2];
+
+        Assert.True(header.CanResize);
+        Assert.Equal("0", header.LedCountText);
+        Assert.Equal("Aantal LED's (0–120):", header.LedCountLabel);
+        Assert.Equal("Aantal LED's van Motherboard – ARGB header", header.LedCountAccessibleName);
+        Assert.Equal("Aantal LED's toepassen voor Motherboard – ARGB header", header.ApplyLedCountAccessibleName);
+        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+
+        header.LedCountText = "30";
+        Assert.True(header.ApplyLedCountCommand.CanExecute(null));
+        header.ApplyLedCountCommand.Execute(null);
+
+        Assert.Equal([new ZoneResize("board", 2, 30)], actions.Requests);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("tien")]
+    [InlineData("-1")]
+    [InlineData("121")]
+    [InlineData("2.5")]
+    public void ApplyLedCount_NotALengthTheZoneCanHold_CannotRun(string text)
+    {
+        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+
+        header.LedCountText = text;
+
+        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void CanResize_FixedZonesAndLedsWithoutZone_CannotBeResized()
+    {
+        var device = new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]);
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.All(zones, zone => Assert.False(zone.CanResize));
+        Assert.All(new DevicePreviewViewModel(Motherboard).Zones.Take(2), zone => Assert.False(zone.CanResize));
+    }
+
+    // A strip with one zone shows no zone name, but its length can still be set.
+    [Fact]
+    public void CanResize_StripWithOneZone_WithoutHeader()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]);
+
+        var zone = Assert.Single(new DevicePreviewViewModel(strip).Zones);
+
+        Assert.False(zone.ShowsHeader);
+        Assert.True(zone.CanResize);
+        Assert.Equal("30", zone.LedCountText);
+    }
+
+    [Fact]
+    public void SelectZone_RingOfAFan_HandsOnAllItsLeds()
+    {
+        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]);
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(fan, actions);
+
+        Assert.True(preview.Zones[1].ShowsHeaderLink);
+        preview.Zones[1].SelectZoneCommand.Execute(null);
+
+        Assert.Equal([new LedSelection("fan", "Dual-ring fan", 8, 19)], actions.Requests);
+    }
+
+    [Fact]
+    public void SelectZone_ZoneWithoutLeds_CannotRunAndShowsPlainText()
+    {
+        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+
+        Assert.False(header.SelectZoneCommand.CanExecute(null));
+        Assert.False(header.ShowsHeaderLink);
+        Assert.True(header.ShowsHeaderText);
     }
 }

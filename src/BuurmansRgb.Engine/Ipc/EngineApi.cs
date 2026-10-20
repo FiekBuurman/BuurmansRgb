@@ -72,6 +72,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
+    {
+        _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         _lighting.Rendered -= OnRendered;

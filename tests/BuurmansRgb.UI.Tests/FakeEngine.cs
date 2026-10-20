@@ -101,6 +101,9 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"leds {deviceId} {firstLed} {string.Join(",", colors.Select(color => color.ToHex()))}");
 
+    public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default) =>
+        Record($"resize {deviceId} {zoneIndex} {ledCount}");
+
     private Task Record(string call)
     {
         if (SetException is not null)

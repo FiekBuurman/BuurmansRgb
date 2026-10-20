@@ -85,8 +85,9 @@ dotnet run --project src/BuurmansRgb.Engine
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
   OpenRGB. Zie "OpenRGB koppelen" hieronder. Gesimuleerd zijn er een strip (30 LED's), een
-  fan (12), een toetsenbord (104), een moederbord (7, in drie zones), twee RAM-sticks (8) en een
-  videokaart (13, in twee zones).
+  fan (12), een toetsenbord (104), een moederbord (7, in drie zones), twee RAM-sticks (8), een
+  videokaart (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in
+  twee kanalen) en verlichting in de behuizing (10).
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
   RAM" hieronder.
@@ -151,8 +152,8 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 - Een OpenRGB-apparaat heet in `settings.json` bijvoorbeeld
   `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam plus een code uit de locatie en het
   serienummer, zodat het na een herstart van OpenRGB of de pc hetzelfde apparaat blijft.
-- ARGB-headers op het moederbord hebben in OpenRGB vaak 0 LED's tot je de zonegrootte daar
-  instelt (dat komt in taak 7 in BuurmansRgb zelf).
+- ARGB-headers op het moederbord hebben in OpenRGB vaak 0 LED's tot je de zonegrootte instelt.
+  Dat kan in OpenRGB, of in de instellingen-app (zie "Fans, case-LED en ARGB-strips").
 - Meldingen over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken
   met DebugView), zolang er nog geen logbestand is.
 
@@ -162,13 +163,13 @@ Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt z
 via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
 
 - **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. De videokaart heeft ook een eigen
-  icoon (zie "Videokaart (GPU)"); fans, case-LED, strips, toetsenbord, muis en headset krijgen
-  voorlopig een algemeen icoon, hun eigen icoon en naam komen in taak 7 en 8.
+  aantal LED's en, bij meer dan één zone, het aantal zones. Videokaart, fans, strips en
+  behuizing hebben ook een eigen icoon (zie hun secties); toetsenbord, muis en headset krijgen
+  voorlopig een algemeen icoon, hun eigen icoon en naam komen in taak 8.
 - **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
   OpenRGB ze geeft (bijv. "Aura Mainboard" en "Aura Addressable 1"). Een header zonder LED's
-  staat er ook, met de melding dat je in OpenRGB instelt hoeveel LED's erop zitten. Een
-  apparaat met één zone toont geen zonenaam.
+  staat er ook, met een vak om in te stellen hoeveel LED's erop zitten (zie "Fans, case-LED en
+  ARGB-strips"). Een apparaat met één zone toont geen zonenaam.
 - **RAM:** OpenRGB toont elke RAM-stick als eigen apparaat, vaak met dezelfde naam. Die
   krijgen een nummer in de volgorde van OpenRGB ("ENE DRAM 1", "ENE DRAM 2"). Het id in
   `settings.json` verandert daardoor niet.
@@ -195,8 +196,8 @@ OpenRGB de eerste keer met adminrechten draaien.
   aantal LED's en, bij meer dan één zone, het aantal zones. De gesimuleerde videokaart heeft
   een lichtbalk van 12 LED's en een logo van 1 LED.
 - **Zones:** het voorbeeld toont de zones zoals OpenRGB ze geeft. Sommige kaarten hebben een
-  eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, met de melding
-  dat je in OpenRGB instelt hoeveel LED's erop zitten.
+  eigen ARGB-header met 0 LED's; die staat er net als bij het moederbord bij, en ook daar stel
+  je het aantal LED's in.
 - **Twee dezelfde kaarten** krijgen een nummer in de volgorde van OpenRGB, net als RAM-sticks.
 - **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
   (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
@@ -213,9 +214,60 @@ OpenRGB de eerste keer met adminrechten draaien.
   de videokaart, en noteer in `docs/hardware.md` ook of de kaart in OpenRGB een
   "Direct"-modus heeft.
 
+## Fans, case-LED en ARGB-strips
+
+Fans, strips en de verlichting in de behuizing zijn het derde echte apparaattype (taak 7). Ze
+hangen meestal aan een ARGB-header van het moederbord of aan een controller (bijv. een
+Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
+
+- **In de lijst** heeft elk type een eigen icoon en naam: "Ventilator", "LED-strip" (ook voor
+  controllers met ARGB-kanalen, zo noemt OpenRGB ze) en "Behuizing". OpenRGB.NET 3.1.1 kent het
+  type "case" van nieuwere OpenRGB-versies niet bij naam; BuurmansRgb herkent het aan zijn
+  nummer.
+- **Lengte instellen:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header of
+  -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone. Typ het
+  aantal LED's van wat erop zit en kies "Toepassen" (of Enter). OpenRGB geeft de zone de
+  nieuwe lengte; daarna laadt BuurmansRgb de apparaten opnieuw en stuurt het de kleuren weer.
+  Bij een apparaat met één zone, zoals de gesimuleerde strip (1–60 LED's), staat het vak er
+  ook, zonder zonenaam. Per-LED-kleuren van de zones erna schuiven mee, ook als je de lengte
+  in OpenRGB zelf verandert. De gesimuleerde apparaten onthouden een nieuwe lengte tot de
+  engine stopt.
+- **Let op bij per-LED-kleuren:** `settings.json` bewaart de kleuren per LED, maar niet de
+  zonelengtes waar ze bij horen. Heeft een zone bij de start van de engine een andere lengte
+  dan toen je de kleuren koos, dan staan de kleuren van de zones erna zoveel LED's verschoven.
+  Dat gebeurt bij de gesimuleerde apparaten na elke herstart van de engine (ze beginnen weer
+  met hun eerste lengte), en bij OpenRGB als het een lengte vergeet of als je die verandert
+  terwijl de engine niet draait. Kies de kleuren van die zones dan opnieuw.
+- **Een ring of zone kiezen:** klik in het voorbeeld op de naam van een zone, bijv. "Outer
+  ring" van een fan of een kanaal van een controller. Alle LED's van die zone zijn dan
+  geselecteerd in de per-LED-editor, en de kleur die je kiest geldt alleen voor die zone.
+- **Na slaapstand** herstelt de engine ook fans en strips, zoals beschreven bij "Moederbord en
+  RAM". Een ingestelde lengte blijft na het ontwaken gelijk: OpenRGB houdt hem vast zolang het
+  draait. Of OpenRGB hem ook na een herstart nog weet, test je met je eigen hardware (stap 1
+  hieronder).
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `RgbZoneTests`, `RgbDeviceTests` en `SimulatedDeviceProviderTests` (bereik en lengte van zones),
+  `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests` en `OpenRgbNetConnectionTests`
+  (het type behuizing, lengte instellen bij OpenRGB met nepdata en een kleine SDK-server, ook
+  na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
+  engine, per-LED-kleuren die meeschuiven), `SwitchableDeviceProviderTests`, `EngineApiTests`,
+  `EngineRpcTests` en in de instellingen-app `DeviceItemTests`, `DeviceIconsTests`,
+  `DevicePreviewViewModelTests`, `LedEditorViewModelTests` en `MainViewModelLedEditorTests`.
+  Start daarnaast de engine en de instellingen-app: kies "Simulated ARGB controller", zet
+  "ARGB 2" op bijv. 15 en kies "Toepassen", of klik bij "Simulated dual-ring fan" op "Outer
+  ring" en kies een kleur.
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  elke fan, strip en controller, en daarnaast:
+  1. Stel bij een ARGB-header of -kanaal het aantal LED's in en controleer dat de hele strip
+     (en niet meer) oplicht; herstart OpenRGB en kijk of de lengte bewaard blijft.
+  2. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een
+     kleur.
+  3. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten
+     en of het type klopt (fan, strip of behuizing).
+
 ## Een apparaattype testen met je eigen hardware
 
-Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, ...). Wat per
+Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, fans, ...). Wat per
 type extra is, staat in de sectie van dat type.
 
 1. Sluit de software van de fabrikant af (bijv. Armoury Crate, MSI Center, RGB Fusion of
@@ -248,7 +300,8 @@ dotnet run --project src/BuurmansRgb.UI
 - Het voorbeeld toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn. Bij
   een bewegend effect loopt het mee.
 - **Per-LED-editor:** klik in het voorbeeld op een LED om hem te selecteren, Shift+klik
-  selecteert een reeks vanaf de vorige klik. Zolang er LED's geselecteerd zijn, staat boven
+  selecteert een reeks vanaf de vorige klik, en een klik op de naam van een zone selecteert
+  die hele zone (bijv. één ring van een fan). Zolang er LED's geselecteerd zijn, staat boven
   de kleur welke dat zijn en kleurt de kleurkiezer alleen die LED's. "Verloop vullen" vult
   de reeks met een verloop van de kleur van de eerste naar die van de laatste LED (geef
   dus eerst de eerste en de laatste LED een kleur). "Selectie opheffen", of een ander

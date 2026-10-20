@@ -4,16 +4,34 @@ namespace BuurmansRgb.Engine.Lighting;
 
 // Lets a setting hide the devices of a provider, such as the simulated ones. The engine sets it
 // once at startup; switching while it runs is groundwork for a toggle in the settings app (see
-// docs/ideas.md) and raises DevicesChanged, so the lighting picks up the change at once.
-internal sealed class SwitchableDeviceProvider(IDeviceProvider inner) : IDynamicDeviceProvider
+// docs/ideas.md) and raises DevicesChanged, so the lighting picks up the change at once. Changes
+// of the inner provider pass through while it is enabled. Made with For, which only gives a
+// resizable wrapper for a resizable provider, so the type tells what the inner provider can do.
+internal class SwitchableDeviceProvider : IDynamicDeviceProvider
 {
+    private readonly IDeviceProvider _inner;
     private readonly Lock _gate = new();
     private bool _isEnabled = true;
     private bool _discovered;
 
+    private SwitchableDeviceProvider(IDeviceProvider inner)
+    {
+        _inner = inner;
+        if (inner is IDynamicDeviceProvider dynamicProvider)
+        {
+            dynamicProvider.DevicesChanged += (_, _) =>
+            {
+                if (IsEnabled)
+                {
+                    DevicesChanged?.Invoke(this, EventArgs.Empty);
+                }
+            };
+        }
+    }
+
     public event EventHandler? DevicesChanged;
 
-    public string Name => inner.Name;
+    public string Name => _inner.Name;
 
     // Before the first DiscoverAsync nobody has a device list yet, so switching raises nothing:
     // setting it at startup costs no extra refresh.
@@ -47,6 +65,9 @@ internal sealed class SwitchableDeviceProvider(IDeviceProvider inner) : IDynamic
         }
     }
 
+    public static SwitchableDeviceProvider For(IDeviceProvider inner) =>
+        inner is IResizableDeviceProvider resizable ? new Resizable(resizable) : new SwitchableDeviceProvider(inner);
+
     public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
     {
         bool enabled;
@@ -56,14 +77,28 @@ internal sealed class SwitchableDeviceProvider(IDeviceProvider inner) : IDynamic
             enabled = _isEnabled;
         }
 
-        return enabled ? inner.DiscoverAsync(ct) : Task.FromResult<IReadOnlyList<RgbDevice>>([]);
+        return enabled ? _inner.DiscoverAsync(ct) : Task.FromResult<IReadOnlyList<RgbDevice>>([]);
     }
 
     public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
     {
         if (IsEnabled)
         {
-            inner.SetLeds(deviceId, colors);
+            _inner.SetLeds(deviceId, colors);
+        }
+    }
+
+    private sealed class Resizable(IResizableDeviceProvider inner) : SwitchableDeviceProvider(inner), IResizableDeviceProvider
+    {
+        // While disabled the devices are hidden, so they cannot be resized either.
+        public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+        {
+            if (!IsEnabled)
+            {
+                throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
+            }
+
+            inner.ResizeZone(deviceId, zoneIndex, ledCount);
         }
     }
 }

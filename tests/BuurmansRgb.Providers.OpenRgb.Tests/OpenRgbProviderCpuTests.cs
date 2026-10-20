@@ -18,13 +18,15 @@ public sealed class OpenRgbProviderCpuTests
         using var provider = new OpenRgbDeviceProvider(server.CreateConnector(), TimeProvider.System, TimeSpan.FromHours(1));
         await provider.DiscoverAsync(TestContext.Current.CancellationToken);
         await Eventually.DeviceCountAsync(provider, 1, Timeout);
-        var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
 
         server.CloseClients();
         await Eventually.DeviceCountAsync(provider, 0, Timeout);
-        await Task.Delay(500, TestContext.Current.CancellationToken);
 
         // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed.
+        // Measured after the drop, so the work of dropping itself and of tests that ran before
+        // (sockets that still close, JIT) does not count; a spinning loop would use about a second.
+        var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
+        await Task.Delay(1000, TestContext.Current.CancellationToken);
         var cpuUsed = Process.GetCurrentProcess().TotalProcessorTime - cpuBefore;
         Assert.True(cpuUsed < TimeSpan.FromMilliseconds(300), $"Used {cpuUsed.TotalMilliseconds} ms CPU.");
     }

@@ -58,7 +58,8 @@ internal sealed class LightingController : IDisposable
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
     public event EventHandler? Rendered;
 
-    // Raised when the lighting is changed through SetLighting, not when it is applied from settings.
+    // Raised when the lighting is changed through SetLighting or SetLedColors, or when stored LED
+    // colors moved with a resized zone; not when it is applied from settings.
     public event EventHandler? LightingChanged;
 
     // Raised when the device list changed, before the render that gives new devices their lighting.
@@ -242,6 +243,28 @@ internal sealed class LightingController : IDisposable
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // Gives a resizable zone another length. The provider applies it, possibly in the background,
+    // and reports the device again through DevicesChanged; the lights follow then.
+    public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
+    {
+        IResizableDeviceProvider provider;
+        lock (_gate)
+        {
+            var output = KnownOutputLocked(deviceId);
+            var zone = output.Device.GetZone(zoneIndex);
+            if (!zone.Resizable || output.Provider is not IResizableDeviceProvider resizable)
+            {
+                throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
+            }
+
+            zone.ThrowIfCannotHold(ledCount);
+            provider = resizable;
+        }
+
+        // Outside the lock: a provider may report the change right away.
+        provider.ResizeZone(deviceId, zoneIndex, ledCount);
+    }
+
     // Copies the buffers, so the caller can convert them without holding the lock.
     public LightingOutput GetOutput()
     {
@@ -367,8 +390,10 @@ internal sealed class LightingController : IDisposable
             var provider = _providers[providerIndex];
             var devices = await provider.DiscoverAsync(ct);
             bool rendered;
+            bool ledColorsMoved;
             lock (_gate)
             {
+                ledColorsMoved = MoveLedColorsOfResizedZonesLocked(_outputsByProvider[providerIndex], devices);
                 _outputsByProvider[providerIndex] = [.. devices.Select(device => new DeviceOutput(provider, device))];
                 _outputs = [.. _outputsByProvider.SelectMany(outputs => outputs)];
                 rendered = render && RenderLocked();
@@ -376,11 +401,31 @@ internal sealed class LightingController : IDisposable
 
             DevicesChanged?.Invoke(this, EventArgs.Empty);
             Publish(rendered);
+            if (ledColorsMoved)
+            {
+                LightingChanged?.Invoke(this, EventArgs.Empty);
+            }
         }
         finally
         {
             _discovering.Release();
         }
+    }
+
+    // A zone that got another length, here or in the provider's own app, shifts the LEDs after it.
+    // The stored per-LED colors move along, so every zone keeps its own colors.
+    private bool MoveLedColorsOfResizedZonesLocked(DeviceOutput[] previous, IReadOnlyList<RgbDevice> devices)
+    {
+        var moved = false;
+        foreach (var device in devices)
+        {
+            if (previous.FirstOrDefault(output => output.Device.Id == device.Id) is { } old)
+            {
+                moved |= _ledColors.MoveWithZones(device.Id, old.Device.Zones, device.Zones);
+            }
+        }
+
+        return moved;
     }
 
     // Gives every device the effect of its current lighting and renders it. Returns false when
@@ -469,7 +514,9 @@ internal sealed class LightingController : IDisposable
         }
     }
 
-    private RgbDevice KnownDeviceLocked(string deviceId) =>
-        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)?.Device
+    private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
+
+    private DeviceOutput KnownOutputLocked(string deviceId) =>
+        _outputs.FirstOrDefault(output => output.Device.Id == deviceId)
             ?? throw new ArgumentException($"Unknown device '{deviceId}'.", nameof(deviceId));
 }

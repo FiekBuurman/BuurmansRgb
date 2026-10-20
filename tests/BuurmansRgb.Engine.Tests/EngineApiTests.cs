@@ -61,6 +61,33 @@ public sealed class EngineApiTests
     }
 
     [Fact]
+    public async Task ResizeZoneAsync_ResizesTheZoneAndReportsTheNewDevice()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        using var api = new EngineApi(_lighting);
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        api.DevicesChanged += (_, _) => changed.TrySetResult();
+
+        await api.ResizeZoneAsync("simulated-strip", 0, 45, TestContext.Current.CancellationToken);
+        await changed.Task.WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        var devices = await api.GetDevicesAsync(TestContext.Current.CancellationToken);
+        var strip = devices.Single(device => device.Id == "simulated-strip");
+        Assert.Equal(45, strip.LedCount);
+        Assert.Equal(new RgbZone("Strip", 45, 1, 60), Assert.Single(strip.Zones));
+    }
+
+    [Fact]
+    public async Task ResizeZoneAsync_FixedZone_Throws()
+    {
+        await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);
+        using var api = new EngineApi(_lighting);
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => api.ResizeZoneAsync("simulated-fan", 0, 16, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task FrameRendered_ForwardsLightingFrames()
     {
         await _lighting.DiscoverAsync(TestContext.Current.CancellationToken);

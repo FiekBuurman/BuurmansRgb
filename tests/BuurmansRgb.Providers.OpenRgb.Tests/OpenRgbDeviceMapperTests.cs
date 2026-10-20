@@ -24,7 +24,7 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Equal(expectedType, mapped.Device.Type);
         Assert.Equal(4, mapped.Device.LedCount);
         Assert.Equal(
-            [new RgbZone("Aura LEDs", 4, Resizable: false), new RgbZone("Aura Addressable 1", 0, Resizable: true)],
+            [RgbZone.Fixed("Aura LEDs", 4), new RgbZone("Aura Addressable 1", 0, 0, 120)],
             mapped.Device.Zones);
     }
 
@@ -119,6 +119,7 @@ public sealed class OpenRgbDeviceMapperTests
     [InlineData(OpenRgbDeviceType.Gpu, DeviceType.Gpu)]
     [InlineData(OpenRgbDeviceType.Cooler, DeviceType.Fan)]
     [InlineData(OpenRgbDeviceType.Ledstrip, DeviceType.LedStrip)]
+    [InlineData(OpenRgbDeviceMapper.CaseType, DeviceType.Case)]
     [InlineData(OpenRgbDeviceType.Keyboard, DeviceType.Keyboard)]
     [InlineData(OpenRgbDeviceType.Mouse, DeviceType.Mouse)]
     [InlineData(OpenRgbDeviceType.Headset, DeviceType.Headset)]

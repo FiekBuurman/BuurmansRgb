@@ -65,6 +65,18 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         }
     }
 
+    // OpenRGB.NET has no name for the case type of newer servers, but keeps its number.
+    [Fact]
+    public async Task GetDevicesAsync_KeepsTheCaseTypeNumber()
+    {
+        _server.Devices = [TestDevices.Create(name: "Case lighting", type: OpenRgbDeviceMapper.CaseType)];
+        var connection = await ConnectAsync();
+
+        var device = Assert.Single(await connection.GetDevicesAsync(Ct));
+
+        Assert.Equal(OpenRgbDeviceMapper.CaseType, device.Type);
+    }
+
     [Fact]
     public async Task SetCustomModeAndUpdateLeds_ReachTheServer()
     {
@@ -80,6 +92,17 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         Assert.True(_server.Updates.TryTake(out var second, Timeout));
         Assert.Equal([Orange], second.Colors);
         Assert.Equal([0], _server.CustomModeIndexes);
+    }
+
+    [Fact]
+    public async Task ResizeZone_ReachesTheServer()
+    {
+        var connection = await ConnectAsync();
+
+        connection.ResizeZone(2, 1, 45);
+
+        Assert.True(_server.Resizes.TryTake(out var resize, Timeout));
+        Assert.Equal((2, 1, 45), resize);
     }
 
     [Fact]

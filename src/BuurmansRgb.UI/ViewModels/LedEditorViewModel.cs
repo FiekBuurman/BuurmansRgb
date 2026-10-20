@@ -66,6 +66,19 @@ public sealed partial class LedEditorViewModel : ObservableObject
         Selection = selection with { First = Math.Min(_anchor, index), Last = Math.Max(_anchor, index) };
     }
 
+    // Selects the LEDs first to last of the device being edited, such as a whole zone; the first
+    // one becomes the anchor. A range the colors do not cover is ignored.
+    public void SelectRange(int first, int last)
+    {
+        if (Selection is not { } selection || first < 0 || last < first || last >= _colors.Length)
+        {
+            return;
+        }
+
+        _anchor = first;
+        Selection = selection with { First = first, Last = last };
+    }
+
     public LedEdit? Paint(RgbColor color)
     {
         if (Selection is not { } selection)

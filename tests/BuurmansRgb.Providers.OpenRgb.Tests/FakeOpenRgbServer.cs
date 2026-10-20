@@ -29,6 +29,8 @@ internal sealed class FakeOpenRgbServer : IOpenRgbConnector
 
     public List<int> CustomModeIndexes { get; } = [];
 
+    public List<(int Index, int Zone, int LedCount)> Resizes { get; } = [];
+
     public IReadOnlyList<FakeOpenRgbConnection> Connections => _connections;
 
     public FakeOpenRgbConnection LastConnection => _connections[^1];
@@ -95,6 +97,22 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbServer server, bool close
     {
         ThrowIfGone();
         server.CustomModeIndexes.Add(deviceIndex);
+    }
+
+    // Like OpenRGB: the device gets its new length, without a device list update.
+    public void ResizeZone(int deviceIndex, int zoneIndex, int ledCount)
+    {
+        ThrowIfGone();
+        if (FailSends)
+        {
+            throw new SocketException((int)SocketError.ConnectionReset);
+        }
+
+        server.Resizes.Add((deviceIndex, zoneIndex, ledCount));
+        server.Devices =
+        [
+            .. server.Devices.Select(device => device.Index != deviceIndex ? device : TestDevices.Resize(device, zoneIndex, ledCount)),
+        ];
     }
 
     public bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)

@@ -100,6 +100,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ResizeZoneAsync_SendsDeviceZoneAndLength()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ResizeZoneAsync("board", 1, 24, TestContext.Current.CancellationToken);
+
+        Assert.Equal([("board", 1, 24)], _api.ResizeCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -145,8 +155,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
-            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, Resizable: true)]),
-            new("board", "Motherboard", DeviceType.Motherboard, 4, [new RgbZone("Mainboard", 4, Resizable: false), new RgbZone("ARGB header", 0, Resizable: true)]),
+            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
         ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);
@@ -156,6 +166,8 @@ public sealed class EngineRpcTests : IDisposable
         public IReadOnlyList<RgbColor> LedColors { get; } = [new(1, 1, 1), new(2, 2, 2)];
 
         public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor> Colors)> LedColorCalls { get; } = [];
+
+        public List<(string DeviceId, int ZoneIndex, int LedCount)> ResizeCalls { get; } = [];
 
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
 
@@ -186,6 +198,12 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             LedColorCalls.Add((deviceId, firstLed, colors));
+            return Task.CompletedTask;
+        }
+
+        public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
+        {
+            ResizeCalls.Add((deviceId, zoneIndex, ledCount));
             return Task.CompletedTask;
         }
     }

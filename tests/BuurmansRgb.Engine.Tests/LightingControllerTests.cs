@@ -25,7 +25,7 @@ public sealed class LightingControllerTests
         var expected = Orange.Scale(0.5);
         foreach (var device in await _simulated.DiscoverAsync(TestContext.Current.CancellationToken))
         {
-            var leds = _simulated.GetLeds(device.Id).ToArray();
+            var leds = _simulated.GetLeds(device.Id);
             Assert.Equal(device.LedCount, leds.Length);
             Assert.All(leds, led => Assert.Equal(expected, led));
         }
@@ -52,8 +52,8 @@ public sealed class LightingControllerTests
 
         controller.Apply(LightingStates.WithDevices(Lighting(Orange), new Dictionary<string, DeviceLighting> { [Fan] = Lighting(Green, 0.5) }));
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange, led));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange, led));
     }
 
     [Fact]
@@ -119,8 +119,8 @@ public sealed class LightingControllerTests
 
         controller.SetLighting(Fan, lighting => lighting with { Color = Green });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green, led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange, led));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green, led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange, led));
         Assert.Equal(Lighting(Green), controller.GetLighting(Fan));
         Assert.Equal(Lighting(Orange), controller.GetLighting(Strip));
     }
@@ -133,8 +133,8 @@ public sealed class LightingControllerTests
 
         controller.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
-        Assert.All(_simulated.GetLeds(Strip).ToArray(), led => Assert.Equal(Orange.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Orange.Scale(0.5), led));
         Assert.Equal(Lighting(Orange, 0.5), controller.State.Global);
         Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
     }
@@ -147,7 +147,7 @@ public sealed class LightingControllerTests
 
         controller.SetLighting(null, lighting => lighting with { Color = Green });
 
-        Assert.All(_simulated.GetLeds(Fan).ToArray(), led => Assert.Equal(Green.Scale(0.5), led));
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green.Scale(0.5), led));
         Assert.Equal(Lighting(Green, 0.5), controller.State.Devices[Fan]);
     }
 
