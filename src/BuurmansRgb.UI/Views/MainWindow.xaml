@@ -155,6 +155,50 @@
                             </Slider.Background>
                         </Slider>
 
+                        <!-- With the color loop, the picker above colors the selected color of the loop. -->
+                        <Border Margin="0,12,0,0" Padding="10,8" CornerRadius="4" BorderThickness="1"
+                                BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                Visibility="{Binding IsColorLoop, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel>
+                                <TextBlock FontWeight="SemiBold" Text="{x:Static res:Strings.ColorLoopHeader}" />
+                                <TextBlock Foreground="{x:Static SystemColors.GrayTextBrush}" TextWrapping="Wrap"
+                                           Text="{x:Static res:Strings.ColorLoopHint}" />
+                                <StackPanel Margin="0,8,0,0" Orientation="Horizontal">
+                                    <ItemsControl ItemsSource="{Binding ColorLoopEditor.Swatches}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="{x:Type vm:ColorLoopSwatch}">
+                                                <Button x:Name="Swatch" Width="32" Height="32" Margin="0,0,6,0" BorderThickness="1"
+                                                        BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                                        Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                                        ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
+                                                        Command="{Binding DataContext.ColorLoopEditor.SelectCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding Index}" />
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter TargetName="Swatch" Property="BorderThickness" Value="3" />
+                                                        <Setter TargetName="Swatch" Property="BorderBrush" Value="{x:Static SystemColors.HighlightBrush}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Button Width="32" Height="32" Margin="6,0,0,0" Content="+" FontSize="16"
+                                            ToolTip="{x:Static res:Strings.ColorLoopAdd}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopAdd}"
+                                            Command="{Binding ColorLoopEditor.AddColorCommand}" />
+                                    <Button Width="32" Height="32" Margin="6,0,0,0" Content="−" FontSize="16"
+                                            ToolTip="{x:Static res:Strings.ColorLoopRemove}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopRemove}"
+                                            Command="{Binding ColorLoopEditor.RemoveColorCommand}" />
+                                </StackPanel>
+                                <CheckBox Margin="0,8,0,0" IsChecked="{Binding ColorLoopEditor.Spread}"
+                                          Content="{x:Static res:Strings.ColorLoopSpread}" />
+                            </StackPanel>
+                        </Border>
+
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.BrightnessHeader}" />
                         <DockPanel>
                             <TextBlock DockPanel.Dock="Right" Width="48" TextAlignment="Right"
