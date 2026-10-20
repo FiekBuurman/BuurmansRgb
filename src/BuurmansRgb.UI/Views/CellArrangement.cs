@@ -15,7 +15,10 @@ internal sealed class CellArrangement : ILedArrangement
         Pitch = pitch;
         Scale = pitch / LedLayout.Pitch;
         Keys = keys;
-        Size = new(layout.Width * pitch - LedLayout.Spacing * Scale, layout.Height * pitch - LedLayout.Spacing * Scale);
+        // Without cells, as for a zone without LEDs, there is no space after a last cell either.
+        Size = layout.Cells.Count == 0
+            ? default
+            : new(layout.Width * pitch - LedLayout.Spacing * Scale, layout.Height * pitch - LedLayout.Spacing * Scale);
 
         // A key that holds several cells is drawn from the first one on.
         _bounds = new Rect[ledCount];

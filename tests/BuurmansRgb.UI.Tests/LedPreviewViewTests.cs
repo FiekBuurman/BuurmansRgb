@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
@@ -123,6 +125,21 @@ public sealed class LedPreviewViewTests
 
         Assert.True(view.BoundsOf(12).IsEmpty);
         Assert.True(view.BoundsOf(-1).IsEmpty);
+    });
+
+    // The preview of a header without LEDs is drawn too, as an empty row.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Render_WithoutLeds_DrawsNothing(bool ring) => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { IsRing = ring });
+        var bitmap = new RenderTargetBitmap(10, 10, 96, 96, PixelFormats.Pbgra32);
+
+        bitmap.Render(view);
+
+        Assert.Equal(default, view.DesiredSize);
+        Assert.True(view.BoundsOf(0).IsEmpty);
     });
 
     [Fact]

@@ -22,6 +22,17 @@ public sealed class LedArrangementTests
         Assert.Equal(new Size(3 * LedLayout.Pitch - LedLayout.Spacing, 2 * LedLayout.Pitch - LedLayout.Spacing), full.Size);
     }
 
+    // A zone without LEDs, such as an addressable header that has none yet.
+    [Fact]
+    public void Cells_WithoutLeds_HaveNoSize()
+    {
+        var arrangement = new CellArrangement(LedLayout.Wrap(0, 1), LedLayout.Pitch, 0, keys: false);
+
+        Assert.Equal(default, arrangement.Size);
+        Assert.Empty(arrangement.Bounds);
+        Assert.Equal(No, arrangement.LedAt(new Point(1.0, 1.0)));
+    }
+
     // An LED of the zone that the layout does not hold, such as one Colors does not have yet.
     [Fact]
     public void Cells_LedNotInTheLayout_HasNoBounds()
