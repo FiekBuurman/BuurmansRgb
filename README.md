@@ -921,12 +921,13 @@ die uit is; daarna is hij weer zwart.
   `LightingChanged`, ook voor een scène uit het tray-menu of op tijd), en de app vraagt dan de
   verlichting van de lampen opnieuw (`GetLightingAsync`, met `LightingInfo.On`). Aan en uit
   zetten gaat met `SetOnAsync` (null voor alles).
-- **Gemeten** (Release, 12 gesimuleerde apparaten, zonder OpenRGB, instellingen-app dicht, 30 s
-  per meting, Windows vergrendeld en daarom met `"pauseOnLockAndSleep": false`): statisch ~0,10 %
-  van één kern, 24,3 MB working set en 12,5 MB private bytes; regenboog ~0,10 %, 23,6 / 12,0 MB;
-  alles uit (met de regenboog als effect) ~0,05 %, 23,6 / 12,1 MB, en de render-timer staat stil.
-  Vóór aan/uit: statisch ~0,10 %, 23,8 / 12,1 MB; regenboog ~0,52 %, 22,8 / 12,1 MB. Bij deze
-  kleine getallen zit de meting op de ruis van de klok (15,6 ms).
+- **Gemeten** (Release, 12 gesimuleerde apparaten, zonder OpenRGB, instellingen-app dicht, twee
+  rondes van 120 s per meting; Windows was vergrendeld, daarom met `"pauseOnLockAndSleep": false`):
+  statisch 0,065 % van één kern, 21–24 MB working set en 12–13 MB private bytes; regenboog
+  0,35 %, 22–27 / 12,5–13 MB; alles uit (met de regenboog als effect) 0,12 % en 0,00 %,
+  19–28 / 12–13 MB, en de render-timer staat stil. Een eerdere meting van 30 s gaf bij de regenboog
+  0,10 %; dat was ruis van de klok (15,6 ms per tik), met 120 s komt hij overeen met de 0,5 % van
+  vóór aan/uit.
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
   `LightingControllerOnTests` (uit is zwart, weer aan, alles uit ook voor lampen met een eigen
   verlichting, geen timer, knipperen), `EngineSettingsTests` en `JsonSettingsStoreTests` (`"on"`
@@ -963,8 +964,10 @@ die uit is; daarna is hij weer zwart.
   CPU, 122 MB working set en 49 MB private bytes, regenboog 3,3 % van één kern, 119 / 42 MB. Nu
   op Lampen statisch 0 %, 112 / 34 MB, regenboog 2,5 %, 118 / 38 MB; op Kleur met "Hele huis"
   (het voorbeeld van alle apparaten) statisch 0 %, 145 / 57 MB, regenboog 2,1 %, 133 / 43 MB.
-  Zolang Windows vergrendeld is tekent WPF niets op het scherm, dus het tekenen zelf (ook van de
-  gloed) zit hier niet in; meet dat met de app zichtbaar nog eens in Taakbeheer.
+  Opnieuw na de review (60 s, op Lampen): regenboog 2,4 % van één kern, 113 / 39 MB, statisch
+  0 %, 117 / 41 MB. Windows was bij alle metingen vergrendeld; dan tekent WPF niets op het scherm,
+  dus het tekenen zelf (ook van de gloed) zit hier niet in. Meet dat met de app zichtbaar nog eens
+  in Taakbeheer.
 - **Testen zonder hardware:** `NavigationViewModelTests`, `LampsViewModelTests`,
   `MainViewModelLampTests`, `ColorPickerViewModelTests`, `SceneCardTests`,
   `ProfilesViewModelSceneTests` en `MainViewModelSceneTests`. Start daarnaast de engine en de
