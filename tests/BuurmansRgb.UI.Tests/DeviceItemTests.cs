@@ -16,9 +16,9 @@ public sealed class DeviceItemTests
         [DeviceType.Fan] = "Ventilator",
         [DeviceType.LedStrip] = "LED-strip",
         [DeviceType.Case] = "Behuizing",
-        [DeviceType.Keyboard] = null,
-        [DeviceType.Mouse] = null,
-        [DeviceType.Headset] = null,
+        [DeviceType.Keyboard] = "Toetsenbord",
+        [DeviceType.Mouse] = "Muis",
+        [DeviceType.Headset] = "Headset",
         [DeviceType.Other] = null,
     };
 
@@ -77,12 +77,34 @@ public sealed class DeviceItemTests
     }
 
     [Fact]
-    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    public void For_KeyboardWithOneZone_ShowsTypeAndLeds()
     {
         var item = DeviceItem.For(TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104));
 
+        Assert.Equal("Toetsenbord", item.TypeName);
+        Assert.Equal("Toetsenbord · 104 LED's", item.Details);
+    }
+
+    [Fact]
+    public void For_MouseWithZones_ShowsTypeLedsAndZones()
+    {
+        var mouse = new DeviceInfo("mouse", "Logitech G502 HERO", DeviceType.Mouse, 2,
+            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]);
+
+        var item = DeviceItem.For(mouse);
+
+        Assert.Equal(DeviceType.Mouse, item.Type);
+        Assert.Equal("Muis", item.TypeName);
+        Assert.Equal("Muis · 2 LED's in 2 zones", item.Details);
+    }
+
+    [Fact]
+    public void For_TypeWithoutDutchName_ShowsOnlyTheLeds()
+    {
+        var item = DeviceItem.For(TestDevices.Create("mousemat", "Mousemat", DeviceType.Other, 15));
+
         Assert.Null(item.TypeName);
-        Assert.Equal("104 LED's", item.Details);
+        Assert.Equal("15 LED's", item.Details);
     }
 
     [Fact]

@@ -219,11 +219,11 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
         foreach (var zone in device.Zones)
         {
             body.String(zone.Name);
-            body.UInt32(1); // linear
+            body.UInt32(zone.Matrix is null ? 1u : 2u); // linear or matrix
             body.UInt32((uint)zone.MinLedCount);
             body.UInt32((uint)zone.MaxLedCount);
             body.UInt32((uint)zone.LedCount);
-            body.UInt16(0); // no matrix map
+            WriteMatrix(body, zone.Matrix);
             body.UInt16(0); // no segments
         }
 
@@ -242,6 +242,25 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
 
         writer.UInt32((uint)(body.Length + sizeof(uint)));
         writer.Bytes(body.ToArray());
+    }
+
+    // The size in bytes (uint16), height and width (uint32), then the cells row after row, with
+    // 0xFFFFFFFF for a cell without a key. Size 0 means no matrix.
+    private static void WriteMatrix(PacketWriter writer, LedMatrix? matrix)
+    {
+        if (matrix is null)
+        {
+            writer.UInt16(0);
+            return;
+        }
+
+        writer.UInt16((ushort)((2 + matrix.Cells.Count) * sizeof(uint)));
+        writer.UInt32((uint)matrix.Height);
+        writer.UInt32((uint)matrix.Width);
+        foreach (var cell in matrix.Cells)
+        {
+            writer.UInt32(cell == LedMatrix.NoLed ? uint.MaxValue : (uint)cell);
+        }
     }
 
     private static byte[] Packet(CommandId command, int deviceIndex, Action<PacketWriter> writeData)

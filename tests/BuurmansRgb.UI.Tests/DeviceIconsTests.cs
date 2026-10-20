@@ -9,7 +9,7 @@ public sealed class DeviceIconsTests
     private static readonly Geometry[] AllIcons =
     [
         DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.Gpu, DeviceIcons.Fan, DeviceIcons.LedStrip, DeviceIcons.Case,
-        DeviceIcons.AllDevices, DeviceIcons.Device,
+        DeviceIcons.Keyboard, DeviceIcons.Mouse, DeviceIcons.Headset, DeviceIcons.AllDevices, DeviceIcons.Device,
     ];
 
     [Fact]
@@ -21,14 +21,15 @@ public sealed class DeviceIconsTests
         Assert.Same(DeviceIcons.Fan, DeviceIcons.For(DeviceType.Fan));
         Assert.Same(DeviceIcons.LedStrip, DeviceIcons.For(DeviceType.LedStrip));
         Assert.Same(DeviceIcons.Case, DeviceIcons.For(DeviceType.Case));
+        Assert.Same(DeviceIcons.Keyboard, DeviceIcons.For(DeviceType.Keyboard));
+        Assert.Same(DeviceIcons.Mouse, DeviceIcons.For(DeviceType.Mouse));
+        Assert.Same(DeviceIcons.Headset, DeviceIcons.For(DeviceType.Headset));
         Assert.Same(DeviceIcons.AllDevices, DeviceIcons.For(null));
         Assert.Equal(AllIcons.Length, AllIcons.Distinct().Count());
     }
 
-    [Theory]
-    [InlineData(DeviceType.Keyboard)]
-    [InlineData(DeviceType.Other)]
-    public void For_TypeWithoutIcon_GetsTheDeviceIcon(DeviceType type) => Assert.Same(DeviceIcons.Device, DeviceIcons.For(type));
+    [Fact]
+    public void For_TypeWithoutIcon_GetsTheDeviceIcon() => Assert.Same(DeviceIcons.Device, DeviceIcons.For(DeviceType.Other));
 
     [Fact]
     public void Icons_FitTheIconSquare()

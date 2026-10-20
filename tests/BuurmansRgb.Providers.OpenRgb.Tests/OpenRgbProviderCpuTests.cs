@@ -19,15 +19,26 @@ public sealed class OpenRgbProviderCpuTests
         await provider.DiscoverAsync(TestContext.Current.CancellationToken);
         await Eventually.DeviceCountAsync(provider, 1, Timeout);
 
+        // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed,
+        // which adds about a second of CPU per second. Whatever else the process does (tests that
+        // ran before, the test host, GC) counts in a window before the drop as well, so only the
+        // increase over that baseline tells. The window after the drop starts once the device is
+        // gone, so the work of dropping itself does not count.
+        var baseline = await CpuInOneSecondAsync();
         server.CloseClients();
         await Eventually.DeviceCountAsync(provider, 0, Timeout);
+        var afterDrop = await CpuInOneSecondAsync();
 
-        // OpenRGB.NET's read loop spins at full CPU on a closed socket until the client is disposed.
-        // Measured after the drop, so the work of dropping itself and of tests that ran before
-        // (sockets that still close, JIT) does not count; a spinning loop would use about a second.
-        var cpuBefore = Process.GetCurrentProcess().TotalProcessorTime;
+        var increase = afterDrop - baseline;
+        Assert.True(
+            increase < TimeSpan.FromMilliseconds(500),
+            $"Used {afterDrop.TotalMilliseconds} ms CPU after the drop, against {baseline.TotalMilliseconds} ms before.");
+    }
+
+    private static async Task<TimeSpan> CpuInOneSecondAsync()
+    {
+        var before = Process.GetCurrentProcess().TotalProcessorTime;
         await Task.Delay(1000, TestContext.Current.CancellationToken);
-        var cpuUsed = Process.GetCurrentProcess().TotalProcessorTime - cpuBefore;
-        Assert.True(cpuUsed < TimeSpan.FromMilliseconds(300), $"Used {cpuUsed.TotalMilliseconds} ms CPU.");
+        return Process.GetCurrentProcess().TotalProcessorTime - before;
     }
 }

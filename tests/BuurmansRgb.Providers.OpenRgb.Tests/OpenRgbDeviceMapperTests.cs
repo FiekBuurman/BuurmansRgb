@@ -28,6 +28,55 @@ public sealed class OpenRgbDeviceMapperTests
             mapped.Device.Zones);
     }
 
+    // OpenRGB lists the keys of a keyboard in one zone, with a map of where each key sits.
+    [Fact]
+    public void Map_KeyboardWithKeyMap_KeepsTheKeyPositions()
+    {
+        var keys = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]);
+        var data = TestDevices.Create(name: "Razer BlackWidow", type: OpenRgbDeviceType.Keyboard,
+            zones: [new("Keyboard", 5, 5, 5, keys), new("Logo", 1, 1, 1)]);
+
+        var mapped = Assert.Single(OpenRgbDeviceMapper.Map([data]));
+
+        Assert.Equal(DeviceType.Keyboard, mapped.Device.Type);
+        Assert.Equal(keys, mapped.Device.Zones[0].Matrix);
+        Assert.Null(mapped.Device.Zones[1].Matrix);
+    }
+
+    // The preview turns those cells into gaps (LedLayout.Place); the mapper does not own that rule.
+    [Fact]
+    public void Map_KeyMapPointingPastTheZone_PassesTheMapOnAsItIs()
+    {
+        var keys = new LedMatrix(1, 4, [0, 3, 2, 7]);
+        var data = TestDevices.Create(type: OpenRgbDeviceType.Keyboard,
+            zones: [new("Keyboard", 3, 3, 3, keys), new("Logo", 1, 1, 1)]);
+
+        var zone = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones[0];
+
+        Assert.Equal(keys, zone.Matrix);
+    }
+
+    [Fact]
+    public void Map_EmptyKeyMap_HasNoMatrix()
+    {
+        var data = TestDevices.Create(zones: [new("Keyboard", 3, 3, 3, new LedMatrix(0, 0, []))]);
+
+        Assert.Null(Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones[0].Matrix);
+    }
+
+    // Mice list their LEDs per zone, such as the logo, the scroll wheel and the sides.
+    [Fact]
+    public void Map_MouseWithZones_CopiesTheZones()
+    {
+        var data = TestDevices.Create(name: "Logitech G502 HERO", type: OpenRgbDeviceType.Mouse,
+            zones: [new("Logo", 1, 1, 1), new("DPI", 1, 1, 1)]);
+
+        var mapped = Assert.Single(OpenRgbDeviceMapper.Map([data]));
+
+        Assert.Equal(DeviceType.Mouse, mapped.Device.Type);
+        Assert.Equal([RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)], mapped.Device.Zones);
+    }
+
     [Fact]
     public void Map_MotherboardWithOnlyEmptyHeaders_HasNoLedsButKeepsItsZones()
     {

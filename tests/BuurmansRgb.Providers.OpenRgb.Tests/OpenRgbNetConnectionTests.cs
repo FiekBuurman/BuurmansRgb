@@ -65,6 +65,19 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
         }
     }
 
+    // Three rows of two, so a mix-up of rows and columns shows; the gap arrives as 0xFFFFFFFF.
+    [Fact]
+    public async Task GetDevicesAsync_ReadsTheKeyMapRowAfterRow()
+    {
+        var keys = new LedMatrix(3, 2, [0, 1, 2, LedMatrix.NoLed, 3, 4]);
+        _server.Devices = [TestDevices.Create(name: "Keyboard", type: OpenRgbDeviceType.Keyboard, zones: [new("Keyboard", 5, 5, 5, keys)])];
+        var connection = await ConnectAsync();
+
+        var device = Assert.Single(await connection.GetDevicesAsync(Ct));
+
+        Assert.Equal(keys, Assert.Single(device.Zones).Matrix);
+    }
+
     // OpenRGB.NET has no name for the case type of newer servers, but keeps its number.
     [Fact]
     public async Task GetDevicesAsync_KeepsTheCaseTypeNumber()

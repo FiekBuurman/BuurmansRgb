@@ -85,9 +85,10 @@ dotnet run --project src/BuurmansRgb.Engine
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
 - **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
   OpenRGB. Zie "OpenRGB koppelen" hieronder. Gesimuleerd zijn er een strip (30 LED's), een
-  fan (12), een toetsenbord (104), een moederbord (7, in drie zones), twee RAM-sticks (8), een
-  videokaart (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in
-  twee kanalen) en verlichting in de behuizing (10).
+  fan (12), een toetsenbord (104, met de plek van elke toets), een moederbord (7, in drie
+  zones), twee RAM-sticks (8), een videokaart (13, in twee zones), een fan met twee ringen
+  (20), een ARGB-controller (20, in twee kanalen), verlichting in de behuizing (10), een muis
+  (12, in vier zones) en een headset (2, in twee zones).
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
   RAM" hieronder.
@@ -163,9 +164,9 @@ Moederbord en RAM zijn de eerste echte apparaattypes (taak 5). OpenRGB bereikt z
 via SMBus, dus OpenRGB moet de eerste keer met adminrechten draaien (zie "OpenRGB koppelen").
 
 - **In de lijst** staat per apparaat een icoon en het type: "Moederbord" of "RAM", met het
-  aantal LED's en, bij meer dan één zone, het aantal zones. Videokaart, fans, strips en
-  behuizing hebben ook een eigen icoon (zie hun secties); toetsenbord, muis en headset krijgen
-  voorlopig een algemeen icoon, hun eigen icoon en naam komen in taak 8.
+  aantal LED's en, bij meer dan één zone, het aantal zones. De andere types hebben ook een
+  eigen icoon en naam (zie hun secties); alleen wat OpenRGB niet als een van deze types kent,
+  zoals een muismat, krijgt een algemeen icoon zonder type.
 - **Zones:** het voorbeeld toont de LED's per zone, met de naam en het aantal LED's, zoals
   OpenRGB ze geeft (bijv. "Aura Mainboard" en "Aura Addressable 1"). Een header zonder LED's
   staat er ook, met een vak om in te stellen hoeveel LED's erop zitten (zie "Fans, case-LED en
@@ -265,6 +266,49 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   3. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten
      en of het type klopt (fan, strip of behuizing).
 
+## Toetsenbord, muis en headset
+
+Toetsenbord, muis en headset zijn het laatste apparaattype (taak 8). OpenRGB bereikt ze via
+USB, niet via SMBus.
+
+- **In de lijst** heeft elk type een eigen icoon en naam: "Toetsenbord", "Muis" en "Headset".
+- **Toetsenbord als matrix:** bij veel toetsenborden geeft OpenRGB per zone een matrix-map:
+  rijen en kolommen met in elk vakje de LED van de toets die daar zit. Het voorbeeld tekent
+  dan elke LED als toets op die plek, en maakt de toetsen kleiner als het venster te smal is.
+  LED's die wel in de zone zitten maar niet in de map (bijv. een logo), staan in een rij onder
+  de toetsen. Een zone zonder map, zoals een lichtbalk, blijft een rij bolletjes. Klik op een
+  toets om hem in de per-LED-editor een eigen kleur te geven. Shift+klik selecteert een reeks
+  in de LED-volgorde van OpenRGB; die loopt vaak rij voor rij, maar verschilt per toetsenbord.
+  Regenboog en Golf lopen ook over die LED-volgorde, niet over de plek van de toetsen.
+- **Muis:** het voorbeeld toont de zones zoals OpenRGB ze geeft (bijv. logo, scrollwiel en
+  zijkanten). Klik op de naam van een zone om alleen die zone een kleur te geven.
+- **Headset:** OpenRGB ondersteunt maar een deel van de headsets; kijk in de lijst "Supported
+  Devices" op [openrgb.org](https://openrgb.org). Een headset die OpenRGB niet kent, staat niet
+  in OpenRGB en dus ook niet in BuurmansRgb. BuurmansRgb heeft geen eigen driver voor headsets
+  en krijgt er ook geen; noteer zo'n headset in `docs/hardware.md` als "niet ondersteund door
+  OpenRGB". Een headsetstandaard heet in OpenRGB geen headset en staat zonder type in de lijst.
+- **Na slaapstand** herstelt de engine ook toetsenbord, muis en headset, zoals beschreven bij
+  "Moederbord en RAM". Sluit je een USB-apparaat opnieuw aan, dan ziet OpenRGB het mogelijk pas
+  nadat het opnieuw naar apparaten heeft gezocht.
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `LedMatrixTests` en `SimulatedDeviceProviderTests` (de matrix en het gesimuleerde
+  toetsenbord, de muis en de headset), `OpenRgbDeviceMapperTests`, `OpenRgbNetConnectionTests`
+  en `OpenRgbDeviceProviderTests` (matrix-maps van OpenRGB met nepdata en een kleine
+  SDK-server, rijen en kolommen, en herstellen na slaapstand), `EngineRpcTests` en
+  `EngineIpcServerTests` (de matrix gaat mee naar de instellingen-app), en `DeviceItemTests`,
+  `DeviceIconsTests`, `LedLayoutTests` (plek van de toetsen, klikken en meekrimpen in een smal
+  venster) en `DevicePreviewViewModelTests` in de instellingen-app.
+  Start daarnaast de engine en de instellingen-app: kies "Simulated keyboard" en klik op een
+  toets, of kies bij "Simulated mouse" de zone "Scroll wheel".
+- **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
+  het toetsenbord, de muis en de headset, en daarnaast:
+  1. Vergelijk het voorbeeld van het toetsenbord met het echte toetsenbord: klik op bijv. Esc,
+     W, A, S, D en de spatiebalk, geef ze een kleur en controleer dat precies die toetsen
+     oplichten.
+  2. Geef bij de muis één zone een eigen kleur en controleer dat alleen die zone verandert.
+  3. Staat de headset niet in OpenRGB, noteer dan het model in `docs/hardware.md`.
+  4. Noteer in `docs/hardware.md` per apparaat het model en wat werkt.
+
 ## Een apparaattype testen met je eigen hardware
 
 Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, fans, ...). Wat per
@@ -292,7 +336,7 @@ dotnet run --project src/BuurmansRgb.UI
 - **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
   het type. **Rechts** de kleur (hex-code, vaste kleuren, schuiven voor tint en
   verzadiging), de helderheid (0–100%), het effect en een voorbeeld met een bolletje per
-  LED, per zone.
+  LED, per zone. Een toetsenbord met een matrix-map toont een toets per LED, op zijn plek.
 - Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat

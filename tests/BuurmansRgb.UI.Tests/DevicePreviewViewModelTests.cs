@@ -40,6 +40,20 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal(8, zone.Colors.Count);
     }
 
+    // A keyboard with a key map and a logo beside it, as OpenRGB lists many keyboards.
+    [Fact]
+    public void Zones_KeyboardWithKeyMap_HandTheMatrixToTheView()
+    {
+        var keys = new LedMatrix(2, 2, [0, 1, 2, LedMatrix.NoLed]);
+        var device = new DeviceInfo("keyboard", "Keyboard", DeviceType.Keyboard, 4,
+            [RgbZone.Fixed("Keys", 3) with { Matrix = keys }, RgbZone.Fixed("Logo", 1)]);
+
+        var preview = new DevicePreviewViewModel(device);
+
+        Assert.Equal(keys, preview.Zones[0].Matrix);
+        Assert.Null(preview.Zones[1].Matrix);
+    }
+
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {

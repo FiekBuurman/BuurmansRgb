@@ -42,6 +42,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     public int LedCount => _layout.LedCount;
 
+    // Where the LEDs sit, such as the keys of a keyboard; null for LEDs in a row.
+    public LedMatrix? Matrix => _layout.Zone.Matrix;
+
     public bool ShowsHeader { get; }
 
     public string Details { get; }

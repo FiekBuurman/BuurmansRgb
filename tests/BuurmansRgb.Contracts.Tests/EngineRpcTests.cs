@@ -34,6 +34,7 @@ public sealed class EngineRpcTests : IDisposable
         var devices = await client.Api.GetDevicesAsync(TestContext.Current.CancellationToken);
 
         Assert.Equal(_api.Devices, devices);
+        Assert.NotNull(devices[^1].Zones[0].Matrix);
     }
 
     [Fact]
@@ -157,6 +158,8 @@ public sealed class EngineRpcTests : IDisposable
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
             new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
+            new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
+                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
         ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static);

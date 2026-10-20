@@ -33,7 +33,7 @@ internal static class OpenRgbDeviceMapper
         {
             var id = UniqueId(CreateId(device), usedIds);
             var name = nameCounts[device.Name] > 1 ? NumberedName(device.Name, nameNumbers) : device.Name;
-            var zones = device.Zones.Select(zone => new RgbZone(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)).ToArray();
+            var zones = device.Zones.Select(ToZone).ToArray();
             mapped.Add(new(new RgbDevice(id, name, ToDeviceType(device.Type), zones, device.LedCount), device.Index));
         }
 
@@ -67,6 +67,11 @@ internal static class OpenRgbDeviceMapper
         var slug = Slug(device.Name);
         return slug.Length == 0 ? $"{IdPrefix}{hash}" : $"{IdPrefix}{slug}-{hash}";
     }
+
+    private static RgbZone ToZone(OpenRgbZoneData zone) => new(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)
+    {
+        Matrix = zone.Matrix is { Cells.Count: > 0 } matrix ? matrix : null,
+    };
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.
