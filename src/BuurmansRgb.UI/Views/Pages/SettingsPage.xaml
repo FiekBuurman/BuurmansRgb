@@ -10,48 +10,51 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
-        <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="760" HorizontalAlignment="Left">
+        <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.SettingsTitle}" />
             <TextBlock Margin="0,2,0,22" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SettingsSubtitle}" />
 
-            <!-- Whether the real lamps can come: the state of OpenRGB in one line, read out when it changes,
-                 with the tip in view and behind the ⓘ. -->
-            <Border Style="{StaticResource LargeCard}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" />
-                    <DockPanel Margin="0,2,0,0">
-                        <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.Hint}"
-                                   Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
-                                   AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}" />
-                        <TextBlock Style="{StaticResource SectionHeader}" TextWrapping="Wrap" Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}"
-                                   ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
-                                   AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
-                                   views:LiveRegion.AnnouncesUpdates="True" />
-                    </DockPanel>
-                    <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{Binding OpenRgbStatus.Hint}"
-                               Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}" />
-                    <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbExplanation}" />
-                </StackPanel>
-            </Border>
+            <!-- Where the other pages put their cards, but no wider than a line of text reads well. -->
+            <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                <!-- Whether the real lamps can come: the state of OpenRGB in one line, read out when it changes,
+                     with the tip in view and behind the ⓘ. -->
+                <Border Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" />
+                        <DockPanel Margin="0,2,0,0">
+                            <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.Hint}"
+                                       Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
+                                       AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}" />
+                            <TextBlock Style="{StaticResource SectionHeader}" TextWrapping="Wrap" Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}"
+                                       ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
+                                       AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
+                                       views:LiveRegion.AnnouncesUpdates="True" />
+                        </DockPanel>
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{Binding OpenRgbStatus.Hint}"
+                                   Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbExplanation}" />
+                    </StackPanel>
+                </Border>
 
-            <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SimulatedDevicesHeader}" />
-                    <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SimulatedDevicesHint}" />
-                    <ComboBox Width="240" HorizontalAlignment="Left" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
-                              SelectedItem="{Binding SimulatedDevices.SelectedOption}"
-                              AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
-                              AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
-                </StackPanel>
-            </Border>
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SimulatedDevicesHeader}" />
+                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SimulatedDevicesHint}" />
+                        <ComboBox Width="240" HorizontalAlignment="Left" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding SimulatedDevices.SelectedOption}"
+                                  AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
+                    </StackPanel>
+                </Border>
 
-            <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SaveHeader}" />
-                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SaveAutomatic}" />
-                    <TextBlock Margin="0,8,0,0" Style="{StaticResource Body}" Text="{Binding SaveStatus}" />
-                </StackPanel>
-            </Border>
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SaveHeader}" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SaveAutomatic}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource Body}" Text="{Binding SaveStatus}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
