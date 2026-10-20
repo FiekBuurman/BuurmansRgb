@@ -89,12 +89,14 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     public partial string LedCountText { get; set; }
 
     // The slider's thumb is held: the length goes out when it is let go.
+    [RelayCommand]
     public void BeginDrag()
     {
         _dragging = true;
         StopTimer();
     }
 
+    [RelayCommand]
     public void EndDrag()
     {
         _dragging = false;

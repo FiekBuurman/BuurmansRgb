@@ -453,7 +453,7 @@
                                                                         Value="{Binding Length.LedCount}" SmallChange="1" LargeChange="10"
                                                                         IsSnapToTickEnabled="True" TickFrequency="1"
                                                                         ToolTip="{x:Static res:Strings.ZoneLedCountToolTip}"
-                                                                        Thumb.DragStarted="OnZoneLengthDragStarted" Thumb.DragCompleted="OnZoneLengthDragCompleted"
+                                                                        views:SliderDrag.Started="{Binding Length.BeginDragCommand}" views:SliderDrag.Completed="{Binding Length.EndDragCommand}"
                                                                         AutomationProperties.Name="{Binding Length.SliderAccessibleName}"
                                                                         AutomationProperties.HelpText="{Binding LedCountHelpText}"
                                                                         views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/slider}" />

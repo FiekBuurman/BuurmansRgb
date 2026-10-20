@@ -405,7 +405,8 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   `EngineRpcTests` en in de instellingen-app `ZoneLengthViewModelTests` (−, +, schuif, slepen,
   typen en de pauze voor het versturen, met een nepklok), `PreviewViewModelTests` (een lengte die
   nog niet verstuurd is blijft staan als de engine de apparaten opnieuw meldt),
-  `FocusKeeperTests` (de focus na het opnieuw opbouwen, met een echt venster buiten beeld),
+  `FocusKeeperTests` en `SliderDragTests` (de focus na het opnieuw opbouwen, en het begin en eind
+  van een sleep over de schuif, met een echt venster buiten beeld),
   `DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests` (welke zones een ring zijn,
   het voorbeeld dat meegroeit, de uitleg bij een lege zone), `RingLayoutTests`,
   `LedArrangementTests` en `LedPreviewViewTests` (de ring: plek van elke LED, klikken op en
