@@ -341,6 +341,24 @@
   <data name="ProfileLoadAtHint" xml:space="preserve">
     <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
   </data>
+  <data name="ProgramBrowse" xml:space="preserve">
+    <value>Bladeren…</value>
+  </data>
+  <data name="ProgramBrowseToolTip" xml:space="preserve">
+    <value>Kies het .exe-bestand van een programma; alleen de naam telt.</value>
+  </data>
+  <data name="ProgramBrowseTitle" xml:space="preserve">
+    <value>Kies een programma</value>
+  </data>
+  <data name="ProgramBrowseFilter" xml:space="preserve">
+    <value>Programma's (*.exe)|*.exe</value>
+  </data>
+  <data name="ProgramPickPlaceholder" xml:space="preserve">
+    <value>Kies uit wat nu draait</value>
+  </data>
+  <data name="ProgramPickToolTip" xml:space="preserve">
+    <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij.</value>
+  </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
     <value>Aanzetten als dit programma start</value>
   </data>

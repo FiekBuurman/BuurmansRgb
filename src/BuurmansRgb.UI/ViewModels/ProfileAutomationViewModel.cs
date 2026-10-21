@@ -1,6 +1,7 @@
 using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -11,8 +12,20 @@ namespace BuurmansRgb.UI.ViewModels;
 // and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
-    public ProfileAutomationViewModel()
+    private const string TimeFormat = "HH:mm";
+
+    // "H" also reads "07:30"; a dot is how many people write a time in Dutch.
+    private static readonly string[] TimeFormats = ["H:mm", "H.mm"];
+
+    private readonly Func<IReadOnlyList<string>> _findPrograms;
+
+    // What the engine has, so Apply only runs for a change.
+    private ProfileAutomation _saved = ProfileAutomation.None;
+
+    // findPrograms lists the programs to pick from, as .exe names (WindowedPrograms.Find).
+    public ProfileAutomationViewModel(Func<IReadOnlyList<string>>? findPrograms = null)
     {
+        _findPrograms = findPrograms ?? WindowedPrograms.Find;
         foreach (var day in Days)
         {
             day.PropertyChanged += (_, _) => OnDaysChanged();
@@ -24,15 +37,27 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public bool HasLoadAt => !string.IsNullOrWhiteSpace(LoadAtText);
 
-    private const string TimeFormat = "HH:mm";
-
-    // "H" also reads "07:30"; a dot is how many people write a time in Dutch.
-    private static readonly string[] TimeFormats = ["H:mm", "H.mm"];
-
-    // What the engine has, so Apply only runs for a change.
-    private ProfileAutomation _saved = ProfileAutomation.None;
-
     public event EventHandler<ProfileAutomationChange>? ApplyRequested;
+
+    // The programs with a window, read again each time the list opens; empty until then.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasRunningPrograms))]
+    public partial IReadOnlyList<string> RunningPrograms { get; private set; } = [];
+
+    public bool HasRunningPrograms => RunningPrograms.Count > 0;
+
+    [RelayCommand]
+    private void FindPrograms() => RunningPrograms = _findPrograms();
+
+    // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts.
+    [RelayCommand]
+    private void PickProgram(string? program)
+    {
+        if (ProgramNames.Normalize(program) is { } name)
+        {
+            ProgramText = name;
+        }
+    }
 
     // The profile it is about; null while no profile is selected.
     [ObservableProperty]

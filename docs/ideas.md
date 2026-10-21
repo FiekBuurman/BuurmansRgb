@@ -151,8 +151,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een programma alleen laten tellen zolang het op de voorgrond staat
   (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
   pollen
-- Bij "Aanzetten als dit programma start" een knop om een .exe te kiezen of een lijst met wat nu
-  draait, zodat je de naam niet hoeft te weten
 
 ## Tray-menu
 
