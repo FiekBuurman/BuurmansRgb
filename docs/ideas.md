@@ -184,10 +184,6 @@ uitbreidingen in `docs/bouwplan.md`.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
   het naar 130–143 MB, maar kost op Lampen CPU; eventueel als keuze bij Instellingen, of alleen
   zonder bewegend effect
-- De gloed van `LedBulb` hergebruiken in plaats van bij elke kleur een nieuwe
-  `RadialGradientBrush` te maken (op Lampen met de regenboog ~2,2 MB/s aan allocaties), bijv.
-  één bevroren gloed in wit met de kleur als `OpacityMask`, of een cache per kleur voor een
-  statisch effect
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze
