@@ -111,6 +111,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // What a screen reader calls the flash button, with the device name, as zone names repeat.
     public string FlashAccessibleName { get; }
 
+    // Lets the flash button keep the focus when the preview is made again, like the controls of a
+    // zone length (ZoneLengthViewModel.FocusKey).
+    public string FlashFocusKey => $"zone-flash/{_deviceId}/{_layout.Index}";
+
     // How long one of the device's own zones is, when its length can be set, such as for an
     // addressable header; null for a zone of a fixed length.
     public ZoneLengthViewModel? Length { get; }

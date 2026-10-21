@@ -37,12 +37,13 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">
                                         <StackPanel Margin="0,0,0,10">
-                                            <!-- The zone name, with a button beside it that lets only this zone blink. -->
+                                            <!-- The zone name, with a button beside it that lets only this zone blink; the
+                                                 button keeps the focus when the preview is made again after a resize. -->
                                             <DockPanel Margin="0,0,0,4">
                                                 <Button DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource SecondaryButton}"
                                                         Content="{x:Static res:Strings.FlashZone}" ToolTip="{x:Static res:Strings.FlashZoneToolTip}"
                                                         Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
-                                                        ToolTipService.ShowOnDisabled="True"
+                                                        ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding FlashFocusKey}"
                                                         Visibility="{Binding ShowsFlash, Converter={StaticResource BoolToVisibility}}" />
                                                 <StackPanel VerticalAlignment="Center">
                                                     <TextBlock FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"

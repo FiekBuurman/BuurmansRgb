@@ -292,6 +292,18 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("Zone RGB header van Motherboard laten knipperen", header.FlashAccessibleName);
     }
 
+    // The button keeps the focus after a resize, and only the button of the same zone gets it.
+    [Fact]
+    public void FlashFocusKey_IsTheSameForTheSameZoneOnly()
+    {
+        var zones = new DevicePreviewViewModel(Motherboard, new RecordingPreviewActions()).Zones;
+        var again = new DevicePreviewViewModel(Motherboard, new RecordingPreviewActions()).Zones;
+
+        Assert.Equal("zone-flash/board/1", zones[1].FlashFocusKey);
+        Assert.Equal(zones[1].FlashFocusKey, again[1].FlashFocusKey);
+        Assert.NotEqual(zones[0].FlashFocusKey, zones[1].FlashFocusKey);
+    }
+
     // A length that still waits for its delay goes first, so the length the user sees blinks; it is
     // not sent a second time after the delay.
     [Fact]
