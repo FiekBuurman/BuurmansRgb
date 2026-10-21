@@ -753,9 +753,6 @@
   <data name="DaysWeekend" xml:space="preserve">
     <value>In het weekend</value>
   </data>
-  <data name="ProfileDaysLabel" xml:space="preserve">
-    <value>Op deze dagen</value>
-  </data>
   <data name="ProfileDaysNone" xml:space="preserve">
     <value>Kies minstens één dag voor de tijd.</value>
   </data>
