@@ -37,8 +37,8 @@ public partial interface IEngineApi
     // settings app. GetProfilesAsync and GetProfileAutomationAsync then give the new state.
     event EventHandler ProfilesChanged;
 
-    // Raised when an option of the engine changed: the simulated devices, the frame rate or the
-    // pause on lock and sleep, from this or another settings app.
+    // Raised when an option of the engine changed: the simulated devices, the frame rate, the
+    // pause on lock and sleep or the catch-up of scene times, from this or another settings app.
     event EventHandler OptionsChanged;
 
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
@@ -124,6 +124,13 @@ public partial interface IEngineApi
     Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default);
 
     Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default);
+
+    // Whether a scene time that passed while the pc slept or the engine did not run is caught up
+    // on: after waking up and at the start the scene of the last time that passed comes on. Off,
+    // such a time is skipped. Saved like the lighting; it counts from the next wake-up or start.
+    Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default);
+
+    Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);

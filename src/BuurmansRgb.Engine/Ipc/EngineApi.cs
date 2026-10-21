@@ -18,6 +18,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly IServerStatusSource _openRgb;
     private readonly SettingsSaveEvents? _saveEvents;
     private readonly AutoPause? _autoPause;
+    private readonly ProfileTimer? _profileTimer;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -31,9 +32,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         IServerStatusSource openRgb,
         SettingsSaveEvents? saveEvents = null,
         TimeProvider? time = null,
-        AutoPause? autoPause = null)
+        AutoPause? autoPause = null,
+        ProfileTimer? profileTimer = null)
     {
         _autoPause = autoPause;
+        _profileTimer = profileTimer;
         _lighting = lighting;
         _zoneLengths = zoneLengths;
         _profiles = profiles;
@@ -51,6 +54,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices.ModeChanged += OnOptionsChanged;
         _lighting.FramesPerSecondChanged += OnOptionsChanged;
         _autoPause?.EnabledChanged += OnOptionsChanged;
+        _profileTimer?.CatchUpChanged += OnOptionsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -190,6 +194,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // Without the timer (in tests) no scene loads at its time, so it reads as off.
+    public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(_profileTimer?.CatchUp ?? false);
+
+    public Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default)
+    {
+        _profileTimer?.CatchUp = enabled;
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)
@@ -236,6 +249,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices.ModeChanged -= OnOptionsChanged;
         _lighting.FramesPerSecondChanged -= OnOptionsChanged;
         _autoPause?.EnabledChanged -= OnOptionsChanged;
+        _profileTimer?.CatchUpChanged -= OnOptionsChanged;
         _frames.Dispose();
     }
 

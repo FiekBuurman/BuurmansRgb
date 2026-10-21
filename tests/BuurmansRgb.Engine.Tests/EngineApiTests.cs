@@ -530,16 +530,41 @@ public sealed class EngineApiTests : IDisposable
     public async Task OptionsChanged_FollowsEveryOption()
     {
         using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), _lighting.SetPaused);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause);
+        using var timer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer);
         var changes = 0;
         api.OptionsChanged += (_, _) => changes++;
 
         await api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
         await api.SetFramesPerSecondAsync(60, Ct);
         await api.SetPauseOnLockAndSleepAsync(false, Ct);
+        await api.SetCatchUpSceneTimesAsync(true, Ct);
         await api.SetFramesPerSecondAsync(60, Ct);
 
-        Assert.Equal(3, changes);
+        Assert.Equal(4, changes);
+    }
+
+    [Fact]
+    public async Task CatchUpSceneTimes_IsTheOptionOfTheTimer()
+    {
+        using var timer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, profileTimer: timer);
+
+        Assert.False(await api.GetCatchUpSceneTimesAsync(Ct));
+        await api.SetCatchUpSceneTimesAsync(true, Ct);
+
+        Assert.True(timer.CatchUp);
+        Assert.True(await api.GetCatchUpSceneTimesAsync(Ct));
+    }
+
+    [Fact]
+    public async Task CatchUpSceneTimes_WithoutATimer_IsOff()
+    {
+        using var api = CreateApi();
+
+        await api.SetCatchUpSceneTimesAsync(true, Ct);
+
+        Assert.False(await api.GetCatchUpSceneTimesAsync(Ct));
     }
 
     [Fact]
