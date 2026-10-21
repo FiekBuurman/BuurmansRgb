@@ -319,8 +319,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   plus een code uit de locatie en het serienummer, zodat hij na een herstart dezelfde blijft.
 - Een waarde in `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over
   (bij `ledColorZoneLengths` de hele lijst van die lamp); de rest blijft gelden.
-- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een kleur als
-  `"purple"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
+- Een kleur die niet te lezen is (bijv. `"purple"` of een getal), slaat de engine ook over: bij
+  `color` wordt het wit, in `ledColors` volgt die LED de kleur van de lamp, en in `colorLoop`
+  loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
+  blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
+  zonder die kleur weg.
+- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een helderheid als
+  `"hoog"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
   standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.

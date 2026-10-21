@@ -348,8 +348,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     // Set aside, so saving the defaults later does not overwrite what the user had.
     [Theory]
     [InlineData("not json")]
-    [InlineData("""{ "color": "purple" }""")]
-    [InlineData("""{ "color": 42 }""")]
+    [InlineData("""{ "brightness": "high" }""")]
     public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndMovesTheFileAside(string content)
     {
         var path = _directory.File("settings.json");
@@ -361,6 +360,85 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.Equal(content, File.ReadAllText(store.BrokenFilePath));
+    }
+
+    // One color that does not read must not cost the rest of the lighting in the file.
+    [Theory]
+    [InlineData("\"purple\"")]
+    [InlineData("42")]
+    [InlineData("null")]
+    [InlineData("""{ "r": 255 }""")]
+    public void LoadOrCreate_ColorThatDoesNotRead_TakesTheDefaultColorAndKeepsTheRest(string color)
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, $$"""
+            {
+              "color": {{color}},
+              "brightness": 0.4,
+              "devices": { "simulated-fan": { "color": {{color}}, "brightness": 0.25 } }
+            }
+            """);
+
+        var settings = store.LoadOrCreate();
+
+        Assert.Equal(EngineSettings.CreateDefault().Color, settings.Color);
+        Assert.Equal(0.4, settings.Brightness);
+        var fan = Assert.Single(settings.Devices!).Value!;
+        Assert.Equal(EngineSettings.CreateDefault().Color, fan.Color);
+        Assert.Equal(0.25, fan.Brightness);
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    [Fact]
+    public void LoadOrCreate_LedColorThatDoesNotRead_FollowsTheDeviceColor()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """{ "ledColors": { "simulated-fan": ["#FF0000", "purple", 42, null, "#0000FF"] } }""");
+
+        var colors = Assert.Single(store.LoadOrCreate().LedColors!).Value;
+
+        Assert.Equal([new RgbColor(255, 0, 0), null, null, null, new RgbColor(0, 0, 255)], colors);
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    [Fact]
+    public void LoadOrCreate_LoopColorThatDoesNotRead_LeavesItOutOfTheLoop()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """{ "colorLoop": { "colors": ["#FF0000", "purple", "#00FF00", "#0000FF"], "spread": false } }""");
+
+        var loop = store.LoadOrCreate().ToDeviceLighting().Loop;
+
+        Assert.Equal(new ColorLoop([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], Spread: false), loop);
+    }
+
+    // Two colors are the least a loop has; with one left it takes the default colors, as a short list does.
+    [Fact]
+    public void LoadOrCreate_LoopWithTooFewColorsThatRead_TakesTheDefaultLoop()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """{ "colorLoop": { "colors": ["#FF0000", "purple"] } }""");
+
+        Assert.Equal(ColorLoop.Default, store.LoadOrCreate().ToDeviceLighting().Loop);
+    }
+
+    [Fact]
+    public void Save_AfterAColorThatDidNotRead_WritesTheRestBack()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """{ "color": "purple", "brightness": 0.4, "ledColors": { "simulated-fan": ["purple", "#0000FF"] } }""");
+
+        store.Save(store.LoadOrCreate());
+
+        var json = File.ReadAllText(path);
+        Assert.Contains("\"brightness\": 0.4", json);
+        Assert.DoesNotContain("purple", json);
+        Assert.Equal([null, new RgbColor(0, 0, 255)], Assert.Single(store.LoadOrCreate().LedColors!).Value);
     }
 
     [Fact]
