@@ -9,3 +9,14 @@ OpenRGB 1.1
 PawnIO 2.2.0
   Licence: freeware, see https://pawnio.eu
   Source:  https://github.com/namazso/PawnIO.Setup
+
+The settings app (BuurmansRgb.UI.exe) contains these fonts. Their licence texts are in the
+Fonts folder next to it.
+
+Bricolage Grotesque (Regular, SemiBold, ExtraBold)
+  Licence: SIL Open Font License 1.1 (Fonts\OFL-BricolageGrotesque.txt)
+  Source:  https://github.com/ateliertriay/bricolage
+
+IBM Plex Mono (Medium)
+  Licence: SIL Open Font License 1.1 (Fonts\OFL-IBMPlexMono.txt)
+  Source:  https://github.com/google/fonts/tree/main/ofl/ibmplexmono (https://github.com/IBM/plex)

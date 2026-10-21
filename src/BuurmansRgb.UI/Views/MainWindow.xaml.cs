@@ -16,11 +16,24 @@ public partial class MainWindow : Window
                 viewModel.Profiles.ConfirmDelete = ConfirmDelete;
             }
         };
+        StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
     }
 
-    // The button hides once the engine has resumed, which would drop the keyboard focus to the
-    // window; the effect is the next thing a user who just resumed may want to change.
-    private void OnResumeEffectsClick(object sender, RoutedEventArgs e) => EffectChoice.Focus();
+    private void OnMinimizeClick(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
+
+    private void OnMaximizeClick(object sender, RoutedEventArgs e)
+    {
+        if (WindowState == WindowState.Maximized)
+        {
+            SystemCommands.RestoreWindow(this);
+        }
+        else
+        {
+            SystemCommands.MaximizeWindow(this);
+        }
+    }
+
+    private void OnCloseClick(object sender, RoutedEventArgs e) => SystemCommands.CloseWindow(this);
 
     // A deleted profile cannot come back, so the user confirms it; No is the default button.
     private bool ConfirmDelete(string name) =>

@@ -1,0 +1,49 @@
+<!-- The theme of the app: the tokens and components of the design (Controls.xaml), plus converters and
+     small styles that the pages share. -->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Controls.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <views:RgbColorToBrushConverter x:Key="ColorToBrush" />
+    <views:DeviceTypeToIconConverter x:Key="TypeToIcon" />
+    <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+    <views:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibility" />
+    <views:EqualValuesConverter x:Key="EqualValues" />
+    <views:NullToVisibilityConverter x:Key="NullToCollapsed" />
+    <views:NullToVisibilityConverter x:Key="NullToVisible" WhenNull="True" />
+
+    <!-- The icon of a device's type, in the line style of the design; the DataContext needs a Type property. -->
+    <Style x:Key="DeviceIcon" TargetType="Path">
+        <Setter Property="Width" Value="{x:Static views:DeviceIcons.Size}" />
+        <Setter Property="Height" Value="{x:Static views:DeviceIcons.Size}" />
+        <Setter Property="Data" Value="{Binding Type, Converter={StaticResource TypeToIcon}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="Stroke" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+
+    <!-- A ⓘ that shows a tip on hover and on keyboard focus; Tag holds the tip. -->
+    <Style x:Key="InfoMark" TargetType="TextBlock">
+        <Setter Property="Text" Value="ⓘ" />
+        <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="ToolTip" Value="{Binding Tag, RelativeSource={RelativeSource Self}}" />
+        <Setter Property="ToolTipService.ShowsToolTipOnKeyboardFocus" Value="True" />
+        <Setter Property="AutomationProperties.HelpText" Value="{Binding Tag, RelativeSource={RelativeSource Self}}" />
+    </Style>
+
+    <!-- A warning sign, which a screen reader calls "Waarschuwing" unless the element says more. -->
+    <Style x:Key="WarningMark" TargetType="TextBlock">
+        <Setter Property="Text" Value="⚠" />
+        <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+        <Setter Property="Foreground" Value="{StaticResource LedYellowBrush}" />
+        <Setter Property="Margin" Value="0,0,6,0" />
+    </Style>
+</ResourceDictionary>

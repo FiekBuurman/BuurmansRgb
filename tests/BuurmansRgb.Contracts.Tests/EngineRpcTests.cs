@@ -63,6 +63,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task GetAllLightingAsync_GivesEveryDeviceWithEveryField()
+    {
+        var client = await ConnectAsync();
+
+        var lighting = await client.Api.GetAllLightingAsync(Ct);
+
+        Assert.Equal(_api.Devices.Select(device => device.Id), lighting.Select(device => device.DeviceId));
+        Assert.All(lighting, device => Assert.Equal(_api.Lighting, device.Lighting));
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -74,6 +85,15 @@ public sealed class EngineRpcTests : IDisposable
 
         Assert.Equal(["Gamen", "Nacht"], names);
         Assert.Equal(["save Werk", "load Gamen", "delete Nacht"], _api.ProfileCalls);
+    }
+
+    [Fact]
+    public async Task GetProfileLightingAsync_RoundTripsEveryField()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal(_api.Lighting, await client.Api.GetProfileLightingAsync("Nacht", Ct));
+        await Assert.ThrowsAsync<RemoteInvocationException>(() => client.Api.GetProfileLightingAsync("Gamen", Ct));
     }
 
     [Fact]
@@ -185,6 +205,29 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal("fan", call.DeviceId);
         Assert.Equal(colors, call.Colors);
         Assert.False(call.Spread);
+    }
+
+    [Fact]
+    public async Task SetOnAsync_ReachesServer()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetOnAsync("fan", on: false, Ct);
+        await client.Api.SetOnAsync(null, on: true, Ct);
+
+        Assert.Equal([("fan", false), (null, true)], _api.OnCalls);
+    }
+
+    [Fact]
+    public async Task LightingChanged_OnServer_ReachesClient()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.LightingChanged += (_, _) => received.TrySetResult();
+
+        _api.RaiseLightingChanged();
+
+        await received.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 
     [Fact]
@@ -301,6 +344,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler<PauseReasons>? PauseChanged;
 
+        public event EventHandler? LightingChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
@@ -317,7 +362,7 @@ public sealed class EngineRpcTests : IDisposable
             },
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false));
+        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false);
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -331,6 +376,14 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<(string? DeviceId, double Speed)> SpeedCalls { get; } = [];
 
+        public List<(string? DeviceId, bool On)> OnCalls { get; } = [];
+
+        public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default)
+        {
+            OnCalls.Add((deviceId, on));
+            return Task.CompletedTask;
+        }
+
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
         public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
@@ -338,6 +391,8 @@ public sealed class EngineRpcTests : IDisposable
         public void RaiseOpenRgbStatus(ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
 
         public void RaisePause(PauseReasons pause) => PauseChanged?.Invoke(this, pause);
+
+        public void RaiseLightingChanged() => LightingChanged?.Invoke(this, EventArgs.Empty);
 
         public int ResumeCalls { get; private set; }
 
@@ -358,6 +413,9 @@ public sealed class EngineRpcTests : IDisposable
             Task.FromResult<IReadOnlyList<string>>([EffectIds.Static]);
 
         public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) => Task.FromResult(Lighting);
+
+        public Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting))]);
 
         public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(LightingFrame.Empty);
 
@@ -429,6 +487,9 @@ public sealed class EngineRpcTests : IDisposable
         public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
 
         public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
+            Task.FromResult(name == "Nacht" ? Lighting : throw new ArgumentException($"There is no profile '{name}'.", nameof(name)));
 
         public List<(string Name, ProfileAutomation Automation)> AutomationCalls { get; } = [];
 

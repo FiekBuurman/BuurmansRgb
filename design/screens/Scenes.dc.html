@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>buurmansRgb – Scènes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#7FB0FF}a:hover{color:#A9C9FF}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #16161A; color: #F4F1EA; font-family: 'Bricolage Grotesque', system-ui, sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <header style="padding: 28px 20px 8px 20px">
+    <h1 style="margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -0.02em">Scènes</h1>
+    <div style="font-size: 14px; color: #A9A6A0">Eén tik, en het hele huis doet mee</div>
+  </header>
+
+  <main style="flex-grow: 1; display: flex; flex-direction: column; gap: 14px; padding: 12px 20px 0 20px">
+
+    <section style="background: #1C2433; border: 1px solid #2B3B57; border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px">
+        <div>
+          <div style="font-size: 13px; color: #A9B8D4">Met de buren</div>
+          <div style="font-size: 20px; font-weight: 800">Samen aan de slag</div>
+          <div style="font-size: 13px; color: #A9B8D4; margin-top: 2px">Beide huizen kleuren mee, tegelijk</div>
+        </div>
+        <button aria-pressed="true" aria-label="Samen aan de slag aan of uit" style="width: 52px; height: 32px; border-radius: 16px; border: 0; padding: 4px; background: #5B93FF; display: flex; justify-content: flex-end; cursor: pointer; flex-shrink: 0">
+          <span style="width: 24px; height: 24px; border-radius: 12px; background: #0E1420; display: block"></span>
+        </button>
+      </div>
+      <div aria-hidden="true" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <div style="background: #0E1420; border-radius: 10px; padding: 10px; display: flex; justify-content: space-between">
+          <sc-for list="{{sync}}" as="d" hint-placeholder-count="6"><span style="width: 10px; height: 10px; border-radius: 5px; background: {{d}}; box-shadow: 0 0 8px 2px {{d}}; display: block"></span></sc-for>
+        </div>
+        <div style="background: #0E1420; border-radius: 10px; padding: 10px; display: flex; justify-content: space-between">
+          <sc-for list="{{sync}}" as="d" hint-placeholder-count="6"><span style="width: 10px; height: 10px; border-radius: 5px; background: {{d}}; box-shadow: 0 0 8px 2px {{d}}; display: block"></span></sc-for>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; font-size: 12px; color: #A9B8D4; margin-top: -6px">
+        <span>Jouw huis</span><span>Buurman</span>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+      <sc-for list="{{scenes}}" as="s" hint-placeholder-count="4">
+        <button style="text-align: left; background: #212128; border: {{s.border}}; border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 16px; color: #F4F1EA; font-family: inherit; cursor: pointer; min-height: 132px">
+          <span aria-hidden="true" style="display: flex; gap: 6px">
+            <sc-for list="{{s.dots}}" as="d" hint-placeholder-count="5"><span style="width: 12px; height: 12px; border-radius: 6px; background: {{d}}; box-shadow: 0 0 8px 1px {{d}}; display: block"></span></sc-for>
+          </span>
+          <span style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 17px; font-weight: 700">{{s.name}}</span>
+            <span style="font-size: 13px; color: #A9A6A0">{{s.sub}}</span>
+          </span>
+        </button>
+      </sc-for>
+    </div>
+
+    <button style="min-height: 52px; border-radius: 26px; border: 2px dashed #4A4A54; background: transparent; color: #F4F1EA; font-family: inherit; font-size: 16px; font-weight: 600; cursor: pointer">+ Nieuwe scène in elkaar zetten</button>
+  </main>
+
+  <nav aria-label="Hoofdmenu" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 10px 8px 22px 8px; border-top: 1px solid #2E2E36; background: #1A1A1F; margin-top: 16px">
+    <a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 48px; justify-content: center; color: #A9A6A0; text-decoration: none; font-size: 12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"></path></svg>Lampen</a>
+    <a href="Kleur.dc.html" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 48px; justify-content: center; color: #A9A6A0; text-decoration: none; font-size: 12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"></path><circle cx="16" cy="6" r="2"></circle><circle cx="10" cy="12" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>Kleur</a>
+    <a href="Scenes.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 48px; justify-content: center; color: #F4F1EA; text-decoration: none; font-size: 12px; font-weight: 600">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect></svg>Scènes</a>
+    <a href="#" style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 48px; justify-content: center; color: #A9A6A0; text-decoration: none; font-size: 12px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M2 12l5-5 5 5 5-5 5 5"></path><path d="M4 12v8h6v-8M14 12v8h6v-8"></path></svg>Buren</a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const sc = (name, sub, dots, active) => ({ name, sub, dots, border: active ? '2px solid #F4F1EA' : '1px solid #2E2E36' });
+    return {
+      sync: ['#5B93FF', '#A97BFF', '#3DD6D0', '#5B93FF', '#A97BFF', '#3DD6D0'],
+      scenes: [
+        sc('Klusmodus', 'Fel wit, 100%', ['#FFF4E5', '#FFF4E5', '#FFF4E5', '#FFF4E5', '#FFF4E5'], true),
+        sc('Filmavond', 'Warm en gedimd', ['#FF9A3D', '#C2410C', '#FF9A3D', '#C2410C', '#FF9A3D'], false),
+        sc('Feestje', 'Alle kleuren, in beweging', ['#FF5A5A', '#FFD84D', '#3DDC84', '#5B93FF', '#A97BFF'], false),
+        sc('Even bijkomen', 'Blauw naar paars', ['#5B93FF', '#7A88FF', '#A97BFF', '#7A88FF', '#5B93FF'], false)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -73,6 +73,12 @@ internal sealed class FakeEngineApi : IEngineApi
         PauseChanged?.Invoke(this, pause);
     }
 
+    public event EventHandler? LightingChanged;
+
+    public bool HasLightingSubscribers => LightingChanged is not null;
+
+    public void RaiseLightingChanged() => LightingChanged?.Invoke(this, EventArgs.Empty);
+
     // When set, the pause changes to this while GetPauseAsync answers with the older one, as when
     // the event overtakes the answer.
     public PauseReasons? PauseChangeWhileAnswering { get; set; }
@@ -157,6 +163,15 @@ internal sealed class FakeEngineApi : IEngineApi
         return Lighting.GetValueOrDefault(deviceId ?? "", Lighting[""]);
     }
 
+    // Like the engine: every device, with its own lighting or else that of all devices.
+    public int AllLightingCalls { get; private set; }
+
+    public Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default)
+    {
+        AllLightingCalls++;
+        return Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting.GetValueOrDefault(device.Id, Lighting[""])))]);
+    }
+
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
 
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
@@ -167,6 +182,9 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
         Record($"effect {deviceId ?? "all"} {effectId}");
+
+    public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default) =>
+        Record($"on {deviceId ?? "all"} {(on ? "on" : "off")}");
 
     public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default) =>
         Record(string.Create(CultureInfo.InvariantCulture, $"speed {deviceId ?? "all"} {speed:0.00}"));
@@ -229,6 +247,15 @@ internal sealed class FakeEngineApi : IEngineApi
         await Record($"profile delete {name}");
         Profiles.Remove(name);
     }
+
+    // Profiles that are gone by the time they are asked, such as deleted from the tray menu.
+    public HashSet<string> GoneProfiles { get; } = [];
+
+    // Like the engine: the lighting a profile gives all devices; the default lighting without one.
+    public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
+        GoneProfiles.Contains(name)
+            ? Task.FromException<LightingInfo>(new ArgumentException($"There is no profile '{name}'.", nameof(name)))
+            : Task.FromResult(ProfileLighting.GetValueOrDefault(name, new LightingInfo(RgbColor.White, 1.0, EffectIds.Static)));
 
     // By profile name; a profile without one never loads by itself.
     public Dictionary<string, ProfileAutomation> ProfileAutomations { get; } = [];

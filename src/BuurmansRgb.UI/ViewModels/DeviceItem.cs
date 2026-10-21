@@ -22,6 +22,10 @@ public sealed record DeviceItem(
 {
     public bool ShowsLocationLabel => LocationLabel is not null;
 
+    // The name with the location label, so twins such as the RAM sticks of a kit stay apart where
+    // only one line fits, such as in the lamp choice.
+    public string DisplayName => LocationLabel is null ? Name : UiText.Format(Strings.DeviceDetailsWithType, Name, LocationLabel);
+
     // What a screen reader says after the name: the short texts the list shows under it.
     public string? AccessibleHelpText => LacksDirectMode
         ? (LocationLabel is null ? Strings.NoDirectModeWarning : $"{LocationLabel}. {Strings.NoDirectModeWarning}")
@@ -40,6 +44,9 @@ public sealed record DeviceItem(
         return new(device.Id, device.Name, details, device.Type, typeName, UiText.Lookup("DeviceSource", device.Source),
             locationLabel, ToolTipOf(device.Location), !device.HasDirectMode);
     }
+
+    // A screen reader names a ComboBox item, such as in the lamp choice, by its ToString.
+    public override string ToString() => DisplayName;
 
     private static string? TypeNameOf(DeviceType type) => UiText.Lookup("DeviceType", type);
 

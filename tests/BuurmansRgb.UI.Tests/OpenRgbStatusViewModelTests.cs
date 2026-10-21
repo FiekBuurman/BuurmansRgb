@@ -17,9 +17,9 @@ public sealed class OpenRgbStatusViewModelTests
     }
 
     [Theory]
-    [InlineData(0, "OpenRGB: verbonden, geen apparaten gevonden")]
-    [InlineData(1, "OpenRGB: verbonden, 1 apparaat")]
-    [InlineData(5, "OpenRGB: verbonden, 5 apparaten")]
+    [InlineData(0, "OpenRGB: verbonden, geen lampen gevonden")]
+    [InlineData(1, "OpenRGB: verbonden, 1 lamp")]
+    [InlineData(5, "OpenRGB: verbonden, 5 lampen")]
     public void Connected_TellsTheNumberOfDevices(int deviceCount, string text)
     {
         _status.Show(new ServerStatus(ServerState.Connected, deviceCount));

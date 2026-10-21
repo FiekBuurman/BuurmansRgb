@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Effects;
 
 namespace BuurmansRgb.Engine.Lighting;
 
@@ -17,6 +18,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
     public const int MaxFramesPerSecond = 60;
+
+    // What a device that is switched off shows: black, and static, so it needs no frames.
+    private static readonly StaticEffect Off = new(RgbColor.Black);
 
     private readonly IReadOnlyList<IDeviceProvider> _providers;
     private readonly Lock _gate = new();
@@ -190,6 +194,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             KnownDeviceLocked(deviceId);
             return _lighting.Get(deviceId);
+        }
+    }
+
+    // The lighting of every device, in the order of the devices, under one lock.
+    public IReadOnlyList<(string DeviceId, DeviceLighting Lighting)> GetAllLighting()
+    {
+        lock (_gate)
+        {
+            return [.. _outputs.All.Select(output => (output.Device.Id, _lighting.Get(output.Device.Id)))];
         }
     }
 
@@ -509,7 +522,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
-            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop), lighting.Brightness, lighting.Speed);
+            var effect = lighting.On ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop) : Off;
+            output.Show(effect, lighting.Brightness, lighting.Speed);
             output.Render(time);
             if (!IsManual(_pause))
             {

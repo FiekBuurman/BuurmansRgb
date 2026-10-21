@@ -13,10 +13,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppName" xml:space="preserve">
-    <value>BuurmansRgb</value>
+    <value>buurmansRgb</value>
   </data>
   <data name="TrayToolTipPaused" xml:space="preserve">
-    <value>BuurmansRgb – effecten gepauzeerd</value>
+    <value>buurmansRgb – effecten gepauzeerd</value>
   </data>
   <data name="MenuOpenSettings" xml:space="preserve">
     <value>Instellingen openen</value>
@@ -31,16 +31,16 @@
     <value>Afsluiten</value>
   </data>
   <data name="MenuLoadProfile" xml:space="preserve">
-    <value>Profiel laden</value>
+    <value>Scène aanzetten</value>
   </data>
   <data name="MenuNoProfiles" xml:space="preserve">
-    <value>Nog geen profielen – maak ze in Instellingen</value>
+    <value>Nog geen scènes – zet ze in elkaar in de instellingen</value>
   </data>
   <data name="ProfilesUnreadable" xml:space="preserve">
-    <value>De profielen konden niet worden gelezen.</value>
+    <value>De scènes konden niet worden gelezen.</value>
   </data>
   <data name="ProfileLoadFailed" xml:space="preserve">
-    <value>Profiel '{0}' kon niet worden geladen.</value>
+    <value>Scène '{0}' kon niet worden aangezet.</value>
   </data>
   <data name="SettingsAppNotFound" xml:space="preserve">
     <value>De instellingen-app is niet gevonden.</value>
@@ -59,15 +59,15 @@
     <comment>Gelijk houden met OpenRgbConnecting in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnected" xml:space="preserve">
-    <value>OpenRGB: verbonden, {0} apparaten</value>
+    <value>OpenRGB: verbonden, {0} lampen</value>
     <comment>Gelijk houden met OpenRgbConnected in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnectedOneDevice" xml:space="preserve">
-    <value>OpenRGB: verbonden, 1 apparaat</value>
+    <value>OpenRGB: verbonden, 1 lamp</value>
     <comment>Gelijk houden met OpenRgbConnectedOneDevice in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <value>OpenRGB: verbonden, geen lampen gevonden</value>
     <comment>Gelijk houden met OpenRgbConnectedNoDevices in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
   <data name="TrayOpenRgbUnreachable" xml:space="preserve">

@@ -13,16 +13,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="WindowTitle" xml:space="preserve">
-    <value>BuurmansRgb – instellingen</value>
-  </data>
-  <data name="DevicesHeader" xml:space="preserve">
-    <value>Apparaten</value>
+    <value>buurmansRgb</value>
   </data>
   <data name="AllDevices" xml:space="preserve">
-    <value>Alle apparaten</value>
+    <value>Hele huis</value>
   </data>
   <data name="AllDevicesDetails" xml:space="preserve">
-    <value>{0} apparaten</value>
+    <value>{0} lampen</value>
   </data>
   <data name="LedCount" xml:space="preserve">
     <value>{0} LED's</value>
@@ -100,10 +97,10 @@
     <value>Locatie: {0}, adres {1}</value>
   </data>
   <data name="DeviceSource_Hardware" xml:space="preserve">
-    <value>Echte apparaten (OpenRGB)</value>
+    <value>Echte lampen (OpenRGB)</value>
   </data>
   <data name="DeviceSource_Simulated" xml:space="preserve">
-    <value>Gesimuleerde apparaten</value>
+    <value>Gesimuleerde lampen</value>
   </data>
   <data name="DeviceType_Motherboard" xml:space="preserve">
     <value>Moederbord</value>
@@ -149,15 +146,6 @@
   </data>
   <data name="DeviceType_Keypad" xml:space="preserve">
     <value>Keypad</value>
-  </data>
-  <data name="ColorHeader" xml:space="preserve">
-    <value>Kleur</value>
-  </data>
-  <data name="HueLabel" xml:space="preserve">
-    <value>Tint</value>
-  </data>
-  <data name="SaturationLabel" xml:space="preserve">
-    <value>Verzadiging</value>
   </data>
   <data name="HexLabel" xml:space="preserve">
     <value>Hex-code</value>
@@ -220,7 +208,7 @@
     <value>Verbinden met de engine…</value>
   </data>
   <data name="EngineNotRunning" xml:space="preserve">
-    <value>De engine draait niet. Start BuurmansRgb en probeer het opnieuw.</value>
+    <value>De engine draait niet. Start buurmansRgb en probeer het opnieuw.</value>
   </data>
   <data name="ConnectFailed" xml:space="preserve">
     <value>Er kon geen verbinding met de engine worden gemaakt.</value>
@@ -240,26 +228,14 @@
   <data name="PresetOrange" xml:space="preserve">
     <value>Oranje</value>
   </data>
-  <data name="PresetYellow" xml:space="preserve">
-    <value>Geel</value>
-  </data>
   <data name="PresetGreen" xml:space="preserve">
     <value>Groen</value>
-  </data>
-  <data name="PresetCyan" xml:space="preserve">
-    <value>Cyaan</value>
   </data>
   <data name="PresetBlue" xml:space="preserve">
     <value>Blauw</value>
   </data>
   <data name="PresetPurple" xml:space="preserve">
     <value>Paars</value>
-  </data>
-  <data name="PresetPink" xml:space="preserve">
-    <value>Roze</value>
-  </data>
-  <data name="PresetWhite" xml:space="preserve">
-    <value>Wit</value>
   </data>
   <data name="SpeedHeader" xml:space="preserve">
     <value>Snelheid</value>
@@ -297,16 +273,13 @@
     <value>Kleur {0}: {1}</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">
-    <value>Profielen</value>
+    <value>Scènes</value>
   </data>
   <data name="ProfilesHint" xml:space="preserve">
-    <value>Bewaar de verlichting van alle apparaten onder een naam, zodat je er later naar terug kunt.</value>
-  </data>
-  <data name="ProfilesHintAccessibleName" xml:space="preserve">
-    <value>Uitleg bij profielen</value>
+    <value>Eén klik, en het hele huis doet mee</value>
   </data>
   <data name="ProfileNameLabel" xml:space="preserve">
-    <value>Naam van het profiel</value>
+    <value>Naam van de scène</value>
   </data>
   <data name="ProfileSave" xml:space="preserve">
     <value>Opslaan</value>
@@ -315,52 +288,49 @@
     <value>Overschrijven</value>
   </data>
   <data name="ProfileSaveToolTip" xml:space="preserve">
-    <value>Bewaart de verlichting zoals die nu is onder deze naam.</value>
+    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze naam.</value>
   </data>
   <data name="ProfileLoad" xml:space="preserve">
-    <value>Laden</value>
+    <value>Aanzetten</value>
   </data>
   <data name="ProfileLoadToolTip" xml:space="preserve">
-    <value>Zet de verlichting terug zoals die in dit profiel is bewaard. Dubbelklikken kan ook.</value>
+    <value>Zet de verlichting terug zoals die in deze scène is bewaard. Een klik op de kaart kan ook.</value>
   </data>
   <data name="ProfileDelete" xml:space="preserve">
     <value>Verwijderen</value>
   </data>
   <data name="ProfileDeleteConfirm" xml:space="preserve">
-    <value>Profiel '{0}' verwijderen?</value>
+    <value>Scène '{0}' verwijderen?</value>
   </data>
   <data name="ProfileSaved" xml:space="preserve">
-    <value>Profiel '{0}' opgeslagen.</value>
+    <value>Scène '{0}' in elkaar gezet.</value>
   </data>
   <data name="ProfileLoaded" xml:space="preserve">
-    <value>Profiel '{0}' geladen.</value>
+    <value>Scène '{0}' staat aan.</value>
   </data>
   <data name="ProfileDeleted" xml:space="preserve">
-    <value>Profiel '{0}' verwijderd.</value>
+    <value>Scène '{0}' verwijderd.</value>
   </data>
   <data name="ProfileAutomationHeader" xml:space="preserve">
-    <value>Automatisch laden</value>
+    <value>Vanzelf aanzetten</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Waarschuwing</value>
   </data>
   <data name="ProfileAutomationOff" xml:space="preserve">
-    <value>Automatisch laden: uit</value>
+    <value>Vanzelf aanzetten: uit</value>
   </data>
   <data name="ProfileAutomationOn" xml:space="preserve">
-    <value>Automatisch laden: aan</value>
-  </data>
-  <data name="ProfileAutomationNoSelection" xml:space="preserve">
-    <value>Kies eerst een profiel in de lijst.</value>
+    <value>Vanzelf aanzetten: aan</value>
   </data>
   <data name="ProfileLoadAtLabel" xml:space="preserve">
-    <value>Automatisch laden om</value>
+    <value>Elke dag aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
-    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat BuurmansRgb die keer over.</value>
+    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
   </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
-    <value>Laden als dit programma start</value>
+    <value>Aanzetten als dit programma start</value>
   </data>
   <data name="ProfileProgramHint" xml:space="preserve">
     <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
@@ -369,10 +339,10 @@
     <value>Toepassen</value>
   </data>
   <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
-    <value>Bewaart de tijd en het programma bij het gekozen profiel.</value>
+    <value>Bewaart de tijd en het programma bij de gekozen scène.</value>
   </data>
   <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
-    <value>Automatisch laden toepassen</value>
+    <value>Vanzelf aanzetten toepassen</value>
   </data>
   <data name="ProfileLoadAtInvalid" xml:space="preserve">
     <value>Vul een tijd in zoals 23:00, of laat het leeg.</value>
@@ -384,28 +354,25 @@
     <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
   </data>
   <data name="ProfileAutomationSaved" xml:space="preserve">
-    <value>Automatisch laden van '{0}' opgeslagen.</value>
+    <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
     <value>Laat knipperen</value>
   </data>
   <data name="FlashDeviceToolTip" xml:space="preserve">
-    <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+    <value>Laat deze lamp even wit knipperen, zodat je in de pc ziet welke het is. Werkt niet als de effecten gepauzeerd zijn.</value>
   </data>
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
   </data>
   <data name="SimulatedDevicesLabel" xml:space="preserve">
-    <value>Gesimuleerde apparaten tonen</value>
-  </data>
-  <data name="SimulatedDevicesShortLabel" xml:space="preserve">
-    <value>Gesimuleerd:</value>
+    <value>Gesimuleerde lampen tonen</value>
   </data>
   <data name="OpenRgbHintAccessibleName" xml:space="preserve">
     <value>Tip bij de OpenRGB-status</value>
   </data>
   <data name="SimulatedDevicesHint" xml:space="preserve">
-    <value>Nep-apparaten om BuurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
+    <value>Nep-lampen om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte lampen levert.</value>
   </data>
   <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
     <value>Automatisch</value>
@@ -421,15 +388,15 @@
     <comment>Gelijk houden met TrayOpenRgbConnecting in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnected" xml:space="preserve">
-    <value>OpenRGB: verbonden, {0} apparaten</value>
+    <value>OpenRGB: verbonden, {0} lampen</value>
     <comment>Gelijk houden met TrayOpenRgbConnected in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedOneDevice" xml:space="preserve">
-    <value>OpenRGB: verbonden, 1 apparaat</value>
+    <value>OpenRGB: verbonden, 1 lamp</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedOneDevice in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <value>OpenRGB: verbonden, geen lampen gevonden</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedNoDevices in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachable" xml:space="preserve">
@@ -437,20 +404,20 @@
     <comment>Gelijk houden met TrayOpenRgbUnreachable in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachableHint" xml:space="preserve">
-    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van BuurmansRgb opnieuw; BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
+    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van buurmansRgb opnieuw; buurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
   </data>
   <data name="OpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
     <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbFailedHint" xml:space="preserve">
-    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. BuurmansRgb blijft het proberen.</value>
+    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de lampen mislukte. buurmansRgb blijft het proberen.</value>
   </data>
   <data name="NoDirectModeWarning" xml:space="preserve">
     <value>Volgt de kleur misschien niet</value>
   </data>
   <data name="NoDirectModeHint" xml:space="preserve">
-    <value>Dit apparaat heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. BuurmansRgb stuurt de kleuren wel, maar het apparaat kan zijn eigen effect blijven tonen. Gebeurt dat, stel het dan in OpenRGB zelf in.</value>
+    <value>Deze lamp heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. buurmansRgb stuurt de kleuren wel, maar de lamp kan zijn eigen effect blijven tonen. Gebeurt dat, stel hem dan in OpenRGB zelf in.</value>
   </data>
   <data name="EffectsPausedManual" xml:space="preserve">
     <value>Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.</value>
@@ -472,4 +439,181 @@
   </data>
   <data name="ResumeEffectsToolTip" xml:space="preserve">
     <value>Laat de effecten weer lopen, net als "Effecten pauzeren" uitzetten in het tray-menu.</value>
-  </data></root>
+  </data>  <data name="NavAccessibleName" xml:space="preserve">
+    <value>Hoofdmenu</value>
+  </data>
+  <data name="NavLamps" xml:space="preserve">
+    <value>Lampen</value>
+  </data>
+  <data name="NavColor" xml:space="preserve">
+    <value>Kleur</value>
+  </data>
+  <data name="NavScenes" xml:space="preserve">
+    <value>Scènes</value>
+  </data>
+  <data name="NavNeighbours" xml:space="preserve">
+    <value>Buren</value>
+  </data>
+  <data name="NavSettings" xml:space="preserve">
+    <value>Instellingen</value>
+  </data>
+  <data name="CaptionMinimize" xml:space="preserve">
+    <value>Minimaliseren</value>
+  </data>
+  <data name="CaptionMaximize" xml:space="preserve">
+    <value>Maximaliseren</value>
+  </data>
+  <data name="CaptionRestore" xml:space="preserve">
+    <value>Vorige grootte</value>
+  </data>
+  <data name="CaptionClose" xml:space="preserve">
+    <value>Sluiten</value>
+  </data>
+  <data name="ColorPageTitle" xml:space="preserve">
+    <value>Kleur mengen</value>
+  </data>
+  <data name="LampChoiceLabel" xml:space="preserve">
+    <value>Welke lamp?</value>
+  </data>
+  <data name="SettingsTitle" xml:space="preserve">
+    <value>Instellingen</value>
+  </data>
+  <data name="SettingsSubtitle" xml:space="preserve">
+    <value>Alles achter de schermen van de werkplaats</value>
+  </data>
+  <data name="OpenRgbHeader" xml:space="preserve">
+    <value>OpenRGB</value>
+  </data>
+  <data name="OpenRgbExplanation" xml:space="preserve">
+    <value>Via OpenRGB praat buurmansRgb met de echte lampen in je pc.</value>
+  </data>
+  <data name="SimulatedDevicesHeader" xml:space="preserve">
+    <value>Gesimuleerde lampen</value>
+  </data>
+  <data name="SaveHeader" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="NeighboursTitle" xml:space="preserve">
+    <value>Buren</value>
+  </data>
+  <data name="NeighboursEmptyTitle" xml:space="preserve">
+    <value>Nog in de werkplaats</value>
+  </data>
+  <data name="NeighboursEmptyText" xml:space="preserve">
+    <value>Samen met de buren je lampen kleuren komt later. Hier valt nu nog niets te doen.</value>
+  </data>
+  <data name="WholeHouse" xml:space="preserve">
+    <value>Hele huis</value>
+  </data>
+  <data name="WholeHouseOnCount" xml:space="preserve">
+    <value>{0} van {1} aan</value>
+  </data>
+  <data name="WholeHouseSwitchAccessibleName" xml:space="preserve">
+    <value>Alles aan of uit</value>
+  </data>
+  <data name="LampsHeader" xml:space="preserve">
+    <value>Lampen in huis</value>
+  </data>
+  <data name="AddLamps" xml:space="preserve">
+    <value>+ Erbij knutselen</value>
+  </data>
+  <data name="AddLampsToolTip" xml:space="preserve">
+    <value>Gesimuleerde lampen en de koppeling met OpenRGB vind je bij Instellingen.</value>
+  </data>
+  <data name="LampSwitchAccessibleName" xml:space="preserve">
+    <value>{0} aan of uit</value>
+  </data>
+  <data name="LampOpenAccessibleName" xml:space="preserve">
+    <value>{0}: kleur en effect</value>
+  </data>
+  <data name="LampBrightness" xml:space="preserve">
+    <value>{0:0}%</value>
+  </data>
+  <data name="LampOff" xml:space="preserve">
+    <value>uit</value>
+  </data>
+  <data name="NoLamps" xml:space="preserve">
+    <value>Nog geen lampen gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde lampen aan.</value>
+  </data>
+  <data name="PresetKlusWhite" xml:space="preserve">
+    <value>Klus-wit</value>
+  </data>
+  <data name="RgbText" xml:space="preserve">
+    <value>{0} · {1} · {2}</value>
+  </data>
+  <data name="ChannelRed" xml:space="preserve">
+    <value>Rood</value>
+  </data>
+  <data name="ChannelGreen" xml:space="preserve">
+    <value>Groen</value>
+  </data>
+  <data name="ChannelBlue" xml:space="preserve">
+    <value>Blauw</value>
+  </data>
+  <data name="CurrentColorLabel" xml:space="preserve">
+    <value>Huidige kleur</value>
+  </data>
+  <data name="ColorPreviewAccessibleName" xml:space="preserve">
+    <value>Voorbeeld van de kleur</value>
+  </data>
+  <data name="ToolboxHeader" xml:space="preserve">
+    <value>Uit de gereedschapskist</value>
+  </data>
+  <data name="ApplyColor" xml:space="preserve">
+    <value>Op de strip zetten</value>
+  </data>
+  <data name="ApplyColorToLeds" xml:space="preserve">
+    <value>Op de gekozen LED's zetten</value>
+  </data>
+  <data name="ApplyColorToLoop" xml:space="preserve">
+    <value>In de loop zetten</value>
+  </data>
+  <data name="ColorNotApplied" xml:space="preserve">
+    <value>Nog niet op de lamp</value>
+  </data>
+  <data name="LightingHeader" xml:space="preserve">
+    <value>Licht en beweging</value>
+  </data>
+  <data name="NewScene" xml:space="preserve">
+    <value>+ Nieuwe scène in elkaar zetten</value>
+  </data>
+  <data name="NewSceneHint" xml:space="preserve">
+    <value>Bewaart de verlichting van alle lampen zoals die nu is, onder een naam die je kiest.</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuleren</value>
+  </data>
+  <data name="NoScenes" xml:space="preserve">
+    <value>Nog geen scènes. Zet de lampen zoals je ze wilt en zet er hieronder een in elkaar.</value>
+  </data>
+  <data name="SceneLoadAccessibleName" xml:space="preserve">
+    <value>{0} aanzetten</value>
+  </data>
+  <data name="SceneEditAccessibleName" xml:space="preserve">
+    <value>{0} aanpassen</value>
+  </data>
+  <data name="SceneEditToolTip" xml:space="preserve">
+    <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
+  </data>
+  <data name="SceneOverwrite" xml:space="preserve">
+    <value>Overschrijven met wat nu brandt</value>
+  </data>
+  <data name="SceneOverwriteToolTip" xml:space="preserve">
+    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze scène.</value>
+  </data>
+  <data name="SceneAtTime" xml:space="preserve">
+    <value>Elke dag om {0:HH:mm}</value>
+  </data>
+  <data name="SceneWithProgram" xml:space="preserve">
+    <value>Bij {0}</value>
+  </data>
+  <data name="SceneAtTimeAndProgram" xml:space="preserve">
+    <value>Elke dag om {0:HH:mm} · bij {1}</value>
+  </data>
+  <data name="SceneOff" xml:space="preserve">
+    <value>Alles uit</value>
+  </data>
+  <data name="SceneLighting" xml:space="preserve">
+    <value>{0} · {1:0}%</value>
+  </data>
+</root>

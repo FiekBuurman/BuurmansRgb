@@ -47,6 +47,68 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task SetOnAsync_SwitchesTheDeviceOffAndOn()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+
+        await api.SetOnAsync("simulated-fan", on: false, Ct);
+
+        Assert.False((await api.GetLightingAsync("simulated-fan", Ct)).On);
+        Assert.True((await api.GetLightingAsync(null, Ct)).On);
+
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SetOnAsync(null, on: true, Ct);
+
+        Assert.True((await api.GetLightingAsync("simulated-fan", Ct)).On);
+    }
+
+    [Fact]
+    public async Task GetAllLightingAsync_GivesEveryDeviceWithItsOwnOrTheGlobalLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetColorAsync(null, Orange, Ct);
+        await api.SetOnAsync("simulated-fan", on: false, Ct);
+
+        var lighting = await api.GetAllLightingAsync(Ct);
+
+        Assert.Equal((await api.GetDevicesAsync(Ct)).Select(device => device.Id), lighting.Select(device => device.DeviceId));
+        Assert.False(Assert.Single(lighting, device => device.DeviceId == "simulated-fan").Lighting.On);
+        Assert.All(lighting.Where(device => device.DeviceId != "simulated-fan"), device => Assert.True(device.Lighting.On));
+        Assert.All(lighting, device => Assert.Equal(Orange, device.Lighting.Color));
+    }
+
+    [Fact]
+    public async Task LightingChanged_FollowsEveryChangeOfTheLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SaveProfileAsync("Uit", Ct);
+        _profiles.Load("Uit");
+
+        Assert.Equal(2, changes);
+    }
+
+    [Fact]
+    public async Task Dispose_StopsFollowingTheLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        api.Dispose();
+        _lighting.SetLighting(null, lighting => lighting with { On = false });
+
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
     public async Task SetSpeedAsync_SetsTheSpeedOfTheDevice()
     {
         await _lighting.DiscoverAsync(Ct);
@@ -333,6 +395,23 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal(["Gamen"], await api.GetProfilesAsync(Ct));
         Assert.Equal(Orange, (await api.GetLightingAsync(null, Ct)).Color);
         Assert.Equal(2.0, (await api.GetLightingAsync("simulated-fan", Ct)).Speed);
+    }
+
+    [Fact]
+    public async Task GetProfileLightingAsync_GivesTheLightingOfAllDevicesInTheProfile()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetColorAsync(null, Orange, Ct);
+        await api.SetOnAsync(null, on: false, Ct);
+        await api.SaveProfileAsync("Uit", Ct);
+        await api.SetColorAsync(null, Blue, Ct);
+
+        var lighting = await api.GetProfileLightingAsync("uit", Ct);
+
+        Assert.Equal(Orange, lighting.Color);
+        Assert.False(lighting.On);
+        await Assert.ThrowsAsync<ArgumentException>(() => api.GetProfileLightingAsync("Gamen", Ct));
     }
 
     [Fact]

@@ -31,7 +31,7 @@ public sealed class MainViewModelProfileTests
         Assert.Equal(["brightness all 0.40", "profile save Gamen"], Api.Calls);
         Assert.Equal(["Gamen", "Werk"], viewModel.Profiles.Names);
         Assert.Equal("Gamen", viewModel.Profiles.SelectedName);
-        Assert.Equal("Profiel 'Gamen' opgeslagen.", viewModel.StatusMessage);
+        Assert.Equal("Scène 'Gamen' in elkaar gezet.", viewModel.StatusMessage);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class MainViewModelProfileTests
         Assert.Equal(10, viewModel.Brightness);
         Assert.Equal(EffectIds.Rainbow, viewModel.SelectedEffect?.Id);
         Assert.Equal(50, viewModel.Speed);
-        Assert.Equal("Profiel 'Nacht' geladen.", viewModel.StatusMessage);
+        Assert.Equal("Scène 'Nacht' staat aan.", viewModel.StatusMessage);
     }
 
     [Fact]
@@ -63,7 +63,7 @@ public sealed class MainViewModelProfileTests
 
         Assert.Equal(["profile delete Gamen"], Api.Calls);
         Assert.Equal(["Nacht"], viewModel.Profiles.Names);
-        Assert.Equal("Profiel 'Gamen' verwijderd.", viewModel.StatusMessage);
+        Assert.Equal("Scène 'Gamen' verwijderd.", viewModel.StatusMessage);
     }
 
     [Fact]
@@ -106,9 +106,9 @@ public sealed class MainViewModelProfileTests
 
         Assert.Equal(["profile automation Gamen - eldenring.exe"], Api.Calls);
         Assert.Equal("eldenring.exe", viewModel.Profiles.Automation.ProgramText);
-        Assert.Equal("Automatisch laden: aan", viewModel.Profiles.Automation.Header);
+        Assert.Equal("Vanzelf aanzetten: aan", viewModel.Profiles.Automation.Header);
         Assert.False(viewModel.Profiles.Automation.ApplyCommand.CanExecute(null));
-        Assert.Equal("Automatisch laden van 'Gamen' opgeslagen.", viewModel.StatusMessage);
+        Assert.Equal("Vanzelf aanzetten van 'Gamen' opgeslagen.", viewModel.StatusMessage);
     }
 
     [Fact]

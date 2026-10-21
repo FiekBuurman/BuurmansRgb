@@ -29,6 +29,21 @@ public sealed class DeviceItemTests
     };
 
     [Fact]
+    public void ToString_IsTheNameForAScreenReader()
+    {
+        Assert.Equal("Fan", DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12)).ToString());
+    }
+
+    [Fact]
+    public void ToString_OfATwin_TakesTheLocationLabelAlong()
+    {
+        var stick = DeviceItem.For(TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8), "Adres 0x71");
+
+        Assert.Equal("ENE DRAM 2 · Adres 0x71", stick.ToString());
+        Assert.Equal(stick.ToString(), stick.DisplayName);
+    }
+
+    [Fact]
     public void TypeName_OfEveryDeviceType()
     {
         Assert.Equal(Enum.GetValues<DeviceType>(), DutchTypeNames.Keys.Order());
@@ -114,8 +129,8 @@ public sealed class DeviceItemTests
     }
 
     [Theory]
-    [InlineData(DeviceSource.Hardware, "Echte apparaten (OpenRGB)")]
-    [InlineData(DeviceSource.Simulated, "Gesimuleerde apparaten")]
+    [InlineData(DeviceSource.Hardware, "Echte lampen (OpenRGB)")]
+    [InlineData(DeviceSource.Simulated, "Gesimuleerde lampen")]
     public void For_RealOrSimulated_HasItsHeading(DeviceSource source, string group)
     {
         var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source);
@@ -201,6 +216,6 @@ public sealed class DeviceItemTests
         Assert.Null(item.DeviceId);
         Assert.Null(item.Type);
         Assert.Null(item.Group);
-        Assert.Equal("3 apparaten", item.Details);
+        Assert.Equal("3 lampen", item.Details);
     }
 }

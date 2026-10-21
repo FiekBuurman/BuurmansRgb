@@ -30,6 +30,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly TimeProvider _time;
     private readonly SynchronizationContext? _uiContext;
     private readonly CoalescingCallQueue _calls;
+    private readonly LampSync _lampSync;
+    private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
@@ -55,12 +57,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         EffectsPause = new EffectsPauseViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
+        _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
+        _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
-        LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
+        LedEditor.PropertyChanged += (_, _) =>
+        {
+            FillGradientCommand.NotifyCanExecuteChanged();
+            OnPropertyChanged(nameof(ApplyColorLabel));
+        };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         ColorLoopEditor.PropertyChanged += (_, e) =>
         {
@@ -83,6 +91,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
+        Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -90,6 +100,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<EffectOption> Effects { get; } = [];
 
     public PreviewViewModel Preview { get; }
+
+    public NavigationViewModel Navigation { get; } = new();
+
+    public LampsViewModel Lamps { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsConnected), nameof(IsFailed))]
@@ -103,7 +117,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial string? StatusMessage { get; private set; } = Strings.StatusConnecting;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SelectedLamp))]
     public partial DeviceItem? SelectedDevice { get; set; }
+
+    // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
+    public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
 
     public ColorPickerViewModel ColorPicker { get; } = new();
 
@@ -114,6 +132,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ColorLoopEditorViewModel ColorLoopEditor { get; } = new();
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
+
+    // Where "Op de strip zetten" puts the mixed color, in the order of OnColorPicked.
+    public string ApplyColorLabel => LedEditor.HasSelection ? Strings.ApplyColorToLeds
+        : IsColorLoop ? Strings.ApplyColorToLoop
+        : Strings.ApplyColor;
 
     public ProfilesViewModel Profiles { get; } = new();
 
@@ -128,7 +151,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(ApplyColorLabel))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -167,12 +190,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var connection = await _connector.ConnectAsync(CancellationToken.None);
             _connection = connection;
             Preview.Reset();
+            Lamps.Reset();
             connection.Disconnected += OnDisconnected;
             connection.Api.FrameRendered += OnFrameRendered;
             connection.Api.DevicesChanged += OnDevicesChanged;
             connection.Api.SettingsSaved += OnSettingsSaved;
             connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             connection.Api.PauseChanged += OnPauseChanged;
+            connection.Api.LightingChanged += OnLightingChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -267,10 +292,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ShowDevices(devices);
         await ShowSelectionAsync();
-        Preview.ShowFrame(await api.GetFrameAsync());
+        var frame = await api.GetFrameAsync();
+        Preview.ShowFrame(frame);
+        Lamps.ShowFrame(frame);
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
+        _ = _sceneCards.ShowAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -306,6 +334,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
+        Lamps.ShowDevices(Devices);
+        OnPropertyChanged(nameof(SelectedLamp));
+        _ = _lampSync.RefreshAsync();
 
         // The edit ends when its device is gone or got another number of LEDs (a zone that was
         // resized): the colors the editor holds no longer fit the device.
@@ -498,6 +529,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // The lamp's color and effect are on the Kleur page; picking it there lets it blink too.
+    private void OpenLamp(string deviceId)
+    {
+        if (Devices.FirstOrDefault(device => device.DeviceId == deviceId) is { } device)
+        {
+            SelectedDevice = device;
+            Navigation.GoTo(AppPage.Color);
+        }
+    }
+
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
@@ -521,6 +562,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
 
                 Profiles.Show(names, select: name);
+                _ = _sceneCards.ShowAsync();
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
@@ -548,7 +590,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowLedSelection(null);
     }
 
-    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));
+    private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() =>
+    {
+        Preview.ShowFrame(frame);
+        Lamps.ShowFrame(frame);
+    });
+
+    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = _lampSync.RefreshAsync());
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
@@ -634,6 +682,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.SettingsSaved -= OnSettingsSaved;
         connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
         connection.Api.PauseChanged -= OnPauseChanged;
+        connection.Api.LightingChanged -= OnLightingChanged;
         connection.Dispose();
     }
 

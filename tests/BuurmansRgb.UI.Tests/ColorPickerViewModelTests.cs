@@ -11,41 +11,67 @@ public sealed class ColorPickerViewModelTests
     public ColorPickerViewModelTests() => _picker.ColorPicked += (_, color) => _picked.Add(color);
 
     [Fact]
-    public void Presets_HaveDutchNames()
+    public void Presets_AreTheToolboxOfTheDesignWithDutchNames()
     {
-        Assert.Equal("Rood", ColorPickerViewModel.Presets[0].Name);
-        Assert.All(ColorPickerViewModel.Presets, preset => Assert.False(string.IsNullOrWhiteSpace(preset.Name)));
-        Assert.Equal(ColorPickerViewModel.Presets.Count, ColorPickerViewModel.Presets.Select(preset => preset.Name).Distinct().Count());
+        Assert.Equal(["Klus-wit", "Rood", "Oranje", "Groen", "Blauw", "Paars"], ColorPickerViewModel.Presets.Select(preset => preset.Name));
+        Assert.Equal(new RgbColor(255, 154, 61), ColorPickerViewModel.Presets[2].Color);
     }
 
     [Fact]
     public void Show_UpdatesEverythingWithoutRaisingColorPicked()
     {
-        _picker.Show(new RgbColor(0, 0, 255));
+        _picker.Show(new RgbColor(0, 128, 255));
 
-        Assert.Equal("#0000FF", _picker.HexColor);
-        Assert.Equal(240.0, _picker.Hue, precision: 6);
-        Assert.Equal(new RgbColor(0, 0, 255), _picker.HueColor);
+        Assert.Equal("#0080FF", _picker.HexColor);
+        Assert.Equal((0.0, 128.0, 255.0), (_picker.Red, _picker.Green, _picker.Blue));
+        Assert.Equal("0 · 128 · 255", _picker.RgbText);
+        Assert.False(_picker.HasUnappliedChange);
         Assert.Empty(_picked);
     }
 
     [Fact]
-    public void Hue_OfDarkColor_KeepsItsDarkness()
+    public void Sliders_MixTheColorWithoutPuttingItOnTheLamp()
     {
-        _picker.Show(new RgbColor(128, 0, 0));
+        _picker.Show(RgbColor.Black);
 
-        _picker.Hue = 120;
+        _picker.Red = 255;
+        _picker.Blue = 127.6;
 
-        Assert.Equal([new RgbColor(0, 128, 0)], _picked);
+        Assert.Equal(new RgbColor(255, 0, 128), _picker.Color);
+        Assert.Equal("#FF0080", _picker.HexColor);
+        Assert.True(_picker.HasUnappliedChange);
+        Assert.Empty(_picked);
     }
 
     [Fact]
-    public void Hue_OfBlack_UsesFullValue()
+    public void Apply_PutsTheMixedColorOnTheLamp()
     {
-        _picker.Show(new RgbColor(0, 0, 0));
+        _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[5].Color);
 
-        _picker.Saturation = 100;
+        _picker.ApplyCommand.Execute(null);
 
-        Assert.Equal([new RgbColor(255, 0, 0)], _picked);
+        Assert.Equal([new RgbColor(169, 123, 255)], _picked);
+        Assert.False(_picker.HasUnappliedChange);
+    }
+
+    [Fact]
+    public void HexColor_Typed_MovesTheSlidersButLeavesTheText()
+    {
+        _picker.HexColor = "#ff9a3d ";
+
+        Assert.Equal((255.0, 154.0, 61.0), (_picker.Red, _picker.Green, _picker.Blue));
+        Assert.Equal("#ff9a3d ", _picker.HexColor);
+        Assert.Empty(_picked);
+    }
+
+    [Fact]
+    public void Show_SameColorAsMixed_HasNothingLeftToApply()
+    {
+        _picker.Green = 0;
+        Assert.True(_picker.HasUnappliedChange);
+
+        _picker.Show(new RgbColor(255, 0, 255));
+
+        Assert.False(_picker.HasUnappliedChange);
     }
 }

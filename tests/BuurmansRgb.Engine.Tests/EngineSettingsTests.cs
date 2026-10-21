@@ -33,6 +33,23 @@ public sealed class EngineSettingsTests
         Assert.Equal(2.5, roundTripped.For("fan").Speed);
     }
 
+    [Fact]
+    public void From_ThenToLightingState_RoundTripsWhichDevicesAreOff()
+    {
+        var state = LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen with { On = false } });
+
+        var roundTripped = EngineSettings.From(state).ToLightingState();
+
+        Assert.True(roundTripped.Global.On);
+        Assert.False(roundTripped.For("fan").On);
+    }
+
+    [Fact]
+    public void ToDeviceLighting_OlderFileWithoutOn_IsOn()
+    {
+        Assert.True(new LightingSettings().ToDeviceLighting().On);
+    }
+
     [Theory]
     [InlineData(10.0, EffectSpeed.Max)]
     [InlineData(0.0, EffectSpeed.Min)]

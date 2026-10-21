@@ -37,7 +37,7 @@ public sealed class MainViewModelColorLoopTests
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
         viewModel.ColorLoopEditor.SelectCommand.Execute(1);
 
-        viewModel.ColorPicker.HexColor = "#FF00FF";
+        viewModel.ColorPicker.Pick("#FF00FF");
 
         Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
     }
