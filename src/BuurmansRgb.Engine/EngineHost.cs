@@ -36,7 +36,8 @@ internal sealed class EngineHost(
     // lighting, so they are not overwritten, and with the saver, so what they load is saved. The
     // scene that was on is on again with the saved lighting, as that is still its lighting; once
     // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
-    // With settingsFileEvents, a change of the file by hand is applied from then on as well.
+    // With settingsFileEvents, a change of the file by hand is applied from then on as well, as
+    // changes from the settings app are.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -64,17 +65,17 @@ internal sealed class EngineHost(
         lighting.PausedLightsChanged += OnPausedLightsChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
-        if (settingsFileEvents is not null)
-        {
-            _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay);
-        }
-
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
         }
 
         profileTimer?.CatchUpAtStart();
+        if (settingsFileEvents is not null)
+        {
+            _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay);
+        }
+
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }
