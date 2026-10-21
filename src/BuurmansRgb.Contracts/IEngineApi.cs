@@ -105,6 +105,18 @@ public partial interface IEngineApi
     // DevicesChanged follows.
     Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
 
+    // How many frames per second a moving effect gets, from 1 to 60; saved like the lighting.
+    Task<int> GetFramesPerSecondAsync(CancellationToken ct = default);
+
+    // A value outside 1 to 60 is kept within it.
+    Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default);
+
+    // Whether the effects pause while Windows is locked or asleep; saved like the lighting. Turning
+    // it off ends such a pause at once, turning it on starts one when Windows is locked.
+    Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default);
+
+    Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default);
+
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);
 

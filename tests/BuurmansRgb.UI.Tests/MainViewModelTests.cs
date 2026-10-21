@@ -370,6 +370,31 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_ShowsTheEffectOptionsWithoutSendingThem()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.FramesPerSecond = 60;
+            api.PauseOnLockAndSleep = false;
+        });
+
+        Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
+        Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task EffectOptionsChanged_SendsThem()
+    {
+        var viewModel = await ConnectAsync();
+
+        viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
+        viewModel.EffectOptions.PauseOnLockAndSleep = false;
+
+        Assert.Equal(["fps 15", "pause on lock False"], Api.Calls);
+    }
+
+    [Fact]
     public async Task Connect_ShowsTheOpenRgbStatusAndFollowsIt()
     {
         var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));

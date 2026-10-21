@@ -98,7 +98,6 @@ uitbreidingen in `docs/bouwplan.md`.
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
-- `framesPerSecond` ook in de instellingen-app; nu staat het alleen in `settings.json`
 
 ## Instellingen-app en ontwerp
 
@@ -163,8 +162,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- De scène die aan staat ook na een herstart van de engine weten (bijv. als `activeScene` in
-  `settings.json`); nu begint de engine zonder, ook als de verlichting nog die van de scène is
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
@@ -179,14 +176,12 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Tray-menu
 
-- "Alles uit" en "Alles aan" ook in het tray-menu, en eventueel een sneltoets
+- Een sneltoets voor "Alles aan" en "Alles uit" (die staan sinds #41 in het tray-menu)
 - Het tray-menu trimt na het sluiten het geheugen niet, zoals de engine dat na het sluiten van
   de instellingen-app wel doet
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- `pauseOnLockAndSleep` ook in de instellingen-app en zonder herstart van de engine; nu staat het
-  alleen in `settings.json`
 - Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
   "laatste frame blijft staan"
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
@@ -224,11 +219,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Een kleur die niet te lezen is, slaat de engine sinds #29 over, maar een ander verkeerd type
-  (bijv. `"brightness": "hoog"` of `"on": "ja"`) maakt het hele `settings.json` nog onleesbaar;
-  ook zo'n waarde liever overslaan en de standaardwaarde nemen
-- Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
-  `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
   activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")

@@ -353,7 +353,85 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Equal([("Scène 'Nacht' kon niet worden aangezet.", TrayNotificationKind.Warning)], _view.Notifications);
     }
 
-    private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _profiles, _view);
+    [Fact]
+    public void RefreshAllOnOff_BeforeTheEngineStarted_GreysOutBoth()
+    {
+        CreatePresenter().RefreshAllOnOff();
+
+        Assert.Equal((false, false), _view.AllOnOff);
+    }
+
+    [Fact]
+    public async Task RefreshAllOnOff_AllOn_OffersOnlyAllOff()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var presenter = await StartedPresenterAsync();
+
+        presenter.RefreshAllOnOff();
+
+        Assert.Equal((false, true), _view.AllOnOff);
+    }
+
+    [Fact]
+    public async Task SetAllOn_False_SwitchesEveryLightOff_AndThenOffersOnlyAllOn()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.SetLighting(RecordingDeviceProvider.DeviceId, current => current with { Color = Red });
+        var presenter = await StartedPresenterAsync();
+
+        presenter.SetAllOn(false);
+        presenter.RefreshAllOnOff();
+
+        Assert.False(_lighting.GetLighting(null).On);
+        Assert.False(_lighting.GetLighting(RecordingDeviceProvider.DeviceId).On);
+        Assert.Equal((true, false), _view.AllOnOff);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task RefreshAllOnOff_OneLightOff_OffersBoth()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.SetLighting(RecordingDeviceProvider.DeviceId, current => current with { On = false });
+        var presenter = await StartedPresenterAsync();
+
+        presenter.RefreshAllOnOff();
+
+        Assert.Equal((true, true), _view.AllOnOff);
+    }
+
+    // The saved lighting that the engine puts on next would overwrite it.
+    [Fact]
+    public async Task SetAllOn_BeforeTheEngineStarted_DoesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+
+        CreatePresenter().SetAllOn(false);
+
+        Assert.True(_lighting.GetLighting(null).On);
+    }
+
+    [Fact]
+    public void OpenLog_Opens_ShowsNothing()
+    {
+        var opened = 0;
+
+        CreatePresenter(() => opened++).OpenLog();
+
+        Assert.Equal(1, opened);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public void OpenLog_NoAppOrNoFile_Warns()
+    {
+        CreatePresenter(() => throw new System.ComponentModel.Win32Exception(2)).OpenLog();
+
+        Assert.Equal([(Strings.LogOpenFailed, TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    private TrayPresenter CreatePresenter(Action? openLog = null) =>
+        new(_host, _autoStart, _launcher, _profiles, _lighting, openLog ?? (() => { }), _view);
 
     private async Task<TrayPresenter> StartedPresenterAsync()
     {
@@ -431,6 +509,10 @@ public sealed class TrayPresenterTests : IDisposable
             Profiles = names;
             ActiveProfile = active;
         }
+
+        public (bool CanSwitchOn, bool CanSwitchOff) AllOnOff { get; private set; } = (true, true);
+
+        public void ShowAllOnOff(bool canSwitchOn, bool canSwitchOff) => AllOnOff = (canSwitchOn, canSwitchOff);
 
         public void ShowNotification(string text, TrayNotificationKind kind) => Notifications.Add((text, kind));
     }

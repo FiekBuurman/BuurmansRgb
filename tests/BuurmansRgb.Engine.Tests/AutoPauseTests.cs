@@ -225,6 +225,20 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     [Fact]
+    public void EnabledChanged_RaisedOnlyForAnotherValue()
+    {
+        var seen = new List<bool>();
+        _autoPause.EnabledChanged += (_, _) => seen.Add(_autoPause.Enabled);
+
+        _autoPause.Enabled = true;
+        _autoPause.Enabled = false;
+        _autoPause.Enabled = false;
+        _autoPause.Enabled = true;
+
+        Assert.Equal([false, true], seen);
+    }
+
+    [Fact]
     public async Task Dispose_StopsListening()
     {
         await StartAnimatedAsync();

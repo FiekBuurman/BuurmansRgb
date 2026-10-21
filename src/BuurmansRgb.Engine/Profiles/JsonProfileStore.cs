@@ -27,10 +27,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
         ProfilesFile? file;
         try
         {
-            using (var stream = File.OpenRead(filePath))
-            {
-                file = JsonSerializer.Deserialize(stream, EngineSettingsJsonContext.Default.ProfilesFile);
-            }
+            file = LenientJson.Deserialize(File.ReadAllBytes(filePath), EngineSettingsJsonContext.Default.ProfilesFile);
         }
         catch (JsonException exception)
         {

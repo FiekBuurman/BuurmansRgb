@@ -34,8 +34,11 @@ internal sealed class AutoPause : IDisposable
         Change(() => _locked = _session.IsLocked);
     }
 
-    // On unless settings.json turns it off. Turning it off ends the pauses it made; turning it on
-    // pauses at once when Windows is locked.
+    // Raised when Enabled got another value; read Enabled for the newest one.
+    public event EventHandler? EnabledChanged;
+
+    // On unless settings.json or the settings app turns it off. Turning it off ends the pauses it
+    // made; turning it on pauses at once when Windows is locked.
     public bool Enabled
     {
         get
@@ -47,10 +50,17 @@ internal sealed class AutoPause : IDisposable
         }
         set
         {
+            bool changed;
             lock (_gate)
             {
+                changed = _enabled != value;
                 _enabled = value;
                 ApplyLocked();
+            }
+
+            if (changed)
+            {
+                EnabledChanged?.Invoke(this, EventArgs.Empty);
             }
         }
     }

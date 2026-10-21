@@ -237,6 +237,26 @@ internal sealed class FakeEngineApi : IEngineApi
         SimulatedDevices = mode;
     }
 
+    public int FramesPerSecond { get; set; } = 30;
+
+    public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(FramesPerSecond);
+
+    public async Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
+    {
+        await Record($"fps {framesPerSecond}");
+        FramesPerSecond = framesPerSecond;
+    }
+
+    public bool PauseOnLockAndSleep { get; set; } = true;
+
+    public Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default) => Task.FromResult(PauseOnLockAndSleep);
+
+    public async Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
+    {
+        await Record($"pause on lock {enabled}");
+        PauseOnLockAndSleep = enabled;
+    }
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

@@ -36,6 +36,24 @@
   <data name="MenuNoProfiles" xml:space="preserve">
     <value>Nog geen scènes – zet ze in elkaar in de instellingen</value>
   </data>
+  <data name="MenuAllOn" xml:space="preserve">
+    <value>Alles aan</value>
+  </data>
+  <data name="MenuAllOff" xml:space="preserve">
+    <value>Alles uit</value>
+  </data>
+  <data name="MenuOpenLog" xml:space="preserve">
+    <value>Logbestand openen</value>
+  </data>
+  <data name="AllOnFailed" xml:space="preserve">
+    <value>De lampen konden niet worden aangezet.</value>
+  </data>
+  <data name="AllOffFailed" xml:space="preserve">
+    <value>De lampen konden niet worden uitgezet.</value>
+  </data>
+  <data name="LogOpenFailed" xml:space="preserve">
+    <value>Het logbestand kon niet worden geopend.</value>
+  </data>
   <data name="ProfilesUnreadable" xml:space="preserve">
     <value>De scènes konden niet worden gelezen.</value>
   </data>

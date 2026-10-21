@@ -33,6 +33,8 @@ public sealed class FileLog : TraceListener
         "BuurmansRgb",
         "logs");
 
+    public string FilePath => _path;
+
     public string OldPath => Path.ChangeExtension(_path, ".old.log");
 
     // Adds a log named name ("engine", "ui") to the trace listeners, notes the start and also logs

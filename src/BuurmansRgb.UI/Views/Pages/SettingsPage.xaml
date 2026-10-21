@@ -47,6 +47,29 @@
                     </StackPanel>
                 </Border>
 
+                <!-- How smooth the effects move, and whether they rest while nobody sees them. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" />
+                        <TextBlock Margin="0,12,0,0" Style="{StaticResource Body}" Text="{x:Static res:Strings.FrameRateLabel}" />
+                        <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" Text="{x:Static res:Strings.FrameRateHint}" />
+                        <ComboBox Width="300" HorizontalAlignment="Left" ItemsSource="{Binding EffectOptions.FrameRates}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding EffectOptions.SelectedFrameRate}"
+                                  AutomationProperties.Name="{x:Static res:Strings.FrameRateLabel}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.FrameRateHint}" />
+                        <DockPanel Margin="0,18,0,0">
+                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                          IsChecked="{Binding EffectOptions.PauseOnLockAndSleep}"
+                                          AutomationProperties.Name="{x:Static res:Strings.PauseOnLockLabel}"
+                                          AutomationProperties.HelpText="{x:Static res:Strings.PauseOnLockHint}" />
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.PauseOnLockLabel}" />
+                                <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PauseOnLockHint}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SaveHeader}" />
