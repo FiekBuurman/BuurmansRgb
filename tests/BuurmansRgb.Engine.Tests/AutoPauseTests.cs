@@ -238,6 +238,49 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal([false, true], seen);
     }
 
+    // Away is for what stops whenever nobody is at the pc, whether the effects pause or not.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Away_FollowsLockAndSleep_AlsoWhenDisabled(bool enabled)
+    {
+        _autoPause.Enabled = enabled;
+        var changes = new List<PauseReasons>();
+        _autoPause.AwayChanged += (_, away) => changes.Add(away);
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _power.RaiseSuspending();
+        Assert.Equal(PauseReasons.Locked | PauseReasons.Asleep, _autoPause.Away);
+
+        _power.RaiseResumed();
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        Assert.Equal(PauseReasons.None, _autoPause.Away);
+        Assert.Equal([PauseReasons.Locked, PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Locked, PauseReasons.None], changes);
+    }
+
+    [Fact]
+    public void AwayChanged_RaisedOnlyForAnotherValue_AndNotForEnabled()
+    {
+        var changes = new List<PauseReasons>();
+        _autoPause.AwayChanged += (_, away) => changes.Add(away);
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _session.Raise(SessionSwitchReason.ConsoleDisconnect);
+        _autoPause.Enabled = false;
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _autoPause.Enabled = true;
+
+        Assert.Equal([PauseReasons.Locked], changes);
+    }
+
+    [Fact]
+    public void StartedWhileLocked_IsAwayAtOnce()
+    {
+        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, _lighting.SetPaused) { Enabled = false };
+
+        Assert.Equal(PauseReasons.Locked, autoPause.Away);
+    }
+
     [Fact]
     public async Task Dispose_StopsListening()
     {

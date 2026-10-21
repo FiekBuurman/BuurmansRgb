@@ -9,7 +9,8 @@ namespace BuurmansRgb.Engine.Power;
 // without signing out), and from going to sleep until waking up. Each pause ends on its own; the
 // pause from the tray menu is a reason of its own, which this leaves alone (LightingController).
 // Windows reports changes only, so whether the session is locked is asked once at the start: an
-// engine that starts late after sign-in may start on the lock screen.
+// engine that starts late after sign-in may start on the lock screen. Away tells the same, also
+// while the pause is off, for what stops whenever nobody is at the pc (ProgramWatcher).
 internal sealed class AutoPause : IDisposable
 {
     private readonly IPowerEvents _power;
@@ -20,6 +21,7 @@ internal sealed class AutoPause : IDisposable
     private bool _locked;
     private bool _disconnected;
     private bool _asleep;
+    private PauseReasons _away;
 
     public AutoPause(IPowerEvents power, ISessionEvents session, Action<PauseReasons, bool> setPaused)
     {
@@ -36,6 +38,22 @@ internal sealed class AutoPause : IDisposable
 
     // Raised when Enabled got another value; read Enabled for the newest one.
     public event EventHandler? EnabledChanged;
+
+    // Raised under the lock when Away got another value, with the new one, so the values come in
+    // order. On the thread of the Windows event.
+    public event EventHandler<PauseReasons>? AwayChanged;
+
+    // Locked and Asleep as they pause the effects while Enabled is on, also while it is off.
+    public PauseReasons Away
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _away;
+            }
+        }
+    }
 
     // On unless settings.json or the settings app turns it off. Turning it off ends the pauses it
     // made; turning it on pauses at once when Windows is locked.
@@ -111,6 +129,14 @@ internal sealed class AutoPause : IDisposable
     {
         SetPaused(PauseReasons.Locked, _enabled && (_locked || _disconnected));
         SetPaused(PauseReasons.Asleep, _enabled && _asleep);
+
+        var away = (_locked || _disconnected ? PauseReasons.Locked : PauseReasons.None)
+            | (_asleep ? PauseReasons.Asleep : PauseReasons.None);
+        if (away != _away)
+        {
+            _away = away;
+            AwayChanged?.Invoke(this, away);
+        }
     }
 
     // The events come from Windows on the tray thread; a device that fails while its colors go
