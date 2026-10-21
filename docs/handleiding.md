@@ -58,6 +58,11 @@ schakelaar ernaast.
   voor wat je wijzigt: zet je de helderheid, dan houdt een lamp met een eigen kleur die kleur.
   Een wijziging bij één lamp geldt alleen voor die lamp. Is een lamp weer gelijk aan "Hele
   huis", dan volgt hij die weer.
+- **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
+  het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
+  het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
+  verschoof, springt niet terug.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 
@@ -247,6 +252,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
   Windows-gebruiker heeft zijn eigen engine.
+- **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
+  geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
+  icoon of een tweede start van `BuurmansRgb.UI.exe`.
 
 ### Pauzeren
 
@@ -325,8 +333,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   plus een code uit de locatie en het serienummer, zodat hij na een herstart dezelfde blijft.
 - Een waarde in `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over
   (bij `ledColorZoneLengths` de hele lijst van die lamp); de rest blijft gelden.
-- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een kleur als
-  `"purple"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
+- Een kleur die niet te lezen is (bijv. `"purple"` of een getal), slaat de engine ook over: bij
+  `color` wordt het wit, in `ledColors` volgt die LED de kleur van de lamp, en in `colorLoop`
+  loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
+  blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
+  zonder die kleur weg.
+- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een helderheid als
+  `"hoog"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
   standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
@@ -351,6 +364,22 @@ te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft g
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 
+### Logbestanden
+
+Wat er misgaat of gebeurt (verbinden met OpenRGB, een apparaat zonder "Direct"-modus, een waarde
+in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en de
+instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
+tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
+eigen hardware niet werkt.
+
+- Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
+  één keer, met daaronder hoe vaak hij nog kwam.
+- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`) en begint er
+  een nieuw; meer dan twee per app worden het niet.
+- Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
+  de code.
+- Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
+
 ## OpenRGB en hardware
 
 ### OpenRGB koppelen
@@ -373,8 +402,8 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   de kleuren opnieuw. De eigen kleur van een lamp blijft bewaard.
 - In de clientlijst van OpenRGB staat BuurmansRgb twee keer: `BuurmansRgb` stuurt de kleuren,
   `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt.
-- Details over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken met
-  DebugView); er is nog geen logbestand.
+- Details over verbinden, protocolversie en fouten staan in het logbestand van de engine (zie
+  "Logbestanden").
 
 ### Per apparaattype
 

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Settings;
 
@@ -7,7 +6,7 @@ namespace BuurmansRgb.Engine.Settings;
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    Converters = [typeof(RgbColorJsonConverter), typeof(SimulatedDevicesModeJsonConverter), typeof(ZoneLengthsJsonConverter), typeof(LedColorZoneLengthsJsonConverter)])]
+    Converters = [typeof(SettingsColorJsonConverter), typeof(SettingsOptionalColorJsonConverter), typeof(SimulatedDevicesModeJsonConverter), typeof(ZoneLengthsJsonConverter), typeof(LedColorZoneLengthsJsonConverter)])]
 [JsonSerializable(typeof(EngineSettings))]
 [JsonSerializable(typeof(ProfilesFile))]
 internal sealed partial class EngineSettingsJsonContext : JsonSerializerContext;

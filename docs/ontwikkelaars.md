@@ -68,8 +68,9 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
+| Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
-| Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests` |
+| Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests`, waaronder `MainViewModelFollowLightingTests` (Kleur volgt een scène uit het tray-menu) |
 
 ## Met de gesimuleerde lampen bekijken
 
@@ -94,6 +95,11 @@ toetsenbord. Een paar dingen om te proberen:
   lampen waarvan de kleuren veranderden, en alloceert niets zolang de instellingen-app dicht
   is (met de app open maakt de engine per frame een kopie voor het voorbeeld). Gaat een frame
   mis, dan probeert het volgende het opnieuw.
+- **Logging:** elke `Trace`-melding (`Trace.TraceError`, `TraceWarning`, `TraceInformation`) gaat
+  naar `FileLog` in `BuurmansRgb.Contracts`, die de engine (`engine.log`) en de instellingen-app
+  (`ui.log`) bij het starten aanzetten; ook een onafgevangen exception komt erin. Zo blijft het
+  één regel code om iets te loggen, zonder extra pakketten in de engine. DebugView ziet de
+  meldingen ook nog.
 - **IPC:** named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor de eigen Windows-gebruiker)
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
