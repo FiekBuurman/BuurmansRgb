@@ -136,14 +136,14 @@ public sealed class EngineRpcTests : IDisposable
         var client = await ConnectAsync();
 
         var automation = await client.Api.GetProfileAutomationAsync("Nacht", Ct);
-        await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30)), Ct);
+        await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays), Ct);
         await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "eldenring.exe"), Ct);
         await client.Api.SetProfileAutomationAsync("Werk", ProfileAutomation.None, Ct);
 
         Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), automation);
         Assert.Equal(
             [
-                ("Nacht", new ProfileAutomation(new TimeOnly(7, 30))),
+                ("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays)),
                 ("Gamen", new ProfileAutomation(Program: "eldenring.exe")),
                 ("Werk", ProfileAutomation.None),
             ],

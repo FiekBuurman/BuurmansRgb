@@ -144,8 +144,8 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
-- Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
-  per scène
+- Meer tijden per scène (bijv. 07:00 op werkdagen en 09:00 in het weekend); sinds #46 heeft
+  een scène één tijd, op gekozen dagen
 - Na het ontwaken of bij het starten de scène aanzetten die volgens de tijden nu zou gelden (het
   laatste tijdstip dat voorbij is), als keuze naast het huidige "overslaan"
 - Een programma alleen laten tellen zolang het op de voorgrond staat
