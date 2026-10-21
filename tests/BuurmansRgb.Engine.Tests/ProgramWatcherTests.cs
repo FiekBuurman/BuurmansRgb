@@ -86,6 +86,43 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(1, changes);
     }
 
+    // The game's scene is on while it runs; afterwards the scene from before is on again.
+    [Fact]
+    public void ProgramStartsAndStops_TheActiveSceneFollows()
+    {
+        StartWatcher();
+        _profiles.Load("Nacht");
+
+        StartProgram(EldenRing);
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopProgram(EldenRing);
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    [Fact]
+    public void ProgramStops_NoSceneBefore_LeavesNoneActive()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+
+        StopProgram(EldenRing);
+
+        Assert.Null(_profiles.ActiveName);
+    }
+
+    [Fact]
+    public void SecondProgramStops_TheSceneOfTheFirstIsActiveAgain()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        StartProgram(Forza);
+        Assert.Equal("Race", _profiles.ActiveName);
+
+        StopProgram(Forza);
+        Assert.Equal("Gamen", _profiles.ActiveName);
+    }
+
     [Fact]
     public void ChangedInTheAppWhileRunning_KeepsThatAfterTheStop()
     {

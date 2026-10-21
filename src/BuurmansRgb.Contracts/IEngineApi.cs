@@ -114,6 +114,10 @@ public partial interface IEngineApi
 
     Task DeleteProfileAsync(string name, CancellationToken ct = default);
 
+    // The profile that is on: the one loaded or saved last, until the lighting changed in another
+    // way (LightingChanged). Null when none is.
+    Task<string?> GetActiveProfileAsync(CancellationToken ct = default);
+
     // The lighting the profile gives all devices, without the devices that differ from it, such as
     // to show what the profile looks like.
     Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default);

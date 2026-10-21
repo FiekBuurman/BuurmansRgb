@@ -168,6 +168,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         var coveredUntouched = _activations.Count == 0 || _activations[^1].ChangesAfter == _changes;
         var before = _lighting.State;
+        var beforeScene = _profiles.ActiveName;
         try
         {
             _profiles.Load(_rules[program]);
@@ -179,7 +180,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
             return;
         }
 
-        _activations.Add(new Activation(program, before, _changes, coveredUntouched));
+        _activations.Add(new Activation(program, before, beforeScene, _changes, coveredUntouched));
     }
 
     private void Stop(string program)
@@ -204,13 +205,14 @@ internal sealed class ProgramWatcher : IProfileTrigger
             if (above.CoveredUntouched)
             {
                 above.Before = activation.Before;
+                above.BeforeScene = activation.BeforeScene;
                 above.CoveredUntouched = activation.CoveredUntouched;
             }
 
             return;
         }
 
-        if (!restore || activation.ChangesAfter != _changes || !Show(activation.Before))
+        if (!restore || activation.ChangesAfter != _changes || !Show(activation))
         {
             return;
         }
@@ -222,10 +224,11 @@ internal sealed class ProgramWatcher : IProfileTrigger
         }
     }
 
-    // While a program shows its profile untouched, lighting (such as a profile whose time came)
+    // While a program shows its profile untouched, the profile scene (such as one whose time came)
     // becomes what comes back once the programs stop, instead of showing now: 23:00 in the middle
-    // of a game. False when no program shows its own profile; then the caller shows it.
-    public bool HoldUntilProgramsStop(LightingState lighting)
+    // of a game. False when no program shows its own profile; then the caller shows it. A profile
+    // that is gone throws ArgumentException, as loading it would.
+    public bool HoldUntilProgramsStop(string scene)
     {
         lock (_gate)
         {
@@ -234,7 +237,8 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 return false;
             }
 
-            _activations[index].Before = lighting;
+            _activations[index].Before = _profiles.GetLighting(scene);
+            _activations[index].BeforeScene = scene;
             return true;
         }
     }
@@ -244,7 +248,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         if (RestoreIndexLocked() is { } index)
         {
-            Show(_activations[index].Before);
+            Show(_activations[index]);
         }
 
         _activations.Clear();
@@ -268,11 +272,12 @@ internal sealed class ProgramWatcher : IProfileTrigger
         return index;
     }
 
-    private bool Show(LightingState lighting)
+    // The lighting from before, with the scene that was on then, so its card is the active one again.
+    private bool Show(Activation activation)
     {
         try
         {
-            _lighting.Replace(lighting);
+            _profiles.Show(activation.Before, activation.BeforeScene);
             return true;
         }
         catch (Exception exception)
@@ -296,12 +301,15 @@ internal sealed class ProgramWatcher : IProfileTrigger
     }
 
     // ChangesAfter is the change count right after its profile loaded; CoveredUntouched tells
-    // whether the program below still showed its own lighting when this one started.
-    private sealed class Activation(string program, LightingState before, long changesAfter, bool coveredUntouched)
+    // whether the program below still showed its own lighting when this one started. BeforeScene is
+    // the scene that was on with Before, or null.
+    private sealed class Activation(string program, LightingState before, string? beforeScene, long changesAfter, bool coveredUntouched)
     {
         public string Program { get; } = program;
 
         public LightingState Before { get; set; } = before;
+
+        public string? BeforeScene { get; set; } = beforeScene;
 
         public long ChangesAfter { get; set; } = changesAfter;
 
