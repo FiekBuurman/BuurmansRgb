@@ -359,7 +359,7 @@ internal sealed class FakeEngineApi : IEngineApi
     // Like the engine: saved as Normalize gives it.
     public async Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
     {
-        await Record($"profile automation {name} {automation.LoadAt?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "-"} {automation.Program ?? "-"}");
+        await Record($"profile automation {name} {(automation.Times.Count == 0 ? "-" : string.Join(",", automation.Times.Select(time => time.At.ToString("HH:mm", CultureInfo.InvariantCulture))))} {automation.Program ?? "-"}");
         ProfileAutomations[name] = automation.Normalize();
     }
 

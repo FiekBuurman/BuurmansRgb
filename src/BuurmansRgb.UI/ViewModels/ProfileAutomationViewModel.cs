@@ -113,11 +113,12 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     {
         _saved = automation;
         ProfileName = profileName;
-        LoadAtText = automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
+        var first = automation.Times.FirstOrDefault();
+        LoadAtText = first?.At.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
         ProgramText = automation.Program ?? string.Empty;
         foreach (var day in Days)
         {
-            day.IsChecked = (automation.Days & day.Day) != WeekDays.None;
+            day.IsChecked = ((first?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
         }
 
         OnPropertyChanged(nameof(Header));
@@ -137,7 +138,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             return null;
         }
 
-        return new ProfileAutomation(loadAt, ProgramText, CheckedDays()).Normalize();
+        return new ProfileAutomation(loadAt is { } time ? [new LoadTime(time, CheckedDays())] : [], ProgramText).Normalize();
     }
 
     private string? FindError() =>

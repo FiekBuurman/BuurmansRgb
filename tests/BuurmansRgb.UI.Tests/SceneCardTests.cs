@@ -62,7 +62,9 @@ public sealed class SceneCardTests
     [InlineData("19:00", "eldenring.exe", "ma, wo, vr om 19:00 · bij eldenring.exe", WeekDays.Monday | WeekDays.Wednesday | WeekDays.Friday)]
     public void Show_LoadsByItself_SaysWhen(string? loadAt, string? program, string expected, WeekDays days = WeekDays.Every)
     {
-        var automation = new ProfileAutomation(loadAt is null ? null : TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
+        var automation = loadAt is null
+            ? new ProfileAutomation(Program: program)
+            : new ProfileAutomation(TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
 
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), automation);
 

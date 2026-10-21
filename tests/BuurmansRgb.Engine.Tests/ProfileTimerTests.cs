@@ -115,6 +115,74 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     [Fact]
+    public void SceneWithTwoTimes_LoadsAtEachOfThem()
+    {
+        _store.Profiles = [ProfileAt("Nacht", Red, new LoadTime(new TimeOnly(15, 0)), new LoadTime(new TimeOnly(23, 0)))];
+        StartTimer();
+
+        _time.Advance(TimeSpan.FromHours(1));
+        Assert.Equal(Red, ShownColor());
+        ShowColor(Green);
+
+        _time.Advance(UntilElevenPm - TimeSpan.FromHours(1) - TimeSpan.FromSeconds(1));
+        Assert.Equal(Green, ShownColor());
+        _time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // 07:00 on workdays and 09:00 in the weekend, from Monday 14:00: Friday at 07:00, Saturday not
+    // until 09:00.
+    [Fact]
+    public void SceneWithTwoTimes_EachCountsOnItsOwnDays()
+    {
+        _store.Profiles = [ProfileAt("Ochtend", Blue, new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend))];
+        StartTimer();
+
+        _time.Advance(TimeSpan.FromHours(17));
+        Assert.Equal(Blue, ShownColor());
+        for (var day = 0; day < 3; day++)
+        {
+            _time.Advance(TimeSpan.FromDays(1));
+        }
+        ShowColor(Green);
+
+        _time.Advance(TimeSpan.FromDays(1));
+        Assert.Equal(Green, ShownColor());
+        _time.Advance(TimeSpan.FromHours(2));
+        Assert.Equal(Blue, ShownColor());
+    }
+
+    // "Nacht" at 15:00 and 23:00, "Avond" at 23:00 too: at 23:00 the first in alphabetical order.
+    [Fact]
+    public void SceneWithTwoTimes_OneAtTheTimeOfAnotherScene_LoadsTheFirstInAlphabeticalOrder()
+    {
+        _store.Profiles =
+        [
+            Profile("Avond", Orange, new TimeOnly(23, 0)),
+            ProfileAt("Nacht", Red, new LoadTime(new TimeOnly(15, 0)), new LoadTime(new TimeOnly(23, 0))),
+        ];
+        StartTimer();
+
+        _time.Advance(TimeSpan.FromHours(1));
+        Assert.Equal(Red, ShownColor());
+
+        _time.Advance(UntilElevenPm - TimeSpan.FromHours(1));
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    [Fact]
+    public void AddingASecondTimeFromTheApp_LoadsAtItWithoutARestart()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimer();
+
+        _profiles.SetAutomation("Nacht", new ProfileAutomation([new LoadTime(new TimeOnly(23, 0)), new LoadTime(new TimeOnly(15, 0))]));
+        _time.Advance(TimeSpan.FromHours(1));
+
+        Assert.Equal(Red, ShownColor());
+    }
+
+    [Fact]
     public void SettingATime_StartsTheTimerAndRemovingIt_StopsIt()
     {
         _store.Profiles = [Profile("Nacht", Red)];
@@ -348,6 +416,54 @@ public sealed class ProfileTimerTests : IDisposable
         StartTimer(catchUp: true);
 
         Assert.Equal(Blue, ShownColor());
+    }
+
+    // At 14:00 on Monday the 13:00 of "Ochtend" passed after the 10:00 of "Middag".
+    [Fact]
+    public void CatchUp_AtTheStart_SceneWithMoreTimes_CountsTheLastOfThem()
+    {
+        _store.Profiles =
+        [
+            Profile("Middag", Green, new TimeOnly(10, 0)),
+            ProfileAt("Ochtend", Blue, new LoadTime(new TimeOnly(7, 0)), new LoadTime(new TimeOnly(13, 0))),
+        ];
+
+        StartTimer(catchUp: true);
+
+        Assert.Equal(Blue, ShownColor());
+    }
+
+    // The 13:00 of "Ochtend" is only on Saturday, so the 10:00 of "Middag" passed last.
+    [Fact]
+    public void CatchUp_AtTheStart_EachTimeCountsOnItsOwnDays()
+    {
+        _store.Profiles =
+        [
+            Profile("Middag", Green, new TimeOnly(10, 0)),
+            ProfileAt("Ochtend", Blue, new LoadTime(new TimeOnly(7, 0)), new LoadTime(new TimeOnly(13, 0), WeekDays.Saturday)),
+        ];
+
+        StartTimer(catchUp: true);
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // Asleep from 14:00 until 22:00: "Avond" at 20:00 and the second time of "Nacht" at 21:00
+    // passed, the last one wins.
+    [Fact]
+    public void CatchUp_AfterWaking_SceneWithMoreTimes_LoadsWhenOneOfThemPassedLast()
+    {
+        _store.Profiles =
+        [
+            Profile("Avond", Orange, new TimeOnly(20, 0)),
+            ProfileAt("Nacht", Red, new LoadTime(new TimeOnly(6, 0)), new LoadTime(new TimeOnly(21, 0))),
+        ];
+        StartTimerCatchingUpAfterWaking();
+
+        SleepFor(TimeSpan.FromHours(8));
+        WaitForTheLights();
+
+        Assert.Equal(Red, ShownColor());
     }
 
     // The scene from before the restart is the scene of the time already.
@@ -670,7 +786,10 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     private static Profile Profile(string name, RgbColor color, TimeOnly? loadAt = null, WeekDays days = WeekDays.Every) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(loadAt, Days: days) };
+        new(name, Uniform(StaticLighting(color))) { Automation = loadAt is { } time ? new ProfileAutomation(time, Days: days) : ProfileAutomation.None };
+
+    private static Profile ProfileAt(string name, RgbColor color, params LoadTime[] times) =>
+        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(times).Normalize() };
 
     // With the restorer of the engine, so a wake-up restores the lights before the timer catches up.
     private void StartTimer(bool catchUp = false, Func<string, bool>? hold = null)

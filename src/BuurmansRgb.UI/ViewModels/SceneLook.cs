@@ -31,8 +31,8 @@ internal static class SceneLook
 
     public static string Describe(LightingInfo lighting, ProfileAutomation automation) => automation switch
     {
-        { LoadAt: { } time, Program: { } program } => UiText.Format(Strings.SceneAtTimeAndProgram, UiText.Days(automation.Days), time, program),
-        { LoadAt: { } time } => UiText.Format(Strings.SceneAtTime, UiText.Days(automation.Days), time),
+        { Times: [var time, ..], Program: { } program } => UiText.Format(Strings.SceneAtTimeAndProgram, UiText.Days(time.Days), time.At, program),
+        { Times: [var time, ..] } => UiText.Format(Strings.SceneAtTime, UiText.Days(time.Days), time.At),
         { Program: { } program } => UiText.Format(Strings.SceneWithProgram, program),
         _ when !lighting.On => Strings.SceneOff,
         _ => UiText.Format(Strings.SceneLighting, EffectOption.Create(lighting.EffectId).DisplayName, lighting.Brightness * 100.0),

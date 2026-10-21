@@ -294,6 +294,25 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ProfileAutomation_MoreTimesAreSavedOverThePipeAndTooManyAreRejected()
+    {
+        var client = await StartAndConnectAsync();
+        await client.Api.SaveProfileAsync("Ochtend", Ct);
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.ProfilesChanged += (_, _) => changed.TrySetResult();
+
+        await client.Api.SetProfileAutomationAsync("Ochtend", new ProfileAutomation([new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]), Ct);
+
+        Assert.Equal(
+            new ProfileAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)]),
+            await client.Api.GetProfileAutomationAsync("Ochtend", Ct));
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        LoadTime[] tooMany = [.. Enumerable.Range(0, ProfileAutomation.MaxTimes + 1).Select(hour => new LoadTime(new TimeOnly(hour, 0)))];
+        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Ochtend", new ProfileAutomation(tooMany), Ct));
+        Assert.True(EngineRpc.IsRejectedByEngine(error));
+    }
+
+    [Fact]
     public async Task Cancelled_StopsListening()
     {
         await StartAndConnectAsync();
