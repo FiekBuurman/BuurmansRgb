@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 
@@ -51,6 +52,11 @@ internal sealed record EngineSettings : LightingStateSettings
 
     public static EngineSettings From(LightingState state) => CreateDefault().WithLighting(state);
 
+    // Whether two lightings come out the same in the file. The records hold dictionaries and
+    // lists, which compare by reference.
+    public static bool SameLighting(LightingState left, LightingState right) =>
+        Serialize(From(left)).AsSpan().SequenceEqual(Serialize(From(right)));
+
     // A copy with the lighting of state. It starts from this, so every startup option, also one
     // added later, stays as it is.
     public EngineSettings WithLighting(LightingState state)
@@ -59,4 +65,7 @@ internal sealed record EngineSettings : LightingStateSettings
         settings.CopyFrom(state);
         return settings;
     }
+
+    private static byte[] Serialize(EngineSettings settings) =>
+        JsonSerializer.SerializeToUtf8Bytes(settings, EngineSettingsJsonContext.Default.EngineSettings);
 }

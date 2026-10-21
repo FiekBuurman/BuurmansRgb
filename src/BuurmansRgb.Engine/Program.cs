@@ -68,6 +68,8 @@ internal static class Program
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
+        // Disposed after the host, which stops listening to it first.
+        using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
         // The host disposes them, before it saves for the last time.
         var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
@@ -86,7 +88,8 @@ internal static class Program
             autoPause: autoPause,
             profiles: profiles,
             profileTimer: profileTimer,
-            hotkeys: hotkeys);
+            hotkeys: hotkeys,
+            settingsFileEvents: settingsFile);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))

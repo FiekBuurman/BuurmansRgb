@@ -21,9 +21,12 @@ internal sealed class EngineHost(
     AutoPause? autoPause = null,
     ProfileLibrary? profiles = null,
     ProfileTimer? profileTimer = null,
-    AllOnOffHotkeys? hotkeys = null) : IEngineHost, IDisposable
+    AllOnOffHotkeys? hotkeys = null,
+    ISettingsFileEvents? settingsFileEvents = null,
+    TimeSpan? reloadDelay = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
+    private SettingsReloader? _reloader;
 
     // The IPC server starts once the lights are on and keeps running until ct is cancelled.
     // trimMemory then runs once, so the memory that only starting up needed goes back to Windows.
@@ -33,6 +36,7 @@ internal sealed class EngineHost(
     // lighting, so they are not overwritten, and with the saver, so what they load is saved. The
     // scene that was on is on again with the saved lighting, as that is still its lighting; once
     // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
+    // With settingsFileEvents, a change of the file by hand is applied from then on as well.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -60,6 +64,11 @@ internal sealed class EngineHost(
         lighting.PausedLightsChanged += OnPausedLightsChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
+        if (settingsFileEvents is not null)
+        {
+            _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay);
+        }
+
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -82,6 +91,7 @@ internal sealed class EngineHost(
 
     public void Dispose()
     {
+        _reloader?.Dispose();
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
         profiles?.ActiveChanged -= OnActiveSceneChanged;
@@ -96,6 +106,27 @@ internal sealed class EngineHost(
         }
 
         _saver?.Dispose();
+    }
+
+    // settings.json changed by hand: applied as the settings app would, through the same
+    // properties, so the app follows (OptionsChanged, LightingChanged, DevicesChanged) and the saver
+    // keeps the new values. The lighting is only replaced when it is another, so a change of an
+    // option alone leaves the scene on and the effects running. The scene that is on stays the
+    // engine's: a changed activeScene loads nothing, and a new lighting ends the scene as any change does.
+    private void ApplyChangedByHand(EngineSettings settings)
+    {
+        simulatedDevices?.Mode = settings.SimulatedDevices;
+        zoneLengths?.Change(settings.ReadZoneLengths());
+        lighting.FramesPerSecond = settings.FramesPerSecond;
+        autoPause?.Enabled = settings.PauseOnLockAndSleep;
+        lighting.PausedLights = settings.PausedLights;
+        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
+        hotkeys?.Enabled = settings.Hotkeys;
+        var state = settings.ToLightingState();
+        if (!EngineSettings.SameLighting(state, lighting.State))
+        {
+            lighting.Replace(state);
+        }
     }
 
     // Reads the newest mode, so two changes that cross each other still save the last one.
