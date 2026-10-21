@@ -35,7 +35,7 @@ dotnet run --project src/BuurmansRgb.Engine   # engine met tray-icoon
 dotnet run --project src/BuurmansRgb.UI       # instellingen-app los (of via het tray-menu)
 ```
 
-Zonder OpenRGB staan er twaalf gesimuleerde lampen klaar, zie "Gesimuleerde lampen".
+Zonder OpenRGB staan er twaalf gesimuleerde lampen klaar, zie "Instellingen" bij de instellingen-app.
 
 ## De instellingen-app
 
@@ -71,7 +71,8 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **In
 
 ### Kleur
 
-Bovenaan kies je bij "Welke lamp?" een lamp of "Hele huis", met de schakelaar ernaast.
+Bovenaan kies je een lamp of "Hele huis" (een schermlezer noemt de keuze "Welke lamp?"), met de
+schakelaar ernaast.
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
