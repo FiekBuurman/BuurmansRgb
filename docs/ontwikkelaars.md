@@ -464,7 +464,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    rechtstreeks van de ene scène naar de andere te gaan, zonder flits van de verlichting van
    daarvoor. Start het spel terwijl "Film" vooraan staat, wissel naar het spel en weer terug.
    Vergrendel met Win+L terwijl "Film" vooraan staat: de scène blijft; ontgrendel en wissel weg.
-   Sluit het programma terwijl het vooraan staat. Een spel in volledig scherm (exclusive
+   Sluit het programma terwijl het vooraan staat, wacht een paar seconden en open het weer via
+   het startmenu of de taakbalk: de scène hoort weer aan te gaan. Een spel in volledig scherm (exclusive
    fullscreen) en een programma dat als administrator draait, horen ook te tellen.
 
 ### Pauzeren
