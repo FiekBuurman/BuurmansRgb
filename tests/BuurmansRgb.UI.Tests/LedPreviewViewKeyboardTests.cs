@@ -121,19 +121,46 @@ public sealed class LedPreviewViewKeyboardTests
         Assert.False(KeyboardNavigation.GetIsTabStop(view));
     });
 
-    // The device tells the zone that loses the active LED first (DevicePreviewViewModel).
-    [Fact]
-    public void ActiveLedToAnotherZone_TakesTheFocus() => OffscreenWindow.Run(panel =>
+    // Two zones of one device: the focus goes along, whichever zone hears of the move first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ActiveLedToAnotherViewOfTheGroup_TakesTheFocus(bool leftHearsFirst) => OffscreenWindow.Run(panel =>
     {
-        var left = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 2 });
-        var right = Added(panel, new LedPreviewView { Colors = new RgbColor[3] });
+        var left = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 2, KeyGroup = "board" });
+        var right = Added(panel, new LedPreviewView { Colors = new RgbColor[3], KeyGroup = "board" });
         OffscreenWindow.WaitUntilIdle();
         Assert.True(left.Focus());
 
-        left.ActiveLed = LedMatrix.NoLed;
-        right.ActiveLed = 0;
+        if (leftHearsFirst)
+        {
+            left.ActiveLed = LedMatrix.NoLed;
+            right.ActiveLed = 0;
+        }
+        else
+        {
+            right.ActiveLed = 0;
+            left.ActiveLed = LedMatrix.NoLed;
+        }
 
         Assert.True(right.IsKeyboardFocused);
+    });
+
+    // Another device, or views without a group, keep their active LED to themselves.
+    [Theory]
+    [InlineData("fan")]
+    [InlineData(null)]
+    public void ActiveLedOutsideTheGroup_LeavesTheFocus(string? otherGroup) => OffscreenWindow.Run(panel =>
+    {
+        var focused = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 2, KeyGroup = otherGroup is null ? null : "board" });
+        var other = Added(panel, new LedPreviewView { Colors = new RgbColor[3], KeyGroup = otherGroup });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.True(focused.Focus());
+
+        focused.ActiveLed = LedMatrix.NoLed;
+        other.ActiveLed = 0;
+
+        Assert.True(focused.IsKeyboardFocused);
     });
 
     // In "Hele huis", with the focus in the LEDs of one lamp, a click on an LED of another lamp

@@ -212,27 +212,12 @@ public sealed class DevicePreviewKeyboardTests
         Assert.Equal(5, preview.ShownActiveLed());
     }
 
-    // So the view that gets the active LED can take the focus from the one that had it.
+    // The views of the zones have the device as their KeyGroup, so the focus goes along.
     [Fact]
-    public void ActiveLedToAnotherZone_TheZoneThatLosesItHearsFirst()
+    public void Zones_KnowTheirDevice()
     {
         var preview = new DevicePreviewViewModel(Motherboard);
-        preview.PressKey(LedKey.Last);
-        List<string> heard = [];
-        foreach (var zone in preview.Zones)
-        {
-            zone.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(ZonePreviewViewModel.ActiveLed))
-                {
-                    heard.Add($"{zone.Name} {zone.ActiveLed}");
-                }
-            };
-        }
 
-        preview.PressKey(LedKey.Previous);
-        preview.PressKey(LedKey.Next);
-
-        Assert.Equal(["RGB header -1", "Mainboard 5", "Mainboard -1", "RGB header 0"], heard);
+        Assert.All(preview.Zones, zone => Assert.Equal(Motherboard.Id, zone.DeviceId));
     }
 }

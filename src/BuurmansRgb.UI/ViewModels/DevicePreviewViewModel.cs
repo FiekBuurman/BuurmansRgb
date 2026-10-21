@@ -168,17 +168,12 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         };
     }
 
-    // The zones that lose the active LED hear it first, so the view of the zone that gets it can
-    // take over the keyboard focus from the view that had it (LedPreviewView).
+    // The view of the zone that gets the active LED takes the keyboard focus from the view of the
+    // zone that had it, as both have the device as KeyGroup (LedPreviewView).
     private void MoveActiveLed(int led)
     {
         ActiveLed = led;
-        foreach (var zone in Zones.Where(zone => !zone.Holds(led)))
-        {
-            zone.ShowDeviceActiveLed(led);
-        }
-
-        foreach (var zone in Zones.Where(zone => zone.Holds(led)))
+        foreach (var zone in Zones)
         {
             zone.ShowDeviceActiveLed(led);
         }

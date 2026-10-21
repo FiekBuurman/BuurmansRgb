@@ -58,6 +58,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     public string Name => _layout.Zone.Name;
 
+    // The zones of one device share their active LED; the view moves the focus between them.
+    public string DeviceId => _deviceId;
+
     public int FirstLed => _layout.FirstLed;
 
     // The LEDs the device has in this zone now; selection and clicks stay within them.

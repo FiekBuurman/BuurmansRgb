@@ -16,9 +16,9 @@ namespace BuurmansRgb.UI.Views;
 // zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
 // ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
 // With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
-// ring. Only a view that holds the active LED of its device is a Tab stop, so Tab stops once per
-// device. A mouse click only takes the focus from the LEDs of another device, so the mouse alone
-// works as before.
+// ring. The views of one KeyGroup, such as the zones of a device, share one active LED, and only
+// the view that holds it is a Tab stop, so Tab stops once per device. A mouse click only takes the
+// focus from the LEDs of another device, so the mouse alone works as before.
 public sealed class LedPreviewView : FrameworkElement
 {
     public static readonly DependencyProperty ColorsProperty = DependencyProperty.Register(
@@ -56,6 +56,9 @@ public sealed class LedPreviewView : FrameworkElement
 
     public static readonly DependencyProperty KeyCommandProperty = DependencyProperty.Register(
         nameof(KeyCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty KeyGroupProperty = DependencyProperty.Register(
+        nameof(KeyGroup), typeof(string), typeof(LedPreviewView), new PropertyMetadata(null));
 
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
@@ -154,6 +157,14 @@ public sealed class LedPreviewView : FrameworkElement
     {
         get => (ICommand?)GetValue(KeyCommandProperty);
         set => SetValue(KeyCommandProperty, value);
+    }
+
+    // The views that share one active LED, such as the zones of one device; null for a view on
+    // its own. The focus goes along when the active LED moves to another view of the group.
+    public string? KeyGroup
+    {
+        get => (string?)GetValue(KeyGroupProperty);
+        set => SetValue(KeyGroupProperty, value);
     }
 
     // Where the mouse is on the view; null for where Windows says it is. A test puts it on an LED
@@ -384,15 +395,16 @@ public sealed class LedPreviewView : FrameworkElement
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
         ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
 
-    // When the active LED moves to another zone of the device, the view of that zone takes the
-    // focus from the view of the zone it left, which has just heard that it lost it
-    // (DevicePreviewViewModel). The view of another device still holds its own active LED.
+    // When the active LED moves to another view of the group, such as another zone of the device,
+    // that view takes the focus from the one it left, whether that one heard of the move before or
+    // after. The view of another device keeps the focus.
     private static void OnActiveLedChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
     {
         var view = (LedPreviewView)element;
         var holds = (int)e.NewValue != LedMatrix.NoLed;
         KeyboardNavigation.SetIsTabStop(view, holds);
-        if (holds && Keyboard.FocusedElement is LedPreviewView { ActiveLed: LedMatrix.NoLed } other && other != view && view.Focus())
+        if (holds && view.KeyGroup is { } group && Keyboard.FocusedElement is LedPreviewView other && other != view && other.KeyGroup == group
+            && view.Focus())
         {
             return;
         }
