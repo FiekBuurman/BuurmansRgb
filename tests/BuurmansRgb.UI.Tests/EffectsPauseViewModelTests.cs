@@ -27,6 +27,7 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     [InlineData(PauseReasons.Manual, "Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.")]
     [InlineData(PauseReasons.Locked, "Effecten gepauzeerd zolang Windows vergrendeld is – ze lopen weer na het ontgrendelen.")]
     [InlineData(PauseReasons.Asleep, "Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.")]
+    [InlineData(PauseReasons.DisplayOff, "Effecten gepauzeerd zolang het scherm uit is – ze lopen weer als het aangaat.")]
     public void Show_TellsTheReason(PauseReasons reasons, string text)
     {
         _pause.Show(reasons);
@@ -35,10 +36,14 @@ public sealed class EffectsPauseViewModelTests : IDisposable
         Assert.Equal(text, _pause.Text);
     }
 
-    // The pause the user can end comes first; waking up goes to the lock screen.
+    // The pause the user can end comes first; waking up goes to the lock screen, and the screen
+    // goes on before the pc is unlocked or awake.
     [Theory]
     [InlineData(PauseReasons.Manual | PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Manual)]
     [InlineData(PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Locked)]
+    [InlineData(PauseReasons.Manual | PauseReasons.DisplayOff, PauseReasons.Manual)]
+    [InlineData(PauseReasons.Locked | PauseReasons.DisplayOff, PauseReasons.Locked)]
+    [InlineData(PauseReasons.Asleep | PauseReasons.DisplayOff, PauseReasons.Asleep)]
     public void Show_MoreReasons_TellsTheOneThatMattersMost(PauseReasons reasons, PauseReasons shown)
     {
         using var single = new EffectsPauseViewModel();
@@ -54,6 +59,7 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     [InlineData(PauseReasons.Manual | PauseReasons.Locked, true)]
     [InlineData(PauseReasons.Locked, false)]
     [InlineData(PauseReasons.Asleep, false)]
+    [InlineData(PauseReasons.DisplayOff, false)]
     public void Resume_OnlyForThePauseFromTheTrayMenu(PauseReasons reasons, bool canResume)
     {
         _pause.Show(reasons);
