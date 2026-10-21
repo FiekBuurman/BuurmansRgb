@@ -20,6 +20,10 @@ public sealed partial class SceneCard(string name) : ObservableObject
     [ObservableProperty]
     public partial string Description { get; private set; } = string.Empty;
 
+    // The scene that is on: the one loaded or saved last, until the lighting changed otherwise.
+    [ObservableProperty]
+    public partial bool IsActive { get; set; }
+
     public void Show(LightingInfo lighting, ProfileAutomation automation)
     {
         Dots = SceneLook.DotsOf(lighting);

@@ -299,6 +299,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
         _ = _sceneCards.ShowAsync();
+        _ = _sceneCards.ShowActiveAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
@@ -563,6 +564,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
                 Profiles.Show(names, select: name);
                 _ = _sceneCards.ShowAsync();
+                _ = _sceneCards.ShowActiveAsync();
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
             });
@@ -596,7 +598,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Lamps.ShowFrame(frame);
     });
 
-    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = _lampSync.RefreshAsync());
+    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        _ = _lampSync.RefreshAsync();
+        _ = _sceneCards.ShowActiveAsync();
+    });
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 

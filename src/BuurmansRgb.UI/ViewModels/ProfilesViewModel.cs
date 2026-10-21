@@ -34,6 +34,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     public bool HasScenes => Names.Count > 0;
 
+    // The scene that is on (ShowActive); null when none is.
+    public string? ActiveName { get; private set; }
+
     // Picking a profile in the list fills in its name, so saving then updates that profile.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SaveLabel))]
@@ -76,7 +79,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
             foreach (var name in names)
             {
                 Names.Add(name);
-                Cards.Add(cards.GetValueOrDefault(name) ?? new SceneCard(name));
+                var card = cards.GetValueOrDefault(name) ?? new SceneCard(name);
+                card.IsActive = IsActiveName(name);
+                Cards.Add(card);
             }
 
             SelectedName = Find(selected);
@@ -89,6 +94,19 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // What the engine says the scene looks like and when it loads by itself.
     public void ShowCard(string name, LightingInfo lighting, ProfileAutomation automation) =>
         Cards.FirstOrDefault(card => card.Name == name)?.Show(lighting, automation);
+
+    // The scene that is on, as the engine says; null when none is. Its card gets the border of the
+    // design.
+    public void ShowActive(string? name)
+    {
+        ActiveName = name;
+        foreach (var card in Cards)
+        {
+            card.IsActive = IsActiveName(card.Name);
+        }
+    }
+
+    private bool IsActiveName(string name) => ActiveName is { } active && ProfileNames.Comparer.Equals(name, active);
 
     partial void OnSelectedNameChanged(string? value)
     {

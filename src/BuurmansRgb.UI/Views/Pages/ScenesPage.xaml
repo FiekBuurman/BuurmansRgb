@@ -36,7 +36,8 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:SceneCard}">
                         <!-- The scene chosen with its wrench has a lighter border, and its name heads its settings below.
-                             The 2 px text border of the design means the scene that is on; that is not known yet. -->
+                             The scene that is on has the 2 px text border of the design, which wins over the lighter one;
+                             1 px less padding keeps its content in place. -->
                         <Grid>
                             <Button x:Name="Card" Style="{StaticResource CardButton}" Padding="16" MinHeight="132" VerticalContentAlignment="Top" Command="{Binding DataContext.Profiles.LoadSceneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
@@ -74,6 +75,12 @@
                                     </MultiBinding>
                                 </DataTrigger.Binding>
                                 <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource TextBrush}" />
+                                <Setter TargetName="Card" Property="BorderThickness" Value="2" />
+                                <Setter TargetName="Card" Property="Padding" Value="15" />
+                                <Setter TargetName="Card" Property="AutomationProperties.ItemStatus" Value="{x:Static res:Strings.SceneActiveStatus}" />
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>

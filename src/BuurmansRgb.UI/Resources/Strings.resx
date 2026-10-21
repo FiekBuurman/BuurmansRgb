@@ -592,6 +592,10 @@
   <data name="SceneEditAccessibleName" xml:space="preserve">
     <value>{0} aanpassen</value>
   </data>
+  <data name="SceneActiveStatus" xml:space="preserve">
+    <value>Staat aan</value>
+    <comment>Read out by a screen reader for the scene card of the scene that is on.</comment>
+  </data>
   <data name="SceneEditToolTip" xml:space="preserve">
     <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
   </data>
