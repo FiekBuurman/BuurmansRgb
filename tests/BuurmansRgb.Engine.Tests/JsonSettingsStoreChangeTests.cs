@@ -132,6 +132,24 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         Assert.False(File.Exists(store.BrokenFilePath));
     }
 
+    // Broken and then undone in the editor: the file holds what the store knows again.
+    [Fact]
+    public void Save_AfterAChangeThatDidNotReadWasUndone_LeavesNothingAside()
+    {
+        var store = new JsonSettingsStore(FilePath);
+        store.Save(new EngineSettings { FramesPerSecond = 12 });
+        var original = File.ReadAllBytes(FilePath);
+        File.WriteAllText(FilePath, """{ "framesPerSecond": 12,, }""");
+        store.LoadIfChanged();
+        File.WriteAllBytes(FilePath, original);
+        Assert.Null(store.LoadIfChanged());
+
+        store.Save(new EngineSettings { FramesPerSecond = 24 });
+
+        Assert.False(File.Exists(store.BrokenFilePath));
+        Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
+    }
+
     [Fact]
     public void LoadIfChanged_FileThatIsGone_ReturnsNothingAndTheNextSaveWritesIt()
     {

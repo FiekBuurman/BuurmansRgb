@@ -69,6 +69,9 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
             if (_known is not null && json.AsSpan().SequenceEqual(_known))
             {
+                // Also a file that did not read and is now back as it was (undone in the editor):
+                // the user's good file again, which a save must not move aside.
+                _unreadable = false;
                 return null;
             }
 
