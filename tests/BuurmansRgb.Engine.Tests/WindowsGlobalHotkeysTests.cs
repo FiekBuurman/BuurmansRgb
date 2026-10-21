@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using BuurmansRgb.Engine.Hotkeys;
 
@@ -12,6 +13,8 @@ public sealed class WindowsGlobalHotkeysTests
     // A key counts for the whole Windows session: another test run at the same time can have it,
     // and a session without a desktop has no hotkeys. Then a test skips instead of failing.
     private const string KeyNotFree = "The key is not free or there is no desktop.";
+
+    private const uint WmHotkey = 0x0312;
 
     [Theory]
     [InlineData(AllOnOffHotkeys.AllOn, 0x4000u | 0x1 | 0x2 | 0x4)]
@@ -71,6 +74,45 @@ public sealed class WindowsGlobalHotkeysTests
         }
     }
 
+    // Windows tells the window with WM_HOTKEY and the id of the key. Sent here on the own thread,
+    // the message goes straight through WndProc without touching the keyboard: the key with that
+    // id does its work, the other key does not, and a key given back does nothing anymore.
+    [Fact]
+    public void WndProc_HotkeyMessage_RunsTheActionOfThatKeyUntilItIsGivenBack()
+    {
+        const Keys otherKey = Keys.Control | Keys.Alt | Keys.Shift | Keys.F23;
+        WindowsGlobalHotkeys? hotkeys = null;
+        try
+        {
+            hotkeys = CreateOrSkip();
+            var pressed = 0;
+            var otherPressed = 0;
+            if (!hotkeys.Register(UnusedKey, () => pressed++) || !hotkeys.Register(otherKey, () => otherPressed++))
+            {
+                Assert.Skip(KeyNotFree);
+            }
+
+            SendHotkey(hotkeys, WindowsGlobalHotkeys.ToId(UnusedKey));
+            Assert.Equal(1, pressed);
+            Assert.Equal(0, otherPressed);
+
+            hotkeys.Unregister(UnusedKey);
+            SendHotkey(hotkeys, WindowsGlobalHotkeys.ToId(UnusedKey));
+            Assert.Equal(1, pressed);
+
+            SendHotkey(hotkeys, WindowsGlobalHotkeys.ToId(otherKey));
+            Assert.Equal(1, pressed);
+            Assert.Equal(1, otherPressed);
+        }
+        finally
+        {
+            hotkeys?.Dispose();
+        }
+    }
+
+    private static void SendHotkey(WindowsGlobalHotkeys hotkeys, int id) =>
+        SendMessage(hotkeys.Handle, WmHotkey, id, 0);
+
     // The window of the hotkeys, or a skip when this session cannot make one.
     private static WindowsGlobalHotkeys CreateOrSkip()
     {
@@ -84,4 +126,7 @@ public sealed class WindowsGlobalHotkeysTests
             throw;
         }
     }
+
+    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
+    private static extern nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
 }
