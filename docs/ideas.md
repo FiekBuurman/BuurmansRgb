@@ -135,8 +135,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Meer tijden per scène (bijv. 07:00 op werkdagen en 09:00 in het weekend); sinds #46 heeft
-  een scène één tijd, op gekozen dagen
 - Een programma alleen laten tellen zolang het op de voorgrond staat
   (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
   pollen
@@ -144,6 +142,10 @@ uitbreidingen in `docs/bouwplan.md`.
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
   hij niet draaide. Met een tijdstempel van de laatste wijziging van de verlichting in
   `settings.json` kan hij alleen inhalen als de tijd daarna viel, zoals na het ontwaken
+- Op de kaart van een scène met meer tijden ze allemaal kunnen zien, bijv. in een tooltip; nu
+  noemt hij de eerste en "en nog 1"
+- Een nieuwe tijd bij "Vanzelf aanzetten" laten beginnen op de dagen die nog geen tijd hebben
+  (na 07:00 op werkdagen dus za en zo); nu begint hij op elke dag
 - Ook inhalen als de klok van Windows over een tijd heen springt (nu alleen na het ontwaken en
   bij het starten; `IClockEvents` zegt niet of de klok verzet werd of de pc ontwaakte)
 

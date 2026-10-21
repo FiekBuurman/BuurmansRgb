@@ -167,6 +167,12 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   staan de dagen van de tijd, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv.
   alleen ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
   "In het weekend om 10:00" of "ma, wo, vr om 19:00".
+- **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
+  zo gaat "Ochtend" om 07:00 op werkdagen en om 09:00 in het weekend aan. Een scène kan tot acht
+  tijden hebben. "−" achter een rij haalt die tijd weg (de enige tijd wordt leeg), en een lege
+  rij telt niet mee. Na "Toepassen" staan de tijden van vroeg naar laat. De kaart noemt de
+  eerste tijd en hoeveel er nog zijn: "Werkdagen om 07:00 en nog 1". Een andere geopende
+  instellingen-app ziet de nieuwe tijden meteen op de kaart.
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
@@ -188,10 +194,12 @@ Hoe het vanzelf aanzetten werkt:
   Slaapt de pc, staat hij uit of zet je de klok erover heen, dan slaat de engine die keer over
   (ook als de timer meer dan een minuut te laat afgaat): na een nacht slaapstand komt "Nacht"
   's ochtends niet alsnog, tenzij "Gemiste tijden inhalen" aan staat (hieronder). Hebben twee
-  scènes dezelfde tijd, dan wint de eerste op alfabet.
+  scènes dezelfde tijd, dan wint de eerste op alfabet. Met meer tijden gaat de scène op elk van
+  die tijden aan, elke tijd op zijn eigen dagen.
 - **Gemiste tijden inhalen** (bij Instellingen, standaard uit): dan gaat na het ontwaken en bij
   het starten de scène aan van de tijd die het laatst voorbij is, op de gekozen dagen en
-  hooguit een week terug.
+  hooguit een week terug. Bij scènes met meer tijden telt elke tijd mee: met "Ochtend" om 07:00
+  en 13:00 en "Middag" om 10:00 geeft starten om 14:00 "Ochtend".
   - *Na het ontwaken* alleen als er in de slaap een tijd voorbij kwam, en pas als de lampen terug
     zijn (na zo'n 2 seconden, zie "Na slaapstand" onder "Per apparaattype"). Kwam er geen tijd
     voorbij, dan blijft de verlichting zoals hij was, ook als je na de laatste tijd zelf iets
@@ -472,23 +480,33 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 ### profiles.json
 
 De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color` t/m
-`ledColorZoneLengths`) en, als hij vanzelf aangaat, `loadAt` (`"HH:mm"`) met eventueel
-`loadOn`, en/of `program`:
+`ledColorZoneLengths`) en, als hij vanzelf aangaat, zijn tijden en/of `program`. Eén tijd staat
+als `loadAt` (`"HH:mm"`) met eventueel `loadOn`, zoals vóór er meer tijden waren; meer tijden
+staan in `loadTimes`, elk met `at` en eventueel `on`:
 
 ```json
 {
   "profiles": [
     { "name": "Gamen", "color": "#FF0000", "effect": "rainbow", "program": "eldenring.exe" },
     { "name": "Nacht", "color": "#FF8800", "brightness": 0.1, "loadAt": "23:00" },
+    { "name": "Ochtend", "color": "#FFFFFF", "loadTimes": [
+      { "at": "07:00", "on": "mon,tue,wed,thu,fri" },
+      { "at": "09:00", "on": "sat,sun" }
+    ] },
     { "name": "Werk", "color": "#FFFFFF", "loadAt": "09:00", "loadOn": "mon,tue,wed,thu,fri" }
   ]
 }
 ```
 
-Zonder `loadAt` en `program` gaat een scène nooit vanzelf aan. Zonder `loadOn` geldt de tijd elke
-dag; `loadOn` noemt de dagen met `mon` t/m `sun` (met de hand mag ook `ma` t/m `zo`). Een tijd,
-dagen of programma die niet te lezen zijn (bijv. `"25:00"`, `"someday"` of een getal), laat de
-engine weg (zonder dagen: elke dag); de rest blijft gelden. Voor een
+Zonder tijd en `program` gaat een scène nooit vanzelf aan. Zonder `loadOn` of `on` geldt die
+tijd elke dag; de dagen staan als `mon` t/m `sun` (met de hand mag ook `ma` t/m `zo`). Een
+bestaand bestand met `loadAt` en `loadOn` blijft gewoon werken, en een scène met één tijd
+schrijft de engine nog zo, zodat een oudere versie hem ook leest. Staan `loadAt` en `loadTimes`
+er met de hand allebei, dan tellen ze allebei; dezelfde tijd twee keer telt één keer, en na acht
+tijden laat de engine de rest weg. Een tijd, dagen of programma die niet te lezen zijn (bijv.
+`"25:00"`, `"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest
+blijft gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat
+hij ook weg. Voor een
 kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
