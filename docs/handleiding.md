@@ -345,6 +345,22 @@ te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft g
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 
+### Logbestanden
+
+Wat er misgaat of gebeurt (verbinden met OpenRGB, een apparaat zonder "Direct"-modus, een waarde
+in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en de
+instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
+tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
+eigen hardware niet werkt.
+
+- Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
+  één keer, met daaronder hoe vaak hij nog kwam.
+- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`) en begint er
+  een nieuw; meer dan twee per app worden het niet.
+- Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
+  de code.
+- Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
+
 ## OpenRGB en hardware
 
 ### OpenRGB koppelen
@@ -367,8 +383,8 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   de kleuren opnieuw. De eigen kleur van een lamp blijft bewaard.
 - In de clientlijst van OpenRGB staat BuurmansRgb twee keer: `BuurmansRgb` stuurt de kleuren,
   `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt.
-- Details over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken met
-  DebugView); er is nog geen logbestand.
+- Details over verbinden, protocolversie en fouten staan in het logbestand van de engine (zie
+  "Logbestanden").
 
 ### Per apparaattype
 
