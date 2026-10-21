@@ -8,10 +8,11 @@ namespace BuurmansRgb.Engine.Power;
 // locked or the session is on no screen (another user took over, or a remote desktop was left
 // without signing out), from going to sleep until waking up, and while the screen is off. Each
 // pause ends on its own; the pause from the tray menu is a reason of its own, which this leaves
-// alone (LightingController). Windows reports changes only, so whether the session is locked and
-// the screen is off is asked once at the start: an engine that starts late after sign-in may start
-// on the lock screen. Away tells the same, also while the pause is off, for what stops whenever
-// nobody is at the pc (ProgramWatcher). The screen alone does not make the user away: somebody may
+// alone (LightingController). Windows reports changes of the lock only, so whether the session is
+// locked is asked once at the start: an engine that starts late after sign-in may start on the lock
+// screen. Whether the screen is off Windows tells on its own right after registering, through
+// Switched (SystemDisplayEvents). Away tells the same, also while the pause is off, for what stops
+// whenever nobody is at the pc (ProgramWatcher). The screen alone does not make the user away: somebody may
 // still be at the pc with the screen off, listening to music.
 internal sealed class AutoPause : IAwayState, IDisposable
 {
