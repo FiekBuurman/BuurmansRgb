@@ -259,6 +259,10 @@ Hoe het vanzelf aanzetten werkt:
     staat, dan komt de scène van die tijd zodra je wegwisselt.
   - *Vergrendeld of slaapstand:* dan telt de voorgrond niet en blijft de scène staan; meteen na
     het ontgrendelen of ontwaken telt wat dan vooraan staat.
+  - *Apps uit de Microsoft Store* met een eigen Store-venster (zoals Films en tv of Foto's)
+    herkent hij nog niet op de voorgrond: Windows geeft hun venster aan `ApplicationFrameHost.exe`
+    in plaats van aan de app zelf. Gewone programma's, ook als je ze uit de Store haalde, tellen
+    wel.
   - Zet je het vinkje aan of uit terwijl het programma draait, dan blijft de verlichting zoals
     hij is; het programma telt weer vanaf de volgende keer dat het op de voorgrond komt (of
     start). Sluit het programma zonder dat er een ander venster vooraan komt, dan ziet de engine
