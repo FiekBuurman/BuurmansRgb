@@ -206,12 +206,13 @@ uitbreidingen in `docs/bouwplan.md`.
   ook zo'n waarde liever overslaan en de standaardwaarde nemen
 - Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
   `%AppData%\BuurmansRgb\logs` hoeft te zoeken
-- Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
-  activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")
 
 ## Installer en uitrol
 
+- De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
+  icoon in de tray blijft hangen. Dat kan pas als geen installatie meer een engine van 1.0.0
+  heeft: die kent `--exit` niet en opent dan de instellingen-app
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt

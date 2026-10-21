@@ -194,6 +194,10 @@ negeert. Hoe het werkt en waarom: [openrgb-meeleveren.md](openrgb-meeleveren.md)
 
 - **Na installeren** start de installer de engine als de gewone gebruiker met `--first-run`.
   Die zet "Starten met Windows" aan, alleen als dat nog uit staat.
+- **Engine stoppen** in een script: `BuurmansRgb.Engine.exe --exit` (een tweede start geeft het
+  signaal `Local\BuurmansRgb.Engine.Exit` en stopt meteen; de engine zelf is binnen een paar
+  tienden van een seconde weg, wacht daarop met `Wait-Process BuurmansRgb.Engine`). De installer
+  gebruikt nog `taskkill /F`, omdat een engine van 1.0.0 `--exit` niet kent.
 - **Verwijderen** stopt de engine, haalt de autostart weg en vraagt dan of OpenRGB en PawnIO
   ook weg moeten (alleen als deze installer ze heeft geïnstalleerd), en of je instellingen weg
   moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee".

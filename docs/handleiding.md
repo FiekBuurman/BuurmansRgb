@@ -262,6 +262,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
   Windows-gebruiker heeft zijn eigen engine.
+- **Afsluiten vanaf de commandline:** `BuurmansRgb.Engine.exe --exit` sluit de draaiende engine
+  af zoals "Afsluiten" in het menu, dus met het bewaren van de laatste wijziging en zonder een
+  icoon dat in de tray blijft hangen. Draait er geen engine, dan doet het niets.
 - **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
   geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
   icoon of een tweede start van `BuurmansRgb.UI.exe`.

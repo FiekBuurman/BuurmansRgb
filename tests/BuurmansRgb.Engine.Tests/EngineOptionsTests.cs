@@ -13,4 +13,15 @@ public sealed class EngineOptionsTests
     {
         Assert.Equal(firstRun, EngineOptions.Parse(args).FirstRun);
     }
+
+    [Theory]
+    [InlineData(new string[0], false)]
+    [InlineData(new[] { "--exit" }, true)]
+    [InlineData(new[] { "--Exit" }, true)]
+    [InlineData(new[] { "--first-run", "--exit" }, true)]
+    [InlineData(new[] { "--exit-later" }, false)]
+    public void Parse_FindsExitFlag(string[] args, bool exit)
+    {
+        Assert.Equal(exit, EngineOptions.Parse(args).Exit);
+    }
 }

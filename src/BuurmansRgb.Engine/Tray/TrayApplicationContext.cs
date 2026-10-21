@@ -86,6 +86,9 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     public void RequestOpenSettings() => _uiContext.Post(_ => _presenter.OpenSettings(), state: null);
 
+    // From another thread (--exit): the same as "Afsluiten" in the menu.
+    public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
+
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
     void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
