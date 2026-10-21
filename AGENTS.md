@@ -4,7 +4,7 @@ BuurmansRgb is een lichtgewicht Windows-app in C# (.NET 10, WPF) die RGB-verlich
 in een pc aanstuurt via de OpenRGB SDK-server. Het volledige plan, inclusief architectuur,
 taken, acceptatiecriteria en de uitbreidingen na taak 9, staat in `docs/bouwplan.md`. Lees dat
 eerst. De instellingen-app volgt het ontwerp in `design/DESIGN.md`; afwijkingen daarvan staan
-in `README.md`.
+in `docs/handleiding.md`.
 
 ## Werkafspraken
 
@@ -26,8 +26,12 @@ in `README.md`.
   (`taak-0-fundament`, `taak-1-engine-tray`, ...), een uitbreiding na taak 9 in een branch met
   een korte Nederlandse naam (`effect-snelheid`, `profielen-tray`, ...).
 - **Definitie van klaar:** alle acceptatiecriteria van de taak afgevinkt in
-  `docs/bouwplan.md`, `README.md` bijgewerkt met hoe je het nieuwe deel start of test. Een
-  gebouwd idee gaat uit `docs/ideas.md`.
+  `docs/bouwplan.md`, `docs/handleiding.md` bijgewerkt met hoe je het nieuwe deel gebruikt en
+  `docs/ontwikkelaars.md` met hoe je het start of test. Een gebouwd idee gaat uit
+  `docs/ideas.md`.
+- **`README.md` blijft kort:** een etalage met schermafbeeldingen, geen uitleg. Alleen een
+  opvallende nieuwe functie krijgt er een regel bij; verandert een pagina zichtbaar, vernieuw
+  dan de schermafbeelding in `docs/images/`.
 
 ## Afsluiten van een taak
 

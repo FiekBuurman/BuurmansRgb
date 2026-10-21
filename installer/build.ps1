@@ -4,7 +4,7 @@ Builds artifacts\installer\out\BuurmansRgb-setup.exe:
   2. fetches the OpenRGB MSI and the PawnIO setup, and checks their SHA-256,
   3. fetches the Inno Setup compiler from NuGet when -Iscc is not given,
   4. compiles BuurmansRgb.iss,
-  5. writes artifacts\installer\BuurmansRgb-test.wsb, a Windows Sandbox test (see README).
+  5. writes artifacts\installer\BuurmansRgb-test.wsb, a Windows Sandbox test (see docs/ontwikkelaars.md).
 Everything it downloads or builds stays under artifacts\installer, which git ignores.
 #>
 [CmdletBinding()]

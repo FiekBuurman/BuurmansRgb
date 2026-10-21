@@ -1,7 +1,7 @@
 # Hardware
 
 Vul hier je onderdelen in. Agents gebruiken dit voor taak 5–8; de teststappen staan in
-`README.md` onder "Zelf testen op echte hardware".
+`ontwikkelaars.md` onder "Zelf testen op echte hardware".
 
 | Onderdeel | Merk en model | Ondersteund door OpenRGB? | Werkt in BuurmansRgb? | Opmerkingen |
 | --- | --- | --- | --- | --- |
