@@ -208,12 +208,13 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog op 30 fps, app dicht | ~0,35 % van één kern (~0,02 % van de pc) | 22–27 MB working set, 12,5–13 MB private |
 | Engine | Allocaties (`dotnet-counters`), app dicht | Regenboog ~101 KB, statisch ~89 KB per minuut: geen meetbaar verschil door 1.800 frames per minuut | |
 | Engine | Alles uit, met regenboog als effect | 0,00–0,12 % van één kern, geen render-timer | 19–28 MB working set, 12–13 MB private |
-| Engine | Vergrendeld of slaapstand | 0 frames, geen timer | |
+| Engine | Vergrendeld, slaapstand of scherm uit | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
 | Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#51) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
 | Engine | Regenboog, sneltoetsen aan (#52) | 0,36–0,39 % van één kern, zonder sneltoetsen (#51) 0,26–0,39 %: geen verschil buiten de ruis; een toets kost alleen iets als je hem indrukt | 26–28 MB working set, 11–11,7 MB private (zonder: 24–27 en 11–12 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, een scène met een programma, niet vergrendeld (#54) | 0,31–0,60 % van één kern, zonder deze uitbreiding (#53) 0,49–0,52 %: geen verschil buiten de ruis. Vergrendeld scheelt het de ~0,05 % van het kijken in de proceslijst | 27–31 MB working set, 11–12,6 MB private (zonder: 26–31 en 11–13 MB) |
+| Engine | Regenboog, met het volgen van het scherm (#??); Windows vergrendeld en het scherm uit | Met `pauseOnLockAndSleep` uit 0,16–0,57 % van één kern, zonder deze uitbreiding (#54) 0,21–0,36 %: geen verschil buiten de ruis. Met het pauzeren aan (gepauzeerd) 0,10 tegen 0,08 % | 23–28 MB working set, 11–12 MB private (zonder: 23–28 en 11–11,6 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
