@@ -102,8 +102,6 @@ uitbreidingen in `docs/bouwplan.md`.
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
 - Een kleur kiezen voor een lamp die uit staat, zet hem niet aan; misschien moet "Op de strip
   zetten" de lamp dan ook aanzetten, zoals veel lamp-apps doen
-- Het spoor van een schakelaar heeft de kleur van de lamp; bij een heel donkere kleur (lage
-  helderheid) valt de donkere knop daarop weg. Eventueel een minimale helderheid voor het spoor
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
 - De Snap Layouts van Windows 11 (het menu bij het aanwijzen van de maximaliseerknop) ook bij de

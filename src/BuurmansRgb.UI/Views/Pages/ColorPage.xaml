@@ -87,7 +87,7 @@
                     </ComboBox>
                     <!-- The chosen lamp on or off, or the whole house. -->
                     <ToggleButton Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding SelectedLamp.IsOn}"
-                                  Tag="{Binding SelectedLamp.Color, Converter={StaticResource ColorToBrush}}"
+                                  Tag="{Binding SelectedLamp.Color, Converter={StaticResource SwitchTrackBrush}}"
                                   AutomationProperties.Name="{Binding SelectedLamp.SwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToCollapsed}}" />
                     <ToggleButton Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding Lamps.IsAnyOn}" IsEnabled="{Binding Lamps.HasLamps}"

@@ -38,7 +38,9 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **In
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde lampen", twee of drie naast elkaar. Op de
   kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
   "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
-  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van de lamp.
+  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van de lamp. Bij een heel
+  donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
+  blijft zien.
 - Een klik op een kaart opent de lamp bij Kleur en laat hem op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen.
 
