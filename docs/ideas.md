@@ -60,7 +60,7 @@ uitbreidingen in `docs/bouwplan.md`.
   de lengtes onder `zoneLengths`
 - In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
   na het herladen nog de oude lengte), of als een bewaarde lengte niet past bij het bereik dat
-  de zone nu meldt (bijv. na een update van OpenRGB); nu staat dat alleen in de debug-uitvoer
+  de zone nu meldt (bijv. na een update van OpenRGB); nu staat dat alleen in het logbestand
 - Vergeet OpenRGB een zonelengte terwijl de engine verbonden blijft (bijv. bij opnieuw zoeken),
   dan meldt het apparaat 0 LED's en komt de bewaarde lengte pas terug als het apparaat opnieuw
   verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
@@ -224,12 +224,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Een ongeldige kleur in `ledColors` of `devices` maakt het hele `settings.json` onleesbaar; de
-  engine zet het dan opzij als `settings.json.broken` en draait op de standaardwaarden. Zo'n kleur
-  liever overslaan, zoals `zoneLengths`, `ledColorZoneLengths` en `simulatedDevices` een waarde
-  overslaan die ze niet kunnen lezen
-- Logging naar bestand (`Microsoft.Extensions.Logging`) voor fouten bij opstarten; nu gaan
-  fouten van de engine en de instellingen-app alleen naar `Trace` (bekijken met DebugView)
+- Een kleur die niet te lezen is, slaat de engine sinds #29 over, maar een ander verkeerd type
+  (bijv. `"brightness": "hoog"` of `"on": "ja"`) maakt het hele `settings.json` nog onleesbaar;
+  ook zo'n waarde liever overslaan en de standaardwaarde nemen
+- Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
+  `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
   activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")

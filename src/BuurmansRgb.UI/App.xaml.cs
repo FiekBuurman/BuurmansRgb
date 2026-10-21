@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using BuurmansRgb.Contracts;
@@ -20,6 +21,7 @@ public partial class App : Application
     private SingleInstance? _instance;
     private IDisposable? _activation;
     private MainViewModel? _viewModel;
+    private FileLog? _log;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -36,6 +38,11 @@ public partial class App : Application
             return;
         }
 
+        // After the single-instance check, so a second start does not write to the log of the first.
+        _log = FileLog.Start("ui");
+        // Logged only; the app still ends as it did, rather than going on in a state nobody planned for.
+        DispatcherUnhandledException += (_, args) => Trace.TraceError($"Unhandled exception: {args.Exception}");
+
         _viewModel = new MainViewModel(PipeEngineConnector.ForEngine());
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
@@ -51,6 +58,7 @@ public partial class App : Application
         // Closes the pipe right away instead of leaving the engine to notice a dead process.
         _viewModel?.Dispose();
         _instance?.Dispose();
+        _log?.Dispose();
         base.OnExit(e);
     }
 
