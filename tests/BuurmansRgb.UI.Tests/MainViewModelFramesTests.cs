@@ -20,7 +20,6 @@ public sealed class MainViewModelFramesTests
 
     [Theory]
     [InlineData(AppPage.Scenes)]
-    [InlineData(AppPage.Neighbours)]
     [InlineData(AppPage.Settings)]
     public async Task PageWithoutPreview_WantsNoFrames(AppPage page)
     {

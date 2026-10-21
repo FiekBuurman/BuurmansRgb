@@ -74,9 +74,6 @@
                             <DataTrigger Binding="{Binding Page}" Value="{x:Static vm:AppPage.Scenes}">
                                 <Setter TargetName="Icon" Property="Data" Value="{StaticResource IconScenes}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Page}" Value="{x:Static vm:AppPage.Neighbours}">
-                                <Setter TargetName="Icon" Property="Data" Value="{StaticResource IconNeighbours}" />
-                            </DataTrigger>
                             <DataTrigger Binding="{Binding Page}" Value="{x:Static vm:AppPage.Settings}">
                                 <Setter TargetName="Icon" Property="Data" Value="{StaticResource IconSettings}" />
                             </DataTrigger>
@@ -124,15 +121,6 @@
                         <Setter.Value>
                             <DataTemplate>
                                 <pages:ScenesPage />
-                            </DataTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Navigation.CurrentPage}" Value="{x:Static vm:AppPage.Neighbours}">
-                    <Setter Property="ContentTemplate">
-                        <Setter.Value>
-                            <DataTemplate>
-                                <pages:NeighboursPage />
                             </DataTemplate>
                         </Setter.Value>
                     </Setter>

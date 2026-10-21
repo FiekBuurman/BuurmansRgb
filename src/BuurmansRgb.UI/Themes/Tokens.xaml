@@ -49,12 +49,6 @@
     <SolidColorBrush x:Key="LedGreenBrush" Color="{StaticResource LedGreenColor}" />
     <SolidColorBrush x:Key="LedBlueBrush" Color="{StaticResource LedBlueColor}" />
 
-    <!-- Everything that has to do with the neighbour. -->
-    <SolidColorBrush x:Key="BurenBgBrush" Color="#1C2433" />
-    <SolidColorBrush x:Key="BurenBorderBrush" Color="#2B3B57" />
-    <SolidColorBrush x:Key="BurenTextMutedBrush" Color="#A9B8D4" />
-    <SolidColorBrush x:Key="BurenIconBrush" Color="#A9C9FF" />
-
     <!-- § 2 Typography. The fonts ship with the app (Fonts\, SIL Open Font License); the families after
          the first are the fallback of the design. -->
     <FontFamily x:Key="TextFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Text, Segoe UI</FontFamily>

@@ -18,7 +18,6 @@ public sealed partial class NavigationViewModel : ObservableObject
         new(AppPage.Lamps, Strings.NavLamps),
         new(AppPage.Color, Strings.NavColor),
         new(AppPage.Scenes, Strings.NavScenes),
-        new(AppPage.Neighbours, Strings.NavNeighbours),
         new(AppPage.Settings, Strings.NavSettings),
     ];
 
