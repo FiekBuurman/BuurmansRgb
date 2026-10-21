@@ -138,7 +138,7 @@ Gebruik .NET 10 (de huidige LTS-versie) met WPF voor de UI en een UI-loos engine
 | Hardware | OpenRGB SDK-server + NuGet `OpenRGB.NET` | Ondersteunt honderden apparaten via één TCP-protocol (poort 6742) |
 | UI ↔ engine | Named pipe + StreamJsonRpc | Lokaal, snel, geen netwerkpoort open |
 | Opslag | JSON in `%AppData%\BuurmansRgb\` | Leesbaar, makkelijk te debuggen |
-| Logging | `Microsoft.Extensions.Logging` naar bestand | Standaard, uitzetbaar (nog niet gebouwd: nu `Trace`, zie `docs/ideas.md`) |
+| Logging | `Trace` naar een bestand (`FileLog`) in `%AppData%\BuurmansRgb\logs` | Geen extra pakketten of geheugen in de engine; elke bestaande `Trace`-melding komt erin |
 | Tests | xUnit v3 op Microsoft.Testing.Platform | Effecten en mapping testen zonder hardware |
 | Installer | Inno Setup 7.1 | Eén setup met OpenRGB en PawnIO, zie `docs/openrgb-meeleveren.md` |
 
