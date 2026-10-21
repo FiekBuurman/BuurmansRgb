@@ -50,7 +50,9 @@ public sealed class SettingsFileWatcherTests : IDisposable
 
         // The change of settings.json comes after the one of profiles.json, so once it is in the
         // other had its chance.
+        // One write may bring more events, the last a moment later: let them all come in first.
         await Eventually.TrueAsync(() => Volatile.Read(ref changes) > 0);
+        await Task.Delay(TimeSpan.FromMilliseconds(300), Ct);
         var afterSettings = Volatile.Read(ref changes);
         await File.WriteAllTextAsync(_directory.File("profiles.json"), """{ "profiles": [] }""", Ct);
         await Task.Delay(TimeSpan.FromMilliseconds(300), Ct);
