@@ -13,7 +13,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // ArgumentException, which reaches the UI as an RPC error.
 //
 // It also knows which scene is on (ActiveName): the one loaded or saved last, until the lighting
-// changes in any other way. That is not kept over a restart of the engine.
+// changes in any other way. The engine keeps it over a restart in settings.json (RestoreActive).
 internal sealed class ProfileLibrary
 {
     private readonly IProfileStore _store;
@@ -41,6 +41,9 @@ internal sealed class ProfileLibrary
     // Raised after the list was written: a profile was saved or deleted, or got another automation.
     // Outside the lock, so a listener can read the library again.
     public event EventHandler? Changed;
+
+    // Raised when another scene is on, or none. Outside the locks.
+    public event EventHandler? ActiveChanged;
 
     // In alphabetical order.
     public IReadOnlyList<string> Names
@@ -100,12 +103,35 @@ internal sealed class ProfileLibrary
             Store(profiles);
         }
 
-        lock (_activeGate)
+        SetActive(normalized);
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    // The scene that was on when the engine stopped, from settings.json, once the saved lighting is
+    // back on. Only a scene that still exists, in its saved spelling; null or an unknown name
+    // leaves none on. Raises no ActiveChanged: nothing changed since the scene was saved.
+    public void RestoreActive(string? name)
+    {
+        string? restored = null;
+        if (name is not null)
         {
-            _activeName = normalized;
+            try
+            {
+                lock (_gate)
+                {
+                    restored = ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
+                }
+            }
+            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            {
+                Trace.TraceError(exception.ToString());
+            }
         }
 
-        Changed?.Invoke(this, EventArgs.Empty);
+        lock (_activeGate)
+        {
+            _activeName = restored;
+        }
     }
 
     // Shows the lighting of the profile and saves it as the current lighting.
@@ -163,12 +189,15 @@ internal sealed class ProfileLibrary
             deleted = profile.Name;
         }
 
+        bool activeChanged;
         lock (_activeGate)
         {
-            if (_activeName is not null && Matches(deleted, _activeName))
-            {
-                _activeName = null;
-            }
+            activeChanged = _activeName is not null && Matches(deleted, _activeName) && SetActiveLocked(null);
+        }
+
+        if (activeChanged)
+        {
+            ActiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -201,10 +230,38 @@ internal sealed class ProfileLibrary
 
     private void OnLightingChanged(object? sender, EventArgs e)
     {
+        bool changed;
         lock (_activeGate)
         {
-            _activeName = _showingThread == Environment.CurrentManagedThreadId ? _showingName : null;
+            changed = SetActiveLocked(_showingThread == Environment.CurrentManagedThreadId ? _showingName : null);
         }
+
+        if (changed)
+        {
+            ActiveChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void SetActive(string? name)
+    {
+        bool changed;
+        lock (_activeGate)
+        {
+            changed = SetActiveLocked(name);
+        }
+
+        if (changed)
+        {
+            ActiveChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // True when that is another scene than before.
+    private bool SetActiveLocked(string? name)
+    {
+        var changed = !string.Equals(_activeName, name, StringComparison.Ordinal);
+        _activeName = name;
+        return changed;
     }
 
     private List<Profile> ProfilesLocked() => _profiles ??= [.. _store.Load().OrderBy(profile => profile.Name, ProfileNames.Comparer)];
