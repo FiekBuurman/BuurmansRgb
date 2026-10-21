@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Providers.Simulated;
 using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -223,6 +224,29 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
         _controller.FlashZone(Board, EmptyHeader);
 
         Assert.Equal([O, O, O, O, O, W, W], _provider.Leds[Board]);
+    }
+
+    // As RenderAnimationFrame_WhileFlashing_AllocatesNothing for the flash of a whole device.
+    [Fact]
+    public async Task RenderAnimationFrame_WhileAZoneFlashes_AllocatesNothing()
+    {
+        var frame = TimeSpan.FromSeconds(1.0 / LightingController.DefaultFramesPerSecond);
+        var simulated = new SimulatedDeviceProvider();
+        using var controller = new LightingController([simulated], new SteppingTimeProvider(frame));
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 0.5, EffectIds.Static)));
+        controller.Rendered += (_, _) => { };
+        controller.FlashZone("simulated-gpu", 1);
+        controller.RenderAnimationFrame();
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        for (var step = 0; step < 30; step++)
+        {
+            controller.RenderAnimationFrame();
+        }
+
+        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.True(controller.IsAnimating);
     }
 
     // Like a board in OpenRGB: LEDs on the board itself and two addressable headers.
