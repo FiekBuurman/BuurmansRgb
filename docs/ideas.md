@@ -148,7 +148,7 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Tray-menu
 
-- De sneltoetsen van "Alles aan" en "Alles uit" (sinds #??, vast Ctrl+Alt+Shift+A en U)
+- De sneltoetsen van "Alles aan" en "Alles uit" (sinds #52, vast Ctrl+Alt+Shift+A en U)
   instelbaar maken, bijv. met een veld bij Instellingen dat de volgende toetscombinatie opvangt.
   Dan kan ook een toets die met een andere app (of met AltGr+Shift op een internationaal
   toetsenbord) botst, vervangen worden in plaats van uitgezet
