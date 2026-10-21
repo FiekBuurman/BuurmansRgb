@@ -170,6 +170,44 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal(Orange, _store.Settings.Color);
     }
 
+    // What came from the file is in it already: nothing is saved, also not at the exit.
+    [Fact]
+    public async Task ChangeByHand_IsNotSavedAgain()
+    {
+        var host = CreateHost();
+        await host.StartAsync(Ct);
+
+        ChangeByHand(new EngineSettings { Color = Orange, FramesPerSecond = 12, ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
+        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12 && _zoneLengths.Lengths.Count == 1);
+        host.Dispose();
+
+        Assert.Equal(0, _store.SaveCount);
+    }
+
+    // The file keeps the user's layout, and a key the engine does not know (a typo, say), until
+    // the engine has something else to save.
+    [Fact]
+    public async Task WithTheRealFile_ChangeByHand_StaysAsTheUserWroteIt()
+    {
+        var path = _directory.File("settings.json");
+        using var watcher = new SettingsFileWatcher(path);
+        using var host = new EngineHost(new JsonSettingsStore(path), _lighting, saveDelay: TimeSpan.FromMilliseconds(50), settingsFileEvents: watcher);
+        await host.StartAsync(Ct);
+        const string text = """
+            {
+              "framesPerSecond": 12,
+              "color": "#FF8800",
+              "colour": "#FF0000"
+            }
+            """;
+
+        await File.WriteAllTextAsync(path, text, Ct);
+        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
+        await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
+
+        Assert.Equal(text, File.ReadAllText(path));
+    }
+
     // The whole chain with the real file, watcher and store: the change by hand comes in, and the
     // engine's own save of it afterwards does not come back as another change.
     [Fact]
@@ -184,8 +222,7 @@ public sealed class EngineHostReloadTests : IDisposable
         await File.WriteAllTextAsync(path, """{ "framesPerSecond": 12, "color": "#FF8800" }""", Ct);
         await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
 
-        // The engine writes it back in its own words. That, and its own save of a later change,
-        // bring no change.
+        // A later change in the app writes it in the engine's own words; that save brings no change.
         _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
         await Eventually.TrueAsync(() => FileContains(path, "\"brightness\": 0.5"));
         await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);

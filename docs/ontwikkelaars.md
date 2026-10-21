@@ -247,8 +247,12 @@ toetsenbord. Een paar dingen om te proberen:
   (dus `OptionsChanged` en de saver), de zonelengtes met `ZoneLengthKeeper.Change` en de
   verlichting met `LightingController.Replace` (`LightingChanged`), die alleen als hij anders is
   dan nu (`EngineSettings.SameLighting`), zodat de scène bij alleen een optie aan blijft.
-  `activeScene` neemt hij niet over. De saver schrijft het bestand daarna in de eigen opmaak
-  terug als er iets veranderde; dat herkent de store weer als eigen opslag.
+  `activeScene` neemt hij niet over. Dat alles loopt via `LightingSettingsSaver.Adopt`: wat de
+  engine daarna heeft, geldt als de inhoud van het bestand (met `activeScene` uit het bestand),
+  zodat de opslag die de wijzigingen plannen niets schrijft en het bestand de opmaak en onbekende
+  sleutels van de gebruiker houdt. Alleen wat de engine anders heeft (een scène die uitging of niet
+  overgenomen werd) schrijft hij een seconde later terug. Een opslag die tijdens het toepassen
+  afloopt, wacht daarop; een opslag met dezelfde inhoud als het bestand schrijft nooit.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's. Een wijziging met de hand komt pas na een
   herstart binnen.

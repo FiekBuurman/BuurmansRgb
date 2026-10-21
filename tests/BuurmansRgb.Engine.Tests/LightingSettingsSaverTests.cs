@@ -209,5 +209,117 @@ public sealed class LightingSettingsSaverTests
         Assert.Equal(0, saves);
     }
 
+    // The same content as the last save: the file holds it already.
+    [Fact]
+    public async Task ChangeBackBeforeTheNextSave_WritesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Red });
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+    }
+
+    // A change by hand that the engine took as it is: the file keeps the user's words.
+    [Fact]
+    public async Task Adopt_WhatTheChangeByHandChanges_IsNotWrittenBack()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var saver = CreateSaver();
+        var fromFile = new EngineSettings { Color = Orange, FramesPerSecond = 12 };
+
+        saver.Adopt(fromFile, () =>
+        {
+            saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
+            _lighting.Replace(fromFile.ToLightingState());
+        });
+        _time.Advance(Delay);
+        saver.Dispose();
+
+        Assert.Equal(0, _store.SaveCount);
+    }
+
+    [Fact]
+    public async Task Adopt_AChangeAfterwards_IsSavedWithTheAdoptedSettings()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        saver.Adopt(new EngineSettings { FramesPerSecond = 12 }, () => saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 }));
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(12, _store.Settings.FramesPerSecond);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    // The scene went off with the new lighting, while the file still names it: saved, or it would
+    // be on again after a restart.
+    [Fact]
+    public async Task Adopt_SceneThatWentOff_IsSaved()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { ActiveScene = "Nacht" }, Delay, _time);
+        var fromFile = new EngineSettings { Color = Orange, ActiveScene = "Nacht" };
+
+        saver.Adopt(fromFile, () =>
+        {
+            _lighting.Replace(fromFile.ToLightingState());
+            saver.ChangeOptions(settings => settings with { ActiveScene = null });
+        });
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Null(_store.Settings.ActiveScene);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    // A save of a change before, due while the change by hand is applied: it waits, and then the
+    // file holds what the engine has.
+    [Fact]
+    public async Task Adopt_SaveThatComesDueMeanwhile_WaitsAndWritesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _lighting.SetLighting(null, lighting => lighting with { Color = Red });
+        var fromFile = new EngineSettings { Color = Orange };
+
+        saver.Adopt(fromFile, () =>
+        {
+            _time.Advance(Delay);
+            Assert.Equal(0, _store.SaveCount);
+            _lighting.Replace(fromFile.ToLightingState());
+        });
+        _time.Advance(Delay);
+
+        Assert.Equal(0, _store.SaveCount);
+    }
+
+    // Such as the settings app, while the change by hand is applied: not in the file, so saved.
+    [Fact]
+    public async Task Adopt_ChangeOnAnotherThreadMeanwhile_IsSaved()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        var fromFile = new EngineSettings { FramesPerSecond = 12 };
+
+        saver.Adopt(fromFile, () =>
+        {
+            saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
+            Task.Run(() => _lighting.SetLighting(null, lighting => lighting with { Color = Orange }), Ct).Wait(Ct);
+        });
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(12, _store.Settings.FramesPerSecond);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
     private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
 }

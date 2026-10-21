@@ -470,12 +470,15 @@ engine draait (zie hieronder), `profiles.json` terwijl hij niet draait.
 
 Pas je `settings.json` met de hand aan terwijl de engine draait, dan neemt hij het binnen een
 seconde na het opslaan over, zonder herstart: de opties, de verlichting (algemeen, per lamp en
-per LED) en de zonelengtes. Een open instellingen-app laat het meteen zien. Daarna schrijft de
-engine het bestand zelf weer weg, in zijn eigen opmaak, als er iets veranderde; een waarde die
-niet klopte, staat er dan verbeterd in (bijv. `framesPerSecond` 500 wordt 60). Verander je
-alleen een optie, dan blijft de scène die aan staat aan; een andere verlichting zet hem uit,
-zoals elke wijziging. `activeScene` neemt hij niet over: een scène aanzetten doe je in de app
-of het tray-menu.
+per LED) en de zonelengtes. Een open instellingen-app laat het meteen zien. Het bestand blijft
+zoals jij het schreef, met je eigen opmaak en een naam die de engine niet kent (bijv. een
+tikfout als `"colour"`); je editor meldt dus niet dat het bestand veranderde. Een waarde buiten
+het bereik past de engine aan (bijv. `framesPerSecond` 500 wordt 60); in het bestand staat die
+pas verbeterd als de engine zelf iets opslaat, bijvoorbeeld omdat je in de app iets wijzigt.
+Verander je alleen een optie, dan blijft de scène die aan staat aan; een andere verlichting zet
+hem uit, zoals elke wijziging. `activeScene` neemt hij niet over: een scène aanzetten doe je in
+de app of het tray-menu. Staat er in `activeScene` daardoor iets anders dan de scène die aan
+staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eigen opmaak.
 
 ```json
 {

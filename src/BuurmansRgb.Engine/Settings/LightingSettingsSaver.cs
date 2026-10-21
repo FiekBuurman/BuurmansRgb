@@ -5,7 +5,8 @@ namespace BuurmansRgb.Engine.Settings;
 
 // Saves the lighting, and the options that can change while the engine runs, a moment after the
 // last change, so dragging a slider in the UI writes the file once instead of on every step. The
-// timer only runs while a save is pending.
+// timer only runs while a save is pending. A save that would write what the file holds already
+// writes nothing.
 internal sealed class LightingSettingsSaver : IDisposable
 {
     private readonly ISettingsStore _store;
@@ -19,6 +20,15 @@ internal sealed class LightingSettingsSaver : IDisposable
     private EngineSettings _settings;
     private bool _pending;
     private bool _disposed;
+
+    // What the file holds as far as this saver knows, as JSON: its last save, or a change by hand
+    // it adopted. Null when it does not know.
+    private byte[]? _inFile;
+
+    // The thread on which Adopt applies a change by hand, or 0; a save that comes due waits for it.
+    // A change on another thread meanwhile, such as one from the settings app, is not in the file.
+    private int _adoptingThread;
+    private bool _changedElsewhere;
 
     // startupSettings are the settings the engine started with: the saver keeps their other
     // options, unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about
@@ -76,6 +86,48 @@ internal sealed class LightingSettingsSaver : IDisposable
         }
     }
 
+    // Runs apply, which puts settings from a file changed by hand on the engine, and takes what the
+    // engine holds then as what the file holds: what apply changes comes in through ChangeOptions
+    // and LightingChanged as any change does, but is not written back, so the file keeps the user's
+    // words and keys the engine does not know. Only what the engine holds otherwise is saved, such
+    // as a scene that went off with another lighting (the file still names it in activeScene).
+    // apply runs outside the lock; a save that comes due meanwhile waits for it. A change on another
+    // thread meanwhile is mixed with the file in what the engine holds, so then the file is written.
+    public void Adopt(EngineSettings fromFile, Action apply)
+    {
+        lock (_gate)
+        {
+            _adoptingThread = Environment.CurrentManagedThreadId;
+            _changedElsewhere = false;
+        }
+
+        try
+        {
+            apply();
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _adoptingThread = 0;
+                var held = _settings.WithLighting(_lighting.State);
+                _inFile = _changedElsewhere ? null : (held with { ActiveScene = fromFile.ActiveScene }).ToJson();
+                if (!_disposed)
+                {
+                    if (_inFile is not null && held.ToJson().AsSpan().SequenceEqual(_inFile))
+                    {
+                        _pending = false;
+                        _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                    }
+                    else
+                    {
+                        ScheduleSaveLocked();
+                    }
+                }
+            }
+        }
+    }
+
     private void OnLightingChanged(object? sender, EventArgs e)
     {
         lock (_gate)
@@ -89,6 +141,7 @@ internal sealed class LightingSettingsSaver : IDisposable
 
     private void ScheduleSaveLocked()
     {
+        _changedElsewhere |= _adoptingThread != 0 && _adoptingThread != Environment.CurrentManagedThreadId;
         _pending = true;
         _timer.Change(_delay, Timeout.InfiniteTimeSpan);
     }
@@ -99,21 +152,30 @@ internal sealed class LightingSettingsSaver : IDisposable
         bool succeeded;
         lock (_gate)
         {
-            if (!_pending)
+            if (!_pending || _adoptingThread != 0)
             {
                 return;
             }
 
             _pending = false;
+            var settings = _settings.WithLighting(_lighting.State);
+            var json = settings.ToJson();
+            if (_inFile is not null && json.AsSpan().SequenceEqual(_inFile))
+            {
+                return;
+            }
+
             try
             {
-                _store.Save(_settings.WithLighting(_lighting.State));
+                _store.Save(settings);
+                _inFile = json;
                 succeeded = true;
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 // The lights keep working; the change is only lost after a restart.
                 Trace.TraceError(exception.ToString());
+                _inFile = null;
                 succeeded = false;
             }
         }
