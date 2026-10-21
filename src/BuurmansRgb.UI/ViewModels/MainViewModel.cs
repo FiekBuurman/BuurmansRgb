@@ -332,8 +332,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var now = _time.GetTimestamp();
         var resting = _lastPick is not { } last || _time.GetElapsedTime(last, now) >= FlashRest;
         _lastPick = now;
-        _flashPending = null;
-        _flashTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        CancelPendingFlash();
         if (deviceId is null)
         {
             return;
@@ -347,6 +346,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _flashPending = deviceId;
         _flashTimer.Change(FlashRest, Timeout.InfiniteTimeSpan);
+    }
+
+    private void CancelPendingFlash()
+    {
+        _flashPending = null;
+        _flashTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
     private void FlashPending()
@@ -694,8 +699,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // A flash goes at once and replaces one that waits from the list (FlashChosen), so that one
+    // does not blink over it FlashRest later.
     private void FlashDevice(string deviceId)
     {
+        CancelPendingFlash();
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
@@ -704,6 +712,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void FlashZone(ZoneFlash flash)
     {
+        CancelPendingFlash();
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));

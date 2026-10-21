@@ -277,6 +277,26 @@ public sealed class MainViewModelTests
         Assert.Equal(["flash board zone 1"], Api.Calls);
     }
 
+    // A button in the preview flashes at once; the flash that waits from running through the list
+    // then does not blink over it later.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task FlashInThePreview_CancelsTheFlashThatWaits(bool zone)
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => api.Devices = [.. api.Devices, Board]), time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "board");
+
+        var preview = viewModel.Preview.Devices.Single();
+        (zone ? preview.Zones[1].FlashCommand : preview.FlashCommand).Execute(null);
+        time.Advance(MainViewModel.FlashRest);
+
+        Assert.Equal(["flash fan", zone ? "flash board zone 1" : "flash board"], Api.Calls);
+    }
+
     [Theory]
     [InlineData(PauseReasons.Manual)]
     [InlineData(PauseReasons.DisplayOff)]
