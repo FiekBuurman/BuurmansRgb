@@ -64,7 +64,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -131,11 +131,15 @@ toetsenbord. Een paar dingen om te proberen:
   starten zet `RestoreActive` hem terug als die scène nog bestaat.
 - **Scènes op tijd:** `ProfileTimer` zet één timer op de eerstvolgende tijd. Gaat die meer dan
   `LateLimit` (een minuut) te laat af of springt de klok erover (`IClockEvents`, ook bij het
-  ontwaken), dan onthoudt hij de gemiste tijd. Met `CatchUp` (`catchUpSceneTimes`, standaard
-  uit) laadt hij de scène waarvan `DailyTime.Previous` het laatst voorbij is: bij `Start` (na de
-  opgeslagen verlichting en `RestoreActive`, behalve als die scène al aan staat) en na het
-  ontwaken op `ResumeRestorer.Restored` (na het eerste herstel, ~2 s), alleen als er een gemiste
-  tijd is. Een programma met een eigen scène houdt hem vast via `HoldUntilProgramsStop`.
+  ontwaken), dan slaat hij die tijd over. Met `CatchUp` (`catchUpSceneTimes`, standaard uit)
+  laadt hij de scène waarvan `DailyTime.Previous` het laatst voorbij is: bij het starten via
+  `CatchUpAtStart`, dat `EngineHost` aanroept als alle triggers draaien (na de opgeslagen
+  verlichting en `RestoreActive`, behalve als die scène al aan staat), en na het ontwaken op
+  `IResumeEvents.Restored` van `ResumeRestorer` (na het eerste herstel, ~2 s). Dat event geeft
+  het moment van de eerste `Suspending` sinds het vorige herstel mee; hij haalt alleen in als
+  de laatste tijd daarna viel, dus een verzette klok of een klokevent na het herstel laat geen
+  "gemiste" tijd achter. Een programma met een eigen scène houdt hem vast via
+  `HoldUntilProgramsStop`, ook bij het starten.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's.
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
@@ -348,8 +352,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 6. Zet bij Instellingen "Gemiste tijden inhalen" aan, geef "Nacht" een tijd een paar minuten
    verder en laat de pc erover heen slapen: zo'n 2 seconden na het ontwaken hoort "Nacht" aan te
    gaan, ook op apparaten die na de slaap hun eigen effect tonen. Slaap daarna kort zonder dat er
-   een tijd voorbij komt: de verlichting blijft zoals hij was. Sluit de engine af, laat een tijd
-   voorbijgaan en start hem weer: de scène van die tijd gaat aan.
+   een tijd voorbij komt: de verlichting blijft zoals hij was, ook als je vlak daarvoor de klok
+   van Windows over een tijd heen zette. Sluit de engine af, laat een tijd voorbijgaan en start
+   hem weer: de scène van die tijd gaat aan; met het spel van stap 3 open alleen die van het
+   spel, en de scène van de tijd pas als je het spel sluit.
 
 ### Pauzeren
 

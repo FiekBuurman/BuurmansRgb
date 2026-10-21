@@ -190,14 +190,19 @@ Hoe het vanzelf aanzetten werkt:
     zijn (na zo'n 2 seconden, zie "Na slaapstand" onder "Per apparaattype"). Kwam er geen tijd
     voorbij, dan blijft de verlichting zoals hij was, ook als je na de laatste tijd zelf iets
     koos. Voorbeeld met "Avond" om 20:00 en "Nacht" om 23:00: slaap van 21:00 tot 08:00 geeft
-    "Nacht"; slaap van 20:30 tot 22:00 laat alles zoals het was.
+    "Nacht"; slaap van 20:30 tot 22:00 laat alles zoals het was. Ook een tijd vlak voor het
+    ontwaken telt: wakker om 23:00:30 geeft "Nacht".
   - *Bij het starten* van de engine (of de pc) wint de tijd altijd, ook van de scène die voor de
     herstart aan stond: wat er gebeurde terwijl de engine niet draaide, weet hij niet. Is de
-    scène van de tijd al de scène die aan staat, dan gebeurt er niets.
+    scène van de tijd al de scène die aan staat, dan gebeurt er niets. Dat geldt bij elke
+    herstart: kies je om 21:00 zelf "Gamen", sluit je de engine af ("Afsluiten") en start je hem
+    weer, dan staat "Avond" weer aan.
   - Draait er een programma met een eigen scène, dan komt de scène van de tijd pas als het
-    programma stopt, zoals bij "Tijd tijdens een spel".
-  - De klok verzetten haalt niets in; dat doet alleen ontwaken of starten. Aanzetten zet nog
-    niets aan: het geldt vanaf het volgende ontwaken of de volgende start.
+    programma stopt, zoals bij "Tijd tijdens een spel". Ook bij het starten gaat dan alleen de
+    scène van het programma naar de lampen.
+  - De klok verzetten haalt niets in; dat doet alleen ontwaken of starten, en na het ontwaken
+    alleen een tijd die in de slaap viel. Aanzetten zet nog niets aan: het geldt vanaf het
+    volgende ontwaken of de volgende start.
 - **Bij een programma:** start het programma, dan staat de scène binnen 2 seconden aan. Stopt
   het, dan komt de verlichting van daarvoor terug, tenzij je die intussen veranderde. Bij twee
   programma's met een scène toont het laatst gestarte de zijne; stopt dat, dan komt die van
