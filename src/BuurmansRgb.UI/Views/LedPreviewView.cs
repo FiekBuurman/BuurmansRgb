@@ -17,7 +17,8 @@ namespace BuurmansRgb.UI.Views;
 // ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
 // With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
 // ring. Only a view that holds the active LED of its device is a Tab stop, so Tab stops once per
-// device; a mouse click does not take the focus, so the mouse works as before.
+// device. A mouse click only takes the focus from the LEDs of another device, so the mouse alone
+// works as before.
 public sealed class LedPreviewView : FrameworkElement
 {
     public static readonly DependencyProperty ColorsProperty = DependencyProperty.Register(
@@ -154,6 +155,10 @@ public sealed class LedPreviewView : FrameworkElement
         get => (ICommand?)GetValue(KeyCommandProperty);
         set => SetValue(KeyCommandProperty, value);
     }
+
+    // Where the mouse is on the view; null for where Windows says it is. A test puts it on an LED
+    // here, as it cannot move the mouse.
+    internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
 
     // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
     // they extend the range, Space and Enter choose the active LED, Ctrl+A chooses all and Escape
@@ -330,7 +335,7 @@ public sealed class LedPreviewView : FrameworkElement
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        var led = LedAt(e.GetPosition(this));
+        var led = LedAt(PositionOf(e));
         (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
     }
 
@@ -340,17 +345,28 @@ public sealed class LedPreviewView : FrameworkElement
         _toolTip?.Hide();
     }
 
-    // A click on a gap between keys or beside a ring picks nothing.
+    // A click on a gap between keys or beside a ring picks nothing. While the keyboard focus is in
+    // the LEDs of another device, as in "Hele huis", it comes along to the LED that was clicked,
+    // so the keys go on where the selection is; a click in the same device already moved it there
+    // with the active LED (OnActiveLedChanged).
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
         _toolTip?.Hide();
-        var led = LedAt(e.GetPosition(this));
-        if (led != LedMatrix.NoLed && ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
+        var led = LedAt(PositionOf(e));
+        if (led == LedMatrix.NoLed || !ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
         {
-            e.Handled = true;
+            return;
+        }
+
+        e.Handled = true;
+        if (Keyboard.FocusedElement is LedPreviewView other && other != this && ActiveLed != LedMatrix.NoLed)
+        {
+            Focus();
         }
     }
+
+    private Point PositionOf(MouseEventArgs e) => MousePosition?.Invoke(e) ?? e.GetPosition(this);
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
         ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;

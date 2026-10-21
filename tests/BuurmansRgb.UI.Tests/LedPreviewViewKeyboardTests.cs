@@ -136,18 +136,49 @@ public sealed class LedPreviewViewKeyboardTests
         Assert.True(right.IsKeyboardFocused);
     });
 
-    // A click in another device moves its active LED, not the focus.
+    // In "Hele huis", with the focus in the LEDs of one lamp, a click on an LED of another lamp
+    // brings the focus along, so the keys go on where the selection is. Only moving the active LED
+    // of the other lamp, as when the preview is made again, leaves the focus.
     [Fact]
-    public void ActiveLedOfAnotherDevice_LeavesTheFocus() => OffscreenWindow.Run(panel =>
+    public void ClickInAnotherDevice_WithTheFocusInTheLeds_TakesTheFocus() => OffscreenWindow.Run(panel =>
     {
         var focused = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 1 });
+        List<LedHit> clicks = [];
         var other = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 0 });
+        other.ClickCommand = new RelayCommand<LedHit>(hit =>
+        {
+            clicks.Add(hit!);
+            other.ActiveLed = hit!.Index;
+        });
         OffscreenWindow.WaitUntilIdle();
         Assert.True(focused.Focus());
 
-        other.ActiveLed = 2;
-
+        other.ActiveLed = 1;
         Assert.True(focused.IsKeyboardFocused);
+
+        Click(other, 2);
+
+        Assert.Equal([new LedHit(2, Extend: false)], clicks);
+        Assert.True(other.IsKeyboardFocused);
+        Assert.Equal(2, other.ActiveLed);
+    });
+
+    // With the mouse alone the focus stays where it is, such as on a button.
+    [Fact]
+    public void Click_WithoutTheFocusInTheLeds_LeavesTheFocus() => OffscreenWindow.Run(panel =>
+    {
+        var button = new System.Windows.Controls.Button { Content = "Button" };
+        panel.Children.Add(button);
+        List<LedHit> clicks = [];
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 0, ClickCommand = new RelayCommand<LedHit>(hit => clicks.Add(hit!)) });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.True(button.Focus());
+
+        Click(view, 1);
+
+        Assert.Single(clicks);
+        Assert.True(button.IsKeyboardFocused);
+        Assert.False(view.IsKeyboardFocused);
     });
 
     // A screen reader hears the active LED as the item with the focus, with its name and
@@ -196,6 +227,15 @@ public sealed class LedPreviewViewKeyboardTests
     });
 
     private static RelayCommand<LedKeyPress> Recording(List<LedKeyPress> presses) => new(press => presses.Add(press!));
+
+    // A left click as Windows gives it, in the middle of an LED; the view gets the place of the
+    // mouse from the test, as a test cannot move the mouse.
+    private static void Click(LedPreviewView view, int led)
+    {
+        var bounds = view.BoundsOf(led);
+        view.MousePosition = _ => new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0);
+        view.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseDownEvent });
+    }
 
     private static LedPreviewView Arranged(LedPreviewView view, double width = 300.0)
     {

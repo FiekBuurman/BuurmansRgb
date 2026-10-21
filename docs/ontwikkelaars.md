@@ -71,7 +71,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen de gekozen lamp), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
-| Per-LED-editor | `LedEditorViewModelTests`, `MainViewModelLedEditorTests` (ook alleen met toetsen een reeks kiezen en kleuren, alles kiezen en Escape), `DevicePreviewKeyboardTests` (de actieve LED: vorige en volgende ook over zones heen, Home en End, de grenzen, ↑ en ↓ naar de rij die de view vond of de zone ernaast, Shift voor een reeks vanaf de LED waar je vandaan kwam, Ctrl+A, Escape alleen met een selectie op die lamp, een klik maakt een LED actief), `PreviewViewModelTests` (de actieve LED blijft als de lampen opnieuw komen), `LedPreviewViewKeyboardTests` (welke toets wat doet, de rij erboven of eronder in een rij die omloopt en op een toetsenbord met een brede spatiebalk, Tab-stop en focus naar de zone met de actieve LED, de focusring, UI Automation; met een echt venster buiten beeld) |
+| Per-LED-editor | `LedEditorViewModelTests`, `MainViewModelLedEditorTests` (ook alleen met toetsen een reeks kiezen en kleuren, alles kiezen en Escape), `DevicePreviewKeyboardTests` (de actieve LED: vorige en volgende ook over zones heen, Home en End, de grenzen, ↑ en ↓ naar de rij die de view vond of de zone ernaast, Shift voor een reeks vanaf de LED waar je vandaan kwam, Ctrl+A, Escape alleen met een selectie op die lamp, een klik maakt een LED actief), `PreviewViewModelTests` (de actieve LED blijft als de lampen opnieuw komen), `LedPreviewViewKeyboardTests` (welke toets wat doet, de rij erboven of eronder in een rij die omloopt en op een toetsenbord met een brede spatiebalk, Tab-stop en focus naar de zone met de actieve LED, een echte klik op een andere lamp neemt de focus alleen mee als die al in de LED's stond, de focusring, UI Automation; met een echt venster buiten beeld) |
 | Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests`, waaronder `MainViewModelFollowLightingTests` (Kleur volgt een scène uit het tray-menu) |
 
 ## Met de gesimuleerde lampen bekijken
@@ -92,8 +92,9 @@ toetsenbord. Een paar dingen om te proberen:
   Home en End, kies met Spatie, breid uit met Shift+→, kies alles met Ctrl+A en hef op met
   Escape. Kies een reeks, ga met Shift+Tab terug naar "Op de gekozen LED's zetten" en druk
   Spatie. Bij de ventilator met twee ringen gaat → van de binnenste ring door naar de
-  buitenste, en de focus gaat mee. Zet daarna Verteller aan (Ctrl+Win+Enter): bij elke stap
-  hoort hij de naam van de LED te zeggen ("Escape (LED 1)") en of hij geselecteerd is.
+  buitenste, en de focus gaat mee. Klik bij "Hele huis" met de focus in de toetsen op een LED
+  van een andere lamp: de ring gaat mee. Zet daarna Verteller aan (Ctrl+Win+Enter): bij elke
+  stap hoort hij de naam van de LED te zeggen ("Escape (LED 1)") en of hij geselecteerd is.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
   verder en met "+ Nog een tijd" een tweede een minuut daarna (zet er tussendoor een kleur), of
   `notepad.exe`, en start en sluit Kladblok. Een tijd weghalen gaat met "−"; de kaart zegt dan bijv.

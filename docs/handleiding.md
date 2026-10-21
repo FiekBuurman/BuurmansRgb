@@ -141,7 +141,9 @@ daarmee aan, ook bij "Verloop vullen".
 
 - **Met het toetsenbord:** ga met Tab naar de LED's van een lamp; de actieve LED krijgt een
   witte ring van 2 px en zijn naam als tooltip. Tab stopt één keer per lamp, bij de zone met de
-  actieve LED; die begint bij LED 1 en is daarna de laatste die je koos of aanklikte.
+  actieve LED; die begint bij LED 1 en is daarna de laatste die je koos of aanklikte. Staat de
+  focus al in de LED's en klik je bij "Hele huis" op een LED van een andere lamp, dan gaat de
+  focus mee naar die LED; werk je alleen met de muis, dan blijft de focus waar hij was.
 
   | Toets | Wat het doet |
   | --- | --- |
