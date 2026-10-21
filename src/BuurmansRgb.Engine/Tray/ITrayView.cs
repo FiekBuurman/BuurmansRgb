@@ -13,5 +13,9 @@ internal interface ITrayView
     // a check mark; null when none is.
     void ShowProfiles(IReadOnlyList<string>? names, string? active);
 
+    // Which of "Alles aan" and "Alles uit" can be clicked: the one that would change something,
+    // and neither while the engine is still starting.
+    void ShowAllOnOff(bool canSwitchOn, bool canSwitchOff);
+
     void ShowNotification(string text, TrayNotificationKind kind);
 }

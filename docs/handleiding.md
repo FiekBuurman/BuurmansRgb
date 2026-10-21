@@ -240,8 +240,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 
 De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
-- **Menu:** "Instellingen openen", "Scène aanzetten", "Effecten pauzeren", "Starten met
-  Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen.
+- **Menu:** "Instellingen openen", "Scène aanzetten", "Alles aan", "Alles uit", "Effecten
+  pauzeren", "Starten met Windows", "Logbestand openen" en "Afsluiten". Dubbelklik op het icoon
+  opent ook de instellingen.
+- **Alles aan** en **Alles uit** doen hetzelfde als "Alles aan of uit" in de instellingen-app.
+  Alleen wat iets verandert, is te klikken: staat alles al aan, dan is "Alles aan" grijs. Elke
+  lamp houdt zijn eigen verlichting voor als hij weer aangaat.
+- **Logbestand openen** opent `engine.log` (zie "Logbestanden") in Kladblok of het programma dat
+  bij `.log` hoort.
 - **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
   klik er een aan. Zonder scènes staat er
   "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
@@ -380,7 +386,8 @@ Wat er misgaat of gebeurt (verbinden met OpenRGB, een apparaat zonder "Direct"-m
 in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en de
 instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
 tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
-eigen hardware niet werkt.
+eigen hardware niet werkt. Het log van de engine open je ook met "Logbestand openen" in het
+tray-menu.
 
 - Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
   één keer, met daaronder hoe vaak hij nog kwam.

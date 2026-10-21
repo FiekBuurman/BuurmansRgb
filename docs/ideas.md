@@ -177,7 +177,7 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Tray-menu
 
-- "Alles uit" en "Alles aan" ook in het tray-menu, en eventueel een sneltoets
+- Een sneltoets voor "Alles aan" en "Alles uit" (die staan sinds #41 in het tray-menu)
 - Het tray-menu trimt na het sluiten het geheugen niet, zoals de engine dat na het sluiten van
   de instellingen-app wel doet
 
@@ -219,8 +219,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
-  `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
   activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")

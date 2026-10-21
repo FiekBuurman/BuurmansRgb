@@ -1,9 +1,11 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Security;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Settings;
@@ -18,6 +20,8 @@ internal sealed class TrayPresenter(
     IAutoStart autoStart,
     ISettingsAppLauncher settingsAppLauncher,
     ProfileLibrary profiles,
+    LightingController lighting,
+    Action openLog,
     ITrayView view)
 {
     private PauseReasons _pause;
@@ -113,6 +117,52 @@ internal sealed class TrayPresenter(
         }
     }
 
+    // Called when the menu opens. Everything is on when all lights are, also the ones with lighting
+    // of their own; switched on again, each shows its own lighting.
+    public void RefreshAllOnOff()
+    {
+        if (!_started)
+        {
+            view.ShowAllOnOff(canSwitchOn: false, canSwitchOff: false);
+            return;
+        }
+
+        var state = lighting.State;
+        IEnumerable<DeviceLighting> all = [state.Global, .. state.Devices.Values];
+        view.ShowAllOnOff(canSwitchOn: all.Any(device => !device.On), canSwitchOff: all.Any(device => device.On));
+    }
+
+    // Like a click on "Alles aan of uit" in the settings app. Reported like a profile that fails.
+    public void SetAllOn(bool on)
+    {
+        if (!_started)
+        {
+            return;
+        }
+
+        try
+        {
+            lighting.SetLighting(null, current => current with { On = on });
+        }
+        catch (Exception exception)
+        {
+            ReportFailure(exception, on ? Strings.AllOnFailed : Strings.AllOffFailed, TrayNotificationKind.Warning);
+        }
+    }
+
+    // The log of the engine in the app that opens .log files, Notepad by default.
+    public void OpenLog()
+    {
+        try
+        {
+            openLog();
+        }
+        catch (Exception exception) when (exception is Win32Exception or IOException or InvalidOperationException)
+        {
+            ReportFailure(exception, Strings.LogOpenFailed, TrayNotificationKind.Warning);
+        }
+    }
+
     public void SetAutoStart(bool enabled)
     {
         try
@@ -141,7 +191,7 @@ internal sealed class TrayPresenter(
     };
 
     // .NET exception messages are English, so the user only sees the Dutch text; the details
-    // go to the debug output (DebugView) until the engine logs to a file.
+    // go to the log ("Logbestand openen").
     private void ReportFailure(Exception exception, string text, TrayNotificationKind kind)
     {
         Trace.TraceError(exception.ToString());
