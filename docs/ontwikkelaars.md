@@ -444,8 +444,24 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 3. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een kleur.
 4. Geef LED 1 van een fan-ring een kleur en kijk waar die op de echte fan zit en welke kant
    LED 2 op gaat.
-5. Noteer welke controller het is, hoeveel LED's er per kanaal zitten, of het type klopt, waar
+5. Pas met OpenRGB verbonden bij `zoneLengths` in `%AppData%\BuurmansRgb\settings.json` de
+   lengte van een ARGB-kanaal aan en sla op: binnen een seconde heeft de strip de nieuwe lengte
+   (ook in de app), zonder te blijven knipperen of herladen. Zet de oude lengte terug en sla
+   weer op.
+6. Noteer welke controller het is, hoeveel LED's er per kanaal zitten, of het type klopt, waar
    LED 1 van een ring zit en of OpenRGB de lengte na een herstart vergat.
+
+### settings.json met de hand
+
+1. Open `%AppData%\BuurmansRgb\settings.json` in Kladblok terwijl de engine en de app met
+   OpenRGB verbonden draaien. Zet `color` op `"#FF0000"` en `framesPerSecond` op 10 en sla op:
+   binnen een seconde zijn de echte lampen rood en staat "Vloeiendheid" op 10. Het bestand
+   blijft zoals je het schreef.
+2. Doe hetzelfde in VS Code (dat slaat anders op dan Kladblok), met bijv. `"brightness": 0.3`
+   en een effect, en sla twee keer kort na elkaar op: de lampen volgen de laatste keer, en VS
+   Code meldt niet dat het bestand van buitenaf veranderde.
+3. Wijzig in de app een kleur en sla binnen een seconde in de editor een andere op: de kleur
+   uit het bestand blijft staan, op de lampen en in de app.
 
 ### Toetsenbord, muis en headset
 
