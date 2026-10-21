@@ -118,8 +118,6 @@ uitbreidingen in `docs/bouwplan.md`.
   het alleen met de muis in het voorbeeld (en met een schermlezer)
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
   verloop met meer dan twee kleuren
-- Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
-  zonenaam om op te klikken), bijv. met een knop "Alles selecteren"
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
   van een reeks in LED-volgorde
 - Per fan-ring kunnen kiezen waar LED 1 zit en welke kant hij op telt (draaien en spiegelen),

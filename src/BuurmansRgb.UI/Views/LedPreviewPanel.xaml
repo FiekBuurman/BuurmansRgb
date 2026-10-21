@@ -44,6 +44,13 @@
                                             </TextBlock>
                                             <TextBlock Margin="0,0,0,4" Style="{StaticResource SubText}" Text="{Binding Header}"
                                                        Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
+                                            <TextBlock Margin="0,0,0,4" FontSize="{StaticResource SubTextSize}"
+                                                       Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
+                                                <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
+                                                           AutomationProperties.Name="{Binding SelectAllAccessibleName}">
+                                                    <Run Text="{x:Static res:Strings.SelectAll}" />
+                                                </Hyperlink>
+                                            </TextBlock>
                                             <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                                   IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
                                                                   SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"

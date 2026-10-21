@@ -96,6 +96,11 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     public bool ShowsHeaderText => ShowsHeader && !CanSelectZone;
 
+    // A device with one zone shows no zone name to click, so "Alles selecteren" does that instead.
+    public bool ShowsSelectAllLink => !ShowsHeader && CanSelectZone;
+
+    public string SelectAllAccessibleName => UiText.Format(Strings.SelectAllAccessibleName, _deviceName);
+
     // How long one of the device's own zones is, when its length can be set, such as for an
     // addressable header; null for a zone of a fixed length.
     public ZoneLengthViewModel? Length { get; }

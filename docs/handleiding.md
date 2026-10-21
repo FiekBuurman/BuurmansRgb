@@ -127,7 +127,7 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks vanaf de vorige
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
-Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
+Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
 gekozen LED's zetten" en gaat de kleur alleen naar die LED's.
 
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de

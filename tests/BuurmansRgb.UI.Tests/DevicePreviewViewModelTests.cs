@@ -352,6 +352,29 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal([new LedSelection("fan", "Dual-ring fan", 8, 19)], actions.Requests);
     }
 
+    // Without a zone name to click, "Alles selecteren" selects the one zone, so all the LEDs.
+    [Fact]
+    public void SelectAll_DeviceWithOneZone_HandsOnAllItsLeds()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 30, [RgbZone.Fixed("Strip", 30)]) { Source = DeviceSource.Hardware };
+        var actions = new RecordingPreviewActions();
+        var zone = Assert.Single(new DevicePreviewViewModel(strip, actions).Zones);
+
+        Assert.True(zone.ShowsSelectAllLink);
+        Assert.Equal("Alle LED's van LED strip selecteren", zone.SelectAllAccessibleName);
+        zone.SelectZoneCommand.Execute(null);
+
+        Assert.Equal([new LedSelection("strip", "LED strip", 0, 29)], actions.Requests);
+    }
+
+    [Fact]
+    public void SelectAll_DeviceWithMoreZones_IsNotShown()
+    {
+        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]) { Source = DeviceSource.Hardware };
+
+        Assert.All(new DevicePreviewViewModel(fan).Zones, zone => Assert.False(zone.ShowsSelectAllLink));
+    }
+
     [Fact]
     public void SelectZone_ZoneWithoutLeds_CannotRunAndShowsPlainText()
     {
