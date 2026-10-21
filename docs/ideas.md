@@ -63,8 +63,6 @@ uitbreidingen in `docs/bouwplan.md`.
   verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
 - Een zone waarvan het apparaat de naam twee keer heeft, krijgt nu geen bewaarde lengte (er is
   niet te zeggen welke van de twee het was). Eventueel naam plus volgnummer binnen die naam
-- − en + van de zonelengte laten herhalen zolang je ze ingedrukt houdt (`RepeatButton`); nu is het
-  één LED per klik, en voor grote stappen de schuif (PageUp/PageDown: 10 LED's)
 
 ## Welk apparaat is wat (knipperen)
 

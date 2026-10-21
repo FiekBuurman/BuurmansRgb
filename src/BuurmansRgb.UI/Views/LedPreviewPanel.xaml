@@ -62,7 +62,7 @@
                                                         <ColumnDefinition Width="Auto" />
                                                         <ColumnDefinition Width="Auto" />
                                                     </Grid.ColumnDefinitions>
-                                                    <Button Grid.Column="0" Style="{StaticResource IconButton}" Content="−"
+                                                    <RepeatButton Grid.Column="0" Style="{StaticResource IconRepeatButton}" Content="−"
                                                             ToolTip="{x:Static res:Strings.DecreaseLedCountToolTip}" Command="{Binding Length.DecreaseCommand}"
                                                             AutomationProperties.Name="{Binding Length.DecreaseAccessibleName}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/decrease}" />
@@ -75,7 +75,7 @@
                                                             AutomationProperties.Name="{Binding Length.SliderAccessibleName}"
                                                             AutomationProperties.HelpText="{Binding LedCountHelpText}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/slider}" />
-                                                    <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="+"
+                                                    <RepeatButton Grid.Column="2" Style="{StaticResource IconRepeatButton}" Content="+"
                                                             ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}" Command="{Binding Length.IncreaseCommand}"
                                                             AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/increase}" />

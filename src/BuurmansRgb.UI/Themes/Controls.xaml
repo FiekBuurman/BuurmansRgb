@@ -302,7 +302,7 @@
     </Style>
 
     <!-- A quieter button for the smaller actions: a surface with a border and the corners of ButtonRadius. -->
-    <Style x:Key="SecondaryButton" TargetType="Button">
+    <Style x:Key="SecondaryButton" TargetType="ButtonBase">
         <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
         <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
         <Setter Property="Padding" Value="16,0" />
@@ -315,7 +315,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
+                <ControlTemplate TargetType="ButtonBase">
                     <Border x:Name="Face" CornerRadius="{DynamicResource ButtonRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
@@ -340,6 +340,17 @@
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
         <Style.Resources>
             <!-- Half of 44: a circle, as the round buttons in the design. -->
+            <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
+        </Style.Resources>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+        <Setter Property="Width" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Height" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <!-- An IconButton that repeats while it is held down, such as − and + of a zone length. -->
+    <Style x:Key="IconRepeatButton" TargetType="RepeatButton" BasedOn="{StaticResource SecondaryButton}">
+        <Style.Resources>
             <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
         </Style.Resources>
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />

@@ -114,7 +114,8 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
-  "Toepassen". Met −, + en de schuif groeit het voorbeeld meteen; de zone zelf krijgt de lengte
+  "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
+  Met −, + en de schuif groeit het voorbeeld meteen; de zone zelf krijgt de lengte
   pas als je 0,6 seconde niets verandert of de schuif loslaat, want OpenRGB laadt bij elke
   nieuwe lengte zijn apparaten opnieuw. Typen en "Toepassen" (of Enter) gaat meteen. Een zone
   met 0 LED's zegt "Nog geen LED's ingesteld", met uitleg. De lengte wordt bewaard (zie
