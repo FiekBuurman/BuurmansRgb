@@ -180,6 +180,13 @@ public sealed partial class LampsViewModel : ObservableObject
             }
         }
 
+        // A frame with only some of the lamps (Kleur asks for the one it shows) would squeeze the
+        // strip onto those; it stays as it was until a frame with all of them comes.
+        if (lit.Count < Lamps.Count)
+        {
+            return;
+        }
+
         for (var i = 0; i < Strip.Count; i++)
         {
             Strip[i].IsLit = false;

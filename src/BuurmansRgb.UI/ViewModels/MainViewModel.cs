@@ -27,6 +27,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
+    private const string FrameDevicesCall = "frame-devices";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -48,6 +49,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Whether this connection last told the engine it wants frames; the engine starts with yes.
     private bool _framesWanted = true;
+
+    // The one device this connection asked frames for, or null for all of them.
+    private string? _frameDevice;
 
     // The same for the pause of the effects.
     private int _pauseChanges;
@@ -107,6 +111,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (e.PropertyName == nameof(NavigationViewModel.CurrentPage))
             {
                 SendFramesWanted();
+                SendFrameDevices();
             }
         };
     }
@@ -189,6 +194,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Only Lampen and Kleur show what the lamps do now; the other pages need no frames.
     public bool WantsFrames => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
 
+    // Kleur with one lamp shows only that lamp; Lampen, and Kleur for the whole house, show them
+    // all (null).
+    public string? FrameDevice => Navigation.CurrentPage == AppPage.Color ? SelectedDevice?.DeviceId : null;
+
     // Whether the engine wrote the last change to its settings file, with the clock time.
     [ObservableProperty]
     public partial string SaveStatus { get; private set; } = Strings.SaveAutomatic;
@@ -224,6 +233,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
+            _frameDevice = null;
+            SendFrameDevices();
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -245,6 +256,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // made while showing engine state, such as after connecting, does not.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
+        // Also for a selection while showing engine state; not for the moment of "nothing".
+        if (newValue is not null)
+        {
+            SendFrameDevices();
+        }
+
         if (_syncing.IsActive)
         {
             return;
@@ -290,6 +307,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _framesWanted = wanted;
         _calls.Post(FramesWantedCall, () => connection.Api.SetFramesWantedAsync(wanted));
+    }
+
+    // Also only when it differs from what this connection told the engine last.
+    private void SendFrameDevices()
+    {
+        var device = FrameDevice;
+        if (_connection is not { } connection || device == _frameDevice)
+        {
+            return;
+        }
+
+        _frameDevice = device;
+        _calls.Post(FrameDevicesCall, () => connection.Api.SetFrameDevicesAsync(device is null ? null : [device]));
     }
 
     partial void OnBrightnessChanged(double value)

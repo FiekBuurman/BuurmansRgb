@@ -85,6 +85,19 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetFrameDevicesAsync_CrossesThePipe()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetFrameDevicesAsync(["fan"], Ct);
+        await client.Api.SetFrameDevicesAsync(null, Ct);
+
+        Assert.Equal(2, _api.FrameDevicesCalls.Count);
+        Assert.Equal(["fan"], _api.FrameDevicesCalls[0]!);
+        Assert.Null(_api.FrameDevicesCalls[1]);
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -445,6 +458,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
         {
             FramesWantedCalls.Add(wanted);
+            return Task.CompletedTask;
+        }
+
+        public List<IReadOnlyList<string>?> FrameDevicesCalls { get; } = [];
+
+        public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+        {
+            FrameDevicesCalls.Add(deviceIds);
             return Task.CompletedTask;
         }
 
