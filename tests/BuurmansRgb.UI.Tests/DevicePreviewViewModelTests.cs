@@ -292,6 +292,24 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("Zone RGB header van Motherboard laten knipperen", header.FlashAccessibleName);
     }
 
+    // A length that still waits for its delay goes first, so the length the user sees blinks; it is
+    // not sent a second time after the delay.
+    [Fact]
+    public void FlashZone_RightAfterAStep_SendsTheNewLengthFirst()
+    {
+        var time = new FakeTimeProvider();
+        var actions = new RecordingPreviewActions();
+        var board = new DeviceInfo("board", "Motherboard", DeviceType.Motherboard, 8,
+            [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", 2, 0, 120)]) { Source = DeviceSource.Hardware };
+        var header = new DevicePreviewViewModel(board, actions, time).Zones[1];
+
+        header.Length!.IncreaseCommand.Execute(null);
+        header.FlashCommand.Execute(null);
+        time.Advance(ZoneLengthViewModel.SendDelay);
+
+        Assert.Equal([new ZoneResize("board", 1, 3), new ZoneFlash("board", 1)], actions.Requests);
+    }
+
     // The empty header has nothing to blink, not even while the user sets a length for it.
     [Fact]
     public void ShowsFlash_OnlyForANamedZoneWithLeds()

@@ -168,11 +168,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     [RelayCommand(CanExecute = nameof(CanSelectZone))]
     private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));
 
+    // A length set with − or + that still waits for its delay goes to the engine first, so the
+    // zone blinks at the length the user sees.
     [RelayCommand(CanExecute = nameof(CanFlash))]
     private void Flash()
     {
         if (ShowsFlash)
         {
+            Length?.SendNow();
             _actions?.FlashZone(new ZoneFlash(_deviceId, _layout.Index));
         }
     }
