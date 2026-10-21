@@ -33,6 +33,22 @@ internal static class LenientJson
 
     private static T? DeserializeLeavingOut<T>(byte[] json, JsonTypeInfo<T> typeInfo, JsonException first)
     {
+        try
+        {
+            return LeaveOut(json, typeInfo, first);
+        }
+        catch (ArgumentException exception)
+        {
+            // A name twice in one object: the serializer takes the last one, but JsonNode refuses
+            // the file. Which one the user meant is anyone's guess, so it goes aside as before.
+            Trace.TraceWarning($"Settings file: {exception.Message}");
+            ExceptionDispatchInfo.Throw(first);
+            throw;
+        }
+    }
+
+    private static T? LeaveOut<T>(byte[] json, JsonTypeInfo<T> typeInfo, JsonException first)
+    {
         JsonNode? root;
         try
         {

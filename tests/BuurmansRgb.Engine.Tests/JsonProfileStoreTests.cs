@@ -94,6 +94,16 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.False(File.Exists(_store.BrokenFilePath));
     }
 
+    // The same name twice in one scene, one of them of the wrong type: aside, as before.
+    [Fact]
+    public void Load_NameTwiceWithAValueOfTheWrongType_MovesTheFileAside()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """{ "profiles": [ { "name": "Gamen", "on": true, "on": "ja" } ] }""");
+
+        Assert.Empty(_store.Load());
+        Assert.True(File.Exists(_store.BrokenFilePath));
+    }
+
     [Fact]
     public void Save_WritesTheTimeAsHoursAndMinutes()
     {

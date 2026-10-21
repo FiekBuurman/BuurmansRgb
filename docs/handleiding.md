@@ -375,7 +375,8 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   hij niet in het bestand stond, en de rest blijft gelden, ook in `profiles.json`. In een lijst
   wordt alleen dat ene onderdeel overgeslagen, zoals een scène die geen `{ … }` is. Het
   logbestand noemt elke overgeslagen waarde.
-- Is het bestand geen geldige JSON (bijv. een komma te veel) of geen `{ … }`, dan zet de engine
+- Is het bestand geen geldige JSON (bijv. een komma te veel), geen `{ … }`, of staat een naam
+  twee keer in hetzelfde `{ … }` terwijl er ook een waarde niet klopt, dan zet de engine
   het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
