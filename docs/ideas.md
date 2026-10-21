@@ -69,8 +69,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Ook één zone laten knipperen (bijv. met een knop naast de zonenaam), zodat je bij een
   moederbord met meer ARGB-headers ziet welke header welke fan of strip is; nu knippert het hele
   apparaat
-- Met de pijltjestoetsen door de lampkeuze bij Kleur lopen laat elke lamp die je passeert
-  knipperen; pas knipperen als de keuze even stil staat (bijv. 300 ms)
 - Het knipperen loopt op de framerate van de render-loop: bij een lage `framesPerSecond`
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
 - Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);

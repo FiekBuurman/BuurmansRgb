@@ -35,6 +35,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly LampSync _lampSync;
     private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
+    private readonly ITimer _flashTimer;
+    private long? _lastPick;
+    private string? _flashPending;
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
 
@@ -58,12 +61,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
+    // How long the choice of a lamp rests before it flashes, when the picks follow each other.
+    public static TimeSpan FlashRest { get; } = TimeSpan.FromMilliseconds(300);
+
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
     {
         _connector = connector;
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
+        _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         EffectsPause = new EffectsPauseViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
@@ -196,6 +203,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Zone lengths that still wait go to the engine before the connection closes.
     public void Dispose()
     {
+        _flashTimer.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
         DropConnection();
@@ -270,10 +278,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ClearLedSelection();
         _ = ShowSelectionAsync();
-        if (newValue.DeviceId is { } deviceId)
+        FlashChosen(newValue.DeviceId);
+    }
+
+    // A lamp the user picks flashes at once, unless the pick follows the one before within
+    // FlashRest, as when the arrow keys run through the list: then only the lamp the choice rests
+    // on flashes, FlashRest after the last pick. "Hele huis" (null) flashes nothing.
+    private void FlashChosen(string? deviceId)
+    {
+        var now = _time.GetTimestamp();
+        var resting = _lastPick is not { } last || _time.GetElapsedTime(last, now) >= FlashRest;
+        _lastPick = now;
+        _flashPending = null;
+        _flashTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        if (deviceId is null)
+        {
+            return;
+        }
+
+        if (resting)
+        {
+            FlashDevice(deviceId);
+            return;
+        }
+
+        _flashPending = deviceId;
+        _flashTimer.Change(FlashRest, Timeout.InfiniteTimeSpan);
+    }
+
+    private void FlashPending()
+    {
+        if (_flashPending is { } deviceId && SelectedDevice?.DeviceId == deviceId)
         {
             FlashDevice(deviceId);
         }
+
+        _flashPending = null;
     }
 
     partial void OnIsWindowMinimizedChanged(bool value) => SendFramesWanted();

@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
@@ -183,6 +184,44 @@ public sealed class MainViewModelTests
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(50.0, viewModel.Brightness);
         Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
+        Assert.Equal(["flash fan"], Api.Calls);
+    }
+
+    // Running through the list with the arrow keys flashes only the lamp the choice rests on.
+    [Fact]
+    public async Task SelectDevicesQuickly_FlashesOnlyTheLastOne_OnceTheChoiceRests()
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(_connector, time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        DeviceItem Device(string id) => viewModel.Devices.Single(device => device.DeviceId == id);
+
+        viewModel.SelectedDevice = Device("fan");
+        viewModel.SelectedDevice = Device("strip");
+        time.Advance(TimeSpan.FromMilliseconds(100));
+        viewModel.SelectedDevice = Device("fan");
+        Assert.Equal(["flash fan"], Api.Calls);
+
+        time.Advance(MainViewModel.FlashRest);
+        Assert.Equal(["flash fan", "flash fan"], Api.Calls);
+
+        time.Advance(TimeSpan.FromSeconds(1));
+        viewModel.SelectedDevice = Device("strip");
+        Assert.Equal(["flash fan", "flash fan", "flash strip"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectWholeHouseQuickly_CancelsTheFlashThatWaits()
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(_connector, time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
+        viewModel.SelectedDevice = viewModel.Devices[0];
+        time.Advance(TimeSpan.FromSeconds(1));
+
         Assert.Equal(["flash fan"], Api.Calls);
     }
 
