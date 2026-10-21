@@ -21,4 +21,8 @@ internal interface ILedArrangement
 
     // NoLed for a gap or a point outside the LEDs.
     int LedAt(Point point);
+
+    // The LED in the row above (up) or below an LED that is nearest to it sideways, for the arrow
+    // keys; NoLed when there is no such row, as at the top of a key map, or in a ring.
+    int LedInNextRow(int led, bool up);
 }

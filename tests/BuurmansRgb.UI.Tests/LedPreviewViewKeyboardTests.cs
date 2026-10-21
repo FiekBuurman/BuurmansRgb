@@ -1,0 +1,219 @@
+using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using BuurmansRgb.Core;
+using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
+using CommunityToolkit.Mvvm.Input;
+
+namespace BuurmansRgb.UI.Tests;
+
+// The keys of the per-LED editor in the view of a zone; what they do to the active LED and the
+// selection is in DevicePreviewKeyboardTests.
+public sealed class LedPreviewViewKeyboardTests
+{
+    public static TheoryData<Key, ModifierKeys, LedKey, bool> Keys => new()
+    {
+        { Key.Left, ModifierKeys.None, LedKey.Previous, false },
+        { Key.Right, ModifierKeys.Shift, LedKey.Next, true },
+        { Key.Up, ModifierKeys.None, LedKey.Up, false },
+        { Key.Down, ModifierKeys.Shift, LedKey.Down, true },
+        { Key.Home, ModifierKeys.None, LedKey.First, false },
+        { Key.End, ModifierKeys.Shift, LedKey.Last, true },
+        { Key.Space, ModifierKeys.None, LedKey.Select, false },
+        { Key.Enter, ModifierKeys.None, LedKey.Select, false },
+        { Key.Enter, ModifierKeys.Shift, LedKey.Select, true },
+        { Key.A, ModifierKeys.Control, LedKey.SelectAll, false },
+        { Key.Escape, ModifierKeys.None, LedKey.ClearSelection, false },
+    };
+
+    [Theory]
+    [MemberData(nameof(Keys))]
+    public void KeyPressOf_KeysOfThePreview(Key key, ModifierKeys modifiers, LedKey expected, bool extend) =>
+        Assert.Equal(new LedKeyPress(expected, extend), LedPreviewView.KeyPressOf(key, modifiers));
+
+    // Tab, letters and keys with Ctrl or Alt stay with the window, such as Ctrl+Tab.
+    [Theory]
+    [InlineData(Key.Tab, ModifierKeys.None)]
+    [InlineData(Key.A, ModifierKeys.None)]
+    [InlineData(Key.Right, ModifierKeys.Control)]
+    [InlineData(Key.Left, ModifierKeys.Alt)]
+    [InlineData(Key.A, ModifierKeys.Control | ModifierKeys.Shift)]
+    [InlineData(Key.Escape, ModifierKeys.Shift)]
+    public void KeyPressOf_OtherKeys_IsNull(Key key, ModifierKeys modifiers) =>
+        Assert.Null(LedPreviewView.KeyPressOf(key, modifiers));
+
+    // Six dots in rows of three: LED 1 has LED 4 below it and no row above.
+    [Fact]
+    public void PressKey_UpAndDownInRows_GiveTheLedInTheNextRow() => Sta.Run(() =>
+    {
+        List<LedKeyPress> presses = [];
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[6], ActiveLed = 1, KeyCommand = Recording(presses) }, width: 3 * LedLayout.Pitch);
+
+        Assert.True(view.PressKey(Key.Down, ModifierKeys.None));
+        Assert.True(view.PressKey(Key.Up, ModifierKeys.Shift));
+
+        Assert.Equal([new LedKeyPress(LedKey.Down, Target: 4), new LedKeyPress(LedKey.Up, Extend: true)], presses);
+    });
+
+    // The space bar reaches below A, B and C, so all of them go down to it, and up from it is the
+    // key above its middle.
+    [Fact]
+    public void PressKey_UpAndDownOnAKeyMap_FollowWideKeys() => Sta.Run(() =>
+    {
+        List<LedKeyPress> presses = [];
+        var view = Arranged(new LedPreviewView
+        {
+            Colors = new RgbColor[4],
+            Matrix = new LedMatrix(2, 3, [0, 1, 2, LedMatrix.NoLed, 3, LedMatrix.NoLed]),
+            LedNames = ["A", "B", "C", "Space"],
+            KeyCommand = Recording(presses),
+        });
+
+        view.ActiveLed = 2;
+        view.PressKey(Key.Down, ModifierKeys.None);
+        view.ActiveLed = 3;
+        view.PressKey(Key.Up, ModifierKeys.None);
+        view.PressKey(Key.Down, ModifierKeys.None);
+
+        Assert.Equal([3, 1, LedMatrix.NoLed], presses.Select(press => press.Target));
+    });
+
+    [Fact]
+    public void PressKey_UpAndDownInARing_HaveNoRow() => Sta.Run(() =>
+    {
+        List<LedKeyPress> presses = [];
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[8], IsRing = true, ActiveLed = 0, KeyCommand = Recording(presses) });
+
+        view.PressKey(Key.Down, ModifierKeys.None);
+
+        Assert.Equal(LedMatrix.NoLed, Assert.Single(presses).Target);
+    });
+
+    // The key then goes on to the window, such as Escape without a selection.
+    [Fact]
+    public void PressKey_TheCommandDoesNotTake_IsNotHandled() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 0 });
+        Assert.False(view.PressKey(Key.Right, ModifierKeys.None));
+
+        view.KeyCommand = new RelayCommand<LedKeyPress>(_ => { }, press => press!.Key != LedKey.ClearSelection);
+
+        Assert.True(view.PressKey(Key.Right, ModifierKeys.None));
+        Assert.False(view.PressKey(Key.Escape, ModifierKeys.None));
+        Assert.False(view.PressKey(Key.Tab, ModifierKeys.None));
+    });
+
+    // Tab stops once per device: at the zone with the active LED.
+    [Fact]
+    public void ActiveLed_MakesTheViewATabStop() => Sta.Run(() =>
+    {
+        var view = new LedPreviewView { Colors = new RgbColor[3] };
+        Assert.True(view.Focusable);
+        Assert.False(KeyboardNavigation.GetIsTabStop(view));
+
+        view.ActiveLed = 2;
+        Assert.True(KeyboardNavigation.GetIsTabStop(view));
+
+        view.ActiveLed = LedMatrix.NoLed;
+        Assert.False(KeyboardNavigation.GetIsTabStop(view));
+    });
+
+    // The device tells the zone that loses the active LED first (DevicePreviewViewModel).
+    [Fact]
+    public void ActiveLedToAnotherZone_TakesTheFocus() => OffscreenWindow.Run(panel =>
+    {
+        var left = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 2 });
+        var right = Added(panel, new LedPreviewView { Colors = new RgbColor[3] });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.True(left.Focus());
+
+        left.ActiveLed = LedMatrix.NoLed;
+        right.ActiveLed = 0;
+
+        Assert.True(right.IsKeyboardFocused);
+    });
+
+    // A click in another device moves its active LED, not the focus.
+    [Fact]
+    public void ActiveLedOfAnotherDevice_LeavesTheFocus() => OffscreenWindow.Run(panel =>
+    {
+        var focused = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 1 });
+        var other = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 0 });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.True(focused.Focus());
+
+        other.ActiveLed = 2;
+
+        Assert.True(focused.IsKeyboardFocused);
+    });
+
+    // A screen reader hears the active LED as the item with the focus, with its name and
+    // whether it is selected.
+    [Fact]
+    public void AutomationPeer_ActiveLedHasTheFocus() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView
+        {
+            Colors = new RgbColor[3], LedLabels = ["Escape (LED 1)", "LED 2", "F1 (LED 3)"], ActiveLed = 1, SelectionFirst = 1, SelectionLast = 1,
+        });
+        OffscreenWindow.WaitUntilIdle();
+        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+        Assert.Equal([false, true, false], leds.Select(led => led.IsKeyboardFocusable()));
+        Assert.All(leds, led => Assert.False(led.HasKeyboardFocus()));
+
+        leds[1].SetFocus();
+
+        Assert.True(view.IsKeyboardFocused);
+        Assert.Equal([false, true, false], leds.Select(led => led.HasKeyboardFocus()));
+        Assert.Equal("LED 2", leds[1].GetName());
+        Assert.Throws<InvalidOperationException>(() => leds[0].SetFocus());
+    });
+
+    // The ring around the active LED only shows while the view has the keyboard focus: 2 px,
+    // around the LED and drawn after all of them.
+    [Fact]
+    public void Render_WithTheFocus_DrawsARingAroundTheActiveLed() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], ActiveLed = 1 });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(3, Drawings(view).Count);
+
+        Assert.True(view.Focus());
+
+        var drawings = Drawings(view);
+        Assert.Equal(4, drawings.Count);
+        var ring = Assert.IsType<GeometryDrawing>(drawings[^1]);
+        Assert.Null(ring.Brush);
+        Assert.Equal(2.0, ring.Pen.Thickness);
+        Assert.True(ring.Geometry.Bounds.Contains(view.BoundsOf(1)));
+        Assert.False(ring.Geometry.Bounds.Contains(view.BoundsOf(0)));
+
+        view.ActiveLed = LedMatrix.NoLed;
+        Assert.Equal(3, Drawings(view).Count);
+    });
+
+    private static RelayCommand<LedKeyPress> Recording(List<LedKeyPress> presses) => new(press => presses.Add(press!));
+
+    private static LedPreviewView Arranged(LedPreviewView view, double width = 300.0)
+    {
+        view.Measure(new Size(width, double.PositiveInfinity));
+        view.Arrange(new Rect(0, 0, width, view.DesiredSize.Height));
+        return view;
+    }
+
+    private static LedPreviewView Added(System.Windows.Controls.Panel panel, LedPreviewView view)
+    {
+        panel.Children.Add(view);
+        return view;
+    }
+
+    // What OnRender drew last, one drawing per LED and ring.
+    private static DrawingCollection Drawings(LedPreviewView view)
+    {
+        OffscreenWindow.WaitUntilIdle();
+        return VisualTreeHelper.GetDrawing(view)?.Children ?? [];
+    }
+}

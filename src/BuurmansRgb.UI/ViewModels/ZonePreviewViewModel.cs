@@ -119,6 +119,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // zone length (ZoneLengthViewModel.FocusKey).
     public string FlashFocusKey => $"zone-flash/{_deviceId}/{_layout.Index}";
 
+    // The same for the LEDs, which have the focus while the keys move through them.
+    public string LedsFocusKey => $"zone-leds/{_deviceId}/{_layout.Index}";
+
     // How long one of the device's own zones is, when its length can be set, such as for an
     // addressable header; null for a zone of a fixed length.
     public ZoneLengthViewModel? Length { get; }

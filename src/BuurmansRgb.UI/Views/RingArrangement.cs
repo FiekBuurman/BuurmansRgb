@@ -1,4 +1,5 @@
 using System.Windows;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -33,4 +34,7 @@ internal sealed class RingArrangement : ILedArrangement
     public IReadOnlyList<Rect> Bounds => _bounds;
 
     public int LedAt(Point point) => RingLayout.LedAt(LedCount, Scale, point.X, point.Y);
+
+    // A ring has no rows; the arrow keys go round it with left and right.
+    public int LedInNextRow(int led, bool up) => LedMatrix.NoLed;
 }

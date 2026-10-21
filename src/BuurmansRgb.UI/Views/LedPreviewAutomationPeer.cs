@@ -31,6 +31,16 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
         }
     }
 
+    // The item of the active LED now has the focus, so a screen reader says its name and whether
+    // it is selected.
+    public void RaiseLedFocused(int led)
+    {
+        if (GetChildren()?.ElementAtOrDefault(led) is LedAutomationPeer item)
+        {
+            item.RaiseAutomationEvent(AutomationEvents.AutomationFocusChanged);
+        }
+    }
+
     public override object? GetPattern(PatternInterface patternInterface) =>
         patternInterface == PatternInterface.Selection ? this : base.GetPattern(patternInterface);
 
