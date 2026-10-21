@@ -113,9 +113,6 @@ uitbreidingen in `docs/bouwplan.md`.
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
 - Een kleur kiezen voor een lamp die uit staat, zet hem niet aan; misschien moet "Op de strip
   zetten" de lamp dan ook aanzetten, zoals veel lamp-apps doen
-- Wijzigt de verlichting buiten de app (een scène uit het tray-menu of op tijd), dan volgen de
-  lampen op de pagina Lampen wel, maar de schuiven bij Kleur pas als je een andere lamp kiest;
-  `LightingChanged` zou die ook kunnen verversen, als dat een sleepbeweging niet stoort
 - De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de volgende
   geslaagde wijziging, en preciezer maken (bijv. als de scène van "Vanzelf aanzetten" net
   verwijderd is)

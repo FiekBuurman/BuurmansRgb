@@ -58,6 +58,11 @@ schakelaar ernaast.
   voor wat je wijzigt: zet je de helderheid, dan houdt een lamp met een eigen kleur die kleur.
   Een wijziging bij één lamp geldt alleen voor die lamp. Is een lamp weer gelijk aan "Hele
   huis", dan volgt hij die weer.
+- **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
+  het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
+  het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
+  verschoof, springt niet terug.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 
