@@ -182,7 +182,8 @@ Hoe het vanzelf aanzetten werkt:
   het eerste terug. Een programma dat al draait als je het instelt, telt pas bij zijn volgende
   start; draait het al als de engine start, dan gaat de scène meteen aan. Sluit je de engine
   af terwijl het programma draait, dan zet hij eerst de verlichting van daarvoor terug en
-  bewaart die.
+  bewaart die. Zolang Windows vergrendeld is of slaapt (en de effecten dan pauzeren), kijkt de
+  engine niet naar programma's; meteen na het ontgrendelen kijkt hij één keer.
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
   zelf iets veranderd, dan komt hij meteen.

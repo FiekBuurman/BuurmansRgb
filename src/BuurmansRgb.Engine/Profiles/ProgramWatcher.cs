@@ -15,7 +15,8 @@ namespace BuurmansRgb.Engine.Profiles;
 // program runs, the lighting from before is put back as the program's stop would, so that is what
 // the engine saves. Called from the tray thread, IPC threads and the timer; the lock guards the
 // rest. Loading and restoring happen under the lock, so the LightingChanged they raise themselves
-// is counted before the next change.
+// is counted before the next change. While the effects pause because Windows is locked or asleep
+// (AutoPause), it does not look: nobody starts a game then. Right after, it looks once at once.
 internal sealed class ProgramWatcher : IProfileTrigger
 {
     public static TimeSpan DefaultPollInterval { get; } = TimeSpan.FromSeconds(2);
@@ -39,6 +40,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
     // Counts LightingChanged, so a stop can tell whether anything changed since its profile loaded.
     private long _changes;
+    private bool _resting;
     private bool _started;
     private bool _disposed;
 
@@ -66,7 +68,9 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
         _lighting.LightingChanged += OnLightingChanged;
         _profiles.Changed += OnProfilesChanged;
+        _lighting.PauseChanged += OnPauseChanged;
         UpdateRules(baseline: false);
+        OnPauseChanged(this, _lighting.Pause);
         Poll();
     }
 
@@ -74,6 +78,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         _lighting.LightingChanged -= OnLightingChanged;
         _profiles.Changed -= OnProfilesChanged;
+        _lighting.PauseChanged -= OnPauseChanged;
         lock (_gate)
         {
             if (_disposed)
@@ -96,6 +101,26 @@ internal sealed class ProgramWatcher : IProfileTrigger
     }
 
     private void OnProfilesChanged(object? sender, EventArgs e) => UpdateRules(baseline: true);
+
+    // Raised outside the controller's lock, and nothing here sets a pause while holding _gate.
+    private void OnPauseChanged(object? sender, PauseReasons pause)
+    {
+        lock (_gate)
+        {
+            var resting = (pause & (PauseReasons.Locked | PauseReasons.Asleep)) != PauseReasons.None;
+            if (_disposed || resting == _resting)
+            {
+                return;
+            }
+
+            _resting = resting;
+            ScheduleLocked(resting ? Timeout.InfiniteTimeSpan : TimeSpan.Zero);
+        }
+    }
+
+    // Only while some profile has a program, and not while resting.
+    private void ScheduleLocked(TimeSpan due) =>
+        _timer.Change(_watched.Count > 0 && !_resting ? due : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
     // With baseline, what already runs of a newly watched program counts as running, not as started.
     private void UpdateRules(bool baseline)
@@ -137,7 +162,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
             _rules = rules;
             _watched = watched;
             _running = running;
-            _timer.Change(watched.Count > 0 ? _pollInterval : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            ScheduleLocked(_pollInterval);
         }
     }
 
@@ -145,7 +170,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         lock (_gate)
         {
-            if (_disposed || _watched.Count == 0)
+            if (_disposed || _watched.Count == 0 || _resting)
             {
                 return;
             }
@@ -160,7 +185,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 started.ForEach(StartProgram);
             }
 
-            _timer.Change(_pollInterval, Timeout.InfiniteTimeSpan);
+            ScheduleLocked(_pollInterval);
         }
     }
 

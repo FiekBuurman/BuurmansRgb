@@ -172,9 +172,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
   (`RegisterPowerSettingNotification` met `GUID_CONSOLE_DISPLAY_STATE`); nu loopt de animatie dan
   door
-- Ook het pollen van de proceslijst (`ProgramWatcher`, elke 2 seconden) stilzetten zolang Windows
-  vergrendeld is of slaapt, en bij ontgrendelen meteen één keer kijken; nu loopt het door, al kost
-  het minder dan 0,1 ms per keer
+- Het pollen van de proceslijst stilzetten bij vergrendelen ook als `pauseOnLockAndSleep` uit
+  staat; nu volgt `ProgramWatcher` de pauze van de effecten
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat

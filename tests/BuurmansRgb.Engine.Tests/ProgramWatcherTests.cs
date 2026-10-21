@@ -50,6 +50,42 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(0, _programs.FindCount);
     }
 
+    // Nobody starts a game on the lock screen or while the pc sleeps.
+    [Theory]
+    [InlineData(PauseReasons.Locked)]
+    [InlineData(PauseReasons.Asleep)]
+    public void WhileWindowsIsLockedOrAsleep_LooksForNothing_AndRightAfterLooksAtOnce(PauseReasons reason)
+    {
+        StartWatcher();
+        var looks = _programs.FindCount;
+
+        _lighting.SetPaused(reason, true);
+        _time.Advance(TimeSpan.FromMinutes(1));
+        Assert.Equal(looks, _programs.FindCount);
+        Assert.False(_time.HasPendingTimer);
+
+        _programs.Running.Add(EldenRing);
+        _lighting.SetPaused(reason, false);
+        _time.Advance(TimeSpan.Zero);
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal(Red, _lighting.GetLighting(null).Color);
+        Assert.True(_time.HasPendingTimer);
+    }
+
+    // The pause from the tray menu is no reason to stop looking.
+    [Fact]
+    public void WhilePausedFromTheTray_KeepsLooking()
+    {
+        StartWatcher();
+        var looks = _programs.FindCount;
+
+        _lighting.SetPaused(PauseReasons.Manual, true);
+        _time.Advance(Interval);
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+    }
+
     [Fact]
     public void BeforeStart_ReadsNothing()
     {

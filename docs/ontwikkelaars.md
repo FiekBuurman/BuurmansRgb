@@ -117,7 +117,8 @@ toetsenbord. Een paar dingen om te proberen:
   nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
   ronde, waar `Process.GetProcessesByName` of een Toolhelp-snapshot 5 tot 7 ms kosten en WMI
   `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
-  ook.
+  ook. Tijdens een pauze om vergrendelen of slaapstand (`PauseReasons.Locked` of `Asleep`) staat
+  de timer stil; als die pauze eindigt, kijkt hij meteen.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
   `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`.
