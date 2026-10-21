@@ -2,7 +2,7 @@ namespace BuurmansRgb.Engine.Hotkeys;
 
 // The fixed hotkeys of "Alles aan" and "Alles uit" in the tray menu, and whether the engine uses
 // them. A fixed key can clash with another app, so they can be turned off; the tray registers
-// them (TrayPresenter.ShowHotkeys).
+// them (TrayPresenter.ApplyHotkeys).
 internal sealed class AllOnOffHotkeys
 {
     // A for "aan", U for "uit". With all three modifiers, so they are not likely to be taken.
