@@ -54,8 +54,8 @@ draaien zonder hardware. Meer in [docs/ontwikkelaars.md](docs/ontwikkelaars.md).
 ## Status
 
 Taak 0 t/m 9 uit het [bouwplan](docs/bouwplan.md) zijn gebouwd, plus een reeks uitbreidingen.
-Alles is getest met gesimuleerde lampen; het testen op echte hardware en de installer in
-Windows Sandbox staat nog open.
+Alles is getest met gesimuleerde lampen en de installer op een echte pc; het testen per
+apparaattype op echte hardware staat nog open.
 
 ## Meer lezen
 
