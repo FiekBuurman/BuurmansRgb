@@ -60,13 +60,17 @@ public sealed class ProgramWatcherTests : IDisposable
     // Nobody starts a game on the lock screen or while the pc sleeps, whether the effects pause
     // then (pauseOnLockAndSleep) or not.
     [Theory]
-    [InlineData("lock", true)]
-    [InlineData("lock", false)]
-    [InlineData("sleep", true)]
-    [InlineData("sleep", false)]
-    [InlineData("disconnect", true)]
-    [InlineData("disconnect", false)]
-    public void WhileAway_LooksForNothing_AndRightAfterLooksAtOnce(string away, bool pauseOnLockAndSleep)
+    [InlineData(Absence.Locked, true)]
+    [InlineData(Absence.Locked, false)]
+    [InlineData(Absence.Asleep, true)]
+    [InlineData(Absence.Asleep, false)]
+    [InlineData(Absence.AsleepUntilUnlocked, true)]
+    [InlineData(Absence.AsleepUntilUnlocked, false)]
+    [InlineData(Absence.ConsoleDisconnected, true)]
+    [InlineData(Absence.ConsoleDisconnected, false)]
+    [InlineData(Absence.RemoteDisconnected, true)]
+    [InlineData(Absence.RemoteDisconnected, false)]
+    public void WhileAway_LooksForNothing_AndRightAfterLooksAtOnce(Absence away, bool pauseOnLockAndSleep)
     {
         _autoPause.Enabled = pauseOnLockAndSleep;
         StartWatcher();
@@ -533,6 +537,17 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(0, away.Listeners);
     }
 
+    // How nobody is at the pc, and how that ends: AsleepUntilUnlocked wakes up without a Resume
+    // from SystemEvents, so only unlocking ends the sleep.
+    public enum Absence
+    {
+        Locked,
+        Asleep,
+        AsleepUntilUnlocked,
+        ConsoleDisconnected,
+        RemoteDisconnected,
+    }
+
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
 
@@ -543,35 +558,45 @@ public sealed class ProgramWatcherTests : IDisposable
         _watcher.Start();
     }
 
-    private void GoAway(string away)
+    private void GoAway(Absence away)
     {
         switch (away)
         {
-            case "lock":
+            case Absence.Locked:
                 _session.Raise(SessionSwitchReason.SessionLock);
                 break;
-            case "sleep":
+            case Absence.Asleep or Absence.AsleepUntilUnlocked:
                 _power.RaiseSuspending();
                 break;
-            case "disconnect":
+            case Absence.ConsoleDisconnected:
                 _session.Raise(SessionSwitchReason.ConsoleDisconnect);
                 break;
+            case Absence.RemoteDisconnected:
+                _session.Raise(SessionSwitchReason.RemoteDisconnect);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(away), away, null);
         }
     }
 
-    private void ComeBack(string away)
+    private void ComeBack(Absence away)
     {
         switch (away)
         {
-            case "lock":
+            case Absence.Locked or Absence.AsleepUntilUnlocked:
                 _session.Raise(SessionSwitchReason.SessionUnlock);
                 break;
-            case "sleep":
+            case Absence.Asleep:
                 _power.RaiseResumed();
                 break;
-            case "disconnect":
+            case Absence.ConsoleDisconnected:
                 _session.Raise(SessionSwitchReason.ConsoleConnect);
                 break;
+            case Absence.RemoteDisconnected:
+                _session.Raise(SessionSwitchReason.RemoteConnect);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(away), away, null);
         }
     }
 

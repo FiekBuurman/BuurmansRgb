@@ -258,6 +258,36 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal([PauseReasons.Locked, PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Locked, PauseReasons.None], changes);
     }
 
+    [Theory]
+    [InlineData(SessionSwitchReason.ConsoleDisconnect, SessionSwitchReason.ConsoleConnect)]
+    [InlineData(SessionSwitchReason.RemoteDisconnect, SessionSwitchReason.RemoteConnect)]
+    public void Away_DisconnectedUntilConnected_AlsoWhenDisabled(SessionSwitchReason disconnect, SessionSwitchReason connect)
+    {
+        _autoPause.Enabled = false;
+
+        _session.Raise(disconnect);
+        Assert.Equal(PauseReasons.Locked, _autoPause.Away);
+
+        _session.Raise(connect);
+        Assert.Equal(PauseReasons.None, _autoPause.Away);
+    }
+
+    // Windows can wake up without a Resume from SystemEvents; the user coming back ends the sleep.
+    [Theory]
+    [InlineData(SessionSwitchReason.SessionUnlock)]
+    [InlineData(SessionSwitchReason.ConsoleConnect)]
+    [InlineData(SessionSwitchReason.RemoteConnect)]
+    public void Away_SuspendingWithoutResume_EndsWhenTheUserIsBack_AlsoWhenDisabled(SessionSwitchReason back)
+    {
+        _autoPause.Enabled = false;
+        _power.RaiseSuspending();
+        Assert.Equal(PauseReasons.Asleep, _autoPause.Away);
+
+        _session.Raise(back);
+
+        Assert.Equal(PauseReasons.None, _autoPause.Away);
+    }
+
     [Fact]
     public void AwayChanged_RaisedOnlyForAnotherValue_AndNotForEnabled()
     {
