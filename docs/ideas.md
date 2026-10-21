@@ -110,8 +110,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ### Voorbeeld en per-LED-editor
 
-- De per-LED-editor met het toetsenbord bedienen (pijltjes, Shift+pijltje, Enter); nu kan
-  het alleen met de muis in het voorbeeld (en met een schermlezer)
+- Met ↑ en ↓ in het voorbeeld naar de LED die in de zone erboven of eronder recht boven of
+  onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
+  de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast
+- Met het toetsenbord ook van de ene lamp naar de andere in het voorbeeld gaan (bijv. Page Up en
+  Page Down); nu gaat dat met Tab, dat één keer per lamp stopt
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
   verloop met meer dan twee kleuren
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
