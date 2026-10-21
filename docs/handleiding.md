@@ -463,9 +463,19 @@ De engine pauzeert de bewegende effecten om vier redenen, die elk op zichzelf af
 
 Beide bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
 standaardwaarden weg. Wijzigingen uit de app slaat de engine een seconde na de laatste
-wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine niet draait.
+wijziging op, en bij afsluiten. Met de hand aanpassen kan ook: `settings.json` terwijl de
+engine draait (zie hieronder), `profiles.json` terwijl hij niet draait.
 
 ### settings.json
+
+Pas je `settings.json` met de hand aan terwijl de engine draait, dan neemt hij het binnen een
+seconde na het opslaan over, zonder herstart: de opties, de verlichting (algemeen, per lamp en
+per LED) en de zonelengtes. Een open instellingen-app laat het meteen zien. Daarna schrijft de
+engine het bestand zelf weer weg, in zijn eigen opmaak, als er iets veranderde; een waarde die
+niet klopte, staat er dan verbeterd in (bijv. `framesPerSecond` 500 wordt 60). Verander je
+alleen een optie, dan blijft de scène die aan staat aan; een andere verlichting zet hem uit,
+zoals elke wijziging. `activeScene` neemt hij niet over: een scène aanzetten doe je in de app
+of het tray-menu.
 
 ```json
 {
@@ -536,6 +546,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
+- Sla je terwijl de engine draait een bestand op dat zo niet te lezen is (of nog half
+  geschreven), dan verandert er niets: de engine houdt wat hij had, noemt het in het
+  logbestand en leest het bij de volgende keer opslaan opnieuw. Verbeter de fout en sla weer op.
+  Slaat de engine intussen zelf iets op (omdat je in de app iets wijzigt), dan zet hij jouw
+  bestand eerst opzij als `settings.json.broken`.
+- Wijzig je in de app iets op hetzelfde moment dat je het bestand opslaat, dan kan de engine
+  jouw wijziging overschrijven; sla dan nog eens op.
 
 ### profiles.json
 

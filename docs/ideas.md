@@ -220,7 +220,14 @@ uitbreidingen in `docs/bouwplan.md`.
   `System.Net.Sockets` sinds de koppeling met OpenRGB)
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
-- Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
+- Wijzigingen in `profiles.json` met de hand live oppikken, zoals `settings.json` nu
+  (`SettingsFileWatcher` en `SettingsReloader`); daarvoor moet `ProfileLibrary` zijn lijst opnieuw
+  lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
+- `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
+  engine dat veld bij een wijziging met de hand niet over
+- Een wijziging met de hand die samenvalt met een opslag van de engine (iets in de app
+  gewijzigd binnen dezelfde seconde) gaat nu verloren; eventueel vóór het opslaan kijken of het
+  bestand intussen door iemand anders veranderde
 
 ## Installer en uitrol
 
