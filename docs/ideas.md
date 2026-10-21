@@ -207,11 +207,12 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Engine en prestaties
 
-- De preview-frames loskoppelen van de render-loop en begrenzen: nu draait
-  `EngineApi.OnRendered` op de timer-thread en maakt per frame per verbonden instellingen-app een
-  kopie van alle buffers en een `LightingFrame`, dus met de app open alloceert elk frame en
-  vertraagt UI-werk de animatie. Bijvoorbeeld de laatste uitvoer markeren en die op een eigen
-  thread met hooguit 30 frames per seconde versturen, of alleen de zichtbare apparaten
+- Uitzoeken waar het geheugen van de instellingen-app zit: met een zichtbaar venster en de
+  regenboog 166–191 MB working set en 83–97 MB private (Release), boven het budget van 150 MB.
+  Minder beelden naar het voorbeeld halveerde de CPU maar veranderde het geheugen niet, dus het
+  zit eerder in WPF zelf (render-caches, de lettertypes, de gradiënten van `LedBulb`, het
+  voorbeeld van "Hele huis" met 246 bolletjes). Meten met dotnet-counters of PerfView
+- Alleen de beelden van de zichtbare apparaten versturen (bijv. op Kleur alleen de gekozen lamp)
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze
@@ -248,9 +249,6 @@ uitbreidingen in `docs/bouwplan.md`.
   andere map), en werkt alleen als Windows niet vergrendeld is
 - `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
   0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
-- De instellingen-app opnieuw meten met het venster zichtbaar (de metingen bij het nieuwe ontwerp
-  zijn gedaan terwijl Windows vergrendeld was, dan tekent WPF niets), vooral de gloed van de
-  bolletjes bij een regenboog op de pagina Lampen
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie

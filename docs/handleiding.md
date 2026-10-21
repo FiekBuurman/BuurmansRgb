@@ -92,7 +92,9 @@ schakelaar ernaast.
 
 Onder "Licht en beweging" staat per lamp een kaart met het icoon van zijn type, de naam en
 **Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
-ook als de effecten gepauzeerd zijn.
+ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
+voorbeeld (Scènes, Buren, Instellingen) of met het venster geminimaliseerd stuurt de engine
+geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
   toont geen zonenaam.

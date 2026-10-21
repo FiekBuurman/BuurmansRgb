@@ -69,7 +69,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
-| Voorbeeld | `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
+| Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
 | Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests`, waaronder `MainViewModelFollowLightingTests` (Kleur volgt een scène uit het tray-menu) |
 
 ## Met de gesimuleerde lampen bekijken
@@ -93,8 +93,12 @@ toetsenbord. Een paar dingen om te proberen:
 - **Render-loop:** alleen als minstens één lamp een bewegend effect toont, draait een
   `PeriodicTimer` op `framesPerSecond`; ook tijdens het knipperen. Een frame stuurt alleen de
   lampen waarvan de kleuren veranderden, en alloceert niets zolang de instellingen-app dicht
-  is (met de app open maakt de engine per frame een kopie voor het voorbeeld). Gaat een frame
-  mis, dan probeert het volgende het opnieuw.
+  is. Gaat een frame mis, dan probeert het volgende het opnieuw.
+- **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen
+  dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
+  het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
+  `IEngineApi.SetFramesWantedAsync` dat ze geen beelden wil zolang ze geminimaliseerd is of een
+  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets.
 - **Logging:** elke `Trace`-melding (`Trace.TraceError`, `TraceWarning`, `TraceInformation`) gaat
   naar `FileLog` in `BuurmansRgb.Contracts`, die de engine (`engine.log`) en de instellingen-app
   (`ui.log`) bij het starten aanzetten; ook een onafgevangen exception komt erin. Zo blijft het
@@ -158,14 +162,17 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Vergrendeld of slaapstand | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
-| App (Debug) | Op Lampen, regenboog | ~2,4 % van één kern | 113 MB working set, 39 MB private |
-| App (Debug) | Op Kleur met "Hele huis", regenboog | ~2,1 % van één kern | 133 MB working set, 43 MB private |
-| App (Debug) | Statisch | 0 % | 112–145 MB working set |
+| App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
+| App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
+| App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
+| App (Debug, Windows vergrendeld) | Lampen of Kleur, regenboog | ~2,1–2,4 % van één kern | 113–133 MB working set, 39–43 MB private |
 
 De engine is gemeten in Release met de gesimuleerde lampen en zonder OpenRGB (dan probeert hij
 elke 5 seconden te verbinden; dat is het grootste deel van de CPU bij een statische kleur).
-Meet allocaties met de app dicht. De metingen van de app zijn gedaan terwijl Windows vergrendeld
-was; dan tekent WPF niets, dus het tekenen zelf (ook van de gloed) zit er niet in.
+Meet allocaties met de app dicht. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
+in een venster van 1240 × 820; met Windows vergrendeld tekent WPF niets, dus die oudere meting
+mist het tekenen zelf (ook van de gloed). Met een zichtbaar venster zit de app boven het budget
+van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen (zie `ideas.md`).
 
 ## Installer bouwen en testen
 

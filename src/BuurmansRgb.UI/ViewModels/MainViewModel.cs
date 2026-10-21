@@ -26,6 +26,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
+    private const string FramesWantedCall = "frames-wanted";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -44,6 +45,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Counts the OpenRGB status changes shown, so an answer to GetOpenRgbStatusAsync that an event
     // overtook does not bring back the older status.
     private int _openRgbStatusChanges;
+
+    // Whether this connection last told the engine it wants frames; the engine starts with yes.
+    private bool _framesWanted = true;
 
     // The same for the pause of the effects.
     private int _pauseChanges;
@@ -98,6 +102,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
+        Navigation.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(NavigationViewModel.CurrentPage))
+            {
+                SendFramesWanted();
+            }
+        };
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -171,6 +182,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Only an effect that moves has a speed to set.
     public bool IsSpeedEnabled => EffectIds.IsAnimated(SelectedEffect?.Id);
 
+    // Set by the window. While it is minimized, the engine sends no frames for the preview.
+    [ObservableProperty]
+    public partial bool IsWindowMinimized { get; set; }
+
+    // Only Lampen and Kleur show what the lamps do now; the other pages need no frames.
+    public bool WantsFrames => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
+
     // Whether the engine wrote the last change to its settings file, with the clock time.
     [ObservableProperty]
     public partial string SaveStatus { get; private set; } = Strings.SaveAutomatic;
@@ -203,6 +221,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             connection.Api.PauseChanged += OnPauseChanged;
             connection.Api.LightingChanged += OnLightingChanged;
+            // A new connection gets frames until it says otherwise.
+            _framesWanted = true;
+            SendFramesWanted();
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -253,6 +274,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             FlashDevice(deviceId);
         }
+    }
+
+    partial void OnIsWindowMinimizedChanged(bool value) => SendFramesWanted();
+
+    // Only when it differs from what this connection told the engine last. Coming back sends the
+    // latest frame by itself, so the preview is right again at once.
+    private void SendFramesWanted()
+    {
+        var wanted = WantsFrames;
+        if (_connection is not { } connection || wanted == _framesWanted)
+        {
+            return;
+        }
+
+        _framesWanted = wanted;
+        _calls.Post(FramesWantedCall, () => connection.Api.SetFramesWantedAsync(wanted));
     }
 
     partial void OnBrightnessChanged(double value)

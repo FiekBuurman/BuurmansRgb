@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
+using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -252,13 +253,35 @@ public sealed class EngineApiTests : IDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         using var api = CreateApi();
-        LightingFrame? received = null;
-        api.FrameRendered += (_, frame) => received = frame;
+        var received = new TaskCompletionSource<LightingFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
+        api.FrameRendered += (_, frame) => received.TrySetResult(frame);
 
         await api.SetColorAsync(null, new RgbColor(1, 2, 3), Ct);
 
-        Assert.NotNull(received);
-        Assert.All(received.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(new RgbColor(1, 2, 3), led));
+        // Not on the thread that rendered, but on the thread pool, a moment later.
+        var frame = await received.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.All(frame.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(new RgbColor(1, 2, 3), led));
+    }
+
+    [Fact]
+    public async Task SetFramesWantedAsync_False_SendsNoFrames_AndTrueSendsTheLatestRightAway()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var time = new FakeTimeProvider();
+        using var api = new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb, time: time);
+        var frames = new List<LightingFrame>();
+        api.FrameRendered += (_, frame) => frames.Add(frame);
+
+        await api.SetFramesWantedAsync(false, Ct);
+        await api.SetColorAsync(null, new RgbColor(1, 2, 3), Ct);
+        time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Empty(frames);
+
+        await api.SetFramesWantedAsync(true, Ct);
+        time.Advance(TimeSpan.Zero);
+
+        var frame = Assert.Single(frames);
+        Assert.All(frame.Devices.SelectMany(device => device.ToColors()), led => Assert.Equal(new RgbColor(1, 2, 3), led));
     }
 
     [Fact]

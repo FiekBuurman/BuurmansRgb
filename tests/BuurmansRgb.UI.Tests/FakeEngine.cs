@@ -174,6 +174,15 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
 
+    // What the app said last; null while it said nothing, so the engine sends frames.
+    public bool? FramesWanted { get; private set; }
+
+    public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
+    {
+        FramesWanted = wanted;
+        return Task.CompletedTask;
+    }
+
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
         Record($"color {deviceId ?? "all"} {color.ToHex()}");
 

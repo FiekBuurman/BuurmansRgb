@@ -74,6 +74,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetFramesWantedAsync_CrossesThePipe()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetFramesWantedAsync(false, Ct);
+        await client.Api.SetFramesWantedAsync(true, Ct);
+
+        Assert.Equal([false, true], _api.FramesWantedCalls);
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -428,6 +439,14 @@ public sealed class EngineRpcTests : IDisposable
             Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting))]);
 
         public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(LightingFrame.Empty);
+
+        public List<bool> FramesWantedCalls { get; } = [];
+
+        public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
+        {
+            FramesWantedCalls.Add(wanted);
+            return Task.CompletedTask;
+        }
 
         public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
         {
