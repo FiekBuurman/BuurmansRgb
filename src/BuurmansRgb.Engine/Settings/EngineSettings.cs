@@ -12,7 +12,8 @@ internal sealed record EngineSettings : LightingStateSettings
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;
 
-    // Whether the animation pauses while Windows is locked or asleep (AutoPause).
+    // Whether the animation pauses while Windows is locked or asleep, or the screen is off
+    // (AutoPause). The name is from before the screen counted, and stays for settings.json.
     public bool PauseOnLockAndSleep { get; set; } = true;
 
     // Whether the scene of the last time that passed comes on after waking up and at the start

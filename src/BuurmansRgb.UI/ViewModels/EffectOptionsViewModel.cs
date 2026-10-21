@@ -5,8 +5,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace BuurmansRgb.UI.ViewModels;
 
 // The options of the effects on Instellingen: how smooth they move, and whether they pause while
-// Windows is locked or asleep. This only asks; MainViewModel sends a change to the engine, which
-// saves it.
+// Windows is locked or asleep, or the screen is off. This only asks; MainViewModel sends a change
+// to the engine, which saves it.
 public sealed partial class EffectOptionsViewModel : ObservableObject
 {
     private static readonly IReadOnlyList<FrameRateOption> Standard =
