@@ -17,5 +17,8 @@ internal interface ITrayView
     // and neither while the engine is still starting.
     void ShowAllOnOff(bool canSwitchOn, bool canSwitchOff);
 
+    // The hotkeys that work now, to show next to "Alles aan" and "Alles uit"; null for none.
+    void ShowAllOnOffHotkeys(string? allOn, string? allOff);
+
     void ShowNotification(string text, TrayNotificationKind kind);
 }

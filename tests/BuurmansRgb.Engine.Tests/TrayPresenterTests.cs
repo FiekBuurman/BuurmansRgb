@@ -1,5 +1,7 @@
+using System.Windows.Forms;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
@@ -15,6 +17,8 @@ public sealed class TrayPresenterTests : IDisposable
     private readonly FakeAutoStart _autoStart = new();
     private readonly FakeSettingsAppLauncher _launcher = new();
     private readonly FakeTrayView _view = new();
+    private readonly AllOnOffHotkeys _hotkeys = new();
+    private readonly FakeGlobalHotkeys _globalHotkeys = new();
     private readonly InMemoryProfileStore _profileStore = new();
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly ProfileLibrary _profiles;
@@ -430,8 +434,155 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Equal([(Strings.LogOpenFailed, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
+    [Fact]
+    public void ApplyHotkeys_BeforeTheEngineStarted_RegistersNothing()
+    {
+        CreatePresenter().ApplyHotkeys();
+
+        Assert.Empty(_globalHotkeys.Registered);
+        Assert.Equal((null, null), _view.Hotkeys);
+    }
+
+    [Fact]
+    public async Task StartAsync_RegistersBothHotkeysAndShowsThemInTheMenu()
+    {
+        await StartedPresenterAsync();
+
+        Assert.Equal([AllOnOffHotkeys.AllOn, AllOnOffHotkeys.AllOff], _globalHotkeys.Registered);
+        Assert.Equal(("Ctrl+Alt+Shift+A", "Ctrl+Alt+Shift+U"), _view.Hotkeys);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task StartAsync_HotkeysOff_RegistersNothing()
+    {
+        _hotkeys.Enabled = false;
+
+        await StartedPresenterAsync();
+
+        Assert.Empty(_globalHotkeys.Registered);
+        Assert.Equal((null, null), _view.Hotkeys);
+    }
+
+    [Fact]
+    public async Task StartAsync_Failed_RegistersNothing()
+    {
+        _host.StartException = new IOException("Disk unavailable.");
+
+        await CreatePresenter().StartAsync(Ct);
+
+        Assert.Empty(_globalHotkeys.Registered);
+    }
+
+    [Fact]
+    public async Task AllOffHotkey_DoesWhatAllesUitDoes()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.SetLighting(RecordingDeviceProvider.DeviceId, current => current with { Color = Red });
+        var presenter = await StartedPresenterAsync();
+
+        _globalHotkeys.Press(AllOnOffHotkeys.AllOff);
+        presenter.RefreshAllOnOff();
+
+        Assert.False(_lighting.GetLighting(null).On);
+        Assert.False(_lighting.GetLighting(RecordingDeviceProvider.DeviceId).On);
+        Assert.Equal((true, false), _view.AllOnOff);
+    }
+
+    [Fact]
+    public async Task AllOnHotkey_DoesWhatAllesAanDoes()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.SetLighting(null, current => current with { On = false });
+        _lighting.SetLighting(RecordingDeviceProvider.DeviceId, current => current with { On = false });
+        await StartedPresenterAsync();
+
+        _globalHotkeys.Press(AllOnOffHotkeys.AllOn);
+
+        Assert.True(_lighting.GetLighting(null).On);
+        Assert.True(_lighting.GetLighting(RecordingDeviceProvider.DeviceId).On);
+    }
+
+    // The settings app turned them off: the keys go back to Windows and do nothing any more.
+    [Fact]
+    public async Task ApplyHotkeys_TurnedOff_GivesTheKeysBackAndHidesThem()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var presenter = await StartedPresenterAsync();
+
+        _hotkeys.Enabled = false;
+        presenter.ApplyHotkeys();
+        _globalHotkeys.Press(AllOnOffHotkeys.AllOff);
+
+        Assert.Empty(_globalHotkeys.Registered);
+        Assert.Equal((null, null), _view.Hotkeys);
+        Assert.True(_lighting.GetLighting(null).On);
+    }
+
+    [Fact]
+    public async Task ApplyHotkeys_TurnedOnAgain_RegistersThemAgain()
+    {
+        var presenter = await StartedPresenterAsync();
+        _hotkeys.Enabled = false;
+        presenter.ApplyHotkeys();
+
+        _hotkeys.Enabled = true;
+        presenter.ApplyHotkeys();
+
+        Assert.Equal(2, _globalHotkeys.Registered.Count);
+        Assert.Equal(("Ctrl+Alt+Shift+A", "Ctrl+Alt+Shift+U"), _view.Hotkeys);
+    }
+
+    [Fact]
+    public async Task ApplyHotkeys_AgainWhileOn_DoesNotRegisterTwice()
+    {
+        var presenter = await StartedPresenterAsync();
+
+        presenter.ApplyHotkeys();
+
+        Assert.Equal(2, _globalHotkeys.RegisterCount);
+    }
+
+    // Another app has the key: the engine goes on, the other key works and the menu shows only that one.
+    [Fact]
+    public async Task StartAsync_OneHotkeyTaken_WarnsAndKeepsTheOther()
+    {
+        _globalHotkeys.Taken.Add(AllOnOffHotkeys.AllOn);
+
+        await StartedPresenterAsync();
+
+        Assert.Equal([AllOnOffHotkeys.AllOff], _globalHotkeys.Registered);
+        Assert.Equal((null, "Ctrl+Alt+Shift+U"), _view.Hotkeys);
+        Assert.Equal([("De sneltoets Ctrl+Alt+Shift+A werkt niet: een andere app gebruikt hem al.", TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    [Fact]
+    public async Task StartAsync_BothHotkeysTaken_WarnsOnce()
+    {
+        _globalHotkeys.Taken.UnionWith([AllOnOffHotkeys.AllOn, AllOnOffHotkeys.AllOff]);
+
+        await StartedPresenterAsync();
+
+        Assert.Equal((null, null), _view.Hotkeys);
+        Assert.Equal([("De sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U werken niet: een andere app gebruikt ze al.", TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    // Turned on again after the other app closed, the key works after all.
+    [Fact]
+    public async Task ApplyHotkeys_KeyFreeAgain_RegistersIt()
+    {
+        _globalHotkeys.Taken.Add(AllOnOffHotkeys.AllOn);
+        var presenter = await StartedPresenterAsync();
+
+        _globalHotkeys.Taken.Clear();
+        presenter.ApplyHotkeys();
+
+        Assert.Equal(("Ctrl+Alt+Shift+A", "Ctrl+Alt+Shift+U"), _view.Hotkeys);
+        Assert.Single(_view.Notifications);
+    }
+
     private TrayPresenter CreatePresenter(Action? openLog = null) =>
-        new(_host, _autoStart, _launcher, _profiles, _lighting, openLog ?? (() => { }), _view);
+        new(_host, _autoStart, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view);
 
     private async Task<TrayPresenter> StartedPresenterAsync()
     {
@@ -513,6 +664,10 @@ public sealed class TrayPresenterTests : IDisposable
         public (bool CanSwitchOn, bool CanSwitchOff) AllOnOff { get; private set; } = (true, true);
 
         public void ShowAllOnOff(bool canSwitchOn, bool canSwitchOff) => AllOnOff = (canSwitchOn, canSwitchOff);
+
+        public (string? AllOn, string? AllOff) Hotkeys { get; private set; }
+
+        public void ShowAllOnOffHotkeys(string? allOn, string? allOff) => Hotkeys = (allOn, allOff);
 
         public void ShowNotification(string text, TrayNotificationKind kind) => Notifications.Add((text, kind));
     }

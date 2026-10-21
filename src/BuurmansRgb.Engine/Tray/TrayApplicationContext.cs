@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
@@ -24,6 +25,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly SynchronizationContext _uiContext;
     private readonly IEngineHost _host;
     private readonly IServerStatusSource _openRgb;
+    private readonly AllOnOffHotkeys _hotkeys;
+    private readonly WindowsGlobalHotkeys _globalHotkeys = new();
     private readonly CancellationTokenSource _shutdown = new();
 
     public TrayApplicationContext(
@@ -33,6 +36,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         ProfileLibrary profiles,
         LightingController lighting,
         IServerStatusSource openRgb,
+        AllOnOffHotkeys hotkeys,
         string logPath,
         Action? trimMemory = null)
     {
@@ -42,6 +46,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             settingsAppLauncher,
             profiles,
             lighting,
+            hotkeys,
+            _globalHotkeys,
             () => Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true })?.Dispose(),
             this);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
@@ -106,6 +112,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _host = host;
         _host.PauseChanged += OnPauseChanged;
         _presenter.ShowPause(_host.Pause);
+        _hotkeys = hotkeys;
+        _hotkeys.EnabledChanged += OnHotkeysEnabledChanged;
 
         // Continues on the UI thread once Application.Run pumps messages; "Afsluiten" cancels it.
         _ = _presenter.StartAsync(_shutdown.Token);
@@ -153,6 +161,13 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _allOffItem.Enabled = canSwitchOff;
     }
 
+    // Only shown: the keys work through RegisterHotKey, also while the menu is closed.
+    void ITrayView.ShowAllOnOffHotkeys(string? allOn, string? allOff)
+    {
+        _allOnItem.ShortcutKeyDisplayString = allOn;
+        _allOffItem.ShortcutKeyDisplayString = allOff;
+    }
+
     void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>
         _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, ToToolTipIcon(kind));
 
@@ -169,6 +184,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         {
             _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
             _host.PauseChanged -= OnPauseChanged;
+            _hotkeys.EnabledChanged -= OnHotkeysEnabledChanged;
+            _globalHotkeys.Dispose();
             _notifyIcon.Icon?.Dispose();
             _notifyIcon.Dispose();
             _menu.Dispose();
@@ -185,6 +202,11 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     // Also raised on an IPC thread, when the settings app ends the pause.
     private void OnPauseChanged(object? sender, PauseReasons pause) =>
         _uiContext.Post(_ => _presenter.ShowPause(pause), state: null);
+
+    // Also from an IPC thread, when the settings app turns the hotkeys on or off; the keys belong
+    // to the window on this thread.
+    private void OnHotkeysEnabledChanged(object? sender, EventArgs e) =>
+        _uiContext.Post(_ => _presenter.ApplyHotkeys(), state: null);
 
     private static ToolTipIcon ToToolTipIcon(TrayNotificationKind kind) => kind switch
     {

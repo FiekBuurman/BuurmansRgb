@@ -5,6 +5,7 @@ using System.Security;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
@@ -21,9 +22,12 @@ internal sealed class TrayPresenter(
     ISettingsAppLauncher settingsAppLauncher,
     ProfileLibrary profiles,
     LightingController lighting,
+    AllOnOffHotkeys hotkeys,
+    IGlobalHotkeys globalHotkeys,
     Action openLog,
     ITrayView view)
 {
+    private readonly HashSet<Keys> _registeredHotkeys = [];
     private PauseReasons _pause;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
 
@@ -38,6 +42,7 @@ internal sealed class TrayPresenter(
         {
             await host.StartAsync(ct);
             _started = true;
+            ApplyHotkeys();
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -150,6 +155,39 @@ internal sealed class TrayPresenter(
         }
     }
 
+    // Registers the hotkeys of "Alles aan" and "Alles uit" while they are on, from the start of the
+    // engine on (before it they would do nothing, as the menu items), and gives them back when they
+    // are turned off. Called again when hotkeys.Enabled changes. A key another app has already
+    // stays out, which a notification tells; the next call tries it again. The menu shows a key
+    // next to its item only while it works.
+    public void ApplyHotkeys()
+    {
+        if (_started && hotkeys.Enabled)
+        {
+            var taken = new List<string>();
+            RegisterHotkey(AllOnOffHotkeys.AllOn, on: true, taken);
+            RegisterHotkey(AllOnOffHotkeys.AllOff, on: false, taken);
+            if (taken.Count > 0)
+            {
+                var text = taken.Count == 1
+                    ? string.Format(CultureInfo.CurrentCulture, Strings.HotkeyTaken, taken[0])
+                    : string.Format(CultureInfo.CurrentCulture, Strings.HotkeysTaken, taken[0], taken[1]);
+                view.ShowNotification(text, TrayNotificationKind.Warning);
+            }
+        }
+        else
+        {
+            foreach (var key in _registeredHotkeys)
+            {
+                globalHotkeys.Unregister(key);
+            }
+
+            _registeredHotkeys.Clear();
+        }
+
+        view.ShowAllOnOffHotkeys(HotkeyText(AllOnOffHotkeys.AllOn), HotkeyText(AllOnOffHotkeys.AllOff));
+    }
+
     // The log of the engine in the app that opens .log files, Notepad by default.
     public void OpenLog()
     {
@@ -175,6 +213,26 @@ internal sealed class TrayPresenter(
             ReportFailure(exception, Strings.AutoStartFailed, TrayNotificationKind.Warning);
         }
     }
+
+    // A pressed key does what its menu item does.
+    private void RegisterHotkey(Keys key, bool on, List<string> taken)
+    {
+        if (_registeredHotkeys.Contains(key))
+        {
+            return;
+        }
+
+        if (globalHotkeys.Register(key, () => SetAllOn(on)))
+        {
+            _registeredHotkeys.Add(key);
+        }
+        else
+        {
+            taken.Add(AllOnOffHotkeys.DisplayText(key));
+        }
+    }
+
+    private string? HotkeyText(Keys key) => _registeredHotkeys.Contains(key) ? AllOnOffHotkeys.DisplayText(key) : null;
 
     // The first line tells whether the effects run, the second how it goes with OpenRGB.
     private void ShowToolTip() =>
