@@ -6,6 +6,15 @@ De app heet **BuurmansRgb**: een lichtgewicht Windows-app in C# die alle RGB in 
 
 BuurmansRgb draait als klein achtergrondproces met een tray-icoon. De instellingen-UI open je alleen als je iets wilt wijzigen; sluit je hem, dan verdwijnt hij volledig uit het geheugen.
 
+## Stand
+
+Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreidingen (zie
+"Uitbreidingen na taak 9" onderaan). Wat nog open staat, zijn de acceptatiecriteria die
+alleen met echte hardware of in Windows Sandbox te testen zijn: taak 3, de
+`dotnet-counters`-meting van taak 4, taak 5 t/m 8 en taak 9. Die test de gebruiker zelf;
+de stappen staan in `README.md` onder "Zelf testen op echte hardware" en "Installer bouwen en
+testen".
+
 ## Uitgangspunten en eisen
 
 De kern is: hardware aansturen via OpenRGB, zelf alleen de engine, effecten en UI bouwen. Zo hoef je niet per merk een protocol te reverse-engineeren en draait BuurmansRgb zonder adminrechten.
@@ -52,15 +61,28 @@ BuurmansRgb bestaat uit twee processen: een kleine engine die altijd draait en d
 
 De engine kent hardware alleen via `IDeviceProvider`, dus een nieuwe bron (bijvoorbeeld later een eigen HID-driver) is een extra provider zonder wijzigingen elders. Helderheid past de engine toe ná het effect, door elke kleur te schalen; zo werkt de helderheidsschuif op elk effect.
 
-Kern-interfaces in `Core`, als startpunt voor taak 0:
+Naast wat in de tekening staat, heeft de engine inmiddels ook: scènes (`Profiles`: opslaan in
+`profiles.json`, aanzetten op tijd of bij een programma), automatisch pauzeren bij vergrendelen
+en slaapstand en herstellen na het ontwaken (`Power`), het bewaren en terugzetten van
+zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde en echte apparaten
+(`SimulatedDevicesSwitch`).
+
+Kern-interfaces in `Core`. Zo zijn ze nu; taak 0 begon met een kleinere versie (`RgbZone` met
+alleen `Resizable`, minder apparaattypes):
 
 ```csharp
 public readonly record struct RgbColor(byte R, byte G, byte B);
 
-public enum DeviceType { Motherboard, Ram, Gpu, Fan, LedStrip, Case, Keyboard, Mouse, Headset, Other }
+public enum DeviceType
+{
+    Motherboard, Ram, Gpu, Fan, LedStrip, Case, Keyboard, Mouse, Headset, Other,
+    Mousemat, HeadsetStand, Speaker, Gamepad, Microphone, Keypad,
+}
 
-public sealed record RgbZone(string Name, int LedCount, bool Resizable);
+// Resizable als MinLedCount < MaxLedCount; Matrix en LedNames komen van OpenRGB.
+public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int MaxLedCount);
 
+// Met daarnaast Source (OpenRGB of gesimuleerd), Location en HasDirectMode.
 public sealed record RgbDevice(string Id, string Name, DeviceType Type,
     IReadOnlyList<RgbZone> Zones, int LedCount);
 
@@ -78,20 +100,27 @@ public interface IEffect
 }
 ```
 
+Een provider kan meer: `IDynamicDeviceProvider` (meldt een nieuwe apparatenlijst),
+`IResizableDeviceProvider` (zonelengte instellen), `IRestorableDeviceProvider` (apparaten
+opnieuw klaarzetten na slaapstand) en `IServerStatusSource` (de OpenRGB-status).
+
 De loop per LED ziet er zo uit, hier als regenboog die over de strip schuift:
 
 ```csharp
-public sealed class RainbowEffect : IEffect
+public sealed class RainbowEffect(double roundsPerSecond = RainbowEffect.DefaultRoundsPerSecond) : IEffect
 {
+    public const double DefaultRoundsPerSecond = 0.2;
+
+    public double RoundsPerSecond { get; } = EffectMath.FiniteSpeed(roundsPerSecond);
+
     public bool IsAnimated => true;
-    public double Speed { get; set; } = 0.2; // rondes per seconde
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        for (int i = 0; i < leds.Length; i++)
+        var shift = time.TotalSeconds * RoundsPerSecond;
+        for (var i = 0; i < leds.Length; i++)
         {
-            double hue = (i / (double)leds.Length + time.TotalSeconds * Speed) % 1.0;
-            leds[i] = RgbColor.FromHsv(hue, 1.0, 1.0);
+            leds[i] = RgbColor.FromHsv(i / (double)leds.Length + shift, 1.0, 1.0);
         }
     }
 }
@@ -109,8 +138,9 @@ Gebruik .NET 10 (de huidige LTS-versie) met WPF voor de UI en een UI-loos engine
 | Hardware | OpenRGB SDK-server + NuGet `OpenRGB.NET` | Ondersteunt honderden apparaten via één TCP-protocol (poort 6742) |
 | UI ↔ engine | Named pipe + StreamJsonRpc | Lokaal, snel, geen netwerkpoort open |
 | Opslag | JSON in `%AppData%\BuurmansRgb\` | Leesbaar, makkelijk te debuggen |
-| Logging | `Microsoft.Extensions.Logging` naar bestand | Standaard, uitzetbaar |
-| Tests | xUnit | Effecten en mapping testen zonder hardware |
+| Logging | `Microsoft.Extensions.Logging` naar bestand | Standaard, uitzetbaar (nog niet gebouwd: nu `Trace`, zie `docs/ideas.md`) |
+| Tests | xUnit v3 op Microsoft.Testing.Platform | Effecten en mapping testen zonder hardware |
+| Installer | Inno Setup 7.1 | Eén setup met OpenRGB en PawnIO, zie `docs/openrgb-meeleveren.md` |
 
 Solution-indeling:
 
@@ -118,15 +148,18 @@ Solution-indeling:
 BuurmansRgb.slnx
 ├─ src/
 │  ├─ BuurmansRgb.Core                // modellen, interfaces, kleur-wiskunde
-│  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, PerLed
+│  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, ColorLoop, PerLed
 │  ├─ BuurmansRgb.Contracts           // IPC-interface, DTO's en de pipe- en RPC-opzet
 │  ├─ BuurmansRgb.Providers.Simulated // nep-apparaten voor ontwikkeling
 │  ├─ BuurmansRgb.Providers.OpenRgb   // koppeling met OpenRGB SDK-server
-│  ├─ BuurmansRgb.Engine              // tray, render-loop, IPC-server, opslag
+│  ├─ BuurmansRgb.Engine              // tray, render-loop, IPC-server, opslag, scènes, pauze
 │  └─ BuurmansRgb.UI                  // WPF, start op verzoek, stopt bij sluiten
-└─ tests/
-   ├─ BuurmansRgb.Core.Tests
-   └─ BuurmansRgb.Effects.Tests
+├─ tests/
+│  ├─ BuurmansRgb.<project>.Tests     // een testproject per project hierboven
+│  ├─ BuurmansRgb.Providers.OpenRgb.Testing // nep-OpenRGB-server, zonder eigen tests
+│  └─ Shared                          // helpers die elk testproject meebouwt
+├─ installer/                         // build.ps1, BuurmansRgb.iss, Sandbox-test
+└─ design/                            // ontwerppakket van de instellingen-app
 ```
 
 ## Prestatiebudget voor achtergrondgebruik
@@ -138,6 +171,10 @@ Doel: met gesloten UI en een statische kleur gebruikt de engine vrijwel 0% CPU, 
 | Engine, statische kleur, UI dicht | ~0% (geen timer actief) | < 50 MB |
 | Engine, animatie op 30 fps, UI dicht | < 1% | < 60 MB |
 | UI open met live preview | geen harde eis | < 150 MB |
+
+Gemeten (Release, gesimuleerde apparaten, zonder OpenRGB; de details staan in `README.md`
+onder "Metingen"): statisch ~0,07 % van één kern en ~21–24 MB working set, regenboog op 30 fps
+~0,35 % van één kern en ~22–27 MB, de instellingen-app (Debug) ~110–145 MB.
 
 Maatregelen die dit mogelijk maken:
 
@@ -151,7 +188,7 @@ Maatregelen die dit mogelijk maken:
 
 ## Fasering
 
-Bouw in negen fasen; na fase 3 heb je al een werkende app met één echte kleur op echte hardware. Elke fase eindigt met iets dat je kunt starten en zien.
+Bouw in tien fasen; na fase 3 heb je al een werkende app met één echte kleur op echte hardware. Elke fase eindigt met iets dat je kunt starten en zien.
 
 0. **Fundament.** Solution, `Core`-modellen, gesimuleerd apparaat, eerste tests.
 1. **Engine + tray.** Achtergrondproces met tray-menu (UI openen, effecten pauzeren, afsluiten), opslag in JSON, optioneel autostart.
@@ -162,8 +199,11 @@ Bouw in negen fasen; na fase 3 heb je al een werkende app met één echte kleur 
 6. **GPU.** Apparaattype GPU, zelfde flow.
 7. **Fans, case-LED en ARGB-strips.** Zones instelbaar in lengte (aantal LED's per strip), ventilatoren per ring.
 8. **Toetsenbord, muis en headset.** Toetsenbord met matrixweergave per toets, muis met zones, headset waar OpenRGB het ondersteunt.
+9. **Installer.** Eén setup die BuurmansRgb, OpenRGB als service en PawnIO neerzet.
 
-Na fase 8 als losse uitbreidingen: profielen per moment (gamen, werken, nacht; opslaan en laden in de instellingen-app, laden vanuit de tray en vanzelf op tijd of bij een programma zijn er), alle apparaten synchroon laten lopen, en eventueel eigen HID-providers voor apparaten die OpenRGB niet kent.
+Na fase 9 als losse uitbreidingen; wat er al is, staat in "Uitbreidingen na taak 9" onderaan
+(o.a. profielen, die in de app scènes heten). Nog open zijn onder meer alle apparaten synchroon
+laten lopen en eigen HID-providers voor apparaten die OpenRGB niet kent; zie `docs/ideas.md`.
 
 ## Agent-taken
 
@@ -199,6 +239,10 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 - [x] UI sluiten laat de engine draaien; het UI-proces staat niet meer in Taakbeheer
 - [x] UI geeft een nette melding als de engine niet draait
 
+Later veranderd: de pipe heet `BuurmansRgb.Engine.<sessie-id>`, zodat elke ingelogde gebruiker
+zijn eigen engine heeft, en sinds het nieuwe ontwerp (#26) heeft de UI geen apparatenlijst
+links meer maar de pagina's Lampen, Kleur, Scènes, Buren en Instellingen (zie `README.md`).
+
 ### Taak 3 – OpenRGB-koppeling
 
 **Opdracht:** Bouw `Providers.OpenRgb` met NuGet `OpenRGB.NET`. Verbind met `127.0.0.1:6742`, vertaal OpenRGB-apparaten, zones en LED's naar de `Core`-modellen en stuur kleuren met de update-LED-aanroepen. Zet bij verbinden elk apparaat in de modus "Direct" of "Custom". Probeer bij verlies elke 5 seconden opnieuw te verbinden.
@@ -208,7 +252,11 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 - [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI; met "Gesimuleerd: Altijd" naast de gesimuleerde (standaard, "Automatisch", verdwijnen de gesimuleerde zodra er echte zijn)
 - [ ] Statische kleur komt aan op minstens één echt apparaat
 - [ ] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart
-- [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app: "Gesimuleerde apparaten tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
+- [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app bij Instellingen: "Gesimuleerde lampen tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
+
+Stand taak 3: gebouwd en getest met nepdata en een kleine SDK-server. De drie open criteria
+vragen OpenRGB met echte apparaten; die test de gebruiker zelf (zie "Zelf testen op echte
+hardware" in `README.md`).
 
 ### Taak 4 – Effect-engine
 
@@ -242,35 +290,26 @@ Gebruik deze opdracht vier keer, telkens met één type: **5** moederbord en RAM
 - [ ] Na slaapstand en hervatten staan de kleuren weer goed
 - [ ] `docs/hardware.md` bijgewerkt
 
-Stand taak 5 (moederbord en RAM): icoon, type en zones in de instellingen-app, een
-gesimuleerd moederbord en twee RAM-sticks, en herstellen na het ontwaken zijn gebouwd en
-getest zonder hardware (nepdata van OpenRGB en een nepklok). De vier criteria hierboven
-vragen echte hardware; die test de gebruiker zelf, zie "Moederbord en RAM" in `README.md`.
+De vier criteria hierboven vragen echte hardware en staan daarom voor alle vier de types nog
+open; de gebruiker test ze zelf, zie "Zelf testen op echte hardware" in `README.md`. Wat per
+type gebouwd en zonder hardware getest is (met nepdata van OpenRGB, een kleine SDK-server en
+een nepklok):
 
-Stand taak 6 (GPU): icoon en Nederlandse typenaam ("Videokaart") in de instellingen-app, een
-gesimuleerde videokaart met twee zones, en tests met nepdata van OpenRGB voor de vertaling,
-kaarten zonder "Direct"-modus, twee dezelfde kaarten en herstellen na het ontwaken zijn gebouwd
-en getest zonder hardware. Ook hier vragen de vier criteria hierboven echte hardware; die test
-de gebruiker zelf, zie "Videokaart (GPU)" in `README.md`.
-
-Stand taak 7 (fans, case-LED en ARGB-strips): iconen en Nederlandse typenamen ("Ventilator",
-"LED-strip", "Behuizing"), het case-type van nieuwere OpenRGB-versies, de lengte van
-resizable zones instellen in de instellingen-app (via de engine naar OpenRGB of de
-gesimuleerde apparaten, met per-LED-kleuren die meeschuiven), een ring of andere zone kiezen
-door op de naam te klikken, en gesimuleerde apparaten (fan met twee ringen, ARGB-controller,
-behuizing) zijn gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine
-SDK-server). Ook hier vragen de vier criteria hierboven echte hardware; die test de gebruiker
-zelf, zie "Fans, case-LED en ARGB-strips" in `README.md`.
-
-Stand taak 8 (toetsenbord, muis en headset): iconen en Nederlandse typenamen ("Toetsenbord",
-"Muis", "Headset"), de matrix-map van OpenRGB als `LedMatrix` bij de zone (gelezen van de
-SDK-server, met vakjes zonder toets en vakjes buiten de zone als gat), een voorbeeld dat elke
-toets op zijn plek tekent en meekrimpt in een smal venster, en gesimuleerde apparaten
-(toetsenbord van 104 toetsen met matrix-map, muis met vier zones, headset met twee zones) zijn
-gebouwd en getest zonder hardware (nepdata van OpenRGB en een kleine SDK-server). Een headset
-die OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen driver. Ook
-hier vragen de vier criteria hierboven echte hardware; die test de gebruiker zelf, zie
-"Toetsenbord, muis en headset" in `README.md`.
+- **Taak 5, moederbord en RAM:** icoon, type en zones in de instellingen-app, een gesimuleerd
+  moederbord en twee RAM-sticks, en herstellen na het ontwaken.
+- **Taak 6, GPU:** icoon en typenaam "Videokaart", een gesimuleerde videokaart met twee zones,
+  kaarten zonder "Direct"-modus, twee dezelfde kaarten en herstellen na het ontwaken.
+- **Taak 7, fans, case-LED en ARGB-strips:** iconen en typenamen ("Ventilator", "LED-strip",
+  "Behuizing"), het case-type van nieuwere OpenRGB-versies, de lengte van resizable zones
+  instellen (met per-LED-kleuren die meeschuiven), een ring of andere zone kiezen door op de
+  naam te klikken, en gesimuleerde apparaten (fan met twee ringen, ARGB-controller,
+  behuizing). Later uitgebreid met fans als ring (#23) en zonelengtes bewaren (#24).
+- **Taak 8, toetsenbord, muis en headset:** iconen en typenamen ("Toetsenbord", "Muis",
+  "Headset"), de matrix-map van OpenRGB als `LedMatrix` bij de zone, een voorbeeld dat elke
+  toets op zijn plek tekent en meekrimpt in een smal venster, en gesimuleerde apparaten
+  (toetsenbord van 104 toetsen, muis met vier zones, headset met twee zones). Een headset die
+  OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen driver. Later
+  uitgebreid met toetsnamen en brede toetsen (#23).
 
 ### Taak 9 – Installer
 
@@ -289,8 +328,30 @@ met SHA-256-controle, `--first-run` in de engine (met tests) en een Windows Sand
 installeert, controleert en weer verwijdert zijn gebouwd. De installer compileert en de
 self-contained engine en instellingen-app draaien. Windows Sandbox stond niet aan op de
 ontwikkel-pc, dus installeren en verwijderen zelf zijn nog niet uitgevoerd; daarom staan de
-criteria hierboven nog open. De gebruiker test ze met de Sandbox-test, zie "Installer" in
-`README.md`.
+criteria hierboven nog open. De gebruiker test ze met de Sandbox-test, zie "Installer bouwen
+en testen" in `README.md`.
+
+## Uitbreidingen na taak 9
+
+Na het bouwplan kwamen er losse uitbreidingen bij, elk in een eigen PR. Ze zijn gebouwd en
+getest zonder hardware; wat op echte hardware getest moet worden, staat in `README.md` onder
+"Zelf testen op echte hardware".
+
+| PR | Uitbreiding |
+| --- | --- |
+| #17 | Snelheid van bewegende effecten (10–300 %) en "Opgeslagen ✓" in de app |
+| #18 | Effect Kleurenloop: eigen 2–8 kleuren die in elkaar overlopen |
+| #19 | Profielen (nu scènes) opslaan, laden en verwijderen in `profiles.json` |
+| #20 | Apparaten herkennen: knipperen, echt en gesimuleerd apart, uitleg bij een lege zone, locatie (adres of bus) bij dezelfde apparaten |
+| #21 | OpenRGB-status in de app en de tooltip, gesimuleerde apparaten "Automatisch", "Altijd" of "Nooit" |
+| #22 | Scènes aanzetten vanuit het tray-menu, elke dag op een tijd en zolang een programma draait |
+| #23 | Voorbeeld: fans als ring, toetsnamen, brede toetsen en meer apparaattypes |
+| #24 | Zonelengtes met − en + en een schuif, bewaren in `settings.json` en terugzetten |
+| #25 | Pauzeren bij vergrendelen en slaapstand, met een melding en "Hervatten" in de app |
+| #26 | Nieuw ontwerp "Werkplaats bij nacht" (`design/DESIGN.md`): navigatie Lampen, Kleur, Scènes, Buren en Instellingen, aan en uit per lamp, scènes als kaarten |
+
+Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
+het onderzoek naar OpenRGB meeleveren (#13).
 
 ## Risico's en aandachtspunten
 
@@ -305,4 +366,4 @@ Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; 
 | Apparaten resetten na slaapstand | Standaard fabriekseffect na hervatten | Na `PowerModeChanged.Resume` alles opnieuw toepassen (zit in fase 5–8 acceptatie) |
 | OpenRGB SDK-protocolversie wijzigt | Verbinding of functies vallen weg | `OpenRGB.NET` en OpenRGB samen bijwerken; protocolversie loggen bij verbinden |
 
-Open vraag: welke merken en modellen zitten er in de pc? Vul dat in `docs/hardware.md` in, zodat fase 5–8 vooraf getoetst kunnen worden tegen de OpenRGB-lijst.
+Open vraag: welke merken en modellen zitten er in de pc? Vul dat in `docs/hardware.md` in, zodat de criteria van taak 5–8 getoetst kunnen worden tegen de OpenRGB-lijst.
