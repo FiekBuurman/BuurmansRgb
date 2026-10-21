@@ -239,6 +239,9 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Installer en uitrol
 
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
+- `BuurmansRgb-setup.exe` als download bij een GitHub Release zetten (bijv. met een workflow
+  die `installer\build.ps1` draait bij een tag), zodat installeren zonder .NET SDK en Git kan;
+  nu moet iedereen de installer zelf bouwen
 - `BuurmansRgb.UI.exe` ook meenemen bij `dotnet publish` van alleen de engine; nu staan ze
   alleen na `dotnet build` van de solution (in `artifacts/app/`) of met `installer\build.ps1`
   samen
