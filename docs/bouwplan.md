@@ -380,6 +380,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #53 | Een kleur op een lamp die uit staat (ook per LED of in de kleurenloop) zet hem aan, meteen in de nieuwe kleur |
 | #54 | Niet in de proceslijst kijken zolang Windows vergrendeld is of slaapt, ook als `pauseOnLockAndSleep` uit staat |
 | #55 | Ook pauzeren als alleen het scherm uitgaat, zonder vergrendelen (`GUID_CONSOLE_DISPLAY_STATE`), onder `pauseOnLockAndSleep` en met een eigen melding in de app |
+| #?? | Bij vergrendelen, slaapstand en scherm uit de lampen het laatste beeld laten houden, dimmen (20 %) of uitzetten (`pausedLights`), te kiezen bij Instellingen; de pauze uit het tray-menu blijft zoals hij was |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

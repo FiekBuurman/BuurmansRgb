@@ -65,7 +65,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`), `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
-| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, en het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
+| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -131,6 +131,15 @@ toetsenbord. Een paar dingen om te proberen:
   Ontgrendelen of verbinden beëindigt die reden ook, voor het geval Windows het aangaan van het
   scherm niet meldt. `Away` doet bij alleen een scherm dat uit is niet mee: dan kan er nog
   iemand achter de pc zitten.
+- **Lampen tijdens de pauze:** `LightingController.PausedLights` (`PausedLightsMode` in
+  `Contracts`, `pausedLights` in `settings.json` via `PausedLightsModeJsonConverter`). Zolang de
+  pauze een andere reden heeft dan `Manual`, schaalt `DeviceOutput.Send` wat naar de apparaten
+  gaat: 1 bij `Keep`, `DimmedBrightness` (0,2) bij `Dim`, 0 bij `Off`. De buffers houden de
+  echte kleuren, dus het voorbeeld en het eerste `RenderLocked` na de pauze geven die terug.
+  Verandert de schaal door een reden die begint of eindigt, of door een andere stand, dan stuurt
+  `SendAllLocked` de buffers opnieuw; dimmen kost dus geen frames. `Manual` stuurt nooit iets, ook
+  niet het zwart. `AutoPause` zet de slaapreden synchroon in `Suspending`, dus het zwart gaat de
+  deur uit voordat de handler van `PowerModeChanged` terugkeert.
 - **Programma's zien:** zonder adminrechten meldt Windows niet dat een programma start. Daarom
   kijkt de engine elke 2 seconden in de proceslijst (`EnumProcesses`, de naam één keer per
   nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
@@ -432,6 +441,20 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    scherm uitgaan zonder vergrendelen. Na de 120 seconden komt de verlichting van daarvoor
    terug terwijl het scherm nog uit is: bij alleen scherm uit kijkt de engine wel naar
    programma's.
+10. Kies bij Instellingen "Lampen tijdens deze pauze" "Uit" en "Regenboog", en vergrendel: alle
+    lampen gaan uit. Ontgrendel: de regenboog loopt weer op alle lampen. Doe hetzelfde met
+    "Dimmen (20 %)": de lampen houden het laatste beeld op ongeveer een vijfde van de helderheid.
+11. Laat "Uit" staan, zet de pc in slaapstand en kijk of lampen die stroom houden (bijv. van een
+    voeding met standby-stroom of een USB-controller) uitgaan vóórdat de pc slaapt. Maak hem
+    wakker: op het vergrendelscherm blijven de lampen uit, ook na de 10 seconden van het
+    herstellen; na het ontgrendelen komen de kleuren en de regenboog terug, ook op apparaten die
+    na de slaap hun eigen effect lieten zien.
+12. Laat het scherm uitgaan zonder vergrendelen (zoals bij 7): de lampen gaan uit; beweeg de
+    muis: de regenboog komt meteen terug.
+13. Pauzeer in het tray-menu en vergrendel: de lampen blijven zoals ze waren. Ontgrendel en
+    hervat: de regenboog loopt weer.
+14. Wissel met "Uit" van gebruiker naar iemand met een eigen engine: de lampen krijgen na het
+    wisselen de kleuren van de tweede gebruiker en niet het zwart van de eerste.
 
 ## Mappen en documenten
 
