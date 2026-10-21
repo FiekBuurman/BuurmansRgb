@@ -89,6 +89,45 @@ public sealed class LampsViewModelTests
     }
 
     [Fact]
+    public async Task SwitchOn_LampThatIsOff_SwitchesOnlyThatLampOn()
+    {
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId == "strip")));
+
+        _lamps.SwitchOn("fan");
+
+        Assert.Equal([new LampSwitch("fan", true)], _switches);
+        Assert.Equal([true, true, false], _lamps.Lamps.Select(lamp => lamp.IsOn));
+        Assert.Equal("2 van 3 aan", _lamps.Summary);
+    }
+
+    [Fact]
+    public void SwitchOn_LampThatIsOn_AsksNothing()
+    {
+        _lamps.SwitchOn("fan");
+
+        Assert.Empty(_switches);
+    }
+
+    [Fact]
+    public async Task SwitchOn_WholeHouseWithALampOff_SwitchesEveryLampOnAtOnce()
+    {
+        await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId != "fan")));
+
+        _lamps.SwitchOn(null);
+
+        Assert.Equal([new LampSwitch(null, true)], _switches);
+        Assert.Equal(3, _lamps.OnCount);
+    }
+
+    [Fact]
+    public void SwitchOn_WholeHouseAllOn_AsksNothing()
+    {
+        _lamps.SwitchOn(null);
+
+        Assert.Empty(_switches);
+    }
+
+    [Fact]
     public async Task ShowDevices_LampThatStays_KeepsWhetherItIsOn()
     {
         await _lamps.RefreshAsync(All(deviceId => Lighting(on: deviceId != "fan")));
