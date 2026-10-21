@@ -24,8 +24,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
         try
         {
-            using var stream = File.OpenRead(filePath);
-            return JsonSerializer.Deserialize(stream, EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.CreateDefault();
+            return LenientJson.Deserialize(File.ReadAllBytes(filePath), EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.CreateDefault();
         }
         catch (JsonException exception)
         {

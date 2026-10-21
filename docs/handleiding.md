@@ -340,9 +340,14 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
   blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
   zonder die kleur weg.
-- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een helderheid als
-  `"hoog"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
-  standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
+- Een waarde van het verkeerde soort (bijv. `"brightness": "hoog"`, `"on": "ja"` of een getal
+  waar een lijst hoort), slaat de engine ook over: die waarde krijgt de standaardwaarde, alsof
+  hij niet in het bestand stond, en de rest blijft gelden, ook in `profiles.json`. In een lijst
+  wordt alleen dat ene onderdeel overgeslagen, zoals een scène die geen `{ … }` is. Het
+  logbestand noemt elke overgeslagen waarde.
+- Is het bestand geen geldige JSON (bijv. een komma te veel), geen `{ … }`, of staat een naam
+  twee keer in hetzelfde `{ … }` terwijl er ook een waarde niet klopt, dan zet de engine
+  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
 
@@ -362,7 +367,8 @@ De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color`
 ```
 
 Zonder `loadAt` en `program` gaat een scène nooit vanzelf aan. Een tijd of programma dat niet
-te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft gelden. Is het
+te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft gelden. Voor een
+kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 

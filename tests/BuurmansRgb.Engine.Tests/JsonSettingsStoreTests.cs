@@ -348,7 +348,10 @@ public sealed class JsonSettingsStoreTests : IDisposable
     // Set aside, so saving the defaults later does not overwrite what the user had.
     [Theory]
     [InlineData("not json")]
-    [InlineData("""{ "brightness": "high" }""")]
+    [InlineData("""{ "brightness": 0.4, }""")]
+    [InlineData("""[{ "brightness": 0.4 }]""")]
+    [InlineData("42")]
+    [InlineData("""{ "brightness": 0.4, "brightness": "hoog" }""")]
     public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndMovesTheFileAside(string content)
     {
         var path = _directory.File("settings.json");
@@ -360,6 +363,62 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.Equal(content, File.ReadAllText(store.BrokenFilePath));
+    }
+
+    // One value of the wrong type must not cost the rest of the lighting in the file either.
+    [Fact]
+    public void LoadOrCreate_ValuesOfTheWrongType_TakeTheirDefaultAndKeepTheRest()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """
+            {
+              "color": "#FF8800",
+              "brightness": "hoog",
+              "on": "ja",
+              "effect": 5,
+              "speed": true,
+              "framesPerSecond": "snel",
+              "pauseOnLockAndSleep": "nee",
+              "devices": {
+                "simulated-fan": { "color": "#00FF00", "brightness": { "value": 1 } },
+                "simulated.strip [1]": { "color": "#0000FF", "on": 0 }
+              }
+            }
+            """);
+        using var trace = new TraceCapture();
+
+        var settings = store.LoadOrCreate();
+
+        var defaults = EngineSettings.CreateDefault();
+        Assert.Equal(new RgbColor(255, 136, 0), settings.Color);
+        Assert.Equal(defaults.Brightness, settings.Brightness);
+        Assert.Equal(defaults.On, settings.On);
+        Assert.Equal(defaults.Effect, settings.Effect);
+        Assert.Equal(defaults.Speed, settings.Speed);
+        Assert.Equal(defaults.FramesPerSecond, settings.FramesPerSecond);
+        Assert.Equal(defaults.PauseOnLockAndSleep, settings.PauseOnLockAndSleep);
+        Assert.Equal(new LightingSettings { Color = new RgbColor(0, 255, 0) }, settings.Devices!["simulated-fan"]);
+        Assert.Equal(new LightingSettings { Color = new RgbColor(0, 0, 255) }, settings.Devices!["simulated.strip [1]"]);
+        Assert.False(File.Exists(store.BrokenFilePath));
+        Assert.Contains(trace.Messages, message => message.Contains("$.brightness", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("""{ "color": "#FF8800", "devices": 5 }""")]
+    [InlineData("""{ "color": "#FF8800", "devices": ["simulated-fan"] }""")]
+    [InlineData("""{ "color": "#FF8800", "colorLoop": "regenboog" }""")]
+    [InlineData("""{ "color": "#FF8800", "colorLoop": { "colors": ["#FF0000", "#00FF00"], "spread": "ja" } }""")]
+    public void LoadOrCreate_PartOfTheWrongShape_LeavesOutOnlyThatPart(string content)
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, content);
+
+        var settings = store.LoadOrCreate();
+
+        Assert.Equal(new RgbColor(255, 136, 0), settings.Color);
+        Assert.False(File.Exists(store.BrokenFilePath));
     }
 
     // One color that does not read must not cost the rest of the lighting in the file.
