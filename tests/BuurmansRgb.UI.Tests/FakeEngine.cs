@@ -267,6 +267,16 @@ internal sealed class FakeEngineApi : IEngineApi
         PauseOnLockAndSleep = enabled;
     }
 
+    public PausedLightsMode PausedLights { get; set; }
+
+    public Task<PausedLightsMode> GetPausedLightsAsync(CancellationToken ct = default) => Task.FromResult(PausedLights);
+
+    public async Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default)
+    {
+        await Record($"paused lights {mode}");
+        PausedLights = mode;
+    }
+
     public bool CatchUpSceneTimes { get; set; }
 
     public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(CatchUpSceneTimes);

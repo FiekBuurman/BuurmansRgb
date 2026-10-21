@@ -57,6 +57,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _profiles.Changed += OnProfilesChanged;
         _simulatedDevices.ModeChanged += OnOptionsChanged;
         _lighting.FramesPerSecondChanged += OnOptionsChanged;
+        _lighting.PausedLightsChanged += OnOptionsChanged;
         _autoPause?.EnabledChanged += OnOptionsChanged;
         _profileTimer?.CatchUpChanged += OnOptionsChanged;
         _hotkeys?.EnabledChanged += OnOptionsChanged;
@@ -199,6 +200,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<PausedLightsMode> GetPausedLightsAsync(CancellationToken ct = default) => Task.FromResult(_lighting.PausedLights);
+
+    // A mode this version does not know, from a newer settings app, keeps the last frame.
+    public Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default)
+    {
+        _lighting.PausedLights = Enum.IsDefined(mode) ? mode : PausedLightsMode.Keep;
+        return Task.CompletedTask;
+    }
+
     // Without the timer (in tests) no scene loads at its time, so it reads as off.
     public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(_profileTimer?.CatchUp ?? false);
 
@@ -263,6 +273,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _profiles.Changed -= OnProfilesChanged;
         _simulatedDevices.ModeChanged -= OnOptionsChanged;
         _lighting.FramesPerSecondChanged -= OnOptionsChanged;
+        _lighting.PausedLightsChanged -= OnOptionsChanged;
         _autoPause?.EnabledChanged -= OnOptionsChanged;
         _profileTimer?.CatchUpChanged -= OnOptionsChanged;
         _hotkeys?.EnabledChanged -= OnOptionsChanged;
