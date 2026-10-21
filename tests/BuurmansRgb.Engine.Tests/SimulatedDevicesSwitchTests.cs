@@ -50,6 +50,68 @@ public sealed class SimulatedDevicesSwitchTests : IDisposable
         await Eventually.TrueAsync(() => SimulatedCount() == 12 && DeviceIds().Count == 12);
     }
 
+    // At the start the first try to reach OpenRGB is still on its way: no simulated lamps for that
+    // second, then they come when nothing answers.
+    [Fact]
+    public async Task Automatic_WaitsForTheFirstTryOfOpenRgb()
+    {
+        var status = new FakeServerStatus();
+        using var lighting = new LightingController([_simulated, _openRgb]);
+        using var waiting = new SimulatedDevicesSwitch(_simulated, lighting, status);
+        await lighting.DiscoverAsync(Ct);
+        Assert.False(_simulated.IsEnabled);
+        Assert.Empty(lighting.Devices);
+
+        status.Change(new ServerStatus(ServerState.Unreachable));
+
+        Assert.True(_simulated.IsEnabled);
+        await Eventually.TrueAsync(() => lighting.Devices.Count == 12);
+    }
+
+    // OpenRGB has lamps, which the lighting fetches next: the simulated ones do not show meanwhile.
+    [Fact]
+    public async Task Automatic_OpenRgbHasDevices_WaitsForThem()
+    {
+        var status = new FakeServerStatus();
+        using var lighting = new LightingController([_simulated, _openRgb]);
+        using var waiting = new SimulatedDevicesSwitch(_simulated, lighting, status);
+        await lighting.DiscoverAsync(Ct);
+
+        status.Change(new ServerStatus(ServerState.Connected, DeviceCount: 1));
+        Assert.False(_simulated.IsEnabled);
+
+        _openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
+        await Eventually.TrueAsync(() => lighting.Devices.Select(device => device.Id).SequenceEqual(["real"]));
+        Assert.False(_simulated.IsEnabled);
+    }
+
+    // After the first try, a lost connection brings them back once the real lamps are gone.
+    [Fact]
+    public async Task Automatic_ConnectionLostLater_ShowsThemAgain()
+    {
+        var status = new FakeServerStatus();
+        using var lighting = new LightingController([_simulated, _openRgb]);
+        using var waiting = new SimulatedDevicesSwitch(_simulated, lighting, status);
+        status.Change(new ServerStatus(ServerState.Connected, DeviceCount: 0));
+        await lighting.DiscoverAsync(Ct);
+        Assert.True(_simulated.IsEnabled);
+
+        status.Change(ServerStatus.Connecting);
+
+        Assert.True(_simulated.IsEnabled);
+    }
+
+    [Fact]
+    public void Dispose_StopsListeningToOpenRgb()
+    {
+        var status = new FakeServerStatus();
+        var waiting = new SimulatedDevicesSwitch(_simulated, _lighting, status);
+
+        waiting.Dispose();
+
+        Assert.False(status.HasListeners);
+    }
+
     [Fact]
     public async Task Never_HidesTheSimulatedDevicesAtOnce()
     {

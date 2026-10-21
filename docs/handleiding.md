@@ -207,7 +207,10 @@ Nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
 
 - **Gesimuleerde lampen:** bij "Gesimuleerde lampen tonen"
   kies je "Automatisch" (standaard: alleen zolang OpenRGB geen echte lampen levert), "Altijd"
-  of "Nooit". De engine wisselt meteen en bewaart de keuze. Gesimuleerd zijn er een strip
+  of "Nooit". De engine wisselt meteen en bewaart de keuze. Bij "Automatisch" wacht de engine
+  bij het starten op de eerste verbindpoging met OpenRGB, zodat de gesimuleerde lampen op een pc
+  met echte lampen niet even verschijnen; zonder OpenRGB komen ze er na die poging bij.
+  Gesimuleerd zijn er een strip
   (30 LED's), een fan (12), een toetsenbord (104, met de plek en naam van elke toets), een
   moederbord (7, in drie zones, met een lege ARGB-header), twee RAM-sticks (8), een videokaart
   (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in twee
