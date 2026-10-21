@@ -142,6 +142,7 @@ public sealed class EngineRpcTests : IDisposable
         var moreTimes = await client.Api.GetProfileAutomationAsync("Ochtend", Ct);
         await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays), Ct);
         await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "eldenring.exe"), Ct);
+        await client.Api.SetProfileAutomationAsync("Race", new ProfileAutomation(Program: "forza.exe", ForegroundOnly: true), Ct);
         await client.Api.SetProfileAutomationAsync("Werk", ProfileAutomation.None, Ct);
         await client.Api.SetProfileAutomationAsync("Ochtend", MoreTimes, Ct);
 
@@ -151,6 +152,7 @@ public sealed class EngineRpcTests : IDisposable
             [
                 ("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays)),
                 ("Gamen", new ProfileAutomation(Program: "eldenring.exe")),
+                ("Race", new ProfileAutomation(Program: "forza.exe", ForegroundOnly: true)),
                 ("Werk", ProfileAutomation.None),
                 ("Ochtend", MoreTimes),
             ],

@@ -99,6 +99,31 @@ public sealed class ProfileAutomationTests
         Assert.Single(new ProfileAutomation(times).Normalize().Times);
     }
 
+    [Fact]
+    public void ForegroundOnly_IsOffUnlessSaid()
+    {
+        Assert.False(ProfileAutomation.None.ForegroundOnly);
+        Assert.False(new ProfileAutomation(Program: "eldenring.exe").ForegroundOnly);
+        Assert.NotEqual(new ProfileAutomation(Program: "eldenring.exe"), new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true));
+        Assert.Equal(
+            new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true).GetHashCode(),
+            new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true).GetHashCode());
+    }
+
+    [Fact]
+    public void Normalize_KeepsForegroundOnlyWithAProgram() =>
+        Assert.Equal(
+            new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true),
+            new ProfileAutomation(Program: "eldenring", ForegroundOnly: true).Normalize());
+
+    // Without a program there is nothing to be in the foreground.
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("  ")]
+    public void Normalize_ForegroundOnlyWithoutAProgram_IsOff(string? program) =>
+        Assert.False(new ProfileAutomation([new LoadTime(new TimeOnly(7, 0))], program, ForegroundOnly: true).Normalize().ForegroundOnly);
+
     // As the pipe can give it.
     [Fact]
     public void Normalize_MissingTime_Throws() =>
