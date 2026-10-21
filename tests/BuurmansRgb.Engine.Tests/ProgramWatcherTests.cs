@@ -461,21 +461,31 @@ public sealed class ProgramWatcherTests : IDisposable
 
         _watcher!.Dispose();
         _programs.Running.Add(EldenRing);
-        _session.Raise(SessionSwitchReason.SessionLock);
-        _session.Raise(SessionSwitchReason.SessionUnlock);
         _time.Advance(Interval);
 
         Assert.Equal(Green, ShownColor());
         Assert.False(_time.HasPendingTimer);
     }
 
+    [Fact]
+    public void Dispose_StopsListeningForAway()
+    {
+        var away = new FakeAwayState();
+        StartWatcher(away);
+        Assert.Equal(1, away.Listeners);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(0, away.Listeners);
+    }
+
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
 
     // As the engine wires it, with the AutoPause of the test unless another is given.
-    private void StartWatcher(AutoPause? autoPause = null)
+    private void StartWatcher(IAwayState? away = null)
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, autoPause ?? _autoPause, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, away ?? _autoPause, _time);
         _watcher.Start();
     }
 
