@@ -18,6 +18,9 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // What the engine has, so Apply only runs for a change.
     private ProfileAutomation _saved = ProfileAutomation.None;
 
+    // While Display fills in the fields.
+    private bool _displaying;
+
     // findPrograms lists the programs to pick from, as .exe names (WindowedPrograms.Find).
     public ProfileAutomationViewModel(Func<IReadOnlyList<string>>? findPrograms = null)
     {
@@ -106,9 +109,14 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public bool HasError => Error is not null;
 
-    partial void OnProgramTextChanged(string value) => Error = FindError();
+    partial void OnProgramTextChanged(string value)
+    {
+        if (!_displaying)
+        {
+            Error = FindError();
+        }
+    }
 
-    // Clearing gives no old rows; Display lets go of them first.
     private void OnTimesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         foreach (var row in e.OldItems?.OfType<LoadTimeRow>() ?? [])
@@ -132,6 +140,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     private void OnTimeChanged(object? sender, EventArgs e)
     {
+        if (_displaying)
+        {
+            return;
+        }
+
         Error = FindError();
         ApplyCommand.NotifyCanExecuteChanged();
         RemoveTimeCommand.NotifyCanExecuteChanged();
@@ -142,24 +155,42 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public void Clear() => Display(null, ProfileAutomation.None);
 
+    // The rows there are show the saved times and only the difference is added or taken away, so
+    // the field that has the focus keeps it, also after "Toepassen" with Enter. The error is worked
+    // out once at the end, not for each field on the way.
     private void Display(string? profileName, ProfileAutomation automation)
     {
-        _saved = automation;
-        ProfileName = profileName;
-        ProgramText = automation.Program ?? string.Empty;
-        foreach (var row in Times)
+        _displaying = true;
+        try
         {
-            row.Changed -= OnTimeChanged;
+            _saved = automation;
+            ProfileName = profileName;
+            ProgramText = automation.Program ?? string.Empty;
+            LoadTime?[] times = [.. automation.Times.DefaultIfEmpty()];
+            while (Times.Count > times.Length)
+            {
+                Times.RemoveAt(Times.Count - 1);
+            }
+
+            for (var i = 0; i < times.Length; i++)
+            {
+                if (i < Times.Count)
+                {
+                    Times[i].Show(times[i]);
+                }
+                else
+                {
+                    Times.Add(new LoadTimeRow(times[i]));
+                }
+            }
+        }
+        finally
+        {
+            _displaying = false;
         }
 
-        Times.Clear();
-        foreach (var time in automation.Times.DefaultIfEmpty())
-        {
-            Times.Add(new LoadTimeRow(time));
-        }
-
+        OnTimeChanged(this, EventArgs.Empty);
         OnPropertyChanged(nameof(Header));
-        ApplyCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanApply))]

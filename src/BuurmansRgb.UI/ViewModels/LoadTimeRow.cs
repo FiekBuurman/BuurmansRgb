@@ -17,10 +17,9 @@ public sealed partial class LoadTimeRow : ObservableObject
     // Empty, on every day, without a time.
     public LoadTimeRow(LoadTime? time = null)
     {
-        Text = time?.At.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
+        Show(time);
         foreach (var day in Days)
         {
-            day.IsChecked = ((time?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
             day.PropertyChanged += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
         }
     }
@@ -50,6 +49,17 @@ public sealed partial class LoadTimeRow : ObservableObject
 
     public WeekDays CheckedDays =>
         Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+
+    // The time and its days, or empty on every day for null. In the same row, so the field that has
+    // the focus keeps it.
+    public void Show(LoadTime? time)
+    {
+        Text = time?.At.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
+        foreach (var day in Days)
+        {
+            day.IsChecked = ((time?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
+        }
+    }
 
     // False when the text is not a time; true with a null time when it is empty.
     public bool TryRead(out LoadTime? time)

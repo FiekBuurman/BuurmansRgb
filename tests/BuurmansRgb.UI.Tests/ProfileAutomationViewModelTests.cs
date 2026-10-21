@@ -369,6 +369,57 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Null(_automation.Error);
     }
 
+    // As after "Toepassen": the same rows show what the engine saved, so the field with the focus
+    // keeps it.
+    [Fact]
+    public void Show_AsManyTimes_KeepsTheRows()
+    {
+        _automation.Show("Ochtend", MorningAndWeekend);
+        var rows = _automation.Times.ToList();
+
+        _automation.Times[0].Text = "6:30";
+        _automation.ApplyCommand.Execute(null);
+        _automation.Show("Ochtend", _requests[0].Automation);
+
+        Assert.Equal(rows.Count, _automation.Times.Count);
+        Assert.All(rows.Zip(_automation.Times), pair => Assert.Same(pair.First, pair.Second));
+        Assert.Equal(["06:30", "09:00"], _automation.Times.Select(row => row.Text));
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Show_FewerOrMoreTimes_KeepsTheFirstRows()
+    {
+        _automation.Show("Ochtend", MorningAndWeekend);
+        var first = _automation.Times[0];
+
+        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        Assert.Same(first, Assert.Single(_automation.Times));
+        Assert.All(first.Days, day => Assert.True(day.IsChecked));
+
+        _automation.Show("Ochtend", MorningAndWeekend);
+        Assert.Same(first, _automation.Times[0]);
+        Assert.Equal([false, false, false, false, false, true, true], _automation.Times[1].Days.Select(day => day.IsChecked));
+        Assert.Equal(2, _automation.Times[1].Number);
+
+        _automation.Times[1].Text = "25:00";
+        Assert.True(_automation.HasError);
+    }
+
+    // From workdays to the weekend passes no day at all; a screen reader should not hear that.
+    [Fact]
+    public void Show_OtherDays_RaisesNoErrorOnTheWay()
+    {
+        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
+        var raised = 0;
+        _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
+
+        _automation.Show("Weekend", new ProfileAutomation(new TimeOnly(10, 0), Days: WeekDays.Weekend));
+
+        Assert.Equal(0, raised);
+        Assert.Null(_automation.Error);
+    }
+
     // 07:00 on workdays and 09:00 in the weekend, as the engine saves it.
     private static ProfileAutomation MorningAndWeekend { get; } =
         new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)]);
