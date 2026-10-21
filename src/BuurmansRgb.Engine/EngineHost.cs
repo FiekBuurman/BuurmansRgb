@@ -41,13 +41,8 @@ internal sealed class EngineHost(
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
-        simulatedDevices?.Mode = settings.SimulatedDevices;
+        ApplyOptions(settings);
         zoneLengths?.Load(settings.ReadZoneLengths());
-        lighting.FramesPerSecond = settings.FramesPerSecond;
-        autoPause?.Enabled = settings.PauseOnLockAndSleep;
-        lighting.PausedLights = settings.PausedLights;
-        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
-        hotkeys?.Enabled = settings.Hotkeys;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         if (profiles is not null)
@@ -116,18 +111,24 @@ internal sealed class EngineHost(
     // engine's: a changed activeScene loads nothing, and a new lighting ends the scene as any change does.
     private void ApplyChangedByHand(EngineSettings settings)
     {
-        simulatedDevices?.Mode = settings.SimulatedDevices;
+        ApplyOptions(settings);
         zoneLengths?.Change(settings.ReadZoneLengths());
-        lighting.FramesPerSecond = settings.FramesPerSecond;
-        autoPause?.Enabled = settings.PauseOnLockAndSleep;
-        lighting.PausedLights = settings.PausedLights;
-        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
-        hotkeys?.Enabled = settings.Hotkeys;
         var state = settings.ToLightingState();
         if (!EngineSettings.SameLighting(state, lighting.State))
         {
             lighting.Replace(state);
         }
+    }
+
+    // The options besides the lighting and the zone lengths, at the start and after a change by hand.
+    private void ApplyOptions(EngineSettings settings)
+    {
+        simulatedDevices?.Mode = settings.SimulatedDevices;
+        lighting.FramesPerSecond = settings.FramesPerSecond;
+        autoPause?.Enabled = settings.PauseOnLockAndSleep;
+        lighting.PausedLights = settings.PausedLights;
+        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
+        hotkeys?.Enabled = settings.Hotkeys;
     }
 
     // Reads the newest mode, so two changes that cross each other still save the last one.
