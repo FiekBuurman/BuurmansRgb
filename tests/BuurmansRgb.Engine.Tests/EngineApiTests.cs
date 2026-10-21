@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
@@ -507,6 +508,53 @@ public sealed class EngineApiTests : IDisposable
         using var api = CreateApi();
 
         await Assert.ThrowsAsync<ArgumentException>(() => api.GetProfileAutomationAsync("Gamen", Ct));
+    }
+
+    // So a second settings app sees what the first one changed.
+    [Fact]
+    public async Task ProfilesChanged_FollowsSaveAndDelete()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        var changes = 0;
+        api.ProfilesChanged += (_, _) => changes++;
+
+        await api.SaveProfileAsync("Nacht", Ct);
+        await api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(23, 0)), Ct);
+        await api.DeleteProfileAsync("Nacht", Ct);
+
+        Assert.Equal(3, changes);
+    }
+
+    [Fact]
+    public async Task OptionsChanged_FollowsEveryOption()
+    {
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), _lighting.SetPaused);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause);
+        var changes = 0;
+        api.OptionsChanged += (_, _) => changes++;
+
+        await api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
+        await api.SetFramesPerSecondAsync(60, Ct);
+        await api.SetPauseOnLockAndSleepAsync(false, Ct);
+        await api.SetFramesPerSecondAsync(60, Ct);
+
+        Assert.Equal(3, changes);
+    }
+
+    [Fact]
+    public void Dispose_StopsTheEventsOfProfilesAndOptions()
+    {
+        var api = CreateApi();
+        var changes = 0;
+        api.ProfilesChanged += (_, _) => changes++;
+        api.OptionsChanged += (_, _) => changes++;
+
+        api.Dispose();
+        _profiles.Save("Nacht");
+        _lighting.FramesPerSecond = 12;
+
+        Assert.Equal(0, changes);
     }
 
     private EngineApi CreateApi(SettingsSaveEvents? saveEvents = null) =>

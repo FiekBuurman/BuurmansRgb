@@ -265,6 +265,22 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ProfilesAndOptionsChanged_OnServer_ReachClient()
+    {
+        var client = await ConnectAsync();
+        var profiles = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var options = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.ProfilesChanged += (_, _) => profiles.TrySetResult();
+        client.Api.OptionsChanged += (_, _) => options.TrySetResult();
+
+        _api.RaiseProfilesChanged();
+        _api.RaiseOptionsChanged();
+
+        await profiles.Task.WaitAsync(TestTimeouts.Short, Ct);
+        await options.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
+    [Fact]
     public async Task SetSpeedAsync_ReachesServer()
     {
         var client = await ConnectAsync();
@@ -394,6 +410,14 @@ public sealed class EngineRpcTests : IDisposable
         public event EventHandler<PauseReasons>? PauseChanged;
 
         public event EventHandler? LightingChanged;
+
+        public event EventHandler? ProfilesChanged;
+
+        public event EventHandler? OptionsChanged;
+
+        public void RaiseProfilesChanged() => ProfilesChanged?.Invoke(this, EventArgs.Empty);
+
+        public void RaiseOptionsChanged() => OptionsChanged?.Invoke(this, EventArgs.Empty);
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [

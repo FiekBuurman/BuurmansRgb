@@ -529,6 +529,48 @@ public sealed class MainViewModelTests
         Assert.True(viewModel.IsConnected);
     }
 
+    // Another settings app saved a scene: the list follows, the selection stays.
+    [Fact]
+    public async Task ProfilesChangedElsewhere_ShowsTheNewList()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        Api.Profiles.Insert(0, "Avond");
+        Api.RaiseProfilesChanged();
+
+        Assert.Equal(["Avond", "Gamen", "Nacht"], viewModel.Profiles.Names);
+        Assert.Equal("Nacht", viewModel.Profiles.SelectedName);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task OptionsChangedElsewhere_ShowsThemWithoutSendingThemBack()
+    {
+        var viewModel = await ConnectAsync();
+
+        Api.SimulatedDevices = SimulatedDevicesMode.Never;
+        Api.FramesPerSecond = 15;
+        Api.PauseOnLockAndSleep = false;
+        Api.RaiseOptionsChanged();
+
+        Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
+        Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
+        Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task Disconnect_StopsListeningToProfilesAndOptions()
+    {
+        var viewModel = await ConnectAsync();
+        var connection = _connector.Connection;
+
+        viewModel.Dispose();
+
+        Assert.False(connection.FakeApi.HasProfilesOrOptionsSubscribers);
+    }
+
     [Fact]
     public async Task Dispose_ClosesConnection()
     {

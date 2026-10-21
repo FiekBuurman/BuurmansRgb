@@ -42,8 +42,6 @@ uitbreidingen in `docs/bouwplan.md`.
   seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" een knop om de
   service `OpenRGB` te starten (via UAC) in plaats van alleen de tip, en de versie van OpenRGB
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
-- Een andere keuze voor de gesimuleerde lampen ook naar een tweede open instellingen-app
-  sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 
@@ -139,8 +137,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
-  opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Meer tijden per scène (bijv. 07:00 op werkdagen en 09:00 in het weekend); sinds #46 heeft
   een scène één tijd, op gekozen dagen
 - Na het ontwaken of bij het starten de scène aanzetten die volgens de tijden nu zou gelden (het

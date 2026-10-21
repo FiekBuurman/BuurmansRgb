@@ -372,6 +372,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #46 | Tijden van scènes alleen op gekozen dagen (`loadOn`), met dag-knoppen bij "Vanzelf aanzetten" |
 | #47 | Een programma voor een scène kiezen uit wat nu een venster heeft, of via "Bladeren…" |
 | #48 | Bij "Automatisch" de gesimuleerde lampen pas tonen na de eerste verbindpoging met OpenRGB |
+| #49 | Events `ProfilesChanged` en `OptionsChanged`: de app volgt scènes en opties die elders veranderen |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).
