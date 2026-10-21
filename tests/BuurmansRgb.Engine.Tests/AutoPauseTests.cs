@@ -274,6 +274,20 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     [Fact]
+    public async Task AwayChangedListenerFails_StillPausesAndIsAway_WithoutThrowing()
+    {
+        await StartAnimatedAsync();
+        using var trace = new TraceCapture();
+        _autoPause.AwayChanged += (_, _) => throw new InvalidOperationException("The away listener failed.");
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+
+        Assert.Equal(PauseReasons.Locked, _autoPause.Away);
+        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+        Assert.Contains(trace.Messages, message => message.Contains("The away listener failed.", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public void StartedWhileLocked_IsAwayAtOnce()
     {
         using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, _lighting.SetPaused) { Enabled = false };

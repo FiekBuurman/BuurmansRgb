@@ -135,7 +135,20 @@ internal sealed class AutoPause : IAwayState, IDisposable
         if (away != _away)
         {
             _away = away;
+            RaiseAwayChanged(away);
+        }
+    }
+
+    // Like SetPaused: what fails in a listener must not reach the tray thread, and Away holds anyway.
+    private void RaiseAwayChanged(PauseReasons away)
+    {
+        try
+        {
             AwayChanged?.Invoke(this, away);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
         }
     }
 
