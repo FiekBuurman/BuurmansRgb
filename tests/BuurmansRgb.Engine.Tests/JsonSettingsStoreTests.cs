@@ -351,6 +351,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     [InlineData("""{ "brightness": 0.4, }""")]
     [InlineData("""[{ "brightness": 0.4 }]""")]
     [InlineData("42")]
+    [InlineData("""{ "brightness": 0.4, "brightness": "hoog" }""")]
     public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndMovesTheFileAside(string content)
     {
         var path = _directory.File("settings.json");
