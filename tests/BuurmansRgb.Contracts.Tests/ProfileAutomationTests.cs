@@ -48,13 +48,30 @@ public sealed class ProfileAutomationTests
         var automation = new ProfileAutomation(
         [
             new LoadTime(new TimeOnly(23, 0, 59)),
-            new LoadTime(new TimeOnly(7, 0), WeekDays.Weekend),
+            new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend),
             new LoadTime(new TimeOnly(7, 0, 30), WeekDays.Workdays),
             new LoadTime(new TimeOnly(23, 0)),
         ]).Normalize();
 
         Assert.Equal(
-            [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(7, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))],
+            [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))],
+            automation.Times);
+    }
+
+    // One time of day once, on the days of all of them.
+    [Fact]
+    public void Normalize_SameTimeOfDay_IsOneTimeOnAllItsDays()
+    {
+        var automation = new ProfileAutomation(
+        [
+            new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays),
+            new LoadTime(new TimeOnly(9, 0), WeekDays.Saturday),
+            new LoadTime(new TimeOnly(7, 0, 30), WeekDays.Monday | WeekDays.Saturday),
+            new LoadTime(new TimeOnly(9, 0), WeekDays.Sunday),
+        ]).Normalize();
+
+        Assert.Equal(
+            [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays | WeekDays.Saturday), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)],
             automation.Times);
     }
 

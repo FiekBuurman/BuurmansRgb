@@ -30,9 +30,10 @@ public sealed record ProfileAutomation
 
     public string? Program { get; init; }
 
-    // As the engine saves it: each time as LoadTime.Normalize gives it, once, from early to late,
-    // and the program as ProgramNames gives it, or null for an empty one. Throws ArgumentException
-    // for a missing time, more than MaxTimes or a program that is not a valid name.
+    // As the engine saves it: each time as LoadTime.Normalize gives it, from early to late, and one
+    // time of day once, on the days of all of them (07:00 on workdays and 07:00 in the weekend is
+    // 07:00 every day); the program as ProgramNames gives it, or null for an empty one. Throws
+    // ArgumentException for a missing time, more than MaxTimes or a program that is not a valid name.
     public ProfileAutomation Normalize()
     {
         if (Times.Any(time => time is null))
@@ -40,7 +41,12 @@ public sealed record ProfileAutomation
             throw new ArgumentException("A time is missing.", nameof(Times));
         }
 
-        LoadTime[] times = [.. Times.Select(time => time.Normalize()).Distinct().OrderBy(time => time.At).ThenBy(time => time.Days)];
+        LoadTime[] times =
+        [
+            .. Times.Select(time => time.Normalize())
+                .GroupBy(time => time.At, (at, same) => new LoadTime(at, same.Aggregate(WeekDays.None, (days, time) => days | time.Days)))
+                .OrderBy(time => time.At),
+        ];
         if (times.Length > MaxTimes)
         {
             throw new ArgumentException($"A profile has at most {MaxTimes} times, not {times.Length}.", nameof(Times));
