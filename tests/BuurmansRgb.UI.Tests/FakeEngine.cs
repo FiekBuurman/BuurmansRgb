@@ -196,6 +196,19 @@ internal sealed class FakeEngineApi : IEngineApi
         Profiles.Remove(name);
     }
 
+    // By profile name; a profile without one never loads by itself.
+    public Dictionary<string, ProfileAutomation> ProfileAutomations { get; } = [];
+
+    public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(ProfileAutomations.GetValueOrDefault(name, ProfileAutomation.None));
+
+    // Like the engine: saved as Normalize gives it.
+    public async Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
+    {
+        await Record($"profile automation {name} {automation.LoadAt?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "-"} {automation.Program ?? "-"}");
+        ProfileAutomations[name] = automation.Normalize();
+    }
+
     private Task Record(string call)
     {
         if (SetException is not null)

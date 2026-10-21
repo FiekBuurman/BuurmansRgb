@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -32,12 +33,19 @@ public static class LiveRegion
     }
 
     // Only while a screen reader or another client listens, so nothing is made for nobody, and not
-    // for a hidden element, whose text no one sees.
+    // for a hidden element, whose text no one sees. After the layout, so an element that shows
+    // because of the same change (such as an error that appears) is visible by then.
     private static void OnTargetUpdated(object? sender, DataTransferEventArgs e)
     {
-        if (sender is UIElement { IsVisible: true } element && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+        if (sender is UIElement element)
         {
-            UIElementAutomationPeer.CreatePeerForElement(element)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+            element.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+            {
+                if (element.IsVisible && AutomationPeer.ListenerExists(AutomationEvents.LiveRegionChanged))
+                {
+                    UIElementAutomationPeer.CreatePeerForElement(element)?.RaiseAutomationEvent(AutomationEvents.LiveRegionChanged);
+                }
+            });
         }
     }
 }

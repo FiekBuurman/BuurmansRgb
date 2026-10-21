@@ -63,8 +63,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         };
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
-        Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, showLighting: true);
+        Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
+        {
+            ClearLedSelection();
+            _ = ShowSelectionAsync();
+        });
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        // The engine saves the automation as Normalize gives it, which the change already is.
+        Profiles.Automation.ApplyRequested += (_, change) =>
+            SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
+                Profiles.Automation.Show(change.Name, change.Automation));
+        Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
     }
 
@@ -242,6 +251,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowDevices(devices);
         await ShowSelectionAsync();
         Preview.ShowFrame(await api.GetFrameAsync());
+        // Fetched again from this engine, also for the profile that stays selected after reconnecting.
+        Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
@@ -456,8 +467,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
-    // profiles of the engine with this one selected, and a loaded profile shows its lighting.
-    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, bool showLighting = false)
+    // profiles of the engine with this one selected, and then done runs, such as showing the
+    // lighting of a loaded profile.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null)
     {
         if (_connection is not { } connection)
         {
@@ -477,13 +489,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
                 Profiles.Show(names, select: name);
                 StatusMessage = UiText.Format(doneMessage, name);
-                if (showLighting)
-                {
-                    ClearLedSelection();
-                    _ = ShowSelectionAsync();
-                }
+                done?.Invoke();
             });
         });
+    }
+
+    // Unless the user picked another profile, or the connection was made again, in the meantime.
+    private async Task ShowProfileAutomationAsync(string name)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var (ok, automation) = await TryCallAsync(connection, api => api.GetProfileAutomationAsync(name));
+        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        {
+            Profiles.Automation.Show(name, automation);
+        }
     }
 
     private void ClearLedSelection()

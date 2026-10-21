@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -199,6 +200,46 @@ public sealed class EngineHostTests : IDisposable
 
         host.SetPaused(false);
         Assert.False(lighting.IsPaused);
+    }
+
+    // A profile they load is not overwritten by the saved lighting, and is saved like a change.
+    [Fact]
+    public async Task StartAsync_StartsTheProfileTriggersAfterTheSavedLighting()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = Orange } };
+        var lighting = new LightingController([_simulated]);
+        RgbColor? colorAtStart = null;
+        var trigger = new RecordingTrigger(() => colorAtStart = lighting.GetLighting(null).Color);
+        using var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [trigger]);
+
+        await host.StartAsync(Ct);
+        lighting.Replace(LightingStates.Uniform(LightingStates.StaticLighting(Blue)));
+        host.Dispose();
+
+        Assert.Equal(Orange, colorAtStart);
+        Assert.Equal(Blue, store.Settings.Color);
+    }
+
+    // What a trigger puts back when it stops, such as the lighting from before a program, is saved.
+    [Fact]
+    public async Task Dispose_StopsTheProfileTriggersBeforeTheLastSave()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = Orange } };
+        var lighting = new LightingController([_simulated]);
+        var trigger = new RecordingTrigger(() => { }, () => lighting.Replace(LightingStates.Uniform(LightingStates.StaticLighting(Blue))));
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [trigger]);
+        await host.StartAsync(Ct);
+
+        host.Dispose();
+
+        Assert.Equal(Blue, store.Settings.Color);
+    }
+
+    private sealed class RecordingTrigger(Action started, Action? disposed = null) : IProfileTrigger
+    {
+        public void Start() => started();
+
+        public void Dispose() => disposed?.Invoke();
     }
 
     private async Task AssertAllSimulatedLedsAsync(RgbColor expected)

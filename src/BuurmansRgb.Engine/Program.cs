@@ -4,6 +4,7 @@ using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -34,11 +35,15 @@ internal static class Program
         using var lighting = new LightingController([simulatedDevices, openRgb]);
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
 
-        // On this thread, which pumps the tray messages and so also the power events.
+        // On this thread, which pumps the tray messages and so also the power and clock events.
         using var powerEvents = new SystemPowerEvents();
+        using var clockEvents = new SystemClockEvents(powerEvents);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         var saveEvents = new SettingsSaveEvents();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
+        // The host disposes them, before it saves for the last time.
+        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
+        var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
@@ -48,9 +53,10 @@ internal static class Program
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
-            saveEvents: saveEvents);
+            saveEvents: saveEvents,
+            profileTriggers: [profileTimer, programWatcher]);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), openRgb);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         {
             Application.Run(context);

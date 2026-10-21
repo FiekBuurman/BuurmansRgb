@@ -1,16 +1,26 @@
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
+using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;
 
-public sealed class TrayPresenterTests
+public sealed class TrayPresenterTests : IDisposable
 {
     private readonly FakeEngineHost _host = new();
     private readonly FakeAutoStart _autoStart = new();
     private readonly FakeSettingsAppLauncher _launcher = new();
     private readonly FakeTrayView _view = new();
+    private readonly InMemoryProfileStore _profileStore = new();
+    private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
+    private readonly ProfileLibrary _profiles;
+
+    public TrayPresenterTests() => _profiles = new ProfileLibrary(_profileStore, _lighting);
+
+    public void Dispose() => _lighting.Dispose();
 
     [Fact]
     public async Task StartAsync_StartsHostWithoutNotification()
@@ -169,7 +179,133 @@ public sealed class TrayPresenterTests
         Assert.Equal([(Strings.AutoStartFailed, TrayNotificationKind.Warning)], _view.Notifications);
     }
 
-    private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _view);
+    [Fact]
+    public void New_DoesNotReadTheProfiles()
+    {
+        CreatePresenter();
+
+        Assert.Equal(0, _profileStore.LoadCount);
+    }
+
+    // The saved lighting that the start puts on would overwrite a profile loaded before it.
+    [Fact]
+    public void RefreshProfiles_BeforeTheEngineStarted_GreysOutTheMenuWithoutReading()
+    {
+        CreatePresenter().RefreshProfiles();
+
+        Assert.Null(_view.Profiles);
+        Assert.Equal(0, _profileStore.LoadCount);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_StartFailed_KeepsTheMenuGreyedOut()
+    {
+        _host.StartException = new IOException("Disk unavailable.");
+        var presenter = CreatePresenter();
+        await presenter.StartAsync(Ct);
+
+        presenter.RefreshProfiles();
+
+        Assert.Null(_view.Profiles);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_ShowsTheNamesInAlphabeticalOrder()
+    {
+        _profileStore.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), new Profile("gamen", Uniform(StaticLighting(Green)))];
+
+        (await StartedPresenterAsync()).RefreshProfiles();
+
+        Assert.Equal(["gamen", "Werk"], _view.Profiles);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_NoProfiles_ShowsAnEmptyList()
+    {
+        (await StartedPresenterAsync()).RefreshProfiles();
+
+        Assert.Equal([], _view.Profiles);
+    }
+
+    // The settings app saves and deletes through the same library, so the next time the menu
+    // opens it shows the new list.
+    [Fact]
+    public async Task RefreshProfiles_AfterAChangeFromTheApp_ShowsTheNewList()
+    {
+        _profileStore.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
+        var presenter = await StartedPresenterAsync();
+        presenter.RefreshProfiles();
+
+        _profiles.Save("Nacht");
+        _profiles.Delete("Gamen");
+        presenter.RefreshProfiles();
+
+        Assert.Equal(["Nacht"], _view.Profiles);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_FileCannotBeRead_GreysOutTheMenuAndWarns()
+    {
+        _profileStore.LoadException = new IOException("The file is in use.");
+
+        (await StartedPresenterAsync()).RefreshProfiles();
+
+        Assert.Null(_view.Profiles);
+        Assert.Equal([(Strings.ProfilesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    [Fact]
+    public async Task RefreshProfiles_FileReadableAgain_ShowsTheProfiles()
+    {
+        _profileStore.LoadException = new UnauthorizedAccessException();
+        var presenter = await StartedPresenterAsync();
+        presenter.RefreshProfiles();
+
+        _profileStore.LoadException = null;
+        _profileStore.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
+        presenter.RefreshProfiles();
+
+        Assert.Equal(["Gamen"], _view.Profiles);
+    }
+
+    [Fact]
+    public async Task LoadProfile_ShowsAndSavesItsLighting()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+        var changes = 0;
+        _lighting.LightingChanged += (_, _) => changes++;
+
+        CreatePresenter().LoadProfile("Nacht");
+
+        Assert.Equal(StaticLighting(Red, 0.1), _lighting.GetLighting(null));
+        Assert.Equal(1, changes);
+        Assert.Empty(_view.Notifications);
+    }
+
+    [Fact]
+    public async Task LoadProfile_DeletedSinceTheMenuOpened_WarnsWithoutThrowing()
+    {
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        var presenter = await StartedPresenterAsync();
+        presenter.RefreshProfiles();
+        _profiles.Delete("Nacht");
+
+        presenter.LoadProfile("Nacht");
+
+        Assert.Equal([("Profiel 'Nacht' kon niet worden geladen.", TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    private TrayPresenter CreatePresenter() => new(_host, _autoStart, _launcher, _profiles, _view);
+
+    private async Task<TrayPresenter> StartedPresenterAsync()
+    {
+        var presenter = CreatePresenter();
+        await presenter.StartAsync(Ct);
+        return presenter;
+    }
 
     private sealed class FakeEngineHost : IEngineHost
     {
@@ -212,11 +348,15 @@ public sealed class TrayPresenterTests
 
         public bool AutoStartChecked { get; set; }
 
+        public IReadOnlyList<string>? Profiles { get; private set; } = ["not shown yet"];
+
         public List<(string Text, TrayNotificationKind Kind)> Notifications { get; } = [];
 
         public void SetToolTip(string text) => ToolTip = text;
 
         public void SetAutoStartChecked(bool isChecked) => AutoStartChecked = isChecked;
+
+        public void ShowProfiles(IReadOnlyList<string>? names) => Profiles = names;
 
         public void ShowNotification(string text, TrayNotificationKind kind) => Notifications.Add((text, kind));
     }

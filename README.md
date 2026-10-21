@@ -56,8 +56,9 @@ dotnet build BuurmansRgb.slnx
 dotnet run --project src/BuurmansRgb.Engine
 ```
 
-- **Tray-menu:** "Instellingen openen", "Effecten pauzeren", "Starten met Windows" en
-  "Afsluiten". Dubbelklik op het icoon opent ook de instellingen.
+- **Tray-menu:** "Instellingen openen", "Profiel laden", "Effecten pauzeren", "Starten met
+  Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen. Zie "Profielen"
+  voor "Profiel laden".
 - **Instellingen** staan in `%AppData%\BuurmansRgb\settings.json`. Bij de eerste start
   schrijft de engine de standaardwaarden weg. Wijzigingen uit de instellingen-app slaat
   de engine een seconde na de laatste wijziging op, en bij afsluiten. Je kunt het bestand
@@ -451,6 +452,116 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   4. Zet bij een ARGB-header met 0 LED's het aantal LED's van je fan of strip en controleer met
      "Laat knipperen" dat de hele fan of strip oplicht.
 
+## Profielen
+
+Een profiel bewaart de verlichting van alle apparaten onder een naam (opslaan, laden en
+verwijderen in de instellingen-app, zie "Instellingen-app starten"). Laden kan ook zonder de
+instellingen-app: vanuit het tray-menu, elke dag op een tijd, of zolang een programma draait.
+
+- **Vanuit het tray-menu:** "Profiel laden" toont de opgeslagen profielen; klik er een aan om
+  het te laden. Zonder profielen staat er "Nog geen profielen – maak ze in Instellingen". De
+  engine leest de lijst als het menu opengaat, dus ook een profiel dat je net in de
+  instellingen-app opsloeg of verwijderde klopt. Kan `profiles.json` niet gelezen worden
+  (bijvoorbeeld omdat een ander programma het open heeft), dan is "Profiel laden" grijs en meldt
+  het tray-icoon dat; de engine draait gewoon door. Ook de eerste seconden na het starten, tot
+  de engine de opgeslagen verlichting heeft gezet, is "Profiel laden" grijs: anders zou die
+  verlichting een gekozen profiel meteen overschrijven.
+- **Op tijd:** klap in de instellingen-app onder de profielen "Automatisch laden" open, kies een
+  profiel en vul bij "Automatisch laden om" een tijd in (bijv. `23:00` of `23.00`) en kies
+  "Toepassen" (of Enter). Elke dag om die tijd laadt de engine het profiel, net alsof je op
+  "Laden" klikte: het wordt ook de opgeslagen verlichting. Leeg en "Toepassen" zet het uit. Er
+  loopt één timer, alleen als minstens één profiel een tijd heeft, en die gaat precies op de
+  volgende tijd af. Die tijd is de klok van Windows: bij de overgang naar zomer- of wintertijd
+  blijft 23:00 gewoon 23:00. Een tijd in het uur dat bij zomertijd wegvalt (bijv. 02:30) komt
+  als dat uur voorbij is (03:00); een tijd in het uur dat bij wintertijd twee keer komt, alleen
+  de eerste keer. Slaapt de pc op dat moment, staat hij uit of zet je de klok erover heen, dan
+  slaat de engine die keer over en wacht hij op de volgende dag: na een nacht slaapstand hoort
+  het "nacht"-profiel 's ochtends niet alsnog te komen. Gaat de timer meer dan een minuut te laat
+  af, dan telt dat ook als gemist. Na het ontwaken en na een andere tijd of tijdzone rekent de
+  engine de volgende tijd opnieuw uit. Hebben twee profielen dezelfde tijd, dan laadt het eerste
+  op alfabet. Komt de tijd terwijl een programma zijn profiel toont (zie hieronder), dan
+  blijft dat profiel staan en komt het profiel van de tijd zodra het programma stopt: 23:00
+  midden in een spel laat het spel met rust. Heb je tijdens het spel zelf iets veranderd, dan komt
+  het profiel van de tijd meteen.
+- **Bij een programma (spel):** vul bij "Laden als dit programma start" de naam van het
+  .exe-bestand in (bijv. `eldenring.exe`; `eldenring` of een heel pad mag ook, de app maakt er
+  `eldenring.exe` van). Een snelkoppeling (`.lnk`, `.url`) of script (`.bat`, `.cmd`) weigert de
+  app: dat is niet het programma dat draait; het doel van de snelkoppeling staat bij
+  Eigenschappen. Start het programma, dan laadt de engine het profiel binnen 2 seconden.
+  Stopt het, dan komt de verlichting van vóór de start terug, tenzij die intussen veranderde (in
+  de instellingen-app of vanuit het tray-menu): dan blijft die. Een tijd die intussen kwam, komt
+  dan (zie "Op tijd"). Starten er twee
+  programma's met een profiel, dan toont het laatste zijn profiel; stopt dat, dan komt het
+  profiel van het eerste terug, en als beide gestopt zijn de verlichting van daarvoor. Draait
+  het programma al als de engine start, dan laadt de engine het profiel meteen en gaat hij bij het
+  stoppen terug naar de opgeslagen verlichting. Een programma dat al draait als je het instelt,
+  telt pas bij zijn volgende start. Sluit je de engine af terwijl het programma draait (bijv. bij
+  het afsluiten van Windows met Steam nog open), dan zet de engine eerst de verlichting van
+  daarvoor terug en bewaart hij die, zodat die na een herstart niet kwijt is. Hebben twee
+  profielen hetzelfde programma, dan laadt het eerste op alfabet.
+- **Hoe de engine programma's ziet:** zonder adminrechten is er geen melding van Windows als
+  een programma start (`Win32_ProcessStartTrace` vraagt admin). Daarom kijkt de engine elke 2
+  seconden in de proceslijst, en alleen zolang minstens één profiel een programma heeft. Hij
+  gebruikt `EnumProcesses` en zoekt de naam van een proces één keer op, als het nieuw is: zo'n
+  ronde kost minder dan 0,1 ms CPU (gemeten met ~470 processen), waar `Process.GetProcessesByName`
+  en een Toolhelp-snapshot 5 tot 7 ms per keer kosten, omdat ze ook alle threads van alle
+  processen lezen. WMI (`__InstanceCreationEvent WITHIN n`) laat het werk alleen door de
+  WMI-service doen, die ook de proceslijst afloopt, en haalt `System.Management` in de engine.
+  Programma's die als administrator draaien, ziet de engine ook. Gemeten aan de hele engine
+  (Release, gesimuleerde apparaten, zonder OpenRGB, in CPU-cycli per minuut): zonder regels en
+  met een tijd net zoveel als vóór deze functies (~220 miljoen, vooral de verbindpogingen naar
+  OpenRGB), met een programma ~100 miljoen meer, ongeveer 0,05 % van één kern. Het geheugen van
+  de namen is ~0,3 MB.
+- **Geheugen en starten:** staat er een `profiles.json`, dan leest de engine het bij het starten
+  één keer, om de tijden en programma's te weten, en houdt hij alle profielen in het geheugen.
+  Dat kost weinig: tien profielen met een tijd en een eigen kleur voor elk van de 246 gesimuleerde
+  LED's (een bestand van 34 KB) nemen ~51 KB op de heap, ~5 KB per profiel; aan de hele engine
+  gemeten 0,1 tot 0,35 MB meer private bytes, binnen de meetruis. Zonder bestand leest de engine
+  niets tot je het tray-menu opent of de instellingen-app de profielen vraagt.
+- **In `profiles.json`** staan bij een profiel de lichtvelden van `settings.json`, en als het
+  vanzelf laadt `loadAt` (`"HH:mm"`) en/of `program`:
+
+  ```json
+  {
+    "profiles": [
+      { "name": "Gamen", "color": "#FF0000", "effect": "rainbow", "program": "eldenring.exe" },
+      { "name": "Nacht", "color": "#FF8800", "brightness": 0.1, "loadAt": "23:00" },
+      { "name": "Werk", "color": "#FFFFFF", "devices": { "simulated-fan": { "color": "#0000FF" } } }
+    ]
+  }
+  ```
+
+  Zonder `loadAt` en `program` laadt een profiel nooit vanzelf; oudere bestanden werken dus
+  gewoon. Een tijd of programma dat niet te lezen is (bijv. `"25:00"` of een getal), laat de
+  engine weg; de rest van het profiel en de andere profielen blijven gelden.
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `TrayPresenterTests` (het submenu, een onleesbaar bestand en een profiel dat net verwijderd
+  is), `ProfileLibraryTests` en `JsonProfileStoreTests` (opslaan, oude en kapotte waarden),
+  `DailyTimeTests` (de volgende tijd, ook rond zomer- en wintertijd), `ProfileTimerTests` (met
+  een nepklok waarvan de timers en de klok los kunnen bewegen: op tijd, elke dag, slaapstand,
+  klok vooruit en terug, wintertijd, geen timer zonder tijden), `ProfileTriggersTests` (een tijd
+  tijdens een spel), `ProgramWatcherTests` (met een nep-proceslijst: starten, stoppen, terug naar
+  daarvoor, iets veranderd, twee programma's, de engine die stopt of start terwijl een programma
+  draait), `ProcessListTests` (de echte proceslijst, met een eigen kopie van `ping.exe` die start
+  en stopt), `ProgramNamesTests`, `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests`
+  (over de pipe), `EngineHostTests`, `SystemClockEventsTests` en in de instellingen-app
+  `ProfileAutomationViewModelTests`, `ProfilesViewModelTests` en `MainViewModelProfileTests`. Start daarnaast de engine en de
+  instellingen-app: sla twee profielen op, open het tray-menu en kies er een; zet bij een profiel
+  een tijd een minuut verder en wacht; zet bij een profiel `notepad.exe`, start Kladblok en sluit
+  het weer.
+- **Testen met je eigen hardware:**
+  1. Maak profielen "Werk", "Nacht" en "Gamen" en wissel via het tray-menu; kijk of alle
+     apparaten meegaan.
+  2. Geef "Nacht" een tijd een paar minuten verder en wacht. Zet daarna een tijd, laat de pc
+     erover heen slapen en kijk dat het profiel na het ontwaken niet alsnog komt.
+  3. Geef "Gamen" de naam van je spel, start het spel en sluit het weer: de verlichting van
+     daarvoor hoort terug te komen. Verander tijdens het spel iets en kijk dat dat blijft.
+  4. Start een spel dat als administrator draait of anti-cheat heeft, en kijk of de engine het
+     ziet.
+  5. Sluit de engine af (tray, "Afsluiten") terwijl het spel draait: de verlichting van daarvoor
+     hoort terug te komen. Start de engine weer: het spelprofiel komt terug, en na het sluiten
+     van het spel weer de verlichting van daarvoor.
+
 ## Een apparaattype testen met je eigen hardware
 
 Deze stappen gelden voor elk echt apparaattype (moederbord, RAM, videokaart, fans, ...). Wat per
@@ -533,6 +644,10 @@ dotnet run --project src/BuurmansRgb.UI
   zeker is. Profielen staan in `%AppData%\BuurmansRgb\profiles.json`, naast `settings.json`.
   Is dat bestand geen geldige JSON meer, dan zet de engine het opzij als
   `profiles.json.broken` en begint met een lege lijst. Zonelengtes horen niet bij een profiel.
+  De uitleg staat achter de ⓘ naast de kop. Onder de profielen klap je "Automatisch laden" open
+  om het gekozen profiel op een tijd of bij een programma te laten laden (zie "Profielen").
+  In het kleinste venster past alles zolang dat dichtgeklapt is; opengeklapt schuift de
+  linkerkolom (met Tab komt elk veld vanzelf in beeld).
 - Een wijziging bij "Alle apparaten" geldt voor alle apparaten, maar alleen voor wat je
   wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die kleur, en
   andersom. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat

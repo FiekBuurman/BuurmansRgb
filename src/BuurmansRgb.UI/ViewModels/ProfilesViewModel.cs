@@ -10,11 +10,20 @@ namespace BuurmansRgb.UI.ViewModels;
 // This only asks; MainViewModel sends the request to the engine and shows the new list.
 public sealed partial class ProfilesViewModel : ObservableObject
 {
+    private readonly ReentrancyGuard _showing = new();
+
     public event EventHandler<string>? SaveRequested;
 
     public event EventHandler<string>? LoadRequested;
 
     public event EventHandler<string>? DeleteRequested;
+
+    // Raised with the selected profile when its automation is to be shown: when another profile is
+    // selected. Not for the same profile again, so what the user typed there stays.
+    public event EventHandler<string>? AutomationNeeded;
+
+    // When the selected profile loads by itself.
+    public ProfileAutomationViewModel Automation { get; } = new();
 
     // In the order of the engine, which is alphabetical.
     public ObservableCollection<string> Names { get; } = [];
@@ -40,15 +49,21 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // when it is still there.
     public void Show(IReadOnlyList<string> names, string? select = null)
     {
+        // Clearing the list makes a ListBox select nothing for a moment; the automation only follows
+        // where the selection ends up.
         var selected = select ?? SelectedName;
-        Names.Clear();
-        foreach (var name in names)
+        _showing.Run(() =>
         {
-            Names.Add(name);
-        }
+            Names.Clear();
+            foreach (var name in names)
+            {
+                Names.Add(name);
+            }
 
-        SelectedName = Find(selected);
+            SelectedName = Find(selected);
+        });
         OnPropertyChanged(nameof(SaveLabel));
+        RequestAutomation();
     }
 
     partial void OnSelectedNameChanged(string? value)
@@ -56,6 +71,26 @@ public sealed partial class ProfilesViewModel : ObservableObject
         if (value is not null)
         {
             Name = value;
+        }
+
+        if (!_showing.IsActive)
+        {
+            RequestAutomation();
+        }
+    }
+
+    // The fields of another profile are emptied right away, so they never show another profile's.
+    private void RequestAutomation()
+    {
+        if (SelectedName is { } name && Automation.ProfileName is { } shown && ProfileNames.Comparer.Equals(name, shown))
+        {
+            return;
+        }
+
+        Automation.Clear();
+        if (SelectedName is { } selected)
+        {
+            AutomationNeeded?.Invoke(this, selected);
         }
     }
 

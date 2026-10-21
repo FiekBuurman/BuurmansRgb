@@ -253,6 +253,19 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task ProfileAutomation_IsSavedOverThePipeAndAnInvalidProgramIsRejected()
+    {
+        var client = await StartAndConnectAsync();
+        await client.Api.SaveProfileAsync("Gamen", Ct);
+
+        await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(new TimeOnly(20, 30), "eldenring"), Ct);
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(20, 30), "eldenring.exe"), await client.Api.GetProfileAutomationAsync("Gamen", Ct));
+        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "game?.exe"), Ct));
+        Assert.True(EngineRpc.IsRejectedByEngine(error));
+    }
+
+    [Fact]
     public async Task Cancelled_StopsListening()
     {
         await StartAndConnectAsync();

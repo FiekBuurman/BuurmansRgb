@@ -49,6 +49,101 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_WritesTheTimeAsHoursAndMinutes()
+    {
+        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);
+
+        Assert.Contains("\"loadAt\": \"07:05\"", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal(new TimeOnly(7, 5), Assert.Single(_store.Load()).Automation.LoadAt);
+    }
+
+    [Fact]
+    public void Save_WritesTheProgram()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
+
+        Assert.Contains("\"program\": \"eldenring.exe\"", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal("eldenring.exe", Assert.Single(_store.Load()).Automation.Program);
+    }
+
+    [Fact]
+    public void Save_WithoutAutomation_WritesNoTimeOrProgram()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red)))]);
+
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+        Assert.DoesNotContain("loadAt", json);
+        Assert.DoesNotContain("program", json);
+    }
+
+    // The next save writes the profile without them, so the trace says what went.
+    [Fact]
+    public void Load_TimeOrProgramThatDoesNotRead_IsTraced()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "Tijd", "loadAt": "25:00" },
+                { "name": "Getal", "loadAt": 2300 },
+                { "name": "Spel", "program": "game?.exe" },
+                { "name": "Leeg", "loadAt": "", "program": " " }
+            ] }
+            """);
+        using var trace = new TraceCapture();
+
+        _store.Load();
+
+        var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
+        Assert.Contains(messages, message => message.Contains("'Tijd' has loadAt 25:00", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Getal' has loadAt 2300", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Spel' has program game?.exe", StringComparison.Ordinal));
+        Assert.DoesNotContain(messages, message => message.Contains("'Leeg'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Load_ProgramMissingOrInvalid_LeavesTheProgramOff()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "A", "loadAt": "23:00" },
+                { "name": "B", "program": "game?.exe" },
+                { "name": "C", "program": 42 },
+                { "name": "D", "program": "eldenring" }
+            ] }
+            """);
+
+        var profiles = _store.Load();
+
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[0].Automation);
+        Assert.Equal(ProfileAutomation.None, profiles[1].Automation);
+        Assert.Equal(ProfileAutomation.None, profiles[2].Automation);
+        Assert.Equal("eldenring.exe", profiles[3].Automation.Program);
+    }
+
+    // Files from before the automation have no "loadAt"; a value that does not read leaves the
+    // time off but keeps the profile and the other profiles.
+    [Fact]
+    public void Load_TimeMissingOrInvalid_LeavesTheTimeOff()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "A", "color": "#FF0000" },
+                { "name": "B", "loadAt": "25:00" },
+                { "name": "C", "loadAt": 2300 },
+                { "name": "D", "loadAt": { "hour": 23 } },
+                { "name": "E", "loadAt": null },
+                { "name": "F", "loadAt": " 7:30 " }
+            ] }
+            """);
+
+        var profiles = _store.Load();
+
+        Assert.Equal(["A", "B", "C", "D", "E", "F"], profiles.Select(profile => profile.Name));
+        Assert.Equal(Red, profiles[0].Lighting.Global.Color);
+        Assert.All(profiles.Take(5), profile => Assert.Equal(ProfileAutomation.None, profile.Automation));
+        Assert.Equal(new TimeOnly(7, 30), profiles[5].Automation.LoadAt);
+    }
+
+    [Fact]
     public void Load_SkipsProfilesWithoutAValidOrWithADoubleName()
     {
         File.WriteAllText(_directory.File("profiles.json"), """

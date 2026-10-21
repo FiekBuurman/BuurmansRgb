@@ -82,4 +82,11 @@ public partial interface IEngineApi
     Task LoadProfileAsync(string name, CancellationToken ct = default);
 
     Task DeleteProfileAsync(string name, CancellationToken ct = default);
+
+    // When the engine loads the profile by itself; ProfileAutomation.None when it never does.
+    Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);
+
+    // Saved with the profile. The time counts in whole minutes and the program follows
+    // ProgramNames; an invalid program throws.
+    Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default);
 }

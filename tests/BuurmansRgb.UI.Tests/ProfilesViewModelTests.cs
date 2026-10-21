@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -6,12 +7,14 @@ public sealed class ProfilesViewModelTests
 {
     private readonly ProfilesViewModel _profiles = new();
     private readonly List<string> _requests = [];
+    private readonly List<string> _automationRequests = [];
 
     public ProfilesViewModelTests()
     {
         _profiles.SaveRequested += (_, name) => _requests.Add($"save {name}");
         _profiles.LoadRequested += (_, name) => _requests.Add($"load {name}");
         _profiles.DeleteRequested += (_, name) => _requests.Add($"delete {name}");
+        _profiles.AutomationNeeded += (_, name) => _automationRequests.Add(name);
     }
 
     [Fact]
@@ -115,5 +118,62 @@ public sealed class ProfilesViewModelTests
 
         Assert.Equal("Gamen", asked);
         Assert.Equal(expected, _requests);
+    }
+
+    [Fact]
+    public void SelectName_AsksForItsAutomation()
+    {
+        _profiles.Show(["Gamen", "Nacht"]);
+
+        _profiles.SelectedName = "Nacht";
+
+        Assert.Equal(["Nacht"], _automationRequests);
+    }
+
+    // After a save, load or delete the list is shown again, and a ListBox selects nothing while it
+    // is cleared: what the user typed for the same profile stays.
+    [Fact]
+    public void Show_SameProfile_KeepsWhatWasTypedAndDoesNotAskAgain()
+    {
+        _profiles.Names.CollectionChanged += (_, e) =>
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset)
+            {
+                _profiles.SelectedName = null;
+            }
+        };
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _profiles.Automation.LoadAtText = "7:";
+
+        _profiles.Show(["Gamen", "Nacht", "Werk"]);
+
+        Assert.Equal("Nacht", _profiles.SelectedName);
+        Assert.Equal("7:", _profiles.Automation.LoadAtText);
+        Assert.Equal(["Nacht"], _automationRequests);
+    }
+
+    [Fact]
+    public void SelectAnotherName_EmptiesTheFieldsOfTheFirstRightAway()
+    {
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+
+        _profiles.SelectedName = "Gamen";
+
+        Assert.Null(_profiles.Automation.ProfileName);
+        Assert.Equal("", _profiles.Automation.LoadAtText);
+    }
+
+    [Fact]
+    public void SelectedProfileIsGone_EmptiesTheFieldsWithoutAsking()
+    {
+        _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
+        _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+
+        _profiles.Show(["Gamen"]);
+
+        Assert.False(_profiles.Automation.HasProfile);
+        Assert.Equal(["Nacht"], _automationRequests);
     }
 }

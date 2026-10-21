@@ -1,8 +1,5 @@
 # Ideeën voor later
 
-- Een profiel kiezen vanuit het tray-menu (submenu "Profiel laden"), zodat wisselen tussen
-  gamen, werken en nacht kan zonder de instellingen-app te openen
-- Profielen automatisch laten wisselen, bijv. op tijd (nacht) of als een spel start
 - Alle apparaten synchroon laten lopen
 - Eigen HID-providers voor apparaten die OpenRGB niet kent
 - `BuurmansRgb.UI.exe` ook in de publish-map van de engine zetten; nu staan ze alleen na
@@ -163,3 +160,17 @@
   adminrechten, dus via UAC) in plaats van alleen de tip
 - De versie van OpenRGB en het SDK-protocol in de tooltip van de OpenRGB-status tonen, handig
   bij "geen goed antwoord"
+- In het tray-menu een vinkje bij het profiel dat het laatst geladen is (en weghalen zodra de
+  verlichting daarna verandert), en in de lijst van de instellingen-app een teken bij profielen
+  die vanzelf laden; nu zie je dat pas bij "Automatisch laden"
+- Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
+  per profiel
+- Na het ontwaken of bij het starten het profiel laden dat volgens de tijden nu zou gelden (het
+  laatste tijdstip dat voorbij is), als keuze naast het huidige "overslaan"
+- Een programma alleen laten tellen zolang het op de voorgrond staat
+  (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
+  pollen
+- Bij "Laden als dit programma start" een knop om een .exe te kiezen of een lijst met wat nu
+  draait, zodat je de naam niet hoeft te weten
+- Een melding bij een fout in de instellingen-app die preciezer is dan "De engine kon de
+  wijziging niet verwerken", bijv. als het profiel van "Automatisch laden" net verwijderd is
