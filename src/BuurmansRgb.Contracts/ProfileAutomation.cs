@@ -14,7 +14,7 @@ public sealed record ProfileAutomation
     [JsonConstructor]
     public ProfileAutomation(IReadOnlyList<LoadTime>? Times = null, string? Program = null)
     {
-        this.Times = Times ?? [];
+        this.Times = Times is null ? [] : [.. Times];
         this.Program = Program;
     }
 

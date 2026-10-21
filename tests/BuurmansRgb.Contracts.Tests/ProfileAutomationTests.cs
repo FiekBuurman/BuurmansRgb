@@ -16,6 +16,18 @@ public sealed class ProfileAutomationTests
         Assert.Equal(ProfileAutomation.None, new ProfileAutomation(Times: null));
     }
 
+    // A list changed afterwards does not change the automation.
+    [Fact]
+    public void New_CopiesTheTimes()
+    {
+        List<LoadTime> times = [new LoadTime(new TimeOnly(7, 0))];
+        var automation = new ProfileAutomation(times);
+
+        times.Add(new LoadTime(new TimeOnly(9, 0)));
+
+        Assert.Single(automation.Times);
+    }
+
     // A record compares a list by reference; the times compare by what they hold.
     [Fact]
     public void Equals_ComparesTheTimesInOrder()
