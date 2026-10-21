@@ -132,6 +132,70 @@ public sealed class ResumeRestorerTests : IDisposable
     }
 
     [Fact]
+    public void Restored_GivesWhenThePcWentToSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var asleep = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(8));
+        _events.RaiseResumed();
+        _time.Advance(Second);
+
+        Assert.Equal([asleep], asleepSince);
+    }
+
+    // Asleep again before the lights were back: the next wake-up counts from the first sleep.
+    [Fact]
+    public void SuspendingBeforeTheFirstRestore_TheNextRestoredGivesTheFirstSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var asleep = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(8));
+        _events.RaiseResumed();
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(9));
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        Assert.Equal([asleep], asleepSince);
+    }
+
+    [Fact]
+    public void ResumedTwice_EachRestoredGivesItsOwnSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var first = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _events.RaiseResumed();
+        _time.Advance(Second);
+        var second = _time.GetUtcNow();
+        _events.RaiseSuspending();
+        _events.RaiseResumed();
+        _time.Advance(Second);
+
+        Assert.Equal([first, second], asleepSince);
+    }
+
+    [Fact]
+    public void ResumedWithoutSuspending_RestoredGivesNoSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        Assert.Equal([null], asleepSince);
+    }
+
+    [Fact]
     public void SuspendingBeforeTheFirstRestore_RaisesNoRestored()
     {
         var raised = 0;

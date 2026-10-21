@@ -538,6 +538,87 @@ public sealed class ProfileTimerTests : IDisposable
         Assert.Equal(StartColor, ShownColor());
     }
 
+    // The clock jumps from 14:00 past 23:00 to 00:00, the user chooses a color and the pc sleeps
+    // for an hour: no time passed in the sleep, so the color stays.
+    [Fact]
+    public void CatchUp_ClockSetPastATimeThenASleepWithoutATime_KeepsTheLighting()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimerCatchingUpAfterWaking();
+        _time.MoveClock(TimeSpan.FromHours(10));
+        _clock.RaiseChanged();
+        ShowColor(Green);
+
+        SleepFor(TimeSpan.FromHours(1));
+        WaitForTheLights();
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // The clock event of a wake-up comes after the lights are back; the next sleep passes no time.
+    [Fact]
+    public void CatchUp_ClockEventAfterTheLightsAreBack_TheNextSleepWithoutATime_KeepsTheLighting()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimerCatchingUpAfterWaking();
+        _power.RaiseSuspending();
+        _time.MoveClock(TimeSpan.FromHours(10));
+        _power.RaiseResumed();
+        WaitForTheLights();
+        _clock.RaiseChanged();
+        Assert.Equal(Red, ShownColor());
+        ShowColor(Green);
+
+        SleepFor(TimeSpan.FromHours(1));
+        WaitForTheLights();
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // Awake at 23:00:30, within LateLimit: the clock event moves the timer to tomorrow, so only
+    // catching up loads it.
+    [Fact]
+    public void CatchUp_WakingHalfAMinuteAfterTheTime_LoadsTheScene()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimerCatchingUpAfterWaking();
+
+        SleepFor(UntilElevenPm + TimeSpan.FromSeconds(30));
+        WaitForTheLights();
+
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // As before there was CatchUp.
+    [Fact]
+    public void CatchUpOff_WakingHalfAMinuteAfterTheTime_SkipsItAndLoadsTheNextDay()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimer();
+
+        SleepFor(UntilElevenPm + TimeSpan.FromSeconds(30));
+        WaitForTheLights();
+        Assert.Equal(StartColor, ShownColor());
+
+        _time.Advance(TimeSpan.FromDays(1) - TimeSpan.FromSeconds(30) - ResumeRestorer.DefaultDelays[0]);
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // Without Suspending it is not known when the pc went to sleep.
+    [Fact]
+    public void CatchUp_WakingWithoutSuspending_LoadsNothing()
+    {
+        _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
+        StartTimerCatchingUpAfterWaking();
+
+        _time.MoveClock(TimeSpan.FromHours(10));
+        _clock.RaiseChanged();
+        _power.RaiseResumed();
+        WaitForTheLights();
+
+        Assert.Equal(StartColor, ShownColor());
+    }
+
     [Fact]
     public void CatchUpChanged_IsRaisedOnlyWhenItChanges()
     {

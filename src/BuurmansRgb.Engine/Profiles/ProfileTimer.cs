@@ -12,7 +12,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // skipped, not caught up on: after a night asleep the "night" profile would be wrong in the
 // morning. With CatchUp the timer does catch up, with the scene the times give now: the one whose
 // time passed last. It does so at the start, and after waking up once the lights are back
-// (ResumeRestorer.Restored) when a time passed that it did not load. While a program shows its
+// (ResumeRestorer.Restored) when that time passed while the pc slept. While a program shows its
 // profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
 // Called from the tray thread, IPC threads and the timers; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
@@ -29,10 +29,6 @@ internal sealed class ProfileTimer : IProfileTrigger
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private (DateTimeOffset At, string Name)? _next;
-
-    // The first time that passed without loading since the timer last loaded one on time: the pc
-    // slept through it or the clock jumped past it. Null when none did.
-    private DateTimeOffset? _missedSince;
     private bool _catchUp;
     private bool _started;
     private bool _disposed;
@@ -123,29 +119,16 @@ internal sealed class ProfileTimer : IProfileTrigger
 
     private void OnChanged(object? sender, EventArgs e) => Schedule();
 
-    // Only after a time that passed unloaded: without one the lighting is still what the times
-    // gave last, or what the user chose after it, and that stays. Once looked at, it is forgotten.
-    private void OnRestored(object? sender, EventArgs e)
+    // Only when the last time passed while the pc slept: otherwise the lighting is still what the
+    // times gave last, or what the user chose after it, and that stays. Also when the timer could
+    // not load it: a time just before waking up, which the clock event skips. Without the moment
+    // the pc went to sleep it is not known what passed, so it loads nothing, as without CatchUp.
+    private void OnRestored(object? sender, DateTimeOffset? asleepSince)
     {
-        DateTimeOffset? missedSince;
-        lock (_gate)
+        if (asleepSince is { } since && CatchUp)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            // In case the clock event did not come first.
-            MarkMissedLocked(_time.GetUtcNow());
-            missedSince = _missedSince;
-            _missedSince = null;
-            if (!_catchUp || missedSince is null)
-            {
-                return;
-            }
+            LoadLatest(since);
         }
-
-        LoadLatest(missedSince);
     }
 
     // The earliest time wins; two profiles at the same time load the first in alphabetical order.
@@ -160,7 +143,6 @@ internal sealed class ProfileTimer : IProfileTrigger
 
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
-            MarkMissedLocked(now);
             _next = null;
             foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
@@ -177,15 +159,6 @@ internal sealed class ProfileTimer : IProfileTrigger
             }
 
             _timer.Change(_next is { } next ? next.At - now : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-        }
-    }
-
-    // Before the next time is worked out again: when it passed too long ago to load, it is missed.
-    private void MarkMissedLocked(DateTimeOffset now)
-    {
-        if (_next is { } next && now - next.At > LateLimit)
-        {
-            _missedSince ??= next.At;
         }
     }
 
@@ -208,10 +181,6 @@ internal sealed class ProfileTimer : IProfileTrigger
             }
 
             due = now - next.At <= LateLimit ? next.Name : null;
-            if (due is not null)
-            {
-                _missedSince = null;
-            }
         }
 
         // Outside the lock: loading takes the locks of the library and the lighting.
@@ -223,7 +192,7 @@ internal sealed class ProfileTimer : IProfileTrigger
         Schedule();
     }
 
-    // The scene whose time passed last, when that is not before since and not the scene that is
+    // The scene whose time passed last, when that is after since and not the scene that is
     // on. Two at the same time: the first in alphabetical order, as in Schedule.
     private void LoadLatest(DateTimeOffset? since)
     {
@@ -252,7 +221,7 @@ internal sealed class ProfileTimer : IProfileTrigger
             }
         }
 
-        if (latest is { } scene && (since is null || scene.At >= since) && !ProfileNames.Comparer.Equals(scene.Name, _profiles.ActiveName))
+        if (latest is { } scene && (since is null || scene.At > since) && !ProfileNames.Comparer.Equals(scene.Name, _profiles.ActiveName))
         {
             Load(scene.Name);
         }
