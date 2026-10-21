@@ -127,6 +127,10 @@
 
                     <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" />
                     <Grid IsEnabled="{Binding Profiles.Automation.HasProfile}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="20" />
@@ -156,6 +160,18 @@
                                 </TextBox.InputBindings>
                             </TextBox>
                         </StackPanel>
+                        <!-- Or pick the program: one that has a window now, or an .exe anywhere. -->
+                        <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,8,0,0">
+                            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                                    Content="{x:Static res:Strings.ProgramBrowse}" ToolTip="{x:Static res:Strings.ProgramBrowseToolTip}"
+                                    Click="OnBrowseProgramClick" />
+                            <ComboBox x:Name="RunningPrograms" ItemsSource="{Binding Profiles.Automation.RunningPrograms}"
+                                      Tag="{x:Static res:Strings.ProgramPickPlaceholder}"
+                                      DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"
+                                      ToolTip="{x:Static res:Strings.ProgramPickToolTip}"
+                                      AutomationProperties.Name="{x:Static res:Strings.ProgramPickPlaceholder}"
+                                      AutomationProperties.HelpText="{x:Static res:Strings.ProgramPickToolTip}" />
+                        </DockPanel>
                         <Button Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Bottom" Style="{StaticResource SecondaryButton}"
                                 Content="{x:Static res:Strings.ProfileAutomationApply}" ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}"
                                 Command="{Binding Profiles.Automation.ApplyCommand}"

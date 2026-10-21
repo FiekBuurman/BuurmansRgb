@@ -159,7 +159,9 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   en/of bij "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`;
   `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
-  in (Eigenschappen van de snelkoppeling).
+  in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
+  "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
+  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld.
 - **De scène die aan staat** heeft een witte rand van 2 px, zoals in het ontwerp, en in het
   tray-menu een vinkje; een schermlezer zegt "Staat aan". Dat is de scène die het laatst aanging
   (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of

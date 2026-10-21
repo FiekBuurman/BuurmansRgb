@@ -5,7 +5,7 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class ProfileAutomationViewModelTests
 {
-    private readonly ProfileAutomationViewModel _automation = new();
+    private readonly ProfileAutomationViewModel _automation = new(() => []);
     private readonly List<ProfileAutomationChange> _requests = [];
 
     public ProfileAutomationViewModelTests() => _automation.ApplyRequested += (_, change) => _requests.Add(change);
@@ -118,6 +118,44 @@ public sealed class ProfileAutomationViewModelTests
 
         Assert.StartsWith("Dit is een snelkoppeling of script.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void FindPrograms_ShowsTheProgramsWithAWindow()
+    {
+        var automation = new ProfileAutomationViewModel(() => ["eldenring.exe", "notepad.exe"]);
+        Assert.False(automation.HasRunningPrograms);
+
+        automation.FindProgramsCommand.Execute(null);
+
+        Assert.Equal(["eldenring.exe", "notepad.exe"], automation.RunningPrograms);
+        Assert.True(automation.HasRunningPrograms);
+    }
+
+    // From the list as it is, from "Bladeren" with its whole path: the field gets the file name.
+    [Theory]
+    [InlineData("eldenring.exe", "eldenring.exe")]
+    [InlineData(@"C:\Games\ELDEN RING\Game\eldenring.exe", "eldenring.exe")]
+    public void PickProgram_FillsInTheExeName(string picked, string expected)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.PickProgramCommand.Execute(picked);
+
+        Assert.Equal(expected, _automation.ProgramText);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(@"C:\Users\me\Desktop\Spel.lnk")]
+    public void PickProgram_NothingOrNoProgram_LeavesTheField(string? picked)
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+
+        _automation.PickProgramCommand.Execute(picked);
+
+        Assert.Equal("eldenring.exe", _automation.ProgramText);
     }
 
     [Fact]

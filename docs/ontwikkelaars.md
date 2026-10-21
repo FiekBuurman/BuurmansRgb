@@ -64,7 +64,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests`, `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests`, `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
