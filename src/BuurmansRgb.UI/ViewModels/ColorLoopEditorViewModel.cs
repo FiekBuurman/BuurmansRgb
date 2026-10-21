@@ -101,12 +101,25 @@ public sealed partial class ColorLoopEditorViewModel : ObservableObject
         LoopChanged?.Invoke(this, Loop);
     }
 
+    // Changes only what differs, so the tiles that stay keep their place and the keyboard focus.
     private void RefreshSwatches()
     {
-        Swatches.Clear();
+        while (Swatches.Count > _colors.Count)
+        {
+            Swatches.RemoveAt(Swatches.Count - 1);
+        }
+
         for (var i = 0; i < _colors.Count; i++)
         {
-            Swatches.Add(new ColorLoopSwatch(i, _colors[i], i == SelectedIndex));
+            if (i < Swatches.Count)
+            {
+                Swatches[i].Color = _colors[i];
+                Swatches[i].IsSelected = i == SelectedIndex;
+            }
+            else
+            {
+                Swatches.Add(new ColorLoopSwatch(i, _colors[i], i == SelectedIndex));
+            }
         }
     }
 }

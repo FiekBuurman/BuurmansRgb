@@ -66,6 +66,40 @@ public sealed class ColorLoopEditorViewModelTests
         Assert.Equal([Yellow, Red, Blue], Assert.Single(_changes).Colors);
     }
 
+    // The tile stays the same one, so it keeps the focus and its border while the sliders paint it.
+    [Fact]
+    public void PaintAndSelect_ChangeTheSwatchesInPlace()
+    {
+        var swatches = _editor.Swatches.ToList();
+        List<string?> changed = [];
+        swatches[1].PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        _editor.SelectCommand.Execute(1);
+        _editor.Paint(Red);
+
+        Assert.Equal(swatches, _editor.Swatches);
+        Assert.Equal(Red, _editor.Swatches[1].Color);
+        Assert.Equal([false, true, false], _editor.Swatches.Select(swatch => swatch.IsSelected));
+        Assert.Equal("Kleur 2: #FF0000", _editor.Swatches[1].Name);
+        Assert.Contains(nameof(ColorLoopSwatch.Name), changed);
+    }
+
+    [Fact]
+    public void AddAndRemoveColor_KeepTheSwatchesBeforeTheChange()
+    {
+        var first = _editor.Swatches[0];
+
+        _editor.AddColorCommand.Execute(null);
+        Assert.Same(first, _editor.Swatches[0]);
+        Assert.Equal([Yellow, Yellow, Green, Blue], _editor.Swatches.Select(swatch => swatch.Color));
+        Assert.Equal([0, 1, 2, 3], _editor.Swatches.Select(swatch => swatch.Index));
+
+        _editor.RemoveColorCommand.Execute(null);
+        Assert.Same(first, _editor.Swatches[0]);
+        Assert.Equal([Yellow, Green, Blue], _editor.Swatches.Select(swatch => swatch.Color));
+        Assert.Equal([false, true, false], _editor.Swatches.Select(swatch => swatch.IsSelected));
+    }
+
     [Fact]
     public void AddColor_InsertsACopyAfterTheSelectionAndSelectsIt()
     {
