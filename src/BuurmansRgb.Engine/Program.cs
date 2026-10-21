@@ -34,6 +34,7 @@ internal static class Program
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
         using var lighting = new LightingController([simulatedDevices, openRgb]);
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        using var zoneLengths = new ZoneLengthKeeper(lighting);
 
         // On this thread, which pumps the tray messages and so also the power and clock events.
         using var powerEvents = new SystemPowerEvents();
@@ -49,12 +50,13 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, profiles, simulatedDevicesSwitch, openRgb, saveEvents),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents,
-            profileTriggers: [profileTimer, programWatcher]);
+            profileTriggers: [profileTimer, programWatcher],
+            zoneLengths: zoneLengths);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))

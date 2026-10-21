@@ -4,8 +4,9 @@ using BuurmansRgb.Contracts;
 namespace BuurmansRgb.UI.ViewModels;
 
 // Shows the frames the engine renders for the devices in view, and the LEDs selected in the
-// per-LED editor. Use it from the UI thread.
-public sealed class PreviewViewModel : IPreviewActions
+// per-LED editor. Use it from the UI thread. time runs the delay before a new zone length goes to
+// the engine (ZoneLengthViewModel).
+public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewActions, IDisposable
 {
     private LightingFrame _latestFrame = LightingFrame.Empty;
     private LedSelection? _ledSelection;
@@ -27,17 +28,53 @@ public sealed class PreviewViewModel : IPreviewActions
     // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
     public void Reset() => _latestFrame = LightingFrame.Empty;
 
+    // A zone length the user set that has not gone to the engine yet stays with its zone, so the
+    // preview does not jump back while the engine reports the devices again (for example after the
+    // previous resize); it goes out when its delay is over. A zone that no longer shows sends it now,
+    // also halfway a drag.
     public void ShowDevices(IEnumerable<DeviceInfo> devices)
     {
+        DevicePreviewViewModel[] previous = [.. Devices];
         Devices.Clear();
         foreach (var device in devices)
         {
-            var preview = new DevicePreviewViewModel(device, this);
+            var preview = new DevicePreviewViewModel(device, this, time);
             preview.ShowLedSelection(_ledSelection);
             Devices.Add(preview);
         }
 
+        foreach (var length in LengthsOf(previous).Where(length => length.HasUnsentChange))
+        {
+            if (LengthsOf(Devices).FirstOrDefault(next => next.DeviceId == length.DeviceId && next.ZoneIndex == length.ZoneIndex) is { } next)
+            {
+                next.ContinueWith(length.LedCount);
+            }
+            else
+            {
+                length.EndDrag();
+            }
+        }
+
+        foreach (var preview in previous)
+        {
+            preview.Dispose();
+        }
+
         ShowFrame(_latestFrame);
+    }
+
+    // The window closes: lengths that wait for their delay or the end of a drag go out now.
+    public void Dispose()
+    {
+        foreach (var length in LengthsOf(Devices))
+        {
+            length.EndDrag();
+        }
+
+        foreach (var preview in Devices)
+        {
+            preview.Dispose();
+        }
     }
 
     public void ShowLedSelection(LedSelection? selection)
@@ -75,4 +112,7 @@ public sealed class PreviewViewModel : IPreviewActions
     void IPreviewActions.ResizeZone(ZoneResize resize) => ZoneResizeRequested?.Invoke(this, resize);
 
     void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
+
+    private static IEnumerable<ZoneLengthViewModel> LengthsOf(IEnumerable<DevicePreviewViewModel> previews) =>
+        previews.SelectMany(preview => preview.Zones).Select(zone => zone.Length).OfType<ZoneLengthViewModel>();
 }

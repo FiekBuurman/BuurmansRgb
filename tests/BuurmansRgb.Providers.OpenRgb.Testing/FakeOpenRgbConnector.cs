@@ -1,6 +1,6 @@
 using BuurmansRgb.Core;
 
-namespace BuurmansRgb.Providers.OpenRgb.Tests;
+namespace BuurmansRgb.Providers.OpenRgb.Testing;
 
 // Connects to an OpenRGB server that lives in memory, without a socket (OpenRgbTestServer is the
 // one on a real socket): connecting fails while it is stopped, and stopping it closes the open

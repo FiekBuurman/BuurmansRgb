@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -92,10 +93,46 @@ public sealed class MainViewModelLedEditorTests
         Api.RaiseDevicesChanged();
         var header = Assert.Single(viewModel.Preview.Devices).Zones[1];
 
-        header.LedCountText = "24";
-        header.ApplyLedCountCommand.Execute(null);
+        header.Length!.LedCountText = "24";
+        header.Length.ApplyCommand.Execute(null);
 
         Assert.Equal(["resize board 1 24"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task IncreaseLedCount_AsksTheEngineOnceAfterThePause()
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(_connector, time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware }];
+        Api.RaiseDevicesChanged();
+        var header = Assert.Single(viewModel.Preview.Devices).Zones[1];
+
+        header.Length!.IncreaseCommand.Execute(null);
+        header.Length.IncreaseCommand.Execute(null);
+        header.Length.IncreaseCommand.Execute(null);
+
+        Assert.Equal(3, header.ShownLedCount);
+        Assert.Empty(Api.Calls);
+        time.Advance(ZoneLengthViewModel.SendDelay);
+        Assert.Equal(["resize board 1 3"], Api.Calls);
+    }
+
+    // The window closes before the pause is over: the length still reaches the engine.
+    [Fact]
+    public async Task Dispose_SendsAZoneLengthThatWaitsBeforeTheConnectionCloses()
+    {
+        var viewModel = new MainViewModel(_connector, new FakeTimeProvider());
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware }];
+        Api.RaiseDevicesChanged();
+        Assert.Single(viewModel.Preview.Devices).Zones[1].Length!.IncreaseCommand.Execute(null);
+
+        viewModel.Dispose();
+
+        Assert.Equal(["resize board 1 1"], Api.Calls);
+        Assert.True(_connector.Connection.IsDisposed);
     }
 
     [Fact]

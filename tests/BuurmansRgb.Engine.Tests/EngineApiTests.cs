@@ -15,17 +15,20 @@ public sealed class EngineApiTests : IDisposable
     private readonly InMemoryProfileStore _profileStore = new();
     private readonly ProfileLibrary _profiles;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
+    private readonly ZoneLengthKeeper _zoneLengths;
     private readonly FakeServerStatus _openRgb = new();
 
     public EngineApiTests()
     {
         _lighting = new LightingController([_simulated]);
+        _zoneLengths = new ZoneLengthKeeper(_lighting);
         _profiles = new ProfileLibrary(_profileStore, _lighting);
         _simulatedDevices = new SimulatedDevicesSwitch(_simulated, _lighting);
     }
 
     public void Dispose()
     {
+        _zoneLengths.Dispose();
         _simulatedDevices.Dispose();
         _lighting.Dispose();
     }
@@ -155,7 +158,7 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
-    public async Task ResizeZoneAsync_ResizesTheZoneAndReportsTheNewDevice()
+    public async Task ResizeZoneAsync_ResizesTheZoneRemembersItAndReportsTheNewDevice()
     {
         await _lighting.DiscoverAsync(Ct);
         using var api = CreateApi();
@@ -169,6 +172,7 @@ public sealed class EngineApiTests : IDisposable
         var strip = devices.Single(device => device.Id == "simulated-strip");
         Assert.Equal(45, strip.LedCount);
         Assert.Equal(new RgbZone("Strip", 45, 1, 60), Assert.Single(strip.Zones));
+        Assert.Equal(45, _zoneLengths.Lengths["simulated-strip"]["Strip"]);
     }
 
     [Fact]
@@ -200,7 +204,8 @@ public sealed class EngineApiTests : IDisposable
     {
         var dynamic = new DynamicDeviceProvider();
         using var lighting = new LightingController([dynamic]);
-        using var api = new EngineApi(lighting, new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices, _openRgb);
+        using var zoneLengths = new ZoneLengthKeeper(lighting);
+        using var api = new EngineApi(lighting, zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices, _openRgb);
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         api.DevicesChanged += (_, _) => changed.TrySetResult();
 
@@ -340,5 +345,5 @@ public sealed class EngineApiTests : IDisposable
     }
 
     private EngineApi CreateApi(SettingsSaveEvents? saveEvents = null) =>
-        new(_lighting, _profiles, _simulatedDevices, _openRgb, saveEvents);
+        new(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, saveEvents);
 }

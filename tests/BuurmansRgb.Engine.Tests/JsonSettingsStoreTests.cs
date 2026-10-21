@@ -85,6 +85,123 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_ZoneLengthsWrittenByHand_AreReadByDeviceAndZoneName()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "zoneLengths": { "simulated-argb": { "ARGB 2": 15 }, "gone": null } }""");
+
+        var lengths = new JsonSettingsStore(path).LoadOrCreate().ReadZoneLengths();
+
+        var device = Assert.Single(lengths);
+        Assert.Equal("simulated-argb", device.Key);
+        Assert.Equal(15, device.Value["ARGB 2"]);
+    }
+
+    [Fact]
+    public void Save_ZoneLengths_RoundTrip()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var lengths = new Dictionary<string, IReadOnlyDictionary<string, int>> { ["simulated-argb"] = new Dictionary<string, int> { ["ARGB 2"] = 15 } };
+
+        store.Save(EngineSettings.CreateDefault().WithZoneLengths(lengths));
+
+        Assert.Contains("\"zoneLengths\"", File.ReadAllText(path));
+        Assert.Equal(lengths, store.LoadOrCreate().ReadZoneLengths());
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesZoneLengthsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithZoneLengths(new Dictionary<string, IReadOnlyDictionary<string, int>>()));
+
+        Assert.DoesNotContain("zoneLengths", File.ReadAllText(path));
+    }
+
+    [Fact]
+    public void Save_LedColorZoneLengths_RoundTrip()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(new EngineSettings { LedColors = new() { ["simulated-argb"] = [Red] }, LedColorZoneLengths = new() { ["simulated-argb"] = [30, 10] } });
+
+        Assert.Contains("\"ledColorZoneLengths\"", File.ReadAllText(path));
+        Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColors["simulated-argb"].ZoneLengths!);
+    }
+
+    // Counts that add up past what an int can hold would make the colors land at a negative index.
+    [Theory]
+    [InlineData("[2000000000, 2000000000, 5]")]
+    [InlineData("[100000, 1]")]
+    public void Load_ZoneLengthsOfFarMoreLedsThanADeviceHas_AreLeftOut(string lengths)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "ledColors": { "a": ["#FF0000"] }, "ledColorZoneLengths": { "a": {{lengths}} } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal([Red], state.LedColors["a"].Colors);
+        Assert.Null(state.LedColors["a"].ZoneLengths);
+    }
+
+    // A file from before the zone lengths were stored, or with a count that cannot be right.
+    [Fact]
+    public void Load_LedColorsWithoutOrWithWrongZoneLengths_HaveNone()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "ledColors": { "a": ["#FF0000"], "b": ["#FF0000"] }, "ledColorZoneLengths": { "b": [3, -1] } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal(2, state.LedColors.Count);
+        Assert.All(state.LedColors.Values, entry => Assert.Null(entry.ZoneLengths));
+    }
+
+    // One odd value leaves out only itself; the rest of the file, lighting included, still counts.
+    [Fact]
+    public void Load_ZoneLengthsThatAreNotNumbers_LeavesOutOnlyThose()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """
+            {
+              "color": "#FF8800",
+              "framesPerSecond": 12,
+              "zoneLengths": { "a": { "One": "30", "Two": 12, "Three": 2.5, "Four": null }, "b": 5, "c": { "Five": 7 } },
+              "ledColorZoneLengths": { "a": [1, "x"], "b": 4, "c": [3, 4] }
+            }
+            """);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Orange, settings.Color);
+        Assert.Equal(12, settings.FramesPerSecond);
+        var lengths = settings.ReadZoneLengths();
+        Assert.Equal(["a", "c"], lengths.Keys.Order());
+        Assert.Equal(new Dictionary<string, int> { ["Two"] = 12 }, lengths["a"]);
+        Assert.Equal(new Dictionary<string, int> { ["Five"] = 7 }, lengths["c"]);
+        Assert.Equal(["c"], settings.LedColorZoneLengths!.Keys);
+        Assert.Equal([3, 4], settings.LedColorZoneLengths["c"]!);
+    }
+
+    [Theory]
+    [InlineData("""{ "color": "#FF8800", "zoneLengths": [1, 2] }""")]
+    [InlineData("""{ "color": "#FF8800", "ledColorZoneLengths": "none" }""")]
+    public void Load_ZoneLengthsOfAnotherShape_LeavesOutOnlyThose(string content)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, content);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Orange, settings.Color);
+        Assert.Empty(settings.ReadZoneLengths());
+        Assert.Empty(settings.ToLightingState().LedColors);
+    }
+
+    [Fact]
     public void Save_Defaults_LeavesLedColorsOutOfTheFile()
     {
         var path = _directory.File("settings.json");
@@ -205,20 +322,35 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Contains("\"simulatedDevices\": \"automatic\"", File.ReadAllText(path));
     }
 
+    // Set aside, so saving the defaults later does not overwrite what the user had.
     [Theory]
     [InlineData("not json")]
     [InlineData("""{ "color": "purple" }""")]
     [InlineData("""{ "color": 42 }""")]
-    [InlineData("null")]
-    public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndKeepsFile(string content)
+    public void LoadOrCreate_InvalidFile_ReturnsDefaultsAndMovesTheFileAside(string content)
     {
         var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
         File.WriteAllText(path, content);
 
-        var settings = new JsonSettingsStore(path).LoadOrCreate();
+        var settings = store.LoadOrCreate();
+        store.Save(settings);
 
         Assert.Equal(EngineSettings.CreateDefault(), settings);
-        Assert.Equal(content, File.ReadAllText(path));
+        Assert.Equal(content, File.ReadAllText(store.BrokenFilePath));
+    }
+
+    [Fact]
+    public void LoadOrCreate_FileWithNull_ReturnsDefaultsAndKeepsFile()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, "null");
+
+        var store = new JsonSettingsStore(path);
+
+        Assert.Equal(EngineSettings.CreateDefault(), store.LoadOrCreate());
+        Assert.Equal("null", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
     }
 
     [Fact]

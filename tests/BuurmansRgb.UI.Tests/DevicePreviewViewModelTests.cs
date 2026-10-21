@@ -284,17 +284,18 @@ public sealed class DevicePreviewViewModelTests
     {
         var actions = new RecordingPreviewActions();
         var header = new DevicePreviewViewModel(Motherboard, actions).Zones[2];
+        var length = header.Length!;
 
         Assert.True(header.CanResize);
-        Assert.Equal("0", header.LedCountText);
-        Assert.Equal("Aantal LED's (0–120):", header.LedCountLabel);
-        Assert.Equal("Aantal LED's van Motherboard – ARGB header", header.LedCountAccessibleName);
-        Assert.Equal("Aantal LED's toepassen voor Motherboard – ARGB header", header.ApplyLedCountAccessibleName);
-        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+        Assert.Equal("0", length.LedCountText);
+        Assert.Equal("Aantal LED's (0–120):", length.Label);
+        Assert.Equal("Aantal LED's van Motherboard – ARGB header", length.SliderAccessibleName);
+        Assert.Equal("Aantal LED's toepassen voor Motherboard – ARGB header", length.ApplyAccessibleName);
+        Assert.False(length.ApplyCommand.CanExecute(null));
 
-        header.LedCountText = "30";
-        Assert.True(header.ApplyLedCountCommand.CanExecute(null));
-        header.ApplyLedCountCommand.Execute(null);
+        length.LedCountText = "30";
+        Assert.True(length.ApplyCommand.CanExecute(null));
+        length.ApplyCommand.Execute(null);
 
         Assert.Equal([new ZoneResize("board", 2, 30)], actions.Requests);
     }
@@ -307,11 +308,11 @@ public sealed class DevicePreviewViewModelTests
     [InlineData("2.5")]
     public void ApplyLedCount_NotALengthTheZoneCanHold_CannotRun(string text)
     {
-        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+        var length = new DevicePreviewViewModel(Motherboard).Zones[2].Length!;
 
-        header.LedCountText = text;
+        length.LedCountText = text;
 
-        Assert.False(header.ApplyLedCountCommand.CanExecute(null));
+        Assert.False(length.ApplyCommand.CanExecute(null));
     }
 
     [Fact]
@@ -335,7 +336,7 @@ public sealed class DevicePreviewViewModelTests
 
         Assert.False(zone.ShowsHeader);
         Assert.True(zone.CanResize);
-        Assert.Equal("30", zone.LedCountText);
+        Assert.Equal("30", zone.Length!.LedCountText);
     }
 
     [Fact]
@@ -359,5 +360,86 @@ public sealed class DevicePreviewViewModelTests
         Assert.False(header.SelectZoneCommand.CanExecute(null));
         Assert.False(header.ShowsHeaderLink);
         Assert.True(header.ShowsHeaderText);
+    }
+
+    // The preview grows before the engine has the new length; the new LEDs stay dark until then.
+    [Fact]
+    public void Length_Increased_ShowsTheNewLedsAtOnce()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 2, [new RgbZone("Strip", 2, 1, 60)]) { Source = DeviceSource.Hardware };
+        var preview = new DevicePreviewViewModel(strip);
+        preview.Colors = [Red, Red];
+        var zone = Assert.Single(preview.Zones);
+
+        zone.Length!.IncreaseCommand.Execute(null);
+
+        Assert.Equal(3, zone.ShownLedCount);
+        Assert.Equal(2, zone.LedCount);
+        Assert.Equal([Red, Red, RgbColor.Black], zone.Colors);
+        Assert.Equal(["LED 1", "LED 2", "LED 3"], zone.LedLabels);
+        Assert.Equal("Strip · 3 LED's", zone.Header);
+
+        preview.Colors = [Green, Green];
+
+        Assert.Equal([Green, Green, RgbColor.Black], zone.Colors);
+    }
+
+    [Fact]
+    public void Length_Decreased_ShowsFewerLeds()
+    {
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 3, [new RgbZone("Strip", 3, 1, 60)]) { Source = DeviceSource.Hardware };
+        var preview = new DevicePreviewViewModel(strip);
+        preview.Colors = [Red, Green, Blue];
+        var zone = Assert.Single(preview.Zones);
+
+        zone.Length!.DecreaseCommand.Execute(null);
+
+        Assert.Equal([Red, Green], zone.Colors);
+        Assert.Equal(2, zone.LedLabels.Count);
+    }
+
+    // An LED that only shows because of the new length has no color in the engine to edit.
+    [Fact]
+    public void ClickLed_OnALedTheZoneDoesNotHaveYet_DoesNothing()
+    {
+        var actions = new RecordingPreviewActions();
+        var strip = new DeviceInfo("strip", "LED strip", DeviceType.LedStrip, 2, [new RgbZone("Strip", 2, 1, 60)]) { Source = DeviceSource.Hardware };
+        var zone = Assert.Single(new DevicePreviewViewModel(strip, actions).Zones);
+        zone.Length!.IncreaseCommand.Execute(null);
+
+        zone.ClickLedCommand.Execute(new LedHit(2, Extend: false));
+        zone.ClickLedCommand.Execute(new LedHit(1, Extend: false));
+
+        Assert.Equal([new LedClick("strip", 1, Extend: false)], actions.Requests);
+    }
+
+    // The hint keeps telling the truth: it goes once the user gives the empty header LEDs, and
+    // comes back when they go back to none.
+    [Fact]
+    public void EmptyZoneHint_FollowsTheLengthTheUserSets()
+    {
+        var header = new DevicePreviewViewModel(Motherboard).Zones[2];
+        var changes = new List<string?>();
+        header.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
+        header.Length!.IncreaseCommand.Execute(null);
+
+        Assert.False(header.ShowsEmptyZoneHint);
+        Assert.Null(header.LedCountHelpText);
+        Assert.Equal("1 LED", header.Details);
+        Assert.Contains(nameof(ZonePreviewViewModel.ShowsEmptyZoneHint), changes);
+
+        header.Length.DecreaseCommand.Execute(null);
+
+        Assert.True(header.ShowsEmptyZoneHint);
+        Assert.Equal(Strings.EmptyZoneHint, header.LedCountHelpText);
+        Assert.Equal(Strings.ZoneWithoutLedsResizable, header.Details);
+    }
+
+    [Fact]
+    public void EmptyZoneHint_NamesTheWaysToSetTheLength()
+    {
+        Assert.Contains("+", Strings.EmptyZoneHint);
+        Assert.Contains("schuif", Strings.EmptyZoneHint);
     }
 }

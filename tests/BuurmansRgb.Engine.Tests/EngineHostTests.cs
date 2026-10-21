@@ -177,6 +177,79 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255), RgbColor.White], restarted.GetLeds("simulated-fan")[..3]);
     }
 
+    // The simulated devices start with their first length again; the engine gives them the saved one.
+    [Fact]
+    public async Task ZoneLengths_AreKeptAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        using (var lighting = new LightingController([_simulated]))
+        using (var zoneLengths = new ZoneLengthKeeper(lighting))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), zoneLengths: zoneLengths))
+        {
+            await host.StartAsync(Ct);
+            zoneLengths.ResizeZone("simulated-argb", 1, 15);
+        }
+
+        Assert.Equal(15, store.LoadOrCreate().ReadZoneLengths()["simulated-argb"]["ARGB 2"]);
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedZoneLengths = new ZoneLengthKeeper(restartedLighting);
+        using var restartedHost = new EngineHost(store, restartedLighting, zoneLengths: restartedZoneLengths);
+        await restartedHost.StartAsync(Ct);
+
+        await Eventually.TrueAsync(() => restartedLighting.Devices.Single(device => device.Id == "simulated-argb").Zones[1].LedCount == 15);
+        Assert.Equal(35, restarted.GetLeds("simulated-argb").Length);
+    }
+
+    // The simulated controller starts with 20 and 0 LEDs again. Until the engine has given both
+    // channels their lengths back, the second channel must not get colors of the first, and after
+    // it each channel shows its own colors.
+    [Fact]
+    public async Task LedColorsOfResizedZones_AreRightAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        using (var lighting = new LightingController([_simulated]))
+        using (var zoneLengths = new ZoneLengthKeeper(lighting))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), zoneLengths: zoneLengths))
+        {
+            await host.StartAsync(Ct);
+            zoneLengths.ResizeZone("simulated-argb", 0, 30);
+            zoneLengths.ResizeZone("simulated-argb", 1, 10);
+            await Eventually.TrueAsync(() => lighting.Devices.Single(device => device.Id == "simulated-argb").LedCount == 40);
+            lighting.SetLedColors("simulated-argb", 0, [.. Enumerable.Repeat(Orange, 30), .. Enumerable.Repeat(Blue, 10)]);
+        }
+
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedZoneLengths = new ZoneLengthKeeper(restartedLighting);
+        using var restartedHost = new EngineHost(store, restartedLighting, zoneLengths: restartedZoneLengths);
+        await restartedHost.StartAsync(Ct);
+
+        RgbColor[] expected = [.. Enumerable.Repeat(Orange, 30), .. Enumerable.Repeat(Blue, 10)];
+        await Eventually.TrueAsync(() => restarted.GetLeds("simulated-argb").SequenceEqual(expected));
+    }
+
+    // Hand-edited zone lengths that add up past an int: the engine still starts and shows the colors.
+    [Fact]
+    public async Task StartAsync_LedColorZoneLengthsThatOverflow_StillStarts()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings
+            {
+                Devices = new() { ["simulated-motherboard"] = new LightingSettings { Effect = EffectIds.PerLed } },
+                LedColors = new() { ["simulated-motherboard"] = [Red] },
+                LedColorZoneLengths = new() { ["simulated-motherboard"] = [2_000_000_000, 2_000_000_000, 5] },
+            },
+        };
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(store, lighting);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(Red, _simulated.GetLeds("simulated-motherboard")[0]);
+    }
+
     [Fact]
     public async Task StartAsync_UsesTheSavedFrameRate()
     {

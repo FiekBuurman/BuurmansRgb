@@ -25,7 +25,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         var lighting = new LightingState(
             StaticLighting(Orange, 0.5) with { Loop = loop },
             new Dictionary<string, DeviceLighting> { ["fan"] = new(Blue, 0.25, EffectIds.Rainbow, 2.0) },
-            new Dictionary<string, IReadOnlyList<RgbColor?>> { ["strip"] = [Red, null, Green] });
+            new Dictionary<string, LedColorEntry> { ["strip"] = new([Red, null, Green], [1, 2]) });
 
         _store.Save([new Profile("Gamen", lighting), new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))]);
 
@@ -34,7 +34,8 @@ public sealed class JsonProfileStoreTests : IDisposable
         var gamen = loaded[0].Lighting;
         Assert.Equal(lighting.Global, gamen.Global);
         Assert.Equal(lighting.Devices["fan"], gamen.Devices["fan"]);
-        Assert.Equal(lighting.LedColors["strip"], gamen.LedColors["strip"]);
+        Assert.Equal(lighting.LedColors["strip"].Colors, gamen.LedColors["strip"].Colors);
+        Assert.Equal(lighting.LedColors["strip"].ZoneLengths!, gamen.LedColors["strip"].ZoneLengths!);
         Assert.Equal(StaticLighting(Red, 0.1), loaded[1].Lighting.Global);
     }
 
@@ -159,6 +160,23 @@ public sealed class JsonProfileStoreTests : IDisposable
         var profile = Assert.Single(_store.Load());
         Assert.Equal("Gamen", profile.Name);
         Assert.Equal(Red, profile.Lighting.Global.Color);
+    }
+
+    // A hand-edited count that does not read leaves out the zone lengths of that device, not the file.
+    [Fact]
+    public void Load_LedColorZoneLengthsThatAreNotNumbers_KeepsTheProfiles()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Gamen", "color": "#FF0000", "ledColors": { "strip": ["#00FF00"] },
+              "ledColorZoneLengths": { "strip": ["1"], "fan": [2, 3] } } ] }
+            """);
+
+        var profile = Assert.Single(_store.Load());
+
+        Assert.False(File.Exists(_store.BrokenFilePath));
+        Assert.Equal(Red, profile.Lighting.Global.Color);
+        Assert.Equal([Green], profile.Lighting.LedColors["strip"].Colors);
+        Assert.Null(profile.Lighting.LedColors["strip"].ZoneLengths);
     }
 
     [Fact]

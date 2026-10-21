@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.Engine\BuurmansRgb.Engine.csproj" />
+    <!-- The OpenRGB server in memory, so the engine is tested against the real provider. -->
+    <ProjectReference Include="..\BuurmansRgb.Providers.OpenRgb.Testing\BuurmansRgb.Providers.OpenRgb.Testing.csproj" />
   </ItemGroup>
 
 </Project>

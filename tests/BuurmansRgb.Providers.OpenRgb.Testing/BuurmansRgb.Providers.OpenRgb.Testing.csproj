@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- An OpenRGB server in memory for the tests of the provider and of the engine; no tests itself,
+       so the xUnit helpers of tests/Shared stay out (see tests/Directory.Build.props). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <IsTestHelperProject>true</IsTestHelperProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="BuurmansRgb.Providers.OpenRgb.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuurmansRgb.Providers.OpenRgb\BuurmansRgb.Providers.OpenRgb.csproj" />
+  </ItemGroup>
+
+</Project>

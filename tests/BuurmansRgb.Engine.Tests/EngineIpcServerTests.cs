@@ -16,6 +16,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly LightingController _lighting;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
+    private readonly ZoneLengthKeeper _zoneLengths;
     private readonly FakeServerStatus _openRgb = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
@@ -27,6 +28,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         _lighting = new LightingController([simulated]);
         _simulatedDevices = new SimulatedDevicesSwitch(simulated, _lighting);
+        _zoneLengths = new ZoneLengthKeeper(_lighting);
     }
 
     public async ValueTask DisposeAsync()
@@ -44,6 +46,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         _shutdown.Dispose();
         _allClientsGone.Dispose();
+        _zoneLengths.Dispose();
         _simulatedDevices.Dispose();
         _lighting.Dispose();
     }
@@ -281,7 +284,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

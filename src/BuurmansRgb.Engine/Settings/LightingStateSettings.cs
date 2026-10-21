@@ -4,15 +4,25 @@ using BuurmansRgb.Engine.Lighting;
 namespace BuurmansRgb.Engine.Settings;
 
 // All the lighting as it is written to a file: the global lighting plus, under "devices", the
-// devices that differ from it and, under "ledColors", the stored colors of the per-LED effect.
+// devices that differ from it and, under "ledColors", the stored colors of the per-LED effect with,
+// under "ledColorZoneLengths", the zone lengths they were chosen for.
 internal record LightingStateSettings : LightingSettings
 {
+    // More LEDs than a device has, by far; a hand-edited list of zone lengths over it would make the
+    // layout of the colors run past what an int can count.
+    private const long MaxLedCount = 100_000;
+
     // Null instead of empty, so the default settings compare equal and stay out of the file.
     public Dictionary<string, LightingSettings?>? Devices { get; set; }
 
     // One "#RRGGBB" per LED, by device, or null for an LED that follows the device color. Null for
     // the same reason as Devices.
     public Dictionary<string, RgbColor?[]?>? LedColors { get; set; }
+
+    // By device, the LED count of each zone, in zone order, that its ledColors were chosen for.
+    // Older files have none; a list with a negative count is left out. Null for the same reason as
+    // Devices.
+    public Dictionary<string, int[]?>? LedColorZoneLengths { get; set; }
 
     public LightingState ToLightingState()
     {
@@ -25,12 +35,12 @@ internal record LightingStateSettings : LightingSettings
             }
         }
 
-        var ledColors = new Dictionary<string, IReadOnlyList<RgbColor?>>();
+        var ledColors = new Dictionary<string, LedColorEntry>();
         foreach (var (deviceId, colors) in LedColors ?? [])
         {
             if (colors is not null)
             {
-                ledColors[deviceId] = colors;
+                ledColors[deviceId] = new(colors, ReadZoneLengths(deviceId));
             }
         }
 
@@ -44,7 +54,20 @@ internal record LightingStateSettings : LightingSettings
             ? state.Devices.ToDictionary(pair => pair.Key, pair => (LightingSettings?)From(pair.Value))
             : null;
         LedColors = state.LedColors.Count > 0
-            ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value])
+            ? state.LedColors.ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value.Colors])
+            : null;
+        var zoneLengths = state.LedColors.Where(pair => pair.Value.ZoneLengths is not null).ToList();
+        LedColorZoneLengths = zoneLengths.Count > 0
+            ? zoneLengths.ToDictionary(pair => pair.Key, pair => (int[]?)[.. pair.Value.ZoneLengths!])
             : null;
     }
+
+    // Null when the file has none for the device, or counts that cannot be right: a negative one,
+    // or more LEDs in all than any device has.
+    private int[]? ReadZoneLengths(string deviceId) =>
+        LedColorZoneLengths?.GetValueOrDefault(deviceId) is { } lengths
+        && lengths.All(length => length >= 0)
+        && lengths.Sum(length => (long)length) <= MaxLedCount
+            ? lengths
+            : null;
 }

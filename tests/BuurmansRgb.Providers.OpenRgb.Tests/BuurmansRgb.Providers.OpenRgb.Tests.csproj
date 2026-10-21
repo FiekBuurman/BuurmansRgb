@@ -12,10 +12,12 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="BuurmansRgb.Providers.OpenRgb.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.Providers.OpenRgb\BuurmansRgb.Providers.OpenRgb.csproj" />
+    <ProjectReference Include="..\BuurmansRgb.Providers.OpenRgb.Testing\BuurmansRgb.Providers.OpenRgb.Testing.csproj" />
   </ItemGroup>
 
 </Project>

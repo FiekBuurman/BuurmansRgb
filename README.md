@@ -37,7 +37,9 @@ een loopback-socket, dus zonder OpenRGB), `Providers.Simulated` (de gesimuleerde
 apparaten) en `UI` (viewmodels met een nep-engine).
 
 Helpers die elk testproject gebruikt (`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`) staan in
-`tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. Na de
+`tests/Shared`; `tests/Directory.Build.props` bouwt ze in elk testproject mee. De OpenRGB-server in
+het geheugen (`FakeOpenRgbConnector`, en voor tests buiten de provider zelf `InMemoryOpenRgb`)
+staat in het hulpproject `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests. Na de
 code-review kregen ook deze delen eigen tests: de invoercontrole van de verlichting
 (`LightingControllerValidationTests`, `LightingTableTests`), `EffectCatalogTests`,
 `DeviceOutputTests`, `OpenRgbPacketsTests`, `OpenRgbServerWatcherTests` (pakketten met data en
@@ -77,7 +79,14 @@ dotnet run --project src/BuurmansRgb.Engine
       "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led" }
     },
     "ledColors": {
-      "simulated-fan": ["#FF0000", null, "#0000FF", "..."]
+      "simulated-fan": ["#FF0000", null, "#0000FF", "..."],
+      "simulated-argb": ["#FF0000", "...", "#0000FF"]
+    },
+    "ledColorZoneLengths": {
+      "simulated-argb": [20, 15]
+    },
+    "zoneLengths": {
+      "simulated-argb": { "ARGB 2": 15 }
     }
   }
   ```
@@ -97,9 +106,19 @@ dotnet run --project src/BuurmansRgb.Engine
   `framesPerSecond` (1–60, standaard 30) is de framerate van de bewegende effecten. Onder
   `devices` staan alleen apparaten met een eigen kleur of effect; de rest volgt de algemene
   waarden. Onder `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`;
-  `null` (of een LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Een
-  ongeldig of onleesbaar bestand laat de engine ongemoeid en draait dan op de
-  standaardwaarden. Dat geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
+  `null` (of een LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Onder
+  `ledColorZoneLengths` staat per apparaat het aantal LED's van elke zone (in de volgorde van de
+  zones) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen (zie
+  "Fans, case-LED en ARGB-strips"); oudere bestanden hebben dat niet. Onder `zoneLengths` staat per
+  apparaat de lengte die je een instelbare zone gaf, op de naam van de zone. Een waarde in
+  `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over (bij
+  `ledColorZoneLengths` de hele lijst van dat apparaat); de rest van het bestand blijft gelden. Is
+  het bestand geen geldige JSON of klopt er iets anders niet (bijv. een kleur als `"purple"`), dan
+  zet de engine het opzij als `settings.json.broken` en draait hij op de standaardwaarden; die
+  schrijft hij bij de volgende wijziging weg. Verbeter de fout in `settings.json.broken` en zet
+  het terug als `settings.json` terwijl de engine niet draait. Kan de engine het bestand niet
+  lezen (bijv. omdat een ander programma het open heeft), of is de map `%AppData%\BuurmansRgb`
+  niet beschrijfbaar, dan laat hij het ongemoeid en draait hij op de standaardwaarden.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
   openen. Staat die er niet of start hij niet (bijv. geblokkeerd door SmartScreen), dan
@@ -330,51 +349,93 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   fan-ring heeft. Klikken, Shift+klik en de zonenaam werken zoals in een rij; een klik naast of
   midden in de ring kiest niets.
 - **Lengte instellen:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header of
-  -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone. Typ het
-  aantal LED's van wat erop zit en kies "Toepassen" (of Enter). Heeft zo'n zone nog 0 LED's,
-  dan staat er "Nog geen LED's ingesteld" met een korte uitleg erbij. OpenRGB geeft de zone de
-  nieuwe lengte; daarna laadt BuurmansRgb de apparaten opnieuw en stuurt het de kleuren weer.
-  Bij een apparaat met één zone, zoals de gesimuleerde strip (1–60 LED's), staat het vak er
-  ook, zonder zonenaam. Per-LED-kleuren van de zones erna schuiven mee, ook als je de lengte
-  in OpenRGB zelf verandert. De gesimuleerde apparaten onthouden een nieuwe lengte tot de
-  engine stopt.
-- **Let op bij per-LED-kleuren:** `settings.json` bewaart de kleuren per LED, maar niet de
-  zonelengtes waar ze bij horen. Heeft een zone bij de start van de engine een andere lengte
-  dan toen je de kleuren koos, dan staan de kleuren van de zones erna zoveel LED's verschoven.
-  Dat gebeurt bij de gesimuleerde apparaten na elke herstart van de engine (ze beginnen weer
-  met hun eerste lengte), en bij OpenRGB als het een lengte vergeet of als je die verandert
-  terwijl de engine niet draait. Kies de kleuren van die zones dan opnieuw.
+  -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone, en daaronder
+  − en +, een schuif, een vak en "Toepassen". Met − en +, de schuif of de pijltjes op de schuif
+  groeit of krimpt het voorbeeld meteen; LED's die er nog bij komen zijn donker tot de zone ze
+  heeft. De zone zelf krijgt de nieuwe lengte pas als je 0,6 seconde niets verandert of de schuif
+  loslaat: OpenRGB laadt bij elke nieuwe lengte zijn apparaten opnieuw, dus tien keer op + of een
+  sleep over de schuif is één aanpassing. Sluit je het venster of kies je een ander apparaat
+  voordat het zover is, dan gaat de lengte meteen. Aan het eind van het bereik blijven − en +
+  aan, maar veranderen ze niets meer. Een getal typen werkt zoals eerst: typ het en kies
+  "Toepassen" (of Enter); dat gaat meteen. Heeft zo'n zone 0 LED's, dan staat er "Nog geen LED's
+  ingesteld" met een korte uitleg erbij, en die verdwijnt zodra je er LED's bij zet. Daarna laadt
+  BuurmansRgb de apparaten opnieuw, stuurt het de kleuren weer, en staat de focus van het
+  toetsenbord weer op de knop of schuif waar hij stond. Bij een apparaat met één zone, zoals de
+  gesimuleerde strip (1–60 LED's), staat het er ook, zonder zonenaam.
+- **Lengtes bewaren:** een lengte die je in BuurmansRgb instelt, bewaart de engine in
+  `settings.json` (`zoneLengths`, per apparaat op de naam van de zone). Bij het starten en elke
+  keer dat een apparaat (weer) verschijnt, bijvoorbeeld als OpenRGB opnieuw verbonden is, krijgt
+  een zone met een andere lengte de bewaarde lengte terug; ook de gesimuleerde apparaten houden zo
+  hun lengte na een herstart. Op naam en niet op volgorde, omdat OpenRGB de zones in een andere
+  volgorde kan geven; een zone waarvan de naam weg is, of die twee zones van het apparaat delen,
+  blijft met rust. De engine vraagt een lengte alleen als het apparaat verschijnt, en wacht dan tot
+  het apparaat die lengte meldt: neemt OpenRGB hem niet over, dan blijft het bij één poging (tot
+  het apparaat opnieuw verschijnt) in plaats van een lus van aanpassingen. Een lengte buiten het
+  bereik dat de zone nu meldt, blijft bewaard maar wordt niet gevraagd. Een apparaat dat er (nog)
+  niet is, krijgt zijn lengte zodra het verschijnt. Verander je de lengte in OpenRGB zelf terwijl
+  de engine draait, dan neemt BuurmansRgb die over als de nieuwe bewaarde lengte, behalve 0: dat
+  lijkt eerder een vergeten lengte dan een keuze, en bij het volgende verschijnen van het apparaat
+  komt de bewaarde lengte terug.
+- **Per-LED-kleuren en zonelengtes:** `settings.json` (en `profiles.json`) bewaart bij de kleuren
+  per LED ook de zonelengtes waarvoor je ze koos (`ledColorZoneLengths`). Heeft een zone nu een
+  andere lengte, ook bij de eerste ontdekking na een start of als OpenRGB een lengte even
+  vergeten is, dan houdt elke zone zijn eigen kleuren: een langere zone krijgt er LED's in de
+  kleur van het apparaat bij, een kortere toont er minder, en de zones erna schuiven mee. De
+  bewaarde kleuren zelf veranderen daarbij niet, dus krijgt een zone zijn lengte terug, dan zijn
+  al zijn kleuren er weer. Pas als je kleuren van dat apparaat verandert, bewaart de engine ze
+  voor de lengtes van dat moment; de kleuren van LED's die een zone dan mist, zijn weg (behalve
+  aan het eind van de laatste zone). Kleuren uit een ouder bestand, zonder zonelengtes, horen bij
+  de lengtes die het apparaat heeft als de engine het voor het eerst ziet.
 - **Een ring of zone kiezen:** klik in het voorbeeld op de naam van een zone, bijv. "Outer
   ring" van een fan of een kanaal van een controller. Alle LED's van die zone zijn dan
   geselecteerd in de per-LED-editor, en de kleur die je kiest geldt alleen voor die zone.
 - **Na slaapstand** herstelt de engine ook fans en strips, zoals beschreven bij "Moederbord en
   RAM". Een ingestelde lengte blijft na het ontwaken gelijk: OpenRGB houdt hem vast zolang het
-  draait. Of OpenRGB hem ook na een herstart nog weet, test je met je eigen hardware (stap 1
-  hieronder).
+  draait. Vergeet OpenRGB hem na een herstart, dan zet BuurmansRgb de bewaarde lengte terug zodra
+  het weer verbonden is (zie "Lengtes bewaren"); test dat met je eigen hardware (stap 1 hieronder).
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
   `RgbZoneTests`, `RgbDeviceTests` en `SimulatedDeviceProviderTests` (bereik en lengte van zones),
   `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests` en `OpenRgbNetConnectionTests`
   (het type behuizing, lengte instellen bij OpenRGB met nepdata en een kleine SDK-server, ook
   na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
-  engine, per-LED-kleuren die meeschuiven), `SwitchableDeviceProviderTests`, `EngineApiTests`,
-  `EngineRpcTests` en in de instellingen-app `DeviceItemTests`, `DeviceIconsTests`,
-  `DevicePreviewViewModelTests` (welke zones een ring zijn), `RingLayoutTests`,
+  engine, per-LED-kleuren die de zones volgen, ook bij de eerste ontdekking na een start),
+  `ZoneLengthKeeperTests` (lengtes teruggeven: één keer per verschijnen, geen lus als het apparaat
+  weigert, zones op naam, buiten het bereik, een apparaat dat later komt, een lengte uit OpenRGB zelf
+  overnemen behalve 0),
+  `ZoneLengthKeeperOpenRgbTests` (hetzelfde met de nep-OpenRGB-server: verbinden, een herstart
+  die de lengte vergeet, opnieuw zoeken), `EngineHostTests` (lengtes en per-LED-kleuren na een
+  herstart met de gesimuleerde apparaten), `JsonSettingsStoreTests` en `JsonProfileStoreTests`
+  (`zoneLengths` en `ledColorZoneLengths`), `SwitchableDeviceProviderTests`, `EngineApiTests`,
+  `EngineRpcTests` en in de instellingen-app `ZoneLengthViewModelTests` (−, +, schuif, slepen,
+  typen en de pauze voor het versturen, met een nepklok), `PreviewViewModelTests` (een lengte die
+  nog niet verstuurd is blijft staan als de engine de apparaten opnieuw meldt),
+  `FocusKeeperTests` en `SliderDragTests` (de focus na het opnieuw opbouwen, en het begin en eind
+  van een sleep over de schuif, met een echt venster buiten beeld),
+  `DeviceItemTests`, `DeviceIconsTests`, `DevicePreviewViewModelTests` (welke zones een ring zijn,
+  het voorbeeld dat meegroeit, de uitleg bij een lege zone), `RingLayoutTests`,
   `LedArrangementTests` en `LedPreviewViewTests` (de ring: plek van elke LED, klikken op en
   naast een LED), `LedEditorViewModelTests` en `MainViewModelLedEditorTests`.
-  Start daarnaast de engine en de instellingen-app: kies "Simulated ARGB controller", zet
-  "ARGB 2" op bijv. 15 en kies "Toepassen", of klik bij "Simulated dual-ring fan" op "Outer
-  ring" en kies een kleur. "Simulated fan" en de twee ringen van "Simulated dual-ring fan"
-  staan als ring in het voorbeeld; klik op een LED en Shift+klik op een LED verderop.
+  Start daarnaast de engine en de instellingen-app: kies "Simulated ARGB controller", klik bij
+  "ARGB 2" een paar keer op + of sleep de schuif (het voorbeeld groeit meteen, de zone even later),
+  of typ 15 en kies "Toepassen". Sluit de engine af (tray, "Afsluiten") en start hem opnieuw:
+  "ARGB 2" heeft nog steeds die lengte. Of klik bij "Simulated dual-ring fan" op "Outer ring" en
+  kies een kleur. "Simulated fan" en de twee ringen van "Simulated dual-ring fan" staan als ring
+  in het voorbeeld; klik op een LED en Shift+klik op een LED verderop.
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
   elke fan, strip en controller, en daarnaast:
-  1. Stel bij een ARGB-header of -kanaal het aantal LED's in en controleer dat de hele strip
-     (en niet meer) oplicht; herstart OpenRGB en kijk of de lengte bewaard blijft.
-  2. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een
+  1. Stel bij een ARGB-header of -kanaal het aantal LED's in met + of de schuif en controleer
+     dat de hele strip (en niet meer) oplicht; kijk ook of de echte strip pas na het loslaten
+     verandert. Herstart OpenRGB (of de pc) en kijk of de strip binnen een paar seconden na het
+     verbinden weer de goede lengte heeft, en of hij daarna niet blijft knipperen of herladen.
+  2. Geef de zones van een controller met meer kanalen elk een eigen kleur (per LED), herstart
+     OpenRGB en kijk of elke zone zijn eigen kleuren terugkrijgt.
+  3. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een
      kleur.
-  3. Geef LED 1 van een fan-ring een kleur en kijk waar die op de echte fan zit en welke kant
+  4. Geef LED 1 van een fan-ring een kleur en kijk waar die op de echte fan zit en welke kant
      LED 2 op gaat; het voorbeeld zet LED 1 bovenaan en telt met de klok mee.
-  4. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten,
-     of het type klopt (fan, strip of behuizing) en waar LED 1 van een ring zit.
+  5. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten,
+     of het type klopt (fan, strip of behuizing), waar LED 1 van een ring zit en of OpenRGB de
+     lengte na een herstart vergat.
 
 ## Toetsenbord, muis en headset
 
@@ -480,7 +541,8 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   (`DeviceInfo.Location`, in de app `DeviceLocationLabels`).
 - **Lege ARGB-header:** een zone die in lengte instelbaar is maar 0 LED's heeft, zegt in het
   voorbeeld "Nog geen LED's ingesteld" en legt uit dat je het aantal LED's van de fan of strip
-  invult en "Toepassen" kiest.
+  instelt met + en −, de schuif, of door het te typen en "Toepassen" te kiezen. Zet je er LED's
+  bij, dan verdwijnt de uitleg meteen.
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
   `LightingControllerFlashTests` (knipperen met een nepklok: wit en uit, daarna de eigen kleur
   en geen timer meer, pauze en herstellen na slaapstand), `EngineIpcServerTests` en
@@ -686,7 +748,7 @@ dotnet run --project src/BuurmansRgb.UI
 - **Opslaan gaat vanzelf.** Rechtsonder staat "Opgeslagen ✓" met de tijd zodra de engine je
   wijziging heeft weggeschreven, een seconde na de laatste wijziging. Lukt dat niet, dan staat
   er "Opslaan mislukt": de lampen werken dan wel, maar na een herstart is de wijziging weg.
-  Zonelengtes bewaart OpenRGB zelf, niet BuurmansRgb.
+  Ook een zonelengte die je instelt, bewaart de engine zo (zie "Fans, case-LED en ARGB-strips").
 - **Profielen** (links onder de apparaten): typ een naam en kies "Opslaan" om de verlichting
   van alle apparaten te bewaren (kleur, helderheid, effect, snelheid, kleurenloop en
   per-LED-kleuren). Kies later het profiel en "Laden" (of dubbelklik) om terug te gaan; de
@@ -694,7 +756,8 @@ dotnet run --project src/BuurmansRgb.UI
   vult zijn naam in, en de knop heet dan "Overschrijven". "Verwijderen" vraagt eerst of het
   zeker is. Profielen staan in `%AppData%\BuurmansRgb\profiles.json`, naast `settings.json`.
   Is dat bestand geen geldige JSON meer, dan zet de engine het opzij als
-  `profiles.json.broken` en begint met een lege lijst. Zonelengtes horen niet bij een profiel.
+  `profiles.json.broken` en begint met een lege lijst. Zonelengtes horen niet bij een profiel (wel bij
+  `settings.json`); per-LED-kleuren in een profiel weten wel voor welke zonelengtes ze gekozen zijn.
   De uitleg staat achter de ⓘ naast de kop. Onder de profielen klap je "Automatisch laden" open
   om het gekozen profiel op een tijd of bij een programma te laten laden (zie "Profielen").
   In het kleinste venster past alles zolang dat dichtgeklapt is; opengeklapt schuift de

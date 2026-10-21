@@ -7,9 +7,10 @@ using CommunityToolkit.Mvvm.Input;
 namespace BuurmansRgb.UI.ViewModels;
 
 // Colors, selection and clicks count from the first LED of the device. The view shows them per
-// zone: the zones show the selection and hand what the user does on to the actions.
-public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewActions? actions = null)
-    : ObservableObject
+// zone: the zones show the selection and hand what the user does on to the actions. time runs the
+// delay before a new zone length goes to the engine (ZoneLengthViewModel).
+public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewActions? actions = null, TimeProvider? time = null)
+    : ObservableObject, IDisposable
 {
     private readonly IPreviewActions? _actions = actions;
 
@@ -22,7 +23,7 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
     // The preview then explains that the device may not show these colors.
     public bool LacksDirectMode { get; } = !device.HasDirectMode;
 
-    public IReadOnlyList<ZonePreviewViewModel> Zones { get; } = CreateZones(device, actions);
+    public IReadOnlyList<ZonePreviewViewModel> Zones { get; } = CreateZones(device, actions, time);
 
     // What a screen reader calls the flash button; every device in the preview has one.
     public string FlashAccessibleName { get; } = UiText.Format(Strings.FlashDeviceAccessibleName, device.Name);
@@ -41,6 +42,14 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
     }
 
+    public void Dispose()
+    {
+        foreach (var zone in Zones)
+        {
+            zone.Dispose();
+        }
+    }
+
     [RelayCommand]
     private void Flash() => _actions?.FlashDevice(DeviceId);
 
@@ -55,7 +64,7 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
 
     // The zones follow each other in LED order. Zones that claim more LEDs than the device has are
     // cut short, and LEDs that no zone claims get a zone of their own, so every LED shows once.
-    private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, IPreviewActions? actions)
+    private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, IPreviewActions? actions, TimeProvider? time)
     {
         List<ZoneLayout> layouts = [];
         var next = 0;
@@ -74,6 +83,6 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
 
         var showsNames = layouts.Count > 1;
-        return [.. layouts.Select(layout => new ZonePreviewViewModel(device, layout, showsNames, actions))];
+        return [.. layouts.Select(layout => new ZonePreviewViewModel(device, layout, showsNames, actions, time))];
     }
 }

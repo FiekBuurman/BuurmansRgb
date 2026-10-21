@@ -63,8 +63,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
     public event EventHandler? Rendered;
 
-    // Raised when the lighting is changed through SetLighting, SetLedColors or Replace, or when
-    // stored LED colors moved with a resized zone; not when it is applied from settings.
+    // Raised when the lighting is changed through SetLighting, SetLedColors or Replace; not when it
+    // is applied from settings, and not when a zone gets another length: the stored LED colors keep
+    // the zone lengths they were chosen for and follow the zones by themselves (LedColorStore).
     public event EventHandler? LightingChanged;
 
     // Raised when the device list changed, before the render that gives new devices their lighting.
@@ -152,6 +153,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             _lighting.Replace(state.Global, state.Devices);
             _ledColors.Replace(state.LedColors);
+            _ledColors.Adopt(_outputs.All.Select(output => output.Device));
 
             rendered = RenderLocked();
         }
@@ -214,7 +216,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         lock (_gate)
         {
             var device = KnownDeviceLocked(deviceId);
-            return _ledColors.Resolve(deviceId, device.LedCount, _lighting.Get(deviceId).Color);
+            return _ledColors.Resolve(device, _lighting.Get(deviceId).Color);
         }
     }
 
@@ -231,7 +233,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
             ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
 
-            _ledColors.Set(deviceId, firstLed, colors);
+            _ledColors.Set(device, firstLed, colors);
             _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
             rendered = RenderLocked();
         }
@@ -439,7 +441,6 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             var provider = _providers[providerIndex];
             var devices = await provider.DiscoverAsync(ct);
             bool rendered;
-            bool ledColorsMoved;
             lock (_gate)
             {
                 // Disposed while the provider answered: the engine is shutting down, so the
@@ -449,17 +450,13 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     return;
                 }
 
-                var previous = _outputs.Replace(providerIndex, provider, devices);
-                ledColorsMoved = MoveLedColorsLocked(previous, devices);
+                _outputs.Replace(providerIndex, provider, devices);
+                _ledColors.Adopt(devices);
                 rendered = render && RenderLocked();
             }
 
             DevicesChanged?.Invoke(this, EventArgs.Empty);
             Publish(rendered);
-            if (ledColorsMoved)
-            {
-                LightingChanged?.Invoke(this, EventArgs.Empty);
-            }
         }
         finally
         {
@@ -480,7 +477,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
-            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device.Id), lighting.Loop), lighting.Brightness, lighting.Speed);
+            output.Show(EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop), lighting.Brightness, lighting.Speed);
             output.Render(time);
             if (!_isPaused)
             {
@@ -491,23 +488,6 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         _sequence++;
         UpdateAnimationLocked();
         return true;
-    }
-
-    // A zone that got another length, here or in the provider's own app, shifts the LEDs after
-    // it: the stored per-LED colors move along, so every zone keeps its own colors. Returns true
-    // when any colors moved.
-    private bool MoveLedColorsLocked(IReadOnlyList<RgbDevice> previous, IReadOnlyList<RgbDevice> devices)
-    {
-        var moved = false;
-        foreach (var device in devices)
-        {
-            if (previous.FirstOrDefault(candidate => candidate.Id == device.Id) is { } old)
-            {
-                moved |= _ledColors.MoveWithZones(device.Id, old.Zones, device.Zones);
-            }
-        }
-
-        return moved;
     }
 
     // Gives every device that is flashing, but except, its own colors again. Returns true when
