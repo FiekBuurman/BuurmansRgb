@@ -76,6 +76,32 @@ public sealed class MainViewModelColorLoopTests
     }
 
     [Fact]
+    public async Task PickColor_WithColorLoopForALampThatIsOff_SwitchesItOnAfterTheLoop()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting["fan"] = api.Lighting["fan"] with { EffectId = EffectIds.ColorLoop, On = false });
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ColorPicker.Pick("#FF00FF");
+
+        Assert.Equal(["loop fan #FF00FF,#00FF00,#0000FF spread", "on fan on"], Api.Calls);
+        Assert.True(viewModel.SelectedLamp?.IsOn);
+    }
+
+    [Fact]
+    public async Task AddColor_ForALampThatIsOff_LeavesItOff()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting["fan"] = api.Lighting["fan"] with { On = false });
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ColorLoopEditor.AddColorCommand.Execute(null);
+
+        Assert.Equal(["loop fan #FFFF00,#FFFF00,#00FF00,#0000FF spread"], Api.Calls);
+        Assert.False(viewModel.SelectedLamp?.IsOn);
+    }
+
+    [Fact]
     public async Task AddColor_SendsTheLongerLoopForTheSelectedDevice()
     {
         var viewModel = await ConnectAsync();
