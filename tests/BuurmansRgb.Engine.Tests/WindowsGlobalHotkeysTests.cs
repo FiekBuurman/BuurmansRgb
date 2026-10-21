@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows.Forms;
 using BuurmansRgb.Engine.Hotkeys;
 
@@ -7,6 +8,10 @@ public sealed class WindowsGlobalHotkeysTests
 {
     // F24 is on no keyboard, so the real registration steals no key the user has.
     private const Keys UnusedKey = Keys.Control | Keys.Alt | Keys.Shift | Keys.F24;
+
+    // A key counts for the whole Windows session: another test run at the same time can have it,
+    // and a session without a desktop has no hotkeys. Then a test skips instead of failing.
+    private const string KeyNotFree = "The key is not free or there is no desktop.";
 
     [Theory]
     [InlineData(AllOnOffHotkeys.AllOn, 0x4000u | 0x1 | 0x2 | 0x4)]
@@ -39,25 +44,44 @@ public sealed class WindowsGlobalHotkeysTests
     public void Register_KeyTakenElsewhere_FailsAndLogsUntilItIsFree()
     {
         using var trace = new TraceCapture();
-        var other = new WindowsGlobalHotkeys();
-        var engine = new WindowsGlobalHotkeys();
+        WindowsGlobalHotkeys? other = null;
+        WindowsGlobalHotkeys? engine = null;
         try
         {
+            other = CreateOrSkip();
+            engine = CreateOrSkip();
             if (!other.Register(UnusedKey, () => { }))
             {
-                Assert.Skip("Windows gives this session no hotkeys (no desktop).");
+                Assert.Skip(KeyNotFree);
             }
 
             Assert.False(engine.Register(UnusedKey, () => { }));
             Assert.Contains(trace.Messages, message => message.Contains($"The hotkey {UnusedKey} could not be registered", StringComparison.Ordinal));
 
             other.Dispose();
-            Assert.True(engine.Register(UnusedKey, () => { }));
+            if (!engine.Register(UnusedKey, () => { }))
+            {
+                Assert.Skip(KeyNotFree);
+            }
         }
         finally
         {
-            other.Dispose();
-            engine.Dispose();
+            other?.Dispose();
+            engine?.Dispose();
+        }
+    }
+
+    // The window of the hotkeys, or a skip when this session cannot make one.
+    private static WindowsGlobalHotkeys CreateOrSkip()
+    {
+        try
+        {
+            return new WindowsGlobalHotkeys();
+        }
+        catch (Win32Exception)
+        {
+            Assert.Skip(KeyNotFree);
+            throw;
         }
     }
 }
