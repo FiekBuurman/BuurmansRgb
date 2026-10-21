@@ -95,14 +95,16 @@ public partial interface IEngineApi
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 
     // Lets the device blink white a few times, so the user can see which one it is; then it shows
-    // its own lighting again. Changes no lighting. Best effort: does nothing while effects are
-    // paused or for a device the engine does not know (any more).
+    // its own lighting again. Changes no lighting. One device flashes at a time: a new flash
+    // replaces the one before, which ends with its own lighting; a device without LEDs has nothing
+    // to blink, but still ends it. Best effort: does nothing while effects are paused or for a
+    // device the engine does not know (any more).
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
 
     // The same for the LEDs of one zone (an index into the device's zones) only, such as one
     // header of a motherboard; the rest of the device keeps its colors. A new flash of a device or
-    // zone replaces the one before. Also does nothing for a zone the engine does not know (any
-    // more) or that has no LEDs.
+    // zone replaces the one before, also when the zone has no LEDs. Also does nothing for a zone
+    // the engine does not know (any more).
     Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default);
 
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);

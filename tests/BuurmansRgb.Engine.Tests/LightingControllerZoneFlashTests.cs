@@ -135,12 +135,11 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
         Assert.Equal([W, W], _provider.Leds[Fan]);
     }
 
-    // A header that OpenRGB knows no LEDs of has nothing to blink; a flash that runs goes on.
+    // A header that OpenRGB knows no LEDs of has nothing to blink: no flash starts, and no timer.
     [Fact]
-    public async Task FlashZone_ZoneWithoutLeds_DoesNothing()
+    public async Task FlashZone_ZoneWithoutLeds_StartsNoFlash()
     {
         await StartAsync();
-        _controller.Flash(Fan);
         var rendered = 0;
         _controller.Rendered += (_, _) => rendered++;
 
@@ -148,7 +147,31 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
 
         Assert.Equal(0, rendered);
         Assert.Equal([O, O, O, O, O], _provider.Leds[Board]);
-        Assert.Equal([W, W], _provider.Leds[Fan]);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // Like a device without LEDs, the request still replaces the flash before, of another device
+    // or of another zone of the same one.
+    [Theory]
+    [InlineData(Fan)]
+    [InlineData(Board)]
+    public async Task FlashZone_ZoneWithoutLeds_StopsTheFlashBefore(string flashing)
+    {
+        await StartAsync();
+        if (flashing == Board)
+        {
+            _controller.FlashZone(Board, Header);
+        }
+        else
+        {
+            _controller.Flash(Fan);
+        }
+
+        _controller.FlashZone(Board, EmptyHeader);
+
+        Assert.Equal([O, O, O, O, O], _provider.Leds[Board]);
+        Assert.Equal([O, O], _provider.Leds[Fan]);
+        Assert.False(_controller.IsAnimating);
     }
 
     // The list in the settings app may be behind, as with a device that is gone.

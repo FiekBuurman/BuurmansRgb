@@ -361,8 +361,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Flash for the LEDs of one zone (an index into the device's zones) only, so the user sees
     // which header of a motherboard is which fan or strip; the rest of the device keeps its
     // colors. It replaces a flash of any device or zone, as Flash does. The zone counts as the
-    // engine knows it: a zone the list in the settings app has but the engine not (any more), or
-    // one without LEDs, is skipped like a device that is gone.
+    // engine knows it: a zone the list in the settings app has but the engine not (any more) is
+    // skipped like a device that is gone. A zone without LEDs, like a device without, has nothing
+    // to blink, but still ends the flash before.
     public void FlashZone(string deviceId, int zoneIndex) => StartFlash(deviceId, zoneIndex);
 
     // Copies the buffers, so the caller can convert them without holding the lock.
@@ -597,9 +598,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Flash and FlashZone: a null zoneIndex flashes the whole device. Without LEDs to blink, of
-    // the zone or the device, nothing happens.
+    // the zone or the device, no flash starts, but the request still replaces the one before, as
+    // it did before zones could flash: that one ends with the own colors.
     private void StartFlash(string deviceId, int? zoneIndex)
     {
+        var rendered = false;
         lock (_gate)
         {
             if (_outputs.Find(deviceId) is not { } output || _pause != PauseReasons.None || !_lighting.IsSet)
@@ -620,19 +623,23 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             if (count == 0)
             {
-                return;
+                rendered = StopFlashesLocked();
+            }
+            else
+            {
+                StopFlashesLocked(except: output);
+                var time = EffectTime;
+                output.StartFlash(time, first, count);
+                output.Render(time);
+                output.Send();
+                _sequence++;
+                rendered = true;
             }
 
-            StopFlashesLocked(except: output);
-            var time = EffectTime;
-            output.StartFlash(time, first, count);
-            output.Render(time);
-            output.Send();
-            _sequence++;
             UpdateAnimationLocked();
         }
 
-        Publish(rendered: true);
+        Publish(rendered);
     }
 
     // Gives every device that is flashing, but except, its own colors again. Returns true when
