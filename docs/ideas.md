@@ -160,8 +160,6 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Tray-menu
 
 - "Alles uit" en "Alles aan" ook in het tray-menu, en eventueel een sneltoets
-- Het tray-menu trimt na het sluiten het geheugen niet, zoals de engine dat na het sluiten van
-  de instellingen-app wel doet
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 

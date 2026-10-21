@@ -80,7 +80,7 @@ internal static class Program
             zoneLengths: zoneLengths,
             autoPause: autoPause);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
         {

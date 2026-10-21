@@ -27,7 +27,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         IAutoStart autoStart,
         ISettingsAppLauncher settingsAppLauncher,
         ProfileLibrary profiles,
-        IServerStatusSource openRgb)
+        IServerStatusSource openRgb,
+        Action? trimMemory = null)
     {
         _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, profiles, this);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
@@ -71,6 +72,13 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
         // Creating the menu control installed the WinForms context for this thread.
         _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No UI synchronization context.");
+
+        // Drawing the menu loads and touches memory the engine does not need once it closed, as
+        // with the settings app. Posted, so a clicked item does its work first.
+        if (trimMemory is not null)
+        {
+            _menu.Closed += (_, _) => _uiContext.Post(_ => trimMemory(), state: null);
+        }
 
         // Listening first, so no change gets lost between reading the status and listening.
         _openRgb = openRgb;

@@ -108,7 +108,8 @@ toetsenbord. Een paar dingen om te proberen:
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
   `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`). Na het opstarten en na het sluiten
-  van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows.
+  van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
+  (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten
   vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`).
