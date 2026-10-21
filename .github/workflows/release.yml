@@ -1,0 +1,83 @@
+# Builds BuurmansRgb-setup.exe and puts it as a download on a GitHub Release, so installing needs
+# no .NET SDK and no Git. Runs when a tag like v1.2.3 is pushed, or by hand from the Actions tab
+# with a version, which then also makes the tag. See "Een release maken" in docs/ontwikkelaars.md.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versie, bijv. 1.2.3 (de tag wordt v1.2.3)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Versie bepalen
+        id: version
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $version = if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') { $env:INPUT_VERSION.Trim() } else { $env:REF_NAME -replace '^v', '' }
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "'$version' is geen versie zoals 1.2.3."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Bouwen en testen
+        shell: pwsh
+        run: |
+          dotnet build BuurmansRgb.slnx -warnaserror
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet test --solution BuurmansRgb.slnx
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Installer bouwen
+        shell: pwsh
+        run: .\installer\build.ps1 -Version ${{ steps.version.outputs.version }}
+
+      - name: Release maken
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $tag = "v$env:VERSION"
+          $setup = 'artifacts\installer\out\BuurmansRgb-setup.exe'
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash
+          "$hash  BuurmansRgb-setup.exe" | Set-Content 'artifacts\installer\out\BuurmansRgb-setup.exe.sha256' -Encoding ascii
+          $notes = @"
+          ## Installeren
+
+          1. Download ``BuurmansRgb-setup.exe`` hieronder.
+          2. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, ...).
+          3. Draai de setup en geef één keer toestemming (UAC). SmartScreen kan waarschuwen omdat de
+             installer niet ondertekend is: **Meer info → Toch uitvoeren**.
+
+          De setup zet BuurmansRgb, OpenRGB (als service) en de driver PawnIO in één keer neer; een
+          losse .NET is niet nodig. Bijwerken: draai de nieuwe setup over de oude heen.
+
+          SHA-256 van de setup: ``$hash``
+          "@
+          $notes | Set-Content notes.md -Encoding utf8
+          gh release create $tag $setup 'artifacts\installer\out\BuurmansRgb-setup.exe.sha256' --title "BuurmansRgb $env:VERSION" --notes-file notes.md --generate-notes --target $env:GITHUB_SHA

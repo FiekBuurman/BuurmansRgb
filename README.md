@@ -32,19 +32,13 @@
 
 ## Installeren
 
-1. Bouw de installer (nodig: Windows 10/11, de .NET 10 SDK en Git):
-
-   ```powershell
-   git clone https://github.com/FiekBuurman/BuurmansRgb.git
-   cd BuurmansRgb
-   powershell -ExecutionPolicy Bypass -File .\installer\build.ps1
-   ```
-
-2. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, ...) en draai
-   `artifacts\installer\out\BuurmansRgb-setup.exe`.
+1. Download `BuurmansRgb-setup.exe` bij de
+   [nieuwste release](https://github.com/FiekBuurman/BuurmansRgb/releases/latest).
+2. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, ...) en draai de setup.
 
 De installer zet BuurmansRgb, OpenRGB (als service) en de driver PawnIO in één keer neer, met
-één UAC-vraag. Meer in [docs/installatie.md](docs/installatie.md).
+één UAC-vraag; een losse .NET is niet nodig. Zelf bouwen kan ook, zie
+[docs/installatie.md](docs/installatie.md).
 
 ## Zelf bouwen
 
