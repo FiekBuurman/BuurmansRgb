@@ -40,6 +40,7 @@ internal sealed class EngineHost(
         zoneLengths?.Load(settings.ReadZoneLengths());
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
+        lighting.PausedLights = settings.PausedLights;
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
         await lighting.DiscoverAsync(ct);
@@ -56,6 +57,7 @@ internal sealed class EngineHost(
         profiles?.ActiveChanged += OnActiveSceneChanged;
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
         autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
+        lighting.PausedLightsChanged += OnPausedLightsChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
@@ -85,6 +87,7 @@ internal sealed class EngineHost(
         profiles?.ActiveChanged -= OnActiveSceneChanged;
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
         autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
+        lighting.PausedLightsChanged -= OnPausedLightsChanged;
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
@@ -113,6 +116,9 @@ internal sealed class EngineHost(
 
     private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
+
+    private void OnPausedLightsChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { PausedLights = lighting.PausedLights });
 
     private void OnCatchUpChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
