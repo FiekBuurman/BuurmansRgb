@@ -170,6 +170,21 @@ public sealed class SettingsReloaderTests
         Assert.Equal(24, Assert.Single(_applied).FramesPerSecond);
     }
 
+    // Without a delay the first read may run at once, before the constructor is done: the timer
+    // is there for a held file to be read again.
+    [Fact]
+    public void WithoutADelay_AHeldFileAtTheStart_IsReadAgain()
+    {
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 12 });
+        _store.HeldReads = 1;
+
+        using var reloader = new SettingsReloader(_fileEvents, _store, _applied.Add, TimeSpan.Zero, _time);
+        _time.Advance(TimeSpan.Zero);
+
+        Assert.Equal(12, Assert.Single(_applied).FramesPerSecond);
+        Assert.True(_fileEvents.HasListeners);
+    }
+
     [Fact]
     public void Dispose_StopsListeningAndApplyingAChangeThatWaits()
     {

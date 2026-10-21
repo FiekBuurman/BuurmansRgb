@@ -41,9 +41,12 @@ internal sealed class SettingsReloader : IDisposable
         _apply = apply;
         _holdSaves = holdSaves;
         _delay = delay;
+        // The first read starts once the timer is there, as it may run at once (delay zero) and
+        // use the timer.
         _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
-            _ => Reload(), state: null, delay, Timeout.InfiniteTimeSpan);
+            _ => Reload(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _fileEvents.Changed += OnFileChanged;
+        _timer.Change(delay, Timeout.InfiniteTimeSpan);
     }
 
     // Long enough for an editor that writes the file in steps, short enough to feel at once.
