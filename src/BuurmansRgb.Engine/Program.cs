@@ -56,19 +56,20 @@ internal static class Program
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
-        // On this thread, which pumps the tray messages and so also the power, session, screen and
-        // clock events.
+        // On this thread, which pumps the tray messages and so also the power, session, screen,
+        // clock and foreground events.
         using var powerEvents = new SystemPowerEvents();
         using var sessionEvents = new SystemSessionEvents();
         using var displayEvents = new SystemDisplayEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
+        using var foregroundWindow = new SystemForegroundWindow();
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // The host disposes them, before it saves for the last time.
-        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, TimeProvider.System);
+        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),

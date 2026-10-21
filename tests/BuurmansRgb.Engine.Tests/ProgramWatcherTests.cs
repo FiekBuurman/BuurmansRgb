@@ -18,6 +18,7 @@ public sealed class ProgramWatcherTests : IDisposable
     private readonly InMemoryProfileStore _store = new();
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly FakeRunningPrograms _programs = new();
+    private readonly FakeForegroundWindow _foreground = new();
     private readonly FakePowerEvents _power = new();
     private readonly FakeSessionEvents _session = new();
     private readonly ClockTimeProvider _time = new(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), TimeZoneInfo.Utc);
@@ -219,7 +220,7 @@ public sealed class ProgramWatcherTests : IDisposable
     [Fact]
     public void BeforeStart_ReadsNothing()
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _autoPause, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _autoPause, _foreground, _time);
 
         Assert.Equal(0, _store.LoadCount);
         Assert.False(_time.HasPendingTimer);
@@ -554,7 +555,7 @@ public sealed class ProgramWatcherTests : IDisposable
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(IAwayState? away = null)
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, away ?? _autoPause, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, away ?? _autoPause, _foreground, _time);
         _watcher.Start();
     }
 

@@ -514,7 +514,7 @@ public sealed class EngineHostTests : IDisposable
         var programs = new FakeRunningPrograms();
         programs.Running.Add("game.exe");
         var time = new ClockTimeProvider(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), DailyTimeTests.Amsterdam);
-        var watcher = new ProgramWatcher(profiles, lighting, programs, new FakeAwayState(), time);
+        var watcher = new ProgramWatcher(profiles, lighting, programs, new FakeAwayState(), new FakeForegroundWindow(), time);
         var timer = new ProfileTimer(profiles, new FakeClockEvents(), time, watcher.HoldUntilProgramsStop);
         using var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [timer, watcher], profiles: profiles, profileTimer: timer);
         var shown = new List<RgbColor>();
