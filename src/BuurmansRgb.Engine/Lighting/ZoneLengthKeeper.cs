@@ -11,12 +11,13 @@ namespace BuurmansRgb.Engine.Lighting;
 // Zones are known by name, not by index: the name stays the same when a provider lists the zones in
 // another order, and a zone whose name is gone (or that two zones of the device share) is left
 // alone instead of getting the length of another zone. The engine asks a device for a length only
-// when the device shows up (or settings.json changed by hand), and waits until the device reported it: a provider that refuses it
-// cannot make a loop of resizes and new device lists, nor is its refusal taken for a length from
-// elsewhere. A length the zone cannot hold (any more) is kept, but not asked for. LedColors and the
-// lighting are not involved. Thread-safe. The provider gets a length under the lock, so a length
-// the user sets and one given back from a device list cannot overtake each other; the lighting
-// never calls into this while it holds its own lock, and fetches a new device list on another thread.
+// when the device shows up (or settings.json changed by hand), and waits until the device reported
+// it: a provider that refuses it cannot make a loop of resizes and new device lists, nor is its
+// refusal taken for a length from elsewhere. A length the zone cannot hold (any more) is kept, but
+// not asked for. LedColors and the lighting are not involved. Thread-safe. The provider gets a
+// length under the lock, so a length the user sets and one given back from a device list cannot
+// overtake each other; the lighting never calls into this while it holds its own lock, and fetches
+// a new device list on another thread.
 internal sealed class ZoneLengthKeeper : IDisposable
 {
     private readonly LightingController _lighting;
@@ -39,7 +40,8 @@ internal sealed class ZoneLengthKeeper : IDisposable
         _lighting.DevicesChanged += OnDevicesChanged;
     }
 
-    // Raised when the user set a length, here or elsewhere, so it can be saved; read Lengths for all of them.
+    // Raised when the user set a length, here or elsewhere, so it can be saved; read Lengths for all
+    // of them.
     public event EventHandler? LengthsChanged;
 
     // A copy, by device id and zone name.

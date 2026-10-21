@@ -245,10 +245,11 @@ toetsenbord. Een paar dingen om te proberen:
   volgende melding leest opnieuw, en de volgende opslag zet een kapot bestand eerst opzij als
   `settings.json.broken`. Een bestand dat open is (`SettingsFileChange.ReadLater`) leest de
   reloader na de vertraging zelf nog eens, tot vijf keer. Een waarde die niet klopt, slaat
-  `LenientJson` over zoals bij het starten. `EngineHost.ApplyChangedByHand` zet de opties via dezelfde properties als de IPC
-  (dus `OptionsChanged` en de saver), de zonelengtes met `ZoneLengthKeeper.Change` en de
-  verlichting met `LightingController.Replace` (`LightingChanged`), die alleen als hij anders is
-  dan nu (`EngineSettings.SameLighting`), zodat de scène bij alleen een optie aan blijft.
+  `LenientJson` over zoals bij het starten. `EngineHost.ApplyChangedByHand` zet de opties via
+  dezelfde properties als de IPC (dus `OptionsChanged` en de saver), de zonelengtes met
+  `ZoneLengthKeeper.Change` en de verlichting met `LightingController.Replace`
+  (`LightingChanged`), die alleen als hij anders is dan nu (`EngineSettings.SameLighting`), zodat
+  de scène bij alleen een optie aan blijft.
   `activeScene` neemt hij niet over. Daarna roept hij `LightingSettingsSaver.Adopt` aan: wat de
   engine dan heeft, geldt als de inhoud van het bestand (met `activeScene` uit het bestand),
   zodat de opslag die de wijzigingen plannen niets schrijft en het bestand de opmaak en onbekende
@@ -269,9 +270,10 @@ toetsenbord. Een paar dingen om te proberen:
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
   wijziging opnieuw, onder één lock.
 - **Zonelengtes:** `ZoneLengthKeeper` vraagt een bewaarde lengte alleen als een apparaat
-  verschijnt (of `settings.json` met de hand veranderde) en wacht tot het die meldt, zodat een weigerend apparaat geen lus van aanpassingen
-  geeft. Een zone waarvan de naam weg is of dubbel voorkomt, blijft met rust; een lengte buiten
-  het bereik blijft bewaard maar wordt niet gevraagd.
+  verschijnt (of `settings.json` met de hand veranderde) en wacht tot het die meldt, zodat een
+  weigerend apparaat geen lus van aanpassingen geeft. Een zone waarvan de naam weg is of dubbel
+  voorkomt, blijft met rust; een lengte buiten het bereik blijft bewaard maar wordt niet
+  gevraagd.
 - **Knipperen:** `IEngineApi.FlashDeviceAsync`, in de engine `LightingController.Flash` en
   `DeviceFlash`. Eén zone gaat met `FlashZoneAsync` en `LightingController.FlashZone`: de flits
   dekt dan alleen het LED-bereik van die zone (`RgbZone.RangesOf`, zoals de engine de

@@ -172,7 +172,7 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal(15, _zoneLengths.Lengths["simulated-argb"]["ARGB 2"]);
     }
 
-    // The saver keeps what came from the file: a later change in the app does not save the old values.
+    // The saver keeps what came from the file: a later change in the app saves no old values.
     [Fact]
     public async Task ChangeInTheAppAfterAChangeByHand_SavesBoth()
     {
@@ -262,7 +262,7 @@ public sealed class EngineHostReloadTests : IDisposable
         await File.WriteAllTextAsync(path, """{ "framesPerSecond": 12, "color": "#FF8800" }""", Ct);
         await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
 
-        // A later change in the app writes it in the engine's own words; that save brings no change.
+        // A later change in the app writes it in the engine's words; that save brings no change.
         _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
         await Eventually.TrueAsync(() => FileContains(path, "\"brightness\": 0.5"));
         await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
