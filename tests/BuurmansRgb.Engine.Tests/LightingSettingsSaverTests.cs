@@ -321,6 +321,52 @@ public sealed class LightingSettingsSaverTests
         Assert.Equal(Orange, _store.Settings.Color);
     }
 
+    // A change in the app on another thread that is on the lights once the file is, while its
+    // LightingChanged only comes after HoldSaves: not taken as in the file, so saved.
+    [Fact]
+    public async Task Adopt_ChangeOnAnotherThreadWhoseEventComesLater_IsSaved()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        var fromFile = new EngineSettings { Color = Orange };
+        var appThread = 0;
+        using var changed = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        // Rendered comes between the change and its LightingChanged.
+        _lighting.Rendered += (_, _) =>
+        {
+            if (Environment.CurrentManagedThreadId == Volatile.Read(ref appThread))
+            {
+                changed.Set();
+                release.Wait(Ct);
+            }
+        };
+        Task? app = null;
+
+        saver.HoldSaves(() =>
+        {
+            var applied = _lighting.Replace(fromFile.ToLightingState());
+            app = Task.Factory.StartNew(
+                () =>
+                {
+                    Volatile.Write(ref appThread, Environment.CurrentManagedThreadId);
+                    _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+                },
+                Ct,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+            changed.Wait(Ct);
+            saver.Adopt(fromFile, applied);
+        });
+        release.Set();
+        await app!;
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(Orange, _store.Settings.Color);
+        Assert.Equal(0.5, _store.Settings.Brightness);
+    }
+
     // The file changed by hand and nobody read it yet: the save waits for the reloader.
     [Fact]
     public async Task FileChangedByHandNotReadYet_SavesOnceItIsRead()
@@ -414,12 +460,13 @@ public sealed class LightingSettingsSaverTests
         Assert.Equal(Orange, _store.Settings.Color);
     }
 
-    // As SettingsReloader does: apply within HoldSaves, then Adopt.
-    private static void ApplyByHand(LightingSettingsSaver saver, EngineSettings fromFile, Action apply) =>
+    // As SettingsReloader does: apply within HoldSaves, then Adopt. Single-threaded, the lighting
+    // as the apply left it is the one the engine holds.
+    private void ApplyByHand(LightingSettingsSaver saver, EngineSettings fromFile, Action apply) =>
         saver.HoldSaves(() =>
         {
             apply();
-            saver.Adopt(fromFile);
+            saver.Adopt(fromFile, _lighting.State);
         });
 
     private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);

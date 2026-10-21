@@ -36,7 +36,7 @@ internal sealed class LightingSettingsSaver : IDisposable
     // Adopt got within HoldSaves.
     private int _holdingThread;
     private bool _changedElsewhere;
-    private EngineSettings? _adopted;
+    private (EngineSettings FromFile, LightingState Lighting)? _adopted;
 
     // How many saves in a row found the file changed by hand.
     private int _waitsForChangeByHand;
@@ -120,10 +120,10 @@ internal sealed class LightingSettingsSaver : IDisposable
             lock (_gate)
             {
                 _holdingThread = 0;
-                if (_adopted is { } fromFile)
+                if (_adopted is (var fromFile, var lighting))
                 {
                     _adopted = null;
-                    AdoptLocked(fromFile);
+                    AdoptLocked(fromFile, lighting);
                 }
                 else if (_pending && !_disposed)
                 {
@@ -138,34 +138,38 @@ internal sealed class LightingSettingsSaver : IDisposable
     // change does, but is not written back, so the file keeps the user's words and keys the engine
     // does not know. Only what the engine holds otherwise is saved, such as a scene that went off
     // with another lighting (the file still names it in activeScene). Within HoldSaves this counts
-    // once action is done.
-    public void Adopt(EngineSettings fromFile)
+    // once action is done. lighting is the lighting the engine holds once the file is on it, as the
+    // apply left it (LightingController.Replace returns it), not read here: a change on another
+    // thread, such as one from the settings app, may be on the engine already while its
+    // LightingChanged did not come yet, and taking it as in the file would never save it.
+    public void Adopt(EngineSettings fromFile, LightingState lighting)
     {
         lock (_gate)
         {
             if (_holdingThread == Environment.CurrentManagedThreadId)
             {
-                _adopted = fromFile;
+                _adopted = (fromFile, lighting);
             }
             else
             {
-                AdoptLocked(fromFile);
+                AdoptLocked(fromFile, lighting);
             }
         }
     }
 
-    private void AdoptLocked(EngineSettings fromFile)
+    private void AdoptLocked(EngineSettings fromFile, LightingState lighting)
     {
         _waitsForChangeByHand = 0;
-        var held = _settings.WithLighting(_lighting.State);
-        _inFile = _changedElsewhere ? null : (held with { ActiveScene = fromFile.ActiveScene }).ToJson();
+        _inFile = _changedElsewhere ? null : (_settings.WithLighting(lighting) with { ActiveScene = fromFile.ActiveScene }).ToJson();
         _changedElsewhere = false;
         if (_disposed)
         {
             return;
         }
 
-        if (_inFile is not null && held.ToJson().AsSpan().SequenceEqual(_inFile))
+        // What the engine holds now, with what came in since the apply.
+        var held = _settings.WithLighting(_lighting.State).ToJson();
+        if (_inFile is not null && held.AsSpan().SequenceEqual(_inFile))
         {
             _pending = false;
             _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);

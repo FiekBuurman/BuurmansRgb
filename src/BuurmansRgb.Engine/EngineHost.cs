@@ -111,22 +111,26 @@ internal sealed class EngineHost(
     // of the saver. The lighting is only replaced when it is another, so a change of an option
     // alone leaves the scene on and the effects running. The scene that is on stays the engine's:
     // a changed activeScene loads nothing, and a new lighting ends the scene as any change does.
+    // The saver gets the lighting as this left it, the one compared with the file or what Replace
+    // put on, so a change in the app meanwhile is not taken as in the file but saved.
     private void ApplyChangedByHand(EngineSettings settings)
     {
+        var held = lighting.State;
         try
         {
             ApplyOptions(settings);
             zoneLengths?.Change(settings.ReadZoneLengths());
             var state = settings.ToLightingState();
-            if (!EngineSettings.SameLighting(state, lighting.State))
+            held = lighting.State;
+            if (!EngineSettings.SameLighting(state, held))
             {
-                lighting.Replace(state);
+                held = lighting.Replace(state);
             }
         }
         finally
         {
             // Also after a failure halfway: the file is still the user's to keep.
-            _saver!.Adopt(settings);
+            _saver!.Adopt(settings, held);
         }
     }
 
