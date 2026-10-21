@@ -226,10 +226,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Een ongeldige kleur in `ledColors` of `devices` maakt het hele `settings.json` onleesbaar; de
-  engine zet het dan opzij als `settings.json.broken` en draait op de standaardwaarden. Zo'n kleur
-  liever overslaan, zoals `zoneLengths`, `ledColorZoneLengths` en `simulatedDevices` een waarde
-  overslaan die ze niet kunnen lezen
+- Een kleur die niet te lezen is, slaat de engine sinds #29 over, maar een ander verkeerd type
+  (bijv. `"brightness": "hoog"` of `"on": "ja"`) maakt het hele `settings.json` nog onleesbaar;
+  ook zo'n waarde liever overslaan en de standaardwaarde nemen
 - Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
   `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
