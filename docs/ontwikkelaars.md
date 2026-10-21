@@ -119,9 +119,12 @@ toetsenbord. Een paar dingen om te proberen:
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
   `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`, `ProfilesChanged`, `OptionsChanged`;
-  de app leest bij die laatste twee de scènes of de opties opnieuw). Na het opstarten en na het
-  sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
-  (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
+  de app leest bij die laatste twee de scènes of de opties opnieuw). App en engine moeten van
+  dezelfde versie zijn: de berichten hebben geen versienummer en veranderen soms van vorm (zo
+  kreeg `ProfileAutomation` een lijst `Times` in plaats van één tijd met zijn dagen). Daarom
+  stopt de installer bij een update allebei (`PrepareToInstall`). Na het opstarten en na het
+  sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan
+  Windows (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten
   vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`). Het
