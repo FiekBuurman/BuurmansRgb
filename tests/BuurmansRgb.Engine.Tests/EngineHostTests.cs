@@ -69,6 +69,67 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_TheSceneThatWasOn_IsOnAgain()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { ActiveScene = "Nacht" } };
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, lighting);
+        using var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal("Nacht", profiles.ActiveName);
+        Assert.Equal(0, store.SaveCount);
+    }
+
+    [Fact]
+    public async Task Dispose_AfterAnotherScene_SavesItAsTheSceneThatIsOn()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { ActiveScene = "Nacht" } };
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Gamen", EngineSettings.CreateDefault().ToLightingState()), new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
+        await host.StartAsync(Ct);
+
+        profiles.Load("Gamen");
+        host.Dispose();
+
+        Assert.Equal("Gamen", store.Settings.ActiveScene);
+    }
+
+    [Fact]
+    public async Task Dispose_AfterAChangeOfTheLighting_SavesNoSceneThatIsOn()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { ActiveScene = "Nacht" } };
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
+        await host.StartAsync(Ct);
+
+        lighting.SetLighting(null, current => current with { Brightness = 0.3 });
+        host.Dispose();
+
+        Assert.Null(store.Settings.ActiveScene);
+    }
+
+    // Saved before the scene was deleted by hand, say: the next save writes none.
+    [Fact]
+    public async Task StartAsync_SceneThatNoLongerExists_IsNotOn()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { ActiveScene = "Weg" } };
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore(), lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
+        await host.StartAsync(Ct);
+
+        lighting.SetLighting(null, current => current with { Brightness = 0.3 });
+        host.Dispose();
+
+        Assert.Null(profiles.ActiveName);
+        Assert.Null(store.Settings.ActiveScene);
+    }
+
+    [Fact]
     public async Task StartAsync_DoesNotSaveTheLoadedSettingsAgain()
     {
         var store = new InMemorySettingsStore();

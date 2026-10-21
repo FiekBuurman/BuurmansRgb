@@ -279,6 +279,52 @@ public sealed class ProfileLibraryTests
         Assert.Null(_library.ActiveName);
     }
 
+    [Theory]
+    [InlineData(" nacht ", "Nacht")]
+    [InlineData("Gamen", null)]
+    [InlineData(null, null)]
+    public void RestoreActive_TakesOnlyASceneThatExists(string? saved, string? expected)
+    {
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        var changes = 0;
+        _library.ActiveChanged += (_, _) => changes++;
+
+        _library.RestoreActive(saved);
+
+        Assert.Equal(expected, _library.ActiveName);
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
+    public void RestoreActive_FileOutOfReach_LeavesNoneActive()
+    {
+        _store.LoadException = new IOException("In use.");
+
+        _library.RestoreActive("Nacht");
+
+        Assert.Null(_library.ActiveName);
+    }
+
+    [Fact]
+    public async Task ActiveChanged_RaisedOnlyWhenAnotherSceneIsOn()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        var seen = new List<string?>();
+        _library.ActiveChanged += (_, _) => seen.Add(_library.ActiveName);
+
+        _library.Load("Nacht");
+        _library.Load("Nacht");
+        _library.Load("Gamen");
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.4 });
+        _library.Save("Werk");
+        _library.Delete("Gamen");
+        _library.Delete("Werk");
+
+        Assert.Equal(["Nacht", "Gamen", null, "Werk", null], seen);
+    }
+
     [Fact]
     public async Task Show_WithAScene_MakesItActive_AndWithoutOne_LeavesNoneActive()
     {

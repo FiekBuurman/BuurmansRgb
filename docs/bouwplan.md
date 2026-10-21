@@ -363,6 +363,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #34 | Hooguit 20 beelden per seconde naar het voorbeeld, en geen als de app ze niet toont |
 | #35 | De installer als download via GitHub Releases (`.github/workflows/release.yml`) |
 | #39 | Ook een waarde van het verkeerde soort in de instellingenbestanden alleen overslaan (`LenientJson`) |
+| #40 | De scène die aan staat onthouden na een herstart (`activeScene` in `settings.json`) |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).
