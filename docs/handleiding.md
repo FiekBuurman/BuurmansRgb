@@ -204,6 +204,12 @@ Nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
   (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in twee
   kanalen), verlichting in de behuizing (10), een muis (12, in vier zones) en een headset (2,
   in twee zones).
+- **Effecten:** bij "Vloeiendheid" kies je hoe vaak per seconde een bewegend effect de lampen
+  bijwerkt: "Zuinig" (15), "Normaal" (30, standaard) of "Vloeiend" (60). Het effect loopt even
+  snel, alleen minder of meer vloeiend; zuinig kost de minste CPU. Staat er in `settings.json`
+  een ander getal, dan staat dat er als vierde keuze bij. Met "Pauzeren bij vergrendelen en
+  slaapstand" zet je het pauzeren van "Pauzeren en slaapstand" aan of uit. Beide gelden meteen,
+  zonder herstart, en de engine bewaart ze.
 - **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
 
 ### Aan en uit
@@ -278,7 +284,9 @@ De engine pauzeert de bewegende effecten om drie redenen, die elk op zichzelf af
 - In de instellingen-app staat bovenaan Lampen en Kleur een melding met de reden, bij de pauze
   uit het tray-menu met de knop "Hervatten". Eindigt de pauze, dan staat er 5 seconden
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
-- Uitzetten: `"pauseOnLockAndSleep": false` in `settings.json` en de engine opnieuw starten.
+- Uitzetten: de schakelaar "Pauzeren bij vergrendelen en slaapstand" bij Instellingen (of
+  `"pauseOnLockAndSleep": false` in `settings.json`). Uitzetten tijdens zo'n pauze laat de
+  effecten meteen weer lopen.
 
 ## Instellingenbestanden
 
@@ -327,8 +335,8 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 | `ledColors` | Per lamp een kleur per LED voor het effect `per-led`; `null`, of een LED voorbij het eind van de lijst, volgt de kleur van de lamp |
 | `ledColorZoneLengths` | Per lamp de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
-| `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten |
-| `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen en slaapstand |
+| `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
+| `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen en slaapstand (ook bij Instellingen) |
 | `zoneLengths` | Per lamp de lengte die je een instelbare zone gaf, op de naam van de zone |
 
 - Een lamp van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam

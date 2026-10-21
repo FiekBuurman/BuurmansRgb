@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 
@@ -16,6 +17,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly IServerStatusSource _openRgb;
     private readonly SettingsSaveEvents? _saveEvents;
+    private readonly AutoPause? _autoPause;
     private readonly PreviewFrames _frames;
 
     public EngineApi(
@@ -25,8 +27,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         SimulatedDevicesSwitch simulatedDevices,
         IServerStatusSource openRgb,
         SettingsSaveEvents? saveEvents = null,
-        TimeProvider? time = null)
+        TimeProvider? time = null,
+        AutoPause? autoPause = null)
     {
+        _autoPause = autoPause;
         _lighting = lighting;
         _zoneLengths = zoneLengths;
         _profiles = profiles;
@@ -149,6 +153,23 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
     {
         _simulatedDevices.Mode = mode;
+        return Task.CompletedTask;
+    }
+
+    public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(_lighting.FramesPerSecond);
+
+    public Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
+    {
+        _lighting.FramesPerSecond = framesPerSecond;
+        return Task.CompletedTask;
+    }
+
+    // Without AutoPause (in tests) there is nothing to pause, so it reads as off.
+    public Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default) => Task.FromResult(_autoPause?.Enabled ?? false);
+
+    public Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
+    {
+        _autoPause?.Enabled = enabled;
         return Task.CompletedTask;
     }
 

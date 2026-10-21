@@ -58,7 +58,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
 | Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests`, `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes), `LightingControllerSpeedTests`, `EffectClockTests` |
-| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests` |
+| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests`, `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app) |
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
@@ -322,8 +322,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    10 seconden terug te zijn (stilstaand), na het ontgrendelen loopt de animatie weer.
 4. Wissel van gebruiker en kom terug, of verbind met Extern bureaublad en verbreek: de animatie
    stopt en loopt daarna weer.
-5. Zet `"pauseOnLockAndSleep": false`, herstart de engine en vergrendel: de regenboog loopt
-   door.
+5. Zet bij Instellingen "Pauzeren bij vergrendelen en slaapstand" uit en vergrendel: de
+   regenboog loopt door.
 
 ## Mappen en documenten
 

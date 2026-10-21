@@ -24,6 +24,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
+    private const string FramesPerSecondCall = "frames-per-second";
+    private const string PauseOnLockCall = "pause-on-lock";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
@@ -99,6 +101,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
+        EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
+            SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
+        EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
+            SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -157,6 +163,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ProfilesViewModel Profiles { get; } = new();
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
+
+    public EffectOptionsViewModel EffectOptions { get; } = new();
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
@@ -343,6 +351,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
+        EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
         if (openRgbStatusChanges == _openRgbStatusChanges)
@@ -596,6 +605,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post(SimulatedDevicesCall, () => connection.Api.SetSimulatedDevicesAsync(mode));
+        }
+    }
+
+    // The engine saves the option itself; a pause that starts or ends by it comes through
+    // PauseChanged.
+    private void SendOption(string call, Func<IEngineApi, Task> send)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(call, () => send(connection.Api));
         }
     }
 

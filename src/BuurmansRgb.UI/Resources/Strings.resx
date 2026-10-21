@@ -490,6 +490,34 @@
   <data name="SimulatedDevicesHeader" xml:space="preserve">
     <value>Gesimuleerde lampen</value>
   </data>
+  <data name="EffectOptionsHeader" xml:space="preserve">
+    <value>Effecten</value>
+  </data>
+  <data name="FrameRateLabel" xml:space="preserve">
+    <value>Vloeiendheid</value>
+  </data>
+  <data name="FrameRateHint" xml:space="preserve">
+    <value>Hoe vaak per seconde een bewegend effect de lampen bijwerkt. Zuinig kost de minste CPU; het effect loopt even snel, alleen minder vloeiend.</value>
+  </data>
+  <data name="FrameRateSaving" xml:space="preserve">
+    <value>Zuinig (15 beelden per seconde)</value>
+  </data>
+  <data name="FrameRateNormal" xml:space="preserve">
+    <value>Normaal (30 beelden per seconde)</value>
+  </data>
+  <data name="FrameRateSmooth" xml:space="preserve">
+    <value>Vloeiend (60 beelden per seconde)</value>
+  </data>
+  <data name="FrameRateOther" xml:space="preserve">
+    <value>{0} beelden per seconde</value>
+    <comment>Een waarde uit settings.json die geen van de drie keuzes is.</comment>
+  </data>
+  <data name="PauseOnLockLabel" xml:space="preserve">
+    <value>Pauzeren bij vergrendelen en slaapstand</value>
+  </data>
+  <data name="PauseOnLockHint" xml:space="preserve">
+    <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, zodat het dan geen CPU kost. De lampen houden het laatste beeld.</value>
+  </data>
   <data name="SaveHeader" xml:space="preserve">
     <value>Opslaan</value>
   </data>

@@ -39,6 +39,8 @@ internal sealed class EngineHost(
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
+        lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -62,6 +64,8 @@ internal sealed class EngineHost(
     {
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
+        lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -77,4 +81,11 @@ internal sealed class EngineHost(
     // Also reads the newest lengths, for the same reason.
     private void OnZoneLengthsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings.WithZoneLengths(zoneLengths!.Lengths));
+
+    // The options from the settings app, also the newest value each.
+    private void OnFramesPerSecondChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { FramesPerSecond = lighting.FramesPerSecond });
+
+    private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
 }
