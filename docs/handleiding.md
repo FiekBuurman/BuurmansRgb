@@ -217,9 +217,10 @@ Hoe het vanzelf aanzetten werkt:
   af terwijl het programma draait, dan zet hij eerst de verlichting van daarvoor terug en
   bewaart die. Zolang Windows vergrendeld is of slaapt, kijkt de engine niet naar programma's,
   ook als "Pauzeren bij vergrendelen, slaapstand en scherm uit" uit staat; de scène van een spel
-  blijft dan staan. Gaat alleen het scherm uit, dan kijkt hij wel. Meteen na het ontgrendelen of ontwaken kijkt hij één keer: een programma dat intussen
-  startte, zet dan zijn scène aan, en een dat intussen stopte, zet de verlichting van daarvoor
-  terug. Alleen een tijd die intussen komt, laat hem één keer eerder kijken (zie hieronder).
+  blijft dan staan. Gaat alleen het scherm uit, dan kijkt hij wel. Meteen na het ontgrendelen
+  of ontwaken kijkt hij één keer: een programma dat intussen startte, zet dan zijn scène aan, en
+  een dat intussen stopte, zet de verlichting van daarvoor terug. Alleen een tijd die intussen
+  komt, laat hem één keer eerder kijken (zie hieronder).
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
   zelf iets veranderd, dan komt hij meteen. Komt de tijd terwijl Windows vergrendeld is of
@@ -370,9 +371,9 @@ De engine pauzeert de bewegende effecten om vier redenen, die elk op zichzelf af
   uit het tray-menu met de knop "Hervatten". Eindigt de pauze, dan staat er 5 seconden
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij
-  Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`). Uitzetten tijdens zo'n pauze laat de
-  effecten meteen weer lopen. Naar programma's kijkt de engine tijdens vergrendelen en slaapstand
-  ook dan niet.
+  Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`). Uitzetten tijdens zo'n
+  pauze laat de effecten meteen weer lopen. Naar programma's kijkt de engine tijdens vergrendelen
+  en slaapstand ook dan niet.
 
 ## Instellingenbestanden
 
