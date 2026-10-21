@@ -58,6 +58,10 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private string? _inFront;
     private bool _inFrontSeen;
 
+    // The program of the window that came to the front last while followed, of any kind, or null;
+    // also while resting, so right after that counts. Forgotten when a look sees it stopped.
+    private string? _front;
+
     // What a look looks for: _watched, and _inFront.
     private HashSet<string> _polled = new(ProgramNames.Comparer);
 
@@ -158,7 +162,13 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         lock (_gate)
         {
-            if (!_disposed && !_resting && _following)
+            if (_disposed || !_following)
+            {
+                return;
+            }
+
+            _front = program;
+            if (!_resting)
             {
                 ShowInFrontLocked(program);
             }
@@ -229,6 +239,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
         if (on != _following)
         {
             _following = on;
+            _front = null;
             _foreground.Follow(on);
         }
     }
@@ -258,7 +269,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 _checkFront = false;
                 if (_following)
                 {
-                    ShowInFrontLocked(_foreground.Program);
+                    ShowInFrontLocked(_front);
                 }
             }
 
@@ -289,7 +300,13 @@ internal sealed class ProgramWatcher : IProfileTrigger
             }
             else if (_inFrontSeen)
             {
-                // Closed, and no window of another program came to the front since.
+                // Closed, and no window of another program came to the front since. When it comes
+                // to the front again, Windows tells that as for any window.
+                if (ProgramNames.Comparer.Equals(_front, front))
+                {
+                    _front = null;
+                }
+
                 ShowInFrontLocked(null);
             }
 

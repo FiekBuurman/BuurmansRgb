@@ -46,7 +46,6 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     private readonly uint _ownProcessId = (uint)Environment.ProcessId;
     private nint _hook;
     private volatile bool _wanted;
-    private volatile string? _program;
 
     public SystemForegroundWindow()
     {
@@ -55,8 +54,6 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     }
 
     public event EventHandler<string?>? Changed;
-
-    public string? Program => _program;
 
     // Whether the hook is set now; on the tray thread.
     internal bool IsHooked => _hook != 0;
@@ -82,12 +79,12 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     internal static bool Counts(string className, string? program) =>
         program is not null && !PassingClasses.Contains(className) && !PassingPrograms.Contains(program);
 
-    // A window that came to the front: its program, when it counts and is another than before.
+    // A window that came to the front: its program, when it counts. Also when it is the same
+    // program as before, as that may have stopped and started again in between.
     internal void Tell(nint window)
     {
-        if (ReadProgram(window) is { } program && !ProgramNames.Comparer.Equals(program, _program))
+        if (ReadProgram(window) is { } program)
         {
-            _program = program;
             Changed?.Invoke(this, program);
         }
     }
@@ -135,7 +132,6 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
         }
 
         _hook = 0;
-        _program = null;
     }
 
     private void OnWinEvent(nint hook, uint eventType, nint window, int objectId, int childId, uint threadId, uint time)

@@ -28,9 +28,10 @@ public sealed class SystemForegroundWindowTests
     public void Counts_OnlyAWindowThatTakesTheUserToAProgram(string className, string? program, bool counts) =>
         Assert.Equal(counts, SystemForegroundWindow.Counts(className, program));
 
-    // The desktop is a window of explorer.exe; a window of the engine itself changes nothing.
+    // The desktop is a window of explorer.exe; a window of the engine itself changes nothing. The
+    // same program again is told again too, as it may have stopped and started in between.
     [Fact]
-    public void Tell_GivesTheProgramOfTheWindowOnce_AndSkipsTheOwnProcess()
+    public void Tell_GivesTheProgramOfEachWindow_AndSkipsTheOwnProcess()
     {
         SystemForegroundWindow? foreground = null;
         try
@@ -47,16 +48,12 @@ public sealed class SystemForegroundWindowTests
 
             foreground.Tell(foreground.Handle);
             Assert.Empty(changes);
-            Assert.Null(foreground.Program);
 
             foreground.Tell(desktop);
-            foreground.Tell(desktop);
-            Assert.Equal(["explorer.exe"], changes, StringComparer.OrdinalIgnoreCase);
-            Assert.Equal("explorer.exe", foreground.Program, ignoreCase: true);
-
             foreground.Tell(foreground.Handle);
             foreground.Tell(0);
-            Assert.Single(changes);
+            foreground.Tell(desktop);
+            Assert.Equal(["explorer.exe", "explorer.exe"], changes, StringComparer.OrdinalIgnoreCase);
         }
         finally
         {
@@ -65,7 +62,7 @@ public sealed class SystemForegroundWindowTests
     }
 
     // Follow posts to the window; sent here on the own thread, the message goes straight through
-    // WndProc. Only the last ask counts, and following no more forgets the program.
+    // WndProc. Only the last ask counts.
     [Fact]
     public void Follow_SetsTheHookOnlyWhileFollowed()
     {
@@ -81,12 +78,10 @@ public sealed class SystemForegroundWindowTests
             SendFollow(foreground);
             Assert.True(foreground.IsHooked);
 
-            foreground.Tell(GetShellWindow());
             foreground.Follow(true);
             foreground.Follow(false);
             SendFollow(foreground);
             Assert.False(foreground.IsHooked);
-            Assert.Null(foreground.Program);
 
             foreground.Follow(true);
             SendFollow(foreground);

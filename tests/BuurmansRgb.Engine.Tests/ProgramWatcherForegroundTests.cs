@@ -168,6 +168,41 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
         Assert.False(_time.HasPendingTimer);
     }
 
+    // Closed and started again, with only the taskbar or the Start menu in front in between, which
+    // Windows does not tell: its window coming to the front counts as a new start.
+    [Fact]
+    public void StoppedWhileInFrontAndBackInFront_LoadsAgain()
+    {
+        StartWatcher();
+        BringToFront(Film);
+        _time.Advance(Interval);
+        _programs.Running.Remove(Film);
+        _time.Advance(Interval);
+        Assert.Equal(Green, ShownColor());
+
+        BringToFront(Film);
+
+        Assert.Equal(Purple, ShownColor());
+        Assert.Equal("Film", _profiles.ActiveName);
+    }
+
+    // After the lock screen it does not count as in front only because it was before it stopped.
+    [Fact]
+    public void StoppedWhileInFrontThenAway_LoadsNothingRightAfter()
+    {
+        StartWatcher();
+        BringToFront(Film);
+        _time.Advance(Interval);
+        _programs.Running.Remove(Film);
+        _time.Advance(Interval);
+
+        _away.Raise(PauseReasons.Locked);
+        _away.Raise(PauseReasons.None);
+        _time.Advance(TimeSpan.Zero);
+
+        Assert.Equal(Green, ShownColor());
+    }
+
     // A program whose name the process list cannot read yet does not count as stopped.
     [Fact]
     public void InFrontButNotSeenRunningYet_KeepsItsScene()
