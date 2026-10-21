@@ -61,6 +61,38 @@ public sealed class SystemForegroundWindowTests
         }
     }
 
+    // Thrown into Windows or the message loop, it would end the engine; the next window is told too.
+    [Fact]
+    public void Tell_AListenerThatThrows_DoesNotThrowOut()
+    {
+        SystemForegroundWindow? foreground = null;
+        try
+        {
+            foreground = CreateOrSkip();
+            var desktop = GetShellWindow();
+            if (desktop == 0)
+            {
+                Assert.Skip(NoWindow);
+            }
+
+            var calls = 0;
+            foreground.Changed += (_, _) =>
+            {
+                calls++;
+                throw new InvalidOperationException("listener");
+            };
+
+            foreground.Tell(desktop);
+            foreground.Tell(desktop);
+
+            Assert.Equal(2, calls);
+        }
+        finally
+        {
+            foreground?.Dispose();
+        }
+    }
+
     // Follow posts to the window; sent here on the own thread, the message goes straight through
     // WndProc. Only the last ask counts.
     [Fact]

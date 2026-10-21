@@ -80,12 +80,20 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
         program is not null && !PassingClasses.Contains(className) && !PassingPrograms.Contains(program);
 
     // A window that came to the front: its program, when it counts. Also when it is the same
-    // program as before, as that may have stopped and started again in between.
+    // program as before, as that may have stopped and started again in between. Called by Windows
+    // and from the message loop, where a throw would end the engine or show an error dialog.
     internal void Tell(nint window)
     {
-        if (ReadProgram(window) is { } program)
+        try
         {
-            Changed?.Invoke(this, program);
+            if (ReadProgram(window) is { } program)
+            {
+                Changed?.Invoke(this, program);
+            }
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
         }
     }
 
@@ -142,15 +150,7 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
             return;
         }
 
-        // Thrown into Windows, it would end the engine.
-        try
-        {
-            Tell(window);
-        }
-        catch (Exception exception)
-        {
-            Trace.TraceError(exception.ToString());
-        }
+        Tell(window);
     }
 
     // Null for a window that does not count, of the engine itself or that is gone already.
