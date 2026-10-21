@@ -16,7 +16,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // program runs, the lighting from before is put back as the program's stop would, so that is what
 // the engine saves. Called from the tray thread, IPC threads and the timer; the lock guards the
 // rest. Loading and restoring happen under the lock, so the LightingChanged they raise themselves
-// is counted before the next change. While Windows is locked or asleep (AutoPause.Away), it does
+// is counted before the next change. While Windows is locked or asleep (IAwayState), it does
 // not look, also when the effects keep running then: nobody starts a game on the lock screen.
 // Right after, it looks once at once, so what started or stopped in the meantime counts then.
 internal sealed class ProgramWatcher : IProfileTrigger
@@ -28,7 +28,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private readonly ProfileLibrary _profiles;
     private readonly LightingController _lighting;
     private readonly IRunningPrograms _programs;
-    private readonly AutoPause? _autoPause;
+    private readonly IAwayState _away;
     private readonly TimeSpan _pollInterval;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
@@ -47,12 +47,12 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private bool _started;
     private bool _disposed;
 
-    public ProgramWatcher(ProfileLibrary profiles, LightingController lighting, IRunningPrograms programs, TimeProvider time, TimeSpan? pollInterval = null, AutoPause? autoPause = null)
+    public ProgramWatcher(ProfileLibrary profiles, LightingController lighting, IRunningPrograms programs, IAwayState away, TimeProvider time, TimeSpan? pollInterval = null)
     {
         _profiles = profiles;
         _lighting = lighting;
         _programs = programs;
-        _autoPause = autoPause;
+        _away = away;
         _pollInterval = pollInterval ?? DefaultPollInterval;
         _timer = time.CreateTimer(_ => Poll(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
@@ -73,12 +73,8 @@ internal sealed class ProgramWatcher : IProfileTrigger
         _lighting.LightingChanged += OnLightingChanged;
         _profiles.Changed += OnProfilesChanged;
         UpdateRules(baseline: false);
-        if (_autoPause is not null)
-        {
-            _autoPause.AwayChanged += OnAwayChanged;
-            OnAwayChanged(this, _autoPause.Away);
-        }
-
+        _away.AwayChanged += OnAwayChanged;
+        OnAwayChanged(this, _away.Away);
         Poll();
     }
 
@@ -86,11 +82,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         _lighting.LightingChanged -= OnLightingChanged;
         _profiles.Changed -= OnProfilesChanged;
-        if (_autoPause is not null)
-        {
-            _autoPause.AwayChanged -= OnAwayChanged;
-        }
-
+        _away.AwayChanged -= OnAwayChanged;
         lock (_gate)
         {
             if (_disposed)
@@ -114,7 +106,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
     private void OnProfilesChanged(object? sender, EventArgs e) => UpdateRules(baseline: true);
 
-    // Raised under the lock of AutoPause, and nothing here asks AutoPause anything while holding _gate.
+    // Raised under the lock of AutoPause, and nothing here asks it anything while holding _gate.
     private void OnAwayChanged(object? sender, PauseReasons away)
     {
         lock (_gate)

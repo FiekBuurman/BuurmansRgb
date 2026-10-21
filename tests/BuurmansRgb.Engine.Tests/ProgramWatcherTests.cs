@@ -161,7 +161,7 @@ public sealed class ProgramWatcherTests : IDisposable
     [Fact]
     public void BeforeStart_ReadsNothing()
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _autoPause, _time);
 
         Assert.Equal(0, _store.LoadCount);
         Assert.False(_time.HasPendingTimer);
@@ -475,7 +475,7 @@ public sealed class ProgramWatcherTests : IDisposable
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(AutoPause? autoPause = null)
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time, autoPause: autoPause ?? _autoPause);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, autoPause ?? _autoPause, _time);
         _watcher.Start();
     }
 

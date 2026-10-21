@@ -11,7 +11,7 @@ namespace BuurmansRgb.Engine.Power;
 // Windows reports changes only, so whether the session is locked is asked once at the start: an
 // engine that starts late after sign-in may start on the lock screen. Away tells the same, also
 // while the pause is off, for what stops whenever nobody is at the pc (ProgramWatcher).
-internal sealed class AutoPause : IDisposable
+internal sealed class AutoPause : IAwayState, IDisposable
 {
     private readonly IPowerEvents _power;
     private readonly ISessionEvents _session;

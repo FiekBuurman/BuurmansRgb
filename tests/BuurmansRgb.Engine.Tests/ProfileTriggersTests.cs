@@ -32,7 +32,7 @@ public sealed class ProfileTriggersTests : IDisposable
             new Profile("Nacht", Uniform(StaticLighting(Orange))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
         ];
         _profiles = new ProfileLibrary(_store, _lighting);
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, new FakeAwayState(), _time);
         _timer = new ProfileTimer(_profiles, new FakeClockEvents(), _time, _watcher.HoldUntilProgramsStop);
         ShowColor(Green);
         _timer.Start();
