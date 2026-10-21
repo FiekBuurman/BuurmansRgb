@@ -81,8 +81,8 @@ toetsenbord. Een paar dingen om te proberen:
 - Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
   de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
   steeds die lengte.
-- Kies "Simulated dual-ring fan" en klik op "Outer ring"; kies "Simulated keyboard", wijs een
-  toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
+- Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
+  toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
   verder, of `notepad.exe`, en start en sluit Kladblok.
 - Vink in het tray-menu "Effecten pauzeren" aan: de melding met "Hervatten" verschijnt.

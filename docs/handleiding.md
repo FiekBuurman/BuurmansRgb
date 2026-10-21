@@ -203,7 +203,8 @@ Nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
   moederbord (7, in drie zones, met een lege ARGB-header), twee RAM-sticks (8), een videokaart
   (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in twee
   kanalen), verlichting in de behuizing (10), een muis (12, in vier zones) en een headset (2,
-  in twee zones).
+  in twee zones). Ze heten "Gesimuleerde ledstrip", "Gesimuleerde ventilator" enzovoort; de
+  namen van hun zones en toetsen zijn Engels, zoals OpenRGB ze bij echte apparaten geeft.
 - **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
 
 ### Aan en uit

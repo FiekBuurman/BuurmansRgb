@@ -1,4 +1,5 @@
 using BuurmansRgb.Core;
+using BuurmansRgb.Providers.Simulated.Resources;
 
 namespace BuurmansRgb.Providers.Simulated;
 
@@ -8,12 +9,12 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
 {
     private static readonly IReadOnlyList<RgbDevice> InitialDevices =
     [
-        Simulated("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, [new RgbZone("Strip", 30, 1, 60)]),
-        Simulated("simulated-fan", "Simulated fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]),
+        Simulated("simulated-strip", Strings.StripName, DeviceType.LedStrip, [new RgbZone("Strip", 30, 1, 60)]),
+        Simulated("simulated-fan", Strings.FanName, DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]),
 
         // A full-size US keyboard: the main keys, the arrow block and the number pad, one LED per
         // key, with the key names OpenRGB gives such a keyboard (without its "Key: " prefix).
-        Simulated("simulated-keyboard", "Simulated keyboard", DeviceType.Keyboard,
+        Simulated("simulated-keyboard", Strings.KeyboardName, DeviceType.Keyboard,
         [
             RgbZone.Fixed("Keys", 104) with
             {
@@ -44,7 +45,7 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
 
         // Like a real board in OpenRGB: LEDs on the board, a 12 V header that counts as one LED,
         // and an addressable header that has no LEDs until its length is set.
-        Simulated("simulated-motherboard", "Simulated motherboard", DeviceType.Motherboard,
+        Simulated("simulated-motherboard", Strings.MotherboardName, DeviceType.Motherboard,
         [
             RgbZone.Fixed("Mainboard", 6),
             RgbZone.Fixed("RGB header", 1),
@@ -52,34 +53,34 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         ]),
 
         // OpenRGB lists every RAM stick as a device of its own.
-        Simulated("simulated-ram-1", "Simulated RAM stick 1", DeviceType.Ram, [RgbZone.Fixed("DRAM", 8)]),
-        Simulated("simulated-ram-2", "Simulated RAM stick 2", DeviceType.Ram, [RgbZone.Fixed("DRAM", 8)]),
+        Simulated("simulated-ram-1", Strings.Ram1Name, DeviceType.Ram, [RgbZone.Fixed("DRAM", 8)]),
+        Simulated("simulated-ram-2", Strings.Ram2Name, DeviceType.Ram, [RgbZone.Fixed("DRAM", 8)]),
 
         // A graphics card with a light bar along its side and a lit logo.
-        Simulated("simulated-gpu", "Simulated graphics card", DeviceType.Gpu,
+        Simulated("simulated-gpu", Strings.GpuName, DeviceType.Gpu,
         [
             RgbZone.Fixed("Light bar", 12),
             RgbZone.Fixed("Logo", 1),
         ]),
 
         // A fan with a ring on each side; OpenRGB lists such rings as zones of their own.
-        Simulated("simulated-fan-dual", "Simulated dual-ring fan", DeviceType.Fan,
+        Simulated("simulated-fan-dual", Strings.DualRingFanName, DeviceType.Fan,
         [
             RgbZone.Fixed("Inner ring", 8),
             RgbZone.Fixed("Outer ring", 12),
         ]),
 
         // A controller with two addressable channels: one with a strip on it, one still empty.
-        Simulated("simulated-argb", "Simulated ARGB controller", DeviceType.LedStrip,
+        Simulated("simulated-argb", Strings.ArgbName, DeviceType.LedStrip,
         [
             new RgbZone("ARGB 1", 20, 0, 60),
             new RgbZone("ARGB 2", 0, 0, 60),
         ]),
 
-        Simulated("simulated-case", "Simulated case lighting", DeviceType.Case, [RgbZone.Fixed("Front panel", 10)]),
+        Simulated("simulated-case", Strings.CaseName, DeviceType.Case, [RgbZone.Fixed("Front panel", 10)]),
 
         // A mouse with a lit logo and scroll wheel and a strip along each side.
-        Simulated("simulated-mouse", "Simulated mouse", DeviceType.Mouse,
+        Simulated("simulated-mouse", Strings.MouseName, DeviceType.Mouse,
         [
             RgbZone.Fixed("Logo", 1),
             RgbZone.Fixed("Scroll wheel", 1),
@@ -88,7 +89,7 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         ]),
 
         // A headset with one LED on each ear cup.
-        Simulated("simulated-headset", "Simulated headset", DeviceType.Headset,
+        Simulated("simulated-headset", Strings.HeadsetName, DeviceType.Headset,
         [
             RgbZone.Fixed("Left ear cup", 1),
             RgbZone.Fixed("Right ear cup", 1),

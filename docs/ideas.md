@@ -49,9 +49,6 @@ uitbreidingen in `docs/bouwplan.md`.
   sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
-- De gesimuleerde lampen een Nederlandse naam geven ("Gesimuleerde ledstrip" in plaats van
-  "Simulated LED strip"), zoals de rest van de app; de namen staan nu vast in
-  `SimulatedDeviceProvider` en in de tests
 
 ## Zones en zonelengtes
 
