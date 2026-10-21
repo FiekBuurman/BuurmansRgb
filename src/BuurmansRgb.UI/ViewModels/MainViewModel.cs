@@ -25,6 +25,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string ResumeCall = "resume";
+    private const string FollowLightingCall = "follow-lighting";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -46,6 +47,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // The same for the pause of the effects.
     private int _pauseChanges;
+
+    // Counts the changes sent for the selected device, so lighting fetched while the user changed
+    // something newer does not move a slider back.
+    private int _sentChanges;
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
@@ -381,6 +386,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        ShowLighting(lighting, keepMixedColor: false);
+    }
+
+    // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
+    // or one that came on by itself. In the queue, behind the changes of the user that are still on
+    // their way, so the answer already holds them; a change sent meanwhile wins. A color the user is
+    // mixing and has not put on the lamp yet stays in the picker.
+    private void FollowLighting()
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var deviceId = SelectedDevice?.DeviceId;
+        var sentChanges = _sentChanges;
+        _calls.Post(FollowLightingCall, async () =>
+        {
+            var lighting = await connection.Api.GetLightingAsync(deviceId);
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection) && SelectedDevice?.DeviceId == deviceId && sentChanges == _sentChanges)
+                {
+                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasUnappliedChange);
+                }
+            });
+        });
+    }
+
+    private void ShowLighting(LightingInfo lighting, bool keepMixedColor)
+    {
         _syncing.Run(() =>
         {
             _deviceColor = lighting.Color;
@@ -389,7 +425,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
             Speed = Math.Round(lighting.Speed * 100.0);
         });
-        ShowPickerColor();
+        if (!keepMixedColor)
+        {
+            ShowPickerColor();
+        }
     }
 
     private void Send(string setting, Func<IEngineApi, string?, Task> call)
@@ -400,6 +439,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         var deviceId = selected.DeviceId;
+        _sentChanges++;
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
     }
 
@@ -485,6 +525,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        _sentChanges++;
         _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
@@ -596,7 +637,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Lamps.ShowFrame(frame);
     });
 
-    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() => _ = _lampSync.RefreshAsync());
+    private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        _ = _lampSync.RefreshAsync();
+        FollowLighting();
+    });
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
 
