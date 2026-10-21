@@ -303,6 +303,59 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Single(_provider.Resizes);
     }
 
+    // settings.json changed by hand: the device that is there gets the new length, once.
+    [Fact]
+    public async Task Change_AnotherLength_ResizesTheDeviceThatIsThereAndSaysSo()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        _keeper.Change(Lengths(("board", "ARGB header", 24)));
+
+        await ZoneLengthsAsync([2, 24, 1]);
+        await SettledAsync();
+        Assert.Equal(1, changes);
+        Assert.Equal([("board", 1, 30), ("board", 1, 24)], _provider.Resizes);
+        Assert.Equal(24, _keeper.Lengths["board"]["ARGB header"]);
+    }
+
+    [Fact]
+    public async Task Change_TheSameLengths_DoesNothing()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        _keeper.Change(Lengths(("board", "ARGB header", 30)));
+
+        await SettledAsync();
+        Assert.Equal(0, changes);
+        Assert.Single(_provider.Resizes);
+    }
+
+    // A length taken out of the file is forgotten; the zone keeps the length it has.
+    [Fact]
+    public async Task Change_WithoutTheLength_ForgetsItAndLeavesTheZone()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+
+        _keeper.Change(Lengths());
+
+        await SettledAsync();
+        Assert.Empty(_keeper.Lengths);
+        Assert.Single(_provider.Resizes);
+    }
+
     // A board with two fixed LEDs, an addressable header and a fixed logo.
     private static RgbDevice Board(int header) =>
         ResizableDeviceProvider.Board(RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1));

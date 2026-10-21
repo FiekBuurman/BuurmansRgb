@@ -11,7 +11,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // Zones are known by name, not by index: the name stays the same when a provider lists the zones in
 // another order, and a zone whose name is gone (or that two zones of the device share) is left
 // alone instead of getting the length of another zone. The engine asks a device for a length only
-// when the device shows up, and waits until the device reported it: a provider that refuses it
+// when the device shows up (or settings.json changed by hand), and waits until the device reported it: a provider that refuses it
 // cannot make a loop of resizes and new device lists, nor is its refusal taken for a length from
 // elsewhere. A length the zone cannot hold (any more) is kept, but not asked for. LedColors and the
 // lighting are not involved. Thread-safe. The provider gets a length under the lock, so a length
@@ -68,6 +68,36 @@ internal sealed class ZoneLengthKeeper : IDisposable
                 _lengths[deviceId] = new Dictionary<string, int>(zones);
             }
         }
+    }
+
+    // The lengths from a settings file that changed by hand, while the devices are there: replaces
+    // what was known, and a device gets a length it does not have, as if it showed up again.
+    // Raises LengthsChanged when the lengths are others than the ones known.
+    public void Change(IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> lengths)
+    {
+        List<(string DeviceId, int ZoneIndex, int LedCount)> resizes = [];
+        lock (_gate)
+        {
+            if (SameLengthsLocked(lengths))
+            {
+                return;
+            }
+
+            _lengths.Clear();
+            foreach (var (deviceId, zones) in lengths)
+            {
+                _lengths[deviceId] = new Dictionary<string, int>(zones);
+            }
+
+            foreach (var device in _lighting.Devices)
+            {
+                AskLocked(device, resizes);
+            }
+
+            ResizeLocked(resizes);
+        }
+
+        LengthsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     // The user's choice: the zone gets the length, and keeps it from now on. Throws like
@@ -202,18 +232,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
                 _reported[device.Id] = ResizableZonesOf(device).ToDictionary(zone => zone.Zone.Name, zone => zone.Zone.LedCount);
             }
 
-            foreach (var (deviceId, zoneIndex, ledCount) in resizes)
-            {
-                try
-                {
-                    _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
-                }
-                catch (ArgumentException exception)
-                {
-                    // The device went or changed after this list; it is asked again when it comes back.
-                    Trace.TraceWarning($"Could not give a zone of '{deviceId}' its length again: {exception.Message}");
-                }
-            }
+            ResizeLocked(resizes);
         }
 
         if (changed)
@@ -221,6 +240,28 @@ internal sealed class ZoneLengthKeeper : IDisposable
             LengthsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
+
+    private void ResizeLocked(List<(string DeviceId, int ZoneIndex, int LedCount)> resizes)
+    {
+        foreach (var (deviceId, zoneIndex, ledCount) in resizes)
+        {
+            try
+            {
+                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+            }
+            catch (ArgumentException exception)
+            {
+                // The device went or changed after this list; it is asked again when it comes back.
+                Trace.TraceWarning($"Could not give a zone of '{deviceId}' its length again: {exception.Message}");
+            }
+        }
+    }
+
+    private bool SameLengthsLocked(IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> lengths) =>
+        lengths.Count == _lengths.Count
+        && lengths.All(device => _lengths.TryGetValue(device.Key, out var zones)
+            && device.Value.Count == zones.Count
+            && device.Value.All(zone => zones.TryGetValue(zone.Key, out var ledCount) && ledCount == zone.Value));
 
     // The resizable zones of the device that have a name of their own, with their index.
     private static IEnumerable<(RgbZone Zone, int Index)> ResizableZonesOf(RgbDevice device) =>
