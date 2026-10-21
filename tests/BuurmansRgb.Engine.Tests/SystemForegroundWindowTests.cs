@@ -13,6 +13,8 @@ public sealed class SystemForegroundWindowTests
     [Theory]
     [InlineData("Shell_TrayWnd", "explorer.exe", false)]
     [InlineData("Shell_SecondaryTrayWnd", "explorer.exe", false)]
+    [InlineData("TopLevelWindowForOverflowXamlIsland", "explorer.exe", false)]
+    [InlineData("NotifyIconOverflowWindow", "explorer.exe", false)]
     [InlineData("XamlExplorerHostIslandWindow", "explorer.exe", false)]
     [InlineData("MultitaskingViewFrame", "explorer.exe", false)]
     [InlineData("ForegroundStaging", "explorer.exe", false)]

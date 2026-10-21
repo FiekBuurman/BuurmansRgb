@@ -242,9 +242,10 @@ Hoe het vanzelf aanzetten werkt:
   - *Twee van zulke programma's:* wissel je van het ene naar het andere, dan gaat de ene scène
     rechtstreeks over in de andere, zonder de verlichting van daarvoor ertussen. Wissel je daarna
     naar een derde programma, dan komt de verlichting van vóór het eerste terug.
-  - *Wat niet als wegwisselen telt:* de taakbalk, het venster van Alt+Tab en Win+Tab, het
-    startmenu en zoeken, meldingen en snelle instellingen, het vergrendelscherm en het tray-menu
-    van BuurmansRgb zelf. Dan blijft het zoals het was. Het bureaublad, Verkenner en de
+  - *Wat niet als wegwisselen telt:* de taakbalk en het pijltje met de verborgen icoontjes naast
+    de klok, het venster van Alt+Tab en Win+Tab, het startmenu en zoeken, meldingen en snelle
+    instellingen, het vergrendelscherm en het tray-menu van BuurmansRgb zelf. Dan blijft het
+    zoals het was. Het bureaublad, Verkenner en de
     instellingen-app van BuurmansRgb tellen wel als een ander programma: open je de app om de
     scène bij te stellen, dan brandt daar de verlichting van daarvoor.
   - *Samen met "zolang het draait":* de scène die het laatst aanging wint, zoals bij twee

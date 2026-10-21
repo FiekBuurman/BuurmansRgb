@@ -25,11 +25,12 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     // A window without a place on the screen, only for messages.
     private static readonly nint MessageOnlyParent = new(-3);
 
-    // Windows of the shell that pass by on the way to another window, by class: the taskbars,
-    // Alt+Tab and Win+Tab (Windows 10 and 11).
+    // Windows of the shell that pass by on the way to another window, by class: the taskbars, the
+    // overflow of the notification area, Alt+Tab and Win+Tab (Windows 10 and 11).
     private static readonly HashSet<string> PassingClasses = new(StringComparer.Ordinal)
     {
-        "Shell_TrayWnd", "Shell_SecondaryTrayWnd", "MultitaskingViewFrame", "TaskSwitcherWnd", "XamlExplorerHostIslandWindow", "ForegroundStaging",
+        "Shell_TrayWnd", "Shell_SecondaryTrayWnd", "TopLevelWindowForOverflowXamlIsland", "NotifyIconOverflowWindow",
+        "MultitaskingViewFrame", "TaskSwitcherWnd", "XamlExplorerHostIslandWindow", "ForegroundStaging",
     };
 
     // Parts of Windows that show over a program without taking the user away from it: the lock

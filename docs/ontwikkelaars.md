@@ -171,8 +171,9 @@ toetsenbord. Een paar dingen om te proberen:
   één keer wat er nu vooraan staat. Hij meldt elk venster dat telt, ook van het programma dat al
   vooraan stond: dat kan intussen gesloten en opnieuw gestart zijn, met alleen de taakbalk of het
   startmenu ertussen. `ProgramWatcher` houdt zelf bij wat nieuw is. Vensters die niet tellen
-  (`SystemForegroundWindow.Counts`):
-  de taakbalk (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`), Alt+Tab en Win+Tab
+  (`SystemForegroundWindow.Counts`): de taakbalk (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`),
+  het overloopvak van het systeemvak (`TopLevelWindowForOverflowXamlIsland` op Windows 11,
+  `NotifyIconOverflowWindow` op Windows 10), Alt+Tab en Win+Tab
   (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`, `TaskSwitcherWnd`,
   `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en snelle instellingen
   (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`, `ShellExperienceHost.exe`,
@@ -458,8 +459,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    vinkje "Alleen als het op de voorgrond staat", en "Gamen" je spel zonder vinkje. Klik op het
    programma en wissel met Alt+Tab weg en terug: de scène hoort meteen aan te gaan en de
    verlichting van daarvoor meteen terug te komen. Kijk dat de taakbalk, het Alt+Tab-venster
-   zelf, het startmenu (Windows-toets, dan Esc) en het tray-menu van BuurmansRgb de scène laten
-   staan. Geef een tweede programma ook het vinkje en wissel tussen de twee: de lampen horen
+   zelf, het startmenu (Windows-toets, dan Esc), het overloopvak van het systeemvak (het pijltje
+   naast de klok) en het tray-menu van BuurmansRgb de scène laten staan. Geef een tweede programma ook het vinkje en wissel tussen de twee: de lampen horen
    rechtstreeks van de ene scène naar de andere te gaan, zonder flits van de verlichting van
    daarvoor. Start het spel terwijl "Film" vooraan staat, wissel naar het spel en weer terug.
    Vergrendel met Win+L terwijl "Film" vooraan staat: de scène blijft; ontgrendel en wissel weg.
