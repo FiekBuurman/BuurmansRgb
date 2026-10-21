@@ -98,7 +98,6 @@ uitbreidingen in `docs/bouwplan.md`.
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
-- `framesPerSecond` ook in de instellingen-app; nu staat het alleen in `settings.json`
 
 ## Instellingen-app en ontwerp
 
@@ -183,8 +182,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- `pauseOnLockAndSleep` ook in de instellingen-app en zonder herstart van de engine; nu staat het
-  alleen in `settings.json`
 - Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
   "laatste frame blijft staan"
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt

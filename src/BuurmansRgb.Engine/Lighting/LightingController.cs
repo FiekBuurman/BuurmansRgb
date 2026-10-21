@@ -108,6 +108,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
+    // Raised when FramesPerSecond got another value; read FramesPerSecond for the newest one.
+    public event EventHandler? FramesPerSecondChanged;
+
     // Kept between 1 and MaxFramesPerSecond. Effects are time-based, so a lower rate only makes
     // the animation less smooth, not slower.
     public int FramesPerSecond
@@ -121,10 +124,18 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
         set
         {
+            bool changed;
             lock (_gate)
             {
-                _framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
+                var framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
+                changed = framesPerSecond != _framesPerSecond;
+                _framesPerSecond = framesPerSecond;
                 _animation.Period = FramePeriodLocked;
+            }
+
+            if (changed)
+            {
+                FramesPerSecondChanged?.Invoke(this, EventArgs.Empty);
             }
         }
     }

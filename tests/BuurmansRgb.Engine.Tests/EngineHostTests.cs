@@ -339,6 +339,39 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(enabled, autoPause.Enabled);
     }
 
+    // From the settings app: saved like the lighting, without a restart.
+    [Fact]
+    public async Task Dispose_AfterTheOptionsChanged_SavesThem()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause);
+        await host.StartAsync(Ct);
+
+        lighting.FramesPerSecond = 60;
+        autoPause.Enabled = false;
+        host.Dispose();
+
+        Assert.Equal(60, store.Settings.FramesPerSecond);
+        Assert.False(store.Settings.PauseOnLockAndSleep);
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    [Fact]
+    public async Task StartAsync_TheSavedOptions_AreNotSavedAgain()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false } };
+        var lighting = new LightingController([_simulated]);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause);
+        await host.StartAsync(Ct);
+
+        host.Dispose();
+
+        Assert.Equal(0, store.SaveCount);
+    }
+
     [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {

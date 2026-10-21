@@ -48,6 +48,8 @@ internal sealed class EngineHost(
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
         profiles?.ActiveChanged += OnActiveSceneChanged;
+        lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -72,6 +74,8 @@ internal sealed class EngineHost(
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
         profiles?.ActiveChanged -= OnActiveSceneChanged;
+        lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -91,4 +95,11 @@ internal sealed class EngineHost(
     // And the scene that is on now.
     private void OnActiveSceneChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { ActiveScene = profiles!.ActiveName });
+
+    // The options from the settings app, also the newest value each.
+    private void OnFramesPerSecondChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { FramesPerSecond = lighting.FramesPerSecond });
+
+    private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
 }

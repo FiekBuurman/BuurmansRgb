@@ -16,6 +16,20 @@ public sealed class LightingControllerAnimationTests : IDisposable
 
     public LightingControllerAnimationTests() => _controller = new LightingController([_provider], _time);
 
+    [Fact]
+    public void FramesPerSecondChanged_RaisedOnlyForAnotherValueWithinTheRange()
+    {
+        var seen = new List<int>();
+        _controller.FramesPerSecondChanged += (_, _) => seen.Add(_controller.FramesPerSecond);
+
+        _controller.FramesPerSecond = LightingController.DefaultFramesPerSecond;
+        _controller.FramesPerSecond = 60;
+        _controller.FramesPerSecond = 500;
+        _controller.FramesPerSecond = 0;
+
+        Assert.Equal([60, 1], seen);
+    }
+
     public void Dispose() => _controller.Dispose();
 
     [Fact]
