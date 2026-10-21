@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
@@ -531,7 +532,7 @@ public sealed class EngineApiTests : IDisposable
     {
         using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), _lighting.SetPaused);
         using var timer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer, hotkeys: new AllOnOffHotkeys());
         var changes = 0;
         api.OptionsChanged += (_, _) => changes++;
 
@@ -539,9 +540,33 @@ public sealed class EngineApiTests : IDisposable
         await api.SetFramesPerSecondAsync(60, Ct);
         await api.SetPauseOnLockAndSleepAsync(false, Ct);
         await api.SetCatchUpSceneTimesAsync(true, Ct);
+        await api.SetHotkeysAsync(false, Ct);
         await api.SetFramesPerSecondAsync(60, Ct);
 
-        Assert.Equal(4, changes);
+        Assert.Equal(5, changes);
+    }
+
+    [Fact]
+    public async Task Hotkeys_AreTheOptionOfTheEngine()
+    {
+        var hotkeys = new AllOnOffHotkeys();
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, hotkeys: hotkeys);
+
+        Assert.True(await api.GetHotkeysAsync(Ct));
+        await api.SetHotkeysAsync(false, Ct);
+
+        Assert.False(hotkeys.Enabled);
+        Assert.False(await api.GetHotkeysAsync(Ct));
+    }
+
+    [Fact]
+    public async Task Hotkeys_WithoutThem_AreOff()
+    {
+        using var api = CreateApi();
+
+        await api.SetHotkeysAsync(true, Ct);
+
+        Assert.False(await api.GetHotkeysAsync(Ct));
     }
 
     [Fact]

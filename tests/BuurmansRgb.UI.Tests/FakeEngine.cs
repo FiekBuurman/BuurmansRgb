@@ -277,6 +277,16 @@ internal sealed class FakeEngineApi : IEngineApi
         CatchUpSceneTimes = enabled;
     }
 
+    public bool Hotkeys { get; set; } = true;
+
+    public Task<bool> GetHotkeysAsync(CancellationToken ct = default) => Task.FromResult(Hotkeys);
+
+    public async Task SetHotkeysAsync(bool enabled, CancellationToken ct = default)
+    {
+        await Record($"hotkeys {enabled}");
+        Hotkeys = enabled;
+    }
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

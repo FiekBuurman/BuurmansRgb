@@ -348,11 +348,14 @@ public sealed class EngineRpcTests : IDisposable
         await client.Api.SetFramesPerSecondAsync(60, Ct);
         await client.Api.SetPauseOnLockAndSleepAsync(false, Ct);
         await client.Api.SetCatchUpSceneTimesAsync(true, Ct);
+        var hotkeys = await client.Api.GetHotkeysAsync(Ct);
+        await client.Api.SetHotkeysAsync(false, Ct);
 
         Assert.Equal(24, framesPerSecond);
         Assert.True(pauseOnLock);
         Assert.False(catchUp);
-        Assert.Equal(["fps 60", "pause on lock False", "catch up True"], _api.OptionCalls);
+        Assert.True(hotkeys);
+        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False"], _api.OptionCalls);
     }
 
     [Fact]
@@ -592,6 +595,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default)
         {
             OptionCalls.Add($"catch up {enabled}");
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> GetHotkeysAsync(CancellationToken ct = default) => Task.FromResult(true);
+
+        public Task SetHotkeysAsync(bool enabled, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"hotkeys {enabled}");
             return Task.CompletedTask;
         }
 
