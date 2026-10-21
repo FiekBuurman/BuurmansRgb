@@ -642,7 +642,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   dus geen knop: stel eerst het aantal LED's in. Ook hier knippert er steeds één ding: een
   nieuwe zone of lamp neemt het over, bij een pauze is "Knipperen" grijs, en verandert de
   apparatenlijst (bijv. een nieuwe lengte of OpenRGB dat opnieuw zoekt), dan stopt het
-  knipperen en krijgt de lamp zijn eigen kleuren terug. Een schermlezer noemt de knop bijv.
+  knipperen en krijgt de lamp zijn eigen kleuren terug. Klik je vlak na − of + op
+  "Knipperen", dan gaat eerst de nieuwe lengte naar de lamp; knippert de zone daardoor maar
+  kort, klik dan nog eens. Een schermlezer noemt de knop bijv.
   "Zone ARGB 1 van Moederbord laten knipperen".
 - **Plek:** staan er twee of meer lampen van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
