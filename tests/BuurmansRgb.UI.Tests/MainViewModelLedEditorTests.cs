@@ -202,6 +202,35 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
+    // Only with the keyboard: an arrow, Shift+arrow and then the color.
+    [Fact]
+    public async Task Keys_ChooseARangeThatTheColorGoesTo()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+
+        strip.PressKey(LedKey.Next);
+        strip.PressKey(LedKey.Next, extend: true);
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(new LedSelection("strip", "LED strip", 1, 2), viewModel.LedEditor.Selection);
+        Assert.Equal(["leds strip 1 #00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task Keys_SelectAllAndClear()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+
+        strip.PressKey(LedKey.SelectAll);
+        Assert.Equal(new LedSelection("strip", "LED strip", 0, strip.LedCount - 1), viewModel.LedEditor.Selection);
+
+        Assert.True(strip.PressKey(LedKey.ClearSelection));
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.False(strip.PressKey(LedKey.ClearSelection));
+    }
+
     // Escape in the preview.
     [Fact]
     public async Task ClearLedSelectionFromThePreview_GivesThePickerBackToTheDevice()

@@ -44,6 +44,50 @@ public sealed class PreviewViewModelTests
         Assert.Equal((0, 1), preview.Devices[0].ShownSelection());
     }
 
+    // The engine reports the devices again, for example after a resize: the keys go on where they were.
+    [Fact]
+    public void ShowDevices_KeepsTheActiveLed()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10), Fan]);
+        preview.Devices[0].PressKey(LedKey.Last);
+
+        preview.ShowDevices([Strip(10), Fan]);
+
+        Assert.Equal(9, preview.Devices[0].ShownActiveLed());
+        Assert.Equal(0, preview.Devices[1].ShownActiveLed());
+    }
+
+    [Fact]
+    public void ShowDevices_WithFewerLeds_MovesTheActiveLedToTheLastOne()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10)]);
+        preview.Devices[0].PressKey(LedKey.Last);
+
+        preview.ShowDevices([Strip(4)]);
+
+        Assert.Equal(3, preview.Devices[0].ShownActiveLed());
+    }
+
+    [Fact]
+    public void PressKeys_RaiseTheEventsOfClicksAndSelections()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Fan]);
+        List<object> raised = [];
+        preview.LedClicked += (_, click) => raised.Add(click);
+        preview.LedsSelected += (_, leds) => raised.Add(leds);
+        preview.LedSelectionCleared += (_, _) => raised.Add("clear");
+
+        preview.Devices[0].PressKey(LedKey.Next, extend: true);
+        preview.Devices[0].PressKey(LedKey.SelectAll);
+        preview.ShowLedSelection(new LedSelection("fan", "Fan", 0, 1));
+        preview.Devices[0].PressKey(LedKey.ClearSelection);
+
+        Assert.Equal([new LedClick("fan", 1, Extend: true, Anchor: 0), new LedSelection("fan", "Fan", 0, 1), "clear"], raised);
+    }
+
     [Fact]
     public void ClickLed_RaisesLedClickedWithTheDevice()
     {

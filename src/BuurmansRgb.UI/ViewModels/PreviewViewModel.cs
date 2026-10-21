@@ -62,7 +62,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // A zone length the user set that has not gone to the engine yet stays with its zone, so the
     // preview does not jump back while the engine reports the devices again (for example after the
     // previous resize); it goes out when its delay is over. A zone that no longer shows sends it now,
-    // also halfway a drag.
+    // also halfway a drag. The keys go on from the LED where they were.
     public void ShowDevices(IEnumerable<DeviceInfo> devices)
     {
         DevicePreviewViewModel[] previous = [.. Devices];
@@ -71,6 +71,11 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         {
             var preview = new DevicePreviewViewModel(device, this, time);
             preview.ShowLedSelection(_ledSelection);
+            if (previous.FirstOrDefault(before => before.DeviceId == device.Id) is { } before)
+            {
+                preview.ContinueAt(before.ActiveLed);
+            }
+
             Devices.Add(preview);
         }
 
