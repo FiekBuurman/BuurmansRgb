@@ -249,12 +249,13 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _provider.SetDevices(Board(header: 30));
         await _lighting.DiscoverAsync(Ct);
         var changes = 0;
-        _keeper.LengthsChanged += (_, _) => changes++;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
 
         _provider.SetDevices(Board(header: 10));
 
-        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 10);
-        Assert.Equal(1, changes);
+        // LengthsChanged comes just after the length is in Lengths.
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 1);
+        Assert.Equal(10, _keeper.Lengths["board"]["ARGB header"]);
         Assert.Empty(_provider.Resizes);
     }
 
