@@ -42,9 +42,6 @@ uitbreidingen in `docs/bouwplan.md`.
   seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" een knop om de
   service `OpenRGB` te starten (via UAC) in plaats van alleen de tip, en de versie van OpenRGB
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
-- Bij het starten van de engine in de stand "Automatisch" staan de gesimuleerde lampen even
-  in de lijst tot OpenRGB verbonden is (ongeveer een seconde). Eventueel pas na de eerste
-  verbindpoging beslissen
 - Een andere keuze voor de gesimuleerde lampen ook naar een tweede open instellingen-app
   sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een

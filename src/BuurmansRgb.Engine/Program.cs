@@ -52,7 +52,7 @@ internal static class Program
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
         using var lighting = new LightingController([simulatedDevices, openRgb]);
-        using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
         // On this thread, which pumps the tray messages and so also the power, session and clock events.
