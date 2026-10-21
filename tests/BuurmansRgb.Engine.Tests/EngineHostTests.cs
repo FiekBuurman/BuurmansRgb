@@ -372,6 +372,66 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(0, store.SaveCount);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StartAsync_TurnsTheCatchUpOfSceneTimesOnOrOff(bool enabled)
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { CatchUpSceneTimes = enabled } };
+        using var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore(), lighting);
+        using var timer = new ProfileTimer(profiles, new FakeClockEvents(), TimeProvider.System) { CatchUp = !enabled };
+        using var host = new EngineHost(store, lighting, profileTimer: timer);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(enabled, timer.CatchUp);
+    }
+
+    [Fact]
+    public async Task Dispose_AfterTheCatchUpOfSceneTimesChanged_SavesIt()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore(), lighting);
+        var timer = new ProfileTimer(profiles, new FakeClockEvents(), TimeProvider.System);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [timer], profileTimer: timer);
+        await host.StartAsync(Ct);
+
+        timer.CatchUp = true;
+        host.Dispose();
+
+        Assert.True(store.Settings.CatchUpSceneTimes);
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    // At 14:00 on a Monday the scene that was on, Nacht (23:00), is not the one of the time:
+    // Ochtend (07:00) is. It comes on after the saved lighting, and is saved as the scene that is on.
+    [Fact]
+    public async Task StartAsync_CatchingUpOnSceneTimes_TheSceneOfTheTimeComesOnAfterTheSceneThatWasOn()
+    {
+        var (store, profiles, host) = HostWithScenesAt2Pm(catchUp: true);
+        await host.StartAsync(Ct);
+
+        host.Dispose();
+
+        Assert.Equal("Ochtend", profiles.ActiveName);
+        Assert.Equal("Ochtend", store.Settings.ActiveScene);
+        Assert.Equal(Blue, store.Settings.Color);
+    }
+
+    [Fact]
+    public async Task StartAsync_NotCatchingUpOnSceneTimes_TheSceneThatWasOnStays()
+    {
+        var (store, profiles, host) = HostWithScenesAt2Pm(catchUp: false);
+        await host.StartAsync(Ct);
+
+        host.Dispose();
+
+        Assert.Equal("Nacht", profiles.ActiveName);
+        Assert.Equal(0, store.SaveCount);
+    }
+
     [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {
@@ -438,6 +498,27 @@ public sealed class EngineHostTests : IDisposable
         public void Start() => started();
 
         public void Dispose() => disposed?.Invoke();
+    }
+
+    // Monday 1 June 2026 14:00 in Amsterdam, with Nacht (23:00) on from before the restart and
+    // Ochtend (07:00) the scene whose time passed last.
+    private (InMemorySettingsStore Store, ProfileLibrary Profiles, EngineHost Host) HostWithScenesAt2Pm(bool catchUp)
+    {
+        var night = EngineSettings.CreateDefault().ToLightingState();
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { ActiveScene = "Nacht", CatchUpSceneTimes = catchUp } };
+        var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore
+        {
+            Profiles =
+            [
+                new Profile("Nacht", night) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
+                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(7, 0)) },
+            ],
+        }, lighting);
+        var time = new ClockTimeProvider(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), DailyTimeTests.Amsterdam);
+        var timer = new ProfileTimer(profiles, new FakeClockEvents(), time);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [timer], profiles: profiles, profileTimer: timer);
+        return (store, profiles, host);
     }
 
     private async Task AssertAllSimulatedLedsAsync(RgbColor expected)

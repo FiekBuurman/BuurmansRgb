@@ -79,7 +79,8 @@ internal static class Program
             profileTriggers: [profileTimer, programWatcher],
             zoneLengths: zoneLengths,
             autoPause: autoPause,
-            profiles: profiles);
+            profiles: profiles,
+            profileTimer: profileTimer);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))
