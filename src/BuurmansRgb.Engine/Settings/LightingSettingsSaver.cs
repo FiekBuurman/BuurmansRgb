@@ -102,10 +102,12 @@ internal sealed class LightingSettingsSaver : IDisposable
     // what the engine held before the file was read would otherwise write that over the change.
     // action runs outside the lock. A change on another thread meanwhile, such as one from the
     // settings app, is mixed with the file in what the engine holds; the file is written then.
+    // One caller at a time, not nested: there is one reloader, and it calls this under its lock.
     public void HoldSaves(Action action)
     {
         lock (_gate)
         {
+            Debug.Assert(_holdingThread == 0, "HoldSaves takes one caller at a time.");
             _holdingThread = Environment.CurrentManagedThreadId;
             _changedElsewhere = false;
             _adopted = null;
