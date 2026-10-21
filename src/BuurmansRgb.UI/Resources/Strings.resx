@@ -365,6 +365,12 @@
   <data name="ProfileProgramHint" xml:space="preserve">
     <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
   </data>
+  <data name="ProfileForegroundOnlyLabel" xml:space="preserve">
+    <value>Alleen als het op de voorgrond staat</value>
+  </data>
+  <data name="ProfileForegroundOnlyHint" xml:space="preserve">
+    <value>Met een vinkje gaat de scène aan als je naar het programma wisselt, en komt de verlichting van daarvoor terug als je naar iets anders wisselt (Alt+Tab) of het stopt. Zonder vinkje telt het zolang het draait.</value>
+  </data>
   <data name="ProfileAutomationApply" xml:space="preserve">
     <value>Toepassen</value>
   </data>
@@ -692,6 +698,9 @@
   </data>
   <data name="SceneWithProgram" xml:space="preserve">
     <value>Bij {0}</value>
+  </data>
+  <data name="SceneProgramInForeground" xml:space="preserve">
+    <value>{0} op de voorgrond</value>
   </data>
   <data name="SceneAtTimeAndProgram" xml:space="preserve">
     <value>{0} om {1:HH:mm} · bij {2}</value>

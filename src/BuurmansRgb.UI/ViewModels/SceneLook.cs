@@ -30,14 +30,17 @@ internal static class SceneLook
         }, true))];
     }
 
-    public static string Describe(LightingInfo lighting, ProfileAutomation automation) => automation switch
+    // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond".
+    public static string Describe(LightingInfo lighting, ProfileAutomation automation) =>
+        Describe(lighting, automation.Times, automation is { Program: { } program, ForegroundOnly: true } ? UiText.Format(Strings.SceneProgramInForeground, program) : automation.Program);
+
+    private static string Describe(LightingInfo lighting, IReadOnlyList<LoadTime> times, string? program) => (times, program) switch
     {
-        { Times: [var time], Program: { } program } => UiText.Format(Strings.SceneAtTimeAndProgram, UiText.Days(time.Days), time.At, program),
-        { Times: [var time] } => UiText.Format(Strings.SceneAtTime, UiText.Days(time.Days), time.At),
-        { Times: [var time, ..] times, Program: { } program } =>
-            UiText.Format(Strings.SceneAtTimesAndProgram, UiText.Days(time.Days), time.At, times.Count - 1, program),
-        { Times: [var time, ..] times } => UiText.Format(Strings.SceneAtTimes, UiText.Days(time.Days), time.At, times.Count - 1),
-        { Program: { } program } => UiText.Format(Strings.SceneWithProgram, program),
+        ([var time], { }) => UiText.Format(Strings.SceneAtTimeAndProgram, UiText.Days(time.Days), time.At, program),
+        ([var time], null) => UiText.Format(Strings.SceneAtTime, UiText.Days(time.Days), time.At),
+        ([var time, ..], { }) => UiText.Format(Strings.SceneAtTimesAndProgram, UiText.Days(time.Days), time.At, times.Count - 1, program),
+        ([var time, ..], null) => UiText.Format(Strings.SceneAtTimes, UiText.Days(time.Days), time.At, times.Count - 1),
+        (_, { }) => UiText.Format(Strings.SceneWithProgram, program),
         _ when !lighting.On => Strings.SceneOff,
         _ => UiText.Format(Strings.SceneLighting, EffectOption.Create(lighting.EffectId).DisplayName, lighting.Brightness * 100.0),
     };

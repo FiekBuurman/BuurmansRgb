@@ -9,7 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace BuurmansRgb.UI.ViewModels;
 
 // When the selected profile loads by itself: at times, each on its own days, and while a program
-// runs. An empty field leaves that way off. This only asks; MainViewModel sends the change to the
+// runs, or only while it is in the foreground. An empty field leaves that way off. This only asks; MainViewModel sends the change to the
 // engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
@@ -91,8 +91,18 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     public bool HasProfile => ProfileName is not null;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasProgramText))]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string ProgramText { get; set; } = string.Empty;
+
+    // The choice only counts with a program, so it is grey without one; it stays as it is, so
+    // emptying the field and typing again keeps it.
+    public bool HasProgramText => !string.IsNullOrWhiteSpace(ProgramText);
+
+    // Whether the program counts only while it is in the foreground, instead of all the time it runs.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
+    public partial bool ForegroundOnly { get; set; }
 
     // Whether the saved profile loads by itself, for the heading that stays when folded up; without
     // a profile there is nothing to tell.
@@ -166,6 +176,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             _saved = automation;
             ProfileName = profileName;
             ProgramText = automation.Program ?? string.Empty;
+            ForegroundOnly = automation.ForegroundOnly;
             LoadTime?[] times = [.. automation.Times.DefaultIfEmpty()];
             while (Times.Count > times.Length)
             {
@@ -220,7 +231,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             }
         }
 
-        return new ProfileAutomation(times, ProgramText).Normalize();
+        return new ProfileAutomation(times, ProgramText, ForegroundOnly).Normalize();
     }
 
     // With more times it says which one, the first that is wrong, by the number a screen reader
