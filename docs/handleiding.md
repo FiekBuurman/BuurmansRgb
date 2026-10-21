@@ -163,20 +163,22 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   "Vanzelf aanzetten".
 - **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00` of `23.00`) en/of bij
   "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`; `eldenring` of een
-  heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit. Bij "Op deze dagen"
-  staan de dagen van de tijd, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv.
-  alleen ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
+  heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit. Achter elke tijd
+  staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv. alleen
+  ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
   "In het weekend om 10:00" of "ma, wo, vr om 19:00".
-- **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
-  zo gaat "Ochtend" om 07:00 op werkdagen en om 09:00 in het weekend aan. Een scène kan tot acht
-  tijden hebben. "−" achter een rij haalt die tijd weg (de enige tijd wordt leeg), en een lege
-  rij telt niet mee. Na "Toepassen" staan de tijden van vroeg naar laat. De kaart noemt de
-  eerste tijd en hoeveel er nog zijn: "Werkdagen om 07:00 en nog 1". Een andere geopende
-  instellingen-app ziet de nieuwe tijden meteen op de kaart.
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
   kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld.
+- **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
+  zo gaat "Ochtend" om 07:00 op werkdagen en om 09:00 in het weekend aan. Een scène kan tot acht
+  tijden hebben. "−" achter een rij haalt die tijd weg (de enige tijd wordt leeg), en een lege
+  rij telt niet mee. Klopt een tijd niet, dan zegt de melding welke ("Tijd 2: kies minstens één
+  dag."). Na "Toepassen" staan de tijden van vroeg naar laat, en wordt twee keer dezelfde tijd
+  één tijd op de dagen van allebei; het veld waarin je typte houdt de focus. De kaart noemt de
+  eerste tijd en hoeveel er nog zijn: "Werkdagen om 07:00 en nog 1". Een andere geopende
+  instellingen-app ziet de nieuwe tijden meteen op de kaart.
 - **De scène die aan staat** heeft een witte rand van 2 px, zoals in het ontwerp, en in het
   tray-menu een vinkje; een schermlezer zegt "Staat aan". Dat is de scène die het laatst aanging
   (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of
