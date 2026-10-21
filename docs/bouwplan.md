@@ -12,7 +12,7 @@ Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreiding
 "Uitbreidingen na taak 9" onderaan). Wat nog open staat, zijn de acceptatiecriteria die
 alleen met echte hardware of in Windows Sandbox te testen zijn: taak 3, de
 `dotnet-counters`-meting van taak 4, taak 5 t/m 8 en taak 9. Die test de gebruiker zelf;
-de stappen staan in `README.md` onder "Zelf testen op echte hardware" en "Installer bouwen en
+de stappen staan in `ontwikkelaars.md` onder "Zelf testen op echte hardware" en "Installer bouwen en
 testen".
 
 ## Uitgangspunten en eisen
@@ -172,7 +172,7 @@ Doel: met gesloten UI en een statische kleur gebruikt de engine vrijwel 0% CPU, 
 | Engine, animatie op 30 fps, UI dicht | < 1% | < 60 MB |
 | UI open met live preview | geen harde eis | < 150 MB |
 
-Gemeten (Release, gesimuleerde apparaten, zonder OpenRGB; de details staan in `README.md`
+Gemeten (Release, gesimuleerde apparaten, zonder OpenRGB; de details staan in `ontwikkelaars.md`
 onder "Metingen"): statisch ~0,07 % van één kern en ~21–24 MB working set, regenboog op 30 fps
 ~0,35 % van één kern en ~22–27 MB, de instellingen-app (Debug) ~110–145 MB.
 
@@ -241,7 +241,7 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 Later veranderd: de pipe heet `BuurmansRgb.Engine.<sessie-id>`, zodat elke ingelogde gebruiker
 zijn eigen engine heeft, en sinds het nieuwe ontwerp (#26) heeft de UI geen apparatenlijst
-links meer maar de pagina's Lampen, Kleur, Scènes, Buren en Instellingen (zie `README.md`).
+links meer maar de pagina's Lampen, Kleur, Scènes, Buren en Instellingen (zie `handleiding.md`).
 
 ### Taak 3 – OpenRGB-koppeling
 
@@ -256,7 +256,7 @@ links meer maar de pagina's Lampen, Kleur, Scènes, Buren en Instellingen (zie `
 
 Stand taak 3: gebouwd en getest met nepdata en een kleine SDK-server. De drie open criteria
 vragen OpenRGB met echte apparaten; die test de gebruiker zelf (zie "Zelf testen op echte
-hardware" in `README.md`).
+hardware" in `ontwikkelaars.md`).
 
 ### Taak 4 – Effect-engine
 
@@ -291,7 +291,7 @@ Gebruik deze opdracht vier keer, telkens met één type: **5** moederbord en RAM
 - [ ] `docs/hardware.md` bijgewerkt
 
 De vier criteria hierboven vragen echte hardware en staan daarom voor alle vier de types nog
-open; de gebruiker test ze zelf, zie "Zelf testen op echte hardware" in `README.md`. Wat per
+open; de gebruiker test ze zelf, zie "Zelf testen op echte hardware" in `ontwikkelaars.md`. Wat per
 type gebouwd en zonder hardware getest is (met nepdata van OpenRGB, een kleine SDK-server en
 een nepklok):
 
@@ -308,7 +308,7 @@ een nepklok):
   "Headset"), de matrix-map van OpenRGB als `LedMatrix` bij de zone, een voorbeeld dat elke
   toets op zijn plek tekent en meekrimpt in een smal venster, en gesimuleerde apparaten
   (toetsenbord van 104 toetsen, muis met vier zones, headset met twee zones). Een headset die
-  OpenRGB niet kent, staat netjes vermeld in `README.md`; er komt geen eigen driver. Later
+  OpenRGB niet kent, staat netjes vermeld in `handleiding.md`; er komt geen eigen driver. Later
   uitgebreid met toetsnamen en brede toetsen (#23).
 
 ### Taak 9 – Installer
@@ -329,12 +329,12 @@ installeert, controleert en weer verwijdert zijn gebouwd. De installer compileer
 self-contained engine en instellingen-app draaien. Windows Sandbox stond niet aan op de
 ontwikkel-pc, dus installeren en verwijderen zelf zijn nog niet uitgevoerd; daarom staan de
 criteria hierboven nog open. De gebruiker test ze met de Sandbox-test, zie "Installer bouwen
-en testen" in `README.md`.
+en testen" in `ontwikkelaars.md`.
 
 ## Uitbreidingen na taak 9
 
 Na het bouwplan kwamen er losse uitbreidingen bij, elk in een eigen PR. Ze zijn gebouwd en
-getest zonder hardware; wat op echte hardware getest moet worden, staat in `README.md` onder
+getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontwikkelaars.md` onder
 "Zelf testen op echte hardware".
 
 | PR | Uitbreiding |

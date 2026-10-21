@@ -1,6 +1,6 @@
 # Ideeën voor later
 
-Nog niet gebouwd, per onderwerp. Wat inmiddels gebouwd is, staat in `README.md` en in de
+Nog niet gebouwd, per onderwerp. Wat inmiddels gebouwd is, staat in `docs/handleiding.md` en in de
 uitbreidingen in `docs/bouwplan.md`.
 
 ## Apparaten en OpenRGB
@@ -48,7 +48,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een andere keuze voor de gesimuleerde lampen ook naar een tweede open instellingen-app
   sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
-  link naar de lijst van OpenRGB; nu staat dat alleen in `README.md`
+  link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
+- De gesimuleerde lampen een Nederlandse naam geven ("Gesimuleerde ledstrip" in plaats van
+  "Simulated LED strip"), zoals de rest van de app; de namen staan nu vast in
+  `SimulatedDeviceProvider` en in de tests
 
 ## Zones en zonelengtes
 
@@ -236,12 +239,20 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Installer en uitrol
 
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
+- `BuurmansRgb-setup.exe` als download bij een GitHub Release zetten (bijv. met een workflow
+  die `installer\build.ps1` draait bij een tag), zodat installeren zonder .NET SDK en Git kan;
+  nu moet iedereen de installer zelf bouwen
 - `BuurmansRgb.UI.exe` ook meenemen bij `dotnet publish` van alleen de engine; nu staan ze
   alleen na `dotnet build` van de solution (in `artifacts/app/`) of met `installer\build.ps1`
   samen
 
 ## Tests en tooling
 
+- Een script dat de schermafbeeldingen in `docs/images/` opnieuw maakt: engine en
+  instellingen-app starten met vaste demo-instellingen en -scènes, de pagina's kiezen via UI
+  Automation en het venster vastleggen met `PrintWindow`. Het moet de echte instellingen in
+  `%AppData%\BuurmansRgb` niet aanraken (bijv. een omgevingsvariabele of argument voor een
+  andere map), en werkt alleen als Windows niet vergrendeld is
 - `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
   0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
 - De instellingen-app opnieuw meten met het venster zichtbaar (de metingen bij het nieuwe ontwerp

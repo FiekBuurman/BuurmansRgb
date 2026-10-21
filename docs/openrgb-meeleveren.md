@@ -3,7 +3,7 @@
 > **Stand:** optie B is gekozen en gebouwd in taak 9 (PR #16). De installer staat in
 > [`installer/`](../installer/): `build.ps1` bouwt hem, `BuurmansRgb.iss` is het Inno
 > Setup-script en `sandbox/test-install.ps1` test hem in Windows Sandbox. Bouwen en testen staat
-> in `README.md` onder "Installer bouwen en testen", installeren in
+> in [ontwikkelaars.md](ontwikkelaars.md) onder "Installer bouwen en testen", installeren in
 > [installatie.md](installatie.md). Hieronder het oorspronkelijke onderzoek; afwijkingen van het
 > voorstel staan bij "Zo is het gebouwd".
 

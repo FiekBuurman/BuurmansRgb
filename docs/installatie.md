@@ -76,5 +76,5 @@ Engine en instellingen-app moeten in dezelfde map staan; daarom twee keer `publi
 `$dest`. Zo heb je wel de .NET 10 Desktop Runtime nodig (die zit bij de SDK).
 
 Meer uitleg over de instellingen-app, de instellingenbestanden en per apparaattype staat in
-de [README](../README.md); hoe de installer werkt in
+de [handleiding](handleiding.md); hoe de installer werkt in
 [openrgb-meeleveren.md](openrgb-meeleveren.md).
