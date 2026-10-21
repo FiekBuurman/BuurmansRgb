@@ -158,7 +158,8 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of
   overschreef. Verandert de verlichting daarna op een andere manier (een kleur, de helderheid,
   een lamp uit), dan staat er geen scène meer aan. Stopt een spel met een eigen scène, dan staat
-  de scène van daarvoor weer aan. Na een herstart van de engine weet hij het niet meer.
+  de scène van daarvoor weer aan. Ook na een herstart van de engine (of de pc) staat dezelfde
+  scène nog aan, zolang hij nog bestaat.
 - Zonelengtes horen niet bij een scène.
 
 Hoe het vanzelf aanzetten werkt:
@@ -245,8 +246,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 
 De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
-- **Menu:** "Instellingen openen", "Scène aanzetten", "Effecten pauzeren", "Starten met
-  Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen.
+- **Menu:** "Instellingen openen", "Scène aanzetten", "Alles aan", "Alles uit", "Effecten
+  pauzeren", "Starten met Windows", "Logbestand openen" en "Afsluiten". Dubbelklik op het icoon
+  opent ook de instellingen.
+- **Alles aan** en **Alles uit** doen hetzelfde als "Alles aan of uit" in de instellingen-app.
+  Alleen wat iets verandert, is te klikken: staat alles al aan, dan is "Alles aan" grijs. Elke
+  lamp houdt zijn eigen verlichting voor als hij weer aangaat.
+- **Logbestand openen** opent `engine.log` (zie "Logbestanden") in Kladblok of het programma dat
+  bij `.log` hoort.
 - **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
   klik er een aan. Zonder scènes staat er
   "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
@@ -338,6 +345,7 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen en slaapstand (ook bij Instellingen) |
 | `zoneLengths` | Per lamp de lengte die je een instelbare zone gaf, op de naam van de zone |
+| `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 
 - Een lamp van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
   plus een code uit de locatie en het serienummer, zodat hij na een herstart dezelfde blijft.
@@ -348,9 +356,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
   blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
   zonder die kleur weg.
-- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een helderheid als
-  `"hoog"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
-  standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
+- Een waarde van het verkeerde soort (bijv. `"brightness": "hoog"`, `"on": "ja"` of een getal
+  waar een lijst hoort), slaat de engine ook over: die waarde krijgt de standaardwaarde, alsof
+  hij niet in het bestand stond, en de rest blijft gelden, ook in `profiles.json`. In een lijst
+  wordt alleen dat ene onderdeel overgeslagen, zoals een scène die geen `{ … }` is. Het
+  logbestand noemt elke overgeslagen waarde.
+- Is het bestand geen geldige JSON (bijv. een komma te veel) of geen `{ … }`, dan zet de engine
+  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
 
@@ -370,7 +382,8 @@ De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color`
 ```
 
 Zonder `loadAt` en `program` gaat een scène nooit vanzelf aan. Een tijd of programma dat niet
-te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft gelden. Is het
+te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft gelden. Voor een
+kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 
@@ -380,7 +393,8 @@ Wat er misgaat of gebeurt (verbinden met OpenRGB, een apparaat zonder "Direct"-m
 in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en de
 instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
 tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
-eigen hardware niet werkt.
+eigen hardware niet werkt. Het log van de engine open je ook met "Logbestand openen" in het
+tray-menu.
 
 - Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
   één keer, met daaronder hoe vaak hij nog kwam.
