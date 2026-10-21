@@ -18,7 +18,10 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **In
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de lampen werken, maar na een herstart is
-  de wijziging weg.
+  de wijziging weg. "De engine kon de wijziging niet verwerken." verdwijnt bij de volgende
+  wijziging die wel lukt. Bestaat een scène die je aanzet, verwijdert of een tijd geeft niet
+  meer (bijv. verwijderd in een tweede venster), dan staat er "Scène '…' bestaat niet meer." en
+  toont de lijst de scènes zoals ze nu zijn.
 - **Engine weg:** draait de engine niet, dan meldt het venster dat, met "Opnieuw proberen".
   Stopt de engine terwijl het venster open is, dan staat er dat de verbinding is verbroken.
 

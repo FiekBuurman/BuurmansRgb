@@ -216,6 +216,9 @@
   <data name="ConnectionLost" xml:space="preserve">
     <value>De verbinding met de engine is verbroken.</value>
   </data>
+  <data name="ProfileGone" xml:space="preserve">
+    <value>Scène '{0}' bestaat niet meer.</value>
+  </data>
   <data name="ChangeRejected" xml:space="preserve">
     <value>De engine kon de wijziging niet verwerken.</value>
   </data>

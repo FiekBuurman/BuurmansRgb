@@ -65,7 +65,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
         EffectsPause = new EffectsPauseViewModel(_time);
-        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
+        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
@@ -86,7 +86,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 ShowPickerColor();
             }
         };
-        Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
+        Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
         {
             ClearLedSelection();
@@ -621,8 +621,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
-    // lighting of a loaded profile.
-    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null)
+    // lighting of a loaded profile. isNew is for saving, where the scene need not exist yet.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false)
     {
         if (_connection is not { } connection)
         {
@@ -631,7 +631,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _calls.Post(new object(), async () =>
         {
-            await call(connection.Api);
+            try
+            {
+                await call(connection.Api);
+            }
+            catch (Exception exception) when (!isNew && EngineRpc.IsRejectedByEngine(exception))
+            {
+                // Most likely the scene is gone, deleted elsewhere since the list showed it (a
+                // second settings app, or by hand in profiles.json): say so, and show the list as
+                // it is now. Otherwise the general message.
+                var current = await connection.Api.GetProfilesAsync();
+                if (current.Contains(name, ProfileNames.Comparer))
+                {
+                    throw;
+                }
+
+                Trace.TraceWarning(exception.ToString());
+                RunOnUi(() =>
+                {
+                    if (ReferenceEquals(connection, _connection))
+                    {
+                        Profiles.Show(current);
+                        _ = _sceneCards.ShowAsync();
+                        StatusMessage = UiText.Format(Strings.ProfileGone, name);
+                    }
+                });
+                return;
+            }
+
             var names = await connection.Api.GetProfilesAsync();
             RunOnUi(() =>
             {
@@ -747,6 +774,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (EngineRpc.IsRejectedByEngine(exception) && IsConnected)
         {
             StatusMessage = Strings.ChangeRejected;
+        }
+    }
+
+    // The next change that works ends the message about one that did not.
+    private void OnCallSucceeded()
+    {
+        if (StatusMessage == Strings.ChangeRejected)
+        {
+            StatusMessage = null;
         }
     }
 
