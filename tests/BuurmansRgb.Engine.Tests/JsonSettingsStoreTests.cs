@@ -72,6 +72,17 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], loaded.LedColors!["simulated-fan"]!);
     }
 
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", true)]
+    [InlineData("""{ "pauseOnLockAndSleep": false }""", false)]
+    public void Load_PauseOnLockAndSleep_IsOnUnlessTurnedOff(string json, bool expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().PauseOnLockAndSleep);
+    }
+
     [Fact]
     public void Save_LedWithoutAColorOfItsOwn_RoundTripsAsNull()
     {

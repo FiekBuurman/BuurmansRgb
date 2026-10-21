@@ -379,7 +379,7 @@
                         </DockPanel>
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.EffectHeader}" />
-                        <ComboBox Width="200" HorizontalAlignment="Left" ItemsSource="{Binding Effects}"
+                        <ComboBox x:Name="EffectChoice" Width="200" HorizontalAlignment="Left" ItemsSource="{Binding Effects}"
                                   SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
                                   AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
 
@@ -397,6 +397,26 @@
 
                         <TextBlock Style="{StaticResource Header}" Text="{x:Static res:Strings.PreviewHeader}" />
                         <TextBlock Style="{StaticResource Label}" Margin="0,0,0,8" TextWrapping="Wrap" Text="{x:Static res:Strings.PreviewHint}" />
+                        <!-- Calm on purpose: a pause is a choice or Windows being locked, not an error. Read out when it changes,
+                             also when it ends: then it says so for a moment before it goes. -->
+                        <Border Margin="0,0,0,10" Padding="10,8" CornerRadius="4" BorderThickness="1"
+                                Background="{x:Static SystemColors.ControlBrush}" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                Visibility="{Binding EffectsPause.IsShown, Converter={StaticResource BoolToVisibility}}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="10,3" VerticalAlignment="Center"
+                                        Content="{x:Static res:Strings.ResumeEffects}" ToolTip="{x:Static res:Strings.ResumeEffectsToolTip}"
+                                        Command="{Binding EffectsPause.ResumeCommand}" Click="OnResumeEffectsClick"
+                                        Visibility="{Binding EffectsPause.CanResume, Converter={StaticResource BoolToVisibility}}"
+                                        AutomationProperties.Name="{x:Static res:Strings.ResumeEffectsAccessibleName}" />
+                                <!-- A pause sign drawn as a shape, which a screen reader skips: the text already says it. -->
+                                <Path DockPanel.Dock="Left" Margin="0,0,10,0" VerticalAlignment="Center" Data="M0,0 H3.5 V12 H0 Z M6.5,0 H10 V12 H6.5 Z"
+                                      Fill="{x:Static SystemColors.ControlTextBrush}"
+                                      Visibility="{Binding EffectsPause.IsPaused, Converter={StaticResource BoolToVisibility}}" />
+                                <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding EffectsPause.Text, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.AutomationId="EffectsPause" AutomationProperties.LiveSetting="Polite"
+                                           views:LiveRegion.AnnouncesUpdates="True" />
+                            </DockPanel>
+                        </Border>
                         <ItemsControl ItemsSource="{Binding Preview.Devices}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">

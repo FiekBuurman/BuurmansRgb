@@ -34,6 +34,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
+        _lighting.PauseChanged += OnPauseChanged;
         _saveEvents?.Saved += OnSaved;
     }
 
@@ -44,6 +45,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
     public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
+
+    public event EventHandler<PauseReasons>? PauseChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
@@ -112,6 +115,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
 
+    public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Pause);
+
+    public Task ResumeEffectsAsync(CancellationToken ct = default)
+    {
+        _lighting.SetPaused(PauseReasons.Manual, false);
+        return Task.CompletedTask;
+    }
+
     public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(_simulatedDevices.Mode);
 
     public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
@@ -154,6 +165,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.Rendered -= OnRendered;
         _lighting.DevicesChanged -= OnDevicesChanged;
         _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
+        _lighting.PauseChanged -= OnPauseChanged;
         _saveEvents?.Saved -= OnSaved;
     }
 
@@ -169,6 +181,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnSaved(object? sender, bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
 
     private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
+
+    private void OnPauseChanged(object? sender, PauseReasons pause) => PauseChanged?.Invoke(this, pause);
 
     private void OnRendered(object? sender, EventArgs e)
     {

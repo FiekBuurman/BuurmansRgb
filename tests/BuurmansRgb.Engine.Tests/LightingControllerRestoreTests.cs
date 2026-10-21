@@ -51,12 +51,12 @@ public sealed class LightingControllerRestoreTests : IDisposable
     public async Task RestoreDevices_WhilePaused_WaitsForThePauseToEnd()
     {
         await StartAsync();
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
         _controller.RestoreDevices();
 
         Assert.Equal(["leds"], _restorable.Calls);
-        _controller.SetPaused(false);
+        _controller.SetPaused(PauseReasons.Manual, false);
         Assert.Equal(["leds", "restore", "leds"], _restorable.Calls);
     }
 
@@ -64,9 +64,9 @@ public sealed class LightingControllerRestoreTests : IDisposable
     public async Task SetPausedFalse_WithoutRestoreWhilePaused_DoesNotRestore()
     {
         await StartAsync();
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
-        _controller.SetPaused(false);
+        _controller.SetPaused(PauseReasons.Manual, false);
 
         Assert.Equal(["leds", "leds"], _restorable.Calls);
     }

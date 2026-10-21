@@ -227,6 +227,31 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.Equal(new ServerStatus(ServerState.Unreachable), await received.Task.WaitAsync(TestTimeouts.Short, Ct));
     }
 
+    // The settings app ends the pause from the tray menu while Windows was locked as well: the
+    // pause because of the lock stays, and the app hears it.
+    [Fact]
+    public async Task ResumeEffectsAsync_EndsTheManualPauseAndTheClientHearsTheRest()
+    {
+        var client = await StartAndConnectAsync();
+        _lighting.SetPaused(PauseReasons.Manual, true);
+        _lighting.SetPaused(PauseReasons.Locked, true);
+        Assert.Equal(PauseReasons.Manual | PauseReasons.Locked, await client.Api.GetPauseAsync(Ct));
+
+        // The events of the pauses above may still be on their way, so this waits for the new one.
+        var received = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.PauseChanged += (_, pause) =>
+        {
+            if (pause == PauseReasons.Locked)
+            {
+                received.TrySetResult();
+            }
+        };
+        await client.Api.ResumeEffectsAsync(Ct);
+
+        await received.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+    }
+
     [Fact]
     public async Task TwoClients_BothReceiveFrames()
     {

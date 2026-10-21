@@ -224,7 +224,7 @@ public sealed class LightingControllerFlashTests : IDisposable
     public async Task Flash_WhilePaused_LeavesTheDevicesAsTheyAre()
     {
         await StartAsync(EffectIds.Static);
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
         _controller.Flash(RecordingDeviceProvider.DeviceId);
 
@@ -239,11 +239,11 @@ public sealed class LightingControllerFlashTests : IDisposable
         _controller.Flash(RecordingDeviceProvider.DeviceId);
         AdvanceAndRender(HalfBlink);
 
-        _controller.SetPaused(true);
+        _controller.SetPaused(PauseReasons.Manual, true);
 
         Assert.Equal(OwnColors, _provider.LastColors);
         Assert.False(_controller.IsAnimating);
-        _controller.SetPaused(false);
+        _controller.SetPaused(PauseReasons.Manual, false);
         Assert.False(_controller.IsAnimating);
     }
 

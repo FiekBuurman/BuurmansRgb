@@ -8,15 +8,22 @@ internal sealed class SystemPowerEvents : IPowerEvents, IDisposable
 {
     public SystemPowerEvents() => SystemEvents.PowerModeChanged += OnPowerModeChanged;
 
+    public event EventHandler? Suspending;
+
     public event EventHandler? Resumed;
 
     public void Dispose() => SystemEvents.PowerModeChanged -= OnPowerModeChanged;
 
     private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
-        if (e.Mode == PowerModes.Resume)
+        switch (e.Mode)
         {
-            Resumed?.Invoke(this, EventArgs.Empty);
+            case PowerModes.Suspend:
+                Suspending?.Invoke(this, EventArgs.Empty);
+                break;
+            case PowerModes.Resume:
+                Resumed?.Invoke(this, EventArgs.Empty);
+                break;
         }
     }
 }

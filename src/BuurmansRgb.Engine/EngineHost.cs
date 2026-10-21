@@ -1,5 +1,7 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 
@@ -14,7 +16,8 @@ internal sealed class EngineHost(
     Action? trimMemory = null,
     SettingsSaveEvents? saveEvents = null,
     IReadOnlyList<IProfileTrigger>? profileTriggers = null,
-    ZoneLengthKeeper? zoneLengths = null) : IEngineHost, IDisposable
+    ZoneLengthKeeper? zoneLengths = null,
+    AutoPause? autoPause = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -30,6 +33,7 @@ internal sealed class EngineHost(
         simulatedDevices?.Mode = settings.SimulatedDevices;
         zoneLengths?.Load(settings.ReadZoneLengths());
         lighting.FramesPerSecond = settings.FramesPerSecond;
+        autoPause?.Enabled = settings.PauseOnLockAndSleep;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
@@ -44,7 +48,15 @@ internal sealed class EngineHost(
         trimMemory?.Invoke();
     }
 
-    public void SetPaused(bool paused) => lighting.SetPaused(paused);
+    public PauseReasons Pause => lighting.Pause;
+
+    public event EventHandler<PauseReasons>? PauseChanged
+    {
+        add => lighting.PauseChanged += value;
+        remove => lighting.PauseChanged -= value;
+    }
+
+    public void SetPaused(bool paused) => lighting.SetPaused(PauseReasons.Manual, paused);
 
     public void Dispose()
     {

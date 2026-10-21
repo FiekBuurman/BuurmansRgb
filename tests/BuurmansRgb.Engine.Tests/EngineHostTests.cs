@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
@@ -262,6 +263,21 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(12, lighting.FramesPerSecond);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StartAsync_TurnsThePauseOnLockAndSleepOnOrOff(bool enabled)
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { PauseOnLockAndSleep = enabled } };
+        using var lighting = new LightingController([_simulated]);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused) { Enabled = !enabled };
+        using var host = new EngineHost(store, lighting, autoPause: autoPause);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(enabled, autoPause.Enabled);
+    }
+
     [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {
@@ -269,10 +285,25 @@ public sealed class EngineHostTests : IDisposable
         var host = new EngineHost(new JsonSettingsStore(_directory.File("settings.json")), lighting);
 
         host.SetPaused(true);
-        Assert.True(lighting.IsPaused);
+        Assert.Equal(PauseReasons.Manual, lighting.Pause);
 
         host.SetPaused(false);
-        Assert.False(lighting.IsPaused);
+        Assert.Equal(PauseReasons.None, lighting.Pause);
+    }
+
+    // The tray follows a pause from elsewhere through the host, such as Windows that is locked.
+    [Fact]
+    public void Pause_IsThePauseOfTheLightingAndFollowsIt()
+    {
+        using var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(new InMemorySettingsStore(), lighting);
+        var changes = new List<PauseReasons>();
+        host.PauseChanged += (_, pause) => changes.Add(pause);
+
+        lighting.SetPaused(PauseReasons.Locked, true);
+
+        Assert.Equal(PauseReasons.Locked, host.Pause);
+        Assert.Equal([PauseReasons.Locked], changes);
     }
 
     // A profile they load is not overwritten by the saved lighting, and is saved like a change.
