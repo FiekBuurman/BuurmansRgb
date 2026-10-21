@@ -194,6 +194,27 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // Windows locks while a zone blinks, with the paused lights dimmed or off: the whole device,
+    // also the zone, gets the dimmed colors or black instead of white, and the real colors after.
+    [Theory]
+    [InlineData(PausedLightsMode.Dim)]
+    [InlineData(PausedLightsMode.Off)]
+    public async Task Locked_WhileAZoneFlashes_DimsOrBlacksOutTheWholeDevice_AndTheEndGivesTheColorsBack(PausedLightsMode mode)
+    {
+        await StartAsync();
+        _controller.PausedLights = mode;
+        _controller.FlashZone(Board, Header);
+        var shown = mode == PausedLightsMode.Dim ? Orange.Scale(LightingController.DimmedBrightness) : K;
+
+        _controller.SetPaused(PauseReasons.Locked, true);
+        Assert.Equal([shown, shown, shown, shown, shown], _provider.Leds[Board]);
+        Assert.False(_controller.IsAnimating);
+
+        _controller.SetPaused(PauseReasons.Locked, false);
+        Assert.Equal([O, O, O, O, O], _provider.Leds[Board]);
+        Assert.False(_controller.IsAnimating);
+    }
+
     // The user sets another length for the header while it blinks: OpenRGB reports the board
     // again, and the flash ends with the colors of the new length.
     [Fact]
