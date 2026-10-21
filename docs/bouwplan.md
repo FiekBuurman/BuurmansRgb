@@ -366,6 +366,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #40 | De scène die aan staat onthouden na een herstart (`activeScene` in `settings.json`) |
 | #41 | "Alles aan", "Alles uit" en "Logbestand openen" in het tray-menu |
 | #42 | Vloeiendheid (`framesPerSecond`) en pauzeren bij vergrendelen in de instellingen-app, zonder herstart |
+| #43 | Op Kleur alleen de beelden van de gekozen lamp, en uitgezocht waar het geheugen van de app zit |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

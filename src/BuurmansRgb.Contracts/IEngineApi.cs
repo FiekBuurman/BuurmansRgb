@@ -49,6 +49,10 @@ public partial interface IEngineApi
     // and nothing is copied for it. True again sends the latest frame right away. True until said.
     Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default);
 
+    // Only these devices go into the frames of FrameRendered, such as the one lamp that Kleur
+    // shows; null for all of them, which it is until said. GetFrameAsync always gives all.
+    Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default);
+
     Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default);
 
     // Brightness runs from 0 to 1.

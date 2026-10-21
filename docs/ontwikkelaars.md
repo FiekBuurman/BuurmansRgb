@@ -69,7 +69,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
-| Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
+| Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen de gekozen lamp), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
 | Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests`, waaronder `MainViewModelFollowLightingTests` (Kleur volgt een scène uit het tray-menu) |
 
 ## Met de gesimuleerde lampen bekijken
@@ -98,7 +98,10 @@ toetsenbord. Een paar dingen om te proberen:
   dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
   het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
   `IEngineApi.SetFramesWantedAsync` dat ze geen beelden wil zolang ze geminimaliseerd is of een
-  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets.
+  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets. Met
+  `SetFrameDevicesAsync` vraagt Kleur met één lamp alleen de beelden van die lamp; Lampen en
+  "Hele huis" krijgen ze allemaal. Een beeld met maar een deel van de lampen laat de strip op
+  Lampen ongemoeid.
 - **Logging:** elke `Trace`-melding (`Trace.TraceError`, `TraceWarning`, `TraceInformation`) gaat
   naar `FileLog` in `BuurmansRgb.Contracts`, die de engine (`engine.log`) en de instellingen-app
   (`ui.log`) bij het starten aanzetten; ook een onafgevangen exception komt erin. Zo blijft het
@@ -179,7 +182,21 @@ Vergelijk `dotnet.gc.heap.total_allocated` met een animatie en met een statische
 loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
 in een venster van 1240 × 820; met Windows vergrendeld tekent WPF niets, dus die oudere meting
 mist het tekenen zelf (ook van de gloed). Met een zichtbaar venster zit de app boven het budget
-van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen (zie `ideas.md`).
+van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen.
+
+Waar het geheugen van de app zit (Release, zichtbaar venster, regenboog, gemeten met
+`dotnet-counters`):
+
+| Wat | Uitkomst |
+| --- | --- |
+| .NET-heap | ~8 MB levend, 23 MB vastgelegd; de rest van de 85–98 MB private is native: WPF met DirectX, de geladen DLL's en gecompileerde code |
+| Tekenen zonder videokaart (`RenderMode.SoftwareOnly`, als proef) | 130–143 MB working set en 55–60 MB private (35–40 MB minder), maar op Lampen ~10,5 % van één kern tegen ~5–7 % |
+| ReadyToRun bij het publiceren | Geen verschil (85 tegen 85 MB private) |
+| Alleen de gekozen lamp op Kleur (`SetFrameDevicesAsync`) | Geen verschil in geheugen; allocaties van de app 860 → 805 KB/s met het toetsenbord gekozen |
+| Allocaties op Lampen | ~2,2 MB/s: elke `LedBulb` maakt bij elke kleur een nieuwe gloed (`RadialGradientBrush`) |
+
+De CPU van de app schommelt tussen metingen van 30 s flink (dezelfde build: 0,6 en 2,7 % op Kleur),
+dus vergelijk allocaties of meet meer keren.
 
 ## Installer bouwen en testen
 

@@ -20,6 +20,9 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly AutoPause? _autoPause;
     private readonly PreviewFrames _frames;
 
+    // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
+    private volatile IReadOnlySet<string>? _frameDevices;
+
     public EngineApi(
         LightingController lighting,
         ZoneLengthKeeper zoneLengths,
@@ -37,7 +40,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices = simulatedDevices;
         _openRgb = openRgb;
         _saveEvents = saveEvents;
-        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output)), time ?? TimeProvider.System);
+        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), time ?? TimeProvider.System);
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
@@ -74,6 +77,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
     {
         _frames.Wanted = wanted;
+        return Task.CompletedTask;
+    }
+
+    public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        _frameDevices = deviceIds is null ? null : new HashSet<string>(deviceIds, StringComparer.Ordinal);
         return Task.CompletedTask;
     }
 
@@ -223,8 +232,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private static LightingInfo ToInfo(DeviceLighting lighting) =>
         new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On);
 
-    private static LightingFrame ToFrame(LightingOutput output) =>
-        new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
+    private static LightingFrame ToFrame(LightingOutput output, IReadOnlySet<string>? devices = null) =>
+        new(output.Sequence, [.. output.Devices
+            .Where(device => devices is null || devices.Contains(device.DeviceId))
+            .Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
 
     private void OnDevicesChanged(object? sender, EventArgs e) => DevicesChanged?.Invoke(this, EventArgs.Empty);
 

@@ -183,6 +183,18 @@ internal sealed class FakeEngineApi : IEngineApi
         return Task.CompletedTask;
     }
 
+    // Null for all devices, as in the engine.
+    public IReadOnlyList<string>? FrameDevices { get; private set; }
+
+    public List<IReadOnlyList<string>?> FrameDevicesCalls { get; } = [];
+
+    public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        FrameDevices = deviceIds;
+        FrameDevicesCalls.Add(deviceIds);
+        return Task.CompletedTask;
+    }
+
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
         Record($"color {deviceId ?? "all"} {color.ToHex()}");
 

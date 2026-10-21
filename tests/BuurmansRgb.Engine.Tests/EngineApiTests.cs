@@ -264,6 +264,30 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task SetFrameDevicesAsync_SendsOnlyThoseDevices_AndNullAllAgain()
+    {
+        var first = new RecordingDeviceProvider("first");
+        var second = new RecordingDeviceProvider("second");
+        using var lighting = new LightingController([first, second]);
+        await lighting.DiscoverAsync(Ct);
+        var time = new FakeTimeProvider();
+        using var api = new EngineApi(lighting, new ZoneLengthKeeper(lighting), new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices, _openRgb, time: time);
+        var frames = new List<LightingFrame>();
+        api.FrameRendered += (_, frame) => frames.Add(frame);
+
+        await api.SetFrameDevicesAsync(["second"], Ct);
+        await api.SetColorAsync(null, new RgbColor(1, 2, 3), Ct);
+        time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(["second"], frames[^1].Devices.Select(device => device.DeviceId));
+        Assert.Equal(2, (await api.GetFrameAsync(Ct)).Devices.Count);
+
+        await api.SetFrameDevicesAsync(null, Ct);
+        await api.SetColorAsync(null, new RgbColor(3, 2, 1), Ct);
+        time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal(["first", "second"], frames[^1].Devices.Select(device => device.DeviceId));
+    }
+
+    [Fact]
     public async Task SetFramesWantedAsync_False_SendsNoFrames_AndTrueSendsTheLatestRightAway()
     {
         await _lighting.DiscoverAsync(Ct);

@@ -226,6 +226,24 @@ public sealed class LampsViewModelTests
         Assert.False(_lamps.Strip[^1].IsLit);
     }
 
+    // Kleur asks the engine for the one lamp it shows; such a frame leaves the strip as it was.
+    [Fact]
+    public async Task ShowFrame_WithSomeOfTheLamps_ShowsThoseAndKeepsTheStrip()
+    {
+        await _lamps.RefreshAsync(All(_ => Lighting(on: true)));
+        _lamps.ShowFrame(new LightingFrame(1,
+        [
+            DeviceFrame.FromColors("strip", [Red, Red, Red]),
+            DeviceFrame.FromColors("fan", [Red, Red]),
+            DeviceFrame.FromColors("sim", [Red]),
+        ]));
+
+        _lamps.ShowFrame(new LightingFrame(2, [DeviceFrame.FromColors("fan", [Blue, Blue])]));
+
+        Assert.Equal([Red, Blue, Red], _lamps.Lamps.Select(lamp => lamp.Color));
+        Assert.All(_lamps.Strip, led => Assert.Equal(Red, led.Color));
+    }
+
     [Fact]
     public void ShowFrame_OlderFrame_IsIgnoredUntilReset()
     {
