@@ -1,6 +1,13 @@
 # Installeren – TL;DR
 
-## Met de installer (aanbevolen)
+## Downloaden (aanbevolen)
+
+Download `BuurmansRgb-setup.exe` bij de
+[nieuwste release](https://github.com/FiekBuurman/BuurmansRgb/releases/latest) en ga verder bij
+stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelijk dan de SHA-256
+(in PowerShell: `Get-FileHash .\BuurmansRgb-setup.exe`) met die in de release.
+
+## Met de installer die je zelf bouwt
 
 1. Bouw de installer, of pak een `BuurmansRgb-setup.exe` die je eerder bouwde:
 
@@ -42,8 +49,9 @@ zien, kies dan in de instellingen-app bij **Instellingen → Gesimuleerde lampen
 ## Bijwerken
 
 Maak eerst een reservekopie van `%AppData%\BuurmansRgb` (je instellingen en scènes:
-`settings.json` en `profiles.json`). Haal dan de nieuwe code op en bouw en draai de nieuwe
-installer over de oude heen:
+`settings.json` en `profiles.json`). Download dan de setup van de
+[nieuwste release](https://github.com/FiekBuurman/BuurmansRgb/releases/latest) en draai die over
+de oude heen. Of haal de nieuwe code op en bouw en draai de nieuwe installer zelf:
 
 ```powershell
 git pull

@@ -350,6 +350,14 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #24 | Zonelengtes met − en + en een schuif, bewaren in `settings.json` en terugzetten |
 | #25 | Pauzeren bij vergrendelen en slaapstand, met een melding en "Hervatten" in de app |
 | #26 | Nieuw ontwerp "Werkplaats bij nacht" (`design/DESIGN.md`): navigatie Lampen, Kleur, Scènes, Buren en Instellingen, aan en uit per lamp, scènes als kaarten |
+| #28 | Korte README met schermafbeeldingen; de uitleg naar `docs/handleiding.md` en `docs/ontwikkelaars.md` |
+| #29 | Een kleur in de instellingenbestanden die niet te lezen is, alleen die overslaan |
+| #30 | Logbestanden in `%AppData%\BuurmansRgb\logs` |
+| #31 | De instellingen-app maar één keer open: een tweede start haalt het venster naar voren |
+| #32 | De pagina Kleur loopt mee met een scène uit het tray-menu |
+| #33 | Bijhouden welke scène aan staat: witte rand op de kaart en een vinkje in het tray-menu |
+| #34 | Hooguit 20 beelden per seconde naar het voorbeeld, en geen als de app ze niet toont |
+| #35 | De installer als download via GitHub Releases (`.github/workflows/release.yml`) |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

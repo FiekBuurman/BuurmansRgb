@@ -203,6 +203,28 @@ negeert. Hoe het werkt en waarom: [openrgb-meeleveren.md](openrgb-meeleveren.md)
      `transcript.txt` erbij. In de Sandbox is er geen RGB-hardware, dus 0 apparaten via
      OpenRGB is normaal.
 
+## Een release maken
+
+`.github/workflows/release.yml` bouwt en test de solution op een Windows-runner van GitHub, bouwt
+de installer met `installer\build.ps1` en zet `BuurmansRgb-setup.exe` met zijn SHA-256 als
+download bij een GitHub Release, met een korte installatie-uitleg en de wijzigingen sinds de
+vorige release. Starten kan op twee manieren:
+
+- een tag pushen (de versie is de tag zonder `v`):
+
+  ```bash
+  git tag v1.1.0
+  git push origin v1.1.0
+  ```
+
+- of op GitHub bij **Actions → Release → Run workflow** een versie invullen (bijv. `1.1.0`); de
+  workflow maakt de tag `v1.1.0` dan zelf, op de commit waarop hij draait.
+
+Een versie moet de vorm `1.2.3` hebben. Faalt de build, een test of het downloaden van OpenRGB
+of PawnIO, dan komt er geen release. De installer is niet ondertekend, dus SmartScreen
+waarschuwt nog (zie `ideas.md`). Is de repository privé, dan kunnen alleen mensen met toegang
+de release zien en downloaden.
+
 ## Zelf testen op echte hardware
 
 Vergrendelen, slaapstand en echte apparaten zijn niet na te bootsen in de tests; deze stappen
