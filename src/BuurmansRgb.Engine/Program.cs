@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Ipc;
@@ -25,6 +26,8 @@ internal static class Program
             return;
         }
 
+        // After the single-instance check, so a second start does not write to the log of the first.
+        using var log = FileLog.Start("engine");
         ApplicationConfiguration.Initialize();
 
         var autoStart = RegistryAutoStart.ForCurrentProcess();
@@ -66,5 +69,7 @@ internal static class Program
         {
             Application.Run(context);
         }
+
+        Trace.TraceInformation("Engine stopped.");
     }
 }
