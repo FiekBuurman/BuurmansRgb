@@ -1,6 +1,8 @@
-namespace BuurmansRgb.Engine;
+namespace BuurmansRgb.Contracts;
 
-internal sealed class SingleInstance : IDisposable
+// One instance per Windows session, for the engine and for the settings app: a second start finds
+// the first by name, signals it and stops.
+public sealed class SingleInstance : IDisposable
 {
     private readonly Mutex _mutex;
     private readonly EventWaitHandle _activation;
