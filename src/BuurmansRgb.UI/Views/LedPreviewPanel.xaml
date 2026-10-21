@@ -22,7 +22,8 @@
                             <DockPanel Margin="0,0,0,10">
                                 <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"
                                         Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
-                                        Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}" />
+                                        Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
+                                        ToolTipService.ShowOnDisabled="True" />
                                 <Path Style="{StaticResource DeviceIcon}" Margin="0,0,10,0" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CardTitle}" VerticalAlignment="Center" Text="{Binding Name}" />
                             </DockPanel>

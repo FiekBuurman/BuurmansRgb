@@ -443,7 +443,7 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   knippert hij op de hardware 1,5 seconde: drie keer fel wit en uit, ook bij een lage
   helderheid. Daarna krijgt hij zijn eigen verlichting terug. "Laat knipperen" in het
   voorbeeld doet het nog eens. Er knippert steeds één lamp; knipperen wordt niet opgeslagen,
-  en bij een pauze knippert er niets.
+  en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
 - **Plek:** staan er twee of meer lampen van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de

@@ -354,7 +354,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var pause = await api.GetPauseAsync();
         if (pauseChanges == _pauseChanges)
         {
-            EffectsPause.Show(pause);
+            ShowPause(pause);
         }
     }
 
@@ -694,8 +694,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void OnPauseChanged(object? sender, PauseReasons pause) => RunOnUi(() =>
     {
         _pauseChanges++;
-        EffectsPause.Show(pause);
+        ShowPause(pause);
     });
+
+    private void ShowPause(PauseReasons pause)
+    {
+        EffectsPause.Show(pause);
+        Preview.CanFlash = pause == PauseReasons.None;
+    }
 
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
@@ -750,6 +756,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusMessage = message;
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
+        Preview.CanFlash = true;
         DropConnection();
     }
 

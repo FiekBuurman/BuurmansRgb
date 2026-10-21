@@ -208,6 +208,30 @@ public sealed class MainViewModelTests
         Assert.Null(viewModel.SelectedDevice?.DeviceId);
     }
 
+    // A device does not blink while the effects are paused, so the button is grey then.
+    [Theory]
+    [InlineData(PauseReasons.Manual)]
+    [InlineData(PauseReasons.Locked)]
+    public async Task Paused_GreysOutFlash_AndRunningAgainNot(PauseReasons pause)
+    {
+        var viewModel = await ConnectAsync();
+        var flash = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").FlashCommand;
+
+        Api.RaisePause(pause);
+        Assert.False(flash.CanExecute(null));
+
+        Api.RaisePause(PauseReasons.None);
+        Assert.True(flash.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Connect_WhilePaused_GreysOutFlash()
+    {
+        var viewModel = await ConnectAsync(api => api.Pause = PauseReasons.Manual);
+
+        Assert.All(viewModel.Preview.Devices, preview => Assert.False(preview.FlashCommand.CanExecute(null)));
+    }
+
     [Fact]
     public async Task SelectDevice_AnswerArrivesAfterReconnect_IsIgnored()
     {

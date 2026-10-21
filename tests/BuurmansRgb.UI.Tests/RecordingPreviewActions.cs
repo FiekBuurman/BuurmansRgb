@@ -14,4 +14,6 @@ internal sealed class RecordingPreviewActions : IPreviewActions
     public void ResizeZone(ZoneResize resize) => Requests.Add(resize);
 
     public void FlashDevice(string deviceId) => Requests.Add(deviceId);
+
+    public bool CanFlash { get; set; } = true;
 }

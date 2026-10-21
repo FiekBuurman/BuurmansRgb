@@ -77,8 +77,6 @@ uitbreidingen in `docs/bouwplan.md`.
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
 - Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
   het apparaat krijgt dan wel zijn eigen kleuren terug
-- De knop "Laat knipperen" grijs maken zolang de effecten gepauzeerd zijn; nu staat er alleen de
-  melding over de pauze, en de tooltip van de knop zegt dat het dan niet werkt
 
 ## Effecten
 

@@ -50,8 +50,10 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanFlash))]
     private void Flash() => _actions?.FlashDevice(DeviceId);
+
+    private bool CanFlash() => _actions?.CanFlash ?? true;
 
     partial void OnColorsChanged(IReadOnlyList<RgbColor> value)
     {
