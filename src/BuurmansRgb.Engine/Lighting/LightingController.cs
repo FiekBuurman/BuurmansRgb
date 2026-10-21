@@ -14,11 +14,17 @@ namespace BuurmansRgb.Engine.Lighting;
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
 // manual pause also leaves the devices alone; while Windows is locked or asleep, or the screen is
 // off, a change such as a profile that loads on time, or the restore after waking up, still
-// reaches the devices.
+// reaches the devices. What they show then follows PausedLights: the last frame, dimmed or black.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
     public const int MaxFramesPerSecond = 60;
+
+    // The brightness of PausedLightsMode.Dim, over the brightness the lighting has itself.
+    public const double DimmedBrightness = 0.2;
+
+    // The reasons PausedLights applies to: all but the manual pause.
+    private const PauseReasons AutomaticReasons = PauseReasons.Locked | PauseReasons.Asleep | PauseReasons.DisplayOff;
 
     // What a device that is switched off shows: black, and static, so it needs no frames.
     private static readonly StaticEffect Off = new(RgbColor.Black);
@@ -49,6 +55,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private bool _disposed;
     private long _sequence;
     private int _framesPerSecond = DefaultFramesPerSecond;
+    private PausedLightsMode _pausedLights = PausedLightsMode.Keep;
 
     // Effects run on the time of timeProvider, counted from the moment the controller was made.
     public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
@@ -137,6 +144,43 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             if (changed)
             {
                 FramesPerSecondChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    // Raised when PausedLights got another value; read PausedLights for the newest one.
+    public event EventHandler? PausedLightsChanged;
+
+    // What the devices show while the pause has a reason besides the manual one: the last frame
+    // (Keep), that frame at DimmedBrightness (Dim) or black (Off). Only what goes to the devices
+    // changes; the buffers, and so the preview, keep the real colors, and when the last of those
+    // reasons ends the devices get them again. Another value during such a pause goes out at once.
+    public PausedLightsMode PausedLights
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _pausedLights;
+            }
+        }
+        set
+        {
+            bool changed;
+            lock (_gate)
+            {
+                var oldScale = SendScaleLocked;
+                changed = _pausedLights != value;
+                _pausedLights = value;
+                if (SendScaleLocked != oldScale)
+                {
+                    SendAllLocked();
+                }
+            }
+
+            if (changed)
+            {
+                PausedLightsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
     }
@@ -339,8 +383,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // as they are, except that a flash ends first, so no device stays white or dark. When a reason
     // ends and no manual pause is left, the latest lighting goes out again, with a restore that
     // waited for the manual pause: while Windows was locked another user's engine may have changed
-    // the devices. When the last reason ends, the animation runs again. The new pause holds and is
-    // reported even when a device fails while its colors go out.
+    // the devices. When the last reason ends, the animation runs again. Without a manual pause, the
+    // devices also get the colors again when what they show changes with PausedLights. The new
+    // pause holds and is reported even when a device fails while its colors go out.
     public void SetPaused(PauseReasons reason, bool paused)
     {
         lock (_pausing)
@@ -359,9 +404,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                         return;
                     }
 
+                    var oldScale = SendScaleLocked;
                     _pause = pause;
                     changed = true;
                     UpdateAnimationLocked();
+                    var sent = false;
                     if (old == PauseReasons.None)
                     {
                         rendered = StopFlashesLocked();
@@ -375,6 +422,12 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                         }
 
                         rendered = RenderLocked();
+                        sent = true;
+                    }
+
+                    if (!sent && SendScaleLocked != oldScale)
+                    {
+                        SendAllLocked();
                     }
                 }
 
@@ -539,7 +592,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             output.Render(time);
             if (!IsManual(_pause))
             {
-                output.Send();
+                output.Send(SendScaleLocked);
             }
         }
 
@@ -560,7 +613,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             {
                 output.StopFlash();
                 output.Render(time);
-                output.Send();
+                output.Send(SendScaleLocked);
                 stopped = true;
             }
         }
@@ -572,6 +625,34 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
         return stopped;
     }
+
+    // Sends what every device shows once more, with the scale of the pause; the buffers stay as
+    // they are. Nothing before there is lighting, nor during a manual pause.
+    private void SendAllLocked()
+    {
+        if (!_lighting.IsSet || IsManual(_pause))
+        {
+            return;
+        }
+
+        var scale = SendScaleLocked;
+        foreach (var output in _outputs.All)
+        {
+            output.Send(scale);
+        }
+    }
+
+    // What goes to the devices is scaled by this: 1 while nothing pauses or a manual pause holds
+    // (which sends nothing anyway), otherwise as PausedLights says.
+    private double SendScaleLocked =>
+        IsManual(_pause) || (_pause & AutomaticReasons) == PauseReasons.None
+            ? 1.0
+            : _pausedLights switch
+            {
+                PausedLightsMode.Dim => DimmedBrightness,
+                PausedLightsMode.Off => 0.0,
+                _ => 1.0,
+            };
 
     private void RestoreProvidersLocked()
     {

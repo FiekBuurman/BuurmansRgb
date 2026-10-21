@@ -489,6 +489,68 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal(["restore", "leds"], _restorable.Calls);
     }
 
+    // With "off" the devices are black while any reason besides the manual one holds, and get
+    // their colors back when the last one ends; the manual pause leaves them as they were.
+    [Theory]
+    [InlineData("lock", true)]
+    [InlineData("suspend", true)]
+    [InlineData("off", true)]
+    [InlineData("lock unlock", false)]
+    [InlineData("suspend resume", false)]
+    [InlineData("off on", false)]
+    [InlineData("lock suspend resume", true)]
+    [InlineData("lock suspend resume unlock", false)]
+    [InlineData("suspend unlock", false)]
+    [InlineData("off lock on", true)]
+    [InlineData("off lock on unlock", false)]
+    [InlineData("disconnect connect", false)]
+    [InlineData("manual", false)]
+    [InlineData("manual lock suspend", false)]
+    [InlineData("manual lock unlock unmanual", false)]
+    [InlineData("lock manual unmanual", true)]
+    public async Task Off_EventSeries_BlackWhileAnAutomaticReasonHolds(string events, bool black)
+    {
+        await StartStaticAsync();
+        _lighting.PausedLights = PausedLightsMode.Off;
+
+        foreach (var name in events.Split(' '))
+        {
+            Raise(name);
+        }
+
+        Assert.Equal(black ? [RgbColor.Black, RgbColor.Black, RgbColor.Black] : [Orange, Orange, Orange], _provider.LastColors);
+    }
+
+    // The devices are black before Windows sleeps, so lamps that keep power do not stay on; the
+    // restores after waking up keep them black on the lock screen, and unlocking brings the colors.
+    [Fact]
+    public async Task Off_Sleep_BlackBeforeSleepingAndAfterWaking_ColorsAfterUnlocking()
+    {
+        using var restorer = new ResumeRestorer(_power, _lighting.RestoreDevices, _time, ResumeRestorer.DefaultDelays);
+        await StartStaticAsync();
+        _lighting.PausedLights = PausedLightsMode.Off;
+        _session.Raise(SessionSwitchReason.SessionLock);
+
+        var blackBySuspending = false;
+        _power.Suspending += (_, _) => blackBySuspending = _provider.LastColors.All(led => led == RgbColor.Black);
+        _power.RaiseSuspending();
+        Assert.True(blackBySuspending);
+
+        _power.RaiseResumed();
+        _provider.SetLeds(RecordingDeviceProvider.DeviceId, [RgbColor.White, RgbColor.White, RgbColor.White]);
+        _time.Advance(ResumeRestorer.DefaultDelays[0]);
+        Assert.Equal([RgbColor.Black, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
+    private async Task StartStaticAsync()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Orange)));
+    }
+
     private async Task StartAnimatedAsync()
     {
         await _lighting.DiscoverAsync(Ct);
