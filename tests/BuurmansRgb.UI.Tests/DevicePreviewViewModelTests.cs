@@ -375,6 +375,18 @@ public sealed class DevicePreviewViewModelTests
         Assert.All(new DevicePreviewViewModel(fan).Zones, zone => Assert.False(zone.ShowsSelectAllLink));
     }
 
+    // A screen reader reads the items of the preview by their ToString, not the class name.
+    [Fact]
+    public void ToString_NamesTheDeviceAndTheZone()
+    {
+        var fan = new DeviceInfo("fan", "Dual-ring fan", DeviceType.Fan, 20, [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)]) { Source = DeviceSource.Hardware };
+        var preview = new DevicePreviewViewModel(fan);
+
+        Assert.Equal("Dual-ring fan", preview.ToString());
+        Assert.Equal(preview.Zones[0].AccessibleName, preview.Zones[0].ToString());
+        Assert.Contains("Inner ring", preview.Zones[0].ToString(), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void SelectZone_ZoneWithoutLeds_CannotRunAndShowsPlainText()
     {

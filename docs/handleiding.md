@@ -113,7 +113,8 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   een rij eronder. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, Shift, Ctrl, Backspace,
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
-  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik.
+  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik; de
+  lampen en zones in het voorbeeld noemt hij bij hun naam.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.

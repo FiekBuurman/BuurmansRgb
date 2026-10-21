@@ -137,10 +137,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt, maar
   alleen de apparaten en zones die veranderden; nu houdt `FocusKeeper` de focus vast, maar een
   sleep over een schuif breekt af als er midden in het slepen een nieuwe apparatenlijst komt
-- In het voorbeeld zien schermlezers per apparaat en per zone een item met de klassenaam
-  ("BuurmansRgb.UI.ViewModels.DevicePreviewViewModel"); `ToString` of een
-  `AutomationProperties.Name` op de items geven ze een echte naam. De LED's zelf hebben sinds
-  de toetsnamen wel een naam
 - Een LED in het voorbeeld via UI Automation in beeld laten schuiven (`ScrollItem`) en hem
   `IsOffscreen` laten melden als hij buiten de zichtbare rand valt; nu volgen de LED's daarin de
   hele zone

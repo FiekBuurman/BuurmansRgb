@@ -123,6 +123,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial int SelectionLast { get; private set; } = LedSelection.NoSelection;
 
+    // A screen reader names an item of the preview by its ToString: the device and the zone.
+    public override string ToString() => AccessibleName;
+
     public void Dispose() => Length?.Dispose();
 
     // A view on the colors of the whole device, so a frame is not copied once more per zone,
