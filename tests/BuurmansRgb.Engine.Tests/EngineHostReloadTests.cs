@@ -128,6 +128,25 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal("Nacht", _profiles.ActiveName);
     }
 
+    // Another lighting ends the scene, as any change does; the file, which still names it, then
+    // gets the engine's own save.
+    [Fact]
+    public async Task OtherLightingChangedByHand_EndsTheScene()
+    {
+        _store.Settings = new EngineSettings { ActiveScene = "Nacht" };
+        var host = CreateHost();
+        await host.StartAsync(Ct);
+        Assert.Equal("Nacht", _profiles.ActiveName);
+
+        ChangeByHand(_store.Settings with { Color = Orange });
+
+        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _profiles.ActiveName is null);
+        host.Dispose();
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Null(_store.Settings.ActiveScene);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
     // The scene that is on is the engine's to know: another name in the file loads nothing.
     [Fact]
     public async Task ActiveSceneChangedByHand_LoadsNothing()
