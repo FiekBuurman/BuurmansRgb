@@ -203,6 +203,28 @@ public sealed class LedPreviewViewKeyboardTests
         Assert.Throws<InvalidOperationException>(() => leds[0].SetFocus());
     });
 
+    // The item of the active LED tells a screen reader that it has the focus, when the view gets
+    // the focus and on every move after that; without the focus it says nothing.
+    [Fact]
+    public void ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], LedLabels = ["LED 1", "LED 2", "LED 3"], ActiveLed = 1 });
+        OffscreenWindow.WaitUntilIdle();
+        var peer = Assert.IsType<LedPreviewAutomationPeer>(UIElementAutomationPeer.CreatePeerForElement(view));
+        List<(string Name, AutomationEvents Event)> events = [];
+        peer.RaiseLedEvent = (item, automationEvent) => events.Add((item.GetName(), automationEvent));
+
+        view.ActiveLed = 0;
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Empty(events);
+
+        Assert.True(view.Focus());
+        OffscreenWindow.WaitUntilIdle();
+        view.ActiveLed = 2;
+
+        Assert.Equal([("LED 1", AutomationEvents.AutomationFocusChanged), ("LED 3", AutomationEvents.AutomationFocusChanged)], events);
+    });
+
     // The ring around the active LED only shows while the view has the keyboard focus: 2 px,
     // around the LED and drawn after all of them.
     [Fact]

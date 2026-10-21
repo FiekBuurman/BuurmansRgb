@@ -402,7 +402,7 @@ public sealed class LedPreviewView : FrameworkElement
         ring.Inflate(FocusGap + 1.0, FocusGap + 1.0);
         BringIntoView(ring);
         (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), bounds);
-        if (UIElementAutomationPeer.FromElement(this) is LedPreviewAutomationPeer peer && AutomationPeer.ListenerExists(AutomationEvents.AutomationFocusChanged))
+        if (UIElementAutomationPeer.FromElement(this) is LedPreviewAutomationPeer peer)
         {
             peer.RaiseLedFocused(led);
         }
