@@ -9,7 +9,7 @@ instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken. Insta
 
 De app volgt het ontwerp "Werkplaats bij nacht" uit [design/DESIGN.md](../design/DESIGN.md):
 altijd donker, zodat de kleuren van de lampen gloeien, met een eigen titelbalk en links een
-navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **Instellingen**.
+navigatiebalk met **Lampen**, **Kleur**, **Scènes** en onderaan **Instellingen**.
 
 - **Venster:** donkere titelbalk met het kleine icoon en het woordmerk. Slepen, dubbelklikken
   om te maximaliseren, Aero Snap en Alt+Spatie werken zoals altijd. Minimaal 960 × 640.
@@ -98,7 +98,7 @@ schakelaar ernaast.
 Onder "Licht en beweging" staat per lamp een kaart met het icoon van zijn type, de naam en
 **Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
 ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
-voorbeeld (Scènes, Buren, Instellingen) of met het venster geminimaliseerd stuurt de engine
+voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
@@ -194,10 +194,6 @@ Hoe het vanzelf aanzetten werkt:
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
   zelf iets veranderd, dan komt hij meteen.
 
-### Buren
-
-Nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
-
 ### Instellingen
 
 - **OpenRGB:** de status met de tip uitgeschreven.
@@ -248,8 +244,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
   dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
-- **Buren** is nog leeg, want nog niet ontworpen (§ 5.4). De buren-kaart op Lampen en
-  "Samen aan de slag" op Scènes zijn weggelaten, omdat er nog niets achter zit.
+- **Buren** zit er niet in: de pagina (§ 5.4), de buren-kaart op Lampen en "Samen aan de slag"
+  op Scènes zijn weggelaten, omdat samen met de buren je lampen kleuren geen doel van de app is.
+  Daarmee vervallen ook de `buren-*`-kleuren.
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
   strip zetten" op de lamp; dat vervangt de schuiven Tint en Verzadiging van de oude app,
   die een kleur meteen toepasten. Extra ten opzichte van het ontwerp: "Licht en beweging"

@@ -64,7 +64,6 @@
     <Geometry x:Key="IconLamps">M9,18 H15 M10,21 H14 M12,3 A6,6 0 0 0 8,13.5 C8.8,14.3 9,15 9,16 H15 C15,15 15.2,14.3 16,13.5 A6,6 0 0 0 12,3 Z</Geometry>
     <Geometry x:Key="IconColor">M4,6 H14 M18,6 H20 M4,12 H8 M12,12 H20 M4,18 H16 M14,6 A2,2 0 1 0 18,6 A2,2 0 1 0 14,6 Z M8,12 A2,2 0 1 0 12,12 A2,2 0 1 0 8,12 Z M16,18 A2,2 0 1 0 20,18 A2,2 0 1 0 16,18 Z</Geometry>
     <Geometry x:Key="IconScenes">M4.5,3 H8.5 A1.5,1.5 0 0 1 10,4.5 V8.5 A1.5,1.5 0 0 1 8.5,10 H4.5 A1.5,1.5 0 0 1 3,8.5 V4.5 A1.5,1.5 0 0 1 4.5,3 Z M15.5,3 H19.5 A1.5,1.5 0 0 1 21,4.5 V8.5 A1.5,1.5 0 0 1 19.5,10 H15.5 A1.5,1.5 0 0 1 14,8.5 V4.5 A1.5,1.5 0 0 1 15.5,3 Z M4.5,14 H8.5 A1.5,1.5 0 0 1 10,15.5 V19.5 A1.5,1.5 0 0 1 8.5,21 H4.5 A1.5,1.5 0 0 1 3,19.5 V15.5 A1.5,1.5 0 0 1 4.5,14 Z M15.5,14 H19.5 A1.5,1.5 0 0 1 21,15.5 V19.5 A1.5,1.5 0 0 1 19.5,21 H15.5 A1.5,1.5 0 0 1 14,19.5 V15.5 A1.5,1.5 0 0 1 15.5,14 Z</Geometry>
-    <Geometry x:Key="IconNeighbours">M2,12 L7,7 L12,12 L17,7 L22,12 M4,12 V20 H10 V12 M14,12 V20 H20 V12</Geometry>
     <!-- The wrench of the settings button in the design. -->
     <Geometry x:Key="IconSettings">M14.7,6.3 A4,4 0 0 0 9.3,11.7 L3,18 V21 H6 L12.3,14.7 A4,4 0 0 0 17.7,9.3 L15.1,11.9 L12.7,11.3 L12.1,8.9 Z</Geometry>
     <Geometry x:Key="IconChevronDown">M6,9 L12,15 L18,9</Geometry>

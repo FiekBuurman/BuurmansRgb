@@ -241,7 +241,8 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 Later veranderd: de pipe heet `BuurmansRgb.Engine.<sessie-id>`, zodat elke ingelogde gebruiker
 zijn eigen engine heeft, en sinds het nieuwe ontwerp (#26) heeft de UI geen apparatenlijst
-links meer maar de pagina's Lampen, Kleur, Scènes, Buren en Instellingen (zie `handleiding.md`).
+links meer maar de pagina's Lampen, Kleur, Scènes en Instellingen (zie `handleiding.md`; de lege
+pagina Buren van het ontwerp is er later weer uit gehaald).
 
 ### Taak 3 – OpenRGB-koppeling
 
@@ -373,6 +374,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #47 | Een programma voor een scène kiezen uit wat nu een venster heeft, of via "Bladeren…" |
 | #48 | Bij "Automatisch" de gesimuleerde lampen pas tonen na de eerste verbindpoging met OpenRGB |
 | #49 | Events `ProfilesChanged` en `OptionsChanged`: de app volgt scènes en opties die elders veranderen |
+| #50 | De lege pagina Buren weg: samen met de buren kleuren is geen doel van de app |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

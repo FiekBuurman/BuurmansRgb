@@ -87,9 +87,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Instellingen-app en ontwerp
 
-- De pagina Buren echt maken zodra het ontwerp er is (§ 5.4), met de buren-kaart op Lampen en
-  "Samen aan de slag" op Scènes uit de schermen van het ontwerp; die zijn nu weggelaten, omdat er
-  nog niets achter zit
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp

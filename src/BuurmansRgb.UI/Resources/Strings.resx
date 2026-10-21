@@ -481,9 +481,6 @@
   <data name="NavScenes" xml:space="preserve">
     <value>Scènes</value>
   </data>
-  <data name="NavNeighbours" xml:space="preserve">
-    <value>Buren</value>
-  </data>
   <data name="NavSettings" xml:space="preserve">
     <value>Instellingen</value>
   </data>
@@ -550,15 +547,6 @@
   </data>
   <data name="SaveHeader" xml:space="preserve">
     <value>Opslaan</value>
-  </data>
-  <data name="NeighboursTitle" xml:space="preserve">
-    <value>Buren</value>
-  </data>
-  <data name="NeighboursEmptyTitle" xml:space="preserve">
-    <value>Nog in de werkplaats</value>
-  </data>
-  <data name="NeighboursEmptyText" xml:space="preserve">
-    <value>Samen met de buren je lampen kleuren komt later. Hier valt nu nog niets te doen.</value>
   </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>

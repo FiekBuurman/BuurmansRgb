@@ -7,7 +7,7 @@ public sealed class NavigationViewModelTests
     [Fact]
     public void Items_FollowTheDesignWithTheSettingsAtTheBottom()
     {
-        Assert.Equal(["Lampen", "Kleur", "Scènes", "Buren", "Instellingen"], NavigationViewModel.Items.Select(item => item.Label));
+        Assert.Equal(["Lampen", "Kleur", "Scènes", "Instellingen"], NavigationViewModel.Items.Select(item => item.Label));
         Assert.Equal([AppPage.Settings], NavigationViewModel.Items.Where(item => item.IsAtBottom).Select(item => item.Page));
         Assert.Equal("Scènes", NavigationViewModel.Items[2].ToString());
     }

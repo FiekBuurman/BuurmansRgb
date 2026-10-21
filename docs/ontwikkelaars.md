@@ -98,7 +98,7 @@ toetsenbord. Een paar dingen om te proberen:
   dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
   het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
   `IEngineApi.SetFramesWantedAsync` dat ze geen beelden wil zolang ze geminimaliseerd is of een
-  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets. Met
+  pagina zonder voorbeeld toont (Scènes, Instellingen); dan kopieert de engine niets. Met
   `SetFrameDevicesAsync` vraagt Kleur met één lamp alleen de beelden van die lamp; Lampen en
   "Hele huis" krijgen ze allemaal. Een beeld met maar een deel van de lampen laat de strip op
   Lampen ongemoeid.
