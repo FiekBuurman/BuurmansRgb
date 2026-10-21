@@ -378,7 +378,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #51 | Gemiste tijden van scènes inhalen na het ontwaken en bij het starten (`catchUpSceneTimes`), te kiezen bij Instellingen |
 | #52 | Sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U voor "Alles aan" en "Alles uit" (`hotkeys`), uit te zetten bij Instellingen |
 | #53 | Een kleur op een lamp die uit staat (ook per LED of in de kleurenloop) zet hem aan, meteen in de nieuwe kleur |
-| #?? | Niet in de proceslijst kijken zolang Windows vergrendeld is of slaapt, ook als `pauseOnLockAndSleep` uit staat |
+| #54 | Niet in de proceslijst kijken zolang Windows vergrendeld is of slaapt, ook als `pauseOnLockAndSleep` uit staat |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).
