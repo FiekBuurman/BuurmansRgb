@@ -107,7 +107,8 @@ voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de e
 geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
-  toont geen zonenaam.
+  toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
+  apparaat is wat?").
 - **Fans** (in OpenRGB het type "cooler", dus ook een AIO-pomp) tekent het voorbeeld per zone
   als ring, met LED 1 bovenaan en dan met de klok mee. OpenRGB zegt niet waar LED 1 echt zit;
   de wijzerplaat is dus een keuze. Een zone waarvan je de lengte instelt, of een zone van meer
@@ -633,6 +634,15 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   voorbeeld doet het nog eens. Loop je met de pijltjes door de lampkeuze, dan knippert alleen de
   lamp waar je 0,3 seconde op blijft staan. Er knippert steeds één lamp; knipperen wordt niet
   opgeslagen, en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
+- **Eén zone knipperen:** heeft een lamp meer zones, zoals een moederbord met een paar
+  ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**. Dat laat alleen
+  de LED's van die zone knipperen, net zo als hierboven; de rest van de lamp houdt zijn kleuren.
+  Zo zie je welke header welke fan of strip is. Een zone zonder LED's knippert niet en heeft
+  dus geen knop: stel eerst het aantal LED's in. Ook hier knippert er steeds één ding: een
+  nieuwe zone of lamp neemt het over, bij een pauze is "Knipperen" grijs, en verandert de
+  apparatenlijst (bijv. een nieuwe lengte of OpenRGB dat opnieuw zoekt), dan stopt het
+  knipperen en krijgt de lamp zijn eigen kleuren terug. Een schermlezer noemt de knop bijv.
+  "Zone ARGB 1 van Moederbord laten knipperen".
 - **Plek:** staan er twee of meer lampen van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de

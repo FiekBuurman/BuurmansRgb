@@ -61,9 +61,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Welk apparaat is wat (knipperen)
 
-- Ook één zone laten knipperen (bijv. met een knop naast de zonenaam), zodat je bij een
-  moederbord met meer ARGB-headers ziet welke header welke fan of strip is; nu knippert het hele
-  apparaat
+- Een zone na een nieuwe lengte vanzelf even laten knipperen, zodat je meteen ziet of de lengte
+  klopt (de laatste LED knippert mee of niet); nu moet je daarna zelf op "Knipperen" klikken
+- De LED's die geen zone hebben ("Overige LED's" in het voorbeeld) hebben geen knop
+  "Knipperen", omdat de engine ze niet als zone kent; eventueel een flits voor een LED-bereik
+  in plaats van een zone-index
 - Het knipperen loopt op de framerate van de render-loop: bij een lage `framesPerSecond`
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
 - Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
