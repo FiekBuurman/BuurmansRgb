@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
@@ -99,13 +100,57 @@ public sealed class LightingSettingsSaverTests
     public async Task Save_KeepsTheStartupOptions()
     {
         await _lighting.DiscoverAsync(Ct);
-        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = false }, Delay, _time);
+        var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never }, Delay, _time);
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
         saver.Dispose();
 
-        Assert.False(_store.Settings.SimulatedDevices);
+        Assert.Equal(SimulatedDevicesMode.Never, _store.Settings.SimulatedDevices);
         Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    [Fact]
+    public async Task ChangeOptions_SavesTheOptionWithTheLightingAfterDelay()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+
+        saver.ChangeOptions(settings => settings with { SimulatedDevices = SimulatedDevicesMode.Always });
+        _time.Advance(Delay - TimeSpan.FromMilliseconds(1));
+        Assert.Equal(0, _store.SaveCount);
+
+        _time.Advance(TimeSpan.FromMilliseconds(1));
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(SimulatedDevicesMode.Always, _store.Settings.SimulatedDevices);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    [Fact]
+    public async Task ChangeOptions_IsKeptForTheNextLightingChange()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        saver.ChangeOptions(settings => settings with { SimulatedDevices = SimulatedDevicesMode.Never });
+        _time.Advance(Delay);
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        Assert.Equal(2, _store.SaveCount);
+        Assert.Equal(SimulatedDevicesMode.Never, _store.Settings.SimulatedDevices);
+    }
+
+    [Fact]
+    public void ChangeOptions_AfterDispose_SavesNothing()
+    {
+        var saver = CreateSaver();
+        saver.Dispose();
+
+        saver.ChangeOptions(settings => settings with { SimulatedDevices = SimulatedDevicesMode.Never });
+        _time.Advance(Delay);
+
+        Assert.Equal(0, _store.SaveCount);
     }
 
     [Fact]

@@ -25,6 +25,16 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("Motherboard – RGB header", preview.Zones[1].AccessibleName);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void LacksDirectMode_FollowsTheDevice(bool hasDirectMode, bool lacksDirectMode)
+    {
+        var preview = new DevicePreviewViewModel(Motherboard with { HasDirectMode = hasDirectMode });
+
+        Assert.Equal(lacksDirectMode, preview.LacksDirectMode);
+    }
+
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {

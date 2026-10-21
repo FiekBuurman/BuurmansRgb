@@ -70,7 +70,7 @@ dotnet run --project src/BuurmansRgb.Engine
     "effect": "rainbow",
     "speed": 1.5,
     "colorLoop": { "colors": ["#FFFF00", "#00FF00", "#0000FF"], "spread": true },
-    "simulatedDevices": true,
+    "simulatedDevices": "automatic",
     "framesPerSecond": 30,
     "devices": {
       "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led" }
@@ -86,26 +86,34 @@ dotnet run --project src/BuurmansRgb.Engine
   zo langzaam) tot 3 (drie keer zo snel); ook per apparaat onder `devices`. `colorLoop` zijn de
   2–8 kleuren van de Kleurenloop, met `spread` op `false` voor alle LED's tegelijk; zonder
   `colorLoop` (of met te weinig of te veel kleuren) is het geel, groen, blauw.
-  `simulatedDevices` op `false` verbergt de gesimuleerde apparaten (na een herstart
-  van de engine), handig zodra de echte apparaten via OpenRGB werken. `framesPerSecond`
-  (1–60, standaard 30) is de framerate van de bewegende effecten. Onder `devices` staan
-  alleen apparaten met een eigen kleur of effect; de rest volgt de algemene waarden. Onder
-  `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`; `null` (of een
-  LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Een ongeldig of
-  onleesbaar bestand laat de engine ongemoeid en draait dan op de standaardwaarden. Dat
-  geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
+  `simulatedDevices` zegt wanneer de gesimuleerde apparaten er zijn: `"automatic"`
+  (standaard: alleen zolang OpenRGB geen echte apparaten levert), `"always"` of `"never"`
+  (zie "OpenRGB-status en gesimuleerde apparaten"). Een woord dat de engine niet kent, of een
+  andere waarde (een getal, `null`, ...), leest als `"automatic"`; de rest van het bestand
+  blijft gewoon gelden. Oudere bestanden hebben hier `true` of `false`: `true` schreef de engine
+  zelf als standaard weg en leest dus als `"automatic"`, `false` blijft `"never"`. Kies het
+  liever in de instellingen-app: dan wisselt de engine meteen, zonder herstart.
+  `framesPerSecond` (1–60, standaard 30) is de framerate van de bewegende effecten. Onder
+  `devices` staan alleen apparaten met een eigen kleur of effect; de rest volgt de algemene
+  waarden. Onder `ledColors` staat per apparaat een kleur per LED voor het effect `per-led`;
+  `null` (of een LED voorbij het eind van de lijst) volgt de kleur van het apparaat. Een
+  ongeldig of onleesbaar bestand laat de engine ongemoeid en draait dan op de
+  standaardwaarden. Dat geldt ook als de map `%AppData%\BuurmansRgb` niet beschrijfbaar is.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te
   openen. Staat die er niet of start hij niet (bijv. geblokkeerd door SmartScreen), dan
   meldt het tray-icoon dat.
 - **Starten met Windows** zet `BuurmansRgb` in
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
-- **Apparaten:** de gesimuleerde apparaten en, als OpenRGB draait, de echte apparaten via
-  OpenRGB. Zie "OpenRGB koppelen" hieronder. Gesimuleerd zijn er een strip (30 LED's), een
-  fan (12), een toetsenbord (104, met de plek van elke toets), een moederbord (7, in drie
-  zones), twee RAM-sticks (8), een videokaart (13, in twee zones), een fan met twee ringen
-  (20), een ARGB-controller (20, in twee kanalen), verlichting in de behuizing (10), een muis
-  (12, in vier zones) en een headset (2, in twee zones).
+- **Apparaten:** de echte apparaten via OpenRGB, als OpenRGB draait, en de gesimuleerde
+  apparaten; die verdwijnen standaard zodra OpenRGB echte apparaten levert. Zie "OpenRGB
+  koppelen" en "OpenRGB-status en gesimuleerde apparaten" hieronder. Gesimuleerd zijn er een
+  strip (30 LED's), een fan (12), een toetsenbord (104, met de plek van elke toets), een
+  moederbord (7, in drie zones), twee RAM-sticks (8), een videokaart (13, in twee zones), een
+  fan met twee ringen (20), een ARGB-controller (20, in twee kanalen), verlichting in de
+  behuizing (10), een muis (12, in vier zones) en een headset (2, in twee zones).
+- **Tooltip van het tray-icoon:** de naam (of "effecten gepauzeerd") en daaronder hoe het met
+  OpenRGB gaat, bijv. "OpenRGB: verbonden, 5 apparaten".
 - **Na slaapstand:** 2 en 10 seconden na het ontwaken zet de engine de apparaten opnieuw
   klaar en stuurt hij alle kleuren opnieuw, ook als er niets veranderde. Zie "Moederbord en
   RAM" hieronder.
@@ -157,12 +165,13 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
 2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
    OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
 3. Start de engine (de volgorde maakt niet uit). Binnen enkele seconden staan de apparaten
-   van OpenRGB in de instellingen-app, onder de kop "Echte apparaten (OpenRGB)", boven de
-   gesimuleerde. Een open venster werkt de lijst vanzelf bij.
+   van OpenRGB in de instellingen-app, onder de kop "Echte apparaten (OpenRGB)", en
+   verdwijnen de gesimuleerde (zie "OpenRGB-status en gesimuleerde apparaten"). Een open
+   venster werkt de lijst vanzelf bij.
 
 - Bij het verbinden zet BuurmansRgb elk apparaat in de modus "Direct" of "Custom" (OpenRGB
   kiest welke) en stuurt het de opgeslagen kleur. Een apparaat zonder zo'n modus staat wel
-  in de lijst, maar volgt de kleur misschien niet.
+  in de lijst, maar volgt de kleur misschien niet; de instellingen-app waarschuwt daarvoor.
 - **OpenRGB stopt of is er nog niet:** de engine probeert elke 5 seconden opnieuw te
   verbinden en stuurt daarna de kleuren opnieuw. De apparaten verdwijnen zolang uit de
   lijst; hun eigen kleur blijft bewaard.
@@ -174,8 +183,66 @@ zelf heeft geen adminrechten nodig; OpenRGB eenmalig wel, voor moederbord, RAM e
   serienummer, zodat het na een herstart van OpenRGB of de pc hetzelfde apparaat blijft.
 - ARGB-headers op het moederbord hebben in OpenRGB vaak 0 LED's tot je de zonegrootte instelt.
   Dat kan in OpenRGB, of in de instellingen-app (zie "Fans, case-LED en ARGB-strips").
-- Meldingen over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken
+- Hoe het met OpenRGB gaat, staat in de instellingen-app en in de tooltip van het tray-icoon.
+  De details over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken
   met DebugView), zolang er nog geen logbestand is.
+
+## OpenRGB-status en gesimuleerde apparaten
+
+- **OpenRGB-status:** in de instellingen-app staat onder "Apparaten" in één regel hoe het met
+  OpenRGB gaat; een tip staat achter de ⓘ ernaast (bij aanwijzen of met Tab) en een
+  schermlezer leest een nieuwe status voor. Het tray-icoon zegt het in zijn tooltip. De
+  engine houdt het bij met de
+  verbindpogingen die hij toch al doet (elke 5 seconden zolang er geen verbinding is), dus
+  zonder extra werk. De standen (`ServerStatus` in `BuurmansRgb.Core`, via
+  `IEngineApi.GetOpenRgbStatusAsync` en het event `OpenRgbStatusChanged`):
+
+  | Wat je ziet | Wat er aan de hand is |
+  | --- | --- |
+  | OpenRGB: verbinden… | De engine is net gestart, of de verbinding viel weg en de volgende poging komt zo |
+  | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
+  | OpenRGB: verbonden, geen apparaten gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
+  | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Met een tip: herstart de pc of draai de installer opnieuw |
+  | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte (bijv. een antwoord dat niet klopte of te laat kwam) |
+
+- **Gesimuleerde apparaten:** onder de apparatenlijst kies je bij "Gesimuleerd:" uit
+  "Automatisch" (standaard), "Altijd" of "Nooit". Automatisch toont ze alleen
+  zolang er geen echt apparaat is: zodra OpenRGB echte apparaten levert, verdwijnen ze, en
+  vallen die weg (OpenRGB stopt), dan komen ze terug. De engine wisselt meteen, zonder
+  herstart, en bewaart de keuze in `settings.json` (`simulatedDevices`, zie "Engine
+  starten"). In de engine doet `SimulatedDevicesSwitch` dit; die volgt de apparatenlijst en
+  beslist bij elke wijziging van de lijst of de keuze opnieuw, onder één lock, dus ook als
+  OpenRGB en de keuze tegelijk veranderen klopt de lijst daarna.
+- **Apparaat zonder "Direct"- of "Custom"-modus:** zo'n apparaat (vaak een videokaart)
+  krijgt in de lijst "⚠ Volgt de kleur misschien niet", en het voorbeeld legt uit dat het in
+  OpenRGB geen modus heeft om kleuren per LED over te nemen: BuurmansRgb stuurt de kleuren
+  wel, maar het apparaat kan zijn eigen effect blijven tonen; stel het dan in OpenRGB zelf in
+  (`DeviceInfo.HasDirectMode`).
+- **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
+  `SimulatedDevicesSwitchTests` (automatisch, altijd, nooit, en OpenRGB en de keuze die
+  tegelijk veranderen), `JsonSettingsStoreTests` (`true`/`false` en de woorden),
+  `LightingSettingsSaverTests` en `EngineHostTests` (de keuze bewaren),
+  `OpenRgbProviderStatusTests` en `OpenRgbProviderServerTests` (de standen met nepdata en een
+  kleine SDK-server), `OpenRgbNetConnectionTests` (niet bereikbaar tegenover geen antwoord),
+  `OpenRgbDeviceMapperTests` en `OpenRgbDeviceProviderTests` (geen "Direct"-modus),
+  `EngineApiTests`, `EngineIpcServerTests` en `EngineRpcTests` (over de pipe),
+  `TrayPresenterTests` (tooltip) en in de instellingen-app
+  `SimulatedDevicesViewModelTests`, `OpenRgbStatusViewModelTests`, `DeviceItemTests`,
+  `DevicePreviewViewModelTests` en `MainViewModelTests`. Start daarnaast de engine en de
+  instellingen-app zonder OpenRGB: er staat "OpenRGB: niet bereikbaar" met de tip achter de
+  ⓘ, en met "Nooit" verdwijnen de gesimuleerde apparaten meteen. Ook in het kleinste venster
+  (640 × 520) houdt de apparatenlijst ruimte voor drie apparaten; de lijst en de profielen
+  delen de rest van de hoogte.
+- **Testen met je eigen hardware:**
+  1. Start de engine en de instellingen-app met de OpenRGB-service uit: "niet bereikbaar" met
+     de tip, en de gesimuleerde apparaten staan er. Start de service: binnen 5 seconden staat er
+     "verbonden" met het aantal apparaten, verschijnen de echte apparaten en verdwijnen de
+     gesimuleerde. Stop de service weer: de gesimuleerde komen terug.
+  2. Kies "Altijd" en "Nooit" en kijk of de lijst meteen meeverandert; herstart de engine en
+     kijk of de keuze bewaard is.
+  3. Kijk in de tooltip van het tray-icoon of hij hetzelfde zegt.
+  4. Heeft een apparaat geen "Direct"-modus in OpenRGB (vaak een videokaart), kijk dan of het
+     de waarschuwing krijgt, en noteer in `docs/hardware.md` of het de kleur toch volgt.
 
 ## Moederbord en RAM
 
@@ -225,7 +292,8 @@ OpenRGB de eerste keer met adminrechten draaien.
   is dat meestal niet het adres maar de bus van elke kaart, bijv. "Op NVIDIA GPU 1".
 - **Zonder "Direct"-modus:** veel kaarten kennen in OpenRGB alleen hun eigen effecten
   (bijv. "Static" en "Breathing"). Zo'n kaart staat wel in de lijst, maar volgt de kleur
-  misschien niet; de debug-uitvoer meldt dat bij het verbinden.
+  misschien niet; de instellingen-app waarschuwt daarvoor (zie "OpenRGB-status en
+  gesimuleerde apparaten").
 - **Na slaapstand** herstelt de engine ook de videokaart, zoals beschreven bij "Moederbord en
   RAM".
 - **Testen zonder hardware:** `dotnet test --solution BuurmansRgb.slnx`. Voor dit deel:
@@ -351,7 +419,8 @@ in de lijst niet altijd te zien welk apparaat of welke zone in de pc zit.
   `LightingController.Flash` en `DeviceFlash`).
 - **Echt of gesimuleerd:** de lijst toont de echte apparaten onder de kop "Echte apparaten
   (OpenRGB)" en daaronder de gesimuleerde onder "Gesimuleerde apparaten". De provider geeft elk
-  apparaat zijn bron mee (`DeviceInfo.Source`).
+  apparaat zijn bron mee (`DeviceInfo.Source`). Standaard staan de gesimuleerde er alleen
+  zolang er geen echte zijn (zie "OpenRGB-status en gesimuleerde apparaten").
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam (op het
   volgnummer na) in de lijst, zoals de RAM-sticks van een kit, dan staat onder de naam het deel
   van hun OpenRGB-locatie dat verschilt: het adres ("Adres 0x52"), of als dat gelijk is de bus
@@ -434,12 +503,14 @@ De instellingen-app (`BuurmansRgb.UI`, WPF) staat na het bouwen naast
 dotnet run --project src/BuurmansRgb.UI
 ```
 
-- **Links** de apparatenlijst, met bovenaan "Alle apparaten" en per apparaat een icoon en
-  het type, de echte en de gesimuleerde apparaten elk onder een eigen kop. Een apparaat dat je
-  kiest, knippert even op de hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur
-  (hex-code, vaste kleuren, schuiven voor tint en verzadiging), de helderheid (0–100%), het
-  effect, de snelheid en een voorbeeld met een bolletje per LED, per zone. Een toetsenbord met
-  een matrix-map toont een toets per LED, op zijn plek.
+- **Links** de apparatenlijst, met daarboven hoe het met OpenRGB gaat, bovenaan "Alle
+  apparaten" en per apparaat een icoon en het type, de echte en de gesimuleerde apparaten elk
+  onder een eigen kop. Onder de lijst kies je wanneer de gesimuleerde apparaten er zijn (zie
+  "OpenRGB-status en gesimuleerde apparaten"). Een apparaat dat je kiest, knippert even op de
+  hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur (hex-code, vaste kleuren,
+  schuiven voor tint en verzadiging), de helderheid (0–100%), het effect, de snelheid en een
+  voorbeeld met een bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een
+  toets per LED, op zijn plek.
 - **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder de kleurkiezer de
   kleuren van de loop. Klik op een kleur en kies hierboven een nieuwe; met + voeg je een kleur
   toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg. Voorbeeld:

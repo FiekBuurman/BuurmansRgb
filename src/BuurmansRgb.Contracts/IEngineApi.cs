@@ -19,6 +19,10 @@ public partial interface IEngineApi
     // Raised when the engine has written its settings file, a moment after the last change.
     event EventHandler<SettingsSaveResult> SettingsSaved;
 
+    // Raised with the new status when the connection to OpenRGB changes, such as when OpenRGB
+    // starts or stops, or when it gives another number of devices.
+    event EventHandler<ServerStatus> OpenRgbStatusChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
@@ -57,6 +61,14 @@ public partial interface IEngineApi
     // its own lighting again. Changes no lighting. Best effort: does nothing while effects are
     // paused or for a device the engine does not know (any more).
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
+
+    Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
+
+    Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default);
+
+    // Saved like the lighting. When the new mode shows or hides the simulated devices,
+    // DevicesChanged follows.
+    Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);

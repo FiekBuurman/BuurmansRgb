@@ -80,11 +80,11 @@ public sealed class EngineSettingsTests
     [Fact]
     public void WithLighting_ReplacesLightingAndKeepsStartupOptions()
     {
-        var settings = new EngineSettings { SimulatedDevices = false, Color = Green };
+        var settings = new EngineSettings { SimulatedDevices = SimulatedDevicesMode.Never, Color = Green };
 
         var updated = settings.WithLighting(LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen }));
 
-        Assert.False(updated.SimulatedDevices);
+        Assert.Equal(SimulatedDevicesMode.Never, updated.SimulatedDevices);
         Assert.Equal(HalfOrange, updated.ToDeviceLighting());
         Assert.Equal(FullGreen, updated.Devices!["fan"]!.ToDeviceLighting());
         Assert.Equal(Green, settings.Color);
@@ -163,6 +163,7 @@ public sealed class EngineSettingsTests
         _ when type == typeof(bool) => !(bool)current!,
         _ when type == typeof(int) => (int)current! + 1,
         _ when type == typeof(string) => current + "-changed",
+        _ when type.IsEnum => Enum.GetValues(type).Cast<object>().First(value => !value.Equals(current)),
         _ => throw new NotSupportedException($"Give {type} a value in {nameof(WithLighting_KeepsEveryStartupOption)}."),
     };
 }

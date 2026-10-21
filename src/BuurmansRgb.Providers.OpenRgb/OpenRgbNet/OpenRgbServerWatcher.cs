@@ -33,8 +33,8 @@ internal sealed class OpenRgbServerWatcher : IDisposable
 
     public bool IsClosed => Volatile.Read(ref _closed) != 0;
 
-    // Throws TimeoutException when nothing answers within the timeout, or SocketException when
-    // the connection is refused.
+    // Throws OpenRgbUnreachableException when the connection is refused or nothing answers within
+    // the timeout.
     public static async Task<OpenRgbServerWatcher> ConnectAsync(string host, int port, string clientName, TimeSpan timeout, CancellationToken ct)
     {
         var socket = new Socket(SocketType.Stream, ProtocolType.Tcp) { NoDelay = true };
@@ -47,9 +47,10 @@ internal sealed class OpenRgbServerWatcher : IDisposable
                 {
                     await socket.ConnectAsync(host, port, connectTimeout.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                catch (Exception exception) when (exception is SocketException
+                    || (exception is OperationCanceledException && !ct.IsCancellationRequested))
                 {
-                    throw new TimeoutException($"OpenRGB did not answer on {host}:{port}.");
+                    throw new OpenRgbUnreachableException($"OpenRGB did not answer on {host}:{port}.", exception);
                 }
             }
 

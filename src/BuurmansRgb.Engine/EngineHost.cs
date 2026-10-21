@@ -9,7 +9,7 @@ internal sealed class EngineHost(
     LightingController lighting,
     EngineIpcServer? ipcServer = null,
     TimeSpan? saveDelay = null,
-    SwitchableDeviceProvider? simulatedDevices = null,
+    SimulatedDevicesSwitch? simulatedDevices = null,
     Action? trimMemory = null,
     SettingsSaveEvents? saveEvents = null) : IEngineHost, IDisposable
 {
@@ -17,19 +17,29 @@ internal sealed class EngineHost(
 
     // The IPC server starts once the lights are on and keeps running until ct is cancelled.
     // trimMemory then runs once, so the memory that only starting up needed goes back to Windows.
+    // From then on a new mode for the simulated devices is saved like the lighting.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
-        simulatedDevices?.IsEnabled = settings.SimulatedDevices;
+        simulatedDevices?.Mode = settings.SimulatedDevices;
         lighting.FramesPerSecond = settings.FramesPerSecond;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
+        simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }
 
     public void SetPaused(bool paused) => lighting.SetPaused(paused);
 
-    public void Dispose() => _saver?.Dispose();
+    public void Dispose()
+    {
+        simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
+        _saver?.Dispose();
+    }
+
+    // Reads the newest mode, so two changes that cross each other still save the last one.
+    private void OnSimulatedDevicesModeChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { SimulatedDevices = simulatedDevices!.Mode });
 }

@@ -32,6 +32,7 @@ internal static class Program
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
         using var lighting = new LightingController([simulatedDevices, openRgb]);
+        using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
 
         // On this thread, which pumps the tray messages and so also the power events.
         using var powerEvents = new SystemPowerEvents();
@@ -41,12 +42,15 @@ internal static class Program
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
-            new EngineIpcServer(EngineRpc.PipeName, () => new EngineApi(lighting, profiles, saveEvents), MemoryTrimmer.Trim),
-            simulatedDevices: simulatedDevices,
+            new EngineIpcServer(
+                EngineRpc.PipeName,
+                () => new EngineApi(lighting, profiles, simulatedDevicesSwitch, openRgb, saveEvents),
+                MemoryTrimmer.Trim),
+            simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine());
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), openRgb);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         {
             Application.Run(context);

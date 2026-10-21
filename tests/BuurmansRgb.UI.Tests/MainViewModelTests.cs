@@ -351,6 +351,74 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_ShowsTheModeOfTheSimulatedDevices()
+    {
+        var viewModel = await ConnectAsync(api => api.SimulatedDevices = SimulatedDevicesMode.Never);
+
+        Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task SimulatedDevicesPicked_SendsTheModeAndFollowsTheNewList()
+    {
+        var viewModel = await ConnectAsync();
+
+        viewModel.SimulatedDevices.SelectedOption = SimulatedDevicesViewModel.Options.Single(option => option.Mode == SimulatedDevicesMode.Never);
+        Api.Devices = [];
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(["simulated Never"], Api.Calls);
+        Assert.Equal([null], viewModel.Devices.Select(device => device.DeviceId));
+    }
+
+    [Fact]
+    public async Task Connect_ShowsTheOpenRgbStatusAndFollowsIt()
+    {
+        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        Assert.Equal(Strings.OpenRgbUnreachable, viewModel.OpenRgbStatus.Text);
+
+        Api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 3));
+
+        Assert.Equal("OpenRGB: verbonden, 3 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.False(viewModel.OpenRgbStatus.HasHint);
+    }
+
+    [Fact]
+    public async Task Connect_StatusEventOvertakesTheAnswer_KeepsTheNewerStatus()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.StatusChangeWhileAnswering = new ServerStatus(ServerState.Connected, 2);
+        });
+
+        Assert.Equal("OpenRGB: verbonden, 2 apparaten", viewModel.OpenRgbStatus.Text);
+    }
+
+    [Fact]
+    public async Task Disconnected_StopsFollowingTheOpenRgbStatus()
+    {
+        await ConnectAsync();
+        var api = Api;
+
+        _connector.Connection.Disconnect();
+
+        Assert.False(api.HasOpenRgbStatusSubscribers);
+    }
+
+    [Fact]
+    public async Task Disconnected_ShowsNoOpenRgbStatusAnyMore()
+    {
+        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+
+        _connector.Connection.Disconnect();
+
+        Assert.Equal(string.Empty, viewModel.OpenRgbStatus.Text);
+        Assert.False(viewModel.OpenRgbStatus.HasHint);
+    }
+
+    [Fact]
     public async Task Disconnected_ShowsMessageAndReleasesConnection()
     {
         var viewModel = await ConnectAsync();

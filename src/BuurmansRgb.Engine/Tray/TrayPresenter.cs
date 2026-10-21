@@ -1,18 +1,24 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security;
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
 
 namespace BuurmansRgb.Engine.Tray;
 
-// The tray menu logic without WinForms types, so it can be tested with fakes.
+// The tray menu logic without WinForms types, so it can be tested with fakes. Call it on the tray
+// thread only.
 internal sealed class TrayPresenter(
     IEngineHost host,
     IAutoStart autoStart,
     ISettingsAppLauncher settingsAppLauncher,
     ITrayView view)
 {
+    private bool _paused;
+    private ServerStatus _openRgbStatus = ServerStatus.Connecting;
+
     // Never throws, so the caller can start it without awaiting.
     public async Task StartAsync(CancellationToken ct)
     {
@@ -46,7 +52,14 @@ internal sealed class TrayPresenter(
     public void SetPaused(bool paused)
     {
         host.SetPaused(paused);
-        view.SetToolTip(paused ? Strings.TrayToolTipPaused : Strings.AppName);
+        _paused = paused;
+        ShowToolTip();
+    }
+
+    public void ShowOpenRgbStatus(ServerStatus status)
+    {
+        _openRgbStatus = status;
+        ShowToolTip();
     }
 
     public void RefreshAutoStart() => view.SetAutoStartChecked(autoStart.IsEnabled);
@@ -63,6 +76,20 @@ internal sealed class TrayPresenter(
             ReportFailure(exception, Strings.AutoStartFailed, TrayNotificationKind.Warning);
         }
     }
+
+    // The first line tells whether the effects run, the second how it goes with OpenRGB.
+    private void ShowToolTip() =>
+        view.SetToolTip($"{(_paused ? Strings.TrayToolTipPaused : Strings.AppName)}\n{OpenRgbText(_openRgbStatus)}");
+
+    private static string OpenRgbText(ServerStatus status) => status.State switch
+    {
+        ServerState.Connected when status.DeviceCount == 0 => Strings.TrayOpenRgbConnectedNoDevices,
+        ServerState.Connected when status.DeviceCount == 1 => Strings.TrayOpenRgbConnectedOneDevice,
+        ServerState.Connected => string.Format(CultureInfo.CurrentCulture, Strings.TrayOpenRgbConnected, status.DeviceCount),
+        ServerState.Unreachable => Strings.TrayOpenRgbUnreachable,
+        ServerState.Failed => Strings.TrayOpenRgbFailed,
+        _ => Strings.TrayOpenRgbConnecting,
+    };
 
     // .NET exception messages are English, so the user only sees the Dutch text; the details
     // go to the debug output (DebugView) until the engine logs to a file.

@@ -1,12 +1,13 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Settings;
 
-// The lighting plus the options the engine only reads at startup.
+// The lighting plus the options of the engine besides it.
 internal sealed record EngineSettings : LightingStateSettings
 {
-    // False hides the simulated devices, for example once the real ones work through OpenRGB.
-    public bool SimulatedDevices { get; set; } = true;
+    // When the simulated devices show; in the file as a word (SimulatedDevicesModeJsonConverter).
+    public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
 
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;

@@ -12,6 +12,11 @@ public sealed record RgbDevice(string Id, string Name, DeviceType Type, IReadOnl
     // Null when the provider does not know it, as with the simulated devices.
     public DeviceLocation? Location { get; init; }
 
+    // False for a device without a mode in which its LEDs take colors from outside, such as an
+    // OpenRGB device without a "Direct" or "Custom" mode: it gets the colors, but may keep showing
+    // an effect of its own.
+    public bool HasDirectMode { get; init; } = true;
+
     public RgbZone GetZone(int zoneIndex)
     {
         ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);

@@ -12,8 +12,16 @@ public sealed record DeviceInfo(string Id, string Name, DeviceType Type, int Led
     // Where the device is connected, such as the SMBus address of a RAM stick; null when unknown.
     public DeviceLocation? Location { get; init; }
 
+    // False when the device may not show the colors it gets; see RgbDevice.HasDirectMode.
+    public bool HasDirectMode { get; init; } = true;
+
     public static DeviceInfo From(RgbDevice device) =>
-        new(device.Id, device.Name, device.Type, device.LedCount, device.Zones) { Source = device.Source, Location = device.Location };
+        new(device.Id, device.Name, device.Type, device.LedCount, device.Zones)
+        {
+            Source = device.Source,
+            Location = device.Location,
+            HasDirectMode = device.HasDirectMode,
+        };
 
     public bool Equals(DeviceInfo? other) =>
         other is not null
@@ -23,6 +31,7 @@ public sealed record DeviceInfo(string Id, string Name, DeviceType Type, int Led
         && LedCount == other.LedCount
         && Source == other.Source
         && Location == other.Location
+        && HasDirectMode == other.HasDirectMode
         && Zones.SequenceEqual(other.Zones);
 
     public override int GetHashCode() => HashCode.Combine(Id, Name, Type, LedCount, Source, Location, Zones.Count);

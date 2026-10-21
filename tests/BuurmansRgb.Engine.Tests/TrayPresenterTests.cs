@@ -1,3 +1,4 @@
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -87,11 +88,51 @@ public sealed class TrayPresenterTests
 
         presenter.SetPaused(true);
         Assert.True(_host.Paused);
-        Assert.Equal(Strings.TrayToolTipPaused, _view.ToolTip);
+        Assert.Equal($"{Strings.TrayToolTipPaused}\nOpenRGB: verbinden…", _view.ToolTip);
 
         presenter.SetPaused(false);
         Assert.False(_host.Paused);
-        Assert.Equal(Strings.AppName, _view.ToolTip);
+        Assert.Equal($"{Strings.AppName}\nOpenRGB: verbinden…", _view.ToolTip);
+    }
+
+    // The same texts as in OpenRgbStatusViewModelTests, so the tray and the app say the same.
+    [Theory]
+    [InlineData(ServerState.Connected, 4, "OpenRGB: verbonden, 4 apparaten")]
+    [InlineData(ServerState.Connected, 1, "OpenRGB: verbonden, 1 apparaat")]
+    [InlineData(ServerState.Connected, 0, "OpenRGB: verbonden, geen apparaten gevonden")]
+    [InlineData(ServerState.Unreachable, 0, "OpenRGB: niet bereikbaar")]
+    [InlineData(ServerState.Failed, 0, "OpenRGB: geen goed antwoord")]
+    [InlineData(ServerState.Connecting, 0, "OpenRGB: verbinden…")]
+    public void ShowOpenRgbStatus_PutsItUnderTheNameInTheToolTip(ServerState state, int deviceCount, string text)
+    {
+        CreatePresenter().ShowOpenRgbStatus(new ServerStatus(state, deviceCount));
+
+        Assert.Equal($"{Strings.AppName}\n{text}", _view.ToolTip);
+    }
+
+    [Fact]
+    public void ShowOpenRgbStatus_WhilePaused_KeepsThePauseInTheToolTip()
+    {
+        var presenter = CreatePresenter();
+        presenter.SetPaused(true);
+
+        presenter.ShowOpenRgbStatus(new ServerStatus(ServerState.Unreachable));
+
+        Assert.StartsWith(Strings.TrayToolTipPaused + "\n", _view.ToolTip);
+    }
+
+    // NotifyIcon refuses a tooltip of more than 127 characters.
+    [Fact]
+    public void ToolTip_FitsTheTrayIconInEveryState()
+    {
+        var presenter = CreatePresenter();
+        presenter.SetPaused(true);
+
+        foreach (var state in Enum.GetValues<ServerState>())
+        {
+            presenter.ShowOpenRgbStatus(new ServerStatus(state, int.MaxValue));
+            Assert.True(_view.ToolTip!.Length <= 127, _view.ToolTip);
+        }
     }
 
     [Theory]

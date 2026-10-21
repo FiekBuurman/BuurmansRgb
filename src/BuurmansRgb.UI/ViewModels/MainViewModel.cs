@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
+    private const string SimulatedDevicesCall = "simulated-devices";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -35,6 +36,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The color of the selected device, which the color picker shows again when the effect
     // changes from the color loop to another one.
     private RgbColor _deviceColor = RgbColor.White;
+
+    // Counts the OpenRGB status changes shown, so an answer to GetOpenRgbStatusAsync that an event
+    // overtook does not bring back the older status.
+    private int _openRgbStatusChanges;
 
     // time gives the clock time in the save status; tests pass a fake one.
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
@@ -60,6 +65,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, showLighting: true);
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
     }
 
     public ObservableCollection<DeviceItem> Devices { get; } = [];
@@ -93,6 +99,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
     public ProfilesViewModel Profiles { get; } = new();
+
+    public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
+
+    public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -136,6 +146,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.FrameRendered += OnFrameRendered;
             connection.Api.DevicesChanged += OnDevicesChanged;
             connection.Api.SettingsSaved += OnSettingsSaved;
+            connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -232,6 +243,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
         Preview.ShowFrame(await api.GetFrameAsync());
         Profiles.Show(await api.GetProfilesAsync());
+        SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
+        var openRgbStatusChanges = _openRgbStatusChanges;
+        var openRgbStatus = await api.GetOpenRgbStatusAsync();
+        if (openRgbStatusChanges == _openRgbStatusChanges)
+        {
+            OpenRgbStatus.Show(openRgbStatus);
+        }
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
@@ -426,6 +444,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // The engine shows or hides the simulated devices and reports the new list through
+    // DevicesChanged, so the list here follows by itself.
+    private void SendSimulatedDevices(SimulatedDevicesMode mode)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(SimulatedDevicesCall, () => connection.Api.SetSimulatedDevicesAsync(mode));
+        }
+    }
+
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and a loaded profile shows its lighting.
@@ -467,6 +495,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() => Preview.ShowFrame(frame));
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
+
+    private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() =>
+    {
+        _openRgbStatusChanges++;
+        OpenRgbStatus.Show(status);
+    });
 
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
@@ -519,6 +553,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ConnectionState = ConnectionState.Failed;
         StatusMessage = message;
+        OpenRgbStatus.Clear();
         DropConnection();
     }
 
@@ -534,6 +569,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
         connection.Api.SettingsSaved -= OnSettingsSaved;
+        connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
         connection.Dispose();
     }
 

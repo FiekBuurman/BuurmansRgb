@@ -7,8 +7,9 @@ namespace BuurmansRgb.Providers.OpenRgb;
 // The devices of the OpenRGB SDK server. Connecting happens in the background: the first
 // DiscoverAsync starts it and returns no devices; they follow through DevicesChanged once the
 // server answers. When connecting fails or the connection is lost, the provider tries again
-// after RetryDelay. That timer only runs while there is no connection.
-public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorableDeviceProvider, IDisposable
+// after RetryDelay. That timer only runs while there is no connection. Status follows the tries
+// and loads that happen anyway, so telling how it goes costs no extra work.
+public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorableDeviceProvider, IServerStatusSource, IDisposable
 {
     public static TimeSpan RetryDelay { get; } = TimeSpan.FromSeconds(5);
 
@@ -25,6 +26,10 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
     private IOpenRgbConnection? _connection;
     private IReadOnlyList<MappedDevice> _devices = [];
     private Dictionary<string, MappedDevice> _devicesById = [];
+
+    // Only the queued work changes it, one job after the other, so StatusChanged goes out in order
+    // even though it is raised outside the lock.
+    private ServerStatus _status = ServerStatus.Connecting;
     private bool _started;
     private bool _disposed;
 
@@ -43,6 +48,19 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
     public string Name => "OpenRGB";
 
     public event EventHandler? DevicesChanged;
+
+    public event EventHandler<ServerStatus>? StatusChanged;
+
+    public ServerStatus Status
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _status;
+            }
+        }
+    }
 
     public Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
     {
@@ -222,6 +240,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         {
             connection?.Dispose();
             Trace.TraceInformation($"OpenRGB is not reachable, trying again in {_retryDelay.TotalSeconds:0} s: {exception.Message}");
+            SetStatus(new(exception is OpenRgbUnreachableException ? ServerState.Unreachable : ServerState.Failed));
             ScheduleRetry();
             return;
         }
@@ -250,6 +269,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
 
         Trace.TraceInformation($"Connected to OpenRGB with protocol version {connection.ProtocolVersion}, {devices.Count} devices.");
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+        SetStatus(new(ServerState.Connected, devices.Count));
     }
 
     // The server indexes may have shifted, so no colors go out until the reload has mapped the
@@ -297,6 +317,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         }
 
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+        SetStatus(new(ServerState.Connected, devices.Count));
     }
 
     private async Task ResizeAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct)
@@ -383,6 +404,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         connection.Dispose();
         Trace.TraceWarning($"Lost the connection to OpenRGB, trying again in {_retryDelay.TotalSeconds:0} s.");
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+        SetStatus(ServerStatus.Connecting);
         ScheduleRetry();
     }
 
@@ -414,6 +436,21 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
                 _retryTimer.Change(_retryDelay, Timeout.InfiniteTimeSpan);
             }
         }
+    }
+
+    private void SetStatus(ServerStatus status)
+    {
+        lock (_gate)
+        {
+            if (_disposed || _status == status)
+            {
+                return;
+            }
+
+            _status = status;
+        }
+
+        StatusChanged?.Invoke(this, status);
     }
 
     private bool IsCurrent(IOpenRgbConnection connection)

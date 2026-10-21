@@ -183,14 +183,14 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     }
 
     [Fact]
-    public async Task ConnectAsync_NoServer_Throws()
+    public async Task ConnectAsync_NoServer_ThrowsUnreachable()
     {
         var port = FreePort();
         var connector = new OpenRgbNetConnector(IPAddress.Loopback.ToString(), port, "Test", TimeSpan.FromMilliseconds(500), TestTimeouts.Short);
 
-        var exception = await Assert.ThrowsAnyAsync<Exception>(() => connector.ConnectAsync(Ct));
+        var exception = await Assert.ThrowsAsync<OpenRgbUnreachableException>(() => connector.ConnectAsync(Ct));
 
-        Assert.True(exception is TimeoutException or SocketException, exception.ToString());
+        Assert.True(exception.InnerException is OperationCanceledException or SocketException, exception.ToString());
     }
 
     [Fact]

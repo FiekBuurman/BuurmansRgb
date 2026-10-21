@@ -36,6 +36,7 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), devices[1].Location);
         Assert.Null(devices[0].Location);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
+        Assert.Equal([true, false, true], devices.Select(device => device.HasDirectMode));
     }
 
     [Fact]
@@ -113,6 +114,20 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task OpenRgbStatus_CrossesThePipeAsAnswerAndAsEvent()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource<ServerStatus>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.OpenRgbStatusChanged += (_, status) => received.TrySetResult(status);
+
+        var status = await client.Api.GetOpenRgbStatusAsync(Ct);
+        _api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Failed));
+
+        Assert.Equal(new ServerStatus(ServerState.Connected, 4), status);
+        Assert.Equal(new ServerStatus(ServerState.Failed), await received.Task.WaitAsync(TestTimeouts.Short, Ct));
+    }
+
+    [Fact]
     public async Task SetColorLoopAsync_ReachesServerWithColorsInOrder()
     {
         var client = await ConnectAsync();
@@ -172,6 +187,18 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+
+        var mode = await client.Api.GetSimulatedDevicesAsync(Ct);
+        await client.Api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
+
+        Assert.Equal(SimulatedDevicesMode.Always, mode);
+        Assert.Equal([SimulatedDevicesMode.Never], _api.SimulatedDevicesCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -224,6 +251,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
+        public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
+
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
             new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
@@ -231,6 +260,7 @@ public sealed class EngineRpcTests : IDisposable
             {
                 Source = DeviceSource.Hardware,
                 Location = new DeviceLocation("PIIX4", "0x4E"),
+                HasDirectMode = false,
             },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }])
@@ -256,6 +286,11 @@ public sealed class EngineRpcTests : IDisposable
         public void RaiseDevicesChanged() => DevicesChanged?.Invoke(this, EventArgs.Empty);
 
         public void RaiseSaved(bool succeeded) => SettingsSaved?.Invoke(this, new SettingsSaveResult(succeeded));
+
+        public void RaiseOpenRgbStatus(ServerStatus status) => OpenRgbStatusChanged?.Invoke(this, status);
+
+        public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) =>
+            Task.FromResult(new ServerStatus(ServerState.Connected, 4));
 
         public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) => Task.FromResult(Devices);
 
@@ -310,6 +345,17 @@ public sealed class EngineRpcTests : IDisposable
         public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
         {
             FlashCalls.Add(deviceId);
+            return Task.CompletedTask;
+        }
+
+        public List<SimulatedDevicesMode> SimulatedDevicesCalls { get; } = [];
+
+        public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) =>
+            Task.FromResult(SimulatedDevicesMode.Always);
+
+        public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
+        {
+            SimulatedDevicesCalls.Add(mode);
             return Task.CompletedTask;
         }
 

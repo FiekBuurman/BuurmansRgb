@@ -301,4 +301,61 @@
   </data>
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
+  </data>
+  <data name="SimulatedDevicesLabel" xml:space="preserve">
+    <value>Gesimuleerde apparaten tonen</value>
+  </data>
+  <data name="SimulatedDevicesShortLabel" xml:space="preserve">
+    <value>Gesimuleerd:</value>
+  </data>
+  <data name="OpenRgbHintAccessibleName" xml:space="preserve">
+    <value>Tip bij de OpenRGB-status</value>
+  </data>
+  <data name="SimulatedDevicesHint" xml:space="preserve">
+    <value>Nep-apparaten om BuurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
+  </data>
+  <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
+    <value>Automatisch</value>
+  </data>
+  <data name="SimulatedDevicesMode_Always" xml:space="preserve">
+    <value>Altijd</value>
+  </data>
+  <data name="SimulatedDevicesMode_Never" xml:space="preserve">
+    <value>Nooit</value>
+  </data>
+  <data name="OpenRgbConnecting" xml:space="preserve">
+    <value>OpenRGB: verbinden…</value>
+    <comment>Gelijk houden met TrayOpenRgbConnecting in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbConnected" xml:space="preserve">
+    <value>OpenRGB: verbonden, {0} apparaten</value>
+    <comment>Gelijk houden met TrayOpenRgbConnected in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbConnectedOneDevice" xml:space="preserve">
+    <value>OpenRGB: verbonden, 1 apparaat</value>
+    <comment>Gelijk houden met TrayOpenRgbConnectedOneDevice in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbConnectedNoDevices" xml:space="preserve">
+    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
+    <comment>Gelijk houden met TrayOpenRgbConnectedNoDevices in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbUnreachable" xml:space="preserve">
+    <value>OpenRGB: niet bereikbaar</value>
+    <comment>Gelijk houden met TrayOpenRgbUnreachable in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbUnreachableHint" xml:space="preserve">
+    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van BuurmansRgb opnieuw; BuurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
+  </data>
+  <data name="OpenRgbFailed" xml:space="preserve">
+    <value>OpenRGB: geen goed antwoord</value>
+    <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
+  </data>
+  <data name="OpenRgbFailedHint" xml:space="preserve">
+    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. BuurmansRgb blijft het proberen.</value>
+  </data>
+  <data name="NoDirectModeWarning" xml:space="preserve">
+    <value>Volgt de kleur misschien niet</value>
+  </data>
+  <data name="NoDirectModeHint" xml:space="preserve">
+    <value>Dit apparaat heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. BuurmansRgb stuurt de kleuren wel, maar het apparaat kan zijn eigen effect blijven tonen. Gebeurt dat, stel het dan in OpenRGB zelf in.</value>
   </data></root>

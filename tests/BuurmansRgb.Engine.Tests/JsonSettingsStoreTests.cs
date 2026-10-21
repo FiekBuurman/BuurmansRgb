@@ -138,16 +138,61 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Equal(EngineSettings.CreateDefault().Brightness, settings.Brightness);
         Assert.Equal(new RgbColor(0, 0, 255), settings.Color);
-        Assert.True(settings.SimulatedDevices);
+        Assert.Equal(SimulatedDevicesMode.Automatic, settings.SimulatedDevices);
     }
 
-    [Fact]
-    public void LoadOrCreate_SimulatedDevicesOff_ReadsIt()
+    // True is what older versions wrote by themselves, so it is no choice of the user.
+    [Theory]
+    [InlineData("true", SimulatedDevicesMode.Automatic)]
+    [InlineData("false", SimulatedDevicesMode.Never)]
+    [InlineData("\"automatic\"", SimulatedDevicesMode.Automatic)]
+    [InlineData("\"always\"", SimulatedDevicesMode.Always)]
+    [InlineData("\"never\"", SimulatedDevicesMode.Never)]
+    [InlineData("\"Never\"", SimulatedDevicesMode.Never)]
+    [InlineData("\"only-on-tuesdays\"", SimulatedDevicesMode.Automatic)]
+    [InlineData("\"1\"", SimulatedDevicesMode.Automatic)]
+    public void LoadOrCreate_SimulatedDevices_ReadsTheMode(string value, SimulatedDevicesMode expected)
     {
         var path = _directory.File("settings.json");
-        File.WriteAllText(path, """{ "simulatedDevices": false }""");
+        File.WriteAllText(path, $$"""{ "color": "#00FF00", "simulatedDevices": {{value}} }""");
 
-        Assert.False(new JsonSettingsStore(path).LoadOrCreate().SimulatedDevices);
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(expected, settings.SimulatedDevices);
+        Assert.Equal(new RgbColor(0, 255, 0), settings.Color);
+    }
+
+    // Anything else must not cost the rest of the file, or the next save would overwrite the lighting.
+    [Theory]
+    [InlineData("2")]
+    [InlineData("null")]
+    [InlineData("""{ "mode": "never" }""")]
+    [InlineData("""["never", 1]""")]
+    public void LoadOrCreate_SimulatedDevicesNoWord_ReadsAutomaticAndKeepsTheRest(string value)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#00FF00", "simulatedDevices": {{value}}, "brightness": 0.25 }""");
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(SimulatedDevicesMode.Automatic, settings.SimulatedDevices);
+        Assert.Equal(new RgbColor(0, 255, 0), settings.Color);
+        Assert.Equal(0.25, settings.Brightness);
+    }
+
+    [Theory]
+    [InlineData(SimulatedDevicesMode.Automatic, "automatic")]
+    [InlineData(SimulatedDevicesMode.Always, "always")]
+    [InlineData(SimulatedDevicesMode.Never, "never")]
+    public void Save_SimulatedDevices_WritesTheModeAsAWordAndReadsItBack(SimulatedDevicesMode mode, string word)
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(new EngineSettings { SimulatedDevices = mode });
+
+        Assert.Contains($"\"simulatedDevices\": \"{word}\"", File.ReadAllText(path));
+        Assert.Equal(mode, store.LoadOrCreate().SimulatedDevices);
     }
 
     [Fact]
@@ -157,7 +202,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         new JsonSettingsStore(path).LoadOrCreate();
 
-        Assert.Contains("\"simulatedDevices\": true", File.ReadAllText(path));
+        Assert.Contains("\"simulatedDevices\": \"automatic\"", File.ReadAllText(path));
     }
 
     [Theory]

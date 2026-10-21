@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Settings;
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-    Converters = [typeof(RgbColorJsonConverter)])]
+    Converters = [typeof(RgbColorJsonConverter), typeof(SimulatedDevicesModeJsonConverter)])]
 [JsonSerializable(typeof(EngineSettings))]
 [JsonSerializable(typeof(ProfilesFile))]
 internal sealed partial class EngineSettingsJsonContext : JsonSerializerContext;

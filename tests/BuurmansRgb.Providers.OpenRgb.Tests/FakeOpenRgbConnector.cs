@@ -11,6 +11,9 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
 
     public bool IsRunning { get; set; } = true;
 
+    // Thrown while running, like a server that answers but does not speak the protocol.
+    public Exception? ConnectException { get; set; }
+
     public IReadOnlyList<OpenRgbDeviceData> Devices { get; set; } = [TestDevices.Create()];
 
     public Exception? GetDevicesException { get; set; }
@@ -40,7 +43,13 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
         ConnectCount++;
         if (!IsRunning)
         {
-            return Task.FromException<IOpenRgbConnection>(new TimeoutException("Could not connect to OpenRGB"));
+            return Task.FromException<IOpenRgbConnection>(
+                new OpenRgbUnreachableException("Could not connect to OpenRGB", new TimeoutException()));
+        }
+
+        if (ConnectException is not null)
+        {
+            return Task.FromException<IOpenRgbConnection>(ConnectException);
         }
 
         var connection = new FakeOpenRgbConnection(this, CloseBeforeSubscribing);

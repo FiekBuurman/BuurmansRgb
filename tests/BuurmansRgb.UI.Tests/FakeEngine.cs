@@ -49,6 +49,33 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public event EventHandler<SettingsSaveResult>? SettingsSaved;
 
+    public event EventHandler<ServerStatus>? OpenRgbStatusChanged;
+
+    public ServerStatus OpenRgbStatus { get; set; } = new(ServerState.Connected, 2);
+
+    public bool HasOpenRgbStatusSubscribers => OpenRgbStatusChanged is not null;
+
+    public void RaiseOpenRgbStatus(ServerStatus status)
+    {
+        OpenRgbStatus = status;
+        OpenRgbStatusChanged?.Invoke(this, status);
+    }
+
+    // When set, the status changes to this while GetOpenRgbStatusAsync answers with the older one,
+    // as when the event overtakes the answer.
+    public ServerStatus? StatusChangeWhileAnswering { get; set; }
+
+    public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default)
+    {
+        var answer = OpenRgbStatus;
+        if (StatusChangeWhileAnswering is { } newer)
+        {
+            RaiseOpenRgbStatus(newer);
+        }
+
+        return Task.FromResult(answer);
+    }
+
     public IReadOnlyList<DeviceInfo> Devices { get; set; } =
     [
         TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 3),
@@ -126,6 +153,16 @@ internal sealed class FakeEngineApi : IEngineApi
         Record($"resize {deviceId} {zoneIndex} {ledCount}");
 
     public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default) => Record($"flash {deviceId}");
+
+    public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
+
+    public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(SimulatedDevices);
+
+    public async Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
+    {
+        await Record($"simulated {mode}");
+        SimulatedDevices = mode;
+    }
 
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];

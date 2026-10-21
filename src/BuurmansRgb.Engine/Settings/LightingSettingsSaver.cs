@@ -3,22 +3,26 @@ using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Settings;
 
-// Saves the lighting a moment after the last change, so dragging a slider in the UI writes the
-// file once instead of on every step. The timer only runs while a save is pending.
+// Saves the lighting, and the options that can change while the engine runs, a moment after the
+// last change, so dragging a slider in the UI writes the file once instead of on every step. The
+// timer only runs while a save is pending.
 internal sealed class LightingSettingsSaver : IDisposable
 {
     private readonly ISettingsStore _store;
     private readonly ILightingStateSource _lighting;
-    private readonly EngineSettings _startupSettings;
     private readonly TimeSpan _delay;
     private readonly SettingsSaveEvents? _saveEvents;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
+
+    // The options besides the lighting that the next save writes.
+    private EngineSettings _settings;
     private bool _pending;
     private bool _disposed;
 
-    // startupSettings are the settings the engine started with: the saver keeps their other options
-    // and only replaces the lighting. saveEvents hears about every save, also a failed one.
+    // startupSettings are the settings the engine started with: the saver keeps their other
+    // options, unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about
+    // every save, also a failed one.
     public LightingSettingsSaver(
         ISettingsStore store,
         ILightingStateSource lighting,
@@ -29,7 +33,7 @@ internal sealed class LightingSettingsSaver : IDisposable
     {
         _store = store;
         _lighting = lighting;
-        _startupSettings = startupSettings;
+        _settings = startupSettings;
         _delay = delay;
         _saveEvents = saveEvents;
         _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
@@ -58,18 +62,35 @@ internal sealed class LightingSettingsSaver : IDisposable
         SavePending();
     }
 
+    // Changes an option besides the lighting, such as the simulated devices, and saves it the same
+    // way as a change of the lighting.
+    public void ChangeOptions(Func<EngineSettings, EngineSettings> change)
+    {
+        lock (_gate)
+        {
+            if (!_disposed)
+            {
+                _settings = change(_settings);
+                ScheduleSaveLocked();
+            }
+        }
+    }
+
     private void OnLightingChanged(object? sender, EventArgs e)
     {
         lock (_gate)
         {
-            if (_disposed)
+            if (!_disposed)
             {
-                return;
+                ScheduleSaveLocked();
             }
-
-            _pending = true;
-            _timer.Change(_delay, Timeout.InfiniteTimeSpan);
         }
+    }
+
+    private void ScheduleSaveLocked()
+    {
+        _pending = true;
+        _timer.Change(_delay, Timeout.InfiniteTimeSpan);
     }
 
     // The listeners hear about the save outside the lock, so a slow one does not hold up the next.
@@ -86,7 +107,7 @@ internal sealed class LightingSettingsSaver : IDisposable
             _pending = false;
             try
             {
-                _store.Save(_startupSettings.WithLighting(_lighting.State));
+                _store.Save(_settings.WithLighting(_lighting.State));
                 succeeded = true;
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
