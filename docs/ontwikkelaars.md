@@ -65,7 +65,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
-| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
+| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit), `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is of slaapt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -128,8 +128,10 @@ toetsenbord. Een paar dingen om te proberen:
   nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
   ronde, waar `Process.GetProcessesByName` of een Toolhelp-snapshot 5 tot 7 ms kosten en WMI
   `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
-  ook. Tijdens een pauze om vergrendelen of slaapstand (`PauseReasons.Locked` of `Asleep`) staat
-  de timer stil; als die pauze eindigt, kijkt hij meteen.
+  ook. Zolang Windows vergrendeld is of slaapt staat de timer stil, ook als
+  `pauseOnLockAndSleep` uit staat: `ProgramWatcher` volgt `AutoPause.Away` (`AwayChanged`), dat
+  vergrendelen en slaapstand bijhoudt los van `AutoPause.Enabled`. Daarna kijkt hij meteen,
+  zodat een programma dat intussen startte of stopte dan telt.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
   `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
@@ -200,6 +202,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
 | Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#51) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
 | Engine | Regenboog, sneltoetsen aan (#52) | 0,36–0,39 % van één kern, zonder sneltoetsen (#51) 0,26–0,39 %: geen verschil buiten de ruis; een toets kost alleen iets als je hem indrukt | 26–28 MB working set, 11–11,7 MB private (zonder: 24–27 en 11–12 MB) |
+| Engine | Regenboog, `pauseOnLockAndSleep` uit, een scène met een programma, niet vergrendeld (#??) | 0,31–0,60 % van één kern, zonder deze uitbreiding (#53) 0,49–0,52 %: geen verschil buiten de ruis. Vergrendeld scheelt het de ~0,05 % van het kijken in de proceslijst | 27–31 MB working set, 11–12,6 MB private (zonder: 26–31 en 11–13 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -400,6 +403,9 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    stopt en loopt daarna weer.
 5. Zet bij Instellingen "Pauzeren bij vergrendelen en slaapstand" uit en vergrendel: de
    regenboog loopt door.
+6. Laat die schakelaar uit en geef een scène het programma `timeout.exe`. Typ in een terminal
+   `timeout /t 30`: de scène gaat aan. Vergrendel meteen en wacht tot de 30 seconden om zijn: de
+   scène blijft staan. Ontgrendel: meteen daarna komt de verlichting van daarvoor terug.
 
 ## Mappen en documenten
 
