@@ -13,6 +13,9 @@ public interface IPreviewActions
     // Lets the device blink on the hardware, so the user can see which one it is.
     void FlashDevice(string deviceId);
 
-    // False while the effects are paused: a device does not blink then.
+    // The same for one zone of a device, such as one header of a motherboard.
+    void FlashZone(ZoneFlash flash);
+
+    // False while the effects are paused: a device or zone does not blink then.
     bool CanFlash { get; }
 }

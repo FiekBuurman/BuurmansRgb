@@ -15,5 +15,7 @@ internal sealed class RecordingPreviewActions : IPreviewActions
 
     public void FlashDevice(string deviceId) => Requests.Add(deviceId);
 
+    public void FlashZone(ZoneFlash flash) => Requests.Add(flash);
+
     public bool CanFlash { get; set; } = true;
 }

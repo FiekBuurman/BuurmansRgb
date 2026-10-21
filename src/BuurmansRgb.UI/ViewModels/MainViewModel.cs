@@ -91,6 +91,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
+        Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
@@ -698,6 +699,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
+        }
+    }
+
+    private void FlashZone(ZoneFlash flash)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
         }
     }
 

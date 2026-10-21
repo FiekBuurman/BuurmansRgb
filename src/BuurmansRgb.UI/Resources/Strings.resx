@@ -401,6 +401,15 @@
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
   </data>
+  <data name="FlashZone" xml:space="preserve">
+    <value>Knipperen</value>
+  </data>
+  <data name="FlashZoneToolTip" xml:space="preserve">
+    <value>Laat alleen deze zone even wit knipperen, zodat je in de pc ziet welke fan of strip het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+  </data>
+  <data name="FlashZoneAccessibleName" xml:space="preserve">
+    <value>Zone {1} van {0} laten knipperen</value>
+  </data>
   <data name="SimulatedDevicesLabel" xml:space="preserve">
     <value>Gesimuleerde lampen tonen</value>
   </data>

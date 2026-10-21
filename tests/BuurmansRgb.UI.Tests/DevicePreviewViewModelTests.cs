@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -277,6 +278,52 @@ public sealed class DevicePreviewViewModelTests
 
         Assert.Equal(["board"], actions.Requests);
         Assert.Equal("Motherboard laten knipperen", preview.FlashAccessibleName);
+    }
+
+    [Fact]
+    public void FlashZone_AsksToFlashOnlyThatZone()
+    {
+        var actions = new RecordingPreviewActions();
+        var header = new DevicePreviewViewModel(Motherboard, actions).Zones[1];
+
+        header.FlashCommand.Execute(null);
+
+        Assert.Equal([new ZoneFlash("board", 1)], actions.Requests);
+        Assert.Equal("Zone RGB header van Motherboard laten knipperen", header.FlashAccessibleName);
+    }
+
+    // The empty header has nothing to blink, not even while the user sets a length for it.
+    [Fact]
+    public void ShowsFlash_OnlyForANamedZoneWithLeds()
+    {
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions, new FakeTimeProvider());
+        preview.Zones[2].Length!.IncreaseCommand.Execute(null);
+
+        Assert.Equal([true, true, false], preview.Zones.Select(zone => zone.ShowsFlash));
+        preview.Zones[2].FlashCommand.Execute(null);
+        Assert.Empty(actions.Requests.OfType<ZoneFlash>());
+    }
+
+    // A device with one zone has the button of the device; the LEDs that no zone claims are no
+    // zone the engine knows.
+    [Fact]
+    public void ShowsFlash_NotForTheOnlyZoneNorForLedsWithoutZone()
+    {
+        var single = new DevicePreviewViewModel(new DeviceInfo("ram", "RAM", DeviceType.Ram, 8, [RgbZone.Fixed("DRAM", 8)]) { Source = DeviceSource.Hardware });
+        var rest = new DevicePreviewViewModel(new DeviceInfo("board", "Board", DeviceType.Motherboard, 5, [RgbZone.Fixed("A", 2)]) { Source = DeviceSource.Hardware });
+
+        Assert.False(single.Zones[0].ShowsFlash);
+        Assert.Equal([true, false], rest.Zones.Select(zone => zone.ShowsFlash));
+    }
+
+    [Fact]
+    public void FlashZone_WhilePaused_IsGrey()
+    {
+        var actions = new RecordingPreviewActions { CanFlash = false };
+        var header = new DevicePreviewViewModel(Motherboard, actions).Zones[1];
+
+        Assert.False(header.FlashCommand.CanExecute(null));
     }
 
     [Fact]
