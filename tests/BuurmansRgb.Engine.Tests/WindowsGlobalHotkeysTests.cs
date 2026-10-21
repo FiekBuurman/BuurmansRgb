@@ -15,6 +15,24 @@ public sealed class WindowsGlobalHotkeysTests
     public void ToModifiers_GivesTheModifiersOfRegisterHotKey(Keys key, uint modifiers) =>
         Assert.Equal(modifiers, WindowsGlobalHotkeys.ToModifiers(key));
 
+    // Each key keeps one id of its own, which stays in the range Windows leaves to an app.
+    [Fact]
+    public void ToId_GivesEachKeyAFixedIdInTheRangeOfAnApp()
+    {
+        Keys[] keys =
+        [
+            AllOnOffHotkeys.AllOn, AllOnOffHotkeys.AllOff, UnusedKey,
+            Keys.F24, Keys.Control | Keys.F24, Keys.Alt | Keys.F24, Keys.Shift | Keys.F24,
+            Keys.Control | Keys.Alt | Keys.Shift | Keys.OemClear,
+        ];
+
+        var ids = keys.Select(WindowsGlobalHotkeys.ToId).ToList();
+
+        Assert.Equal(keys.Length, ids.Distinct().Count());
+        Assert.All(ids, id => Assert.InRange(id, 0x0000, 0xBFFF));
+        Assert.Equal(ids, keys.Select(WindowsGlobalHotkeys.ToId));
+    }
+
     // Another app (here another window) has the key: registering says so and logs it, without
     // throwing. Once that window gives it back, the key can be had.
     [Fact]

@@ -19,14 +19,13 @@ internal sealed partial class WindowsGlobalHotkeys : NativeWindow, IGlobalHotkey
     private static readonly nint MessageOnlyParent = new(-3);
 
     private readonly Dictionary<Keys, (int Id, Action Pressed)> _registered = [];
-    private int _lastId;
 
     public WindowsGlobalHotkeys() => CreateHandle(new CreateParams { Parent = MessageOnlyParent });
 
     public bool Register(Keys key, Action pressed)
     {
         Unregister(key);
-        var id = ++_lastId;
+        var id = ToId(key);
         if (!RegisterHotKey(Handle, id, ToModifiers(key), (uint)(key & Keys.KeyCode)))
         {
             Trace.TraceWarning($"The hotkey {key} could not be registered (error {Marshal.GetLastPInvokeError()}); another app may have it.");
@@ -61,6 +60,11 @@ internal sealed partial class WindowsGlobalHotkeys : NativeWindow, IGlobalHotkey
         | (key.HasFlag(Keys.Alt) ? ModAlt : 0)
         | (key.HasFlag(Keys.Control) ? ModControl : 0)
         | (key.HasFlag(Keys.Shift) ? ModShift : 0);
+
+    // The same id for a key every time, made of its modifiers and its key code: at most 0x7FF, so
+    // always in the 0x0000-0xBFFF that Windows leaves to an app, however often it is registered.
+    internal static int ToId(Keys key) =>
+        (int)((((uint)key >> 16) & 0x7) << 8 | ((uint)key & 0xFF));
 
     protected override void WndProc(ref Message m)
     {
