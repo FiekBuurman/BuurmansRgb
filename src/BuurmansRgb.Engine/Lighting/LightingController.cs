@@ -154,7 +154,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // What the devices show while the pause has a reason besides the manual one: the last frame
     // (Keep), that frame at DimmedBrightness (Dim) or black (Off). Only what goes to the devices
     // changes; the buffers, and so the preview, keep the real colors, and when the last of those
-    // reasons ends the devices get them again. Another value during such a pause goes out at once.
+    // reasons ends the devices get them again. Another value during such a pause goes out at once;
+    // it holds and is reported even when a device fails then.
     public PausedLightsMode PausedLights
     {
         get
@@ -166,21 +167,26 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
         set
         {
-            bool changed;
-            lock (_gate)
+            var changed = false;
+            try
             {
-                var oldScale = SendScaleLocked;
-                changed = _pausedLights != value;
-                _pausedLights = value;
-                if (SendScaleLocked != oldScale)
+                lock (_gate)
                 {
-                    SendAllLocked();
+                    var oldScale = SendScaleLocked;
+                    changed = _pausedLights != value;
+                    _pausedLights = value;
+                    if (SendScaleLocked != oldScale)
+                    {
+                        SendAllLocked();
+                    }
                 }
             }
-
-            if (changed)
+            finally
             {
-                PausedLightsChanged?.Invoke(this, EventArgs.Empty);
+                if (changed)
+                {
+                    PausedLightsChanged?.Invoke(this, EventArgs.Empty);
+                }
             }
         }
     }

@@ -195,6 +195,22 @@ public sealed class LightingControllerPausedLightsTests : IDisposable
         Assert.Equal(1, raised);
     }
 
+    // So the settings app and settings.json still get the new value.
+    [Fact]
+    public async Task PausedLightsChanged_ADeviceFailsWhileTheColorsGoOut_StillHoldsAndIsRaised()
+    {
+        await StartAsync(EffectIds.Static);
+        _controller.SetPaused(PauseReasons.Locked, true);
+        var raised = 0;
+        _controller.PausedLightsChanged += (_, _) => raised++;
+        _provider.ThrowOnNextSetLeds = true;
+
+        Assert.Throws<InvalidOperationException>(() => _controller.PausedLights = PausedLightsMode.Off);
+
+        Assert.Equal(PausedLightsMode.Off, _controller.PausedLights);
+        Assert.Equal(1, raised);
+    }
+
     // A scene that loads on time while Windows is locked stays dark, and shows after unlocking.
     [Fact]
     public async Task Off_AChangeWhileLocked_StaysBlackUntilUnlocked()
