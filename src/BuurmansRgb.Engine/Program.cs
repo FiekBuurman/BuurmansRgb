@@ -64,7 +64,7 @@ internal static class Program
             zoneLengths: zoneLengths,
             autoPause: autoPause);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         {
             Application.Run(context);
