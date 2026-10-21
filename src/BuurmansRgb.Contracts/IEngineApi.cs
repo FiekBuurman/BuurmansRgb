@@ -99,6 +99,12 @@ public partial interface IEngineApi
     // paused or for a device the engine does not know (any more).
     Task FlashDeviceAsync(string deviceId, CancellationToken ct = default);
 
+    // The same for the LEDs of one zone (an index into the device's zones) only, such as one
+    // header of a motherboard; the rest of the device keeps its colors. A new flash of a device or
+    // zone replaces the one before. Also does nothing for a zone the engine does not know (any
+    // more) or that has no LEDs.
+    Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default);
+
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
 
     // Why the effects are paused; PauseReasons.None while they run.

@@ -165,6 +165,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default)
+    {
+        _lighting.FlashZone(deviceId, zoneIndex);
+        return Task.CompletedTask;
+    }
+
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
 
     public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Pause);
