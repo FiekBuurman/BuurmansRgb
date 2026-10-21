@@ -88,6 +88,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ActiveProfile_CrossesThePipe_AlsoWhenThereIsNone()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal("Nacht", await client.Api.GetActiveProfileAsync(Ct));
+        _api.ActiveProfile = null;
+        Assert.Null(await client.Api.GetActiveProfileAsync(Ct));
+    }
+
+    [Fact]
     public async Task GetProfileLightingAsync_RoundTripsEveryField()
     {
         var client = await ConnectAsync();
@@ -487,6 +497,10 @@ public sealed class EngineRpcTests : IDisposable
         public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
 
         public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        public string? ActiveProfile { get; set; } = "Nacht";
+
+        public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(ActiveProfile);
 
         public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
             Task.FromResult(name == "Nacht" ? Lighting : throw new ArgumentException($"There is no profile '{name}'.", nameof(name)));

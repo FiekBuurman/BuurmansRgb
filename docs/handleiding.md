@@ -151,8 +151,13 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling).
-- Zonelengtes horen niet bij een scène. Welke scène het laatst aanging, weet de app niet;
-  daarom heeft geen kaart de rand van "actief".
+- **De scène die aan staat** heeft een witte rand van 2 px, zoals in het ontwerp, en in het
+  tray-menu een vinkje; een schermlezer zegt "Staat aan". Dat is de scène die het laatst aanging
+  (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of
+  overschreef. Verandert de verlichting daarna op een andere manier (een kleur, de helderheid,
+  een lamp uit), dan staat er geen scène meer aan. Stopt een spel met een eigen scène, dan staat
+  de scène van daarvoor weer aan. Na een herstart van de engine weet hij het niet meer.
+- Zonelengtes horen niet bij een scène.
 
 Hoe het vanzelf aanzetten werkt:
 
@@ -215,8 +220,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   ontwerp; zo zegt hij iets over het huis.
 - **Knoppen** hebben ronde hoeken (12 px) in plaats van pilvormen.
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
-  een profiel. Een scène als "actief" markeren (de rand uit het ontwerp) kan nog niet, en elke
-  kaart heeft een moersleutel om hem aan te passen.
+  een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
+  dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
 - **Buren** is nog leeg, want nog niet ontworpen (§ 5.4). De buren-kaart op Lampen en
   "Samen aan de slag" op Scènes zijn weggelaten, omdat er nog niets achter zit.
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
@@ -234,7 +239,8 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
 - **Menu:** "Instellingen openen", "Scène aanzetten", "Effecten pauzeren", "Starten met
   Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen.
-- **Scène aanzetten** toont de opgeslagen scènes; klik er een aan. Zonder scènes staat er
+- **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
+  klik er een aan. Zonder scènes staat er
   "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
   `profiles.json` niet gelezen worden, dan is het grijs en meldt het icoon dat; ook de eerste
   seconden na het starten is het grijs, tot de engine de opgeslagen verlichting heeft gezet.

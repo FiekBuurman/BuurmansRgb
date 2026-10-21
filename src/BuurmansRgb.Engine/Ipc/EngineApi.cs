@@ -163,6 +163,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(_profiles.ActiveName);
+
     public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
         Task.FromResult(ToInfo(_profiles.GetLighting(name).Global));
 

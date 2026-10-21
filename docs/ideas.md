@@ -163,9 +163,8 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Bijhouden welke scène het laatst aanging (en dat vergeten zodra de verlichting daarna
-  verandert), zodat de kaart op de pagina Scènes de rand van "actief" krijgt zoals in het ontwerp
-  en het tray-menu er een vinkje bij zet; nu houdt niemand dat bij
+- De scène die aan staat ook na een herstart van de engine weten (bijv. als `activeScene` in
+  `settings.json`); nu begint de engine zonder, ook als de verlichting nog die van de scène is
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden

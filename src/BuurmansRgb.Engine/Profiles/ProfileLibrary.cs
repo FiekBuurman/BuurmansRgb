@@ -11,10 +11,32 @@ namespace BuurmansRgb.Engine.Profiles;
 // times and programs then. Written on every change. Called from the tray thread, IPC threads and
 // the timers of the triggers; the lock guards the list. An invalid or unknown name throws
 // ArgumentException, which reaches the UI as an RPC error.
-internal sealed class ProfileLibrary(IProfileStore store, LightingController lighting)
+//
+// It also knows which scene is on (ActiveName): the one loaded or saved last, until the lighting
+// changes in any other way. That is not kept over a restart of the engine.
+internal sealed class ProfileLibrary
 {
+    private readonly IProfileStore _store;
+    private readonly LightingController _lighting;
     private readonly Lock _gate = new();
     private List<Profile>? _profiles;
+
+    // Guards the scene that is on. Apart from _gate, because LightingChanged comes from inside the
+    // lighting controller, also while another thread holds _gate.
+    private readonly Lock _activeGate = new();
+    private string? _activeName;
+
+    // The scene that Show is putting on, and its thread: the LightingChanged of that thread is the
+    // scene coming on, any other is a change that ends it.
+    private string? _showingName;
+    private int _showingThread;
+
+    public ProfileLibrary(IProfileStore store, LightingController lighting)
+    {
+        _store = store;
+        _lighting = lighting;
+        lighting.LightingChanged += OnLightingChanged;
+    }
 
     // Raised after the list was written: a profile was saved or deleted, or got another automation.
     // Outside the lock, so a listener can read the library again.
@@ -28,6 +50,18 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
             lock (_gate)
             {
                 return [.. ProfilesLocked().Select(profile => profile.Name)];
+            }
+        }
+    }
+
+    // The name of the scene that is on, in its saved spelling; null when none is.
+    public string? ActiveName
+    {
+        get
+        {
+            lock (_activeGate)
+            {
+                return _activeName;
             }
         }
     }
@@ -51,11 +85,12 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
     }
 
     // Saves the lighting as it is now. A profile with the same name is replaced and takes the new
-    // spelling, but keeps its automation. The list only changes once the file is written.
+    // spelling, but keeps its automation. The list only changes once the file is written. What
+    // burns then is that scene, so it is the one that is on.
     public void Save(string name)
     {
         var normalized = ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
-        var lightingNow = lighting.State;
+        var lightingNow = _lighting.State;
         lock (_gate)
         {
             var old = ProfilesLocked().Find(other => Matches(other, normalized));
@@ -65,12 +100,50 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
             Store(profiles);
         }
 
+        lock (_activeGate)
+        {
+            _activeName = normalized;
+        }
+
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    // Shows the lighting of the profile and saves it as the current lighting. Outside the lock: the
-    // controller has its own.
-    public void Load(string name) => lighting.Replace(GetLighting(name));
+    // Shows the lighting of the profile and saves it as the current lighting.
+    public void Load(string name)
+    {
+        Profile profile;
+        lock (_gate)
+        {
+            profile = FindLocked(name);
+        }
+
+        Show(profile.Lighting, profile.Name);
+    }
+
+    // Shows lighting and saves it as the current lighting, with scene as the scene that is on, or
+    // null for none: for example the lighting from before a game, which may have been a scene.
+    // Outside _gate: the controller has its own lock.
+    public void Show(LightingState state, string? scene)
+    {
+        lock (_activeGate)
+        {
+            _showingName = scene;
+            _showingThread = Environment.CurrentManagedThreadId;
+        }
+
+        try
+        {
+            _lighting.Replace(state);
+        }
+        finally
+        {
+            lock (_activeGate)
+            {
+                _showingName = null;
+                _showingThread = 0;
+            }
+        }
+    }
 
     public LightingState GetLighting(string name)
     {
@@ -82,10 +155,20 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
 
     public void Delete(string name)
     {
+        string deleted;
         lock (_gate)
         {
             var profile = FindLocked(name);
             Store([.. ProfilesLocked().Where(other => !ReferenceEquals(other, profile))]);
+            deleted = profile.Name;
+        }
+
+        lock (_activeGate)
+        {
+            if (_activeName is not null && Matches(deleted, _activeName))
+            {
+                _activeName = null;
+            }
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -112,9 +195,19 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    private static bool Matches(Profile profile, string name) => ProfileNames.Comparer.Equals(profile.Name, name);
+    private static bool Matches(Profile profile, string name) => Matches(profile.Name, name);
 
-    private List<Profile> ProfilesLocked() => _profiles ??= [.. store.Load().OrderBy(profile => profile.Name, ProfileNames.Comparer)];
+    private static bool Matches(string left, string right) => ProfileNames.Comparer.Equals(left, right);
+
+    private void OnLightingChanged(object? sender, EventArgs e)
+    {
+        lock (_activeGate)
+        {
+            _activeName = _showingThread == Environment.CurrentManagedThreadId ? _showingName : null;
+        }
+    }
+
+    private List<Profile> ProfilesLocked() => _profiles ??= [.. _store.Load().OrderBy(profile => profile.Name, ProfileNames.Comparer)];
 
     private Profile FindLocked(string name) =>
         ProfilesLocked().Find(profile => Matches(profile, name?.Trim() ?? string.Empty))
@@ -122,7 +215,7 @@ internal sealed class ProfileLibrary(IProfileStore store, LightingController lig
 
     private void Store(List<Profile> profiles)
     {
-        store.Save(profiles);
+        _store.Save(profiles);
         _profiles = profiles;
     }
 }

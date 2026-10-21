@@ -84,17 +84,17 @@ internal sealed class TrayPresenter(
     {
         if (!_started)
         {
-            view.ShowProfiles(null);
+            view.ShowProfiles(null, null);
             return;
         }
 
         try
         {
-            view.ShowProfiles(profiles.Names);
+            view.ShowProfiles(profiles.Names, profiles.ActiveName);
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
-            view.ShowProfiles(null);
+            view.ShowProfiles(null, null);
             ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
         }
     }

@@ -54,6 +54,59 @@ public sealed class MainViewModelSceneTests
     }
 
     [Fact]
+    public async Task Connect_TheSceneThatIsOnIsActive()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Filmavond", "Nacht"]);
+            api.ActiveProfile = "Nacht";
+        });
+
+        Assert.Equal([false, true], viewModel.Profiles.Cards.Select(card => card.IsActive));
+    }
+
+    [Fact]
+    public async Task LoadScene_MakesItsCardActive()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Filmavond", "Nacht"]));
+
+        viewModel.Profiles.LoadSceneCommand.Execute(viewModel.Profiles.Cards[0]);
+
+        Assert.Equal([true, false], viewModel.Profiles.Cards.Select(card => card.IsActive));
+    }
+
+    // A scene from the tray menu, or any other change: the engine reports LightingChanged.
+    [Fact]
+    public async Task LightingChanged_FollowsTheSceneThatIsOn()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Filmavond", "Nacht"]));
+
+        Api.ActiveProfile = "Filmavond";
+        Api.RaiseLightingChanged();
+        Assert.Equal([true, false], viewModel.Profiles.Cards.Select(card => card.IsActive));
+
+        Api.ActiveProfile = null;
+        Api.RaiseLightingChanged();
+        Assert.All(viewModel.Profiles.Cards, card => Assert.False(card.IsActive));
+    }
+
+    [Fact]
+    public async Task DeleteTheActiveScene_NoCardIsActive()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Filmavond", "Nacht"]);
+            api.ActiveProfile = "Nacht";
+        });
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        viewModel.Profiles.DeleteCommand.Execute(null);
+
+        Assert.Null(Api.ActiveProfile);
+        Assert.All(viewModel.Profiles.Cards, card => Assert.False(card.IsActive));
+    }
+
+    [Fact]
     public async Task NewScene_SavedGetsACardThatShowsTheLighting()
     {
         var viewModel = await ConnectAsync(_ => { });
