@@ -124,6 +124,33 @@ public sealed class SingleInstanceTests
     }
 
     [Fact]
+    public async Task SignalPrimaryToExit_InvokesOnlyTheExitCallbackOfPrimary()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        var activated = false;
+        var exited = new TaskCompletionSource();
+        using var activation = primary.ListenForActivation(() => activated = true);
+        using var exit = primary.ListenForExit(() => exited.TrySetResult());
+
+        using (var second = SingleInstance.Acquire(_name))
+        {
+            second.SignalPrimaryToExit();
+        }
+
+        await exited.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.False(activated);
+    }
+
+    [Fact]
+    public void ListenForExit_OnSecondaryInstance_Throws()
+    {
+        using var first = SingleInstance.Acquire(_name);
+        using var second = SingleInstance.Acquire(_name);
+
+        Assert.Throws<InvalidOperationException>(() => second.ListenForExit(() => { }));
+    }
+
+    [Fact]
     public void ListenForActivation_WhileListening_Throws()
     {
         using var primary = SingleInstance.Acquire(_name);

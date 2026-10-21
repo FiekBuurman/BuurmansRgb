@@ -66,7 +66,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests`, `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
-| Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` |
+| Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen de gekozen lamp), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
@@ -81,8 +81,8 @@ toetsenbord. Een paar dingen om te proberen:
 - Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
   de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
   steeds die lengte.
-- Kies "Simulated dual-ring fan" en klik op "Outer ring"; kies "Simulated keyboard", wijs een
-  toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
+- Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
+  toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
   verder, of `notepad.exe`, en start en sluit Kladblok.
 - Vink in het tray-menu "Effecten pauzeren" aan: de melding met "Hervatten" verschijnt.
@@ -111,7 +111,8 @@ toetsenbord. Een paar dingen om te proberen:
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
   `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`). Na het opstarten en na het sluiten
-  van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows.
+  van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
+  (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten
   vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`).
@@ -120,7 +121,8 @@ toetsenbord. Een paar dingen om te proberen:
   nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
   ronde, waar `Process.GetProcessesByName` of een Toolhelp-snapshot 5 tot 7 ms kosten en WMI
   `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
-  ook.
+  ook. Tijdens een pauze om vergrendelen of slaapstand (`PauseReasons.Locked` of `Asleep`) staat
+  de timer stil; als die pauze eindigt, kijkt hij meteen.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
   `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
@@ -213,6 +215,10 @@ negeert. Hoe het werkt en waarom: [openrgb-meeleveren.md](openrgb-meeleveren.md)
 
 - **Na installeren** start de installer de engine als de gewone gebruiker met `--first-run`.
   Die zet "Starten met Windows" aan, alleen als dat nog uit staat.
+- **Engine stoppen** in een script: `BuurmansRgb.Engine.exe --exit` (een tweede start geeft het
+  signaal `Local\BuurmansRgb.Engine.Exit` en stopt meteen; de engine zelf is binnen een paar
+  tienden van een seconde weg, wacht daarop met `Wait-Process BuurmansRgb.Engine`). De installer
+  gebruikt nog `taskkill /F`, omdat een engine van 1.0.0 `--exit` niet kent.
 - **Verwijderen** stopt de engine, haalt de autostart weg en vraagt dan of OpenRGB en PawnIO
   ook weg moeten (alleen als deze installer ze heeft geïnstalleerd), en of je instellingen weg
   moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee".

@@ -49,9 +49,6 @@ uitbreidingen in `docs/bouwplan.md`.
   sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
-- De gesimuleerde lampen een Nederlandse naam geven ("Gesimuleerde ledstrip" in plaats van
-  "Simulated LED strip"), zoals de rest van de app; de namen staan nu vast in
-  `SimulatedDeviceProvider` en in de tests
 
 ## Zones en zonelengtes
 
@@ -66,22 +63,16 @@ uitbreidingen in `docs/bouwplan.md`.
   verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
 - Een zone waarvan het apparaat de naam twee keer heeft, krijgt nu geen bewaarde lengte (er is
   niet te zeggen welke van de twee het was). Eventueel naam plus volgnummer binnen die naam
-- − en + van de zonelengte laten herhalen zolang je ze ingedrukt houdt (`RepeatButton`); nu is het
-  één LED per klik, en voor grote stappen de schuif (PageUp/PageDown: 10 LED's)
 
 ## Welk apparaat is wat (knipperen)
 
 - Ook één zone laten knipperen (bijv. met een knop naast de zonenaam), zodat je bij een
   moederbord met meer ARGB-headers ziet welke header welke fan of strip is; nu knippert het hele
   apparaat
-- Met de pijltjestoetsen door de lampkeuze bij Kleur lopen laat elke lamp die je passeert
-  knipperen; pas knipperen als de keuze even stil staat (bijv. 300 ms)
 - Het knipperen loopt op de framerate van de render-loop: bij een lage `framesPerSecond`
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
 - Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
   het apparaat krijgt dan wel zijn eigen kleuren terug
-- De knop "Laat knipperen" grijs maken zolang de effecten gepauzeerd zijn; nu staat er alleen de
-  melding over de pauze, en de tooltip van de knop zegt dat het dan niet werkt
 
 ## Effecten
 
@@ -110,11 +101,6 @@ uitbreidingen in `docs/bouwplan.md`.
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
 - Een kleur kiezen voor een lamp die uit staat, zet hem niet aan; misschien moet "Op de strip
   zetten" de lamp dan ook aanzetten, zoals veel lamp-apps doen
-- De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de volgende
-  geslaagde wijziging, en preciezer maken (bijv. als de scène van "Vanzelf aanzetten" net
-  verwijderd is)
-- Het spoor van een schakelaar heeft de kleur van de lamp; bij een heel donkere kleur (lage
-  helderheid) valt de donkere knop daarop weg. Eventueel een minimale helderheid voor het spoor
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
 - De Snap Layouts van Windows 11 (het menu bij het aanwijzen van de maximaliseerknop) ook bij de
@@ -131,8 +117,6 @@ uitbreidingen in `docs/bouwplan.md`.
   het alleen met de muis in het voorbeeld (en met een schermlezer)
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
   verloop met meer dan twee kleuren
-- Ook bij een apparaat met één zone in één klik alle LED's selecteren (nu staat daar geen
-  zonenaam om op te klikken), bijv. met een knop "Alles selecteren"
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
   van een reeks in LED-volgorde
 - Per fan-ring kunnen kiezen waar LED 1 zit en welke kant hij op telt (draaien en spiegelen),
@@ -152,10 +136,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt, maar
   alleen de apparaten en zones die veranderden; nu houdt `FocusKeeper` de focus vast, maar een
   sleep over een schuif breekt af als er midden in het slepen een nieuwe apparatenlijst komt
-- In het voorbeeld zien schermlezers per apparaat en per zone een item met de klassenaam
-  ("BuurmansRgb.UI.ViewModels.DevicePreviewViewModel"); `ToString` of een
-  `AutomationProperties.Name` op de items geven ze een echte naam. De LED's zelf hebben sinds
-  de toetsnamen wel een naam
 - Een LED in het voorbeeld via UI Automation in beeld laten schuiven (`ScrollItem`) en hem
   `IsOffscreen` laten melden als hij buiten de zichtbare rand valt; nu volgen de LED's daarin de
   hele zone
@@ -177,8 +157,6 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Tray-menu
 
 - Een sneltoets voor "Alles aan" en "Alles uit" (die staan sinds #41 in het tray-menu)
-- Het tray-menu trimt na het sluiten het geheugen niet, zoals de engine dat na het sluiten van
-  de instellingen-app wel doet
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
@@ -187,9 +165,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
   (`RegisterPowerSettingNotification` met `GUID_CONSOLE_DISPLAY_STATE`); nu loopt de animatie dan
   door
-- Ook het pollen van de proceslijst (`ProgramWatcher`, elke 2 seconden) stilzetten zolang Windows
-  vergrendeld is of slaapt, en bij ontgrendelen meteen één keer kijken; nu loopt het door, al kost
-  het minder dan 0,1 ms per keer
+- Het pollen van de proceslijst stilzetten bij vergrendelen ook als `pauseOnLockAndSleep` uit
+  staat; nu volgt `ProgramWatcher` de pauze van de effecten
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat
@@ -219,12 +196,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
-  activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
-- Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")
 
 ## Installer en uitrol
 
+- De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
+  icoon in de tray blijft hangen. Dat kan pas als geen installatie meer een engine van 1.0.0
+  heeft: die kent `--exit` niet en opent dan de instellingen-app
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt

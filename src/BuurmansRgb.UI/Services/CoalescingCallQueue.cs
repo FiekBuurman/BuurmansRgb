@@ -1,8 +1,9 @@
 namespace BuurmansRgb.UI.Services;
 
 // Runs engine calls one at a time, in order. A call replaces the queued call with the same key
-// when that one is last in line, so a dragged slider only sends its latest value.
-public sealed class CoalescingCallQueue(Action<Exception> onError)
+// when that one is last in line, so a dragged slider only sends its latest value. onSucceeded
+// hears about every call that went through, so a message about an earlier one can go.
+public sealed class CoalescingCallQueue(Action<Exception> onError, Action? onSucceeded = null)
 {
     private readonly Lock _gate = new();
     private readonly List<(object Key, Func<Task> Call)> _queue = [];
@@ -56,7 +57,10 @@ public sealed class CoalescingCallQueue(Action<Exception> onError)
             catch (Exception exception)
             {
                 onError(exception);
+                continue;
             }
+
+            onSucceeded?.Invoke();
         }
     }
 }

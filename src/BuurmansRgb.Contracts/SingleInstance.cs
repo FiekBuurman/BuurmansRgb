@@ -1,17 +1,21 @@
 namespace BuurmansRgb.Contracts;
 
 // One instance per Windows session, for the engine and for the settings app: a second start finds
-// the first by name, signals it and stops.
+// the first by name, signals it and stops. The signal asks the first one to come to the front, or
+// to exit (the engine's --exit).
 public sealed class SingleInstance : IDisposable
 {
     private readonly Mutex _mutex;
     private readonly EventWaitHandle _activation;
-    private ActivationListener? _listener;
+    private readonly EventWaitHandle _exit;
+    private SignalListener? _activationListener;
+    private SignalListener? _exitListener;
 
-    private SingleInstance(Mutex mutex, EventWaitHandle activation, bool isPrimary)
+    private SingleInstance(Mutex mutex, EventWaitHandle activation, EventWaitHandle exit, bool isPrimary)
     {
         _mutex = mutex;
         _activation = activation;
+        _exit = exit;
         IsPrimary = isPrimary;
     }
 
@@ -21,48 +25,58 @@ public sealed class SingleInstance : IDisposable
     {
         var mutex = new Mutex(initiallyOwned: false, $@"Local\{name}", out var createdNew);
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
-        return new(mutex, activation, createdNew);
+        var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Exit");
+        return new(mutex, activation, exit, createdNew);
     }
 
     public void SignalPrimary() => _activation.Set();
 
+    public void SignalPrimaryToExit() => _exit.Set();
+
     // Dispose the result before whatever the callback uses: it stops listening and waits
     // for a callback that is still running.
-    public IDisposable ListenForActivation(Action onActivated)
-    {
-        if (!IsPrimary)
-        {
-            throw new InvalidOperationException("Only the primary instance can listen for activation.");
-        }
+    public IDisposable ListenForActivation(Action onActivated) => Listen(_activation, ref _activationListener, onActivated);
 
-        if (_listener is { IsDisposed: false })
-        {
-            throw new InvalidOperationException("This instance is already listening for activation.");
-        }
-
-        _listener = new ActivationListener(_activation, onActivated);
-        return _listener;
-    }
+    // The same for the request to exit.
+    public IDisposable ListenForExit(Action onExit) => Listen(_exit, ref _exitListener, onExit);
 
     public void Dispose()
     {
-        _listener?.Dispose();
+        _activationListener?.Dispose();
+        _exitListener?.Dispose();
         _activation.Dispose();
+        _exit.Dispose();
         _mutex.Dispose();
     }
 
-    private sealed class ActivationListener : IDisposable
+    private SignalListener Listen(EventWaitHandle signal, ref SignalListener? listener, Action onSignal)
+    {
+        if (!IsPrimary)
+        {
+            throw new InvalidOperationException("Only the primary instance can listen for a signal.");
+        }
+
+        if (listener is { IsDisposed: false })
+        {
+            throw new InvalidOperationException("This instance is already listening for that signal.");
+        }
+
+        listener = new SignalListener(signal, onSignal);
+        return listener;
+    }
+
+    private sealed class SignalListener : IDisposable
     {
         private readonly RegisteredWaitHandle _registration;
         private int _callbackThreadId;
         private int _disposed;
 
-        public ActivationListener(WaitHandle activation, Action onActivated)
+        public SignalListener(WaitHandle signal, Action onSignal)
         {
             // A registered wait uses no thread and no timer while idle.
             _registration = ThreadPool.RegisterWaitForSingleObject(
-                activation,
-                (_, _) => Invoke(onActivated),
+                signal,
+                (_, _) => Invoke(onSignal),
                 state: null,
                 Timeout.Infinite,
                 executeOnlyOnce: false);
@@ -91,12 +105,12 @@ public sealed class SingleInstance : IDisposable
             }
         }
 
-        private void Invoke(Action onActivated)
+        private void Invoke(Action onSignal)
         {
             Volatile.Write(ref _callbackThreadId, Environment.CurrentManagedThreadId);
             try
             {
-                onActivated();
+                onSignal();
             }
             finally
             {

@@ -132,7 +132,7 @@
                                 </DockPanel>
                             </Button>
                             <ToggleButton Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
-                                          Tag="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                          Tag="{Binding Color, Converter={StaticResource SwitchTrackBrush}}"
                                           AutomationProperties.Name="{Binding SwitchAccessibleName}"
                                           AutomationProperties.HelpText="{Binding Details}" />
                         </Grid>

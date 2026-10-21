@@ -65,6 +65,43 @@ public sealed class RegistryAutoStartTests : IDisposable
         Assert.False(CreateAutoStart().IsEnabled);
     }
 
+    [Fact]
+    public void FollowMove_OldEngineIsGone_PointsAutostartHere()
+    {
+        var gone = $"\"C:\\Gone-{Guid.NewGuid():N}\\BuurmansRgb.Engine.exe\"";
+        new RegistryAutoStart(_keyPath, ValueName, gone).SetEnabled(true);
+        var autoStart = CreateAutoStart();
+
+        Assert.Equal(gone, autoStart.FollowMove());
+
+        Assert.Equal(Command, ReadValue());
+        Assert.True(autoStart.IsEnabled);
+    }
+
+    // Such as an installed engine next to a build: it keeps its autostart.
+    [Fact]
+    public void FollowMove_OtherEngineIsStillThere_LeavesIt()
+    {
+        var other = $"\"{Environment.ProcessPath}\"";
+        new RegistryAutoStart(_keyPath, ValueName, other).SetEnabled(true);
+
+        Assert.Null(CreateAutoStart().FollowMove());
+
+        Assert.Equal(other, ReadValue());
+    }
+
+    [Fact]
+    public void FollowMove_AutostartOffOrAlreadyHere_ChangesNothing()
+    {
+        var autoStart = CreateAutoStart();
+        Assert.Null(autoStart.FollowMove());
+        Assert.Null(ReadValue());
+
+        autoStart.SetEnabled(true);
+        Assert.Null(autoStart.FollowMove());
+        Assert.Equal(Command, ReadValue());
+    }
+
     private RegistryAutoStart CreateAutoStart() => new(_keyPath, ValueName, Command);
 
     private object? ReadValue()

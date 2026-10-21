@@ -18,7 +18,10 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **In
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de lampen werken, maar na een herstart is
-  de wijziging weg.
+  de wijziging weg. "De engine kon de wijziging niet verwerken." verdwijnt bij de volgende
+  wijziging die wel lukt. Bestaat een scène die je aanzet, verwijdert of een tijd geeft niet
+  meer (bijv. verwijderd in een tweede venster), dan staat er "Scène '…' bestaat niet meer." en
+  toont de lijst de scènes zoals ze nu zijn.
 - **Engine weg:** draait de engine niet, dan meldt het venster dat, met "Opnieuw proberen".
   Stopt de engine terwijl het venster open is, dan staat er dat de verbinding is verbroken.
 
@@ -35,7 +38,9 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes**, **Buren** en onderaan **In
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde lampen", twee of drie naast elkaar. Op de
   kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
   "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
-  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van de lamp.
+  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van de lamp. Bij een heel
+  donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
+  blijft zien.
 - Een klik op een kaart opent de lamp bij Kleur en laat hem op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen.
 
@@ -108,10 +113,12 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   een rij eronder. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, Shift, Ctrl, Backspace,
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
-  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik.
+  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik; de
+  lampen en zones in het voorbeeld noemt hij bij hun naam.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
-  "Toepassen". Met −, + en de schuif groeit het voorbeeld meteen; de zone zelf krijgt de lengte
+  "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
+  Met −, + en de schuif groeit het voorbeeld meteen; de zone zelf krijgt de lengte
   pas als je 0,6 seconde niets verandert of de schuif loslaat, want OpenRGB laadt bij elke
   nieuwe lengte zijn apparaten opnieuw. Typen en "Toepassen" (of Enter) gaat meteen. Een zone
   met 0 LED's zegt "Nog geen LED's ingesteld", met uitleg. De lengte wordt bewaard (zie
@@ -121,7 +128,7 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks vanaf de vorige
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
-Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
+Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
 gekozen LED's zetten" en gaat de kleur alleen naar die LED's.
 
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
@@ -176,7 +183,8 @@ Hoe het vanzelf aanzetten werkt:
   het eerste terug. Een programma dat al draait als je het instelt, telt pas bij zijn volgende
   start; draait het al als de engine start, dan gaat de scène meteen aan. Sluit je de engine
   af terwijl het programma draait, dan zet hij eerst de verlichting van daarvoor terug en
-  bewaart die.
+  bewaart die. Zolang Windows vergrendeld is of slaapt (en de effecten dan pauzeren), kijkt de
+  engine niet naar programma's; meteen na het ontgrendelen kijkt hij één keer.
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
   zelf iets veranderd, dan komt hij meteen.
@@ -204,7 +212,8 @@ Nog niet ontworpen; de pagina zegt rustig dat het nog in de werkplaats is.
   moederbord (7, in drie zones, met een lege ARGB-header), twee RAM-sticks (8), een videokaart
   (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in twee
   kanalen), verlichting in de behuizing (10), een muis (12, in vier zones) en een headset (2,
-  in twee zones).
+  in twee zones). Ze heten "Gesimuleerde ledstrip", "Gesimuleerde ventilator" enzovoort; de
+  namen van hun zones en toetsen zijn Engels, zoals OpenRGB ze bij echte apparaten geeft.
 - **Effecten:** bij "Vloeiendheid" kies je hoe vaak per seconde een bewegend effect de lampen
   bijwerkt: "Zuinig" (15), "Normaal" (30, standaard) of "Vloeiend" (60). Het effect loopt even
   snel, alleen minder of meer vloeiend; zuinig kost de minste CPU. Staat er in `settings.json`
@@ -262,11 +271,16 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Tooltip:** "buurmansRgb" (of "buurmansRgb – effecten gepauzeerd") en daaronder de
   OpenRGB-status, bijv. "OpenRGB: verbonden, 5 lampen".
 - **Starten met Windows** zet `BuurmansRgb` in
-  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
+  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg. Staat
+  de engine die daar stond er niet meer (verplaatst of ergens anders geïnstalleerd), dan zet de
+  engine bij het starten zijn eigen pad erin; een andere engine die er nog wel staat, houdt hem.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
   Windows-gebruiker heeft zijn eigen engine.
+- **Afsluiten vanaf de commandline:** `BuurmansRgb.Engine.exe --exit` sluit de draaiende engine
+  af zoals "Afsluiten" in het menu, dus met het bewaren van de laatste wijziging en zonder een
+  icoon dat in de tray blijft hangen. Draait er geen engine, dan doet het niets.
 - **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
   geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
   icoon of een tweede start van `BuurmansRgb.UI.exe`.
@@ -464,8 +478,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 - **Knipperen:** open je een lamp (een klik op zijn kaart, of de lampkeuze bij Kleur), dan
   knippert hij op de hardware 1,5 seconde: drie keer fel wit en uit, ook bij een lage
   helderheid. Daarna krijgt hij zijn eigen verlichting terug. "Laat knipperen" in het
-  voorbeeld doet het nog eens. Er knippert steeds één lamp; knipperen wordt niet opgeslagen,
-  en bij een pauze knippert er niets.
+  voorbeeld doet het nog eens. Loop je met de pijltjes door de lampkeuze, dan knippert alleen de
+  lamp waar je 0,3 seconde op blijft staan. Er knippert steeds één lamp; knipperen wordt niet
+  opgeslagen, en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
 - **Plek:** staan er twee of meer lampen van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de

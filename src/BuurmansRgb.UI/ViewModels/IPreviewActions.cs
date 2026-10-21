@@ -12,4 +12,7 @@ public interface IPreviewActions
 
     // Lets the device blink on the hardware, so the user can see which one it is.
     void FlashDevice(string deviceId);
+
+    // False while the effects are paused: a device does not blink then.
+    bool CanFlash { get; }
 }

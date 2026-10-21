@@ -27,6 +27,19 @@ public sealed class SimulatedDeviceProviderTests
             headset => AssertDevice(headset, DeviceType.Headset, 2));
     }
 
+    // Shown in the settings app, so Dutch like the rest of it, and each one its own.
+    [Fact]
+    public async Task DiscoverAsync_EveryDeviceHasItsOwnDutchName()
+    {
+        var provider = new SimulatedDeviceProvider();
+
+        var names = (await provider.DiscoverAsync(Ct)).Select(device => device.Name).ToList();
+
+        Assert.All(names, name => Assert.StartsWith("Gesimuleerd", name, StringComparison.Ordinal));
+        Assert.Equal(names.Count, names.Distinct().Count());
+        Assert.Contains("Gesimuleerd toetsenbord", names);
+    }
+
     [Fact]
     public async Task DiscoverAsync_KeyboardHasAKeyMapWithEveryKeyOnce()
     {

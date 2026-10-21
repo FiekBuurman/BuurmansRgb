@@ -42,6 +42,9 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
     }
 
+    // A screen reader names an item of the preview by its ToString.
+    public override string ToString() => Name;
+
     public void Dispose()
     {
         foreach (var zone in Zones)
@@ -50,8 +53,10 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanFlash))]
     private void Flash() => _actions?.FlashDevice(DeviceId);
+
+    private bool CanFlash() => _actions?.CanFlash ?? true;
 
     partial void OnColorsChanged(IReadOnlyList<RgbColor> value)
     {

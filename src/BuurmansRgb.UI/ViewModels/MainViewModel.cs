@@ -38,6 +38,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly LampSync _lampSync;
     private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
+    private readonly ITimer _flashTimer;
+    private long? _lastPick;
+    private string? _flashPending;
     private IEngineConnection? _connection;
     private IReadOnlyList<DeviceInfo> _devices = [];
 
@@ -64,14 +67,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
+    // How long the choice of a lamp rests before it flashes, when the picks follow each other.
+    public static TimeSpan FlashRest { get; } = TimeSpan.FromMilliseconds(300);
+
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
     {
         _connector = connector;
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
+        _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         EffectsPause = new EffectsPauseViewModel(_time);
-        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)));
+        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
@@ -92,7 +99,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 ShowPickerColor();
             }
         };
-        Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved);
+        Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
         {
             ClearLedSelection();
@@ -213,6 +220,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Zone lengths that still wait go to the engine before the connection closes.
     public void Dispose()
     {
+        _flashTimer.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
         DropConnection();
@@ -295,10 +303,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ClearLedSelection();
         _ = ShowSelectionAsync();
-        if (newValue.DeviceId is { } deviceId)
+        FlashChosen(newValue.DeviceId);
+    }
+
+    // A lamp the user picks flashes at once, unless the pick follows the one before within
+    // FlashRest, as when the arrow keys run through the list: then only the lamp the choice rests
+    // on flashes, FlashRest after the last pick. "Hele huis" (null) flashes nothing.
+    private void FlashChosen(string? deviceId)
+    {
+        var now = _time.GetTimestamp();
+        var resting = _lastPick is not { } last || _time.GetElapsedTime(last, now) >= FlashRest;
+        _lastPick = now;
+        _flashPending = null;
+        _flashTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        if (deviceId is null)
+        {
+            return;
+        }
+
+        if (resting)
+        {
+            FlashDevice(deviceId);
+            return;
+        }
+
+        _flashPending = deviceId;
+        _flashTimer.Change(FlashRest, Timeout.InfiniteTimeSpan);
+    }
+
+    private void FlashPending()
+    {
+        if (_flashPending is { } deviceId && SelectedDevice?.DeviceId == deviceId)
         {
             FlashDevice(deviceId);
         }
+
+        _flashPending = null;
     }
 
     partial void OnIsWindowMinimizedChanged(bool value) => SendFramesWanted();
@@ -393,7 +433,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var pause = await api.GetPauseAsync();
         if (pauseChanges == _pauseChanges)
         {
-            EffectsPause.Show(pause);
+            ShowPause(pause);
         }
     }
 
@@ -670,8 +710,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
-    // lighting of a loaded profile.
-    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null)
+    // lighting of a loaded profile. isNew is for saving, where the scene need not exist yet.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false)
     {
         if (_connection is not { } connection)
         {
@@ -680,7 +720,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _calls.Post(new object(), async () =>
         {
-            await call(connection.Api);
+            try
+            {
+                await call(connection.Api);
+            }
+            catch (Exception exception) when (!isNew && EngineRpc.IsRejectedByEngine(exception))
+            {
+                // Most likely the scene is gone, deleted elsewhere since the list showed it (a
+                // second settings app, or by hand in profiles.json): say so, and show the list as
+                // it is now. Otherwise the general message.
+                var current = await connection.Api.GetProfilesAsync();
+                if (current.Contains(name, ProfileNames.Comparer))
+                {
+                    throw;
+                }
+
+                Trace.TraceWarning(exception.ToString());
+                RunOnUi(() =>
+                {
+                    if (ReferenceEquals(connection, _connection))
+                    {
+                        Profiles.Show(current);
+                        _ = _sceneCards.ShowAsync();
+                        StatusMessage = UiText.Format(Strings.ProfileGone, name);
+                    }
+                });
+                return;
+            }
+
             var names = await connection.Api.GetProfilesAsync();
             RunOnUi(() =>
             {
@@ -743,8 +810,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void OnPauseChanged(object? sender, PauseReasons pause) => RunOnUi(() =>
     {
         _pauseChanges++;
-        EffectsPause.Show(pause);
+        ShowPause(pause);
     });
+
+    private void ShowPause(PauseReasons pause)
+    {
+        EffectsPause.Show(pause);
+        Preview.CanFlash = pause == PauseReasons.None;
+    }
 
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
@@ -793,12 +866,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // The next change that works ends the message about one that did not.
+    private void OnCallSucceeded()
+    {
+        if (StatusMessage == Strings.ChangeRejected)
+        {
+            StatusMessage = null;
+        }
+    }
+
     private void Fail(string message)
     {
         ConnectionState = ConnectionState.Failed;
         StatusMessage = message;
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
+        Preview.CanFlash = true;
         DropConnection();
     }
 

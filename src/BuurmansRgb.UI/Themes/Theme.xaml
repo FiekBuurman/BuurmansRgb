@@ -9,6 +9,7 @@
     </ResourceDictionary.MergedDictionaries>
 
     <views:RgbColorToBrushConverter x:Key="ColorToBrush" />
+    <views:SwitchTrackBrushConverter x:Key="SwitchTrackBrush" />
     <views:DeviceTypeToIconConverter x:Key="TypeToIcon" />
     <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
     <views:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibility" />

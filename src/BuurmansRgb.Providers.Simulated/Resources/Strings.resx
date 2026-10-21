@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="StripName" xml:space="preserve">
+    <value>Gesimuleerde ledstrip</value>
+  </data>
+  <data name="FanName" xml:space="preserve">
+    <value>Gesimuleerde ventilator</value>
+  </data>
+  <data name="KeyboardName" xml:space="preserve">
+    <value>Gesimuleerd toetsenbord</value>
+  </data>
+  <data name="MotherboardName" xml:space="preserve">
+    <value>Gesimuleerd moederbord</value>
+  </data>
+  <data name="Ram1Name" xml:space="preserve">
+    <value>Gesimuleerd RAM-latje 1</value>
+  </data>
+  <data name="Ram2Name" xml:space="preserve">
+    <value>Gesimuleerd RAM-latje 2</value>
+  </data>
+  <data name="GpuName" xml:space="preserve">
+    <value>Gesimuleerde videokaart</value>
+  </data>
+  <data name="DualRingFanName" xml:space="preserve">
+    <value>Gesimuleerde ventilator met twee ringen</value>
+  </data>
+  <data name="ArgbName" xml:space="preserve">
+    <value>Gesimuleerde ARGB-controller</value>
+  </data>
+  <data name="CaseName" xml:space="preserve">
+    <value>Gesimuleerde verlichting in de behuizing</value>
+  </data>
+  <data name="MouseName" xml:space="preserve">
+    <value>Gesimuleerde muis</value>
+  </data>
+  <data name="HeadsetName" xml:space="preserve">
+    <value>Gesimuleerde headset</value>
+  </data>
+</root>

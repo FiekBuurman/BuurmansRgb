@@ -66,6 +66,35 @@ public sealed class MainViewModelProfileTests
         Assert.Equal("Scène 'Gamen' verwijderd.", viewModel.StatusMessage);
     }
 
+    // Deleted elsewhere since the list showed it, such as in a second settings app.
+    [Fact]
+    public async Task Delete_SceneThatIsGone_SaysSoAndShowsTheListOfTheEngine()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
+        viewModel.Profiles.SelectedName = "Gamen";
+        Api.Profiles.Remove("Gamen");
+        Api.SetException = new RemoteInvocationException("There is no profile 'Gamen'.", 0, errorData: null);
+
+        viewModel.Profiles.DeleteCommand.Execute(null);
+
+        Assert.Equal(["Nacht"], viewModel.Profiles.Names);
+        Assert.Equal("Scène 'Gamen' bestaat niet meer.", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public async Task ChangeRejected_GoesAfterTheNextChangeThatWorks()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.Add("Werk"));
+        Api.SetException = new RemoteInvocationException("Unknown device.", 0, errorData: null);
+        viewModel.Brightness = 10;
+        Assert.Equal("De engine kon de wijziging niet verwerken.", viewModel.StatusMessage);
+
+        Api.SetException = null;
+        viewModel.Brightness = 20;
+
+        Assert.Null(viewModel.StatusMessage);
+    }
+
     [Fact]
     public async Task Save_RejectedByTheEngine_ShowsTheErrorAndKeepsTheList()
     {

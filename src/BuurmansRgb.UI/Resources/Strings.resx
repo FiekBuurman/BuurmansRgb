@@ -177,6 +177,15 @@
   <data name="PreviewHint" xml:space="preserve">
     <value>Klik op een LED om hem een eigen kleur te geven. Met Shift+klik kies je een reeks, met een klik op de naam van een zone (bijv. een ring van een ventilator) de hele zone.</value>
   </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Alles selecteren</value>
+  </data>
+  <data name="SelectAllToolTip" xml:space="preserve">
+    <value>Selecteert alle LED's van deze lamp, zodat je ze samen een kleur geeft.</value>
+  </data>
+  <data name="SelectAllAccessibleName" xml:space="preserve">
+    <value>Alle LED's van {0} selecteren</value>
+  </data>
   <data name="SelectZoneToolTip" xml:space="preserve">
     <value>Selecteert alle LED's van deze zone, zodat je ze samen een kleur geeft.</value>
   </data>
@@ -215,6 +224,9 @@
   </data>
   <data name="ConnectionLost" xml:space="preserve">
     <value>De verbinding met de engine is verbroken.</value>
+  </data>
+  <data name="ProfileGone" xml:space="preserve">
+    <value>Scène '{0}' bestaat niet meer.</value>
   </data>
   <data name="ChangeRejected" xml:space="preserve">
     <value>De engine kon de wijziging niet verwerken.</value>

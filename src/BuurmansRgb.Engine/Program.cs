@@ -19,10 +19,25 @@ internal static class Program
     [STAThread]
     private static void Main(string[] args)
     {
+        var options = EngineOptions.Parse(args);
         using var instance = SingleInstance.Acquire(EngineRpc.EngineName);
         if (!instance.IsPrimary)
         {
-            instance.SignalPrimary();
+            if (options.Exit)
+            {
+                instance.SignalPrimaryToExit();
+            }
+            else
+            {
+                instance.SignalPrimary();
+            }
+
+            return;
+        }
+
+        // No engine runs, so there is nothing to stop.
+        if (options.Exit)
+        {
             return;
         }
 
@@ -31,7 +46,8 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
         var autoStart = RegistryAutoStart.ForCurrentProcess();
-        autoStart.EnableOnFirstRun(EngineOptions.Parse(args));
+        autoStart.EnableOnFirstRun(options);
+        autoStart.FollowMoveOnStart();
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
@@ -65,8 +81,9 @@ internal static class Program
             autoPause: autoPause,
             profiles: profiles);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))
+        using (instance.ListenForExit(context.RequestExit))
         {
             Application.Run(context);
         }

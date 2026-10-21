@@ -33,7 +33,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         ProfileLibrary profiles,
         LightingController lighting,
         IServerStatusSource openRgb,
-        string logPath)
+        string logPath,
+        Action? trimMemory = null)
     {
         _presenter = new TrayPresenter(
             host,
@@ -91,6 +92,13 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         // Creating the menu control installed the WinForms context for this thread.
         _uiContext = SynchronizationContext.Current ?? throw new InvalidOperationException("No UI synchronization context.");
 
+        // Drawing the menu loads and touches memory the engine does not need once it closed, as
+        // with the settings app. Posted, so a clicked item does its work first.
+        if (trimMemory is not null)
+        {
+            _menu.Closed += (_, _) => _uiContext.Post(_ => trimMemory(), state: null);
+        }
+
         // Listening first, so no change gets lost between reading the status and listening.
         _openRgb = openRgb;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
@@ -104,6 +112,9 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     }
 
     public void RequestOpenSettings() => _uiContext.Post(_ => _presenter.OpenSettings(), state: null);
+
+    // From another thread (--exit): the same as "Afsluiten" in the menu.
+    public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
 
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 

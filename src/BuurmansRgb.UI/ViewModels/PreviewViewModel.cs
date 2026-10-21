@@ -10,6 +10,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 {
     private LightingFrame _latestFrame = LightingFrame.Empty;
     private LedSelection? _ledSelection;
+    private bool _canFlash = true;
 
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
@@ -24,6 +25,25 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 
     // Raised when the user asks a device to flash, with its id.
     public event EventHandler<string>? FlashRequested;
+
+    // Set from the pause of the engine; greys out "Laat knipperen" of every device.
+    public bool CanFlash
+    {
+        get => _canFlash;
+        set
+        {
+            if (_canFlash == value)
+            {
+                return;
+            }
+
+            _canFlash = value;
+            foreach (var device in Devices)
+            {
+                device.FlashCommand.NotifyCanExecuteChanged();
+            }
+        }
+    }
 
     // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
     public void Reset() => _latestFrame = LightingFrame.Empty;

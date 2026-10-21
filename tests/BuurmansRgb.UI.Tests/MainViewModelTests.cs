@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
@@ -186,6 +187,44 @@ public sealed class MainViewModelTests
         Assert.Equal(["flash fan"], Api.Calls);
     }
 
+    // Running through the list with the arrow keys flashes only the lamp the choice rests on.
+    [Fact]
+    public async Task SelectDevicesQuickly_FlashesOnlyTheLastOne_OnceTheChoiceRests()
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(_connector, time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        DeviceItem Device(string id) => viewModel.Devices.Single(device => device.DeviceId == id);
+
+        viewModel.SelectedDevice = Device("fan");
+        viewModel.SelectedDevice = Device("strip");
+        time.Advance(TimeSpan.FromMilliseconds(100));
+        viewModel.SelectedDevice = Device("fan");
+        Assert.Equal(["flash fan"], Api.Calls);
+
+        time.Advance(MainViewModel.FlashRest);
+        Assert.Equal(["flash fan", "flash fan"], Api.Calls);
+
+        time.Advance(TimeSpan.FromSeconds(1));
+        viewModel.SelectedDevice = Device("strip");
+        Assert.Equal(["flash fan", "flash fan", "flash strip"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectWholeHouseQuickly_CancelsTheFlashThatWaits()
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(_connector, time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
+        viewModel.SelectedDevice = viewModel.Devices[0];
+        time.Advance(TimeSpan.FromSeconds(1));
+
+        Assert.Equal(["flash fan"], Api.Calls);
+    }
+
     [Fact]
     public async Task SelectAllDevices_FlashesNothing()
     {
@@ -206,6 +245,30 @@ public sealed class MainViewModelTests
 
         Assert.Equal(["flash strip"], Api.Calls);
         Assert.Null(viewModel.SelectedDevice?.DeviceId);
+    }
+
+    // A device does not blink while the effects are paused, so the button is grey then.
+    [Theory]
+    [InlineData(PauseReasons.Manual)]
+    [InlineData(PauseReasons.Locked)]
+    public async Task Paused_GreysOutFlash_AndRunningAgainNot(PauseReasons pause)
+    {
+        var viewModel = await ConnectAsync();
+        var flash = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").FlashCommand;
+
+        Api.RaisePause(pause);
+        Assert.False(flash.CanExecute(null));
+
+        Api.RaisePause(PauseReasons.None);
+        Assert.True(flash.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task Connect_WhilePaused_GreysOutFlash()
+    {
+        var viewModel = await ConnectAsync(api => api.Pause = PauseReasons.Manual);
+
+        Assert.All(viewModel.Preview.Devices, preview => Assert.False(preview.FlashCommand.CanExecute(null)));
     }
 
     [Fact]
