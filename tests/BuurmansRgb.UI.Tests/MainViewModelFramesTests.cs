@@ -66,6 +66,64 @@ public sealed class MainViewModelFramesTests
         Assert.False(Api.FramesWanted);
     }
 
+    // All devices until said otherwise, as Lampen needs them.
+    [Fact]
+    public async Task Connect_OnLampen_AsksForNoSingleDevice()
+    {
+        await ConnectAsync();
+
+        Assert.Empty(Api.FrameDevicesCalls);
+    }
+
+    [Fact]
+    public async Task Kleur_WithOneLamp_AsksOnlyForThatLamp()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.Navigation.GoTo(AppPage.Color);
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        Assert.Equal(["fan"], Api.FrameDevices!);
+    }
+
+    [Fact]
+    public async Task Kleur_WholeHouse_AsksForAllAgain()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.Navigation.GoTo(AppPage.Color);
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId is null);
+
+        Assert.Null(Api.FrameDevices);
+    }
+
+    [Fact]
+    public async Task BackToLampen_AsksForAllAgain()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.Navigation.GoTo(AppPage.Color);
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        viewModel.Navigation.GoTo(AppPage.Lamps);
+
+        Assert.Null(Api.FrameDevices);
+        Assert.Equal(2, Api.FrameDevicesCalls.Count);
+    }
+
+    // A new connection starts with all devices again, so it is told about the lamp once more.
+    [Fact]
+    public async Task Reconnect_OnKleurWithOneLamp_AsksForItAgain()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.Navigation.GoTo(AppPage.Color);
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+
+        Assert.Equal(["fan"], Api.FrameDevices!);
+    }
+
     private async Task<MainViewModel> ConnectAsync()
     {
         var viewModel = new MainViewModel(_connector);

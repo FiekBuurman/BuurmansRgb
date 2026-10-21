@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.SettingsApp;
@@ -17,6 +19,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly ToolStripMenuItem _autoStartItem;
     private readonly ToolStripMenuItem _pauseItem;
     private readonly ToolStripMenuItem _profilesItem;
+    private readonly ToolStripMenuItem _allOnItem;
+    private readonly ToolStripMenuItem _allOffItem;
     private readonly SynchronizationContext _uiContext;
     private readonly IEngineHost _host;
     private readonly IServerStatusSource _openRgb;
@@ -27,11 +31,22 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         IAutoStart autoStart,
         ISettingsAppLauncher settingsAppLauncher,
         ProfileLibrary profiles,
+        LightingController lighting,
         IServerStatusSource openRgb,
+        string logPath,
         Action? trimMemory = null)
     {
-        _presenter = new TrayPresenter(host, autoStart, settingsAppLauncher, profiles, this);
+        _presenter = new TrayPresenter(
+            host,
+            autoStart,
+            settingsAppLauncher,
+            profiles,
+            lighting,
+            () => Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true })?.Dispose(),
+            this);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
+        _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
+        _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
 
         // Click, not CheckedChanged: the check also follows a pause that ends elsewhere (ShowPause).
         _pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
@@ -44,15 +59,19 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         [
             new ToolStripMenuItem(Strings.MenuOpenSettings, image: null, (_, _) => _presenter.OpenSettings()),
             _profilesItem,
+            _allOnItem,
+            _allOffItem,
             _pauseItem,
             _autoStartItem,
             new ToolStripSeparator(),
+            new ToolStripMenuItem(Strings.MenuOpenLog, image: null, (_, _) => _presenter.OpenLog()),
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
         ]);
         _menu.Opening += (_, _) =>
         {
             _presenter.RefreshAutoStart();
             _presenter.RefreshProfiles();
+            _presenter.RefreshAllOnOff();
         };
 
         _notifyIcon = new NotifyIcon
@@ -126,6 +145,12 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
                 Checked = active is not null && ProfileNames.Comparer.Equals(name, active),
             });
         }
+    }
+
+    void ITrayView.ShowAllOnOff(bool canSwitchOn, bool canSwitchOff)
+    {
+        _allOnItem.Enabled = canSwitchOn;
+        _allOffItem.Enabled = canSwitchOff;
     }
 
     void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>

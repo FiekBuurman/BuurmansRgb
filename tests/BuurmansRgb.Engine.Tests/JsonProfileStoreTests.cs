@@ -72,6 +72,29 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_ValueOfTheWrongType_KeepsTheProfileAndTheOtherProfiles()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            {
+              "profiles": [
+                { "name": "Gamen", "color": "#FF0000", "brightness": "hoog", "on": "ja" },
+                42,
+                { "name": "Nacht", "color": "#FF0000", "speed": [1] }
+              ]
+            }
+            """);
+
+        var loaded = _store.Load();
+
+        Assert.Equal(["Gamen", "Nacht"], loaded.Select(profile => profile.Name));
+        Assert.Equal(Red, loaded[0].Lighting.Global.Color);
+        Assert.Equal(DeviceLighting.Default.Brightness, loaded[0].Lighting.Global.Brightness);
+        Assert.Equal(DeviceLighting.Default.On, loaded[0].Lighting.Global.On);
+        Assert.Equal(DeviceLighting.Default.Speed, loaded[1].Lighting.Global.Speed);
+        Assert.False(File.Exists(_store.BrokenFilePath));
+    }
+
+    [Fact]
     public void Save_WritesTheTimeAsHoursAndMinutes()
     {
         _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);

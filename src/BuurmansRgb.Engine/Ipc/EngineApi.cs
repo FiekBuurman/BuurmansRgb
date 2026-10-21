@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 
@@ -16,7 +17,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly IServerStatusSource _openRgb;
     private readonly SettingsSaveEvents? _saveEvents;
+    private readonly AutoPause? _autoPause;
     private readonly PreviewFrames _frames;
+
+    // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
+    private volatile IReadOnlySet<string>? _frameDevices;
 
     public EngineApi(
         LightingController lighting,
@@ -25,15 +30,17 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         SimulatedDevicesSwitch simulatedDevices,
         IServerStatusSource openRgb,
         SettingsSaveEvents? saveEvents = null,
-        TimeProvider? time = null)
+        TimeProvider? time = null,
+        AutoPause? autoPause = null)
     {
+        _autoPause = autoPause;
         _lighting = lighting;
         _zoneLengths = zoneLengths;
         _profiles = profiles;
         _simulatedDevices = simulatedDevices;
         _openRgb = openRgb;
         _saveEvents = saveEvents;
-        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output)), time ?? TimeProvider.System);
+        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), time ?? TimeProvider.System);
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
@@ -70,6 +77,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
     {
         _frames.Wanted = wanted;
+        return Task.CompletedTask;
+    }
+
+    public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        _frameDevices = deviceIds is null ? null : new HashSet<string>(deviceIds, StringComparer.Ordinal);
         return Task.CompletedTask;
     }
 
@@ -152,6 +165,23 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(_lighting.FramesPerSecond);
+
+    public Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
+    {
+        _lighting.FramesPerSecond = framesPerSecond;
+        return Task.CompletedTask;
+    }
+
+    // Without AutoPause (in tests) there is nothing to pause, so it reads as off.
+    public Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default) => Task.FromResult(_autoPause?.Enabled ?? false);
+
+    public Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
+    {
+        _autoPause?.Enabled = enabled;
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)
@@ -202,8 +232,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private static LightingInfo ToInfo(DeviceLighting lighting) =>
         new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On);
 
-    private static LightingFrame ToFrame(LightingOutput output) =>
-        new(output.Sequence, [.. output.Devices.Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
+    private static LightingFrame ToFrame(LightingOutput output, IReadOnlySet<string>? devices = null) =>
+        new(output.Sequence, [.. output.Devices
+            .Where(device => devices is null || devices.Contains(device.DeviceId))
+            .Select(device => DeviceFrame.FromColors(device.DeviceId, device.Colors))]);
 
     private void OnDevicesChanged(object? sender, EventArgs e) => DevicesChanged?.Invoke(this, EventArgs.Empty);
 

@@ -183,6 +183,18 @@ internal sealed class FakeEngineApi : IEngineApi
         return Task.CompletedTask;
     }
 
+    // Null for all devices, as in the engine.
+    public IReadOnlyList<string>? FrameDevices { get; private set; }
+
+    public List<IReadOnlyList<string>?> FrameDevicesCalls { get; } = [];
+
+    public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        FrameDevices = deviceIds;
+        FrameDevicesCalls.Add(deviceIds);
+        return Task.CompletedTask;
+    }
+
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
         Record($"color {deviceId ?? "all"} {color.ToHex()}");
 
@@ -223,6 +235,26 @@ internal sealed class FakeEngineApi : IEngineApi
     {
         await Record($"simulated {mode}");
         SimulatedDevices = mode;
+    }
+
+    public int FramesPerSecond { get; set; } = 30;
+
+    public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(FramesPerSecond);
+
+    public async Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
+    {
+        await Record($"fps {framesPerSecond}");
+        FramesPerSecond = framesPerSecond;
+    }
+
+    public bool PauseOnLockAndSleep { get; set; } = true;
+
+    public Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default) => Task.FromResult(PauseOnLockAndSleep);
+
+    public async Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
+    {
+        await Record($"pause on lock {enabled}");
+        PauseOnLockAndSleep = enabled;
     }
 
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.

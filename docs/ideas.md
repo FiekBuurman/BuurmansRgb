@@ -89,7 +89,6 @@ uitbreidingen in `docs/bouwplan.md`.
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
-- `framesPerSecond` ook in de instellingen-app; nu staat het alleen in `settings.json`
 
 ## Instellingen-app en ontwerp
 
@@ -143,8 +142,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- De scène die aan staat ook na een herstart van de engine weten (bijv. als `activeScene` in
-  `settings.json`); nu begint de engine zonder, ook als de verlichting nog die van de scène is
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
@@ -159,12 +156,10 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Tray-menu
 
-- "Alles uit" en "Alles aan" ook in het tray-menu, en eventueel een sneltoets
+- Een sneltoets voor "Alles aan" en "Alles uit" (die staan sinds #41 in het tray-menu)
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- `pauseOnLockAndSleep` ook in de instellingen-app en zonder herstart van de engine; nu staat het
-  alleen in `settings.json`
 - Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
   "laatste frame blijft staan"
 - Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
@@ -184,12 +179,15 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Engine en prestaties
 
-- Uitzoeken waar het geheugen van de instellingen-app zit: met een zichtbaar venster en de
-  regenboog 166–191 MB working set en 83–97 MB private (Release), boven het budget van 150 MB.
-  Minder beelden naar het voorbeeld halveerde de CPU maar veranderde het geheugen niet, dus het
-  zit eerder in WPF zelf (render-caches, de lettertypes, de gradiënten van `LedBulb`, het
-  voorbeeld van "Hele huis" met 246 bolletjes). Meten met dotnet-counters of PerfView
-- Alleen de beelden van de zichtbare apparaten versturen (bijv. op Kleur alleen de gekozen lamp)
+- Het geheugen van de instellingen-app onder het budget van 150 MB krijgen. Uitgezocht in #43
+  (zie "Metingen" in `ontwikkelaars.md`): de .NET-heap is ~8 MB, de rest is WPF met DirectX.
+  Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
+  het naar 130–143 MB, maar kost op Lampen CPU; eventueel als keuze bij Instellingen, of alleen
+  zonder bewegend effect
+- De gloed van `LedBulb` hergebruiken in plaats van bij elke kleur een nieuwe
+  `RadialGradientBrush` te maken (op Lampen met de regenboog ~2,2 MB/s aan allocaties), bijv.
+  één bevroren gloed in wit met de kleur als `OpacityMask`, of een cache per kleur voor een
+  statisch effect
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze
@@ -198,11 +196,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Een kleur die niet te lezen is, slaat de engine sinds #29 over, maar een ander verkeerd type
-  (bijv. `"brightness": "hoog"` of `"on": "ja"`) maakt het hele `settings.json` nog onleesbaar;
-  ook zo'n waarde liever overslaan en de standaardwaarde nemen
-- Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
-  `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 
 ## Installer en uitrol
 

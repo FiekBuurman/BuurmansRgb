@@ -71,16 +71,17 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
             saveEvents: saveEvents,
             profileTriggers: [profileTimer, programWatcher],
             zoneLengths: zoneLengths,
-            autoPause: autoPause);
+            autoPause: autoPause,
+            profiles: profiles);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, openRgb, MemoryTrimmer.Trim);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
         {

@@ -58,18 +58,18 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
 | Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests`, `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes), `LightingControllerSpeedTests`, `EffectClockTests` |
-| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests` |
+| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests`, `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app) |
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
-| Scènes | `ProfileLibraryTests` en `MainViewModelSceneTests` (ook welke scène aan staat), `JsonProfileStoreTests`, `DailyTimeTests`, `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests`, `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
-| Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
+| Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen de gekozen lamp), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
 | Pagina's | `NavigationViewModelTests`, `ColorPickerViewModelTests`, `MainViewModelTests` en de andere `MainViewModel*Tests`, waaronder `MainViewModelFollowLightingTests` (Kleur volgt een scène uit het tray-menu) |
 
 ## Met de gesimuleerde lampen bekijken
@@ -98,7 +98,10 @@ toetsenbord. Een paar dingen om te proberen:
   dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
   het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
   `IEngineApi.SetFramesWantedAsync` dat ze geen beelden wil zolang ze geminimaliseerd is of een
-  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets.
+  pagina zonder voorbeeld toont (Scènes, Buren, Instellingen); dan kopieert de engine niets. Met
+  `SetFrameDevicesAsync` vraagt Kleur met één lamp alleen de beelden van die lamp; Lampen en
+  "Hele huis" krijgen ze allemaal. Een beeld met maar een deel van de lampen laat de strip op
+  Lampen ongemoeid.
 - **Logging:** elke `Trace`-melding (`Trace.TraceError`, `TraceWarning`, `TraceInformation`) gaat
   naar `FileLog` in `BuurmansRgb.Contracts`, die de engine (`engine.log`) en de instellingen-app
   (`ui.log`) bij het starten aanzetten; ook een onafgevangen exception komt erin. Zo blijft het
@@ -122,7 +125,9 @@ toetsenbord. Een paar dingen om te proberen:
   de timer stil; als die pauze eindigt, kijkt hij meteen.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
   `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
-  `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`.
+  `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
+  (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en na het
+  starten zet `RestoreActive` hem terug als die scène nog bestaat.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's.
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
@@ -179,7 +184,21 @@ Vergelijk `dotnet.gc.heap.total_allocated` met een animatie en met een statische
 loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
 in een venster van 1240 × 820; met Windows vergrendeld tekent WPF niets, dus die oudere meting
 mist het tekenen zelf (ook van de gloed). Met een zichtbaar venster zit de app boven het budget
-van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen (zie `ideas.md`).
+van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen.
+
+Waar het geheugen van de app zit (Release, zichtbaar venster, regenboog, gemeten met
+`dotnet-counters`):
+
+| Wat | Uitkomst |
+| --- | --- |
+| .NET-heap | ~8 MB levend, 23 MB vastgelegd; de rest van de 85–98 MB private is native: WPF met DirectX, de geladen DLL's en gecompileerde code |
+| Tekenen zonder videokaart (`RenderMode.SoftwareOnly`, als proef) | 130–143 MB working set en 55–60 MB private (35–40 MB minder), maar op Lampen ~10,5 % van één kern tegen ~5–7 % |
+| ReadyToRun bij het publiceren | Geen verschil (85 tegen 85 MB private) |
+| Alleen de gekozen lamp op Kleur (`SetFrameDevicesAsync`) | Geen verschil in geheugen; allocaties van de app 860 → 805 KB/s met het toetsenbord gekozen |
+| Allocaties op Lampen | ~2,2 MB/s: elke `LedBulb` maakt bij elke kleur een nieuwe gloed (`RadialGradientBrush`) |
+
+De CPU van de app schommelt tussen metingen van 30 s flink (dezelfde build: 0,6 en 2,7 % op Kleur),
+dus vergelijk allocaties of meet meer keren.
 
 ## Installer bouwen en testen
 
@@ -328,8 +347,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    10 seconden terug te zijn (stilstaand), na het ontgrendelen loopt de animatie weer.
 4. Wissel van gebruiker en kom terug, of verbind met Extern bureaublad en verbreek: de animatie
    stopt en loopt daarna weer.
-5. Zet `"pauseOnLockAndSleep": false`, herstart de engine en vergrendel: de regenboog loopt
-   door.
+5. Zet bij Instellingen "Pauzeren bij vergrendelen en slaapstand" uit en vergrendel: de
+   regenboog loopt door.
 
 ## Mappen en documenten
 

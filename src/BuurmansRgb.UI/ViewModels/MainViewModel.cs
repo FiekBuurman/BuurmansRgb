@@ -24,9 +24,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
     private const string SimulatedDevicesCall = "simulated-devices";
+    private const string FramesPerSecondCall = "frames-per-second";
+    private const string PauseOnLockCall = "pause-on-lock";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
+    private const string FrameDevicesCall = "frame-devices";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -51,6 +54,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Whether this connection last told the engine it wants frames; the engine starts with yes.
     private bool _framesWanted = true;
+
+    // The one device this connection asked frames for, or null for all of them.
+    private string? _frameDevice;
 
     // The same for the pause of the effects.
     private int _pauseChanges;
@@ -106,6 +112,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
+        EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
+            SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
+        EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
+            SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -114,6 +124,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (e.PropertyName == nameof(NavigationViewModel.CurrentPage))
             {
                 SendFramesWanted();
+                SendFrameDevices();
             }
         };
     }
@@ -165,6 +176,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
+    public EffectOptionsViewModel EffectOptions { get; } = new();
+
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
     public EffectsPauseViewModel EffectsPause { get; }
@@ -195,6 +208,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Only Lampen and Kleur show what the lamps do now; the other pages need no frames.
     public bool WantsFrames => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
+
+    // Kleur with one lamp shows only that lamp; Lampen, and Kleur for the whole house, show them
+    // all (null).
+    public string? FrameDevice => Navigation.CurrentPage == AppPage.Color ? SelectedDevice?.DeviceId : null;
 
     // Whether the engine wrote the last change to its settings file, with the clock time.
     [ObservableProperty]
@@ -232,6 +249,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
+            _frameDevice = null;
+            SendFrameDevices();
             await LoadAsync(connection.Api);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
@@ -253,6 +272,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // made while showing engine state, such as after connecting, does not.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
+        // Also for a selection while showing engine state; not for the moment of "nothing".
+        if (newValue is not null)
+        {
+            SendFrameDevices();
+        }
+
         if (_syncing.IsActive)
         {
             return;
@@ -332,6 +357,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post(FramesWantedCall, () => connection.Api.SetFramesWantedAsync(wanted));
     }
 
+    // Also only when it differs from what this connection told the engine last.
+    private void SendFrameDevices()
+    {
+        var device = FrameDevice;
+        if (_connection is not { } connection || device == _frameDevice)
+        {
+            return;
+        }
+
+        _frameDevice = device;
+        _calls.Post(FrameDevicesCall, () => connection.Api.SetFrameDevicesAsync(device is null ? null : [device]));
+    }
+
     partial void OnBrightnessChanged(double value)
     {
         if (!_syncing.IsActive)
@@ -383,6 +421,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
+        EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
         if (openRgbStatusChanges == _openRgbStatusChanges)
@@ -636,6 +675,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post(SimulatedDevicesCall, () => connection.Api.SetSimulatedDevicesAsync(mode));
+        }
+    }
+
+    // The engine saves the option itself; a pause that starts or ends by it comes through
+    // PauseChanged.
+    private void SendOption(string call, Func<IEngineApi, Task> send)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post(call, () => send(connection.Api));
         }
     }
 

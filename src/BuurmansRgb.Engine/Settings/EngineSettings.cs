@@ -19,6 +19,10 @@ internal sealed record EngineSettings : LightingStateSettings
     // Null instead of empty, so the default settings stay out of the file.
     public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }
 
+    // "activeScene": the name of the scene that is on (ProfileLibrary.ActiveName), so it is still
+    // on after a restart; null, and so not in the file, when none is.
+    public string? ActiveScene { get; set; }
+
     public static EngineSettings CreateDefault() => new();
 
     // The zone lengths as ZoneLengthKeeper takes them; a device without zones (null) is left out.

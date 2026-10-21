@@ -49,6 +49,10 @@ public partial interface IEngineApi
     // and nothing is copied for it. True again sends the latest frame right away. True until said.
     Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default);
 
+    // Only these devices go into the frames of FrameRendered, such as the one lamp that Kleur
+    // shows; null for all of them, which it is until said. GetFrameAsync always gives all.
+    Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default);
+
     Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default);
 
     // Brightness runs from 0 to 1.
@@ -100,6 +104,18 @@ public partial interface IEngineApi
     // Saved like the lighting. When the new mode shows or hides the simulated devices,
     // DevicesChanged follows.
     Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
+
+    // How many frames per second a moving effect gets, from 1 to 60; saved like the lighting.
+    Task<int> GetFramesPerSecondAsync(CancellationToken ct = default);
+
+    // A value outside 1 to 60 is kept within it.
+    Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default);
+
+    // Whether the effects pause while Windows is locked or asleep; saved like the lighting. Turning
+    // it off ends such a pause at once, turning it on starts one when Windows is locked.
+    Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default);
+
+    Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);

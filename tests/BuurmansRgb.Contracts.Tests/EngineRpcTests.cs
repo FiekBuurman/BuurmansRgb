@@ -85,6 +85,19 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetFrameDevicesAsync_CrossesThePipe()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetFrameDevicesAsync(["fan"], Ct);
+        await client.Api.SetFrameDevicesAsync(null, Ct);
+
+        Assert.Equal(2, _api.FrameDevicesCalls.Count);
+        Assert.Equal(["fan"], _api.FrameDevicesCalls[0]!);
+        Assert.Null(_api.FrameDevicesCalls[1]);
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -309,6 +322,21 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Options_CrossThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+
+        var framesPerSecond = await client.Api.GetFramesPerSecondAsync(Ct);
+        var pauseOnLock = await client.Api.GetPauseOnLockAndSleepAsync(Ct);
+        await client.Api.SetFramesPerSecondAsync(60, Ct);
+        await client.Api.SetPauseOnLockAndSleepAsync(false, Ct);
+
+        Assert.Equal(24, framesPerSecond);
+        Assert.True(pauseOnLock);
+        Assert.Equal(["fps 60", "pause on lock False"], _api.OptionCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -448,6 +476,14 @@ public sealed class EngineRpcTests : IDisposable
             return Task.CompletedTask;
         }
 
+        public List<IReadOnlyList<string>?> FrameDevicesCalls { get; } = [];
+
+        public Task SetFrameDevicesAsync(IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+        {
+            FrameDevicesCalls.Add(deviceIds);
+            return Task.CompletedTask;
+        }
+
         public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
         {
             ColorCalls.Add((deviceId, color));
@@ -503,6 +539,24 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default)
         {
             SimulatedDevicesCalls.Add(mode);
+            return Task.CompletedTask;
+        }
+
+        public List<string> OptionCalls { get; } = [];
+
+        public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(24);
+
+        public Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"fps {framesPerSecond}");
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default) => Task.FromResult(true);
+
+        public Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"pause on lock {enabled}");
             return Task.CompletedTask;
         }
 

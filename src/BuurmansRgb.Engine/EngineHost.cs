@@ -17,7 +17,8 @@ internal sealed class EngineHost(
     SettingsSaveEvents? saveEvents = null,
     IReadOnlyList<IProfileTrigger>? profileTriggers = null,
     ZoneLengthKeeper? zoneLengths = null,
-    AutoPause? autoPause = null) : IEngineHost, IDisposable
+    AutoPause? autoPause = null,
+    ProfileLibrary? profiles = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -26,7 +27,8 @@ internal sealed class EngineHost(
     // The zone lengths are known before the devices are fetched, so a device gets its length as it
     // shows up. From then on a new mode for the simulated devices and a zone length the user sets
     // are saved like the lighting, and the profile triggers may load profiles: after the saved
-    // lighting, so they are not overwritten, and with the saver, so what they load is saved.
+    // lighting, so they are not overwritten, and with the saver, so what they load is saved. The
+    // scene that was on is on again with the saved lighting, as that is still its lighting.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -36,9 +38,18 @@ internal sealed class EngineHost(
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
+        if (profiles is not null)
+        {
+            profiles.RestoreActive(settings.ActiveScene);
+            settings = settings with { ActiveScene = profiles.ActiveName };
+        }
+
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
+        profiles?.ActiveChanged += OnActiveSceneChanged;
+        lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -62,6 +73,9 @@ internal sealed class EngineHost(
     {
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
+        profiles?.ActiveChanged -= OnActiveSceneChanged;
+        lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
+        autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -77,4 +91,15 @@ internal sealed class EngineHost(
     // Also reads the newest lengths, for the same reason.
     private void OnZoneLengthsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings.WithZoneLengths(zoneLengths!.Lengths));
+
+    // And the scene that is on now.
+    private void OnActiveSceneChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { ActiveScene = profiles!.ActiveName });
+
+    // The options from the settings app, also the newest value each.
+    private void OnFramesPerSecondChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { FramesPerSecond = lighting.FramesPerSecond });
+
+    private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
 }
