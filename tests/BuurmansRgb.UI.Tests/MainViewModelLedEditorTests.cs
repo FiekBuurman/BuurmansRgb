@@ -43,7 +43,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
-            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 2, 0, 120)])];
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 2, 0, 120)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
 
         Click(viewModel, "board", 1);
@@ -60,7 +60,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task SelectZone_ColorsOnlyThatRingOfTheFan()
     {
         var viewModel = await ConnectAsync();
-        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
 
         Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
@@ -75,7 +75,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task SelectZone_WhileEditingTheDevice_SelectsTheZoneInstead()
     {
         var viewModel = await ConnectAsync();
-        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)])];
+        Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
         Click(viewModel, "fan", 3);
 
@@ -88,7 +88,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ApplyLedCount_AsksTheEngineToResizeTheZone()
     {
         var viewModel = await ConnectAsync();
-        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)])];
+        Api.Devices = [new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
         var header = Assert.Single(viewModel.Preview.Devices).Zones[1];
 
@@ -102,7 +102,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task DevicesChanged_EditedZoneGrew_ClearsTheLedSelection()
     {
         var viewModel = await ConnectAsync();
-        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]);
+        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware };
         Api.Devices = [board];
         Api.RaiseDevicesChanged();
         Click(viewModel, "board", 1);
@@ -148,7 +148,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.Equal(["leds fan 0 #00FF00"], Api.Calls);
+        Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
     }
 
     [Fact]

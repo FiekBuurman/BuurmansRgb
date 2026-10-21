@@ -39,7 +39,7 @@ public sealed class MainViewModelSpeedTests
 
         viewModel.Speed = 20;
 
-        Assert.Equal(["speed fan 0.20"], Api.Calls);
+        Assert.Equal(["flash fan", "speed fan 0.20"], Api.Calls);
     }
 
     [Theory]

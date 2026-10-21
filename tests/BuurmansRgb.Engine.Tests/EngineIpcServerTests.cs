@@ -64,6 +64,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
                 ("simulated-fan-dual", 20), ("simulated-argb", 20), ("simulated-case", 10), ("simulated-mouse", 12), ("simulated-headset", 2)],
             devices.Select(device => (device.Id, device.LedCount)));
         Assert.NotNull(devices.Single(device => device.Id == "simulated-keyboard").Zones[0].Matrix);
+        Assert.All(devices, device => Assert.Equal(DeviceSource.Simulated, device.Source));
     }
 
     [Fact]
@@ -151,6 +152,39 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         await Assert.ThrowsAsync<RemoteInvocationException>(
             () => client.Api.SetColorAsync("missing", Orange, Ct));
+    }
+
+    [Fact]
+    public async Task FlashDeviceAsync_FlashesOnlyThatDeviceAndKeepsItsLighting()
+    {
+        var client = await StartAndConnectAsync();
+        await client.Api.SetColorAsync(null, Orange, Ct);
+        var flashed = new TaskCompletionSource<LightingFrame>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.FrameRendered += (_, frame) =>
+        {
+            if (frame.Devices.Single(device => device.DeviceId == Fan).ToColors().All(led => led == RgbColor.White))
+            {
+                flashed.TrySetResult(frame);
+            }
+        };
+
+        await client.Api.FlashDeviceAsync(Fan, Ct);
+
+        var frame = await flashed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.All(frame.Devices.Where(device => device.DeviceId != Fan).SelectMany(device => device.ToColors()), led => Assert.Equal(Orange, led));
+        Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, Ct)).Color);
+    }
+
+    // Flashing changes nothing, so a device that just went away is no error for the settings app.
+    [Fact]
+    public async Task FlashDeviceAsync_UnknownDevice_IsIgnored()
+    {
+        var client = await StartAndConnectAsync();
+        var sequence = (await client.Api.GetFrameAsync(Ct)).Sequence;
+
+        await client.Api.FlashDeviceAsync("missing", Ct);
+
+        Assert.Equal(sequence, (await client.Api.GetFrameAsync(Ct)).Sequence);
     }
 
     [Fact]

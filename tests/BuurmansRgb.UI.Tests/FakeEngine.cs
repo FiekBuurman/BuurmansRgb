@@ -125,6 +125,8 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default) =>
         Record($"resize {deviceId} {zoneIndex} {ledCount}");
 
+    public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default) => Record($"flash {deviceId}");
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

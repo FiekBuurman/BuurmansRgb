@@ -71,6 +71,34 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
+    public async Task Connect_ListsTheRealDevicesBeforeTheSimulatedOnes()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices =
+        [
+            TestDevices.Create("simulated-fan", "Simulated fan", DeviceType.Fan, 12, DeviceSource.Simulated),
+            TestDevices.Create("openrgb-ram", "ENE DRAM", DeviceType.Ram, 8),
+            TestDevices.Create("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, 30, DeviceSource.Simulated),
+        ]);
+
+        Assert.Equal([null, "openrgb-ram", "simulated-fan", "simulated-strip"], viewModel.Devices.Select(device => device.DeviceId));
+        Assert.Equal([null, Strings.DeviceSource_Hardware, Strings.DeviceSource_Simulated, Strings.DeviceSource_Simulated], viewModel.Devices.Select(device => device.Group));
+        Assert.Equal(["openrgb-ram", "simulated-fan", "simulated-strip"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
+    }
+
+    [Fact]
+    public async Task Connect_TwinsShowTheAddressThatTellsThemApart()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices =
+        [
+            TestDevices.Create("ram-1", "ENE DRAM 1", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x70") },
+            TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x71") },
+            TestDevices.Create("fan", "Fan", DeviceType.Fan, 12),
+        ]);
+
+        Assert.Equal([null, "Adres 0x70", "Adres 0x71", null], viewModel.Devices.Select(device => device.LocationLabel));
+    }
+
+    [Fact]
     public async Task Connect_ShowsPreviewForEveryDeviceFromCurrentFrame()
     {
         var viewModel = await ConnectAsync(api => api.Frame = Frame(1, new RgbColor(9, 9, 9)));
@@ -149,7 +177,7 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task SelectDevice_ShowsItsLightingWithoutSending()
+    public async Task SelectDevice_ShowsItsLightingAndOnlyFlashesIt()
     {
         var viewModel = await ConnectAsync();
 
@@ -158,7 +186,29 @@ public sealed class MainViewModelTests
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(50.0, viewModel.Brightness);
         Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
-        Assert.Empty(Api.Calls);
+        Assert.Equal(["flash fan"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task SelectAllDevices_FlashesNothing()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        viewModel.SelectedDevice = viewModel.Devices[0];
+
+        Assert.Equal(["flash fan"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task FlashInThePreview_FlashesThatDevice()
+    {
+        var viewModel = await ConnectAsync();
+
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").FlashCommand.Execute(null);
+
+        Assert.Equal(["flash strip"], Api.Calls);
+        Assert.Null(viewModel.SelectedDevice?.DeviceId);
     }
 
     [Fact]
@@ -191,7 +241,7 @@ public sealed class MainViewModelTests
         viewModel.SelectedEffect = null;
         viewModel.SelectedEffect = viewModel.Effects[0];
 
-        Assert.Equal(["color fan #00FF00", "brightness fan 0.25", "effect fan static"], Api.Calls);
+        Assert.Equal(["flash fan", "color fan #00FF00", "brightness fan 0.25", "effect fan static"], Api.Calls);
     }
 
     [Fact]
@@ -206,7 +256,7 @@ public sealed class MainViewModelTests
 
         Assert.Same(fan, viewModel.SelectedDevice);
         Assert.Equal(["fan"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
-        Assert.Equal(["brightness fan 0.30"], Api.Calls);
+        Assert.Equal(["flash fan", "brightness fan 0.30"], Api.Calls);
     }
 
     [Fact]
@@ -227,7 +277,9 @@ public sealed class MainViewModelTests
 
             context.RunPending();
             Assert.Same(fan, viewModel.SelectedDevice);
-            Assert.Empty(Api.Calls);
+
+            // Putting the selection back is no new pick, so the fan does not flash again.
+            Assert.Equal(["flash fan"], Api.Calls);
         }
         finally
         {
@@ -268,7 +320,9 @@ public sealed class MainViewModelTests
         Assert.Equal([null, "strip", "fan", "openrgb-gpu"], viewModel.Devices.Select(device => device.DeviceId));
         Assert.Equal(string.Format(Strings.AllDevicesDetails, 3), viewModel.Devices[0].Details);
         Assert.Equal("fan", viewModel.SelectedDevice?.DeviceId);
-        Assert.Empty(Api.Calls);
+
+        // Only the user's own pick flashed; the new list keeps the selection without a flash.
+        Assert.Equal(["flash fan"], Api.Calls);
     }
 
     [Fact]

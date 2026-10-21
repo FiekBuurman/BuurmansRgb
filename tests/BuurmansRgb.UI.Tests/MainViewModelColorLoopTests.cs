@@ -83,7 +83,7 @@ public sealed class MainViewModelColorLoopTests
 
         viewModel.ColorLoopEditor.AddColorCommand.Execute(null);
 
-        Assert.Equal(["loop fan #FFFF00,#FFFF00,#00FF00,#0000FF spread"], Api.Calls);
+        Assert.Equal(["flash fan", "loop fan #FFFF00,#FFFF00,#00FF00,#0000FF spread"], Api.Calls);
     }
 
     [Fact]

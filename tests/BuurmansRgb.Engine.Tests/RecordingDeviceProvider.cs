@@ -8,7 +8,7 @@ internal sealed class RecordingDeviceProvider(string deviceId = RecordingDeviceP
     public const string DeviceId = "recording-device";
 
     private readonly IReadOnlyList<RgbDevice> _devices =
-        [new(deviceId, "Recording device", DeviceType.Other, [RgbZone.Fixed("Zone", 3)])];
+        [new(deviceId, "Recording device", DeviceType.Other, [RgbZone.Fixed("Zone", 3)]) { Source = DeviceSource.Hardware }];
 
     private readonly Lock _gate = new();
     private int _setLedsCount;

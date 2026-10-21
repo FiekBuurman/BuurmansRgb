@@ -6,7 +6,10 @@ public sealed class RgbDeviceTests
     [
         RgbZone.Fixed("Mainboard", 6),
         new RgbZone("ARGB header", 0, 0, 120),
-    ]);
+    ])
+    {
+        Source = DeviceSource.Hardware,
+    };
 
     [Theory]
     [InlineData(-1)]
@@ -28,6 +31,17 @@ public sealed class RgbDeviceTests
         Assert.Same(Board.Zones[0], resized.Zones[0]);
         Assert.Equal((Board.Id, Board.Name, Board.Type), (resized.Id, resized.Name, resized.Type));
         Assert.Equal(0, Board.Zones[1].LedCount);
+    }
+
+    [Fact]
+    public void WithZoneLength_KeepsTheSourceAndLocation()
+    {
+        var board = Board with { Source = DeviceSource.Simulated, Location = new DeviceLocation("PIIX4", "0x4E") };
+
+        var resized = board.WithZoneLength(1, 30);
+
+        Assert.Equal(DeviceSource.Simulated, resized.Source);
+        Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), resized.Location);
     }
 
     [Theory]

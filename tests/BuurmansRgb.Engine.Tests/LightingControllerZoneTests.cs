@@ -81,7 +81,7 @@ public sealed class LightingControllerZoneTests
     public async Task ResizeZone_ProviderCannotResize_Throws()
     {
         await _controller.DiscoverAsync(Ct);
-        await WhileDevicesChangeAsync(() => _dynamic.SetDevices(new RgbDevice("header", "Header", DeviceType.LedStrip, [new RgbZone("Strip", 10, 0, 60)])));
+        await WhileDevicesChangeAsync(() => _dynamic.SetDevices(new RgbDevice("header", "Header", DeviceType.LedStrip, [new RgbZone("Strip", 10, 0, 60)]) { Source = DeviceSource.Hardware }));
 
         Assert.Throws<ArgumentException>(() => _controller.ResizeZone("header", 0, 20));
     }
@@ -91,7 +91,7 @@ public sealed class LightingControllerZoneTests
     public async Task ResizeZone_SwitchableProviderThatCannotResize_Throws()
     {
         var dynamic = new DynamicDeviceProvider();
-        dynamic.SetDevices(new RgbDevice("header", "Header", DeviceType.LedStrip, [new RgbZone("Strip", 10, 0, 60)]));
+        dynamic.SetDevices(new RgbDevice("header", "Header", DeviceType.LedStrip, [new RgbZone("Strip", 10, 0, 60)]) { Source = DeviceSource.Hardware });
         using var controller = new LightingController([SwitchableDeviceProvider.For(dynamic)]);
         await controller.DiscoverAsync(Ct);
 
@@ -118,7 +118,7 @@ public sealed class LightingControllerZoneTests
 
     private static RgbDevice Board(int header) =>
         new("board", "Board", DeviceType.Motherboard,
-            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1)]);
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
 
     private async Task WhileDevicesChangeAsync(Action change)
     {

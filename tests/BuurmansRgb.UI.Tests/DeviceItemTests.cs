@@ -34,7 +34,7 @@ public sealed class DeviceItemTests
     public void For_MotherboardWithZones_ShowsTypeLedsAndZones()
     {
         var motherboard = new DeviceInfo("board", "ASUS TUF GAMING B650-PLUS", DeviceType.Motherboard, 7,
-            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]);
+            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(motherboard);
 
@@ -58,7 +58,7 @@ public sealed class DeviceItemTests
     public void For_GpuWithLightBarAndLogo_ShowsTypeLedsAndZones()
     {
         var gpu = new DeviceInfo("gpu", "ASUS ROG STRIX RTX 4080", DeviceType.Gpu, 13,
-            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]);
+            [RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(gpu);
 
@@ -89,7 +89,7 @@ public sealed class DeviceItemTests
     public void For_MouseWithZones_ShowsTypeLedsAndZones()
     {
         var mouse = new DeviceInfo("mouse", "Logitech G502 HERO", DeviceType.Mouse, 2,
-            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]);
+            [RgbZone.Fixed("Logo", 1), RgbZone.Fixed("DPI", 1)]) { Source = DeviceSource.Hardware };
 
         var item = DeviceItem.For(mouse);
 
@@ -107,13 +107,64 @@ public sealed class DeviceItemTests
         Assert.Equal("15 LED's", item.Details);
     }
 
+    [Theory]
+    [InlineData(DeviceSource.Hardware, "Echte apparaten (OpenRGB)")]
+    [InlineData(DeviceSource.Simulated, "Gesimuleerde apparaten")]
+    public void For_RealOrSimulated_HasItsHeading(DeviceSource source, string group)
+    {
+        var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source);
+
+        Assert.Equal(group, DeviceItem.For(device).Group);
+    }
+
+    // A new source without "DeviceSource_<source>" in Strings.resx would end up with "all devices".
     [Fact]
-    public void AllDevices_HasNoIdAndNoType()
+    public void For_EverySource_HasAHeading() =>
+        Assert.All(Enum.GetValues<DeviceSource>(), source =>
+            Assert.NotNull(DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source)).Group));
+
+    [Fact]
+    public void For_WithALocationLabel_ShowsItAndTheWholeLocationAsToolTip()
+    {
+        var stick = TestDevices.Create("ram", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x52") };
+
+        var item = DeviceItem.For(stick, "Adres 0x52");
+
+        Assert.Equal("Adres 0x52", item.LocationLabel);
+        Assert.True(item.ShowsLocationLabel);
+        Assert.Equal("Locatie: PIIX4, adres 0x52", item.LocationToolTip);
+    }
+
+    // A device without a twin needs no label; its location stays in the tooltip.
+    [Fact]
+    public void For_WithoutALocationLabel_HasTheLocationOnlyAsToolTip()
+    {
+        var keyboard = TestDevices.Create("keyboard", "Keyboard", DeviceType.Keyboard, 104) with { Location = new DeviceLocation(@"HID: \\?\hid#vid_1b1c") };
+
+        var item = DeviceItem.For(keyboard);
+
+        Assert.False(item.ShowsLocationLabel);
+        Assert.Equal(@"Locatie: HID: \\?\hid#vid_1b1c", item.LocationToolTip);
+    }
+
+    [Fact]
+    public void For_DeviceWithoutLocation_ShowsNone()
+    {
+        var item = DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12));
+
+        Assert.Null(item.LocationLabel);
+        Assert.False(item.ShowsLocationLabel);
+        Assert.Null(item.LocationToolTip);
+    }
+
+    [Fact]
+    public void AllDevices_HasNoIdNoTypeAndNoHeading()
     {
         var item = DeviceItem.AllDevices(3);
 
         Assert.Null(item.DeviceId);
         Assert.Null(item.Type);
+        Assert.Null(item.Group);
         Assert.Equal("3 apparaten", item.Details);
     }
 }

@@ -32,6 +32,9 @@ public sealed class EngineRpcTests : IDisposable
         var devices = await client.Api.GetDevicesAsync(Ct);
 
         Assert.Equal(_api.Devices, devices);
+        Assert.Equal(DeviceSource.Simulated, devices[0].Source);
+        Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), devices[1].Location);
+        Assert.Null(devices[0].Location);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
     }
 
@@ -159,6 +162,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task FlashDeviceAsync_SendsTheDevice()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.FlashDeviceAsync("fan", Ct);
+
+        Assert.Equal(["fan"], _api.FlashCalls);
+    }
+
+    [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
         var client = await ConnectAsync();
@@ -213,10 +226,17 @@ public sealed class EngineRpcTests : IDisposable
 
         public IReadOnlyList<DeviceInfo> Devices { get; } =
         [
-            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]),
-            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)]),
+            new("strip", "LED strip", DeviceType.LedStrip, 30, [new RgbZone("Strip", 30, 1, 60)]) { Source = DeviceSource.Simulated },
+            new("board", "Motherboard", DeviceType.Motherboard, 4, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB header", 0, 0, 120)])
+            {
+                Source = DeviceSource.Hardware,
+                Location = new DeviceLocation("PIIX4", "0x4E"),
+            },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
-                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }]),
+                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }])
+            {
+                Source = DeviceSource.Hardware,
+            },
         ];
 
         public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false));
@@ -282,6 +302,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
         {
             ResizeCalls.Add((deviceId, zoneIndex, ledCount));
+            return Task.CompletedTask;
+        }
+
+        public List<string> FlashCalls { get; } = [];
+
+        public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
+        {
+            FlashCalls.Add(deviceId);
             return Task.CompletedTask;
         }
 

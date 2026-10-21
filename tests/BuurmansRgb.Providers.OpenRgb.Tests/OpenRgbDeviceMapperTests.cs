@@ -22,6 +22,7 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Equal(3, mapped.Index);
         Assert.Equal("ASUS ROG STRIX", mapped.Device.Name);
         Assert.Equal(expectedType, mapped.Device.Type);
+        Assert.Equal(DeviceSource.Hardware, mapped.Device.Source);
         Assert.Equal(4, mapped.Device.LedCount);
         Assert.Equal(
             [RgbZone.Fixed("Aura LEDs", 4), new RgbZone("Aura Addressable 1", 0, 0, 120)],
@@ -116,6 +117,8 @@ public sealed class OpenRgbDeviceMapperTests
         });
         Assert.Equal([0, 1, 2, 3], mapped.Select(item => item.Index));
         Assert.Equal(["ENE DRAM 1", "ENE DRAM 2", "ENE DRAM 3", "ENE DRAM 4"], mapped.Select(item => item.Device.Name));
+        Assert.Equal(["0x70", "0x71", "0x72", "0x73"], mapped.Select(item => item.Device.Location?.Address));
+        Assert.All(mapped, item => Assert.Equal("PIIX4", item.Device.Location?.Port));
     }
 
     // Two cards of the same model differ only in their PCI or SMBus location.
@@ -134,7 +137,23 @@ public sealed class OpenRgbDeviceMapperTests
             mapped.Select(item => item.Device.Id));
         Assert.NotEqual(mapped[0].Device.Id, mapped[1].Device.Id);
         Assert.All(mapped, item => Assert.Equal((DeviceType.Gpu, 1), (item.Device.Type, item.Device.LedCount)));
+        Assert.Equal(
+            [new DeviceLocation("NVIDIA GPU", "0x68"), new DeviceLocation("NVIDIA GPU 1", "0x68")],
+            mapped.Select(item => item.Device.Location));
     }
+
+    [Theory]
+    [InlineData("I2C: PIIX4 SMBus Adapter at 0B00, address 0x52", "PIIX4 SMBus Adapter at 0B00", "0x52")]
+    [InlineData("I2C: Intel(R) SMBus - 7A23, address 0x5A", "Intel(R) SMBus - 7A23", "0x5A")]
+    [InlineData(@"HID: \\?\hid#vid_0cf2&pid_a102", @"HID: \\?\hid#vid_0cf2&pid_a102", null)]
+    [InlineData("I2C: 0x4E", "I2C: 0x4E", null)]
+    public void ToLocation_SplitsAnSmBusAddressOffAndKeepsTheRest(string location, string port, string? address) =>
+        Assert.Equal(new DeviceLocation(port, address), OpenRgbDeviceMapper.ToLocation(location));
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void ToLocation_Empty_IsUnknown(string location) => Assert.Null(OpenRgbDeviceMapper.ToLocation(location));
 
     [Fact]
     public void Map_DevicesWithTheirOwnName_KeepTheirName()

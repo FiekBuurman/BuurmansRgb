@@ -96,15 +96,11 @@
   of bij ontgrendelen (`SessionSwitch`), als apparaten dan ook terug naar hun eigen effect gaan
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
-- Bij RAM-sticks met dezelfde naam de OpenRGB-locatie (SMBus-adres) tonen, zodat je ziet welke
-  stick in welk slot zit; nu krijgen ze alleen een nummer in de volgorde van OpenRGB
 - In de instellingen-app tonen dat een apparaat in OpenRGB geen "Direct"- of "Custom"-modus
   heeft (veel videokaarten), zodat je ziet waarom de kleur niet aankomt; nu staat dat alleen in
   de debug-uitvoer
 - Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
-- Bij twee videokaarten van hetzelfde model de OpenRGB-locatie tonen, net als bij RAM-sticks;
-  nu krijgen ze alleen een nummer in de volgorde van OpenRGB
 - Fans en fan-ringen in het voorbeeld als ring tekenen in plaats van als rij bolletjes, zodat
   je ziet welke LED waar zit
 - Zonelengtes ook in `settings.json` bewaren en bij verbinden opnieuw instellen, voor als
@@ -147,3 +143,19 @@
 - Gesimuleerde apparaten vanzelf uit zodra OpenRGB echte apparaten levert, zodat na de
   installer niemand `settings.json` hoeft aan te passen
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
+- Ook één zone laten knipperen (bijv. met een knop naast de zonenaam), zodat je bij een
+  moederbord met meer ARGB-headers ziet welke header welke fan of strip is; nu knippert het hele
+  apparaat
+- Met de pijltjestoetsen door de apparatenlijst lopen laat elk apparaat dat je passeert
+  knipperen; pas knipperen als de selectie even stil staat (bijv. 300 ms)
+- Het knipperen loopt op de framerate van de render-loop: bij een lage `framesPerSecond`
+  (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
+- Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
+  het apparaat krijgt dan wel zijn eigen kleuren terug
+- In de instellingen-app laten zien dat knipperen niet kan omdat de effecten gepauzeerd zijn
+  (hoort bij het idee hierboven om de pauze in de app te tonen)
+- Bij twee dezelfde videokaarten controleren wat OpenRGB op Windows als locatie geeft: als bus
+  en adres gelijk zijn, valt er alleen op volgorde te kiezen. Nieuwere SDK-versies of een
+  PCI-locatie zouden dan helpen
+- Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
+  per id in `settings.json`

@@ -89,6 +89,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
+    {
+        _lighting.Flash(deviceId);
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)

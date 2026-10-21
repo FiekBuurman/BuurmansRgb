@@ -9,4 +9,7 @@ public interface IPreviewActions
     void SelectLeds(LedSelection selection);
 
     void ResizeZone(ZoneResize resize);
+
+    // Lets the device blink on the hardware, so the user can see which one it is.
+    void FlashDevice(string deviceId);
 }

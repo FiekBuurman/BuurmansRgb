@@ -21,6 +21,9 @@ public sealed class PreviewViewModel : IPreviewActions
     // Raised when the user sets another length for a resizable zone.
     public event EventHandler<ZoneResize>? ZoneResizeRequested;
 
+    // Raised when the user asks a device to flash, with its id.
+    public event EventHandler<string>? FlashRequested;
+
     // Forgets the frames of an earlier connection, whose sequence numbers do not apply.
     public void Reset() => _latestFrame = LightingFrame.Empty;
 
@@ -70,4 +73,6 @@ public sealed class PreviewViewModel : IPreviewActions
     void IPreviewActions.SelectLeds(LedSelection selection) => LedsSelected?.Invoke(this, selection);
 
     void IPreviewActions.ResizeZone(ZoneResize resize) => ZoneResizeRequested?.Invoke(this, resize);
+
+    void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
 }

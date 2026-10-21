@@ -22,6 +22,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
+    private const string FlashCall = "flash";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -46,6 +47,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
+        Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         LedEditor.PropertyChanged += (_, _) => FillGradientCommand.NotifyCanExecuteChanged();
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         ColorLoopEditor.PropertyChanged += (_, e) =>
@@ -151,6 +153,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Ctrl+click in the list deselects the item. "Nothing" must not turn into "all devices",
     // which would send the next change to every device, so the previous item stays selected.
+    // A device the user picks flashes on the hardware, so they see which one it is; a selection
+    // made while showing engine state, such as after connecting, does not.
     partial void OnSelectedDeviceChanged(DeviceItem? oldValue, DeviceItem? newValue)
     {
         if (_syncing.IsActive)
@@ -178,6 +182,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ClearLedSelection();
         _ = ShowSelectionAsync();
+        if (newValue.DeviceId is { } deviceId)
+        {
+            FlashDevice(deviceId);
+        }
     }
 
     partial void OnBrightnessChanged(double value)
@@ -227,17 +235,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.
-    private void ShowDevices(IReadOnlyList<DeviceInfo> devices)
+    // The real devices come first and the simulated ones after them, each under their own heading.
+    private void ShowDevices(IReadOnlyList<DeviceInfo> engineDevices)
     {
         var selectedId = SelectedDevice?.DeviceId;
+        IReadOnlyList<DeviceInfo> devices = [.. engineDevices.OrderBy(device => device.Source == DeviceSource.Simulated)];
         _devices = devices;
+        var locationLabels = DeviceLocationLabels.For(devices);
         _syncing.Run(() =>
         {
             Devices.Clear();
             Devices.Add(DeviceItem.AllDevices(devices.Count));
             foreach (var device in devices)
             {
-                Devices.Add(DeviceItem.For(device));
+                Devices.Add(DeviceItem.For(device, locationLabels.GetValueOrDefault(device.Id)));
             }
 
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
@@ -404,6 +415,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), () => connection.Api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
+        }
+    }
+
+    private void FlashDevice(string deviceId)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
         }
     }
 

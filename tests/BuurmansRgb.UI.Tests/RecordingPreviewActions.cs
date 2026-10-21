@@ -2,6 +2,7 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
+// A flash is recorded as the id of its device.
 internal sealed class RecordingPreviewActions : IPreviewActions
 {
     public List<object> Requests { get; } = [];
@@ -11,4 +12,6 @@ internal sealed class RecordingPreviewActions : IPreviewActions
     public void SelectLeds(LedSelection selection) => Requests.Add(selection);
 
     public void ResizeZone(ZoneResize resize) => Requests.Add(resize);
+
+    public void FlashDevice(string deviceId) => Requests.Add(deviceId);
 }

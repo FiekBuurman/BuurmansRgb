@@ -40,7 +40,10 @@
     <value>Geen LED's</value>
   </data>
   <data name="ZoneWithoutLedsResizable" xml:space="preserve">
-    <value>Geen LED's: stel hieronder in hoeveel LED's hierop zitten</value>
+    <value>Nog geen LED's ingesteld</value>
+  </data>
+  <data name="EmptyZoneHint" xml:space="preserve">
+    <value>Zit hier een fan of strip op? Vul hieronder in hoeveel LED's die heeft (staat vaak op de doos) en kies Toepassen. Tot dan blijft hij donker.</value>
   </data>
   <data name="ZoneLedCountLabel" xml:space="preserve">
     <value>Aantal LED's ({0}–{1}):</value>
@@ -65,6 +68,24 @@
   </data>
   <data name="ZoneOtherLeds" xml:space="preserve">
     <value>Overige LED's</value>
+  </data>
+  <data name="DeviceLocationAddress" xml:space="preserve">
+    <value>Adres {0}</value>
+  </data>
+  <data name="DeviceLocationPort" xml:space="preserve">
+    <value>Op {0}</value>
+  </data>
+  <data name="DeviceLocationToolTip" xml:space="preserve">
+    <value>Locatie: {0}</value>
+  </data>
+  <data name="DeviceLocationToolTipWithAddress" xml:space="preserve">
+    <value>Locatie: {0}, adres {1}</value>
+  </data>
+  <data name="DeviceSource_Hardware" xml:space="preserve">
+    <value>Echte apparaten (OpenRGB)</value>
+  </data>
+  <data name="DeviceSource_Simulated" xml:space="preserve">
+    <value>Gesimuleerde apparaten</value>
   </data>
   <data name="DeviceType_Motherboard" xml:space="preserve">
     <value>Moederbord</value>
@@ -271,4 +292,13 @@
   </data>
   <data name="ProfileDeleted" xml:space="preserve">
     <value>Profiel '{0}' verwijderd.</value>
+  </data>
+  <data name="FlashDevice" xml:space="preserve">
+    <value>Laat knipperen</value>
+  </data>
+  <data name="FlashDeviceToolTip" xml:space="preserve">
+    <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+  </data>
+  <data name="FlashDeviceAccessibleName" xml:space="preserve">
+    <value>{0} laten knipperen</value>
   </data></root>

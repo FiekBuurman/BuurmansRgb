@@ -17,7 +17,7 @@ internal sealed class DynamicDeviceProvider : IDynamicDeviceProvider
     public bool HasDevicesChangedListeners => DevicesChanged is not null;
 
     public static RgbDevice Device(string id, int ledCount = 2) =>
-        new(id, $"Device {id}", DeviceType.Other, [RgbZone.Fixed("Zone", ledCount)]);
+        new(id, $"Device {id}", DeviceType.Other, [RgbZone.Fixed("Zone", ledCount)]) { Source = DeviceSource.Hardware };
 
     public void SetDevices(params IReadOnlyList<RgbDevice> devices)
     {

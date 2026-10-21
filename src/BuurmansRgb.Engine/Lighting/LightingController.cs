@@ -7,8 +7,8 @@ namespace BuurmansRgb.Engine.Lighting;
 // Called from the tray thread, from IPC threads and, when a provider's devices change, from the
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
-// An AnimationLoop renders the frames, and only while an animated effect shows and nothing is
-// paused; with static lighting no timer runs at all.
+// An AnimationLoop renders the frames, and only while an animated effect shows or a device
+// flashes, and nothing is paused; with static lighting no timer runs at all.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
@@ -262,6 +262,33 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         provider.ResizeZone(deviceId, zoneIndex, ledCount);
     }
 
+    // Lets the device blink for a moment (DeviceFlash), so the user can find it in the pc; then it
+    // shows its own lighting again. Nothing is stored and LightingChanged is not raised. The render
+    // loop runs only until the flash is over. One device flashes at a time, so the user who clicks
+    // through the list sees only the last one. While paused the devices stay as they are, so
+    // nothing happens then. A flash changes no lighting, so a device that is gone (the list in
+    // the settings app may be behind) is skipped instead of reported as an error.
+    public void Flash(string deviceId)
+    {
+        lock (_gate)
+        {
+            if (_outputs.Find(deviceId) is not { } output || _isPaused || !_lighting.IsSet)
+            {
+                return;
+            }
+
+            StopFlashesLocked(except: output);
+            var time = EffectTime;
+            output.StartFlash(time);
+            output.Render(time);
+            output.Send();
+            _sequence++;
+            UpdateAnimationLocked();
+        }
+
+        Publish(rendered: true);
+    }
+
     // Copies the buffers, so the caller can convert them without holding the lock.
     public LightingOutput GetOutput()
     {
@@ -272,7 +299,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Resuming sends the latest lighting again; pausing stops the animation and leaves the
-    // devices as they are.
+    // devices as they are, except that a flash ends first, so no device stays white or dark.
     public void SetPaused(bool paused)
     {
         bool rendered;
@@ -283,20 +310,23 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return;
             }
 
-            _isPaused = paused;
             if (paused)
             {
+                rendered = StopFlashesLocked();
+                _isPaused = true;
                 UpdateAnimationLocked();
-                return;
             }
-
-            if (_restorePending)
+            else
             {
-                _restorePending = false;
-                RestoreProvidersLocked();
-            }
+                _isPaused = false;
+                if (_restorePending)
+                {
+                    _restorePending = false;
+                    RestoreProvidersLocked();
+                }
 
-            rendered = RenderLocked();
+                rendered = RenderLocked();
+            }
         }
 
         Publish(rendered);
@@ -339,13 +369,22 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             var time = EffectTime;
+            var flashEnded = false;
             foreach (var output in _outputs.All)
             {
                 if (output.IsAnimated)
                 {
+                    var flashing = output.IsFlashing;
                     output.Render(time);
+                    flashEnded |= flashing && !output.IsFlashing;
                     rendered |= output.SendIfChanged();
                 }
+            }
+
+            // With only static effects left, the timer stops again.
+            if (flashEnded)
+            {
+                UpdateAnimationLocked();
             }
 
             if (rendered)
@@ -366,6 +405,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return;
             }
 
+            // The engine leaves the devices as they are when it stops, but not white or dark from
+            // a flash that is still running.
+            StopFlashesLocked();
             _disposed = true;
             _animation.Dispose();
         }
@@ -466,6 +508,31 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         return moved;
+    }
+
+    // Gives every device that is flashing, but except, its own colors again. Returns true when
+    // there was one.
+    private bool StopFlashesLocked(DeviceOutput? except = null)
+    {
+        var time = EffectTime;
+        var stopped = false;
+        foreach (var output in _outputs.All)
+        {
+            if (output.IsFlashing && output != except)
+            {
+                output.StopFlash();
+                output.Render(time);
+                output.Send();
+                stopped = true;
+            }
+        }
+
+        if (stopped)
+        {
+            _sequence++;
+        }
+
+        return stopped;
     }
 
     private void RestoreProvidersLocked()

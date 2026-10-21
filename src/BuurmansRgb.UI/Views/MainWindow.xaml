@@ -55,6 +55,15 @@
                 </Grid.ColumnDefinitions>
 
                 <DockPanel Margin="12">
+                    <!-- The device list grouped by heading: the real devices and the simulated ones.
+                         "All devices" has no heading. -->
+                    <DockPanel.Resources>
+                        <CollectionViewSource x:Key="GroupedDevices" Source="{Binding Devices}">
+                            <CollectionViewSource.GroupDescriptions>
+                                <PropertyGroupDescription PropertyName="Group" />
+                            </CollectionViewSource.GroupDescriptions>
+                        </CollectionViewSource>
+                    </DockPanel.Resources>
                     <TextBlock DockPanel.Dock="Top" Style="{StaticResource Header}" Margin="0,0,0,6"
                                Text="{x:Static res:Strings.DevicesHeader}" />
 
@@ -88,11 +97,39 @@
                         </DockPanel>
                     </StackPanel>
 
-                    <ListBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}"
+                    <ListBox ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                              AutomationProperties.Name="{x:Static res:Strings.DevicesHeader}">
+                        <ListBox.GroupStyle>
+                            <GroupStyle>
+                                <GroupStyle.ContainerStyle>
+                                    <Style TargetType="GroupItem">
+                                        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.AllDevices}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </GroupStyle.ContainerStyle>
+                                <GroupStyle.HeaderTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="Heading" Margin="2,10,0,2" FontWeight="SemiBold" Text="{Binding Name}"
+                                                   Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Name}" Value="{x:Null}">
+                                                <Setter TargetName="Heading" Property="Visibility" Value="Collapsed" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </GroupStyle.HeaderTemplate>
+                            </GroupStyle>
+                        </ListBox.GroupStyle>
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                                 <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+                                <!-- The label that tells twins apart, as the list shows it; null for a device without one. -->
+                                <Setter Property="AutomationProperties.HelpText" Value="{Binding LocationLabel}" />
+                                <Setter Property="ToolTip" Value="{Binding LocationToolTip}" />
                             </Style>
                         </ListBox.ItemContainerStyle>
                         <ListBox.ItemTemplate>
@@ -105,6 +142,8 @@
                                     <StackPanel>
                                         <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
                                         <TextBlock Text="{Binding Details}" Foreground="{x:Static SystemColors.GrayTextBrush}" />
+                                        <TextBlock Text="{Binding LocationLabel}" Foreground="{x:Static SystemColors.GrayTextBrush}"
+                                                   Visibility="{Binding ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
                                     </StackPanel>
                                 </DockPanel>
                             </DataTemplate>
@@ -267,6 +306,9 @@
                                             <Path Style="{StaticResource DeviceIcon}" Margin="0,0,6,0" VerticalAlignment="Center"
                                                   Stroke="{x:Static SystemColors.ControlTextBrush}" />
                                             <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                                            <Button Margin="10,0,0,0" Padding="8,1" VerticalAlignment="Center"
+                                                    Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
+                                                    Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}" />
                                         </StackPanel>
                                         <ItemsControl ItemsSource="{Binding Zones}" AutomationProperties.Name="{Binding Name}">
                                             <ItemsControl.ItemTemplate>
@@ -284,13 +326,16 @@
                                                                             SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                             ClickCommand="{Binding ClickLedCommand}"
                                                                             AutomationProperties.Name="{Binding AccessibleName}" />
+                                                        <TextBlock Margin="0,2,0,0" TextWrapping="Wrap" Text="{x:Static res:Strings.EmptyZoneHint}"
+                                                                   Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />
                                                         <StackPanel Margin="0,4,0,0" Orientation="Horizontal"
                                                                     Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
                                                             <TextBlock VerticalAlignment="Center" Text="{Binding LedCountLabel}"
                                                                        Foreground="{x:Static SystemColors.GrayTextBrush}" />
                                                             <TextBox Width="56" Margin="6,0,0,0" VerticalContentAlignment="Center"
                                                                      Text="{Binding LedCountText, UpdateSourceTrigger=PropertyChanged}"
-                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}">
+                                                                     AutomationProperties.Name="{Binding LedCountAccessibleName}"
+                                                                     AutomationProperties.HelpText="{Binding LedCountHelpText}">
                                                                 <TextBox.InputBindings>
                                                                     <KeyBinding Key="Enter" Command="{Binding ApplyLedCountCommand}" />
                                                                 </TextBox.InputBindings>
