@@ -62,7 +62,8 @@ internal static class Program
             saveEvents: saveEvents,
             profileTriggers: [profileTimer, programWatcher],
             zoneLengths: zoneLengths,
-            autoPause: autoPause);
+            autoPause: autoPause,
+            profiles: profiles);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath);
         using (instance.ListenForActivation(context.RequestOpenSettings))
