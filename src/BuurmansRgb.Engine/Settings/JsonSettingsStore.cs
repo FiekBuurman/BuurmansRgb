@@ -34,7 +34,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
     public void Save(EngineSettings settings)
     {
-        var json = Serialize(settings);
+        var json = settings.ToJson();
         lock (_gate)
         {
             SaveLocked(json);
@@ -130,15 +130,12 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         try
         {
-            SaveLocked(Serialize(settings));
+            SaveLocked(settings.ToJson());
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
         }
     }
-
-    private static byte[] Serialize(EngineSettings settings) =>
-        JsonSerializer.SerializeToUtf8Bytes(settings, EngineSettingsJsonContext.Default.EngineSettings);
 
     // A file that did not read when it last changed goes aside first, as at the start.
     private void SaveLocked(byte[] json)

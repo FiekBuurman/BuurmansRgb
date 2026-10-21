@@ -55,7 +55,7 @@ internal sealed record EngineSettings : LightingStateSettings
     // Whether two lightings come out the same in the file. The records hold dictionaries and
     // lists, which compare by reference.
     public static bool SameLighting(LightingState left, LightingState right) =>
-        Serialize(From(left)).AsSpan().SequenceEqual(Serialize(From(right)));
+        From(left).ToJson().AsSpan().SequenceEqual(From(right).ToJson());
 
     // A copy with the lighting of state. It starts from this, so every startup option, also one
     // added later, stays as it is.
@@ -66,6 +66,7 @@ internal sealed record EngineSettings : LightingStateSettings
         return settings;
     }
 
-    private static byte[] Serialize(EngineSettings settings) =>
-        JsonSerializer.SerializeToUtf8Bytes(settings, EngineSettingsJsonContext.Default.EngineSettings);
+    // The settings as settings.json holds them.
+    public byte[] ToJson() =>
+        JsonSerializer.SerializeToUtf8Bytes(this, EngineSettingsJsonContext.Default.EngineSettings);
 }
