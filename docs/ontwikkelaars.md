@@ -158,6 +158,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | --- | --- | --- | --- |
 | Engine | Statisch, app dicht | ~0,07 % van één kern | 21–24 MB working set, 12–13 MB private |
 | Engine | Regenboog op 30 fps, app dicht | ~0,35 % van één kern (~0,02 % van de pc) | 22–27 MB working set, 12,5–13 MB private |
+| Engine | Allocaties (`dotnet-counters`), app dicht | Regenboog ~101 KB, statisch ~89 KB per minuut: geen meetbaar verschil door 1.800 frames per minuut | |
 | Engine | Alles uit, met regenboog als effect | 0,00–0,12 % van één kern, geen render-timer | 19–28 MB working set, 12–13 MB private |
 | Engine | Vergrendeld of slaapstand | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
@@ -169,7 +170,11 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 
 De engine is gemeten in Release met de gesimuleerde lampen en zonder OpenRGB (dan probeert hij
 elke 5 seconden te verbinden; dat is het grootste deel van de CPU bij een statische kleur).
-Meet allocaties met de app dicht. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
+Meet allocaties met de app dicht, bijvoorbeeld met
+`dotnet tool install -g dotnet-counters` en daarna
+`dotnet-counters collect -p <pid van de engine> --counters System.Runtime --refresh-interval 60 --duration 00:05:00 --format csv`.
+Vergelijk `dotnet.gc.heap.total_allocated` met een animatie en met een statische kleur: de teller
+loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
 in een venster van 1240 × 820; met Windows vergrendeld tekent WPF niets, dus die oudere meting
 mist het tekenen zelf (ook van de gloed). Met een zichtbaar venster zit de app boven het budget
 van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen (zie `ideas.md`).
