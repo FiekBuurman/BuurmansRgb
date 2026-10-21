@@ -233,10 +233,12 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
             body.UInt16(0); // no segments
         }
 
+        // The LED names of the zones in order, or "LED <number>" for a zone without names.
+        var ledNames = device.Zones.SelectMany(zone => zone.LedNames ?? Enumerable.Repeat<string?>(null, zone.LedCount)).ToArray();
         body.UInt16((ushort)device.LedCount);
         for (var i = 0; i < device.LedCount; i++)
         {
-            body.String($"LED {i + 1}");
+            body.String(i < ledNames.Length && ledNames[i] is { } name ? name : $"LED {i + 1}");
             body.UInt32(0);
         }
 

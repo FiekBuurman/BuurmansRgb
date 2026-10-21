@@ -45,6 +45,41 @@ public sealed class SimulatedDeviceProviderTests
         Assert.Equal(102, matrix[5, 20]);
     }
 
+    // Every key has a name, and the names follow the key map: each key sits where its name says.
+    [Theory]
+    [InlineData(0, 0, "Escape")]
+    [InlineData(0, 16, "Print Screen")]
+    [InlineData(1, 13, "Backspace")]
+    [InlineData(1, 23, "Number Pad -")]
+    [InlineData(2, 13, "\\")]
+    [InlineData(3, 0, "Caps Lock")]
+    [InlineData(3, 13, "Enter")]
+    [InlineData(4, 13, "Right Shift")]
+    [InlineData(4, 17, "Up Arrow")]
+    [InlineData(4, 23, "Number Pad Enter")]
+    [InlineData(5, 6, "Space")]
+    [InlineData(5, 13, "Right Control")]
+    [InlineData(5, 22, "Number Pad .")]
+    public async Task DiscoverAsync_KeyboardKeysHaveTheNameOfTheirPlace(int row, int column, string name)
+    {
+        var devices = await new SimulatedDeviceProvider().DiscoverAsync(Ct);
+
+        var keys = Assert.Single(devices.Single(device => device.Type == DeviceType.Keyboard).Zones);
+        var names = Assert.IsAssignableFrom<IReadOnlyList<string>>(keys.LedNames);
+        Assert.Equal(keys.LedCount, names.Count);
+        Assert.Equal(keys.LedCount, names.Distinct().Count());
+        Assert.Equal(name, names[keys.Matrix![row, column]]);
+    }
+
+    // Only the keyboard copies a real layout; the other devices have no names to give.
+    [Fact]
+    public async Task DiscoverAsync_OtherDevices_HaveNoLedNames()
+    {
+        var devices = await new SimulatedDeviceProvider().DiscoverAsync(Ct);
+
+        Assert.All(devices.Where(device => device.Type != DeviceType.Keyboard).SelectMany(device => device.Zones), zone => Assert.Null(zone.LedNames));
+    }
+
     [Fact]
     public async Task DiscoverAsync_MouseAndHeadsetHaveTheirZones()
     {

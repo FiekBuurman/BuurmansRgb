@@ -61,6 +61,87 @@ public sealed class DevicePreviewViewModelTests
         Assert.Null(preview.Zones[1].Matrix);
     }
 
+    // The number counts from the start of the device, as the per-LED editor says "LED 4".
+    [Fact]
+    public void LedLabels_GiveTheNameAndTheNumberInTheDevice()
+    {
+        var device = new DeviceInfo("keyboard", "Keyboard", DeviceType.Keyboard, 4,
+            [RgbZone.Fixed("Keys", 3) with { LedNames = ["Escape", " ", "F1"] }, RgbZone.Fixed("Logo", 1)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.Equal(["Escape (LED 1)", "LED 2", "F1 (LED 3)"], zones[0].LedLabels);
+        Assert.Equal(["LED 4"], zones[1].LedLabels);
+    }
+
+    // The list of names may be shorter or longer than the zone.
+    [Fact]
+    public void LedLabels_NamesThatDoNotMatchTheZone_StillGiveALabelPerLed()
+    {
+        var device = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 5,
+            [RgbZone.Fixed("Short", 2) with { LedNames = ["A"] }, RgbZone.Fixed("Long", 3) with { LedNames = ["B", "C", "D", "E"] }])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.Equal(["A (LED 1)", "LED 2"], zones[0].LedLabels);
+        Assert.Equal(["B (LED 3)", "C (LED 4)", "D (LED 5)"], zones[1].LedLabels);
+    }
+
+    // A dual-ring fan: each ring is a zone of its own and shows as a ring of its own, up to the
+    // largest fan ring.
+    [Fact]
+    public void Zones_OfAFan_AreRings()
+    {
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20 + ZonePreviewViewModel.MaxRingLeds,
+            [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12), RgbZone.Fixed("Big ring", ZonePreviewViewModel.MaxRingLeds)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.All(new DevicePreviewViewModel(fan).Zones, zone => Assert.True(zone.IsRing));
+    }
+
+    // OpenRGB calls a hub such as a Lian Li Uni Hub a cooler too; a channel of it can hold a strip
+    // or several fans in a row, and a zone longer than a fan ring is not one ring either.
+    [Fact]
+    public void Zones_OfAFanThatCanBeResizedOrAreLong_AreNoRings()
+    {
+        var hub = new DeviceInfo("hub", "Lian Li Uni Hub", DeviceType.Fan, 16 + ZonePreviewViewModel.MaxRingLeds + 1,
+            [new RgbZone("Channel 1", 16, 0, 200), RgbZone.Fixed("Fans", ZonePreviewViewModel.MaxRingLeds + 1)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.All(new DevicePreviewViewModel(hub).Zones, zone => Assert.False(zone.IsRing));
+    }
+
+    [Fact]
+    public void Zones_OfOtherDevices_AreNoRings()
+    {
+        var strip = TestDevices.Create("strip", "Fan strip", DeviceType.LedStrip, 10);
+
+        Assert.All(new DevicePreviewViewModel(Motherboard).Zones, zone => Assert.False(zone.IsRing));
+        Assert.False(Assert.Single(new DevicePreviewViewModel(strip).Zones).IsRing);
+    }
+
+    // A key map tells where the LEDs sit, so it wins over the ring.
+    [Fact]
+    public void Zones_OfAFanWithAKeyMap_AreNoRings()
+    {
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 2, [RgbZone.Fixed("Panel", 2) with { Matrix = new LedMatrix(1, 2, [0, 1]) }])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        Assert.False(Assert.Single(new DevicePreviewViewModel(fan).Zones).IsRing);
+    }
+
     [Fact]
     public void Zones_EmptyZoneThatCannotBeResized_SaysItHasNoLeds()
     {

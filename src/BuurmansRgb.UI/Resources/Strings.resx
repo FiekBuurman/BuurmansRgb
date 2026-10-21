@@ -114,6 +114,24 @@
   <data name="DeviceType_Headset" xml:space="preserve">
     <value>Headset</value>
   </data>
+  <data name="DeviceType_Mousemat" xml:space="preserve">
+    <value>Muismat</value>
+  </data>
+  <data name="DeviceType_HeadsetStand" xml:space="preserve">
+    <value>Headsetstandaard</value>
+  </data>
+  <data name="DeviceType_Speaker" xml:space="preserve">
+    <value>Speaker</value>
+  </data>
+  <data name="DeviceType_Gamepad" xml:space="preserve">
+    <value>Gamepad</value>
+  </data>
+  <data name="DeviceType_Microphone" xml:space="preserve">
+    <value>Microfoon</value>
+  </data>
+  <data name="DeviceType_Keypad" xml:space="preserve">
+    <value>Keypad</value>
+  </data>
   <data name="ColorHeader" xml:space="preserve">
     <value>Kleur</value>
   </data>
@@ -164,6 +182,12 @@
   </data>
   <data name="LedSelectionHint" xml:space="preserve">
     <value>De kleur hieronder geldt nu alleen voor deze LED's.</value>
+  </data>
+  <data name="LedLabel" xml:space="preserve">
+    <value>LED {0}</value>
+  </data>
+  <data name="LedLabelWithName" xml:space="preserve">
+    <value>{0} (LED {1})</value>
   </data>
   <data name="FillGradient" xml:space="preserve">
     <value>Verloop vullen</value>

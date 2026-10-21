@@ -317,6 +317,18 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   controllers met ARGB-kanalen, zo noemt OpenRGB ze) en "Behuizing". OpenRGB.NET 3.1.1 kent het
   type "case" van nieuwere OpenRGB-versies niet bij naam; BuurmansRgb herkent het aan zijn
   nummer.
+- **Fans als ring:** het voorbeeld tekent elke zone van een ventilator (in OpenRGB het type
+  "cooler", dus ook een AIO-pomp) als een ring van bolletjes, met LED 1 bovenaan en dan met de
+  klok mee. Een fan met meer ringen (bijv. binnen- en buitenring als eigen zones) krijgt een
+  ring per zone. OpenRGB zegt niet waar de eerste LED van een fan zit of welke kant hij op
+  telt, en heeft geen zonetype voor een ring; de wijzerplaat is dus een keuze, geen kaart van
+  je fan. Alleen het apparaattype telt: een zone "Fan" op een videokaart of een ARGB-header met
+  een fan erop blijft een rij, omdat de naam daar niet betrouwbaar zegt wat erop zit. Ook een
+  zone waarvan je de lengte instelt blijft een rij: dat is een kanaal van een hub die OpenRGB
+  ook "cooler" noemt (bijv. een Lian Li Uni Hub of Corsair Commander), met een strip of meer
+  fans achter elkaar erop. Hetzelfde geldt voor een zone van meer dan 48 LED's, meer dan één
+  fan-ring heeft. Klikken, Shift+klik en de zonenaam werken zoals in een rij; een klik naast of
+  midden in de ring kiest niets.
 - **Lengte instellen:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header of
   -kanaal) staat onder de LED's "Aantal LED's (0–120):" met het bereik van die zone. Typ het
   aantal LED's van wat erop zit en kies "Toepassen" (of Enter). Heeft zo'n zone nog 0 LED's,
@@ -346,18 +358,23 @@ Corsair Commander of een Lian Li-hub), die OpenRGB via USB bereikt.
   na herstellen), `LightingControllerZoneTests` en `LedColorStoreTests` (lengte instellen via de
   engine, per-LED-kleuren die meeschuiven), `SwitchableDeviceProviderTests`, `EngineApiTests`,
   `EngineRpcTests` en in de instellingen-app `DeviceItemTests`, `DeviceIconsTests`,
-  `DevicePreviewViewModelTests`, `LedEditorViewModelTests` en `MainViewModelLedEditorTests`.
+  `DevicePreviewViewModelTests` (welke zones een ring zijn), `RingLayoutTests`,
+  `LedArrangementTests` en `LedPreviewViewTests` (de ring: plek van elke LED, klikken op en
+  naast een LED), `LedEditorViewModelTests` en `MainViewModelLedEditorTests`.
   Start daarnaast de engine en de instellingen-app: kies "Simulated ARGB controller", zet
   "ARGB 2" op bijv. 15 en kies "Toepassen", of klik bij "Simulated dual-ring fan" op "Outer
-  ring" en kies een kleur.
+  ring" en kies een kleur. "Simulated fan" en de twee ringen van "Simulated dual-ring fan"
+  staan als ring in het voorbeeld; klik op een LED en Shift+klik op een LED verderop.
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
   elke fan, strip en controller, en daarnaast:
   1. Stel bij een ARGB-header of -kanaal het aantal LED's in en controleer dat de hele strip
      (en niet meer) oplicht; herstart OpenRGB en kijk of de lengte bewaard blijft.
   2. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een
      kleur.
-  3. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten
-     en of het type klopt (fan, strip of behuizing).
+  3. Geef LED 1 van een fan-ring een kleur en kijk waar die op de echte fan zit en welke kant
+     LED 2 op gaat; het voorbeeld zet LED 1 bovenaan en telt met de klok mee.
+  4. Noteer in `docs/hardware.md` welke controller het is, hoeveel LED's er per kanaal zitten,
+     of het type klopt (fan, strip of behuizing) en waar LED 1 van een ring zit.
 
 ## Toetsenbord, muis en headset
 
@@ -365,6 +382,12 @@ Toetsenbord, muis en headset zijn het laatste apparaattype (taak 8). OpenRGB ber
 USB, niet via SMBus.
 
 - **In de lijst** heeft elk type een eigen icoon en naam: "Toetsenbord", "Muis" en "Headset".
+  Ook de andere types van OpenRGB hebben er een: "Muismat", "Headsetstandaard", "Speaker",
+  "Gamepad", "Microfoon" en "Keypad". Microfoon en keypad kent OpenRGB.NET 3.1.1 (de nieuwste
+  versie) niet bij naam; BuurmansRgb herkent ze aan hun nummer, net als "case". Lampen,
+  virtuele apparaten, "accessory" en "storage" staan zonder type in de lijst: "storage" heeft
+  hetzelfde nummer als "unknown" van oudere OpenRGB-versies, dus dat valt niet uit elkaar te
+  houden.
 - **Toetsenbord als matrix:** bij veel toetsenborden geeft OpenRGB per zone een matrix-map:
   rijen en kolommen met in elk vakje de LED van de toets die daar zit. Het voorbeeld tekent
   dan elke LED als toets op die plek, en maakt de toetsen kleiner als het venster te smal is.
@@ -373,13 +396,31 @@ USB, niet via SMBus.
   toets om hem in de per-LED-editor een eigen kleur te geven. Shift+klik selecteert een reeks
   in de LED-volgorde van OpenRGB; die loopt vaak rij voor rij, maar verschilt per toetsenbord.
   Regenboog en Golf lopen ook over die LED-volgorde, niet over de plek van de toetsen.
+- **Toetsnamen:** OpenRGB geeft elke LED een naam, bij een toetsenbord bijv. "Key: Escape".
+  Wijs je in het voorbeeld een LED of toets aan, dan noemt een tooltip hem met zijn nummer,
+  bijv. "Escape (LED 1)" (zonder "Key: "), of "LED 5" als hij geen naam heeft. Een naam die
+  alleen een eigen nummer is, zoals "LED 3" of "Aura Addressable 1 LED 3", telt als geen naam:
+  OpenRGB telt die per zone of apparaat, en naast het nummer in het apparaat verwart dat alleen.
+  Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik (en met "toevoegen
+  aan de selectie" zoals Shift+klik). De namen gaan alleen mee naar de instellingen-app als
+  OpenRGB echte namen geeft; het gesimuleerde toetsenbord heeft de namen van een gewoon
+  Amerikaans toetsenbord.
+- **Brede toetsen:** in de matrix-map heeft ook de spatiebalk maar één vakje, met lege vakjes
+  ernaast. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, linker Shift en Ctrl en de 0 van
+  het numerieke blok breder naar rechts, Backspace, Enter, rechter Shift en Ctrl breder naar
+  links, en de spatiebalk naar beide kanten, telkens over de lege vakjes tot de volgende toets
+  in de rij. Lege vakjes aan het eind van een rij blijven leeg, en twee brede toetsen met lege
+  vakjes ertussen delen die. Een klik op het bredere deel kiest die toets. Zonder namen, of
+  zonder lege vakjes ernaast, blijft elke toets één vakje. Hoge toetsen (Enter en + van het
+  numerieke blok) blijven één vakje hoog.
 - **Muis:** het voorbeeld toont de zones zoals OpenRGB ze geeft (bijv. logo, scrollwiel en
   zijkanten). Klik op de naam van een zone om alleen die zone een kleur te geven.
 - **Headset:** OpenRGB ondersteunt maar een deel van de headsets; kijk in de lijst "Supported
   Devices" op [openrgb.org](https://openrgb.org). Een headset die OpenRGB niet kent, staat niet
   in OpenRGB en dus ook niet in BuurmansRgb. BuurmansRgb heeft geen eigen driver voor headsets
   en krijgt er ook geen; noteer zo'n headset in `docs/hardware.md` als "niet ondersteund door
-  OpenRGB". Een headsetstandaard heet in OpenRGB geen headset en staat zonder type in de lijst.
+  OpenRGB". Een headsetstandaard heet in OpenRGB geen headset en staat als "Headsetstandaard"
+  in de lijst.
 - **Na slaapstand** herstelt de engine ook toetsenbord, muis en headset, zoals beschreven bij
   "Moederbord en RAM". Sluit je een USB-apparaat opnieuw aan, dan ziet OpenRGB het mogelijk pas
   nadat het opnieuw naar apparaten heeft gezocht.
@@ -390,14 +431,23 @@ USB, niet via SMBus.
   SDK-server, rijen en kolommen, en herstellen na slaapstand), `EngineRpcTests` en
   `EngineIpcServerTests` (de matrix gaat mee naar de instellingen-app), en `DeviceItemTests`,
   `DeviceIconsTests`, `LedLayoutTests` (plek van de toetsen, klikken en meekrimpen in een smal
-  venster) en `DevicePreviewViewModelTests` in de instellingen-app.
-  Start daarnaast de engine en de instellingen-app: kies "Simulated keyboard" en klik op een
-  toets, of kies bij "Simulated mouse" de zone "Scroll wheel".
+  venster) en `DevicePreviewViewModelTests` in de instellingen-app. Voor de toetsnamen en
+  brede toetsen: `RgbZoneTests` en `RgbDeviceTests` (namen in een zone, gelijkheid en JSON
+  zonder namen), `OpenRgbNetConnectionTests` en `OpenRgbDeviceMapperTests` (namen per zone,
+  zonder "Key: "), `SimulatedDeviceProviderTests` (elke toets de naam van zijn plek),
+  `EngineRpcTests` (namen over de pipe), `WideKeysTests` en `LedPreviewViewTests`
+  (de items voor UI Automation, selecteren zoals een klik, meldingen aan een schermlezer). Voor
+  de types: `DeviceTypeTests` (vaste nummers over de pipe), `DeviceItemTests`,
+  `DeviceIconsTests` en `OpenRgbDeviceMapperTests`.
+  Start daarnaast de engine en de instellingen-app: kies "Simulated keyboard", wijs een toets
+  aan voor zijn naam en klik op een toets (ook op het brede deel van de spatiebalk), of kies
+  bij "Simulated mouse" de zone "Scroll wheel".
 - **Testen met je eigen hardware:** volg "Een apparaattype testen met je eigen hardware" voor
   het toetsenbord, de muis en de headset, en daarnaast:
   1. Vergelijk het voorbeeld van het toetsenbord met het echte toetsenbord: klik op bijv. Esc,
      W, A, S, D en de spatiebalk, geef ze een kleur en controleer dat precies die toetsen
-     oplichten.
+     oplichten. Kijk of de tooltip de goede naam geeft, en of de brede toetsen (spatiebalk,
+     Enter, Shift, Backspace) breed staan en niet over een andere toets of blok heen lopen.
   2. Geef bij de muis één zone een eigen kleur en controleer dat alleen die zone verandert.
   3. Staat de headset niet in OpenRGB, noteer dan het model in `docs/hardware.md`.
   4. Noteer in `docs/hardware.md` per apparaat het model en wat werkt.
@@ -621,7 +671,8 @@ dotnet run --project src/BuurmansRgb.UI
   hardware (zie "Welk apparaat is wat?"). **Rechts** de kleur (hex-code, vaste kleuren,
   schuiven voor tint en verzadiging), de helderheid (0–100%), het effect, de snelheid en een
   voorbeeld met een bolletje per LED, per zone. Een toetsenbord met een matrix-map toont een
-  toets per LED, op zijn plek.
+  toets per LED, op zijn plek (brede toetsen breder), en een fan een ring per zone. Wijs een
+  LED aan voor zijn naam en nummer (zie "Toetsenbord, muis en headset").
 - **Kleurenloop:** kies het effect "Kleurenloop", dan verschijnen onder de kleurkiezer de
   kleuren van de loop. Klik op een kleur en kies hierboven een nieuwe; met + voeg je een kleur
   toe (na de geselecteerde, 2 tot 8 kleuren) en met − haal je de geselecteerde weg. Voorbeeld:

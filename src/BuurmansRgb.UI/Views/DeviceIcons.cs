@@ -48,6 +48,30 @@ public static class DeviceIcons
     public static Geometry Headset { get; } = Create(
         "M3.5,9.5 V8 A5.5,5.5 0 0 1 14.5,8 V9.5 M2.5,9.5 H5.5 V14.5 H2.5 Z M12.5,9.5 H15.5 V14.5 H12.5 Z M4.5,14.5 V16.5 H8.5");
 
+    // A mat with a mouse on it.
+    public static Geometry Mousemat { get; } = Create(
+        "M0.5,3.5 H17.5 V14.5 H0.5 Z M11.5,6.5 A2,2 0 0 1 13.5,8.5 V10.5 A2,2 0 0 1 9.5,10.5 V8.5 A2,2 0 0 1 11.5,6.5 Z M11.5,6.5 V8.5");
+
+    // A headset hanging on a stand with a foot.
+    public static Geometry HeadsetStand { get; } = Create(
+        "M3.5,10.5 V8 A5,5 0 0 1 13.5,8 V10.5 M2.5,10.5 H4.5 V13.5 H2.5 Z M12.5,10.5 H14.5 V13.5 H12.5 Z M8.5,3 V15.5 M4.5,15.5 H12.5");
+
+    // A cabinet with a tweeter above a woofer.
+    public static Geometry Speaker { get; } = Create(
+        "M3.5,1.5 H14.5 V16.5 H3.5 Z M8,5 A1,1 0 1 0 10,5 A1,1 0 1 0 8,5 Z M5.5,11 A3.5,3.5 0 1 0 12.5,11 A3.5,3.5 0 1 0 5.5,11 Z");
+
+    // A controller with two grips, a direction pad and two buttons.
+    public static Geometry Gamepad { get; } = Create(
+        "M5.5,4.5 H12.5 A4,4 0 0 1 16.5,8.5 V12 A2,2 0 0 1 13,13.5 L11.5,11.5 H6.5 L5,13.5 A2,2 0 0 1 1.5,12 V8.5 A4,4 0 0 1 5.5,4.5 Z M5.5,7 V10 M4,8.5 H7 M11.5,9.5 A1,1 0 1 0 13.5,9.5 A1,1 0 1 0 11.5,9.5 Z M12.5,7 A0.5,0.5 0 1 0 13.5,7 A0.5,0.5 0 1 0 12.5,7 Z");
+
+    // A microphone in its holder on a stand.
+    public static Geometry Microphone { get; } = Create(
+        "M7.5,4 A2,2 0 0 1 11.5,4 V8.5 A2,2 0 0 1 7.5,8.5 Z M5.5,8.5 A4,4 0 0 0 13.5,8.5 M9.5,12.5 V15.5 M6.5,15.5 H12.5");
+
+    // A gaming keypad: two rows of keys above a palm rest.
+    public static Geometry Keypad { get; } = Create(
+        "M1.5,2.5 H16.5 V10.5 H1.5 Z M3.5,5.5 H5.5 M8,5.5 H10 M12.5,5.5 H14.5 M3.5,7.5 H5.5 M8,7.5 H10 M12.5,7.5 H14.5 M5.5,10.5 V15.5 H12.5 V10.5");
+
     // A housing with one LED.
     public static Geometry Device { get; } = Create(
         "M3.5,3.5 H14.5 V14.5 H3.5 Z M7,9 A2,2 0 1 0 11,9 A2,2 0 1 0 7,9 Z");
@@ -65,6 +89,12 @@ public static class DeviceIcons
         DeviceType.Keyboard => Keyboard,
         DeviceType.Mouse => Mouse,
         DeviceType.Headset => Headset,
+        DeviceType.Mousemat => Mousemat,
+        DeviceType.HeadsetStand => HeadsetStand,
+        DeviceType.Speaker => Speaker,
+        DeviceType.Gamepad => Gamepad,
+        DeviceType.Microphone => Microphone,
+        DeviceType.Keypad => Keypad,
         _ => Device,
     };
 

@@ -9,7 +9,8 @@ public sealed class DeviceIconsTests
     private static readonly Geometry[] AllIcons =
     [
         DeviceIcons.Motherboard, DeviceIcons.Ram, DeviceIcons.Gpu, DeviceIcons.Fan, DeviceIcons.LedStrip, DeviceIcons.Case,
-        DeviceIcons.Keyboard, DeviceIcons.Mouse, DeviceIcons.Headset, DeviceIcons.AllDevices, DeviceIcons.Device,
+        DeviceIcons.Keyboard, DeviceIcons.Mouse, DeviceIcons.Headset, DeviceIcons.Mousemat, DeviceIcons.HeadsetStand, DeviceIcons.Speaker,
+        DeviceIcons.Gamepad, DeviceIcons.Microphone, DeviceIcons.Keypad, DeviceIcons.AllDevices, DeviceIcons.Device,
     ];
 
     [Fact]
@@ -24,6 +25,12 @@ public sealed class DeviceIconsTests
         Assert.Same(DeviceIcons.Keyboard, DeviceIcons.For(DeviceType.Keyboard));
         Assert.Same(DeviceIcons.Mouse, DeviceIcons.For(DeviceType.Mouse));
         Assert.Same(DeviceIcons.Headset, DeviceIcons.For(DeviceType.Headset));
+        Assert.Same(DeviceIcons.Mousemat, DeviceIcons.For(DeviceType.Mousemat));
+        Assert.Same(DeviceIcons.HeadsetStand, DeviceIcons.For(DeviceType.HeadsetStand));
+        Assert.Same(DeviceIcons.Speaker, DeviceIcons.For(DeviceType.Speaker));
+        Assert.Same(DeviceIcons.Gamepad, DeviceIcons.For(DeviceType.Gamepad));
+        Assert.Same(DeviceIcons.Microphone, DeviceIcons.For(DeviceType.Microphone));
+        Assert.Same(DeviceIcons.Keypad, DeviceIcons.For(DeviceType.Keypad));
         Assert.Same(DeviceIcons.AllDevices, DeviceIcons.For(null));
         Assert.Equal(AllIcons.Length, AllIcons.Distinct().Count());
     }

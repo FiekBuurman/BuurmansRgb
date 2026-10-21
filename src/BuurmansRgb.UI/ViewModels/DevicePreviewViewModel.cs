@@ -74,6 +74,6 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
 
         var showsNames = layouts.Count > 1;
-        return [.. layouts.Select(layout => new ZonePreviewViewModel(device.Id, device.Name, layout, showsNames, actions))];
+        return [.. layouts.Select(layout => new ZonePreviewViewModel(device, layout, showsNames, actions))];
     }
 }

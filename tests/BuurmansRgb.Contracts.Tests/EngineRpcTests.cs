@@ -36,6 +36,8 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(new DeviceLocation("PIIX4", "0x4E"), devices[1].Location);
         Assert.Null(devices[0].Location);
         Assert.NotNull(devices[^1].Zones[0].Matrix);
+        Assert.Equal(["Escape", "F1", "F2", "Tab", "Q"], devices[^1].Zones[0].LedNames!);
+        Assert.Null(devices[0].Zones[0].LedNames);
         Assert.Equal([true, false, true], devices.Select(device => device.HasDirectMode));
     }
 
@@ -283,7 +285,7 @@ public sealed class EngineRpcTests : IDisposable
                 HasDirectMode = false,
             },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
-                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]) }])
+                [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]), LedNames = ["Escape", "F1", "F2", "Tab", "Q"] }])
             {
                 Source = DeviceSource.Hardware,
             },

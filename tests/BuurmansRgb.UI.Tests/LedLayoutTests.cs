@@ -72,6 +72,16 @@ public sealed class LedLayoutTests
         Assert.Equal(4, LedLayout.LedAt(new LedMatrix(2, 3, [0, 1, 2, 3, No, 4]), 9.0, 19.0, 10.0));
 
     [Fact]
+    public void SpanAt_WideKey_CountsItsCellsInTheRow()
+    {
+        var keys = new LedMatrix(2, 3, [0, 0, 0, 0, 1, 1]);
+
+        Assert.Equal(3, LedLayout.SpanAt(keys, 0));
+        Assert.Equal(1, LedLayout.SpanAt(keys, 3));
+        Assert.Equal(2, LedLayout.SpanAt(keys, 4));
+    }
+
+    [Fact]
     public void Place_EmptyMatrix_ShowsTheLedsInOneRow()
     {
         Assert.Equal(new LedMatrix(1, 3, [0, 1, 2]), LedLayout.Place(new LedMatrix(0, 0, []), 3));
@@ -107,4 +117,12 @@ public sealed class LedLayoutTests
     [Fact]
     public void PitchFor_Dots_NeverShrink() =>
         Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), 20.0, shrinks: false));
+
+    [Theory]
+    [InlineData(500.0, 1.0)]
+    [InlineData(double.PositiveInfinity, 1.0)]
+    [InlineData(50.0, 0.5)]
+    [InlineData(150.0, 0.75)]
+    public void ScaleFor_ShrinksToTheWidthDownToMinScale(double width, double scale) =>
+        Assert.Equal(scale, LedLayout.ScaleFor(200.0, width), 9);
 }

@@ -12,10 +12,16 @@ internal static partial class OpenRgbDeviceMapper
 
     private const int MaxSlugLength = 40;
 
-    // OpenRGB 0.9 added storage (14) and case (15) before its unknown type (now 19), but
-    // OpenRGB.NET 3.1.1 still knows 14 as Unknown and has no name for case; it passes the
-    // number on as it is.
+    private const string KeyPrefix = "Key: ";
+
+    // OpenRGB 0.9 added storage (14), case (15), microphone (16), accessory (17) and keypad (18)
+    // before its unknown type (then 19; later versions add more before it). OpenRGB.NET 3.1.1, its
+    // latest release, still knows 14 as Unknown and has no name for the others; it passes the
+    // number on as it is. 14 stays "other", since an older server sends it for an unknown device,
+    // and so does an accessory, which says no more than "other".
     public const OpenRgbDeviceType CaseType = (OpenRgbDeviceType)15;
+    public const OpenRgbDeviceType MicrophoneType = (OpenRgbDeviceType)16;
+    public const OpenRgbDeviceType KeypadType = (OpenRgbDeviceType)18;
 
     // The modes in which OpenRGB takes a color per LED from the SDK, in order of preference.
     private static readonly string[] DirectModeNames = ["Direct", "Custom"];
@@ -72,6 +78,12 @@ internal static partial class OpenRgbDeviceMapper
         OpenRgbDeviceType.Keyboard => DeviceType.Keyboard,
         OpenRgbDeviceType.Mouse => DeviceType.Mouse,
         OpenRgbDeviceType.Headset => DeviceType.Headset,
+        OpenRgbDeviceType.Mousemat => DeviceType.Mousemat,
+        OpenRgbDeviceType.HeadsetStand => DeviceType.HeadsetStand,
+        OpenRgbDeviceType.Speaker => DeviceType.Speaker,
+        OpenRgbDeviceType.Gamepad => DeviceType.Gamepad,
+        MicrophoneType => DeviceType.Microphone,
+        KeypadType => DeviceType.Keypad,
         _ => DeviceType.Other,
     };
 
@@ -89,7 +101,30 @@ internal static partial class OpenRgbDeviceMapper
     private static RgbZone ToZone(OpenRgbZoneData zone) => new(zone.Name, zone.LedCount, zone.MinLedCount, zone.MaxLedCount)
     {
         Matrix = zone.Matrix is { Cells.Count: > 0 } matrix ? matrix : null,
+        LedNames = ToLedNames(zone.LedNames),
     };
+
+    // OpenRGB names every key "Key: <key>", such as "Key: Escape"; the prefix says nothing next
+    // to a key, so it goes. Outside keyboards it mostly names an LED by a number of its own, such
+    // as "LED 3" or "Aura Addressable 1 LED 3", counted per zone or per device; next to the number
+    // of the LED in the device that only confuses, so such a name counts as no name. Other names
+    // stay as they are. A zone whose LEDs all have no name gets no list, so it costs nothing on
+    // the pipe.
+    public static IReadOnlyList<string>? ToLedNames(IReadOnlyList<string>? names)
+    {
+        if (names is null)
+        {
+            return null;
+        }
+
+        string[] cleaned = [.. names.Select(ToLedName)];
+        return cleaned.All(string.IsNullOrWhiteSpace) ? null : cleaned;
+    }
+
+    private static string ToLedName(string name) =>
+        LedNumberName().IsMatch(name) ? string.Empty
+        : name.StartsWith(KeyPrefix, StringComparison.Ordinal) ? name[KeyPrefix.Length..]
+        : name;
 
     // OpenRGB names every RAM stick of a kit the same. A number in server order tells them apart
     // in the device list; the id does not use it.
@@ -114,6 +149,9 @@ internal static partial class OpenRgbDeviceMapper
 
     [GeneratedRegex(@"^I2C: (?<bus>.+), address (?<address>0x[0-9A-Fa-f]+)$")]
     private static partial Regex SmBusLocation();
+
+    [GeneratedRegex(@"^(.* )?LED \d+$")]
+    private static partial Regex LedNumberName();
 
     private static string Slug(string name)
     {

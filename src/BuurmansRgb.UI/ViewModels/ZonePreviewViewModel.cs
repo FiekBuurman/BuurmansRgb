@@ -1,4 +1,5 @@
 using System.Globalization;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,15 +12,18 @@ namespace BuurmansRgb.UI.ViewModels;
 // to the actions counts from the start of the device.
 public sealed partial class ZonePreviewViewModel : ObservableObject
 {
+    // The most LEDs a single fan ring has; fans have a few dozen at most.
+    public const int MaxRingLeds = 48;
+
     private readonly string _deviceId;
     private readonly string _deviceName;
     private readonly ZoneLayout _layout;
     private readonly IPreviewActions? _actions;
 
-    public ZonePreviewViewModel(string deviceId, string deviceName, ZoneLayout layout, bool showsName, IPreviewActions? actions)
+    public ZonePreviewViewModel(DeviceInfo device, ZoneLayout layout, bool showsName, IPreviewActions? actions)
     {
-        _deviceId = deviceId;
-        _deviceName = deviceName;
+        _deviceId = device.Id;
+        _deviceName = device.Name;
         _layout = layout;
         _actions = actions;
         Colors = new RgbColor[layout.LedCount];
@@ -33,7 +37,15 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
             : Strings.ZoneWithoutLeds;
 
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
-        AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, deviceName, Name) : deviceName;
+        AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, device.Name, Name) : device.Name;
+
+        // OpenRGB has no zone type for a ring, and zone names differ per controller ("Fan" on a
+        // graphics card may well be a bar), so only the device type tells a fan. A zone whose
+        // length can be set is a channel of a hub that OpenRGB also calls a cooler (a Lian Li
+        // hub, a Corsair Commander), with a strip or several fans in a row on it, and so is a
+        // zone longer than one fan ring; those stay a row.
+        IsRing = device.Type == DeviceType.Fan && Matrix is null && !layout.Zone.Resizable && layout.LedCount <= MaxRingLeds;
+        LedLabels = [.. Enumerable.Range(0, layout.LedCount).Select(LabelOf)];
         LedCountText = layout.Zone.LedCount.ToString(CultureInfo.CurrentCulture);
     }
 
@@ -45,6 +57,17 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
 
     // Where the LEDs sit, such as the keys of a keyboard; null for LEDs in a row.
     public LedMatrix? Matrix => _layout.Zone.Matrix;
+
+    // The names of the LEDs as the provider gave them, such as "Space"; null without names.
+    public IReadOnlyList<string>? LedNames => _layout.Zone.LedNames;
+
+    // The LEDs of a fan, which the view draws as a ring instead of a row.
+    public bool IsRing { get; }
+
+    // What the tooltip and a screen reader call each LED of the zone: its number in the device,
+    // as the per-LED editor counts, after its name if the provider gave one, such as
+    // "Escape (LED 1)". Made once with the zone; the view binds to it right away.
+    public IReadOnlyList<string> LedLabels { get; }
 
     public bool ShowsHeader { get; }
 
@@ -122,6 +145,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject
         {
             _actions?.ResizeZone(new ZoneResize(_deviceId, _layout.Index, ledCount));
         }
+    }
+
+    private string LabelOf(int led)
+    {
+        var number = FirstLed + led + 1;
+        return LedNames is { } names && led < names.Count && !string.IsNullOrWhiteSpace(names[led])
+            ? UiText.Format(Strings.LedLabelWithName, names[led], number)
+            : UiText.Format(Strings.LedLabel, number);
     }
 
     // Only a length the zone can hold, and not the one it has.

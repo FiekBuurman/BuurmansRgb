@@ -11,7 +11,8 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         Simulated("simulated-strip", "Simulated LED strip", DeviceType.LedStrip, [new RgbZone("Strip", 30, 1, 60)]),
         Simulated("simulated-fan", "Simulated fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)]),
 
-        // A full-size keyboard: the main keys, the arrow block and the number pad, one LED per key.
+        // A full-size US keyboard: the main keys, the arrow block and the number pad, one LED per
+        // key, with the key names OpenRGB gives such a keyboard (without its "Key: " prefix).
         Simulated("simulated-keyboard", "Simulated keyboard", DeviceType.Keyboard,
         [
             RgbZone.Fixed("Keys", 104) with
@@ -23,6 +24,21 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
                     "############.#......###.",
                     "###########..#...#..####",
                     "###...#...####..###.#.#."),
+                LedNames =
+                [
+                    "Escape", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+                    "Print Screen", "Scroll Lock", "Pause/Break",
+                    "`", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "=", "Backspace",
+                    "Insert", "Home", "Page Up", "Num Lock", "Number Pad /", "Number Pad *", "Number Pad -",
+                    "Tab", "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "[", "]", "\\",
+                    "Delete", "End", "Page Down", "Number Pad 7", "Number Pad 8", "Number Pad 9", "Number Pad +",
+                    "Caps Lock", "A", "S", "D", "F", "G", "H", "J", "K", "L", ";", "'", "Enter",
+                    "Number Pad 4", "Number Pad 5", "Number Pad 6",
+                    "Left Shift", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/", "Right Shift",
+                    "Up Arrow", "Number Pad 1", "Number Pad 2", "Number Pad 3", "Number Pad Enter",
+                    "Left Control", "Left Windows", "Left Alt", "Space", "Right Alt", "Right Windows", "Menu", "Right Control",
+                    "Left Arrow", "Down Arrow", "Right Arrow", "Number Pad 0", "Number Pad .",
+                ],
             },
         ]),
 

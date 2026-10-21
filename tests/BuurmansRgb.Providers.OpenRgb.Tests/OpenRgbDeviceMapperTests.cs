@@ -29,6 +29,58 @@ public sealed class OpenRgbDeviceMapperTests
             mapped.Device.Zones);
     }
 
+    [Fact]
+    public void Map_KeyNames_LoseTheirKeyPrefix()
+    {
+        var data = TestDevices.Create(type: OpenRgbDeviceType.Keyboard,
+            zones: [new("Keys", 3, 3, 3, LedNames: ["Key: Escape", "Key: Number Pad 0", "Logo"]), new("Strip", 2, 2, 2, LedNames: ["Left", "Right"])]);
+
+        var zones = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones;
+
+        Assert.Equal(["Escape", "Number Pad 0", "Logo"], zones[0].LedNames!);
+        Assert.Equal(["Left", "Right"], zones[1].LedNames!);
+    }
+
+    // A name that only numbers the LED, per zone or per device, says nothing next to the number of
+    // the LED in the device, so a zone with only such names has no list.
+    [Fact]
+    public void Map_NamesThatOnlyNumberTheLeds_AreNoNames()
+    {
+        var data = TestDevices.Create(zones:
+        [
+            new("Strip", 2, 2, 2, LedNames: ["LED 1", "LED 2"]),
+            new("Header", 2, 2, 2, LedNames: ["Aura Addressable 1 LED 1", "Aura Addressable 1 LED 2"]),
+            new("Mixed", 2, 2, 2, LedNames: ["Logo", "LED 2"]),
+        ]);
+
+        var zones = Assert.Single(OpenRgbDeviceMapper.Map([data])).Device.Zones;
+
+        Assert.Null(zones[0].LedNames);
+        Assert.Null(zones[1].LedNames);
+        Assert.Equal(["Logo", ""], zones[2].LedNames!);
+    }
+
+    // Only "Key: " at the start is OpenRGB's prefix, and only a number at the end after "LED " is
+    // a number name.
+    [Theory]
+    [InlineData("Key:Escape")]
+    [InlineData("key: Escape")]
+    [InlineData("Left Key: 1")]
+    [InlineData("LED 1 Logo")]
+    [InlineData("LEDs 1")]
+    [InlineData("RGBLED 1")]
+    public void ToLedNames_OtherNames_StayAsTheyAre(string name) =>
+        Assert.Equal([name], OpenRgbDeviceMapper.ToLedNames([name])!);
+
+    [Fact]
+    public void ToLedNames_NoneOrOnlyEmptyNames_IsNoList()
+    {
+        Assert.Null(OpenRgbDeviceMapper.ToLedNames(null));
+        Assert.Null(OpenRgbDeviceMapper.ToLedNames(["", " "]));
+        Assert.Null(OpenRgbDeviceMapper.ToLedNames([]));
+        Assert.Equal(["", "Logo"], OpenRgbDeviceMapper.ToLedNames(["", "Logo"])!);
+    }
+
     // OpenRGB lists the keys of a keyboard in one zone, with a map of where each key sits.
     [Fact]
     public void Map_KeyboardWithKeyMap_KeepsTheKeyPositions()
@@ -191,8 +243,15 @@ public sealed class OpenRgbDeviceMapperTests
     [InlineData(OpenRgbDeviceType.Keyboard, DeviceType.Keyboard)]
     [InlineData(OpenRgbDeviceType.Mouse, DeviceType.Mouse)]
     [InlineData(OpenRgbDeviceType.Headset, DeviceType.Headset)]
-    [InlineData(OpenRgbDeviceType.Mousemat, DeviceType.Other)]
-    [InlineData(OpenRgbDeviceType.Speaker, DeviceType.Other)]
+    [InlineData(OpenRgbDeviceType.Mousemat, DeviceType.Mousemat)]
+    [InlineData(OpenRgbDeviceType.HeadsetStand, DeviceType.HeadsetStand)]
+    [InlineData(OpenRgbDeviceType.Gamepad, DeviceType.Gamepad)]
+    [InlineData(OpenRgbDeviceType.Speaker, DeviceType.Speaker)]
+    [InlineData(OpenRgbDeviceType.Light, DeviceType.Other)]
+    [InlineData(OpenRgbDeviceType.Virtual, DeviceType.Other)]
+    [InlineData(OpenRgbDeviceMapper.MicrophoneType, DeviceType.Microphone)]
+    [InlineData(OpenRgbDeviceMapper.KeypadType, DeviceType.Keypad)]
+    [InlineData((OpenRgbDeviceType)17, DeviceType.Other)]
     [InlineData(OpenRgbDeviceType.Unknown, DeviceType.Other)]
     [InlineData((OpenRgbDeviceType)99, DeviceType.Other)]
     public void ToDeviceType_MapsOpenRgbTypes(OpenRgbDeviceType type, DeviceType expected) =>
