@@ -379,6 +379,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #52 | Sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U voor "Alles aan" en "Alles uit" (`hotkeys`), uit te zetten bij Instellingen |
 | #53 | Een kleur op een lamp die uit staat (ook per LED of in de kleurenloop) zet hem aan, meteen in de nieuwe kleur |
 | #54 | Niet in de proceslijst kijken zolang Windows vergrendeld is of slaapt, ook als `pauseOnLockAndSleep` uit staat |
+| #?? | Ook pauzeren als alleen het scherm uitgaat, zonder vergrendelen (`GUID_CONSOLE_DISPLAY_STATE`), onder `pauseOnLockAndSleep` en met een eigen melding in de app |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

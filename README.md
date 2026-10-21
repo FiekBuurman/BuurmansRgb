@@ -21,8 +21,8 @@
   per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
 - **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, elke dag op een tijd of
   zolang een spel draait.
-- **Slim met je pc:** pauzeert bij vergrendelen en slaapstand en zet de kleuren na het ontwaken
-  terug.
+- **Slim met je pc:** pauzeert bij vergrendelen, slaapstand en scherm uit en zet de kleuren na
+  het ontwaken terug.
 - **Werkt zonder hardware:** zonder OpenRGB staan er twaalf gesimuleerde lampen klaar om mee te
   spelen.
 
