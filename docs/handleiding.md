@@ -108,7 +108,7 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
   toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
-  apparaat is wat?").
+  apparaat is wat?"), behalve bij "Overige LED's": de LED's die OpenRGB bij geen zone indeelt.
 - **Fans** (in OpenRGB het type "cooler", dus ook een AIO-pomp) tekent het voorbeeld per zone
   als ring, met LED 1 bovenaan en dan met de klok mee. OpenRGB zegt niet waar LED 1 echt zit;
   de wijzerplaat is dus een keuze. Een zone waarvan je de lengte instelt, of een zone van meer
@@ -635,8 +635,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   lamp waar je 0,3 seconde op blijft staan. Er knippert steeds één lamp; knipperen wordt niet
   opgeslagen, en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
 - **Eén zone knipperen:** heeft een lamp meer zones, zoals een moederbord met een paar
-  ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**. Dat laat alleen
-  de LED's van die zone knipperen, net zo als hierboven; de rest van de lamp houdt zijn kleuren.
+  ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**, behalve bij
+  "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
+  knipperen, net zo als hierboven; de rest van de lamp houdt zijn kleuren.
   Zo zie je welke header welke fan of strip is. Een zone zonder LED's knippert niet en heeft
   dus geen knop: stel eerst het aantal LED's in. Ook hier knippert er steeds één ding: een
   nieuwe zone of lamp neemt het over, bij een pauze is "Knipperen" grijs, en verandert de
