@@ -339,7 +339,7 @@
     <value>Aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
-    <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
+    <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
   </data>
   <data name="ProgramBrowse" xml:space="preserve">
     <value>Bladeren…</value>
@@ -544,6 +544,15 @@
   </data>
   <data name="PauseOnLockHint" xml:space="preserve">
     <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, zodat het dan geen CPU kost. De lampen houden het laatste beeld.</value>
+  </data>
+  <data name="SceneTimesHeader" xml:space="preserve">
+    <value>Scènes op tijd</value>
+  </data>
+  <data name="CatchUpLabel" xml:space="preserve">
+    <value>Gemiste tijden inhalen</value>
+  </data>
+  <data name="CatchUpHint" xml:space="preserve">
+    <value>Kwam de tijd van een scène voorbij terwijl de pc sliep, dan gaat na het ontwaken de scène van de laatste tijd aan. Bij het starten van buurmansRgb gaat die scène altijd aan. Uit slaat buurmansRgb zo'n tijd over.</value>
   </data>
   <data name="SaveHeader" xml:space="preserve">
     <value>Opslaan</value>

@@ -26,6 +26,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
+    private const string CatchUpCall = "catch-up";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
@@ -118,6 +119,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
         EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
+        SceneTimes.CatchUpChanged += (_, enabled) =>
+            SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -179,6 +182,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
+
+    public SceneTimesViewModel SceneTimes { get; } = new();
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
@@ -426,6 +431,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowActiveAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
         EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync());
+        SceneTimes.Show(await api.GetCatchUpSceneTimesAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
         if (openRgbStatusChanges == _openRgbStatusChanges)
@@ -834,12 +840,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var mode = await connection.Api.GetSimulatedDevicesAsync();
             var framesPerSecond = await connection.Api.GetFramesPerSecondAsync();
             var pauseOnLockAndSleep = await connection.Api.GetPauseOnLockAndSleepAsync();
+            var catchUp = await connection.Api.GetCatchUpSceneTimesAsync();
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
                 {
                     SimulatedDevices.Show(mode);
                     EffectOptions.Show(framesPerSecond, pauseOnLockAndSleep);
+                    SceneTimes.Show(catchUp);
                 }
             });
         });
