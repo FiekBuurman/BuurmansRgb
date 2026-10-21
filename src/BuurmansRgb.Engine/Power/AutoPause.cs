@@ -17,7 +17,7 @@ internal sealed class AutoPause : IAwayState, IDisposable
 {
     private readonly IPowerEvents _power;
     private readonly ISessionEvents _session;
-    private readonly IDisplayEvents? _display;
+    private readonly IDisplayEvents _display;
     private readonly Action<PauseReasons, bool> _setPaused;
     private readonly Lock _gate = new();
     private bool _enabled = true;
@@ -27,8 +27,7 @@ internal sealed class AutoPause : IAwayState, IDisposable
     private bool _displayOff;
     private PauseReasons _away;
 
-    // Without display (in tests) the screen counts as on.
-    public AutoPause(IPowerEvents power, ISessionEvents session, Action<PauseReasons, bool> setPaused, IDisplayEvents? display = null)
+    public AutoPause(IPowerEvents power, ISessionEvents session, IDisplayEvents display, Action<PauseReasons, bool> setPaused)
     {
         _power = power;
         _session = session;
@@ -37,10 +36,10 @@ internal sealed class AutoPause : IAwayState, IDisposable
         _power.Suspending += OnSuspending;
         _power.Resumed += OnResumed;
         _session.Switched += OnSessionSwitched;
-        _display?.Switched += OnDisplaySwitched;
+        _display.Switched += OnDisplaySwitched;
 
         // After listening, so a lock or a screen that goes off in between is not missed.
-        Change(() => (_locked, _displayOff) = (_session.IsLocked, _display?.IsOff ?? false));
+        Change(() => (_locked, _displayOff) = (_session.IsLocked, _display.IsOff));
     }
 
     // Raised when Enabled got another value; read Enabled for the newest one.
@@ -96,7 +95,7 @@ internal sealed class AutoPause : IAwayState, IDisposable
         _power.Suspending -= OnSuspending;
         _power.Resumed -= OnResumed;
         _session.Switched -= OnSessionSwitched;
-        _display?.Switched -= OnDisplaySwitched;
+        _display.Switched -= OnDisplaySwitched;
     }
 
     private void OnSuspending(object? sender, EventArgs e) => Change(() => _asleep = true);

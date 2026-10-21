@@ -78,8 +78,8 @@ public sealed class SystemDisplayEventsTests
             using var autoPause = new AutoPause(
                 new FakePowerEvents(),
                 session,
-                (reason, paused) => pause = paused ? pause | reason : pause & ~reason,
-                display);
+                display,
+                (reason, paused) => pause = paused ? pause | reason : pause & ~reason);
 
             Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
             session.Raise(SessionSwitchReason.SessionUnlock);

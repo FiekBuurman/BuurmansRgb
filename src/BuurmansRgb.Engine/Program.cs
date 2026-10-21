@@ -63,7 +63,7 @@ internal static class Program
         using var displayEvents = new SystemDisplayEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
-        using var autoPause = new AutoPause(powerEvents, sessionEvents, lighting.SetPaused, displayEvents);
+        using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);

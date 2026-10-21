@@ -24,7 +24,7 @@ public sealed class AutoPauseTests : IDisposable
     public AutoPauseTests()
     {
         _lighting = new LightingController([_restorable, _provider], _time);
-        _autoPause = new AutoPause(_power, _session, _lighting.SetPaused, _display);
+        _autoPause = new AutoPause(_power, _session, _display, _lighting.SetPaused);
     }
 
     public void Dispose()
@@ -112,7 +112,7 @@ public sealed class AutoPauseTests : IDisposable
         await StartAnimatedAsync();
         var session = new FakeSessionEvents { IsLocked = true };
 
-        using var autoPause = new AutoPause(_power, session, _lighting.SetPaused);
+        using var autoPause = new AutoPause(_power, session, new FakeDisplayEvents(), _lighting.SetPaused);
         Assert.Equal(PauseReasons.Locked, _lighting.Pause);
 
         session.Raise(SessionSwitchReason.SessionUnlock);
@@ -183,7 +183,7 @@ public sealed class AutoPauseTests : IDisposable
         await StartAnimatedAsync();
         var display = new FakeDisplayEvents { IsOff = true };
 
-        using var autoPause = new AutoPause(_power, _session, _lighting.SetPaused, display);
+        using var autoPause = new AutoPause(_power, _session, display, _lighting.SetPaused);
         Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
 
         display.Raise(off: false);
@@ -409,7 +409,7 @@ public sealed class AutoPauseTests : IDisposable
     [Fact]
     public void StartedWhileLocked_IsAwayAtOnce()
     {
-        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, _lighting.SetPaused) { Enabled = false };
+        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, new FakeDisplayEvents(), _lighting.SetPaused) { Enabled = false };
 
         Assert.Equal(PauseReasons.Locked, autoPause.Away);
     }

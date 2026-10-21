@@ -332,7 +332,7 @@ public sealed class EngineHostTests : IDisposable
     {
         var store = new InMemorySettingsStore { Settings = new EngineSettings { PauseOnLockAndSleep = enabled } };
         using var lighting = new LightingController([_simulated]);
-        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused) { Enabled = !enabled };
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), lighting.SetPaused) { Enabled = !enabled };
         using var host = new EngineHost(store, lighting, autoPause: autoPause);
 
         await host.StartAsync(Ct);
@@ -346,7 +346,7 @@ public sealed class EngineHostTests : IDisposable
     {
         var store = new InMemorySettingsStore();
         var lighting = new LightingController([_simulated]);
-        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), lighting.SetPaused);
         var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause);
         await host.StartAsync(Ct);
 
@@ -395,7 +395,7 @@ public sealed class EngineHostTests : IDisposable
     {
         var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, Hotkeys = false } };
         var lighting = new LightingController([_simulated]);
-        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), lighting.SetPaused);
         var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys());
         await host.StartAsync(Ct);
 
