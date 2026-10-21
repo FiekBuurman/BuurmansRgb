@@ -47,6 +47,7 @@ internal static class Program
 
         var autoStart = RegistryAutoStart.ForCurrentProcess();
         autoStart.EnableOnFirstRun(options);
+        autoStart.FollowMoveOnStart();
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();

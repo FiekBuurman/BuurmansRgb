@@ -206,7 +206,6 @@ uitbreidingen in `docs/bouwplan.md`.
   ook zo'n waarde liever overslaan en de standaardwaarde nemen
 - Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
   `%AppData%\BuurmansRgb\logs` hoeft te zoeken
-- Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")
 
 ## Installer en uitrol
 

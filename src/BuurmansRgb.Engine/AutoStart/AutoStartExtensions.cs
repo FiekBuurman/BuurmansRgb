@@ -23,4 +23,21 @@ internal static class AutoStartExtensions
             Trace.TraceWarning($"Could not turn on autostart on the first run: {exception.Message}");
         }
     }
+
+    // At every start, so autostart keeps working after the engine moved. A failure only leaves
+    // the menu showing it as off, as before.
+    public static void FollowMoveOnStart(this IAutoStart autoStart)
+    {
+        try
+        {
+            if (autoStart.FollowMove() is { } oldCommand)
+            {
+                Trace.TraceInformation($"Autostart started {oldCommand}, which is gone; it now starts this engine.");
+            }
+        }
+        catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException or IOException)
+        {
+            Trace.TraceWarning($"Could not move autostart to this engine: {exception.Message}");
+        }
+    }
 }

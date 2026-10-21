@@ -257,7 +257,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Tooltip:** "buurmansRgb" (of "buurmansRgb – effecten gepauzeerd") en daaronder de
   OpenRGB-status, bijv. "OpenRGB: verbonden, 5 lampen".
 - **Starten met Windows** zet `BuurmansRgb` in
-  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg.
+  `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg. Staat
+  de engine die daar stond er niet meer (verplaatst of ergens anders geïnstalleerd), dan zet de
+  engine bij het starten zijn eigen pad erin; een andere engine die er nog wel staat, houdt hem.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde

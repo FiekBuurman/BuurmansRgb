@@ -20,4 +20,10 @@ internal sealed class FakeAutoStart : IAutoStart
 
         IsEnabled = enabled;
     }
+
+    public string? FollowMoveResult { get; set; }
+
+    public Exception? FollowMoveException { get; set; }
+
+    public string? FollowMove() => FollowMoveException is not null ? throw FollowMoveException : FollowMoveResult;
 }

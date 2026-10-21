@@ -61,4 +61,27 @@ public sealed class AutoStartExtensionsTests
 
         Assert.Throws<InvalidOperationException>(() => autoStart.EnableOnFirstRun(FirstRun));
     }
+
+    [Fact]
+    public void FollowMoveOnStart_Moved_IsLogged()
+    {
+        using var trace = new TraceCapture();
+        var autoStart = new FakeAutoStart { FollowMoveResult = "\"C:\\Old\\BuurmansRgb.Engine.exe\"" };
+
+        autoStart.FollowMoveOnStart();
+
+        Assert.Contains(trace.Messages, message => message.Contains("C:\\Old\\BuurmansRgb.Engine.exe", StringComparison.Ordinal));
+    }
+
+    // Like a failure on the first run: the engine starts anyway.
+    [Theory]
+    [InlineData(typeof(UnauthorizedAccessException))]
+    [InlineData(typeof(SecurityException))]
+    [InlineData(typeof(IOException))]
+    public void FollowMoveOnStart_Fails_DoesNotThrow(Type exceptionType)
+    {
+        var autoStart = new FakeAutoStart { FollowMoveException = (Exception)Activator.CreateInstance(exceptionType)! };
+
+        autoStart.FollowMoveOnStart();
+    }
 }
