@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Power;
 // and once more a bit later. Another wake-up starts over; going to sleep again before the last
 // restore drops the restores that are left, so none comes while the pc sleeps or just wakes up.
 // After the first restore of a wake-up it raises Restored, with the moment the pc went to sleep.
-internal sealed class ResumeRestorer : IDisposable
+internal sealed class ResumeRestorer : IResumeEvents, IDisposable
 {
     public static IReadOnlyList<TimeSpan> DefaultDelays { get; } = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
 

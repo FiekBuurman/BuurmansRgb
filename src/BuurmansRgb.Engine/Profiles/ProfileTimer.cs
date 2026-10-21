@@ -12,7 +12,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // skipped, not caught up on: after a night asleep the "night" profile would be wrong in the
 // morning. With CatchUp the timer does catch up, with the scene the times give now: the one whose
 // time passed last. It does so at the start, and after waking up once the lights are back
-// (ResumeRestorer.Restored) when that time passed while the pc slept. While a program shows its
+// (IResumeEvents.Restored) when that time passed while the pc slept. While a program shows its
 // profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
 // Called from the tray thread, IPC threads and the timers; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
@@ -25,7 +25,7 @@ internal sealed class ProfileTimer : IProfileTrigger
     private readonly IClockEvents _clock;
     private readonly TimeProvider _time;
     private readonly Func<string, bool>? _holdWhileProgramsRun;
-    private readonly ResumeRestorer? _resumeRestorer;
+    private readonly IResumeEvents? _resumeEvents;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private (DateTimeOffset At, string Name)? _next;
@@ -34,12 +34,12 @@ internal sealed class ProfileTimer : IProfileTrigger
     private bool _disposed;
 
     // holdWhileProgramsRun gets the name of a profile whose time came, and returns true when it
-    // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop). resumeRestorer tells
+    // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop). resumeEvents tells
     // when the lights are back after waking up, for CatchUp.
-    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<string, bool>? holdWhileProgramsRun = null, ResumeRestorer? resumeRestorer = null)
+    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<string, bool>? holdWhileProgramsRun = null, IResumeEvents? resumeEvents = null)
     {
         _holdWhileProgramsRun = holdWhileProgramsRun;
-        _resumeRestorer = resumeRestorer;
+        _resumeEvents = resumeEvents;
         _profiles = profiles;
         _clock = clock;
         _time = time;
@@ -96,7 +96,7 @@ internal sealed class ProfileTimer : IProfileTrigger
 
         _profiles.Changed += OnChanged;
         _clock.Changed += OnChanged;
-        _resumeRestorer?.Restored += OnRestored;
+        _resumeEvents?.Restored += OnRestored;
         Schedule();
         if (catchUp)
         {
@@ -108,7 +108,7 @@ internal sealed class ProfileTimer : IProfileTrigger
     {
         _profiles.Changed -= OnChanged;
         _clock.Changed -= OnChanged;
-        _resumeRestorer?.Restored -= OnRestored;
+        _resumeEvents?.Restored -= OnRestored;
         lock (_gate)
         {
             _disposed = true;
