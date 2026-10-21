@@ -122,6 +122,14 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // zone length (ZoneLengthViewModel.FocusKey).
     public string FlashFocusKey => $"zone-flash/{_deviceId}/{_layout.Index}";
 
+    // Which zone of the device this is, the same when the preview is made again; ZoneLayout.NoZone
+    // for the LEDs that no zone claims.
+    internal int ZoneIndex => _layout.Index;
+
+    // The LEDs the user can pick and the active LED can be on: those the zone has and shows, so
+    // fewer than LedCount while the user sets a shorter length.
+    internal int SelectableLedCount => Math.Min(LedCount, ShownLedCount);
+
     // The same for the LEDs, which have the focus while the keys move through them.
     public string LedsFocusKey => $"zone-leds/{_deviceId}/{_layout.Index}";
 

@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -24,6 +25,11 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         LacksDirectMode = !device.HasDirectMode;
         FlashAccessibleName = UiText.Format(Strings.FlashDeviceAccessibleName, device.Name);
         Zones = CreateZones(device, actions, time);
+        foreach (var zone in Zones)
+        {
+            zone.PropertyChanged += OnZoneChanged;
+        }
+
         Colors = new RgbColor[device.LedCount];
         MoveActiveLed(LedCount > 0 ? 0 : LedMatrix.NoLed);
     }
@@ -75,11 +81,24 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         }
     }
 
-    // The preview is made again for the same device: the keys go on from the LED of before, or
-    // from the last one when the device has fewer LEDs now.
-    internal void ContinueAt(int led)
+    // The preview is made again for the same device: the keys go on from the same LED of the same
+    // zone, where FocusKeeper gives the focus back, also when a zone before it got another length;
+    // from its last LED when it is shorter now. Without that zone, or when it has no LEDs now,
+    // they go on from the LED with the same number, or the last one of a device with fewer LEDs.
+    internal void ContinueAt(DevicePreviewViewModel before)
     {
-        if (LedCount > 0 && led >= 0)
+        var led = before.ActiveLed;
+        if (LedCount == 0 || led < 0)
+        {
+            return;
+        }
+
+        if (before.Zones.FirstOrDefault(zone => zone.Holds(led)) is { } zoneBefore
+            && Zones.FirstOrDefault(zone => zone.ZoneIndex == zoneBefore.ZoneIndex) is { SelectableLedCount: > 0 } zone)
+        {
+            MoveActiveLed(zone.FirstLed + Math.Min(led - zoneBefore.FirstLed, zone.SelectableLedCount - 1));
+        }
+        else
         {
             MoveActiveLed(Math.Min(led, LedCount - 1));
         }
@@ -176,6 +195,36 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         foreach (var zone in Zones)
         {
             zone.ShowDeviceActiveLed(led);
+        }
+    }
+
+    // While the user sets a shorter length, a zone shows fewer LEDs than it has: the active LED
+    // stays on the last one it shows, or goes to the zone before or after when it shows none, so
+    // the view with the focus keeps showing it.
+    private void OnZoneChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(ZonePreviewViewModel.ShownLedCount) || sender is not ZonePreviewViewModel zone || !zone.Holds(ActiveLed))
+        {
+            return;
+        }
+
+        var shown = zone.SelectableLedCount;
+        if (ActiveLed - zone.FirstLed < shown)
+        {
+            return;
+        }
+
+        if (shown > 0)
+        {
+            MoveActiveLed(zone.FirstLed + shown - 1);
+        }
+        else if (zone.FirstLed > 0)
+        {
+            MoveActiveLed(zone.FirstLed - 1);
+        }
+        else if (zone.FirstLed + zone.LedCount < LedCount)
+        {
+            MoveActiveLed(zone.FirstLed + zone.LedCount);
         }
     }
 

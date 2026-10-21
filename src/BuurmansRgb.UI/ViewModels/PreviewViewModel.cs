@@ -73,7 +73,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
             preview.ShowLedSelection(_ledSelection);
             if (previous.FirstOrDefault(before => before.DeviceId == device.Id) is { } before)
             {
-                preview.ContinueAt(before.ActiveLed);
+                preview.ContinueAt(before);
             }
 
             Devices.Add(preview);

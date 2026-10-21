@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
+using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -198,6 +199,33 @@ public sealed class DevicePreviewKeyboardTests
         preview.ShowLedSelection(new LedSelection("board", "Motherboard", 2, 3));
         Assert.True(preview.PressKey(LedKey.ClearSelection));
         Assert.Equal(["clear"], actions.Requests);
+    }
+
+    // While the user sets a shorter length, the active LED stays on an LED the zone shows, and
+    // goes to the zone before when it shows none.
+    [Fact]
+    public void ShorterLength_KeepsTheActiveLedOnAShownLed()
+    {
+        var board = new DeviceInfo("board", "Motherboard", DeviceType.Motherboard, 6,
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 4, 0, 120)]) { Source = DeviceSource.Hardware };
+        var preview = new DevicePreviewViewModel(board, new RecordingPreviewActions(), new FakeTimeProvider());
+        var header = preview.Zones[1];
+        preview.PressKey(LedKey.Last);
+
+        header.Length!.DecreaseCommand.Execute(null);
+        Assert.Equal(4, preview.ShownActiveLed());
+
+        header.Length.IncreaseCommand.Execute(null);
+        header.Length.DecreaseCommand.Execute(null);
+        Assert.Equal(4, preview.ShownActiveLed());
+
+        for (var i = 0; i < 3; i++)
+        {
+            header.Length.DecreaseCommand.Execute(null);
+        }
+
+        Assert.Equal(0, header.ShownLedCount);
+        Assert.Equal(1, preview.ShownActiveLed());
     }
 
     [Fact]
