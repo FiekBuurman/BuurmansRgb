@@ -10,8 +10,8 @@ BuurmansRgb draait als klein achtergrondproces met een tray-icoon. De instelling
 
 Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreidingen (zie
 "Uitbreidingen na taak 9" onderaan). Wat nog open staat, zijn de acceptatiecriteria die
-alleen met echte hardware of in Windows Sandbox te testen zijn: taak 3, de
-`dotnet-counters`-meting van taak 4, taak 5 t/m 8 en taak 9. Die test de gebruiker zelf;
+alleen met echte hardware of in Windows Sandbox te testen zijn: taak 3, taak 5 t/m 8 en
+taak 9. Die test de gebruiker zelf;
 de stappen staan in `ontwikkelaars.md` onder "Zelf testen op echte hardware" en "Installer bouwen en
 testen".
 
@@ -266,10 +266,14 @@ hardware" in `ontwikkelaars.md`).
 **Acceptatie:**
 
 - [x] Unit-tests per effect op vaste tijdstippen
-- [ ] 0 allocaties per frame in de render-loop (controleren met `dotnet-counters`) (een test
-  meet 0 bytes per frame met `GC.GetAllocatedBytesForCurrentThread`; `dotnet-counters` staat
-  niet op de bouw-pc, dus die controle doet de gebruiker nog, met de instellingen-app dicht:
-  met de app open maakt de engine per frame een kopie voor het voorbeeld)
+- [x] 0 allocaties per frame in de render-loop (controleren met `dotnet-counters`) (een test
+  meet 0 bytes per frame met `GC.GetAllocatedBytesForCurrentThread`. Met `dotnet-counters` op
+  de draaiende engine in Release, de instellingen-app dicht en 5 minuten per stand: regenboog
+  op 30 fps ~101 KB per minuut, statisch zonder render-timer ~89 KB per minuut (73–114 KB per
+  minuut). Dat verschil valt binnen de spreiding van de statische meting, ook al zijn het 1.800
+  frames per minuut, dus geen meetbare allocatie per frame. De rest komt van het verbinden met
+  OpenRGB en van de meting zelf. Met de app open maakt de engine per frame een kopie voor het
+  voorbeeld)
 - [x] Animatie op 30 fps met UI dicht: < 1% CPU (Release, regenboog op de gesimuleerde
   apparaten: ~0,02% van de pc, < 0,5% van één kern)
 - [x] Per-LED-kleuren blijven bewaard na herstart

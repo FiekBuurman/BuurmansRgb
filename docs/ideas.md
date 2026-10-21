@@ -246,8 +246,9 @@ uitbreidingen in `docs/bouwplan.md`.
   Automation en het venster vastleggen met `PrintWindow`. Het moet de echte instellingen in
   `%AppData%\BuurmansRgb` niet aanraken (bijv. een omgevingsvariabele of argument voor een
   andere map), en werkt alleen als Windows niet vergrendeld is
-- `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
-  0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
+- Een script voor de `dotnet-counters`-meting (regenboog tegen statisch, zie "Metingen" in
+  `ontwikkelaars.md`), zodat de 0-allocaties-check op het draaiende proces bij elke
+  engine-wijziging herhaald kan worden en niet alleen in een unit-test gebeurt
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
