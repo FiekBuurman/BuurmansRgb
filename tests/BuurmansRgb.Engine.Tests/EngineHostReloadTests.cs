@@ -316,15 +316,15 @@ public sealed class EngineHostReloadTests : IDisposable
 
         public bool SaveIfUnchanged(EngineSettings settings) => store.SaveIfUnchanged(settings);
 
-        public EngineSettings? LoadIfChanged()
+        public SettingsFileChange LoadIfChanged()
         {
-            var settings = store.LoadIfChanged();
-            if (settings is not null)
+            var change = store.LoadIfChanged();
+            if (change.Settings is not null)
             {
                 Interlocked.Increment(ref _changes);
             }
 
-            return settings;
+            return change;
         }
     }
 }

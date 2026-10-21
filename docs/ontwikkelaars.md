@@ -242,8 +242,9 @@ toetsenbord. Een paar dingen om te proberen:
   gebeurt er niets. Een bestand dat niet te lezen is (geen geldige JSON, half geschreven, open
   bij een ander programma), verandert niets en geeft een waarschuwing in het logbestand; de
   volgende melding leest opnieuw, en de volgende opslag zet een kapot bestand eerst opzij als
-  `settings.json.broken`. Een waarde die niet klopt, slaat `LenientJson` over zoals bij het
-  starten. `EngineHost.ApplyChangedByHand` zet de opties via dezelfde properties als de IPC
+  `settings.json.broken`. Een bestand dat open is (`SettingsFileChange.ReadLater`) leest de
+  reloader na de vertraging zelf nog eens, tot vijf keer. Een waarde die niet klopt, slaat
+  `LenientJson` over zoals bij het starten. `EngineHost.ApplyChangedByHand` zet de opties via dezelfde properties als de IPC
   (dus `OptionsChanged` en de saver), de zonelengtes met `ZoneLengthKeeper.Change` en de
   verlichting met `LightingController.Replace` (`LightingChanged`), die alleen als hij anders is
   dan nu (`EngineSettings.SameLighting`), zodat de scène bij alleen een optie aan blijft.

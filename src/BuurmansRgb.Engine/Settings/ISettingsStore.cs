@@ -12,7 +12,8 @@ internal interface ISettingsStore
     bool SaveIfUnchanged(EngineSettings settings);
 
     // The settings in the file when someone else, such as the user in an editor, changed it since
-    // this store last read or wrote it. Null when the file still holds what the store knows (its
-    // own save, say), is gone, or does not read now; the next change is read again.
-    EngineSettings? LoadIfChanged();
+    // this store last read or wrote it. No settings when the file still holds what the store knows
+    // (its own save, say), is gone, or does not read; the next change is read again. ReadLater when
+    // the file could not be read now.
+    SettingsFileChange LoadIfChanged();
 }

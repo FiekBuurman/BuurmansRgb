@@ -5,10 +5,15 @@ namespace BuurmansRgb.Engine.Settings;
 // Applies settings.json again when someone else changed it, such as the user in an editor: a
 // moment after the last file event, so a file written in steps, or to another file that is then
 // renamed, is read once it is whole. The store tells a change by hand from the engine's own save
-// and from a file that does not read (yet); those change nothing. The timer only runs while a
-// change waits, so a file that does not change costs nothing.
+// and from a file that does not read (yet); those change nothing. A file that cannot be read just
+// then (held by another program) is read again after the delay, a few times. The timer only runs
+// while a change waits, so a file that does not change costs nothing.
 internal sealed class SettingsReloader : IDisposable
 {
+    // Reads again of a file that could not be read, after the first one: about two seconds with
+    // the default delay, enough for an editor or virus scanner that holds it a moment.
+    private const int MaxReadsAgain = 5;
+
     private readonly ISettingsFileEvents _fileEvents;
     private readonly ISettingsStore _store;
     private readonly Action<EngineSettings> _apply;
@@ -16,6 +21,7 @@ internal sealed class SettingsReloader : IDisposable
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private bool _disposed;
+    private int _readsAgain;
 
     // apply gets the settings from the file, on the timer thread. The file is read once at the
     // start too: it may have changed while the engine started, before this listened.
@@ -57,6 +63,7 @@ internal sealed class SettingsReloader : IDisposable
         {
             if (!_disposed)
             {
+                _readsAgain = 0;
                 _timer.Change(_delay, Timeout.InfiniteTimeSpan);
             }
         }
@@ -66,7 +73,21 @@ internal sealed class SettingsReloader : IDisposable
     {
         lock (_gate)
         {
-            if (_disposed || _store.LoadIfChanged() is not { } settings)
+            if (_disposed)
+            {
+                return;
+            }
+
+            var change = _store.LoadIfChanged();
+            if (change.ReadLater && _readsAgain < MaxReadsAgain)
+            {
+                _readsAgain++;
+                _timer.Change(_delay, Timeout.InfiniteTimeSpan);
+                return;
+            }
+
+            _readsAgain = 0;
+            if (change.Settings is not { } settings)
             {
                 return;
             }

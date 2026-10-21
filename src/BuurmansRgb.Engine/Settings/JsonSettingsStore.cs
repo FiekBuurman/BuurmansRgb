@@ -61,7 +61,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
     // A file that does not read is left where it is, unlike at the start: it may be half written
     // still, and the engine keeps running on what it has. Only a save moves it aside.
-    public EngineSettings? LoadIfChanged()
+    public SettingsFileChange LoadIfChanged()
     {
         lock (_gate)
         {
@@ -70,7 +70,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
                 // The next save writes it again.
                 _known = null;
                 _unreadable = false;
-                return null;
+                return SettingsFileChange.None;
             }
 
             byte[] json;
@@ -80,9 +80,10 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             }
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
-                // Held by the editor that is still writing it, say; its last write comes as a change too.
+                // Held by the editor that is still writing it, say, or by a virus scanner that
+                // looks at it: worth reading again a moment later.
                 Trace.TraceWarning($"Settings file {filePath} changed but cannot be read now: {exception.Message}");
-                return null;
+                return SettingsFileChange.NotReadableNow;
             }
 
             if (_known is not null && json.AsSpan().SequenceEqual(_known))
@@ -90,7 +91,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
                 // Also a file that did not read and is now back as it was (undone in the editor):
                 // the user's good file again, which a save must not move aside.
                 _unreadable = false;
-                return null;
+                return SettingsFileChange.None;
             }
 
             EngineSettings settings;
@@ -102,12 +103,12 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             {
                 Trace.TraceWarning($"Settings file {filePath} changed but does not read; nothing changes until it does: {exception.Message}");
                 _unreadable = true;
-                return null;
+                return SettingsFileChange.None;
             }
 
             _known = json;
             _unreadable = false;
-            return settings;
+            return new SettingsFileChange(settings);
         }
     }
 

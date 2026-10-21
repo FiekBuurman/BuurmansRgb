@@ -102,6 +102,45 @@ public sealed class SettingsReloaderTests
         Assert.Equal([12, 24], _applied.Select(settings => settings.FramesPerSecond));
     }
 
+    // Held by another program a moment: read again after the delay, without another file event.
+    [Fact]
+    public void FileThatCannotBeReadNow_IsReadAgainAfterTheDelay()
+    {
+        using var reloader = CreateReloader();
+        _time.Advance(Delay);
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 12 });
+        _store.HeldReads = 2;
+
+        _fileEvents.RaiseChanged();
+        _time.Advance(Delay);
+        _time.Advance(Delay);
+        Assert.Empty(_applied);
+
+        _time.Advance(Delay);
+        Assert.Equal(12, Assert.Single(_applied).FramesPerSecond);
+    }
+
+    // Held for good: a few more tries, then it waits for the next file event.
+    [Fact]
+    public void FileThatStaysHeld_IsReadAFewTimesAndThenNotAgain()
+    {
+        using var reloader = CreateReloader();
+        _time.Advance(Delay);
+        var before = _store.LoadIfChangedCount;
+        _store.HeldReads = int.MaxValue;
+
+        _fileEvents.RaiseChanged();
+        for (var i = 0; i < 20; i++)
+        {
+            _time.Advance(Delay);
+        }
+
+        Assert.Equal(before + 6, _store.LoadIfChangedCount);
+        _fileEvents.RaiseChanged();
+        _time.Advance(Delay);
+        Assert.Equal(before + 7, _store.LoadIfChangedCount);
+    }
+
     [Fact]
     public void Dispose_StopsListeningAndApplyingAChangeThatWaits()
     {

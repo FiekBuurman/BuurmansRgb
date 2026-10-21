@@ -24,12 +24,21 @@ internal sealed class InMemorySettingsStore : ISettingsStore
         _changedByHand = settings;
     }
 
-    public EngineSettings? LoadIfChanged()
+    // How many LoadIfChanged calls in a row find the file held by another program.
+    public int HeldReads { get; set; }
+
+    public SettingsFileChange LoadIfChanged()
     {
         LoadIfChangedCount++;
+        if (HeldReads > 0)
+        {
+            HeldReads--;
+            return SettingsFileChange.NotReadableNow;
+        }
+
         var settings = _changedByHand;
         _changedByHand = null;
-        return settings;
+        return new SettingsFileChange(settings);
     }
 
     public void Save(EngineSettings settings)

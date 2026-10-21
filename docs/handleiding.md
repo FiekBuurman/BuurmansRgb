@@ -553,7 +553,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   geschreven), dan verandert er niets: de engine houdt wat hij had, noemt het in het
   logbestand en leest het bij de volgende keer opslaan opnieuw. Verbeter de fout en sla weer op.
   Slaat de engine intussen zelf iets op (omdat je in de app iets wijzigt), dan zet hij jouw
-  bestand eerst opzij als `settings.json.broken`.
+  bestand eerst opzij als `settings.json.broken`. Heeft een ander programma het bestand even
+  open, dan probeert de engine het binnen een paar seconden zelf nog eens.
 - Wijzig je in de app iets op hetzelfde moment dat je het bestand opslaat, dan gaat jouw
   bestand voor: de engine schrijft er niet overheen, neemt het over en de app laat zien wat
   erin staat. De wijziging in de app vervalt dan; doe die nog eens.

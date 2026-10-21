@@ -20,7 +20,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         store.Save(new EngineSettings { FramesPerSecond = 12 });
 
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         var store = new JsonSettingsStore(FilePath);
         store.LoadOrCreate();
 
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
     }
 
     [Fact]
@@ -41,11 +41,11 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         File.WriteAllText(FilePath, """{ "framesPerSecond": 12, "color": "#FF8800" }""");
 
-        var changed = store.LoadIfChanged();
+        var changed = store.LoadIfChanged().Settings;
         Assert.NotNull(changed);
         Assert.Equal(12, changed.FramesPerSecond);
         Assert.Equal(new RgbColor(255, 136, 0), changed.Color);
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
     }
 
     // An editor that saves the same content again changes nothing.
@@ -57,7 +57,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         File.WriteAllBytes(FilePath, File.ReadAllBytes(FilePath));
 
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
     }
 
     [Fact]
@@ -68,7 +68,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         File.WriteAllText(FilePath, File.ReadAllText(FilePath).Replace("12", "24", StringComparison.Ordinal));
 
-        Assert.Equal(24, store.LoadIfChanged()?.FramesPerSecond);
+        Assert.Equal(24, store.LoadIfChanged().Settings?.FramesPerSecond);
     }
 
     // Half written, or a typo: the engine keeps what it has, and tries again on the next change.
@@ -84,7 +84,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         File.WriteAllText(FilePath, content);
 
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
         Assert.Equal(content, File.ReadAllText(FilePath));
         Assert.Contains(trace.Messages, message => message.Contains(FilePath, StringComparison.Ordinal) && message.Contains("does not read", StringComparison.Ordinal));
     }
@@ -95,11 +95,11 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         var store = new JsonSettingsStore(FilePath);
         store.LoadOrCreate();
         File.WriteAllText(FilePath, """{ "framesPerSecond": 12, "color": """);
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
 
         File.WriteAllText(FilePath, """{ "framesPerSecond": 12, "color": "#FF8800" }""");
 
-        Assert.Equal(12, store.LoadIfChanged()?.FramesPerSecond);
+        Assert.Equal(12, store.LoadIfChanged().Settings?.FramesPerSecond);
     }
 
     // As at the start: the save would otherwise overwrite what the user was typing.
@@ -142,7 +142,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         File.WriteAllText(FilePath, """{ "framesPerSecond": 12,, }""");
         store.LoadIfChanged();
         File.WriteAllBytes(FilePath, original);
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
 
         store.Save(new EngineSettings { FramesPerSecond = 24 });
 
@@ -157,7 +157,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         store.Save(new EngineSettings { FramesPerSecond = 12 });
         File.Delete(FilePath);
 
-        Assert.Null(store.LoadIfChanged());
+        Assert.Null(store.LoadIfChanged().Settings);
 
         store.Save(new EngineSettings { FramesPerSecond = 12 });
         Assert.Equal(12, store.LoadOrCreate().FramesPerSecond);
@@ -186,7 +186,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         Assert.False(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
 
         Assert.Equal(text, File.ReadAllText(FilePath));
-        Assert.Equal(12, store.LoadIfChanged()?.FramesPerSecond);
+        Assert.Equal(12, store.LoadIfChanged().Settings?.FramesPerSecond);
         Assert.True(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
         Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
     }
@@ -228,10 +228,12 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         using (new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
         {
-            Assert.Null(store.LoadIfChanged());
+            var held = store.LoadIfChanged();
+            Assert.Null(held.Settings);
+            Assert.True(held.ReadLater);
         }
 
-        Assert.Equal(12, store.LoadIfChanged()?.FramesPerSecond);
+        Assert.Equal(12, store.LoadIfChanged().Settings?.FramesPerSecond);
     }
 
     // As at the start: a value that does not read takes its default, the rest is applied.
@@ -243,7 +245,7 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
 
         File.WriteAllText(FilePath, """{ "framesPerSecond": "fast", "brightness": 0.4 }""");
 
-        var changed = store.LoadIfChanged();
+        var changed = store.LoadIfChanged().Settings;
         Assert.NotNull(changed);
         Assert.Equal(EngineSettings.CreateDefault().FramesPerSecond, changed.FramesPerSecond);
         Assert.Equal(0.4, changed.Brightness);
