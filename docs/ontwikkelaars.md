@@ -237,7 +237,8 @@ toetsenbord. Een paar dingen om te proberen:
   wacht 400 ms na de laatste melding (een editor schrijft soms in stappen, of naar een ander
   bestand dat hij daarna hernoemt) en vraagt dan `ISettingsStore.LoadIfChanged`, ook één keer na
   het starten voor een wijziging tijdens het opstarten. De timer loopt alleen als er een melding
-  wacht. `JsonSettingsStore` onthoudt de bytes die hij het laatst las of schreef; staat precies dat
+  wacht. Een exceptie bij het toepassen komt in het logbestand; de engine draait door.
+  `JsonSettingsStore` onthoudt de bytes die hij het laatst las of schreef; staat precies dat
   in het bestand, dan was het zijn eigen opslag (die geeft meerdere meldingen, soms laat) en
   gebeurt er niets. Een bestand dat niet te lezen is (geen geldige JSON, half geschreven, open
   bij een ander programma), verandert niets en geeft een waarschuwing in het logbestand; de

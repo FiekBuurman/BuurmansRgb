@@ -93,7 +93,16 @@ internal sealed class SettingsReloader : IDisposable
             }
 
             Trace.TraceInformation("The settings file changed outside the engine; applying it.");
-            _apply(settings);
+            try
+            {
+                _apply(settings);
+            }
+            catch (Exception exception)
+            {
+                // A device that failed, say. This runs on a timer thread, where an exception would
+                // end the engine; the next change by hand tries again.
+                Trace.TraceError($"Applying the settings file changed by hand: {exception}");
+            }
         }
     }
 }

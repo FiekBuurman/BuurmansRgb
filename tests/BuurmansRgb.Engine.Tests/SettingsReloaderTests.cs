@@ -141,6 +141,35 @@ public sealed class SettingsReloaderTests
         Assert.Equal(before + 7, _store.LoadIfChangedCount);
     }
 
+    // On a timer thread an exception would end the engine: logged, and the next change comes in.
+    [Fact]
+    public void ApplyThatThrows_IsLoggedAndTheNextChangeIsApplied()
+    {
+        var fail = true;
+        using var reloader = new SettingsReloader(_fileEvents, _store, settings =>
+        {
+            if (fail)
+            {
+                throw new InvalidOperationException("Device gone.");
+            }
+
+            _applied.Add(settings);
+        }, Delay, _time);
+        _time.Advance(Delay);
+        using var trace = new TraceCapture();
+
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 12 });
+        _fileEvents.RaiseChanged();
+        _time.Advance(Delay);
+        Assert.Contains(trace.Messages, message => message.Contains("Device gone.", StringComparison.Ordinal));
+
+        fail = false;
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 24 });
+        _fileEvents.RaiseChanged();
+        _time.Advance(Delay);
+        Assert.Equal(24, Assert.Single(_applied).FramesPerSecond);
+    }
+
     [Fact]
     public void Dispose_StopsListeningAndApplyingAChangeThatWaits()
     {
