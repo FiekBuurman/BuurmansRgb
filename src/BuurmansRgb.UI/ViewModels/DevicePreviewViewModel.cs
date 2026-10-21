@@ -67,20 +67,19 @@ public sealed partial class DevicePreviewViewModel(DeviceInfo device, IPreviewAc
         }
     }
 
-    // The zones follow each other in LED order. Zones that claim more LEDs than the device has are
-    // cut short, and LEDs that no zone claims get a zone of their own, so every LED shows once.
+    // The zones follow each other in LED order, as the engine counts them (RgbZone.RangesOf). Zones
+    // that claim more LEDs than the device has are cut short, and LEDs that no zone claims get a
+    // zone of their own, so every LED shows once.
     private static ZonePreviewViewModel[] CreateZones(DeviceInfo device, IPreviewActions? actions, TimeProvider? time)
     {
+        var ranges = RgbZone.RangesOf(device.Zones, device.LedCount);
         List<ZoneLayout> layouts = [];
-        var next = 0;
-        for (var index = 0; index < device.Zones.Count; index++)
+        for (var index = 0; index < ranges.Length; index++)
         {
-            var zone = device.Zones[index];
-            var count = Math.Clamp(zone.LedCount, 0, device.LedCount - next);
-            layouts.Add(new(zone, index, next, count));
-            next += count;
+            layouts.Add(new(device.Zones[index], index, ranges[index].FirstLed, ranges[index].LedCount));
         }
 
+        var next = ranges.Length == 0 ? 0 : ranges[^1].FirstLed + ranges[^1].LedCount;
         if (next < device.LedCount)
         {
             var rest = device.LedCount - next;

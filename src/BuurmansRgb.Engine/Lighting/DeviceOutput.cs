@@ -41,11 +41,11 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     // From time on, the renders show the flash over the effect; the lighting itself stays.
     public void StartFlash(TimeSpan time) => _flash = new DeviceFlash(time, 0, Buffer.Length);
 
-    // The same over the LEDs of one zone only (RgbDevice.GetZoneLeds); the rest of the device
+    // The same over the LEDs of one zone only (RgbZone.RangesOf); the rest of the device
     // keeps showing its effect.
     public void StartZoneFlash(TimeSpan time, int zoneIndex)
     {
-        var (firstLed, ledCount) = Device.GetZoneLeds(zoneIndex);
+        var (firstLed, ledCount) = RgbZone.RangesOf(Device.Zones, Device.LedCount)[zoneIndex];
         _flash = new DeviceFlash(time, firstLed, ledCount);
     }
 

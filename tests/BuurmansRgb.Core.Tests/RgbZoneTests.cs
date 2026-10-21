@@ -83,6 +83,57 @@ public sealed class RgbZoneTests
     }
 
     [Fact]
+    public void RangesOf_EachZoneStartsAfterTheZonesBefore()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", 30, 0, 120), RgbZone.Fixed("Logo", 1)];
+
+        Assert.Equal([(0, 6), (6, 30), (36, 1)], RgbZone.RangesOf(zones, 37));
+    }
+
+    [Fact]
+    public void RangesOf_ZoneWithoutLeds_HasNone()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", 0, 0, 120), RgbZone.Fixed("Logo", 1)];
+
+        Assert.Equal([(0, 6), (6, 0), (6, 1)], RgbZone.RangesOf(zones, 7));
+    }
+
+    // As a device can report fewer LEDs than its zones claim: every range stays within the device.
+    [Fact]
+    public void RangesOf_ZonesClaimMoreThanTheDeviceHas_AreCutShort()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("A", 4), RgbZone.Fixed("B", 4), RgbZone.Fixed("C", 4)];
+
+        Assert.Equal([(0, 4), (4, 2), (6, 0)], RgbZone.RangesOf(zones, 6));
+    }
+
+    // The LEDs after the last range belong to no zone, such as "Overige LED's" in the preview.
+    [Fact]
+    public void RangesOf_DeviceHasMoreLedsThanItsZones_LeavesTheRestAfterTheLastRange()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 3)];
+
+        var ranges = RgbZone.RangesOf(zones, 8);
+
+        Assert.Equal([(0, 2), (2, 3)], ranges);
+        Assert.Equal(5, ranges[^1].FirstLed + ranges[^1].LedCount);
+    }
+
+    [Fact]
+    public void RangesOf_NoZones_IsEmpty()
+    {
+        Assert.Empty(RgbZone.RangesOf([], 10));
+    }
+
+    [Fact]
+    public void RangesOf_NegativeLedCount_Throws()
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => RgbZone.RangesOf([RgbZone.Fixed("A", 1)], -1));
+
+        Assert.Equal("ledCount", exception.ParamName);
+    }
+
+    [Fact]
     public void ThrowIfCannotHold_OutsideTheRange_ThrowsWithTheRange()
     {
         var zone = new RgbZone("ARGB header", 0, 0, 120);

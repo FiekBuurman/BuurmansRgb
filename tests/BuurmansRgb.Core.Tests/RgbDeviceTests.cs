@@ -22,43 +22,6 @@ public sealed class RgbDeviceTests
     }
 
     [Fact]
-    public void GetZoneLeds_StartsAfterTheZonesBefore()
-    {
-        var resized = Board.WithZoneLength(1, 30);
-
-        Assert.Equal((0, 6), resized.GetZoneLeds(0));
-        Assert.Equal((6, 30), resized.GetZoneLeds(1));
-    }
-
-    [Fact]
-    public void GetZoneLeds_ZoneWithoutLeds_HasNone()
-    {
-        Assert.Equal((6, 0), Board.GetZoneLeds(1));
-    }
-
-    // As a device can report fewer LEDs than its zones claim: the range stays within the device.
-    [Fact]
-    public void GetZoneLeds_ZonesClaimMoreThanTheDeviceHas_AreCutShort()
-    {
-        var cutShort = new RgbDevice("strip", "Strip", DeviceType.LedStrip,
-            [RgbZone.Fixed("A", 4), RgbZone.Fixed("B", 4), RgbZone.Fixed("C", 4)], LedCount: 6)
-        {
-            Source = DeviceSource.Hardware,
-        };
-
-        Assert.Equal((4, 2), cutShort.GetZoneLeds(1));
-        Assert.Equal((6, 0), cutShort.GetZoneLeds(2));
-    }
-
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(2)]
-    public void GetZoneLeds_UnknownIndex_Throws(int zoneIndex)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => Board.GetZoneLeds(zoneIndex));
-    }
-
-    [Fact]
     public void WithZoneLength_ChangesOnlyThatZoneAndTheTotal()
     {
         var resized = Board.WithZoneLength(1, 30);

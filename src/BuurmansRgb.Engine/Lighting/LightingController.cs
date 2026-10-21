@@ -607,7 +607,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             if (zoneIndex is { } zone
-                && (zone < 0 || zone >= output.Device.Zones.Count || output.Device.GetZoneLeds(zone).LedCount == 0))
+                && (zone < 0 || zone >= output.Device.Zones.Count || RgbZone.RangesOf(output.Device.Zones, output.Device.LedCount)[zone].LedCount == 0))
             {
                 return;
             }
