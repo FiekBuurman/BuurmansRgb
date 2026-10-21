@@ -64,7 +64,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`), `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen) en `WindowedProgramsTests` (een programma kiezen) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, het eigen proces en het bureaublad, en de echte `SetWinEventHook` alleen zolang er gevolgd wordt), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
@@ -147,9 +147,9 @@ toetsenbord. Een paar dingen om te proberen:
   deur uit voordat de handler van `PowerModeChanged` terugkeert.
 - **Programma's zien:** zonder adminrechten meldt Windows niet dat een programma start. Daarom
   kijkt de engine elke 2 seconden in de proceslijst (`EnumProcesses`, de naam één keer per
-  nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
-  ronde, waar `Process.GetProcessesByName` of een Toolhelp-snapshot 5 tot 7 ms kosten en WMI
-  `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
+  nieuw proces), alleen zolang een scène een programma heeft (zonder vinkje voor de voorgrond,
+  zie hieronder). Dat kost minder dan 0,1 ms per ronde, waar `Process.GetProcessesByName` of
+  een Toolhelp-snapshot 5 tot 7 ms kosten en WMI `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
   ook. Zolang Windows vergrendeld is of slaapt staat de timer stil, ook als
   `pauseOnLockAndSleep` uit staat: `ProgramWatcher` volgt het verplichte `IAwayState` (`Away`,
   `AwayChanged`) van `AutoPause`, dat vergrendelen en slaapstand bijhoudt los van
@@ -157,6 +157,32 @@ toetsenbord. Een paar dingen om te proberen:
   zodat een programma dat intussen startte of stopte dan telt. Komt intussen een scène op tijd en
   toont een programma zijn scène, dan kijkt `HoldUntilProgramsStop` eerst één keer, zodat een
   spel dat op het vergrendelscherm stopte de tijd niet tot na het ontgrendelen tegenhoudt.
+- **Programma op de voorgrond:** met `ProfileAutomation.ForegroundOnly` (`foregroundOnly` in
+  `profiles.json`) telt een programma alleen zolang een venster ervan op de voorgrond staat.
+  `SystemForegroundWindow` (achter `IForegroundWindow`) zet daarvoor
+  `SetWinEventHook(EVENT_SYSTEM_FOREGROUND, …, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS)`
+  op de thread van het tray-icoon, die al een message loop heeft: Windows post elk nieuw
+  voorgrondvenster daarheen, zonder DLL in andere programma's en zonder pollen. De naam komt van
+  `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`, dezelfde als in
+  `ProcessList`), en `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher` vraagt met
+  `Follow` alleen om de hook zolang minstens één scène de keuze aan heeft; dat komt van elke
+  thread, dus `Follow` post naar een verborgen message-only venster, dat de hook op de
+  tray-thread zet of met `UnhookWinEvent` weghaalt (ook bij afsluiten). Na het zetten meldt hij
+  één keer wat er nu vooraan staat. Vensters die niet tellen (`SystemForegroundWindow.Counts`):
+  de taakbalk (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`), Alt+Tab en Win+Tab
+  (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`, `TaskSwitcherWnd`,
+  `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en snelle instellingen
+  (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`, `ShellExperienceHost.exe`,
+  `ShellHost.exe`), de engine zelf en een venster waarvan de naam niet te lezen is: dan blijft
+  de stand zoals hij was. In `ProgramWatcher` is op de voorgrond komen een start en wegwisselen
+  een stop, op dezelfde stapel als de programma's die tellen zolang ze draaien. Bij het wisselen
+  tussen twee voorgrond-scènes laadt hij eerst de nieuwe en haalt hij daarna de oude eronder weg
+  (die geeft zijn verlichting van daarvoor door), dus er gaat maar één wijziging naar de lampen.
+  Zolang er een voorgrond-scène aan staat, kijkt hij die naam ook in de proceslijst na, zodat
+  een programma dat sluit zonder dat er een ander venster vooraan komt toch stopt; pas als hij
+  het daar één keer zag, zodat een naam die nog niet te lezen is niet als gestopt telt. Tijdens
+  `Away` negeert hij de voorgrond; na terugkomen kijkt hij op de timer (niet onder de lock van
+  `AutoPause`) één keer naar `IForegroundWindow.Program`.
 - **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
   `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
@@ -424,6 +450,17 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 7. Geef "Werk" twee tijden een paar minuten na elkaar, de tweede alleen op vandaag, en zet
    tussendoor een andere kleur: bij beide tijden hoort "Werk" aan te gaan. Een `profiles.json`
    van vóór deze uitbreiding (met alleen `loadAt` en `loadOn`) werkt zonder iets te doen.
+8. Geef "Film" een programma dat je open laat staan (bijv. `vlc.exe` of `notepad.exe`) met het
+   vinkje "Alleen als het op de voorgrond staat", en "Gamen" je spel zonder vinkje. Klik op het
+   programma en wissel met Alt+Tab weg en terug: de scène hoort meteen aan te gaan en de
+   verlichting van daarvoor meteen terug te komen. Kijk dat de taakbalk, het Alt+Tab-venster
+   zelf, het startmenu (Windows-toets, dan Esc) en het tray-menu van BuurmansRgb de scène laten
+   staan. Geef een tweede programma ook het vinkje en wissel tussen de twee: de lampen horen
+   rechtstreeks van de ene scène naar de andere te gaan, zonder flits van de verlichting van
+   daarvoor. Start het spel terwijl "Film" vooraan staat, wissel naar het spel en weer terug.
+   Vergrendel met Win+L terwijl "Film" vooraan staat: de scène blijft; ontgrendel en wissel weg.
+   Sluit het programma terwijl het vooraan staat. Een spel in volledig scherm (exclusive
+   fullscreen) en een programma dat als administrator draait, horen ook te tellen.
 
 ### Pauzeren
 
