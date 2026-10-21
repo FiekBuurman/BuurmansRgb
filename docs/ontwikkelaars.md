@@ -110,8 +110,9 @@ toetsenbord. Een paar dingen om te proberen:
 - **IPC:** named pipe `BuurmansRgb.Engine.<sessie-id>` (alleen voor de eigen Windows-gebruiker)
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
-  `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`). Na het opstarten en na het sluiten
-  van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
+  `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`, `ProfilesChanged`, `OptionsChanged`;
+  de app leest bij die laatste twee de scènes of de opties opnieuw). Na het opstarten en na het
+  sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
   (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten

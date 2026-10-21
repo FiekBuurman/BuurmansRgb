@@ -45,8 +45,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Bij het starten van de engine in de stand "Automatisch" staan de gesimuleerde lampen even
   in de lijst tot OpenRGB verbonden is (ongeveer een seconde). Eventueel pas na de eerste
   verbindpoging beslissen
-- Een andere keuze voor de gesimuleerde lampen ook naar een tweede open instellingen-app
-  sturen (een event naast `DevicesChanged`); nu ziet alleen de lijst de wijziging, niet de keuze
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 
@@ -142,8 +140,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
-  opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
   per scène
 - Na het ontwaken of bij het starten de scène aanzetten die volgens de tijden nu zou gelden (het

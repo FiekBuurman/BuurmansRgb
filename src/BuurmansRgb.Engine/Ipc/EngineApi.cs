@@ -47,6 +47,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.PauseChanged += OnPauseChanged;
         _lighting.LightingChanged += OnLightingChanged;
         _saveEvents?.Saved += OnSaved;
+        _profiles.Changed += OnProfilesChanged;
+        _simulatedDevices.ModeChanged += OnOptionsChanged;
+        _lighting.FramesPerSecondChanged += OnOptionsChanged;
+        _autoPause?.EnabledChanged += OnOptionsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -60,6 +64,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler<PauseReasons>? PauseChanged;
 
     public event EventHandler? LightingChanged;
+
+    public event EventHandler? ProfilesChanged;
+
+    public event EventHandler? OptionsChanged;
 
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
@@ -224,6 +232,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.PauseChanged -= OnPauseChanged;
         _lighting.LightingChanged -= OnLightingChanged;
         _saveEvents?.Saved -= OnSaved;
+        _profiles.Changed -= OnProfilesChanged;
+        _simulatedDevices.ModeChanged -= OnOptionsChanged;
+        _lighting.FramesPerSecondChanged -= OnOptionsChanged;
+        _autoPause?.EnabledChanged -= OnOptionsChanged;
         _frames.Dispose();
     }
 
@@ -246,6 +258,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnPauseChanged(object? sender, PauseReasons pause) => PauseChanged?.Invoke(this, pause);
 
     private void OnLightingChanged(object? sender, EventArgs e) => LightingChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnProfilesChanged(object? sender, EventArgs e) => ProfilesChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnOptionsChanged(object? sender, EventArgs e) => OptionsChanged?.Invoke(this, EventArgs.Empty);
 
     // Nothing is copied on the render thread; PreviewFrames copies the latest output later.
     private void OnRendered(object? sender, EventArgs e)

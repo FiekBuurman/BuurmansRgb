@@ -75,6 +75,16 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public event EventHandler? LightingChanged;
 
+    public event EventHandler? ProfilesChanged;
+
+    public event EventHandler? OptionsChanged;
+
+    public void RaiseProfilesChanged() => ProfilesChanged?.Invoke(this, EventArgs.Empty);
+
+    public void RaiseOptionsChanged() => OptionsChanged?.Invoke(this, EventArgs.Empty);
+
+    public bool HasProfilesOrOptionsSubscribers => ProfilesChanged is not null || OptionsChanged is not null;
+
     public bool HasLightingSubscribers => LightingChanged is not null;
 
     public void RaiseLightingChanged() => LightingChanged?.Invoke(this, EventArgs.Empty);

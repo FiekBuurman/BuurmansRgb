@@ -30,6 +30,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
     private const string FrameDevicesCall = "frame-devices";
+    private const string ProfilesReloadCall = "profiles-reload";
+    private const string OptionsReloadCall = "options-reload";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -246,6 +248,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.OpenRgbStatusChanged += OnOpenRgbStatusChanged;
             connection.Api.PauseChanged += OnPauseChanged;
             connection.Api.LightingChanged += OnLightingChanged;
+            connection.Api.ProfilesChanged += OnProfilesChanged;
+            connection.Api.OptionsChanged += OnOptionsChanged;
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
@@ -792,6 +796,55 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Lamps.ShowFrame(frame);
     });
 
+    // Another settings app saved or deleted a scene, or this one did: the list and the cards
+    // follow, the selection stays, and so do fields being typed in for the same scene. In the
+    // queue, so it reads the engine after the calls of this app that wait.
+    private void OnProfilesChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(ProfilesReloadCall, async () =>
+        {
+            var names = await connection.Api.GetProfilesAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    Profiles.Show(names);
+                    _ = _sceneCards.ShowAsync();
+                    _ = _sceneCards.ShowActiveAsync();
+                }
+            });
+        });
+    });
+
+    // The same for the options on Instellingen, such as the simulated lamps of another app.
+    private void OnOptionsChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(OptionsReloadCall, async () =>
+        {
+            var mode = await connection.Api.GetSimulatedDevicesAsync();
+            var framesPerSecond = await connection.Api.GetFramesPerSecondAsync();
+            var pauseOnLockAndSleep = await connection.Api.GetPauseOnLockAndSleepAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    SimulatedDevices.Show(mode);
+                    EffectOptions.Show(framesPerSecond, pauseOnLockAndSleep);
+                }
+            });
+        });
+    });
+
     private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
     {
         _ = _lampSync.RefreshAsync();
@@ -900,6 +953,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.OpenRgbStatusChanged -= OnOpenRgbStatusChanged;
         connection.Api.PauseChanged -= OnPauseChanged;
         connection.Api.LightingChanged -= OnLightingChanged;
+        connection.Api.ProfilesChanged -= OnProfilesChanged;
+        connection.Api.OptionsChanged -= OnOptionsChanged;
         connection.Dispose();
     }
 

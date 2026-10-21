@@ -33,6 +33,14 @@ public partial interface IEngineApi
     // gives the new lighting.
     event EventHandler LightingChanged;
 
+    // Raised when a profile was saved or deleted, or got another automation: from this or another
+    // settings app. GetProfilesAsync and GetProfileAutomationAsync then give the new state.
+    event EventHandler ProfilesChanged;
+
+    // Raised when an option of the engine changed: the simulated devices, the frame rate or the
+    // pause on lock and sleep, from this or another settings app.
+    event EventHandler OptionsChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
