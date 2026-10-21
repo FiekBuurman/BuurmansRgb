@@ -6,6 +6,7 @@ namespace BuurmansRgb.Engine.Power;
 // devices can take a few seconds to return. So the lights are restored a little after waking up,
 // and once more a bit later. Another wake-up starts over; going to sleep again before the last
 // restore drops the restores that are left, so none comes while the pc sleeps or just wakes up.
+// After the first restore of a wake-up it raises Restored.
 internal sealed class ResumeRestorer : IDisposable
 {
     public static IReadOnlyList<TimeSpan> DefaultDelays { get; } = [TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10)];
@@ -38,6 +39,11 @@ internal sealed class ResumeRestorer : IDisposable
         _events.Resumed += OnResumed;
         _events.Suspending += OnSuspending;
     }
+
+    // Raised once per wake-up, right after the first restore: the devices that are back show the
+    // lighting again, and a change to it now also reaches the ones that come later, with the next
+    // restore. On the thread of the timer.
+    public event EventHandler? Restored;
 
     public void Dispose()
     {
@@ -78,6 +84,7 @@ internal sealed class ResumeRestorer : IDisposable
 
     private void OnTimer()
     {
+        bool first;
         lock (_gate)
         {
             if (_disposed || _next >= _delays.Count)
@@ -85,6 +92,7 @@ internal sealed class ResumeRestorer : IDisposable
                 return;
             }
 
+            first = _next == 0;
             var current = _delays[_next++];
             if (_next < _delays.Count)
             {
@@ -92,9 +100,18 @@ internal sealed class ResumeRestorer : IDisposable
             }
         }
 
+        Run(_restore);
+        if (first)
+        {
+            Run(() => Restored?.Invoke(this, EventArgs.Empty));
+        }
+    }
+
+    private static void Run(Action action)
+    {
         try
         {
-            _restore();
+            action();
         }
         catch (Exception exception)
         {
