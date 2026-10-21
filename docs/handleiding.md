@@ -155,9 +155,12 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" (vraagt eerst of het zeker is) en
   "Vanzelf aanzetten".
-- **Vanzelf aanzetten:** vul bij "Elke dag aanzetten om" een tijd in (`23:00` of `23.00`)
-  en/of bij "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`;
-  `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
+- **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00` of `23.00`) en/of bij
+  "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`; `eldenring` of een
+  heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit. Bij "Op deze dagen"
+  staan de dagen van de tijd, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv.
+  alleen ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
+  "In het weekend om 10:00" of "ma, wo, vr om 19:00".
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
@@ -386,20 +389,23 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 ### profiles.json
 
 De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color` t/m
-`ledColorZoneLengths`) en, als hij vanzelf aangaat, `loadAt` (`"HH:mm"`) en/of `program`:
+`ledColorZoneLengths`) en, als hij vanzelf aangaat, `loadAt` (`"HH:mm"`) met eventueel
+`loadOn`, en/of `program`:
 
 ```json
 {
   "profiles": [
     { "name": "Gamen", "color": "#FF0000", "effect": "rainbow", "program": "eldenring.exe" },
     { "name": "Nacht", "color": "#FF8800", "brightness": 0.1, "loadAt": "23:00" },
-    { "name": "Werk", "color": "#FFFFFF", "devices": { "simulated-fan": { "color": "#0000FF" } } }
+    { "name": "Werk", "color": "#FFFFFF", "loadAt": "09:00", "loadOn": "mon,tue,wed,thu,fri" }
   ]
 }
 ```
 
-Zonder `loadAt` en `program` gaat een scène nooit vanzelf aan. Een tijd of programma dat niet
-te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft gelden. Voor een
+Zonder `loadAt` en `program` gaat een scène nooit vanzelf aan. Zonder `loadOn` geldt de tijd elke
+dag; `loadOn` noemt de dagen met `mon` t/m `sun` (met de hand mag ook `ma` t/m `zo`). Een tijd,
+dagen of programma die niet te lezen zijn (bijv. `"25:00"`, `"someday"` of een getal), laat de
+engine weg (zonder dagen: elke dag); de rest blijft gelden. Voor een
 kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.

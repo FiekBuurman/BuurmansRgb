@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -15,6 +16,28 @@ public sealed class DailyTimeTests
     [Fact]
     public void Next_PassedToday_IsTomorrow() =>
         Assert.Equal(Utc(2026, 6, 2, 5, 0), DailyTime.Next(new TimeOnly(7, 0), Utc(2026, 6, 1, 12, 0), Amsterdam));
+
+    // 1 June 2026 is a Monday. On workdays, a Friday evening goes on to Monday.
+    [Fact]
+    public void Next_OnWorkdays_SkipsTheWeekend() =>
+        Assert.Equal(Utc(2026, 6, 8, 5, 0), DailyTime.Next(new TimeOnly(7, 0), Utc(2026, 6, 5, 12, 0), Amsterdam, WeekDays.Workdays));
+
+    [Fact]
+    public void Next_OnlyOnSunday_IsTheNextSunday() =>
+        Assert.Equal(Utc(2026, 6, 7, 21, 0), DailyTime.Next(new TimeOnly(23, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.Sunday));
+
+    // The day of the local clock counts: 23:30 UTC on Friday is already Saturday in Amsterdam.
+    [Fact]
+    public void Next_OnTheWeekend_UsesTheDayOfTheZone() =>
+        Assert.Equal(Utc(2026, 6, 6, 5, 0), DailyTime.Next(new TimeOnly(7, 0), Utc(2026, 6, 5, 23, 30), Amsterdam, WeekDays.Weekend));
+
+    [Fact]
+    public void Next_TodayItsDayButPassed_IsAWeekLater() =>
+        Assert.Equal(Utc(2026, 6, 8, 5, 0), DailyTime.Next(new TimeOnly(7, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.Monday));
+
+    [Fact]
+    public void Next_NoDays_IsEveryDay() =>
+        Assert.Equal(Utc(2026, 6, 2, 5, 0), DailyTime.Next(new TimeOnly(7, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.None));
 
     [Fact]
     public void Next_RightNow_IsTomorrow() =>

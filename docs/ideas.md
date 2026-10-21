@@ -144,8 +144,8 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
-- Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
-  per scène
+- Meer tijden per scène (bijv. 07:00 op werkdagen en 09:00 in het weekend); sinds #46 heeft
+  een scène één tijd, op gekozen dagen
 - Na het ontwaken of bij het starten de scène aanzetten die volgens de tijden nu zou gelden (het
   laatste tijdstip dat voorbij is), als keuze naast het huidige "overslaan"
 - Een programma alleen laten tellen zolang het op de voorgrond staat
@@ -182,10 +182,6 @@ uitbreidingen in `docs/bouwplan.md`.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
   het naar 130–143 MB, maar kost op Lampen CPU; eventueel als keuze bij Instellingen, of alleen
   zonder bewegend effect
-- De gloed van `LedBulb` hergebruiken in plaats van bij elke kleur een nieuwe
-  `RadialGradientBrush` te maken (op Lampen met de regenboog ~2,2 MB/s aan allocaties), bijv.
-  één bevroren gloed in wit met de kleur als `OpacityMask`, of een cache per kleur voor een
-  statisch effect
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze

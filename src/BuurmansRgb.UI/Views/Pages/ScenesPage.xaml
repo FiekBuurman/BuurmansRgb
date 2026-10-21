@@ -177,6 +177,25 @@
                                 Command="{Binding Profiles.Automation.ApplyCommand}"
                                 AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
                     </Grid>
+                    <!-- The days of the time; grey without a time, as they only count with one. -->
+                    <StackPanel Margin="0,12,0,0" IsEnabled="{Binding Profiles.Automation.HasLoadAt}">
+                        <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileDaysLabel}" />
+                        <ItemsControl ItemsSource="{Binding Profiles.Automation.Days}" Focusable="False"
+                                      AutomationProperties.Name="{x:Static res:Strings.ProfileDaysLabel}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:DayOption}">
+                                    <ToggleButton Margin="0,0,6,6" Style="{StaticResource DayToggle}" Content="{Binding ShortName}"
+                                                  IsChecked="{Binding IsChecked}" ToolTip="{Binding Name}"
+                                                  AutomationProperties.Name="{Binding Name}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
                     <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileLoadAtHint}" />
                     <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileProgramHint}" />
                     <DockPanel Margin="0,8,0,0" Visibility="{Binding Profiles.Automation.HasError, Converter={StaticResource BoolToVisibility}}">
