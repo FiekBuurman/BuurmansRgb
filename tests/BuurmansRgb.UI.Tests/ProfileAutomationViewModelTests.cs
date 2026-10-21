@@ -5,7 +5,7 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class ProfileAutomationViewModelTests
 {
-    private readonly ProfileAutomationViewModel _automation = new();
+    private readonly ProfileAutomationViewModel _automation = new(() => []);
     private readonly List<ProfileAutomationChange> _requests = [];
 
     public ProfileAutomationViewModelTests() => _automation.ApplyRequested += (_, change) => _requests.Add(change);
@@ -118,6 +118,95 @@ public sealed class ProfileAutomationViewModelTests
 
         Assert.StartsWith("Dit is een snelkoppeling of script.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void Show_TicksTheDaysOfTheTime()
+    {
+        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays));
+
+        Assert.Equal([true, true, true, true, true, false, false], _automation.Days.Select(day => day.IsChecked));
+        Assert.Equal(["ma", "di", "wo", "do", "vr", "za", "zo"], _automation.Days.Select(day => day.ShortName));
+        Assert.Equal("maandag", _automation.Days[0].ToString());
+        Assert.True(_automation.HasLoadAt);
+    }
+
+    [Fact]
+    public void Apply_OtherDays_AsksWithThem()
+    {
+        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0)));
+
+        _automation.Days[5].IsChecked = false;
+        _automation.Days[6].IsChecked = false;
+        _automation.ApplyCommand.Execute(null);
+
+        Assert.Equal([new ProfileAutomationChange("Werk", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays))], _requests);
+    }
+
+    // A time on no day would never come.
+    [Fact]
+    public void NoDayTicked_SaysSoAndCannotApply()
+    {
+        _automation.Show("Werk", new ProfileAutomation(new TimeOnly(9, 0)));
+
+        foreach (var day in _automation.Days)
+        {
+            day.IsChecked = false;
+        }
+
+        Assert.Equal("Kies minstens één dag voor de tijd.", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Without a time the days count for nothing, so no day is fine then.
+    [Fact]
+    public void NoTime_DaysDoNotMatter()
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+
+        _automation.Days[0].IsChecked = false;
+
+        Assert.False(_automation.HasLoadAt);
+        Assert.Null(_automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void FindPrograms_ShowsTheProgramsWithAWindow()
+    {
+        var automation = new ProfileAutomationViewModel(() => ["eldenring.exe", "notepad.exe"]);
+        Assert.False(automation.HasRunningPrograms);
+
+        automation.FindProgramsCommand.Execute(null);
+
+        Assert.Equal(["eldenring.exe", "notepad.exe"], automation.RunningPrograms);
+        Assert.True(automation.HasRunningPrograms);
+    }
+
+    // From the list as it is, from "Bladeren" with its whole path: the field gets the file name.
+    [Theory]
+    [InlineData("eldenring.exe", "eldenring.exe")]
+    [InlineData(@"C:\Games\ELDEN RING\Game\eldenring.exe", "eldenring.exe")]
+    public void PickProgram_FillsInTheExeName(string picked, string expected)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.PickProgramCommand.Execute(picked);
+
+        Assert.Equal(expected, _automation.ProgramText);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(@"C:\Users\me\Desktop\Spel.lnk")]
+    public void PickProgram_NothingOrNoProgram_LeavesTheField(string? picked)
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+
+        _automation.PickProgramCommand.Execute(picked);
+
+        Assert.Equal("eldenring.exe", _automation.ProgramText);
     }
 
     [Fact]

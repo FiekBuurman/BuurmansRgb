@@ -114,6 +114,42 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_TimeOnSomeDays_WritesThemAndReadsThemBack()
+    {
+        var automation = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays);
+        _store.Save([new Profile("Werk", Uniform(StaticLighting(Red))) { Automation = automation }]);
+
+        Assert.Contains("\"loadOn\": \"mon,tue,wed,thu,fri\"", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal(automation, Assert.Single(_store.Load()).Automation);
+    }
+
+    // Every day is how it was before there were days: no "loadOn" in the file.
+    [Fact]
+    public void Save_TimeOnEveryDay_WritesNoDays()
+    {
+        _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) }]);
+
+        Assert.DoesNotContain("loadOn", File.ReadAllText(_directory.File("profiles.json")));
+    }
+
+    [Theory]
+    [InlineData("\"sat, sun\"", WeekDays.Weekend)]
+    [InlineData("\"ma,wo,VR\"", WeekDays.Monday | WeekDays.Wednesday | WeekDays.Friday)]
+    [InlineData("\"\"", WeekDays.Every)]
+    [InlineData("\"someday\"", WeekDays.Every)]
+    [InlineData("\"mon,someday\"", WeekDays.Every)]
+    [InlineData("[\"mon\"]", WeekDays.Every)]
+    public void Load_DaysWrittenByHand_AreRead_OrLeaveEveryDay(string loadOn, WeekDays expected)
+    {
+        File.WriteAllText(_directory.File("profiles.json"), $$"""{ "profiles": [ { "name": "Werk", "loadAt": "09:00", "loadOn": {{loadOn}} } ] }""");
+
+        var automation = Assert.Single(_store.Load()).Automation;
+
+        Assert.Equal(new TimeOnly(9, 0), automation.LoadAt);
+        Assert.Equal(expected, automation.Days);
+    }
+
+    [Fact]
     public void Save_WritesTheProgram()
     {
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
