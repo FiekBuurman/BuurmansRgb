@@ -230,10 +230,11 @@ toetsenbord. Een paar dingen om te proberen:
 - **Knipperen:** `IEngineApi.FlashDeviceAsync`, in de engine `LightingController.Flash` en
   `DeviceFlash`. Eén zone gaat met `FlashZoneAsync` en `LightingController.FlashZone`: de flits
   dekt dan alleen het LED-bereik van die zone (`RgbZone.RangesOf`, zoals de engine de
-  zone nu kent; het voorbeeld in de app deelt de zones met dezelfde functie in), de rest van het apparaat rendert zijn effect gewoon. Er is steeds één
-  `DeviceFlash`, van een apparaat of een zone; een zone die de engine niet (meer) kent, slaat
-  hij over, zoals een onbekend apparaat. Een apparaat of zone zonder LED's knippert niet, maar
-  stopt wel de flits die liep, zoals een apparaat zonder LED's al deed vóór er zones knipperden.
+  zone nu kent; het voorbeeld in de app deelt de zones met dezelfde functie in), de rest van
+  het apparaat rendert zijn effect gewoon. Er is steeds één `DeviceFlash`, van een apparaat of
+  een zone; een zone die de engine niet (meer) kent, slaat hij over, zoals een onbekend
+  apparaat. Een apparaat of zone zonder LED's knippert niet, maar stopt wel de flits die liep,
+  zoals een apparaat zonder LED's al deed vóór er zones knipperden.
 
 ## Ontwerp, lettertypes en icoon
 
