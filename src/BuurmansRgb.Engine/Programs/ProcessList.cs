@@ -18,7 +18,6 @@ namespace BuurmansRgb.Engine.Programs;
 // so that program is missed until it starts again.
 internal sealed partial class ProcessList : IRunningPrograms
 {
-    private const uint QueryLimitedInformation = 0x1000;
     private const uint Synchronize = 0x0010_0000;
     private const uint WaitObject0 = 0;
     private const uint StillActive = 259;
@@ -130,9 +129,6 @@ internal sealed partial class ProcessList : IRunningPrograms
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool EnumProcesses([Out] uint[] processIds, uint size, out uint used);
 
-    [LibraryImport("kernel32.dll", SetLastError = true)]
-    private static partial SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
-
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetExitCodeProcess(SafeProcessHandle process, out uint exitCode);
@@ -173,7 +169,7 @@ internal sealed partial class ProcessList : IRunningPrograms
         {
             if (!_ended)
             {
-                _handle ??= OpenProcess(Synchronize | QueryLimitedInformation, inheritHandle: false, processId);
+                _handle ??= ProcessImageName.OpenProcess(Synchronize | ProcessImageName.QueryLimitedInformation, inheritHandle: false, processId);
                 if (_handle.IsInvalid)
                 {
                     return true;

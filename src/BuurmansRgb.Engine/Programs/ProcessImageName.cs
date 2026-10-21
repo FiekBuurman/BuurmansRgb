@@ -8,7 +8,7 @@ namespace BuurmansRgb.Engine.Programs;
 // administrator. Keeps its buffer between calls, so it is not thread-safe.
 internal sealed partial class ProcessImageName
 {
-    private const uint QueryLimitedInformation = 0x1000;
+    internal const uint QueryLimitedInformation = 0x1000;
     private const int ErrorAccessDenied = 5;
     private const int ErrorInsufficientBuffer = 122;
     private const int MaxPath = 32_767;
@@ -47,8 +47,9 @@ internal sealed partial class ProcessImageName
         }
     }
 
+    // Also for ProcessList, so there is one declaration.
     [LibraryImport("kernel32.dll", SetLastError = true)]
-    private static partial SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
+    internal static partial SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
 
     [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
     [return: MarshalAs(UnmanagedType.Bool)]
