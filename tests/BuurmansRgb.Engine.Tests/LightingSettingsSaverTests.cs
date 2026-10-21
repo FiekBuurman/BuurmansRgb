@@ -233,7 +233,7 @@ public sealed class LightingSettingsSaverTests
         var saver = CreateSaver();
         var fromFile = new EngineSettings { Color = Orange, FramesPerSecond = 12 };
 
-        saver.Adopt(fromFile, () =>
+        ApplyByHand(saver, fromFile, () =>
         {
             saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
             _lighting.Replace(fromFile.ToLightingState());
@@ -249,7 +249,7 @@ public sealed class LightingSettingsSaverTests
     {
         await _lighting.DiscoverAsync(Ct);
         using var saver = CreateSaver();
-        saver.Adopt(new EngineSettings { FramesPerSecond = 12 }, () => saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 }));
+        ApplyByHand(saver, new EngineSettings { FramesPerSecond = 12 }, () => saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 }));
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
         _time.Advance(Delay);
@@ -268,7 +268,7 @@ public sealed class LightingSettingsSaverTests
         using var saver = new LightingSettingsSaver(_store, _lighting, new EngineSettings { ActiveScene = "Nacht" }, Delay, _time);
         var fromFile = new EngineSettings { Color = Orange, ActiveScene = "Nacht" };
 
-        saver.Adopt(fromFile, () =>
+        ApplyByHand(saver, fromFile, () =>
         {
             _lighting.Replace(fromFile.ToLightingState());
             saver.ChangeOptions(settings => settings with { ActiveScene = null });
@@ -290,7 +290,7 @@ public sealed class LightingSettingsSaverTests
         _lighting.SetLighting(null, lighting => lighting with { Color = Red });
         var fromFile = new EngineSettings { Color = Orange };
 
-        saver.Adopt(fromFile, () =>
+        ApplyByHand(saver, fromFile, () =>
         {
             _time.Advance(Delay);
             Assert.Equal(0, _store.SaveCount);
@@ -309,7 +309,7 @@ public sealed class LightingSettingsSaverTests
         using var saver = CreateSaver();
         var fromFile = new EngineSettings { FramesPerSecond = 12 };
 
-        saver.Adopt(fromFile, () =>
+        ApplyByHand(saver, fromFile, () =>
         {
             saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
             Task.Run(() => _lighting.SetLighting(null, lighting => lighting with { Color = Orange }), Ct).Wait(Ct);
@@ -350,9 +350,9 @@ public sealed class LightingSettingsSaverTests
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
         _time.Advance(Delay);
 
-        _store.LoadIfChanged();
-        saver.Adopt(fromFile, () =>
+        ApplyByHand(saver, fromFile, () =>
         {
+            _store.LoadIfChanged();
             saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
             _lighting.Replace(fromFile.ToLightingState());
         });
@@ -397,6 +397,30 @@ public sealed class LightingSettingsSaverTests
         Assert.Equal(0, _store.SaveCount);
         Assert.Same(byHand, _store.Settings);
     }
+
+    // The reloader read the file and found nothing new: a save that came due meanwhile goes on.
+    [Fact]
+    public async Task HoldSaves_WithoutAChangeByHand_SavesWhatCameDueAfterwards()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+
+        saver.HoldSaves(() => _time.Advance(Delay));
+        Assert.Equal(0, _store.SaveCount);
+
+        _time.Advance(Delay);
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    // As SettingsReloader does: apply within HoldSaves, then Adopt.
+    private static void ApplyByHand(LightingSettingsSaver saver, EngineSettings fromFile, Action apply) =>
+        saver.HoldSaves(() =>
+        {
+            apply();
+            saver.Adopt(fromFile);
+        });
 
     private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
 }

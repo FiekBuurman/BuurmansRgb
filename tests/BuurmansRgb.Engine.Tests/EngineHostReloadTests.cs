@@ -178,8 +178,9 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         var host = CreateHost();
         await host.StartAsync(Ct);
-        ChangeByHand(new EngineSettings { FramesPerSecond = 12, ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12 && _zoneLengths.Lengths.Count == 1);
+        ChangeByHand(new EngineSettings { Color = Blue, FramesPerSecond = 12, ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
+        // The lighting comes last, so then the change by hand is on.
+        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Blue && _lighting.FramesPerSecond == 12 && _zoneLengths.Lengths.Count == 1);
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
         host.Dispose();

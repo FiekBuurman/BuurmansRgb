@@ -17,6 +17,7 @@ internal sealed class SettingsReloader : IDisposable
     private readonly ISettingsFileEvents _fileEvents;
     private readonly ISettingsStore _store;
     private readonly Action<EngineSettings> _apply;
+    private readonly Action<Action>? _holdSaves;
     private readonly TimeSpan _delay;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
@@ -24,17 +25,21 @@ internal sealed class SettingsReloader : IDisposable
     private int _readsAgain;
 
     // apply gets the settings from the file, on the timer thread. The file is read once at the
-    // start too: it may have changed while the engine started, before this listened.
+    // start too: it may have changed while the engine started, before this listened. holdSaves
+    // (LightingSettingsSaver.HoldSaves) runs each read with its apply, so no save of what the
+    // engine held before comes between them.
     public SettingsReloader(
         ISettingsFileEvents fileEvents,
         ISettingsStore store,
         Action<EngineSettings> apply,
         TimeSpan delay,
-        TimeProvider? timeProvider = null)
+        TimeProvider? timeProvider = null,
+        Action<Action>? holdSaves = null)
     {
         _fileEvents = fileEvents;
         _store = store;
         _apply = apply;
+        _holdSaves = holdSaves;
         _delay = delay;
         _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
             _ => Reload(), state: null, delay, Timeout.InfiniteTimeSpan);
@@ -78,31 +83,43 @@ internal sealed class SettingsReloader : IDisposable
                 return;
             }
 
-            var change = _store.LoadIfChanged();
-            if (change.ReadLater && _readsAgain < MaxReadsAgain)
+            if (_holdSaves is null)
             {
-                _readsAgain++;
-                _timer.Change(_delay, Timeout.InfiniteTimeSpan);
-                return;
+                ReloadLocked();
             }
+            else
+            {
+                _holdSaves(ReloadLocked);
+            }
+        }
+    }
 
-            _readsAgain = 0;
-            if (change.Settings is not { } settings)
-            {
-                return;
-            }
+    private void ReloadLocked()
+    {
+        var change = _store.LoadIfChanged();
+        if (change.ReadLater && _readsAgain < MaxReadsAgain)
+        {
+            _readsAgain++;
+            _timer.Change(_delay, Timeout.InfiniteTimeSpan);
+            return;
+        }
 
-            Trace.TraceInformation("The settings file changed outside the engine; applying it.");
-            try
-            {
-                _apply(settings);
-            }
-            catch (Exception exception)
-            {
-                // A device that failed, say. This runs on a timer thread, where an exception would
-                // end the engine; the next change by hand tries again.
-                Trace.TraceError($"Applying the settings file changed by hand: {exception}");
-            }
+        _readsAgain = 0;
+        if (change.Settings is not { } settings)
+        {
+            return;
+        }
+
+        Trace.TraceInformation("The settings file changed outside the engine; applying it.");
+        try
+        {
+            _apply(settings);
+        }
+        catch (Exception exception)
+        {
+            // A device that failed, say. This runs on a timer thread, where an exception would
+            // end the engine; the next change by hand tries again.
+            Trace.TraceError($"Applying the settings file changed by hand: {exception}");
         }
     }
 }

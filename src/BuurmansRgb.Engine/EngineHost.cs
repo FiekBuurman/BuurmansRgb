@@ -68,7 +68,7 @@ internal sealed class EngineHost(
         profileTimer?.CatchUpAtStart();
         if (settingsFileEvents is not null)
         {
-            _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay);
+            _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay, holdSaves: _saver.HoldSaves);
         }
 
         _ = ipcServer?.RunAsync(ct);
@@ -107,12 +107,13 @@ internal sealed class EngineHost(
     // settings.json changed by hand: applied as the settings app would, through the same
     // properties, so the app follows (OptionsChanged, LightingChanged, DevicesChanged) and the saver
     // keeps the new values. The saver adopts them as what the file holds, so it does not write the
-    // file back in its own words. The lighting is only replaced when it is another, so a change of
-    // an option alone leaves the scene on and the effects running. The scene that is on stays the
-    // engine's: a changed activeScene loads nothing, and a new lighting ends the scene as any
-    // change does.
-    private void ApplyChangedByHand(EngineSettings settings) =>
-        _saver!.Adopt(settings, () =>
+    // file back in its own words; the reloader reads and applies them within HoldSaves of the
+    // saver. The lighting is only replaced when it is another, so a change of an option alone
+    // leaves the scene on and the effects running. The scene that is on stays the engine's: a
+    // changed activeScene loads nothing, and a new lighting ends the scene as any change does.
+    private void ApplyChangedByHand(EngineSettings settings)
+    {
+        try
         {
             ApplyOptions(settings);
             zoneLengths?.Change(settings.ReadZoneLengths());
@@ -121,7 +122,13 @@ internal sealed class EngineHost(
             {
                 lighting.Replace(state);
             }
-        });
+        }
+        finally
+        {
+            // Also after a failure halfway: the file is still the user's to keep.
+            _saver!.Adopt(settings);
+        }
+    }
 
     // The options besides the lighting and the zone lengths, at the start and after a change by hand.
     private void ApplyOptions(EngineSettings settings)

@@ -249,12 +249,15 @@ toetsenbord. Een paar dingen om te proberen:
   (dus `OptionsChanged` en de saver), de zonelengtes met `ZoneLengthKeeper.Change` en de
   verlichting met `LightingController.Replace` (`LightingChanged`), die alleen als hij anders is
   dan nu (`EngineSettings.SameLighting`), zodat de scène bij alleen een optie aan blijft.
-  `activeScene` neemt hij niet over. Dat alles loopt via `LightingSettingsSaver.Adopt`: wat de
-  engine daarna heeft, geldt als de inhoud van het bestand (met `activeScene` uit het bestand),
+  `activeScene` neemt hij niet over. Daarna roept hij `LightingSettingsSaver.Adopt` aan: wat de
+  engine dan heeft, geldt als de inhoud van het bestand (met `activeScene` uit het bestand),
   zodat de opslag die de wijzigingen plannen niets schrijft en het bestand de opmaak en onbekende
   sleutels van de gebruiker houdt. Alleen wat de engine anders heeft (een scène die uitging of niet
-  overgenomen werd) schrijft hij een seconde later terug. Een opslag die tijdens het toepassen
-  afloopt, wacht daarop; een opslag met dezelfde inhoud als het bestand schrijft nooit. De saver
+  overgenomen werd, of een wijziging uit de app op een andere thread tijdens het toepassen)
+  schrijft hij een seconde later terug. De reloader leest en past toe binnen
+  `LightingSettingsSaver.HoldSaves`: een opslag die dan afloopt, wacht, zodat hij niet de stand
+  van vóór het lezen over de wijziging heen schrijft. Een opslag met dezelfde inhoud als het
+  bestand schrijft nooit. De saver
   slaat op met `ISettingsStore.SaveIfUnchanged`, een compare-and-swap: staan er andere bytes in
   het bestand dan de store kent (een wijziging met de hand die de reloader nog niet las), dan
   schrijft hij niets en probeert de saver het na zijn vertraging opnieuw; meestal heeft de

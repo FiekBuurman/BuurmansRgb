@@ -31,10 +31,12 @@ internal sealed class LightingSettingsSaver : IDisposable
     // it adopted. Null when it does not know.
     private byte[]? _inFile;
 
-    // The thread on which Adopt applies a change by hand, or 0; a save that comes due waits for it.
-    // A change on another thread meanwhile, such as one from the settings app, is not in the file.
-    private int _adoptingThread;
+    // The thread that runs HoldSaves, or 0; a save that comes due waits for it. A change on another
+    // thread meanwhile, such as one from the settings app, is not in the file. _adopted is what
+    // Adopt got within HoldSaves.
+    private int _holdingThread;
     private bool _changedElsewhere;
+    private EngineSettings? _adopted;
 
     // How many saves in a row found the file changed by hand.
     private int _waitsForChangeByHand;
@@ -95,46 +97,82 @@ internal sealed class LightingSettingsSaver : IDisposable
         }
     }
 
-    // Runs apply, which puts settings from a file changed by hand on the engine, and takes what the
-    // engine holds then as what the file holds: what apply changes comes in through ChangeOptions
-    // and LightingChanged as any change does, but is not written back, so the file keeps the user's
-    // words and keys the engine does not know. Only what the engine holds otherwise is saved, such
-    // as a scene that went off with another lighting (the file still names it in activeScene).
-    // apply runs outside the lock; a save that comes due meanwhile waits for it. A change on another
-    // thread meanwhile is mixed with the file in what the engine holds, so then the file is written.
-    public void Adopt(EngineSettings fromFile, Action apply)
+    // Runs action, which reads settings.json changed by hand and puts it on the engine
+    // (SettingsReloader), while no save starts: one that comes due waits for it. A save that took
+    // what the engine held before the file was read would otherwise write that over the change.
+    // action runs outside the lock. A change on another thread meanwhile, such as one from the
+    // settings app, is mixed with the file in what the engine holds; the file is written then.
+    public void HoldSaves(Action action)
     {
         lock (_gate)
         {
-            _adoptingThread = Environment.CurrentManagedThreadId;
+            _holdingThread = Environment.CurrentManagedThreadId;
             _changedElsewhere = false;
+            _adopted = null;
         }
 
         try
         {
-            apply();
+            action();
         }
         finally
         {
             lock (_gate)
             {
-                _adoptingThread = 0;
-                _waitsForChangeByHand = 0;
-                var held = _settings.WithLighting(_lighting.State);
-                _inFile = _changedElsewhere ? null : (held with { ActiveScene = fromFile.ActiveScene }).ToJson();
-                if (!_disposed)
+                _holdingThread = 0;
+                if (_adopted is { } fromFile)
                 {
-                    if (_inFile is not null && held.ToJson().AsSpan().SequenceEqual(_inFile))
-                    {
-                        _pending = false;
-                        _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                    }
-                    else
-                    {
-                        ScheduleSaveLocked();
-                    }
+                    _adopted = null;
+                    AdoptLocked(fromFile);
+                }
+                else if (_pending && !_disposed)
+                {
+                    ScheduleSaveLocked();
                 }
             }
+        }
+    }
+
+    // Takes what the engine holds, once the settings from a file changed by hand are on it, as what
+    // the file holds: what that changed came in through ChangeOptions and LightingChanged as any
+    // change does, but is not written back, so the file keeps the user's words and keys the engine
+    // does not know. Only what the engine holds otherwise is saved, such as a scene that went off
+    // with another lighting (the file still names it in activeScene). Within HoldSaves this counts
+    // once action is done.
+    public void Adopt(EngineSettings fromFile)
+    {
+        lock (_gate)
+        {
+            if (_holdingThread == Environment.CurrentManagedThreadId)
+            {
+                _adopted = fromFile;
+            }
+            else
+            {
+                AdoptLocked(fromFile);
+            }
+        }
+    }
+
+    private void AdoptLocked(EngineSettings fromFile)
+    {
+        _waitsForChangeByHand = 0;
+        var held = _settings.WithLighting(_lighting.State);
+        _inFile = _changedElsewhere ? null : (held with { ActiveScene = fromFile.ActiveScene }).ToJson();
+        _changedElsewhere = false;
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_inFile is not null && held.ToJson().AsSpan().SequenceEqual(_inFile))
+        {
+            _pending = false;
+            _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        }
+        else
+        {
+            ScheduleSaveLocked();
         }
     }
 
@@ -151,7 +189,7 @@ internal sealed class LightingSettingsSaver : IDisposable
 
     private void ScheduleSaveLocked()
     {
-        _changedElsewhere |= _adoptingThread != 0 && _adoptingThread != Environment.CurrentManagedThreadId;
+        _changedElsewhere |= _holdingThread != 0 && _holdingThread != Environment.CurrentManagedThreadId;
         _pending = true;
         _timer.Change(_delay, Timeout.InfiniteTimeSpan);
     }
@@ -162,7 +200,7 @@ internal sealed class LightingSettingsSaver : IDisposable
         bool succeeded;
         lock (_gate)
         {
-            if (!_pending || _adoptingThread != 0)
+            if (!_pending || _holdingThread != 0)
             {
                 return;
             }
