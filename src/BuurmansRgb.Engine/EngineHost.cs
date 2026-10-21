@@ -29,8 +29,8 @@ internal sealed class EngineHost(
     // shows up. From then on a new mode for the simulated devices and a zone length the user sets
     // are saved like the lighting, and the profile triggers may load profiles: after the saved
     // lighting, so they are not overwritten, and with the saver, so what they load is saved. The
-    // scene that was on is on again with the saved lighting, as that is still its lighting; the
-    // profile timer (also one of the triggers) may then catch up on the scene of the time.
+    // scene that was on is on again with the saved lighting, as that is still its lighting; once
+    // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -59,6 +59,7 @@ internal sealed class EngineHost(
             trigger.Start();
         }
 
+        profileTimer?.CatchUpAtStart();
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }

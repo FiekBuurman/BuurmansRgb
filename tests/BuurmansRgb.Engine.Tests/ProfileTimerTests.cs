@@ -376,6 +376,29 @@ public sealed class ProfileTimerTests : IDisposable
         Assert.Equal("Ochtend", _profiles.ActiveName);
     }
 
+    // Start itself does not catch up: EngineHost does that once every trigger runs.
+    [Fact]
+    public void CatchUp_StartWithoutCatchUpAtStart_LoadsNothing()
+    {
+        _store.Profiles = [Profile("Ochtend", Blue, new TimeOnly(7, 0))];
+        _timer = new ProfileTimer(_profiles, _clock, _time) { CatchUp = true };
+
+        _timer.Start();
+
+        Assert.Equal(StartColor, ShownColor());
+    }
+
+    [Fact]
+    public void CatchUpAtStart_BeforeStart_LoadsNothing()
+    {
+        _store.Profiles = [Profile("Ochtend", Blue, new TimeOnly(7, 0))];
+        _timer = new ProfileTimer(_profiles, _clock, _time) { CatchUp = true };
+
+        _timer.CatchUpAtStart();
+
+        Assert.Equal(StartColor, ShownColor());
+    }
+
     [Fact]
     public void CatchUp_AtTheStart_NoSceneWithATime_LoadsNothing()
     {
@@ -655,6 +678,7 @@ public sealed class ProfileTimerTests : IDisposable
         _restorer = new ResumeRestorer(_power, _lighting.RestoreDevices, _time, ResumeRestorer.DefaultDelays);
         _timer = new ProfileTimer(_profiles, _clock, _time, hold, _restorer) { CatchUp = catchUp };
         _timer.Start();
+        _timer.CatchUpAtStart();
     }
 
     // On after the start, so only waking up catches up.

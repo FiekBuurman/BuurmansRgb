@@ -432,6 +432,40 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(0, store.SaveCount);
     }
 
+    // A game with its own scene runs at the start, with the triggers in the order of Program: the
+    // devices only get the scene of the game, and the scene of the time comes when it stops.
+    [Fact]
+    public async Task StartAsync_CatchingUpOnSceneTimesWhileAGameRuns_OnlyTheSceneOfTheGameComesOn()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { CatchUpSceneTimes = true } };
+        using var lighting = new LightingController([_simulated]);
+        var profiles = new ProfileLibrary(new InMemoryProfileStore
+        {
+            Profiles =
+            [
+                new Profile("Gamen", LightingStates.Uniform(LightingStates.StaticLighting(Green))) { Automation = new ProfileAutomation(Program: "game.exe") },
+                new Profile("Ochtend", LightingStates.Uniform(LightingStates.StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(7, 0)) },
+            ],
+        }, lighting);
+        var programs = new FakeRunningPrograms();
+        programs.Running.Add("game.exe");
+        var time = new ClockTimeProvider(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), DailyTimeTests.Amsterdam);
+        var watcher = new ProgramWatcher(profiles, lighting, programs, time);
+        var timer = new ProfileTimer(profiles, new FakeClockEvents(), time, watcher.HoldUntilProgramsStop);
+        using var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), profileTriggers: [timer, watcher], profiles: profiles, profileTimer: timer);
+        var shown = new List<RgbColor>();
+        lighting.LightingChanged += (_, _) => shown.Add(lighting.GetLighting(null).Color);
+
+        await host.StartAsync(Ct);
+        Assert.DoesNotContain(Blue, shown);
+        Assert.Equal(Green, lighting.GetLighting(null).Color);
+
+        programs.Running.Clear();
+        time.Advance(ProgramWatcher.DefaultPollInterval);
+        Assert.Equal(Blue, lighting.GetLighting(null).Color);
+        Assert.Equal("Ochtend", profiles.ActiveName);
+    }
+
     [Fact]
     public void SetPaused_TogglesPauseStateOfLighting()
     {

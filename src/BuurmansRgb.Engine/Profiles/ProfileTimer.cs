@@ -49,7 +49,7 @@ internal sealed class ProfileTimer : IProfileTrigger
     // Raised when CatchUp got another value; read CatchUp for the newest one.
     public event EventHandler? CatchUpChanged;
 
-    // Off unless settings.json or the settings app turns it on; set it before Start for the start.
+    // Off unless settings.json or the settings app turns it on; set it before CatchUpAtStart.
     // Turning it on loads nothing yet: it counts from the next wake-up or start.
     public bool CatchUp
     {
@@ -76,13 +76,9 @@ internal sealed class ProfileTimer : IProfileTrigger
         }
     }
 
-    // Reads the profiles, so profiles.json is read at the start when it exists. With CatchUp the
-    // scene the times give now comes on, unless it is the scene that is on already (the one from
-    // before a restart, ProfileLibrary.RestoreActive): what happened while the engine did not run
-    // is not known, so the time wins over the lighting from before.
+    // Reads the profiles, so profiles.json is read at the start when it exists.
     public void Start()
     {
-        bool catchUp;
         lock (_gate)
         {
             if (_started || _disposed)
@@ -91,17 +87,31 @@ internal sealed class ProfileTimer : IProfileTrigger
             }
 
             _started = true;
-            catchUp = _catchUp;
         }
 
         _profiles.Changed += OnChanged;
         _clock.Changed += OnChanged;
         _resumeEvents?.Restored += OnRestored;
         Schedule();
-        if (catchUp)
+    }
+
+    // With CatchUp the scene the times give now comes on, unless it is the scene that is on
+    // already (the one from before a restart, ProfileLibrary.RestoreActive): what happened while
+    // the engine did not run is not known, so the time wins over the lighting from before.
+    // EngineHost calls it after starting every profile trigger, so a program that already runs
+    // shows its scene first and keeps this one for when it stops (holdWhileProgramsRun), instead
+    // of the devices getting the scene of the time and then that of the program.
+    public void CatchUpAtStart()
+    {
+        lock (_gate)
         {
-            LoadLatest(since: null);
+            if (!_started || !_catchUp)
+            {
+                return;
+            }
         }
+
+        LoadLatest(since: null);
     }
 
     public void Dispose()
