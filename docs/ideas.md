@@ -139,7 +139,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een programma alleen laten tellen zolang het op de voorgrond staat
   (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
   pollen
-- "Gemiste tijden inhalen" (#??) laat bij het starten de tijd altijd winnen, ook van een kleur
+- "Gemiste tijden inhalen" (#51) laat bij het starten de tijd altijd winnen, ook van een kleur
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
   hij niet draaide. Met een tijdstempel van de laatste wijziging van de verlichting in
   `settings.json` kan hij alleen inhalen als de tijd daarna viel, zoals na het ontwaken

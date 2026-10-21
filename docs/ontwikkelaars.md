@@ -182,7 +182,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Vergrendeld of slaapstand | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
-| Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#??) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
+| Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#51) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
