@@ -126,75 +126,87 @@
                     </WrapPanel>
 
                     <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" />
-                    <Grid IsEnabled="{Binding Profiles.Automation.HasProfile}">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="20" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
-                            <TextBox Width="110" HorizontalAlignment="Left" MaxLength="5" FontFamily="{StaticResource MonoFont}"
-                                     Text="{Binding Profiles.Automation.LoadAtText, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
-                                     AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}"
-                                     AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
-                                <TextBox.InputBindings>
-                                    <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileProgramLabel}" />
-                            <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
-                                     ToolTip="{x:Static res:Strings.ProfileProgramHint}"
-                                     AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
-                                     AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
-                                <TextBox.InputBindings>
-                                    <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
-                                </TextBox.InputBindings>
-                            </TextBox>
-                        </StackPanel>
-                        <!-- Or pick the program: one that has a window now, or an .exe anywhere. -->
-                        <DockPanel Grid.Row="1" Grid.Column="2" Margin="0,8,0,0">
-                            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
-                                    Content="{x:Static res:Strings.ProgramBrowse}" ToolTip="{x:Static res:Strings.ProgramBrowseToolTip}"
-                                    Click="OnBrowseProgramClick" />
-                            <ComboBox x:Name="RunningPrograms" ItemsSource="{Binding Profiles.Automation.RunningPrograms}"
-                                      Tag="{x:Static res:Strings.ProgramPickPlaceholder}"
-                                      DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"
-                                      ToolTip="{x:Static res:Strings.ProgramPickToolTip}"
-                                      AutomationProperties.Name="{x:Static res:Strings.ProgramPickPlaceholder}"
-                                      AutomationProperties.HelpText="{x:Static res:Strings.ProgramPickToolTip}" />
-                        </DockPanel>
-                        <Button Grid.Column="3" Margin="12,0,0,0" VerticalAlignment="Bottom" Style="{StaticResource SecondaryButton}"
-                                Content="{x:Static res:Strings.ProfileAutomationApply}" ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}"
-                                Command="{Binding Profiles.Automation.ApplyCommand}"
-                                AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
-                    </Grid>
-                    <!-- The days of the time; grey without a time, as they only count with one. -->
-                    <StackPanel Margin="0,12,0,0" IsEnabled="{Binding Profiles.Automation.HasLoadAt}">
-                        <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileDaysLabel}" />
-                        <ItemsControl ItemsSource="{Binding Profiles.Automation.Days}" Focusable="False"
-                                      AutomationProperties.Name="{x:Static res:Strings.ProfileDaysLabel}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
+                    <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">
+                        <!-- The times, each with its days; the days are grey without a time, as they only
+                             count with one. "−" takes a time away, "+ Nog een tijd" adds one. -->
+                        <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileLoadAtLabel}" />
+                        <ItemsControl x:Name="TimesList" ItemsSource="{Binding Profiles.Automation.Times}" Focusable="False" IsTabStop="False"
+                                      AutomationProperties.Name="{x:Static res:Strings.ProfileLoadAtLabel}">
                             <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:DayOption}">
-                                    <ToggleButton Margin="0,0,6,6" Style="{StaticResource DayToggle}" Content="{Binding ShortName}"
-                                                  IsChecked="{Binding IsChecked}" ToolTip="{Binding Name}"
-                                                  AutomationProperties.Name="{Binding Name}" />
+                                <DataTemplate DataType="{x:Type vm:LoadTimeRow}">
+                                    <WrapPanel Margin="0,0,0,6">
+                                        <TextBox Width="110" Margin="0,0,12,6" VerticalAlignment="Center" MaxLength="5" FontFamily="{StaticResource MonoFont}"
+                                                 Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
+                                                 AutomationProperties.Name="{Binding TimeAccessibleName}"
+                                                 AutomationProperties.HelpText="{x:Static res:Strings.ProfileLoadAtHint}">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Key="Enter" Command="{Binding DataContext.Profiles.Automation.ApplyCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                        <ItemsControl ItemsSource="{Binding Days}" Focusable="False" IsEnabled="{Binding HasTime}"
+                                                      AutomationProperties.Name="{Binding DaysAccessibleName}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="{x:Type vm:DayOption}">
+                                                    <ToggleButton Margin="0,0,6,6" Style="{StaticResource DayToggle}" Content="{Binding ShortName}"
+                                                                  IsChecked="{Binding IsChecked}" ToolTip="{Binding Name}"
+                                                                  AutomationProperties.Name="{Binding Name}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                        <Button Margin="6,0,0,6" Style="{StaticResource IconButton}" Content="−"
+                                                ToolTip="{x:Static res:Strings.ProfileTimeRemoveToolTip}" AutomationProperties.Name="{Binding RemoveAccessibleName}"
+                                                Command="{Binding DataContext.Profiles.Automation.RemoveTimeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" Click="OnRemoveTimeClick" />
+                                    </WrapPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        <Button x:Name="AddTime" HorizontalAlignment="Left" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.ProfileTimeAdd}"
+                                ToolTip="{x:Static res:Strings.ProfileTimeAddToolTip}" Command="{Binding Profiles.Automation.AddTimeCommand}" Click="OnAddTimeClick" />
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileProgramLabel}" />
+                                <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="{x:Static res:Strings.ProfileProgramHint}"
+                                         AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
+                                         AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">
+                                    <TextBox.InputBindings>
+                                        <KeyBinding Key="Enter" Command="{Binding Profiles.Automation.ApplyCommand}" />
+                                    </TextBox.InputBindings>
+                                </TextBox>
+                            </StackPanel>
+                            <!-- Or pick the program: one that has a window now, or an .exe anywhere. -->
+                            <DockPanel Grid.Row="1" Margin="0,8,0,0">
+                                <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                                        Content="{x:Static res:Strings.ProgramBrowse}" ToolTip="{x:Static res:Strings.ProgramBrowseToolTip}"
+                                        Click="OnBrowseProgramClick" />
+                                <ComboBox x:Name="RunningPrograms" ItemsSource="{Binding Profiles.Automation.RunningPrograms}"
+                                          Tag="{x:Static res:Strings.ProgramPickPlaceholder}"
+                                          DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"
+                                          ToolTip="{x:Static res:Strings.ProgramPickToolTip}"
+                                          AutomationProperties.Name="{x:Static res:Strings.ProgramPickPlaceholder}"
+                                          AutomationProperties.HelpText="{x:Static res:Strings.ProgramPickToolTip}" />
+                            </DockPanel>
+                            <Button Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Bottom" Style="{StaticResource SecondaryButton}"
+                                    Content="{x:Static res:Strings.ProfileAutomationApply}" ToolTip="{x:Static res:Strings.ProfileAutomationApplyToolTip}"
+                                    Command="{Binding Profiles.Automation.ApplyCommand}"
+                                    AutomationProperties.Name="{x:Static res:Strings.ProfileAutomationApplyAccessibleName}" />
+                        </Grid>
                     </StackPanel>
                     <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileLoadAtHint}" />
                     <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ProfileProgramHint}" />

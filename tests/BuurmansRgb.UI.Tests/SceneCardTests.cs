@@ -70,4 +70,18 @@ public sealed class SceneCardTests
 
         Assert.Equal(expected, _card.Description);
     }
+
+    // Only the first time fits on the card, with how many more there are.
+    [Theory]
+    [InlineData(2, null, "Werkdagen om 07:00 en nog 1")]
+    [InlineData(3, null, "Werkdagen om 07:00 en nog 2")]
+    [InlineData(2, "eldenring.exe", "Werkdagen om 07:00 en nog 1 · bij eldenring.exe")]
+    public void Show_MoreTimes_SaysTheFirstAndHowManyMore(int count, string? program, string expected)
+    {
+        LoadTime[] times = [new(new TimeOnly(7, 0), WeekDays.Workdays), new(new TimeOnly(9, 0), WeekDays.Weekend), new(new TimeOnly(23, 0))];
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program));
+
+        Assert.Equal(expected, _card.Description);
+    }
 }

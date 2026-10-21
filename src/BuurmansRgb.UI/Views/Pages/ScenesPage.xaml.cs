@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Threading;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -16,6 +17,40 @@ public partial class ScenesPage : UserControl
     // The name field shows instead of the button; the focus goes with it, so typing can start at once.
     private void OnNewSceneClick(object sender, RoutedEventArgs e) =>
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => NewSceneName.Focus());
+
+    // The new time is the last row; the focus goes to its field, so typing can start at once.
+    private void OnAddTimeClick(object sender, RoutedEventArgs e) =>
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            if (TimesList.ItemContainerGenerator.ContainerFromIndex(TimesList.Items.Count - 1) is DependencyObject row && Find<TextBox>(row) is { } field)
+            {
+                field.Focus();
+            }
+        });
+
+    // A removed row takes its button with it; the focus goes to "+ Nog een tijd" instead of nowhere.
+    private void OnRemoveTimeClick(object sender, RoutedEventArgs e) =>
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            if (!((UIElement)sender).IsVisible)
+            {
+                AddTime.Focus();
+            }
+        });
+
+    private static T? Find<T>(DependencyObject parent) where T : DependencyObject
+    {
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+        {
+            var child = VisualTreeHelper.GetChild(parent, i);
+            if ((child as T ?? Find<T>(child)) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
 
     // The list is read when it opens, so a game started a moment ago is in it.
     private void OnRunningProgramsOpened(object? sender, EventArgs e) => Automation?.FindProgramsCommand.Execute(null);

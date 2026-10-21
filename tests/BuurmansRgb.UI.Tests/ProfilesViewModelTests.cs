@@ -144,12 +144,12 @@ public sealed class ProfilesViewModelTests
         };
         _profiles.Show(["Gamen", "Nacht"], select: "Nacht");
         _profiles.Automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
-        _profiles.Automation.LoadAtText = "7:";
+        _profiles.Automation.Times[0].Text = "7:";
 
         _profiles.Show(["Gamen", "Nacht", "Werk"]);
 
         Assert.Equal("Nacht", _profiles.SelectedName);
-        Assert.Equal("7:", _profiles.Automation.LoadAtText);
+        Assert.Equal("7:", _profiles.Automation.Times[0].Text);
         Assert.Equal(["Nacht"], _automationRequests);
     }
 
@@ -162,7 +162,7 @@ public sealed class ProfilesViewModelTests
         _profiles.SelectedName = "Gamen";
 
         Assert.Null(_profiles.Automation.ProfileName);
-        Assert.Equal("", _profiles.Automation.LoadAtText);
+        Assert.Equal("", _profiles.Automation.Times[0].Text);
     }
 
     [Fact]
