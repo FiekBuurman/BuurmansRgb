@@ -336,10 +336,28 @@
     <value>Vanzelf aanzetten: aan</value>
   </data>
   <data name="ProfileLoadAtLabel" xml:space="preserve">
-    <value>Elke dag aanzetten om</value>
+    <value>Aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
-    <value>Elke dag om deze tijd, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
+    <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over.</value>
+  </data>
+  <data name="ProgramBrowse" xml:space="preserve">
+    <value>Bladeren…</value>
+  </data>
+  <data name="ProgramBrowseToolTip" xml:space="preserve">
+    <value>Kies het .exe-bestand van een programma; alleen de naam telt.</value>
+  </data>
+  <data name="ProgramBrowseTitle" xml:space="preserve">
+    <value>Kies een programma</value>
+  </data>
+  <data name="ProgramBrowseFilter" xml:space="preserve">
+    <value>Programma's (*.exe)|*.exe</value>
+  </data>
+  <data name="ProgramPickPlaceholder" xml:space="preserve">
+    <value>Kies uit wat nu draait</value>
+  </data>
+  <data name="ProgramPickToolTip" xml:space="preserve">
+    <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij.</value>
   </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
     <value>Aanzetten als dit programma start</value>
@@ -646,18 +664,75 @@
     <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze scène.</value>
   </data>
   <data name="SceneAtTime" xml:space="preserve">
-    <value>Elke dag om {0:HH:mm}</value>
+    <value>{0} om {1:HH:mm}</value>
   </data>
   <data name="SceneWithProgram" xml:space="preserve">
     <value>Bij {0}</value>
   </data>
   <data name="SceneAtTimeAndProgram" xml:space="preserve">
-    <value>Elke dag om {0:HH:mm} · bij {1}</value>
+    <value>{0} om {1:HH:mm} · bij {2}</value>
   </data>
   <data name="SceneOff" xml:space="preserve">
     <value>Alles uit</value>
   </data>
   <data name="SceneLighting" xml:space="preserve">
     <value>{0} · {1:0}%</value>
+  </data>
+  <data name="DayShort_Monday" xml:space="preserve">
+    <value>ma</value>
+  </data>
+  <data name="DayLong_Monday" xml:space="preserve">
+    <value>maandag</value>
+  </data>
+  <data name="DayShort_Tuesday" xml:space="preserve">
+    <value>di</value>
+  </data>
+  <data name="DayLong_Tuesday" xml:space="preserve">
+    <value>dinsdag</value>
+  </data>
+  <data name="DayShort_Wednesday" xml:space="preserve">
+    <value>wo</value>
+  </data>
+  <data name="DayLong_Wednesday" xml:space="preserve">
+    <value>woensdag</value>
+  </data>
+  <data name="DayShort_Thursday" xml:space="preserve">
+    <value>do</value>
+  </data>
+  <data name="DayLong_Thursday" xml:space="preserve">
+    <value>donderdag</value>
+  </data>
+  <data name="DayShort_Friday" xml:space="preserve">
+    <value>vr</value>
+  </data>
+  <data name="DayLong_Friday" xml:space="preserve">
+    <value>vrijdag</value>
+  </data>
+  <data name="DayShort_Saturday" xml:space="preserve">
+    <value>za</value>
+  </data>
+  <data name="DayLong_Saturday" xml:space="preserve">
+    <value>zaterdag</value>
+  </data>
+  <data name="DayShort_Sunday" xml:space="preserve">
+    <value>zo</value>
+  </data>
+  <data name="DayLong_Sunday" xml:space="preserve">
+    <value>zondag</value>
+  </data>
+  <data name="DaysEvery" xml:space="preserve">
+    <value>Elke dag</value>
+  </data>
+  <data name="DaysWorkdays" xml:space="preserve">
+    <value>Werkdagen</value>
+  </data>
+  <data name="DaysWeekend" xml:space="preserve">
+    <value>In het weekend</value>
+  </data>
+  <data name="ProfileDaysLabel" xml:space="preserve">
+    <value>Op deze dagen</value>
+  </data>
+  <data name="ProfileDaysNone" xml:space="preserve">
+    <value>Kies minstens één dag voor de tijd.</value>
   </data>
 </root>

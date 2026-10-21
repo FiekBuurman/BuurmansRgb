@@ -42,9 +42,6 @@ uitbreidingen in `docs/bouwplan.md`.
   seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" een knop om de
   service `OpenRGB` te starten (via UAC) in plaats van alleen de tip, en de versie van OpenRGB
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
-- Bij het starten van de engine in de stand "Automatisch" staan de gesimuleerde lampen even
-  in de lijst tot OpenRGB verbonden is (ongeveer een seconde). Eventueel pas na de eerste
-  verbindpoging beslissen
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 
@@ -140,15 +137,13 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
-  per scène
+- Meer tijden per scène (bijv. 07:00 op werkdagen en 09:00 in het weekend); sinds #46 heeft
+  een scène één tijd, op gekozen dagen
 - Na het ontwaken of bij het starten de scène aanzetten die volgens de tijden nu zou gelden (het
   laatste tijdstip dat voorbij is), als keuze naast het huidige "overslaan"
 - Een programma alleen laten tellen zolang het op de voorgrond staat
   (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
   pollen
-- Bij "Aanzetten als dit programma start" een knop om een .exe te kiezen of een lijst met wat nu
-  draait, zodat je de naam niet hoeft te weten
 
 ## Tray-menu
 
@@ -180,10 +175,6 @@ uitbreidingen in `docs/bouwplan.md`.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
   het naar 130–143 MB, maar kost op Lampen CPU; eventueel als keuze bij Instellingen, of alleen
   zonder bewegend effect
-- De gloed van `LedBulb` hergebruiken in plaats van bij elke kleur een nieuwe
-  `RadialGradientBrush` te maken (op Lampen met de regenboog ~2,2 MB/s aan allocaties), bijv.
-  één bevroren gloed in wit met de kleur als `OpacityMask`, of een cache per kleur voor een
-  statisch effect
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze

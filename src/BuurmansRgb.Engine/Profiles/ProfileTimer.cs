@@ -4,12 +4,13 @@ using BuurmansRgb.Engine.Power;
 
 namespace BuurmansRgb.Engine.Profiles;
 
-// Loads a profile every day at its time. One timer, set to the next time of any profile and only
-// while a profile has one: no polling. A timer counts elapsed time, not the clock, and on Windows
-// it stands still while the pc sleeps, so the next time is worked out again when the clock jumps
-// (a new time or time zone, or waking up). A time that passed meanwhile is skipped, not caught up
-// on: after a night asleep the "night" profile would be wrong in the morning. While a program shows
-// its profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
+// Loads a profile at its time, every day or on its days. One timer, set to the next time of any
+// profile and only while a profile has one: no polling. A timer counts elapsed time, not the
+// clock, and on Windows it stands still while the pc sleeps, so the next time is worked out again
+// when the clock jumps (a new time or time zone, or waking up). A time that passed meanwhile is
+// skipped, not caught up on: after a night asleep the "night" profile would be wrong in the
+// morning. While a program shows its profile, holdWhileProgramsRun can keep the profile of the
+// time for when the program stops.
 // Called from the tray thread, IPC threads and the timer; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
 {
@@ -90,7 +91,7 @@ internal sealed class ProfileTimer : IProfileTrigger
                     continue;
                 }
 
-                var at = DailyTime.Next(loadAt, now, zone);
+                var at = DailyTime.Next(loadAt, now, zone, automation.Days);
                 if (_next is null || at < _next.Value.At)
                 {
                     _next = (at, name);

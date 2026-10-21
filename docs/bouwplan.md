@@ -368,6 +368,10 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #42 | Vloeiendheid (`framesPerSecond`) en pauzeren bij vergrendelen in de instellingen-app, zonder herstart |
 | #43 | Op Kleur alleen de beelden van de gekozen lamp, en uitgezocht waar het geheugen van de app zit |
 | #44 | Kleine verbeteringen: Nederlandse namen voor de gesimuleerde lampen, knipperen grijs tijdens een pauze, meldingen, − en + herhalen, knipperen pas als de keuze rust, spoor van een schakelaar, "Alles selecteren", namen voor schermlezers, `--exit`, autostart na verplaatsen, niet pollen tijdens vergrendelen, geheugen na het tray-menu |
+| #45 | De gloed van de lampjes hergebruiken: 25 % minder allocaties op Lampen |
+| #46 | Tijden van scènes alleen op gekozen dagen (`loadOn`), met dag-knoppen bij "Vanzelf aanzetten" |
+| #47 | Een programma voor een scène kiezen uit wat nu een venster heeft, of via "Bladeren…" |
+| #48 | Bij "Automatisch" de gesimuleerde lampen pas tonen na de eerste verbindpoging met OpenRGB |
 | #49 | Events `ProfilesChanged` en `OptionsChanged`: de app volgt scènes en opties die elders veranderen |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
