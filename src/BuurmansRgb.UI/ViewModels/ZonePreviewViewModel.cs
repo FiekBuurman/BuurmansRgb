@@ -169,7 +169,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));
 
     // A length set with − or + that still waits for its delay goes to the engine first, so the
-    // zone blinks at the length the user sees.
+    // zone blinks at the length the user sees. With OpenRGB the flash does not outlive that
+    // length: the reload that follows replaces the output of the device and ends the flash, so
+    // the user clicks once more.
     [RelayCommand(CanExecute = nameof(CanFlash))]
     private void Flash()
     {

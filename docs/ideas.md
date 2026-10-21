@@ -62,7 +62,9 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Welk apparaat is wat (knipperen)
 
 - Een zone na een nieuwe lengte vanzelf even laten knipperen, zodat je meteen ziet of de lengte
-  klopt (de laatste LED knippert mee of niet); nu moet je daarna zelf op "Knipperen" klikken
+  klopt (de laatste LED knippert mee of niet); nu moet je daarna zelf op "Knipperen" klikken.
+  Ook: de wachtende zone-flits opnieuw starten zodra de apparatenlijst binnen is; nu stuurt
+  "Knipperen" eerst een wachtende lengte, en de reload van OpenRGB daarna stopt de flits weer
 - De LED's die geen zone hebben ("Overige LED's" in het voorbeeld) hebben geen knop
   "Knipperen", omdat de engine ze niet als zone kent; eventueel een flits voor een LED-bereik
   in plaats van een zone-index
