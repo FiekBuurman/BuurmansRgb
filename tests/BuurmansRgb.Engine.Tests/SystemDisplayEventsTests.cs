@@ -1,7 +1,9 @@
 using System.Buffers.Binary;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
+using Microsoft.Win32;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -31,7 +33,8 @@ public sealed class SystemDisplayEventsTests
     }
 
     // Sent here on the own thread, the message goes straight through WndProc: Switched follows the
-    // screen, dimmed counts as on, and a state that stays the same or another setting changes nothing.
+    // screen, dimmed counts as on, a state that stays the same is told again, and another setting
+    // changes nothing.
     [Fact]
     public void WndProc_PowerSettingChange_FollowsTheScreen()
     {
@@ -52,8 +55,38 @@ public sealed class SystemDisplayEventsTests
             Send(display, SystemDisplayEvents.ConsoleDisplayState, 1);
             Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
 
-            Assert.Equal([true, false, true], changes);
+            Assert.Equal([true, true, false, false, true], changes);
             Assert.True(display.IsOff);
+        }
+        finally
+        {
+            display?.Dispose();
+        }
+    }
+
+    // Unlocking ends the pause of a screen that went off without coming on again; the next "off"
+    // from Windows must pause again, though the screen was off for SystemDisplayEvents all along.
+    [Fact]
+    public void OffUnlockOff_PausesAgainInAutoPause()
+    {
+        SystemDisplayEvents? display = null;
+        try
+        {
+            display = CreateOrSkip();
+            var session = new FakeSessionEvents();
+            var pause = PauseReasons.None;
+            using var autoPause = new AutoPause(
+                new FakePowerEvents(),
+                session,
+                (reason, paused) => pause = paused ? pause | reason : pause & ~reason,
+                display);
+
+            Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
+            session.Raise(SessionSwitchReason.SessionUnlock);
+            Assert.Equal(PauseReasons.None, pause);
+
+            Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
+            Assert.Equal(PauseReasons.DisplayOff, pause);
         }
         finally
         {

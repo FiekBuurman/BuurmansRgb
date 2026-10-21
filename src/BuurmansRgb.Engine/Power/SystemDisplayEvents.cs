@@ -81,7 +81,9 @@ internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents
             var dataLength = Marshal.ReadInt32(m.LParam, DataLengthOffset);
             var setting = new byte[dataLength >= sizeof(int) ? DisplayStateLength : DataOffset];
             Marshal.Copy(m.LParam, setting, 0, setting.Length);
-            if (ReadIsOff(setting) is { } off && off != _isOff)
+            // Also a state that stays the same: AutoPause may have ended the pause on its own when the
+            // user came back, and then the next "off" must pause again.
+            if (ReadIsOff(setting) is { } off)
             {
                 _isOff = off;
                 Switched?.Invoke(this, off);

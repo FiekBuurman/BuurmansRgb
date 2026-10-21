@@ -6,7 +6,7 @@ internal interface IDisplayEvents
     // screen counts as on.
     bool IsOff { get; }
 
-    // Raised when the screen went off or on again, with whether it is off now. Only for another
-    // value, on any thread.
+    // Raised each time Windows tells the state, with whether the screen is off now; also when it
+    // stays the same (on to dimmed, or off again after AutoPause ended the pause), on any thread.
     event EventHandler<bool>? Switched;
 }

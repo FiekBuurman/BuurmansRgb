@@ -454,6 +454,8 @@ public sealed class AutoPauseTests : IDisposable
     [InlineData("lock off suspend on resume unlock", PauseReasons.None)]
     [InlineData("off suspend resume on", PauseReasons.None)]
     [InlineData("off disconnect on", PauseReasons.Locked)]
+    [InlineData("off unlock off", PauseReasons.DisplayOff)]
+    [InlineData("off connect off", PauseReasons.DisplayOff)]
     [InlineData("manual off on", PauseReasons.Manual)]
     [InlineData("off manual on unmanual", PauseReasons.None)]
     public async Task EventSeries_EndInTheRightPause(string events, PauseReasons pause)
