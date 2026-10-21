@@ -19,6 +19,7 @@ public sealed class ProfileTriggersTests : IDisposable
     private readonly InMemoryProfileStore _store = new();
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly FakeRunningPrograms _programs = new();
+    private readonly FakeAwayState _away = new();
     private readonly ClockTimeProvider _time = new(Start, DailyTimeTests.Amsterdam);
     private readonly ProfileLibrary _profiles;
     private readonly ProgramWatcher _watcher;
@@ -32,7 +33,7 @@ public sealed class ProfileTriggersTests : IDisposable
             new Profile("Nacht", Uniform(StaticLighting(Orange))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
         ];
         _profiles = new ProfileLibrary(_store, _lighting);
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, new FakeAwayState(), _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _away, _time);
         _timer = new ProfileTimer(_profiles, new FakeClockEvents(), _time, _watcher.HoldUntilProgramsStop);
         ShowColor(Green);
         _timer.Start();
@@ -91,6 +92,35 @@ public sealed class ProfileTriggersTests : IDisposable
 
         _time.Advance(TimeSpan.FromHours(1));
 
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    // The engine does not look for programs on the lock screen, but it does once when the time
+    // comes, so a game that stopped there does not hold the time until unlocking.
+    [Fact]
+    public void TimeWhileLockedAfterTheGameStopped_ShowsRightAway()
+    {
+        StartGame();
+        _away.Raise(PauseReasons.Locked);
+        _programs.Running.Remove(Game);
+
+        _time.Advance(TimeSpan.FromHours(1));
+
+        Assert.Equal(Orange, ShownColor());
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    [Fact]
+    public void TimeWhileLockedDuringTheGame_ShowsTheTimeAfterIt()
+    {
+        StartGame();
+        _away.Raise(PauseReasons.Locked);
+
+        _time.Advance(TimeSpan.FromHours(1));
+        Assert.Equal(Red, ShownColor());
+
+        _away.Raise(PauseReasons.None);
+        StopGame();
         Assert.Equal(Orange, ShownColor());
     }
 

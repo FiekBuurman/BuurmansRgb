@@ -109,6 +109,60 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(Green, ShownColor());
     }
 
+    // A time that comes on the lock screen after the game stopped is not held until unlocking.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HoldWhileLocked_GameStoppedMeanwhile_LooksOnceAndHoldsNothing(bool pauseOnLockAndSleep)
+    {
+        _autoPause.Enabled = pauseOnLockAndSleep;
+        StartWatcher();
+        StartProgram(EldenRing);
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _programs.Running.Remove(EldenRing);
+        var looks = _programs.FindCount;
+
+        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal(Green, ShownColor());
+        Assert.False(_time.HasPendingTimer);
+    }
+
+    [Fact]
+    public void HoldWhileLocked_GameStillRuns_LooksOnceAndHoldsUntilItStops()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        _session.Raise(SessionSwitchReason.SessionLock);
+        var looks = _programs.FindCount;
+
+        Assert.True(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal(Red, ShownColor());
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        StopProgram(EldenRing);
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    // Only on the lock screen, and only with a game whose scene it could hold.
+    [Fact]
+    public void Hold_WhileSomebodyIsThereOrWithoutAGame_LooksNoExtraTime()
+    {
+        StartWatcher();
+        _session.Raise(SessionSwitchReason.SessionLock);
+        var looks = _programs.FindCount;
+        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks, _programs.FindCount);
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        StartProgram(EldenRing);
+        looks = _programs.FindCount;
+        Assert.True(_watcher.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks, _programs.FindCount);
+    }
+
     // An engine that starts late after sign-in may start on the lock screen.
     [Theory]
     [InlineData(true)]

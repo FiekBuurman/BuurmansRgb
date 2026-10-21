@@ -18,7 +18,8 @@ namespace BuurmansRgb.Engine.Profiles;
 // rest. Loading and restoring happen under the lock, so the LightingChanged they raise themselves
 // is counted before the next change. While Windows is locked or asleep (IAwayState), it does
 // not look, also when the effects keep running then: nobody starts a game on the lock screen.
-// Right after, it looks once at once, so what started or stopped in the meantime counts then.
+// Right after, it looks once at once, so what started or stopped in the meantime counts then;
+// a time that comes meanwhile looks once too (HoldUntilProgramsStop).
 internal sealed class ProgramWatcher : IProfileTrigger
 {
     public static TimeSpan DefaultPollInterval { get; } = TimeSpan.FromSeconds(2);
@@ -179,17 +180,21 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 return;
             }
 
-            // When the list cannot be read, nothing started or stopped.
-            if (Find(_watched) is { } running && !running.SetEquals(_running))
-            {
-                var stopped = _running.Where(program => !running.Contains(program)).ToList();
-                var started = running.Where(program => !_running.Contains(program)).ToList();
-                _running = running;
-                stopped.ForEach(Stop);
-                started.ForEach(StartProgram);
-            }
-
+            LookLocked();
             ScheduleLocked(_pollInterval);
+        }
+    }
+
+    // When the list cannot be read, nothing started or stopped.
+    private void LookLocked()
+    {
+        if (Find(_watched) is { } running && !running.SetEquals(_running))
+        {
+            var stopped = _running.Where(program => !running.Contains(program)).ToList();
+            var started = running.Where(program => !_running.Contains(program)).ToList();
+            _running = running;
+            stopped.ForEach(Stop);
+            started.ForEach(StartProgram);
         }
     }
 
@@ -256,12 +261,23 @@ internal sealed class ProgramWatcher : IProfileTrigger
     // While a program shows its profile untouched, the profile scene (such as one whose time came)
     // becomes what comes back once the programs stop, instead of showing now: 23:00 in the middle
     // of a game. False when no program shows its own profile; then the caller shows it. A profile
-    // that is gone throws ArgumentException, as loading it would.
+    // that is gone throws ArgumentException, as loading it would. While resting it looks once
+    // first, so a game that stopped on the lock screen does not hold the time until unlocking.
     public bool HoldUntilProgramsStop(string scene)
     {
         lock (_gate)
         {
-            if (_disposed || RestoreIndexLocked() is not { } index)
+            if (_disposed)
+            {
+                return false;
+            }
+
+            if (_resting && _activations.Count > 0)
+            {
+                LookLocked();
+            }
+
+            if (RestoreIndexLocked() is not { } index)
             {
                 return false;
             }

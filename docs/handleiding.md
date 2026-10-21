@@ -219,10 +219,12 @@ Hoe het vanzelf aanzetten werkt:
   ook als "Pauzeren bij vergrendelen en slaapstand" uit staat; de scène van een spel blijft dan
   staan. Meteen na het ontgrendelen of ontwaken kijkt hij één keer: een programma dat intussen
   startte, zet dan zijn scène aan, en een dat intussen stopte, zet de verlichting van daarvoor
-  terug.
+  terug. Alleen een tijd die intussen komt, laat hem één keer eerder kijken (zie hieronder).
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
-  zelf iets veranderd, dan komt hij meteen.
+  zelf iets veranderd, dan komt hij meteen. Komt de tijd terwijl Windows vergrendeld is of
+  slaapt, dan kijkt de engine eerst één keer of het programma nog draait: stopte het intussen,
+  dan komt de scène van de tijd meteen, en niet pas na het ontgrendelen.
 
 ### Instellingen
 
