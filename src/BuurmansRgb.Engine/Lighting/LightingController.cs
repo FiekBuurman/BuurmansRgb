@@ -596,7 +596,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         return true;
     }
 
-    // Flash and FlashZone: a null zoneIndex flashes the whole device.
+    // Flash and FlashZone: a null zoneIndex flashes the whole device. Without LEDs to blink, of
+    // the zone or the device, nothing happens.
     private void StartFlash(string deviceId, int? zoneIndex)
     {
         lock (_gate)
@@ -606,23 +607,25 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return;
             }
 
-            if (zoneIndex is { } zone
-                && (zone < 0 || zone >= output.Device.Zones.Count || RgbZone.RangesOf(output.Device.Zones, output.Device.LedCount)[zone].LedCount == 0))
+            var (first, count) = (0, output.Buffer.Length);
+            if (zoneIndex is { } zone)
+            {
+                if (zone < 0 || zone >= output.Device.Zones.Count)
+                {
+                    return;
+                }
+
+                (first, count) = RgbZone.RangesOf(output.Device.Zones, output.Device.LedCount)[zone];
+            }
+
+            if (count == 0)
             {
                 return;
             }
 
             StopFlashesLocked(except: output);
             var time = EffectTime;
-            if (zoneIndex is { } flashedZone)
-            {
-                output.StartZoneFlash(time, flashedZone);
-            }
-            else
-            {
-                output.StartFlash(time);
-            }
-
+            output.StartFlash(time, first, count);
             output.Render(time);
             output.Send();
             _sequence++;
