@@ -546,11 +546,11 @@ er met de hand allebei, dan tellen ze allebei; dezelfde tijd twee keer telt éé
 tijden laat de engine de rest weg. Zonder `foregroundOnly` (of met `false`) telt een programma
 zolang het draait, zoals in een bestand van vóór deze keuze; de engine schrijft het alleen als
 het aan staat. Zonder `program` doet het niets, en een waarde die geen `true` of `false` is,
-telt als uit. Een tijd, dagen of programma die niet te lezen zijn (bijv.
-`"25:00"`, `"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest
-blijft gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat
-hij ook weg. Voor een
-kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
+telt als uit. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
+`"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest blijft
+gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat hij
+ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde als in
+`settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 

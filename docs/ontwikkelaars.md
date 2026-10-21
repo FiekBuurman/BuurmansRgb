@@ -149,12 +149,12 @@ toetsenbord. Een paar dingen om te proberen:
   kijkt de engine elke 2 seconden in de proceslijst (`EnumProcesses`, de naam één keer per
   nieuw proces), alleen zolang een scène een programma heeft (zonder vinkje voor de voorgrond,
   zie hieronder). Dat kost minder dan 0,1 ms per ronde, waar `Process.GetProcessesByName` of
-  een Toolhelp-snapshot 5 tot 7 ms kosten en WMI `System.Management` in de engine haalt. Programma's die als administrator draaien, ziet hij
-  ook. Zolang Windows vergrendeld is of slaapt staat de timer stil, ook als
-  `pauseOnLockAndSleep` uit staat: `ProgramWatcher` volgt het verplichte `IAwayState` (`Away`,
-  `AwayChanged`) van `AutoPause`, dat vergrendelen en slaapstand bijhoudt los van
-  `AutoPause.Enabled`. Daarna kijkt hij meteen,
-  zodat een programma dat intussen startte of stopte dan telt. Komt intussen een scène op tijd en
+  een Toolhelp-snapshot 5 tot 7 ms kosten en WMI `System.Management` in de engine haalt.
+  Programma's die als administrator draaien, ziet hij ook. Zolang Windows vergrendeld is of
+  slaapt staat de timer stil, ook als `pauseOnLockAndSleep` uit staat: `ProgramWatcher` volgt
+  het verplichte `IAwayState` (`Away`, `AwayChanged`) van `AutoPause`, dat vergrendelen en
+  slaapstand bijhoudt los van `AutoPause.Enabled`. Daarna kijkt hij meteen, zodat een
+  programma dat intussen startte of stopte dan telt. Komt intussen een scène op tijd en
   toont een programma zijn scène, dan kijkt `HoldUntilProgramsStop` eerst één keer, zodat een
   spel dat op het vergrendelscherm stopte de tijd niet tot na het ontgrendelen tegenhoudt.
 - **Programma op de voorgrond:** met `ProfileAutomation.ForegroundOnly` (`foregroundOnly` in

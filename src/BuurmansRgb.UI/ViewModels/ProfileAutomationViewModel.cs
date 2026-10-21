@@ -9,8 +9,8 @@ using CommunityToolkit.Mvvm.Input;
 namespace BuurmansRgb.UI.ViewModels;
 
 // When the selected profile loads by itself: at times, each on its own days, and while a program
-// runs, or only while it is in the foreground. An empty field leaves that way off. This only asks; MainViewModel sends the change to the
-// engine and shows what the engine saved.
+// runs, or only while it is in the foreground. An empty field leaves that way off. This only asks;
+// MainViewModel sends the change to the engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
     private readonly Func<IReadOnlyList<string>> _findPrograms;
