@@ -28,7 +28,29 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style x:Key="FocusRingPill">
+    <!-- Around a button or slider with the corners of a button (12), 3 px further out. -->
+    <Style x:Key="FocusRingButton">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="15" BorderThickness="2" BorderBrush="{StaticResource TextBrush}" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Around a switch: round ends for a ring 38 px high. A larger radius would make WPF draw an
+         ellipse instead of round ends. -->
+    <Style x:Key="FocusRingSwitch">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-3" CornerRadius="19" BorderThickness="2" BorderBrush="{StaticResource TextBrush}" SnapsToDevicePixels="True" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Around a square control that is drawn as a circle, such as an icon button. -->
+    <Style x:Key="FocusRingRound">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
@@ -199,22 +221,26 @@
     </Style>
 
     <!-- § 4 Switch: 52 by 32 with a 24 px knob. On, the track takes the color in Tag (the lamp's, or text
-         for the whole house) and the knob bg; off, led-off with a knob-off knob. -->
+         for the whole house) and the knob bg; off, led-off with a knob-off knob. The track radius is
+         half its height (SwitchRadius), so its ends are round; a larger one would make it an ellipse. -->
     <Style x:Key="Switch" TargetType="ToggleButton">
+        <Style.Resources>
+            <CornerRadius x:Key="SwitchRadius">16</CornerRadius>
+        </Style.Resources>
         <Setter Property="Width" Value="52" />
         <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="4" />
         <Setter Property="Tag" Value="{StaticResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="VerticalAlignment" Value="Center" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingPill}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingSwitch}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Grid>
-                        <Border x:Name="Track" CornerRadius="999" Background="{StaticResource LedOffBrush}" />
+                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{StaticResource LedOffBrush}" />
                         <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
-                        <Border x:Name="Shine" CornerRadius="999" Background="{StaticResource TextBrush}" Opacity="0" />
+                        <Border x:Name="Shine" CornerRadius="{DynamicResource SwitchRadius}" Background="{StaticResource TextBrush}" Opacity="0" />
                         <Ellipse x:Name="Knob" Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" Fill="{StaticResource KnobOffBrush}"
                                  Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" />
                     </Grid>
@@ -236,11 +262,14 @@
         </Setter>
     </Style>
     <Style x:Key="LargeSwitch" TargetType="ToggleButton" BasedOn="{StaticResource Switch}">
+        <Style.Resources>
+            <CornerRadius x:Key="SwitchRadius">18</CornerRadius>
+        </Style.Resources>
         <Setter Property="Width" Value="60" />
         <Setter Property="Height" Value="36" />
     </Style>
 
-    <!-- § 4 Primary button: a text-colored pill. -->
+    <!-- § 4 Primary button: text-colored, with the corners of ButtonRadius. -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="28,0" />
@@ -249,19 +278,19 @@
         <Setter Property="Foreground" Value="{StaticResource BgBrush}" />
         <Setter Property="Background" Value="{StaticResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingPill}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Pill" CornerRadius="999" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Pill" Property="Opacity" Value="0.9" />
+                            <Setter TargetName="Face" Property="Opacity" Value="0.9" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Pill" Property="Opacity" Value="0.8" />
+                            <Setter TargetName="Face" Property="Opacity" Value="0.8" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -272,7 +301,7 @@
         </Setter>
     </Style>
 
-    <!-- A quieter button for the smaller actions: a surface pill with a border. -->
+    <!-- A quieter button for the smaller actions: a surface with a border and the corners of ButtonRadius. -->
     <Style x:Key="SecondaryButton" TargetType="Button">
         <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
         <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
@@ -283,20 +312,20 @@
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingPill}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Pill" CornerRadius="999" BorderThickness="1" Background="{TemplateBinding Background}"
+                    <Border x:Name="Face" CornerRadius="{DynamicResource ButtonRadius}" BorderThickness="1" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Pill" Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Pill" Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+                            <Setter TargetName="Face" Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -309,12 +338,17 @@
 
     <!-- A round 44 px button with a line icon as its content, such as the wrench in the design. -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Style.Resources>
+            <!-- Half of 44: a circle, as the round buttons in the design. -->
+            <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
+        </Style.Resources>
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
         <Setter Property="Width" Value="{StaticResource MinClickSize}" />
         <Setter Property="Height" Value="{StaticResource MinClickSize}" />
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- § 4 "+ new" button: a transparent pill with a dashed border-strong border. -->
+    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius. -->
     <Style x:Key="NewButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="24,0" />
@@ -322,12 +356,12 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingPill}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent">
-                        <Rectangle x:Name="Dashes" RadiusX="26" RadiusY="26" StrokeThickness="2" StrokeDashArray="3 2"
+                        <Rectangle x:Name="Dashes" RadiusX="{StaticResource ButtonCornerRadius}" RadiusY="{StaticResource ButtonCornerRadius}" StrokeThickness="2" StrokeDashArray="3 2"
                                    Stroke="{StaticResource BorderStrongBrush}" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
                     </Grid>
@@ -449,7 +483,7 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="MinHeight" Value="28" />
         <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingPill}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">

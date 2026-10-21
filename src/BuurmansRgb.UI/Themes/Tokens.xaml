@@ -75,6 +75,10 @@
     <CornerRadius x:Key="CardRadius">18</CornerRadius>
     <CornerRadius x:Key="TileRadius">12</CornerRadius>
     <CornerRadius x:Key="StripRadius">8</CornerRadius>
+    <!-- Buttons with text are rectangles with the corners of a preset tile, not pills as in § 4: WPF
+         turns a radius of half a wide button into an ellipse instead of round ends. -->
+    <CornerRadius x:Key="ButtonRadius">12</CornerRadius>
+    <sys:Double x:Key="ButtonCornerRadius">12</sys:Double>
     <sys:Double x:Key="MinClickSize">44</sys:Double>
     <!-- The page margin on the desktop (§ 6). -->
     <Thickness x:Key="PageMargin">32</Thickness>
