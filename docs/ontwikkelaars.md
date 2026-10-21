@@ -66,6 +66,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
+| Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
@@ -87,6 +88,9 @@ toetsenbord. Een paar dingen om te proberen:
   verder, of `notepad.exe`, en start en sluit Kladblok.
 - Vink in het tray-menu "Effecten pauzeren" aan: de melding met "Hervatten" verschijnt.
 - Zet bij Instellingen "Nooit": de gesimuleerde lampen verdwijnen meteen.
+- Druk Ctrl+Alt+Shift+U en Ctrl+Alt+Shift+A terwijl een ander venster de focus heeft: de
+  gesimuleerde lampen gaan uit en aan. Zet bij Instellingen "Sneltoetsen voor alles aan en uit"
+  uit: de toetsen doen niets meer en staan niet meer naast de items in het tray-menu.
 
 ## Hoe de engine werkt
 
@@ -140,6 +144,16 @@ toetsenbord. Een paar dingen om te proberen:
   de laatste tijd daarna viel, dus een verzette klok of een klokevent na het herstel laat geen
   "gemiste" tijd achter. Een programma met een eigen scène houdt hem vast via
   `HoldUntilProgramsStop`, ook bij het starten.
+- **Sneltoetsen:** `WindowsGlobalHotkeys` registreert Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U
+  (`AllOnOffHotkeys`, met `MOD_NOREPEAT`) met `RegisterHotKey` op een verborgen message-only
+  venster op de thread van het tray-icoon; `WM_HOTKEY` komt binnen via de message loop die er al
+  is, dus er draait geen extra thread of timer. `TrayPresenter.ApplyHotkeys` registreert ze
+  zodra de engine gestart is en roept bij een druk op een toets dezelfde `SetAllOn` aan als de
+  menu-items. Zet de app ze uit (`IEngineApi.SetHotkeysAsync`, op een IPC-thread), dan meldt
+  `AllOnOffHotkeys.EnabledChanged` dat; het tray-icoon post het naar zijn eigen thread, waar
+  `UnregisterHotKey` de toetsen vrijgeeft, en `EngineHost` bewaart het als `hotkeys`. Een
+  toets die al bezet is, geeft `false` (gelogd met de Windows-foutcode) en een melding bij het
+  icoon; de andere toets werkt gewoon.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's.
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
@@ -334,6 +348,16 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    daarna hun eigen kleur en effect terugkrijgen.
 2. Zet alles uit, herstart de engine en kijk of ze uit blijven. Kijk of een apparaat zonder
    "Direct"-modus ook uit gaat.
+3. Sluit de instellingen-app, klik in een ander programma (bijv. de browser of een spel in
+   venstermodus) en druk Ctrl+Alt+Shift+U en daarna Ctrl+Alt+Shift+A: alle lampen gaan uit en
+   weer aan, zoals met "Alles uit" en "Alles aan" in het tray-menu. Kijk of de toetsen in het
+   menu naast die items staan. Probeer het ook in een spel op volledig scherm.
+4. Zet bij Instellingen "Sneltoetsen voor alles aan en uit" uit: de toetsen doen niets meer en
+   het programma met de focus krijgt ze weer. Herstart de engine: ze blijven uit. Zet ze weer
+   aan zonder herstart: ze werken meteen.
+5. Gebruikt een andere app (bijv. een overlay of macro-tool) een van de toetsen, start dan de
+   engine: het icoon meldt welke toets niet werkt en `engine.log` noemt hem; de andere toets
+   werkt. Noteer welke app het was.
 
 ### Scènes
 

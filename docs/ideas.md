@@ -148,7 +148,13 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Tray-menu
 
-- Een sneltoets voor "Alles aan" en "Alles uit" (die staan sinds #41 in het tray-menu)
+- De sneltoetsen van "Alles aan" en "Alles uit" (sinds #??, vast Ctrl+Alt+Shift+A en U)
+  instelbaar maken, bijv. met een veld bij Instellingen dat de volgende toetscombinatie opvangt.
+  Dan kan ook een toets die met een andere app (of met AltGr+Shift op een internationaal
+  toetsenbord) botst, vervangen worden in plaats van uitgezet
+- Een bezette sneltoets ook bij de schakelaar in de instellingen-app tonen; nu meldt alleen het
+  tray-icoon het (en het logbestand)
+- Sneltoetsen voor meer items uit het tray-menu, zoals "Effecten pauzeren" of een scène
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
