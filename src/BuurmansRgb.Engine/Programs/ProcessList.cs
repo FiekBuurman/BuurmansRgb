@@ -29,6 +29,10 @@ internal sealed partial class ProcessList : IRunningPrograms
     // The idle process has id 0 and can never be opened.
     private const uint IdleProcessId = 0;
 
+    // Calls in which the name of a process may fail to read before it counts as one without a name,
+    // like a process Windows denies access to.
+    private const int MaxNameAttempts = 3;
+
     private static readonly IReadOnlySet<string> None = new HashSet<string>(ProgramNames.Comparer);
 
     private readonly Dictionary<uint, ProcessEntry> _processes = [];
@@ -54,17 +58,31 @@ internal sealed partial class ProcessList : IRunningPrograms
 
             if (!_processes.TryGetValue(id, out var process))
             {
-                // When the name cannot be read for now, the next call tries again.
-                if (!TryReadName(id, out var newName))
-                {
-                    continue;
-                }
-
-                process = new ProcessEntry(newName);
+                process = new ProcessEntry();
                 _processes.Add(id, process);
             }
 
             process.Round = _round;
+            if (!process.HasName)
+            {
+                // When the name cannot be read for now, the next call tries again, but not forever:
+                // a process that can be opened but never named (seen on GitHub's Windows runners)
+                // would cost a handle every call.
+                process.NameAttempts++;
+                if (TryReadName(id, out var newName))
+                {
+                    process.SetName(newName);
+                }
+                else if (process.NameAttempts >= MaxNameAttempts)
+                {
+                    process.SetName(null);
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
             if (process.Name is { } name && watched.TryGetValue(name, out var watchedName))
             {
                 if (process.IsRunning(id))
@@ -163,14 +181,25 @@ internal sealed partial class ProcessList : IRunningPrograms
 
     // One process id as last seen: its exe name, or null when it cannot be read (such as the
     // system's own), and while its name is watched a handle that keeps the id.
-    private sealed class ProcessEntry(string? name)
+    private sealed class ProcessEntry
     {
         private SafeProcessHandle? _handle;
         private bool _ended;
 
-        public string? Name { get; } = name;
+        public string? Name { get; private set; }
+
+        // False until the name was read, or given up on after MaxNameAttempts.
+        public bool HasName { get; private set; }
+
+        public int NameAttempts { get; set; }
 
         public int Round { get; set; }
+
+        public void SetName(string? name)
+        {
+            Name = name;
+            HasName = true;
+        }
 
         // A process that ended stays in the list while a program still holds a handle to it, such
         // as a game launcher, or this one. It has ended once it has an exit code: Windows sets that
