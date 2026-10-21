@@ -195,7 +195,7 @@ Waar het geheugen van de app zit (Release, zichtbaar venster, regenboog, gemeten
 | Tekenen zonder videokaart (`RenderMode.SoftwareOnly`, als proef) | 130–143 MB working set en 55–60 MB private (35–40 MB minder), maar op Lampen ~10,5 % van één kern tegen ~5–7 % |
 | ReadyToRun bij het publiceren | Geen verschil (85 tegen 85 MB private) |
 | Alleen de gekozen lamp op Kleur (`SetFrameDevicesAsync`) | Geen verschil in geheugen; allocaties van de app 860 → 805 KB/s met het toetsenbord gekozen |
-| Allocaties op Lampen | ~2,2 MB/s: elke `LedBulb` maakt bij elke kleur een nieuwe gloed (`RadialGradientBrush`) |
+| Allocaties op Lampen | ~2,2 MB/s: elke `LedBulb` maakte bij elke kleur een nieuwe gloed (`RadialGradientBrush`). Sinds #45 komen de gloeden uit een cache (kleur afgerond op 5 bits per kanaal): 1,64 MB/s, CPU en geheugen gelijk. Een masker per maat (`PushOpacityMask`) gaf 1,8 MB/s maar twee keer zoveel CPU |
 
 De CPU van de app schommelt tussen metingen van 30 s flink (dezelfde build: 0,6 en 2,7 % op Kleur),
 dus vergelijk allocaties of meet meer keren.
