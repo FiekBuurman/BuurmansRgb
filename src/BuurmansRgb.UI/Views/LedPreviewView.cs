@@ -160,6 +160,9 @@ public sealed class LedPreviewView : FrameworkElement
     // here, as it cannot move the mouse.
     internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
 
+    // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
+    internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
+
     // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
     // they extend the range, Space and Enter choose the active LED, Ctrl+A chooses all and Escape
     // none. null for any other key, which the window gets.
@@ -335,14 +338,21 @@ public sealed class LedPreviewView : FrameworkElement
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        var led = LedAt(PositionOf(e));
-        (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
+        ShowToolTip(LedAt(PositionOf(e)));
     }
 
+    // With the keyboard focus the tooltip goes back to the active LED, where the keys go on.
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
-        _toolTip?.Hide();
+        if (IsKeyboardFocused)
+        {
+            ShowToolTip(ActiveLed);
+        }
+        else
+        {
+            _toolTip?.Hide();
+        }
     }
 
     // A click on a gap between keys or beside a ring picks nothing. While the keyboard focus is in
@@ -367,6 +377,9 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     private Point PositionOf(MouseEventArgs e) => MousePosition?.Invoke(e) ?? e.GetPosition(this);
+
+    // Hides the tooltip for no LED, such as a gap between the keys.
+    private void ShowToolTip(int led) => (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
         ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
@@ -401,7 +414,7 @@ public sealed class LedPreviewView : FrameworkElement
         var ring = bounds;
         ring.Inflate(FocusGap + 1.0, FocusGap + 1.0);
         BringIntoView(ring);
-        (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), bounds);
+        ShowToolTip(led);
         if (UIElementAutomationPeer.FromElement(this) is LedPreviewAutomationPeer peer)
         {
             peer.RaiseLedFocused(led);

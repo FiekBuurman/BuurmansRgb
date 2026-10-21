@@ -30,6 +30,9 @@ internal sealed class LedToolTip
         };
     }
 
+    // The LED it names, also while it waits for its delay; LedMatrix.NoLed while hidden.
+    public int Led => _led;
+
     // The text of the LED at bounds (in the coordinates of the owner): at once when the tooltip of
     // another LED was open, otherwise after the usual delay. Without a text, as on a gap, it hides.
     public void Show(int led, string? text, Rect bounds)

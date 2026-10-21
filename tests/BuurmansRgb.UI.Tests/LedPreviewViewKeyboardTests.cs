@@ -225,6 +225,29 @@ public sealed class LedPreviewViewKeyboardTests
         Assert.Equal([("LED 1", AutomationEvents.AutomationFocusChanged), ("LED 3", AutomationEvents.AutomationFocusChanged)], events);
     });
 
+    // With the focus the tooltip names the active LED; it follows the mouse and comes back to the
+    // active LED when the mouse leaves. Without the focus it goes away with the mouse.
+    [Fact]
+    public void MouseLeave_WithTheFocus_GivesTheToolTipBackToTheActiveLed() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], LedLabels = ["LED 1", "LED 2", "LED 3"], ActiveLed = 1 });
+        OffscreenWindow.WaitUntilIdle();
+        Assert.True(view.Focus());
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(1, view.ToolTipLed);
+
+        MoveMouse(view, 2);
+        Assert.Equal(2, view.ToolTipLed);
+
+        view.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount) { RoutedEvent = Mouse.MouseLeaveEvent });
+        Assert.Equal(1, view.ToolTipLed);
+
+        Keyboard.ClearFocus();
+        MoveMouse(view, 2);
+        view.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount) { RoutedEvent = Mouse.MouseLeaveEvent });
+        Assert.Equal(LedMatrix.NoLed, view.ToolTipLed);
+    });
+
     // The ring around the active LED only shows while the view has the keyboard focus: 2 px,
     // around the LED and drawn after all of them.
     [Fact]
@@ -250,13 +273,24 @@ public sealed class LedPreviewViewKeyboardTests
 
     private static RelayCommand<LedKeyPress> Recording(List<LedKeyPress> presses) => new(press => presses.Add(press!));
 
-    // A left click as Windows gives it, in the middle of an LED; the view gets the place of the
-    // mouse from the test, as a test cannot move the mouse.
+    // A left click as Windows gives it, in the middle of an LED.
     private static void Click(LedPreviewView view, int led)
+    {
+        PutMouseOn(view, led);
+        view.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseDownEvent });
+    }
+
+    private static void MoveMouse(LedPreviewView view, int led)
+    {
+        PutMouseOn(view, led);
+        view.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount) { RoutedEvent = Mouse.MouseMoveEvent });
+    }
+
+    // The view gets the place of the mouse from the test, as a test cannot move the mouse.
+    private static void PutMouseOn(LedPreviewView view, int led)
     {
         var bounds = view.BoundsOf(led);
         view.MousePosition = _ => new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0);
-        view.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseDownEvent });
     }
 
     private static LedPreviewView Arranged(LedPreviewView view, double width = 300.0)
