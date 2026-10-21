@@ -546,9 +546,10 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   logbestand noemt elke overgeslagen waarde.
 - Is het bestand geen geldige JSON (bijv. een komma te veel), geen `{ … }`, of staat een naam
   twee keer in hetzelfde `{ … }` terwijl er ook een waarde niet klopt, dan zet de engine
-  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
-  niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
-  heeft), dan laat hij het ongemoeid.
+  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en
+  zet het terug als `settings.json`. Dat kan ook terwijl de engine draait: die neemt het dan
+  meteen over, net als een andere wijziging met de hand. Kan de engine het bestand niet lezen
+  (bijv. omdat een ander programma het open heeft), dan laat hij het ongemoeid.
 - Sla je terwijl de engine draait een bestand op dat zo niet te lezen is (of nog half
   geschreven), dan verandert er niets: de engine houdt wat hij had, noemt het in het
   logbestand en leest het bij de volgende keer opslaan opnieuw. Verbeter de fout en sla weer op.
