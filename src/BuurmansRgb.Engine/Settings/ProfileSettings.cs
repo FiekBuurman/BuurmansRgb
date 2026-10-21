@@ -9,8 +9,9 @@ namespace BuurmansRgb.Engine.Settings;
 // loads by itself, its times and "program" as "eldenring.exe". One time is "loadAt" as "HH:mm"
 // with "loadOn" as "mon,tue,wed,thu,fri" (without it every day), as before there were more; more
 // times are "loadTimes", a list of { "at": "07:00", "on": "mon,tue,wed,thu,fri" }. A file with
-// both counts all of them. Older files have none of them; a value that does not read leaves that
-// one off, and the rest of the profile still counts.
+// both counts all of them. "foregroundOnly": true goes with the program, only while it is in the
+// foreground; it is left out while off. Older files have none of them; a value that does not read
+// leaves that one off, and the rest of the profile still counts.
 internal sealed record ProfileSettings : LightingStateSettings
 {
     private const string TimeFormat = "HH:mm";
@@ -41,6 +42,9 @@ internal sealed record ProfileSettings : LightingStateSettings
 
     public JsonText? Program { get; set; }
 
+    // Null, as when it is not in the file, is off; so is a value that is not true or false.
+    public bool? ForegroundOnly { get; set; }
+
     // One time as "loadAt" and "loadOn", so an older engine still reads it; only more go in
     // "loadTimes".
     public static ProfileSettings From(Profile profile)
@@ -56,6 +60,7 @@ internal sealed record ProfileSettings : LightingStateSettings
                 ? [.. automation.Times.Select(time => new LoadTimeSettings { At = WriteTime(time.At), On = WriteDays(time.Days) })]
                 : null,
             Program = JsonText.From(automation.Program),
+            ForegroundOnly = automation.ForegroundOnly ? true : null,
         };
         settings.CopyFrom(profile.Lighting);
         return settings;
@@ -63,8 +68,9 @@ internal sealed record ProfileSettings : LightingStateSettings
 
     // name is the checked spelling of Name. A time, days or program that do not read are left out,
     // and so gone from the file after the next save; the trace says which, for whoever edited it.
+    // Without a program, foregroundOnly goes too.
     public Profile ToProfile(string name) =>
-        new(name, ToLightingState()) { Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name)).Normalize() };
+        new(name, ToLightingState()) { Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name), ForegroundOnly == true).Normalize() };
 
     private static JsonText? WriteTime(TimeOnly time) => JsonText.From(time.ToString(TimeFormat, CultureInfo.InvariantCulture));
 
