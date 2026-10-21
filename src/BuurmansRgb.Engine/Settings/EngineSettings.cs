@@ -19,6 +19,9 @@ internal sealed record EngineSettings : LightingStateSettings
     // (ProfileTimer.CatchUp); off, such a time is skipped.
     public bool CatchUpSceneTimes { get; set; }
 
+    // Whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U switch everything on and off (AllOnOffHotkeys).
+    public bool Hotkeys { get; set; } = true;
+
     // "zoneLengths": by device id, the LED count the user gave each resizable zone, by zone name.
     // Null instead of empty, so the default settings stay out of the file.
     public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }

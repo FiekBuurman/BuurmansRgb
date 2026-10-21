@@ -82,7 +82,8 @@ internal static class Program
             zoneLengths: zoneLengths,
             autoPause: autoPause,
             profiles: profiles,
-            profileTimer: profileTimer);
+            profileTimer: profileTimer,
+            hotkeys: hotkeys);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))

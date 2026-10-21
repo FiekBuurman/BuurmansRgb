@@ -95,6 +95,28 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().PauseOnLockAndSleep);
     }
 
+    // A settings file from before the option gets the hotkeys.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", true)]
+    [InlineData("""{ "hotkeys": false }""", false)]
+    public void Load_Hotkeys_AreOnUnlessTurnedOff(string json, bool expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().Hotkeys);
+    }
+
+    [Fact]
+    public void Save_Hotkeys_IsWrittenUnderItsName()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(new EngineSettings { Hotkeys = false });
+
+        Assert.Contains("\"hotkeys\": false", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
     // A settings file from before the option skips the times as before.
     [Theory]
     [InlineData("""{ "color": "#FF8800" }""", false)]
