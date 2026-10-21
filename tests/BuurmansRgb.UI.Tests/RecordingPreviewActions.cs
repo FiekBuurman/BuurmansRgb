@@ -2,7 +2,7 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
-// A flash is recorded as the id of its device.
+// A flash is recorded as the id of its device, clearing the selection as "clear".
 internal sealed class RecordingPreviewActions : IPreviewActions
 {
     public List<object> Requests { get; } = [];
@@ -10,6 +10,8 @@ internal sealed class RecordingPreviewActions : IPreviewActions
     public void ClickLed(LedClick click) => Requests.Add(click);
 
     public void SelectLeds(LedSelection selection) => Requests.Add(selection);
+
+    public void ClearLedSelection() => Requests.Add("clear");
 
     public void ResizeZone(ZoneResize resize) => Requests.Add(resize);
 

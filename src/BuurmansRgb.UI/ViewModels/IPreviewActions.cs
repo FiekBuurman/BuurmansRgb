@@ -8,6 +8,9 @@ public interface IPreviewActions
     // A click on the name of a zone, such as one ring of a fan: all its LEDs.
     void SelectLeds(LedSelection selection);
 
+    // Escape in the preview: back to coloring the whole device, as "Selectie opheffen" does.
+    void ClearLedSelection();
+
     void ResizeZone(ZoneResize resize);
 
     // Lets the device blink on the hardware, so the user can see which one it is.

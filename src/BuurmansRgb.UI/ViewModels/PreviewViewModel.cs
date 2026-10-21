@@ -20,6 +20,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // Raised when the user clicks the name of a zone, to select all of its LEDs.
     public event EventHandler<LedSelection>? LedsSelected;
 
+    // Raised when the user clears the selection of LEDs from the preview.
+    public event EventHandler? LedSelectionCleared;
+
     // Raised when the user sets another length for a resizable zone.
     public event EventHandler<ZoneResize>? ZoneResizeRequested;
 
@@ -136,6 +139,8 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     void IPreviewActions.ClickLed(LedClick click) => LedClicked?.Invoke(this, click);
 
     void IPreviewActions.SelectLeds(LedSelection selection) => LedsSelected?.Invoke(this, selection);
+
+    void IPreviewActions.ClearLedSelection() => LedSelectionCleared?.Invoke(this, EventArgs.Empty);
 
     void IPreviewActions.ResizeZone(ZoneResize resize) => ZoneResizeRequested?.Invoke(this, resize);
 

@@ -89,6 +89,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
+        Preview.LedSelectionCleared += (_, _) => _ = ClearLedSelectionAsync();
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
@@ -638,8 +639,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
+    // A range that the keyboard starts on a device without a selection begins at its Anchor.
     private Task OnLedClickedAsync(LedClick click) =>
-        EditLedsAsync(click.DeviceId, click.Index, editor => editor.Select(click.Index, click.Extend));
+        EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
 
     private Task OnLedsSelectedAsync(LedSelection leds) =>
         EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
