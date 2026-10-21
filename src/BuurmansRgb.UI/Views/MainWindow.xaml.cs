@@ -19,6 +19,18 @@ public partial class MainWindow : Window
         StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
     }
 
+    // For a second start of the settings app: this window comes back instead of a new one, also
+    // from the taskbar, and maximized again if it was before.
+    public void BringToFront()
+    {
+        if (WindowState == WindowState.Minimized)
+        {
+            SystemCommands.RestoreWindow(this);
+        }
+
+        Activate();
+    }
+
     private void OnMinimizeClick(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
 
     private void OnMaximizeClick(object sender, RoutedEventArgs e)
