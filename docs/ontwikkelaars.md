@@ -58,13 +58,13 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
 | Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests`, `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes), `LightingControllerSpeedTests`, `EffectClockTests` |
-| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests`, `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app) |
+| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests`, `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app), `SceneTimesViewModelTests` (gemiste tijden inhalen) |
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests`, `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -129,6 +129,13 @@ toetsenbord. Een paar dingen om te proberen:
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
   (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en na het
   starten zet `RestoreActive` hem terug als die scène nog bestaat.
+- **Scènes op tijd:** `ProfileTimer` zet één timer op de eerstvolgende tijd. Gaat die meer dan
+  `LateLimit` (een minuut) te laat af of springt de klok erover (`IClockEvents`, ook bij het
+  ontwaken), dan onthoudt hij de gemiste tijd. Met `CatchUp` (`catchUpSceneTimes`, standaard
+  uit) laadt hij de scène waarvan `DailyTime.Previous` het laatst voorbij is: bij `Start` (na de
+  opgeslagen verlichting en `RestoreActive`, behalve als die scène al aan staat) en na het
+  ontwaken op `ResumeRestorer.Restored` (na het eerste herstel, ~2 s), alleen als er een gemiste
+  tijd is. Een programma met een eigen scène houdt hem vast via `HoldUntilProgramsStop`.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's.
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
@@ -328,7 +335,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 1. Maak scènes "Werk", "Nacht" en "Gamen" en wissel via het tray-menu en met een klik op hun
    kaart; kijk of alle apparaten meegaan.
 2. Geef "Nacht" een tijd een paar minuten verder en wacht. Zet daarna een tijd, laat de pc
-   erover heen slapen en kijk dat de scène na het ontwaken niet alsnog komt.
+   erover heen slapen en kijk dat de scène na het ontwaken niet alsnog komt ("Gemiste tijden
+   inhalen" uit, zoals standaard).
 3. Geef "Gamen" de naam van je spel, start het spel en sluit het weer: de verlichting van
    daarvoor hoort terug te komen. Verander tijdens het spel iets en kijk dat dat blijft.
 4. Start een spel dat als administrator draait of anti-cheat heeft, en kijk of de engine het
@@ -336,6 +344,11 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 5. Sluit de engine af (tray, "Afsluiten") terwijl het spel draait: de verlichting van daarvoor
    hoort terug te komen. Start de engine weer: de scène van het spel komt terug, en na het
    sluiten van het spel weer de verlichting van daarvoor.
+6. Zet bij Instellingen "Gemiste tijden inhalen" aan, geef "Nacht" een tijd een paar minuten
+   verder en laat de pc erover heen slapen: zo'n 2 seconden na het ontwaken hoort "Nacht" aan te
+   gaan, ook op apparaten die na de slaap hun eigen effect tonen. Slaap daarna kort zonder dat er
+   een tijd voorbij komt: de verlichting blijft zoals hij was. Sluit de engine af, laat een tijd
+   voorbijgaan en start hem weer: de scène van die tijd gaat aan.
 
 ### Pauzeren
 

@@ -181,7 +181,23 @@ Hoe het vanzelf aanzetten werkt:
   het uur dat wegvalt komt na dat uur, een tijd in het dubbele uur alleen de eerste keer.
   Slaapt de pc, staat hij uit of zet je de klok erover heen, dan slaat de engine die keer over
   (ook als de timer meer dan een minuut te laat afgaat): na een nacht slaapstand komt "Nacht"
-  's ochtends niet alsnog. Hebben twee scènes dezelfde tijd, dan wint de eerste op alfabet.
+  's ochtends niet alsnog, tenzij "Gemiste tijden inhalen" aan staat (hieronder). Hebben twee
+  scènes dezelfde tijd, dan wint de eerste op alfabet.
+- **Gemiste tijden inhalen** (bij Instellingen, standaard uit): dan gaat na het ontwaken en bij
+  het starten de scène aan van de tijd die het laatst voorbij is, op de gekozen dagen en
+  hooguit een week terug.
+  - *Na het ontwaken* alleen als er in de slaap een tijd voorbij kwam, en pas als de lampen terug
+    zijn (na zo'n 2 seconden, zie "Na slaapstand" onder "Per apparaattype"). Kwam er geen tijd
+    voorbij, dan blijft de verlichting zoals hij was, ook als je na de laatste tijd zelf iets
+    koos. Voorbeeld met "Avond" om 20:00 en "Nacht" om 23:00: slaap van 21:00 tot 08:00 geeft
+    "Nacht"; slaap van 20:30 tot 22:00 laat alles zoals het was.
+  - *Bij het starten* van de engine (of de pc) wint de tijd altijd, ook van de scène die voor de
+    herstart aan stond: wat er gebeurde terwijl de engine niet draaide, weet hij niet. Is de
+    scène van de tijd al de scène die aan staat, dan gebeurt er niets.
+  - Draait er een programma met een eigen scène, dan komt de scène van de tijd pas als het
+    programma stopt, zoals bij "Tijd tijdens een spel".
+  - De klok verzetten haalt niets in; dat doet alleen ontwaken of starten. Aanzetten zet nog
+    niets aan: het geldt vanaf het volgende ontwaken of de volgende start.
 - **Bij een programma:** start het programma, dan staat de scène binnen 2 seconden aan. Stopt
   het, dan komt de verlichting van daarvoor terug, tenzij je die intussen veranderde. Bij twee
   programma's met een scène toont het laatst gestarte de zijne; stopt dat, dan komt die van
@@ -224,6 +240,10 @@ Hoe het vanzelf aanzetten werkt:
   een ander getal, dan staat dat er als vierde keuze bij. Met "Pauzeren bij vergrendelen en
   slaapstand" zet je het pauzeren van "Pauzeren en slaapstand" aan of uit. Beide gelden meteen,
   zonder herstart, en de engine bewaart ze.
+- **Scènes op tijd:** "Gemiste tijden inhalen" zet na het ontwaken en bij het starten de scène
+  aan van de tijd die het laatst voorbij is, in plaats van zo'n tijd over te slaan (standaard
+  uit); zie "Gemiste tijden inhalen" bij Scènes. Het geldt zonder herstart, de engine bewaart
+  het, en een tweede instellingen-app toont de wijziging meteen.
 - **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
 
 ### Aan en uit
@@ -343,6 +363,7 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   "simulatedDevices": "automatic",
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
+  "catchUpSceneTimes": false,
   "zoneLengths": {
     "simulated-argb": { "ARGB 2": 15 }
   }
@@ -363,6 +384,7 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen en slaapstand (ook bij Instellingen) |
+| `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `zoneLengths` | Per lamp de lengte die je een instelbare zone gaf, op de naam van de zone |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 
