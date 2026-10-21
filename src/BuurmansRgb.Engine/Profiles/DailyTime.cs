@@ -35,6 +35,33 @@ internal static class DailyTime
         }
     }
 
+    // The last moment up to now at which Next would have given the time: the same days, the same
+    // skipped and doubled hours. At most a week ago.
+    public static DateTimeOffset Previous(TimeOnly time, DateTimeOffset now, TimeZoneInfo zone, WeekDays days = WeekDays.Every)
+    {
+        var today = TimeZoneInfo.ConvertTime(now, zone).Date;
+        if ((days & WeekDays.Every) == WeekDays.None)
+        {
+            days = WeekDays.Every;
+        }
+
+        // Today can still have to come; then the same day a week ago is the furthest back it goes.
+        for (var day = 0; ; day--)
+        {
+            var date = today.AddDays(day);
+            if (!days.Includes(date.DayOfWeek))
+            {
+                continue;
+            }
+
+            var moment = ToUtc(date.Add(time.ToTimeSpan()), zone);
+            if (moment <= now)
+            {
+                return moment;
+            }
+        }
+    }
+
     private static DateTimeOffset ToUtc(DateTime local, TimeZoneInfo zone)
     {
         while (zone.IsInvalidTime(local))
