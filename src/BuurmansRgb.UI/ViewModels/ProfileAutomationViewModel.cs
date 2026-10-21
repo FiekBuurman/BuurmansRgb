@@ -6,11 +6,24 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// When the selected profile loads by itself: every day at a time, and while a program runs. An
-// empty field leaves that way off. This only asks; MainViewModel sends the change to the engine
+// When the selected profile loads by itself: at a time on the chosen days, and while a program runs.
+// An empty field leaves that way off. This only asks; MainViewModel sends the change to the engine
 // and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
+    public ProfileAutomationViewModel()
+    {
+        foreach (var day in Days)
+        {
+            day.PropertyChanged += (_, _) => OnDaysChanged();
+        }
+    }
+
+    // Monday to Sunday; all of them is every day. They count only with a time.
+    public IReadOnlyList<DayOption> Days { get; } = DayOption.CreateWeek();
+
+    public bool HasLoadAt => !string.IsNullOrWhiteSpace(LoadAtText);
+
     private const string TimeFormat = "HH:mm";
 
     // "H" also reads "07:30"; a dot is how many people write a time in Dutch.
@@ -30,6 +43,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     public bool HasProfile => ProfileName is not null;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLoadAt))]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string LoadAtText { get; set; } = string.Empty;
 
@@ -56,6 +70,15 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     partial void OnProgramTextChanged(string value) => Error = FindError();
 
+    private void OnDaysChanged()
+    {
+        Error = FindError();
+        ApplyCommand.NotifyCanExecuteChanged();
+    }
+
+    private WeekDays CheckedDays() =>
+        Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+
     // Shows what the engine saved for the profile.
     public void Show(string profileName, ProfileAutomation automation) => Display(profileName, automation);
 
@@ -67,6 +90,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         ProfileName = profileName;
         LoadAtText = automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
         ProgramText = automation.Program ?? string.Empty;
+        foreach (var day in Days)
+        {
+            day.IsChecked = (automation.Days & day.Day) != WeekDays.None;
+        }
+
         OnPropertyChanged(nameof(Header));
         ApplyCommand.NotifyCanExecuteChanged();
     }
@@ -84,11 +112,12 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             return null;
         }
 
-        return new ProfileAutomation(loadAt, ProgramText).Normalize();
+        return new ProfileAutomation(loadAt, ProgramText, CheckedDays()).Normalize();
     }
 
     private string? FindError() =>
         !TryParseTime(LoadAtText, out _) ? Strings.ProfileLoadAtInvalid
+        : HasLoadAt && CheckedDays() == WeekDays.None ? Strings.ProfileDaysNone
         : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
         : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
         : null;

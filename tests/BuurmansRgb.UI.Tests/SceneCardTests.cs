@@ -57,9 +57,12 @@ public sealed class SceneCardTests
     [InlineData("23:00", null, "Elke dag om 23:00")]
     [InlineData(null, "eldenring.exe", "Bij eldenring.exe")]
     [InlineData("07:30", "eldenring.exe", "Elke dag om 07:30 · bij eldenring.exe")]
-    public void Show_LoadsByItself_SaysWhen(string? loadAt, string? program, string expected)
+    [InlineData("09:00", null, "Werkdagen om 09:00", WeekDays.Workdays)]
+    [InlineData("10:00", null, "In het weekend om 10:00", WeekDays.Weekend)]
+    [InlineData("19:00", "eldenring.exe", "ma, wo, vr om 19:00 · bij eldenring.exe", WeekDays.Monday | WeekDays.Wednesday | WeekDays.Friday)]
+    public void Show_LoadsByItself_SaysWhen(string? loadAt, string? program, string expected, WeekDays days = WeekDays.Every)
     {
-        var automation = new ProfileAutomation(loadAt is null ? null : TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program);
+        var automation = new ProfileAutomation(loadAt is null ? null : TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
 
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), automation);
 
