@@ -10,10 +10,9 @@ BuurmansRgb draait als klein achtergrondproces met een tray-icoon. De instelling
 
 Taak 0 t/m 9 zijn gebouwd en in `main` gemerged, en daarna een reeks uitbreidingen (zie
 "Uitbreidingen na taak 9" onderaan). Wat nog open staat, zijn de acceptatiecriteria die
-alleen met echte hardware of in Windows Sandbox te testen zijn: taak 3, taak 5 t/m 8 en
-taak 9. Die test de gebruiker zelf;
-de stappen staan in `ontwikkelaars.md` onder "Zelf testen op echte hardware" en "Installer bouwen en
-testen".
+alleen met echte hardware te testen zijn: taak 3 en taak 5 t/m 8. Die test de gebruiker zelf;
+de stappen staan in `ontwikkelaars.md` onder "Zelf testen op echte hardware". De installer
+(taak 9) is getest op de eigen pc van de gebruiker.
 
 ## Uitgangspunten en eisen
 
@@ -322,19 +321,20 @@ een nepklok):
 
 **Acceptatie:**
 
-- [ ] Eén `BuurmansRgb-setup.exe`, met één UAC-vraag en zonder losse .NET-runtime
-- [ ] Na installeren draait de service `OpenRGB` en luistert er iets op `127.0.0.1:6742`
-- [ ] De engine draait als de gewone gebruiker, staat in "Starten met Windows" en verbindt met OpenRGB
-- [ ] Verwijderen haalt BuurmansRgb, de autostart en (op verzoek) OpenRGB en PawnIO weg
-- [ ] Getest in Windows Sandbox, niet op de pc van de gebruiker
+- [x] Eén `BuurmansRgb-setup.exe`, met één UAC-vraag en zonder losse .NET-runtime
+- [x] Na installeren draait de service `OpenRGB` en luistert er iets op `127.0.0.1:6742`
+- [x] De engine draait als de gewone gebruiker, staat in "Starten met Windows" en verbindt met OpenRGB
+- [x] Verwijderen haalt BuurmansRgb, de autostart en (op verzoek) OpenRGB en PawnIO weg
+- [x] Getest in Windows Sandbox, niet op de pc van de gebruiker (in plaats daarvan, op keuze van
+  de gebruiker, getest op de eigen pc thuis)
 
 Stand taak 9: de installer (Inno Setup 7.1, self-contained, ongeveer 77 MB), het build-script
 met SHA-256-controle, `--first-run` in de engine (met tests) en een Windows Sandbox-test die
-installeert, controleert en weer verwijdert zijn gebouwd. De installer compileert en de
-self-contained engine en instellingen-app draaien. Windows Sandbox stond niet aan op de
-ontwikkel-pc, dus installeren en verwijderen zelf zijn nog niet uitgevoerd; daarom staan de
-criteria hierboven nog open. De gebruiker test ze met de Sandbox-test, zie "Installer bouwen
-en testen" in `ontwikkelaars.md`.
+installeert, controleert en weer verwijdert zijn gebouwd. Windows Sandbox stond niet aan op de
+ontwikkel-pc. Op 20-10-2026 heeft de gebruiker de installer op de eigen pc thuis gedraaid:
+installeren, de service `OpenRGB`, de engine met autostart en verwijderen werken. De
+Sandbox-test blijft beschikbaar om een nieuwe installer te testen zonder iets op je eigen pc
+te installeren, zie "Installer bouwen en testen" in `ontwikkelaars.md`.
 
 ## Uitbreidingen na taak 9
 

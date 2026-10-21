@@ -112,10 +112,10 @@ Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
 
 ## Open punten en risico's
 
-- **Niet getest: de echte service-installatie.** De Windows Sandbox-test (`installer/sandbox`)
-  is gebouwd, maar bij het bouwen stond Windows Sandbox niet aan op de ontwikkel-pc, dus de
-  criteria van taak 9 in `docs/bouwplan.md` staan nog open. De test controleert dat de service
-  `OpenRGB` draait, dat poort 6742 luistert, en dat BuurmansRgb verbindt.
+- **Getest: de echte service-installatie.** Op 20-10-2026 heeft de gebruiker de installer op
+  de eigen pc gedraaid: de service `OpenRGB` draait, BuurmansRgb verbindt en verwijderen werkt
+  (de criteria van taak 9 in `docs/bouwplan.md`). De Windows Sandbox-test (`installer/sandbox`)
+  controleert hetzelfde zonder iets op je eigen pc te installeren.
 - **Waar de service zijn config bewaart:** waarschijnlijk in het profiel van LocalSystem. Dat
   is niet bevestigd. Profielen of zonegroottes die je in de OpenRGB-GUI instelt, komen
   terecht bij de service, omdat de GUI als client met de service verbindt. Dat moet nog
