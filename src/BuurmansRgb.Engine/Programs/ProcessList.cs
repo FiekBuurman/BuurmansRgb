@@ -22,9 +22,6 @@ internal sealed partial class ProcessList : IRunningPrograms
     private const uint Synchronize = 0x0010_0000;
     private const uint WaitObject0 = 0;
     private const uint StillActive = 259;
-    private const int ErrorAccessDenied = 5;
-    private const int ErrorInsufficientBuffer = 122;
-    private const int MaxPath = 32_767;
 
     // The idle process has id 0 and can never be opened.
     private const uint IdleProcessId = 0;
@@ -36,7 +33,7 @@ internal sealed partial class ProcessList : IRunningPrograms
     private static readonly IReadOnlySet<string> None = new HashSet<string>(ProgramNames.Comparer);
 
     private readonly Dictionary<uint, ProcessEntry> _processes = [];
-    private char[] _path = new char[260];
+    private readonly ProcessImageName _names = new();
     private uint[] _ids = new uint[1024];
     private int _round;
 
@@ -69,7 +66,7 @@ internal sealed partial class ProcessList : IRunningPrograms
                 // a process that can be opened but never named (seen on GitHub's Windows runners)
                 // would cost a handle every call.
                 process.NameAttempts++;
-                if (TryReadName(id, out var newName))
+                if (_names.TryRead(id, out var newName))
                 {
                     process.SetName(newName);
                 }
@@ -129,48 +126,12 @@ internal sealed partial class ProcessList : IRunningPrograms
         }
     }
 
-    // True with the exe name, or with null when Windows will never give it to us (access denied,
-    // such as for the system's own processes). False for any other failure, which can pass: the
-    // process may just have ended, or not be set up yet.
-    private bool TryReadName(uint processId, out string? name)
-    {
-        name = null;
-        using var process = OpenProcess(QueryLimitedInformation, inheritHandle: false, processId);
-        if (process.IsInvalid)
-        {
-            return Marshal.GetLastPInvokeError() == ErrorAccessDenied;
-        }
-
-        while (true)
-        {
-            var length = (uint)_path.Length;
-            if (QueryFullProcessImageName(process, 0, _path, ref length))
-            {
-                var path = _path.AsSpan(0, (int)length);
-                name = new string(path[(path.LastIndexOf('\\') + 1)..]);
-                return true;
-            }
-
-            var error = Marshal.GetLastPInvokeError();
-            if (error != ErrorInsufficientBuffer || _path.Length >= MaxPath)
-            {
-                return error == ErrorAccessDenied;
-            }
-
-            _path = new char[Math.Min(_path.Length * 4, MaxPath)];
-        }
-    }
-
     [LibraryImport("kernel32.dll", EntryPoint = "K32EnumProcesses", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool EnumProcesses([Out] uint[] processIds, uint size, out uint used);
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
     private static partial SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
-
-    [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW", SetLastError = true, StringMarshalling = StringMarshalling.Utf16)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool QueryFullProcessImageName(SafeProcessHandle process, uint flags, [Out] char[] path, ref uint length);
 
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
