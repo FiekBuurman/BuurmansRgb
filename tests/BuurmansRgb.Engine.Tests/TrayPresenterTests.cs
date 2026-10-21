@@ -262,6 +262,21 @@ public sealed class TrayPresenterTests : IDisposable
     }
 
     [Fact]
+    public async Task RefreshProfiles_ChecksTheSceneThatIsOn()
+    {
+        _profileStore.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))), new Profile("Nacht", Uniform(StaticLighting(Green)))];
+        var presenter = await StartedPresenterAsync();
+
+        presenter.LoadProfile("Nacht");
+        presenter.RefreshProfiles();
+        Assert.Equal("Nacht", _view.ActiveProfile);
+
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+        presenter.RefreshProfiles();
+        Assert.Null(_view.ActiveProfile);
+    }
+
+    [Fact]
     public async Task RefreshProfiles_NoProfiles_ShowsAnEmptyList()
     {
         (await StartedPresenterAsync()).RefreshProfiles();
@@ -409,7 +424,13 @@ public sealed class TrayPresenterTests : IDisposable
 
         public void SetPauseChecked(bool isChecked) => PauseChecked = isChecked;
 
-        public void ShowProfiles(IReadOnlyList<string>? names) => Profiles = names;
+        public string? ActiveProfile { get; private set; }
+
+        public void ShowProfiles(IReadOnlyList<string>? names, string? active)
+        {
+            Profiles = names;
+            ActiveProfile = active;
+        }
 
         public void ShowNotification(string text, TrayNotificationKind kind) => Notifications.Add((text, kind));
     }

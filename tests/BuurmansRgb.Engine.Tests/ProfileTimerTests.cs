@@ -240,9 +240,9 @@ public sealed class ProfileTimerTests : IDisposable
     {
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         var held = new List<RgbColor>();
-        _timer = new ProfileTimer(_profiles, _clock, _time, lighting =>
+        _timer = new ProfileTimer(_profiles, _clock, _time, name =>
         {
-            held.Add(lighting.Global.Color);
+            held.Add(_profiles.GetLighting(name).Global.Color);
             return true;
         });
         _timer.Start();

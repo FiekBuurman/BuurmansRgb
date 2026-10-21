@@ -74,6 +74,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetFramesWantedAsync_CrossesThePipe()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetFramesWantedAsync(false, Ct);
+        await client.Api.SetFramesWantedAsync(true, Ct);
+
+        Assert.Equal([false, true], _api.FramesWantedCalls);
+    }
+
+    [Fact]
     public async Task Profiles_NamesAndCallsCrossThePipe()
     {
         var client = await ConnectAsync();
@@ -85,6 +96,16 @@ public sealed class EngineRpcTests : IDisposable
 
         Assert.Equal(["Gamen", "Nacht"], names);
         Assert.Equal(["save Werk", "load Gamen", "delete Nacht"], _api.ProfileCalls);
+    }
+
+    [Fact]
+    public async Task ActiveProfile_CrossesThePipe_AlsoWhenThereIsNone()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal("Nacht", await client.Api.GetActiveProfileAsync(Ct));
+        _api.ActiveProfile = null;
+        Assert.Null(await client.Api.GetActiveProfileAsync(Ct));
     }
 
     [Fact]
@@ -419,6 +440,14 @@ public sealed class EngineRpcTests : IDisposable
 
         public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(LightingFrame.Empty);
 
+        public List<bool> FramesWantedCalls { get; } = [];
+
+        public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
+        {
+            FramesWantedCalls.Add(wanted);
+            return Task.CompletedTask;
+        }
+
         public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
         {
             ColorCalls.Add((deviceId, color));
@@ -487,6 +516,10 @@ public sealed class EngineRpcTests : IDisposable
         public Task LoadProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"load {name}");
 
         public Task DeleteProfileAsync(string name, CancellationToken ct = default) => RecordProfile($"delete {name}");
+
+        public string? ActiveProfile { get; set; } = "Nacht";
+
+        public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(ActiveProfile);
 
         public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
             Task.FromResult(name == "Nacht" ? Lighting : throw new ArgumentException($"There is no profile '{name}'.", nameof(name)));

@@ -16,6 +16,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly IServerStatusSource _openRgb;
     private readonly SettingsSaveEvents? _saveEvents;
+    private readonly PreviewFrames _frames;
 
     public EngineApi(
         LightingController lighting,
@@ -23,7 +24,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         ProfileLibrary profiles,
         SimulatedDevicesSwitch simulatedDevices,
         IServerStatusSource openRgb,
-        SettingsSaveEvents? saveEvents = null)
+        SettingsSaveEvents? saveEvents = null,
+        TimeProvider? time = null)
     {
         _lighting = lighting;
         _zoneLengths = zoneLengths;
@@ -31,6 +33,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices = simulatedDevices;
         _openRgb = openRgb;
         _saveEvents = saveEvents;
+        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output)), time ?? TimeProvider.System);
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
@@ -63,6 +66,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. _lighting.GetAllLighting().Select(device => new DeviceLightingInfo(device.DeviceId, ToInfo(device.Lighting)))]);
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(ToFrame(_lighting.GetOutput()));
+
+    public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
+    {
+        _frames.Wanted = wanted;
+        return Task.CompletedTask;
+    }
 
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
     {
@@ -163,6 +172,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(_profiles.ActiveName);
+
     public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
         Task.FromResult(ToInfo(_profiles.GetLighting(name).Global));
 
@@ -183,6 +194,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.PauseChanged -= OnPauseChanged;
         _lighting.LightingChanged -= OnLightingChanged;
         _saveEvents?.Saved -= OnSaved;
+        _frames.Dispose();
     }
 
     // The wire formats are made here, so the lighting model does not know them, and outside the
@@ -203,11 +215,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     private void OnLightingChanged(object? sender, EventArgs e) => LightingChanged?.Invoke(this, EventArgs.Empty);
 
+    // Nothing is copied on the render thread; PreviewFrames copies the latest output later.
     private void OnRendered(object? sender, EventArgs e)
     {
-        if (FrameRendered is { } frameRendered)
+        if (FrameRendered is not null)
         {
-            frameRendered(this, ToFrame(_lighting.GetOutput()));
+            _frames.Rendered();
         }
     }
 }

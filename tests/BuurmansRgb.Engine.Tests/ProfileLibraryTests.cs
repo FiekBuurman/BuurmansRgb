@@ -191,4 +191,103 @@ public sealed class ProfileLibraryTests
         Assert.Throws<IOException>(() => _library.Save("Nacht"));
         Assert.Equal(0, changes);
     }
+
+    [Fact]
+    public void ActiveName_NothingLoaded_IsNull() => Assert.Null(_library.ActiveName);
+
+    [Fact]
+    public async Task Load_MakesItTheActiveSceneInItsSavedSpelling()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+
+        _library.Load("nacht");
+
+        Assert.Equal("Nacht", _library.ActiveName);
+    }
+
+    // A listener of LightingChanged, such as the settings app, already finds the new scene.
+    [Fact]
+    public async Task Load_ActiveDuringLightingChanged()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        string? seen = null;
+        _lighting.LightingChanged += (_, _) => seen = _library.ActiveName;
+
+        _library.Load("Nacht");
+
+        Assert.Equal("Nacht", seen);
+    }
+
+    [Fact]
+    public async Task ActiveName_AfterAnotherChangeOfTheLighting_IsNull()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        _library.Load("Nacht");
+
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+
+        Assert.Null(_library.ActiveName);
+    }
+
+    [Fact]
+    public async Task Load_AnotherScene_MakesThatOneActive()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        _library.Load("Nacht");
+
+        _library.Load("Gamen");
+
+        Assert.Equal("Gamen", _library.ActiveName);
+    }
+
+    [Fact]
+    public async Task Load_UnknownName_KeepsTheActiveScene()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        _library.Load("Nacht");
+
+        Assert.Throws<ArgumentException>(() => _library.Load("Gamen"));
+
+        Assert.Equal("Nacht", _library.ActiveName);
+    }
+
+    // What burns is then that scene, also when it overwrote another.
+    [Fact]
+    public void Save_MakesItTheActiveScene()
+    {
+        _library.Save(" Werk ");
+
+        Assert.Equal("Werk", _library.ActiveName);
+    }
+
+    [Fact]
+    public async Task Delete_TheActiveScene_LeavesNoneActive()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        _library.Load("Nacht");
+
+        _library.Delete("Gamen");
+        Assert.Equal("Nacht", _library.ActiveName);
+
+        _library.Delete("nacht");
+        Assert.Null(_library.ActiveName);
+    }
+
+    [Fact]
+    public async Task Show_WithAScene_MakesItActive_AndWithoutOne_LeavesNoneActive()
+    {
+        await _lighting.DiscoverAsync(Ct);
+
+        _library.Show(Uniform(StaticLighting(Red)), "Nacht");
+        Assert.Equal("Nacht", _library.ActiveName);
+
+        _library.Show(Uniform(StaticLighting(Green)), scene: null);
+        Assert.Null(_library.ActiveName);
+    }
 }

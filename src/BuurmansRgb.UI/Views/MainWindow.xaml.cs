@@ -16,7 +16,26 @@ public partial class MainWindow : Window
                 viewModel.Profiles.ConfirmDelete = ConfirmDelete;
             }
         };
-        StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
+        StateChanged += (_, _) =>
+        {
+            Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.IsWindowMinimized = WindowState == WindowState.Minimized;
+            }
+        };
+    }
+
+    // For a second start of the settings app: this window comes back instead of a new one, also
+    // from the taskbar, and maximized again if it was before.
+    public void BringToFront()
+    {
+        if (WindowState == WindowState.Minimized)
+        {
+            SystemCommands.RestoreWindow(this);
+        }
+
+        Activate();
     }
 
     private void OnMinimizeClick(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);

@@ -20,6 +20,7 @@ public sealed class ProfileTriggersTests : IDisposable
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly FakeRunningPrograms _programs = new();
     private readonly ClockTimeProvider _time = new(Start, DailyTimeTests.Amsterdam);
+    private readonly ProfileLibrary _profiles;
     private readonly ProgramWatcher _watcher;
     private readonly ProfileTimer _timer;
 
@@ -30,9 +31,9 @@ public sealed class ProfileTriggersTests : IDisposable
             new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: Game) },
             new Profile("Nacht", Uniform(StaticLighting(Orange))) { Automation = new ProfileAutomation(new TimeOnly(23, 0)) },
         ];
-        var profiles = new ProfileLibrary(_store, _lighting);
-        _watcher = new ProgramWatcher(profiles, _lighting, _programs, _time);
-        _timer = new ProfileTimer(profiles, new FakeClockEvents(), _time, _watcher.HoldUntilProgramsStop);
+        _profiles = new ProfileLibrary(_store, _lighting);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time);
+        _timer = new ProfileTimer(_profiles, new FakeClockEvents(), _time, _watcher.HoldUntilProgramsStop);
         ShowColor(Green);
         _timer.Start();
         _watcher.Start();
@@ -55,6 +56,18 @@ public sealed class ProfileTriggersTests : IDisposable
 
         StopGame();
         Assert.Equal(Orange, ShownColor());
+    }
+
+    [Fact]
+    public void TimeWhileAGameRuns_ItsSceneIsActiveOnceTheGameStops()
+    {
+        StartGame();
+
+        _time.Advance(TimeSpan.FromHours(1));
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopGame();
+        Assert.Equal("Nacht", _profiles.ActiveName);
     }
 
     [Fact]

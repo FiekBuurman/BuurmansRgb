@@ -94,7 +94,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     // Without profiles the submenu explains where to make them; when they cannot be loaded now,
     // the whole item is greyed out (an unreadable file also gets a notification).
-    void ITrayView.ShowProfiles(IReadOnlyList<string>? names)
+    void ITrayView.ShowProfiles(IReadOnlyList<string>? names, string? active)
     {
         var oldItems = _profilesItem.DropDownItems.Cast<ToolStripItem>().ToList();
         _profilesItem.DropDownItems.Clear();
@@ -110,7 +110,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         foreach (var name in names)
         {
             // A single & would underline the next letter instead of showing itself.
-            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(name.Replace("&", "&&", StringComparison.Ordinal), image: null, (_, _) => _presenter.LoadProfile(name)));
+            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(name.Replace("&", "&&", StringComparison.Ordinal), image: null, (_, _) => _presenter.LoadProfile(name))
+            {
+                Checked = active is not null && ProfileNames.Comparer.Equals(name, active),
+            });
         }
     }
 

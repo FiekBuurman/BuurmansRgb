@@ -20,16 +20,16 @@ internal sealed class ProfileTimer : IProfileTrigger
     private readonly ProfileLibrary _profiles;
     private readonly IClockEvents _clock;
     private readonly TimeProvider _time;
-    private readonly Func<LightingState, bool>? _holdWhileProgramsRun;
+    private readonly Func<string, bool>? _holdWhileProgramsRun;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
     private (DateTimeOffset At, string Name)? _next;
     private bool _started;
     private bool _disposed;
 
-    // holdWhileProgramsRun gets the lighting of a profile whose time came, and returns true when it
+    // holdWhileProgramsRun gets the name of a profile whose time came, and returns true when it
     // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop).
-    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<LightingState, bool>? holdWhileProgramsRun = null)
+    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<string, bool>? holdWhileProgramsRun = null)
     {
         _holdWhileProgramsRun = holdWhileProgramsRun;
         _profiles = profiles;
@@ -135,7 +135,7 @@ internal sealed class ProfileTimer : IProfileTrigger
     {
         try
         {
-            if (_holdWhileProgramsRun?.Invoke(_profiles.GetLighting(name)) != true)
+            if (_holdWhileProgramsRun?.Invoke(name) != true)
             {
                 _profiles.Load(name);
             }

@@ -174,6 +174,15 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
 
+    // What the app said last; null while it said nothing, so the engine sends frames.
+    public bool? FramesWanted { get; private set; }
+
+    public Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default)
+    {
+        FramesWanted = wanted;
+        return Task.CompletedTask;
+    }
+
     public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
         Record($"color {deviceId ?? "all"} {color.ToHex()}");
 
@@ -225,11 +234,17 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<string>>([.. Profiles]);
 
+    // Like the engine: the profile saved or loaded last; tests set it for a scene from the tray.
+    public string? ActiveProfile { get; set; }
+
+    public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(ActiveProfile);
+
     public async Task SaveProfileAsync(string name, CancellationToken ct = default)
     {
         await Record($"profile save {name}");
         Profiles.Add(name);
         Profiles.Sort(StringComparer.CurrentCultureIgnoreCase);
+        ActiveProfile = name;
     }
 
     public async Task LoadProfileAsync(string name, CancellationToken ct = default)
@@ -240,12 +255,18 @@ internal sealed class FakeEngineApi : IEngineApi
             Lighting.Clear();
             Lighting[""] = lighting;
         }
+
+        ActiveProfile = name;
     }
 
     public async Task DeleteProfileAsync(string name, CancellationToken ct = default)
     {
         await Record($"profile delete {name}");
         Profiles.Remove(name);
+        if (ActiveProfile == name)
+        {
+            ActiveProfile = null;
+        }
     }
 
     // Profiles that are gone by the time they are asked, such as deleted from the tray menu.

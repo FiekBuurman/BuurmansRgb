@@ -58,6 +58,11 @@ schakelaar ernaast.
   voor wat je wijzigt: zet je de helderheid, dan houdt een lamp met een eigen kleur die kleur.
   Een wijziging bij één lamp geldt alleen voor die lamp. Is een lamp weer gelijk aan "Hele
   huis", dan volgt hij die weer.
+- **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
+  het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
+  het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
+  verschoof, springt niet terug.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 
@@ -87,7 +92,9 @@ schakelaar ernaast.
 
 Onder "Licht en beweging" staat per lamp een kaart met het icoon van zijn type, de naam en
 **Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
-ook als de effecten gepauzeerd zijn.
+ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
+voorbeeld (Scènes, Buren, Instellingen) of met het venster geminimaliseerd stuurt de engine
+geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
   toont geen zonenaam.
@@ -146,8 +153,13 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling).
-- Zonelengtes horen niet bij een scène. Welke scène het laatst aanging, weet de app niet;
-  daarom heeft geen kaart de rand van "actief".
+- **De scène die aan staat** heeft een witte rand van 2 px, zoals in het ontwerp, en in het
+  tray-menu een vinkje; een schermlezer zegt "Staat aan". Dat is de scène die het laatst aanging
+  (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of
+  overschreef. Verandert de verlichting daarna op een andere manier (een kleur, de helderheid,
+  een lamp uit), dan staat er geen scène meer aan. Stopt een spel met een eigen scène, dan staat
+  de scène van daarvoor weer aan. Na een herstart van de engine weet hij het niet meer.
+- Zonelengtes horen niet bij een scène.
 
 Hoe het vanzelf aanzetten werkt:
 
@@ -210,8 +222,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   ontwerp; zo zegt hij iets over het huis.
 - **Knoppen** hebben ronde hoeken (12 px) in plaats van pilvormen.
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
-  een profiel. Een scène als "actief" markeren (de rand uit het ontwerp) kan nog niet, en elke
-  kaart heeft een moersleutel om hem aan te passen.
+  een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
+  dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
 - **Buren** is nog leeg, want nog niet ontworpen (§ 5.4). De buren-kaart op Lampen en
   "Samen aan de slag" op Scènes zijn weggelaten, omdat er nog niets achter zit.
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
@@ -229,7 +241,8 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
 - **Menu:** "Instellingen openen", "Scène aanzetten", "Effecten pauzeren", "Starten met
   Windows" en "Afsluiten". Dubbelklik op het icoon opent ook de instellingen.
-- **Scène aanzetten** toont de opgeslagen scènes; klik er een aan. Zonder scènes staat er
+- **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
+  klik er een aan. Zonder scènes staat er
   "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
   `profiles.json` niet gelezen worden, dan is het grijs en meldt het icoon dat; ook de eerste
   seconden na het starten is het grijs, tot de engine de opgeslagen verlichting heeft gezet.
@@ -241,6 +254,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
   Windows-gebruiker heeft zijn eigen engine.
+- **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
+  geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
+  icoon of een tweede start van `BuurmansRgb.UI.exe`.
 
 ### Pauzeren
 
@@ -319,8 +335,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   plus een code uit de locatie en het serienummer, zodat hij na een herstart dezelfde blijft.
 - Een waarde in `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over
   (bij `ledColorZoneLengths` de hele lijst van die lamp); de rest blijft gelden.
-- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een kleur als
-  `"purple"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
+- Een kleur die niet te lezen is (bijv. `"purple"` of een getal), slaat de engine ook over: bij
+  `color` wordt het wit, in `ledColors` volgt die LED de kleur van de lamp, en in `colorLoop`
+  loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
+  blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
+  zonder die kleur weg.
+- Is het bestand geen geldige JSON of klopt er iets anders niet (bijv. een helderheid als
+  `"hoog"`), dan zet de engine het opzij als `settings.json.broken` en draait hij op de
   standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
   niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
   heeft), dan laat hij het ongemoeid.
@@ -345,6 +366,22 @@ te lezen is (bijv. `"25:00"` of een getal), laat de engine weg; de rest blijft g
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 
+### Logbestanden
+
+Wat er misgaat of gebeurt (verbinden met OpenRGB, een apparaat zonder "Direct"-modus, een waarde
+in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en de
+instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
+tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
+eigen hardware niet werkt.
+
+- Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
+  één keer, met daaronder hoe vaak hij nog kwam.
+- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`) en begint er
+  een nieuw; meer dan twee per app worden het niet.
+- Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
+  de code.
+- Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
+
 ## OpenRGB en hardware
 
 ### OpenRGB koppelen
@@ -367,8 +404,8 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   de kleuren opnieuw. De eigen kleur van een lamp blijft bewaard.
 - In de clientlijst van OpenRGB staat BuurmansRgb twee keer: `BuurmansRgb` stuurt de kleuren,
   `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt.
-- Details over verbinden, protocolversie en fouten gaan naar de debug-uitvoer (bekijken met
-  DebugView); er is nog geen logbestand.
+- Details over verbinden, protocolversie en fouten staan in het logbestand van de engine (zie
+  "Logbestanden").
 
 ### Per apparaattype
 

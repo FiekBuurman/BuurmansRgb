@@ -60,7 +60,7 @@ uitbreidingen in `docs/bouwplan.md`.
   de lengtes onder `zoneLengths`
 - In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
   na het herladen nog de oude lengte), of als een bewaarde lengte niet past bij het bereik dat
-  de zone nu meldt (bijv. na een update van OpenRGB); nu staat dat alleen in de debug-uitvoer
+  de zone nu meldt (bijv. na een update van OpenRGB); nu staat dat alleen in het logbestand
 - Vergeet OpenRGB een zonelengte terwijl de engine verbonden blijft (bijv. bij opnieuw zoeken),
   dan meldt het apparaat 0 LED's en komt de bewaarde lengte pas terug als het apparaat opnieuw
   verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
@@ -105,17 +105,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - De pagina Buren echt maken zodra het ontwerp er is (§ 5.4), met de buren-kaart op Lampen en
   "Samen aan de slag" op Scènes uit de schermen van het ontwerp; die zijn nu weggelaten, omdat er
   nog niets achter zit
-- Instellingen-app als enkele instantie: nu opent "Instellingen openen" bij een open
-  venster een tweede venster in plaats van het bestaande naar voren te halen
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
 - Een kleur kiezen voor een lamp die uit staat, zet hem niet aan; misschien moet "Op de strip
   zetten" de lamp dan ook aanzetten, zoals veel lamp-apps doen
-- Wijzigt de verlichting buiten de app (een scène uit het tray-menu of op tijd), dan volgen de
-  lampen op de pagina Lampen wel, maar de schuiven bij Kleur pas als je een andere lamp kiest;
-  `LightingChanged` zou die ook kunnen verversen, als dat een sleepbeweging niet stoort
 - De melding "De engine kon de wijziging niet verwerken." laten verdwijnen na de volgende
   geslaagde wijziging, en preciezer maken (bijv. als de scène van "Vanzelf aanzetten" net
   verwijderd is)
@@ -168,9 +163,8 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Bijhouden welke scène het laatst aanging (en dat vergeten zodra de verlichting daarna
-  verandert), zodat de kaart op de pagina Scènes de rand van "actief" krijgt zoals in het ontwerp
-  en het tray-menu er een vinkje bij zet; nu houdt niemand dat bij
+- De scène die aan staat ook na een herstart van de engine weten (bijv. als `activeScene` in
+  `settings.json`); nu begint de engine zonder, ook als de verlichting nog die van de scène is
 - Scènes die in een tweede instellingen-app of op een andere manier veranderen, komen pas na het
   opnieuw openen in de lijst; een event `ProfilesChanged` naast `DevicesChanged` zou helpen
 - Tijden alleen op bepaalde dagen (bijv. werkdagen 09:00 "Werk", weekend niet), of meer tijden
@@ -213,11 +207,12 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Engine en prestaties
 
-- De preview-frames loskoppelen van de render-loop en begrenzen: nu draait
-  `EngineApi.OnRendered` op de timer-thread en maakt per frame per verbonden instellingen-app een
-  kopie van alle buffers en een `LightingFrame`, dus met de app open alloceert elk frame en
-  vertraagt UI-werk de animatie. Bijvoorbeeld de laatste uitvoer markeren en die op een eigen
-  thread met hooguit 30 frames per seconde versturen, of alleen de zichtbare apparaten
+- Uitzoeken waar het geheugen van de instellingen-app zit: met een zichtbaar venster en de
+  regenboog 166–191 MB working set en 83–97 MB private (Release), boven het budget van 150 MB.
+  Minder beelden naar het voorbeeld halveerde de CPU maar veranderde het geheugen niet, dus het
+  zit eerder in WPF zelf (render-caches, de lettertypes, de gradiënten van `LedBulb`, het
+  voorbeeld van "Hele huis" met 246 bolletjes). Meten met dotnet-counters of PerfView
+- Alleen de beelden van de zichtbare apparaten versturen (bijv. op Kleur alleen de gekozen lamp)
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze
@@ -226,12 +221,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - `InvariantGlobalization=true` staat andere UI-culturen niet toe; bij vertalen van de
   engine-teksten opnieuw afwegen
 - Wijzigingen in `settings.json` live oppikken (FileSystemWatcher) in plaats van bij herstart
-- Een ongeldige kleur in `ledColors` of `devices` maakt het hele `settings.json` onleesbaar; de
-  engine zet het dan opzij als `settings.json.broken` en draait op de standaardwaarden. Zo'n kleur
-  liever overslaan, zoals `zoneLengths`, `ledColorZoneLengths` en `simulatedDevices` een waarde
-  overslaan die ze niet kunnen lezen
-- Logging naar bestand (`Microsoft.Extensions.Logging`) voor fouten bij opstarten; nu gaan
-  fouten van de engine en de instellingen-app alleen naar `Trace` (bekijken met DebugView)
+- Een kleur die niet te lezen is, slaat de engine sinds #29 over, maar een ander verkeerd type
+  (bijv. `"brightness": "hoog"` of `"on": "ja"`) maakt het hele `settings.json` nog onleesbaar;
+  ook zo'n waarde liever overslaan en de standaardwaarde nemen
+- Het logbestand openen vanuit het tray-menu (bijv. "Logbestand openen"), zodat je het niet in
+  `%AppData%\BuurmansRgb\logs` hoeft te zoeken
 - Engine netjes laten afsluiten vanaf de commandline (bijv. `--exit` via het
   activatiesignaal), zodat scripts hem niet hoeven te killen en er geen spook-icoon blijft
 - Autostart-pad bijwerken als de engine verplaatst is (nu toont het menu dan "uit")
@@ -254,9 +248,6 @@ uitbreidingen in `docs/bouwplan.md`.
   andere map), en werkt alleen als Windows niet vergrendeld is
 - `dotnet-counters` gebruiken in een vaste meetstap (bijv. een script in `docs/`), zodat de
   0-allocaties-check ook op het draaiende proces gebeurt en niet alleen in een unit-test
-- De instellingen-app opnieuw meten met het venster zichtbaar (de metingen bij het nieuwe ontwerp
-  zijn gedaan terwijl Windows vergrendeld was, dan tekent WPF niets), vooral de gloed van de
-  bolletjes bij een regenboog op de pagina Lampen
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie

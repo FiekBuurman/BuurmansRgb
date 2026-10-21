@@ -50,6 +50,28 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Load_ColorThatDoesNotRead_KeepsTheProfileAndTheOtherProfiles()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            {
+              "profiles": [
+                { "name": "Gamen", "color": "purple", "brightness": 0.5, "loadAt": "23:00" },
+                { "name": "Nacht", "color": "#FF0000" }
+              ]
+            }
+            """);
+
+        var loaded = _store.Load();
+
+        Assert.Equal(["Gamen", "Nacht"], loaded.Select(profile => profile.Name));
+        Assert.Equal(DeviceLighting.Default.Color, loaded[0].Lighting.Global.Color);
+        Assert.Equal(0.5, loaded[0].Lighting.Global.Brightness);
+        Assert.Equal(new TimeOnly(23, 0), loaded[0].Automation.LoadAt);
+        Assert.Equal(Red, loaded[1].Lighting.Global.Color);
+        Assert.False(File.Exists(_store.BrokenFilePath));
+    }
+
+    [Fact]
     public void Save_WritesTheTimeAsHoursAndMinutes()
     {
         _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);
