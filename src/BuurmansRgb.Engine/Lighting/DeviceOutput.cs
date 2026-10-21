@@ -39,7 +39,15 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     }
 
     // From time on, the renders show the flash over the effect; the lighting itself stays.
-    public void StartFlash(TimeSpan time) => _flash = new DeviceFlash(time);
+    public void StartFlash(TimeSpan time) => _flash = new DeviceFlash(time, 0, Buffer.Length);
+
+    // The same over the LEDs of one zone only (RgbDevice.GetZoneLeds); the rest of the device
+    // keeps showing its effect.
+    public void StartZoneFlash(TimeSpan time, int zoneIndex)
+    {
+        var (firstLed, ledCount) = Device.GetZoneLeds(zoneIndex);
+        _flash = new DeviceFlash(time, firstLed, ledCount);
+    }
 
     public void StopFlash() => _flash = null;
 
@@ -66,7 +74,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
             }
             else
             {
-                leds.Fill(flash.ColorAt(time));
+                leds.Slice(flash.FirstLed, flash.LedCount).Fill(flash.ColorAt(time));
             }
         }
     }
