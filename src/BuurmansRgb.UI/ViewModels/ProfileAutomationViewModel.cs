@@ -223,10 +223,15 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         return new ProfileAutomation(times, ProgramText).Normalize();
     }
 
+    // With more times it says which one, the first that is wrong, by the number a screen reader
+    // gives its field; with one time a number only gets in the way.
     private string? FindError() =>
-        Times.Any(row => !row.TryRead(out _)) ? Strings.ProfileLoadAtInvalid
-        : Times.Any(row => row.HasTime && row.CheckedDays == WeekDays.None) ? Strings.ProfileDaysNone
+        Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.ProfileLoadAtInvalid, Strings.ProfileTimeInvalid)
+        : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
         : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
         : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
         : null;
+
+    private string ForRow(LoadTimeRow row, string single, string numbered) =>
+        Times.Count == 1 ? single : UiText.Format(numbered, row.Number);
 }

@@ -757,7 +757,13 @@
     <value>Op deze dagen</value>
   </data>
   <data name="ProfileDaysNone" xml:space="preserve">
-    <value>Kies minstens één dag voor elke tijd.</value>
+    <value>Kies minstens één dag voor de tijd.</value>
+  </data>
+  <data name="ProfileTimeInvalid" xml:space="preserve">
+    <value>Tijd {0}: vul een tijd in zoals 23:00, of laat het leeg.</value>
+  </data>
+  <data name="ProfileTimeDaysNone" xml:space="preserve">
+    <value>Tijd {0}: kies minstens één dag.</value>
   </data>
   <data name="ProfileTimeAccessibleName" xml:space="preserve">
     <value>Aanzetten om, tijd {0}</value>

@@ -154,7 +154,7 @@ public sealed class ProfileAutomationViewModelTests
             day.IsChecked = false;
         }
 
-        Assert.Equal("Kies minstens één dag voor elke tijd.", _automation.Error);
+        Assert.Equal("Kies minstens één dag voor de tijd.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
@@ -354,19 +354,36 @@ public sealed class ProfileAutomationViewModelTests
         _automation.Show("Ochtend", MorningAndWeekend);
 
         _automation.Times[1].Text = "25:00";
-        Assert.Equal("Vul een tijd in zoals 23:00, of laat het leeg.", _automation.Error);
+        Assert.Equal("Tijd 2: vul een tijd in zoals 23:00, of laat het leeg.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
 
         _automation.Times[1].Text = "09:00";
         _automation.Times[1].Days[5].IsChecked = false;
         _automation.Times[1].Days[6].IsChecked = false;
-        Assert.Equal("Kies minstens één dag voor elke tijd.", _automation.Error);
+        Assert.Equal("Tijd 2: kies minstens één dag.", _automation.Error);
 
         var removed = _automation.Times[1];
         _automation.RemoveTimeCommand.Execute(removed);
         Assert.Null(_automation.Error);
         removed.Text = "half elf";
         Assert.Null(_automation.Error);
+    }
+
+    // The first time that is wrong, by the number of its field.
+    [Fact]
+    public void InvalidTimes_SayTheNumberOfTheFirst()
+    {
+        _automation.Show("Ochtend", MorningAndWeekend);
+        _automation.AddTimeCommand.Execute(null);
+
+        _automation.Times[2].Text = "half elf";
+        Assert.Equal("Tijd 3: vul een tijd in zoals 23:00, of laat het leeg.", _automation.Error);
+
+        _automation.Times[1].Text = "25:00";
+        Assert.Equal("Tijd 2: vul een tijd in zoals 23:00, of laat het leeg.", _automation.Error);
+
+        _automation.RemoveTimeCommand.Execute(_automation.Times[0]);
+        Assert.Equal("Tijd 1: vul een tijd in zoals 23:00, of laat het leeg.", _automation.Error);
     }
 
     // As after "Toepassen": the same rows show what the engine saved, so the field with the focus
