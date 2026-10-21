@@ -290,6 +290,35 @@ public sealed class EngineHostReloadTests : IDisposable
         await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12 && _lighting.GetLighting(null).Color == Orange);
     }
 
+    // Why the reloader starts after the triggers, as the IPC server does: a change by hand that
+    // came in while the engine started is newer than the scene a trigger puts on at the start.
+    // Started before them, the reloader could apply the change first, and the scene would then
+    // overwrite it. The trigger waits a moment, so such a reloader would have read the file.
+    [Fact]
+    public async Task ChangeByHandDuringTheStart_IsAppliedAfterTheTriggers()
+    {
+        _store.ChangeByHand(new EngineSettings { Color = Orange });
+        // The engine read the file before that change.
+        _store.Settings = EngineSettings.CreateDefault();
+        var scene = new EngineSettings { Color = Red }.ToLightingState();
+        var trigger = new TriggerAtStart(() =>
+        {
+            SpinWait.SpinUntil(() => _store.LoadIfChangedCount > 0, TimeSpan.FromMilliseconds(500));
+            _lighting.Replace(scene);
+        });
+        using var host = new EngineHost(
+            _store,
+            _lighting,
+            saveDelay: TimeSpan.FromHours(1),
+            profileTriggers: [trigger],
+            settingsFileEvents: _fileEvents,
+            reloadDelay: TimeSpan.Zero);
+
+        await host.StartAsync(Ct);
+
+        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange);
+    }
+
     private EngineHost CreateHost() => new(
         _store,
         _lighting,
@@ -320,6 +349,15 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         _store.ChangeByHand(settings);
         _fileEvents.RaiseChanged();
+    }
+
+    private sealed class TriggerAtStart(Action start) : IProfileTrigger
+    {
+        public void Start() => start();
+
+        public void Dispose()
+        {
+        }
     }
 
     // Counts the changes by hand the store found.
