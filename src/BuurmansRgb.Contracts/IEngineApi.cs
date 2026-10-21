@@ -9,7 +9,8 @@ namespace BuurmansRgb.Contracts;
 [GenerateShape(IncludeMethods = MethodShapeFlags.PublicInstance)]
 public partial interface IEngineApi
 {
-    // Raised after every change to the lights, also while effects are paused.
+    // Raised after a change to the lights, also while effects are paused: at most 20 times a second,
+    // with the latest frame, and not while the app wants no frames (SetFramesWantedAsync).
     event EventHandler<LightingFrame> FrameRendered;
 
     // Raised when devices come or go, for example when OpenRGB starts or stops. GetDevicesAsync
@@ -43,6 +44,10 @@ public partial interface IEngineApi
     Task<IReadOnlyList<DeviceLightingInfo>> GetAllLightingAsync(CancellationToken ct = default);
 
     Task<LightingFrame> GetFrameAsync(CancellationToken ct = default);
+
+    // False while the app shows no preview (minimized, or a page without one): FrameRendered stops,
+    // and nothing is copied for it. True again sends the latest frame right away. True until said.
+    Task SetFramesWantedAsync(bool wanted, CancellationToken ct = default);
 
     Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default);
 

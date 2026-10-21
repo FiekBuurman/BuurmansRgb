@@ -16,7 +16,14 @@ public partial class MainWindow : Window
                 viewModel.Profiles.ConfirmDelete = ConfirmDelete;
             }
         };
-        StateChanged += (_, _) => Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
+        StateChanged += (_, _) =>
+        {
+            Frame.Padding = WindowState == WindowState.Maximized ? WindowFrame.Of(this) : default;
+            if (DataContext is MainViewModel viewModel)
+            {
+                viewModel.IsWindowMinimized = WindowState == WindowState.Minimized;
+            }
+        };
     }
 
     private void OnMinimizeClick(object sender, RoutedEventArgs e) => SystemCommands.MinimizeWindow(this);
