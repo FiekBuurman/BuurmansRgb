@@ -1,5 +1,12 @@
 # OpenRGB meeleveren – uitkomst van de spike
 
+> **Stand:** optie B is gekozen en gebouwd in taak 9 (PR #16). De installer staat in
+> [`installer/`](../installer/): `build.ps1` bouwt hem, `BuurmansRgb.iss` is het Inno
+> Setup-script en `sandbox/test-install.ps1` test hem in Windows Sandbox. Bouwen en testen staat
+> in `README.md` onder "Installer bouwen en testen", installeren in
+> [installatie.md](installatie.md). Hieronder het oorspronkelijke onderzoek; afwijkingen van het
+> voorstel staan bij "Zo is het gebouwd".
+
 Doel: één installatie, zodat je OpenRGB niet meer apart hoeft te installeren en in te stellen.
 De spike is uitgevoerd op 20 oktober 2026 met **OpenRGB 1.1** (16 oktober 2026). Er is niets
 systeemwijd geïnstalleerd: de zip is lokaal gestart, de MSI alleen gelezen.
@@ -83,21 +90,39 @@ Inno Setup 6, één `BuurmansRgb-setup.exe`, `PrivilegesRequired=admin`:
 In de engine verandert alleen: `--first-run` afhandelen en gesimuleerde apparaten standaard
 uit zodra OpenRGB apparaten levert.
 
+## Zo is het gebouwd
+
+Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
+
+- **Inno Setup 7.1** in plaats van 6; `build.ps1` haalt de compiler van NuGet.
+- **Downloaden bij het bouwen, niet bij het installeren:** `build.ps1` haalt de MSI van
+  OpenRGB en de setup van PawnIO op, controleert hun SHA-256 en zet ze in de installer. Voor
+  eigen gebruik is dat genoeg; zie de licentie van PawnIO hierboven als je de installer wilt
+  delen.
+- **PawnIO** wordt ook overgeslagen als het al geïnstalleerd is. De installer onthoudt in
+  `HKLM\Software\BuurmansRgb` of hij OpenRGB en PawnIO zelf installeerde; alleen dan vraagt
+  verwijderen of ze ook weg moeten.
+- **Gesimuleerde apparaten** staan standaard op "Automatisch": ze verdwijnen zodra OpenRGB
+  echte apparaten levert (PR #21).
+- **Licentie OpenRGB:** GPL-2.0, als los programma meegeleverd. De licentie en de link naar de
+  broncode staan in `installer/THIRD-PARTY-NOTICES.txt`, dat naast BuurmansRgb wordt
+  geïnstalleerd.
+- **De OpenRGB-GUI naast de service:** de GUI start als client en verbindt met de service.
+  Twee servers op 6742 kan niet, dus de installer maakt geen eigen autostart voor de GUI aan.
+
 ## Open punten en risico's
 
-- **Niet getest: de echte service-installatie.** Test de installer eerst in
-  **Windows Sandbox**. Controleer daar dat de service `OpenRGB` draait, dat poort 6742
-  luistert, en dat BuurmansRgb verbindt.
+- **Niet getest: de echte service-installatie.** De Windows Sandbox-test (`installer/sandbox`)
+  is gebouwd, maar bij het bouwen stond Windows Sandbox niet aan op de ontwikkel-pc, dus de
+  criteria van taak 9 in `docs/bouwplan.md` staan nog open. De test controleert dat de service
+  `OpenRGB` draait, dat poort 6742 luistert, en dat BuurmansRgb verbindt.
 - **Waar de service zijn config bewaart:** waarschijnlijk in het profiel van LocalSystem. Dat
   is niet bevestigd. Profielen of zonegroottes die je in de OpenRGB-GUI instelt, komen
   terecht bij de service, omdat de GUI als client met de service verbindt. Dat moet nog
   getest worden.
 - **Niet ondertekend:** SmartScreen en Defender waarschuwen bij de installer en bij OpenRGB
   ("Meer info → Toch uitvoeren"). Voor eigen gebruik prima; delen vraagt een
-  code-signing-certificaat.
-- **De OpenRGB-GUI naast de service:** de GUI start als client en verbindt met de service.
-  Twee servers op 6742 kan niet, dus de installer maakt geen eigen autostart voor de GUI aan.
+  code-signing-certificaat (zie `docs/ideas.md`).
 - **Bijwerken van OpenRGB:** een nieuwere MSI over de oude heen zou moeten werken (zelfde
-  `UpgradeCode`), maar dat is niet getest.
-- **Licentie OpenRGB:** GPL-2.0. Meeleveren als los programma mag, met de licentietekst en
-  een link naar de broncode in de installer.
+  `UpgradeCode`), maar dat is niet getest. De installer slaat OpenRGB nu over als de service
+  al bestaat, dus een nieuwere OpenRGB komt er alleen bij een nieuwe installatie in.
