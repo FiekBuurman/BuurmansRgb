@@ -252,7 +252,12 @@ toetsenbord. Een paar dingen om te proberen:
   zodat de opslag die de wijzigingen plannen niets schrijft en het bestand de opmaak en onbekende
   sleutels van de gebruiker houdt. Alleen wat de engine anders heeft (een scène die uitging of niet
   overgenomen werd) schrijft hij een seconde later terug. Een opslag die tijdens het toepassen
-  afloopt, wacht daarop; een opslag met dezelfde inhoud als het bestand schrijft nooit.
+  afloopt, wacht daarop; een opslag met dezelfde inhoud als het bestand schrijft nooit. De saver
+  slaat op met `ISettingsStore.SaveIfUnchanged`, een compare-and-swap: staan er andere bytes in
+  het bestand dan de store kent (een wijziging met de hand die de reloader nog niet las), dan
+  schrijft hij niets en probeert de saver het na zijn vertraging opnieuw; meestal heeft de
+  reloader het dan toegepast en is er niets meer op te slaan. Na vijf keer schrijft hij toch (er
+  is dan geen watcher die het leest), en bij afsluiten gaat de wijziging met de hand voor.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's. Een wijziging met de hand komt pas na een
   herstart binnen.

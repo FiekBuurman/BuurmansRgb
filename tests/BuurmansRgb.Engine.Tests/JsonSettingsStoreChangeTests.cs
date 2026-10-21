@@ -163,6 +163,61 @@ public sealed class JsonSettingsStoreChangeTests : IDisposable
         Assert.Equal(12, store.LoadOrCreate().FramesPerSecond);
     }
 
+    [Fact]
+    public void SaveIfUnchanged_AfterItsOwnSave_Writes()
+    {
+        var store = new JsonSettingsStore(FilePath);
+        store.Save(new EngineSettings { FramesPerSecond = 12 });
+
+        Assert.True(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
+
+        Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
+    }
+
+    // The change by hand goes before the save, until the store read it.
+    [Fact]
+    public void SaveIfUnchanged_ChangedByHandAndNotReadYet_WritesNothing()
+    {
+        var store = new JsonSettingsStore(FilePath);
+        store.LoadOrCreate();
+        const string text = """{ "framesPerSecond": 12 }""";
+        File.WriteAllText(FilePath, text);
+
+        Assert.False(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
+
+        Assert.Equal(text, File.ReadAllText(FilePath));
+        Assert.Equal(12, store.LoadIfChanged()?.FramesPerSecond);
+        Assert.True(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
+        Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
+    }
+
+    [Fact]
+    public void SaveIfUnchanged_FileThatIsGone_WritesIt()
+    {
+        var store = new JsonSettingsStore(FilePath);
+        store.Save(new EngineSettings { FramesPerSecond = 12 });
+        File.Delete(FilePath);
+
+        Assert.True(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
+
+        Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
+    }
+
+    // As Save: the file that did not read goes aside first.
+    [Fact]
+    public void SaveIfUnchanged_AfterAChangeThatDidNotRead_MovesTheFileAsideFirst()
+    {
+        var store = new JsonSettingsStore(FilePath);
+        store.LoadOrCreate();
+        File.WriteAllText(FilePath, """{ "framesPerSecond": 12,, }""");
+        store.LoadIfChanged();
+
+        Assert.True(store.SaveIfUnchanged(new EngineSettings { FramesPerSecond = 24 }));
+
+        Assert.Equal("""{ "framesPerSecond": 12,, }""", File.ReadAllText(store.BrokenFilePath));
+        Assert.Equal(24, store.LoadOrCreate().FramesPerSecond);
+    }
+
     // An editor that still holds the file: its last write is a change of its own.
     [Fact]
     public void LoadIfChanged_FileThatIsHeld_ReturnsNothingUntilItIsFree()

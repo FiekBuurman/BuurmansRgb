@@ -41,6 +41,24 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
     }
 
+    // The user may still save the file between this reading it and moving the save over it; that
+    // window is short, as the save is a move.
+    public bool SaveIfUnchanged(EngineSettings settings)
+    {
+        var json = settings.ToJson();
+        lock (_gate)
+        {
+            if (!_unreadable && File.Exists(filePath) && !HoldsKnownLocked())
+            {
+                Trace.TraceInformation($"Settings file {filePath} changed by someone else; it goes before the engine's save.");
+                return false;
+            }
+
+            SaveLocked(json);
+            return true;
+        }
+    }
+
     // A file that does not read is left where it is, unlike at the start: it may be half written
     // still, and the engine keeps running on what it has. Only a save moves it aside.
     public EngineSettings? LoadIfChanged()
@@ -136,6 +154,9 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         {
         }
     }
+
+    private bool HoldsKnownLocked() =>
+        _known is not null && File.ReadAllBytes(filePath).AsSpan().SequenceEqual(_known);
 
     // A file that did not read when it last changed goes aside first, as at the start.
     private void SaveLocked(byte[] json)

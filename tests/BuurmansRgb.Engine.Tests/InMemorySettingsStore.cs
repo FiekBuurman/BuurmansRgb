@@ -16,7 +16,8 @@ internal sealed class InMemorySettingsStore : ISettingsStore
 
     public EngineSettings LoadOrCreate() => Settings;
 
-    // Settings changed "by hand": the next LoadIfChanged returns them, once.
+    // Settings changed "by hand": the next LoadIfChanged returns them, once. Until then
+    // SaveIfUnchanged writes nothing.
     public void ChangeByHand(EngineSettings settings)
     {
         Settings = settings;
@@ -39,6 +40,18 @@ internal sealed class InMemorySettingsStore : ISettingsStore
         }
 
         Settings = settings;
+        _changedByHand = null;
         SaveCount++;
+    }
+
+    public bool SaveIfUnchanged(EngineSettings settings)
+    {
+        if (_changedByHand is not null)
+        {
+            return false;
+        }
+
+        Save(settings);
+        return true;
     }
 }

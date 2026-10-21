@@ -225,9 +225,6 @@ uitbreidingen in `docs/bouwplan.md`.
   lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
 - `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
   engine dat veld bij een wijziging met de hand niet over
-- Een wijziging met de hand die samenvalt met een opslag van de engine (iets in de app
-  gewijzigd binnen dezelfde seconde) gaat nu verloren; eventueel vóór het opslaan kijken of het
-  bestand intussen door iemand anders veranderde
 
 ## Installer en uitrol
 

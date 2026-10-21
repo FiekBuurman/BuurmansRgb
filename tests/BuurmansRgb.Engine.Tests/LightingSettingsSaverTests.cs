@@ -321,5 +321,82 @@ public sealed class LightingSettingsSaverTests
         Assert.Equal(Orange, _store.Settings.Color);
     }
 
+    // The file changed by hand and nobody read it yet: the save waits for the reloader.
+    [Fact]
+    public async Task FileChangedByHandNotReadYet_SavesOnceItIsRead()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 12 });
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+        Assert.Equal(0, _store.SaveCount);
+
+        _store.LoadIfChanged();
+        _time.Advance(Delay);
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    // Read and applied by the reloader meanwhile: the engine holds what the file holds.
+    [Fact]
+    public async Task FileChangedByHandNotReadYet_AdoptedThen_WritesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        var fromFile = new EngineSettings { FramesPerSecond = 12 };
+        _store.ChangeByHand(fromFile);
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+
+        _store.LoadIfChanged();
+        saver.Adopt(fromFile, () =>
+        {
+            saver.ChangeOptions(settings => settings with { FramesPerSecond = 12 });
+            _lighting.Replace(fromFile.ToLightingState());
+        });
+        _time.Advance(Delay);
+
+        Assert.Equal(0, _store.SaveCount);
+        Assert.Same(fromFile, _store.Settings);
+    }
+
+    // Without a watcher nobody reads the change: after a few tries the engine saves anyway.
+    [Fact]
+    public async Task FileChangedByHandThatNobodyReads_IsSavedOverAfterAFewTries()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = CreateSaver();
+        _store.ChangeByHand(new EngineSettings { FramesPerSecond = 12 });
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+
+        for (var i = 0; i < 4; i++)
+        {
+            _time.Advance(Delay);
+        }
+
+        Assert.Equal(0, _store.SaveCount);
+        _time.Advance(Delay);
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(Orange, _store.Settings.Color);
+    }
+
+    // At the exit the change by hand goes before what waited.
+    [Fact]
+    public async Task Dispose_FileChangedByHandNotReadYet_WritesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var saver = CreateSaver();
+        var byHand = new EngineSettings { FramesPerSecond = 12 };
+        _store.ChangeByHand(byHand);
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+
+        saver.Dispose();
+
+        Assert.Equal(0, _store.SaveCount);
+        Assert.Same(byHand, _store.Settings);
+    }
+
     private LightingSettingsSaver CreateSaver() => new(_store, _lighting, EngineSettings.CreateDefault(), Delay, _time, _saveEvents);
 }

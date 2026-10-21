@@ -6,9 +6,15 @@ namespace BuurmansRgb.Engine.Settings;
 // Saves the lighting, and the options that can change while the engine runs, a moment after the
 // last change, so dragging a slider in the UI writes the file once instead of on every step. The
 // timer only runs while a save is pending. A save that would write what the file holds already
-// writes nothing.
+// writes nothing, and one that finds the file changed by hand waits for SettingsReloader to apply
+// that change first: the newest change wins, also when it was made in an editor.
 internal sealed class LightingSettingsSaver : IDisposable
 {
+    // Saves in a row that found the file changed by hand before this saves anyway: without a
+    // watcher (one that did not start) nobody reads such a change, and the engine must still save.
+    // With one, the reloader reads it well before.
+    private const int MaxWaitsForChangeByHand = 5;
+
     private readonly ISettingsStore _store;
     private readonly ILightingStateSource _lighting;
     private readonly TimeSpan _delay;
@@ -29,6 +35,9 @@ internal sealed class LightingSettingsSaver : IDisposable
     // A change on another thread meanwhile, such as one from the settings app, is not in the file.
     private int _adoptingThread;
     private bool _changedElsewhere;
+
+    // How many saves in a row found the file changed by hand.
+    private int _waitsForChangeByHand;
 
     // startupSettings are the settings the engine started with: the saver keeps their other
     // options, unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about
@@ -110,6 +119,7 @@ internal sealed class LightingSettingsSaver : IDisposable
             lock (_gate)
             {
                 _adoptingThread = 0;
+                _waitsForChangeByHand = 0;
                 var held = _settings.WithLighting(_lighting.State);
                 _inFile = _changedElsewhere ? null : (held with { ActiveScene = fromFile.ActiveScene }).ToJson();
                 if (!_disposed)
@@ -167,7 +177,26 @@ internal sealed class LightingSettingsSaver : IDisposable
 
             try
             {
-                _store.Save(settings);
+                if (!_store.SaveIfUnchanged(settings))
+                {
+                    // At the exit the change by hand goes before this one. Otherwise this tries
+                    // again once the reloader applied it, which usually leaves nothing to save.
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
+                    if (++_waitsForChangeByHand < MaxWaitsForChangeByHand)
+                    {
+                        ScheduleSaveLocked();
+                        return;
+                    }
+
+                    Trace.TraceWarning("Nobody read the settings file changed by hand; the engine saves over it.");
+                    _store.Save(settings);
+                }
+
+                _waitsForChangeByHand = 0;
                 _inFile = json;
                 succeeded = true;
             }

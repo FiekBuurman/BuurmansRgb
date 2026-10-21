@@ -208,6 +208,26 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal(text, File.ReadAllText(path));
     }
 
+    // A change in the app whose save comes due just after the user saved the file: the save does
+    // not overwrite the file, and the newest change, the one by hand, is applied.
+    [Fact]
+    public async Task WithTheRealFile_SaveDueJustAfterAChangeByHand_LeavesTheFile()
+    {
+        var path = _directory.File("settings.json");
+        using var watcher = new SettingsFileWatcher(path);
+        using var host = new EngineHost(new JsonSettingsStore(path), _lighting, saveDelay: TimeSpan.FromMilliseconds(200), settingsFileEvents: watcher);
+        await host.StartAsync(Ct);
+        const string text = """{ "framesPerSecond": 12, "color": "#FF8800" }""";
+
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+        await File.WriteAllTextAsync(path, text, Ct);
+
+        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
+        await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
+        Assert.Equal(text, File.ReadAllText(path));
+        Assert.Equal(1.0, _lighting.GetLighting(null).Brightness);
+    }
+
     // The whole chain with the real file, watcher and store: the change by hand comes in, and the
     // engine's own save of it afterwards does not come back as another change.
     [Fact]
@@ -293,6 +313,8 @@ public sealed class EngineHostReloadTests : IDisposable
         public EngineSettings LoadOrCreate() => store.LoadOrCreate();
 
         public void Save(EngineSettings settings) => store.Save(settings);
+
+        public bool SaveIfUnchanged(EngineSettings settings) => store.SaveIfUnchanged(settings);
 
         public EngineSettings? LoadIfChanged()
         {
