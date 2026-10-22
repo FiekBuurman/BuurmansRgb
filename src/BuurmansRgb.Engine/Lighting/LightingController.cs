@@ -637,7 +637,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
-            var effect = lighting.On ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop) : Off;
+            var effect = lighting.On ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop, EffectCatalog.SeedOf(output.Device.Id)) : Off;
             var zonesAlike = lighting.EffectId != EffectIds.PerLed && _zonesAlike.Contains(output.Device.Id);
             output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike);
             output.Render(time);
