@@ -19,5 +19,7 @@ internal sealed class RecordingPreviewActions : IPreviewActions
 
     public void FlashZone(ZoneFlash flash) => Requests.Add(flash);
 
+    public void SetZonesAlike(ZonesAlikeChoice choice) => Requests.Add(choice);
+
     public bool CanFlash { get; set; } = true;
 }

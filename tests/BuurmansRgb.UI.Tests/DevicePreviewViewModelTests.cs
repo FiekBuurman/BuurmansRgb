@@ -36,6 +36,59 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal(lacksDirectMode, preview.LacksDirectMode);
     }
 
+    // The empty header has nothing to show, but the board and the 12 V header are two zones.
+    [Fact]
+    public void ShowsZonesAlike_TwoZonesWithLeds_IsTrue()
+    {
+        var preview = new DevicePreviewViewModel(Motherboard);
+
+        Assert.True(preview.ShowsZonesAlike);
+        Assert.False(preview.ZonesAlike);
+        Assert.Equal("Zones gelijk bij Motherboard", preview.ZonesAlikeAccessibleName);
+    }
+
+    [Fact]
+    public void ShowsZonesAlike_OneZoneWithLeds_IsFalse()
+    {
+        var argb = new DeviceInfo("argb", "ARGB", DeviceType.LedStrip, 20, [new RgbZone("ARGB 1", 20, 0, 60), new RgbZone("ARGB 2", 0, 0, 60)]) { Source = DeviceSource.Hardware };
+
+        Assert.False(new DevicePreviewViewModel(argb).ShowsZonesAlike);
+        Assert.False(new DevicePreviewViewModel(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12)).ShowsZonesAlike);
+    }
+
+    // The LEDs that no zone holds show the image too, so they count as a zone of their own.
+    [Fact]
+    public void ShowsZonesAlike_OneZoneAndLedsWithoutAZone_IsTrue()
+    {
+        var device = new DeviceInfo("case", "Case", DeviceType.Case, 6, [RgbZone.Fixed("Front", 4)]) { Source = DeviceSource.Hardware };
+
+        Assert.True(new DevicePreviewViewModel(device).ShowsZonesAlike);
+    }
+
+    [Fact]
+    public void ZonesAlike_StartsAsTheEngineReportsIt_WithoutARequest()
+    {
+        var actions = new RecordingPreviewActions();
+
+        var preview = new DevicePreviewViewModel(Motherboard with { ZonesAlike = true }, actions);
+
+        Assert.True(preview.ZonesAlike);
+        Assert.Empty(actions.Requests);
+    }
+
+    [Fact]
+    public void ZonesAlike_Switched_AsksForIt()
+    {
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions);
+
+        preview.ZonesAlike = true;
+        preview.ZonesAlike = true;
+        preview.ZonesAlike = false;
+
+        Assert.Equal([new ZonesAlikeChoice("board", true), new ZonesAlikeChoice("board", false)], actions.Requests);
+    }
+
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {

@@ -1,4 +1,5 @@
-<!-- The preview of the selected lamp, or of all of them: per device a button to let it blink, per zone its
+<!-- The preview of the selected lamp, or of all of them: per device a button to let it blink and, with more
+     zones, the switch "Zones gelijk", per zone its
      name with a button to let only that zone blink, a dot or key per LED, and the length of a zone whose length
      can be set. The DataContext is MainViewModel. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.LedPreviewPanel"
@@ -27,6 +28,17 @@
                                         ToolTipService.ShowOnDisabled="True" />
                                 <Path Style="{StaticResource DeviceIcon}" Margin="0,0,10,0" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CardTitle}" VerticalAlignment="Center" Text="{Binding Name}" />
+                            </DockPanel>
+                            <!-- "Zones gelijk", only for a device with more zones with LEDs; the explanation is the
+                                 tooltip, so a card stays short. The switch keeps the focus when the preview is made
+                                 again after a change of it. -->
+                            <DockPanel Margin="0,0,0,10" ToolTip="{x:Static res:Strings.ZonesAlikeHint}"
+                                       Visibility="{Binding ShowsZonesAlike, Converter={StaticResource BoolToVisibility}}">
+                                <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding ZonesAlike}"
+                                              AutomationProperties.Name="{Binding ZonesAlikeAccessibleName}"
+                                              AutomationProperties.HelpText="{x:Static res:Strings.ZonesAlikeHint}"
+                                              views:FocusKeeper.Key="{Binding ZonesAlikeFocusKey}" />
+                                <TextBlock Style="{StaticResource Body}" VerticalAlignment="Center" Text="{x:Static res:Strings.ZonesAlike}" />
                             </DockPanel>
                             <DockPanel Margin="0,0,0,10" Visibility="{Binding LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
                                 <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}"

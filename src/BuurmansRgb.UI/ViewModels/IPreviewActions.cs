@@ -19,6 +19,9 @@ public interface IPreviewActions
     // The same for one zone of a device, such as one header of a motherboard.
     void FlashZone(ZoneFlash flash);
 
+    // "Zones gelijk" switched for a device.
+    void SetZonesAlike(ZonesAlikeChoice choice);
+
     // False while the effects are paused: a device or zone does not blink then.
     bool CanFlash { get; }
 }

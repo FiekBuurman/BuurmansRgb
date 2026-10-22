@@ -277,6 +277,36 @@ public sealed class MainViewModelTests
         Assert.Equal(["flash board zone 1"], Api.Calls);
     }
 
+    // The engine reports the device again with the choice, and the preview shows it.
+    [Fact]
+    public async Task ZonesAlikeInThePreview_GoesToTheEngineAndStays()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+
+        viewModel.Preview.Devices.Single().ZonesAlike = true;
+
+        Assert.Equal(["zones-alike board on"], Api.Calls);
+        await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single().ZonesAlike);
+
+        viewModel.Preview.Devices.Single().ZonesAlike = false;
+
+        Assert.Equal(["zones-alike board on", "zones-alike board off"], Api.Calls);
+        await Eventually.TrueAsync(() => !viewModel.Preview.Devices.Single().ZonesAlike);
+    }
+
+    // Another settings app, or settings.json by hand: the engine reports the devices again.
+    [Fact]
+    public async Task ZonesAlikeElsewhere_ShowsInThePreview()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+
+        Api.Devices = [Board with { ZonesAlike = true }];
+        Api.RaiseDevicesChanged();
+
+        await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single().ZonesAlike);
+        Assert.Empty(Api.Calls);
+    }
+
     // A button in the preview flashes at once; the flash that waits from running through the list
     // then does not blink over it later.
     [Theory]

@@ -14,6 +14,7 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
 {
     private readonly IPreviewActions? _actions;
     private bool _hasSelection;
+    private bool _zonesAlike;
 
     public DevicePreviewViewModel(DeviceInfo device, IPreviewActions? actions = null, TimeProvider? time = null)
     {
@@ -24,7 +25,10 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         LedCount = device.LedCount;
         LacksDirectMode = !device.HasDirectMode;
         FlashAccessibleName = UiText.Format(Strings.FlashDeviceAccessibleName, device.Name);
+        ZonesAlikeAccessibleName = UiText.Format(Strings.ZonesAlikeAccessibleName, device.Name);
+        _zonesAlike = device.ZonesAlike;
         Zones = CreateZones(device, actions, time);
+        ShowsZonesAlike = Zones.Count(zone => zone.LedCount > 0) > 1;
         foreach (var zone in Zones)
         {
             zone.PropertyChanged += OnZoneChanged;
@@ -49,6 +53,30 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
 
     // What a screen reader calls the flash button; every device in the preview has one.
     public string FlashAccessibleName { get; }
+
+    // "Zones gelijk": every zone shows the image the effect renders over the longest one. A change
+    // goes to the engine, which reports the device again with it (DevicesChanged); the colors in
+    // the preview are the ones the engine renders, so they show it by themselves.
+    public bool ZonesAlike
+    {
+        get => _zonesAlike;
+        set
+        {
+            if (SetProperty(ref _zonesAlike, value))
+            {
+                _actions?.SetZonesAlike(new ZonesAlikeChoice(DeviceId, value));
+            }
+        }
+    }
+
+    // Only a device with two or more zones with LEDs looks different with it; the LEDs without a
+    // zone ("Overige LED's") count as one, as the engine gives them the image too.
+    public bool ShowsZonesAlike { get; }
+
+    public string ZonesAlikeAccessibleName { get; }
+
+    // The switch keeps the focus when the preview is made again, as it is after a change of it.
+    public string ZonesAlikeFocusKey => $"zones-alike/{DeviceId}";
 
     // The LED the keys move and choose, counted from the start of the device: the first one until
     // the user moves it or clicks another one; LedMatrix.NoLed for a device without LEDs. The view

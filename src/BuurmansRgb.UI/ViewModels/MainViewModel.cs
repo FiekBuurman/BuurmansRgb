@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
+    private const string ZonesAlikeCall = "zones-alike";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
@@ -96,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
+        Preview.ZonesAlikeRequested += (_, choice) => SendZonesAlike(choice);
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
@@ -744,6 +746,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
+        }
+    }
+
+    // The engine reports the device with its new choice through DevicesChanged, which rebuilds the
+    // preview; the frames that follow show the zones alike, or each with its own part again.
+    private void SendZonesAlike(ZonesAlikeChoice choice)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((ZonesAlikeCall, choice.DeviceId), () => connection.Api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
         }
     }
 

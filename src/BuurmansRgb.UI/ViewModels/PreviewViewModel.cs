@@ -32,6 +32,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // Raised when the user asks one zone of a device to flash.
     public event EventHandler<ZoneFlash>? ZoneFlashRequested;
 
+    // Raised when the user switches "Zones gelijk" of a device.
+    public event EventHandler<ZonesAlikeChoice>? ZonesAlikeRequested;
+
     // Set from the pause of the engine; greys out "Laat knipperen" of every device and "Knipperen"
     // of every zone.
     public bool CanFlash
@@ -152,6 +155,8 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
 
     void IPreviewActions.FlashZone(ZoneFlash flash) => ZoneFlashRequested?.Invoke(this, flash);
+
+    void IPreviewActions.SetZonesAlike(ZonesAlikeChoice choice) => ZonesAlikeRequested?.Invoke(this, choice);
 
     private static IEnumerable<ZoneLengthViewModel> LengthsOf(IEnumerable<DevicePreviewViewModel> previews) =>
         previews.SelectMany(preview => preview.Zones).Select(zone => zone.Length).OfType<ZoneLengthViewModel>();
