@@ -29,7 +29,7 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
 
     // Blended random values mostly lie around the middle; this spreads the heat out again, so the
     // darkest red and the yellow both show.
-    private const double Contrast = 1.6;
+    private const double Contrast = 1.4;
 
     private const uint SlowStream = 0xF1AE0001;
     private const uint FastStream = 0xF1AE0002;
@@ -56,8 +56,9 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
     }
 
     // A random value from 0 to 1 at every whole place and step, blended smoothly in between. A blend
-    // of two values lies closer to the middle than either, so between two places it is spread out
-    // again by as much: else the LEDs on a whole place would flicker more and show as stripes. It
+    // of two values lies closer to the middle than either, so between two places and between two
+    // steps it is spread out again by as much: else the LEDs on a whole place would flicker more and
+    // show as stripes, and the whole device would burn flatter between two steps than on one. It
     // can then fall outside 0 to 1, which the contrast clamps anyway.
     private static double Noise(double place, double step, uint stream)
     {
@@ -68,7 +69,8 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         var (left, now) = ((int)column, (long)row);
         var thisStep = EffectMath.Lerp(EffectMath.Random(left, now, stream), EffectMath.Random(left + 1, now, stream), across);
         var nextStep = EffectMath.Lerp(EffectMath.Random(left, now + 1, stream), EffectMath.Random(left + 1, now + 1, stream), across);
-        var spread = Math.Sqrt((1.0 - across) * (1.0 - across) + across * across);
+        var spread = Math.Sqrt((1.0 - across) * (1.0 - across) + across * across)
+            * Math.Sqrt((1.0 - along) * (1.0 - along) + along * along);
         return 0.5 + (EffectMath.Lerp(thisStep, nextStep, along) - 0.5) / spread;
     }
 

@@ -74,6 +74,28 @@ public sealed class FireEffectTests
         Assert.True(deviations.Max() / deviations.Min() < 1.04, $"Deviations {string.Join(", ", deviations)}.");
     }
 
+    // The random values lie at whole steps in time, the same for every LED; between two steps the
+    // fire must not burn flatter over the whole device than on a step, which would make all the
+    // flames swell and ebb at once. At 2 steps per second and 30 frames per second a frame falls on
+    // every fifteenth of a step.
+    [Fact]
+    public void Render_FramesOnAndBetweenTheSteps_SpreadAlike()
+    {
+        var leds = new RgbColor[104];
+        var effect = new FireEffect(flickersPerSecond: 2.0);
+        var (spreads, counts) = (new double[15], new int[15]);
+        for (var frame = 0; frame < 30 * 300; frame++)
+        {
+            effect.Render(leds, frame * Frame);
+            var mean = leds.Average(led => (double)led.G);
+            spreads[frame % 15] += Math.Sqrt(leds.Average(led => Math.Pow(led.G - mean, 2)));
+            counts[frame % 15]++;
+        }
+
+        var deviations = spreads.Zip(counts, (spread, count) => spread / count).ToArray();
+        Assert.True(deviations.Max() / deviations.Min() < 1.04, $"Deviations {string.Join(", ", deviations)}.");
+    }
+
     // Over a while an LED goes from deep red to yellow and back, and it changes from frame to frame.
     [Theory]
     [InlineData(1, 0)]
