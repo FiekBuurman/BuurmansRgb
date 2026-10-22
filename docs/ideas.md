@@ -159,15 +159,23 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
-  "laatste frame blijft staan"
+- De helderheid van "Dimmen" bij "Lampen tijdens deze pauze" instelbaar maken; nu vast 20 %
+- Met "Dimmen" of "Uit" ook dimmen of uitgaan als de pauze uit het tray-menu al liep toen
+  Windows vergrendelde of ging slapen; nu laat die pauze de lampen zoals ze zijn. Daarvoor moet
+  de engine onthouden wat de lampen bij het begin van die pauze lieten zien
+- Het voorbeeld in de instellingen-app laten zien dat de lampen gedimd of uit zijn; nu toont het
+  tijdens zo'n pauze de echte kleuren
+- "Lampen tijdens deze pauze" per reden kunnen kiezen, bijv. alleen bij de slaapstand uit en bij
+  vergrendelen het laatste beeld
 - Een eigen schakelaar voor pauzeren als het scherm uitgaat, los van vergrendelen en slaapstand;
   nu valt het onder dezelfde `pauseOnLockAndSleep`
 - De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
   gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
-  aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat
+  aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat. Met
+  "Dimmen" of "Uit" bij "Lampen tijdens deze pauze" stuurt hij bij het wisselen ook nog het
+  gedimde beeld of zwart
 - Herstellen na het ontwaken ook bij Modern Standby (S0) controleren: of `PowerModeChanged`
   dan `Resume` meldt, verschilt per pc. Eventueel ook herstellen (de apparaten opnieuw laden)
   bij het aangaan van het scherm (`IDisplayEvents`) of bij ontgrendelen; nu stuurt de engine

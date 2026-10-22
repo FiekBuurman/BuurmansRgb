@@ -127,6 +127,13 @@ public partial interface IEngineApi
 
     Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default);
 
+    // What the devices show during that pause: the last frame (the default), that frame dimmed, or
+    // black; not during the pause from the tray menu. Saved like the lighting; another value during
+    // such a pause goes to the devices at once.
+    Task<PausedLightsMode> GetPausedLightsAsync(CancellationToken ct = default);
+
+    Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default);
+
     // Whether a scene time that passed while the pc slept or the engine did not run is caught up
     // on: after waking up and at the start the scene of the last time that passed comes on. Off,
     // such a time is skipped. Saved like the lighting; it counts from the next wake-up or start.

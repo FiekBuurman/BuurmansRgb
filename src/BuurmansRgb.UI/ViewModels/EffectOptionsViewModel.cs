@@ -1,12 +1,13 @@
 using System.Globalization;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The options of the effects on Instellingen: how smooth they move, and whether they pause while
-// Windows is locked or asleep, or the screen is off. This only asks; MainViewModel sends a change
-// to the engine, which saves it.
+// The options of the effects on Instellingen: how smooth they move, whether they pause while
+// Windows is locked or asleep, or the screen is off, and what the lamps show then. This only asks;
+// MainViewModel sends a change to the engine, which saves it.
 public sealed partial class EffectOptionsViewModel : ObservableObject
 {
     private static readonly IReadOnlyList<FrameRateOption> Standard =
@@ -24,6 +25,12 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     // Raised when the user switches the pause on lock and sleep.
     public event EventHandler<bool>? PauseOnLockAndSleepChanged;
 
+    // Raised when the user picks what the lamps show during that pause.
+    public event EventHandler<PausedLightsMode>? PausedLightsChanged;
+
+    public static IReadOnlyList<PausedLightsOption> PausedLightsOptions { get; } =
+        [.. Enum.GetValues<PausedLightsMode>().Select(PausedLightsOption.Create)];
+
     // The three standard rates, plus the one from settings.json when that is another.
     [ObservableProperty]
     public partial IReadOnlyList<FrameRateOption> FrameRates { get; private set; } = Standard;
@@ -34,8 +41,12 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool PauseOnLockAndSleep { get; set; } = true;
 
+    // Only counts while PauseOnLockAndSleep is on; the page greys it out otherwise.
+    [ObservableProperty]
+    public partial PausedLightsOption? SelectedPausedLights { get; set; } = PausedLightsOptions[0];
+
     // Shows the options of the engine, without sending them back.
-    public void Show(int framesPerSecond, bool pauseOnLockAndSleep) => _showing.Run(() =>
+    public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>
     {
         var option = Standard.FirstOrDefault(rate => rate.FramesPerSecond == framesPerSecond);
         if (option is null)
@@ -50,6 +61,7 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
 
         SelectedFrameRate = option;
         PauseOnLockAndSleep = pauseOnLockAndSleep;
+        SelectedPausedLights = PausedLightsOptions.FirstOrDefault(mode => mode.Mode == pausedLights);
     });
 
     partial void OnSelectedFrameRateChanged(FrameRateOption? value)
@@ -65,6 +77,14 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
         if (!_showing.IsActive)
         {
             PauseOnLockAndSleepChanged?.Invoke(this, value);
+        }
+    }
+
+    partial void OnSelectedPausedLightsChanged(PausedLightsOption? value)
+    {
+        if (!_showing.IsActive && value is not null)
+        {
+            PausedLightsChanged?.Invoke(this, value.Mode);
         }
     }
 }

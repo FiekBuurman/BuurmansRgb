@@ -340,6 +340,36 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(enabled, autoPause.Enabled);
     }
 
+    [Theory]
+    [InlineData(PausedLightsMode.Keep)]
+    [InlineData(PausedLightsMode.Dim)]
+    [InlineData(PausedLightsMode.Off)]
+    public async Task StartAsync_SetsWhatTheLightsShowWhilePaused(PausedLightsMode mode)
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { PausedLights = mode } };
+        using var lighting = new LightingController([_simulated]) { PausedLights = mode == PausedLightsMode.Off ? PausedLightsMode.Dim : PausedLightsMode.Off };
+        using var host = new EngineHost(store, lighting);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(mode, lighting.PausedLights);
+    }
+
+    // An engine that starts on the lock screen, such as late after signing in, keeps the lamps dark.
+    [Fact]
+    public async Task StartAsync_WhileLockedWithOff_GivesTheSimulatedLampsBlack()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Color = new RgbColor(0, 200, 100), PausedLights = PausedLightsMode.Off } };
+        using var lighting = new LightingController([_simulated]);
+        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents { IsLocked = true }, new FakeDisplayEvents(), lighting.SetPaused);
+        using var host = new EngineHost(store, lighting, autoPause: autoPause);
+
+        await host.StartAsync(Ct);
+
+        await AssertAllSimulatedLedsAsync(RgbColor.Black);
+        Assert.Equal(new RgbColor(0, 200, 100), lighting.GetOutput().Devices[0].Colors[0]);
+    }
+
     // From the settings app: saved like the lighting, without a restart.
     [Fact]
     public async Task Dispose_AfterTheOptionsChanged_SavesThem()
@@ -352,10 +382,12 @@ public sealed class EngineHostTests : IDisposable
 
         lighting.FramesPerSecond = 60;
         autoPause.Enabled = false;
+        lighting.PausedLights = PausedLightsMode.Off;
         host.Dispose();
 
         Assert.Equal(60, store.Settings.FramesPerSecond);
         Assert.False(store.Settings.PauseOnLockAndSleep);
+        Assert.Equal(PausedLightsMode.Off, store.Settings.PausedLights);
         Assert.Equal(1, store.SaveCount);
     }
 
@@ -393,7 +425,7 @@ public sealed class EngineHostTests : IDisposable
     [Fact]
     public async Task StartAsync_TheSavedOptions_AreNotSavedAgain()
     {
-        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, Hotkeys = false } };
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, PausedLights = PausedLightsMode.Dim, Hotkeys = false } };
         var lighting = new LightingController([_simulated]);
         using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), lighting.SetPaused);
         var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys());

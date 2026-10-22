@@ -16,6 +16,10 @@ internal sealed record EngineSettings : LightingStateSettings
     // (AutoPause). The name is from before the screen counted, and stays for settings.json.
     public bool PauseOnLockAndSleep { get; set; } = true;
 
+    // What the lights show during that pause (LightingController.PausedLights); in the file as a
+    // word (PausedLightsModeJsonConverter).
+    public PausedLightsMode PausedLights { get; set; } = PausedLightsMode.Keep;
+
     // Whether the scene of the last time that passed comes on after waking up and at the start
     // (ProfileTimer.CatchUp); off, such a time is skipped.
     public bool CatchUpSceneTimes { get; set; }

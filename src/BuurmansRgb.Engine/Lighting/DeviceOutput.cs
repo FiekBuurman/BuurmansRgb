@@ -71,10 +71,23 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         }
     }
 
-    public void Send()
+    // Below 1, scale dims what goes to the device only (0 sends black): the buffer keeps the colors
+    // of the effect, for the preview and for the send that gives them back.
+    public void Send(double scale = 1.0)
     {
-        Provider.SetLeds(Device.Id, Buffer);
-        Buffer.AsSpan().CopyTo(_sent);
+        if (scale >= 1.0)
+        {
+            Provider.SetLeds(Device.Id, Buffer);
+            Buffer.AsSpan().CopyTo(_sent);
+            return;
+        }
+
+        for (var i = 0; i < Buffer.Length; i++)
+        {
+            _sent[i] = Buffer[i].Scale(scale);
+        }
+
+        Provider.SetLeds(Device.Id, _sent);
     }
 
     public bool SendIfChanged()

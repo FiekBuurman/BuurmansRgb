@@ -43,6 +43,32 @@ public sealed class DeviceOutputTests
         Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
     }
 
+    [Theory]
+    [InlineData(0.2)]
+    [InlineData(0.0)]
+    public void Send_Scaled_DimsWhatGoesOutButKeepsTheBuffer(double scale)
+    {
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
+        _output.Render(TimeSpan.Zero);
+
+        _output.Send(scale);
+
+        Assert.Equal([Orange.Scale(scale), Orange.Scale(scale), Orange.Scale(scale)], _provider.LastColors);
+        Assert.All(_output.Buffer, led => Assert.Equal(Orange, led));
+    }
+
+    // What the device got was dimmed, so the real colors differ from it and go out.
+    [Fact]
+    public void SendIfChanged_AfterAScaledSend_SendsTheRealColors()
+    {
+        _output.Show(new StaticEffect(Orange), 1.0, EffectSpeed.Default);
+        _output.Render(TimeSpan.Zero);
+        _output.Send(0.0);
+
+        Assert.True(_output.SendIfChanged());
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
     [Fact]
     public void SendIfChanged_SameColorsAsLastSent_SendsNothing()
     {

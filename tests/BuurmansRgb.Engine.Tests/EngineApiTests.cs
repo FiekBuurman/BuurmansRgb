@@ -541,9 +541,34 @@ public sealed class EngineApiTests : IDisposable
         await api.SetPauseOnLockAndSleepAsync(false, Ct);
         await api.SetCatchUpSceneTimesAsync(true, Ct);
         await api.SetHotkeysAsync(false, Ct);
+        await api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
         await api.SetFramesPerSecondAsync(60, Ct);
+        await api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
 
-        Assert.Equal(5, changes);
+        Assert.Equal(6, changes);
+    }
+
+    [Fact]
+    public async Task PausedLights_IsTheOptionOfTheLighting()
+    {
+        using var api = CreateApi();
+
+        Assert.Equal(PausedLightsMode.Keep, await api.GetPausedLightsAsync(Ct));
+        await api.SetPausedLightsAsync(PausedLightsMode.Dim, Ct);
+
+        Assert.Equal(PausedLightsMode.Dim, _lighting.PausedLights);
+        Assert.Equal(PausedLightsMode.Dim, await api.GetPausedLightsAsync(Ct));
+    }
+
+    [Fact]
+    public async Task PausedLights_AModeThisVersionDoesNotKnow_KeepsTheLastFrame()
+    {
+        using var api = CreateApi();
+        await api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
+
+        await api.SetPausedLightsAsync((PausedLightsMode)7, Ct);
+
+        Assert.Equal(PausedLightsMode.Keep, _lighting.PausedLights);
     }
 
     [Fact]

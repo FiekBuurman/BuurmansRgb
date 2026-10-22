@@ -12,13 +12,15 @@ public enum PauseReasons
     Manual = 1,
 
     // Windows is locked, or the session is not on any screen (another user, or a remote desktop
-    // that disconnected). Only the animation stops; the devices keep the last frame.
+    // that disconnected). Only the animation stops; the devices keep the last frame, or show it
+    // dimmed or black (PausedLightsMode).
     Locked = 2,
 
     // The pc goes to sleep or hibernates; this ends when it wakes up.
     Asleep = 4,
 
     // The screen is off, also while Windows stays unlocked; this ends when it goes on again. A
-    // dimmed screen does not count. Like Locked, only the animation stops.
+    // dimmed screen does not count. Like Locked, only the animation stops. Asleep and DisplayOff
+    // follow PausedLightsMode too.
     DisplayOff = 8,
 }

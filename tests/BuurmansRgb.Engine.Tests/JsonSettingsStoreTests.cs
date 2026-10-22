@@ -379,6 +379,44 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(mode, store.LoadOrCreate().SimulatedDevices);
     }
 
+    // A file from before the choice keeps the last frame; so does anything that is not one of the words.
+    [Theory]
+    [InlineData("""{ "color": "#00FF00" }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": "keep" }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": "dim" }""", PausedLightsMode.Dim)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": "Off" }""", PausedLightsMode.Off)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": "dark" }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": "2" }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": 2 }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": false }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": null }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "color": "#00FF00", "pausedLights": { "mode": "off" } }""", PausedLightsMode.Keep)]
+    public void LoadOrCreate_PausedLights_ReadsTheModeAndKeepsTheRest(string json, PausedLightsMode expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(expected, settings.PausedLights);
+        Assert.Equal(new RgbColor(0, 255, 0), settings.Color);
+    }
+
+    [Theory]
+    [InlineData(PausedLightsMode.Keep, "keep")]
+    [InlineData(PausedLightsMode.Dim, "dim")]
+    [InlineData(PausedLightsMode.Off, "off")]
+    public void Save_PausedLights_WritesTheModeAsAWordAndReadsItBack(PausedLightsMode mode, string word)
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(new EngineSettings { PausedLights = mode });
+
+        Assert.Contains($"\"pausedLights\": \"{word}\"", File.ReadAllText(path));
+        Assert.Equal(mode, store.LoadOrCreate().PausedLights);
+    }
+
     [Fact]
     public void LoadOrCreate_NoFile_WritesTheSimulatedDevicesOption()
     {

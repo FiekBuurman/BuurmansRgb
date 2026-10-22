@@ -350,12 +350,15 @@ public sealed class EngineRpcTests : IDisposable
         await client.Api.SetCatchUpSceneTimesAsync(true, Ct);
         var hotkeys = await client.Api.GetHotkeysAsync(Ct);
         await client.Api.SetHotkeysAsync(false, Ct);
+        var pausedLights = await client.Api.GetPausedLightsAsync(Ct);
+        await client.Api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
 
         Assert.Equal(24, framesPerSecond);
         Assert.True(pauseOnLock);
         Assert.False(catchUp);
         Assert.True(hotkeys);
-        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False"], _api.OptionCalls);
+        Assert.Equal(PausedLightsMode.Dim, pausedLights);
+        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off"], _api.OptionCalls);
     }
 
     [Fact]
@@ -587,6 +590,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
         {
             OptionCalls.Add($"pause on lock {enabled}");
+            return Task.CompletedTask;
+        }
+
+        public Task<PausedLightsMode> GetPausedLightsAsync(CancellationToken ct = default) => Task.FromResult(PausedLightsMode.Dim);
+
+        public Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"paused lights {mode}");
             return Task.CompletedTask;
         }
 

@@ -26,6 +26,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
+    private const string PausedLightsCall = "paused-lights";
     private const string CatchUpCall = "catch-up";
     private const string HotkeysCall = "hotkeys";
     private const string ResumeCall = "resume";
@@ -120,6 +121,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
         EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
+        EffectOptions.PausedLightsChanged += (_, mode) =>
+            SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
         SceneTimes.CatchUpChanged += (_, enabled) =>
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         Hotkeys.EnabledChanged += (_, enabled) =>
@@ -435,7 +438,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
-        EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync());
+        EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync(), await api.GetPausedLightsAsync());
         SceneTimes.Show(await api.GetCatchUpSceneTimesAsync());
         Hotkeys.Show(await api.GetHotkeysAsync());
         var openRgbStatusChanges = _openRgbStatusChanges;
@@ -860,6 +863,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var mode = await connection.Api.GetSimulatedDevicesAsync();
             var framesPerSecond = await connection.Api.GetFramesPerSecondAsync();
             var pauseOnLockAndSleep = await connection.Api.GetPauseOnLockAndSleepAsync();
+            var pausedLights = await connection.Api.GetPausedLightsAsync();
             var catchUp = await connection.Api.GetCatchUpSceneTimesAsync();
             var hotkeys = await connection.Api.GetHotkeysAsync();
             RunOnUi(() =>
@@ -867,7 +871,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 if (ReferenceEquals(connection, _connection))
                 {
                     SimulatedDevices.Show(mode);
-                    EffectOptions.Show(framesPerSecond, pauseOnLockAndSleep);
+                    EffectOptions.Show(framesPerSecond, pauseOnLockAndSleep, pausedLights);
                     SceneTimes.Show(catchUp);
                     Hotkeys.Show(hotkeys);
                 }
