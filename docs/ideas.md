@@ -266,6 +266,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
+- Een kleine offscreen-test die `SettingsPage` laadt en controleert dat de schakelaars `IsOn` van
+  hun viewmodel volgen, of een test die bindingfouten opvangt via `PresentationTraceSources`: een
+  hernoemde property breekt een binding nu stil, zonder dat een test of de build het merkt
 - Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
   testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
   gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
