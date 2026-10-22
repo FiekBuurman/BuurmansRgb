@@ -14,7 +14,6 @@ namespace BuurmansRgb.Engine.Power;
 // dispose it on the tray thread, like ForegroundHook.
 internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDisposable
 {
-    private const string ScreenSaverExtension = ".scr";
     private const uint SpiGetScreenSaverRunning = 0x0072;
 
     private readonly ForegroundHook _hook;
@@ -44,12 +43,6 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
 
     public void Dispose() => _hook.Stop(_tell);
 
-    // Whether program is a screen saver, by its exe name (any case).
-    internal static bool IsScreenSaver(string? program) =>
-        program is not null
-        && program.Length > ScreenSaverExtension.Length
-        && program.EndsWith(ScreenSaverExtension, StringComparison.OrdinalIgnoreCase);
-
     // A window that came to the front.
     internal void Tell(nint window) => Show(IsRunningScreenSaver(window));
 
@@ -72,7 +65,7 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         var processId = ForegroundHook.ProcessOf(window);
         return processId != 0
             && _names.TryRead(processId, out var program)
-            && IsScreenSaver(program)
+            && WindowsPrograms.IsScreenSaver(program)
             && WindowsSaysRunning();
     }
 

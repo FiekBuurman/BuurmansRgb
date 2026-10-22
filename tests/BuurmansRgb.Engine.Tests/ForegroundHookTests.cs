@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Windows.Forms;
-using BuurmansRgb.Engine.Programs;
 
 namespace BuurmansRgb.Engine.Tests;
 

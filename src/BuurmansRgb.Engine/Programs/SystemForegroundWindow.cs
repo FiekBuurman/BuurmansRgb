@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
-using BuurmansRgb.Engine.Power;
 
 namespace BuurmansRgb.Engine.Programs;
 
@@ -28,7 +27,7 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     // screen, the Start menu and search, and the panes for notifications and quick settings.
     private static readonly HashSet<string> PassingPrograms = new(ProgramNames.Comparer)
     {
-        "LockApp.exe", "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
+        WindowsPrograms.LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
     };
 
     private readonly ProcessImageName _names = new();
@@ -73,7 +72,7 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
         program is not null
         && !PassingClasses.Contains(className)
         && !PassingPrograms.Contains(program)
-        && !SystemScreenSaverEvents.IsScreenSaver(program);
+        && !WindowsPrograms.IsScreenSaver(program);
 
     // A window that came to the front: its program, when it counts. Also when it is the same
     // program as before, as that may have stopped and started again in between. Called by Windows

@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace BuurmansRgb.Engine.Programs;
+namespace BuurmansRgb.Engine;
 
 // SetWinEventHook for EVENT_SYSTEM_FOREGROUND, out of context, once for all of the engine that
 // follows the foreground window (SystemForegroundWindow, SystemScreenSaverEvents): Windows posts each

@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
-using BuurmansRgb.Engine.Programs;
 using Microsoft.Win32;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -17,20 +16,6 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
     private readonly List<bool> _changes = [];
 
     public void Dispose() => _hook.Dispose();
-
-    [Theory]
-    [InlineData("Mystify.scr", true)]
-    [InlineData("scrnsave.scr", true)]
-    [InlineData("PhotoScreensaver.SCR", true)]
-    [InlineData("Ribbons.Scr", true)]
-    [InlineData(".scr", false)]
-    [InlineData("scr.exe", false)]
-    [InlineData("screensaver.exe", false)]
-    [InlineData("explorer.exe", false)]
-    [InlineData("", false)]
-    [InlineData(null, false)]
-    public void IsScreenSaver_AnExeNameThatEndsInScr(string? program, bool screenSaver) =>
-        Assert.Equal(screenSaver, SystemScreenSaverEvents.IsScreenSaver(program));
 
     // Each screen saver window is told, also a second one (another screen, or after AutoPause ended
     // the pause); the end only once.
