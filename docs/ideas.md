@@ -79,11 +79,12 @@ uitbreidingen in `docs/bouwplan.md`.
   lopen nieuwe apparaten pas weer gelijk met de rest als ze dezelfde snelheid hebben én die
   nooit veranderd is; `EffectClock` zou de klok van "Hele huis" kunnen delen met elk apparaat
   zonder eigen snelheid
-- Golf en Regenboog per zone laten lopen in plaats van over het hele apparaat (bijv. elke
-  fan-ring een eigen golf). "Zones gelijk" komt in de buurt: elke zone krijgt het beeld van de
-  langste, uitgerekt. Nog niet: het effect echt over de eigen lengte van elke zone renderen
-  (nu neemt een kortere zone LED's uit het lange beeld, dus tot een halve LED verschoven en bij
-  een veel kortere zone grover), of elke zone een eigen fase of richting geven
+- Golf, Regenboog, Komeet en Scanner per zone laten lopen in plaats van over het hele apparaat
+  (bijv. elke fan-ring een eigen golf of komeet). "Zones gelijk" komt in de buurt: elke zone
+  krijgt het beeld van de langste, uitgerekt. Nog niet: het effect echt over de eigen lengte
+  van elke zone renderen (nu neemt een kortere zone LED's uit het lange beeld, dus tot een
+  halve LED verschoven en bij een veel kortere zone grover), of elke zone een eigen fase of
+  richting geven
 - "Zones gelijk" kan meer: kiezen welke zone het beeld geeft (nu de langste, bij gelijke lengte
   de eerste), een zone buiten de rest houden (bijv. het logo naast de toetsen van een
   toetsenbord, dat nu de kleur van de middelste toets krijgt), en bij Per LED de kleuren van de
@@ -95,6 +96,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Zones gelijk" in- of uitschakelen bouwt het hele voorbeeld opnieuw op (de app hoort het als
   `DevicesChanged`), zoals een nieuwe zonelengte; zie het idee bij "Voorbeeld en
   per-LED-editor" om alleen de apparaten te vernieuwen die veranderden
+- Faalt een apparaat tijdens het renderen na het omzetten van "Zones gelijk" (de setter van
+  `LightingController.ZonesAlike` of `SetZonesAlike` → `RenderLocked` → `Provider.SetLeds`
+  gooit), dan gaat `ZonesAlikeChanged` niet af: de keuze staat in het geheugen, maar wordt niet
+  bewaard en de app hoort het niet. `PausedLights` meldt zijn wijziging met try/finally,
+  `SetLighting` doet het net als `ZonesAlike` niet. Gelijktrekken als eigen fix, met een test
 - Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
   uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
   als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
@@ -114,8 +120,6 @@ uitbreidingen in `docs/bouwplan.md`.
   dat over een strip omhoog trekt zoals Fire2012 van FastLED. Dat laatste vraagt een richting
   per strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat
   er geen buffer per apparaat nodig is
-- Komeet en Scanner per zone laten lopen (elke fan-ring een eigen komeet), zoals het
-  idee voor Golf en Regenboog hierboven
 
 ## Instellingen-app en ontwerp
 
