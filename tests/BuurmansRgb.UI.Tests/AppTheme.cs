@@ -8,7 +8,9 @@ namespace BuurmansRgb.UI.Tests;
 // it loads, before it is in a window, so only the resources of the application can give them. A
 // process has one application: it is made once, and holds the theme only while a test of this
 // collection runs. The collection runs alone, so the implicit styles of the theme, such as those
-// of Slider and LedBulb, do not reach the other tests.
+// of Slider and LedBulb, do not reach the other tests. The application stays for the rest of the
+// run, on the dispatcher of a thread that has ended; nothing in the app reads Application.Current,
+// so the other tests do not notice it.
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class AppThemeCollection
 {
