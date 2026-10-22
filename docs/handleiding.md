@@ -98,7 +98,8 @@ schakelaar ernaast.
   en Per LED staat de schuif grijs. Een nieuwe snelheid gaat verder waar de animatie was, en
   lampen die samen een nieuwe snelheid krijgen, blijven gelijk lopen.
 - **Kleurenloop:** kies het effect, dan verschijnen onder het kleurvoorbeeld de kleuren van de
-  loop. Klik op een kleur (hij krijgt een dikke witte rand) en meng rechts een nieuwe: het vakje
+  loop. Klik op een kleur (hij krijgt een dikke witte rand) en meng een nieuwe, met de hex-code
+  erboven of met de schuiven en vaste kleuren rechts: het vakje
   en de lamp veranderen meteen mee, en de loop wordt bewaard. Klik je daarna een andere kleur,
   dan houdt de vorige wat je mengde. + voegt een kleur toe na de gekozen, − haalt de gekozen
   weg. Zonder vinkje bij "Kleuren over de LED's verdelen"

@@ -270,7 +270,7 @@
     <value>Kleuren van de loop</value>
   </data>
   <data name="ColorLoopHint" xml:space="preserve">
-    <value>Klik op een kleur en kies rechts een nieuwe: het vakje verandert meteen mee. Na de laatste kleur begint de loop weer bij de eerste.</value>
+    <value>Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee. Na de laatste kleur begint de loop weer bij de eerste.</value>
   </data>
   <data name="ColorLoopAdd" xml:space="preserve">
     <value>Kleur toevoegen</value>
