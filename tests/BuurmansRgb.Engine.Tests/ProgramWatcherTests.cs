@@ -29,7 +29,7 @@ public sealed class ProgramWatcherTests : IDisposable
     public ProgramWatcherTests()
     {
         _profiles = new ProfileLibrary(_store, _lighting);
-        _autoPause = new AutoPause(_power, _session, new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused);
+        _autoPause = AutoPauses.WithFakes(_lighting.SetPaused, power: _power, session: _session);
         _store.Profiles =
         [
             Profile("Gamen", Red, EldenRing),
@@ -175,7 +175,8 @@ public sealed class ProgramWatcherTests : IDisposable
     public void StartedWhileLocked_LooksOnlyAfterUnlocking(bool pauseOnLockAndSleep)
     {
         _session.IsLocked = true;
-        using var autoPause = new AutoPause(_power, _session, new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused) { Enabled = pauseOnLockAndSleep };
+        using var autoPause = AutoPauses.WithFakes(_lighting.SetPaused, power: _power, session: _session);
+        autoPause.Enabled = pauseOnLockAndSleep;
         _programs.Running.Add(EldenRing);
 
         StartWatcher(autoPause);
