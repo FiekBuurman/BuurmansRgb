@@ -39,7 +39,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
 
-    // Without "Op de gekozen LED's zetten": the sliders, the hex code and a preset color the LEDs.
+    // With LEDs chosen there is no button: the sliders, the hex code and a preset color them at once.
     [Fact]
     public async Task MixColor_WithLedsSelected_ColorsThemAtOnce()
     {

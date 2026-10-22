@@ -38,8 +38,8 @@ public partial interface IEngineApi
     event EventHandler ProfilesChanged;
 
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
-    // pause on lock and sleep, the catch-up of scene times or the hotkeys, from this or another
-    // settings app.
+    // pause on lock and sleep and what the lamps do during that pause, the catch-up of scene
+    // times or the hotkeys, from this or another settings app.
     event EventHandler OptionsChanged;
 
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
