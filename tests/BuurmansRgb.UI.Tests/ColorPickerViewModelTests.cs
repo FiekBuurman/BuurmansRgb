@@ -65,6 +65,47 @@ public sealed class ColorPickerViewModelTests
     }
 
     [Fact]
+    public void AppliesAtOnce_SlidersHexAndPresetsPutEachMixedColorOnTheLamp()
+    {
+        _picker.Show(RgbColor.Black);
+        _picker.AppliesAtOnce = true;
+
+        _picker.Red = 255;
+        _picker.HexColor = "#00ff00";
+        _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[4].Color);
+
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(47, 107, 255)], _picked);
+        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.ApplyCommand.CanExecute(null));
+    }
+
+    // A slider step that rounds to the same color, or showing the color of the lamp, sends nothing.
+    [Fact]
+    public void AppliesAtOnce_SameColorOrShow_PutsNothingOnTheLamp()
+    {
+        _picker.Show(RgbColor.Black);
+        _picker.AppliesAtOnce = true;
+
+        _picker.Red = 0.4;
+        _picker.Show(new RgbColor(1, 2, 3));
+
+        Assert.Empty(_picked);
+    }
+
+    [Fact]
+    public void AppliesAtOnce_Ended_MixesAgainWithoutPuttingItOnTheLamp()
+    {
+        _picker.AppliesAtOnce = true;
+        _picker.AppliesAtOnce = false;
+
+        _picker.Green = 0;
+
+        Assert.Empty(_picked);
+        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
     public void Show_SameColorAsMixed_HasNothingLeftToApply()
     {
         _picker.Green = 0;
