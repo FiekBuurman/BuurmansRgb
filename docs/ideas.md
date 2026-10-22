@@ -115,11 +115,24 @@ uitbreidingen in `docs/bouwplan.md`.
   de eerste LED weer binnenkomen (beter voor een strip, waar de staart nu nog even aan het eind
   zit als de kop alweer bij het begin is), of meer kometen tegelijk
 - Fonkelen met een zwakke achtergrond van de kleur in plaats van zwart, of elke fonkeling in
-  een willekeurige tint (regenboog-fonkelen)
-- Vuur met een ander palet (bijv. blauw of groen vuur, uit een paar gekozen kleuren), of vuur
-  dat over een strip omhoog trekt zoals Fire2012 van FastLED. Dat laatste vraagt een richting
-  per strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat
-  er geen buffer per apparaat nodig is
+  een willekeurige tint uit de hele kleurencirkel (regenboog-fonkelen); een willekeurige kleur
+  uit een eigen lijst kan al
+- Vuur dat over een strip omhoog trekt zoals Fire2012 van FastLED. Dat vraagt een richting per
+  strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat er
+  geen buffer per apparaat nodig is
+- Ademen en Golf ook met een lijst van kleuren, zoals Komeet en Scanner: elke ademhaling of elke
+  golf de volgende kleur. Nu hebben ze één kleur, de kleur van de lamp
+- Bij Komeet en Scanner de kleur laten overlopen in plaats van wisselen (nu wisselt de komeet
+  waar de ronde begint en de scanner aan het eind), of de staart in een verloop van de ene
+  kleur naar de volgende
+- Kant-en-klare kleuren om te kiezen bij de kleuren van een effect, zoals "Blauw vuur", "Gif"
+  of "Kerst", in plaats van elke kleur zelf mengen
+- De volgorde van de kleuren van een effect of de kleurenloop veranderen door een vakje te
+  slepen; nu kan dat alleen door de kleuren opnieuw te mengen (bij Vuur telt de volgorde: van
+  donker naar licht)
+- De kleuren van de kleurenloop en die van de andere effecten op één manier bewaren (nu
+  `colorLoop` met `spread` en daarnaast `effectColors`); kan pas als een oudere versie het
+  bestand niet meer hoeft te lezen
 
 ## Instellingen-app en ontwerp
 

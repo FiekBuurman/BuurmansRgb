@@ -58,14 +58,16 @@ schakelaar ernaast.
   Rood, Oranje, Groen, Blauw, Paars) en de knop **Op de strip zetten**. Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op de lamp"); pas de
   knop zet hem op de lamp. Dat geldt voor de kleur van de hele lamp. Heb je een kleur van de
-  kleurenloop of LED's in het voorbeeld gekozen, dan is er geen knop: die kleur of LED's
-  veranderen meteen mee terwijl je schuift, typt of een vaste kleur kiest (zie "Kleurenloop" en
-  "Per-LED-editor").
+  kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, of LED's in het voorbeeld
+  gekozen, dan is er geen knop: die kleur of LED's veranderen meteen mee terwijl je schuift, typt
+  of een vaste kleur kiest (zie "Kleurenloop", "Kleuren van een effect" en "Per-LED-editor").
+  Wat de kiezer kleurt, gaat in deze volgorde: gekozen LED's, dan de kleur van de loop of van het
+  effect, en anders de lamp.
 - **Een lamp die uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
   meeste lamp-apps: hij komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Lampen)
-  gaat mee. Dat geldt ook voor een kleur van de kleurenloop en voor de per-LED-editor: daar gaat
-  de lamp aan bij de eerste kleur die je mengt, één keer. Alleen mengen voor de hele lamp
-  (zonder de knop), of bij de kleurenloop + en −, laat hem uit. Bij "Hele huis" gaan alle
+  gaat mee. Dat geldt ook voor een kleur van de kleurenloop of van een effect en voor de
+  per-LED-editor: daar gaat de lamp aan bij de eerste kleur die je mengt, één keer. Alleen mengen
+  voor de hele lamp (zonder de knop), of + en − bij de kleuren, laat hem uit. Bij "Hele huis" gaan alle
   lampen aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één lamp, dan blijven
   de andere lampen zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
@@ -76,10 +78,11 @@ schakelaar ernaast.
   huis", dan volgt hij die weer.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
-  het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
-  het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
-  verschoof, springt niet terug. Komt er zo de kleurenloop op, dan toont het mengpaneel de
-  gekozen loopkleur: die verandert meteen mee, dus de kleur die je voor de lamp mengde vervalt.
+  het effect, de snelheid, de kleurenloop en de kleuren van het effect meteen de nieuwe
+  verlichting. Een kleur die je aan het mengen bent en nog niet op de lamp hebt gezet, blijft
+  staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop of een
+  effect met eigen kleuren op, dan toont het mengpaneel de gekozen kleur daarvan: die verandert
+  meteen mee, dus de kleur die je voor de lamp mengde vervalt.
   De gemengde kleur blijft ook staan als de lampen opnieuw binnenkomen (een zone met een nieuwe
   lengte, lampen die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang dezelfde
   lamp gekozen blijft. Verdwijnt de gekozen lamp, dan toont de pagina "Hele huis" met zijn kleur.
@@ -95,10 +98,10 @@ schakelaar ernaast.
 | Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
 | Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
 | Kleurenloop | `color-loop` | Je eigen 2–8 kleuren die in elkaar overlopen, 0,2 loop per seconde; over de LED's verdeeld of alle LED's tegelijk |
-| Fonkelen | `twinkle` | LED's in de kleur lichten willekeurig op en doven langzaam uit. Elke LED krijgt ongeveer elke 1,7 seconde een kans, en op een lange strip grijpt een vijfde die, zodat losse LED's fonkelen (op een toetsenbord gloeit zo'n 13 % tegelijk); bij een apparaat van een paar LED's lichten er per keer toch ongeveer twee op, bij een muis van één of twee LED's elke LED elke keer. Elke lamp fonkelt op zijn eigen manier, ook twee even lange |
-| Komeet | `comet` | Een punt in de kleur met een staart die achter hem uitdooft, 0,5 ronde per seconde naar de laatste LED en weer rond, zoals op een fan-ring; de staart is 30 % van de lengte. Bij een apparaat van minder dan vier LED's (een muis) staan de LED's verdeeld over een ring van vier: één LED pulseert, fel als de kop voorbijkomt en dan uitdovend, twee LED's om de beurt |
-| Scanner | `scanner` | Een punt in de kleur dat naar de laatste LED en terug gaat, zoals bij Knight Rider, 0,5 keer heen en terug per seconde; het remt af bij de uiteinden en trekt een staart die met zijn vaart meegroeit (tot een kwart van de lengte). Eén LED (een muis) licht op telkens als het punt voorbijkomt |
-| Vuur | `fire` | Warm geel, oranje en rood dat onrustig flakkert, met vlammen van een paar LED's breed: een rustige laag die twee keer per seconde verandert en een snelle die er overheen flakkert. De kleuren liggen vast, de kleur van de lamp doet niet mee (zoals bij Regenboog). Elke lamp brandt op zijn eigen manier; één LED (een muis) flakkert als een kaars |
+| Fonkelen | `twinkle` | LED's lichten willekeurig op en doven langzaam uit, elke fonkeling in een willekeurige kleur uit de kleuren van het effect (zonder eigen kleuren: de kleur van de lamp). Elke LED krijgt ongeveer elke 1,7 seconde een kans, en op een lange strip grijpt een vijfde die, zodat losse LED's fonkelen (op een toetsenbord gloeit zo'n 13 % tegelijk); bij een apparaat van een paar LED's lichten er per keer toch ongeveer twee op, bij een muis van één of twee LED's elke LED elke keer. Elke lamp fonkelt op zijn eigen manier, ook twee even lange |
+| Komeet | `comet` | Een punt met een staart die achter hem uitdooft, 0,5 ronde per seconde naar de laatste LED en weer rond, zoals op een fan-ring; elke ronde in de volgende kleur van het effect (zonder eigen kleuren: de kleur van de lamp), en de staart van de vorige ronde dooft uit in zijn eigen kleur; de staart is 30 % van de lengte. Bij een apparaat van minder dan vier LED's (een muis) staan de LED's verdeeld over een ring van vier: één LED pulseert, fel als de kop voorbijkomt en dan uitdovend, twee LED's om de beurt |
+| Scanner | `scanner` | Een punt dat naar de laatste LED en terug gaat, zoals bij Knight Rider, 0,5 keer heen en terug per seconde, elke keer heen of terug in de volgende kleur van het effect (zonder eigen kleuren: de kleur van de lamp); de kleur wisselt aan het eind, waar het punt omkeert; het remt af bij de uiteinden en trekt een staart die met zijn vaart meegroeit (tot een kwart van de lengte). Eén LED (een muis) licht op telkens als het punt voorbijkomt |
+| Vuur | `fire` | Vuur dat onrustig flakkert, met vlammen van een paar LED's breed: een rustige laag die twee keer per seconde verandert en een snelle die er overheen flakkert. De hitte loopt van de eerste kleur van het effect (de gloed) via de andere naar de laatste (de felste vlam); zonder eigen kleuren is dat donkerrood, rood, oranje en geel. De kleur van de lamp doet niet mee (zoals bij Regenboog). Elke lamp brandt op zijn eigen manier; één LED (een muis) flakkert als een kaars |
 | Per LED | `per-led` | Een eigen kleur per LED (zie "Per-LED-editor") |
 
 - **Snelheid** (10–300 %, standaard 100 %) werkt alleen bij een bewegend effect; bij Statisch
@@ -112,6 +115,27 @@ schakelaar ernaast.
   weg. Zonder vinkje bij "Kleuren over de LED's verdelen"
   krijgen alle LED's tegelijk dezelfde kleur. Een lamp onthoudt zijn loop, ook als je
   tussendoor een ander effect kiest. Standaard: geel, groen, blauw.
+- **Kleuren van een effect:** bij Fonkelen, Komeet, Scanner en Vuur verschijnen onder het
+  kleurvoorbeeld "Kleuren van het effect", met dezelfde vakjes, + en − als bij de kleurenloop,
+  en een regel die zegt wat de kleuren doen. Klik op een vakje en meng een nieuwe kleur: het
+  vakje en de lamp veranderen meteen mee. Een effect heeft 1 tot 8 kleuren. Wat ze doen:
+  - **Komeet:** elke ronde de volgende kleur, en na de laatste weer de eerste.
+  - **Scanner:** elke keer heen of terug de volgende kleur.
+  - **Fonkelen:** elke fonkeling een willekeurige kleur uit de lijst; een fonkeling houdt zijn
+    kleur tot hij uit is.
+  - **Vuur:** de vlammen lopen van de eerste kleur (de gloed, het koudst) via de andere naar de
+    laatste (de felste vlam). Zet ze dus van donker naar licht, bijv. donkerblauw, blauw,
+    lichtblauw en wit voor blauw vuur, of donkergroen, groen en geelgroen voor "gif". Met één
+    kleur flakkert die tussen een donkere versie van zichzelf en zichzelf.
+
+  Elk effect heeft zijn eigen kleuren per lamp: kies je Komeet en daarna Vuur, dan houdt de
+  komeet zijn kleuren voor als je hem weer kiest. Ze gaan mee in een scène. Zolang je de kleuren
+  van Komeet, Scanner of Fonkelen niet aanpast, is dat één kleur: de kleur van de lamp (de kleur
+  van Statisch, Ademen en Golf). Een bestaande lamp of scène met zo'n effect ziet er dus hetzelfde
+  uit als vóór er kleuren per effect waren, en Vuur zonder eigen kleuren brandt warm, zoals
+  altijd. Pas je de kleuren aan, dan doet de kleur van de lamp bij dat effect niet meer mee;
+  hij blijft bewaard voor de effecten met één kleur. "Op de strip zetten" is er bij deze effecten
+  niet, want de schuiven kleuren het gekozen vakje. Golf en Ademen hebben nog één kleur.
 
 #### Voorbeeld
 
@@ -205,12 +229,15 @@ de LED's ervoor houden wat je mengde.
 
 Een scène bewaart de verlichting van alle lampen onder een naam (in de code en in
 `profiles.json` heet dat een profiel). De scènes staan als kaarten, drie of vier naast elkaar:
-vijf bolletjes met de kleuren van de scène (bij Vuur rood, oranje en geel), de naam en wanneer hij vanzelf aangaat ("Elke dag
-om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%", "Alles uit").
+vijf bolletjes met de kleuren van de scène (bij Komeet, Scanner en Fonkelen de kleuren van het
+effect om de beurt; bij Vuur zijn kleuren heen en terug, met drie of meer kleuren zonder de
+eerste, de gloed: zonder eigen kleuren rood, oranje, geel, oranje en rood), de naam en wanneer
+hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien
+("Regenboog · 80%", "Alles uit").
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
-  kleurenloop en per-LED-kleuren van alle lampen worden die van de scène, en ook de opgeslagen
-  verlichting.
+  kleurenloop, kleuren van de effecten en per-LED-kleuren van alle lampen worden die van de
+  scène, en ook de opgeslagen verlichting.
 - **"+ Nieuwe scène in elkaar zetten"** vraagt een naam en bewaart de verlichting zoals die nu
   is.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
@@ -397,8 +424,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   strip zetten" op de lamp; dat vervangt de schuiven Tint en Verzadiging van de oude app,
   die een kleur meteen toepasten. Extra ten opzichte van het ontwerp: "Licht en beweging"
   (helderheid, effect, snelheid) en het LED-voorbeeld met de per-LED-editor. Een kleur van de
-  kleurenloop en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het
-  vakje of de LED laat de kleur al zien, dus een knop voegde daar niets toe.
+  kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's veranderen
+  wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien, dus een
+  knop voegde daar niets toe.
 - **Lampkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - WPF kent geen letterafstand, dus de −0,02em van de koppen ontbreekt; de navigatiebalk is
@@ -535,6 +563,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "effect": "rainbow",
   "speed": 1.5,
   "colorLoop": { "colors": ["#FF0000", "#FF00FF", "#0000FF"], "spread": true },
+  "effectColors": { "fire": ["#000040", "#0000FF", "#40C0FF", "#FFFFFF"], "comet": ["#FF0000", "#00FF00"] },
   "on": true,
   "devices": {
     "simulated-fan": { "color": "#0000FF", "brightness": 0.5, "effect": "per-led", "speed": 1 },
@@ -566,6 +595,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `effect` | Een van de effecten uit de tabel bij "Effecten"; onbekend wordt `static` |
 | `speed` | Snelheid van een bewegend effect: 1 is normaal, van 0,1 tot 3 |
 | `colorLoop` | De 2–8 kleuren van de Kleurenloop; `spread` op `false` voor alle LED's tegelijk. Zonder (of met te weinig of te veel kleuren): geel, groen, blauw |
+| `effectColors` | Per effect de 1–8 eigen kleuren van `twinkle`, `comet`, `scanner` en `fire`, in volgorde (bij `fire` van koud naar heet). Een effect zonder lijst (of met een lege of te lange lijst) heeft zijn standaard: de kleur van de lamp, bij `fire` donkerrood, rood, oranje en geel. Een lijst voor een ander effect slaat de engine over |
 | `on` | `false` als de lamp (of alles) uit staat; zonder is hij aan |
 | `devices` | Per lamp de velden hierboven, alleen voor lampen die afwijken van de algemene waarden |
 | `ledColors` | Per lamp een kleur per LED voor het effect `per-led`; `null`, of een LED voorbij het eind van de lijst, volgt de kleur van de lamp |
@@ -585,7 +615,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 - Een waarde in `zoneLengths` of `ledColorZoneLengths` die geen getal is, slaat de engine over
   (bij `ledColorZoneLengths` de hele lijst van die lamp); de rest blijft gelden.
 - Een kleur die niet te lezen is (bijv. `"purple"` of een getal), slaat de engine ook over: bij
-  `color` wordt het wit, in `ledColors` volgt die LED de kleur van de lamp, en in `colorLoop`
+  `color` wordt het wit, in `ledColors` volgt die LED de kleur van de lamp, in `effectColors`
+  gaat het effect zonder die kleur (zonder kleuren over: zijn standaard), en in `colorLoop`
   loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
   blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
   zonder die kleur weg.
