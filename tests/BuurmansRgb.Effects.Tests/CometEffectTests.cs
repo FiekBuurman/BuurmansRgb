@@ -120,6 +120,91 @@ public sealed class CometEffectTests
         new CometEffect(Orange).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
     }
 
+    // A list of one color is the comet of that color, as it was before the list: these are the LEDs
+    // of the comet before it had a list.
+    [Fact]
+    public void Render_OneColorInAList_IsTheCometOfThatColor()
+    {
+        var leds = new RgbColor[10];
+
+        new CometEffect([Orange], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.6));
+
+        Assert.Equal(EffectSamples.Hex("#000000", "#000000", "#000000", "#000000", "#1C0F00", "#713C00", "#FF8800", "#000000", "#000000", "#000000"), leds);
+    }
+
+    [Theory]
+    [InlineData(0.25, 0)]
+    [InlineData(1.25, 1)]
+    [InlineData(2.25, 2)]
+    [InlineData(3.25, 0)]
+    public void Render_MoreColors_HasTheNextColorEveryRound(double seconds, int color)
+    {
+        var colors = new[] { Red, Green, Blue };
+        var leds = new RgbColor[10];
+
+        new CometEffect(colors, roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(seconds));
+
+        Assert.Equal(new CometEffect(colors[color], roundsPerSecond: 1.0).RenderAt(10, seconds), leds);
+    }
+
+    // At the start of the second round the head is on the first LED in the second color, while the
+    // tail of the first round still fades at the end in the first color.
+    [Fact]
+    public void Render_MoreColors_TheTailOfTheRoundBeforeKeepsItsColor()
+    {
+        var leds = new RgbColor[10];
+
+        new CometEffect([Red, Green], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(1.0));
+
+        RgbAssert.Close([Green, .. Dark(7), Red.Scale(1.0 / 9.0), Red.Scale(4.0 / 9.0)], leds);
+    }
+
+    // Halfway the last LED the head comes up at the first LED in the color of the next round, while
+    // the LED it just passed fades in the color of this one.
+    [Fact]
+    public void Render_MoreColors_TheHeadComesInAtTheFirstLedInTheNextColor()
+    {
+        var leds = new RgbColor[10];
+
+        new CometEffect([Red, Green], roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.95));
+
+        RgbAssert.Close(Green.Scale(0.5), leds[0]);
+        RgbAssert.Close(Red.Scale(25.0 / 36.0), leds[9]);
+    }
+
+    // Backwards the head passes the start of the ring right after time zero, so the second color
+    // comes first; then every round the next one.
+    [Theory]
+    [InlineData(0.5, 1)]
+    [InlineData(1.5, 0)]
+    public void Render_MoreColorsNegativeSpeed_HasTheNextColorEveryRound(double seconds, int color)
+    {
+        var colors = new[] { Red, Green };
+        var leds = new RgbColor[10];
+
+        new CometEffect(colors, roundsPerSecond: -1.0).Render(leds, TimeSpan.FromSeconds(seconds));
+
+        Assert.Equal(new CometEffect(colors[color], roundsPerSecond: -1.0).RenderAt(10, seconds), leds);
+    }
+
+    [Fact]
+    public void Constructor_NoColors_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CometEffect([]));
+    }
+
+    // The list is copied, so a change to it afterwards does not change the comet.
+    [Fact]
+    public void Constructor_CopiesTheColors()
+    {
+        var colors = new List<RgbColor> { Red, Green };
+        var effect = new CometEffect(colors);
+
+        colors[0] = Blue;
+
+        Assert.Equal([Red, Green], effect.Colors);
+    }
+
     [Theory]
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]

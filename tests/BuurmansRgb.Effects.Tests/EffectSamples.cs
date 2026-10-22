@@ -45,4 +45,16 @@ internal static class EffectSamples
 
         return stretches;
     }
+
+    // The image of the effect over ledCount LEDs at seconds.
+    public static RgbColor[] RenderAt(this IEffect effect, int ledCount, double seconds)
+    {
+        var leds = new RgbColor[ledCount];
+        effect.Render(leds, TimeSpan.FromSeconds(seconds));
+        return leds;
+    }
+
+    // Colors as "#RRGGBB", such as an image written down before a change to an effect.
+    public static RgbColor[] Hex(params string[] colors) =>
+        [.. colors.Select(color => RgbColor.TryParseHex(color, out var parsed) ? parsed : throw new ArgumentException(color, nameof(colors)))];
 }

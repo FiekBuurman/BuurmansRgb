@@ -6,14 +6,18 @@ public sealed class FireEffectTests
 {
     private static readonly TimeSpan Frame = TimeSpan.FromSeconds(1.0 / 30.0);
 
+    // From cold to hot: dark red, red, orange and yellow, the colors the engine gives a fire
+    // without a list of its own (EffectColors.DefaultFire).
+    private static readonly RgbColor[] Warm = [new(96, 8, 0), new(255, 24, 0), new(255, 100, 0), new(255, 190, 30)];
+
     [Fact]
     public void Render_SameTime_GivesTheSameImage()
     {
         var first = new RgbColor[40];
         var second = new RgbColor[40];
 
-        new FireEffect().Render(first, TimeSpan.FromSeconds(12.3));
-        new FireEffect().Render(second, TimeSpan.FromSeconds(12.3));
+        new FireEffect(Warm).Render(first, TimeSpan.FromSeconds(12.3));
+        new FireEffect(Warm).Render(second, TimeSpan.FromSeconds(12.3));
 
         Assert.Equal(first, second);
     }
@@ -27,9 +31,9 @@ public sealed class FireEffectTests
         var second = new RgbColor[8];
         var again = new RgbColor[8];
 
-        new FireEffect(seed: 1).Render(first, TimeSpan.FromSeconds(12.3));
-        new FireEffect(seed: 2).Render(second, TimeSpan.FromSeconds(12.3));
-        new FireEffect(seed: 2).Render(again, TimeSpan.FromSeconds(12.3));
+        new FireEffect(Warm, seed: 1).Render(first, TimeSpan.FromSeconds(12.3));
+        new FireEffect(Warm, seed: 2).Render(second, TimeSpan.FromSeconds(12.3));
+        new FireEffect(Warm, seed: 2).Render(again, TimeSpan.FromSeconds(12.3));
 
         Assert.NotEqual(first, second);
         Assert.Equal(second, again);
@@ -45,7 +49,7 @@ public sealed class FireEffectTests
     {
         var leds = new RgbColor[200];
 
-        new FireEffect().Render(leds, TimeSpan.FromSeconds(seconds));
+        new FireEffect(Warm).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.All(leds, IsWarm);
     }
@@ -56,7 +60,7 @@ public sealed class FireEffectTests
     public void Render_LedsOnAndBetweenTheRandomValues_FlickerAlike()
     {
         var leds = new RgbColor[60];
-        var effect = new FireEffect();
+        var effect = new FireEffect(Warm);
         var (sums, squares, count) = (new double[3], new double[3], 0);
         for (var time = TimeSpan.Zero; time < TimeSpan.FromSeconds(120); time += Frame)
         {
@@ -82,7 +86,7 @@ public sealed class FireEffectTests
     public void Render_FramesOnAndBetweenTheSteps_SpreadAlike()
     {
         var leds = new RgbColor[104];
-        var effect = new FireEffect(flickersPerSecond: 2.0);
+        var effect = new FireEffect(Warm, flickersPerSecond: 2.0);
         var (spreads, counts) = (new double[15], new int[15]);
         for (var frame = 0; frame < 30 * 300; frame++)
         {
@@ -103,7 +107,7 @@ public sealed class FireEffectTests
     public void Render_AnLed_FlickersBetweenRedAndYellow(int ledCount, int led)
     {
         var leds = new RgbColor[ledCount];
-        var effect = new FireEffect();
+        var effect = new FireEffect(Warm);
         var greens = new List<int>();
         var changes = 0;
         var last = RgbColor.Black;
@@ -125,7 +129,7 @@ public sealed class FireEffectTests
     public void Render_NeighboursAreMoreAlikeThanLedsFarApart()
     {
         var leds = new RgbColor[100];
-        var effect = new FireEffect();
+        var effect = new FireEffect(Warm);
         var (near, far) = (0.0, 0.0);
         for (var frame = 0; frame < 100; frame++)
         {
@@ -146,8 +150,8 @@ public sealed class FireEffectTests
         var fast = new RgbColor[30];
         var normal = new RgbColor[30];
 
-        new FireEffect(flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
-        new FireEffect(flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(2.75));
+        new FireEffect(Warm, flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
+        new FireEffect(Warm, flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(2.75));
 
         Assert.Equal(normal, fast);
     }
@@ -158,8 +162,8 @@ public sealed class FireEffectTests
         var fast = new RgbColor[30];
         var normal = new RgbColor[30];
 
-        new FireEffect(flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
-        new FireEffect(flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(1.375));
+        new FireEffect(Warm, flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
+        new FireEffect(Warm, flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(1.375));
 
         Assert.NotEqual(normal, fast);
     }
@@ -173,7 +177,7 @@ public sealed class FireEffectTests
     {
         var leds = new RgbColor[20];
 
-        new FireEffect(flickersPerSecond: 6.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new FireEffect(Warm, flickersPerSecond: 6.0).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.All(leds, IsWarm);
         Assert.True(leds.Distinct().Count() > 5);
@@ -182,7 +186,72 @@ public sealed class FireEffectTests
     [Fact]
     public void Render_NoLeds_DoesNothing()
     {
-        new FireEffect().Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
+        new FireEffect(Warm).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
+    }
+
+    // The warm colors burn as the fire did before it had a list: these are the LEDs of that fire.
+    [Fact]
+    public void Render_WarmColors_IsTheFireOfBefore()
+    {
+        var leds = new RgbColor[10];
+
+        new FireEffect(Warm, seed: 5).Render(leds, TimeSpan.FromSeconds(41.5));
+
+        Assert.Equal(EffectSamples.Hex("#8F0D00", "#FF1E00", "#FFAB18", "#FFAD18", "#FF7606", "#FF3F00", "#FF1A00", "#A00E00", "#B81100", "#FF2300"), leds);
+    }
+
+    // Blue fire: from dark blue through blue to light blue, and nothing warm.
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(1.234)]
+    [InlineData(600.0)]
+    public void Render_OtherColors_BurnsInThoseColors(double seconds)
+    {
+        var leds = new FireEffect([new RgbColor(0, 0, 60), Blue, new RgbColor(0, 200, 255)]).RenderAt(200, seconds);
+
+        Assert.All(leds, led =>
+        {
+            Assert.Equal(0, led.R);
+            Assert.InRange(led.B, 60, 255);
+        });
+    }
+
+    // The first color is the coldest and the last the hottest: the other way round, every LED
+    // shows the heat the other way round.
+    [Theory]
+    [InlineData(3.21)]
+    [InlineData(41.5)]
+    public void Render_TheColorsInOrder_RunFromColdToHot(double seconds)
+    {
+        var up = new FireEffect([RgbColor.Black, RgbColor.White], seed: 5).RenderAt(40, seconds);
+        var down = new FireEffect([RgbColor.White, RgbColor.Black], seed: 5).RenderAt(40, seconds);
+
+        Assert.All(up.Zip(down), pair => Assert.InRange(pair.First.R + pair.Second.R, 254, 256));
+        Assert.Contains(up, led => led.R < 100);
+        Assert.Contains(up, led => led.R > 155);
+    }
+
+    // One color flickers from a dark one of it to itself, over a while from end to end.
+    [Fact]
+    public void Render_OneColor_FlickersFromADarkOneToItself()
+    {
+        var effect = new FireEffect([Green]);
+        var greens = new List<int>();
+        for (var time = TimeSpan.Zero; time < TimeSpan.FromSeconds(30); time += Frame)
+        {
+            var leds = effect.RenderAt(30, time.TotalSeconds);
+            Assert.All(leds, led => Assert.Equal(0, led.R + led.B));
+            greens.AddRange(leds.Select(led => (int)led.G));
+        }
+
+        Assert.InRange(greens.Min(), 96, 100);
+        Assert.InRange(greens.Max(), 250, 255);
+    }
+
+    [Fact]
+    public void Constructor_NoColors_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FireEffect([]));
     }
 
     [Theory]
@@ -191,13 +260,13 @@ public sealed class FireEffectTests
     [InlineData(double.NegativeInfinity)]
     public void Constructor_SpeedNotFinite_Throws(double flickersPerSecond)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new FireEffect(flickersPerSecond));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new FireEffect(Warm, flickersPerSecond));
     }
 
     [Fact]
     public void IsAnimated_IsTrue()
     {
-        Assert.True(new FireEffect().IsAnimated);
+        Assert.True(new FireEffect(Warm).IsAnimated);
     }
 
     private static void IsWarm(RgbColor led)

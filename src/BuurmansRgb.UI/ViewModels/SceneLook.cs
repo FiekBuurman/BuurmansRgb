@@ -12,9 +12,11 @@ internal static class SceneLook
     public const int DotCount = 5;
 
     // Fire has no color of its own; its bulbs glow from red to yellow and back, as the flames do,
-    // in the three hottest colors of FireEffect.Palette, which the app does not reference: change
-    // them along.
-    private static readonly RgbColor[] FireColors = [new(255, 24, 0), new(255, 100, 0), new(255, 190, 30), new(255, 100, 0), new(255, 24, 0)];
+    // in the three hottest of its warm colors.
+    private static readonly RgbColor[] FireColors =
+    [
+        EffectColors.DefaultFire[1], EffectColors.DefaultFire[2], EffectColors.DefaultFire[3], EffectColors.DefaultFire[2], EffectColors.DefaultFire[1],
+    ];
 
     // Until the engine has told what the scene looks like.
     public static IReadOnlyList<SceneDot> Unknown { get; } = [.. Enumerable.Repeat(new SceneDot(RgbColor.Black, false), DotCount)];

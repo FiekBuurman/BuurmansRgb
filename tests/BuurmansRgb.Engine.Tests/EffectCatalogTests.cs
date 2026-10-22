@@ -60,10 +60,10 @@ public sealed class EffectCatalogTests
         Assert.IsType<BreathingEffect>(EffectCatalog.Create(EffectIds.Breathing, Orange, []));
         Assert.IsType<RainbowEffect>(EffectCatalog.Create(EffectIds.Rainbow, Orange, []));
         Assert.IsType<WaveEffect>(EffectCatalog.Create(EffectIds.Wave, Orange, []));
-        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Color);
-        Assert.Equal(Orange, Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [])).Color);
-        Assert.Equal(Orange, Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [])).Color);
-        Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, []));
+        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Colors.Single());
+        Assert.Equal(Orange, Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [])).Colors.Single());
+        Assert.Equal(Orange, Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [])).Colors.Single());
+        Assert.Equal(EffectColors.DefaultFire, Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, [])).Colors);
     }
 
     [Fact]

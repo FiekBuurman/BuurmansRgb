@@ -8,8 +8,9 @@ namespace BuurmansRgb.Effects;
 // its round, so a frame at the same time is always the same image. On a device of a few LEDs each
 // LED lights up every round, so a mouse still twinkles. The seed makes the chances of their own,
 // so each device twinkles in its own way. Twinkling has no way to run, so a negative speed twinkles
-// as the positive one: backwards in time each twinkle would rise slowly and go out at once.
-public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = TwinkleEffect.DefaultTwinklesPerSecond, uint seed = 0) : IEffect
+// as the positive one: backwards in time each twinkle would rise slowly and go out at once. With
+// more colors each twinkle has one of them by chance.
+public sealed class TwinkleEffect : IEffect
 {
     // Rounds per LED per second.
     public const double DefaultTwinklesPerSecond = 0.6;
@@ -31,17 +32,38 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
     private const uint ChanceStream = 0x5EED0002;
     private const uint StartStream = 0x5EED0003;
     private const uint PeakStream = 0x5EED0004;
+    private const uint ColorStream = 0x5EED0005;
 
-    private readonly uint _shiftStream = EffectMath.Seeded(ShiftStream, seed);
-    private readonly uint _chanceStream = EffectMath.Seeded(ChanceStream, seed);
-    private readonly uint _startStream = EffectMath.Seeded(StartStream, seed);
-    private readonly uint _peakStream = EffectMath.Seeded(PeakStream, seed);
+    private readonly RgbColor[] _colors;
+    private readonly uint _shiftStream;
+    private readonly uint _chanceStream;
+    private readonly uint _startStream;
+    private readonly uint _peakStream;
+    private readonly uint _colorStream;
 
-    public RgbColor Color { get; } = color;
+    public TwinkleEffect(RgbColor color, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
+        : this([color], twinklesPerSecond, seed)
+    {
+    }
 
-    public double TwinklesPerSecond { get; } = EffectMath.FiniteSpeed(twinklesPerSecond);
+    public TwinkleEffect(IReadOnlyList<RgbColor> colors, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
+        _colors = [.. colors];
+        TwinklesPerSecond = EffectMath.FiniteSpeed(twinklesPerSecond);
+        Seed = seed;
+        _shiftStream = EffectMath.Seeded(ShiftStream, seed);
+        _chanceStream = EffectMath.Seeded(ChanceStream, seed);
+        _startStream = EffectMath.Seeded(StartStream, seed);
+        _peakStream = EffectMath.Seeded(PeakStream, seed);
+        _colorStream = EffectMath.Seeded(ColorStream, seed);
+    }
 
-    public uint Seed { get; } = seed;
+    public IReadOnlyList<RgbColor> Colors => _colors;
+
+    public double TwinklesPerSecond { get; }
+
+    public uint Seed { get; }
 
     public bool IsAnimated => true;
 
@@ -61,9 +83,14 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
 
             var start = EffectMath.Random(i, round, _startStream) * (1.0 - TwinkleLength);
             var peak = MinPeak + (1.0 - MinPeak) * EffectMath.Random(i, round, _peakStream);
-            leds[i] = Color.Scale(peak * Level((EffectMath.Fraction(shifted) - start) / TwinkleLength));
+            leds[i] = ColorOf(i, round).Scale(peak * Level((EffectMath.Fraction(shifted) - start) / TwinkleLength));
         }
     }
+
+    // The color of the twinkle of the LED in its round; one color needs no chance. Random stays
+    // below 1, so the index below the count.
+    private RgbColor ColorOf(int led, long round) =>
+        _colors.Length == 1 ? _colors[0] : _colors[(int)(EffectMath.Random(led, round, _colorStream) * _colors.Length)];
 
     // How bright a twinkle is at its part from 0 to 1: quickly up, then slowly out.
     private static double Level(double part)

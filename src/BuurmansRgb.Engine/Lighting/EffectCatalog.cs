@@ -20,7 +20,7 @@ internal static class EffectCatalog
         [EffectIds.Twinkle] = (color, _, _, seed) => new TwinkleEffect(color, seed: seed),
         [EffectIds.Comet] = (color, _, _, _) => new CometEffect(color),
         [EffectIds.Scanner] = (color, _, _, _) => new ScannerEffect(color),
-        [EffectIds.Fire] = (_, _, _, seed) => new FireEffect(seed: seed),
+        [EffectIds.Fire] = (_, _, _, seed) => new FireEffect(EffectColors.DefaultFire, seed: seed),
         [EffectIds.PerLed] = (color, ledColors, _, _) => new PerLedEffect(ledColors, color),
     };
 

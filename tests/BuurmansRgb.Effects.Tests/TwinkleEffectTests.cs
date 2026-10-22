@@ -169,6 +169,82 @@ public sealed class TwinkleEffectTests
         new TwinkleEffect(Orange).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
     }
 
+    // A list of one color twinkles in that color, as it did before the list: these are the LEDs of
+    // the twinkle before it had a list.
+    [Fact]
+    public void Render_OneColorInAList_IsTheTwinkleOfThatColor()
+    {
+        var leds = new RgbColor[6];
+
+        new TwinkleEffect([Orange], seed: 5).Render(leds, TimeSpan.FromSeconds(9.9));
+
+        Assert.Equal(EffectSamples.Hex("#000000", "#723D00", "#000000", "#6D3A00", "#000000", "#000000"), leds);
+    }
+
+    // The same LEDs light up as bright as with one color; only the color differs.
+    [Theory]
+    [InlineData(0.0)]
+    [InlineData(9.9)]
+    [InlineData(60.0)]
+    public void Render_MoreColors_TwinklesAsWithOneColor(double seconds)
+    {
+        var colors = new TwinkleEffect([Red, Green, Blue], seed: 5).RenderAt(200, seconds);
+        var white = new TwinkleEffect(RgbColor.White, seed: 5).RenderAt(200, seconds);
+
+        Assert.Equal(white.Select(led => led.R), colors.Select(led => Math.Max(led.R, Math.Max(led.G, led.B))));
+    }
+
+    // Every twinkle is one of the colors, and over a long strip each of them shows.
+    [Fact]
+    public void Render_MoreColors_EachTwinkleHasOneOfThem()
+    {
+        var leds = new TwinkleEffect([Red, Green, Blue], seed: 5).RenderAt(300, 12.3);
+
+        var lit = leds.Where(led => led != RgbColor.Black).ToList();
+        Assert.All(lit, led => Assert.Equal(1, (led.R > 0 ? 1 : 0) + (led.G > 0 ? 1 : 0) + (led.B > 0 ? 1 : 0)));
+        Assert.Contains(lit, led => led.R > 0);
+        Assert.Contains(lit, led => led.G > 0);
+        Assert.Contains(lit, led => led.B > 0);
+    }
+
+    // A twinkle keeps its color while it rises and fades; the next one of the LED may have another.
+    [Fact]
+    public void Render_MoreColors_ATwinkleKeepsItsColor()
+    {
+        var effect = new TwinkleEffect([Red, Green, Blue], twinklesPerSecond: 1.0, seed: 5);
+        var leds = new RgbColor[4];
+        var colorsPerTwinkle = new List<HashSet<int>>();
+        HashSet<int>? twinkle = null;
+        for (var time = TimeSpan.Zero; time < TimeSpan.FromSeconds(60); time += TimeSpan.FromMilliseconds(20))
+        {
+            effect.Render(leds, time);
+            var led = leds[2];
+            if (led == RgbColor.Black)
+            {
+                twinkle = null;
+                continue;
+            }
+
+            if (twinkle is null)
+            {
+                twinkle = [];
+                colorsPerTwinkle.Add(twinkle);
+            }
+
+            twinkle.Add(led.R > 0 ? 0 : led.G > 0 ? 1 : 2);
+        }
+
+        Assert.True(colorsPerTwinkle.Count > 20, $"{colorsPerTwinkle.Count} twinkles.");
+        Assert.All(colorsPerTwinkle, colors => Assert.Single(colors));
+        Assert.Equal(3, colorsPerTwinkle.Select(colors => colors.Single()).Distinct().Count());
+    }
+
+    [Fact]
+    public void Constructor_NoColors_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new TwinkleEffect([]));
+    }
+
     [Theory]
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]
