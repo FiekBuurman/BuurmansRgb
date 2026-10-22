@@ -284,16 +284,16 @@
   <data name="ColorLoopHint" xml:space="preserve">
     <value>Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee. Na de laatste kleur begint de loop weer bij de eerste.</value>
   </data>
-  <data name="ColorLoopAdd" xml:space="preserve">
+  <data name="ColorListAdd" xml:space="preserve">
     <value>Kleur toevoegen</value>
   </data>
-  <data name="ColorLoopRemove" xml:space="preserve">
+  <data name="ColorListRemove" xml:space="preserve">
     <value>Kleur weghalen</value>
   </data>
   <data name="ColorLoopSpread" xml:space="preserve">
     <value>Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)</value>
   </data>
-  <data name="ColorLoopSwatch" xml:space="preserve">
+  <data name="ColorListSwatch" xml:space="preserve">
     <value>Kleur {0}: {1}</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">

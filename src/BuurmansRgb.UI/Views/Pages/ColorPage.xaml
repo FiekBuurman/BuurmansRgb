@@ -167,30 +167,7 @@
                         <StackPanel>
                             <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.ColorLoopHeader}" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorLoopHint}" />
-                            <WrapPanel Margin="0,12,0,0">
-                                <ItemsControl ItemsSource="{Binding ColorLoopEditor.Swatches}" Focusable="False" IsTabStop="False">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type vm:ColorLoopSwatch}">
-                                            <Button Width="44" Margin="0,0,8,8" Style="{StaticResource PresetTile}" Tag="{Binding IsSelected}"
-                                                    Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                                    ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
-                                                    Command="{Binding DataContext.ColorLoopEditor.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding Index}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="+"
-                                        ToolTip="{x:Static res:Strings.ColorLoopAdd}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopAdd}"
-                                        Command="{Binding ColorLoopEditor.AddColorCommand}" />
-                                <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="−"
-                                        ToolTip="{x:Static res:Strings.ColorLoopRemove}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopRemove}"
-                                        Command="{Binding ColorLoopEditor.RemoveColorCommand}" />
-                            </WrapPanel>
+                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding ColorLoopEditor}" />
                             <CheckBox Margin="0,4,0,0" IsChecked="{Binding ColorLoopEditor.Spread}" Content="{x:Static res:Strings.ColorLoopSpread}" />
                         </StackPanel>
                     </Border>

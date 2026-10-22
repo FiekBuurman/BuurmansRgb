@@ -81,7 +81,7 @@ public sealed class ColorLoopEditorViewModelTests
         Assert.Equal(Red, _editor.Swatches[1].Color);
         Assert.Equal([false, true, false], _editor.Swatches.Select(swatch => swatch.IsSelected));
         Assert.Equal("Kleur 2: #FF0000", _editor.Swatches[1].Name);
-        Assert.Contains(nameof(ColorLoopSwatch.Name), changed);
+        Assert.Contains(nameof(ColorSwatch.Name), changed);
     }
 
     [Fact]
