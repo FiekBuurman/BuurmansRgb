@@ -81,6 +81,13 @@ Start de engine en de instellingen-app zonder OpenRGB en loop de pagina's langs 
 toetsenbord. Een paar dingen om te proberen:
 
 - Kies "Regenboog": het voorbeeld en de strip bij "Hele huis" lopen mee.
+- Kies "Fonkelen", "Komeet", "Scanner" en "Vuur" bij "Hele huis" en kijk naar de ledstrip, de
+  ventilator en de "Gesimuleerde headset" (twee oorschelpen van één LED): de komeet loopt de
+  ring rond, de scanner gaat heen en terug en remt bij de uiteinden af, en bij de headset
+  gaan de komeet en de scanner om de beurt naar de ene en de andere oorschelp. Zet bij de
+  headset "Zones gelijk" aan: dan pulseren ze op beide tegelijk en flakkert het vuur als een
+  kaars. Zet bij Instellingen "Zuinig" en de snelheid op 300 %: de punten springen dan verder,
+  maar zijn nog te volgen.
 - Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
   de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
   steeds die lengte.
@@ -481,7 +488,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 1. Sluit de software van de fabrikant af, start OpenRGB als administrator met de SDK-server
    aan, daarna de engine en de instellingen-app.
 2. Vergelijk per apparaat het aantal LED's en de zones met OpenRGB.
-3. Kies een statische kleur, verander de helderheid en kies "Regenboog".
+3. Kies een statische kleur, verander de helderheid en kies "Regenboog". Kies daarna
+   "Fonkelen", "Komeet", "Scanner" en "Vuur": lopen ze op het apparaat zelf even vloeiend als
+   in het voorbeeld, en gaat de komeet bij een fan netjes rond (OpenRGB zegt niet waar LED 1
+   zit, dus hij kan de andere kant op draaien)?
 4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
    zijn.
 5. Noteer in `docs/hardware.md` wat werkt, en bij een videokaart of hij een "Direct"-modus

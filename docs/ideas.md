@@ -102,6 +102,20 @@ uitbreidingen in `docs/bouwplan.md`.
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
+- Instellingen per effect naast de snelheid, bijv. de lengte van de staart bij Komeet en
+  Scanner, hoeveel LED's er fonkelen, of de richting (nu altijd naar de laatste LED). Nu liggen
+  die vast als constanten in de effecten
+- Komeet: kiezen tussen rondgaan (nu, goed voor een fan-ring) en aan het eind weglopen en bij
+  de eerste LED weer binnenkomen (beter voor een strip, waar de staart nu nog even aan het eind
+  zit als de kop alweer bij het begin is), of meer kometen tegelijk
+- Fonkelen met een zwakke achtergrond van de kleur in plaats van zwart, of elke fonkeling in
+  een willekeurige tint (regenboog-fonkelen)
+- Vuur met een ander palet (bijv. blauw of groen vuur, uit een paar gekozen kleuren), of vuur
+  dat over een strip omhoog trekt zoals Fire2012 van FastLED. Dat laatste vraagt een richting
+  per strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat
+  er geen buffer per apparaat nodig is
+- Komeet en Scanner per zone laten lopen (elke fan-ring een eigen komeet), zoals het
+  idee voor Golf en Regenboog hierboven
 
 ## Instellingen-app en ontwerp
 
