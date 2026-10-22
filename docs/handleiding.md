@@ -119,6 +119,16 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een lamp met één zone
   toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
   apparaat is wat?"), behalve bij "Overige LED's": de LED's die OpenRGB bij geen zone indeelt.
+- **Zones gelijk:** een lamp met twee of meer zones met LED's heeft onder zijn naam de
+  schakelaar **Zones gelijk**. Aan rendert het effect één keer, over de langste zone, en krijgt
+  elke andere zone hetzelfde beeld, uitgerekt over zijn eigen lengte. Zo hebben bijv. de twee
+  zones van één LED van een Logitech-muis ("Primary Zone" en "Logo Zone") in een regenboog
+  dezelfde kleur, en lopen de binnen- en buitenring van een fan gelijk op. "Overige LED's" doen
+  mee als een zone. Het voorbeeld laat zien wat de lampen dan krijgen. Bij Statisch, Ademen en
+  de kleurenloop met alle LED's tegelijk maakt het geen verschil; bij Per LED houdt elke LED
+  zijn eigen kleur, ook met de schakelaar aan. De keuze geldt per lamp, blijft bewaard (zie
+  `zonesAlike` bij "settings.json") en hoort niet bij een scène: een scène laat hem zoals hij
+  is. Knipperen werkt zoals altijd: een zone knippert alleen.
 - **Fans** (in OpenRGB het type "cooler", dus ook een AIO-pomp) tekent het voorbeeld per zone
   als ring, met LED 1 bovenaan en dan met de klok mee. OpenRGB zegt niet waar LED 1 echt zit;
   de wijzerplaat is dus een keuze. Een zone waarvan je de lengte instelt, of een zone van meer
@@ -497,7 +507,7 @@ engine draait (zie hieronder), `profiles.json` terwijl hij niet draait.
 
 Pas je `settings.json` met de hand aan terwijl de engine draait, dan neemt hij het binnen een
 seconde na het opslaan over, zonder herstart: de opties, de verlichting (algemeen, per lamp en
-per LED) en de zonelengtes. Een open instellingen-app laat het meteen zien. Het bestand blijft
+per LED), de zonelengtes en "Zones gelijk". Een open instellingen-app laat het meteen zien. Het bestand blijft
 zoals jij het schreef, met je eigen opmaak en een naam die de engine niet kent (bijv. een
 tikfout als `"colour"`); je editor meldt dus niet dat het bestand veranderde. Een waarde buiten
 het bereik past de engine aan (bijv. `framesPerSecond` 500 wordt 60); in het bestand staat die
@@ -533,7 +543,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "hotkeys": true,
   "zoneLengths": {
     "simulated-argb": { "ARGB 2": 15 }
-  }
+  },
+  "zonesAlike": ["simulated-headset", "simulated-mouse"]
 }
 ```
 
@@ -555,6 +566,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
 | `zoneLengths` | Per lamp de lengte die je een instelbare zone gaf, op de naam van de zone |
+| `zonesAlike` | De lampen (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elke lamp uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 
 - Een lamp van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
@@ -681,7 +693,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   een Corsair Commander of een Lian Li-hub) die OpenRGB via USB bereikt. Controllers met
   ARGB-kanalen heten "LED-strip", zo noemt OpenRGB ze.
 - **Toetsenbord, muis en headset** gaan via USB. Regenboog en Golf lopen over de LED-volgorde
-  van OpenRGB, niet over de plek van de toetsen. OpenRGB ondersteunt maar een deel van de
+  van OpenRGB, niet over de plek van de toetsen. Een muis of headset met een paar zones van één
+  LED krijgt daardoor per zone een andere kleur; wil je ze gelijk, zet dan "Zones gelijk" aan
+  (zie "Voorbeeld"). OpenRGB ondersteunt maar een deel van de
   headsets (zie "Supported Devices" op [openrgb.org](https://openrgb.org)); een headset die
   OpenRGB niet kent, staat ook niet in BuurmansRgb, en er komt geen eigen driver.
 - **Overige types:** muismat, headsetstandaard, speaker, gamepad, microfoon en keypad hebben

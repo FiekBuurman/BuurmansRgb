@@ -62,6 +62,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
+| Zones gelijk | `DeviceOutputTests` (het beeld van de langste zone uitgerekt over elke zone, even lange zones, "Overige LED's", een zone zonder LED's, één zone, helderheid en een flits over het beeld), `LightingControllerZonesAlikeTests` (twee zones van één LED in een regenboog één kleur, per LED niet, onbekend apparaat, geen `LightingChanged`, een scène laat het staan, een apparaat dat later komt, een zone knipperen, 0 bytes per frame), `JsonSettingsStoreTests`, `EngineHostTests` en `EngineHostReloadTests` (`zonesAlike` lezen, bewaren, met de hand en niet terugschrijven), `EngineApiTests`, `EngineRpcTests` en `DeviceInfoTests` (`SetZonesAlikeAsync` en `DeviceInfo.ZonesAlike`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de schakelaar alleen bij twee of meer zones met LED's, sturen en volgen) |
 | Knipperen en plek | `LightingControllerFlashTests` (ook een apparaat zonder LED's, dat de flits van een ander stopt), `LightingControllerZoneFlashTests` (alleen de LED's van één zone, een zone zonder LED's of die er niet meer is, een nieuwe lengte tijdens het knipperen, 0 bytes per frame), `RgbZoneTests` (`RangesOf`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de knop per zone, eerst een lengte die nog wacht, een knop annuleert de flits die bij de lampkeuze wacht), `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij, en bij de loop of LED's die meteen meekleuren één keer; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, ook dat een schermbeveiliging niet telt, het eigen proces en het bureaublad, ook twee keer na elkaar, en naar de gedeelde hook luisteren alleen zolang er gevolgd wordt), `ForegroundHookTests` (één echte `SetWinEventHook` zolang iemand luistert, elk venster naar elke luisteraar, ook als er een gooit of tussendoor stopt, en met een verzonnen `SetWinEventHook` die eerst weigert: wie luisterde krijgt de vensters van een latere hook; ook in `SystemForegroundWindowTests` en `SystemScreenSaverEventsTests`), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
@@ -85,6 +86,10 @@ toetsenbord. Een paar dingen om te proberen:
   steeds die lengte.
 - Klik bij "Simulated ARGB controller" naast "ARGB 1" op "Knipperen": in het voorbeeld knippert
   alleen die zone. "ARGB 2" heeft pas een knop als het LED's heeft.
+- Kies "Regenboog" en zet bij "Gesimuleerde headset" (twee oorschelpen van één LED) "Zones
+  gelijk" aan: in het voorbeeld hebben beide LED's nu dezelfde kleur, en bij de ventilator met
+  twee ringen lopen de ringen gelijk op. Herstart de engine: de schakelaar staat nog aan. Kies
+  "Per LED": elke LED houdt zijn eigen kleur.
 - Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Doe de per-LED-editor alleen met het toetsenbord: ga bij "Gesimuleerd toetsenbord" met Tab
@@ -322,6 +327,17 @@ toetsenbord. Een paar dingen om te proberen:
   een zone; een zone die de engine niet (meer) kent, slaat hij over, zoals een onbekend
   apparaat. Een apparaat of zone zonder LED's knippert niet, maar stopt wel de flits die liep,
   zoals een apparaat zonder LED's al deed vóór er zones knipperden.
+- **Zones gelijk:** `LightingController.ZonesAlike` (een set apparaat-id's, in `settings.json`
+  als `zonesAlike`) en `SetZonesAlike`, via `IEngineApi.SetZonesAlikeAsync`. Het hoort niet bij
+  de verlichting: `LightingChanged` gaat niet af, een scène laat het staan, en de app hoort het
+  als `DevicesChanged` met `DeviceInfo.ZonesAlike`. `DeviceOutput` deelt de LED's bij het maken
+  één keer in: de zones met LED's (`RgbZone.RangesOf`) en de LED's na de laatste zone, de
+  langste vooraan. Staat het aan, dan rendert het effect alleen in de langste en kopieert
+  `Stretch` dat beeld naar de andere (elke LED neemt de LED op dezelfde plek, gemeten in het
+  midden van de LED), zonder allocaties per frame. Bij `per-led` geeft de controller het niet
+  door, zodat elke LED zijn eigen kleur houdt. De flits komt daarna, dus knipperen per zone
+  werkt zoals eerst. De app toont de schakelaar alleen bij twee of meer zones met LED's
+  (`DevicePreviewViewModel.ShowsZonesAlike`).
 
 ## Ontwerp, lettertypes en icoon
 
@@ -366,6 +382,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, sneltoetsen aan, Windows vergrendeld, na de refactor (#63): één lezer voor de keuzewoorden in `settings.json`, één basisklasse voor de verborgen vensters, de sneltoetsen alleen in `WindowsGlobalHotkeys` bijgehouden; drie keer 60 s om en om met `kleur-kiezen` | 0,13–0,34 % van één kern, zonder de refactor (`kleur-kiezen`) 0,16–0,39 %: geen verschil buiten de ruis | 25,5–29,2 MB working set, 11,1–15 MB private (zonder: 25,7–28,7 en 11,3–12,8 MB); de eerste ronde van elk hoger, daarna gelijk (25,5–27 en 11,1–11,9 MB) |
 | Engine | Regenboog, Windows vergrendeld, met de schermbeveiliging (PR –): de voorgrond-hook staat nu altijd, ook zonder scène met `foregroundOnly`; vergrendeld komen er geen wisselingen van de voorgrond. Drie keer 60 s om en om met `pauseOnLockAndSleep` uit, en één keer met het pauzeren aan (gepauzeerd); zonder deze uitbreiding is main (#63) | Pauzeren uit 0,10–0,31 % van één kern, zonder deze uitbreiding 0,16–0,31 %: geen verschil buiten de ruis. Gepauzeerd 0,05 tegen 0,05 %. Wat een wisseling kost, staat in de rij hieronder | Pauzeren uit 25,7–28,9 MB working set, 10,9–11,8 MB private (zonder: 25,6–29 en 11,1–12,5 MB); gepauzeerd 24–25,8 en 11,2–12,1 MB (zonder: 24,1–25,9 en 11,3–12,8 MB) |
 | Engine | Het werk per wisseling van de voorgrond met de schermbeveiliging (PR –), los gemeten: de handlers van een Release-build twee keer 7 × 10.000 keer aangeroepen met het venster dat vooraan stond en met het bureaublad (`explorer.exe`), zonder echte wisseling en zonder hook in Windows, met een meetprogramma buiten de repo; main (#63) op dezelfde manier. Niet gemeten: wat Windows kost om de gebeurtenis naar de tray-thread te posten | Zonder scène met `foregroundOnly` 20–29 µs per wisseling (`SystemScreenSaverEvents.Tell`; bijna alles is de exe-naam via `ProcessImageName`, 20–28 µs, en `SPI_GETSCREENSAVERRUNNING` 0,6–1,3 µs alleen bij een `.scr`), main 0 µs (geen hook). Met zo'n scène 48–62 µs, main 22–23 µs: elke luisteraar leest de exe-naam zelf. Bij één wisseling per seconde ~0,002–0,003 % van één kern extra, met zo'n scène ~0,003–0,004 % | 80 bytes per wisseling, ~4,8 KB per minuut bij één per seconde; met zo'n scène 200–224 bytes, main 120–144 bytes |
+| Engine | Regenboog op 30 fps, `pauseOnLockAndSleep` uit, Windows vergrendeld, met "Zones gelijk" (PR –): aan bij de zes gesimuleerde lampen met meer zones met LED's, en uit; drie keer 60 s om en om, zonder deze uitbreiding is de schermbeveiliging (#64) | Aan 0,36–0,52 % van één kern, uit 0,36–0,47 %, zonder deze uitbreiding 0,34–0,65 %: geen verschil buiten de ruis. Een frame alloceert ook met "Zones gelijk" niets (`LightingControllerZonesAlikeTests`) | Aan 26,3–28,6 MB working set, 11–12,6 MB private; uit 26,4–27,9 en 11,1–12,4 MB; zonder: 26,5–29,5 en 11,1–12,4 MB |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -521,7 +538,13 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    numerieke blok. Kies een toets met Spatie en een reeks met Shift+→, geef ze een kleur en
    controleer dat precies die toetsen oplichten.
 3. Geef bij de muis één zone een eigen kleur en controleer dat alleen die zone verandert.
-4. Staat de headset niet in OpenRGB, noteer dan het model.
+4. Kies "Regenboog" en zet bij de muis (bijv. de Logitech G502 met "Primary Zone" en "Logo
+   Zone" van één LED) "Zones gelijk" aan: beide LED's hebben op de muis zelf steeds dezelfde
+   kleur, ook na een herstart van de engine. Zet hem uit: ze lopen weer uit elkaar. Klik bij een
+   van de zones op "Knipperen": alleen die zone knippert. Doe hetzelfde bij een fan met meer
+   ringen of een videokaart met een lichtbalk en een logo, en kijk of het uitrekken er goed
+   uitziet.
+5. Staat de headset niet in OpenRGB, noteer dan het model.
 
 ### Knipperen en plek
 
