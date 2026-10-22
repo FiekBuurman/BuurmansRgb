@@ -51,26 +51,28 @@ public sealed class CometEffect : IEffect
         var direction = RoundsPerSecond < 0.0 ? -1 : 1;
 
         // The round of the head counted in the way it runs, so it grows also with a negative speed.
+        // An LED shows the color of the round that passed it last, or of the next as the head
+        // arrives: one of three, so they are looked up once per frame.
         var round = direction * (long)Math.Floor(rounds);
+        var (before, now, next) = (ColorOf(round - 1), ColorOf(round), ColorOf(round + 1));
         for (var i = 0; i < leds.Length; i++)
         {
             // How far the head is past this LED, round the ring in the way it runs; within one LED
-            // before it, the LED comes up as the head arrives. Behind the start of the ring, the
-            // head passed the LED in the round before.
+            // before it, the LED comes up as the head arrives. Behind the start of the ring (a
+            // negative place, from -1 up to 0), the head passed the LED in the round before.
             var place = direction * (head - i * spacing) / length;
-            var before = Math.Floor(place);
-            var part = place - before;
+            var thisRound = place >= 0.0;
+            var part = thisRound ? place : place + 1.0;
             if (part >= 1.0)
             {
-                (part, before) = (0.0, before + 1.0);
+                (part, thisRound) = (0.0, true);
             }
 
             var behind = part * length;
             var ahead = length - behind;
             var arriving = ahead < 1.0 ? 1.0 - ahead : 0.0;
             var level = EffectMath.Tail(behind, tail);
-            var passed = round + (long)before;
-            var color = arriving > level ? ColorOf(passed + 1) : ColorOf(passed);
+            var color = arriving > level ? (thisRound ? next : now) : (thisRound ? now : before);
             leds[i] = color.Scale(Math.Max(arriving, level));
         }
     }
