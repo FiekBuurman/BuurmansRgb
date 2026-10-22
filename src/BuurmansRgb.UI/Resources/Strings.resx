@@ -413,6 +413,9 @@
   <data name="ZonesAlike" xml:space="preserve">
     <value>Zones gelijk</value>
   </data>
+  <data name="ZonesAlikeSubText" xml:space="preserve">
+    <value>Elke zone krijgt het beeld van de langste.</value>
+  </data>
   <data name="ZonesAlikeHint" xml:space="preserve">
     <value>Elke zone krijgt hetzelfde beeld als de langste; een kortere zone wordt uitgerekt. Bij Per LED houdt elke LED zijn eigen kleur.</value>
   </data>

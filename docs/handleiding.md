@@ -120,8 +120,9 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
   apparaat is wat?"), behalve bij "Overige LED's": de LED's die OpenRGB bij geen zone indeelt.
 - **Zones gelijk:** een lamp met twee of meer zones met LED's heeft onder zijn naam de
-  schakelaar **Zones gelijk**. Aan rendert het effect één keer, over de langste zone, en krijgt
-  elke andere zone hetzelfde beeld, uitgerekt over zijn eigen lengte. Zo hebben bijv. de twee
+  schakelaar **Zones gelijk**, met in één regel wat hij doet (meer in de tooltip). Aan rendert
+  het effect één keer, over de langste zone, en krijgt elke andere zone hetzelfde beeld,
+  uitgerekt over zijn eigen lengte. Zo hebben bijv. de twee
   zones van één LED van een Logitech-muis ("Primary Zone" en "Logo Zone") in een regenboog
   dezelfde kleur, en lopen de binnen- en buitenring van een fan gelijk op. "Overige LED's" doen
   mee als een zone. Het voorbeeld laat zien wat de lampen dan krijgen. Bij Statisch, Ademen en
