@@ -32,6 +32,11 @@ internal sealed record EngineSettings : LightingStateSettings
     // Null instead of empty, so the default settings stay out of the file.
     public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }
 
+    // "zonesAlike": the ids of the devices whose zones show one image (LightingController.ZonesAlike).
+    // Null instead of empty, so the default settings stay out of the file; an id that is not
+    // text reads as null (LenientJson) and is left out.
+    public List<string?>? ZonesAlike { get; set; }
+
     // "activeScene": the name of the scene that is on (ProfileLibrary.ActiveName), so it is still
     // on after a restart; null, and so not in the file, when none is.
     public string? ActiveScene { get; set; }
@@ -48,6 +53,16 @@ internal sealed record EngineSettings : LightingStateSettings
         ZoneLengths = lengths.Count > 0
             ? lengths.ToDictionary(pair => pair.Key, pair => (Dictionary<string, int>?)new Dictionary<string, int>(pair.Value))
             : null,
+    };
+
+    // Without the ids that are null or empty.
+    public IReadOnlySet<string> ReadZonesAlike() =>
+        new HashSet<string>((ZonesAlike ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!), StringComparer.Ordinal);
+
+    // In order, so the file only changes when the devices do.
+    public EngineSettings WithZonesAlike(IReadOnlySet<string> deviceIds) => this with
+    {
+        ZonesAlike = deviceIds.Count > 0 ? [.. deviceIds.Order(StringComparer.Ordinal)] : null,
     };
 
     public static EngineSettings From(LightingState state) => CreateDefault().WithLighting(state);

@@ -172,6 +172,21 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal(15, _zoneLengths.Lengths["simulated-argb"]["ARGB 2"]);
     }
 
+    // In another order than the engine writes them: the file stays as the user wrote it.
+    [Fact]
+    public async Task ZonesAlikeChangedByHand_AreShownAndNotSavedAgain()
+    {
+        var host = CreateHost();
+        await host.StartAsync(Ct);
+
+        ChangeByHand(new EngineSettings { ZonesAlike = ["simulated-mouse", "simulated-headset"] });
+        await Eventually.TrueAsync(() => _lighting.ZonesAlike.Count == 2);
+        host.Dispose();
+
+        Assert.Equal(new HashSet<string> { "simulated-headset", "simulated-mouse" }, _lighting.ZonesAlike);
+        Assert.Equal(0, _store.SaveCount);
+    }
+
     // The saver keeps what came from the file: a later change in the app saves no old values.
     [Fact]
     public async Task ChangeInTheAppAfterAChangeByHand_SavesBoth()

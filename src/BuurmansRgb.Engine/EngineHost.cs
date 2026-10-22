@@ -58,6 +58,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
         autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         lighting.PausedLightsChanged += OnPausedLightsChanged;
+        lighting.ZonesAlikeChanged += OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
@@ -94,6 +95,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
         autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         lighting.PausedLightsChanged -= OnPausedLightsChanged;
+        lighting.ZonesAlikeChanged -= OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
@@ -141,6 +143,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
         lighting.PausedLights = settings.PausedLights;
+        lighting.ZonesAlike = settings.ReadZonesAlike();
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
     }
@@ -166,6 +169,9 @@ internal sealed class EngineHost(
 
     private void OnPausedLightsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { PausedLights = lighting.PausedLights });
+
+    private void OnZonesAlikeChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings.WithZonesAlike(lighting.ZonesAlike));
 
     private void OnCatchUpChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
