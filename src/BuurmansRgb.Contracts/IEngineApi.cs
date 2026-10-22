@@ -38,7 +38,8 @@ public partial interface IEngineApi
     event EventHandler ProfilesChanged;
 
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
-    // pause on lock and sleep or the catch-up of scene times, from this or another settings app.
+    // pause on lock and sleep, the catch-up of scene times or the hotkeys, from this or another
+    // settings app.
     event EventHandler OptionsChanged;
 
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
@@ -131,6 +132,13 @@ public partial interface IEngineApi
     Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default);
 
     Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default);
+
+    // Whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U switch everything on and off, as "Alles aan"
+    // and "Alles uit" in the tray menu; saved like the lighting. Turning them off gives the keys
+    // back to Windows at once.
+    Task<bool> GetHotkeysAsync(CancellationToken ct = default);
+
+    Task SetHotkeysAsync(bool enabled, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);

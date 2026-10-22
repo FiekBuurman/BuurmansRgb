@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
@@ -358,13 +359,44 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(1, store.SaveCount);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task StartAsync_TurnsTheHotkeysOnOrOff(bool enabled)
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { Hotkeys = enabled } };
+        using var lighting = new LightingController([_simulated]);
+        var hotkeys = new AllOnOffHotkeys { Enabled = !enabled };
+        using var host = new EngineHost(store, lighting, hotkeys: hotkeys);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(enabled, hotkeys.Enabled);
+    }
+
+    [Fact]
+    public async Task Dispose_AfterTheHotkeysChanged_SavesThem()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        var hotkeys = new AllOnOffHotkeys();
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), hotkeys: hotkeys);
+        await host.StartAsync(Ct);
+
+        hotkeys.Enabled = false;
+        host.Dispose();
+
+        Assert.False(store.Settings.Hotkeys);
+        Assert.Equal(1, store.SaveCount);
+    }
+
     [Fact]
     public async Task StartAsync_TheSavedOptions_AreNotSavedAgain()
     {
-        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false } };
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, Hotkeys = false } };
         var lighting = new LightingController([_simulated]);
         using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), lighting.SetPaused);
-        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys());
         await host.StartAsync(Ct);
 
         host.Dispose();

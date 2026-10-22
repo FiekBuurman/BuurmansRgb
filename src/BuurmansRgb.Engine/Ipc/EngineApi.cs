@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
@@ -19,6 +20,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly SettingsSaveEvents? _saveEvents;
     private readonly AutoPause? _autoPause;
     private readonly ProfileTimer? _profileTimer;
+    private readonly AllOnOffHotkeys? _hotkeys;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -33,10 +35,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         SettingsSaveEvents? saveEvents = null,
         TimeProvider? time = null,
         AutoPause? autoPause = null,
-        ProfileTimer? profileTimer = null)
+        ProfileTimer? profileTimer = null,
+        AllOnOffHotkeys? hotkeys = null)
     {
         _autoPause = autoPause;
         _profileTimer = profileTimer;
+        _hotkeys = hotkeys;
         _lighting = lighting;
         _zoneLengths = zoneLengths;
         _profiles = profiles;
@@ -55,6 +59,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.FramesPerSecondChanged += OnOptionsChanged;
         _autoPause?.EnabledChanged += OnOptionsChanged;
         _profileTimer?.CatchUpChanged += OnOptionsChanged;
+        _hotkeys?.EnabledChanged += OnOptionsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -203,6 +208,16 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // Without the hotkeys (in tests) no key does anything, so they read as off. The tray registers
+    // or frees the keys when they change.
+    public Task<bool> GetHotkeysAsync(CancellationToken ct = default) => Task.FromResult(_hotkeys?.Enabled ?? false);
+
+    public Task SetHotkeysAsync(bool enabled, CancellationToken ct = default)
+    {
+        _hotkeys?.Enabled = enabled;
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)
@@ -250,6 +265,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.FramesPerSecondChanged -= OnOptionsChanged;
         _autoPause?.EnabledChanged -= OnOptionsChanged;
         _profileTimer?.CatchUpChanged -= OnOptionsChanged;
+        _hotkeys?.EnabledChanged -= OnOptionsChanged;
         _frames.Dispose();
     }
 

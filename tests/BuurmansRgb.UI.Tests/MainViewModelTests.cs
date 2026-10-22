@@ -440,11 +440,13 @@ public sealed class MainViewModelTests
             api.FramesPerSecond = 60;
             api.PauseOnLockAndSleep = false;
             api.CatchUpSceneTimes = true;
+            api.Hotkeys = false;
         });
 
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.True(viewModel.SceneTimes.CatchUp);
+        Assert.False(viewModel.Hotkeys.Enabled);
         Assert.Empty(Api.Calls);
     }
 
@@ -456,8 +458,9 @@ public sealed class MainViewModelTests
         viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
         viewModel.EffectOptions.PauseOnLockAndSleep = false;
         viewModel.SceneTimes.CatchUp = true;
+        viewModel.Hotkeys.Enabled = false;
 
-        Assert.Equal(["fps 15", "pause on lock False", "catch up True"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "catch up True", "hotkeys False"], Api.Calls);
     }
 
     [Fact]
@@ -556,12 +559,14 @@ public sealed class MainViewModelTests
         Api.FramesPerSecond = 15;
         Api.PauseOnLockAndSleep = false;
         Api.CatchUpSceneTimes = true;
+        Api.Hotkeys = false;
         Api.RaiseOptionsChanged();
 
         Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
         Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.True(viewModel.SceneTimes.CatchUp);
+        Assert.False(viewModel.Hotkeys.Enabled);
         Assert.Empty(Api.Calls);
     }
 

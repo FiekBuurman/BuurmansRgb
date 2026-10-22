@@ -1,4 +1,5 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
@@ -19,7 +20,8 @@ internal sealed class EngineHost(
     ZoneLengthKeeper? zoneLengths = null,
     AutoPause? autoPause = null,
     ProfileLibrary? profiles = null,
-    ProfileTimer? profileTimer = null) : IEngineHost, IDisposable
+    ProfileTimer? profileTimer = null,
+    AllOnOffHotkeys? hotkeys = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -39,6 +41,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
+        hotkeys?.Enabled = settings.Hotkeys;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         if (profiles is not null)
@@ -54,6 +57,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
         autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
+        hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -82,6 +86,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
         autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
+        hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -111,4 +116,7 @@ internal sealed class EngineHost(
 
     private void OnCatchUpChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
+
+    private void OnHotkeysEnabledChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { Hotkeys = hotkeys!.Enabled });
 }

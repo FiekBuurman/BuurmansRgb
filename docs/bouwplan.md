@@ -376,6 +376,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #49 | Events `ProfilesChanged` en `OptionsChanged`: de app volgt scènes en opties die elders veranderen |
 | #50 | De lege pagina Buren weg: samen met de buren kleuren is geen doel van de app |
 | #51 | Gemiste tijden van scènes inhalen na het ontwaken en bij het starten (`catchUpSceneTimes`), te kiezen bij Instellingen |
+| #52 | Sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U voor "Alles aan" en "Alles uit" (`hotkeys`), uit te zetten bij Instellingen |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

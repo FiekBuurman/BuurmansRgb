@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
+using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
@@ -62,6 +63,7 @@ internal static class Program
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         using var autoPause = new AutoPause(powerEvents, sessionEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
+        var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // The host disposes them, before it saves for the last time.
         var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
@@ -71,7 +73,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -80,9 +82,10 @@ internal static class Program
             zoneLengths: zoneLengths,
             autoPause: autoPause,
             profiles: profiles,
-            profileTimer: profileTimer);
+            profileTimer: profileTimer,
+            hotkeys: hotkeys);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, log.FilePath, MemoryTrimmer.Trim);
+        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
         {

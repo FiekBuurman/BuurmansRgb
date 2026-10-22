@@ -249,6 +249,10 @@ Hoe het vanzelf aanzetten werkt:
   aan van de tijd die het laatst voorbij is, in plaats van zo'n tijd over te slaan (standaard
   uit); zie "Gemiste tijden inhalen" bij Scènes. Het geldt zonder herstart, de engine bewaart
   het, en een tweede instellingen-app toont de wijziging meteen.
+- **Sneltoetsen:** "Sneltoetsen voor alles aan en uit" zet de sneltoetsen van "Alles aan" en
+  "Alles uit" aan of uit (standaard aan); zie "Sneltoetsen" bij het tray-icoon. Uit geeft de
+  engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
+  zonder herstart en de engine bewaart het.
 - **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
 
 ### Aan en uit
@@ -291,6 +295,17 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Alles aan** en **Alles uit** doen hetzelfde als "Alles aan of uit" in de instellingen-app.
   Alleen wat iets verandert, is te klikken: staat alles al aan, dan is "Alles aan" grijs. Elke
   lamp houdt zijn eigen verlichting voor als hij weer aangaat.
+- **Sneltoetsen:** **Ctrl+Alt+Shift+A** doet hetzelfde als "Alles aan" en **Ctrl+Alt+Shift+U**
+  hetzelfde als "Alles uit" (A van aan, U van uit). Ze werken overal in Windows, ook als de
+  instellingen-app dicht is of een andere app de focus heeft, vanaf het moment dat de engine de
+  opgeslagen verlichting heeft gezet. In het menu staan ze naast de twee items. De toetsen zijn
+  vast; uitzetten kan bij Instellingen ("Sneltoetsen") of met `"hotkeys": false` in
+  `settings.json`. Gebruikt een andere app een van de toetsen al, dan meldt het icoon dat
+  ("De sneltoets Ctrl+Alt+Shift+A werkt niet: een andere app gebruikt hem al."), staat die toets
+  niet in het menu en noemt het logbestand hem; de andere toets werkt gewoon. Zet de sneltoetsen
+  uit en weer aan om het opnieuw te proberen nadat die app dicht is. Typ je met het toetsenbord
+  "Verenigde Staten (internationaal)" een Á of Ú met AltGr+Shift, zet de sneltoetsen dan uit:
+  AltGr telt in Windows als Ctrl+Alt.
 - **Logbestand openen** opent `engine.log` (zie "Logbestanden") in Kladblok of het programma dat
   bij `.log` hoort.
 - **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
@@ -369,6 +384,7 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
   "catchUpSceneTimes": false,
+  "hotkeys": true,
   "zoneLengths": {
     "simulated-argb": { "ARGB 2": 15 }
   }
@@ -390,6 +406,7 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen en slaapstand (ook bij Instellingen) |
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
+| `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
 | `zoneLengths` | Per lamp de lengte die je een instelbare zone gaf, op de naam van de zone |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 

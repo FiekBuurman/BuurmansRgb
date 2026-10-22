@@ -51,6 +51,12 @@
   <data name="AllOffFailed" xml:space="preserve">
     <value>De lampen konden niet worden uitgezet.</value>
   </data>
+  <data name="HotkeyTaken" xml:space="preserve">
+    <value>De sneltoets {0} werkt niet: een andere app gebruikt hem al.</value>
+  </data>
+  <data name="HotkeysTaken" xml:space="preserve">
+    <value>De sneltoetsen {0} en {1} werken niet: een andere app gebruikt ze al.</value>
+  </data>
   <data name="LogOpenFailed" xml:space="preserve">
     <value>Het logbestand kon niet worden geopend.</value>
   </data>

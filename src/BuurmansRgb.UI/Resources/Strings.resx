@@ -554,6 +554,15 @@
   <data name="CatchUpHint" xml:space="preserve">
     <value>Kwam de tijd van een scène voorbij terwijl de pc sliep, dan gaat na het ontwaken de scène van de laatste tijd aan. Bij het starten van buurmansRgb gaat die scène altijd aan. Uit slaat buurmansRgb zo'n tijd over.</value>
   </data>
+  <data name="HotkeysHeader" xml:space="preserve">
+    <value>Sneltoetsen</value>
+  </data>
+  <data name="HotkeysLabel" xml:space="preserve">
+    <value>Sneltoetsen voor alles aan en uit</value>
+  </data>
+  <data name="HotkeysHint" xml:space="preserve">
+    <value>Ctrl+Alt+Shift+A zet alles aan en Ctrl+Alt+Shift+U alles uit, net als in het tray-menu, ook als deze app dicht is. Gebruikt een andere app dezelfde toetsen, zet ze dan hier uit.</value>
+  </data>
   <data name="SaveHeader" xml:space="preserve">
     <value>Opslaan</value>
   </data>
