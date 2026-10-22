@@ -27,7 +27,6 @@ internal sealed class TrayPresenter(
     Action openLog,
     ITrayView view)
 {
-    private readonly HashSet<Keys> _registeredHotkeys = [];
     private PauseReasons _pause;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
 
@@ -177,12 +176,8 @@ internal sealed class TrayPresenter(
         }
         else
         {
-            foreach (var key in _registeredHotkeys)
-            {
-                globalHotkeys.Unregister(key);
-            }
-
-            _registeredHotkeys.Clear();
+            globalHotkeys.Unregister(AllOnOffHotkeys.AllOn);
+            globalHotkeys.Unregister(AllOnOffHotkeys.AllOff);
         }
 
         view.ShowAllOnOffHotkeys(HotkeyText(AllOnOffHotkeys.AllOn), HotkeyText(AllOnOffHotkeys.AllOff));
@@ -214,25 +209,16 @@ internal sealed class TrayPresenter(
         }
     }
 
-    // A pressed key does what its menu item does.
+    // A pressed key does what its menu item does. A key that is registered already stays so.
     private void RegisterHotkey(Keys key, bool on, List<string> taken)
     {
-        if (_registeredHotkeys.Contains(key))
-        {
-            return;
-        }
-
-        if (globalHotkeys.Register(key, () => SetAllOn(on)))
-        {
-            _registeredHotkeys.Add(key);
-        }
-        else
+        if (!globalHotkeys.IsRegistered(key) && !globalHotkeys.Register(key, () => SetAllOn(on)))
         {
             taken.Add(AllOnOffHotkeys.DisplayText(key));
         }
     }
 
-    private string? HotkeyText(Keys key) => _registeredHotkeys.Contains(key) ? AllOnOffHotkeys.DisplayText(key) : null;
+    private string? HotkeyText(Keys key) => globalHotkeys.IsRegistered(key) ? AllOnOffHotkeys.DisplayText(key) : null;
 
     // The first line tells whether the effects run, the second how it goes with OpenRGB.
     private void ShowToolTip() =>

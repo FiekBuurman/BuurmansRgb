@@ -29,6 +29,8 @@ internal sealed class FakeGlobalHotkeys : IGlobalHotkeys
 
     public void Unregister(Keys key) => _registered.Remove(key);
 
+    public bool IsRegistered(Keys key) => _registered.ContainsKey(key);
+
     // Like Windows: a key that is not registered (any more) does nothing.
     public void Press(Keys key)
     {

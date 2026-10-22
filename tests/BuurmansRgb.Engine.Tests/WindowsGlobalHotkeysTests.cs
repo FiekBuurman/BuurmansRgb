@@ -90,11 +90,14 @@ public sealed class WindowsGlobalHotkeysTests
                 Assert.Skip(KeyNotFree);
             }
 
+            Assert.True(hotkeys.IsRegistered(UnusedKey));
             SendHotkey(hotkeys, WindowsGlobalHotkeys.ToId(UnusedKey));
             Assert.Equal(1, pressed);
             Assert.Equal(0, otherPressed);
 
             hotkeys.Unregister(UnusedKey);
+            Assert.False(hotkeys.IsRegistered(UnusedKey));
+            Assert.True(hotkeys.IsRegistered(otherKey));
             SendHotkey(hotkeys, WindowsGlobalHotkeys.ToId(UnusedKey));
             Assert.Equal(1, pressed);
 

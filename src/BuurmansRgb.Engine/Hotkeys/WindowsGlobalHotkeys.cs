@@ -15,7 +15,8 @@ internal sealed partial class WindowsGlobalHotkeys : MessageOnlyWindow, IGlobalH
     // Held down, the key does its work once, not again with every repeat of the keyboard.
     private const uint ModNoRepeat = 0x4000;
 
-    private readonly Dictionary<Keys, (int Id, Action Pressed)> _registered = [];
+    // By the id of the key (ToId), which WM_HOTKEY gives.
+    private readonly Dictionary<int, (Keys Key, Action Pressed)> _registered = [];
 
     public bool Register(Keys key, Action pressed)
     {
@@ -27,22 +28,25 @@ internal sealed partial class WindowsGlobalHotkeys : MessageOnlyWindow, IGlobalH
             return false;
         }
 
-        _registered[key] = (id, pressed);
+        _registered[id] = (key, pressed);
         return true;
     }
 
     public void Unregister(Keys key)
     {
-        if (_registered.Remove(key, out var hotkey) && !UnregisterHotKey(Handle, hotkey.Id))
+        var id = ToId(key);
+        if (_registered.Remove(id) && !UnregisterHotKey(Handle, id))
         {
             Trace.TraceWarning($"The hotkey {key} could not be unregistered (error {Marshal.GetLastPInvokeError()}).");
         }
     }
 
+    public bool IsRegistered(Keys key) => _registered.ContainsKey(ToId(key));
+
     // Gives the keys back before the window goes, so another app can have them again.
     protected override void Release()
     {
-        foreach (var key in _registered.Keys.ToList())
+        foreach (var (key, _) in _registered.Values.ToList())
         {
             Unregister(key);
         }
@@ -63,14 +67,9 @@ internal sealed partial class WindowsGlobalHotkeys : MessageOnlyWindow, IGlobalH
     {
         if (m.Msg == WmHotkey)
         {
-            var id = (int)m.WParam;
-            foreach (var (_, hotkey) in _registered)
+            if (_registered.TryGetValue((int)m.WParam, out var hotkey))
             {
-                if (hotkey.Id == id)
-                {
-                    hotkey.Pressed();
-                    break;
-                }
+                hotkey.Pressed();
             }
 
             return;
