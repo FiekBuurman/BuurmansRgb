@@ -12,6 +12,16 @@ public sealed class EffectMathTests
         Assert.Equal(fraction, EffectMath.Fraction(value), 12);
     }
 
+    // Just below zero, value - Math.Floor(value) rounds to exactly 1.
+    [Theory]
+    [InlineData(-1e-17)]
+    [InlineData(-1e-20)]
+    [InlineData(-double.Epsilon)]
+    public void Fraction_JustBelowZero_StaysBelowOne(double value)
+    {
+        Assert.InRange(EffectMath.Fraction(value), 0.0, Math.BitDecrement(1.0));
+    }
+
     [Theory]
     [InlineData(0.0, 0.0)]
     [InlineData(0.5, 0.5)]

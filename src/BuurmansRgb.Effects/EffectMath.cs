@@ -8,7 +8,12 @@ internal static class EffectMath
     public static double RaisedCosine(double phase) => 0.5 - 0.5 * Math.Cos(2.0 * Math.PI * phase);
 
     // The part after the whole number, from 0 up to 1, also for a negative value: -0.25 gives 0.75.
-    public static double Fraction(double value) => value - Math.Floor(value);
+    // Just below a whole number the subtraction can round to 1, which is the 0 of the next one.
+    public static double Fraction(double value)
+    {
+        var fraction = value - Math.Floor(value);
+        return fraction >= 1.0 ? 0.0 : fraction;
+    }
 
     // From 0 at 0 to 1 at 1 with a gentle start and end, for blending between two random values.
     public static double SmoothStep(double t) => t * t * (3.0 - 2.0 * t);
