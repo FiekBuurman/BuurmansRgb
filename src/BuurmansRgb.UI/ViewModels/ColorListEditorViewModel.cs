@@ -41,12 +41,13 @@ public partial class ColorListEditorViewModel : ObservableObject
     // While Show runs, so a subclass does not report what it shows as a change.
     private protected ReentrancyGuard Showing { get; } = new();
 
-    // Shows colors of the engine; the selection stays on the same place when it still exists.
-    public void Show(IReadOnlyList<RgbColor> colors) => Showing.Run(() =>
+    // Shows colors of the engine; the selection stays on the same place when it still exists, or
+    // with selectFirst goes to the first color, as for the colors of another effect.
+    public void Show(IReadOnlyList<RgbColor> colors, bool selectFirst = false) => Showing.Run(() =>
     {
         _colors.Clear();
         _colors.AddRange(colors);
-        SelectedIndex = Math.Min(SelectedIndex, _colors.Count - 1);
+        SelectedIndex = selectFirst ? 0 : Math.Min(SelectedIndex, _colors.Count - 1);
         RefreshSwatches();
         AddColorCommand.NotifyCanExecuteChanged();
         RemoveColorCommand.NotifyCanExecuteChanged();

@@ -19,6 +19,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string EffectCall = "effect";
     private const string SpeedCall = "speed";
     private const string LoopCall = "loop";
+    private const string EffectColorsCall = "effect-colors";
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
@@ -53,6 +54,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The color of the selected device, which the color picker shows again when the effect
     // changes from the color loop to another one.
     private RgbColor _deviceColor = RgbColor.White;
+
+    // The own colors of the effects with a list, as the engine gave them for the selected device
+    // and with the changes sent since, so another effect shows its list at once.
+    private EffectColors _effectColors = EffectColors.None;
 
     // Counts the OpenRGB status changes shown, so an answer to GetOpenRgbStatusAsync that an event
     // overtook does not bring back the older status.
@@ -104,13 +109,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SetPickerAppliesAtOnce();
         };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
-        ColorLoopEditor.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(ColorLoopEditorViewModel.SelectedColor))
-            {
-                ShowPickerColor();
-            }
-        };
+        EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
+        ColorLoopEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
+        EffectColorsEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
         {
@@ -185,6 +186,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
+    // With an effect that has a list of colors (comet, scanner, twinkle, fire), the color picker
+    // colors the selected color of that list.
+    public ColorListEditorViewModel EffectColorsEditor { get; } = new(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
+
+    public bool HasEffectColors => EffectColors.Takes(SelectedEffect?.Id);
+
+    // What the colors do in the selected effect, such as "every round the next color".
+    public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
+
     public ProfilesViewModel Profiles { get; } = new();
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
@@ -209,7 +219,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -408,11 +418,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // Another effect the user picks ends an LED edit: the picker colors the lamp or the loop again,
-    // as a color for the LEDs would put the lamp back on the per-LED effect. The effect the app
-    // follows (_syncing), such as the per-LED one after SendLeds, keeps the edit.
+    // Another effect the user picks ends an LED edit: the picker colors the lamp, the loop or the list
+    // of the effect again, as a color for the LEDs would put the lamp back on the per-LED effect. The
+    // effect the app follows (_syncing), such as the per-LED one after SendLeds, keeps the edit. The
+    // tiles show the list of the new effect, from its first color.
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
+        ShowEffectColors(selectFirst: true);
         SetPickerAppliesAtOnce();
         if (!_syncing.IsActive && value is not null)
         {
@@ -579,10 +591,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _syncing.Run(() =>
         {
             _deviceColor = lighting.Color;
+            _effectColors = lighting.EffectColors ?? EffectColors.None;
             ColorLoopEditor.Show(lighting.Loop ?? ColorLoop.Default);
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
             Speed = Math.Round(lighting.Speed * 100.0);
+            // Also when the effect stayed the same, as its colors may not have.
+            ShowEffectColors(selectFirst: false);
         });
         // A mixed color stays, but not once the picker colors the loop or the LEDs at once, as after
         // a scene with the color loop: its next step would put the color mixed for the lamp there.
@@ -604,10 +619,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post((setting, deviceId), () => call(connection.Api, deviceId));
     }
 
-    // The picker colors, in this order: the selected LEDs, the selected color of the loop, or the
-    // device. The LEDs and the loop take every mixed color at once (SetPickerAppliesAtOnce); the call
-    // queue lets a newer one replace the one that waits, so a dragged slider sends few. A lamp
-    // that is off goes on with the first one, as in most lamp apps.
+    // The picker colors, in this order: the selected LEDs, the selected color of the loop or of the
+    // list of the effect, or the device. The LEDs and the lists take every mixed color at once
+    // (SetPickerAppliesAtOnce); the call queue lets a newer one replace the one that waits, so a
+    // dragged slider sends few. A lamp that is off goes on with the first one, as in most lamp apps.
     private void OnColorPicked(RgbColor color)
     {
         if (LedEditor.HasSelection)
@@ -617,6 +632,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         else if (IsColorLoop)
         {
             ColorLoopEditor.Paint(color);
+            SwitchOnForColor(SelectedDevice);
+        }
+        else if (HasEffectColors)
+        {
+            EffectColorsEditor.Paint(color);
             SwitchOnForColor(SelectedDevice);
         }
         else
@@ -642,13 +662,48 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var color = LedEditor.HasSelection ? LedEditor.AnchorColor
             : IsColorLoop ? ColorLoopEditor.SelectedColor
+            : HasEffectColors ? EffectColorsEditor.SelectedColor
             : _deviceColor;
         _syncing.Run(() => ColorPicker.Show(color));
     }
 
-    // A color of the loop or of chosen LEDs changes at once with the picker, as the tile or the LEDs
-    // show it; the color of the whole lamp waits for "Op de strip zetten", so it can be mixed first.
-    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop;
+    // Another selected color in the loop or the list of the effect.
+    private void ShowPickerColorFor(string? changedProperty)
+    {
+        if (changedProperty == nameof(ColorListEditorViewModel.SelectedColor))
+        {
+            ShowPickerColor();
+        }
+    }
+
+    // A color of the loop, of the list of an effect or of chosen LEDs changes at once with the
+    // picker, as the tile or the LEDs show it; the color of the whole lamp waits for "Op de strip
+    // zetten", so it can be mixed first.
+    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors;
+
+    // The list of the selected effect, or its default: the lamp color, or the warm colors of the
+    // fire. selectFirst for another effect, whose list has nothing to do with the selection before.
+    private void ShowEffectColors(bool selectFirst)
+    {
+        if (SelectedEffect is { } effect && EffectColors.Takes(effect.Id))
+        {
+            EffectColorsEditor.Show(_effectColors.For(effect.Id, _deviceColor), selectFirst);
+        }
+    }
+
+    // Kept here too, so that after switching to another effect and back the list is the new one.
+    // The key holds the effect, so a list of the comet does not replace one of the fire that waits.
+    private void SendEffectColors(IReadOnlyList<RgbColor> colors)
+    {
+        if (SelectedEffect is not { } effect || !EffectColors.Takes(effect.Id))
+        {
+            return;
+        }
+
+        var effectId = effect.Id;
+        _effectColors = _effectColors.With(effectId, colors);
+        Send($"{EffectColorsCall}:{effectId}", (api, deviceId) => api.SetEffectColorsAsync(deviceId, effectId, colors));
+    }
 
     [RelayCommand(CanExecute = nameof(CanFillGradient))]
     private void FillGradient() => SendLeds(LedEditor.FillGradient());

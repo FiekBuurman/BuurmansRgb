@@ -327,15 +327,15 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         Click(viewModel, "fan", 0);
 
-        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Scanner);
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Wave);
 
         Assert.Null(viewModel.LedEditor.Selection);
         Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
         Assert.False(viewModel.ColorPicker.AppliesAtOnce);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
         viewModel.ColorPicker.Pick("#00FF00");
-        Assert.Equal(EffectIds.Scanner, viewModel.SelectedEffect?.Id);
-        Assert.Equal(["effect all scanner", "color all #00FF00"], Api.Calls);
+        Assert.Equal(EffectIds.Wave, viewModel.SelectedEffect?.Id);
+        Assert.Equal(["effect all wave", "color all #00FF00"], Api.Calls);
     }
 
     // With the color loop the picker colors the loop, as without LEDs chosen.
@@ -351,6 +351,22 @@ public sealed class MainViewModelLedEditorTests
         Assert.Null(viewModel.LedEditor.Selection);
         Assert.Equal(EffectIds.ColorLoop, viewModel.SelectedEffect?.Id);
         Assert.Equal(["effect all color-loop", "loop all #FF00FF,#00FF00,#0000FF spread"], Api.Calls);
+    }
+
+    // With the scanner the picker colors its list, as without LEDs chosen: the LEDs, then the list
+    // of the effect, then the lamp.
+    [Fact]
+    public async Task ChooseScanner_WithLedsSelected_ThePickerColorsItsList()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Scanner);
+        viewModel.ColorPicker.Mix("#FF00FF");
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(["effect all scanner", "effect-colors all scanner #FF00FF"], Api.Calls);
     }
 
     [Fact]
@@ -539,7 +555,7 @@ public sealed class MainViewModelLedEditorTests
     private async Task<MainViewModel> ConnectAsync()
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
-            api.Effects = [EffectIds.Static, EffectIds.Scanner, EffectIds.ColorLoop, EffectIds.PerLed]));
+            api.Effects = [EffectIds.Static, EffectIds.Wave, EffectIds.Scanner, EffectIds.ColorLoop, EffectIds.PerLed]));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
