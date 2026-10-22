@@ -240,8 +240,10 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Button Margin="0,20,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{Binding ApplyColorLabel}"
-                            Command="{Binding ColorPicker.ApplyCommand}" />
+                    <!-- Only for the color of the whole lamp: a color of the loop or of chosen LEDs changes at once. -->
+                    <Button Margin="0,20,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
+                            Command="{Binding ColorPicker.ApplyCommand}"
+                            Visibility="{Binding ColorPicker.AppliesAtOnce, Converter={StaticResource InverseBoolToVisibility}}" />
                 </StackPanel>
             </Grid>
 

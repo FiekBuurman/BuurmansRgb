@@ -115,6 +115,38 @@ public sealed class MainViewModelLampTests
         Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
     }
 
+    // The mixed color goes to the LEDs at once, so the lamp goes on with the first of it, and
+    // only then.
+    [Fact]
+    public async Task MixColors_ForLedsOfALampThatIsOff_SwitchesItOnOnce()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("fan"));
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan").ClickLed(0);
+
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Red = 255;
+
+        Assert.Equal(["leds fan 0 #00FF00", "on fan on", "leds fan 0 #FFFF00"], Api.Calls);
+        Assert.Equal([true, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
+    }
+
+    [Fact]
+    public async Task MixColors_ForTheLoopOfTheWholeHouseWithALampOff_SwitchesEveryLampOnOnce()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
+            api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop };
+            SwitchOff("fan")(api);
+        });
+
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Red = 255;
+
+        Assert.Equal(["loop all #00FF00,#00FF00,#0000FF spread", "on all on", "loop all #FFFF00,#00FF00,#0000FF spread"], Api.Calls);
+        Assert.Equal("2 van 2 aan", viewModel.Lamps.Summary);
+    }
+
     [Fact]
     public async Task LightingChanged_ShowsTheLightingOfTheLampsAgain()
     {

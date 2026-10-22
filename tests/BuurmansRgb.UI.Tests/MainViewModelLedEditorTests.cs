@@ -39,6 +39,70 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
 
+    // Without "Op de gekozen LED's zetten": the sliders, the hex code and a preset color the LEDs.
+    [Fact]
+    public async Task MixColor_WithLedsSelected_ColorsThemAtOnce()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 1, extend: true);
+
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.Blue = 255;
+        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 59, 59));
+
+        Assert.Equal(["leds strip 0 #00FF00,#00FF00", "leds strip 0 #00FFFF,#00FFFF", "leds strip 0 #FF3B3B,#FF3B3B"], Api.Calls);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    [Fact]
+    public async Task ChooseAndClearLeds_ThePickerAppliesAtOnceOnlyWhileLedsAreChosen()
+    {
+        var viewModel = await ConnectAsync();
+
+        Click(viewModel, "strip", 0);
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+
+        await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
+        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        Assert.Empty(Api.Calls);
+        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    // Showing the stored color of the LED that was clicked sends nothing.
+    [Fact]
+    public async Task ClickAnotherLed_AfterMixing_SendsNothingMore()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 0);
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Click(viewModel, "strip", 2);
+
+        Assert.Equal(["leds strip 0 #00FF00"], Api.Calls);
+        Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
+    }
+
+    [Fact]
+    public async Task DragSlider_WithLedsSelected_SendsFewCallsAndTheLastColorWins()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        for (var red = 1; red <= 255; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 2);
+        Assert.Equal(["leds fan 0 #0100FF", "leds fan 0 #FF00FF"], Api.Calls);
+    }
+
     [Fact]
     public async Task ClickLed_ExtendIntoTheNextZone_SelectsAcrossBothZones()
     {

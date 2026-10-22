@@ -42,6 +42,85 @@ public sealed class MainViewModelColorLoopTests
         Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
     }
 
+    // Without "In de loop zetten": the tile changes with the mixed color and the engine keeps the loop.
+    [Fact]
+    public async Task MixColor_WithColorLoop_PaintsTheSelectedLoopColorAtOnce()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
+        viewModel.ColorLoopEditor.SelectCommand.Execute(1);
+
+        viewModel.ColorPicker.HexColor = "#FF00FF";
+
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorLoopEditor.Swatches[1].Color);
+        Assert.True(viewModel.ColorLoopEditor.Swatches[1].IsSelected);
+        Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    [Fact]
+    public async Task SlidersAndPreset_WithColorLoop_PaintTheSelectedLoopColorAtOnce()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
+        viewModel.ColorLoopEditor.SelectCommand.Execute(2);
+
+        viewModel.ColorPicker.Red = 255;
+        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 154, 61));
+
+        Assert.Equal(["loop all #FFFF00,#00FF00,#FF00FF spread", "loop all #FFFF00,#00FF00,#FF9A3D spread"], Api.Calls);
+        Assert.Equal(new RgbColor(255, 154, 61), viewModel.ColorLoopEditor.Swatches[2].Color);
+    }
+
+    // "Op de strip zetten" is only for the color of the whole lamp.
+    [Fact]
+    public async Task SwitchEffect_ThePickerAppliesAtOnceOnlyForTheColorLoop()
+    {
+        var viewModel = await ConnectAsync();
+        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
+
+        viewModel.SelectedEffect = EffectOption.Create(EffectIds.ColorLoop);
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+
+        viewModel.SelectedEffect = EffectOption.Create(EffectIds.Static);
+        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
+    }
+
+    // Another tile keeps the color that was mixed for the one before.
+    [Fact]
+    public async Task MixColorThenSelectAnother_KeepsTheMixedColorInTheLoop()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
+
+        viewModel.ColorPicker.HexColor = "#FF00FF";
+        viewModel.ColorLoopEditor.SelectCommand.Execute(1);
+
+        Assert.Equal([new RgbColor(255, 0, 255), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], viewModel.ColorLoopEditor.Swatches.Select(swatch => swatch.Color));
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+    }
+
+    // A slider dragged while the engine is busy: the loops in between are replaced in the queue,
+    // the last one wins, and the lamp goes on once.
+    [Fact]
+    public async Task DragSlider_WithColorLoop_SendsFewCallsAndTheLastColorWins()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting["fan"] = api.Lighting["fan"] with { EffectId = EffectIds.ColorLoop, On = false });
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        for (var blue = 1; blue <= 255; blue++)
+        {
+            viewModel.ColorPicker.Blue = blue;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 3);
+        Assert.Equal(["loop fan #FFFF01,#00FF00,#0000FF spread", "on fan on", "loop fan #FFFFFF,#00FF00,#0000FF spread"], Api.Calls);
+        Assert.Equal(RgbColor.White, viewModel.ColorLoopEditor.Swatches[0].Color);
+        Assert.True(viewModel.SelectedLamp?.IsOn);
+    }
+
     [Fact]
     public async Task SelectLoopColor_PickerShowsIt()
     {
