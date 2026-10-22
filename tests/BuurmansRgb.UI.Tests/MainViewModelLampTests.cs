@@ -41,6 +41,81 @@ public sealed class MainViewModelLampTests
     }
 
     [Fact]
+    public async Task PickColor_ForALampThatIsOff_SwitchesOnlyThatLampOnAfterTheColor()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("strip", "fan"));
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["color fan #00FF00", "on fan on"], Api.Calls);
+        Assert.True(viewModel.SelectedLamp?.IsOn);
+        Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
+    }
+
+    [Fact]
+    public async Task PickColor_ForALampThatIsOn_OnlySendsTheColor()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("strip"));
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["color fan #00FF00"], Api.Calls);
+        Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
+    }
+
+    [Fact]
+    public async Task PickColor_ForTheWholeHouseWithALampOff_SwitchesEveryLampOnAfterTheColor()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("fan"));
+
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["color all #00FF00", "on all on"], Api.Calls);
+        Assert.True(viewModel.Lamps.IsAnyOn);
+        Assert.Equal("2 van 2 aan", viewModel.Lamps.Summary);
+    }
+
+    [Fact]
+    public async Task PickColor_ForTheWholeHouseAllOn_OnlySendsTheColor()
+    {
+        var viewModel = await ConnectAsync(_ => { });
+
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task MixColor_WithoutPuttingItOnTheLamp_LeavesTheLampOff()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("fan"));
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 59, 59));
+
+        Assert.Empty(Api.Calls);
+        Assert.False(viewModel.SelectedLamp?.IsOn);
+    }
+
+    [Fact]
+    public async Task ColorLeds_OfALampThatIsOff_SwitchesOnlyThatLampOnAfterTheColors()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("strip", "fan"));
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan").ClickLed(0);
+
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["leds fan 0 #00FF00", "on fan on"], Api.Calls);
+        Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
+    }
+
+    [Fact]
     public async Task LightingChanged_ShowsTheLightingOfTheLampsAgain()
     {
         var viewModel = await ConnectAsync(_ => { });
@@ -97,6 +172,15 @@ public sealed class MainViewModelLampTests
 
         Assert.False(api.HasLightingSubscribers);
     }
+
+    // Each device off, with the lighting it has.
+    private static Action<FakeEngineApi> SwitchOff(params string[] deviceIds) => api =>
+    {
+        foreach (var deviceId in deviceIds)
+        {
+            api.Lighting[deviceId] = api.Lighting.GetValueOrDefault(deviceId, api.Lighting[""]) with { On = false };
+        }
+    };
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
     {

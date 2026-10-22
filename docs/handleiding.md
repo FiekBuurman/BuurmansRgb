@@ -57,6 +57,11 @@ schakelaar ernaast.
   Rood, Oranje, Groen, Blauw, Paars) en de knop **Op de strip zetten**. Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op de lamp"); pas de
   knop zet hem op de lamp.
+- **Een lamp die uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
+  meeste lamp-apps: hij komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Lampen)
+  gaat mee. Dat geldt ook voor "In de loop zetten" en voor de per-LED-editor; alleen mengen,
+  of bij de kleurenloop + en −, laat hem uit. Bij "Hele huis" gaan alle lampen aan als er één
+  uit staat, want de kleur gaat naar allemaal. Andere lampen blijven zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
   werkt op elk effect.
 - **Hele huis of één lamp:** een wijziging bij "Hele huis" geldt voor alle lampen, maar alleen
@@ -129,7 +134,8 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks vanaf de vorige
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
 Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
-gekozen LED's zetten" en gaat de kleur alleen naar die LED's.
+gekozen LED's zetten" en gaat de kleur alleen naar die LED's. Staat de lamp uit, dan gaat hij
+daarmee aan, ook bij "Verloop vullen".
 
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
@@ -262,6 +268,7 @@ naast de lampkeuze bij Kleur). Een lamp die uit is, wordt zwart en houdt zijn kl
 en helderheid voor als hij weer aan gaat. De grote schakelaar staat aan zolang er minstens
 één lamp aan is. Met alles uit loopt er geen timer in de engine, ook niet als het effect een
 regenboog is. "Laat knipperen" werkt ook bij een lamp die uit is; daarna is hij weer zwart.
+Een kleur op een lamp zetten bij Kleur zet hem ook aan (zie "Kleur").
 
 ### Ontwerp en bewuste afwijkingen
 

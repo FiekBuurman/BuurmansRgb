@@ -50,18 +50,27 @@ public sealed partial class LampsViewModel : ObservableObject
         get => OnCount > 0;
         set
         {
-            if (value == IsAnyOn || Lamps.Count == 0)
+            if (value != IsAnyOn && Lamps.Count > 0)
             {
-                return;
+                SwitchAll(value);
             }
+        }
+    }
 
-            foreach (var lamp in Lamps)
+    // Switches the lamp on as if the user did, when it is off; with null every lamp, when any is
+    // off. A lamp that is on, and every other lamp, stays as it is.
+    public void SwitchOn(string? deviceId)
+    {
+        if (deviceId is null)
+        {
+            if (Lamps.Any(lamp => !lamp.IsOn))
             {
-                lamp.Show(value);
+                SwitchAll(true);
             }
-
-            OnLampsChanged();
-            SwitchRequested?.Invoke(this, new LampSwitch(null, value));
+        }
+        else if (Lamps.FirstOrDefault(lamp => lamp.DeviceId == deviceId) is { IsOn: false } lamp)
+        {
+            lamp.IsOn = true;
         }
     }
 
@@ -204,6 +213,18 @@ public sealed partial class LampsViewModel : ObservableObject
                 led -= count;
             }
         }
+    }
+
+    // One call for the whole house, as the engine switches every device with it.
+    private void SwitchAll(bool on)
+    {
+        foreach (var lamp in Lamps)
+        {
+            lamp.Show(on);
+        }
+
+        OnLampsChanged();
+        SwitchRequested?.Invoke(this, new LampSwitch(null, on));
     }
 
     [RelayCommand]

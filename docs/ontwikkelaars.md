@@ -63,7 +63,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
-| Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` |
+| Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests`, `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests`, `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests` |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
@@ -86,6 +86,8 @@ toetsenbord. Een paar dingen om te proberen:
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
   verder, of `notepad.exe`, en start en sluit Kladblok.
+- Zet op Lampen een lamp uit, kies hem bij Kleur en kies "Op de strip zetten": hij gaat aan
+  en zijn schakelaar gaat mee; de andere lampen blijven zoals ze waren.
 - Vink in het tray-menu "Effecten pauzeren" aan: de melding met "Hervatten" verschijnt.
 - Zet bij Instellingen "Nooit": de gesimuleerde lampen verdwijnen meteen.
 - Druk Ctrl+Alt+Shift+U en Ctrl+Alt+Shift+A terwijl een ander venster de focus heeft: de
@@ -359,6 +361,9 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 5. Gebruikt een andere app (bijv. een overlay of macro-tool) een van de toetsen, start dan de
    engine: het icoon meldt welke toets niet werkt en `engine.log` noemt hem; de andere toets
    werkt. Noteer welke app het was.
+6. Zet een lamp uit, kies hem bij Kleur en zet er een andere kleur op: hij gaat aan, meteen in
+   de nieuwe kleur, zonder eerst even de oude te tonen. Doe hetzelfde met één LED in het
+   voorbeeld.
 
 ### Scènes
 

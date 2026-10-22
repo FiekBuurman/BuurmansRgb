@@ -577,7 +577,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The picker colors, in this order: the selected LEDs, the selected color of the loop, or the
-    // device.
+    // device. A lamp that is off goes on with it, as in most lamp apps.
     private void OnColorPicked(RgbColor color)
     {
         if (LedEditor.HasSelection)
@@ -587,11 +587,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         else if (IsColorLoop)
         {
             ColorLoopEditor.Paint(color);
+            SwitchOnForColor(SelectedDevice);
         }
         else
         {
             _deviceColor = color;
             Send(ColorCall, (api, deviceId) => api.SetColorAsync(deviceId, color));
+            SwitchOnForColor(SelectedDevice);
+        }
+    }
+
+    // After the color in the queue, so the lamp comes on in its new color and not first in the
+    // old one. "Hele huis" switches every lamp on when any is off, as it colors them all.
+    private void SwitchOnForColor(DeviceItem? device)
+    {
+        if (_connection is not null && device is not null)
+        {
+            Lamps.SwitchOn(device.DeviceId);
         }
     }
 
@@ -650,7 +662,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
-    // when the edited device is the selected one.
+    // when the edited device is the selected one. A lamp that is off goes on after its colors, as
+    // with SwitchOnForColor.
     private void SendLeds(LedEdit? edit)
     {
         if (edit is null || _connection is not { } connection)
@@ -660,6 +673,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _sentChanges++;
         _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        Lamps.SwitchOn(edit.DeviceId);
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
