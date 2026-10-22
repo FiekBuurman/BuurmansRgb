@@ -498,7 +498,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // Devices came or went in the engine, for example because OpenRGB started or stopped.
+    // Devices came or went in the engine, for example because OpenRGB started or stopped, or one
+    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. A
+    // color the user is mixing for the lamp that stays selected stays in the picker, as in
+    // FollowLighting.
     private async Task ReloadDevicesAsync()
     {
         if (_connection is not { } connection)
@@ -509,12 +512,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var (ok, devices) = await TryCallAsync(connection, api => api.GetDevicesAsync());
         if (ok && ReferenceEquals(connection, _connection))
         {
+            var selectedId = SelectedDevice?.DeviceId;
             ShowDevices(devices);
-            await ShowSelectionAsync();
+            await ShowSelectionAsync(keepMixedColor: SelectedDevice?.DeviceId == selectedId);
         }
     }
 
-    private async Task ShowSelectionAsync()
+    // With keepMixedColor, a color the user is mixing when the lighting comes stays (ShowLighting).
+    private async Task ShowSelectionAsync(bool keepMixedColor = false)
     {
         RebuildPreview();
         if (_connection is not { } connection)
@@ -532,7 +537,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        ShowLighting(lighting, keepMixedColor: false);
+        ShowLighting(lighting, keepMixedColor: keepMixedColor && ColorPicker.HasUnappliedChange);
     }
 
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu

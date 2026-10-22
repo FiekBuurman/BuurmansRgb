@@ -294,6 +294,23 @@ public sealed class MainViewModelTests
         await Eventually.TrueAsync(() => !viewModel.Preview.Devices.Single().ZonesAlike);
     }
 
+    // The switch is on the Kleur page: a color the user is mixing there stays in the picker when
+    // the engine reports the device again with the choice.
+    [Fact]
+    public async Task ZonesAlikeInThePreview_WhileMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+        var before = viewModel.Preview.Devices.Single();
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+
+        before.ZonesAlike = true;
+
+        await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
     // Another settings app, or settings.json by hand: the engine reports the devices again.
     [Fact]
     public async Task ZonesAlikeElsewhere_ShowsInThePreview()

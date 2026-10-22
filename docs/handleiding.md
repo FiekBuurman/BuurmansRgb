@@ -128,7 +128,8 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   de kleurenloop met alle LED's tegelijk maakt het geen verschil; bij Per LED houdt elke LED
   zijn eigen kleur, ook met de schakelaar aan. De keuze geldt per lamp, blijft bewaard (zie
   `zonesAlike` bij "settings.json") en hoort niet bij een scène: een scène laat hem zoals hij
-  is. Knipperen werkt zoals altijd: een zone knippert alleen.
+  is. Knipperen werkt zoals altijd: een zone knippert alleen. Een kleur die je aan het mengen
+  bent en nog niet op de lamp hebt gezet, blijft staan als je de schakelaar omzet.
 - **Fans** (in OpenRGB het type "cooler", dus ook een AIO-pomp) tekent het voorbeeld per zone
   als ring, met LED 1 bovenaan en dan met de klok mee. OpenRGB zegt niet waar LED 1 echt zit;
   de wijzerplaat is dus een keuze. Een zone waarvan je de lengte instelt, of een zone van meer
