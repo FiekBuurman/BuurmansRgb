@@ -3,9 +3,13 @@ using BuurmansRgb.Engine.Programs;
 
 namespace BuurmansRgb.Engine.Tests;
 
-public sealed class SystemForegroundWindowTests
+public sealed class SystemForegroundWindowTests : IDisposable
 {
     private const string NoWindow = "This session cannot make a window, or has no shell.";
+
+    private readonly ForegroundHook _hook = new();
+
+    public void Dispose() => _hook.Dispose();
 
     // The taskbar, Alt+Tab, the lock screen and the Start menu pass by; the desktop and any program
     // take the user away from a game.
@@ -95,31 +99,67 @@ public sealed class SystemForegroundWindowTests
     }
 
     // Follow posts to the window; sent here on the own thread, the message goes straight through
-    // WndProc. Only the last ask counts.
+    // WndProc. Only the last ask counts, and without another listener the hook goes with the last.
     [Fact]
-    public void Follow_SetsTheHookOnlyWhileFollowed()
+    public void Follow_ListensToTheHookOnlyWhileFollowed()
     {
         SystemForegroundWindow? foreground = null;
         try
         {
             foreground = CreateOrSkip();
-            Assert.False(foreground.IsHooked);
+            Assert.False(foreground.IsListening);
+            Assert.False(_hook.IsSet);
 
             foreground.Follow(true);
             SendFollow(foreground);
-            Assert.True(foreground.IsHooked);
+            Assert.True(foreground.IsListening);
+            Assert.True(_hook.IsSet);
             SendFollow(foreground);
-            Assert.True(foreground.IsHooked);
+            Assert.True(foreground.IsListening);
 
             foreground.Follow(true);
             foreground.Follow(false);
             SendFollow(foreground);
-            Assert.False(foreground.IsHooked);
+            Assert.False(foreground.IsListening);
+            Assert.False(_hook.IsSet);
 
             foreground.Follow(true);
             SendFollow(foreground);
             foreground.Dispose();
-            Assert.False(foreground.IsHooked);
+            Assert.False(foreground.IsListening);
+            Assert.False(_hook.IsSet);
+        }
+        finally
+        {
+            foreground?.Dispose();
+        }
+    }
+
+    // The hook tells each window it gets to a follower, as Windows would.
+    [Fact]
+    public void Followed_GetsTheWindowsOfTheHook()
+    {
+        SystemForegroundWindow? foreground = null;
+        try
+        {
+            foreground = CreateOrSkip();
+            var desktop = GetShellWindow();
+            if (desktop == 0)
+            {
+                Assert.Skip(NoWindow);
+            }
+
+            var changes = new List<string?>();
+            foreground.Follow(true);
+            SendFollow(foreground);
+            foreground.Changed += (_, program) => changes.Add(program);
+
+            _hook.Tell(desktop);
+            foreground.Follow(false);
+            SendFollow(foreground);
+            _hook.Tell(desktop);
+
+            Assert.Equal(["explorer.exe"], changes, StringComparer.OrdinalIgnoreCase);
         }
         finally
         {
@@ -130,7 +170,7 @@ public sealed class SystemForegroundWindowTests
     private static void SendFollow(SystemForegroundWindow foreground) =>
         MessageOnlyWindows.SendMessage(foreground.Handle, SystemForegroundWindow.WmFollow, 0, 0);
 
-    private static SystemForegroundWindow CreateOrSkip() => MessageOnlyWindows.CreateOrSkip(() => new SystemForegroundWindow(), NoWindow);
+    private SystemForegroundWindow CreateOrSkip() => MessageOnlyWindows.CreateOrSkip(() => new SystemForegroundWindow(_hook), NoWindow);
 
     [DllImport("user32.dll")]
     private static extern nint GetShellWindow();

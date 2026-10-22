@@ -62,7 +62,8 @@ internal static class Program
         using var sessionEvents = new SystemSessionEvents();
         using var displayEvents = new SystemDisplayEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
-        using var foregroundWindow = new SystemForegroundWindow();
+        using var foregroundHook = new ForegroundHook();
+        using var foregroundWindow = new SystemForegroundWindow(foregroundHook);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
         using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
