@@ -161,16 +161,17 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Bij vergrendelen of slaapstand de lampen uitzetten of dimmen, als keuze naast het huidige
   "laatste frame blijft staan"
-- Ook pauzeren als alleen het scherm uitgaat zonder dat Windows vergrendelt
-  (`RegisterPowerSettingNotification` met `GUID_CONSOLE_DISPLAY_STATE`); nu loopt de animatie dan
-  door
+- Een eigen schakelaar voor pauzeren als het scherm uitgaat, los van vergrendelen en slaapstand;
+  nu valt het onder dezelfde `pauseOnLockAndSleep`
+- De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
+  gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat
 - Herstellen na het ontwaken ook bij Modern Standby (S0) controleren: of `PowerModeChanged`
   dan `Resume` meldt, verschilt per pc. Eventueel ook herstellen (de apparaten opnieuw laden)
-  bij het aangaan van het scherm of bij ontgrendelen; nu stuurt de engine bij ontgrendelen
-  alleen de kleuren opnieuw
+  bij het aangaan van het scherm (`IDisplayEvents`) of bij ontgrendelen; nu stuurt de engine
+  dan alleen de kleuren opnieuw
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
 

@@ -56,12 +56,14 @@ internal static class Program
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
-        // On this thread, which pumps the tray messages and so also the power, session and clock events.
+        // On this thread, which pumps the tray messages and so also the power, session, screen and
+        // clock events.
         using var powerEvents = new SystemPowerEvents();
         using var sessionEvents = new SystemSessionEvents();
+        using var displayEvents = new SystemDisplayEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
-        using var autoPause = new AutoPause(powerEvents, sessionEvents, lighting.SetPaused);
+        using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);

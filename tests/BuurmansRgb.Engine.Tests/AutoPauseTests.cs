@@ -14,6 +14,7 @@ public sealed class AutoPauseTests : IDisposable
 {
     private readonly FakePowerEvents _power = new();
     private readonly FakeSessionEvents _session = new();
+    private readonly FakeDisplayEvents _display = new();
     private readonly FakeTimeProvider _time = new();
     private readonly RestorableDeviceProvider _restorable = new();
     private readonly RecordingDeviceProvider _provider = new();
@@ -23,7 +24,7 @@ public sealed class AutoPauseTests : IDisposable
     public AutoPauseTests()
     {
         _lighting = new LightingController([_restorable, _provider], _time);
-        _autoPause = new AutoPause(_power, _session, _lighting.SetPaused);
+        _autoPause = new AutoPause(_power, _session, _display, _lighting.SetPaused);
     }
 
     public void Dispose()
@@ -111,7 +112,7 @@ public sealed class AutoPauseTests : IDisposable
         await StartAnimatedAsync();
         var session = new FakeSessionEvents { IsLocked = true };
 
-        using var autoPause = new AutoPause(_power, session, _lighting.SetPaused);
+        using var autoPause = new AutoPause(_power, session, new FakeDisplayEvents(), _lighting.SetPaused);
         Assert.Equal(PauseReasons.Locked, _lighting.Pause);
 
         session.Raise(SessionSwitchReason.SessionUnlock);
@@ -140,6 +141,64 @@ public sealed class AutoPauseTests : IDisposable
     {
         await StartAnimatedAsync();
         _power.RaiseSuspending();
+
+        _session.Raise(back);
+
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    [Fact]
+    public async Task DisplayOff_StopsTheAnimationUntilItIsOnAgain()
+    {
+        await StartAnimatedAsync();
+
+        _display.Raise(off: true);
+        Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
+        Assert.False(_lighting.IsAnimating);
+
+        _display.Raise(off: false);
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // As after unlocking: the devices get their lighting again when the screen goes on.
+    [Fact]
+    public async Task DisplayOn_GivesTheDevicesTheirLightingAgain()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Orange)));
+        _display.Raise(off: true);
+        _provider.SetLeds(RecordingDeviceProvider.DeviceId, [RgbColor.White, RgbColor.White, RgbColor.White]);
+
+        _display.Raise(off: false);
+
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
+    // Windows tells the state right after the engine starts listening, which may be before AutoPause is made.
+    [Fact]
+    public async Task StartedWithTheScreenOff_PausesUntilItIsOn()
+    {
+        await StartAnimatedAsync();
+        var display = new FakeDisplayEvents { IsOff = true };
+
+        using var autoPause = new AutoPause(_power, _session, display, _lighting.SetPaused);
+        Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
+
+        display.Raise(off: false);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // Should Windows not tell that the screen is on again, the user who is back still sees the effects.
+    [Theory]
+    [InlineData(SessionSwitchReason.SessionUnlock)]
+    [InlineData(SessionSwitchReason.ConsoleConnect)]
+    [InlineData(SessionSwitchReason.RemoteConnect)]
+    public async Task DisplayOffWithoutOn_EndsWhenTheUserIsBack(SessionSwitchReason back)
+    {
+        await StartAnimatedAsync();
+        _display.Raise(off: true);
 
         _session.Raise(back);
 
@@ -199,13 +258,14 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     [Fact]
-    public async Task Disabled_IgnoresLockAndSleep()
+    public async Task Disabled_IgnoresLockSleepAndTheScreen()
     {
         await StartAnimatedAsync();
         _autoPause.Enabled = false;
 
         _session.Raise(SessionSwitchReason.SessionLock);
         _power.RaiseSuspending();
+        _display.Raise(off: true);
 
         Assert.Equal(PauseReasons.None, _lighting.Pause);
         Assert.True(_lighting.IsAnimating);
@@ -222,6 +282,19 @@ public sealed class AutoPauseTests : IDisposable
 
         _autoPause.Enabled = true;
         Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+    }
+
+    [Fact]
+    public async Task DisabledWhileTheScreenIsOff_EndsThePauseAndEnabledStartsItAgain()
+    {
+        await StartAnimatedAsync();
+        _display.Raise(off: true);
+
+        _autoPause.Enabled = false;
+        Assert.True(_lighting.IsAnimating);
+
+        _autoPause.Enabled = true;
+        Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
     }
 
     [Fact]
@@ -288,6 +361,22 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal(PauseReasons.None, _autoPause.Away);
     }
 
+    // Somebody may still be at the pc with the screen off, listening to music.
+    [Fact]
+    public void Away_NotForTheScreen()
+    {
+        var changes = new List<PauseReasons>();
+        _autoPause.AwayChanged += (_, away) => changes.Add(away);
+
+        _display.Raise(off: true);
+        Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
+        Assert.Equal(PauseReasons.None, _autoPause.Away);
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _display.Raise(off: false);
+        Assert.Equal([PauseReasons.Locked], changes);
+    }
+
     [Fact]
     public void AwayChanged_RaisedOnlyForAnotherValue_AndNotForEnabled()
     {
@@ -320,7 +409,7 @@ public sealed class AutoPauseTests : IDisposable
     [Fact]
     public void StartedWhileLocked_IsAwayAtOnce()
     {
-        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, _lighting.SetPaused) { Enabled = false };
+        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, new FakeDisplayEvents(), _lighting.SetPaused) { Enabled = false };
 
         Assert.Equal(PauseReasons.Locked, autoPause.Away);
     }
@@ -332,9 +421,11 @@ public sealed class AutoPauseTests : IDisposable
 
         _autoPause.Dispose();
         _session.Raise(SessionSwitchReason.SessionLock);
+        _display.Raise(off: true);
 
         Assert.False(_power.HasListeners);
         Assert.False(_session.HasListeners);
+        Assert.False(_display.HasListeners);
         Assert.True(_lighting.IsAnimating);
     }
 
@@ -353,6 +444,20 @@ public sealed class AutoPauseTests : IDisposable
     [InlineData("manual suspend resume", PauseReasons.Manual)]
     [InlineData("manual lock suspend unlock", PauseReasons.Manual)]
     [InlineData("lock manual unlock unmanual", PauseReasons.None)]
+    [InlineData("on", PauseReasons.None)]
+    [InlineData("off off on", PauseReasons.None)]
+    [InlineData("off lock", PauseReasons.Locked | PauseReasons.DisplayOff)]
+    [InlineData("off lock on", PauseReasons.Locked)]
+    [InlineData("lock off on unlock", PauseReasons.None)]
+    [InlineData("lock off suspend resume", PauseReasons.Locked | PauseReasons.DisplayOff)]
+    [InlineData("lock off suspend resume on", PauseReasons.Locked)]
+    [InlineData("lock off suspend on resume unlock", PauseReasons.None)]
+    [InlineData("off suspend resume on", PauseReasons.None)]
+    [InlineData("off disconnect on", PauseReasons.Locked)]
+    [InlineData("off unlock off", PauseReasons.DisplayOff)]
+    [InlineData("off connect off", PauseReasons.DisplayOff)]
+    [InlineData("manual off on", PauseReasons.Manual)]
+    [InlineData("off manual on unmanual", PauseReasons.None)]
     public async Task EventSeries_EndInTheRightPause(string events, PauseReasons pause)
     {
         await StartAnimatedAsync();
@@ -390,7 +495,7 @@ public sealed class AutoPauseTests : IDisposable
         _lighting.Apply(Uniform(StaticLighting(Orange) with { EffectId = EffectIds.Rainbow }));
     }
 
-    // "manual" and "unmanual" are the pause from the tray menu.
+    // "manual" and "unmanual" are the pause from the tray menu, "off" and "on" the screen.
     private void Raise(string name)
     {
         switch (name)
@@ -412,6 +517,9 @@ public sealed class AutoPauseTests : IDisposable
                 break;
             case "resume":
                 _power.RaiseResumed();
+                break;
+            case "off" or "on":
+                _display.Raise(off: name == "off");
                 break;
             case "manual" or "unmanual":
                 _lighting.SetPaused(PauseReasons.Manual, name == "manual");

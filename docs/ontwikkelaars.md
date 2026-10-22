@@ -65,7 +65,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`), `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
-| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit), `ResumeRestorerTests`, `SystemSessionEventsTests`, `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
+| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, en het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -122,7 +122,15 @@ toetsenbord. Een paar dingen om te proberen:
   (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten
-  vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`).
+  vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`). Het
+  scherm volgt hij met `RegisterPowerSettingNotification` voor `GUID_CONSOLE_DISPLAY_STATE` op
+  een verborgen message-only venster op dezelfde thread (`SystemDisplayEvents` achter
+  `IDisplayEvents`; `UnregisterPowerSettingNotification` bij afsluiten). Windows stuurt de
+  toestand meteen na het registreren, via de berichtenwachtrij; alleen 0 (uit) telt, 2 (gedimd)
+  niet. Dat geeft de eigen reden `PauseReasons.DisplayOff`, onder dezelfde `pauseOnLockAndSleep`.
+  Ontgrendelen of verbinden beëindigt die reden ook, voor het geval Windows het aangaan van het
+  scherm niet meldt. `Away` doet bij alleen een scherm dat uit is niet mee: dan kan er nog
+  iemand achter de pc zitten.
 - **Programma's zien:** zonder adminrechten meldt Windows niet dat een programma start. Daarom
   kijkt de engine elke 2 seconden in de proceslijst (`EnumProcesses`, de naam één keer per
   nieuw proces), alleen zolang een scène een programma heeft. Dat kost minder dan 0,1 ms per
@@ -200,12 +208,13 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog op 30 fps, app dicht | ~0,35 % van één kern (~0,02 % van de pc) | 22–27 MB working set, 12,5–13 MB private |
 | Engine | Allocaties (`dotnet-counters`), app dicht | Regenboog ~101 KB, statisch ~89 KB per minuut: geen meetbaar verschil door 1.800 frames per minuut | |
 | Engine | Alles uit, met regenboog als effect | 0,00–0,12 % van één kern, geen render-timer | 19–28 MB working set, 12–13 MB private |
-| Engine | Vergrendeld of slaapstand | 0 frames, geen timer | |
+| Engine | Vergrendeld, slaapstand of scherm uit | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
 | Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#51) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
 | Engine | Regenboog, sneltoetsen aan (#52) | 0,36–0,39 % van één kern, zonder sneltoetsen (#51) 0,26–0,39 %: geen verschil buiten de ruis; een toets kost alleen iets als je hem indrukt | 26–28 MB working set, 11–11,7 MB private (zonder: 24–27 en 11–12 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, een scène met een programma, niet vergrendeld (#54) | 0,31–0,60 % van één kern, zonder deze uitbreiding (#53) 0,49–0,52 %: geen verschil buiten de ruis. Vergrendeld scheelt het de ~0,05 % van het kijken in de proceslijst | 27–31 MB working set, 11–12,6 MB private (zonder: 26–31 en 11–13 MB) |
+| Engine | Regenboog, met het volgen van het scherm (#55); Windows vergrendeld, het scherm niet apart gemeten; het verschil is het extra venster | Met `pauseOnLockAndSleep` uit 0,16–0,57 % van één kern, zonder deze uitbreiding (#54) 0,21–0,36 %: geen verschil buiten de ruis. Met het pauzeren aan (gepauzeerd) 0,10 tegen 0,08 % | 23–28 MB working set, 11–12 MB private (zonder: 23–28 en 11–11,6 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -404,11 +413,25 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    10 seconden terug te zijn (stilstaand), na het ontgrendelen loopt de animatie weer.
 4. Wissel van gebruiker en kom terug, of verbind met Extern bureaublad en verbreek: de animatie
    stopt en loopt daarna weer.
-5. Zet bij Instellingen "Pauzeren bij vergrendelen en slaapstand" uit en vergrendel: de
-   regenboog loopt door.
+5. Zet bij Instellingen "Pauzeren bij vergrendelen, slaapstand en scherm uit" uit en vergrendel:
+   de regenboog loopt door.
 6. Laat die schakelaar uit en geef een scène het programma `timeout.exe`. Typ in een terminal
    `timeout /t 30`: de scène gaat aan. Vergrendel meteen en wacht tot de 30 seconden om zijn: de
    scène blijft staan. Ontgrendel: meteen daarna komt de verlichting van daarvoor terug.
+7. Zet de schakelaar weer aan, kies "Regenboog" en zet bij Windows Instellingen, Systeem,
+   Energiebeheer de time-out van het scherm op 1 minuut, zonder vergrendelen na het uitgaan
+   (bij Accounts, Aanmeldingsopties: "Nooit" voor opnieuw aanmelden). Wacht zonder muis of
+   toetsenbord tot het scherm uitgaat: de lampen blijven op één frame staan en de CPU-tijd
+   loopt niet op. Beweeg de muis: de regenboog loopt meteen weer, zonder ontgrendelen. Het
+   dimmen vlak voor het uitgaan (op een laptop) pauzeert niet.
+8. Vergrendel met Windows-toets+L en wacht tot het scherm op het vergrendelscherm uitgaat.
+   Beweeg de muis: de regenboog blijft stilstaan tot je ontgrendelt. Laat daarna het scherm
+   uitgaan en de pc in slaapstand gaan (of zet hem erin), en maak hem wakker: na het
+   ontgrendelen loopt de regenboog weer.
+9. Geef een scène het programma `timeout.exe` (zoals bij 6) en typ `timeout /t 120`; laat het
+   scherm uitgaan zonder vergrendelen. Na de 120 seconden komt de verlichting van daarvoor
+   terug terwijl het scherm nog uit is: bij alleen scherm uit kijkt de engine wel naar
+   programma's.
 
 ## Mappen en documenten
 

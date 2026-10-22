@@ -25,7 +25,7 @@ public partial interface IEngineApi
     event EventHandler<ServerStatus> OpenRgbStatusChanged;
 
     // Raised with the new reasons when the effects pause or run again: from the tray menu, while
-    // Windows is locked or asleep, or after ResumeEffectsAsync.
+    // Windows is locked or asleep, while the screen is off, or after ResumeEffectsAsync.
     event EventHandler<PauseReasons> PauseChanged;
 
     // Raised when the lighting changed: from this or another settings app, or from the engine
@@ -105,7 +105,7 @@ public partial interface IEngineApi
     Task<PauseReasons> GetPauseAsync(CancellationToken ct = default);
 
     // Ends the pause from the tray menu, like unchecking "Effecten pauzeren" there. A pause because
-    // Windows is locked or asleep stays until that ends.
+    // Windows is locked or asleep, or the screen is off, stays until that ends.
     Task ResumeEffectsAsync(CancellationToken ct = default);
 
     Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default);
@@ -120,8 +120,9 @@ public partial interface IEngineApi
     // A value outside 1 to 60 is kept within it.
     Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default);
 
-    // Whether the effects pause while Windows is locked or asleep; saved like the lighting. Turning
-    // it off ends such a pause at once, turning it on starts one when Windows is locked.
+    // Whether the effects pause while Windows is locked or asleep, or the screen is off; saved like
+    // the lighting. Turning it off ends such a pause at once, turning it on starts one when Windows
+    // is locked or the screen is off.
     Task<bool> GetPauseOnLockAndSleepAsync(CancellationToken ct = default);
 
     Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default);

@@ -458,6 +458,9 @@
   <data name="EffectsPausedAsleep" xml:space="preserve">
     <value>Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.</value>
   </data>
+  <data name="EffectsPausedDisplayOff" xml:space="preserve">
+    <value>Effecten gepauzeerd zolang het scherm uit is – ze lopen weer als het aangaat.</value>
+  </data>
   <data name="EffectsResumed" xml:space="preserve">
     <value>Effecten lopen weer.</value>
   </data>
@@ -540,10 +543,10 @@
     <comment>Een waarde uit settings.json die geen van de drie keuzes is.</comment>
   </data>
   <data name="PauseOnLockLabel" xml:space="preserve">
-    <value>Pauzeren bij vergrendelen en slaapstand</value>
+    <value>Pauzeren bij vergrendelen, slaapstand en scherm uit</value>
   </data>
   <data name="PauseOnLockHint" xml:space="preserve">
-    <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, zodat het dan geen CPU kost. De lampen houden het laatste beeld.</value>
+    <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, of het scherm uit is, zodat het dan geen CPU kost. De lampen houden het laatste beeld.</value>
   </data>
   <data name="SceneTimesHeader" xml:space="preserve">
     <value>Scènes op tijd</value>

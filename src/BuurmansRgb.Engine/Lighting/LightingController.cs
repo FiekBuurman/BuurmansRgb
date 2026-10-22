@@ -12,8 +12,9 @@ namespace BuurmansRgb.Engine.Lighting;
 // flashes, and nothing is paused; with static lighting no timer runs at all.
 //
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
-// manual pause also leaves the devices alone; while Windows is locked or asleep, a change such as
-// a profile that loads on time, or the restore after waking up, still reaches the devices.
+// manual pause also leaves the devices alone; while Windows is locked or asleep, or the screen is
+// off, a change such as a profile that loads on time, or the restore after waking up, still
+// reaches the devices.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;

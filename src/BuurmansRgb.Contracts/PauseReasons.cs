@@ -17,4 +17,8 @@ public enum PauseReasons
 
     // The pc goes to sleep or hibernates; this ends when it wakes up.
     Asleep = 4,
+
+    // The screen is off, also while Windows stays unlocked; this ends when it goes on again. A
+    // dimmed screen does not count. Like Locked, only the animation stops.
+    DisplayOff = 8,
 }
