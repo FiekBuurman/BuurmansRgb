@@ -16,6 +16,7 @@ internal static class EffectCatalog
         [EffectIds.Rainbow] = (_, _, _) => new RainbowEffect(),
         [EffectIds.Wave] = (color, _, _) => new WaveEffect(color),
         [EffectIds.ColorLoop] = (_, _, loop) => new ColorLoopEffect(loop.Colors, loop.Spread),
+        [EffectIds.Twinkle] = (color, _, _) => new TwinkleEffect(color),
         [EffectIds.PerLed] = (color, ledColors, _) => new PerLedEffect(ledColors, color),
     };
 

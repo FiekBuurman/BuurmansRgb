@@ -95,6 +95,7 @@ schakelaar ernaast.
 | Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
 | Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
 | Kleurenloop | `color-loop` | Je eigen 2–8 kleuren die in elkaar overlopen, 0,2 loop per seconde; over de LED's verdeeld of alle LED's tegelijk |
+| Fonkelen | `twinkle` | LED's in de kleur lichten willekeurig op en doven langzaam uit. Elke LED krijgt ongeveer elke 1,7 seconde een kans, en op een lange strip grijpt ongeveer de helft die; bij een apparaat van een paar LED's (een muis) fonkelt elke LED elke keer |
 | Per LED | `per-led` | Een eigen kleur per LED (zie "Per-LED-editor") |
 
 - **Snelheid** (10–300 %, standaard 100 %) werkt alleen bij een bewegend effect; bij Statisch

@@ -200,14 +200,16 @@ public sealed class LightingControllerAnimationTests : IDisposable
     }
 
     // With a listener that does nothing, as with the settings app closed; an open settings app
-    // copies every frame for its preview.
-    [Fact]
-    public async Task RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing()
+    // copies every frame for its preview. Every effect that moves, as each renders its own way.
+    [Theory]
+    [InlineData(EffectIds.Rainbow)]
+    [InlineData(EffectIds.Twinkle)]
+    public async Task RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing(string effectId)
     {
         var simulated = new SimulatedDeviceProvider();
         using var controller = new LightingController([simulated], new SteppingTimeProvider(Frame));
         await controller.DiscoverAsync(Ct);
-        controller.Apply(Uniform(EffectIds.Rainbow, brightness: 0.5));
+        controller.Apply(Uniform(effectId, brightness: 0.5));
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
@@ -218,7 +220,7 @@ public sealed class LightingControllerAnimationTests : IDisposable
         }
 
         Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
-        Assert.NotEqual(RgbColor.Black, simulated.GetLeds("simulated-keyboard")[0]);
+        Assert.Contains(simulated.GetLeds("simulated-keyboard"), led => led != RgbColor.Black);
     }
 
     [Theory]

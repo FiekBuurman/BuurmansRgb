@@ -4,4 +4,8 @@
     <ProjectReference Include="..\BuurmansRgb.Core\BuurmansRgb.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="BuurmansRgb.Effects.Tests" />
+  </ItemGroup>
+
 </Project>

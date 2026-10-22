@@ -171,6 +171,9 @@
   <data name="Effect_wave" xml:space="preserve">
     <value>Golf</value>
   </data>
+  <data name="Effect_twinkle" xml:space="preserve">
+    <value>Fonkelen</value>
+  </data>
   <data name="Effect_per-led" xml:space="preserve">
     <value>Per LED</value>
   </data>

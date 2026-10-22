@@ -10,7 +10,7 @@ public sealed class EffectCatalogTests
     [Fact]
     public void Ids_AreInTheOrderTheSettingsAppLists()
     {
-        Assert.Equal([EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.PerLed], EffectCatalog.Ids);
+        Assert.Equal([EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.Twinkle, EffectIds.PerLed], EffectCatalog.Ids);
     }
 
     [Theory]
@@ -60,6 +60,7 @@ public sealed class EffectCatalogTests
         Assert.IsType<BreathingEffect>(EffectCatalog.Create(EffectIds.Breathing, Orange, []));
         Assert.IsType<RainbowEffect>(EffectCatalog.Create(EffectIds.Rainbow, Orange, []));
         Assert.IsType<WaveEffect>(EffectCatalog.Create(EffectIds.Wave, Orange, []));
+        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Color);
     }
 
     [Fact]
