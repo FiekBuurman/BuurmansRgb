@@ -12,8 +12,11 @@ namespace BuurmansRgb.Engine.Power;
 // Should Windows set it only a little after the window came to the front, it is asked once more a
 // second later, while that window is still in front; a timer that runs once, not polling. Whatever
 // window comes to the front after it ends it, without asking Windows, which may still say it runs
-// while the screen saver closes. Create and dispose it on the tray thread, like ForegroundHook; the
-// second ask comes on the thread of the timer, so the lock keeps the changes in order.
+// while the screen saver closes. All but the lock screen: when the screen saver asks to sign in
+// again, LockApp comes to the front before Windows reports the lock, and the lights must not go
+// bright in between; unlocking ends it anyway (AutoPause). Create and dispose it on the tray
+// thread, like ForegroundHook; the second ask comes on the thread of the timer, so the lock keeps
+// the changes in order.
 internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDisposable
 {
     internal static readonly TimeSpan AskAgainAfter = TimeSpan.FromSeconds(1);
@@ -77,13 +80,19 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         }
     }
 
-    // A window that came to the front. A newer window than the .scr to ask about makes that ask moot.
+    // A window that came to the front; the lock screen changes nothing. A newer window than the .scr
+    // to ask about makes that ask moot.
     internal void Tell(nint window)
     {
         lock (_gate)
         {
             _askAbout = 0;
             var program = _programOf(window);
+            if (WindowsPrograms.IsLockScreen(program))
+            {
+                return;
+            }
+
             if (!WindowsPrograms.IsScreenSaver(program))
             {
                 ShowLocked(false);

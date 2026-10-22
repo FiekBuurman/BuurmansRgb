@@ -16,11 +16,13 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
     private const string ScreenSaverProgram = "Ribbons.scr";
     private const nint ScreenSaverWindow = 1;
     private const nint ProgramWindow = 2;
+    private const nint LockScreenWindow = 3;
 
     private static readonly Dictionary<nint, string> ProgramsOfWindows = new()
     {
         [ScreenSaverWindow] = ScreenSaverProgram,
         [ProgramWindow] = "notepad.exe",
+        [LockScreenWindow] = "LockApp.exe",
     };
 
     private readonly ForegroundHook _hook = new();
@@ -221,6 +223,46 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
 
         Assert.Empty(_changes);
         Assert.False(screenSaver.IsRunning);
+    }
+
+    // With "aanmeldingsscherm bij hervatten" the lock screen comes to the front before Windows
+    // reports the lock: the pause goes on without a gap, so dimmed or black lights do not go bright
+    // in between, and unlocking ends it. Also when the lock screen comes without the lock.
+    [Fact]
+    public void Tell_TheLockScreen_DoesNotEndTheScreenSaver()
+    {
+        using var screenSaver = CreateFake();
+        var session = new FakeSessionEvents();
+        var pauses = new List<PauseReasons>();
+        var pause = PauseReasons.None;
+        using var autoPause = new AutoPause(
+            new FakePowerEvents(),
+            session,
+            new FakeDisplayEvents(),
+            screenSaver,
+            (reason, paused) =>
+            {
+                pause = paused ? pause | reason : pause & ~reason;
+                pauses.Add(pause);
+            });
+        _windowsSaysRunning = true;
+
+        screenSaver.Tell(ScreenSaverWindow);
+        pauses.Clear();
+        screenSaver.Tell(LockScreenWindow);
+        Assert.True(screenSaver.IsRunning);
+        session.Raise(SessionSwitchReason.SessionLock);
+        Assert.Equal(PauseReasons.Locked | PauseReasons.ScreenSaver, pause);
+        session.Raise(SessionSwitchReason.SessionUnlock);
+
+        Assert.Equal(PauseReasons.None, pause);
+        Assert.DoesNotContain(PauseReasons.None, pauses.SkipLast(1));
+        Assert.Equal([true], _changes);
+
+        screenSaver.Tell(ScreenSaverWindow);
+        screenSaver.Tell(LockScreenWindow);
+        screenSaver.Tell(ProgramWindow);
+        Assert.Equal([true, true, false], _changes);
     }
 
     [Fact]

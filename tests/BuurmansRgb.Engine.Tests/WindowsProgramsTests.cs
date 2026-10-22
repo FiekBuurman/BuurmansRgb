@@ -17,4 +17,13 @@ public sealed class WindowsProgramsTests
     [InlineData(null, false)]
     public void IsScreenSaver_AnExeNameThatEndsInScr(string? program, bool screenSaver) =>
         Assert.Equal(screenSaver, WindowsPrograms.IsScreenSaver(program));
+
+    [Theory]
+    [InlineData("LockApp.exe", true)]
+    [InlineData("lockapp.EXE", true)]
+    [InlineData("LockApp.scr", false)]
+    [InlineData("LogonUI.exe", false)]
+    [InlineData(null, false)]
+    public void IsLockScreen_LockAppInAnyCase(string? program, bool lockScreen) =>
+        Assert.Equal(lockScreen, WindowsPrograms.IsLockScreen(program));
 }
