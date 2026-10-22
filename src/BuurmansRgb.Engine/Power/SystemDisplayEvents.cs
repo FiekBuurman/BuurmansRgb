@@ -6,9 +6,8 @@ namespace BuurmansRgb.Engine.Power;
 
 // RegisterPowerSettingNotification for GUID_CONSOLE_DISPLAY_STATE on a hidden message-only window:
 // the screen of the console goes off, is dimmed or goes on again. Windows sends the state once
-// right after registering, through the message queue, so IsOff knows it only once the tray thread
-// pumps. Like SystemPowerEvents: create this on the tray thread, which keeps pumping messages
-// until the engine stops, and dispose it there.
+// right after registering, through the message queue, so IsOff knows it only once the tray
+// thread pumps.
 internal sealed partial class SystemDisplayEvents : MessageOnlyWindow, IDisplayEvents
 {
     // GUID_CONSOLE_DISPLAY_STATE.

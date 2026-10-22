@@ -3,8 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace BuurmansRgb.Engine.Hotkeys;
 
-// RegisterHotKey on a hidden message-only window. Like SystemPowerEvents: create this on the tray
-// thread, which keeps pumping messages until the engine stops, and dispose it there.
+// RegisterHotKey on a hidden message-only window.
 internal sealed partial class WindowsGlobalHotkeys : MessageOnlyWindow, IGlobalHotkeys
 {
     private const int WmHotkey = 0x0312;

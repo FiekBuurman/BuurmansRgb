@@ -6,10 +6,9 @@ namespace BuurmansRgb.Engine.Programs;
 
 // SetWinEventHook for EVENT_SYSTEM_FOREGROUND, out of context: Windows posts each new foreground
 // window to the thread that set the hook, without a DLL in other programs and without polling, and
-// this reads the exe name of its process (ProcessImageName). Like SystemPowerEvents: create this on
-// the tray thread, which keeps pumping messages until the engine stops, and dispose it there.
-// Follow may come from any thread, so it posts to a hidden message-only window, and the hook is set
-// and taken away (UnhookWinEvent) on the tray thread; while not followed there is no hook.
+// this reads the exe name of its process (ProcessImageName). Follow may come from any thread, so it
+// posts to a hidden message-only window, and the hook is set and taken away (UnhookWinEvent) on the
+// tray thread; while not followed there is no hook.
 internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForegroundWindow
 {
     private const uint EventSystemForeground = 0x0003;
