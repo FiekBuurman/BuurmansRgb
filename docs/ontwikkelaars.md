@@ -178,8 +178,11 @@ toetsenbord. Een paar dingen om te proberen:
   vooraan komt. `Away` doet niet mee: de schermbeveiliging zegt alleen dat niemand de pc een tijd
   aanraakte, en verdwijnt bij de eerste muisbeweging; vergrendelt Windows erbij, dan maakt
   `Locked` de gebruiker weg. Bij het starten kijkt hij één keer naar het venster dat vooraan
-  staat. Voor de scènes op de voorgrond telt een schermbeveiliging niet als wegwisselen, net als
-  het vergrendelscherm.
+  staat, alleen als `ForegroundHook` dan de hook heeft. Weigert Windows die, dan krijgt hij pas
+  na een latere geslaagde `Listen` (van een scène op de voorgrond) de volgende wisselingen, niet
+  het venster dat op dat moment vooraan staat; een schermbeveiliging die dan al loopt, pauzeert
+  niet, pas de volgende. Voor de scènes op de voorgrond telt een schermbeveiliging niet als
+  wegwisselen, net als het vergrendelscherm.
 - **Lampen tijdens de pauze:** `LightingController.PausedLights` (`PausedLightsMode` in
   `Contracts`, `pausedLights` in `settings.json` via `PausedLightsModeJsonConverter`). Zolang de
   pauze een andere reden heeft dan `Manual`, schaalt `DeviceOutput.Send` wat naar de apparaten

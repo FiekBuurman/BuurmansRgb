@@ -57,7 +57,8 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         _askAgain = time.CreateTimer(_ => AskAgain(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
         // Still listening: should a scene that follows the foreground get the hook later, this gets
-        // the windows from then on too.
+        // the windows from then on too, but not the one in front at that moment; a screen saver
+        // that runs then does not count, only the next one.
         if (!_hook.Listen(_tell))
         {
             Trace.TraceWarning("Whether the screen saver runs cannot be followed until the foreground hook is set.");
