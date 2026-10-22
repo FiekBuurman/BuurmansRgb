@@ -80,6 +80,9 @@ schakelaar ernaast.
   het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
   verschoof, springt niet terug. Komt er zo de kleurenloop op, dan toont het mengpaneel de
   gekozen loopkleur: die verandert meteen mee, dus de kleur die je voor de lamp mengde vervalt.
+  De gemengde kleur blijft ook staan als de lampen opnieuw binnenkomen (een zone met een nieuwe
+  lengte, lampen die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang dezelfde
+  lamp gekozen blijft. Verdwijnt de gekozen lamp, dan toont de pagina "Hele huis" met zijn kleur.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 
@@ -130,7 +133,7 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
   zijn eigen kleur, ook met de schakelaar aan. De keuze geldt per lamp, blijft bewaard (zie
   `zonesAlike` bij "settings.json") en hoort niet bij een scène: een scène laat hem zoals hij
   is. Knipperen werkt zoals altijd: een zone knippert alleen. Een kleur die je aan het mengen
-  bent en nog niet op de lamp hebt gezet, blijft staan als je de schakelaar omzet.
+  bent, blijft staan als je de schakelaar omzet (zie "Loopt mee").
 - **Fans** (in OpenRGB het type "cooler", dus ook een AIO-pomp) tekent het voorbeeld per zone
   als ring, met LED 1 bovenaan en dan met de klok mee. OpenRGB zegt niet waar LED 1 echt zit;
   de wijzerplaat is dus een keuze. Een zone waarvan je de lengte instelt, of een zone van meer
