@@ -177,6 +177,9 @@
   <data name="Effect_comet" xml:space="preserve">
     <value>Komeet</value>
   </data>
+  <data name="Effect_scanner" xml:space="preserve">
+    <value>Scanner</value>
+  </data>
   <data name="Effect_per-led" xml:space="preserve">
     <value>Per LED</value>
   </data>

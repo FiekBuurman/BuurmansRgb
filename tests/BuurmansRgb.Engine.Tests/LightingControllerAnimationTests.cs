@@ -205,6 +205,7 @@ public sealed class LightingControllerAnimationTests : IDisposable
     [InlineData(EffectIds.Rainbow)]
     [InlineData(EffectIds.Twinkle)]
     [InlineData(EffectIds.Comet)]
+    [InlineData(EffectIds.Scanner)]
     public async Task RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing(string effectId)
     {
         var simulated = new SimulatedDeviceProvider();
