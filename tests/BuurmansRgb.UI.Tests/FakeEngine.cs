@@ -377,7 +377,19 @@ internal sealed class FakeEngineApi : IEngineApi
         ProfileAutomations[name] = automation.Normalize();
     }
 
-    private Task Record(string call)
+    // When set, a call that changes something counts once this task completes, like a busy engine,
+    // so the calls after it wait in the queue of the app.
+    public Task? SetGate { get; set; }
+
+    private Task Record(string call) => SetGate is { } gate ? RecordAfterAsync(gate, call) : RecordNow(call);
+
+    private async Task RecordAfterAsync(Task gate, string call)
+    {
+        await gate;
+        await RecordNow(call);
+    }
+
+    private Task RecordNow(string call)
     {
         if (SetException is not null)
         {

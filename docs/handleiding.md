@@ -57,12 +57,17 @@ schakelaar ernaast.
   (0–255, ook met de pijltjes), "Uit de gereedschapskist" met zes vaste kleuren (Klus-wit,
   Rood, Oranje, Groen, Blauw, Paars) en de knop **Op de strip zetten**. Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op de lamp"); pas de
-  knop zet hem op de lamp.
+  knop zet hem op de lamp. Dat geldt voor de kleur van de hele lamp. Heb je een kleur van de
+  kleurenloop of LED's in het voorbeeld gekozen, dan is er geen knop: die kleur of LED's
+  veranderen meteen mee terwijl je schuift, typt of een vaste kleur kiest (zie "Kleurenloop" en
+  "Per-LED-editor").
 - **Een lamp die uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
   meeste lamp-apps: hij komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Lampen)
-  gaat mee. Dat geldt ook voor "In de loop zetten" en voor de per-LED-editor; alleen mengen,
-  of bij de kleurenloop + en −, laat hem uit. Bij "Hele huis" gaan alle lampen aan als er één
-  uit staat, want de kleur gaat naar allemaal. Andere lampen blijven zoals ze zijn.
+  gaat mee. Dat geldt ook voor een kleur van de kleurenloop en voor de per-LED-editor: daar gaat
+  de lamp aan bij de eerste kleur die je mengt, één keer. Alleen mengen voor de hele lamp
+  (zonder de knop), of bij de kleurenloop + en −, laat hem uit. Bij "Hele huis" gaan alle
+  lampen aan als er één uit staat, want de kleur gaat naar allemaal. Andere lampen blijven zoals
+  ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
   werkt op elk effect.
 - **Hele huis of één lamp:** een wijziging bij "Hele huis" geldt voor alle lampen, maar alleen
@@ -73,7 +78,8 @@ schakelaar ernaast.
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
   het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
   het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
-  verschoof, springt niet terug.
+  verschoof, springt niet terug. Komt er zo de kleurenloop op, dan toont het mengpaneel de
+  gekozen loopkleur: die verandert meteen mee, dus de kleur die je voor de lamp mengde vervalt.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 
@@ -92,8 +98,11 @@ schakelaar ernaast.
   en Per LED staat de schuif grijs. Een nieuwe snelheid gaat verder waar de animatie was, en
   lampen die samen een nieuwe snelheid krijgen, blijven gelijk lopen.
 - **Kleurenloop:** kies het effect, dan verschijnen onder het kleurvoorbeeld de kleuren van de
-  loop. Klik op een kleur, meng een nieuwe en kies "In de loop zetten"; + voegt een kleur toe
-  na de gekozen, − haalt de gekozen weg. Zonder vinkje bij "Kleuren over de LED's verdelen"
+  loop. Klik op een kleur (hij krijgt een dikke witte rand) en meng een nieuwe, met de hex-code
+  erboven of met de schuiven en vaste kleuren rechts: het vakje
+  en de lamp veranderen meteen mee, en de loop wordt bewaard. Klik je daarna een andere kleur,
+  dan houdt de vorige wat je mengde. + voegt een kleur toe na de gekozen, − haalt de gekozen
+  weg. Zonder vinkje bij "Kleuren over de LED's verdelen"
   krijgen alle LED's tegelijk dezelfde kleur. Een lamp onthoudt zijn loop, ook als je
   tussendoor een ander effect kiest. Standaard: geel, groen, blauw.
 
@@ -135,9 +144,11 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks vanaf de vorige
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
-Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn, heet de knop "Op de
-gekozen LED's zetten" en gaat de kleur alleen naar die LED's. Staat de lamp uit, dan gaat hij
-daarmee aan, ook bij "Verloop vullen".
+Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn en gaat de kleur
+alleen naar die LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest;
+de knop "Op de strip zetten" is dan weg. Staat de lamp uit, dan gaat hij aan bij de eerste
+kleur, ook bij "Verloop vullen". Kies je een andere LED, dan toont het mengpaneel diens kleur;
+de LED's ervoor houden wat je mengde.
 
 - **Met het toetsenbord:** ga met Tab naar de LED's van een lamp; de actieve LED krijgt een
   witte ring van 2 px en zijn naam als tooltip, die terugkomt als de muis van de LED's af gaat.
@@ -157,7 +168,8 @@ daarmee aan, ook bij "Verloop vullen".
   | Ctrl+A | Kiest alle LED's van de lamp, zoals "Alles selecteren" |
   | Escape | Heft de selectie op, zoals "Selectie opheffen" |
 
-  Daarna ga je met Shift+Tab terug naar boven, naar de kleur en "Op de gekozen LED's zetten".
+  Daarna ga je met Shift+Tab terug naar boven, naar de schuiven en de vaste kleuren: elke
+  stap kleurt de gekozen LED's meteen.
   Een schermlezer noemt de actieve LED bij zijn naam en zegt of hij gekozen is.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
@@ -362,7 +374,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
   strip zetten" op de lamp; dat vervangt de schuiven Tint en Verzadiging van de oude app,
   die een kleur meteen toepasten. Extra ten opzichte van het ontwerp: "Licht en beweging"
-  (helderheid, effect, snelheid) en het LED-voorbeeld met de per-LED-editor.
+  (helderheid, effect, snelheid) en het LED-voorbeeld met de per-LED-editor. Een kleur van de
+  kleurenloop en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het
+  vakje of de LED laat de kleur al zien, dus een knop voegde daar niets toe.
 - **Lampkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - WPF kent geen letterafstand, dus de −0,02em van de koppen ontbreekt; de navigatiebalk is

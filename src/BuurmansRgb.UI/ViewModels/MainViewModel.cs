@@ -99,7 +99,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
-            OnPropertyChanged(nameof(ApplyColorLabel));
+            SetPickerAppliesAtOnce();
         };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         ColorLoopEditor.PropertyChanged += (_, e) =>
@@ -183,11 +183,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsColorLoop => SelectedEffect?.Id == EffectIds.ColorLoop;
 
-    // Where "Op de strip zetten" puts the mixed color, in the order of OnColorPicked.
-    public string ApplyColorLabel => LedEditor.HasSelection ? Strings.ApplyColorToLeds
-        : IsColorLoop ? Strings.ApplyColorToLoop
-        : Strings.ApplyColor;
-
     public ProfilesViewModel Profiles { get; } = new();
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
@@ -207,7 +202,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(ApplyColorLabel))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -408,6 +403,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
+        SetPickerAppliesAtOnce();
         if (!_syncing.IsActive && value is not null)
         {
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
@@ -538,7 +534,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
     // or one that came on by itself. In the queue, behind the changes of the user that are still on
     // their way, so the answer already holds them; a change sent meanwhile wins. A color the user is
-    // mixing and has not put on the lamp yet stays in the picker.
+    // mixing for the whole lamp and has not put on it yet stays in the picker (see ShowLighting).
     private void FollowLighting()
     {
         if (_connection is not { } connection)
@@ -571,7 +567,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
             Speed = Math.Round(lighting.Speed * 100.0);
         });
-        if (!keepMixedColor)
+        // A mixed color stays, but not once the picker colors the loop or the LEDs at once, as after
+        // a scene with the color loop: its next step would put the color mixed for the lamp there.
+        if (!keepMixedColor || ColorPicker.AppliesAtOnce)
         {
             ShowPickerColor();
         }
@@ -590,7 +588,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The picker colors, in this order: the selected LEDs, the selected color of the loop, or the
-    // device. A lamp that is off goes on with it, as in most lamp apps.
+    // device. The LEDs and the loop take every mixed color at once (SetPickerAppliesAtOnce); the call
+    // queue lets a newer one replace the one that waits, so a dragged slider sends few. A lamp
+    // that is off goes on with the first one, as in most lamp apps.
     private void OnColorPicked(RgbColor color)
     {
         if (LedEditor.HasSelection)
@@ -628,6 +628,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : _deviceColor;
         _syncing.Run(() => ColorPicker.Show(color));
     }
+
+    // A color of the loop or of chosen LEDs changes at once with the picker, as the tile or the LEDs
+    // show it; the color of the whole lamp waits for "Op de strip zetten", so it can be mixed first.
+    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop;
 
     [RelayCommand(CanExecute = nameof(CanFillGradient))]
     private void FillGradient() => SendLeds(LedEditor.FillGradient());

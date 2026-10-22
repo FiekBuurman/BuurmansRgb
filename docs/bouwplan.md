@@ -386,6 +386,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #59 | Eén zone laten knipperen met "Knipperen" naast de zonenaam in het voorbeeld (`FlashZoneAsync`), zodat je bij een moederbord met meer ARGB-headers ziet welke header welke fan of strip is; de rest van het apparaat houdt zijn kleuren |
 | #60 | De per-LED-editor met het toetsenbord: Tab naar de actieve LED (met een focusring en zijn naam voor een schermlezer), pijltjes, Home en End om te bewegen, Spatie of Enter om te kiezen, Shift voor een reeks, Ctrl+A voor alles en Escape om de selectie op te heffen |
 | #61 | `settings.json` met de hand aanpassen terwijl de engine draait: binnen een seconde gelden de opties, de verlichting en de zonelengtes, en de app loopt mee (`FileSystemWatcher`, zonder pollen); de eigen opslag en een kapot of half geschreven bestand veranderen niets, het bestand blijft zoals je het schreef en een opslag van de engine schrijft niet over een nieuwere wijziging heen |
+| #62 | Een kleur van de kleurenloop en gekozen LED's veranderen meteen mee met de schuiven, de hex-code en de vaste kleuren (zonder knop; bij slepen wint de laatste kleur in de wachtrij, een lamp die uit staat gaat één keer aan); "Op de strip zetten" alleen nog voor de kleur van de hele lamp, en het gekozen vakje krijgt weer zijn dikke rand |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

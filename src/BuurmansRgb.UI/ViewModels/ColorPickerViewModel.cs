@@ -7,7 +7,9 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code and the
 // presets change Color at once, so the preview shows it, but the color only goes to the lamp with
-// Apply ("Op de strip zetten"), which raises ColorPicked. Show shows the color the lamp has.
+// Apply ("Op de strip zetten"), which raises ColorPicked. With AppliesAtOnce, as for a color of the
+// loop or chosen LEDs, every mixed color raises ColorPicked by itself and Apply has nothing to do.
+// Show shows the color the lamp has and raises nothing.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
@@ -51,6 +53,11 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     // The mixed color is not on the lamp yet.
     public bool HasUnappliedChange => Color != _applied;
 
+    // Every mixed color goes on at once, without Apply.
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
+    public partial bool AppliesAtOnce { get; set; }
+
     public void Show(RgbColor color) => _showing.Run(() =>
     {
         _applied = color;
@@ -58,7 +65,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         OnPropertyChanged(nameof(HasUnappliedChange));
     });
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanApply))]
     private void Apply()
     {
         _applied = Color;
@@ -66,8 +73,10 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         ColorPicked?.Invoke(this, Color);
     }
 
+    private bool CanApply() => !AppliesAtOnce;
+
     [RelayCommand]
-    private void SelectPreset(RgbColor color) => _showing.Run(() => ShowColor(color));
+    private void SelectPreset(RgbColor color) => Mix(() => ShowColor(color));
 
     partial void OnRedChanged(double value) => ColorFromSliders();
 
@@ -79,7 +88,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     {
         if (!_showing.IsActive && RgbColor.TryParseHex(value.Trim(), out var color))
         {
-            _showing.Run(() => ShowColor(color, updateHex: false));
+            Mix(() => ShowColor(color, updateHex: false));
         }
     }
 
@@ -91,11 +100,21 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         }
 
         var color = new RgbColor(ToByte(Red), ToByte(Green), ToByte(Blue));
-        _showing.Run(() =>
+        Mix(() =>
         {
             Color = color;
             HexColor = color.ToHex();
         });
+    }
+
+    // A slider step that rounds to the same color sends nothing.
+    private void Mix(Action mix)
+    {
+        _showing.Run(mix);
+        if (AppliesAtOnce && HasUnappliedChange)
+        {
+            Apply();
+        }
     }
 
     private void ShowColor(RgbColor color, bool updateHex = true)

@@ -94,7 +94,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp
-  kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp
+  kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp. Geldt alleen nog voor de
+  kleur van de hele lamp: een kleur van de kleurenloop en gekozen LED's gaan sinds de
+  uitbreiding "kleur-kiezen" meteen naar de lamp
+- Ongedaan maken voor een kleur van de kleurenloop of LED's die je meteen meekleurde, nu er
+  geen knop meer tussen mengen en de lamp zit
 - Een kleur op een lamp die uit staat, zet hem nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % de lamp aanzetten, zoals bij een
   dimmer

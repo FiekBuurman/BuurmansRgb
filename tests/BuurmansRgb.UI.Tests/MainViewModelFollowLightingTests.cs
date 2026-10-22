@@ -66,6 +66,44 @@ public sealed class MainViewModelFollowLightingTests
         Assert.Equal(30.0, viewModel.Brightness);
     }
 
+    // The picker now colors the loop at once, so its next step must not put the color that was
+    // mixed for the lamp on the selected loop color.
+    [Fact]
+    public async Task LightingChanged_ToTheColorLoopWhileMixingAColor_ShowsTheLoopColor()
+    {
+        var viewModel = await ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.ColorLoop]);
+        viewModel.ColorPicker.Green = 255;
+
+        Api.Lighting[""] = new(Blue, 0.3, EffectIds.ColorLoop) { Loop = new ColorLoop([Orange, Blue]) };
+        Api.RaiseLightingChanged();
+
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(Orange, viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        viewModel.ColorPicker.Blue = 255;
+        Assert.Equal(["loop all #FF88FF,#0000FF spread"], Api.Calls);
+        Assert.Equal(new RgbColor(255, 136, 255), viewModel.ColorLoopEditor.Swatches[0].Color);
+    }
+
+    [Fact]
+    public async Task LightingChanged_FromTheColorLoopAfterMixing_ShowsTheColorOfTheLamp()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
+            api.Lighting[""] = new(Red, 0.8, EffectIds.ColorLoop) { Loop = new ColorLoop([Orange, Blue]) };
+        });
+        viewModel.ColorPicker.Blue = 255;
+
+        Api.Lighting[""] = new(Green, 0.3, EffectIds.Static);
+        Api.RaiseLightingChanged();
+
+        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(Green, viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.Equal(["loop all #FF88FF,#0000FF spread"], Api.Calls);
+    }
+
     // The user moved the slider while the lighting was on its way: their value must stay.
     [Fact]
     public async Task LightingChanged_UserChangesSomethingMeanwhile_KeepsTheChangeOfTheUser()

@@ -2,6 +2,7 @@
      hover border and focus ring of § 6. Uses the tokens of Tokens.xaml. -->
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
                     xmlns:views="clr-namespace:BuurmansRgb.UI.Views">
 
     <ResourceDictionary.MergedDictionaries>
@@ -408,7 +409,8 @@
     </Style>
 
     <!-- § 4 Preset tile: 44 px high, filled with its color; Tag True marks the chosen one with a 3 px
-         text border. -->
+         text border. A binding gives Tag a bool, so the trigger compares with a bool: the text "True"
+         never equals it. -->
     <Style x:Key="PresetTile" TargetType="Button">
         <Setter Property="Height" Value="{StaticResource MinClickSize}" />
         <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
@@ -428,7 +430,10 @@
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
             </Trigger>
-            <Trigger Property="Tag" Value="True">
+            <Trigger Property="Tag">
+                <Trigger.Value>
+                    <sys:Boolean>True</sys:Boolean>
+                </Trigger.Value>
                 <Setter Property="BorderBrush" Value="{StaticResource TextBrush}" />
                 <Setter Property="BorderThickness" Value="3" />
             </Trigger>
