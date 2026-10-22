@@ -263,10 +263,10 @@ Hoe het vanzelf aanzetten werkt:
   af terwijl het programma draait, dan zet hij eerst de verlichting van daarvoor terug en
   bewaart die. Zolang Windows vergrendeld is of slaapt, kijkt de engine niet naar programma's,
   ook als "Pauzeren bij vergrendelen, slaapstand en scherm uit" uit staat; de scène van een spel
-  blijft dan staan. Gaat alleen het scherm uit, dan kijkt hij wel. Meteen na het ontgrendelen
-  of ontwaken kijkt hij één keer: een programma dat intussen startte, zet dan zijn scène aan, en
-  een dat intussen stopte, zet de verlichting van daarvoor terug. Alleen een tijd die intussen
-  komt, laat hem één keer eerder kijken (zie hieronder).
+  blijft dan staan. Gaat alleen het scherm uit of loopt de schermbeveiliging, dan kijkt hij wel.
+  Meteen na het ontgrendelen of ontwaken kijkt hij één keer: een programma dat intussen
+  startte, zet dan zijn scène aan, en een dat intussen stopte, zet de verlichting van daarvoor
+  terug. Alleen een tijd die intussen komt, laat hem één keer eerder kijken (zie hieronder).
 - **Alleen op de voorgrond** (standaard uit): met het vinkje gaat de scène aan zodra een venster
   van het programma op de voorgrond komt (je klikt erop of wisselt er met Alt+Tab naartoe),
   meteen en niet pas binnen 2 seconden, en komt de verlichting van daarvoor terug zodra je naar
@@ -278,8 +278,8 @@ Hoe het vanzelf aanzetten werkt:
     naar een derde programma, dan komt de verlichting van vóór het eerste terug.
   - *Wat niet als wegwisselen telt:* de taakbalk en het pijltje met de verborgen icoontjes naast
     de klok, het venster van Alt+Tab en Win+Tab, het startmenu en zoeken, meldingen en snelle
-    instellingen, het vergrendelscherm en het tray-menu van BuurmansRgb zelf. Dan blijft het
-    zoals het was. Het bureaublad, Verkenner en de
+    instellingen, het vergrendelscherm, de schermbeveiliging en het tray-menu van BuurmansRgb
+    zelf. Dan blijft het zoals het was. Het bureaublad, Verkenner en de
     instellingen-app van BuurmansRgb tellen wel als een ander programma: open je de app om de
     scène bij te stellen, dan brandt daar de verlichting van daarvoor.
   - *Samen met "zolang het draait":* de scène die het laatst aanging wint, zoals bij twee
@@ -335,10 +335,11 @@ Hoe het vanzelf aanzetten werkt:
   bijwerkt: "Zuinig" (15), "Normaal" (30, standaard) of "Vloeiend" (60). Het effect loopt even
   snel, alleen minder of meer vloeiend; zuinig kost de minste CPU. Staat er in `settings.json`
   een ander getal, dan staat dat er als vierde keuze bij. Met "Pauzeren bij vergrendelen,
-  slaapstand en scherm uit" zet je het pauzeren van "Pauzeren" aan of uit, en bij "Lampen
-  tijdens deze pauze" kies je of de lampen dan het laatste beeld houden, dimmen of uitgaan
-  (grijs zolang het pauzeren uit staat). Alle drie gelden meteen, zonder herstart, de engine
-  bewaart ze, en een tweede instellingen-app toont de wijziging meteen.
+  slaapstand en scherm uit" zet je het pauzeren van "Pauzeren" aan of uit (ook bij de
+  schermbeveiliging), en bij "Lampen tijdens deze pauze" kies je of de lampen dan het laatste
+  beeld houden, dimmen of uitgaan (grijs zolang het pauzeren uit staat). Alle drie gelden
+  meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
+  wijziging meteen.
 - **Scènes op tijd:** "Gemiste tijden inhalen" zet na het ontwaken en bij het starten de scène
   aan van de tijd die het laatst voorbij is, in plaats van zo'n tijd over te slaan (standaard
   uit); zie "Gemiste tijden inhalen" bij Scènes. Het geldt zonder herstart, de engine bewaart
@@ -429,7 +430,7 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
 ### Pauzeren
 
-De engine pauzeert de bewegende effecten om vier redenen, die elk op zichzelf aflopen:
+De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf aflopen:
 
 | Reden | Begint | Eindigt | Wat de lampen doen |
 | --- | --- | --- | --- |
@@ -437,29 +438,38 @@ De engine pauzeert de bewegende effecten om vier redenen, die elk op zichzelf af
 | Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan, of gedimd of uit (zie "Lampen tijdens deze pauze") |
 | Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Als bij vergrendeld; "Uit" gaat naar de lampen vóórdat de pc slaapt |
 | Scherm uit | Het scherm gaat uit, ook zonder dat Windows vergrendelt (bijv. na de tijd bij "Scherm uitschakelen na" van Windows) | Het scherm gaat weer aan (of ontgrendelen) | Als bij vergrendeld |
+| Schermbeveiliging | De schermbeveiliging van Windows begint na de wachttijd die je daar instelde, ook zonder dat Windows vergrendelt | Je beweegt de muis of drukt een toets in en de schermbeveiliging verdwijnt (of ontgrendelen) | Als bij vergrendeld |
 
 - Bij elke reden stopt de animatie en kost hij geen CPU meer; standaard gaan de lampen niet uit.
   Scènes op tijd en het verbinden met OpenRGB lopen gewoon door. Naar programma's kijkt de
   engine tijdens vergrendelen en slaapstand niet (zie "Bij een programma" bij Scènes); als
-  alleen het scherm uit is wel, want misschien zit je er nog, bijv. met muziek aan.
+  alleen het scherm uit is of de schermbeveiliging loopt wel, want misschien zit je er nog, bijv.
+  met muziek aan.
 - Een gedimd scherm telt niet als uit. Het gaat om de schermen die Windows zelf uitzet; een
   scherm dat je met zijn eigen aan/uit-knop uitzet, ziet Windows niet als uit, en dan lopen de
   effecten door.
+- De schermbeveiliging telt alleen als Windows hem zelf start, na de wachttijd. "Voorbeeld" in
+  de instellingen van de schermbeveiliging pauzeert niet, en het kleine voorbeeld in dat venster
+  ook niet. Staat bij de schermbeveiliging het vinkje om bij hervatten het aanmeldingsscherm te
+  tonen, dan vergrendelt Windows erbij: verdwijnt de schermbeveiliging, dan blijven de effecten
+  gepauzeerd tot je ontgrendelt. Een schermbeveiliging van een ander programma telt mee als het
+  een gewoon `.scr`-bestand is dat Windows start.
 - De redenen staan los van elkaar: ontgrendelen heft een pauze uit het tray-menu niet op, en
   gaat het scherm aan op het vergrendelscherm, dan lopen de effecten pas na het ontgrendelen.
   Eindigt een reden, dan stuurt de engine alle kleuren nog een keer.
-- Tijdens vergrendelen, slaapstand en scherm uit gaat een wijziging wel naar de lampen, bijv.
-  een scène op tijd of het herstellen na het ontwaken. Alleen de pauze uit het tray-menu houdt
-  alles tegen. Knipperen gebeurt bij geen enkele pauze.
+- Tijdens vergrendelen, slaapstand, scherm uit en de schermbeveiliging gaat een wijziging wel
+  naar de lampen, bijv. een scène op tijd of het herstellen na het ontwaken. Alleen de pauze uit
+  het tray-menu houdt alles tegen. Knipperen gebeurt bij geen enkele pauze.
 - In de instellingen-app staat bovenaan Lampen en Kleur een melding met de reden, bij de pauze
   uit het tray-menu met de knop "Hervatten". Eindigt de pauze, dan staat er 5 seconden
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij
-  Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`). Uitzetten tijdens zo'n
-  pauze laat de effecten meteen weer lopen. Naar programma's kijkt de engine tijdens vergrendelen
-  en slaapstand ook dan niet.
+  Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`); die geldt ook voor de
+  schermbeveiliging. Uitzetten tijdens zo'n pauze laat de effecten meteen weer lopen. Naar
+  programma's kijkt de engine tijdens vergrendelen en slaapstand ook dan niet.
 - **Lampen tijdens deze pauze:** daaronder bij Instellingen (of `pausedLights` in
-  `settings.json`) kies je wat de lampen doen bij vergrendelen, slaapstand en scherm uit:
+  `settings.json`) kies je wat de lampen doen bij vergrendelen, slaapstand, scherm uit en de
+  schermbeveiliging:
   "Laatste beeld laten staan" (standaard), "Dimmen (20 %)" (het laatste beeld op een vijfde van
   zijn helderheid) of "Uit" (zwart). Bij de slaapstand gaat dat naar de lampen vóórdat de pc
   slaapt, zodat lampen die stroom houden niet blijven branden. Eindigt de laatste van die redenen,
@@ -537,7 +547,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `ledColorZoneLengths` | Per lamp de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
-| `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand en scherm uit (ook bij Instellingen) |
+| `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
 | `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de lampen doen tijdens die pauze ("Lampen tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
