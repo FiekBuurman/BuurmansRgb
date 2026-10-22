@@ -51,8 +51,8 @@ public sealed class TwinkleEffectTests
         });
     }
 
-    // At one moment about a third of a long strip glows: half of the LEDs light up in a round, for
-    // 70 % of it.
+    // At one moment about one LED in seven of a long strip glows: a fifth of the LEDs light up in a
+    // round, for 70 % of it, so they twinkle apart.
     [Theory]
     [InlineData(0.0)]
     [InlineData(4.2)]
@@ -63,7 +63,23 @@ public sealed class TwinkleEffectTests
 
         new TwinkleEffect(Orange).Render(leds, TimeSpan.FromSeconds(seconds));
 
-        Assert.InRange(leds.Count(led => led != RgbColor.Black), 30, 120);
+        Assert.InRange(leds.Count(led => led != RgbColor.Black), 12, 45);
+    }
+
+    // On a short device about two LEDs light up per round, more than a fifth of them; on a long one
+    // a fifth.
+    [Theory]
+    [InlineData(5, 200)]
+    [InlineData(8, 200)]
+    [InlineData(40, 800)]
+    public void Render_PerRound_LightsAFifthButAtLeastTwoLeds(int ledCount, int twinkles)
+    {
+        var effect = new TwinkleEffect(Orange, twinklesPerSecond: 1.0);
+
+        var count = Enumerable.Range(0, ledCount)
+            .Sum(led => EffectSamples.LitStretches(EffectSamples.Levels(effect, ledCount, led, TimeSpan.Zero, TimeSpan.FromSeconds(100), TimeSpan.FromMilliseconds(20))).Count);
+
+        Assert.InRange(count, twinkles * 0.8, twinkles * 1.2);
     }
 
     // A twinkle comes up quickly and fades out slowly.

@@ -68,8 +68,11 @@ public sealed class LightingControllerEffectTests
 
         Assert.Equal(first.Select(frame => frame.Left), second.Select(frame => frame.Left));
         Assert.Equal(first.Select(frame => frame.Right), second.Select(frame => frame.Right));
-        var alike = first.Count(frame => frame.Left.AsSpan().SequenceEqual(frame.Right));
-        Assert.True(alike < 3, $"{alike} of {first.Count} frames alike.");
+        // Both dark at the same moment is no sign of the same chance.
+        var lit = first.Where(frame => frame.Left.Concat(frame.Right).Any(led => led != RgbColor.Black)).ToList();
+        var alike = lit.Count(frame => frame.Left.AsSpan().SequenceEqual(frame.Right));
+        Assert.True(lit.Count > 30, $"Only {lit.Count} of {first.Count} frames lit.");
+        Assert.True(alike < 3, $"{alike} of {lit.Count} lit frames alike.");
     }
 
     // The frames of two devices of eight LEDs, every 0.1 s for 6 s, from a new controller.

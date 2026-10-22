@@ -13,9 +13,11 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
     // Rounds per LED per second.
     public const double DefaultTwinklesPerSecond = 0.6;
 
-    // About this many LEDs light up per round, but at least half of them.
-    private const double LitPerRound = 3.0;
-    private const double MinChance = 0.5;
+    // The chance that an LED lights up in a round, so on a long device a few LEDs twinkle apart.
+    // On a short one the chance is higher, so that per round at least about MinLitPerRound of its
+    // LEDs light up: every LED of a mouse of one or two.
+    private const double RoundChance = 0.2;
+    private const double MinLitPerRound = 2.0;
 
     // A twinkle takes this part of a round and starts at a random moment in the rest. Of the
     // twinkle, the first part rises, the rest fades out; the peak is random from MinPeak to 1.
@@ -45,7 +47,7 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
         var rounds = time.TotalSeconds * TwinklesPerSecond;
-        var chance = Math.Clamp(LitPerRound / leds.Length, MinChance, 1.0);
+        var chance = Math.Clamp(MinLitPerRound / leds.Length, RoundChance, 1.0);
         for (var i = 0; i < leds.Length; i++)
         {
             var shifted = rounds + EffectMath.Random(i, 0, _shiftStream);
