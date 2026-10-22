@@ -97,6 +97,45 @@ public sealed class ProfileAutomationViewModelTests
     }
 
     [Fact]
+    public void Show_ForegroundOnly_TicksIt()
+    {
+        _automation.Show("Film", new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
+        Assert.True(_automation.ForegroundOnly);
+        Assert.True(_automation.HasProgramText);
+
+        _automation.Show("Gamen", new ProfileAutomation(Program: "eldenring.exe"));
+        Assert.False(_automation.ForegroundOnly);
+    }
+
+    [Fact]
+    public void Apply_ForegroundOnlyTicked_AsksWithIt()
+    {
+        _automation.Show("Film", new ProfileAutomation(Program: "vlc.exe"));
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.ForegroundOnly = true;
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+        _automation.ApplyCommand.Execute(null);
+
+        Assert.Equal([new ProfileAutomationChange("Film", new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true))], _requests);
+    }
+
+    // Without a program the choice means nothing: it is grey, and ticking it is no change.
+    [Fact]
+    public void ForegroundOnlyWithoutAProgram_IsGreyAndNoChange()
+    {
+        _automation.Show("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        Assert.False(_automation.HasProgramText);
+
+        _automation.ForegroundOnly = true;
+
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+        _automation.ProgramText = "vlc";
+        Assert.True(_automation.HasProgramText);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
     public void InvalidProgram_SaysHowAndCannotApply()
     {
         _automation.Show("Gamen", ProfileAutomation.None);

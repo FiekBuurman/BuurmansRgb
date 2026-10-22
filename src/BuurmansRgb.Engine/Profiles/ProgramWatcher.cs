@@ -20,6 +20,14 @@ namespace BuurmansRgb.Engine.Profiles;
 // not look, also when the effects keep running then: nobody starts a game on the lock screen.
 // Right after, it looks once at once, so what started or stopped in the meantime counts then;
 // a time that comes meanwhile looks once too (HoldUntilProgramsStop).
+//
+// A program whose profile says ForegroundOnly counts only while its window is in the foreground
+// (IForegroundWindow), as if it started when it comes to the front and stopped when another program
+// does; that needs no polling, and it is followed only while some profile asks for it. Going from
+// one such program to another loads the second on top of the first, which then goes from under it,
+// so no lighting shows in between. While one is in front, it is also looked for with the others,
+// so it counts as stopped when it closes without another window coming to the front. While
+// resting the foreground does not count either; right after, what is in front then counts.
 internal sealed class ProgramWatcher : IProfileTrigger
 {
     public static TimeSpan DefaultPollInterval { get; } = TimeSpan.FromSeconds(2);
@@ -30,6 +38,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private readonly LightingController _lighting;
     private readonly IRunningPrograms _programs;
     private readonly IAwayState _away;
+    private readonly IForegroundWindow _foreground;
     private readonly TimeSpan _pollInterval;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
@@ -38,9 +47,27 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private readonly List<Activation> _activations = [];
 
     // The profile to load by program; the first in alphabetical order when two have the same one.
-    private Dictionary<string, string> _rules = new(ProgramNames.Comparer);
+    private Dictionary<string, Rule> _rules = new(ProgramNames.Comparer);
+
+    // The programs that count while they run, and of those the ones that run.
     private HashSet<string> _watched = new(ProgramNames.Comparer);
     private IReadOnlySet<string> _running = NoPrograms;
+
+    // The program that counts while in the foreground and is in front, or null; and whether a look
+    // saw it run, so a name that cannot be read yet does not count as stopped.
+    private string? _inFront;
+    private bool _inFrontSeen;
+
+    // The program of the window that came to the front last while followed, of any kind, or null;
+    // also while resting, so right after that counts. Forgotten when a look sees it stopped.
+    private string? _front;
+
+    // What a look looks for: _watched, and _inFront.
+    private HashSet<string> _polled = new(ProgramNames.Comparer);
+
+    // Whether the foreground is followed, and whether the next Poll checks what is in front first.
+    private bool _following;
+    private bool _checkFront;
 
     // Counts LightingChanged, so a stop can tell whether anything changed since its profile loaded.
     private long _changes;
@@ -48,12 +75,13 @@ internal sealed class ProgramWatcher : IProfileTrigger
     private bool _started;
     private bool _disposed;
 
-    public ProgramWatcher(ProfileLibrary profiles, LightingController lighting, IRunningPrograms programs, IAwayState away, TimeProvider time, TimeSpan? pollInterval = null)
+    public ProgramWatcher(ProfileLibrary profiles, LightingController lighting, IRunningPrograms programs, IAwayState away, IForegroundWindow foreground, TimeProvider time, TimeSpan? pollInterval = null)
     {
         _profiles = profiles;
         _lighting = lighting;
         _programs = programs;
         _away = away;
+        _foreground = foreground;
         _pollInterval = pollInterval ?? DefaultPollInterval;
         _timer = time.CreateTimer(_ => Poll(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
@@ -73,6 +101,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
         _lighting.LightingChanged += OnLightingChanged;
         _profiles.Changed += OnProfilesChanged;
+        _foreground.Changed += OnForegroundChanged;
         UpdateRules(baseline: false);
         _away.AwayChanged += OnAwayChanged;
         OnAwayChanged(this, _away.Away);
@@ -83,6 +112,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
     {
         _lighting.LightingChanged -= OnLightingChanged;
         _profiles.Changed -= OnProfilesChanged;
+        _foreground.Changed -= OnForegroundChanged;
         _away.AwayChanged -= OnAwayChanged;
         lock (_gate)
         {
@@ -93,6 +123,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
 
             _disposed = true;
             _timer.Dispose();
+            FollowLocked(false);
             RestoreAll();
         }
     }
@@ -119,15 +150,38 @@ internal sealed class ProgramWatcher : IProfileTrigger
             }
 
             _resting = resting;
+
+            // On the timer, like the look, so no profile loads under the lock of AutoPause.
+            _checkFront = !resting && _following;
             ScheduleLocked(resting ? Timeout.InfiniteTimeSpan : TimeSpan.Zero);
         }
     }
 
-    // Only while some profile has a program, and not while resting.
+    // Raised on the tray thread.
+    private void OnForegroundChanged(object? sender, string? program)
+    {
+        lock (_gate)
+        {
+            if (_disposed || !_following)
+            {
+                return;
+            }
+
+            _front = program;
+            if (!_resting)
+            {
+                ShowInFrontLocked(program);
+            }
+        }
+    }
+
+    // Only while there is something to look for or the foreground is to be checked, and not while
+    // resting.
     private void ScheduleLocked(TimeSpan due) =>
-        _timer.Change(_watched.Count > 0 && !_resting ? due : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _timer.Change((_polled.Count > 0 || _checkFront) && !_resting ? due : Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
     // With baseline, what already runs of a newly watched program counts as running, not as started.
+    // A program in front counts only from the next time it comes to the front.
     private void UpdateRules(bool baseline)
     {
         lock (_gate)
@@ -137,24 +191,31 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 return;
             }
 
-            var rules = new Dictionary<string, string>(ProgramNames.Comparer);
+            var rules = new Dictionary<string, Rule>(ProgramNames.Comparer);
             foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
                 if (automation.Program is { } program)
                 {
-                    rules.TryAdd(program, name);
+                    rules.TryAdd(program, new Rule(name, automation.ForegroundOnly));
                 }
             }
 
-            var watched = new HashSet<string>(rules.Keys, ProgramNames.Comparer);
+            var watched = new HashSet<string>(rules.Where(rule => !rule.Value.ForegroundOnly).Select(rule => rule.Key), ProgramNames.Comparer);
 
-            // A program that is no longer watched is forgotten, without going back.
+            // A program that is no longer watched, or no longer in the same way, is forgotten,
+            // without going back.
             for (var index = _activations.Count - 1; index >= 0; index--)
             {
-                if (!watched.Contains(_activations[index].Program))
+                var program = _activations[index].Program;
+                if (!rules.TryGetValue(program, out var rule) || rule.ForegroundOnly != _rules[program].ForegroundOnly)
                 {
                     Remove(index, restore: false);
                 }
+            }
+
+            if (_inFront is { } front && !(rules.TryGetValue(front, out var frontRule) && frontRule.ForegroundOnly))
+            {
+                _inFront = null;
             }
 
             var added = new HashSet<string>(watched.Except(_watched, ProgramNames.Comparer), ProgramNames.Comparer);
@@ -167,15 +228,52 @@ internal sealed class ProgramWatcher : IProfileTrigger
             _rules = rules;
             _watched = watched;
             _running = running;
+            UpdatePolledLocked();
+            FollowLocked(rules.Values.Any(rule => rule.ForegroundOnly));
             ScheduleLocked(_pollInterval);
         }
+    }
+
+    private void FollowLocked(bool on)
+    {
+        if (on != _following)
+        {
+            _following = on;
+            _front = null;
+            _foreground.Follow(on);
+        }
+    }
+
+    private void UpdatePolledLocked()
+    {
+        var polled = new HashSet<string>(_watched, ProgramNames.Comparer);
+        if (_inFront is { } front)
+        {
+            polled.Add(front);
+        }
+
+        _polled = polled;
     }
 
     private void Poll()
     {
         lock (_gate)
         {
-            if (_disposed || _watched.Count == 0 || _resting)
+            if (_disposed || _resting)
+            {
+                return;
+            }
+
+            if (_checkFront)
+            {
+                _checkFront = false;
+                if (_following)
+                {
+                    ShowInFrontLocked(_front);
+                }
+            }
+
+            if (_polled.Count == 0)
             {
                 return;
             }
@@ -188,13 +286,72 @@ internal sealed class ProgramWatcher : IProfileTrigger
     // When the list cannot be read, nothing started or stopped.
     private void LookLocked()
     {
-        if (Find(_watched) is { } running && !running.SetEquals(_running))
+        if (Find(_polled) is not { } found)
+        {
+            return;
+        }
+
+        var running = found;
+        if (_inFront is { } front)
+        {
+            if (found.Contains(front))
+            {
+                _inFrontSeen = true;
+            }
+            else if (_inFrontSeen)
+            {
+                // Closed, and no window of another program came to the front since. When it comes
+                // to the front again, Windows tells that as for any window.
+                if (ProgramNames.Comparer.Equals(_front, front))
+                {
+                    _front = null;
+                }
+
+                ShowInFrontLocked(null);
+            }
+
+            running = new HashSet<string>(found.Where(_watched.Contains), ProgramNames.Comparer);
+        }
+
+        if (!running.SetEquals(_running))
         {
             var stopped = _running.Where(program => !running.Contains(program)).ToList();
             var started = running.Where(program => !_running.Contains(program)).ToList();
             _running = running;
             stopped.ForEach(Stop);
             started.ForEach(StartProgram);
+        }
+    }
+
+    // program is the one whose window is in front now, of any kind. Only one that counts in the
+    // foreground loads its profile; the one that was in front before stops after it, so from one
+    // to the other no lighting shows in between.
+    private void ShowInFrontLocked(string? program)
+    {
+        var front = program is not null && _rules.TryGetValue(program, out var rule) && rule.ForegroundOnly ? program : null;
+        if (ProgramNames.Comparer.Equals(front, _inFront))
+        {
+            return;
+        }
+
+        var behind = _inFront;
+        var polling = _polled.Count > 0;
+        _inFront = front;
+        _inFrontSeen = false;
+        UpdatePolledLocked();
+        if (!polling)
+        {
+            ScheduleLocked(_pollInterval);
+        }
+
+        if (front is not null)
+        {
+            StartProgram(front);
+        }
+
+        if (behind is not null)
+        {
+            Stop(behind);
         }
     }
 
@@ -205,7 +362,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
         var beforeScene = _profiles.ActiveName;
         try
         {
-            _profiles.Load(_rules[program]);
+            _profiles.Load(_rules[program].Profile);
         }
         catch (Exception exception)
         {
@@ -344,6 +501,9 @@ internal sealed class ProgramWatcher : IProfileTrigger
             return null;
         }
     }
+
+    // The profile a program loads, and whether only while it is in the foreground.
+    private readonly record struct Rule(string Profile, bool ForegroundOnly);
 
     // ChangesAfter is the change count right after its profile loaded; CoveredUntouched tells
     // whether the program below still showed its own lighting when this one started. BeforeScene is

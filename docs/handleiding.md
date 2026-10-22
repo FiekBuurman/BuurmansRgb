@@ -170,7 +170,9 @@ om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%"
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
-  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld.
+  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. Met een vinkje
+  bij "Alleen als het op de voorgrond staat" (daaronder, grijs zonder programma) telt het
+  programma alleen zolang je het voor je hebt, zie "Alleen op de voorgrond" hieronder.
 - **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
   zo gaat "Ochtend" om 07:00 op werkdagen en om 09:00 in het weekend aan. Een scène kan tot acht
   tijden hebben. "−" achter een rij haalt die tijd weg (de enige tijd wordt leeg), en een lege
@@ -231,6 +233,40 @@ Hoe het vanzelf aanzetten werkt:
   of ontwaken kijkt hij één keer: een programma dat intussen startte, zet dan zijn scène aan, en
   een dat intussen stopte, zet de verlichting van daarvoor terug. Alleen een tijd die intussen
   komt, laat hem één keer eerder kijken (zie hieronder).
+- **Alleen op de voorgrond** (standaard uit): met het vinkje gaat de scène aan zodra een venster
+  van het programma op de voorgrond komt (je klikt erop of wisselt er met Alt+Tab naartoe),
+  meteen en niet pas binnen 2 seconden, en komt de verlichting van daarvoor terug zodra je naar
+  iets anders wisselt of het programma stopt. Draait het alleen op de achtergrond, dan telt het
+  niet. De kaart zegt dan "Bij vlc.exe op de voorgrond". Handig voor bijv. een filmspeler of een
+  tekenprogramma dat je de hele dag open laat staan.
+  - *Twee van zulke programma's:* wissel je van het ene naar het andere, dan gaat de ene scène
+    rechtstreeks over in de andere, zonder de verlichting van daarvoor ertussen. Wissel je daarna
+    naar een derde programma, dan komt de verlichting van vóór het eerste terug.
+  - *Wat niet als wegwisselen telt:* de taakbalk en het pijltje met de verborgen icoontjes naast
+    de klok, het venster van Alt+Tab en Win+Tab, het startmenu en zoeken, meldingen en snelle
+    instellingen, het vergrendelscherm en het tray-menu van BuurmansRgb zelf. Dan blijft het
+    zoals het was. Het bureaublad, Verkenner en de
+    instellingen-app van BuurmansRgb tellen wel als een ander programma: open je de app om de
+    scène bij te stellen, dan brandt daar de verlichting van daarvoor.
+  - *Samen met "zolang het draait":* de scène die het laatst aanging wint, zoals bij twee
+    spellen. Start er een spel met een eigen scène terwijl de filmspeler vooraan staat, dan toont
+    het spel de zijne, ook als je daarna van de film wegwisselt; stopt het spel, dan komt de
+    verlichting van daarvoor terug. Wissel je tijdens een spel naar de filmspeler en weer terug,
+    dan komt de scène van het spel terug.
+  - *Zelf iets veranderd* terwijl het programma vooraan stond: dat blijft bij het wegwisselen.
+    Elke keer dat het programma weer op de voorgrond komt, telt als een nieuwe start.
+  - *Tijden* wachten zoals bij een spel (hieronder): komt een tijd terwijl het programma vooraan
+    staat, dan komt de scène van die tijd zodra je wegwisselt.
+  - *Vergrendeld of slaapstand:* dan telt de voorgrond niet en blijft de scène staan; meteen na
+    het ontgrendelen of ontwaken telt wat dan vooraan staat.
+  - *Apps uit de Microsoft Store* met een eigen Store-venster (zoals Films en tv of Foto's)
+    herkent hij nog niet op de voorgrond: Windows geeft hun venster aan `ApplicationFrameHost.exe`
+    in plaats van aan de app zelf. Gewone programma's, ook als je ze uit de Store haalde, tellen
+    wel.
+  - Zet je het vinkje aan of uit terwijl het programma draait, dan blijft de verlichting zoals
+    hij is; het programma telt weer vanaf de volgende keer dat het op de voorgrond komt (of
+    start). Sluit het programma zonder dat er een ander venster vooraan komt, dan ziet de engine
+    dat binnen 2 seconden: zolang zo'n scène aan staat, kijkt hij ook in de proceslijst.
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
   zelf iets veranderd, dan komt hij meteen. Komt de tijd terwijl Windows vergrendeld is of
@@ -484,11 +520,13 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
 De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color` t/m
 `ledColorZoneLengths`) en, als hij vanzelf aangaat, zijn tijden en/of `program`. Eén tijd staat
 als `loadAt` (`"HH:mm"`) met eventueel `loadOn`, zoals vóór er meer tijden waren; meer tijden
-staan in `loadTimes`, elk met `at` en eventueel `on`:
+staan in `loadTimes`, elk met `at` en eventueel `on`. `"foregroundOnly": true` naast `program`
+laat het programma alleen tellen zolang het op de voorgrond staat:
 
 ```json
 {
   "profiles": [
+    { "name": "Film", "color": "#8000FF", "brightness": 0.3, "program": "vlc.exe", "foregroundOnly": true },
     { "name": "Gamen", "color": "#FF0000", "effect": "rainbow", "program": "eldenring.exe" },
     { "name": "Nacht", "color": "#FF8800", "brightness": 0.1, "loadAt": "23:00" },
     { "name": "Ochtend", "color": "#FFFFFF", "loadTimes": [
@@ -505,11 +543,14 @@ tijd elke dag; de dagen staan als `mon` t/m `sun` (met de hand mag ook `ma` t/m 
 bestaand bestand met `loadAt` en `loadOn` blijft gewoon werken, en een scène met één tijd
 schrijft de engine nog zo, zodat een oudere versie hem ook leest. Staan `loadAt` en `loadTimes`
 er met de hand allebei, dan tellen ze allebei; dezelfde tijd twee keer telt één keer, en na acht
-tijden laat de engine de rest weg. Een tijd, dagen of programma die niet te lezen zijn (bijv.
-`"25:00"`, `"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest
-blijft gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat
-hij ook weg. Voor een
-kleur of een waarde van het verkeerde soort geldt hetzelfde als in `settings.json`. Is het
+tijden laat de engine de rest weg. Zonder `foregroundOnly` (of met `false`) telt een programma
+zolang het draait, zoals in een bestand van vóór deze keuze; de engine schrijft het alleen als
+het aan staat. Zonder `program` doet het niets, en een waarde die geen `true` of `false` is,
+telt als uit. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
+`"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest blijft
+gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat hij
+ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde als in
+`settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst.
 

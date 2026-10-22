@@ -71,6 +71,16 @@ public sealed class SceneCardTests
         Assert.Equal(expected, _card.Description);
     }
 
+    [Fact]
+    public void Show_ProgramInTheForeground_SaysSo()
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
+        Assert.Equal("Bij vlc.exe op de voorgrond", _card.Description);
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], "vlc.exe", ForegroundOnly: true));
+        Assert.Equal("Elke dag om 20:00 · bij vlc.exe op de voorgrond", _card.Description);
+    }
+
     // Only the first time fits on the card, with how many more there are.
     [Theory]
     [InlineData(2, null, "Werkdagen om 07:00 en nog 1")]

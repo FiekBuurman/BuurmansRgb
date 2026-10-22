@@ -382,6 +382,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #55 | Ook pauzeren als alleen het scherm uitgaat, zonder vergrendelen (`GUID_CONSOLE_DISPLAY_STATE`), onder `pauseOnLockAndSleep` en met een eigen melding in de app |
 | #56 | Bij vergrendelen, slaapstand en scherm uit de lampen het laatste beeld laten houden, dimmen (20 %) of uitzetten (`pausedLights`), te kiezen bij Instellingen; de pauze uit het tray-menu blijft zoals hij was |
 | #57 | Meer tijden per scène, elk met eigen dagen (bijv. 07:00 op werkdagen en 09:00 in het weekend), toe te voegen en weg te halen bij "Vanzelf aanzetten"; in `profiles.json` als `loadTimes`, één tijd blijft `loadAt` en `loadOn`; "Gemiste tijden inhalen" kijkt naar alle tijden |
+| #58 | Een programma van een scène alleen laten tellen zolang het op de voorgrond staat (`foregroundOnly`, met een vinkje bij "Vanzelf aanzetten"), via `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`, zonder pollen zolang het niet vooraan staat; wisselen met Alt+Tab gaat rechtstreeks van de ene scène naar de andere |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13).

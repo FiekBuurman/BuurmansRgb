@@ -254,6 +254,24 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_ForegroundOnly_WritesItNextToTheProgram()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true) }]);
+
+        Assert.Contains("\"foregroundOnly\": true", File.ReadAllText(_directory.File("profiles.json")));
+        Assert.Equal(new ProfileAutomation(Program: "eldenring.exe", ForegroundOnly: true), Assert.Single(_store.Load()).Automation);
+    }
+
+    // Off is what an older file means without it, so it is not written.
+    [Fact]
+    public void Save_ProgramWithoutForegroundOnly_WritesNoForegroundOnly()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
+
+        Assert.DoesNotContain("foregroundOnly", File.ReadAllText(_directory.File("profiles.json")));
+    }
+
+    [Fact]
     public void Save_WithoutAutomation_WritesNoTimeOrProgram()
     {
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red)))]);
@@ -261,6 +279,32 @@ public sealed class JsonProfileStoreTests : IDisposable
         var json = File.ReadAllText(_directory.File("profiles.json"));
         Assert.DoesNotContain("loadAt", json);
         Assert.DoesNotContain("program", json);
+        Assert.DoesNotContain("foregroundOnly", json);
+    }
+
+    // Missing, false or of the wrong type is off; without a program it means nothing.
+    [Fact]
+    public void Load_ForegroundOnly_IsOnOnlyWithTrueAndAProgram()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "A", "program": "a.exe", "foregroundOnly": true },
+                { "name": "B", "program": "b.exe" },
+                { "name": "C", "program": "c.exe", "foregroundOnly": false },
+                { "name": "D", "program": "d.exe", "foregroundOnly": "yes" },
+                { "name": "E", "loadAt": "23:00", "foregroundOnly": true },
+                { "name": "F", "program": "game?.exe", "foregroundOnly": true }
+            ] }
+            """);
+
+        var profiles = _store.Load();
+
+        Assert.Equal(new ProfileAutomation(Program: "a.exe", ForegroundOnly: true), profiles[0].Automation);
+        Assert.Equal(new ProfileAutomation(Program: "b.exe"), profiles[1].Automation);
+        Assert.Equal(new ProfileAutomation(Program: "c.exe"), profiles[2].Automation);
+        Assert.Equal(new ProfileAutomation(Program: "d.exe"), profiles[3].Automation);
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[4].Automation);
+        Assert.Equal(ProfileAutomation.None, profiles[5].Automation);
     }
 
     // The next save writes the profile without them, so the trace says what went.

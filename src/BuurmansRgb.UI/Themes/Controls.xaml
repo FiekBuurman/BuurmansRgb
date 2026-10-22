@@ -613,6 +613,9 @@
                             <Setter TargetName="Box" Property="BorderBrush" Value="{StaticResource TextBrush}" />
                             <Setter TargetName="Check" Property="Visibility" Value="Visible" />
                         </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

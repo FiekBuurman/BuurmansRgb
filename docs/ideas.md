@@ -135,9 +135,16 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Scènes
 
-- Een programma alleen laten tellen zolang het op de voorgrond staat
-  (`SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), wisselen als je alt-tabt; dat werkt ook zonder
-  pollen
+- Bij "Alleen als het op de voorgrond staat" ook Store-apps met een eigen Store-venster
+  herkennen: dat venster (`ApplicationFrameWindow`) hoort bij `ApplicationFrameHost.exe`, en de
+  echte app staat in het kindvenster `Windows.UI.Core.CoreWindow`, waarvan het proces te lezen is
+  (bijv. met `EnumChildWindows`). Nu telt zo'n app als `ApplicationFrameHost.exe`
+- Bij "Alleen als het op de voorgrond staat" de instellingen-app niet laten tellen als
+  wegwisselen, zodat je een voorgrond-scène kunt bijstellen terwijl hij brandt; nu komt bij het
+  openen van de app de verlichting van daarvoor terug
+- Bij "Alleen als het op de voorgrond staat" een korte wachttijd (bijv. een halve seconde)
+  voordat de scène wisselt, zodat snel heen en weer alt-tabben de lampen niet laat flitsen; nu
+  wisselen ze bij elk venster dat vooraan komt
 - "Gemiste tijden inhalen" (#51) laat bij het starten de tijd altijd winnen, ook van een kleur
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
   hij niet draaide. Met een tijdstempel van de laatste wijziging van de verlichting in
