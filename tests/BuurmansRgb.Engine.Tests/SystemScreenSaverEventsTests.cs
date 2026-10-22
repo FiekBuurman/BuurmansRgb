@@ -310,6 +310,8 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
         Assert.Empty(_changes);
     }
 
+    // Only its own warnings count: other tests have Windows refuse the foreground hook at the same
+    // time. A refused hook here writes the first one too.
     [Fact]
     public void CreateAndDispose_WithoutWarnings()
     {
@@ -317,7 +319,9 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
 
         Create().Dispose();
 
-        Assert.DoesNotContain(trace.Messages, message => message.Contains("screen saver", StringComparison.Ordinal) || message.Contains("foreground", StringComparison.Ordinal));
+        Assert.DoesNotContain(trace.Messages, message =>
+            message.Contains("Whether the screen saver runs cannot be followed", StringComparison.Ordinal)
+            || message.Contains("Whether the screen saver runs could not be asked", StringComparison.Ordinal));
     }
 
     // Not running, also should the screen saver of this pc run while the tests do.
