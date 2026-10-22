@@ -29,6 +29,8 @@ public sealed class LightingControllerPausedLightsTests : IDisposable
         { PauseReasons.Asleep, PausedLightsMode.Off },
         { PauseReasons.DisplayOff, PausedLightsMode.Dim },
         { PauseReasons.DisplayOff, PausedLightsMode.Off },
+        { PauseReasons.ScreenSaver, PausedLightsMode.Dim },
+        { PauseReasons.ScreenSaver, PausedLightsMode.Off },
     };
 
     [Fact]
@@ -38,6 +40,7 @@ public sealed class LightingControllerPausedLightsTests : IDisposable
     [InlineData(PauseReasons.Locked)]
     [InlineData(PauseReasons.Asleep)]
     [InlineData(PauseReasons.DisplayOff)]
+    [InlineData(PauseReasons.ScreenSaver)]
     public async Task Keep_LeavesTheLastFrameOnTheDevices(PauseReasons reason)
     {
         await StartAsync(EffectIds.Static);

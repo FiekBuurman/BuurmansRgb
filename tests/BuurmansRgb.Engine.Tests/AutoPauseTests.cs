@@ -15,6 +15,7 @@ public sealed class AutoPauseTests : IDisposable
     private readonly FakePowerEvents _power = new();
     private readonly FakeSessionEvents _session = new();
     private readonly FakeDisplayEvents _display = new();
+    private readonly FakeScreenSaverEvents _screenSaver = new();
     private readonly FakeTimeProvider _time = new();
     private readonly RestorableDeviceProvider _restorable = new();
     private readonly RecordingDeviceProvider _provider = new();
@@ -24,7 +25,7 @@ public sealed class AutoPauseTests : IDisposable
     public AutoPauseTests()
     {
         _lighting = new LightingController([_restorable, _provider], _time);
-        _autoPause = new AutoPause(_power, _session, _display, _lighting.SetPaused);
+        _autoPause = new AutoPause(_power, _session, _display, _screenSaver, _lighting.SetPaused);
     }
 
     public void Dispose()
@@ -112,7 +113,7 @@ public sealed class AutoPauseTests : IDisposable
         await StartAnimatedAsync();
         var session = new FakeSessionEvents { IsLocked = true };
 
-        using var autoPause = new AutoPause(_power, session, new FakeDisplayEvents(), _lighting.SetPaused);
+        using var autoPause = new AutoPause(_power, session, new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused);
         Assert.Equal(PauseReasons.Locked, _lighting.Pause);
 
         session.Raise(SessionSwitchReason.SessionUnlock);
@@ -183,7 +184,7 @@ public sealed class AutoPauseTests : IDisposable
         await StartAnimatedAsync();
         var display = new FakeDisplayEvents { IsOff = true };
 
-        using var autoPause = new AutoPause(_power, _session, display, _lighting.SetPaused);
+        using var autoPause = new AutoPause(_power, _session, display, _screenSaver, _lighting.SetPaused);
         Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
 
         display.Raise(off: false);
@@ -203,6 +204,81 @@ public sealed class AutoPauseTests : IDisposable
         _session.Raise(back);
 
         Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    [Fact]
+    public async Task ScreenSaver_StopsTheAnimationUntilItGoes()
+    {
+        await StartAnimatedAsync();
+
+        _screenSaver.Raise(running: true);
+        Assert.Equal(PauseReasons.ScreenSaver, _lighting.Pause);
+        Assert.False(_lighting.IsAnimating);
+
+        _screenSaver.Raise(running: false);
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // As after unlocking: the devices get their lighting again when the screen saver goes.
+    [Fact]
+    public async Task ScreenSaverEnds_GivesTheDevicesTheirLightingAgain()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Orange)));
+        _screenSaver.Raise(running: true);
+        _provider.SetLeds(RecordingDeviceProvider.DeviceId, [RgbColor.White, RgbColor.White, RgbColor.White]);
+
+        _screenSaver.Raise(running: false);
+
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+    }
+
+    [Fact]
+    public async Task StartedWhileTheScreenSaverRuns_PausesUntilItGoes()
+    {
+        await StartAnimatedAsync();
+        var screenSaver = new FakeScreenSaverEvents { IsRunning = true };
+
+        using var autoPause = new AutoPause(_power, _session, _display, screenSaver, _lighting.SetPaused);
+        Assert.Equal(PauseReasons.ScreenSaver, _lighting.Pause);
+
+        screenSaver.Raise(running: false);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // Should no other window come to the front after the screen saver, the user who is back still
+    // sees the effects.
+    [Theory]
+    [InlineData(SessionSwitchReason.SessionUnlock)]
+    [InlineData(SessionSwitchReason.ConsoleConnect)]
+    [InlineData(SessionSwitchReason.RemoteConnect)]
+    public async Task ScreenSaverWithoutEnd_EndsWhenTheUserIsBack(SessionSwitchReason back)
+    {
+        await StartAnimatedAsync();
+        _screenSaver.Raise(running: true);
+
+        _session.Raise(back);
+
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // With a password on resume Windows locks during or right after the screen saver; when it goes,
+    // the lock stays.
+    [Fact]
+    public async Task ScreenSaverThenLock_StaysPausedUntilUnlocked()
+    {
+        await StartAnimatedAsync();
+        _screenSaver.Raise(running: true);
+        _session.Raise(SessionSwitchReason.SessionLock);
+
+        _screenSaver.Raise(running: false);
+        Assert.Equal(PauseReasons.Locked, _lighting.Pause);
+        Assert.False(_lighting.IsAnimating);
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
         Assert.True(_lighting.IsAnimating);
     }
 
@@ -258,7 +334,7 @@ public sealed class AutoPauseTests : IDisposable
     }
 
     [Fact]
-    public async Task Disabled_IgnoresLockSleepAndTheScreen()
+    public async Task Disabled_IgnoresLockSleepTheScreenAndTheScreenSaver()
     {
         await StartAnimatedAsync();
         _autoPause.Enabled = false;
@@ -266,6 +342,7 @@ public sealed class AutoPauseTests : IDisposable
         _session.Raise(SessionSwitchReason.SessionLock);
         _power.RaiseSuspending();
         _display.Raise(off: true);
+        _screenSaver.Raise(running: true);
 
         Assert.Equal(PauseReasons.None, _lighting.Pause);
         Assert.True(_lighting.IsAnimating);
@@ -295,6 +372,19 @@ public sealed class AutoPauseTests : IDisposable
 
         _autoPause.Enabled = true;
         Assert.Equal(PauseReasons.DisplayOff, _lighting.Pause);
+    }
+
+    [Fact]
+    public async Task DisabledWhileTheScreenSaverRuns_EndsThePauseAndEnabledStartsItAgain()
+    {
+        await StartAnimatedAsync();
+        _screenSaver.Raise(running: true);
+
+        _autoPause.Enabled = false;
+        Assert.True(_lighting.IsAnimating);
+
+        _autoPause.Enabled = true;
+        Assert.Equal(PauseReasons.ScreenSaver, _lighting.Pause);
     }
 
     [Fact]
@@ -377,6 +467,22 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal([PauseReasons.Locked], changes);
     }
 
+    // The screen saver only says nobody touched the pc for a while; a lock with it makes the user away.
+    [Fact]
+    public void Away_NotForTheScreenSaver()
+    {
+        var changes = new List<PauseReasons>();
+        _autoPause.AwayChanged += (_, away) => changes.Add(away);
+
+        _screenSaver.Raise(running: true);
+        Assert.Equal(PauseReasons.ScreenSaver, _lighting.Pause);
+        Assert.Equal(PauseReasons.None, _autoPause.Away);
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _screenSaver.Raise(running: false);
+        Assert.Equal([PauseReasons.Locked], changes);
+    }
+
     [Fact]
     public void AwayChanged_RaisedOnlyForAnotherValue_AndNotForEnabled()
     {
@@ -409,7 +515,7 @@ public sealed class AutoPauseTests : IDisposable
     [Fact]
     public void StartedWhileLocked_IsAwayAtOnce()
     {
-        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, new FakeDisplayEvents(), _lighting.SetPaused) { Enabled = false };
+        using var autoPause = new AutoPause(_power, new FakeSessionEvents { IsLocked = true }, new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused) { Enabled = false };
 
         Assert.Equal(PauseReasons.Locked, autoPause.Away);
     }
@@ -422,10 +528,12 @@ public sealed class AutoPauseTests : IDisposable
         _autoPause.Dispose();
         _session.Raise(SessionSwitchReason.SessionLock);
         _display.Raise(off: true);
+        _screenSaver.Raise(running: true);
 
         Assert.False(_power.HasListeners);
         Assert.False(_session.HasListeners);
         Assert.False(_display.HasListeners);
+        Assert.False(_screenSaver.HasListeners);
         Assert.True(_lighting.IsAnimating);
     }
 
@@ -458,6 +566,21 @@ public sealed class AutoPauseTests : IDisposable
     [InlineData("off connect off", PauseReasons.DisplayOff)]
     [InlineData("manual off on", PauseReasons.Manual)]
     [InlineData("off manual on unmanual", PauseReasons.None)]
+    [InlineData("saver saver unsaver", PauseReasons.None)]
+    [InlineData("unsaver", PauseReasons.None)]
+    [InlineData("saver lock", PauseReasons.Locked | PauseReasons.ScreenSaver)]
+    [InlineData("saver lock unsaver", PauseReasons.Locked)]
+    [InlineData("saver lock unsaver unlock", PauseReasons.None)]
+    [InlineData("saver off", PauseReasons.ScreenSaver | PauseReasons.DisplayOff)]
+    [InlineData("saver off on", PauseReasons.ScreenSaver)]
+    [InlineData("saver off on unsaver", PauseReasons.None)]
+    [InlineData("saver off lock on unsaver", PauseReasons.Locked)]
+    [InlineData("saver suspend resume", PauseReasons.ScreenSaver)]
+    [InlineData("saver suspend resume unsaver", PauseReasons.None)]
+    [InlineData("saver unlock saver", PauseReasons.ScreenSaver)]
+    [InlineData("saver connect", PauseReasons.None)]
+    [InlineData("manual saver unsaver", PauseReasons.Manual)]
+    [InlineData("saver manual unsaver unmanual", PauseReasons.None)]
     public async Task EventSeries_EndInTheRightPause(string events, PauseReasons pause)
     {
         await StartAnimatedAsync();
@@ -508,6 +631,11 @@ public sealed class AutoPauseTests : IDisposable
     [InlineData("manual lock suspend", false)]
     [InlineData("manual lock unlock unmanual", false)]
     [InlineData("lock manual unmanual", true)]
+    [InlineData("saver", true)]
+    [InlineData("saver unsaver", false)]
+    [InlineData("saver lock unsaver", true)]
+    [InlineData("saver lock unsaver unlock", false)]
+    [InlineData("manual saver", false)]
     public async Task Off_EventSeries_BlackWhileAnAutomaticReasonHolds(string events, bool black)
     {
         await StartStaticAsync();
@@ -557,7 +685,8 @@ public sealed class AutoPauseTests : IDisposable
         _lighting.Apply(Uniform(StaticLighting(Orange) with { EffectId = EffectIds.Rainbow }));
     }
 
-    // "manual" and "unmanual" are the pause from the tray menu, "off" and "on" the screen.
+    // "manual" and "unmanual" are the pause from the tray menu, "off" and "on" the screen, "saver"
+    // and "unsaver" the screen saver.
     private void Raise(string name)
     {
         switch (name)
@@ -582,6 +711,9 @@ public sealed class AutoPauseTests : IDisposable
                 break;
             case "off" or "on":
                 _display.Raise(off: name == "off");
+                break;
+            case "saver" or "unsaver":
+                _screenSaver.Raise(running: name == "saver");
                 break;
             case "manual" or "unmanual":
                 _lighting.SetPaused(PauseReasons.Manual, name == "manual");

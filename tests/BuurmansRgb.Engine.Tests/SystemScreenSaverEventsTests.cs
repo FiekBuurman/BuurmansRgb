@@ -1,6 +1,8 @@
 using System.Runtime.InteropServices;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Programs;
+using Microsoft.Win32;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -106,6 +108,39 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
 
         Assert.False(_hook.IsSet);
         Assert.Equal([true, false, true], _changes);
+    }
+
+    // Unlocking ends the pause of a screen saver that went without another window coming to the
+    // front; the next screen saver window must pause again, though it ran for this all along. And
+    // the window the user was in ends it.
+    [Fact]
+    public void InAutoPause_PausesForEachScreenSaverWindow_AndTheNextWindowEndsIt()
+    {
+        var desktop = GetShellWindow();
+        if (desktop == 0)
+        {
+            Assert.Skip(NoShell);
+        }
+
+        using var screenSaver = Create();
+        var session = new FakeSessionEvents();
+        var pause = PauseReasons.None;
+        using var autoPause = new AutoPause(
+            new FakePowerEvents(),
+            session,
+            new FakeDisplayEvents(),
+            screenSaver,
+            (reason, paused) => pause = paused ? pause | reason : pause & ~reason);
+
+        screenSaver.Show(true);
+        session.Raise(SessionSwitchReason.SessionUnlock);
+        Assert.Equal(PauseReasons.None, pause);
+
+        screenSaver.Show(true);
+        Assert.Equal(PauseReasons.ScreenSaver, pause);
+
+        _hook.Tell(desktop);
+        Assert.Equal(PauseReasons.None, pause);
     }
 
     [Fact]

@@ -6,19 +6,23 @@ namespace BuurmansRgb.Engine.Power;
 
 // Pauses the effects while nobody sees them, so an animation costs no CPU then: while Windows is
 // locked or the session is on no screen (another user took over, or a remote desktop was left
-// without signing out), from going to sleep until waking up, and while the screen is off. Each
-// pause ends on its own; the pause from the tray menu is a reason of its own, which this leaves
-// alone (LightingController). Windows reports changes of the lock only, so whether the session is
-// locked is asked once at the start: an engine that starts late after sign-in may start on the lock
-// screen. Whether the screen is off Windows tells on its own right after registering, through
-// Switched (SystemDisplayEvents). Away tells the same, also while the pause is off, for what stops
-// whenever nobody is at the pc (ProgramWatcher). The screen alone does not make the user away: somebody may
-// still be at the pc with the screen off, listening to music.
+// without signing out), from going to sleep until waking up, while the screen is off, and while the
+// screen saver runs. Each pause ends on its own; the pause from the tray menu is a reason of its
+// own, which this leaves alone (LightingController). Windows reports changes of the lock only, so
+// whether the session is locked is asked once at the start: an engine that starts late after
+// sign-in may start on the lock screen. Whether the screen is off Windows tells on its own right
+// after registering, through Switched (SystemDisplayEvents); whether the screen saver runs is read
+// from the window in front at the start (SystemScreenSaverEvents). Away tells the same, also while
+// the pause is off, for what stops whenever nobody is at the pc (ProgramWatcher). The screen alone
+// does not make the user away: somebody may still be at the pc with the screen off, listening to
+// music. Neither does the screen saver: it only says nobody touched the pc for a while, and goes at
+// the first touch; when Windows locks with it, Locked makes the user away.
 internal sealed class AutoPause : IAwayState, IDisposable
 {
     private readonly IPowerEvents _power;
     private readonly ISessionEvents _session;
     private readonly IDisplayEvents _display;
+    private readonly IScreenSaverEvents _screenSaver;
     private readonly Action<PauseReasons, bool> _setPaused;
     private readonly Lock _gate = new();
     private bool _enabled = true;
@@ -26,21 +30,24 @@ internal sealed class AutoPause : IAwayState, IDisposable
     private bool _disconnected;
     private bool _asleep;
     private bool _displayOff;
+    private bool _screenSaverRuns;
     private PauseReasons _away;
 
-    public AutoPause(IPowerEvents power, ISessionEvents session, IDisplayEvents display, Action<PauseReasons, bool> setPaused)
+    public AutoPause(IPowerEvents power, ISessionEvents session, IDisplayEvents display, IScreenSaverEvents screenSaver, Action<PauseReasons, bool> setPaused)
     {
         _power = power;
         _session = session;
         _display = display;
+        _screenSaver = screenSaver;
         _setPaused = setPaused;
         _power.Suspending += OnSuspending;
         _power.Resumed += OnResumed;
         _session.Switched += OnSessionSwitched;
         _display.Switched += OnDisplaySwitched;
+        _screenSaver.Switched += OnScreenSaverSwitched;
 
-        // After listening, so a lock or a screen that goes off in between is not missed.
-        Change(() => (_locked, _displayOff) = (_session.IsLocked, _display.IsOff));
+        // After listening, so a lock, a screen that goes off or a screen saver in between is not missed.
+        Change(() => (_locked, _displayOff, _screenSaverRuns) = (_session.IsLocked, _display.IsOff, _screenSaver.IsRunning));
     }
 
     // Raised when Enabled got another value; read Enabled for the newest one.
@@ -51,7 +58,7 @@ internal sealed class AutoPause : IAwayState, IDisposable
     public event EventHandler<PauseReasons>? AwayChanged;
 
     // Locked and Asleep as they pause the effects while Enabled is on, also while it is off; never
-    // DisplayOff.
+    // DisplayOff or ScreenSaver.
     public PauseReasons Away
     {
         get
@@ -97,6 +104,7 @@ internal sealed class AutoPause : IAwayState, IDisposable
         _power.Resumed -= OnResumed;
         _session.Switched -= OnSessionSwitched;
         _display.Switched -= OnDisplaySwitched;
+        _screenSaver.Switched -= OnScreenSaverSwitched;
     }
 
     private void OnSuspending(object? sender, EventArgs e) => Change(() => _asleep = true);
@@ -105,10 +113,13 @@ internal sealed class AutoPause : IAwayState, IDisposable
 
     private void OnDisplaySwitched(object? sender, bool off) => Change(() => _displayOff = off);
 
+    private void OnScreenSaverSwitched(object? sender, bool running) => Change(() => _screenSaverRuns = running);
+
     // Unlocking or connecting the session also ends the sleep: SystemEvents reports no Resume when
     // Windows wakes up without the user (PBT_APMRESUMEAUTOMATIC), and the animation must not stay
-    // still for good after the user is back. The same goes for a screen that went off: should
-    // Windows not tell it is on again, the user who is back still sees the effects.
+    // still for good after the user is back. The same goes for a screen that went off and a screen
+    // saver: should Windows not tell the screen is on again, or no other window come to the front
+    // after the screen saver, the user who is back still sees the effects.
     private void OnSessionSwitched(object? sender, SessionSwitchReason reason)
     {
         switch (reason)
@@ -117,13 +128,13 @@ internal sealed class AutoPause : IAwayState, IDisposable
                 Change(() => _locked = true);
                 break;
             case SessionSwitchReason.SessionUnlock:
-                Change(() => (_locked, _asleep, _displayOff) = (false, false, false));
+                Change(() => (_locked, _asleep, _displayOff, _screenSaverRuns) = (false, false, false, false));
                 break;
             case SessionSwitchReason.ConsoleDisconnect or SessionSwitchReason.RemoteDisconnect:
                 Change(() => _disconnected = true);
                 break;
             case SessionSwitchReason.ConsoleConnect or SessionSwitchReason.RemoteConnect:
-                Change(() => (_disconnected, _asleep, _displayOff) = (false, false, false));
+                Change(() => (_disconnected, _asleep, _displayOff, _screenSaverRuns) = (false, false, false, false));
                 break;
         }
     }
@@ -142,8 +153,9 @@ internal sealed class AutoPause : IAwayState, IDisposable
         SetPaused(PauseReasons.Locked, _enabled && (_locked || _disconnected));
         SetPaused(PauseReasons.Asleep, _enabled && _asleep);
         SetPaused(PauseReasons.DisplayOff, _enabled && _displayOff);
+        SetPaused(PauseReasons.ScreenSaver, _enabled && _screenSaverRuns);
 
-        // The screen alone does not make the user away (see the top).
+        // The screen and the screen saver alone do not make the user away (see the top).
         var away = (_locked || _disconnected ? PauseReasons.Locked : PauseReasons.None)
             | (_asleep ? PauseReasons.Asleep : PauseReasons.None);
         if (away != _away)

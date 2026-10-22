@@ -78,6 +78,7 @@ public sealed class SystemDisplayEventsTests
                 new FakePowerEvents(),
                 session,
                 display,
+                new FakeScreenSaverEvents(),
                 (reason, paused) => pause = paused ? pause | reason : pause & ~reason);
 
             Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
