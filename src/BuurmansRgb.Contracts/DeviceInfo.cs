@@ -15,12 +15,18 @@ public sealed record DeviceInfo(string Id, string Name, DeviceType Type, int Led
     // False when the device may not show the colors it gets; see RgbDevice.HasDirectMode.
     public bool HasDirectMode { get; init; } = true;
 
-    public static DeviceInfo From(RgbDevice device) =>
+    // Whether the user chose that every zone shows the image the effect renders over the longest
+    // one; the per-LED effect keeps a color per LED all the same. False from an engine that does
+    // not know it.
+    public bool ZonesAlike { get; init; }
+
+    public static DeviceInfo From(RgbDevice device, bool zonesAlike = false) =>
         new(device.Id, device.Name, device.Type, device.LedCount, device.Zones)
         {
             Source = device.Source,
             Location = device.Location,
             HasDirectMode = device.HasDirectMode,
+            ZonesAlike = zonesAlike,
         };
 
     public bool Equals(DeviceInfo? other) =>
@@ -32,6 +38,7 @@ public sealed record DeviceInfo(string Id, string Name, DeviceType Type, int Led
         && Source == other.Source
         && Location == other.Location
         && HasDirectMode == other.HasDirectMode
+        && ZonesAlike == other.ZonesAlike
         && Zones.SequenceEqual(other.Zones);
 
     public override int GetHashCode() => HashCode.Combine(Id, Name, Type, LedCount, Source, Location, Zones.Count);

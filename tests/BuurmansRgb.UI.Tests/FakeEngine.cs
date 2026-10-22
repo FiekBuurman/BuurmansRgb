@@ -247,6 +247,14 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default) =>
         Record($"resize {deviceId} {zoneIndex} {ledCount}");
 
+    // Like the engine: the device comes again with the new choice, through DevicesChanged.
+    public async Task SetZonesAlikeAsync(string deviceId, bool alike, CancellationToken ct = default)
+    {
+        await Record($"zones-alike {deviceId} {(alike ? "on" : "off")}");
+        Devices = [.. Devices.Select(device => device.Id == deviceId ? device with { ZonesAlike = alike } : device)];
+        RaiseDevicesChanged();
+    }
+
     public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default) => Record($"flash {deviceId}");
 
     public Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default) => Record($"flash {deviceId} zone {zoneIndex}");

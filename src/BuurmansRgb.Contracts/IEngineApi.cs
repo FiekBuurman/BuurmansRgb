@@ -13,8 +13,8 @@ public partial interface IEngineApi
     // with the latest frame, and not while the app wants no frames (SetFramesWantedAsync).
     event EventHandler<LightingFrame> FrameRendered;
 
-    // Raised when devices come or go, for example when OpenRGB starts or stops. GetDevicesAsync
-    // then returns the new list.
+    // Raised when devices come or go, for example when OpenRGB starts or stops, or when one got
+    // another zone length or ZonesAlike. GetDevicesAsync then returns the new list.
     event EventHandler DevicesChanged;
 
     // Raised when the engine has written its settings file, a moment after the last change.
@@ -93,6 +93,11 @@ public partial interface IEngineApi
     // engine saves the length and gives it back when the device reports another one, for example
     // after OpenRGB restarted.
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
+
+    // Whether every zone of the device shows the image the effect renders over its longest zone,
+    // a shorter zone stretched (DeviceInfo.ZonesAlike); not with the per-LED effect. Saved like
+    // the lighting, but no part of it: a scene leaves it as it is. DevicesChanged follows.
+    Task SetZonesAlikeAsync(string deviceId, bool alike, CancellationToken ct = default);
 
     // Lets the device blink white a few times, so the user can see which one it is; then it shows
     // its own lighting again. Changes no lighting. One device flashes at a time: a new flash

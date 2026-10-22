@@ -187,6 +187,21 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.Equal(0, _store.SaveCount);
     }
 
+    [Fact]
+    public async Task ZonesAlikeChangedByHand_TheAppHearsOfThem()
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus());
+        var changes = 0;
+        api.DevicesChanged += (_, _) => Interlocked.Increment(ref changes);
+
+        ChangeByHand(new EngineSettings { ZonesAlike = ["simulated-headset"] });
+
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 1);
+        Assert.True((await api.GetDevicesAsync(Ct)).Single(device => device.Id == "simulated-headset").ZonesAlike);
+    }
+
     // The saver keeps what came from the file: a later change in the app saves no old values.
     [Fact]
     public async Task ChangeInTheAppAfterAChangeByHand_SavesBoth()
