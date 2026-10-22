@@ -331,13 +331,13 @@ toetsenbord. Een paar dingen om te proberen:
   als `zonesAlike`) en `SetZonesAlike`, via `IEngineApi.SetZonesAlikeAsync`. Het hoort niet bij
   de verlichting: `LightingChanged` gaat niet af, een scène laat het staan, en de app hoort het
   als `DevicesChanged` met `DeviceInfo.ZonesAlike`. `DeviceOutput` deelt de LED's bij het maken
-  één keer in: de zones met LED's (`RgbZone.RangesOf`) en de LED's na de laatste zone, de
-  langste vooraan. Staat het aan, dan rendert het effect alleen in de langste en kopieert
-  `Stretch` dat beeld naar de andere (elke LED neemt de LED op dezelfde plek, gemeten in het
-  midden van de LED), zonder allocaties per frame. Bij `per-led` geeft de controller het niet
+  één keer in met `RgbZone.PartsOf`: de zones en de LED's na de laatste zone, zonder de delen
+  zonder LED's, de langste vooraan. Staat het aan, dan rendert het effect alleen in de langste en
+  kopieert `Stretch` dat beeld naar de andere (elke LED neemt de LED op dezelfde plek, gemeten in
+  het midden van de LED), zonder allocaties per frame. Bij `per-led` geeft de controller het niet
   door, zodat elke LED zijn eigen kleur houdt. De flits komt daarna, dus knipperen per zone
-  werkt zoals eerst. De app toont de schakelaar alleen bij twee of meer zones met LED's
-  (`DevicePreviewViewModel.ShowsZonesAlike`).
+  werkt zoals eerst. Het voorbeeld telt de delen met dezelfde `RgbZone.PartsOf` en toont de
+  schakelaar alleen bij twee of meer delen met LED's (`DevicePreviewViewModel.ShowsZonesAlike`).
 
 ## Ontwerp, lettertypes en icoon
 

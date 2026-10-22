@@ -137,20 +137,14 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         }
     }
 
-    // The zones as RgbZone.RangesOf counts them, without the ones without LEDs, and then the LEDs
-    // after the last zone; the longest goes first, the first of them when more are as long.
+    // The parts as RgbZone.PartsOf counts them, as the preview does, without the ones without
+    // LEDs; the longest goes first, the first of them when more are as long.
     private static (int FirstLed, int LedCount)[] PartsOf(RgbDevice device)
     {
-        var zones = RgbZone.RangesOf(device.Zones, device.LedCount);
-        var end = zones.Length == 0 ? 0 : zones[^1].FirstLed + zones[^1].LedCount;
-        List<(int FirstLed, int LedCount)> parts = [.. zones.Where(zone => zone.LedCount > 0)];
-        if (end < device.LedCount)
-        {
-            parts.Add((end, device.LedCount - end));
-        }
-
+        (int FirstLed, int LedCount)[] parts =
+            [.. RgbZone.PartsOf(device.Zones, device.LedCount).Where(part => part.LedCount > 0)];
         var longest = 0;
-        for (var part = 1; part < parts.Count; part++)
+        for (var part = 1; part < parts.Length; part++)
         {
             if (parts[part].LedCount > parts[longest].LedCount)
             {
@@ -163,6 +157,6 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
             (parts[0], parts[longest]) = (parts[longest], parts[0]);
         }
 
-        return [.. parts];
+        return parts;
     }
 }

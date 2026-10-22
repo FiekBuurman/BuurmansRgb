@@ -27,8 +27,9 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         FlashAccessibleName = UiText.Format(Strings.FlashDeviceAccessibleName, device.Name);
         ZonesAlikeAccessibleName = UiText.Format(Strings.ZonesAlikeAccessibleName, device.Name);
         _zonesAlike = device.ZonesAlike;
-        Zones = CreateZones(device, actions, time);
-        ShowsZonesAlike = Zones.Count(zone => zone.LedCount > 0) > 1;
+        var parts = RgbZone.PartsOf(device.Zones, device.LedCount);
+        Zones = CreateZones(device, parts, actions, time);
+        ShowsZonesAlike = parts.Count(part => part.LedCount > 0) > 1;
         foreach (var zone in Zones)
         {
             zone.PropertyChanged += OnZoneChanged;
@@ -69,8 +70,8 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         }
     }
 
-    // Only a device with two or more zones with LEDs looks different with it; the LEDs without a
-    // zone ("Overige LED's") count as one, as the engine gives them the image too.
+    // Only a device with two or more parts with LEDs looks different with it; the LEDs without a
+    // zone ("Overige LED's") are one, as the engine counts them too (RgbZone.PartsOf).
     public bool ShowsZonesAlike { get; }
 
     public string ZonesAlikeAccessibleName { get; }
@@ -256,23 +257,25 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         }
     }
 
-    // The zones follow each other in LED order, as the engine counts them (RgbZone.RangesOf). Zones
+    // The zones follow each other in LED order, as the engine counts them (RgbZone.PartsOf). Zones
     // that claim more LEDs than the device has are cut short, and LEDs that no zone claims get a
     // zone of their own, so every LED shows once.
-    private ZonePreviewViewModel[] CreateZones(DeviceInfo device, IPreviewActions? actions, TimeProvider? time)
+    private ZonePreviewViewModel[] CreateZones(
+        DeviceInfo device, (int FirstLed, int LedCount)[] parts, IPreviewActions? actions, TimeProvider? time)
     {
-        var ranges = RgbZone.RangesOf(device.Zones, device.LedCount);
         List<ZoneLayout> layouts = [];
-        for (var index = 0; index < ranges.Length; index++)
+        for (var index = 0; index < parts.Length; index++)
         {
-            layouts.Add(new(device.Zones[index], index, ranges[index].FirstLed, ranges[index].LedCount));
-        }
-
-        var next = ranges.Length == 0 ? 0 : ranges[^1].FirstLed + ranges[^1].LedCount;
-        if (next < device.LedCount)
-        {
-            var rest = device.LedCount - next;
-            layouts.Add(new(RgbZone.Fixed(layouts.Count == 0 ? device.Name : Strings.ZoneOtherLeds, rest), ZoneLayout.NoZone, next, rest));
+            var (first, count) = parts[index];
+            if (index < device.Zones.Count)
+            {
+                layouts.Add(new(device.Zones[index], index, first, count));
+            }
+            else
+            {
+                var name = index == 0 ? device.Name : Strings.ZoneOtherLeds;
+                layouts.Add(new(RgbZone.Fixed(name, count), ZoneLayout.NoZone, first, count));
+            }
         }
 
         var showsNames = layouts.Count > 1;

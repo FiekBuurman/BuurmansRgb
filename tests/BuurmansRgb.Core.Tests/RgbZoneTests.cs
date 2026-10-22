@@ -134,6 +134,46 @@ public sealed class RgbZoneTests
     }
 
     [Fact]
+    public void PartsOf_ZonesHoldEveryLed_AreTheRanges()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", 0, 0, 120), RgbZone.Fixed("Logo", 1)];
+
+        Assert.Equal([(0, 6), (6, 0), (6, 1)], RgbZone.PartsOf(zones, 7));
+    }
+
+    // The rest is "Overige LED's" in the preview, and gets the image too with zones alike.
+    [Fact]
+    public void PartsOf_DeviceHasMoreLedsThanItsZones_AddsTheRestAsTheLastPart()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("A", 2), RgbZone.Fixed("B", 3)];
+
+        Assert.Equal([(0, 2), (2, 3), (5, 3)], RgbZone.PartsOf(zones, 8));
+    }
+
+    [Fact]
+    public void PartsOf_ZonesClaimMoreThanTheDeviceHas_HasNoRest()
+    {
+        RgbZone[] zones = [RgbZone.Fixed("A", 4), RgbZone.Fixed("B", 4)];
+
+        Assert.Equal([(0, 4), (4, 2)], RgbZone.PartsOf(zones, 6));
+    }
+
+    [Fact]
+    public void PartsOf_NoZones_IsOnePartWithEveryLed()
+    {
+        Assert.Equal([(0, 10)], RgbZone.PartsOf([], 10));
+        Assert.Empty(RgbZone.PartsOf([], 0));
+    }
+
+    [Fact]
+    public void PartsOf_NegativeLedCount_Throws()
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => RgbZone.PartsOf([RgbZone.Fixed("A", 1)], -1));
+
+        Assert.Equal("ledCount", exception.ParamName);
+    }
+
+    [Fact]
     public void ThrowIfCannotHold_OutsideTheRange_ThrowsWithTheRange()
     {
         var zone = new RgbZone("ARGB header", 0, 0, 120);
