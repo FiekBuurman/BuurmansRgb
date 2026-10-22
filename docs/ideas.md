@@ -278,6 +278,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
   terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen
+- De reden van stoppen in het log van de engine: "Afsluiten" in het tray-menu of een `--exit`
+  van een andere start. Nu staat er alleen "Engine stopped."; bij de meting van de nieuwe effecten
+  stopte een engine na 55 s zonder dat het log zei waarom (waarschijnlijk een `--exit` in dezelfde
+  Windows-sessie, zie "Metingen" in `ontwikkelaars.md`)
 
 ## Installer en uitrol
 
@@ -301,6 +305,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een script voor de `dotnet-counters`-meting (regenboog tegen statisch, zie "Metingen" in
   `ontwikkelaars.md`), zodat de 0-allocaties-check op het draaiende proces bij elke
   engine-wijziging herhaald kan worden en niet alleen in een unit-test gebeurt
+- Het meetscript voor CPU en geheugen van de engine laten loggen welke `BuurmansRgb*`-processen
+  er voor en na elke run draaien, en een run ongeldig laten verklaren als de engine al gestopt is
+  vóór de eigen `--exit`; een eigen `APPDATA` scheidt alleen de bestanden, niet de mutex en de
+  events van de sessie
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
