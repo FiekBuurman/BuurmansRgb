@@ -16,7 +16,7 @@
 - **Eén plek voor alles.** BuurmansRgb stuurt je hardware via [OpenRGB](https://openrgb.org),
   dus geen aparte app per merk.
 - **Licht op de achtergrond.** Een kleine engine met een tray-icoon houdt de lampen aan
-  (minder dan 0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
+  (zo'n 0,2–0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
 - **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
   vuur, een eigen kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk
   effect.
