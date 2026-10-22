@@ -73,5 +73,44 @@ public sealed class DailyTimeTests
         Assert.Equal(Utc(2026, 10, 26, 1, 30), DailyTime.Next(new TimeOnly(2, 30), Utc(2026, 10, 25, 0, 30), Amsterdam));
     }
 
+    [Fact]
+    public void Previous_PassedToday_IsToday() =>
+        Assert.Equal(Utc(2026, 6, 1, 5, 0), DailyTime.Previous(new TimeOnly(7, 0), Utc(2026, 6, 1, 12, 0), Amsterdam));
+
+    [Fact]
+    public void Previous_LaterToday_IsYesterday() =>
+        Assert.Equal(Utc(2026, 5, 31, 21, 0), DailyTime.Previous(new TimeOnly(23, 0), Utc(2026, 6, 1, 12, 0), Amsterdam));
+
+    [Fact]
+    public void Previous_RightNow_IsNow() =>
+        Assert.Equal(Utc(2026, 6, 1, 21, 0), DailyTime.Previous(new TimeOnly(23, 0), Utc(2026, 6, 1, 21, 0), Amsterdam));
+
+    // 1 June 2026 is a Monday. On workdays, a Monday afternoon before 23:00 goes back to Friday.
+    [Fact]
+    public void Previous_OnWorkdays_SkipsTheWeekend() =>
+        Assert.Equal(Utc(2026, 5, 29, 21, 0), DailyTime.Previous(new TimeOnly(23, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.Workdays));
+
+    [Fact]
+    public void Previous_TodayItsDayButLater_IsAWeekAgo() =>
+        Assert.Equal(Utc(2026, 5, 25, 21, 0), DailyTime.Previous(new TimeOnly(23, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.Monday));
+
+    [Fact]
+    public void Previous_NoDays_IsEveryDay() =>
+        Assert.Equal(Utc(2026, 6, 1, 5, 0), DailyTime.Previous(new TimeOnly(7, 0), Utc(2026, 6, 1, 12, 0), Amsterdam, WeekDays.None));
+
+    // 23:30 UTC on 1 June is 01:30 on 2 June in Amsterdam, so 01:00 was today there.
+    [Fact]
+    public void Previous_UsesTheDateOfTheZone() =>
+        Assert.Equal(Utc(2026, 6, 1, 23, 0), DailyTime.Previous(new TimeOnly(1, 0), Utc(2026, 6, 1, 23, 30), Amsterdam));
+
+    [Fact]
+    public void Previous_InTheSkippedHour_IsWhenThatHourEnded() =>
+        Assert.Equal(Utc(2026, 3, 29, 1, 0), DailyTime.Previous(new TimeOnly(2, 30), Utc(2026, 3, 29, 12, 0), Amsterdam));
+
+    // Once the hour came twice, the first 02:30 is the one Next gave.
+    [Fact]
+    public void Previous_InTheHourThatComesTwice_IsTheFirstTime() =>
+        Assert.Equal(Utc(2026, 10, 25, 0, 30), DailyTime.Previous(new TimeOnly(2, 30), Utc(2026, 10, 25, 12, 0), Amsterdam));
+
     private static DateTimeOffset Utc(int year, int month, int day, int hour, int minute) => new(year, month, day, hour, minute, 0, TimeSpan.Zero);
 }

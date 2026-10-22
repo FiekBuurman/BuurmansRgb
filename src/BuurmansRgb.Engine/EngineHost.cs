@@ -18,7 +18,8 @@ internal sealed class EngineHost(
     IReadOnlyList<IProfileTrigger>? profileTriggers = null,
     ZoneLengthKeeper? zoneLengths = null,
     AutoPause? autoPause = null,
-    ProfileLibrary? profiles = null) : IEngineHost, IDisposable
+    ProfileLibrary? profiles = null,
+    ProfileTimer? profileTimer = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
 
@@ -28,7 +29,8 @@ internal sealed class EngineHost(
     // shows up. From then on a new mode for the simulated devices and a zone length the user sets
     // are saved like the lighting, and the profile triggers may load profiles: after the saved
     // lighting, so they are not overwritten, and with the saver, so what they load is saved. The
-    // scene that was on is on again with the saved lighting, as that is still its lighting.
+    // scene that was on is on again with the saved lighting, as that is still its lighting; once
+    // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
@@ -36,6 +38,7 @@ internal sealed class EngineHost(
         zoneLengths?.Load(settings.ReadZoneLengths());
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
+        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         await lighting.DiscoverAsync(ct);
         lighting.Apply(settings.ToLightingState());
         if (profiles is not null)
@@ -50,11 +53,13 @@ internal sealed class EngineHost(
         profiles?.ActiveChanged += OnActiveSceneChanged;
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
         autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
+        profileTimer?.CatchUpChanged += OnCatchUpChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
         }
 
+        profileTimer?.CatchUpAtStart();
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }
@@ -76,6 +81,7 @@ internal sealed class EngineHost(
         profiles?.ActiveChanged -= OnActiveSceneChanged;
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
         autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
+        profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -102,4 +108,7 @@ internal sealed class EngineHost(
 
     private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
+
+    private void OnCatchUpChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
 }

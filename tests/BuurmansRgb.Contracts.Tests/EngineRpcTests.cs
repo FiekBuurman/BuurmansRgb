@@ -344,12 +344,15 @@ public sealed class EngineRpcTests : IDisposable
 
         var framesPerSecond = await client.Api.GetFramesPerSecondAsync(Ct);
         var pauseOnLock = await client.Api.GetPauseOnLockAndSleepAsync(Ct);
+        var catchUp = await client.Api.GetCatchUpSceneTimesAsync(Ct);
         await client.Api.SetFramesPerSecondAsync(60, Ct);
         await client.Api.SetPauseOnLockAndSleepAsync(false, Ct);
+        await client.Api.SetCatchUpSceneTimesAsync(true, Ct);
 
         Assert.Equal(24, framesPerSecond);
         Assert.True(pauseOnLock);
-        Assert.Equal(["fps 60", "pause on lock False"], _api.OptionCalls);
+        Assert.False(catchUp);
+        Assert.Equal(["fps 60", "pause on lock False", "catch up True"], _api.OptionCalls);
     }
 
     [Fact]
@@ -581,6 +584,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetPauseOnLockAndSleepAsync(bool enabled, CancellationToken ct = default)
         {
             OptionCalls.Add($"pause on lock {enabled}");
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(false);
+
+        public Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"catch up {enabled}");
             return Task.CompletedTask;
         }
 

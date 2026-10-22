@@ -433,28 +433,31 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task Connect_ShowsTheEffectOptionsWithoutSendingThem()
+    public async Task Connect_ShowsTheOptionsWithoutSendingThem()
     {
         var viewModel = await ConnectAsync(api =>
         {
             api.FramesPerSecond = 60;
             api.PauseOnLockAndSleep = false;
+            api.CatchUpSceneTimes = true;
         });
 
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
+        Assert.True(viewModel.SceneTimes.CatchUp);
         Assert.Empty(Api.Calls);
     }
 
     [Fact]
-    public async Task EffectOptionsChanged_SendsThem()
+    public async Task OptionsChangedByTheUser_SendsThem()
     {
         var viewModel = await ConnectAsync();
 
         viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
         viewModel.EffectOptions.PauseOnLockAndSleep = false;
+        viewModel.SceneTimes.CatchUp = true;
 
-        Assert.Equal(["fps 15", "pause on lock False"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "catch up True"], Api.Calls);
     }
 
     [Fact]
@@ -552,11 +555,13 @@ public sealed class MainViewModelTests
         Api.SimulatedDevices = SimulatedDevicesMode.Never;
         Api.FramesPerSecond = 15;
         Api.PauseOnLockAndSleep = false;
+        Api.CatchUpSceneTimes = true;
         Api.RaiseOptionsChanged();
 
         Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
         Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
+        Assert.True(viewModel.SceneTimes.CatchUp);
         Assert.Empty(Api.Calls);
     }
 

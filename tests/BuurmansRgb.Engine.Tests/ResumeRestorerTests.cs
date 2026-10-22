@@ -102,6 +102,139 @@ public sealed class ResumeRestorerTests : IDisposable
     }
 
     [Fact]
+    public void Resumed_RaisesRestoredOnceAfterTheFirstRestore()
+    {
+        var restoresWhenRaised = new List<int>();
+        _restorer.Restored += (_, _) => restoresWhenRaised.Add(_restores);
+
+        _events.RaiseResumed();
+        _time.Advance(First - TimeSpan.FromMilliseconds(1));
+        Assert.Empty(restoresWhenRaised);
+        _time.Advance(TimeSpan.FromMilliseconds(1));
+        _time.Advance(Second - First);
+
+        Assert.Equal([1], restoresWhenRaised);
+    }
+
+    [Fact]
+    public void ResumedTwice_RaisesRestoredForEachWakeUp()
+    {
+        var raised = 0;
+        _restorer.Restored += (_, _) => raised++;
+
+        _events.RaiseResumed();
+        _time.Advance(Second);
+        _events.RaiseSuspending();
+        _events.RaiseResumed();
+        _time.Advance(Second);
+
+        Assert.Equal(2, raised);
+    }
+
+    [Fact]
+    public void Restored_GivesWhenThePcWentToSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var asleep = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(8));
+        _events.RaiseResumed();
+        _time.Advance(Second);
+
+        Assert.Equal([asleep], asleepSince);
+    }
+
+    // Asleep again before the lights were back: the next wake-up counts from the first sleep.
+    [Fact]
+    public void SuspendingBeforeTheFirstRestore_TheNextRestoredGivesTheFirstSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var asleep = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(8));
+        _events.RaiseResumed();
+        _events.RaiseSuspending();
+        _time.SetUtcNow(asleep + TimeSpan.FromHours(9));
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        Assert.Equal([asleep], asleepSince);
+    }
+
+    [Fact]
+    public void ResumedTwice_EachRestoredGivesItsOwnSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+        var first = _time.GetUtcNow();
+
+        _events.RaiseSuspending();
+        _events.RaiseResumed();
+        _time.Advance(Second);
+        var second = _time.GetUtcNow();
+        _events.RaiseSuspending();
+        _events.RaiseResumed();
+        _time.Advance(Second);
+
+        Assert.Equal([first, second], asleepSince);
+    }
+
+    [Fact]
+    public void ResumedWithoutSuspending_RestoredGivesNoSleep()
+    {
+        var asleepSince = new List<DateTimeOffset?>();
+        _restorer.Restored += (_, since) => asleepSince.Add(since);
+
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        Assert.Equal([null], asleepSince);
+    }
+
+    [Fact]
+    public void SuspendingBeforeTheFirstRestore_RaisesNoRestored()
+    {
+        var raised = 0;
+        _restorer.Restored += (_, _) => raised++;
+
+        _events.RaiseResumed();
+        _events.RaiseSuspending();
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Equal(0, raised);
+    }
+
+    // The devices may still be back with the next restore.
+    [Fact]
+    public void RestoreThrows_StillRaisesRestored()
+    {
+        var raised = 0;
+        using var restorer = new ResumeRestorer(_events, () => throw new InvalidOperationException("Restoring failed."), _time, [First, Second]);
+        restorer.Restored += (_, _) => raised++;
+
+        _events.RaiseResumed();
+        _time.Advance(First);
+
+        Assert.Equal(1, raised);
+    }
+
+    [Fact]
+    public void RestoredListenerThrows_KeepsRestoringLater()
+    {
+        _restorer.Restored += (_, _) => throw new InvalidOperationException("Loading failed.");
+
+        _events.RaiseResumed();
+        _time.Advance(First);
+        _time.Advance(Second - First);
+
+        Assert.Equal(2, _restores);
+    }
+
+    [Fact]
     public void Dispose_StopsListeningAndRestoring()
     {
         _events.RaiseResumed();

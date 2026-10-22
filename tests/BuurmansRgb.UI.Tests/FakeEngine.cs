@@ -267,6 +267,16 @@ internal sealed class FakeEngineApi : IEngineApi
         PauseOnLockAndSleep = enabled;
     }
 
+    public bool CatchUpSceneTimes { get; set; }
+
+    public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(CatchUpSceneTimes);
+
+    public async Task SetCatchUpSceneTimesAsync(bool enabled, CancellationToken ct = default)
+    {
+        await Record($"catch up {enabled}");
+        CatchUpSceneTimes = enabled;
+    }
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

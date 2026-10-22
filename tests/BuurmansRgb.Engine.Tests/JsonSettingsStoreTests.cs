@@ -95,6 +95,28 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().PauseOnLockAndSleep);
     }
 
+    // A settings file from before the option skips the times as before.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", false)]
+    [InlineData("""{ "catchUpSceneTimes": true }""", true)]
+    public void Load_CatchUpSceneTimes_IsOffUnlessTurnedOn(string json, bool expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().CatchUpSceneTimes);
+    }
+
+    [Fact]
+    public void Save_CatchUpSceneTimes_IsWrittenUnderItsName()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(new EngineSettings { CatchUpSceneTimes = true });
+
+        Assert.Contains("\"catchUpSceneTimes\": true", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Save_LedWithoutAColorOfItsOwn_RoundTripsAsNull()
     {
