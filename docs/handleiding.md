@@ -463,9 +463,22 @@ De engine pauzeert de bewegende effecten om vier redenen, die elk op zichzelf af
 
 Beide bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
 standaardwaarden weg. Wijzigingen uit de app slaat de engine een seconde na de laatste
-wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine niet draait.
+wijziging op, en bij afsluiten. Met de hand aanpassen kan ook: `settings.json` terwijl de
+engine draait (zie hieronder), `profiles.json` terwijl hij niet draait.
 
 ### settings.json
+
+Pas je `settings.json` met de hand aan terwijl de engine draait, dan neemt hij het binnen een
+seconde na het opslaan over, zonder herstart: de opties, de verlichting (algemeen, per lamp en
+per LED) en de zonelengtes. Een open instellingen-app laat het meteen zien. Het bestand blijft
+zoals jij het schreef, met je eigen opmaak en een naam die de engine niet kent (bijv. een
+tikfout als `"colour"`); je editor meldt dus niet dat het bestand veranderde. Een waarde buiten
+het bereik past de engine aan (bijv. `framesPerSecond` 500 wordt 60); in het bestand staat die
+pas verbeterd als de engine zelf iets opslaat, bijvoorbeeld omdat je in de app iets wijzigt.
+Verander je alleen een optie, dan blijft de scène die aan staat aan; een andere verlichting zet
+hem uit, zoals elke wijziging. `activeScene` neemt hij niet over: een scène aanzetten doe je in
+de app of het tray-menu. Staat er in `activeScene` daardoor iets anders dan de scène die aan
+staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eigen opmaak.
 
 ```json
 {
@@ -533,9 +546,19 @@ wijziging op, en bij afsluiten. Met de hand aanpassen kan ook, terwijl de engine
   logbestand noemt elke overgeslagen waarde.
 - Is het bestand geen geldige JSON (bijv. een komma te veel), geen `{ … }`, of staat een naam
   twee keer in hetzelfde `{ … }` terwijl er ook een waarde niet klopt, dan zet de engine
-  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en zet het terug als `settings.json` terwijl de engine
-  niet draait. Kan de engine het bestand niet lezen (bijv. omdat een ander programma het open
-  heeft), dan laat hij het ongemoeid.
+  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en
+  zet het terug als `settings.json`. Dat kan ook terwijl de engine draait: die neemt het dan
+  meteen over, net als een andere wijziging met de hand. Kan de engine het bestand niet lezen
+  (bijv. omdat een ander programma het open heeft), dan laat hij het ongemoeid.
+- Sla je terwijl de engine draait een bestand op dat zo niet te lezen is (of nog half
+  geschreven), dan verandert er niets: de engine houdt wat hij had, noemt het in het
+  logbestand en leest het bij de volgende keer opslaan opnieuw. Verbeter de fout en sla weer op.
+  Slaat de engine intussen zelf iets op (omdat je in de app iets wijzigt), dan zet hij jouw
+  bestand eerst opzij als `settings.json.broken`. Heeft een ander programma het bestand even
+  open, dan probeert de engine het binnen een paar seconden zelf nog eens.
+- Wijzig je in de app iets op hetzelfde moment dat je het bestand opslaat, dan gaat jouw
+  bestand voor: de engine schrijft er niet overheen, neemt het over en de app laat zien wat
+  erin staat. De wijziging in de app vervalt dan; doe die nog eens.
 
 ### profiles.json
 

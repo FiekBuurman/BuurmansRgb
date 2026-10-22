@@ -58,7 +58,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
 | Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests`, `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes), `LightingControllerSpeedTests`, `EffectClockTests` |
-| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests`, `EngineHostTests`, `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app), `SceneTimesViewModelTests` (gemiste tijden inhalen) |
+| Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests` (ook `HoldSaves`, `Adopt` en wachten op een wijziging met de hand), `EngineHostTests`, `JsonSettingsStoreChangeTests` (een wijziging met de hand tegenover de eigen opslag, half geschreven en kapot, een bestand dat open is of weg, `SaveIfUnchanged`), `SettingsReloaderTests` (de rust na de laatste wijziging, geen pollen; met `FakeSettingsFileEvents` en een nepklok), `EngineHostReloadTests` (opties, verlichting en zonelengtes toepassen en wat de app hoort; ook twee met de echte `FileSystemWatcher` in een tijdelijke map: de eigen opslag daarna komt niet terug, en een kapot bestand verandert niets tot het weer klopt), `SettingsFileWatcherTests` (de echte watcher: met de hand, via een tijdelijk bestand en rename, een ander bestand in de map), `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app), `SceneTimesViewModelTests` (gemiste tijden inhalen) |
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
@@ -106,6 +106,10 @@ toetsenbord. Een paar dingen om te proberen:
 - Druk Ctrl+Alt+Shift+U en Ctrl+Alt+Shift+A terwijl een ander venster de focus heeft: de
   gesimuleerde lampen gaan uit en aan. Zet bij Instellingen "Sneltoetsen voor alles aan en uit"
   uit: de toetsen doen niets meer en staan niet meer naast de items in het tray-menu.
+- Open `%AppData%\BuurmansRgb\settings.json` in Kladblok of VS Code terwijl de engine en de app
+  draaien, zet `framesPerSecond` op 10 en `color` op `"#FF0000"` en sla op: binnen een seconde
+  staan "Vloeiendheid" bij Instellingen en de kleur bij Kleur mee. Sla daarna een komma te veel
+  op: er verandert niets en `engine.log` noemt het; haal de komma weg en sla weer op.
 
 ## Hoe de engine werkt
 
@@ -228,14 +232,50 @@ toetsenbord. Een paar dingen om te proberen:
   `UnregisterHotKey` de toetsen vrijgeeft, en `EngineHost` bewaart het als `hotkeys`. Een
   toets die al bezet is, geeft `false` (gelogd met de Windows-foutcode) en een melding bij het
   icoon; de andere toets werkt gewoon.
+- **settings.json met de hand:** `SettingsFileWatcher` (achter `ISettingsFileEvents`) zet een
+  `FileSystemWatcher` op het bestand; Windows meldt een wijziging, niets pollt. `SettingsReloader`
+  wacht 400 ms na de laatste melding (een editor schrijft soms in stappen, of naar een ander
+  bestand dat hij daarna hernoemt) en vraagt dan `ISettingsStore.LoadIfChanged`, ook één keer na
+  het starten voor een wijziging tijdens het opstarten. De timer loopt alleen als er een melding
+  wacht. Een exceptie bij het toepassen komt in het logbestand; de engine draait door.
+  `JsonSettingsStore` onthoudt de bytes die hij het laatst las of schreef; staat precies dat
+  in het bestand, dan was het zijn eigen opslag (die geeft meerdere meldingen, soms laat) en
+  gebeurt er niets. Een bestand dat niet te lezen is (geen geldige JSON, half geschreven, open
+  bij een ander programma), verandert niets en geeft een waarschuwing in het logbestand; de
+  volgende melding leest opnieuw, en de volgende opslag zet een kapot bestand eerst opzij als
+  `settings.json.broken`. Een bestand dat open is (`SettingsFileChange.ReadLater`) leest de
+  reloader na de vertraging zelf nog eens, tot vijf keer. Een waarde die niet klopt, slaat
+  `LenientJson` over zoals bij het starten. `EngineHost.ApplyChangedByHand` zet de opties via
+  dezelfde properties als de IPC (dus `OptionsChanged` en de saver), de zonelengtes met
+  `ZoneLengthKeeper.Change` en de verlichting met `LightingController.Replace`
+  (`LightingChanged`), die alleen als hij anders is dan nu (`EngineSettings.SameLighting`), zodat
+  de scène bij alleen een optie aan blijft.
+  `activeScene` neemt hij niet over. Daarna roept hij `LightingSettingsSaver.Adopt` aan met de
+  verlichting zoals het toepassen hem achterliet (die `Replace` teruggeeft, niet opnieuw gelezen):
+  die, met de opties van de saver, geldt als de inhoud van het bestand (met `activeScene` uit het
+  bestand), zodat de opslag die de wijzigingen plannen niets schrijft en het bestand de opmaak en
+  onbekende sleutels van de gebruiker houdt. Alleen wat de engine anders heeft (een scène die
+  uitging of niet overgenomen werd, of een wijziging uit de app op een andere thread tijdens het
+  toepassen, ook een waarvan `LightingChanged` pas daarna komt) schrijft hij een seconde later
+  terug. De reloader leest en past toe binnen
+  `LightingSettingsSaver.HoldSaves`: een opslag die dan afloopt, wacht, zodat hij niet de stand
+  van vóór het lezen over de wijziging heen schrijft. Een opslag met dezelfde inhoud als het
+  bestand schrijft nooit. De saver
+  slaat op met `ISettingsStore.SaveIfUnchanged`, een compare-and-swap: staan er andere bytes in
+  het bestand dan de store kent (een wijziging met de hand die de reloader nog niet las), dan
+  schrijft hij niets en probeert de saver het na zijn vertraging opnieuw; meestal heeft de
+  reloader het dan toegepast en is er niets meer op te slaan. Na vijf keer schrijft hij toch (er
+  is dan geen watcher die het leest), en bij afsluiten gaat de wijziging met de hand voor.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
-  starten één keer, voor de tijden en programma's.
+  starten één keer, voor de tijden en programma's. Een wijziging met de hand komt pas na een
+  herstart binnen.
 - **Gesimuleerde lampen:** `SimulatedDevicesSwitch` volgt de apparatenlijst en beslist bij elke
   wijziging opnieuw, onder één lock.
 - **Zonelengtes:** `ZoneLengthKeeper` vraagt een bewaarde lengte alleen als een apparaat
-  verschijnt en wacht tot het die meldt, zodat een weigerend apparaat geen lus van aanpassingen
-  geeft. Een zone waarvan de naam weg is of dubbel voorkomt, blijft met rust; een lengte buiten
-  het bereik blijft bewaard maar wordt niet gevraagd.
+  verschijnt (of `settings.json` met de hand veranderde) en wacht tot het die meldt, zodat een
+  weigerend apparaat geen lus van aanpassingen geeft. Een zone waarvan de naam weg is of dubbel
+  voorkomt, blijft met rust; een lengte buiten het bereik blijft bewaard maar wordt niet
+  gevraagd.
 - **Knipperen:** `IEngineApi.FlashDeviceAsync`, in de engine `LightingController.Flash` en
   `DeviceFlash`. Eén zone gaat met `FlashZoneAsync` en `LightingController.FlashZone`: de flits
   dekt dan alleen het LED-bereik van die zone (`RgbZone.RangesOf`, zoals de engine de
@@ -284,6 +324,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, "Gemiste tijden inhalen" aan, "Nacht" om 23:00 en "Ochtend" met drie tijden (`loadAt` en twee `loadTimes`) (#57); zonder deze uitbreiding (#56) leest de engine alleen `loadAt` | 0,18–0,78 % van één kern, zonder deze uitbreiding 0,34–0,55 %: geen verschil buiten de ruis; de timer rekent alleen bij het plannen een paar tijden meer uit | 27–28,4 MB working set, 11–12,4 MB private (zonder: 27–28,2 en 11–12,3 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, één scène met een programma (#58): zonder vinkje (pollen) en met `foregroundOnly` (de hook, geen pollen; zonder deze uitbreiding pollen); Windows vergrendeld, dus geen pollen en geen wisselingen van de voorgrond | Zonder vinkje 0,29–0,60 % van één kern, zonder deze uitbreiding (#57) 0,26–0,42 %; met `foregroundOnly` 0,29–0,36 % tegen 0,31–0,44 %: geen verschil buiten de ruis. Een wisseling van de voorgrond kost alleen iets als je wisselt | Zonder vinkje 25–27 MB working set, 11–13 MB private (zonder deze uitbreiding 25–28 en 11–12,7 MB); met `foregroundOnly` 25,5–26,7 en 10,9–12,3 MB (zonder: 25,2–26,4 en 11,1–12,8 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, Windows vergrendeld (#59): zonder app, en met een client die elke 2 s het moederbord laat knipperen (`FlashDeviceAsync`) of zijn eerste zone (`FlashZoneAsync`), zonder beelden | Zonder app 0,23–0,47 % van één kern, zonder deze uitbreiding (#58) 0,13–0,34 %; het apparaat knipperen 0,86 % tegen 0,73–1,04 %; een zone knipperen 0,94–1,01 %: geen verschil buiten de ruis. Knipperen kost alleen iets zolang het duurt (frames op 30 fps) | Zonder app 25–26,5 MB working set, 10,9–12 MB private (zonder: 25–26,3 en 11–12,7 MB); met knipperen 37–48 MB working set, 12,7–18,3 MB private, voor apparaat en zone gelijk aan #58 (37–44,5 en 12,7–18,4 MB) |
+| Engine | Regenboog, `pauseOnLockAndSleep` uit, Windows vergrendeld (#61): met de `FileSystemWatcher` op `settings.json` en niemand die het bestand wijzigt, en met elke 5 s een wijziging met de hand (`framesPerSecond` 29 en 30 om en om) | Zonder wijzigingen 0,39–0,49 % van één kern, zonder deze uitbreiding (#60) 0,36–0,44 %: geen verschil buiten de ruis, er pollt niets. Met een wijziging elke 5 s 0,88–1,07 %: lezen, toepassen en een seconde later de eigen opslag | Zonder wijzigingen 25–28 MB working set, 11,1–11,8 MB private (zonder deze uitbreiding 25–27,6 en 11–11,7 MB); met een wijziging elke 5 s 27–33 en 11,3–14 MB |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -407,8 +448,24 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 3. Klik bij een fan met meer ringen op de naam van een ring en geef alleen die ring een kleur.
 4. Geef LED 1 van een fan-ring een kleur en kijk waar die op de echte fan zit en welke kant
    LED 2 op gaat.
-5. Noteer welke controller het is, hoeveel LED's er per kanaal zitten, of het type klopt, waar
+5. Pas met OpenRGB verbonden bij `zoneLengths` in `%AppData%\BuurmansRgb\settings.json` de
+   lengte van een ARGB-kanaal aan en sla op: binnen een seconde heeft de strip de nieuwe lengte
+   (ook in de app), zonder te blijven knipperen of herladen. Zet de oude lengte terug en sla
+   weer op.
+6. Noteer welke controller het is, hoeveel LED's er per kanaal zitten, of het type klopt, waar
    LED 1 van een ring zit en of OpenRGB de lengte na een herstart vergat.
+
+### settings.json met de hand
+
+1. Open `%AppData%\BuurmansRgb\settings.json` in Kladblok terwijl de engine en de app met
+   OpenRGB verbonden draaien. Zet `color` op `"#FF0000"` en `framesPerSecond` op 10 en sla op:
+   binnen een seconde zijn de echte lampen rood en staat "Vloeiendheid" op 10. Het bestand
+   blijft zoals je het schreef.
+2. Doe hetzelfde in VS Code (dat slaat anders op dan Kladblok), met bijv. `"brightness": 0.3`
+   en een effect, en sla twee keer kort na elkaar op: de lampen volgen de laatste keer, en VS
+   Code meldt niet dat het bestand van buitenaf veranderde.
+3. Wijzig in de app een kleur en sla binnen een seconde in de editor een andere op: de kleur
+   uit het bestand blijft staan, op de lampen en in de app.
 
 ### Toetsenbord, muis en headset
 

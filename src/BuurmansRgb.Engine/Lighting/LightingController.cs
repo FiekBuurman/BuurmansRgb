@@ -208,7 +208,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             lock (_gate)
             {
-                return new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
+                return StateLocked();
             }
         }
     }
@@ -222,26 +222,16 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
-    public void Apply(LightingState state)
-    {
-        bool rendered;
-        lock (_gate)
-        {
-            _lighting.Replace(state.Global, state.Devices);
-            _ledColors.Replace(state.LedColors);
-            _ledColors.Adopt(_outputs.All.Select(output => output.Device));
-
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-    }
+    public void Apply(LightingState state) => Apply(state, read: false);
 
     // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
-    public void Replace(LightingState state)
+    // Returns the lighting as it is right after, read under the same lock: State may already hold
+    // a change from another thread by then.
+    public LightingState Replace(LightingState state)
     {
-        Apply(state);
+        var applied = Apply(state, read: true)!;
         LightingChanged?.Invoke(this, EventArgs.Empty);
+        return applied;
     }
 
     // A null deviceId means the global lighting.
@@ -729,6 +719,27 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     private static bool IsManual(PauseReasons pause) => pause.HasFlag(PauseReasons.Manual);
+
+    // With read, returns the lighting as it is once state is on.
+    private LightingState? Apply(LightingState state, bool read)
+    {
+        bool rendered;
+        LightingState? applied;
+        lock (_gate)
+        {
+            _lighting.Replace(state.Global, state.Devices);
+            _ledColors.Replace(state.LedColors);
+            _ledColors.Adopt(_outputs.All.Select(output => output.Device));
+            applied = read ? StateLocked() : null;
+
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        return applied;
+    }
+
+    private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
 
     private void Publish(bool rendered)
     {

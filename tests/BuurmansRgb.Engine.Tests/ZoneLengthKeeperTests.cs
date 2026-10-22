@@ -249,12 +249,13 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         _provider.SetDevices(Board(header: 30));
         await _lighting.DiscoverAsync(Ct);
         var changes = 0;
-        _keeper.LengthsChanged += (_, _) => changes++;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
 
         _provider.SetDevices(Board(header: 10));
 
-        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 10);
-        Assert.Equal(1, changes);
+        // LengthsChanged comes just after the length is in Lengths.
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 1);
+        Assert.Equal(10, _keeper.Lengths["board"]["ARGB header"]);
         Assert.Empty(_provider.Resizes);
     }
 
@@ -300,6 +301,59 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         await SettledAsync();
 
         Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.Single(_provider.Resizes);
+    }
+
+    // settings.json changed by hand: the device that is there gets the new length, once.
+    [Fact]
+    public async Task Change_AnotherLength_ResizesTheDeviceThatIsThereAndSaysSo()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        _keeper.Change(Lengths(("board", "ARGB header", 24)));
+
+        await ZoneLengthsAsync([2, 24, 1]);
+        await SettledAsync();
+        Assert.Equal(1, changes);
+        Assert.Equal([("board", 1, 30), ("board", 1, 24)], _provider.Resizes);
+        Assert.Equal(24, _keeper.Lengths["board"]["ARGB header"]);
+    }
+
+    [Fact]
+    public async Task Change_TheSameLengths_DoesNothing()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        _keeper.Change(Lengths(("board", "ARGB header", 30)));
+
+        await SettledAsync();
+        Assert.Equal(0, changes);
+        Assert.Single(_provider.Resizes);
+    }
+
+    // A length taken out of the file is forgotten; the zone keeps the length it has.
+    [Fact]
+    public async Task Change_WithoutTheLength_ForgetsItAndLeavesTheZone()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        await ZoneLengthsAsync([2, 30, 1]);
+
+        _keeper.Change(Lengths());
+
+        await SettledAsync();
+        Assert.Empty(_keeper.Lengths);
         Assert.Single(_provider.Resizes);
     }
 
