@@ -118,6 +118,58 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["leds fan 0 #0100FF", "leds fan 0 #FF00FF"], Api.Calls);
     }
 
+    // The engine reports the lamp during the drag, before it has the LEDs that are on their way:
+    // that answer is too old, so the picker, the LEDs and the effect keep what the drag gave them.
+    [Fact]
+    public async Task DragSlider_WithLedsSelected_LightingChangedMeanwhile_KeepsTheLastColor()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Click(viewModel, "fan", 0);
+        Api.Calls.Clear();
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+        for (var red = 1; red <= 100; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Api.RaiseLightingChanged();
+        for (var red = 101; red <= 255; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Contains("leds fan 0 #FF00FF"));
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
+        Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    // The engine reports the LEDs the last step gave it: nothing goes back, nothing changes.
+    [Fact]
+    public async Task MixColor_WithLedsSelected_LightingChangedAfterTheLastStep_SendsNothingBack()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Click(viewModel, "fan", 0);
+        viewModel.ColorPicker.Red = 255;
+        Api.Calls.Clear();
+
+        Api.Lighting["fan"] = Api.Lighting["fan"] with { EffectId = EffectIds.PerLed };
+        Api.LedColors["fan"] = [new RgbColor(255, 0, 255), Blue];
+        Api.RaiseLightingChanged();
+
+        Assert.Empty(Api.Calls);
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
+        Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
     [Fact]
     public async Task ClickLed_ExtendIntoTheNextZone_SelectsAcrossBothZones()
     {

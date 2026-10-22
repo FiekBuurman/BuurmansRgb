@@ -121,6 +121,52 @@ public sealed class MainViewModelColorLoopTests
         Assert.True(viewModel.SelectedLamp?.IsOn);
     }
 
+    // The engine reports a loop of the drag while the rest is on its way: its answer comes after
+    // newer colors were sent, so the tile and the picker keep the last color.
+    [Fact]
+    public async Task DragSlider_WithColorLoop_LightingChangedMeanwhile_KeepsTheLastColor()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+        for (var blue = 1; blue <= 100; blue++)
+        {
+            viewModel.ColorPicker.Blue = blue;
+        }
+
+        Api.Lighting[""] = Api.Lighting[""] with { Loop = new ColorLoop([new RgbColor(255, 255, 1), Green, Blue]) };
+        Api.RaiseLightingChanged();
+        for (var blue = 101; blue <= 200; blue++)
+        {
+            viewModel.ColorPicker.Blue = blue;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Contains("loop all #FFFFC8,#00FF00,#0000FF spread"));
+        Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorPicker.Color);
+        Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorLoopEditor.Swatches[0].Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+    }
+
+    // The engine reports the loop the last step gave it: nothing goes back, nothing changes.
+    [Fact]
+    public async Task MixColor_WithColorLoop_LightingChangedAfterTheLastStep_SendsNothingBack()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
+        viewModel.ColorPicker.Blue = 200;
+        Api.Calls.Clear();
+
+        Api.Lighting[""] = Api.Lighting[""] with { Loop = new ColorLoop([new RgbColor(255, 255, 200), Green, Blue]) };
+        Api.RaiseLightingChanged();
+
+        Assert.Empty(Api.Calls);
+        Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorPicker.Color);
+        Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorLoopEditor.Swatches[0].Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
     // Back from the LEDs, the picker colors the selected loop color at once again.
     [Fact]
     public async Task ClearLeds_WithColorLoop_ThePickerColorsTheLoopColorAgain()
