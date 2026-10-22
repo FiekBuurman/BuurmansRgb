@@ -498,6 +498,38 @@ public sealed class MainViewModelTests
         Assert.Equal(["strip", "fan", "openrgb-gpu"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
     }
 
+    // A color mixed for a lamp that is gone does not stay for "Alle apparaten".
+    [Fact]
+    public async Task DevicesChanged_SelectedDeviceGoneWhileMixingAColor_ShowsTheColorOfAllDevices()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.ColorPicker.Green = 255;
+        Api.Devices = [Api.Devices[0]];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Null(viewModel.SelectedDevice?.DeviceId);
+        Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    // Not only the Zones gelijk switch: any new list keeps the color mixed for the same lamp.
+    [Fact]
+    public async Task DevicesChanged_WhileMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(4, viewModel.Devices.Count);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
     [Fact]
     public async Task Connect_ShowsTheModeOfTheSimulatedDevices()
     {
