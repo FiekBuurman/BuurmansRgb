@@ -178,6 +178,31 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.DoesNotContain("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    // Back to the default colors ("Standaardkleuren"): the list goes out of the file again, for the
+    // whole house and for a device of its own.
+    [Fact]
+    public void Save_AfterTheListsAreRemoved_LeavesEffectColorsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var colors = EffectColors.None.With(EffectIds.Comet, [new RgbColor(0, 0, 64)]);
+        var state = LightingStates.WithDevices(DeviceLighting.Default with { EffectColors = colors }, new Dictionary<string, DeviceLighting>
+        {
+            ["simulated-fan"] = DeviceLighting.Default with { EffectId = EffectIds.Fire, EffectColors = colors.With(EffectIds.Fire, [new RgbColor(0, 0, 255)]) },
+        });
+        store.Save(EngineSettings.From(state));
+        Assert.Contains("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
+        var cleared = LightingStates.WithDevices(DeviceLighting.Default with { EffectColors = colors.Without(EffectIds.Comet) }, new Dictionary<string, DeviceLighting>
+        {
+            ["simulated-fan"] = state.For("simulated-fan") with { EffectColors = state.For("simulated-fan").EffectColors.Without(EffectIds.Comet).Without(EffectIds.Fire) },
+        });
+
+        store.Save(EngineSettings.From(cleared));
+
+        Assert.DoesNotContain("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal(EffectColors.None, store.LoadOrCreate().ToLightingState().For("simulated-fan").EffectColors);
+    }
+
     // A file from before the lists: every effect has its default colors.
     [Fact]
     public void LoadOrCreate_WithoutEffectColors_GivesEveryEffectItsDefault()

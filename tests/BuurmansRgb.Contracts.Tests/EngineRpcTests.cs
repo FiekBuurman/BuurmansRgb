@@ -266,6 +266,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ClearEffectColorsAsync_ReachesServerWithDeviceAndEffect()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ClearEffectColorsAsync("fan", EffectIds.Comet, Ct);
+        await client.Api.ClearEffectColorsAsync(null, EffectIds.Fire, Ct);
+
+        Assert.Equal([("fan", EffectIds.Comet), (null, EffectIds.Fire)], _api.ClearEffectColorsCalls);
+    }
+
+    [Fact]
     public async Task SetOnAsync_ReachesServer()
     {
         var client = await ConnectAsync();
@@ -596,6 +607,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             EffectColorsCalls.Add((deviceId, effectId, colors));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, string EffectId)> ClearEffectColorsCalls { get; } = [];
+
+        public Task ClearEffectColorsAsync(string? deviceId, string effectId, CancellationToken ct = default)
+        {
+            ClearEffectColorsCalls.Add((deviceId, effectId));
             return Task.CompletedTask;
         }
 

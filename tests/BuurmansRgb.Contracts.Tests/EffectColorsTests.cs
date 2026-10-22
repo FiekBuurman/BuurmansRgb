@@ -59,6 +59,23 @@ public sealed class EffectColorsTests
         Assert.Equal([Red, Green], colors.For(EffectIds.Comet, Orange));
     }
 
+    // Without the list of an effect, that effect has its default again and the others keep theirs.
+    [Fact]
+    public void Without_RemovesTheListOfOneEffectAndKeepsTheOthers()
+    {
+        var colors = EffectColors.None.With(EffectIds.Comet, [Red, Green]).With(EffectIds.Fire, [Blue]);
+
+        var withoutComet = colors.Without(EffectIds.Comet);
+        var withoutFire = colors.Without(EffectIds.Fire);
+
+        Assert.Equal([Orange], withoutComet.For(EffectIds.Comet, Orange));
+        Assert.Equal([Blue], withoutComet.For(EffectIds.Fire, Orange));
+        Assert.Equal(EffectColors.DefaultFire, withoutFire.For(EffectIds.Fire, Orange));
+        Assert.Equal(EffectColors.None, withoutComet.Without(EffectIds.Fire));
+        Assert.Equal(colors, colors.Without(EffectIds.Scanner));
+        Assert.Equal([Red, Green], colors.For(EffectIds.Comet, Orange));
+    }
+
     // A list changed afterwards does not change the colors.
     [Fact]
     public void New_CopiesTheLists()

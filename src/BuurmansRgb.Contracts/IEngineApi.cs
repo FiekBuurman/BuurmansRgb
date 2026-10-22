@@ -86,6 +86,11 @@ public partial interface IEngineApi
     // other effects stay. Does not switch the effect.
     Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
 
+    // Removes the own colors of an effect that takes a list of them, so it has its default again
+    // (EffectColors.Default): the lamp color, or the warm colors of the fire. The lists of the
+    // other effects stay. Does not switch the effect.
+    Task ClearEffectColorsAsync(string? deviceId, string effectId, CancellationToken ct = default);
+
     // The colors of the per-LED effect, one per LED: the stored color, or the device color for an
     // LED without one.
     Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default);

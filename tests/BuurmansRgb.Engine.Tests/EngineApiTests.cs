@@ -192,6 +192,61 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal([Green], (await api.GetLightingAsync("simulated-strip", Ct)).EffectColors!.For(EffectIds.Scanner, Orange));
     }
 
+    // Without its list the comet has the lamp color again and the fire its warm colors; the other
+    // lists and the effect stay.
+    [Fact]
+    public async Task ClearEffectColorsAsync_GivesThatEffectItsDefaultAgain()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetColorAsync("simulated-fan", Orange, Ct);
+        await api.SetEffectAsync("simulated-fan", EffectIds.Comet, Ct);
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Comet, [Red, Green], Ct);
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Fire, [Blue], Ct);
+
+        await api.ClearEffectColorsAsync("simulated-fan", EffectIds.Comet, Ct);
+
+        var lighting = await api.GetLightingAsync("simulated-fan", Ct);
+        Assert.Equal([Orange], lighting.EffectColors!.For(EffectIds.Comet, lighting.Color));
+        Assert.Equal([Blue], lighting.EffectColors.For(EffectIds.Fire, lighting.Color));
+        Assert.Equal(EffectIds.Comet, lighting.EffectId);
+
+        await api.ClearEffectColorsAsync("simulated-fan", EffectIds.Fire, Ct);
+
+        Assert.Equal(EffectColors.None, (await api.GetLightingAsync("simulated-fan", Ct)).EffectColors);
+    }
+
+    // For all devices it removes the list of that effect on each, also on a device that got one
+    // of its own, and keeps their other lists.
+    [Fact]
+    public async Task ClearEffectColorsAsync_AllDevices_RemovesTheListOnEveryDevice()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetEffectColorsAsync(null, EffectIds.Fire, [Red], Ct);
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Fire, [Blue], Ct);
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Scanner, [Green], Ct);
+
+        await api.ClearEffectColorsAsync(null, EffectIds.Fire, Ct);
+
+        Assert.Equal(EffectColors.None, (await api.GetLightingAsync(null, Ct)).EffectColors);
+        Assert.Equal(EffectColors.None, (await api.GetLightingAsync("simulated-strip", Ct)).EffectColors);
+        Assert.Equal(EffectColors.None.With(EffectIds.Scanner, [Green]), (await api.GetLightingAsync("simulated-fan", Ct)).EffectColors);
+    }
+
+    [Theory]
+    [InlineData(EffectIds.Static)]
+    [InlineData(EffectIds.ColorLoop)]
+    [InlineData("unknown")]
+    public async Task ClearEffectColorsAsync_EffectWithoutColors_ThrowsForTheEffect(string effectId)
+    {
+        using var api = CreateApi();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => api.ClearEffectColorsAsync(null, effectId, Ct));
+
+        Assert.Equal("effectId", exception.ParamName);
+    }
+
     [Theory]
     [InlineData(EffectIds.Static)]
     [InlineData(EffectIds.ColorLoop)]

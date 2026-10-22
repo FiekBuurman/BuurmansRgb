@@ -226,6 +226,9 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"effect-colors {deviceId ?? "all"} {effectId} {string.Join(",", colors.Select(color => color.ToHex()))}");
 
+    public Task ClearEffectColorsAsync(string? deviceId, string effectId, CancellationToken ct = default) =>
+        Record($"effect-colors {deviceId ?? "all"} {effectId} default");
+
     // When set, GetLedColorsAsync answers once this task completes, like a slow engine.
     public Task? LedColorsGate { get; set; }
 

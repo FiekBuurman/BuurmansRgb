@@ -49,6 +49,11 @@ public sealed record EffectColors
     public EffectColors With(string effectId, IReadOnlyList<RgbColor> colors) =>
         new(new Dictionary<string, IReadOnlyList<RgbColor>>(Lists, StringComparer.Ordinal) { [effectId] = colors });
 
+    // A copy without the list of the effect, so it has its default again; the lists of the other
+    // effects stay.
+    public EffectColors Without(string effectId) =>
+        new(Lists.Where(pair => pair.Key != effectId).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal));
+
     public bool Equals(EffectColors? other) =>
         other is not null
         && Lists.Count == other.Lists.Count
