@@ -247,6 +247,79 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Equal(["effect-colors all comet #FF00FF,#0000FF"], Api.Calls);
     }
 
+    // "Standaardkleuren" with the comet: the tiles show the lamp color again, the picker too, and
+    // the engine removes the list; with nothing left to reset the button is off.
+    [Fact]
+    public async Task ResetEffectColors_WithComet_ShowsTheLampColorAgain()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Comet, EffectColors = RedBlueComet.With(EffectIds.Fire, [Green]) });
+        viewModel.EffectColorsEditor.SelectCommand.Execute(1);
+        Assert.True(viewModel.ResetEffectColorsCommand.CanExecute(null));
+
+        viewModel.ResetEffectColorsCommand.Execute(null);
+
+        Assert.Equal([LampColor], viewModel.EffectColorsEditor.Colors);
+        Assert.True(viewModel.EffectColorsEditor.Swatches[0].IsSelected);
+        Assert.Equal(LampColor, viewModel.ColorPicker.Color);
+        Assert.Equal(["effect-colors all comet default"], Api.Calls);
+        Assert.False(viewModel.ResetEffectColorsCommand.CanExecute(null));
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Fire);
+        Assert.Equal([Green], viewModel.EffectColorsEditor.Colors);
+        Assert.True(viewModel.ResetEffectColorsCommand.CanExecute(null));
+    }
+
+    // The fire burns in its four warm colors again, here for one lamp.
+    [Fact]
+    public async Task ResetEffectColors_WithFire_ShowsTheWarmColorsAgain()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting["fan"] = api.Lighting["fan"] with { EffectId = EffectIds.Fire, EffectColors = EffectColors.None.With(EffectIds.Fire, [Blue]) });
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        Api.Calls.Clear();
+
+        viewModel.ResetEffectColorsCommand.Execute(null);
+
+        Assert.Equal(EffectColors.DefaultFire, viewModel.EffectColorsEditor.Colors);
+        Assert.Equal(EffectColors.DefaultFire[0], viewModel.ColorPicker.Color);
+        Assert.Equal(["effect-colors fan fire default"], Api.Calls);
+    }
+
+    // Only a list of its own can go: not the default, and not with an effect without a list.
+    [Fact]
+    public async Task ResetEffectColors_OnlyWithAListOfItsOwn()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Scanner });
+        Assert.False(viewModel.ResetEffectColorsCommand.CanExecute(null));
+
+        viewModel.ColorPicker.Mix("#00FF00");
+        Assert.True(viewModel.ResetEffectColorsCommand.CanExecute(null));
+
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
+        Assert.False(viewModel.ResetEffectColorsCommand.CanExecute(null));
+
+        Api.Lighting[""] = Api.Lighting[""] with { EffectId = EffectIds.Scanner, EffectColors = EffectColors.None.With(EffectIds.Scanner, [Blue]) };
+        Api.RaiseLightingChanged();
+        await Eventually.TrueAsync(() => viewModel.ResetEffectColorsCommand.CanExecute(null));
+    }
+
+    // A list mixed while the engine is busy does not come after the reset: the reset replaces it.
+    [Fact]
+    public async Task ResetEffectColors_WhileAListWaits_ReplacesIt()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Twinkle });
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Mix("#0000FF");
+
+        viewModel.ResetEffectColorsCommand.Execute(null);
+        Api.SetGate = null;
+        busy.SetResult();
+
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 2);
+        Assert.Equal(["effect-colors all twinkle #00FF00", "effect-colors all twinkle default"], Api.Calls);
+        Assert.Equal([LampColor], viewModel.EffectColorsEditor.Colors);
+    }
+
     // What the colors do differs per effect, in Dutch.
     [Fact]
     public async Task EffectColorsHint_SaysWhatTheColorsDoInTheEffect()

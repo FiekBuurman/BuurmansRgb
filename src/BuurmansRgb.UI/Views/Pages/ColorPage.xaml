@@ -179,6 +179,10 @@
                             <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.EffectColorsHeader}" />
                             <TextBlock Style="{StaticResource SubText}" Text="{Binding EffectColorsHint}" />
                             <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding EffectColorsEditor}" />
+                            <!-- Back to the lamp color, or the warm colors of the fire; only with a list of its own. -->
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}"
+                                    Content="{x:Static res:Strings.EffectColorsDefault}" ToolTip="{x:Static res:Strings.EffectColorsDefaultToolTip}"
+                                    ToolTipService.ShowOnDisabled="True" Command="{Binding ResetEffectColorsCommand}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>

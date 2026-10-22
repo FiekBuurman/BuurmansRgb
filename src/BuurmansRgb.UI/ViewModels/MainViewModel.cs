@@ -689,6 +689,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             EffectColorsEditor.Show(_effectColors.For(effect.Id, _deviceColor), selectFirst);
         }
+
+        ResetEffectColorsCommand.NotifyCanExecuteChanged();
     }
 
     // Kept here too, so that after switching to another effect and back the list is the new one.
@@ -702,8 +704,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         var effectId = effect.Id;
         _effectColors = _effectColors.With(effectId, colors);
+        ResetEffectColorsCommand.NotifyCanExecuteChanged();
         Send($"{EffectColorsCall}:{effectId}", (api, deviceId) => api.SetEffectColorsAsync(deviceId, effectId, colors));
     }
+
+    // "Standaardkleuren": the effect loses its own list and has its default again, the lamp color
+    // or the warm colors of the fire. The same key as SendEffectColors, so a list of the effect
+    // that still waits does not come after it.
+    [RelayCommand(CanExecute = nameof(CanResetEffectColors))]
+    private void ResetEffectColors()
+    {
+        if (SelectedEffect is not { } effect || !EffectColors.Takes(effect.Id))
+        {
+            return;
+        }
+
+        var effectId = effect.Id;
+        _effectColors = _effectColors.Without(effectId);
+        ShowEffectColors(selectFirst: true);
+        ShowPickerColor();
+        Send($"{EffectColorsCall}:{effectId}", (api, deviceId) => api.ClearEffectColorsAsync(deviceId, effectId));
+    }
+
+    // Only with a list of its own: without one the effect has its default already.
+    private bool CanResetEffectColors() => SelectedEffect is { } effect && _effectColors.Lists.ContainsKey(effect.Id);
 
     [RelayCommand(CanExecute = nameof(CanFillGradient))]
     private void FillGradient() => SendLeds(LedEditor.FillGradient());

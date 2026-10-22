@@ -311,6 +311,12 @@
   <data name="ColorListSwatch" xml:space="preserve">
     <value>Kleur {0}: {1}</value>
   </data>
+  <data name="EffectColorsDefault" xml:space="preserve">
+    <value>Standaardkleuren</value>
+  </data>
+  <data name="EffectColorsDefaultToolTip" xml:space="preserve">
+    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van de lamp, vuur brandt weer in rood, oranje en geel.</value>
+  </data>
   <data name="ProfilesHeader" xml:space="preserve">
     <value>Scènes</value>
   </data>
