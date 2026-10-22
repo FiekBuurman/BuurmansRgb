@@ -57,7 +57,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
-| Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests` (`EffectSamples` volgt één LED door de tijd, bijv. hoe één LED van een muis pulseert), `EffectMathTests` (de vaste toevalsbron van Fonkelen en Vuur: elke uitkomst even vaak, dezelfde invoer hetzelfde getal), `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes, met Regenboog, Fonkelen, Komeet, Scanner en Vuur), `LightingControllerSpeedTests`, `EffectClockTests` |
+| Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests` (`EffectSamples` volgt één LED door de tijd, bijv. hoe één LED van een muis pulseert), `EffectMathTests` (de vaste toevalsbron van Fonkelen en Vuur: elke uitkomst even vaak, dezelfde invoer hetzelfde getal, een eigen reeks per seed), `EffectCatalogTests` en `LightingControllerEffectTests` (de seed per apparaat, een FNV-1a-hash van zijn id: twee even lange apparaten fonkelen en branden bij "Hele huis" anders, en na een herstart weer hetzelfde), `FireEffectTests` (ook geen strepen om de drie LED's), `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes, met Regenboog, Fonkelen, Komeet, Scanner en Vuur), `LightingControllerSpeedTests`, `EffectClockTests` |
 | Instellingen | `JsonSettingsStoreTests`, `EngineSettingsTests`, `LightingSettingsSaverTests` (ook `HoldSaves`, `Adopt` en wachten op een wijziging met de hand), `EngineHostTests`, `JsonSettingsStoreChangeTests` (een wijziging met de hand tegenover de eigen opslag, half geschreven en kapot, een bestand dat open is of weg, `SaveIfUnchanged`), `SettingsReloaderTests` (de rust na de laatste wijziging, geen pollen; met `FakeSettingsFileEvents` en een nepklok), `EngineHostReloadTests` (opties, verlichting en zonelengtes toepassen en wat de app hoort; ook twee met de echte `FileSystemWatcher` in een tijdelijke map: de eigen opslag daarna komt niet terug, en een kapot bestand verandert niets tot het weer klopt), `SettingsFileWatcherTests` (de echte watcher: met de hand, via een tijdelijk bestand en rename, een ander bestand in de map), `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app, en wat de lampen tijdens die pauze doen), `SwitchOptionViewModelTests` (de schakelaars voor gemiste tijden inhalen en de sneltoetsen), `EnumOptionTests` (de Nederlandse naam van een keuze in een lijst, of de Engelse zonder vertaling) |
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
@@ -86,8 +86,9 @@ toetsenbord. Een paar dingen om te proberen:
   ring rond, de scanner gaat heen en terug en remt bij de uiteinden af, en bij de headset
   gaan de komeet en de scanner om de beurt naar de ene en de andere oorschelp. Zet bij de
   headset "Zones gelijk" aan: dan pulseren ze op beide tegelijk en flakkert het vuur als een
-  kaars. Zet bij Instellingen "Zuinig" en de snelheid op 300 %: de punten springen dan verder,
-  maar zijn nog te volgen.
+  kaars. Bij Fonkelen en Vuur heeft elke lamp zijn eigen toeval: geen twee lampen fonkelen of
+  flakkeren gelijk, ook niet het begin van de strip en de ventilator. Zet bij Instellingen
+  "Zuinig" en de snelheid op 300 %: de punten springen dan verder, maar zijn nog te volgen.
 - Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
   de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
   steeds die lengte.
