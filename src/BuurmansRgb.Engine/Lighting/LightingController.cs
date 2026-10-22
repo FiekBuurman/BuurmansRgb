@@ -46,6 +46,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly DeviceOutputs _outputs;
     private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
+    private readonly HashSet<string> _zonesAlike = new(StringComparer.Ordinal);
 
     // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
     private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
@@ -189,6 +190,68 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     PausedLightsChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
+        }
+    }
+
+    // Raised when ZonesAlike got other devices; read ZonesAlike for the newest ones.
+    public event EventHandler? ZonesAlikeChanged;
+
+    // The ids of the devices whose zones show one image: the effect renders over the longest zone
+    // and every other zone gets it stretched (DeviceOutput.Show). It also holds devices that are
+    // not there now, so they have it again when they come back. Not with the per-LED effect,
+    // where every LED has a color of its own. It is no part of the lighting: a scene leaves it as
+    // it is, and LightingChanged is not raised. The devices show another set at once.
+    public IReadOnlySet<string> ZonesAlike
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return new HashSet<string>(_zonesAlike, StringComparer.Ordinal);
+            }
+        }
+        set
+        {
+            bool changed;
+            var rendered = false;
+            lock (_gate)
+            {
+                changed = !_zonesAlike.SetEquals(value);
+                if (changed)
+                {
+                    _zonesAlike.Clear();
+                    _zonesAlike.UnionWith(value);
+                    rendered = RenderLocked();
+                }
+            }
+
+            Publish(rendered);
+            if (changed)
+            {
+                ZonesAlikeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    // One device, which must be there, such as from the switch in the settings app.
+    public void SetZonesAlike(string deviceId, bool alike)
+    {
+        bool changed;
+        var rendered = false;
+        lock (_gate)
+        {
+            KnownDeviceLocked(deviceId);
+            changed = alike ? _zonesAlike.Add(deviceId) : _zonesAlike.Remove(deviceId);
+            if (changed)
+            {
+                rendered = RenderLocked();
+            }
+        }
+
+        Publish(rendered);
+        if (changed)
+        {
+            ZonesAlikeChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -575,7 +638,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             var lighting = _lighting.Get(output.Device.Id);
             var effect = lighting.On ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop) : Off;
-            output.Show(effect, lighting.Brightness, lighting.Speed);
+            var zonesAlike = lighting.EffectId != EffectIds.PerLed && _zonesAlike.Contains(output.Device.Id);
+            output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike);
             output.Render(time);
             if (!IsManual(_pause))
             {
