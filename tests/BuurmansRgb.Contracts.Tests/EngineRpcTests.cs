@@ -477,7 +477,9 @@ public sealed class EngineRpcTests : IDisposable
             },
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false);
+        public LightingInfo Lighting { get; } = new(
+            new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false,
+            EffectColors: EffectColors.None.With(EffectIds.Comet, [new RgbColor(7, 8, 9)]).With(EffectIds.Fire, [new RgbColor(1, 1, 1), new RgbColor(9, 9, 9)]));
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
