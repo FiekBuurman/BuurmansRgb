@@ -78,7 +78,8 @@ schakelaar ernaast.
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
   het effect, de snelheid en de kleurenloop meteen de nieuwe verlichting. Een kleur die je aan
   het mengen bent en nog niet op de lamp hebt gezet, blijft staan, en een schuif die je net
-  verschoof, springt niet terug.
+  verschoof, springt niet terug. Komt er zo de kleurenloop op, dan toont het mengpaneel de
+  gekozen loopkleur: die verandert meteen mee, dus de kleur die je voor de lamp mengde vervalt.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
   "Pauzeren").
 

@@ -70,6 +70,21 @@ public sealed class MainViewModelLedEditorTests
         Assert.True(viewModel.ColorPicker.HasUnappliedChange);
     }
 
+    // The color mixed for the whole lamp does not go to the LEDs: the picker shows their color.
+    [Fact]
+    public async Task ChooseLeds_WhileMixingForTheLamp_ShowsTheirColorAndSendsNothing()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Click(viewModel, "fan", 0);
+
+        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.Empty(Api.Calls);
+    }
+
     // Showing the stored color of the LED that was clicked sends nothing.
     [Fact]
     public async Task ClickAnotherLed_AfterMixing_SendsNothingMore()
