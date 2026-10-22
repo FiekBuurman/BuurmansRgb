@@ -652,8 +652,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
     zodra de schermbeveiliging begint, staan de lampen op één frame stil en loopt de CPU-tijd
     niet op; in de instellingen-app (als die open was) staat de melding van de schermbeveiliging.
     Beweeg de muis: de regenboog loopt meteen weer, zonder ontgrendelen. Klik in hetzelfde
-    venster op "Voorbeeld": de regenboog loopt door. Zet daarna de schermbeveiliging terug zoals
-    hij was.
+    venster op "Voorbeeld": de regenboog loopt door, ook na een seconde, en in het logboek van de
+    engine staat de exe-naam (bijv. `Ribbons.scr`) met dat Windows geen schermbeveiliging meldt.
+    Staat daar bij de echte schermbeveiliging dat Windows het "a second later" toch zegt, noteer
+    dat dan. Zet daarna de schermbeveiliging terug zoals hij was.
 16. Doe hetzelfde met het vinkje voor het aanmeldingsscherm bij hervatten aan: na de muisbeweging
     staat het vergrendelscherm en blijft de regenboog stil tot je ontgrendelt. Met "Dimmen" of
     "Uit" bij "Lampen tijdens deze pauze" dimmen de lampen of gaan ze uit zodra de

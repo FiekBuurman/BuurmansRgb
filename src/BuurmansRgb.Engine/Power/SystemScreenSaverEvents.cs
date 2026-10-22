@@ -55,6 +55,7 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         _windowsSaysRunning = windowsSaysRunning;
         _foreground = foreground;
         _askAgain = time.CreateTimer(_ => AskAgain(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
         // Still listening: should a scene that follows the foreground get the hook later, this gets
         // the windows from then on too.
         if (!_hook.Listen(_tell))
