@@ -19,14 +19,16 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
     private const double LedsPerFlame = 3.0;
 
     // The fast layer: how much faster it changes, how much smaller its flames are and how much of
-    // the heat it makes.
+    // the heat it makes. Its random values lie half a place off those of the slow layer, so the two
+    // do not meet on the same LEDs every LedsPerFlame LEDs.
     private const double FastFactor = 3.7;
     private const double FastSpread = 2.0;
+    private const double FastShift = 0.5;
     private const double FastWeight = 0.4;
 
     // Blended random values mostly lie around the middle; this spreads the heat out again, so the
     // darkest red and the yellow both show.
-    private const double Contrast = 1.8;
+    private const double Contrast = 1.6;
 
     private const uint SlowStream = 0xF1AE0001;
     private const uint FastStream = 0xF1AE0002;
@@ -47,12 +49,15 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         {
             var place = i / LedsPerFlame;
             var heat = (1.0 - FastWeight) * Noise(place, steps, _slowStream)
-                + FastWeight * Noise(place * FastSpread, steps * FastFactor, _fastStream);
+                + FastWeight * Noise(place * FastSpread + FastShift, steps * FastFactor, _fastStream);
             leds[i] = ColorAt(Math.Clamp(0.5 + (heat - 0.5) * Contrast, 0.0, 1.0));
         }
     }
 
-    // A random value from 0 to 1 at every whole place and step, blended smoothly in between.
+    // A random value from 0 to 1 at every whole place and step, blended smoothly in between. A blend
+    // of two values lies closer to the middle than either, so between two places it is spread out
+    // again by as much: else the LEDs on a whole place would flicker more and show as stripes. It
+    // can then fall outside 0 to 1, which the contrast clamps anyway.
     private static double Noise(double place, double step, uint stream)
     {
         var column = Math.Floor(place);
@@ -62,7 +67,8 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         var (left, now) = ((int)column, (long)row);
         var thisStep = EffectMath.Lerp(EffectMath.Random(left, now, stream), EffectMath.Random(left + 1, now, stream), across);
         var nextStep = EffectMath.Lerp(EffectMath.Random(left, now + 1, stream), EffectMath.Random(left + 1, now + 1, stream), across);
-        return EffectMath.Lerp(thisStep, nextStep, along);
+        var spread = Math.Sqrt((1.0 - across) * (1.0 - across) + across * across);
+        return 0.5 + (EffectMath.Lerp(thisStep, nextStep, along) - 0.5) / spread;
     }
 
     private static RgbColor ColorAt(double heat)

@@ -50,6 +50,30 @@ public sealed class FireEffectTests
         Assert.All(leds, IsWarm);
     }
 
+    // The random values lie every three LEDs; those LEDs must not flicker more than the ones in
+    // between, which would show as stripes along the device.
+    [Fact]
+    public void Render_LedsOnAndBetweenTheRandomValues_FlickerAlike()
+    {
+        var leds = new RgbColor[60];
+        var effect = new FireEffect();
+        var (sums, squares, count) = (new double[3], new double[3], 0);
+        for (var time = TimeSpan.Zero; time < TimeSpan.FromSeconds(120); time += Frame)
+        {
+            effect.Render(leds, time);
+            for (var i = 0; i < leds.Length; i++)
+            {
+                sums[i % 3] += leds[i].G;
+                squares[i % 3] += leds[i].G * leds[i].G;
+            }
+
+            count += leds.Length / 3;
+        }
+
+        var deviations = Enumerable.Range(0, 3).Select(k => Math.Sqrt(squares[k] / count - Math.Pow(sums[k] / count, 2))).ToArray();
+        Assert.True(deviations.Max() / deviations.Min() < 1.04, $"Deviations {string.Join(", ", deviations)}.");
+    }
+
     // Over a while an LED goes from deep red to yellow and back, and it changes from frame to frame.
     [Theory]
     [InlineData(1, 0)]
