@@ -5,9 +5,10 @@ using System.Windows.Automation.Provider;
 
 namespace BuurmansRgb.UI.Views;
 
-// One LED of a LedPreviewView for UI Automation: its name, where it is drawn and whether it is
-// selected. Selecting it does what a click does, and adding it to the selection what Shift+click
-// does. It has no element of its own, so it asks the view for all of that.
+// One LED of a LedPreviewView for UI Automation: its name, where it is drawn, whether it is
+// selected and, for the active LED of a focused view, that it has the focus. Selecting it does
+// what a click does, and adding it to the selection what Shift+click does. It has no element of
+// its own, so it asks the view for all of that.
 internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPreviewView view, int led) : AutomationPeer, ISelectionItemProvider
 {
     public int Index => led;
@@ -64,12 +65,17 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     protected override bool IsControlElementCore() => true;
 
-    protected override bool IsKeyboardFocusableCore() => false;
+    // Only the active LED takes the focus: the keys of the view move it, not UI Automation.
+    protected override bool IsKeyboardFocusableCore() => view.Focusable && view.ActiveLed == led;
 
-    protected override bool HasKeyboardFocusCore() => false;
+    protected override bool HasKeyboardFocusCore() => view.IsKeyboardFocused && view.ActiveLed == led;
 
     protected override void SetFocusCore()
     {
+        if (!IsKeyboardFocusableCore() || !view.Focus())
+        {
+            throw new InvalidOperationException("Only the active LED can take the focus.");
+        }
     }
 
     protected override bool IsPasswordCore() => false;

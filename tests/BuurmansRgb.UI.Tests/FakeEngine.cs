@@ -223,11 +223,23 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default) =>
         Record($"loop {deviceId ?? "all"} {string.Join(",", colors.Select(color => color.ToHex()))} {(spread ? "spread" : "together")}");
 
+    // When set, GetLedColorsAsync answers once this task completes, like a slow engine.
+    public Task? LedColorsGate { get; set; }
+
+    public int LedColorsCalls { get; private set; }
+
     // Like the engine: a device without stored colors has its own color on every LED.
-    public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<RgbColor>>(
-            LedColors.GetValueOrDefault(deviceId)
-            ?? [.. Enumerable.Repeat(Lighting.GetValueOrDefault(deviceId, Lighting[""]).Color, Devices.Single(device => device.Id == deviceId).LedCount)]);
+    public async Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default)
+    {
+        LedColorsCalls++;
+        if (LedColorsGate is { } gate)
+        {
+            await gate;
+        }
+
+        return LedColors.GetValueOrDefault(deviceId)
+            ?? [.. Enumerable.Repeat(Lighting.GetValueOrDefault(deviceId, Lighting[""]).Color, Devices.Single(device => device.Id == deviceId).LedCount)];
+    }
 
     public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"leds {deviceId} {firstLed} {string.Join(",", colors.Select(color => color.ToHex()))}");

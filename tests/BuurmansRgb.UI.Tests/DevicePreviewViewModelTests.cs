@@ -304,6 +304,19 @@ public sealed class DevicePreviewViewModelTests
         Assert.NotEqual(zones[0].FlashFocusKey, zones[1].FlashFocusKey);
     }
 
+    // The LEDs keep the focus after a resize too, apart from the flash button of their zone.
+    [Fact]
+    public void LedsFocusKey_IsTheSameForTheSameZoneOnly()
+    {
+        var zones = new DevicePreviewViewModel(Motherboard, new RecordingPreviewActions()).Zones;
+        var again = new DevicePreviewViewModel(Motherboard, new RecordingPreviewActions()).Zones;
+
+        Assert.Equal("zone-leds/board/1", zones[1].LedsFocusKey);
+        Assert.Equal(zones[1].LedsFocusKey, again[1].LedsFocusKey);
+        Assert.NotEqual(zones[0].LedsFocusKey, zones[1].LedsFocusKey);
+        Assert.NotEqual(zones[1].FlashFocusKey, zones[1].LedsFocusKey);
+    }
+
     // A length that still waits for its delay goes first, so the length the user sees blinks; it is
     // not sent a second time after the delay.
     [Fact]

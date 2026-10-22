@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 
@@ -14,6 +15,10 @@ namespace BuurmansRgb.UI.Views;
 // A ring and a key map shrink when they are wider than the available width. One element per
 // zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
 // ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
+// With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
+// ring. The views of one KeyGroup, such as the zones of a device, share one active LED, and only
+// the view that holds it is a Tab stop, so Tab stops once per device. A mouse click only takes the
+// focus from the LEDs of another device, so the mouse alone works as before.
 public sealed class LedPreviewView : FrameworkElement
 {
     public static readonly DependencyProperty ColorsProperty = DependencyProperty.Register(
@@ -46,14 +51,29 @@ public sealed class LedPreviewView : FrameworkElement
     public static readonly DependencyProperty ClickCommandProperty = DependencyProperty.Register(
         nameof(ClickCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null, OnClickCommandChanged));
 
+    public static readonly DependencyProperty ActiveLedProperty = DependencyProperty.Register(
+        nameof(ActiveLed), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedMatrix.NoLed, FrameworkPropertyMetadataOptions.AffectsRender, OnActiveLedChanged));
+
+    public static readonly DependencyProperty KeyCommandProperty = DependencyProperty.Register(
+        nameof(KeyCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty KeyGroupProperty = DependencyProperty.Register(
+        nameof(KeyGroup), typeof(string), typeof(LedPreviewView), new PropertyMetadata(null));
+
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
+
+    // The middle of the focus ring, just outside the selection ring with a pixel between them.
+    private const double FocusGap = 4.5;
 
     private static readonly Pen Outline = CreatePen(System.Windows.Media.Color.FromArgb(0x60, 0x80, 0x80, 0x80), 1.0);
 
     // In the system highlight color, so the ring also shows in dark and high-contrast themes. Read
     // on every render, so the ring follows a theme change from the next redraw on.
     private static Pen _selectionRing = CreatePen(SystemColors.HighlightColor, 2.0);
+
+    // 2 px in the text color, as the focus ring of the other controls (design/DESIGN.md § 6).
+    private static Pen? _focusRing;
 
     // The cells of a row or key map, holding only LEDs below Colors.Count, and the arrangement of
     // the LEDs. Both are made again only when the number of LEDs, the width, the matrix or the LED
@@ -65,7 +85,14 @@ public sealed class LedPreviewView : FrameworkElement
     // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
     private LedToolTip? _toolTip;
 
-    public LedPreviewView() => Unloaded += (_, _) => _toolTip?.Hide();
+    // The focus shows as the ring around the active LED (OnRender), not as one around the zone.
+    public LedPreviewView()
+    {
+        Focusable = true;
+        FocusVisualStyle = null;
+        KeyboardNavigation.SetIsTabStop(this, false);
+        Unloaded += (_, _) => _toolTip?.Hide();
+    }
 
     public IReadOnlyList<RgbColor> Colors
     {
@@ -116,6 +143,88 @@ public sealed class LedPreviewView : FrameworkElement
     {
         get => (ICommand?)GetValue(ClickCommandProperty);
         set => SetValue(ClickCommandProperty, value);
+    }
+
+    // The LED the keys move and choose; NoLed while it is in another zone of the device.
+    public int ActiveLed
+    {
+        get => (int)GetValue(ActiveLedProperty);
+        set => SetValue(ActiveLedProperty, value);
+    }
+
+    // Runs with a LedKeyPress for each key of the preview; see KeyPressOf.
+    public ICommand? KeyCommand
+    {
+        get => (ICommand?)GetValue(KeyCommandProperty);
+        set => SetValue(KeyCommandProperty, value);
+    }
+
+    // The views that share one active LED, such as the zones of one device; null for a view on
+    // its own. The focus goes along when the active LED moves to another view of the group.
+    public string? KeyGroup
+    {
+        get => (string?)GetValue(KeyGroupProperty);
+        set => SetValue(KeyGroupProperty, value);
+    }
+
+    // Where the mouse is on the view; null for where Windows says it is. A test puts it on an LED
+    // here, as it cannot move the mouse.
+    internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
+
+    // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
+    internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
+
+    // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
+    // they extend the range, Space and Enter choose the active LED, Ctrl+A chooses all and Escape
+    // none. null for any other key, which the window gets.
+    internal static LedKeyPress? KeyPressOf(Key key, ModifierKeys modifiers)
+    {
+        if (modifiers == ModifierKeys.Control)
+        {
+            return key == Key.A ? new(LedKey.SelectAll) : null;
+        }
+
+        if (modifiers is not (ModifierKeys.None or ModifierKeys.Shift))
+        {
+            return null;
+        }
+
+        var extend = modifiers == ModifierKeys.Shift;
+        return key switch
+        {
+            Key.Left => new(LedKey.Previous, extend),
+            Key.Right => new(LedKey.Next, extend),
+            Key.Up => new(LedKey.Up, extend),
+            Key.Down => new(LedKey.Down, extend),
+            Key.Home => new(LedKey.First, extend),
+            Key.End => new(LedKey.Last, extend),
+            Key.Space or Key.Enter => new(LedKey.Select, extend),
+            Key.Escape when !extend => new(LedKey.ClearSelection),
+            _ => null,
+        };
+    }
+
+    // Runs KeyCommand for a key, with the LED in the row above or below as drawn for Up and Down.
+    // False when it is no key of the preview or the command does not take it.
+    internal bool PressKey(Key key, ModifierKeys modifiers)
+    {
+        if (KeyCommand is not { } command || KeyPressOf(key, modifiers) is not { } press)
+        {
+            return false;
+        }
+
+        if (press.Key is LedKey.Up or LedKey.Down)
+        {
+            press = press with { Target = ArrangementFor(ActualWidth).LedInNextRow(ActiveLed, up: press.Key == LedKey.Up) };
+        }
+
+        if (!command.CanExecute(press))
+        {
+            return false;
+        }
+
+        command.Execute(press);
+        return true;
     }
 
     // The label of an LED from LedLabels; null for no LED or when there are no labels.
@@ -192,35 +301,137 @@ public sealed class LedPreviewView : FrameworkElement
                 }
             }
         }
+
+        // After all LEDs, so no neighbor covers the ring.
+        var active = ActiveLed;
+        if (IsKeyboardFocused && active >= 0 && active < count && !arrangement.Bounds[active].IsEmpty)
+        {
+            var bounds = arrangement.Bounds[active];
+            var focusRing = FocusRing();
+            if (arrangement.Keys)
+            {
+                bounds.Inflate(FocusGap, FocusGap);
+                drawingContext.DrawRoundedRectangle(null, focusRing, bounds, cornerRadius + FocusGap, cornerRadius + FocusGap);
+            }
+            else
+            {
+                var radius = bounds.Height / 2.0 + FocusGap;
+                drawingContext.DrawEllipse(null, focusRing, new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0), radius, radius);
+            }
+        }
     }
 
-    protected override void OnMouseMove(MouseEventArgs e)
+    protected override void OnKeyDown(KeyEventArgs e)
     {
-        base.OnMouseMove(e);
-        var led = LedAt(e.GetPosition(this));
-        (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
-    }
-
-    protected override void OnMouseLeave(MouseEventArgs e)
-    {
-        base.OnMouseLeave(e);
-        _toolTip?.Hide();
-    }
-
-    // A click on a gap between keys or beside a ring picks nothing.
-    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
-    {
-        base.OnMouseLeftButtonDown(e);
-        _toolTip?.Hide();
-        var led = LedAt(e.GetPosition(this));
-        if (led != LedMatrix.NoLed && ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
+        base.OnKeyDown(e);
+        if (!e.Handled && PressKey(e.Key, Keyboard.Modifiers))
         {
             e.Handled = true;
         }
     }
 
+    // The focus comes with Tab, or when the active LED moves here from another zone. WPF tells a
+    // screen reader that the view has the focus; the active LED follows after that.
+    protected override void OnIsKeyboardFocusedChanged(DependencyPropertyChangedEventArgs e)
+    {
+        base.OnIsKeyboardFocusedChanged(e);
+        InvalidateVisual();
+        if (IsKeyboardFocused)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Input, ShowActiveLed);
+        }
+        else
+        {
+            _toolTip?.Hide();
+        }
+    }
+
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        ShowToolTip(LedAt(PositionOf(e)));
+    }
+
+    // With the keyboard focus the tooltip goes back to the active LED, where the keys go on.
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+        if (IsKeyboardFocused)
+        {
+            ShowToolTip(ActiveLed);
+        }
+        else
+        {
+            _toolTip?.Hide();
+        }
+    }
+
+    // A click on a gap between keys or beside a ring picks nothing. While the keyboard focus is in
+    // the LEDs of another device, as in "Hele huis", it comes along to the LED that was clicked,
+    // so the keys go on where the selection is; a click in the same device already moved it there
+    // with the active LED (OnActiveLedChanged).
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonDown(e);
+        _toolTip?.Hide();
+        var led = LedAt(PositionOf(e));
+        if (led == LedMatrix.NoLed || !ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
+        {
+            return;
+        }
+
+        e.Handled = true;
+        if (Keyboard.FocusedElement is LedPreviewView other && other != this && ActiveLed != LedMatrix.NoLed)
+        {
+            Focus();
+        }
+    }
+
+    private Point PositionOf(MouseEventArgs e) => MousePosition?.Invoke(e) ?? e.GetPosition(this);
+
+    // Hides the tooltip for no LED, such as a gap between the keys.
+    private void ShowToolTip(int led) => (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
+
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>
         ((LedPreviewView)element).Cursor = e.NewValue is null ? null : Cursors.Hand;
+
+    // When the active LED moves to another view of the group, such as another zone of the device,
+    // that view takes the focus from the one it left, whether that one heard of the move before or
+    // after. The view of another device keeps the focus.
+    private static void OnActiveLedChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    {
+        var view = (LedPreviewView)element;
+        var holds = (int)e.NewValue != LedMatrix.NoLed;
+        KeyboardNavigation.SetIsTabStop(view, holds);
+        if (holds && view.KeyGroup is { } group && Keyboard.FocusedElement is LedPreviewView other && other != view && other.KeyGroup == group
+            && view.Focus())
+        {
+            return;
+        }
+
+        view.ShowActiveLed();
+    }
+
+    // The active LED of a view with the focus: scrolled into view, with its tooltip, and told to a
+    // screen reader, which then says its name and whether it is chosen.
+    private void ShowActiveLed()
+    {
+        var led = ActiveLed;
+        var bounds = BoundsOf(led);
+        if (!IsKeyboardFocused || bounds.IsEmpty)
+        {
+            return;
+        }
+
+        var ring = bounds;
+        ring.Inflate(FocusGap + 1.0, FocusGap + 1.0);
+        BringIntoView(ring);
+        ShowToolTip(led);
+        if (UIElementAutomationPeer.FromElement(this) is LedPreviewAutomationPeer peer)
+        {
+            peer.RaiseLedFocused(led);
+        }
+    }
 
     // A new frame comes many times a second, but only another number of LEDs changes the items
     // UI Automation sees. Without a peer, nobody asked for them yet, so there is nothing to tell.
@@ -285,6 +496,18 @@ public sealed class LedPreviewView : FrameworkElement
         }
 
         return _selectionRing;
+    }
+
+    // The text color of the theme; outside the app, as in a test, that of the system.
+    private Pen FocusRing()
+    {
+        var color = TryFindResource("TextBrush") is SolidColorBrush brush ? brush.Color : SystemColors.ControlTextColor;
+        if (_focusRing is not { Brush: SolidColorBrush current } || current.Color != color)
+        {
+            _focusRing = CreatePen(color, 2.0);
+        }
+
+        return _focusRing;
     }
 
     private static Pen CreatePen(Color color, double thickness)

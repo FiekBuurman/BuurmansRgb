@@ -70,6 +70,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // something newer does not move a slider back.
     private int _sentChanges;
 
+    // The LED edit that waits for the stored colors of its device; see EditLedsAsync.
+    private StartingEdit? _startingEdit;
+
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
     // How long the choice of a lamp rests before it flashes, when the picks follow each other.
@@ -89,6 +92,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
+        Preview.LedSelectionCleared += (_, _) => _ = ClearLedSelectionAsync();
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
@@ -638,15 +642,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
+    // A range that the keyboard starts on a device without a selection begins at its Anchor.
     private Task OnLedClickedAsync(LedClick click) =>
-        EditLedsAsync(click.DeviceId, click.Index, editor => editor.Select(click.Index, click.Extend));
+        EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
 
     private Task OnLedsSelectedAsync(LedSelection leds) =>
         EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
 
     // The stored colors are fetched when editing starts on a device, at the LED firstIndex; clicks
     // on the same device reuse them, so they also hold the edits that are still on their way to
-    // the engine. select then picks the LEDs.
+    // the engine. A click or key on the same device before they came waits for the same colors
+    // and starts at the same LED, so two quick Shift+arrows give one range from where the first
+    // one came. select then picks the LEDs.
     private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select)
     {
         if (_connection is not { } connection)
@@ -656,13 +663,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (!LedEditor.IsEditing(deviceId))
         {
-            var (ok, colors) = await TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
+            if (_startingEdit is not { } starting || starting.DeviceId != deviceId || !ReferenceEquals(starting.Connection, connection))
+            {
+                starting = new(connection, deviceId, firstIndex, TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)));
+                _startingEdit = starting;
+            }
+
+            var (ok, colors) = await starting.Colors;
+            if (ReferenceEquals(_startingEdit, starting))
+            {
+                _startingEdit = null;
+            }
+
             if (!ok || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
 
-            LedEditor.Start(device.Id, device.Name, colors, firstIndex);
+            // The first click or key that waited for the colors started already.
+            if (!LedEditor.IsEditing(deviceId))
+            {
+                LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex);
+            }
         }
 
         select(LedEditor);
@@ -1034,4 +1056,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _uiContext.Post(_ => action(), state: null);
         }
     }
+
+    // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
+    private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
 }

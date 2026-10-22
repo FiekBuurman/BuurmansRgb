@@ -19,16 +19,20 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     private readonly string _deviceName;
     private readonly ZoneLayout _layout;
     private readonly IPreviewActions? _actions;
+    private readonly DevicePreviewViewModel? _device;
 
     // The colors of the whole device from the last frame, kept to show another length at once.
     private RgbColor[] _deviceColors = [];
 
-    public ZonePreviewViewModel(DeviceInfo device, ZoneLayout layout, bool showsName, IPreviewActions? actions, TimeProvider? time = null)
+    // The keys go to the device preview, which moves the active LED over all of its zones.
+    public ZonePreviewViewModel(DeviceInfo device, ZoneLayout layout, bool showsName, IPreviewActions? actions, TimeProvider? time = null,
+        DevicePreviewViewModel? devicePreview = null)
     {
         _deviceId = device.Id;
         _deviceName = device.Name;
         _layout = layout;
         _actions = actions;
+        _device = devicePreview;
         Colors = new RgbColor[layout.LedCount];
 
         // A device with one zone needs no zone name; a zone without LEDs always says so.
@@ -53,6 +57,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     }
 
     public string Name => _layout.Zone.Name;
+
+    // The zones of one device share their active LED; the view moves the focus between them.
+    public string DeviceId => _deviceId;
 
     public int FirstLed => _layout.FirstLed;
 
@@ -115,6 +122,17 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // zone length (ZoneLengthViewModel.FocusKey).
     public string FlashFocusKey => $"zone-flash/{_deviceId}/{_layout.Index}";
 
+    // Which zone of the device this is, the same when the preview is made again; ZoneLayout.NoZone
+    // for the LEDs that no zone claims.
+    internal int ZoneIndex => _layout.Index;
+
+    // The LEDs the user can pick and the active LED can be on: those the zone has and shows, so
+    // fewer than LedCount while the user sets a shorter length.
+    internal int SelectableLedCount => Math.Min(LedCount, ShownLedCount);
+
+    // The same for the LEDs, which have the focus while the keys move through them.
+    public string LedsFocusKey => $"zone-leds/{_deviceId}/{_layout.Index}";
+
     // How long one of the device's own zones is, when its length can be set, such as for an
     // addressable header; null for a zone of a fixed length.
     public ZoneLengthViewModel? Length { get; }
@@ -136,6 +154,11 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     public partial int SelectionLast { get; private set; } = LedSelection.NoSelection;
+
+    // The LED of the device that the keys move and choose (DevicePreviewViewModel.ActiveLed),
+    // counted from the start of the zone; LedMatrix.NoLed while it is in another zone.
+    [ObservableProperty]
+    public partial int ActiveLed { get; private set; } = LedMatrix.NoLed;
 
     // A screen reader names an item of the preview by its ToString: the device and the zone.
     public override string ToString() => AccessibleName;
@@ -159,15 +182,26 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         SelectionLast = overlaps ? Math.Min(last, zoneLast) - FirstLed : LedSelection.NoSelection;
     }
 
+    // led counts from the start of the device.
+    internal bool Holds(int led) => led >= FirstLed && led < FirstLed + LedCount;
+
+    internal void ShowDeviceActiveLed(int led) => ActiveLed = Holds(led) ? led - FirstLed : LedMatrix.NoLed;
+
     // An LED that only shows because of a new length has no color to edit yet.
     [RelayCommand]
     private void ClickLed(LedHit hit)
     {
         if (hit.Index < LedCount)
         {
+            _device?.Activate(FirstLed + hit.Index);
             _actions?.ClickLed(new LedClick(_deviceId, FirstLed + hit.Index, hit.Extend));
         }
     }
+
+    [RelayCommand(CanExecute = nameof(CanPressKey))]
+    private void PressKey(LedKeyPress press) => _device?.PressKey(press);
+
+    private bool CanPressKey(LedKeyPress press) => _device?.CanPressKey(press) ?? false;
 
     [RelayCommand(CanExecute = nameof(CanSelectZone))]
     private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));

@@ -14,7 +14,8 @@ navigatiebalk met **Lampen**, **Kleur**, **Scènes** en onderaan **Instellingen*
 - **Venster:** donkere titelbalk met het kleine icoon en het woordmerk. Slepen, dubbelklikken
   om te maximaliseren, Aero Snap en Alt+Spatie werken zoals altijd. Minimaal 960 × 640.
 - **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
-  knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px.
+  knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
+  actieve LED (zie "Per-LED-editor").
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de lampen werken, maar na een herstart is
@@ -138,6 +139,26 @@ Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's ki
 gekozen LED's zetten" en gaat de kleur alleen naar die LED's. Staat de lamp uit, dan gaat hij
 daarmee aan, ook bij "Verloop vullen".
 
+- **Met het toetsenbord:** ga met Tab naar de LED's van een lamp; de actieve LED krijgt een
+  witte ring van 2 px en zijn naam als tooltip, die terugkomt als de muis van de LED's af gaat.
+  Tab stopt één keer per lamp, bij de zone met de actieve LED; die begint bij LED 1 en is
+  daarna de laatste die je koos of aanklikte. Krijgt een zone een andere lengte, dan blijft hij
+  op zijn plek in zijn zone, of op de laatste LED die die zone nog heeft. Staat de focus al in
+  de LED's en klik je bij "Hele huis" op een LED van een andere lamp, dan gaat de focus mee
+  naar die LED; werk je alleen met de muis, dan blijft de focus waar hij was.
+
+  | Toets | Wat het doet |
+  | --- | --- |
+  | ← en → | Naar de vorige of volgende LED, ook door naar de zone ervoor of erna |
+  | ↑ en ↓ | Naar de LED in de rij erboven of eronder (op een toetsenbord de toets erboven of eronder); vanaf de bovenste of onderste rij naar de laatste LED van de zone erboven of de eerste van de zone eronder. Een ring heeft geen rijen: daar gaan ↑ en ↓ meteen naar de zone ervoor of erna |
+  | Home en End | Naar de eerste of laatste LED van de lamp |
+  | Spatie of Enter | Kiest de actieve LED, zoals een klik |
+  | Shift+pijltje, Shift+Home of Shift+End | Breidt de reeks uit tot de LED waar je heen gaat, zoals Shift+klik; zonder keuze begint de reeks bij de LED waar je vandaan kwam |
+  | Ctrl+A | Kiest alle LED's van de lamp, zoals "Alles selecteren" |
+  | Escape | Heft de selectie op, zoals "Selectie opheffen" |
+
+  Daarna ga je met Shift+Tab terug naar boven, naar de kleur en "Op de gekozen LED's zetten".
+  Een schermlezer noemt de actieve LED bij zijn naam en zegt of hij gekozen is.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
 - **Selectie opheffen**, of een andere lamp kiezen, geeft het mengpaneel weer aan de lamp.

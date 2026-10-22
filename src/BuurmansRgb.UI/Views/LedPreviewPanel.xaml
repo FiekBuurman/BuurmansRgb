@@ -63,10 +63,14 @@
                                                     </TextBlock>
                                                 </StackPanel>
                                             </DockPanel>
+                                            <!-- The LEDs, also with the keys of the per-LED editor; they keep the focus
+                                                 when the preview is made again. -->
                                             <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                                   IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
                                                                   SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
                                                                   ClickCommand="{Binding ClickLedCommand}"
+                                                                  ActiveLed="{Binding ActiveLed}" KeyCommand="{Binding PressKeyCommand}" KeyGroup="{Binding DeviceId}"
+                                                                  views:FocusKeeper.Key="{Binding LedsFocusKey}"
                                                                   AutomationProperties.Name="{Binding AccessibleName}" />
                                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.EmptyZoneHint}"
                                                        Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />

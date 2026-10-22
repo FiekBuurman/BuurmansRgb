@@ -11,6 +11,16 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
 {
     private readonly List<LedAutomationPeer> _leds = [];
 
+    // Raises an event of the item of one LED, when a screen reader listens for it. A test, which
+    // has no screen reader, hears the events here instead.
+    internal Action<LedAutomationPeer, AutomationEvents> RaiseLedEvent { get; set; } = static (item, automationEvent) =>
+    {
+        if (ListenerExists(automationEvent))
+        {
+            item.RaiseAutomationEvent(automationEvent);
+        }
+    };
+
     // Shift+click selects a range, so more than one LED can be selected.
     public bool CanSelectMultiple => true;
 
@@ -28,6 +38,16 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
         if (GetChildren()?.ElementAtOrDefault(led) is LedAutomationPeer item)
         {
             item.RaisePropertyChangedEvent(SelectionItemPatternIdentifiers.IsSelectedProperty, wasSelected, !wasSelected);
+        }
+    }
+
+    // The item of the active LED now has the focus, so a screen reader says its name and whether
+    // it is selected.
+    public void RaiseLedFocused(int led)
+    {
+        if (GetChildren()?.ElementAtOrDefault(led) is LedAutomationPeer item)
+        {
+            RaiseLedEvent(item, AutomationEvents.AutomationFocusChanged);
         }
     }
 

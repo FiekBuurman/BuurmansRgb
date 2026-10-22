@@ -110,8 +110,18 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ### Voorbeeld en per-LED-editor
 
-- De per-LED-editor met het toetsenbord bedienen (pijltjes, Shift+pijltje, Enter); nu kan
-  het alleen met de muis in het voorbeeld (en met een schermlezer)
+- Met ↑ en ↓ in het voorbeeld naar de LED die in de zone erboven of eronder recht boven of
+  onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
+  de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast
+- Met het toetsenbord ook van de ene lamp naar de andere in het voorbeeld gaan (bijv. Page Up en
+  Page Down); nu gaat dat met Tab, dat één keer per lamp stopt
+- Met ← en → over de LED's heen gaan die een zone niet meer toont terwijl je een kortere lengte
+  instelt; de actieve LED springt nu terug naar de laatste getoonde LED als de lengte korter
+  wordt, maar → kan er in de 600 ms voordat de lengte naar de engine gaat nog op komen (zonder
+  ring)
+- `ZonePreviewViewModel` alleen een smalle callback geven voor de actieve LED en de toetsen
+  (bijv. een interface met `Activate` en `PressKey`) in plaats van het hele
+  `DevicePreviewViewModel`
 - In de per-LED-editor ongedaan maken, kleuren kopiëren naar een ander apparaat en een
   verloop met meer dan twee kleuren
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats

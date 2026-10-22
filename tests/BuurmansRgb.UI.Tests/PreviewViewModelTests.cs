@@ -44,6 +44,91 @@ public sealed class PreviewViewModelTests
         Assert.Equal((0, 1), preview.Devices[0].ShownSelection());
     }
 
+    // The engine reports the devices again, for example after a resize: the keys go on where they were.
+    [Fact]
+    public void ShowDevices_KeepsTheActiveLed()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10), Fan]);
+        preview.Devices[0].PressKey(LedKey.Last);
+
+        preview.ShowDevices([Strip(10), Fan]);
+
+        Assert.Equal(9, preview.Devices[0].ShownActiveLed());
+        Assert.Equal(0, preview.Devices[1].ShownActiveLed());
+    }
+
+    [Fact]
+    public void ShowDevices_WithFewerLeds_MovesTheActiveLedToTheLastOne()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10)]);
+        preview.Devices[0].PressKey(LedKey.Last);
+
+        preview.ShowDevices([Strip(4)]);
+
+        Assert.Equal(3, preview.Devices[0].ShownActiveLed());
+    }
+
+    // A header before it got two LEDs more: the active LED stays the second one of "ARGB 2", in
+    // the zone where FocusKeeper gives the focus back.
+    [Fact]
+    public void ShowDevices_AfterAnEarlierZoneGrew_KeepsTheActiveLedInItsZone()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(2, 3)]);
+        preview.Devices[0].ClickLed(3);
+
+        preview.ShowDevices([Board(4, 3)]);
+
+        Assert.Equal(5, preview.Devices[0].ShownActiveLed());
+        Assert.Equal([-1, 1], preview.Devices[0].Zones.Select(zone => zone.ActiveLed));
+    }
+
+    [Fact]
+    public void ShowDevices_WithAShorterZone_MovesTheActiveLedToItsLastOne()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(2, 3)]);
+        preview.Devices[0].ClickLed(4);
+
+        preview.ShowDevices([Board(2, 1)]);
+
+        Assert.Equal([-1, 0], preview.Devices[0].Zones.Select(zone => zone.ActiveLed));
+    }
+
+    // "ARGB 2" has no LEDs now, so the active LED goes to the one with the same number or the
+    // last one of the device.
+    [Fact]
+    public void ShowDevices_WithTheZoneEmpty_KeepsTheLedNumber()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(2, 3)]);
+        preview.Devices[0].ClickLed(3);
+
+        preview.ShowDevices([Board(5, 0)]);
+
+        Assert.Equal(3, preview.Devices[0].ShownActiveLed());
+    }
+
+    [Fact]
+    public void PressKeys_RaiseTheEventsOfClicksAndSelections()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Fan]);
+        List<object> raised = [];
+        preview.LedClicked += (_, click) => raised.Add(click);
+        preview.LedsSelected += (_, leds) => raised.Add(leds);
+        preview.LedSelectionCleared += (_, _) => raised.Add("clear");
+
+        preview.Devices[0].PressKey(LedKey.Next, extend: true);
+        preview.Devices[0].PressKey(LedKey.SelectAll);
+        preview.ShowLedSelection(new LedSelection("fan", "Fan", 0, 1));
+        preview.Devices[0].PressKey(LedKey.ClearSelection);
+
+        Assert.Equal([new LedClick("fan", 1, Extend: true, Anchor: 0), new LedSelection("fan", "Fan", 0, 1), "clear"], raised);
+    }
+
     [Fact]
     public void ClickLed_RaisesLedClickedWithTheDevice()
     {
@@ -146,6 +231,12 @@ public sealed class PreviewViewModelTests
         Assert.Equal(10, preview.Devices[0].Zones[0].ShownLedCount);
         Assert.False(preview.Devices[0].Zones[0].Length!.HasUnsentChange);
     }
+
+    private static DeviceInfo Board(int argb1, int argb2) =>
+        new("board", "Board", DeviceType.Motherboard, argb1 + argb2, [new RgbZone("ARGB 1", argb1, 0, 60), new RgbZone("ARGB 2", argb2, 0, 60)])
+        {
+            Source = DeviceSource.Hardware,
+        };
 
     private static DeviceInfo Strip(int ledCount) =>
         new("strip", "Strip", DeviceType.LedStrip, ledCount, [new RgbZone("Strip", ledCount, 1, 60)]) { Source = DeviceSource.Hardware };

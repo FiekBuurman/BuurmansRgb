@@ -202,6 +202,95 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
+    // Only with the keyboard: an arrow, Shift+arrow and then the color.
+    [Fact]
+    public async Task Keys_ChooseARangeThatTheColorGoesTo()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+
+        strip.PressKey(LedKey.Next);
+        strip.PressKey(LedKey.Next, extend: true);
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(new LedSelection("strip", "LED strip", 1, 2), viewModel.LedEditor.Selection);
+        Assert.Equal(["leds strip 1 #00FF00,#00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task Keys_SelectAllAndClear()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+
+        strip.PressKey(LedKey.SelectAll);
+        Assert.Equal(new LedSelection("strip", "LED strip", 0, strip.LedCount - 1), viewModel.LedEditor.Selection);
+
+        Assert.True(strip.PressKey(LedKey.ClearSelection));
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.False(strip.PressKey(LedKey.ClearSelection));
+    }
+
+    // Escape in the preview.
+    [Fact]
+    public async Task ClearLedSelectionFromThePreview_GivesThePickerBackToTheDevice()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        ((IPreviewActions)viewModel.Preview).ClearLedSelection();
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+    }
+
+    // Shift+arrow on a device without a selection selects from the LED the keyboard came from.
+    [Fact]
+    public async Task ExtendWithAnchor_WithoutSelection_SelectsFromTheAnchor()
+    {
+        var viewModel = await ConnectAsync();
+
+        ((IPreviewActions)viewModel.Preview).ClickLed(new LedClick("strip", 1, Extend: true, Anchor: 2));
+
+        Assert.Equal(new LedSelection("strip", "LED strip", 1, 2), viewModel.LedEditor.Selection);
+        Assert.Equal((1, 2), viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").ShownSelection());
+    }
+
+    // Two quick Shift+→ before the engine gave the stored colors: one range from the LED where
+    // the first one came from, with the colors fetched once.
+    [Fact]
+    public async Task ExtendTwice_BeforeTheColorsCame_StartsAtTheFirstAnchor()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+        var slowAnswer = new TaskCompletionSource();
+        Api.LedColorsGate = slowAnswer.Task;
+
+        strip.PressKey(LedKey.Next, extend: true);
+        strip.PressKey(LedKey.Next, extend: true);
+        Assert.Null(viewModel.LedEditor.Selection);
+        slowAnswer.SetResult();
+        Api.LedColorsGate = null;
+
+        await Eventually.TrueAsync(() => viewModel.LedEditor.Selection?.Last == 2);
+        Assert.Equal(new LedSelection("strip", "LED strip", 0, 2), viewModel.LedEditor.Selection);
+        Assert.Equal(1, Api.LedColorsCalls);
+    }
+
+    // With a selection, the range starts at the LED that was chosen last, as with Shift+click.
+    [Fact]
+    public async Task ExtendWithAnchor_WhileEditingTheDevice_KeepsTheChosenLed()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 0);
+
+        ((IPreviewActions)viewModel.Preview).ClickLed(new LedClick("strip", 2, Extend: true, Anchor: 1));
+
+        Assert.Equal(new LedSelection("strip", "LED strip", 0, 2), viewModel.LedEditor.Selection);
+    }
+
     [Fact]
     public async Task SelectAnotherDevice_ClearsTheLedSelection()
     {
