@@ -37,7 +37,7 @@ public sealed class MainViewModelColorLoopTests
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
         viewModel.ColorLoopEditor.SelectCommand.Execute(1);
 
-        viewModel.ColorPicker.Pick("#FF00FF");
+        viewModel.ColorPicker.Mix("#FF00FF");
 
         Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
     }
@@ -238,7 +238,7 @@ public sealed class MainViewModelColorLoopTests
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Api.Calls.Clear();
 
-        viewModel.ColorPicker.Pick("#FF00FF");
+        viewModel.ColorPicker.Mix("#FF00FF");
 
         Assert.Equal(["loop fan #FF00FF,#00FF00,#0000FF spread", "on fan on"], Api.Calls);
         Assert.True(viewModel.SelectedLamp?.IsOn);

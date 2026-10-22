@@ -34,7 +34,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "strip", 0);
         Click(viewModel, "strip", 1, extend: true);
 
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
@@ -180,7 +180,7 @@ public sealed class MainViewModelLedEditorTests
 
         Click(viewModel, "board", 1);
         Click(viewModel, "board", 2, extend: true);
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
         var board = Assert.Single(viewModel.Preview.Devices);
@@ -196,7 +196,7 @@ public sealed class MainViewModelLedEditorTests
         Api.RaiseDevicesChanged();
 
         Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(new LedSelection("fan", "Fan", 2, 4), viewModel.LedEditor.Selection);
         Assert.Equal((2, 4), viewModel.Preview.Devices[0].ShownSelection());
@@ -313,7 +313,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Click(viewModel, "fan", 0);
 
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
         Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
@@ -342,7 +342,7 @@ public sealed class MainViewModelLedEditorTests
 
         strip.PressKey(LedKey.Next);
         strip.PressKey(LedKey.Next, extend: true);
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(new LedSelection("strip", "LED strip", 1, 2), viewModel.LedEditor.Selection);
         Assert.Equal(["leds strip 1 #00FF00,#00FF00"], Api.Calls);

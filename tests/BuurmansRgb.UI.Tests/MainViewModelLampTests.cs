@@ -109,7 +109,7 @@ public sealed class MainViewModelLampTests
         var viewModel = await ConnectAsync(SwitchOff("strip", "fan"));
         viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan").ClickLed(0);
 
-        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Mix("#00FF00");
 
         Assert.Equal(["leds fan 0 #00FF00", "on fan on"], Api.Calls);
         Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
