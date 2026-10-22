@@ -37,10 +37,7 @@ public sealed class CometEffect(RgbColor color, double roundsPerSecond = CometEf
             var behind = EffectMath.Fraction((head - i * spacing) / length) * length;
             var ahead = length - behind;
             var arriving = ahead < 1.0 ? 1.0 - ahead : 0.0;
-            var fading = behind < tail ? Square(1.0 - behind / tail) : 0.0;
-            leds[i] = Color.Scale(Math.Max(arriving, fading));
+            leds[i] = Color.Scale(Math.Max(arriving, EffectMath.Tail(behind, tail)));
         }
     }
-
-    private static double Square(double value) => value * value;
 }

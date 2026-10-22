@@ -31,6 +31,33 @@ public sealed class EffectMathTests
         Assert.Equal(expected, EffectMath.SmoothStep(t), 12);
     }
 
+    [Theory]
+    [InlineData(0.0, 2.0)]
+    [InlineData(0.25, 2.75)]
+    [InlineData(1.0, 5.0)]
+    public void Lerp_RunsFromTheFirstToTheSecond(double amount, double expected)
+    {
+        Assert.Equal(expected, EffectMath.Lerp(2.0, 5.0, amount), 12);
+    }
+
+    [Theory]
+    [InlineData(-0.1, 0.0)]
+    [InlineData(0.0, 1.0)]
+    [InlineData(2.0, 0.25)]
+    [InlineData(4.0, 0.0)]
+    [InlineData(5.0, 0.0)]
+    public void Tail_FadesOutBehindThePoint(double behind, double expected)
+    {
+        Assert.Equal(expected, EffectMath.Tail(behind, 4.0), 12);
+    }
+
+    // Of a tail of length 0, as the scanner's at an end, nothing shows.
+    [Fact]
+    public void Tail_OfNoLength_IsDark()
+    {
+        Assert.Equal(0.0, EffectMath.Tail(0.0, 0.0));
+    }
+
     [Fact]
     public void Random_SameInputs_GiveTheSameNumber()
     {

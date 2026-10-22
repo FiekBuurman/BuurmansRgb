@@ -18,6 +18,22 @@ internal static class EffectMath
     // From 0 at 0 to 1 at 1 with a gentle start and end, for blending between two random values.
     public static double SmoothStep(double t) => t * t * (3.0 - 2.0 * t);
 
+    // From from at 0 to to at 1, in a straight line.
+    public static double Lerp(double from, double to, double amount) => from + (to - from) * amount;
+
+    // How bright a tail of length LEDs is at behind LEDs behind its point: 1 at the point, fading
+    // out ever slower to 0 at its end, and 0 in front of the point or past the end.
+    public static double Tail(double behind, double length)
+    {
+        if (behind < 0.0 || behind >= length)
+        {
+            return 0.0;
+        }
+
+        var left = 1.0 - behind / length;
+        return left * left;
+    }
+
     // A speed may be negative, which runs the effect the other way, but NaN or infinity would
     // turn every LED black or random.
     public static double FiniteSpeed(double speed, [CallerArgumentExpression(nameof(speed))] string? name = null) =>

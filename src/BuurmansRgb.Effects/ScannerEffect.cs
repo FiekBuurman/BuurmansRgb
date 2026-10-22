@@ -36,10 +36,7 @@ public sealed class ScannerEffect(RgbColor color, double scansPerSecond = Scanne
             var ahead = first + i - point;
             var behind = sine >= 0.0 ? -ahead : ahead;
             var lit = Math.Max(0.0, 1.0 - Math.Abs(ahead));
-            var trailing = behind > 0.0 && behind < tail ? Square(1.0 - behind / tail) : 0.0;
-            leds[i] = Color.Scale(Math.Max(lit, trailing));
+            leds[i] = Color.Scale(Math.Max(lit, EffectMath.Tail(behind, tail)));
         }
     }
-
-    private static double Square(double value) => value * value;
 }

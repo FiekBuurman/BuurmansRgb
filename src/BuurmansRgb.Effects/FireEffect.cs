@@ -54,9 +54,9 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         var across = EffectMath.SmoothStep(place - column);
         var along = EffectMath.SmoothStep(step - row);
         var (left, now) = ((int)column, (long)row);
-        var thisStep = Lerp(EffectMath.Random(left, now, stream), EffectMath.Random(left + 1, now, stream), across);
-        var nextStep = Lerp(EffectMath.Random(left, now + 1, stream), EffectMath.Random(left + 1, now + 1, stream), across);
-        return Lerp(thisStep, nextStep, along);
+        var thisStep = EffectMath.Lerp(EffectMath.Random(left, now, stream), EffectMath.Random(left + 1, now, stream), across);
+        var nextStep = EffectMath.Lerp(EffectMath.Random(left, now + 1, stream), EffectMath.Random(left + 1, now + 1, stream), across);
+        return EffectMath.Lerp(thisStep, nextStep, along);
     }
 
     private static RgbColor ColorAt(double heat)
@@ -65,6 +65,4 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         var index = Math.Min((int)scaled, Palette.Length - 2);
         return RgbColor.Lerp(Palette[index], Palette[index + 1], scaled - index);
     }
-
-    private static double Lerp(double from, double to, double amount) => from + (to - from) * amount;
 }
