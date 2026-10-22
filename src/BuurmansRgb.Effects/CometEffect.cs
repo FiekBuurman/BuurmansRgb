@@ -9,8 +9,9 @@ namespace BuurmansRgb.Effects;
 // fewer than MinLength LEDs shows its LEDs spread over a ring of that length, so a single LED
 // pulses: on as the head passes, then fading with the tail. A negative speed runs it towards the
 // first LED, with the tail behind it on the side of the last. With more colors every round has the
-// next one, from where the head comes in at the first LED; an LED keeps the color of the round
-// that passed it last, so the tail of the round before still fades in its own color.
+// next one, from where the head comes in at the start of the ring: the first LED, or with a
+// negative speed the last; an LED keeps the color of the round that passed it last, so the tail of
+// the round before still fades in its own color.
 public sealed class CometEffect : IEffect
 {
     public const double DefaultRoundsPerSecond = 0.5;
