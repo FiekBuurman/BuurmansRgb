@@ -89,6 +89,20 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal([new ZonesAlikeChoice("board", true), new ZonesAlikeChoice("board", false)], actions.Requests);
     }
 
+    // The switch keeps the focus after a change of it, and only the switch of the same device gets it.
+    [Fact]
+    public void ZonesAlikeFocusKey_IsTheSameForTheSameDeviceOnly()
+    {
+        var preview = new DevicePreviewViewModel(Motherboard);
+        var again = new DevicePreviewViewModel(Motherboard with { ZonesAlike = true });
+        var other = new DevicePreviewViewModel(Motherboard with { Id = "board-2" });
+
+        Assert.Equal("zones-alike/board", preview.ZonesAlikeFocusKey);
+        Assert.Equal(preview.ZonesAlikeFocusKey, again.ZonesAlikeFocusKey);
+        Assert.NotEqual(preview.ZonesAlikeFocusKey, other.ZonesAlikeFocusKey);
+        Assert.NotEqual(preview.ZonesAlikeFocusKey, preview.Zones[0].FlashFocusKey);
+    }
+
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
