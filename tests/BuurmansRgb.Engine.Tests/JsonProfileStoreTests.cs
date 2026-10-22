@@ -23,8 +23,8 @@ public sealed class JsonProfileStoreTests : IDisposable
     {
         var loop = new ColorLoop([Red, Green], Spread: false);
         var lighting = new LightingState(
-            StaticLighting(Orange, 0.5) with { Loop = loop },
-            new Dictionary<string, DeviceLighting> { ["fan"] = new(Blue, 0.25, EffectIds.Rainbow, 2.0) },
+            StaticLighting(Orange, 0.5) with { Loop = loop, EffectColors = EffectColors.None.With(EffectIds.Fire, [Blue, Green]) },
+            new Dictionary<string, DeviceLighting> { ["fan"] = new(Blue, 0.25, EffectIds.Comet, 2.0) { EffectColors = EffectColors.None.With(EffectIds.Comet, [Red]) } },
             new Dictionary<string, LedColorEntry> { ["strip"] = new([Red, null, Green], [1, 2]) });
 
         _store.Save([new Profile("Gamen", lighting), new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))]);
@@ -37,6 +37,30 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(lighting.LedColors["strip"].Colors, gamen.LedColors["strip"].Colors);
         Assert.Equal(lighting.LedColors["strip"].ZoneLengths!, gamen.LedColors["strip"].ZoneLengths!);
         Assert.Equal(StaticLighting(Red, 0.1), loaded[1].Lighting.Global);
+    }
+
+    // A scene from before the lists: every effect has its default colors.
+    [Fact]
+    public void Load_SceneWithoutEffectColors_GivesEveryEffectItsDefault()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """{ "profiles": [ { "name": "Kampvuur", "effect": "fire" } ] }""");
+
+        var scene = Assert.Single(_store.Load());
+
+        Assert.Equal(EffectIds.Fire, scene.Lighting.Global.EffectId);
+        Assert.Equal(EffectColors.None, scene.Lighting.Global.EffectColors);
+    }
+
+    [Fact]
+    public void Load_EffectColorsThatDoNotFit_AreLeftOutAndTheSceneStays()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Gif", "effect": "fire", "effectColors": { "fire": ["#003000", "groen", "#30FF30"], "static": ["#FF0000"], "comet": [] } } ] }
+            """);
+
+        var scene = Assert.Single(_store.Load());
+
+        Assert.Equal(EffectColors.None.With(EffectIds.Fire, [new RgbColor(0, 48, 0), new RgbColor(48, 255, 48)]), scene.Lighting.Global.EffectColors);
     }
 
     [Fact]

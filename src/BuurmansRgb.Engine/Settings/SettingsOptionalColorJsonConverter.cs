@@ -5,9 +5,10 @@ using BuurmansRgb.Core;
 namespace BuurmansRgb.Engine.Settings;
 
 // A color in a list of settings.json and profiles.json: one per LED in "ledColors", where null
-// follows the device color, and the colors of "colorLoop". A color that does not read becomes
-// null, so that LED follows the device color and the loop goes without it; the rest of the list
-// and of the file still counts. The serializer handles null itself.
+// follows the device color, and the colors of "colorLoop" and "effectColors". A color that does
+// not read becomes null, so that LED follows the device color and the loop or the effect goes
+// without it; the rest of the list and of the file still counts. The serializer handles null
+// itself.
 internal sealed class SettingsOptionalColorJsonConverter : JsonConverter<RgbColor?>
 {
     private static readonly SettingsColorJsonConverter Color = new();

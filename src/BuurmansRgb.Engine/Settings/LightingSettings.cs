@@ -19,6 +19,11 @@ internal record LightingSettings
     // Null for the default loop.
     public ColorLoopSettings? ColorLoop { get; set; }
 
+    // "effectColors": by effect id, the own colors of the effects with a list of them
+    // (EffectColors.Takes). Null instead of empty, so the default settings stay out of the file; a
+    // color that does not read is null (SettingsOptionalColorJsonConverter) and left out.
+    public Dictionary<string, RgbColor?[]?>? EffectColors { get; set; }
+
     // False for a device that is switched off.
     public bool On { get; set; } = DeviceLighting.Default.On;
 
@@ -35,6 +40,7 @@ internal record LightingSettings
         new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed))
         {
             Loop = ColorLoop?.ToColorLoop() ?? Contracts.ColorLoop.Default,
+            EffectColors = ReadEffectColors(),
             On = On,
         };
 
@@ -44,6 +50,23 @@ internal record LightingSettings
     private static double ClampSpeed(double speed) =>
         double.IsNaN(speed) ? DeviceLighting.Default.Speed : Math.Clamp(speed, EffectSpeed.Min, EffectSpeed.Max);
 
+    // A list of an effect without a list of its own (or an unknown one), and a list without colors
+    // or with too many, is left out: that effect has its default colors.
+    private EffectColors ReadEffectColors()
+    {
+        var lists = new Dictionary<string, IReadOnlyList<RgbColor>>(StringComparer.Ordinal);
+        foreach (var (effectId, colors) in EffectColors ?? [])
+        {
+            RgbColor[] read = [.. (colors ?? []).OfType<RgbColor>()];
+            if (Contracts.EffectColors.Takes(effectId) && Contracts.EffectColors.IsValidList(read))
+            {
+                lists[effectId] = read;
+            }
+        }
+
+        return new EffectColors(lists);
+    }
+
     protected void CopyFrom(DeviceLighting lighting)
     {
         Color = lighting.Color;
@@ -51,6 +74,10 @@ internal record LightingSettings
         Effect = lighting.EffectId;
         Speed = lighting.Speed;
         ColorLoop = ColorLoopSettings.From(lighting.Loop);
+        EffectColors = lighting.EffectColors.Lists.Count > 0
+            ? lighting.EffectColors.Lists.OrderBy(pair => pair.Key, StringComparer.Ordinal)
+                .ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value.Select(color => (RgbColor?)color)])
+            : null;
         On = lighting.On;
     }
 }
