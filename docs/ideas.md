@@ -203,6 +203,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De schermbeveiliging wordt herkend aan een `.scr`-venster vooraan met
   `SPI_GETSCREENSAVERRUNNING`. Een "schermbeveiliging" die een gewoon programma met een volledig
   scherm is, telt niet
+- De exe-naam van het venster vooraan één keer lezen in `ForegroundHook` en aan elke luisteraar
+  meegeven; nu leest de schermbeveiliging hem en een scène met "Alleen op de voorgrond" nog een
+  keer, ~20–28 µs per keer (gemeten, zie de prestaties in `docs/ontwikkelaars.md`)
 - De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
   gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
