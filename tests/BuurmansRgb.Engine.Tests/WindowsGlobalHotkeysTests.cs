@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using BuurmansRgb.Engine.Hotkeys;
 
@@ -111,22 +109,8 @@ public sealed class WindowsGlobalHotkeysTests
     }
 
     private static void SendHotkey(WindowsGlobalHotkeys hotkeys, int id) =>
-        SendMessage(hotkeys.Handle, WmHotkey, id, 0);
+        MessageOnlyWindows.SendMessage(hotkeys.Handle, WmHotkey, id, 0);
 
     // The window of the hotkeys, or a skip when this session cannot make one.
-    private static WindowsGlobalHotkeys CreateOrSkip()
-    {
-        try
-        {
-            return new WindowsGlobalHotkeys();
-        }
-        catch (Win32Exception)
-        {
-            Assert.Skip(KeyNotFree);
-            throw;
-        }
-    }
-
-    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
-    private static extern nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
+    private static WindowsGlobalHotkeys CreateOrSkip() => MessageOnlyWindows.CreateOrSkip(() => new WindowsGlobalHotkeys(), KeyNotFree);
 }

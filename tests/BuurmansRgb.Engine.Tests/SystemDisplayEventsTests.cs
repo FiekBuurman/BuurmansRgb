@@ -1,5 +1,4 @@
 using System.Buffers.Binary;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
@@ -122,7 +121,7 @@ public sealed class SystemDisplayEventsTests
         try
         {
             Marshal.Copy(bytes, 0, memory, bytes.Length);
-            SendMessage(display.Handle, WmPowerBroadcast, PbtPowerSettingChange, memory);
+            MessageOnlyWindows.SendMessage(display.Handle, WmPowerBroadcast, PbtPowerSettingChange, memory);
         }
         finally
         {
@@ -130,19 +129,5 @@ public sealed class SystemDisplayEventsTests
         }
     }
 
-    private static SystemDisplayEvents CreateOrSkip()
-    {
-        try
-        {
-            return new SystemDisplayEvents();
-        }
-        catch (Win32Exception)
-        {
-            Assert.Skip(NoWindow);
-            throw;
-        }
-    }
-
-    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
-    private static extern nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
+    private static SystemDisplayEvents CreateOrSkip() => MessageOnlyWindows.CreateOrSkip(() => new SystemDisplayEvents(), NoWindow);
 }

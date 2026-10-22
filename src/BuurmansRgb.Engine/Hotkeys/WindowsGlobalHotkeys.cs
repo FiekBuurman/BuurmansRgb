@@ -5,7 +5,7 @@ namespace BuurmansRgb.Engine.Hotkeys;
 
 // RegisterHotKey on a hidden message-only window. Like SystemPowerEvents: create this on the tray
 // thread, which keeps pumping messages until the engine stops, and dispose it there.
-internal sealed partial class WindowsGlobalHotkeys : NativeWindow, IGlobalHotkeys, IDisposable
+internal sealed partial class WindowsGlobalHotkeys : MessageOnlyWindow, IGlobalHotkeys
 {
     private const int WmHotkey = 0x0312;
     private const uint ModAlt = 0x0001;
@@ -15,12 +15,7 @@ internal sealed partial class WindowsGlobalHotkeys : NativeWindow, IGlobalHotkey
     // Held down, the key does its work once, not again with every repeat of the keyboard.
     private const uint ModNoRepeat = 0x4000;
 
-    // A window without a place on the screen, only for messages.
-    private static readonly nint MessageOnlyParent = new(-3);
-
     private readonly Dictionary<Keys, (int Id, Action Pressed)> _registered = [];
-
-    public WindowsGlobalHotkeys() => CreateHandle(new CreateParams { Parent = MessageOnlyParent });
 
     public bool Register(Keys key, Action pressed)
     {
@@ -45,14 +40,12 @@ internal sealed partial class WindowsGlobalHotkeys : NativeWindow, IGlobalHotkey
     }
 
     // Gives the keys back before the window goes, so another app can have them again.
-    public void Dispose()
+    protected override void Release()
     {
         foreach (var key in _registered.Keys.ToList())
         {
             Unregister(key);
         }
-
-        DestroyHandle();
     }
 
     internal static uint ToModifiers(Keys key) =>
