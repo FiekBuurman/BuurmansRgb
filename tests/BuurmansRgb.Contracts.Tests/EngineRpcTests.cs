@@ -335,6 +335,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task FlashZoneAsync_SendsTheDeviceAndZone()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.FlashZoneAsync("board", 2, Ct);
+
+        Assert.Equal([("board", 2)], _api.FlashZoneCalls);
+        Assert.Empty(_api.FlashCalls);
+    }
+
+    [Fact]
     public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
     {
         var client = await ConnectAsync();
@@ -570,6 +581,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default)
         {
             FlashCalls.Add(deviceId);
+            return Task.CompletedTask;
+        }
+
+        public List<(string DeviceId, int ZoneIndex)> FlashZoneCalls { get; } = [];
+
+        public Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default)
+        {
+            FlashZoneCalls.Add((deviceId, zoneIndex));
             return Task.CompletedTask;
         }
 

@@ -23,6 +23,26 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
     // A zone whose length cannot change.
     public static RgbZone Fixed(string name, int ledCount) => new(name, ledCount, ledCount, ledCount);
 
+    // The LEDs of each zone of a device with ledCount LEDs: the zones follow each other in LED
+    // order, and a zone that claims more LEDs than the device has is cut short, so every range lies
+    // within ledCount. A zone without LEDs, or past the last LED of the device, gets a LedCount of
+    // 0. The LEDs after the last range belong to no zone.
+    public static (int FirstLed, int LedCount)[] RangesOf(IReadOnlyList<RgbZone> zones, int ledCount)
+    {
+        ArgumentNullException.ThrowIfNull(zones);
+        ArgumentOutOfRangeException.ThrowIfNegative(ledCount);
+        var ranges = new (int FirstLed, int LedCount)[zones.Count];
+        var next = 0;
+        for (var index = 0; index < zones.Count; index++)
+        {
+            var count = Math.Clamp(zones[index].LedCount, 0, ledCount - next);
+            ranges[index] = (next, count);
+            next += count;
+        }
+
+        return ranges;
+    }
+
     public bool CanHold(int ledCount) => ledCount >= MinLedCount && ledCount <= MaxLedCount;
 
     public void ThrowIfCannotHold(int ledCount)

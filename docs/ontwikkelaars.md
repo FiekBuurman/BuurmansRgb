@@ -62,7 +62,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
-| Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
+| Knipperen en plek | `LightingControllerFlashTests` (ook een apparaat zonder LED's, dat de flits van een ander stopt), `LightingControllerZoneFlashTests` (alleen de LED's van één zone, een zone zonder LED's of die er niet meer is, een nieuwe lengte tijdens het knipperen, 0 bytes per frame), `RgbZoneTests` (`RangesOf`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de knop per zone, eerst een lengte die nog wacht, een knop annuleert de flits die bij de lampkeuze wacht), `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
 | Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, het eigen proces en het bureaublad, ook twee keer na elkaar, en de echte `SetWinEventHook` alleen zolang er gevolgd wordt), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
@@ -82,6 +82,8 @@ toetsenbord. Een paar dingen om te proberen:
 - Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
   de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
   steeds die lengte.
+- Klik bij "Simulated ARGB controller" naast "ARGB 1" op "Knipperen": in het voorbeeld knippert
+  alleen die zone. "ARGB 2" heeft pas een knop als het LED's heeft.
 - Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
@@ -226,7 +228,13 @@ toetsenbord. Een paar dingen om te proberen:
   geeft. Een zone waarvan de naam weg is of dubbel voorkomt, blijft met rust; een lengte buiten
   het bereik blijft bewaard maar wordt niet gevraagd.
 - **Knipperen:** `IEngineApi.FlashDeviceAsync`, in de engine `LightingController.Flash` en
-  `DeviceFlash`.
+  `DeviceFlash`. Eén zone gaat met `FlashZoneAsync` en `LightingController.FlashZone`: de flits
+  dekt dan alleen het LED-bereik van die zone (`RgbZone.RangesOf`, zoals de engine de
+  zone nu kent; het voorbeeld in de app deelt de zones met dezelfde functie in), de rest van
+  het apparaat rendert zijn effect gewoon. Er is steeds één `DeviceFlash`, van een apparaat of
+  een zone; een zone die de engine niet (meer) kent, slaat hij over, zoals een onbekend
+  apparaat. Een apparaat of zone zonder LED's knippert niet, maar stopt wel de flits die liep,
+  zoals een apparaat zonder LED's al deed vóór er zones knipperden.
 
 ## Ontwerp, lettertypes en icoon
 
@@ -266,6 +274,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog, `pausedLights` "keep", "off" en "dim" (#56); Windows vergrendeld, dus gepauzeerd; zonder pauze stuurt de engine niets anders dan eerst | "keep" 0,08–0,13 %, "off" 0,05–0,10 %, "dim" 0,05–0,10 % van één kern, zonder deze uitbreiding (#55) 0,03–0,16 %: geen verschil buiten de ruis. Dimmen of uit kost alleen één keer sturen bij het begin en eind van de pauze | 23–28 MB working set, 11–12,4 MB private (zonder: 23–28 en 11–12 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, "Gemiste tijden inhalen" aan, "Nacht" om 23:00 en "Ochtend" met drie tijden (`loadAt` en twee `loadTimes`) (#57); zonder deze uitbreiding (#56) leest de engine alleen `loadAt` | 0,18–0,78 % van één kern, zonder deze uitbreiding 0,34–0,55 %: geen verschil buiten de ruis; de timer rekent alleen bij het plannen een paar tijden meer uit | 27–28,4 MB working set, 11–12,4 MB private (zonder: 27–28,2 en 11–12,3 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, één scène met een programma (#58): zonder vinkje (pollen) en met `foregroundOnly` (de hook, geen pollen; zonder deze uitbreiding pollen); Windows vergrendeld, dus geen pollen en geen wisselingen van de voorgrond | Zonder vinkje 0,29–0,60 % van één kern, zonder deze uitbreiding (#57) 0,26–0,42 %; met `foregroundOnly` 0,29–0,36 % tegen 0,31–0,44 %: geen verschil buiten de ruis. Een wisseling van de voorgrond kost alleen iets als je wisselt | Zonder vinkje 25–27 MB working set, 11–13 MB private (zonder deze uitbreiding 25–28 en 11–12,7 MB); met `foregroundOnly` 25,5–26,7 en 10,9–12,3 MB (zonder: 25,2–26,4 en 11,1–12,8 MB) |
+| Engine | Regenboog, `pauseOnLockAndSleep` uit, Windows vergrendeld (#59): zonder app, en met een client die elke 2 s het moederbord laat knipperen (`FlashDeviceAsync`) of zijn eerste zone (`FlashZoneAsync`), zonder beelden | Zonder app 0,23–0,47 % van één kern, zonder deze uitbreiding (#58) 0,13–0,34 %; het apparaat knipperen 0,86 % tegen 0,73–1,04 %; een zone knipperen 0,94–1,01 %: geen verschil buiten de ruis. Knipperen kost alleen iets zolang het duurt (frames op 30 fps) | Zonder app 25–26,5 MB working set, 10,9–12 MB private (zonder: 25–26,3 en 11–12,7 MB); met knipperen 37–48 MB working set, 12,7–18,3 MB private, voor apparaat en zone gelijk aan #58 (37–44,5 en 12,7–18,4 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -410,6 +419,14 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    OpenRGB als locatie geeft (tooltip).
 4. Zet bij een ARGB-header met 0 LED's het aantal LED's en controleer met "Laat knipperen" dat
    de hele fan of strip oplicht.
+5. Klik bij het moederbord (of een hub met meer kanalen) naast elke zone op "Knipperen": alleen
+   de fan of strip op die header hoort te knipperen, de rest van het apparaat houdt zijn kleur
+   of effect, en daarna krijgt de zone zijn eigen kleur terug. Noteer welke header welke fan of
+   strip is. Kijk ook bij een zone van één LED (een 12V-header): die knippert als geheel.
+6. Verander de lengte van een header terwijl hij knippert: het knipperen stopt en het apparaat
+   krijgt zijn eigen kleuren terug; met "Knipperen" daarna knippert de nieuwe lengte. Klik ook
+   meteen na + of − op "Knipperen": de app stuurt dan eerst de nieuwe lengte. Kijk of de nieuwe
+   lengte knippert, of dat het knipperen kort is doordat OpenRGB zijn apparaten herlaadt.
 
 ### Aan en uit
 

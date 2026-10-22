@@ -1,5 +1,6 @@
-<!-- The preview of the selected lamp, or of all of them: per device a button to let it blink, per zone a
-     dot or key per LED, and the length of a zone whose length can be set. The DataContext is MainViewModel. -->
+<!-- The preview of the selected lamp, or of all of them: per device a button to let it blink, per zone its
+     name with a button to let only that zone blink, a dot or key per LED, and the length of a zone whose length
+     can be set. The DataContext is MainViewModel. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.LedPreviewPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -36,21 +37,32 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type vm:ZonePreviewViewModel}">
                                         <StackPanel Margin="0,0,0,10">
-                                            <TextBlock Margin="0,0,0,4" FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"
-                                                       Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
-                                                <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
-                                                    <Run Text="{Binding Header, Mode=OneWay}" />
-                                                </Hyperlink>
-                                            </TextBlock>
-                                            <TextBlock Margin="0,0,0,4" Style="{StaticResource SubText}" Text="{Binding Header}"
-                                                       Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                            <TextBlock Margin="0,0,0,4" FontSize="{StaticResource SubTextSize}"
-                                                       Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
-                                                <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
-                                                           AutomationProperties.Name="{Binding SelectAllAccessibleName}">
-                                                    <Run Text="{x:Static res:Strings.SelectAll}" />
-                                                </Hyperlink>
-                                            </TextBlock>
+                                            <!-- The zone name, with a button beside it that lets only this zone blink; the
+                                                 button keeps the focus when the preview is made again after a resize. -->
+                                            <DockPanel Margin="0,0,0,4">
+                                                <Button DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource SecondaryButton}"
+                                                        Content="{x:Static res:Strings.FlashZone}" ToolTip="{x:Static res:Strings.FlashZoneToolTip}"
+                                                        Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
+                                                        ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding FlashFocusKey}"
+                                                        Visibility="{Binding ShowsFlash, Converter={StaticResource BoolToVisibility}}" />
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"
+                                                               Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
+                                                        <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
+                                                            <Run Text="{Binding Header, Mode=OneWay}" />
+                                                        </Hyperlink>
+                                                    </TextBlock>
+                                                    <TextBlock Style="{StaticResource SubText}" Text="{Binding Header}"
+                                                               Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
+                                                    <TextBlock FontSize="{StaticResource SubTextSize}"
+                                                               Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
+                                                        <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
+                                                                   AutomationProperties.Name="{Binding SelectAllAccessibleName}">
+                                                            <Run Text="{x:Static res:Strings.SelectAll}" />
+                                                        </Hyperlink>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </DockPanel>
                                             <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                                   IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
                                                                   SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"

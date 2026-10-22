@@ -9,6 +9,10 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class MainViewModelTests
 {
+    // A board with LEDs of its own and an addressable header with a fan on it.
+    private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
+        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
+
     private readonly FakeEngineConnector _connector = new();
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
@@ -255,6 +259,51 @@ public sealed class MainViewModelTests
     {
         var viewModel = await ConnectAsync();
         var flash = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip").FlashCommand;
+
+        Api.RaisePause(pause);
+        Assert.False(flash.CanExecute(null));
+
+        Api.RaisePause(PauseReasons.None);
+        Assert.True(flash.CanExecute(null));
+    }
+
+    [Fact]
+    public async Task FlashZoneInThePreview_FlashesThatZone()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+
+        viewModel.Preview.Devices.Single().Zones[1].FlashCommand.Execute(null);
+
+        Assert.Equal(["flash board zone 1"], Api.Calls);
+    }
+
+    // A button in the preview flashes at once; the flash that waits from running through the list
+    // then does not blink over it later.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task FlashInThePreview_CancelsTheFlashThatWaits(bool zone)
+    {
+        var time = new FakeTimeProvider();
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => api.Devices = [.. api.Devices, Board]), time);
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "board");
+
+        var preview = viewModel.Preview.Devices.Single();
+        (zone ? preview.Zones[1].FlashCommand : preview.FlashCommand).Execute(null);
+        time.Advance(MainViewModel.FlashRest);
+
+        Assert.Equal(["flash fan", zone ? "flash board zone 1" : "flash board"], Api.Calls);
+    }
+
+    [Theory]
+    [InlineData(PauseReasons.Manual)]
+    [InlineData(PauseReasons.DisplayOff)]
+    public async Task Paused_GreysOutFlashOfTheZones_AndRunningAgainNot(PauseReasons pause)
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+        var flash = viewModel.Preview.Devices.Single().Zones[1].FlashCommand;
 
         Api.RaisePause(pause);
         Assert.False(flash.CanExecute(null));

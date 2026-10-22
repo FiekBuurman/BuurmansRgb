@@ -237,6 +237,8 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task FlashDeviceAsync(string deviceId, CancellationToken ct = default) => Record($"flash {deviceId}");
 
+    public Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default) => Record($"flash {deviceId} zone {zoneIndex}");
+
     public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
 
     public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(SimulatedDevices);

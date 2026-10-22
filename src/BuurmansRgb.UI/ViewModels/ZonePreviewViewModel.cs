@@ -36,6 +36,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
         AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, device.Name, Name) : device.Name;
+        FlashAccessibleName = UiText.Format(Strings.FlashZoneAccessibleName, device.Name, Name);
         if (layout.Index != ZoneLayout.NoZone && layout.Zone.Resizable)
         {
             Length = new ZoneLengthViewModel(device.Id, layout.Index, layout.Zone, AccessibleName, actions, time);
@@ -101,6 +102,19 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     public string SelectAllAccessibleName => UiText.Format(Strings.SelectAllAccessibleName, _deviceName);
 
+    // A zone of its own device with a name in view and LEDs the engine knows of has a button to
+    // let only it blink. A device with one zone has the button of the device for that; the LEDs
+    // that no zone claims are no zone in the engine; a zone without LEDs has nothing to blink,
+    // also while the user sets a length that the engine does not have yet.
+    public bool ShowsFlash => ShowsHeader && _layout.Index != ZoneLayout.NoZone && LedCount > 0;
+
+    // What a screen reader calls the flash button, with the device name, as zone names repeat.
+    public string FlashAccessibleName { get; }
+
+    // Lets the flash button keep the focus when the preview is made again, like the controls of a
+    // zone length (ZoneLengthViewModel.FocusKey).
+    public string FlashFocusKey => $"zone-flash/{_deviceId}/{_layout.Index}";
+
     // How long one of the device's own zones is, when its length can be set, such as for an
     // addressable header; null for a zone of a fixed length.
     public ZoneLengthViewModel? Length { get; }
@@ -157,6 +171,22 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     [RelayCommand(CanExecute = nameof(CanSelectZone))]
     private void SelectZone() => _actions?.SelectLeds(new LedSelection(_deviceId, _deviceName, FirstLed, FirstLed + LedCount - 1));
+
+    // A length set with − or + that still waits for its delay goes to the engine first, so the
+    // zone blinks at the length the user sees. With OpenRGB the flash does not outlive that
+    // length: the reload that follows replaces the output of the device and ends the flash, so
+    // the user clicks once more.
+    [RelayCommand(CanExecute = nameof(CanFlash))]
+    private void Flash()
+    {
+        if (ShowsFlash)
+        {
+            Length?.SendNow();
+            _actions?.FlashZone(new ZoneFlash(_deviceId, _layout.Index));
+        }
+    }
+
+    private bool CanFlash() => _actions?.CanFlash ?? true;
 
     private void OnLengthChanged(object? sender, PropertyChangedEventArgs e)
     {

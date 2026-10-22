@@ -145,6 +145,46 @@ public sealed class LightingControllerFlashTests : IDisposable
         Assert.False(controller.IsAnimating);
     }
 
+    // A device that OpenRGB knows no LEDs of has nothing to blink: no flash starts, and no timer.
+    [Fact]
+    public async Task Flash_DeviceWithoutLeds_StartsNoFlash()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(DynamicDeviceProvider.Device("empty", ledCount: 0));
+        using var controller = new LightingController([dynamic], _time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        var rendered = 0;
+        controller.Rendered += (_, _) => rendered++;
+
+        controller.Flash("empty");
+
+        Assert.Equal(0, rendered);
+        Assert.False(controller.IsAnimating);
+    }
+
+    // As before zones could flash: the request still replaces the flash of another device, which
+    // gets its own colors back.
+    [Fact]
+    public async Task Flash_DeviceWithoutLeds_StopsTheFlashOfAnotherDevice()
+    {
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(DynamicDeviceProvider.Device("fan"), DynamicDeviceProvider.Device("empty", ledCount: 0));
+        using var controller = new LightingController([dynamic], _time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        controller.Flash("fan");
+        Assert.Equal([RgbColor.White, RgbColor.White], dynamic.Leds["fan"]);
+        var rendered = 0;
+        controller.Rendered += (_, _) => rendered++;
+
+        controller.Flash("empty");
+
+        Assert.Equal([Orange, Orange], dynamic.Leds["fan"]);
+        Assert.Equal(1, rendered);
+        Assert.False(controller.IsAnimating);
+    }
+
     [Fact]
     public async Task Flash_SameDeviceAgain_StartsTheFlashOver()
     {

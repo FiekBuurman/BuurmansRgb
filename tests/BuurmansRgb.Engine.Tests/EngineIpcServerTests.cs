@@ -188,6 +188,29 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.Equal(Orange, (await client.Api.GetLightingAsync(Fan, Ct)).Color);
     }
 
+    [Fact]
+    public async Task FlashZoneAsync_FlashesOnlyThatZone()
+    {
+        const string dualFan = "simulated-fan-dual";
+        var client = await StartAndConnectAsync();
+        await client.Api.SetColorAsync(null, Orange, Ct);
+        var flashed = new TaskCompletionSource<RgbColor[]>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.FrameRendered += (_, frame) =>
+        {
+            var leds = frame.Devices.Single(device => device.DeviceId == dualFan).ToColors();
+            if (leds[0] == RgbColor.White)
+            {
+                flashed.TrySetResult(leds);
+            }
+        };
+
+        await client.Api.FlashZoneAsync(dualFan, 0, Ct);
+
+        var leds = await flashed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.All(leds[..8], led => Assert.Equal(RgbColor.White, led));
+        Assert.All(leds[8..], led => Assert.Equal(Orange, led));
+    }
+
     // Flashing changes nothing, so a device that just went away is no error for the settings app.
     [Fact]
     public async Task FlashDeviceAsync_UnknownDevice_IsIgnored()

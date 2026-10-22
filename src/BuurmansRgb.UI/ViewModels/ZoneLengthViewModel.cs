@@ -105,6 +105,10 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
         Send();
     }
 
+    // Sends a length that still waits for SendDelay at once, such as before the zone blinks; there
+    // is nothing to send during a drag or when the engine has the length already.
+    public void SendNow() => Send();
+
     // Goes on with a length that an earlier view model of this zone did not send yet, for example
     // because the engine reported the devices again halfway: the preview keeps it and it still goes
     // out after the delay. A length the zone cannot hold (any more) is dropped.
