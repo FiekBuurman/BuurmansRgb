@@ -66,8 +66,8 @@ schakelaar ernaast.
   gaat mee. Dat geldt ook voor een kleur van de kleurenloop en voor de per-LED-editor: daar gaat
   de lamp aan bij de eerste kleur die je mengt, één keer. Alleen mengen voor de hele lamp
   (zonder de knop), of bij de kleurenloop + en −, laat hem uit. Bij "Hele huis" gaan alle
-  lampen aan als er één uit staat, want de kleur gaat naar allemaal. Andere lampen blijven zoals
-  ze zijn.
+  lampen aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één lamp, dan blijven
+  de andere lampen zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
   werkt op elk effect.
 - **Hele huis of één lamp:** een wijziging bij "Hele huis" geldt voor alle lampen, maar alleen

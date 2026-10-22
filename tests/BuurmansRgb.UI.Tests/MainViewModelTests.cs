@@ -371,29 +371,20 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task SelectNothing_OnUiThread_RestoresSelectionAfterwards()
     {
-        var context = new QueuedSynchronizationContext();
-        var previous = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(context);
-        try
-        {
-            var viewModel = await ConnectAsync();
-            var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
-            viewModel.SelectedDevice = fan;
+        using var context = QueuedSynchronizationContext.Install();
+        var viewModel = await ConnectAsync();
+        var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = fan;
 
-            viewModel.SelectedDevice = null;
-            viewModel.Brightness = 30;
-            Assert.Null(viewModel.SelectedDevice);
+        viewModel.SelectedDevice = null;
+        viewModel.Brightness = 30;
+        Assert.Null(viewModel.SelectedDevice);
 
-            context.RunPending();
-            Assert.Same(fan, viewModel.SelectedDevice);
+        context.RunPending();
+        Assert.Same(fan, viewModel.SelectedDevice);
 
-            // Putting the selection back is no new pick, so the fan does not flash again.
-            Assert.Equal(["flash fan"], Api.Calls);
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(previous);
-        }
+        // Putting the selection back is no new pick, so the fan does not flash again.
+        Assert.Equal(["flash fan"], Api.Calls);
     }
 
     [Fact]
@@ -481,6 +472,16 @@ public sealed class MainViewModelTests
         Assert.Equal([null], viewModel.Devices.Select(device => device.DeviceId));
     }
 
+    // As the catch-up of scene times and the hotkeys start before the engine answers.
+    [Fact]
+    public void SceneTimesAreOffAndHotkeysOnAtFirst()
+    {
+        var viewModel = new MainViewModel(_connector);
+
+        Assert.False(viewModel.SceneTimes.IsOn);
+        Assert.True(viewModel.Hotkeys.IsOn);
+    }
+
     [Fact]
     public async Task Connect_ShowsTheOptionsWithoutSendingThem()
     {
@@ -496,8 +497,8 @@ public sealed class MainViewModelTests
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Off, viewModel.EffectOptions.SelectedPausedLights?.Mode);
-        Assert.True(viewModel.SceneTimes.CatchUp);
-        Assert.False(viewModel.Hotkeys.Enabled);
+        Assert.True(viewModel.SceneTimes.IsOn);
+        Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Empty(Api.Calls);
     }
 
@@ -509,8 +510,8 @@ public sealed class MainViewModelTests
         viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
         viewModel.EffectOptions.PauseOnLockAndSleep = false;
         viewModel.EffectOptions.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions.Single(option => option.Mode == PausedLightsMode.Dim);
-        viewModel.SceneTimes.CatchUp = true;
-        viewModel.Hotkeys.Enabled = false;
+        viewModel.SceneTimes.IsOn = true;
+        viewModel.Hotkeys.IsOn = false;
 
         Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False"], Api.Calls);
     }
@@ -619,8 +620,8 @@ public sealed class MainViewModelTests
         Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Dim, viewModel.EffectOptions.SelectedPausedLights?.Mode);
-        Assert.True(viewModel.SceneTimes.CatchUp);
-        Assert.False(viewModel.Hotkeys.Enabled);
+        Assert.True(viewModel.SceneTimes.IsOn);
+        Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Empty(Api.Calls);
     }
 

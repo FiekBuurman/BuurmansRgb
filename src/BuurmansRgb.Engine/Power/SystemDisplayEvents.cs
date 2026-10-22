@@ -6,10 +6,9 @@ namespace BuurmansRgb.Engine.Power;
 
 // RegisterPowerSettingNotification for GUID_CONSOLE_DISPLAY_STATE on a hidden message-only window:
 // the screen of the console goes off, is dimmed or goes on again. Windows sends the state once
-// right after registering, through the message queue, so IsOff knows it only once the tray thread
-// pumps. Like SystemPowerEvents: create this on the tray thread, which keeps pumping messages
-// until the engine stops, and dispose it there.
-internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents, IDisposable
+// right after registering, through the message queue, so IsOff knows it only once the tray
+// thread pumps.
+internal sealed partial class SystemDisplayEvents : MessageOnlyWindow, IDisplayEvents
 {
     // GUID_CONSOLE_DISPLAY_STATE.
     internal static readonly Guid ConsoleDisplayState = new("6fe69556-704a-47a0-8f24-c28d936fda47");
@@ -25,9 +24,6 @@ internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents
     private const int DisplayStateLength = DataOffset + sizeof(int);
     private const int DisplayOff = 0;
 
-    // A window without a place on the screen, only for messages.
-    private static readonly nint MessageOnlyParent = new(-3);
-
     private nint _registration;
     private volatile bool _isOff;
 
@@ -35,7 +31,6 @@ internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents
     // they would without this.
     public SystemDisplayEvents()
     {
-        CreateHandle(new CreateParams { Parent = MessageOnlyParent });
         var setting = ConsoleDisplayState;
         _registration = RegisterPowerSettingNotification(Handle, in setting, DeviceNotifyWindowHandle);
         if (_registration == 0)
@@ -48,7 +43,7 @@ internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents
 
     public bool IsOff => _isOff;
 
-    public void Dispose()
+    protected override void Release()
     {
         if (_registration != 0 && !UnregisterPowerSettingNotification(_registration))
         {
@@ -56,7 +51,6 @@ internal sealed partial class SystemDisplayEvents : NativeWindow, IDisplayEvents
         }
 
         _registration = 0;
-        DestroyHandle();
     }
 
     // Reads a POWERBROADCAST_SETTING: whether the screen is off, false when it is on or dimmed, and

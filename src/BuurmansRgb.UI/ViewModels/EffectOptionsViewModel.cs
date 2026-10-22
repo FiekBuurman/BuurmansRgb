@@ -28,8 +28,8 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     // Raised when the user picks what the lamps show during that pause.
     public event EventHandler<PausedLightsMode>? PausedLightsChanged;
 
-    public static IReadOnlyList<PausedLightsOption> PausedLightsOptions { get; } =
-        [.. Enum.GetValues<PausedLightsMode>().Select(PausedLightsOption.Create)];
+    public static IReadOnlyList<EnumOption<PausedLightsMode>> PausedLightsOptions { get; } =
+        [.. Enum.GetValues<PausedLightsMode>().Select(EnumOption<PausedLightsMode>.Create)];
 
     // The three standard rates, plus the one from settings.json when that is another.
     [ObservableProperty]
@@ -43,7 +43,7 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
 
     // Only counts while PauseOnLockAndSleep is on; the page greys it out otherwise.
     [ObservableProperty]
-    public partial PausedLightsOption? SelectedPausedLights { get; set; } = PausedLightsOptions[0];
+    public partial EnumOption<PausedLightsMode>? SelectedPausedLights { get; set; } = PausedLightsOptions[0];
 
     // Shows the options of the engine, without sending them back.
     public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>
@@ -80,7 +80,7 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
         }
     }
 
-    partial void OnSelectedPausedLightsChanged(PausedLightsOption? value)
+    partial void OnSelectedPausedLightsChanged(EnumOption<PausedLightsMode>? value)
     {
         if (!_showing.IsActive && value is not null)
         {

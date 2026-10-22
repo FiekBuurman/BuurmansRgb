@@ -128,9 +128,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectOptions.PausedLightsChanged += (_, mode) =>
             SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
-        SceneTimes.CatchUpChanged += (_, enabled) =>
+        SceneTimes.Switched += (_, enabled) =>
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
-        Hotkeys.EnabledChanged += (_, enabled) =>
+        Hotkeys.Switched += (_, enabled) =>
             SendOption(HotkeysCall, api => api.SetHotkeysAsync(enabled));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
@@ -189,9 +189,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
 
-    public SceneTimesViewModel SceneTimes { get; } = new();
+    // The option of the scene times on Instellingen: whether a time that passed while the pc slept
+    // or the engine did not run is caught up on. Off, as the engine has it until said.
+    public SwitchOptionViewModel SceneTimes { get; } = new(isOn: false);
 
-    public HotkeysViewModel Hotkeys { get; } = new();
+    // The option of the hotkeys on Instellingen: whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U
+    // switch everything on and off; the engine registers or frees the keys. On, as the engine has
+    // it until said.
+    public SwitchOptionViewModel Hotkeys { get; } = new(isOn: true);
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
@@ -443,10 +448,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.Show(await api.GetProfilesAsync());
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
-        SimulatedDevices.Show(await api.GetSimulatedDevicesAsync());
-        EffectOptions.Show(await api.GetFramesPerSecondAsync(), await api.GetPauseOnLockAndSleepAsync(), await api.GetPausedLightsAsync());
-        SceneTimes.Show(await api.GetCatchUpSceneTimesAsync());
-        Hotkeys.Show(await api.GetHotkeysAsync());
+        ShowOptions(await ReadOptionsAsync(api));
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
         if (openRgbStatusChanges == _openRgbStatusChanges)
@@ -904,24 +906,32 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _calls.Post(OptionsReloadCall, async () =>
         {
-            var mode = await connection.Api.GetSimulatedDevicesAsync();
-            var framesPerSecond = await connection.Api.GetFramesPerSecondAsync();
-            var pauseOnLockAndSleep = await connection.Api.GetPauseOnLockAndSleepAsync();
-            var pausedLights = await connection.Api.GetPausedLightsAsync();
-            var catchUp = await connection.Api.GetCatchUpSceneTimesAsync();
-            var hotkeys = await connection.Api.GetHotkeysAsync();
+            var options = await ReadOptionsAsync(connection.Api);
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
                 {
-                    SimulatedDevices.Show(mode);
-                    EffectOptions.Show(framesPerSecond, pauseOnLockAndSleep, pausedLights);
-                    SceneTimes.Show(catchUp);
-                    Hotkeys.Show(hotkeys);
+                    ShowOptions(options);
                 }
             });
         });
     });
+
+    private static async Task<OptionValues> ReadOptionsAsync(IEngineApi api) => new(
+        await api.GetSimulatedDevicesAsync(),
+        await api.GetFramesPerSecondAsync(),
+        await api.GetPauseOnLockAndSleepAsync(),
+        await api.GetPausedLightsAsync(),
+        await api.GetCatchUpSceneTimesAsync(),
+        await api.GetHotkeysAsync());
+
+    private void ShowOptions(OptionValues options)
+    {
+        SimulatedDevices.Show(options.SimulatedDevices);
+        EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
+        SceneTimes.Show(options.CatchUpSceneTimes);
+        Hotkeys.Show(options.Hotkeys);
+    }
 
     private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
     {
@@ -1063,4 +1073,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
     private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
+
+    // The options of the engine that Instellingen shows, read when connecting and after OptionsChanged.
+    private sealed record OptionValues(
+        SimulatedDevicesMode SimulatedDevices,
+        int FramesPerSecond,
+        bool PauseOnLockAndSleep,
+        PausedLightsMode PausedLights,
+        bool CatchUpSceneTimes,
+        bool Hotkeys);
 }

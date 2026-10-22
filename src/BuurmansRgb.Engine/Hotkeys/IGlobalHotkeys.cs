@@ -10,4 +10,7 @@ internal interface IGlobalHotkeys
 
     // Gives the key back to Windows; nothing happens when it is not registered.
     void Unregister(Keys key);
+
+    // Whether the key is registered now: Register took it and it was not given back since.
+    bool IsRegistered(Keys key);
 }

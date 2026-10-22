@@ -39,7 +39,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
 
-    // Without "Op de gekozen LED's zetten": the sliders, the hex code and a preset color the LEDs.
+    // With LEDs chosen there is no button: the sliders, the hex code and a preset color them at once.
     [Fact]
     public async Task MixColor_WithLedsSelected_ColorsThemAtOnce()
     {
@@ -390,10 +390,12 @@ public sealed class MainViewModelLedEditorTests
     }
 
     // Two quick Shift+→ before the engine gave the stored colors: one range from the LED where
-    // the first one came from, with the colors fetched once.
+    // the first one came from, with the colors fetched once. As in the app, both keys wait on the
+    // UI thread, so they go on in the order they were pressed.
     [Fact]
     public async Task ExtendTwice_BeforeTheColorsCame_StartsAtTheFirstAnchor()
     {
+        using var ui = QueuedSynchronizationContext.Install();
         var viewModel = await ConnectAsync();
         var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
         var slowAnswer = new TaskCompletionSource();
@@ -402,10 +404,10 @@ public sealed class MainViewModelLedEditorTests
         strip.PressKey(LedKey.Next, extend: true);
         strip.PressKey(LedKey.Next, extend: true);
         Assert.Null(viewModel.LedEditor.Selection);
-        slowAnswer.SetResult();
         Api.LedColorsGate = null;
+        slowAnswer.SetResult();
+        ui.RunPending();
 
-        await Eventually.TrueAsync(() => viewModel.LedEditor.Selection?.Last == 2);
         Assert.Equal(new LedSelection("strip", "LED strip", 0, 2), viewModel.LedEditor.Selection);
         Assert.Equal(1, Api.LedColorsCalls);
     }

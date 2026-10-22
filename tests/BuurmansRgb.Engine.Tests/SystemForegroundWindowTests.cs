@@ -1,4 +1,3 @@
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using BuurmansRgb.Engine.Programs;
 
@@ -129,23 +128,9 @@ public sealed class SystemForegroundWindowTests
     }
 
     private static void SendFollow(SystemForegroundWindow foreground) =>
-        SendMessage(foreground.Handle, SystemForegroundWindow.WmFollow, 0, 0);
+        MessageOnlyWindows.SendMessage(foreground.Handle, SystemForegroundWindow.WmFollow, 0, 0);
 
-    private static SystemForegroundWindow CreateOrSkip()
-    {
-        try
-        {
-            return new SystemForegroundWindow();
-        }
-        catch (Win32Exception)
-        {
-            Assert.Skip(NoWindow);
-            throw;
-        }
-    }
-
-    [DllImport("user32.dll", EntryPoint = "SendMessageW")]
-    private static extern nint SendMessage(nint hWnd, uint msg, nint wParam, nint lParam);
+    private static SystemForegroundWindow CreateOrSkip() => MessageOnlyWindows.CreateOrSkip(() => new SystemForegroundWindow(), NoWindow);
 
     [DllImport("user32.dll")]
     private static extern nint GetShellWindow();

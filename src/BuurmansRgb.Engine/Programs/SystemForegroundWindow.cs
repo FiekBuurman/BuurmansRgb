@@ -6,11 +6,10 @@ namespace BuurmansRgb.Engine.Programs;
 
 // SetWinEventHook for EVENT_SYSTEM_FOREGROUND, out of context: Windows posts each new foreground
 // window to the thread that set the hook, without a DLL in other programs and without polling, and
-// this reads the exe name of its process (ProcessImageName). Like SystemPowerEvents: create this on
-// the tray thread, which keeps pumping messages until the engine stops, and dispose it there.
-// Follow may come from any thread, so it posts to a hidden message-only window, and the hook is set
-// and taken away (UnhookWinEvent) on the tray thread; while not followed there is no hook.
-internal sealed partial class SystemForegroundWindow : NativeWindow, IForegroundWindow, IDisposable
+// this reads the exe name of its process (ProcessImageName). Follow may come from any thread, so it
+// posts to a hidden message-only window, and the hook is set and taken away (UnhookWinEvent) on the
+// tray thread; while not followed there is no hook.
+internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForegroundWindow
 {
     private const uint EventSystemForeground = 0x0003;
     private const uint WinEventOutOfContext = 0x0000;
@@ -21,9 +20,6 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     private const int WmApp = 0x8000;
     internal const int WmFollow = WmApp + 1;
     private const int MaxClassName = 256;
-
-    // A window without a place on the screen, only for messages.
-    private static readonly nint MessageOnlyParent = new(-3);
 
     // Windows of the shell that pass by on the way to another window, by class: the taskbars, the
     // overflow of the notification area, Alt+Tab and Win+Tab (Windows 10 and 11).
@@ -40,7 +36,8 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
         "LockApp.exe", "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
     };
 
-    // Kept here, so the garbage collector leaves it while Windows may call it.
+    // Kept here, so the garbage collector leaves it while Windows may call it. Set after the window
+    // is made; only Apply uses it, for WmFollow, which is posted and so comes after the constructor.
     private readonly WinEventProc _callback;
     private readonly ProcessImageName _names = new();
     private readonly char[] _className = new char[MaxClassName];
@@ -48,11 +45,7 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
     private nint _hook;
     private volatile bool _wanted;
 
-    public SystemForegroundWindow()
-    {
-        _callback = OnWinEvent;
-        CreateHandle(new CreateParams { Parent = MessageOnlyParent });
-    }
+    public SystemForegroundWindow() => _callback = OnWinEvent;
 
     public event EventHandler<string?>? Changed;
 
@@ -69,11 +62,7 @@ internal sealed partial class SystemForegroundWindow : NativeWindow, IForeground
         }
     }
 
-    public void Dispose()
-    {
-        Unhook();
-        DestroyHandle();
-    }
+    protected override void Release() => Unhook();
 
     // Whether a window of program with that class takes the user to that program; false for one
     // that passes by, and for a program without a name.
