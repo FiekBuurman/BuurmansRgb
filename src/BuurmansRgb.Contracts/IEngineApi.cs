@@ -172,7 +172,8 @@ public partial interface IEngineApi
     // When the engine loads the profile by itself; ProfileAutomation.None when it never does.
     Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);
 
-    // Saved with the profile. The time counts in whole minutes and the program follows
-    // ProgramNames; an invalid program throws.
+    // Saved with the profile as ProfileAutomation.Normalize gives it: the times count in whole
+    // minutes and the program follows ProgramNames. More than ProfileAutomation.MaxTimes times or
+    // an invalid program throws.
     Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default);
 }

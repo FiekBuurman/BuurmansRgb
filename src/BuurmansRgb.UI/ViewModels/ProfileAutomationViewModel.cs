@@ -1,4 +1,5 @@
-using System.Globalization;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
@@ -7,35 +8,30 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// When the selected profile loads by itself: at a time on the chosen days, and while a program runs.
-// An empty field leaves that way off. This only asks; MainViewModel sends the change to the engine
-// and shows what the engine saved.
+// When the selected profile loads by itself: at times, each on its own days, and while a program
+// runs. An empty field leaves that way off. This only asks; MainViewModel sends the change to the
+// engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
-    private const string TimeFormat = "HH:mm";
-
-    // "H" also reads "07:30"; a dot is how many people write a time in Dutch.
-    private static readonly string[] TimeFormats = ["H:mm", "H.mm"];
-
     private readonly Func<IReadOnlyList<string>> _findPrograms;
 
     // What the engine has, so Apply only runs for a change.
     private ProfileAutomation _saved = ProfileAutomation.None;
 
+    // While Display fills in the fields.
+    private bool _displaying;
+
     // findPrograms lists the programs to pick from, as .exe names (WindowedPrograms.Find).
     public ProfileAutomationViewModel(Func<IReadOnlyList<string>>? findPrograms = null)
     {
         _findPrograms = findPrograms ?? WindowedPrograms.Find;
-        foreach (var day in Days)
-        {
-            day.PropertyChanged += (_, _) => OnDaysChanged();
-        }
+        Times.CollectionChanged += OnTimesChanged;
+        Times.Add(new LoadTimeRow());
     }
 
-    // Monday to Sunday; all of them is every day. They count only with a time.
-    public IReadOnlyList<DayOption> Days { get; } = DayOption.CreateWeek();
-
-    public bool HasLoadAt => !string.IsNullOrWhiteSpace(LoadAtText);
+    // The times, as the engine saved them from early to late, and the ones added since. Always at
+    // least one row, empty when the profile has no time, so there is a field to type it in.
+    public ObservableCollection<LoadTimeRow> Times { get; } = [];
 
     public event EventHandler<ProfileAutomationChange>? ApplyRequested;
 
@@ -59,18 +55,40 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         }
     }
 
+    // An empty row at the end, on every day, up to ProfileAutomation.MaxTimes.
+    [RelayCommand(CanExecute = nameof(CanAddTime))]
+    private void AddTime() => Times.Add(new LoadTimeRow());
+
+    private bool CanAddTime() => ProfileName is not null && Times.Count < ProfileAutomation.MaxTimes;
+
+    // The only row is emptied instead, so the field stays.
+    [RelayCommand(CanExecute = nameof(CanRemoveTime))]
+    private void RemoveTime(LoadTimeRow? row)
+    {
+        if (row is null || !Times.Contains(row))
+        {
+            return;
+        }
+
+        if (Times.Count > 1)
+        {
+            Times.Remove(row);
+        }
+        else
+        {
+            Times[0] = new LoadTimeRow();
+        }
+    }
+
+    private bool CanRemoveTime(LoadTimeRow? row) => row is not null && (Times.Count > 1 || row.HasTime);
+
     // The profile it is about; null while no profile is selected.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasProfile))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand), nameof(AddTimeCommand))]
     public partial string? ProfileName { get; private set; }
 
     public bool HasProfile => ProfileName is not null;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasLoadAt))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
-    public partial string LoadAtText { get; set; } = string.Empty;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
@@ -91,37 +109,88 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public bool HasError => Error is not null;
 
-    partial void OnLoadAtTextChanged(string value) => Error = FindError();
-
-    partial void OnProgramTextChanged(string value) => Error = FindError();
-
-    private void OnDaysChanged()
+    partial void OnProgramTextChanged(string value)
     {
-        Error = FindError();
-        ApplyCommand.NotifyCanExecuteChanged();
+        if (!_displaying)
+        {
+            Error = FindError();
+        }
     }
 
-    private WeekDays CheckedDays() =>
-        Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+    private void OnTimesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        foreach (var row in e.OldItems?.OfType<LoadTimeRow>() ?? [])
+        {
+            row.Changed -= OnTimeChanged;
+        }
+
+        foreach (var row in e.NewItems?.OfType<LoadTimeRow>() ?? [])
+        {
+            row.Changed += OnTimeChanged;
+        }
+
+        for (var i = 0; i < Times.Count; i++)
+        {
+            Times[i].Number = i + 1;
+        }
+
+        OnTimeChanged(this, EventArgs.Empty);
+        AddTimeCommand.NotifyCanExecuteChanged();
+    }
+
+    private void OnTimeChanged(object? sender, EventArgs e)
+    {
+        if (_displaying)
+        {
+            return;
+        }
+
+        Error = FindError();
+        ApplyCommand.NotifyCanExecuteChanged();
+        RemoveTimeCommand.NotifyCanExecuteChanged();
+    }
 
     // Shows what the engine saved for the profile.
     public void Show(string profileName, ProfileAutomation automation) => Display(profileName, automation);
 
     public void Clear() => Display(null, ProfileAutomation.None);
 
+    // The rows there are show the saved times and only the difference is added or taken away, so
+    // the field that has the focus keeps it, also after "Toepassen" with Enter. The error is worked
+    // out once at the end, not for each field on the way.
     private void Display(string? profileName, ProfileAutomation automation)
     {
-        _saved = automation;
-        ProfileName = profileName;
-        LoadAtText = automation.LoadAt?.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
-        ProgramText = automation.Program ?? string.Empty;
-        foreach (var day in Days)
+        _displaying = true;
+        try
         {
-            day.IsChecked = (automation.Days & day.Day) != WeekDays.None;
+            _saved = automation;
+            ProfileName = profileName;
+            ProgramText = automation.Program ?? string.Empty;
+            LoadTime?[] times = [.. automation.Times.DefaultIfEmpty()];
+            while (Times.Count > times.Length)
+            {
+                Times.RemoveAt(Times.Count - 1);
+            }
+
+            for (var i = 0; i < times.Length; i++)
+            {
+                if (i < Times.Count)
+                {
+                    Times[i].Show(times[i]);
+                }
+                else
+                {
+                    Times.Add(new LoadTimeRow(times[i]));
+                }
+            }
+        }
+        finally
+        {
+            _displaying = false;
         }
 
+        OnTimeChanged(this, EventArgs.Empty);
         OnPropertyChanged(nameof(Header));
-        ApplyCommand.NotifyCanExecuteChanged();
     }
 
     [RelayCommand(CanExecute = nameof(CanApply))]
@@ -132,36 +201,37 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // The fields as the engine saves them, or null when one is not valid.
     private ProfileAutomation? Read()
     {
-        if (HasError || !TryParseTime(LoadAtText, out var loadAt))
+        if (HasError)
         {
             return null;
         }
 
-        return new ProfileAutomation(loadAt, ProgramText, CheckedDays()).Normalize();
+        var times = new List<LoadTime>();
+        foreach (var row in Times)
+        {
+            if (!row.TryRead(out var time))
+            {
+                return null;
+            }
+
+            if (time is not null)
+            {
+                times.Add(time);
+            }
+        }
+
+        return new ProfileAutomation(times, ProgramText).Normalize();
     }
 
+    // With more times it says which one, the first that is wrong, by the number a screen reader
+    // gives its field; with one time a number only gets in the way.
     private string? FindError() =>
-        !TryParseTime(LoadAtText, out _) ? Strings.ProfileLoadAtInvalid
-        : HasLoadAt && CheckedDays() == WeekDays.None ? Strings.ProfileDaysNone
+        Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.ProfileLoadAtInvalid, Strings.ProfileTimeInvalid)
+        : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
         : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
         : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
         : null;
 
-    // An empty text is no time, which is valid: off.
-    private static bool TryParseTime(string text, out TimeOnly? time)
-    {
-        time = null;
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return true;
-        }
-
-        if (!TimeOnly.TryParseExact(text.Trim(), TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
-        {
-            return false;
-        }
-
-        time = parsed;
-        return true;
-    }
+    private string ForRow(LoadTimeRow row, string single, string numbered) =>
+        Times.Count == 1 ? single : UiText.Format(numbered, row.Number);
 }

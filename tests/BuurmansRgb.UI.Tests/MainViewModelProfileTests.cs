@@ -120,7 +120,7 @@ public sealed class MainViewModelProfileTests
         viewModel.Profiles.SelectedName = "Nacht";
 
         Assert.Equal("Nacht", viewModel.Profiles.Automation.ProfileName);
-        Assert.Equal("23:00", viewModel.Profiles.Automation.LoadAtText);
+        Assert.Equal("23:00", viewModel.Profiles.Automation.Times[0].Text);
         Assert.Equal("eldenring.exe", viewModel.Profiles.Automation.ProgramText);
     }
 
@@ -141,6 +141,27 @@ public sealed class MainViewModelProfileTests
     }
 
     [Fact]
+    public async Task ApplyAutomation_MoreTimes_SendsThemAndTheCardSaysSo()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Ochtend");
+            api.ProfileAutomations["Ochtend"] = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend);
+        });
+        viewModel.Profiles.SelectedName = "Ochtend";
+
+        viewModel.Profiles.Automation.AddTimeCommand.Execute(null);
+        viewModel.Profiles.Automation.Times[1].Text = "07:00";
+        viewModel.Profiles.Automation.ApplyCommand.Execute(null);
+        // The engine tells every settings app, this one too.
+        Api.RaiseProfilesChanged();
+
+        Assert.Equal(["profile automation Ochtend 07:00,09:00 -"], Api.Calls);
+        Assert.Equal(["07:00", "09:00"], viewModel.Profiles.Automation.Times.Select(row => row.Text));
+        Assert.Equal("Elke dag om 07:00 en nog 1", Assert.Single(viewModel.Profiles.Cards).Description);
+    }
+
+    [Fact]
     public async Task DeleteProfile_EmptiesItsAutomation()
     {
         var viewModel = await ConnectAsync(api =>
@@ -153,7 +174,7 @@ public sealed class MainViewModelProfileTests
         viewModel.Profiles.DeleteCommand.Execute(null);
 
         Assert.False(viewModel.Profiles.Automation.HasProfile);
-        Assert.Equal("", viewModel.Profiles.Automation.LoadAtText);
+        Assert.Equal("", viewModel.Profiles.Automation.Times[0].Text);
     }
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)

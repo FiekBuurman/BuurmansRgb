@@ -19,7 +19,7 @@
   (minder dan 0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
 - **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, een eigen kleurenloop, of
   per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
-- **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, elke dag op een tijd of
+- **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, op vaste tijden of
   zolang een spel draait.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand en scherm uit en zet de kleuren na
   het ontwaken terug.

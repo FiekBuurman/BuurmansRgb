@@ -66,7 +66,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(["Gamen", "Nacht"], loaded.Select(profile => profile.Name));
         Assert.Equal(DeviceLighting.Default.Color, loaded[0].Lighting.Global.Color);
         Assert.Equal(0.5, loaded[0].Lighting.Global.Brightness);
-        Assert.Equal(new TimeOnly(23, 0), loaded[0].Automation.LoadAt);
+        Assert.Equal(new TimeOnly(23, 0), loaded[0].Automation.Times[0].At);
         Assert.Equal(Red, loaded[1].Lighting.Global.Color);
         Assert.False(File.Exists(_store.BrokenFilePath));
     }
@@ -110,7 +110,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         _store.Save([new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(7, 5)) }]);
 
         Assert.Contains("\"loadAt\": \"07:05\"", File.ReadAllText(_directory.File("profiles.json")));
-        Assert.Equal(new TimeOnly(7, 5), Assert.Single(_store.Load()).Automation.LoadAt);
+        Assert.Equal(new TimeOnly(7, 5), Assert.Single(_store.Load()).Automation.Times[0].At);
     }
 
     [Fact]
@@ -132,6 +132,101 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.DoesNotContain("loadOn", File.ReadAllText(_directory.File("profiles.json")));
     }
 
+    // One time stays as before, so an older engine still reads the file.
+    [Fact]
+    public void Save_OneTime_WritesNoLoadTimes()
+    {
+        _store.Save([new Profile("Werk", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Workdays) }]);
+
+        Assert.DoesNotContain("loadTimes", File.ReadAllText(_directory.File("profiles.json")));
+    }
+
+    [Fact]
+    public void Save_MoreTimes_WritesThemAsLoadTimesAndReadsThemBack()
+    {
+        var automation = new ProfileAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))]);
+        _store.Save([new Profile("Ochtend", Uniform(StaticLighting(Red))) { Automation = automation }]);
+
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+        Assert.DoesNotContain("loadAt", json);
+        Assert.DoesNotContain("loadOn", json);
+        Assert.Contains("\"at\": \"07:00\"", json);
+        Assert.Contains("\"on\": \"mon,tue,wed,thu,fri\"", json);
+        Assert.Contains("\"on\": \"sat,sun\"", json);
+        Assert.Equal(automation, Assert.Single(_store.Load()).Automation);
+    }
+
+    // Edited by hand: "loadAt" and "loadTimes" both count, from early to late.
+    [Fact]
+    public void Load_LoadAtAndLoadTimes_CountsAllOfThem()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Ochtend", "loadAt": "23:00", "loadTimes": [ { "at": "7:00", "on": "ma,di" }, { "at": "09:00", "on": "sat,sun" } ] } ] }
+            """);
+
+        var automation = Assert.Single(_store.Load()).Automation;
+
+        Assert.Equal(
+            [new LoadTime(new TimeOnly(7, 0), WeekDays.Monday | WeekDays.Tuesday), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(23, 0))],
+            automation.Times);
+    }
+
+    // A time that does not read goes; days that do not read leave that time on every day; the
+    // same time twice counts once.
+    [Fact]
+    public void Load_LoadTimesThatDoNotRead_AreLeftOutAndTraced()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Ochtend", "program": "eldenring.exe", "loadTimes": [
+                { "at": "25:00" },
+                42,
+                null,
+                { "on": "mon" },
+                { "at": 700 },
+                { "at": "7:30", "on": "someday" },
+                { "at": "09:00", "on": "sat,sun" },
+                { "at": "09:00", "on": "sat,sun" }
+            ] } ] }
+            """);
+        using var trace = new TraceCapture();
+
+        var automation = Assert.Single(_store.Load()).Automation;
+
+        Assert.Equal([new LoadTime(new TimeOnly(7, 30)), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], automation.Times);
+        Assert.Equal("eldenring.exe", automation.Program);
+        var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
+        Assert.Contains(messages, message => message.Contains("'Ochtend' has loadTimes[0].at 25:00", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Ochtend' has loadTimes[4].at 700", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Ochtend' has loadTimes[5].on someday", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("\"07:00\"")]
+    [InlineData("{ \"at\": \"07:00\" }")]
+    [InlineData("42")]
+    public void Load_LoadTimesNotAList_IsLeftOutAndKeepsTheRest(string loadTimes)
+    {
+        File.WriteAllText(_directory.File("profiles.json"), $$"""{ "profiles": [ { "name": "Ochtend", "color": "#FF0000", "loadAt": "23:00", "loadTimes": {{loadTimes}} } ] }""");
+
+        var profile = Assert.Single(_store.Load());
+
+        Assert.Equal(Red, profile.Lighting.Global.Color);
+        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profile.Automation);
+    }
+
+    [Fact]
+    public void Load_MoreThanTheMostTimes_KeepsTheFirst()
+    {
+        var times = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxTimes + 2).Select(hour => $$"""{ "at": "{{hour + 10}}:00" }"""));
+        File.WriteAllText(_directory.File("profiles.json"), $$"""{ "profiles": [ { "name": "Uur", "loadTimes": [ {{times}} ] } ] }""");
+        using var trace = new TraceCapture();
+
+        var automation = Assert.Single(_store.Load()).Automation;
+
+        Assert.Equal(Enumerable.Range(10, ProfileAutomation.MaxTimes).Select(hour => new LoadTime(new TimeOnly(hour, 0))), automation.Times);
+        Assert.Contains(trace.Messages, message => message.Contains("'Uur' has 10 times", StringComparison.Ordinal));
+    }
+
     [Theory]
     [InlineData("\"sat, sun\"", WeekDays.Weekend)]
     [InlineData("\"ma,wo,VR\"", WeekDays.Monday | WeekDays.Wednesday | WeekDays.Friday)]
@@ -145,8 +240,8 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         var automation = Assert.Single(_store.Load()).Automation;
 
-        Assert.Equal(new TimeOnly(9, 0), automation.LoadAt);
-        Assert.Equal(expected, automation.Days);
+        Assert.Equal(new TimeOnly(9, 0), Assert.Single(automation.Times).At);
+        Assert.Equal(expected, automation.Times[0].Days);
     }
 
     [Fact]
@@ -232,7 +327,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(["A", "B", "C", "D", "E", "F"], profiles.Select(profile => profile.Name));
         Assert.Equal(Red, profiles[0].Lighting.Global.Color);
         Assert.All(profiles.Take(5), profile => Assert.Equal(ProfileAutomation.None, profile.Automation));
-        Assert.Equal(new TimeOnly(7, 30), profiles[5].Automation.LoadAt);
+        Assert.Equal(new TimeOnly(7, 30), profiles[5].Automation.Times[0].At);
     }
 
     [Fact]

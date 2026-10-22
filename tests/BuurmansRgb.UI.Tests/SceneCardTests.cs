@@ -62,9 +62,25 @@ public sealed class SceneCardTests
     [InlineData("19:00", "eldenring.exe", "ma, wo, vr om 19:00 · bij eldenring.exe", WeekDays.Monday | WeekDays.Wednesday | WeekDays.Friday)]
     public void Show_LoadsByItself_SaysWhen(string? loadAt, string? program, string expected, WeekDays days = WeekDays.Every)
     {
-        var automation = new ProfileAutomation(loadAt is null ? null : TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
+        var automation = loadAt is null
+            ? new ProfileAutomation(Program: program)
+            : new ProfileAutomation(TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
 
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), automation);
+
+        Assert.Equal(expected, _card.Description);
+    }
+
+    // Only the first time fits on the card, with how many more there are.
+    [Theory]
+    [InlineData(2, null, "Werkdagen om 07:00 en nog 1")]
+    [InlineData(3, null, "Werkdagen om 07:00 en nog 2")]
+    [InlineData(2, "eldenring.exe", "Werkdagen om 07:00 en nog 1 · bij eldenring.exe")]
+    public void Show_MoreTimes_SaysTheFirstAndHowManyMore(int count, string? program, string expected)
+    {
+        LoadTime[] times = [new(new TimeOnly(7, 0), WeekDays.Workdays), new(new TimeOnly(9, 0), WeekDays.Weekend), new(new TimeOnly(23, 0))];
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program));
 
         Assert.Equal(expected, _card.Description);
     }

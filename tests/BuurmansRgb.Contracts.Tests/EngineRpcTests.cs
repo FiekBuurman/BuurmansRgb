@@ -5,6 +5,9 @@ namespace BuurmansRgb.Contracts.Tests;
 
 public sealed class EngineRpcTests : IDisposable
 {
+    // 07:00 on workdays and 09:00 in the weekend.
+    private static readonly ProfileAutomation MoreTimes = new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], "eldenring.exe");
+
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly FakeEngineApi _api = new();
     private JsonRpc? _server;
@@ -136,16 +139,20 @@ public sealed class EngineRpcTests : IDisposable
         var client = await ConnectAsync();
 
         var automation = await client.Api.GetProfileAutomationAsync("Nacht", Ct);
+        var moreTimes = await client.Api.GetProfileAutomationAsync("Ochtend", Ct);
         await client.Api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays), Ct);
         await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "eldenring.exe"), Ct);
         await client.Api.SetProfileAutomationAsync("Werk", ProfileAutomation.None, Ct);
+        await client.Api.SetProfileAutomationAsync("Ochtend", MoreTimes, Ct);
 
         Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), automation);
+        Assert.Equal(MoreTimes, moreTimes);
         Assert.Equal(
             [
                 ("Nacht", new ProfileAutomation(new TimeOnly(7, 30), Days: WeekDays.Workdays)),
                 ("Gamen", new ProfileAutomation(Program: "eldenring.exe")),
                 ("Werk", ProfileAutomation.None),
+                ("Ochtend", MoreTimes),
             ],
             _api.AutomationCalls);
     }
@@ -638,7 +645,7 @@ public sealed class EngineRpcTests : IDisposable
         public List<(string Name, ProfileAutomation Automation)> AutomationCalls { get; } = [];
 
         public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
-            Task.FromResult(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"));
+            Task.FromResult(name == "Ochtend" ? MoreTimes : new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"));
 
         public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
         {

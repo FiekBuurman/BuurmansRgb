@@ -5,15 +5,15 @@ using BuurmansRgb.Engine.Power;
 
 namespace BuurmansRgb.Engine.Profiles;
 
-// Loads a profile at its time, every day or on its days. One timer, set to the next time of any
-// profile and only while a profile has one: no polling. A timer counts elapsed time, not the
-// clock, and on Windows it stands still while the pc sleeps, so the next time is worked out again
-// when the clock jumps (a new time or time zone, or waking up). A time that passed meanwhile is
-// skipped, not caught up on: after a night asleep the "night" profile would be wrong in the
-// morning. With CatchUp the timer does catch up, with the scene the times give now: the one whose
-// time passed last. It does so at the start, and after waking up once the lights are back
-// (IResumeEvents.Restored) when that time passed while the pc slept. While a program shows its
-// profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
+// Loads a profile at each of its times, every day or on the days of that time. One timer, set to
+// the next time of any profile and only while a profile has one: no polling. A timer counts
+// elapsed time, not the clock, and on Windows it stands still while the pc sleeps, so the next time
+// is worked out again when the clock jumps (a new time or time zone, or waking up). A time that
+// passed meanwhile is skipped, not caught up on: after a night asleep the "night" profile would be
+// wrong in the morning. With CatchUp the timer does catch up, with the scene the times give now:
+// the one whose time passed last. It does so at the start, and after waking up once the lights are
+// back (IResumeEvents.Restored) when that time passed while the pc slept. While a program shows
+// its profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
 // Called from the tray thread, IPC threads and the timers; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
 {
@@ -156,15 +156,13 @@ internal sealed class ProfileTimer : IProfileTrigger
             _next = null;
             foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
-                if (automation.LoadAt is not { } loadAt)
+                foreach (var time in automation.Times)
                 {
-                    continue;
-                }
-
-                var at = DailyTime.Next(loadAt, now, zone, automation.Days);
-                if (_next is null || at < _next.Value.At)
-                {
-                    _next = (at, name);
+                    var at = DailyTime.Next(time.At, now, zone, time.Days);
+                    if (_next is null || at < _next.Value.At)
+                    {
+                        _next = (at, name);
+                    }
                 }
             }
 
@@ -202,8 +200,9 @@ internal sealed class ProfileTimer : IProfileTrigger
         Schedule();
     }
 
-    // The scene whose time passed last, when that is after since and not the scene that is
-    // on. Two at the same time: the first in alphabetical order, as in Schedule.
+    // The scene with the time that passed last, of all times of all scenes, when that is after
+    // since and not the scene that is on. Two at the same time: the first in alphabetical order, as
+    // in Schedule.
     private void LoadLatest(DateTimeOffset? since)
     {
         (DateTimeOffset At, string Name)? latest = null;
@@ -218,15 +217,13 @@ internal sealed class ProfileTimer : IProfileTrigger
             var zone = _time.LocalTimeZone;
             foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
-                if (automation.LoadAt is not { } loadAt)
+                foreach (var time in automation.Times)
                 {
-                    continue;
-                }
-
-                var at = DailyTime.Previous(loadAt, now, zone, automation.Days);
-                if (latest is null || at > latest.Value.At)
-                {
-                    latest = (at, name);
+                    var at = DailyTime.Previous(time.At, now, zone, time.Days);
+                    if (latest is null || at > latest.Value.At)
+                    {
+                        latest = (at, name);
+                    }
                 }
             }
         }

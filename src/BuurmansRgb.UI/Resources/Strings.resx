@@ -339,7 +339,7 @@
     <value>Aanzetten om</value>
   </data>
   <data name="ProfileLoadAtHint" xml:space="preserve">
-    <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
+    <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Met "+ Nog een tijd" krijgt de scène meer tijden, elk met eigen dagen, zoals 07:00 op werkdagen en 09:00 in het weekend. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
   </data>
   <data name="ProgramBrowse" xml:space="preserve">
     <value>Bladeren…</value>
@@ -369,7 +369,7 @@
     <value>Toepassen</value>
   </data>
   <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
-    <value>Bewaart de tijd en het programma bij de gekozen scène.</value>
+    <value>Bewaart de tijden en het programma bij de gekozen scène.</value>
   </data>
   <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
     <value>Vanzelf aanzetten toepassen</value>
@@ -753,10 +753,37 @@
   <data name="DaysWeekend" xml:space="preserve">
     <value>In het weekend</value>
   </data>
-  <data name="ProfileDaysLabel" xml:space="preserve">
-    <value>Op deze dagen</value>
-  </data>
   <data name="ProfileDaysNone" xml:space="preserve">
     <value>Kies minstens één dag voor de tijd.</value>
+  </data>
+  <data name="ProfileTimeInvalid" xml:space="preserve">
+    <value>Tijd {0}: vul een tijd in zoals 23:00, of laat het leeg.</value>
+  </data>
+  <data name="ProfileTimeDaysNone" xml:space="preserve">
+    <value>Tijd {0}: kies minstens één dag.</value>
+  </data>
+  <data name="ProfileTimeAccessibleName" xml:space="preserve">
+    <value>Aanzetten om, tijd {0}</value>
+  </data>
+  <data name="ProfileTimeDaysAccessibleName" xml:space="preserve">
+    <value>Dagen van tijd {0}</value>
+  </data>
+  <data name="ProfileTimeRemoveAccessibleName" xml:space="preserve">
+    <value>Tijd {0} weghalen</value>
+  </data>
+  <data name="ProfileTimeRemoveToolTip" xml:space="preserve">
+    <value>Haalt deze tijd weg. Is het de enige, dan wordt het veld leeg.</value>
+  </data>
+  <data name="ProfileTimeAdd" xml:space="preserve">
+    <value>+ Nog een tijd</value>
+  </data>
+  <data name="ProfileTimeAddToolTip" xml:space="preserve">
+    <value>Nog een tijd met eigen dagen, bijvoorbeeld 09:00 in het weekend naast 07:00 op werkdagen. Een scène kan tot acht tijden hebben.</value>
+  </data>
+  <data name="SceneAtTimes" xml:space="preserve">
+    <value>{0} om {1:HH:mm} en nog {2}</value>
+  </data>
+  <data name="SceneAtTimesAndProgram" xml:space="preserve">
+    <value>{0} om {1:HH:mm} en nog {2} · bij {3}</value>
   </data>
 </root>

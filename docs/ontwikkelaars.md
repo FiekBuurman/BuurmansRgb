@@ -64,7 +64,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests`, `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij; bij de kleurenloop in `MainViewModelColorLoopTests`) |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `JsonProfileStoreTests`, `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`), `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` en `WindowedProgramsTests` (een programma kiezen) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`), `ProgramWatcherTests`, `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen) en `WindowedProgramsTests` (een programma kiezen) |
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `HotkeysViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
@@ -85,7 +85,9 @@ toetsenbord. Een paar dingen om te proberen:
 - Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
-  verder, of `notepad.exe`, en start en sluit Kladblok.
+  verder en met "+ Nog een tijd" een tweede een minuut daarna (zet er tussendoor een kleur), of
+  `notepad.exe`, en start en sluit Kladblok. Een tijd weghalen gaat met "−"; de kaart zegt dan bijv.
+  "Elke dag om 21:00 en nog 1", of weer alleen de ene tijd.
 - Zet op Lampen een lamp uit, kies hem bij Kleur en kies "Op de strip zetten": hij gaat aan
   en zijn schakelaar gaat mee; de andere lampen blijven zoals ze waren.
 - Vink in het tray-menu "Effecten pauzeren" aan: de melding met "Hervatten" verschijnt.
@@ -117,9 +119,12 @@ toetsenbord. Een paar dingen om te proberen:
   met StreamJsonRpc; de interface is `IEngineApi` in `BuurmansRgb.Contracts`. De engine meldt
   wijzigingen met events (`LightingChanged`, `DevicesChanged`, `PauseChanged`,
   `OpenRgbStatusChanged`, `SettingsSaved`, `FrameRendered`, `ProfilesChanged`, `OptionsChanged`;
-  de app leest bij die laatste twee de scènes of de opties opnieuw). Na het opstarten en na het
-  sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan Windows
-  (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
+  de app leest bij die laatste twee de scènes of de opties opnieuw). App en engine moeten van
+  dezelfde versie zijn: de berichten hebben geen versienummer en veranderen soms van vorm (zo
+  kreeg `ProfileAutomation` een lijst `Times` in plaats van één tijd met zijn dagen). Daarom
+  stopt de installer bij een update allebei (`PrepareToInstall`). Na het opstarten en na het
+  sluiten van de laatste instellingen-app geeft de engine zijn ongebruikte geheugen terug aan
+  Windows (`MemoryTrimmer`), en ook nadat het tray-menu dicht ging.
 - **Pauzeren:** via `SystemEvents.SessionSwitch` en `SystemEvents.PowerModeChanged` op de thread
   van het tray-icoon (`AutoPause`, `SystemSessionEvents`, `SystemPowerEvents`). Bij het starten
   vraagt de engine één keer of Windows al vergrendeld is (`WTSQuerySessionInformation`). Het
@@ -157,10 +162,14 @@ toetsenbord. Een paar dingen om te proberen:
   `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
   (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en na het
   starten zet `RestoreActive` hem terug als die scène nog bestaat.
-- **Scènes op tijd:** `ProfileTimer` zet één timer op de eerstvolgende tijd. Gaat die meer dan
+- **Scènes op tijd:** een scène heeft een lijst tijden (`ProfileAutomation.Times`, elk een
+  `LoadTime` met eigen dagen, hooguit `MaxTimes` = 8; `Normalize` zet ze van vroeg naar laat en
+  haalt dubbele weg). `ProfileTimer` zet één timer op de eerstvolgende van alle tijden van alle
+  scènes; op hetzelfde moment wint de eerste op alfabet. Gaat die meer dan
   `LateLimit` (een minuut) te laat af of springt de klok erover (`IClockEvents`, ook bij het
   ontwaken), dan slaat hij die tijd over. Met `CatchUp` (`catchUpSceneTimes`, standaard uit)
-  laadt hij de scène waarvan `DailyTime.Previous` het laatst voorbij is: bij het starten via
+  laadt hij de scène waarvan een tijd volgens `DailyTime.Previous` het laatst voorbij is (van
+  alle tijden van alle scènes): bij het starten via
   `CatchUpAtStart`, dat `EngineHost` aanroept als alle triggers draaien (na de opgeslagen
   verlichting en `RestoreActive`, behalve als die scène al aan staat), en na het ontwaken op
   `IResumeEvents.Restored` van `ResumeRestorer` (na het eerste herstel, ~2 s). Dat event geeft
@@ -225,6 +234,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, een scène met een programma, niet vergrendeld (#54) | 0,31–0,60 % van één kern, zonder deze uitbreiding (#53) 0,49–0,52 %: geen verschil buiten de ruis. Vergrendeld scheelt het de ~0,05 % van het kijken in de proceslijst | 27–31 MB working set, 11–12,6 MB private (zonder: 26–31 en 11–13 MB) |
 | Engine | Regenboog, met het volgen van het scherm (#55); Windows vergrendeld, het scherm niet apart gemeten; het verschil is het extra venster | Met `pauseOnLockAndSleep` uit 0,16–0,57 % van één kern, zonder deze uitbreiding (#54) 0,21–0,36 %: geen verschil buiten de ruis. Met het pauzeren aan (gepauzeerd) 0,10 tegen 0,08 % | 23–28 MB working set, 11–12 MB private (zonder: 23–28 en 11–11,6 MB) |
 | Engine | Regenboog, `pausedLights` "keep", "off" en "dim" (#56); Windows vergrendeld, dus gepauzeerd; zonder pauze stuurt de engine niets anders dan eerst | "keep" 0,08–0,13 %, "off" 0,05–0,10 %, "dim" 0,05–0,10 % van één kern, zonder deze uitbreiding (#55) 0,03–0,16 %: geen verschil buiten de ruis. Dimmen of uit kost alleen één keer sturen bij het begin en eind van de pauze | 23–28 MB working set, 11–12,4 MB private (zonder: 23–28 en 11–12 MB) |
+| Engine | Regenboog, `pauseOnLockAndSleep` uit, "Gemiste tijden inhalen" aan, "Nacht" om 23:00 en "Ochtend" met drie tijden (`loadAt` en twee `loadTimes`) (#57); zonder deze uitbreiding (#56) leest de engine alleen `loadAt` | 0,18–0,78 % van één kern, zonder deze uitbreiding 0,34–0,55 %: geen verschil buiten de ruis; de timer rekent alleen bij het plannen een paar tijden meer uit | 27–28,4 MB working set, 11–12,4 MB private (zonder: 27–28,2 en 11–12,3 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -411,6 +421,9 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    van Windows over een tijd heen zette. Sluit de engine af, laat een tijd voorbijgaan en start
    hem weer: de scène van die tijd gaat aan; met het spel van stap 3 open alleen die van het
    spel, en de scène van de tijd pas als je het spel sluit.
+7. Geef "Werk" twee tijden een paar minuten na elkaar, de tweede alleen op vandaag, en zet
+   tussendoor een andere kleur: bij beide tijden hoort "Werk" aan te gaan. Een `profiles.json`
+   van vóór deze uitbreiding (met alleen `loadAt` en `loadOn`) werkt zonder iets te doen.
 
 ### Pauzeren
 
