@@ -133,9 +133,17 @@ schakelaar ernaast.
   van Komeet, Scanner of Fonkelen niet aanpast, is dat één kleur: de kleur van de lamp (de kleur
   van Statisch, Ademen en Golf). Een bestaande lamp of scène met zo'n effect ziet er dus hetzelfde
   uit als vóór er kleuren per effect waren, en Vuur zonder eigen kleuren brandt warm, zoals
-  altijd. Pas je de kleuren aan, dan doet de kleur van de lamp bij dat effect niet meer mee;
-  hij blijft bewaard voor de effecten met één kleur. "Op de strip zetten" is er bij deze effecten
-  niet, want de schuiven kleuren het gekozen vakje. Golf en Ademen hebben nog één kleur.
+  altijd: donkerrood, rood, oranje en geel. Pas je de kleuren aan, dan doet de kleur van de lamp
+  bij dat effect niet meer mee; hij blijft bewaard voor de effecten met één kleur. "Op de strip
+  zetten" is er bij deze effecten niet, want de schuiven kleuren het gekozen vakje. Golf en
+  Ademen hebben nog één kleur.
+
+  **Standaardkleuren** onder de vakjes haalt de eigen kleuren van het gekozen effect weg: Komeet,
+  Scanner en Fonkelen volgen weer de kleur van de lamp (ook als je die later verandert), Vuur
+  brandt weer in zijn vier warme kleuren. De andere effecten houden hun kleuren. Met "Hele huis"
+  gekozen geldt dat voor alle lampen, ook voor een lamp met eigen kleuren. De knop is alleen te
+  gebruiken als het effect eigen kleuren heeft; bij "Hele huis" telt daarvoor wat "Hele huis"
+  zelf heeft.
 
 #### Voorbeeld
 
