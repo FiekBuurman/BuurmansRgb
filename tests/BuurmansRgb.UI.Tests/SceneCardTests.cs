@@ -44,6 +44,29 @@ public sealed class SceneCardTests
         Assert.Equal([Red, Blue, Red, Blue, Red], _card.Dots.Select(dot => dot.Color));
     }
 
+    // Fire has no color of its own: warm bulbs, whatever color the lamp has.
+    [Fact]
+    public void Show_Fire_GlowsWarmWithoutTheColorOfTheLamp()
+    {
+        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), ProfileAutomation.None);
+
+        Assert.All(_card.Dots, dot => Assert.True(dot.IsLit && dot.Color.R == 255 && dot.Color.B < dot.Color.G, $"{dot.Color.ToHex()} is not warm."));
+        Assert.Equal(3, _card.Dots.Select(dot => dot.Color).Distinct().Count());
+        Assert.Equal("Vuur · 100%", _card.Description);
+    }
+
+    [Theory]
+    [InlineData(EffectIds.Twinkle, "Fonkelen")]
+    [InlineData(EffectIds.Comet, "Komeet")]
+    [InlineData(EffectIds.Scanner, "Scanner")]
+    public void Show_AnEffectWithTheColorOfTheLamp_FiveBulbsInThatColor(string effectId, string name)
+    {
+        _card.Show(new LightingInfo(Orange, 0.5, effectId), ProfileAutomation.None);
+
+        Assert.All(_card.Dots, dot => Assert.Equal(new SceneDot(Orange, true), dot));
+        Assert.Equal($"{name} · 50%", _card.Description);
+    }
+
     [Fact]
     public void Show_Off_DarkBulbsAndSaysSo()
     {

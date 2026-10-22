@@ -19,6 +19,7 @@ internal static class EffectCatalog
         [EffectIds.Twinkle] = (color, _, _) => new TwinkleEffect(color),
         [EffectIds.Comet] = (color, _, _) => new CometEffect(color),
         [EffectIds.Scanner] = (color, _, _) => new ScannerEffect(color),
+        [EffectIds.Fire] = (_, _, _) => new FireEffect(),
         [EffectIds.PerLed] = (color, ledColors, _) => new PerLedEffect(ledColors, color),
     };
 

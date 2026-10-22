@@ -180,6 +180,9 @@
   <data name="Effect_scanner" xml:space="preserve">
     <value>Scanner</value>
   </data>
+  <data name="Effect_fire" xml:space="preserve">
+    <value>Vuur</value>
+  </data>
   <data name="Effect_per-led" xml:space="preserve">
     <value>Per LED</value>
   </data>
