@@ -18,6 +18,24 @@ public sealed class TwinkleEffectTests
         Assert.Equal(first, second);
     }
 
+    // Two devices of the same length, each with its own seed, twinkle differently at the same time,
+    // and each the same again with its own seed.
+    [Fact]
+    public void Render_OtherSeed_GivesAnotherImage()
+    {
+        var first = new RgbColor[40];
+        var second = new RgbColor[40];
+        var again = new RgbColor[40];
+
+        new TwinkleEffect(Orange, seed: 1).Render(first, TimeSpan.FromSeconds(12.3));
+        new TwinkleEffect(Orange, seed: 2).Render(second, TimeSpan.FromSeconds(12.3));
+        new TwinkleEffect(Orange, seed: 2).Render(again, TimeSpan.FromSeconds(12.3));
+
+        Assert.NotEqual(first, second);
+        Assert.Equal(second, again);
+        Assert.Contains(second, led => led != RgbColor.Black);
+    }
+
     // Black or the color at some brightness, nothing else.
     [Fact]
     public void Render_ShowsOnlyTheColorOverBlack()

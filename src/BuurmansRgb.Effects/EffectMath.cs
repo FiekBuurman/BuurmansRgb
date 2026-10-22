@@ -53,6 +53,10 @@ internal static class EffectMath
         return (hash >> 8) / (double)(1 << 24);
     }
 
+    // The stream of Random for an effect with a seed, such as one per device, so two devices of
+    // the same length do not show the same chance at the same time. Seed 0 keeps the stream.
+    public static uint Seeded(uint stream, uint seed) => stream ^ Mix(seed);
+
     private static uint Mix(uint value)
     {
         value ^= value >> 16;

@@ -18,6 +18,24 @@ public sealed class FireEffectTests
         Assert.Equal(first, second);
     }
 
+    // Two devices of the same length, each with its own seed, burn differently at the same time,
+    // and each the same again with its own seed.
+    [Fact]
+    public void Render_OtherSeed_GivesAnotherImage()
+    {
+        var first = new RgbColor[8];
+        var second = new RgbColor[8];
+        var again = new RgbColor[8];
+
+        new FireEffect(seed: 1).Render(first, TimeSpan.FromSeconds(12.3));
+        new FireEffect(seed: 2).Render(second, TimeSpan.FromSeconds(12.3));
+        new FireEffect(seed: 2).Render(again, TimeSpan.FromSeconds(12.3));
+
+        Assert.NotEqual(first, second);
+        Assert.Equal(second, again);
+        Assert.All(second, IsWarm);
+    }
+
     // From dark red to yellow: always red, never more green than red or more blue than green.
     [Theory]
     [InlineData(0.0)]

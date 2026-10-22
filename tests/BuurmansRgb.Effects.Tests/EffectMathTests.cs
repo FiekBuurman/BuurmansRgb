@@ -59,6 +59,14 @@ public sealed class EffectMathTests
     }
 
     [Fact]
+    public void Seeded_ZeroKeepsTheStreamAndEverySeedGivesItsOwn()
+    {
+        Assert.Equal(0x5EED0001u, EffectMath.Seeded(0x5EED0001, 0));
+        Assert.Equal(EffectMath.Seeded(0x5EED0001, 7), EffectMath.Seeded(0x5EED0001, 7));
+        Assert.Equal(1000, Enumerable.Range(0, 1000).Select(seed => EffectMath.Seeded(0x5EED0001, (uint)seed)).Distinct().Count());
+    }
+
+    [Fact]
     public void Random_SameInputs_GiveTheSameNumber()
     {
         Assert.Equal(EffectMath.Random(7, 123_456_789_012, 3), EffectMath.Random(7, 123_456_789_012, 3));

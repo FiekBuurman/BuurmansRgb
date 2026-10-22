@@ -6,8 +6,9 @@ namespace BuurmansRgb.Effects;
 // an LED is value noise: random values at whole steps in time, and every LedsPerFlame LEDs along
 // the device so neighbours burn alike, smoothly blended in between; a slow layer for the flames and
 // a fast one for the flicker. The values come from EffectMath.Random, so a frame at the same time
-// is always the same image. Its colors are fixed: fire is warm, so it has no color of its own.
-public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlickersPerSecond) : IEffect
+// is always the same image; the seed makes the values of its own, so each device burns in its own
+// way. Its colors are fixed: fire is warm, so it has no color of its own.
+public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlickersPerSecond, uint seed = 0) : IEffect
 {
     // New random values per second of the slow layer.
     public const double DefaultFlickersPerSecond = 2.0;
@@ -30,7 +31,12 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
     private const uint SlowStream = 0xF1AE0001;
     private const uint FastStream = 0xF1AE0002;
 
+    private readonly uint _slowStream = EffectMath.Seeded(SlowStream, seed);
+    private readonly uint _fastStream = EffectMath.Seeded(FastStream, seed);
+
     public double FlickersPerSecond { get; } = EffectMath.FiniteSpeed(flickersPerSecond);
+
+    public uint Seed { get; } = seed;
 
     public bool IsAnimated => true;
 
@@ -40,8 +46,8 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         for (var i = 0; i < leds.Length; i++)
         {
             var place = i / LedsPerFlame;
-            var heat = (1.0 - FastWeight) * Noise(place, steps, SlowStream)
-                + FastWeight * Noise(place * FastSpread, steps * FastFactor, FastStream);
+            var heat = (1.0 - FastWeight) * Noise(place, steps, _slowStream)
+                + FastWeight * Noise(place * FastSpread, steps * FastFactor, _fastStream);
             leds[i] = ColorAt(Math.Clamp(0.5 + (heat - 0.5) * Contrast, 0.0, 1.0));
         }
     }

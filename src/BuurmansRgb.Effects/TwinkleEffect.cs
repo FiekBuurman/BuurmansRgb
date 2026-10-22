@@ -6,8 +6,9 @@ namespace BuurmansRgb.Effects;
 // of its own, shifted by a random part so the LEDs do not keep step; in a round it lights up by
 // chance, at a random moment and brightness. The chances come from EffectMath.Random of the LED and
 // its round, so a frame at the same time is always the same image. On a device of a few LEDs each
-// LED lights up every round, so a mouse still twinkles.
-public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = TwinkleEffect.DefaultTwinklesPerSecond) : IEffect
+// LED lights up every round, so a mouse still twinkles. The seed makes the chances of their own,
+// so each device twinkles in its own way.
+public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = TwinkleEffect.DefaultTwinklesPerSecond, uint seed = 0) : IEffect
 {
     // Rounds per LED per second.
     public const double DefaultTwinklesPerSecond = 0.6;
@@ -28,9 +29,16 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
     private const uint StartStream = 0x5EED0003;
     private const uint PeakStream = 0x5EED0004;
 
+    private readonly uint _shiftStream = EffectMath.Seeded(ShiftStream, seed);
+    private readonly uint _chanceStream = EffectMath.Seeded(ChanceStream, seed);
+    private readonly uint _startStream = EffectMath.Seeded(StartStream, seed);
+    private readonly uint _peakStream = EffectMath.Seeded(PeakStream, seed);
+
     public RgbColor Color { get; } = color;
 
     public double TwinklesPerSecond { get; } = EffectMath.FiniteSpeed(twinklesPerSecond);
+
+    public uint Seed { get; } = seed;
 
     public bool IsAnimated => true;
 
@@ -40,16 +48,16 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
         var chance = Math.Clamp(LitPerRound / leds.Length, MinChance, 1.0);
         for (var i = 0; i < leds.Length; i++)
         {
-            var shifted = rounds + EffectMath.Random(i, 0, ShiftStream);
+            var shifted = rounds + EffectMath.Random(i, 0, _shiftStream);
             var round = (long)Math.Floor(shifted);
-            if (EffectMath.Random(i, round, ChanceStream) >= chance)
+            if (EffectMath.Random(i, round, _chanceStream) >= chance)
             {
                 leds[i] = RgbColor.Black;
                 continue;
             }
 
-            var start = EffectMath.Random(i, round, StartStream) * (1.0 - TwinkleLength);
-            var peak = MinPeak + (1.0 - MinPeak) * EffectMath.Random(i, round, PeakStream);
+            var start = EffectMath.Random(i, round, _startStream) * (1.0 - TwinkleLength);
+            var peak = MinPeak + (1.0 - MinPeak) * EffectMath.Random(i, round, _peakStream);
             leds[i] = Color.Scale(peak * Level((EffectMath.Fraction(shifted) - start) / TwinkleLength));
         }
     }
