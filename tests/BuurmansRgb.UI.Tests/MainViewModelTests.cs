@@ -498,7 +498,7 @@ public sealed class MainViewModelTests
         Assert.Equal(["strip", "fan", "openrgb-gpu"], viewModel.Preview.Devices.Select(preview => preview.DeviceId));
     }
 
-    // A color mixed for a lamp that is gone does not stay for "Alle apparaten".
+    // A color mixed for a lamp that is gone does not stay for "Hele huis".
     [Fact]
     public async Task DevicesChanged_SelectedDeviceGoneWhileMixingAColor_ShowsTheColorOfAllDevices()
     {
