@@ -54,7 +54,8 @@ internal sealed class AutoPause : IAwayState, IDisposable
     public event EventHandler? EnabledChanged;
 
     // Raised under the lock when Away got another value, with the new one, so the values come in
-    // order. On the thread of the Windows event.
+    // order. On the tray thread, where Windows reports the lock and sleep; the screen saver, which
+    // also reports on the thread of its timer, does not change Away.
     public event EventHandler<PauseReasons>? AwayChanged;
 
     // Locked and Asleep as they pause the effects while Enabled is on, also while it is off; never
@@ -178,8 +179,9 @@ internal sealed class AutoPause : IAwayState, IDisposable
         }
     }
 
-    // The events come from Windows on the tray thread; a device that fails while its colors go
-    // out must not reach it, and the pause holds anyway.
+    // The events come on the tray thread, and the screen saver's second ask on the thread of its
+    // timer; a device that fails while its colors go out must reach neither, and the pause holds
+    // anyway.
     private void SetPaused(PauseReasons reason, bool paused)
     {
         try
