@@ -81,6 +81,11 @@ public partial interface IEngineApi
     // and whether they spread over the LEDs. Does not switch the effect.
     Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default);
 
+    // The own colors of an effect that takes a list of them (EffectColors.Takes: twinkle, comet,
+    // scanner and fire), EffectColors.MinColors to EffectColors.MaxColors of them; the lists of the
+    // other effects stay. Does not switch the effect.
+    Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
+
     // The colors of the per-LED effect, one per LED: the stored color, or the device color for an
     // LED without one.
     Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default);

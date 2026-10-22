@@ -4,7 +4,8 @@ namespace BuurmansRgb.Engine.Lighting;
 
 // The lighting of every device: a global lighting plus the devices that differ from it. Until
 // the lighting is applied or first changed, everything counts as the default and IsSet is false.
-// Rejects a brightness outside 0 to 1, a speed outside EffectSpeed and an unknown effect with
+// Rejects a brightness outside 0 to 1, a speed outside EffectSpeed, a color loop or own colors of
+// an effect that do not fit (ColorLoop.IsValid, EffectColors.IsValid) and an unknown effect with
 // ArgumentException, before it changes anything. Not thread-safe: LightingController uses it under its lock.
 internal sealed class LightingTable
 {
@@ -78,6 +79,12 @@ internal sealed class LightingTable
         if (!lighting.Loop.IsValid)
         {
             throw new ArgumentException($"A color loop has {ColorLoop.MinColors} to {ColorLoop.MaxColors} colors.", "colors");
+        }
+
+        if (!lighting.EffectColors.IsValid)
+        {
+            throw new ArgumentException(
+                $"Only twinkle, comet, scanner and fire have colors of their own, {EffectColors.MinColors} to {EffectColors.MaxColors} of them.", "colors");
         }
 
         EffectCatalog.ThrowIfUnknown(lighting.EffectId);

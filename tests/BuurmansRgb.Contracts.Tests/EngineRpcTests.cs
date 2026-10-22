@@ -252,6 +252,20 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetEffectColorsAsync_ReachesServerWithColorsInOrder()
+    {
+        var client = await ConnectAsync();
+        RgbColor[] colors = [new(0, 0, 60), new(0, 0, 255), new(0, 200, 255)];
+
+        await client.Api.SetEffectColorsAsync(null, EffectIds.Fire, colors, Ct);
+
+        var call = Assert.Single(_api.EffectColorsCalls);
+        Assert.Null(call.DeviceId);
+        Assert.Equal(EffectIds.Fire, call.EffectId);
+        Assert.Equal(colors, call.Colors);
+    }
+
+    [Fact]
     public async Task SetOnAsync_ReachesServer()
     {
         var client = await ConnectAsync();
@@ -574,6 +588,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default)
         {
             ColorLoopCalls.Add((deviceId, colors, spread));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, string EffectId, IReadOnlyList<RgbColor> Colors)> EffectColorsCalls { get; } = [];
+
+        public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+        {
+            EffectColorsCalls.Add((deviceId, effectId, colors));
             return Task.CompletedTask;
         }
 

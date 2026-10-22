@@ -57,6 +57,35 @@ public sealed class LightingControllerEffectTests
         Assert.NotEqual(Orange, _provider.LastColors[1]);
     }
 
+    // At time zero the scanner lights the first LED in the first color of its list, not the color of
+    // the lamp; another effect keeps its default, and the lamp color.
+    [Fact]
+    public async Task Apply_EffectWithAList_RendersItsColors()
+    {
+        await _controller.DiscoverAsync(Ct);
+        var colors = EffectColors.None.With(EffectIds.Scanner, [Blue, Green]);
+
+        _controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Scanner) { EffectColors = colors }));
+        Assert.Equal([Blue, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+
+        _controller.SetLighting(null, lighting => lighting with { EffectId = EffectIds.Comet });
+        Assert.Equal(Orange, _provider.LastColors[0]);
+    }
+
+    // Each effect keeps its own list: back on the scanner it has its colors again.
+    [Fact]
+    public async Task SetLighting_EffectColorsOfAnotherEffect_LeaveTheShownEffect()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Scanner)));
+
+        _controller.SetLighting(null, lighting => lighting with { EffectColors = lighting.EffectColors.With(EffectIds.Comet, [Green]) });
+        Assert.Equal(Orange, _provider.LastColors[0]);
+
+        _controller.SetLighting(null, lighting => lighting with { EffectColors = lighting.EffectColors.With(EffectIds.Scanner, [Blue]) });
+        Assert.Equal(Blue, _provider.LastColors[0]);
+    }
+
     // At "Hele huis" every device runs on the same clock; with the seed of its id each twinkles and
     // burns in its own way, also two of the same length, and does so again after a restart.
     [Theory]

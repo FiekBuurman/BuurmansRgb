@@ -157,6 +157,66 @@ public sealed class EngineApiTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [new RgbColor(1, 2, 3)], spread: true, Ct));
     }
 
+    // The list of the effect, a copy of what was sent; the other lists stay and the effect too.
+    [Fact]
+    public async Task SetEffectColorsAsync_StoresACopyOfTheColorsOfThatEffect()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Fire, [Blue], Ct);
+        RgbColor[] colors = [Red, Green];
+
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Comet, colors, Ct);
+        colors[0] = Orange;
+
+        var lighting = await api.GetLightingAsync("simulated-fan", Ct);
+        Assert.Equal([Red, Green], lighting.EffectColors!.For(EffectIds.Comet, Orange));
+        Assert.Equal([Blue], lighting.EffectColors.For(EffectIds.Fire, Orange));
+        Assert.Equal(DeviceLighting.Default.EffectId, lighting.EffectId);
+        Assert.Equal(EffectColors.None, (await api.GetLightingAsync("simulated-strip", Ct)).EffectColors);
+    }
+
+    // For all devices it sets the list of that effect on each, and keeps their other lists.
+    [Fact]
+    public async Task SetEffectColorsAsync_AllDevices_SetsTheListOnEveryDevice()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetEffectColorsAsync("simulated-fan", EffectIds.Fire, [Blue], Ct);
+
+        await api.SetEffectColorsAsync(null, EffectIds.Scanner, [Green], Ct);
+
+        var fan = (await api.GetLightingAsync("simulated-fan", Ct)).EffectColors!;
+        Assert.Equal([Green], fan.For(EffectIds.Scanner, Orange));
+        Assert.Equal([Blue], fan.For(EffectIds.Fire, Orange));
+        Assert.Equal([Green], (await api.GetLightingAsync("simulated-strip", Ct)).EffectColors!.For(EffectIds.Scanner, Orange));
+    }
+
+    [Theory]
+    [InlineData(EffectIds.Static)]
+    [InlineData(EffectIds.ColorLoop)]
+    [InlineData("unknown")]
+    public async Task SetEffectColorsAsync_EffectWithoutColors_ThrowsForTheEffect(string effectId)
+    {
+        using var api = CreateApi();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => api.SetEffectColorsAsync(null, effectId, [Red], Ct));
+
+        Assert.Equal("effectId", exception.ParamName);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(EffectColors.MaxColors + 1)]
+    public async Task SetEffectColorsAsync_WrongNumberOfColors_ThrowsForTheColors(int count)
+    {
+        using var api = CreateApi();
+
+        var exception = await Assert.ThrowsAsync<ArgumentException>(() => api.SetEffectColorsAsync(null, EffectIds.Comet, [.. Enumerable.Repeat(Red, count)], Ct));
+
+        Assert.Equal("colors", exception.ParamName);
+    }
+
     [Fact]
     public void SettingsSaved_FollowsTheSaveEvents()
     {

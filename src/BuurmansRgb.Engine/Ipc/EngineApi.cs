@@ -149,6 +149,19 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // With copies the colors, so the caller cannot change them afterwards either.
+    public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        if (!EffectColors.Takes(effectId))
+        {
+            throw new ArgumentException($"The effect '{effectId}' has no colors of its own.", nameof(effectId));
+        }
+
+        _lighting.SetLighting(deviceId, lighting => lighting with { EffectColors = lighting.EffectColors.With(effectId, colors) });
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<RgbColor>> GetLedColorsAsync(string deviceId, CancellationToken ct = default) =>
         Task.FromResult(_lighting.GetLedColors(deviceId));
 
@@ -302,7 +315,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // The wire formats are made here, so the lighting model does not know them, and outside the
     // controller's lock.
     private static LightingInfo ToInfo(DeviceLighting lighting) =>
-        new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On);
+        new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On, lighting.EffectColors);
 
     private static LightingFrame ToFrame(LightingOutput output, IReadOnlySet<string>? devices = null) =>
         new(output.Sequence, [.. output.Devices
