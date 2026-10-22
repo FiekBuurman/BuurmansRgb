@@ -452,10 +452,11 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   de instellingen van de schermbeveiliging pauzeert niet, en het kleine voorbeeld in dat venster
   ook niet; in het logboek staat dan dat er een schermbeveiliging vooraan kwam die Windows niet
   startte. Zegt Windows het pas iets later, dan pauzeren de effecten een seconde na het begin
-  van de schermbeveiliging. Staat bij de schermbeveiliging het vinkje om bij hervatten het aanmeldingsscherm te
-  tonen, dan vergrendelt Windows erbij: verdwijnt de schermbeveiliging, dan blijven de effecten
-  gepauzeerd tot je ontgrendelt, en gedimde of uitgezette lampen worden tussendoor niet even fel. Een schermbeveiliging van een ander programma telt mee als het
-  een gewoon `.scr`-bestand is dat Windows start.
+  van de schermbeveiliging. Staat bij de schermbeveiliging het vinkje om bij hervatten het
+  aanmeldingsscherm te tonen, dan vergrendelt Windows erbij: verdwijnt de schermbeveiliging, dan
+  blijven de effecten gepauzeerd tot je ontgrendelt, en gedimde of uitgezette lampen worden
+  tussendoor niet even fel. Een schermbeveiliging van een ander programma telt mee als het een
+  gewoon `.scr`-bestand is dat Windows start.
 - De redenen staan los van elkaar: ontgrendelen heft een pauze uit het tray-menu niet op, en
   gaat het scherm aan op het vergrendelscherm, dan lopen de effecten pas na het ontgrendelen.
   Eindigt een reden, dan stuurt de engine alle kleuren nog een keer.

@@ -14,7 +14,8 @@ namespace BuurmansRgb.Engine.Lighting;
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
 // manual pause also leaves the devices alone; while Windows is locked or asleep, the screen is off
 // or the screen saver runs, a change such as a profile that loads on time, or the restore after
-// waking up, still reaches the devices. What they show then follows PausedLights: the last frame, dimmed or black.
+// waking up, still reaches the devices. What they show then follows PausedLights: the last frame,
+// dimmed or black.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;

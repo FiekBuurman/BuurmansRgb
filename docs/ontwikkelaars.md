@@ -170,15 +170,16 @@ toetsenbord. Een paar dingen om te proberen:
   schermbeveiliging sluit. Behalve het vergrendelscherm (`LockApp.exe`, zoals bij
   `SystemForegroundWindow.Counts`): bij een wachtwoord na hervatten komt dat vooraan vóórdat
   Windows het vergrendelen meldt, en dan zouden gedimde of zwarte lampen even fel worden;
-  ontgrendelen beëindigt de reden toch. Hij meldt elk venster van een lopende schermbeveiliging, ook als hij
-  al liep, zodat een volgende schermbeveiliging na een pauze die `AutoPause` zelf beëindigde
-  weer pauzeert. Dat geeft de eigen reden `PauseReasons.ScreenSaver`, onder `pauseOnLockAndSleep`
-  en met `pausedLights`, zoals `DisplayOff`; ontgrendelen of verbinden beëindigt ook die reden,
-  voor het geval er na de schermbeveiliging geen ander venster vooraan komt. `Away` doet niet
-  mee: de schermbeveiliging zegt alleen dat niemand de pc een tijd aanraakte, en verdwijnt bij
-  de eerste muisbeweging; vergrendelt Windows erbij, dan maakt `Locked` de gebruiker weg. Bij
-  het starten kijkt hij één keer naar het venster dat vooraan staat. Voor de scènes op de
-  voorgrond telt een schermbeveiliging niet als wegwisselen, net als het vergrendelscherm.
+  ontgrendelen beëindigt de reden toch. Hij meldt elk venster van een lopende
+  schermbeveiliging, ook als hij al liep, zodat een volgende schermbeveiliging na een pauze die
+  `AutoPause` zelf beëindigde weer pauzeert. Dat geeft de eigen reden `PauseReasons.ScreenSaver`,
+  onder `pauseOnLockAndSleep` en met `pausedLights`, zoals `DisplayOff`; ontgrendelen of
+  verbinden beëindigt ook die reden, voor het geval er na de schermbeveiliging geen ander venster
+  vooraan komt. `Away` doet niet mee: de schermbeveiliging zegt alleen dat niemand de pc een tijd
+  aanraakte, en verdwijnt bij de eerste muisbeweging; vergrendelt Windows erbij, dan maakt
+  `Locked` de gebruiker weg. Bij het starten kijkt hij één keer naar het venster dat vooraan
+  staat. Voor de scènes op de voorgrond telt een schermbeveiliging niet als wegwisselen, net als
+  het vergrendelscherm.
 - **Lampen tijdens de pauze:** `LightingController.PausedLights` (`PausedLightsMode` in
   `Contracts`, `pausedLights` in `settings.json` via `PausedLightsModeJsonConverter`). Zolang de
   pauze een andere reden heeft dan `Manual`, schaalt `DeviceOutput.Send` wat naar de apparaten
@@ -211,26 +212,26 @@ toetsenbord. Een paar dingen om te proberen:
   Windows de hook bij het starten, dan blijft de schermbeveiliging luisteren en krijgt hij de
   vensters zodra een latere `Listen` (van een scène met de keuze) de hook wel krijgt; de scènes
   zelf stoppen dan met luisteren en proberen het bij de volgende `Follow(true)` opnieuw. De naam
-  komt van `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`, dezelfde als
-  in `ProcessList`), en `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher` vraagt met
-  `Follow` alleen om de vensters zolang minstens één scène de keuze aan heeft; dat komt van elke
-  thread, dus `Follow` post naar een verborgen message-only venster, dat op de tray-thread gaat
-  luisteren of ermee stopt (ook bij afsluiten). Zonder scène met de keuze leest hij dus geen
-  namen. Na het luisteren meldt hij één keer wat er nu vooraan staat. Hij meldt elk venster dat telt, ook van het programma dat al
-  vooraan stond: dat kan intussen gesloten en opnieuw gestart zijn, met alleen de taakbalk of het
-  startmenu ertussen. `ProgramWatcher` houdt zelf bij wat nieuw is. Vensters die niet tellen
-  (`SystemForegroundWindow.Counts`): de taakbalk (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`),
-  het overloopvak van het systeemvak (`TopLevelWindowForOverflowXamlIsland` op Windows 11,
-  `NotifyIconOverflowWindow` op Windows 10), Alt+Tab en Win+Tab
-  (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`, `TaskSwitcherWnd`,
-  `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en snelle instellingen
-  (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`, `ShellExperienceHost.exe`,
-  `ShellHost.exe`), een schermbeveiliging (elke `.scr`), de engine zelf en een venster waarvan
-  de naam niet te lezen is: dan blijft de stand zoals hij was. In `ProgramWatcher` is op de
-  voorgrond komen een start en wegwisselen een stop, op dezelfde stapel als de programma's die
-  tellen zolang ze draaien. Bij het wisselen tussen twee voorgrond-scènes laadt hij eerst de
-  nieuwe en haalt hij daarna de oude eronder weg (die geeft zijn verlichting van daarvoor door),
-  dus er gaat maar één wijziging naar de lampen.
+  komt van `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`,
+  dezelfde als in `ProcessList`), en `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher`
+  vraagt met `Follow` alleen om de vensters zolang minstens één scène de keuze aan heeft; dat
+  komt van elke thread, dus `Follow` post naar een verborgen message-only venster, dat op de
+  tray-thread gaat luisteren of ermee stopt (ook bij afsluiten). Zonder scène met de keuze leest
+  hij dus geen namen. Na het luisteren meldt hij één keer wat er nu vooraan staat. Hij meldt elk
+  venster dat telt, ook van het programma dat al vooraan stond: dat kan intussen gesloten en
+  opnieuw gestart zijn, met alleen de taakbalk of het startmenu ertussen. `ProgramWatcher` houdt
+  zelf bij wat nieuw is. Vensters die niet tellen (`SystemForegroundWindow.Counts`): de taakbalk
+  (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`), het overloopvak van het systeemvak
+  (`TopLevelWindowForOverflowXamlIsland` op Windows 11, `NotifyIconOverflowWindow` op Windows
+  10), Alt+Tab en Win+Tab (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`,
+  `TaskSwitcherWnd`, `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en
+  snelle instellingen (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`,
+  `ShellExperienceHost.exe`, `ShellHost.exe`), een schermbeveiliging (elke `.scr`), de engine
+  zelf en een venster waarvan de naam niet te lezen is: dan blijft de stand zoals hij was. In
+  `ProgramWatcher` is op de voorgrond komen een start en wegwisselen een stop, op dezelfde stapel
+  als de programma's die tellen zolang ze draaien. Bij het wisselen tussen twee voorgrond-scènes
+  laadt hij eerst de nieuwe en haalt hij daarna de oude eronder weg (die geeft zijn verlichting
+  van daarvoor door), dus er gaat maar één wijziging naar de lampen.
   Zolang er een voorgrond-scène aan staat, kijkt hij die naam ook in de proceslijst na, zodat
   een programma dat sluit zonder dat er een ander venster vooraan komt toch stopt; pas als hij
   het daar één keer zag, zodat een naam die nog niet te lezen is niet als gestopt telt. Tijdens
