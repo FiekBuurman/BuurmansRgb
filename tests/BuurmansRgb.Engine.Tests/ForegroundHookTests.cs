@@ -33,6 +33,36 @@ public sealed class ForegroundHookTests : IDisposable
         Assert.False(_hook.IsSet);
     }
 
+    // A listener that Windows refused the hook to stays on, and gets the windows once a later Listen
+    // gets the hook; it goes with the last listener as always.
+    [Fact]
+    public void Listen_WhenWindowsRefusesTheHook_TheListenerGetsTheWindowsOfALaterHook()
+    {
+        using var trace = new TraceCapture();
+        var takes = new Queue<nint>([0, 42]);
+        var unhooked = new List<nint>();
+        using var hook = new ForegroundHook(_ => takes.Dequeue(), handle =>
+        {
+            unhooked.Add(handle);
+            return true;
+        });
+        Action<nint> first = window => _calls.Add($"first {window}");
+        Action<nint> second = window => _calls.Add($"second {window}");
+
+        Assert.False(hook.Listen(first));
+        Assert.False(hook.IsSet);
+        Assert.Contains(trace.Messages, message => message.Contains("SetWinEventHook failed", StringComparison.Ordinal));
+        Assert.True(hook.Listen(second));
+        Assert.True(hook.IsSet);
+        hook.Tell(7);
+        hook.Stop(first);
+        hook.Stop(second);
+
+        Assert.Equal(["first 7", "second 7"], _calls);
+        Assert.False(hook.IsSet);
+        Assert.Equal([42], unhooked);
+    }
+
     [Fact]
     public void Tell_GivesTheWindowToEachListener_UntilItStops()
     {

@@ -37,7 +37,7 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
     private bool _disposed;
     private volatile bool _isRunning;
 
-    // When Windows does not take the hook, the screen saver counts as not running, so the effects
+    // While Windows does not take the hook, the screen saver counts as not running, so the effects
     // run as they would without this. hook is shared with the rest of the engine and outlives this.
     public SystemScreenSaverEvents(ForegroundHook hook)
         : this(hook, programOf: null, WindowsSaysRunning, static () => ForegroundHook.Current, TimeProvider.System)
@@ -55,9 +55,11 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         _windowsSaysRunning = windowsSaysRunning;
         _foreground = foreground;
         _askAgain = time.CreateTimer(_ => AskAgain(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        // Still listening: should a scene that follows the foreground get the hook later, this gets
+        // the windows from then on too.
         if (!_hook.Listen(_tell))
         {
-            Trace.TraceWarning("Whether the screen saver runs cannot be followed.");
+            Trace.TraceWarning("Whether the screen saver runs cannot be followed until the foreground hook is set.");
             return;
         }
 

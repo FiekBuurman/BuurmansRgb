@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 namespace BuurmansRgb.Engine;
 
 // SetWinEventHook for EVENT_SYSTEM_FOREGROUND, out of context, once for all of the engine that
-// follows the foreground window (SystemForegroundWindow, SystemScreenSaverEvents): Windows posts each
-// new foreground window to the thread that set the hook, without a DLL in other programs and
-// without polling, and that once however many listen. The hook is there only while somebody listens,
-// and is taken away (UnhookWinEvent) after the last. Only on the tray thread, which keeps pumping
-// messages until the engine stops: Listen, Stop and the calls to the listeners all happen there, so
-// nothing needs a lock.
+// follows the foreground window (SystemForegroundWindow, SystemScreenSaverEvents): Windows posts
+// each new foreground window to the thread that set the hook, without a DLL in other programs and
+// without polling, and that once however many listen. The hook is there only while somebody
+// listens, and is taken away (UnhookWinEvent) after the last. Only on the tray thread, which keeps
+// pumping messages until the engine stops: Listen, Stop and the calls to the listeners all happen
+// there, so nothing needs a lock.
 internal sealed partial class ForegroundHook : IDisposable
 {
     private const uint EventSystemForeground = 0x0003;
@@ -22,11 +22,26 @@ internal sealed partial class ForegroundHook : IDisposable
     // Kept here, so the garbage collector leaves it while Windows may call it.
     private readonly WinEventProc _callback;
 
+    private readonly Func<nint, nint> _setHook;
+    private readonly Func<nint, bool> _unhook;
+
     // Replaced, never changed, so a listener that stops while it is called does not upset the loop.
     private Action<nint>[] _listeners = [];
     private nint _hook;
 
-    public ForegroundHook() => _callback = OnWinEvent;
+    public ForegroundHook()
+        : this(SetForegroundHook, UnhookWinEvent)
+    {
+    }
+
+    // setHook sets the hook with the callback it gets and gives its handle, 0 when Windows does not
+    // take it; unhook takes it away again.
+    internal ForegroundHook(Func<nint, nint> setHook, Func<nint, bool> unhook)
+    {
+        _callback = OnWinEvent;
+        _setHook = setHook;
+        _unhook = unhook;
+    }
 
     // The window in the foreground now; 0 when there is none, such as while it changes.
     public static nint Current => GetForegroundWindow();
@@ -39,23 +54,24 @@ internal sealed partial class ForegroundHook : IDisposable
         window != 0 && GetWindowThreadProcessId(window, out var processId) != 0 ? processId : 0;
 
     // From now on listener gets each window that comes to the front, also another window of the
-    // program in front, but not one of the engine itself. False when Windows does not take the hook:
-    // then listener gets nothing, and may ask again later.
+    // program in front, but not one of the engine itself. False when Windows does not take the hook
+    // now: listener stays on, and gets the windows once a later Listen of anybody gets the hook;
+    // call Stop to ask again later instead.
     public bool Listen(Action<nint> listener)
     {
+        if (!_listeners.Contains(listener))
+        {
+            _listeners = [.. _listeners, listener];
+        }
+
         if (_hook == 0)
         {
-            _hook = SetWinEventHook(EventSystemForeground, EventSystemForeground, 0, Marshal.GetFunctionPointerForDelegate(_callback), 0, 0, WinEventOutOfContext | WinEventSkipOwnProcess);
+            _hook = _setHook(Marshal.GetFunctionPointerForDelegate(_callback));
             if (_hook == 0)
             {
                 Trace.TraceWarning("The foreground window cannot be followed: SetWinEventHook failed.");
                 return false;
             }
-        }
-
-        if (!_listeners.Contains(listener))
-        {
-            _listeners = [.. _listeners, listener];
         }
 
         return true;
@@ -79,7 +95,7 @@ internal sealed partial class ForegroundHook : IDisposable
 
     private void Unhook()
     {
-        if (_hook != 0 && !UnhookWinEvent(_hook))
+        if (_hook != 0 && !_unhook(_hook))
         {
             Trace.TraceWarning("The hook on the foreground window could not be taken away.");
         }
@@ -114,6 +130,9 @@ internal sealed partial class ForegroundHook : IDisposable
 
         Tell(window);
     }
+
+    private static nint SetForegroundHook(nint callback) =>
+        SetWinEventHook(EventSystemForeground, EventSystemForeground, 0, callback, 0, 0, WinEventOutOfContext | WinEventSkipOwnProcess);
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate void WinEventProc(nint hook, uint eventType, nint window, int objectId, int childId, uint threadId, uint time);

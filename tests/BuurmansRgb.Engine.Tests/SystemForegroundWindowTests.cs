@@ -137,6 +137,44 @@ public sealed class SystemForegroundWindowTests : IDisposable
         }
     }
 
+    // Refused, it does not stay on the hook while not followed, and the next Follow(true) asks again.
+    [Fact]
+    public void Follow_WhenWindowsRefusesTheHook_AsksAgainNextTime()
+    {
+        var takes = new Queue<nint>([0, 42]);
+        using var hook = new ForegroundHook(_ => takes.Dequeue(), _ => true);
+        SystemForegroundWindow? foreground = null;
+        try
+        {
+            foreground = MessageOnlyWindows.CreateOrSkip(() => new SystemForegroundWindow(hook), NoWindow);
+            var desktop = GetShellWindow();
+            if (desktop == 0)
+            {
+                Assert.Skip(NoWindow);
+            }
+
+            var changes = new List<string?>();
+            foreground.Changed += (_, program) => changes.Add(program);
+
+            foreground.Follow(true);
+            SendFollow(foreground);
+            Assert.False(foreground.IsListening);
+            Action<nint> other = _ => { };
+            Assert.True(hook.Listen(other));
+            hook.Tell(desktop);
+            Assert.Empty(changes);
+
+            foreground.Follow(true);
+            SendFollow(foreground);
+            Assert.True(foreground.IsListening);
+            Assert.True(hook.IsSet);
+        }
+        finally
+        {
+            foreground?.Dispose();
+        }
+    }
+
     // The hook tells each window it gets to a follower, as Windows would.
     [Fact]
     public void Followed_GetsTheWindowsOfTheHook()

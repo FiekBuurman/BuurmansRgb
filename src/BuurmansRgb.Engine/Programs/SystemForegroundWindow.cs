@@ -104,7 +104,8 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     }
 
     // As Follow asked last; several posts in a row end in the last one. When Windows does not take
-    // the hook, the next Follow(true) tries again.
+    // the hook, this stops listening, so it gets no windows while not followed, and the next
+    // Follow(true) tries again.
     private void Apply()
     {
         if (_wanted == _listening)
@@ -120,6 +121,7 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
 
         if (!_hook.Listen(_tell))
         {
+            _hook.Stop(_tell);
             return;
         }
 

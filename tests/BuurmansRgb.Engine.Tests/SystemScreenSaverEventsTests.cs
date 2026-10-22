@@ -265,6 +265,23 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
         Assert.Equal([true, true, false], _changes);
     }
 
+    // Should Windows refuse the hook at the start, the screen saver is followed once a scene that
+    // follows the foreground gets it later.
+    [Fact]
+    public void Created_WhenWindowsRefusesTheHook_FollowsOnceALaterListenGetsIt()
+    {
+        var takes = new Queue<nint>([0, 42]);
+        using var hook = new ForegroundHook(_ => takes.Dequeue(), _ => true);
+        _windowsSaysRunning = true;
+        using var screenSaver = CreateFake(hook);
+        Assert.False(hook.IsSet);
+
+        Assert.True(hook.Listen(_ => { }));
+        hook.Tell(ScreenSaverWindow);
+
+        Assert.Equal([true], _changes);
+    }
+
     [Fact]
     public void Dispose_BeforeTheSecondAsk_AsksNoMore()
     {
@@ -314,10 +331,10 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
 
     // With made-up windows and their exe names, what Windows says in _windowsSaysRunning, the
     // window in front in _foreground and a fake clock for the second ask.
-    private SystemScreenSaverEvents CreateFake()
+    private SystemScreenSaverEvents CreateFake(ForegroundHook? hook = null)
     {
         var screenSaver = new SystemScreenSaverEvents(
-            _hook,
+            hook ?? _hook,
             window => ProgramsOfWindows.GetValueOrDefault(window),
             () =>
             {
