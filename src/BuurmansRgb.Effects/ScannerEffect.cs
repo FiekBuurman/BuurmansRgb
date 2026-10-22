@@ -6,7 +6,8 @@ namespace BuurmansRgb.Effects;
 // slows down towards the ends, and behind it trails a fading tail that grows with its speed, so at
 // an end the tail shrinks into the point instead of jumping to the other side. The point moves
 // smoothly between two LEDs, so it glides also at a low frame rate. A single LED is the middle of a
-// sweep of three, so it lights up each time the point passes.
+// sweep of three, so it lights up each time the point passes. A sweep there and back looks the same
+// in either way of time, so a negative speed sweeps as the positive one.
 public sealed class ScannerEffect(RgbColor color, double scansPerSecond = ScannerEffect.DefaultScansPerSecond) : IEffect
 {
     // A scan is there and back.
@@ -28,8 +29,10 @@ public sealed class ScannerEffect(RgbColor color, double scansPerSecond = Scanne
         var phase = time.TotalSeconds * ScansPerSecond;
         var point = EffectMath.RaisedCosine(phase) * (length - 1);
 
-        // The speed of the point goes with the sine: positive on the way out, negative back.
-        var sine = Math.Sin(2.0 * Math.PI * phase);
+        // The speed of the point goes with the sine: positive on the way out, negative back. With a
+        // negative speed the phase runs back while the point sweeps the same, so the sign of the
+        // speed turns the sine.
+        var sine = Math.Sin(2.0 * Math.PI * phase) * Math.Sign(ScansPerSecond);
         var tail = Math.Max(MinTail, length * TailPart) * Math.Abs(sine);
         for (var i = 0; i < leds.Length; i++)
         {

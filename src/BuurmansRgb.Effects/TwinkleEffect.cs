@@ -7,7 +7,8 @@ namespace BuurmansRgb.Effects;
 // chance, at a random moment and brightness. The chances come from EffectMath.Random of the LED and
 // its round, so a frame at the same time is always the same image. On a device of a few LEDs each
 // LED lights up every round, so a mouse still twinkles. The seed makes the chances of their own,
-// so each device twinkles in its own way.
+// so each device twinkles in its own way. Twinkling has no way to run, so a negative speed twinkles
+// as the positive one: backwards in time each twinkle would rise slowly and go out at once.
 public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = TwinkleEffect.DefaultTwinklesPerSecond, uint seed = 0) : IEffect
 {
     // Rounds per LED per second.
@@ -46,7 +47,7 @@ public sealed class TwinkleEffect(RgbColor color, double twinklesPerSecond = Twi
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        var rounds = time.TotalSeconds * TwinklesPerSecond;
+        var rounds = time.TotalSeconds * Math.Abs(TwinklesPerSecond);
         var chance = Math.Clamp(MinLitPerRound / leds.Length, RoundChance, 1.0);
         for (var i = 0; i < leds.Length; i++)
         {

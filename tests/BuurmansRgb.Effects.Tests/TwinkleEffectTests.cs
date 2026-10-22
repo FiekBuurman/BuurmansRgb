@@ -123,6 +123,19 @@ public sealed class TwinkleEffectTests
         Assert.Contains(normal, led => led != RgbColor.Black);
     }
 
+    // Backwards in time a twinkle would rise slowly and go out at once.
+    [Fact]
+    public void Render_NegativeSpeed_TwinklesAsThePositiveSpeed()
+    {
+        var backwards = new RgbColor[30];
+        var forwards = new RgbColor[30];
+
+        new TwinkleEffect(Orange, twinklesPerSecond: -2.0).Render(backwards, TimeSpan.FromSeconds(1.75));
+        new TwinkleEffect(Orange, twinklesPerSecond: 2.0).Render(forwards, TimeSpan.FromSeconds(1.75));
+
+        Assert.Equal(forwards, backwards);
+    }
+
     [Fact]
     public void Render_TheSpeed_ChangesTheImage()
     {

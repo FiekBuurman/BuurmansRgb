@@ -49,6 +49,33 @@ public sealed class ScannerEffectTests
         RgbAssert.Close([.. Dark(3), Orange.Scale(0.5), Orange.Scale(9.0 / 16.0), Orange.Scale(1.0 / 16.0), .. Dark(2)], leds);
     }
 
+    // There and back looks the same either way in time, with the tail behind the point.
+    [Theory]
+    [InlineData(0.25)]
+    [InlineData(0.75)]
+    [InlineData(1.1)]
+    public void Render_NegativeSpeed_SweepsAsThePositiveSpeed(double seconds)
+    {
+        var backwards = new RgbColor[8];
+        var forwards = new RgbColor[8];
+
+        new ScannerEffect(Orange, scansPerSecond: -1.0).Render(backwards, TimeSpan.FromSeconds(seconds));
+        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(forwards, TimeSpan.FromSeconds(seconds));
+
+        RgbAssert.Close(forwards, backwards);
+    }
+
+    // Standing still, the point has no tail.
+    [Fact]
+    public void Render_NoSpeed_LightsOnlyThePoint()
+    {
+        var leds = new RgbColor[8];
+
+        new ScannerEffect(Orange, scansPerSecond: 0.0).Render(leds, TimeSpan.FromSeconds(3));
+
+        Assert.Equal([Orange, .. Dark(7)], leds);
+    }
+
     [Fact]
     public void Render_AfterAScan_IsBackAtTheStart()
     {

@@ -31,6 +31,20 @@ public sealed class CometEffectTests
             leds);
     }
 
+    // Backwards a round per second: after a quarter second the head is halfway LED 7 and LED 8, with
+    // the tail behind it on the side of the last LED and round to the first.
+    [Fact]
+    public void Render_NegativeSpeed_MovesTheHeadTowardsTheFirstLedWithTheTailBehind()
+    {
+        var leds = new RgbColor[10];
+
+        new CometEffect(Orange, roundsPerSecond: -1.0).Render(leds, TimeSpan.FromSeconds(0.25));
+
+        RgbAssert.Close(
+            [Orange.Scale(1.0 / 36.0), .. Dark(6), Orange.Scale(0.5), Orange.Scale(25.0 / 36.0), Orange.Scale(0.25)],
+            leds);
+    }
+
     [Fact]
     public void Render_AfterARound_IsBackAtTheStart()
     {
