@@ -487,8 +487,8 @@ public sealed class MainViewModelTests
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Off, viewModel.EffectOptions.SelectedPausedLights?.Mode);
-        Assert.True(viewModel.SceneTimes.CatchUp);
-        Assert.False(viewModel.Hotkeys.Enabled);
+        Assert.True(viewModel.SceneTimes.IsOn);
+        Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Empty(Api.Calls);
     }
 
@@ -500,8 +500,8 @@ public sealed class MainViewModelTests
         viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
         viewModel.EffectOptions.PauseOnLockAndSleep = false;
         viewModel.EffectOptions.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions.Single(option => option.Mode == PausedLightsMode.Dim);
-        viewModel.SceneTimes.CatchUp = true;
-        viewModel.Hotkeys.Enabled = false;
+        viewModel.SceneTimes.IsOn = true;
+        viewModel.Hotkeys.IsOn = false;
 
         Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False"], Api.Calls);
     }
@@ -610,8 +610,8 @@ public sealed class MainViewModelTests
         Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Dim, viewModel.EffectOptions.SelectedPausedLights?.Mode);
-        Assert.True(viewModel.SceneTimes.CatchUp);
-        Assert.False(viewModel.Hotkeys.Enabled);
+        Assert.True(viewModel.SceneTimes.IsOn);
+        Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Empty(Api.Calls);
     }
 

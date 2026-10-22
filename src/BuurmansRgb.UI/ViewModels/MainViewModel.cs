@@ -128,9 +128,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectOptions.PausedLightsChanged += (_, mode) =>
             SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
-        SceneTimes.CatchUpChanged += (_, enabled) =>
+        SceneTimes.Switched += (_, enabled) =>
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
-        Hotkeys.EnabledChanged += (_, enabled) =>
+        Hotkeys.Switched += (_, enabled) =>
             SendOption(HotkeysCall, api => api.SetHotkeysAsync(enabled));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
@@ -189,9 +189,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
 
-    public SceneTimesViewModel SceneTimes { get; } = new();
+    // The option of the scene times on Instellingen: whether a time that passed while the pc slept
+    // or the engine did not run is caught up on. Off, as the engine has it until said.
+    public SwitchOptionViewModel SceneTimes { get; } = new(isOn: false);
 
-    public HotkeysViewModel Hotkeys { get; } = new();
+    // The option of the hotkeys on Instellingen: whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U
+    // switch everything on and off; the engine registers or frees the keys. On, as the engine has
+    // it until said.
+    public SwitchOptionViewModel Hotkeys { get; } = new(isOn: true);
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
