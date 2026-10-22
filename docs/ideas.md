@@ -133,6 +133,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De kleuren van de kleurenloop en die van de andere effecten op één manier bewaren (nu
   `colorLoop` met `spread` en daarnaast `effectColors`); kan pas als een oudere versie het
   bestand niet meer hoeft te lezen
+- "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een lamp eigen kleuren voor
+  het effect heeft; nu telt voor de knop alleen wat "Hele huis" zelf heeft, en moet je eerst
+  die lamp kiezen
 
 ## Instellingen-app en ontwerp
 

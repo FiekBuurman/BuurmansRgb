@@ -315,7 +315,7 @@
     <value>Standaardkleuren</value>
   </data>
   <data name="EffectColorsDefaultToolTip" xml:space="preserve">
-    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van de lamp, vuur brandt weer in rood, oranje en geel.</value>
+    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van de lamp, vuur brandt weer in donkerrood, rood, oranje en geel. Bij Hele huis geldt het voor alle lampen, maar kan het alleen als het hele huis eigen kleuren heeft; kies anders de lamp met eigen kleuren.</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">
     <value>Scènes</value>
