@@ -13,7 +13,8 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
     // New random values per second of the slow layer.
     public const double DefaultFlickersPerSecond = 2.0;
 
-    // From cold to hot; a heat between two colors blends them.
+    // From cold to hot; a heat between two colors blends them. The scene cards of the settings app
+    // show the three hottest (SceneLook.FireColors), so change those along.
     private static readonly RgbColor[] Palette = [new(96, 8, 0), new(255, 24, 0), new(255, 100, 0), new(255, 190, 30)];
 
     private const double LedsPerFlame = 3.0;
