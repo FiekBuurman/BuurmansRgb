@@ -11,8 +11,8 @@ public sealed class SystemForegroundWindowTests : IDisposable
 
     public void Dispose() => _hook.Dispose();
 
-    // The taskbar, Alt+Tab, the lock screen and the Start menu pass by; the desktop and any program
-    // take the user away from a game.
+    // The taskbar, Alt+Tab, the lock screen, the Start menu and a screen saver pass by; the desktop
+    // and any program take the user away from a game.
     [Theory]
     [InlineData("Shell_TrayWnd", "explorer.exe", false)]
     [InlineData("Shell_SecondaryTrayWnd", "explorer.exe", false)]
@@ -24,6 +24,8 @@ public sealed class SystemForegroundWindowTests : IDisposable
     [InlineData("Windows.UI.Core.CoreWindow", "LockApp.exe", false)]
     [InlineData("Windows.UI.Core.CoreWindow", "StartMenuExperienceHost.exe", false)]
     [InlineData("Windows.UI.Core.CoreWindow", "searchhost.exe", false)]
+    [InlineData("WindowsScreenSaverClass", "Mystify.scr", false)]
+    [InlineData("", "PhotoScreensaver.scr", false)]
     [InlineData("Progman", "explorer.exe", true)]
     [InlineData("CabinetWClass", "explorer.exe", true)]
     [InlineData("UnityWndClass", "eldenring.exe", true)]

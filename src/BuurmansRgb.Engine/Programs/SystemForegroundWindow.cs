@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.Power;
 
 namespace BuurmansRgb.Engine.Programs;
 
@@ -66,9 +67,13 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     protected override void Release() => StopListening();
 
     // Whether a window of program with that class takes the user to that program; false for one
-    // that passes by, and for a program without a name.
+    // that passes by, and for a program without a name. A screen saver (any .scr) passes by like
+    // the lock screen: it only shows while nobody touches the pc, and AutoPause pauses for it.
     internal static bool Counts(string className, string? program) =>
-        program is not null && !PassingClasses.Contains(className) && !PassingPrograms.Contains(program);
+        program is not null
+        && !PassingClasses.Contains(className)
+        && !PassingPrograms.Contains(program)
+        && !SystemScreenSaverEvents.IsScreenSaver(program);
 
     // A window that came to the front: its program, when it counts. Also when it is the same
     // program as before, as that may have stopped and started again in between. Called by Windows
