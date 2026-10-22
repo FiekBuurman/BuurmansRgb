@@ -229,6 +229,17 @@ uitbreidingen in `docs/bouwplan.md`.
   lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
 - `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
   engine dat veld bij een wijziging met de hand niet over
+- `ProgramWatcher` opsplitsen: de logica van de voorgrond (`foregroundOnly`, het volgen van
+  `IForegroundWindow`, wisselen tussen voorgrond-scènes) naar een eigen klasse. Bij de refactor
+  na de review bleef het staan; pas oppakken als het werk aan programma's en LED's groeit
+- Eén beschrijving per engine-optie: een nieuwe optie raakt nu zo'n tien plekken (`EngineSettings`,
+  de JSON-converter, `EngineHost` bij laden en opslaan, `IEngineApi` met get, set en
+  `OptionsChanged`, `EngineApi`, de RPC, `MainViewModel` met lezen, tonen en sturen, het
+  viewmodel en de XAML van Instellingen). Een gedeelde beschrijving met naam, standaard en
+  geldige waarden zou de meeste daarvan uit één bron halen
+- Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
+  waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
+  terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen
 
 ## Installer en uitrol
 
@@ -266,3 +277,16 @@ uitbreidingen in `docs/bouwplan.md`.
   de review bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, het voorbeeld, de
   kleurkiezer en de effectkeuze nodig, en de bewerk-logica zelf zit al in `LedEditorViewModel`.
   Pas oppakken als het LED-bewerken groeit (bijv. per zone)
+- `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
+  UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op
+  de laatste controle (`after.IsKeyboardFocused`), meestal als eerste test in een nieuw proces
+  (~400 ms). Bij de refactor na de review is de vermoede oorzaak geprobeerd (een uitgestelde
+  render: de focus gaat weg vóór Unloaded en Loaded, en het vergeten op ApplicationIdle komt vóór
+  de render): de sleutel pas vergeten na Unloaded, `s_lostKey` `[ThreadStatic]`, en
+  `OffscreenWindow.WaitUntilIdle` eerst op één `CompositionTarget.Rendering` laten wachten. Daarna
+  faalde hij nog 3 van de 50 keer, dus dat is het niet, of niet alleen. Volgende stap: in een
+  falende run vastleggen welke focus- en laadgebeurtenissen er in welke volgorde komen
+- `LedPreviewViewKeyboardTests.Render_WithTheFocus_DrawsARingAroundTheActiveLed` faalt als twee
+  UI-testsets tegelijk draaien in zo'n 9 % van de runs (7 van de 80); heel af en toe ook
+  `ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed`. Los van de focus-poging hierboven,
+  want het gebeurde even vaak met als zonder die wijziging
