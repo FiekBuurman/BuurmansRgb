@@ -319,6 +319,68 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
     }
 
+    // Another effect leaves the LEDs alone: the picker colors the lamp again, so the color does not
+    // put the lamp back on the per-LED effect.
+    [Fact]
+    public async Task ChooseAnotherEffect_WithLedsSelected_ClearsThemAndTheColorGoesToTheLamp()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Scanner);
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
+        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
+        viewModel.ColorPicker.Pick("#00FF00");
+        Assert.Equal(EffectIds.Scanner, viewModel.SelectedEffect?.Id);
+        Assert.Equal(["effect all scanner", "color all #00FF00"], Api.Calls);
+    }
+
+    // With the color loop the picker colors the loop, as without LEDs chosen.
+    [Fact]
+    public async Task ChooseColorLoop_WithLedsSelected_ThePickerColorsTheLoop()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.ColorLoop);
+        viewModel.ColorPicker.Mix("#FF00FF");
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.Equal(EffectIds.ColorLoop, viewModel.SelectedEffect?.Id);
+        Assert.Equal(["effect all color-loop", "loop all #FF00FF,#00FF00,#0000FF spread"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task ChoosePerLed_WithLedsSelected_KeepsThem()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.PerLed);
+        viewModel.ColorPicker.Mix("#00FF00");
+
+        Assert.Equal(new LedSelection("fan", "Fan", 0, 0), viewModel.LedEditor.Selection);
+        Assert.Equal(["effect all per-led", "leds fan 0 #00FF00"], Api.Calls);
+    }
+
+    // The effect the engine reports is no choice of the user: the LEDs stay chosen.
+    [Fact]
+    public async Task EffectChangedInTheEngine_WithLedsSelected_KeepsThem()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        Api.Lighting[""] = Api.Lighting[""] with { EffectId = EffectIds.PerLed };
+        Api.RaiseLightingChanged();
+        await Eventually.TrueAsync(() => viewModel.SelectedEffect?.Id == EffectIds.PerLed);
+
+        Assert.Equal(new LedSelection("fan", "Fan", 0, 0), viewModel.LedEditor.Selection);
+        Assert.Empty(Api.Calls);
+    }
+
     [Fact]
     public async Task ClearLedSelection_GivesThePickerBackToTheDevice()
     {
@@ -476,7 +538,8 @@ public sealed class MainViewModelLedEditorTests
 
     private async Task<MainViewModel> ConnectAsync()
     {
-        var viewModel = new MainViewModel(_connector);
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+            api.Effects = [EffectIds.Static, EffectIds.Scanner, EffectIds.ColorLoop, EffectIds.PerLed]));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
