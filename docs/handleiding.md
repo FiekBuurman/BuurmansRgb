@@ -215,11 +215,16 @@ Hoe het vanzelf aanzetten werkt:
   het eerste terug. Een programma dat al draait als je het instelt, telt pas bij zijn volgende
   start; draait het al als de engine start, dan gaat de scène meteen aan. Sluit je de engine
   af terwijl het programma draait, dan zet hij eerst de verlichting van daarvoor terug en
-  bewaart die. Zolang Windows vergrendeld is of slaapt (en de effecten dan pauzeren), kijkt de
-  engine niet naar programma's; meteen na het ontgrendelen kijkt hij één keer.
+  bewaart die. Zolang Windows vergrendeld is of slaapt, kijkt de engine niet naar programma's,
+  ook als "Pauzeren bij vergrendelen en slaapstand" uit staat; de scène van een spel blijft dan
+  staan. Meteen na het ontgrendelen of ontwaken kijkt hij één keer: een programma dat intussen
+  startte, zet dan zijn scène aan, en een dat intussen stopte, zet de verlichting van daarvoor
+  terug. Alleen een tijd die intussen komt, laat hem één keer eerder kijken (zie hieronder).
 - **Tijd tijdens een spel:** komt een tijd terwijl een programma zijn scène toont, dan blijft
   die staan en komt de scène van de tijd zodra het programma stopt; heb je tijdens het spel
-  zelf iets veranderd, dan komt hij meteen.
+  zelf iets veranderd, dan komt hij meteen. Komt de tijd terwijl Windows vergrendeld is of
+  slaapt, dan kijkt de engine eerst één keer of het programma nog draait: stopte het intussen,
+  dan komt de scène van de tijd meteen, en niet pas na het ontgrendelen.
 
 ### Instellingen
 
@@ -348,7 +353,8 @@ De engine pauzeert de bewegende effecten om drie redenen, die elk op zichzelf af
 | Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Het laatste frame blijft staan |
 
 - Bij elke reden stopt de animatie en kost hij geen CPU meer; de lampen gaan niet uit.
-  Scènes op tijd of bij een programma en het verbinden met OpenRGB lopen gewoon door.
+  Scènes op tijd en het verbinden met OpenRGB lopen gewoon door. Naar programma's kijkt de
+  engine tijdens vergrendelen en slaapstand niet (zie "Bij een programma" bij Scènes).
 - De redenen staan los van elkaar: ontgrendelen heft een pauze uit het tray-menu niet op.
   Eindigt een reden, dan stuurt de engine alle kleuren nog een keer.
 - Tijdens vergrendelen en slaapstand gaat een wijziging wel naar de lampen, bijv. een scène op
@@ -359,7 +365,8 @@ De engine pauzeert de bewegende effecten om drie redenen, die elk op zichzelf af
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen en slaapstand" bij Instellingen (of
   `"pauseOnLockAndSleep": false` in `settings.json`). Uitzetten tijdens zo'n pauze laat de
-  effecten meteen weer lopen.
+  effecten meteen weer lopen. Naar programma's kijkt de engine tijdens vergrendelen en slaapstand
+  ook dan niet.
 
 ## Instellingenbestanden
 

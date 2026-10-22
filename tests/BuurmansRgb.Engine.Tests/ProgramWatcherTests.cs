@@ -1,7 +1,9 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using Microsoft.Win32;
 using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -16,13 +18,17 @@ public sealed class ProgramWatcherTests : IDisposable
     private readonly InMemoryProfileStore _store = new();
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly FakeRunningPrograms _programs = new();
+    private readonly FakePowerEvents _power = new();
+    private readonly FakeSessionEvents _session = new();
     private readonly ClockTimeProvider _time = new(new DateTimeOffset(2026, 6, 1, 12, 0, 0, TimeSpan.Zero), TimeZoneInfo.Utc);
     private readonly ProfileLibrary _profiles;
+    private readonly AutoPause _autoPause;
     private ProgramWatcher? _watcher;
 
     public ProgramWatcherTests()
     {
         _profiles = new ProfileLibrary(_store, _lighting);
+        _autoPause = new AutoPause(_power, _session, _lighting.SetPaused);
         _store.Profiles =
         [
             Profile("Gamen", Red, EldenRing),
@@ -35,6 +41,7 @@ public sealed class ProgramWatcherTests : IDisposable
     public void Dispose()
     {
         _watcher?.Dispose();
+        _autoPause.Dispose();
         _lighting.Dispose();
     }
 
@@ -50,27 +57,150 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(0, _programs.FindCount);
     }
 
-    // Nobody starts a game on the lock screen or while the pc sleeps.
+    // Nobody starts a game on the lock screen or while the pc sleeps, whether the effects pause
+    // then (pauseOnLockAndSleep) or not.
     [Theory]
-    [InlineData(PauseReasons.Locked)]
-    [InlineData(PauseReasons.Asleep)]
-    public void WhileWindowsIsLockedOrAsleep_LooksForNothing_AndRightAfterLooksAtOnce(PauseReasons reason)
+    [InlineData(Absence.Locked, true)]
+    [InlineData(Absence.Locked, false)]
+    [InlineData(Absence.Asleep, true)]
+    [InlineData(Absence.Asleep, false)]
+    [InlineData(Absence.AsleepUntilUnlocked, true)]
+    [InlineData(Absence.AsleepUntilUnlocked, false)]
+    [InlineData(Absence.ConsoleDisconnected, true)]
+    [InlineData(Absence.ConsoleDisconnected, false)]
+    [InlineData(Absence.RemoteDisconnected, true)]
+    [InlineData(Absence.RemoteDisconnected, false)]
+    public void WhileAway_LooksForNothing_AndRightAfterLooksAtOnce(Absence away, bool pauseOnLockAndSleep)
     {
+        _autoPause.Enabled = pauseOnLockAndSleep;
         StartWatcher();
         var looks = _programs.FindCount;
 
-        _lighting.SetPaused(reason, true);
+        GoAway(away);
         _time.Advance(TimeSpan.FromMinutes(1));
         Assert.Equal(looks, _programs.FindCount);
         Assert.False(_time.HasPendingTimer);
 
         _programs.Running.Add(EldenRing);
-        _lighting.SetPaused(reason, false);
+        ComeBack(away);
         _time.Advance(TimeSpan.Zero);
 
         Assert.Equal(looks + 1, _programs.FindCount);
-        Assert.Equal(Red, _lighting.GetLighting(null).Color);
+        Assert.Equal(Red, ShownColor());
         Assert.True(_time.HasPendingTimer);
+    }
+
+    // The game's lighting stays on while Windows is locked; the first look after unlocking sees
+    // that it stopped in the meantime and goes back.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void ProgramStopsWhileLocked_LightingStaysUntilUnlocked_ThenGoesBack(bool pauseOnLockAndSleep)
+    {
+        _autoPause.Enabled = pauseOnLockAndSleep;
+        StartWatcher();
+        StartProgram(EldenRing);
+
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _programs.Running.Remove(EldenRing);
+        _time.Advance(TimeSpan.FromMinutes(1));
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        _time.Advance(TimeSpan.Zero);
+
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // A time that comes on the lock screen after the game stopped is not held until unlocking.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HoldWhileLocked_GameStoppedMeanwhile_LooksOnceAndHoldsNothing(bool pauseOnLockAndSleep)
+    {
+        _autoPause.Enabled = pauseOnLockAndSleep;
+        StartWatcher();
+        StartProgram(EldenRing);
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _programs.Running.Remove(EldenRing);
+        var looks = _programs.FindCount;
+
+        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal(Green, ShownColor());
+        Assert.False(_time.HasPendingTimer);
+    }
+
+    [Fact]
+    public void HoldWhileLocked_GameStillRuns_LooksOnceAndHoldsUntilItStops()
+    {
+        StartWatcher();
+        StartProgram(EldenRing);
+        _session.Raise(SessionSwitchReason.SessionLock);
+        var looks = _programs.FindCount;
+
+        Assert.True(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal(Red, ShownColor());
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        StopProgram(EldenRing);
+        Assert.Equal(Orange, ShownColor());
+    }
+
+    // Only on the lock screen, and only with a game whose scene it could hold.
+    [Fact]
+    public void Hold_WhileSomebodyIsThereOrWithoutAGame_LooksNoExtraTime()
+    {
+        StartWatcher();
+        _session.Raise(SessionSwitchReason.SessionLock);
+        var looks = _programs.FindCount;
+        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks, _programs.FindCount);
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        StartProgram(EldenRing);
+        looks = _programs.FindCount;
+        Assert.True(_watcher.HoldUntilProgramsStop("Nacht"));
+        Assert.Equal(looks, _programs.FindCount);
+    }
+
+    // An engine that starts late after sign-in may start on the lock screen.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void StartedWhileLocked_LooksOnlyAfterUnlocking(bool pauseOnLockAndSleep)
+    {
+        _session.IsLocked = true;
+        using var autoPause = new AutoPause(_power, _session, _lighting.SetPaused) { Enabled = pauseOnLockAndSleep };
+        _programs.Running.Add(EldenRing);
+
+        StartWatcher(autoPause);
+        Assert.Equal(0, _programs.FindCount);
+        Assert.Equal(Green, ShownColor());
+
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+        _time.Advance(TimeSpan.Zero);
+
+        Assert.Equal(1, _programs.FindCount);
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // Turning the pause on or off while locked changes nothing about looking.
+    [Fact]
+    public void PauseOnLockAndSleepTurnedOffWhileLocked_StillLooksForNothing()
+    {
+        StartWatcher();
+        _session.Raise(SessionSwitchReason.SessionLock);
+        var looks = _programs.FindCount;
+
+        _autoPause.Enabled = false;
+        _time.Advance(TimeSpan.FromMinutes(1));
+
+        Assert.Equal(looks, _programs.FindCount);
+        Assert.False(_time.HasPendingTimer);
     }
 
     // The pause from the tray menu is no reason to stop looking.
@@ -89,7 +219,7 @@ public sealed class ProgramWatcherTests : IDisposable
     [Fact]
     public void BeforeStart_ReadsNothing()
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _autoPause, _time);
 
         Assert.Equal(0, _store.LoadCount);
         Assert.False(_time.HasPendingTimer);
@@ -395,13 +525,79 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.False(_time.HasPendingTimer);
     }
 
+    [Fact]
+    public void Dispose_StopsListeningForAway()
+    {
+        var away = new FakeAwayState();
+        StartWatcher(away);
+        Assert.Equal(1, away.Listeners);
+
+        _watcher!.Dispose();
+
+        Assert.Equal(0, away.Listeners);
+    }
+
+    // How nobody is at the pc, and how that ends: AsleepUntilUnlocked wakes up without a Resume
+    // from SystemEvents, so only unlocking ends the sleep.
+    public enum Absence
+    {
+        Locked,
+        Asleep,
+        AsleepUntilUnlocked,
+        ConsoleDisconnected,
+        RemoteDisconnected,
+    }
+
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
 
-    private void StartWatcher()
+    // As the engine wires it, with the AutoPause of the test unless another is given.
+    private void StartWatcher(IAwayState? away = null)
     {
-        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, _time);
+        _watcher = new ProgramWatcher(_profiles, _lighting, _programs, away ?? _autoPause, _time);
         _watcher.Start();
+    }
+
+    private void GoAway(Absence away)
+    {
+        switch (away)
+        {
+            case Absence.Locked:
+                _session.Raise(SessionSwitchReason.SessionLock);
+                break;
+            case Absence.Asleep or Absence.AsleepUntilUnlocked:
+                _power.RaiseSuspending();
+                break;
+            case Absence.ConsoleDisconnected:
+                _session.Raise(SessionSwitchReason.ConsoleDisconnect);
+                break;
+            case Absence.RemoteDisconnected:
+                _session.Raise(SessionSwitchReason.RemoteDisconnect);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(away), away, null);
+        }
+    }
+
+    private void ComeBack(Absence away)
+    {
+        switch (away)
+        {
+            case Absence.Locked or Absence.AsleepUntilUnlocked:
+                _session.Raise(SessionSwitchReason.SessionUnlock);
+                break;
+            case Absence.Asleep:
+                _power.RaiseResumed();
+                break;
+            case Absence.ConsoleDisconnected:
+                _session.Raise(SessionSwitchReason.ConsoleConnect);
+                break;
+            case Absence.RemoteDisconnected:
+                _session.Raise(SessionSwitchReason.RemoteConnect);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(away), away, null);
+        }
     }
 
     private void StartProgram(string program)

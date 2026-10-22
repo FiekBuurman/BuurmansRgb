@@ -66,7 +66,7 @@ internal static class Program
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // The host disposes them, before it saves for the last time.
-        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), TimeProvider.System);
+        var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, TimeProvider.System);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
