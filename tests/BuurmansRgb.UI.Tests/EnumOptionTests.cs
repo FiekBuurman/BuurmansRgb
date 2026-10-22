@@ -14,7 +14,7 @@ public sealed class EnumOptionTests
     }
 
     [Fact]
-    public void Create_ModeWithoutAName_ShowsItsEnglishName()
+    public void Create_ModeWithoutADutchName_ShowsItsToString()
     {
         var option = EnumOption<PausedLightsMode>.Create((PausedLightsMode)99);
 

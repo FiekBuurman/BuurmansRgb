@@ -472,6 +472,16 @@ public sealed class MainViewModelTests
         Assert.Equal([null], viewModel.Devices.Select(device => device.DeviceId));
     }
 
+    // As the catch-up of scene times and the hotkeys start before the engine answers.
+    [Fact]
+    public void SceneTimesAreOffAndHotkeysOnAtFirst()
+    {
+        var viewModel = new MainViewModel(_connector);
+
+        Assert.False(viewModel.SceneTimes.IsOn);
+        Assert.True(viewModel.Hotkeys.IsOn);
+    }
+
     [Fact]
     public async Task Connect_ShowsTheOptionsWithoutSendingThem()
     {

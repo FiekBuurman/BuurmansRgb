@@ -9,16 +9,6 @@ public sealed class SwitchOptionViewModelTests
     [InlineData(true)]
     public void IsOn_StartsAsGiven(bool isOn) => Assert.Equal(isOn, new SwitchOptionViewModel(isOn).IsOn);
 
-    // As the catch-up of scene times and the hotkeys start in MainViewModel.
-    [Fact]
-    public void SceneTimesAreOffAndHotkeysOnAtFirst()
-    {
-        var viewModel = new MainViewModel(new FakeEngineConnector());
-
-        Assert.False(viewModel.SceneTimes.IsOn);
-        Assert.True(viewModel.Hotkeys.IsOn);
-    }
-
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
