@@ -201,9 +201,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Tijdens de schermbeveiliging een eigen scène of een rustig effect laten zien in plaats van
   pauzeren, bijv. langzaam ademen in de kleur van de scène
 - De schermbeveiliging wordt herkend aan een `.scr`-venster vooraan met
-  `SPI_GETSCREENSAVERRUNNING`. Mocht Windows die vlag op een pc pas zetten nadat het venster
-  vooraan kwam, dan pauzeert hij niet; eventueel één keer kort daarna opnieuw vragen (geen
-  pollen). Een "schermbeveiliging" die een gewoon programma met een volledig scherm is, telt niet
+  `SPI_GETSCREENSAVERRUNNING`. Een "schermbeveiliging" die een gewoon programma met een volledig
+  scherm is, telt niet
 - De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
   gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène

@@ -8,25 +8,50 @@ namespace BuurmansRgb.Engine.Power;
 // screen saver is a program with the extension .scr, and its window comes to the front when Windows
 // starts it. SystemParametersInfo(SPI_GETSCREENSAVERRUNNING) confirms it, as Windows sets that only
 // for a screen saver it starts itself: a .scr in front for "Voorbeeld" in the screen saver settings
-// does not count. Asked only when a .scr comes to the front, so any other window costs one exe name.
-// Whatever window comes to the front after it ends it, without asking Windows, which may still say
-// it runs while the screen saver closes: the window the user was in, or the lock screen. Create and
-// dispose it on the tray thread, like ForegroundHook.
+// does not count. Asked only when a .scr comes to the front, so any other window costs its exe name.
+// Should Windows set it only a little after the window came to the front, it is asked once more a
+// second later, while that window is still in front; a timer that runs once, not polling. Whatever
+// window comes to the front after it ends it, without asking Windows, which may still say it runs
+// while the screen saver closes. Create and dispose it on the tray thread, like ForegroundHook; the
+// second ask comes on the thread of the timer, so the lock keeps the changes in order.
 internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDisposable
 {
+    internal static readonly TimeSpan AskAgainAfter = TimeSpan.FromSeconds(1);
+
     private const uint SpiGetScreenSaverRunning = 0x0072;
 
     private readonly ForegroundHook _hook;
     private readonly Action<nint> _tell;
     private readonly ProcessImageName _names = new();
+    private readonly Func<nint, string?> _programOf;
+    private readonly Func<bool> _windowsSaysRunning;
+    private readonly Func<nint> _foreground;
+    private readonly ITimer _askAgain;
+    private readonly Lock _gate = new();
+
+    // The window of a .scr that Windows did not confirm yet; 0 when there is nothing to ask again.
+    private nint _askAbout;
+    private bool _disposed;
     private volatile bool _isRunning;
 
     // When Windows does not take the hook, the screen saver counts as not running, so the effects
     // run as they would without this. hook is shared with the rest of the engine and outlives this.
     public SystemScreenSaverEvents(ForegroundHook hook)
+        : this(hook, programOf: null, WindowsSaysRunning, static () => ForegroundHook.Current, TimeProvider.System)
+    {
+    }
+
+    // programOf gives the exe name of a window, null when it is gone or cannot be read (by default
+    // through ProcessImageName, on the tray thread only); windowsSaysRunning asks
+    // SPI_GETSCREENSAVERRUNNING and foreground gives the window in front now.
+    internal SystemScreenSaverEvents(ForegroundHook hook, Func<nint, string?>? programOf, Func<bool> windowsSaysRunning, Func<nint> foreground, TimeProvider time)
     {
         _hook = hook;
         _tell = Tell;
+        _programOf = programOf ?? ReadProgram;
+        _windowsSaysRunning = windowsSaysRunning;
+        _foreground = foreground;
+        _askAgain = time.CreateTimer(_ => AskAgain(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         if (!_hook.Listen(_tell))
         {
             Trace.TraceWarning("Whether the screen saver runs cannot be followed.");
@@ -34,20 +59,64 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         }
 
         // An engine that starts while the screen saver runs; Switched has no listeners yet.
-        _isRunning = IsRunningScreenSaver(ForegroundHook.Current);
+        Tell(_foreground());
     }
 
     public event EventHandler<bool>? Switched;
 
     public bool IsRunning => _isRunning;
 
-    public void Dispose() => _hook.Stop(_tell);
+    public void Dispose()
+    {
+        _hook.Stop(_tell);
+        lock (_gate)
+        {
+            _disposed = true;
+            _askAbout = 0;
+            _askAgain.Dispose();
+        }
+    }
 
-    // A window that came to the front.
-    internal void Tell(nint window) => Show(IsRunningScreenSaver(window));
+    // A window that came to the front. A newer window than the .scr to ask about makes that ask moot.
+    internal void Tell(nint window)
+    {
+        lock (_gate)
+        {
+            _askAbout = 0;
+            var program = _programOf(window);
+            if (!WindowsPrograms.IsScreenSaver(program))
+            {
+                ShowLocked(false);
+                return;
+            }
+
+            if (_windowsSaysRunning())
+            {
+                ShowLocked(true);
+                return;
+            }
+
+            // "Voorbeeld" in the screen saver settings, or a Windows that sets the flag a bit later.
+            Trace.TraceInformation($"{program} came to the front, but Windows says no screen saver runs; asking again in a second.");
+            ShowLocked(false);
+            if (!_disposed)
+            {
+                _askAbout = window;
+                _askAgain.Change(AskAgainAfter, Timeout.InfiniteTimeSpan);
+            }
+        }
+    }
 
     // True each time; false only after true, as only then something ends.
     internal void Show(bool running)
+    {
+        lock (_gate)
+        {
+            ShowLocked(running);
+        }
+    }
+
+    private void ShowLocked(bool running)
     {
         if (!running && !_isRunning)
         {
@@ -58,15 +127,36 @@ internal sealed partial class SystemScreenSaverEvents : IScreenSaverEvents, IDis
         Switched?.Invoke(this, running);
     }
 
-    // Windows is asked only for a .scr. A window that is gone, or whose program cannot be read, is no
-    // screen saver.
-    private bool IsRunningScreenSaver(nint window)
+    // Once, a second after a .scr that Windows did not confirm, on the thread of the timer, where a
+    // throw would end the engine.
+    private void AskAgain()
+    {
+        try
+        {
+            lock (_gate)
+            {
+                var window = _askAbout;
+                _askAbout = 0;
+                if (window == 0 || _disposed || _foreground() != window || !_windowsSaysRunning())
+                {
+                    return;
+                }
+
+                Trace.TraceInformation("Windows says a second later that the screen saver runs.");
+                ShowLocked(true);
+            }
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+        }
+    }
+
+    // A window that is gone, or whose program cannot be read, is no screen saver.
+    private string? ReadProgram(nint window)
     {
         var processId = ForegroundHook.ProcessOf(window);
-        return processId != 0
-            && _names.TryRead(processId, out var program)
-            && WindowsPrograms.IsScreenSaver(program)
-            && WindowsSaysRunning();
+        return processId != 0 && _names.TryRead(processId, out var program) ? program : null;
     }
 
     private static bool WindowsSaysRunning()

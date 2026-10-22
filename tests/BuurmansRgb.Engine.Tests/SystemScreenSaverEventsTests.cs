@@ -1,19 +1,34 @@
 using System.Runtime.InteropServices;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Power;
+using Microsoft.Extensions.Time.Testing;
 using Microsoft.Win32;
 
 namespace BuurmansRgb.Engine.Tests;
 
 // With the real hook on the thread of the test. No test starts a screen saver: whether one runs is
-// told through Show, as a window of a running .scr would; a real window (the desktop) is no screen
-// saver. Whether Windows says one runs is only read, never set.
+// told through Show, as a window of a running .scr would, or through made-up windows with what
+// Windows says made up too (CreateFake); a real window (the desktop) is no screen saver. Whether
+// Windows says one runs is only read, never set.
 public sealed class SystemScreenSaverEventsTests : IDisposable
 {
     private const string NoShell = "This session has no shell.";
+    private const string ScreenSaverProgram = "Ribbons.scr";
+    private const nint ScreenSaverWindow = 1;
+    private const nint ProgramWindow = 2;
+
+    private static readonly Dictionary<nint, string> ProgramsOfWindows = new()
+    {
+        [ScreenSaverWindow] = ScreenSaverProgram,
+        [ProgramWindow] = "notepad.exe",
+    };
 
     private readonly ForegroundHook _hook = new();
+    private readonly FakeTimeProvider _time = new();
     private readonly List<bool> _changes = [];
+    private bool _windowsSaysRunning;
+    private nint _foreground;
+    private int _asks;
 
     public void Dispose() => _hook.Dispose();
 
@@ -128,6 +143,114 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
         Assert.Equal(PauseReasons.None, pause);
     }
 
+    // "Voorbeeld" in the screen saver settings: the .scr comes to the front, but Windows did not
+    // start it. Written to the log, and asked once more, still without counting.
+    [Fact]
+    public void Tell_AScreenSaverWindowsDoesNotConfirm_DoesNotCount()
+    {
+        using var trace = new TraceCapture();
+        using var screenSaver = CreateFake();
+
+        _foreground = ScreenSaverWindow;
+        screenSaver.Tell(ScreenSaverWindow);
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Empty(_changes);
+        Assert.False(screenSaver.IsRunning);
+        Assert.Equal(2, _asks);
+        Assert.Contains(trace.Messages, message => message.Contains(ScreenSaverProgram, StringComparison.Ordinal));
+    }
+
+    // Windows says it started the screen saver; the next window ends it without asking again, as the
+    // flag may still be on while the screen saver closes.
+    [Fact]
+    public void Tell_AScreenSaverWindowsConfirms_Counts_UntilAnotherWindow()
+    {
+        using var screenSaver = CreateFake();
+        _windowsSaysRunning = true;
+
+        screenSaver.Tell(ScreenSaverWindow);
+        Assert.True(screenSaver.IsRunning);
+        screenSaver.Tell(ProgramWindow);
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Equal([true, false], _changes);
+        Assert.Equal(1, _asks);
+    }
+
+    // Should Windows set the flag a little after the window came to the front, a second later the
+    // screen saver counts still; asked only once, not polled.
+    [Fact]
+    public void Tell_WindowsConfirmsASecondLater_Counts()
+    {
+        using var screenSaver = CreateFake();
+        _foreground = ScreenSaverWindow;
+
+        screenSaver.Tell(ScreenSaverWindow);
+        _windowsSaysRunning = true;
+        _time.Advance(SystemScreenSaverEvents.AskAgainAfter - TimeSpan.FromMilliseconds(1));
+        Assert.Empty(_changes);
+        _time.Advance(TimeSpan.FromMilliseconds(1));
+        Assert.Equal([true], _changes);
+        Assert.True(screenSaver.IsRunning);
+
+        _time.Advance(TimeSpan.FromMinutes(5));
+        Assert.Equal([true], _changes);
+        Assert.Equal(2, _asks);
+    }
+
+    // The second ask is only about the .scr window that came to the front: not when another window
+    // came after it, or the .scr is no longer in front.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Tell_AnotherWindowBeforeTheSecondAsk_DoesNotCount(bool told)
+    {
+        using var screenSaver = CreateFake();
+        _foreground = ScreenSaverWindow;
+        screenSaver.Tell(ScreenSaverWindow);
+
+        _foreground = ProgramWindow;
+        if (told)
+        {
+            screenSaver.Tell(ProgramWindow);
+        }
+
+        _windowsSaysRunning = true;
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Empty(_changes);
+        Assert.False(screenSaver.IsRunning);
+    }
+
+    [Fact]
+    public void Dispose_BeforeTheSecondAsk_AsksNoMore()
+    {
+        var screenSaver = CreateFake();
+        _foreground = ScreenSaverWindow;
+        screenSaver.Tell(ScreenSaverWindow);
+
+        screenSaver.Dispose();
+        _windowsSaysRunning = true;
+        _time.Advance(TimeSpan.FromMinutes(5));
+
+        Assert.Empty(_changes);
+        Assert.Equal(1, _asks);
+    }
+
+    // An engine that starts while the screen saver runs pauses at once (AutoPause reads IsRunning).
+    [Fact]
+    public void Created_WhileAScreenSaverRuns_IsRunning()
+    {
+        _foreground = ScreenSaverWindow;
+        _windowsSaysRunning = true;
+
+        using var screenSaver = CreateFake();
+
+        Assert.True(screenSaver.IsRunning);
+        Assert.Empty(_changes);
+    }
+
     [Fact]
     public void CreateAndDispose_WithoutWarnings()
     {
@@ -143,6 +266,24 @@ public sealed class SystemScreenSaverEventsTests : IDisposable
     {
         var screenSaver = new SystemScreenSaverEvents(_hook);
         screenSaver.Show(false);
+        screenSaver.Switched += (_, running) => _changes.Add(running);
+        return screenSaver;
+    }
+
+    // With made-up windows and their exe names, what Windows says in _windowsSaysRunning, the
+    // window in front in _foreground and a fake clock for the second ask.
+    private SystemScreenSaverEvents CreateFake()
+    {
+        var screenSaver = new SystemScreenSaverEvents(
+            _hook,
+            window => ProgramsOfWindows.GetValueOrDefault(window),
+            () =>
+            {
+                _asks++;
+                return _windowsSaysRunning;
+            },
+            () => _foreground,
+            _time);
         screenSaver.Switched += (_, running) => _changes.Add(running);
         return screenSaver;
     }
