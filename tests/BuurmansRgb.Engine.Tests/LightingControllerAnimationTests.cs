@@ -46,6 +46,10 @@ public sealed class LightingControllerAnimationTests : IDisposable
     [InlineData(EffectIds.Breathing)]
     [InlineData(EffectIds.Rainbow)]
     [InlineData(EffectIds.Wave)]
+    [InlineData(EffectIds.Twinkle)]
+    [InlineData(EffectIds.Comet)]
+    [InlineData(EffectIds.Scanner)]
+    [InlineData(EffectIds.Fire)]
     public async Task Apply_AnimatedEffect_StartsTheAnimation(string effectId)
     {
         await _controller.DiscoverAsync(Ct);
