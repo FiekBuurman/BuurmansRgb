@@ -395,30 +395,21 @@ public sealed class MainViewModelLedEditorTests
     [Fact]
     public async Task ExtendTwice_BeforeTheColorsCame_StartsAtTheFirstAnchor()
     {
-        var ui = new QueuedSynchronizationContext();
-        var previous = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(ui);
-        try
-        {
-            var viewModel = await ConnectAsync();
-            var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
-            var slowAnswer = new TaskCompletionSource();
-            Api.LedColorsGate = slowAnswer.Task;
+        using var ui = QueuedSynchronizationContext.Install();
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+        var slowAnswer = new TaskCompletionSource();
+        Api.LedColorsGate = slowAnswer.Task;
 
-            strip.PressKey(LedKey.Next, extend: true);
-            strip.PressKey(LedKey.Next, extend: true);
-            Assert.Null(viewModel.LedEditor.Selection);
-            Api.LedColorsGate = null;
-            slowAnswer.SetResult();
-            ui.RunPending();
+        strip.PressKey(LedKey.Next, extend: true);
+        strip.PressKey(LedKey.Next, extend: true);
+        Assert.Null(viewModel.LedEditor.Selection);
+        Api.LedColorsGate = null;
+        slowAnswer.SetResult();
+        ui.RunPending();
 
-            Assert.Equal(new LedSelection("strip", "LED strip", 0, 2), viewModel.LedEditor.Selection);
-            Assert.Equal(1, Api.LedColorsCalls);
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(previous);
-        }
+        Assert.Equal(new LedSelection("strip", "LED strip", 0, 2), viewModel.LedEditor.Selection);
+        Assert.Equal(1, Api.LedColorsCalls);
     }
 
     // With a selection, the range starts at the LED that was chosen last, as with Shift+click.

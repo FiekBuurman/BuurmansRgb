@@ -371,29 +371,20 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task SelectNothing_OnUiThread_RestoresSelectionAfterwards()
     {
-        var context = new QueuedSynchronizationContext();
-        var previous = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(context);
-        try
-        {
-            var viewModel = await ConnectAsync();
-            var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
-            viewModel.SelectedDevice = fan;
+        using var context = QueuedSynchronizationContext.Install();
+        var viewModel = await ConnectAsync();
+        var fan = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        viewModel.SelectedDevice = fan;
 
-            viewModel.SelectedDevice = null;
-            viewModel.Brightness = 30;
-            Assert.Null(viewModel.SelectedDevice);
+        viewModel.SelectedDevice = null;
+        viewModel.Brightness = 30;
+        Assert.Null(viewModel.SelectedDevice);
 
-            context.RunPending();
-            Assert.Same(fan, viewModel.SelectedDevice);
+        context.RunPending();
+        Assert.Same(fan, viewModel.SelectedDevice);
 
-            // Putting the selection back is no new pick, so the fan does not flash again.
-            Assert.Equal(["flash fan"], Api.Calls);
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(previous);
-        }
+        // Putting the selection back is no new pick, so the fan does not flash again.
+        Assert.Equal(["flash fan"], Api.Calls);
     }
 
     [Fact]

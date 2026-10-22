@@ -163,18 +163,8 @@ public sealed class ZoneLengthViewModelTests
     [Fact]
     public void Pause_SendsOnTheUiThread()
     {
-        var ui = new QueuedSynchronizationContext();
-        var previous = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(ui);
-        ZoneLengthViewModel length;
-        try
-        {
-            length = Create();
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(previous);
-        }
+        using var ui = QueuedSynchronizationContext.Install();
+        var length = Create();
 
         length.IncreaseCommand.Execute(null);
         _time.Advance(ZoneLengthViewModel.SendDelay);

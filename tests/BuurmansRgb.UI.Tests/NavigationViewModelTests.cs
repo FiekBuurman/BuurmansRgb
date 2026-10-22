@@ -50,18 +50,8 @@ public sealed class NavigationViewModelTests
     [Fact]
     public void SelectedItem_SetToNothingOnTheUiThread_SelectsThePageAgainAfterwards()
     {
-        var context = new QueuedSynchronizationContext();
-        var previous = SynchronizationContext.Current;
-        SynchronizationContext.SetSynchronizationContext(context);
-        NavigationViewModel navigation;
-        try
-        {
-            navigation = new NavigationViewModel();
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(previous);
-        }
+        using var context = QueuedSynchronizationContext.Install();
+        var navigation = new NavigationViewModel();
 
         navigation.GoTo(AppPage.Color);
 
