@@ -12,6 +12,7 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
 {
     private const string Mouse = "mouse";
     private const string Fan = "fan";
+    private const string Board = "board";
 
     private readonly FakeTimeProvider _time = new();
     private readonly DynamicDeviceProvider _provider = new();
@@ -183,6 +184,40 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
         Assert.Equal(leds[0], leds[1]);
     }
 
+    // The user sets another length for a zone: OpenRGB reports the device again with the same id,
+    // and the new length gets the image as well. Each LED takes the LED of the image at its middle.
+    [Fact]
+    public async Task DevicesChanged_ZoneGotLonger_StretchesTheImageOverItsNewLength()
+    {
+        await StartAsync(EffectIds.Rainbow);
+        await WhileDevicesChangeAsync(() => _provider.SetDevices(BoardWith(headerLeds: 2)));
+        _controller.SetZonesAlike(Board, true);
+
+        await WhileDevicesChangeAsync(() => _provider.SetDevices(BoardWith(headerLeds: 3)));
+
+        var leds = _provider.Leds[Board];
+        Assert.Equal(7, leds.Length);
+        Assert.Equal(4, leds[..4].Distinct().Count());
+        Assert.Equal([leds[0], leds[2], leds[3]], leds[4..]);
+    }
+
+    // As "ARGB 2" that got its first LEDs: now the longest zone, so the image is rendered over it
+    // and the zone before it gets the stretched image.
+    [Fact]
+    public async Task DevicesChanged_ZoneGotItsFirstLeds_RendersTheImageOverItsFullLength()
+    {
+        await StartAsync(EffectIds.Rainbow);
+        await WhileDevicesChangeAsync(() => _provider.SetDevices(BoardWith(headerLeds: 0)));
+        _controller.SetZonesAlike(Board, true);
+
+        await WhileDevicesChangeAsync(() => _provider.SetDevices(BoardWith(headerLeds: 5)));
+
+        var leds = _provider.Leds[Board];
+        Assert.Equal(9, leds.Length);
+        Assert.Equal(5, leds[4..].Distinct().Count());
+        Assert.Equal([leds[4], leds[5], leds[7], leds[8]], leds[..4]);
+    }
+
     // A scene that loads replaces the lighting, not how the zones of a device show it.
     [Fact]
     public async Task Replace_KeepsZonesAlike()
@@ -238,6 +273,29 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
 
     private static RgbDevice MouseWithTwoZones(string id = Mouse) =>
         new(id, "Mouse", DeviceType.Mouse, [RgbZone.Fixed("Primary Zone", 1), RgbZone.Fixed("Logo Zone", 1)]) { Source = DeviceSource.Hardware };
+
+    // A board with a fixed zone of four LEDs and an addressable header of the given length.
+    private static RgbDevice BoardWith(int headerLeds) =>
+        new(Board, "Board", DeviceType.Motherboard, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB 2", headerLeds, 0, 60)])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+    private async Task WhileDevicesChangeAsync(Action change)
+    {
+        var rendered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnRendered(object? sender, EventArgs e) => rendered.TrySetResult();
+        _controller.Rendered += OnRendered;
+        try
+        {
+            change();
+            await rendered.Task.WaitAsync(TestTimeouts.Short, Ct);
+        }
+        finally
+        {
+            _controller.Rendered -= OnRendered;
+        }
+    }
 
     private async Task StartAsync(string effectId)
     {
