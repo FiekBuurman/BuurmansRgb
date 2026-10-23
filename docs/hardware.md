@@ -10,11 +10,11 @@ niet in OpenRGB of BuurmansRgb getest.
 | Onderdeel | Merk en model | Ondersteund door OpenRGB? | Werkt in BuurmansRgb? | Opmerkingen |
 | --- | --- | --- | --- | --- |
 | Moederbord | Gigabyte B850 AORUS ELITE WIFI7, BIOS F10 (5-2-2026) | Waarschijnlijk: de RGB Fusion 2-controller, ITE `048D:5711` via USB | Nog niet getest | De ARGB-headers hebben in OpenRGB 0 LED's tot je de lengte instelt; welke header wat is, nog invullen |
-| CPU-koeler | Lian Li Galahad II Lite 360R (waterkoeling) | Via een ARGB-header van het moederbord, niet als eigen apparaat | Nog niet getest | Heeft waarschijnlijk geen eigen USB-controller: pomp en fans hangen doorgelust aan één ARGB-kabel (niet bevestigd, zie de handleiding van de koeler). In de app een zone van het moederbord; header en aantal LED's nog invullen |
+| CPU-koeler | Lian Li Galahad II Lite 360R (waterkoeling) | Via een ARGB-header van het moederbord, niet als eigen apparaat | Nog niet getest | De verlichting volgt de software van het moederbord (o.a. Gigabyte RGB Fusion), dus een ARGB-header, geen eigen USB-controller. Pomp met 16 LED's en drie doorgeluste 120 mm ARGB-fans (volgens winkels; LED's per fan onbekend). In de app een zone van het moederbord; header en totaal aantal LED's nog invullen |
 | RAM | 2× Kingston FURY Beast 16 GB DDR5-6000 CL30 (`KF560C30-16`) | Waarschijnlijk geen RGB | – | De code mist de "A" van de RGB-variant (bijv. `KF560C30BBEA-16`), maar Windows meldt alleen de verkorte code: kijk op de sticker of de modules oplichten |
 | GPU | PowerColor Radeon RX 9070 XT Hellhound 16GB OC | Nee, niet gevonden | Nee | Vaste ijsblauwe LED met een "Dark"-stand, geen RGB; geen software gevonden die hem aanstuurt. De "Microsoft Basic Display Adapter" is de grafische chip van de processor zonder driver |
-| Fans / fan-controller | Casefans van de behuizing | Onbekend | Nog niet getest | Merk, aantal en of ze ARGB hebben nog invullen; met ARGB hangen ze aan een header van het moederbord |
-| Case-LED / ARGB-strips | Lian Li Vector V100R (behuizing) | Onbekend | Nog niet getest | Nog invullen of de behuizing eigen LED's heeft |
+| Fans / fan-controller | Vier 120 mm ARGB PWM-fans van de Lian Li Vector V100R (drie aan de zijkant met omgekeerde luchtstroom, één achter) | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | Volgens winkels; hoe ze zijn aangesloten (eigen header of samen met de strip) en het aantal LED's nog invullen |
+| Case-LED / ARGB-strips | Lian Li Vector V100R midi tower: ARGB-strip langs de voedingskap en de bodem | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | 26 LED's volgens winkels; synchroniseert met de software van het moederbord |
 | Toetsenbord | Logitech G213 (`046D:C336`) | Waarschijnlijk | Nog niet getest | |
 | Muis | Logitech G502 HERO (`046D:C08B`) | Waarschijnlijk | Nog niet getest | Twee zones van één LED; met "Zones gelijk" krijgen ze tijdens een effect dezelfde kleur |
 | Headset | Logitech G733 (`046D:0AB5`) | Onbekend, te controleren | Nog niet getest | Kent OpenRGB hem niet, dan staat hij ook niet in BuurmansRgb |
@@ -43,8 +43,8 @@ Handig om bij "Opmerkingen" te noteren:
 Op de pc thuis staan vier RGB-programma's. Regelen er twee hetzelfde apparaat, dan flikkert
 het of springen kleuren terug; laat per apparaat één programma de verlichting regelen.
 
-- **GIGABYTE Control Center** 25.07.21.01: moederbord, en daarmee de koeler en de casefans aan
-  de ARGB-headers.
+- **GIGABYTE Control Center** 25.07.21.01: moederbord, en daarmee de koeler, de casefans en de
+  strip van de behuizing aan de ARGB-headers.
 - **Logitech G HUB** 2026.6.981214: toetsenbord, muis en headset.
 - **SignalRGB** 2.5.78: kan alle apparaten aansturen.
 - **OpenRGB** 1.1.0 staat ook los geïnstalleerd; laat er één OpenRGB tegelijk draaien.
