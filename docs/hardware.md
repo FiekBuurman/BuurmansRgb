@@ -23,6 +23,8 @@ Handig om bij "Opmerkingen" te noteren:
 - bij een controller of ARGB-header: hoeveel LED's er per kanaal zitten, of het type klopt
   (fan, strip of behuizing), waar LED 1 van een fan-ring zit en of OpenRGB de lengte na een
   herstart vergat;
+- bij een moederbord of hub: welke header welke fan of strip is ("Knipperen" naast de zone), en
+  of "Zones gelijk" er op de echte LED's goed uitziet;
 - een headset die OpenRGB niet kent: "niet ondersteund door OpenRGB".
 
 ## Fabrikantsoftware die uit moet
