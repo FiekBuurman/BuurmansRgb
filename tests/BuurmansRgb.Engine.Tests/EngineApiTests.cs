@@ -570,7 +570,7 @@ public sealed class EngineApiTests : IDisposable
     [Fact]
     public async Task OptionsChanged_FollowsEveryOption()
     {
-        using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused);
+        using var autoPause = AutoPauses.WithFakes(_lighting.SetPaused);
         using var timer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
         using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer, hotkeys: new AllOnOffHotkeys());
         var changes = 0;
