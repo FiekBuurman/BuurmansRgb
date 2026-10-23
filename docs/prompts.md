@@ -44,6 +44,6 @@ Lees AGENTS.md, docs/bouwplan.md en docs/ideas.md.
 Bouw alleen dit: <IDEE>.
 Werk niet vooruit; nieuwe ideeën gaan naar docs/ideas.md.
 Haal het idee uit docs/ideas.md als het gebouwd is, voeg het toe aan
-"Uitbreidingen na taak 9" in docs/bouwplan.md en werk docs/handleiding.md of docs/ontwikkelaars.md bij.
+"Uitbreidingen na taak 9" in docs/bouwplan.md en werk docs/handleiding.md en docs/ontwikkelaars.md bij.
 Meld aan het eind wat ik zelf nog moet testen.
 ```
