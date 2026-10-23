@@ -48,11 +48,12 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Zones en zonelengtes
 
 - Per-LED-kleuren van een apparaat dat langer niet meer verschijnt opruimen; nu blijven ze
-  in `ledColors` en `ledColorZoneLengths` staan, net als de eigen verlichting onder `devices` en
-  de lengtes onder `zoneLengths`
+  in `ledColors` en `ledColorZoneLengths` staan, net als de eigen verlichting onder `devices`, de
+  lengtes onder `zoneLengths` en het id in `zonesAlike`
 - In de instellingen-app melden als OpenRGB een nieuwe lengte niet overneemt (de zone heeft
-  na het herladen nog de oude lengte), of als een bewaarde lengte niet past bij het bereik dat
-  de zone nu meldt (bijv. na een update van OpenRGB); nu staat dat alleen in het logbestand
+  na het herladen nog de oude lengte; dat staat nu nergens, ook niet in het logbestand), of als
+  een bewaarde lengte niet past bij het bereik dat de zone nu meldt (bijv. na een update van
+  OpenRGB; dat staat nu alleen in het logbestand)
 - Vergeet OpenRGB een zonelengte terwijl de engine verbonden blijft (bijv. bij opnieuw zoeken),
   dan meldt het apparaat 0 LED's en komt de bewaarde lengte pas terug als het apparaat opnieuw
   verschijnt. Eventueel ook dan de lengte terugvragen, als blijkt dat OpenRGB dat doet
@@ -62,16 +63,16 @@ uitbreidingen in `docs/bouwplan.md`.
 ## Welk apparaat is wat (knipperen)
 
 - Een zone na een nieuwe lengte vanzelf even laten knipperen, zodat je meteen ziet of de lengte
-  klopt (de laatste LED knippert mee of niet); nu moet je daarna zelf op "Knipperen" klikken.
-  Ook: de wachtende zone-flits opnieuw starten zodra de apparatenlijst binnen is; nu stuurt
-  "Knipperen" eerst een wachtende lengte, en de reload van OpenRGB daarna stopt de flits weer
+  klopt (de laatste LED knippert mee of niet); nu moet je daarna zelf op "Knipperen" klikken
 - De LED's die geen zone hebben ("Overige LED's" in het voorbeeld) hebben geen knop
   "Knipperen", omdat de engine ze niet als zone kent; eventueel een flits voor een LED-bereik
   in plaats van een zone-index
 - Het knipperen loopt op de framerate van de render-loop: bij een lage `framesPerSecond`
   (bijv. 1) zie je het wit-uit nauwelijks. Eventueel een eigen tempo voor het knipperen
-- Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt);
-  het apparaat krijgt dan wel zijn eigen kleuren terug
+- Een flits stopt meteen als de apparatenlijst verandert (bijv. als OpenRGB opnieuw zoekt of een
+  nieuwe zonelengte overneemt); het apparaat krijgt dan wel zijn eigen kleuren terug. Zo stuurt
+  "Knipperen" eerst een wachtende lengte, en stopt de reload van OpenRGB daarna de flits weer.
+  Eventueel een wachtende flits opnieuw starten zodra de nieuwe apparatenlijst binnen is
 
 ## Effecten
 
@@ -93,9 +94,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - In de app laten zien dat "Zones gelijk" bij Per LED niets doet, bijv. de schakelaar grijs met
   een uitleg; nu staat dat alleen in de tooltip. Bij Statisch en Ademen maakt hij ook geen
   verschil, maar daar is hij niet mis
-- "Zones gelijk" in- of uitschakelen bouwt het hele voorbeeld opnieuw op (de app hoort het als
-  `DevicesChanged`), zoals een nieuwe zonelengte; zie het idee bij "Voorbeeld en
-  per-LED-editor" om alleen de apparaten te vernieuwen die veranderden
 - Faalt een apparaat tijdens het renderen na het omzetten van "Zones gelijk" (de setter van
   `LightingController.ZonesAlike` of `SetZonesAlike` → `RenderLocked` → `Provider.SetLeds`
   gooit), dan gaat `ZonesAlikeChanged` niet af: de keuze staat in het geheugen, maar wordt niet
@@ -143,10 +141,10 @@ uitbreidingen in `docs/bouwplan.md`.
   verzadiging kiest
 - Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp. Geldt alleen nog voor de
-  kleur van de hele lamp: een kleur van de kleurenloop en gekozen LED's gaan sinds de
-  uitbreiding "kleur-kiezen" meteen naar de lamp
-- Ongedaan maken voor een kleur van de kleurenloop of LED's die je meteen meekleurde, nu er
-  geen knop meer tussen mengen en de lamp zit
+  kleur van de hele lamp: een kleur van de kleurenloop, van de kleuren van een effect en van
+  gekozen LED's gaat meteen naar de lamp (sinds "kleur-kiezen" en "effect-kleuren")
+- Ongedaan maken voor een kleur van de kleurenloop, van de kleuren van een effect of van LED's
+  die je meteen meekleurde, nu er geen knop meer tussen mengen en de lamp zit
 - Een kleur op een lamp die uit staat, zet hem nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % de lamp aanzetten, zoals bij een
   dimmer
@@ -192,9 +190,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - Hoge toetsen (Enter en + van het numerieke blok, de ISO-Enter) over twee rijen tekenen; nu
   worden brede toetsen alleen breder, niet hoger. Alt, Windows, Fn en Menu (net iets breder
   dan een letter) blijven één vakje, omdat ze anders lege vakjes van de spatiebalk afsnoepen
-- Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt, maar
-  alleen de apparaten en zones die veranderden; nu houdt `FocusKeeper` de focus vast, maar een
-  sleep over een schuif breekt af als er midden in het slepen een nieuwe apparatenlijst komt
+- Het voorbeeld niet helemaal opnieuw opbouwen als de engine de apparaten opnieuw meldt (ook na
+  een nieuwe zonelengte of het omzetten van "Zones gelijk", die de app als `DevicesChanged`
+  hoort), maar alleen de apparaten en zones die veranderden; nu houdt `FocusKeeper` de focus
+  vast, maar een sleep over een schuif breekt af als er midden in het slepen een nieuwe
+  apparatenlijst komt
 - Een LED in het voorbeeld via UI Automation in beeld laten schuiven (`ScrollItem`) en hem
   `IsOffscreen` laten melden als hij buiten de zichtbare rand valt; nu volgen de LED's daarin de
   hele zone
