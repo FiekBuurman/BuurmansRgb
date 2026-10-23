@@ -11,15 +11,15 @@ in `docs/handleiding.md`.
 - **Eén taak per keer.** Voer alleen de taak uit die de gebruiker noemt. Niet vooruitwerken
   naar een volgende fase; ideeën noteren in `docs/ideas.md`.
 - **Code en namen in het Engels, UI-teksten in het Nederlands.** UI-teksten in een
-  resourcebestand (`Resources/Strings.resx` van de engine en de instellingen-app), zodat
-  vertalen later kan.
+  resourcebestand (`Resources/Strings.resx` van de engine, de instellingen-app en
+  `Providers.Simulated`), zodat vertalen later kan.
 - **`BuurmansRgb.Core` kent geen hardware, geen UI en geen IPC.** Afhankelijkheden lopen
   alleen naar binnen, richting `Core`.
 - **Elke wijziging bouwt en test groen.** `dotnet build -warnaserror` en `dotnet test`
   voor elke commit.
 - **Testen zonder hardware is de standaard.** Gebruik `Providers.Simulated`; echte hardware
-  alleen voor de acceptatie van taak 3 en 5–8 (en Windows Sandbox voor taak 9), en die test
-  de gebruiker zelf.
+  alleen voor de acceptatie van taak 3 en 5–8 (en voor de installer Windows Sandbox of de
+  eigen pc), en die test de gebruiker zelf.
 - **Prestaties meten, niet aannemen.** Bij elke engine-wijziging CPU en geheugen noteren
   in de commit- of PR-beschrijving.
 - **Kleine commits** met een duidelijke boodschap per stap; elke taak in een eigen branch
