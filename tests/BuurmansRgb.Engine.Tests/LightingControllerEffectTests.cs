@@ -57,5 +57,44 @@ public sealed class LightingControllerEffectTests
         Assert.NotEqual(Orange, _provider.LastColors[1]);
     }
 
+    // At "Hele huis" every device runs on the same clock; with the seed of its id each twinkles and
+    // burns in its own way, also two of the same length, and does so again after a restart.
+    [Theory]
+    [InlineData(EffectIds.Twinkle)]
+    [InlineData(EffectIds.Fire)]
+    public async Task Apply_EffectWithChance_GivesDevicesOfTheSameLengthTheirOwnImage(string effectId)
+    {
+        var (first, second) = (await RenderTwoDevicesAsync(effectId), await RenderTwoDevicesAsync(effectId));
+
+        Assert.Equal(first.Select(frame => frame.Left), second.Select(frame => frame.Left));
+        Assert.Equal(first.Select(frame => frame.Right), second.Select(frame => frame.Right));
+        // Both dark at the same moment is no sign of the same chance.
+        var lit = first.Where(frame => frame.Left.Concat(frame.Right).Any(led => led != RgbColor.Black)).ToList();
+        var alike = lit.Count(frame => frame.Left.AsSpan().SequenceEqual(frame.Right));
+        Assert.True(lit.Count > 30, $"Only {lit.Count} of {first.Count} frames lit.");
+        Assert.True(alike < 3, $"{alike} of {lit.Count} lit frames alike.");
+    }
+
+    // The frames of two devices of eight LEDs, every 0.1 s for 6 s, from a new controller.
+    private static async Task<List<(RgbColor[] Left, RgbColor[] Right)>> RenderTwoDevicesAsync(string effectId)
+    {
+        var time = new FakeTimeProvider();
+        var provider = new DynamicDeviceProvider();
+        provider.SetDevices(DynamicDeviceProvider.Device("left", ledCount: 8), DynamicDeviceProvider.Device("right", ledCount: 8));
+        using var controller = new LightingController([provider], time);
+        await controller.DiscoverAsync(Ct);
+        controller.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, effectId)));
+
+        var frames = new List<(RgbColor[], RgbColor[])>();
+        for (var frame = 0; frame < 60; frame++)
+        {
+            time.Advance(TimeSpan.FromSeconds(0.1));
+            controller.RenderAnimationFrame();
+            frames.Add((provider.Leds["left"], provider.Leds["right"]));
+        }
+
+        return frames;
+    }
+
     private static TimeSpan BreathingEffectHalfway => BreathingEffect.DefaultPeriod / 2;
 }

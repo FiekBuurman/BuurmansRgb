@@ -102,6 +102,20 @@ uitbreidingen in `docs/bouwplan.md`.
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
+- Instellingen per effect naast de snelheid, bijv. de lengte van de staart bij Komeet en
+  Scanner, hoeveel LED's er fonkelen, of de richting (nu altijd naar de laatste LED). Nu liggen
+  die vast als constanten in de effecten
+- Komeet: kiezen tussen rondgaan (nu, goed voor een fan-ring) en aan het eind weglopen en bij
+  de eerste LED weer binnenkomen (beter voor een strip, waar de staart nu nog even aan het eind
+  zit als de kop alweer bij het begin is), of meer kometen tegelijk
+- Fonkelen met een zwakke achtergrond van de kleur in plaats van zwart, of elke fonkeling in
+  een willekeurige tint (regenboog-fonkelen)
+- Vuur met een ander palet (bijv. blauw of groen vuur, uit een paar gekozen kleuren), of vuur
+  dat over een strip omhoog trekt zoals Fire2012 van FastLED. Dat laatste vraagt een richting
+  per strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat
+  er geen buffer per apparaat nodig is
+- Komeet en Scanner per zone laten lopen (elke fan-ring een eigen komeet), zoals het
+  idee voor Golf en Regenboog hierboven
 
 ## Instellingen-app en ontwerp
 
@@ -264,6 +278,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
   terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen
+- De reden van stoppen in het log van de engine: "Afsluiten" in het tray-menu of een `--exit`
+  van een andere start. Nu staat er alleen "Engine stopped."; bij de meting van de nieuwe effecten
+  stopte een engine na 55 s zonder dat het log zei waarom (waarschijnlijk een `--exit` in dezelfde
+  Windows-sessie, zie "Metingen" in `ontwikkelaars.md`)
 
 ## Installer en uitrol
 
@@ -287,6 +305,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een script voor de `dotnet-counters`-meting (regenboog tegen statisch, zie "Metingen" in
   `ontwikkelaars.md`), zodat de 0-allocaties-check op het draaiende proces bij elke
   engine-wijziging herhaald kan worden en niet alleen in een unit-test gebeurt
+- Het meetscript voor CPU en geheugen van de engine laten loggen welke `BuurmansRgb*`-processen
+  er voor en na elke run draaien, en een run ongeldig laten verklaren als de engine al gestopt is
+  vóór de eigen `--exit`; een eigen `APPDATA` scheidt alleen de bestanden, niet de mutex en de
+  events van de sessie
 - Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
   zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
   Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie

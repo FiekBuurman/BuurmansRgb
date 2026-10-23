@@ -10,7 +10,7 @@ public sealed class EffectCatalogTests
     [Fact]
     public void Ids_AreInTheOrderTheSettingsAppLists()
     {
-        Assert.Equal([EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.PerLed], EffectCatalog.Ids);
+        Assert.Equal([EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed], EffectCatalog.Ids);
     }
 
     [Theory]
@@ -60,6 +60,10 @@ public sealed class EffectCatalogTests
         Assert.IsType<BreathingEffect>(EffectCatalog.Create(EffectIds.Breathing, Orange, []));
         Assert.IsType<RainbowEffect>(EffectCatalog.Create(EffectIds.Rainbow, Orange, []));
         Assert.IsType<WaveEffect>(EffectCatalog.Create(EffectIds.Wave, Orange, []));
+        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Color);
+        Assert.Equal(Orange, Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [])).Color);
+        Assert.Equal(Orange, Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [])).Color);
+        Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, []));
     }
 
     [Fact]
@@ -71,6 +75,29 @@ public sealed class EffectCatalogTests
 
         Assert.Equal([Orange, Blue], effect.Colors);
         Assert.False(effect.Spread);
+    }
+
+    [Fact]
+    public void Create_GivesTheEffectsWithChanceTheSeed()
+    {
+        Assert.Equal(5u, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [], seed: 5)).Seed);
+        Assert.Equal(5u, Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, [], seed: 5)).Seed);
+    }
+
+    // FNV-1a, so the same id gives the same seed in every process; these are its known values.
+    [Theory]
+    [InlineData("", 0x811C9DC5u)]
+    [InlineData("a", 0xE40C292Cu)]
+    [InlineData("foobar", 0xBF9CF968u)]
+    public void SeedOf_IsTheFnv1aHashOfTheId(string deviceId, uint seed)
+    {
+        Assert.Equal(seed, EffectCatalog.SeedOf(deviceId));
+    }
+
+    [Fact]
+    public void SeedOf_OtherIds_GiveOtherSeeds()
+    {
+        Assert.NotEqual(EffectCatalog.SeedOf("openrgb:0"), EffectCatalog.SeedOf("openrgb:1"));
     }
 
     [Fact]

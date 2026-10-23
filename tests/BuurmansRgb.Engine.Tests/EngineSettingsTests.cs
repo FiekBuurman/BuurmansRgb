@@ -152,6 +152,14 @@ public sealed class EngineSettingsTests
         Assert.Equal(EffectIds.Static, settings.ToLightingState().Global.EffectId);
     }
 
+    // Also the effects that came later, such as fire, as settings.json and the scenes name them.
+    [Fact]
+    public void ToLightingState_EveryEffectOfTheCatalog_IsKept()
+    {
+        Assert.All(EffectCatalog.Ids, effect =>
+            Assert.Equal(effect, new EngineSettings { Effect = effect }.ToLightingState().Global.EffectId));
+    }
+
     [Theory]
     [InlineData(5.0, 1.0)]
     [InlineData(-1.0, 0.0)]

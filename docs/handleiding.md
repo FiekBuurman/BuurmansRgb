@@ -95,6 +95,10 @@ schakelaar ernaast.
 | Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
 | Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
 | Kleurenloop | `color-loop` | Je eigen 2–8 kleuren die in elkaar overlopen, 0,2 loop per seconde; over de LED's verdeeld of alle LED's tegelijk |
+| Fonkelen | `twinkle` | LED's in de kleur lichten willekeurig op en doven langzaam uit. Elke LED krijgt ongeveer elke 1,7 seconde een kans, en op een lange strip grijpt een vijfde die, zodat losse LED's fonkelen (op een toetsenbord gloeit zo'n 13 % tegelijk); bij een apparaat van een paar LED's lichten er per keer toch ongeveer twee op, bij een muis van één of twee LED's elke LED elke keer. Elke lamp fonkelt op zijn eigen manier, ook twee even lange |
+| Komeet | `comet` | Een punt in de kleur met een staart die achter hem uitdooft, 0,5 ronde per seconde naar de laatste LED en weer rond, zoals op een fan-ring; de staart is 30 % van de lengte. Bij een apparaat van minder dan vier LED's (een muis) staan de LED's verdeeld over een ring van vier: één LED pulseert, fel als de kop voorbijkomt en dan uitdovend, twee LED's om de beurt |
+| Scanner | `scanner` | Een punt in de kleur dat naar de laatste LED en terug gaat, zoals bij Knight Rider, 0,5 keer heen en terug per seconde; het remt af bij de uiteinden en trekt een staart die met zijn vaart meegroeit (tot een kwart van de lengte). Eén LED (een muis) licht op telkens als het punt voorbijkomt |
+| Vuur | `fire` | Warm geel, oranje en rood dat onrustig flakkert, met vlammen van een paar LED's breed: een rustige laag die twee keer per seconde verandert en een snelle die er overheen flakkert. De kleuren liggen vast, de kleur van de lamp doet niet mee (zoals bij Regenboog). Elke lamp brandt op zijn eigen manier; één LED (een muis) flakkert als een kaars |
 | Per LED | `per-led` | Een eigen kleur per LED (zie "Per-LED-editor") |
 
 - **Snelheid** (10–300 %, standaard 100 %) werkt alleen bij een bewegend effect; bij Statisch
@@ -199,7 +203,7 @@ de LED's ervoor houden wat je mengde.
 
 Een scène bewaart de verlichting van alle lampen onder een naam (in de code en in
 `profiles.json` heet dat een profiel). De scènes staan als kaarten, drie of vier naast elkaar:
-vijf bolletjes met de kleuren van de scène, de naam en wanneer hij vanzelf aangaat ("Elke dag
+vijf bolletjes met de kleuren van de scène (bij Vuur rood, oranje en geel), de naam en wanneer hij vanzelf aangaat ("Elke dag
 om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien ("Regenboog · 80%", "Alles uit").
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,

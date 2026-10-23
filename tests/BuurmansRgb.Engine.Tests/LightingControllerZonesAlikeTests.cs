@@ -51,6 +51,30 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
         Assert.NotEqual(first[0], leds[0]);
     }
 
+    // The effects render one LED then, which still moves: a comet or scanner pulses, fire
+    // flickers, and twinkling comes and goes.
+    [Theory]
+    [InlineData(EffectIds.Twinkle)]
+    [InlineData(EffectIds.Comet)]
+    [InlineData(EffectIds.Scanner)]
+    [InlineData(EffectIds.Fire)]
+    public async Task SetZonesAlike_EffectsWithAPlaceOrChance_GiveBothZonesTheSameMovingColor(string effectId)
+    {
+        await StartAsync(effectId);
+        _controller.SetZonesAlike(Mouse, true);
+        var seen = new HashSet<RgbColor>();
+
+        for (var frame = 0; frame < 40; frame++)
+        {
+            AdvanceAndRender(TimeSpan.FromSeconds(0.1));
+            var leds = _provider.Leds[Mouse];
+            Assert.Equal(leds[0], leds[1]);
+            seen.Add(leds[0]);
+        }
+
+        Assert.True(seen.Count > 5, $"Only {seen.Count} colors in 4 s.");
+    }
+
     [Fact]
     public async Task SetZonesAlike_LeavesTheOtherDevicesAsTheyAre()
     {

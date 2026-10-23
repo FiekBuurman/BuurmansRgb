@@ -1,0 +1,83 @@
+using BuurmansRgb.Core;
+
+namespace BuurmansRgb.Effects;
+
+// Warm flames: every LED flickers restlessly between dark red, red, orange and yellow. The heat of
+// an LED is value noise: random values at whole steps in time, and every LedsPerFlame LEDs along
+// the device so neighbours burn alike, smoothly blended in between; a slow layer for the flames and
+// a fast one for the flicker. The values come from EffectMath.Random, so a frame at the same time
+// is always the same image; the seed makes the values of its own, so each device burns in its own
+// way. Its colors are fixed: fire is warm, so it has no color of its own.
+public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlickersPerSecond, uint seed = 0) : IEffect
+{
+    // New random values per second of the slow layer.
+    public const double DefaultFlickersPerSecond = 2.0;
+
+    // From cold to hot; a heat between two colors blends them. The scene cards of the settings app
+    // show the three hottest (SceneLook.FireColors), so change those along.
+    private static readonly RgbColor[] Palette = [new(96, 8, 0), new(255, 24, 0), new(255, 100, 0), new(255, 190, 30)];
+
+    private const double LedsPerFlame = 3.0;
+
+    // The fast layer: how much faster it changes, how much smaller its flames are and how much of
+    // the heat it makes. Its random values lie half a place off those of the slow layer, so the two
+    // do not meet on the same LEDs every LedsPerFlame LEDs.
+    private const double FastFactor = 3.7;
+    private const double FastSpread = 2.0;
+    private const double FastShift = 0.5;
+    private const double FastWeight = 0.4;
+
+    // Blended random values mostly lie around the middle; this spreads the heat out again, so the
+    // darkest red and the yellow both show.
+    private const double Contrast = 1.4;
+
+    private const uint SlowStream = 0xF1AE0001;
+    private const uint FastStream = 0xF1AE0002;
+
+    private readonly uint _slowStream = EffectMath.Seeded(SlowStream, seed);
+    private readonly uint _fastStream = EffectMath.Seeded(FastStream, seed);
+
+    public double FlickersPerSecond { get; } = EffectMath.FiniteSpeed(flickersPerSecond);
+
+    public uint Seed { get; } = seed;
+
+    public bool IsAnimated => true;
+
+    public void Render(Span<RgbColor> leds, TimeSpan time)
+    {
+        var steps = time.TotalSeconds * FlickersPerSecond;
+        for (var i = 0; i < leds.Length; i++)
+        {
+            var place = i / LedsPerFlame;
+            var heat = (1.0 - FastWeight) * Noise(place, steps, _slowStream)
+                + FastWeight * Noise(place * FastSpread + FastShift, steps * FastFactor, _fastStream);
+            leds[i] = ColorAt(Math.Clamp(0.5 + (heat - 0.5) * Contrast, 0.0, 1.0));
+        }
+    }
+
+    // A random value from 0 to 1 at every whole place and step, blended smoothly in between. A blend
+    // of two values lies closer to the middle than either, so between two places and between two
+    // steps it is spread out again by as much: else the LEDs on a whole place would flicker more and
+    // show as stripes, and the whole device would burn flatter between two steps than on one. It
+    // can then fall outside 0 to 1, which the contrast clamps anyway.
+    private static double Noise(double place, double step, uint stream)
+    {
+        var column = Math.Floor(place);
+        var row = Math.Floor(step);
+        var across = EffectMath.SmoothStep(place - column);
+        var along = EffectMath.SmoothStep(step - row);
+        var (left, now) = ((int)column, (long)row);
+        var thisStep = EffectMath.Lerp(EffectMath.Random(left, now, stream), EffectMath.Random(left + 1, now, stream), across);
+        var nextStep = EffectMath.Lerp(EffectMath.Random(left, now + 1, stream), EffectMath.Random(left + 1, now + 1, stream), across);
+        var spread = Math.Sqrt((1.0 - across) * (1.0 - across) + across * across)
+            * Math.Sqrt((1.0 - along) * (1.0 - along) + along * along);
+        return 0.5 + (EffectMath.Lerp(thisStep, nextStep, along) - 0.5) / spread;
+    }
+
+    private static RgbColor ColorAt(double heat)
+    {
+        var scaled = heat * (Palette.Length - 1);
+        var index = Math.Min((int)scaled, Palette.Length - 2);
+        return RgbColor.Lerp(Palette[index], Palette[index + 1], scaled - index);
+    }
+}
