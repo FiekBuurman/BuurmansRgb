@@ -248,9 +248,8 @@ uitbreidingen in `docs/bouwplan.md`.
   schermbeveiliging niet; alleen de uitleg eronder doet dat
 - Tijdens de schermbeveiliging een eigen scène of een rustig effect laten zien in plaats van
   pauzeren, bijv. langzaam ademen in de kleur van de scène
-- De schermbeveiliging wordt herkend aan een `.scr`-venster vooraan met
-  `SPI_GETSCREENSAVERRUNNING`. Een "schermbeveiliging" die een gewoon programma met een volledig
-  scherm is, telt niet
+- Ook een "schermbeveiliging" herkennen die een gewoon programma met een volledig scherm is; nu
+  telt alleen een `.scr`-venster vooraan dat Windows bevestigt met `SPI_GETSCREENSAVERRUNNING`
 - De exe-naam van het venster vooraan één keer lezen in `ForegroundHook` en aan elke luisteraar
   meegeven; nu leest de schermbeveiliging hem en een scène met "Alleen op de voorgrond" nog een
   keer, ~20–28 µs per keer (gemeten, zie de prestaties in `docs/ontwikkelaars.md`)
@@ -319,22 +318,23 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Een script dat de schermafbeeldingen in `docs/images/` opnieuw maakt: engine en
   instellingen-app starten met vaste demo-instellingen en -scènes, de pagina's kiezen via UI
-  Automation en het venster vastleggen met `PrintWindow`. Het moet de echte instellingen in
-  `%AppData%\BuurmansRgb` niet aanraken (bijv. een omgevingsvariabele of argument voor een
-  andere map), en werkt alleen als Windows niet vergrendeld is
-- Een script voor de `dotnet-counters`-meting (regenboog tegen statisch, zie "Metingen" in
-  `ontwikkelaars.md`), zodat de 0-allocaties-check op het draaiende proces bij elke
-  engine-wijziging herhaald kan worden en niet alleen in een unit-test gebeurt
-- Het meetscript voor CPU en geheugen van de engine laten loggen welke `BuurmansRgb*`-processen
-  er voor en na elke run draaien, en een run ongeldig laten verklaren als de engine al gestopt is
+  Automation en het venster vastleggen met `PrintWindow`. De echte instellingen in
+  `%AppData%\BuurmansRgb` blijven heel met `USERPROFILE` en `APPDATA` naar een lege map (zie de
+  meettips in `ontwikkelaars.md`), maar de mutex, de events en de pipe hangen aan de
+  Windows-sessie, dus de eigen engine en instellingen-app moeten zolang dicht
+- Een meetscript in de repo voor CPU, geheugen en allocaties van de engine; nu draait elke meting
+  met een eigen script buiten de repo (zie "Metingen" in `ontwikkelaars.md`). Het meet om en om
+  tegen de basis, herhaalt met `dotnet-counters` de 0-allocaties-check op het draaiende proces
+  (regenboog tegen statisch, niet alleen in een unit-test), logt voor en na elke run welke
+  `BuurmansRgb*`-processen draaien en verklaart een run ongeldig als de engine al gestopt is
   vóór de eigen `--exit`; een eigen `APPDATA` scheidt alleen de bestanden, niet de mutex en de
   events van de sessie
-- Een automatische test die de echte pagina's laadt (bijv. offscreen met de echte `App`-resources),
-  zodat een fout in de XAML niet pas bij het starten opvalt; `RenderTargetBitmap` werkt niet zolang
-  Windows vergrendeld is, dus een vergelijking van schermafbeeldingen kan alleen in een open sessie
-- Een kleine offscreen-test die `SettingsPage` laadt en controleert dat de schakelaars `IsOn` van
-  hun viewmodel volgen, of een test die bindingfouten opvangt via `PresentationTraceSources`: een
-  hernoemde property breekt een binding nu stil, zonder dat een test of de build het merkt
+- De andere pagina's (Lampen, Scènes, Instellingen) en `MainWindow` offscreen laden met de
+  resources van `App.xaml`, zoals `ColorListEditorViewTests` dat sinds #69 met `AppTheme` voor de
+  pagina Kleur doet, zodat een fout in de XAML niet pas bij het starten opvalt. Bijv. voor
+  `SettingsPage` controleren dat de schakelaars `IsOn` van hun viewmodel volgen, of bindingfouten
+  opvangen via `PresentationTraceSources`: een hernoemde property breekt een binding nu stil,
+  zonder dat een test of de build het merkt
 - Uitzoeken wat er in een volledige testrun zo'n 270 ms CPU per seconde gebruikt in het
   testproces van `Providers.OpenRgb`, vlak voordat de CPU-test de verbinding laat vallen (los
   gedraaid is dat 0 ms); de test vergelijkt nu met die meting vooraf, dus hij hindert niet meer
@@ -349,12 +349,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
   UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op
   de laatste controle (`after.IsKeyboardFocused`), meestal als eerste test in een nieuw proces
-  (~400 ms). Bij de refactor na de review is de vermoede oorzaak geprobeerd (een uitgestelde
-  render: de focus gaat weg vóór Unloaded en Loaded, en het vergeten op ApplicationIdle komt vóór
-  de render): de sleutel pas vergeten na Unloaded, `s_lostKey` `[ThreadStatic]`, en
-  `OffscreenWindow.WaitUntilIdle` eerst op één `CompositionTarget.Rendering` laten wachten. Daarna
-  faalde hij nog 3 van de 50 keer, dus dat is het niet, of niet alleen. Volgende stap: in een
-  falende run vastleggen welke focus- en laadgebeurtenissen er in welke volgorde komen
+  (~400 ms). Bij de refactor na de review is de vermoede oorzaak geprobeerd, maar niet behouden
+  (een uitgestelde render: de focus gaat weg vóór Unloaded en Loaded, en het vergeten op
+  ApplicationIdle komt vóór de render): de sleutel pas vergeten na Unloaded, `s_lostKey`
+  `[ThreadStatic]`, en `OffscreenWindow.WaitUntilIdle` eerst op één `CompositionTarget.Rendering`
+  laten wachten. Daarna faalde hij nog 3 van de 50 keer, dus dat is het niet, of niet alleen.
+  Volgende stap: in een falende run vastleggen welke focus- en laadgebeurtenissen er in welke
+  volgorde komen
 - `LedPreviewViewKeyboardTests.Render_WithTheFocus_DrawsARingAroundTheActiveLed` faalt als twee
   UI-testsets tegelijk draaien in zo'n 9 % van de runs (7 van de 80); heel af en toe ook
   `ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed`. Los van de focus-poging hierboven,
