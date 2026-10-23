@@ -3,10 +3,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// One color of the color loop as the editor shows it; Name is for the tooltip and screen readers.
+// One color of a list of colors as its editor shows it; Name is for the tooltip and screen readers.
 // The editor changes Color and IsSelected in place, so the tile on the page stays the same one and
 // keeps the keyboard focus while its color changes.
-public sealed partial class ColorLoopSwatch(int index, RgbColor color, bool isSelected) : ObservableObject
+public sealed partial class ColorSwatch(int index, RgbColor color, bool isSelected) : ObservableObject
 {
     public int Index { get; } = index;
 
@@ -17,7 +17,7 @@ public sealed partial class ColorLoopSwatch(int index, RgbColor color, bool isSe
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = isSelected;
 
-    public string Name => UiText.Format(Resources.Strings.ColorLoopSwatch, Index + 1, Color.ToHex());
+    public string Name => UiText.Format(Resources.Strings.ColorListSwatch, Index + 1, Color.ToHex());
 
     // WPF names the list item after it for screen readers; the object's own text means nothing there.
     public override string ToString() => Name;

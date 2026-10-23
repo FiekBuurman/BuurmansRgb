@@ -252,6 +252,31 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetEffectColorsAsync_ReachesServerWithColorsInOrder()
+    {
+        var client = await ConnectAsync();
+        RgbColor[] colors = [new(0, 0, 60), new(0, 0, 255), new(0, 200, 255)];
+
+        await client.Api.SetEffectColorsAsync(null, EffectIds.Fire, colors, Ct);
+
+        var call = Assert.Single(_api.EffectColorsCalls);
+        Assert.Null(call.DeviceId);
+        Assert.Equal(EffectIds.Fire, call.EffectId);
+        Assert.Equal(colors, call.Colors);
+    }
+
+    [Fact]
+    public async Task ClearEffectColorsAsync_ReachesServerWithDeviceAndEffect()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.ClearEffectColorsAsync("fan", EffectIds.Comet, Ct);
+        await client.Api.ClearEffectColorsAsync(null, EffectIds.Fire, Ct);
+
+        Assert.Equal([("fan", EffectIds.Comet), (null, EffectIds.Fire)], _api.ClearEffectColorsCalls);
+    }
+
+    [Fact]
     public async Task SetOnAsync_ReachesServer()
     {
         var client = await ConnectAsync();
@@ -477,7 +502,9 @@ public sealed class EngineRpcTests : IDisposable
             },
         ];
 
-        public LightingInfo Lighting { get; } = new(new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false);
+        public LightingInfo Lighting { get; } = new(
+            new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false,
+            EffectColors: EffectColors.None.With(EffectIds.Comet, [new RgbColor(7, 8, 9)]).With(EffectIds.Fire, [new RgbColor(1, 1, 1), new RgbColor(9, 9, 9)]));
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -572,6 +599,22 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default)
         {
             ColorLoopCalls.Add((deviceId, colors, spread));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, string EffectId, IReadOnlyList<RgbColor> Colors)> EffectColorsCalls { get; } = [];
+
+        public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+        {
+            EffectColorsCalls.Add((deviceId, effectId, colors));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, string EffectId)> ClearEffectColorsCalls { get; } = [];
+
+        public Task ClearEffectColorsAsync(string? deviceId, string effectId, CancellationToken ct = default)
+        {
+            ClearEffectColorsCalls.Add((deviceId, effectId));
             return Task.CompletedTask;
         }
 

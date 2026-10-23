@@ -284,17 +284,38 @@
   <data name="ColorLoopHint" xml:space="preserve">
     <value>Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee. Na de laatste kleur begint de loop weer bij de eerste.</value>
   </data>
-  <data name="ColorLoopAdd" xml:space="preserve">
+  <data name="ColorListAdd" xml:space="preserve">
     <value>Kleur toevoegen</value>
   </data>
-  <data name="ColorLoopRemove" xml:space="preserve">
+  <data name="ColorListRemove" xml:space="preserve">
     <value>Kleur weghalen</value>
   </data>
   <data name="ColorLoopSpread" xml:space="preserve">
     <value>Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)</value>
   </data>
-  <data name="ColorLoopSwatch" xml:space="preserve">
+  <data name="EffectColorsHeader" xml:space="preserve">
+    <value>Kleuren van het effect</value>
+  </data>
+  <data name="EffectColorsHint_comet" xml:space="preserve">
+    <value>Elke ronde heeft de komeet de volgende kleur. Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee.</value>
+  </data>
+  <data name="EffectColorsHint_scanner" xml:space="preserve">
+    <value>Elke keer heen of terug heeft het punt de volgende kleur. Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee.</value>
+  </data>
+  <data name="EffectColorsHint_twinkle" xml:space="preserve">
+    <value>Elke fonkeling krijgt een willekeurige kleur uit de lijst. Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee.</value>
+  </data>
+  <data name="EffectColorsHint_fire" xml:space="preserve">
+    <value>Van koud naar heet: de eerste kleur is de gloed, de laatste de felste vlam. Met één kleur flakkert die van donker naar fel. Klik op een kleur en meng hierboven of rechts een nieuwe: het vakje verandert meteen mee.</value>
+  </data>
+  <data name="ColorListSwatch" xml:space="preserve">
     <value>Kleur {0}: {1}</value>
+  </data>
+  <data name="EffectColorsDefault" xml:space="preserve">
+    <value>Standaardkleuren</value>
+  </data>
+  <data name="EffectColorsDefaultToolTip" xml:space="preserve">
+    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van de lamp, vuur brandt weer in donkerrood, rood, oranje en geel. Bij Hele huis geldt het voor alle lampen, maar kan het alleen als het hele huis eigen kleuren heeft; kies anders de lamp met eigen kleuren.</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">
     <value>Scènes</value>

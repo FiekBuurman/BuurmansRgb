@@ -6,22 +6,22 @@ using BuurmansRgb.Effects;
 namespace BuurmansRgb.Engine.Lighting;
 
 // The effects the engine can render, in the order the settings app lists them. An effect gets
-// the device's color, its stored per-LED colors, its color loop and the seed of the device, and
-// uses what it needs.
+// the device's color, its stored per-LED colors, its color loop, the own colors of the effects
+// with a list of colors and the seed of the device, and uses what it needs.
 internal static class EffectCatalog
 {
-    private static readonly OrderedDictionary<string, Func<RgbColor, IReadOnlyList<RgbColor?>, ColorLoop, uint, IEffect>> Factories = new()
+    private static readonly OrderedDictionary<string, Func<EffectInput, IEffect>> Factories = new()
     {
-        [EffectIds.Static] = (color, _, _, _) => new StaticEffect(color),
-        [EffectIds.Breathing] = (color, _, _, _) => new BreathingEffect(color),
-        [EffectIds.Rainbow] = (_, _, _, _) => new RainbowEffect(),
-        [EffectIds.Wave] = (color, _, _, _) => new WaveEffect(color),
-        [EffectIds.ColorLoop] = (_, _, loop, _) => new ColorLoopEffect(loop.Colors, loop.Spread),
-        [EffectIds.Twinkle] = (color, _, _, seed) => new TwinkleEffect(color, seed: seed),
-        [EffectIds.Comet] = (color, _, _, _) => new CometEffect(color),
-        [EffectIds.Scanner] = (color, _, _, _) => new ScannerEffect(color),
-        [EffectIds.Fire] = (_, _, _, seed) => new FireEffect(seed: seed),
-        [EffectIds.PerLed] = (color, ledColors, _, _) => new PerLedEffect(ledColors, color),
+        [EffectIds.Static] = input => new StaticEffect(input.Color),
+        [EffectIds.Breathing] = input => new BreathingEffect(input.Color),
+        [EffectIds.Rainbow] = _ => new RainbowEffect(),
+        [EffectIds.Wave] = input => new WaveEffect(input.Color),
+        [EffectIds.ColorLoop] = input => new ColorLoopEffect(input.Loop.Colors, input.Loop.Spread),
+        [EffectIds.Twinkle] = input => new TwinkleEffect(input.ColorsOf(EffectIds.Twinkle), seed: input.Seed),
+        [EffectIds.Comet] = input => new CometEffect(input.ColorsOf(EffectIds.Comet)),
+        [EffectIds.Scanner] = input => new ScannerEffect(input.ColorsOf(EffectIds.Scanner)),
+        [EffectIds.Fire] = input => new FireEffect(input.ColorsOf(EffectIds.Fire), seed: input.Seed),
+        [EffectIds.PerLed] = input => new PerLedEffect(input.LedColors, input.Color),
     };
 
     public static IReadOnlyList<string> Ids { get; } = [.. Factories.Keys];
@@ -36,8 +36,11 @@ internal static class EffectCatalog
         }
     }
 
-    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors, ColorLoop? loop = null, uint seed = 0) =>
-        Factories.TryGetValue(effectId, out var create) ? create(color, ledColors, loop ?? ColorLoop.Default, seed) : throw UnknownEffect(effectId);
+    // Without effectColors every effect with a list has its default (EffectColors.For).
+    public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors, ColorLoop? loop = null, uint seed = 0, EffectColors? effectColors = null) =>
+        Factories.TryGetValue(effectId, out var create)
+            ? create(new EffectInput(color, ledColors, loop ?? ColorLoop.Default, effectColors ?? EffectColors.None, seed))
+            : throw UnknownEffect(effectId);
 
     // The seed of a device for the effects with chance, so twinkle and fire differ from device to
     // device but stay the same for a device, also after a restart: FNV-1a over the characters of
@@ -54,4 +57,10 @@ internal static class EffectCatalog
     }
 
     private static ArgumentException UnknownEffect(string? effectId) => new($"Unknown effect '{effectId}'.", nameof(effectId));
+
+    // What an effect can take from the lighting of its device.
+    private readonly record struct EffectInput(RgbColor Color, IReadOnlyList<RgbColor?> LedColors, ColorLoop Loop, EffectColors EffectColors, uint Seed)
+    {
+        public IReadOnlyList<RgbColor> ColorsOf(string effectId) => EffectColors.For(effectId, Color);
+    }
 }

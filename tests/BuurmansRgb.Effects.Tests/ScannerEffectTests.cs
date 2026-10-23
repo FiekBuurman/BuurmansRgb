@@ -149,6 +149,61 @@ public sealed class ScannerEffectTests
         new ScannerEffect(Orange).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
     }
 
+    // A list of one color is the scanner of that color, as it was before the list: these are the
+    // LEDs of the scanner before it had a list.
+    [Fact]
+    public void Render_OneColorInAList_IsTheScannerOfThatColor()
+    {
+        var leds = new RgbColor[10];
+
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.6));
+
+        Assert.Equal(EffectSamples.Hex("#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#000000", "#DB7500", "#2C1700"), leds);
+    }
+
+    // There, back, there and back: every sweep the next color, and after the last the first again.
+    [Theory]
+    [InlineData(0.25, 0)]
+    [InlineData(0.75, 1)]
+    [InlineData(1.25, 2)]
+    [InlineData(1.75, 0)]
+    public void Render_MoreColors_HasTheNextColorEverySweep(double seconds, int color)
+    {
+        var colors = new[] { Red, Green, Blue };
+        var leds = new RgbColor[8];
+
+        new ScannerEffect(colors, scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(seconds));
+
+        Assert.Equal(new ScannerEffect(colors[color], scansPerSecond: 1.0).RenderAt(8, seconds), leds);
+    }
+
+    // At the end the point turns, and with it the color.
+    [Fact]
+    public void Render_MoreColors_ChangesTheColorAtTheEnd()
+    {
+        var effect = new ScannerEffect([Red, Green], scansPerSecond: 1.0);
+
+        Assert.Equal(Red, effect.RenderAt(8, 0.499)[7]);
+        Assert.Equal(Green, effect.RenderAt(8, 0.5)[7]);
+    }
+
+    [Theory]
+    [InlineData(0.3)]
+    [InlineData(0.8)]
+    [InlineData(1.3)]
+    public void Render_MoreColorsNegativeSpeed_SweepsAsThePositiveOne(double seconds)
+    {
+        Assert.Equal(
+            new ScannerEffect([Red, Green, Blue], scansPerSecond: 1.0).RenderAt(8, seconds),
+            new ScannerEffect([Red, Green, Blue], scansPerSecond: -1.0).RenderAt(8, seconds));
+    }
+
+    [Fact]
+    public void Constructor_NoColors_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ScannerEffect([]));
+    }
+
     [Theory]
     [InlineData(double.NaN)]
     [InlineData(double.PositiveInfinity)]

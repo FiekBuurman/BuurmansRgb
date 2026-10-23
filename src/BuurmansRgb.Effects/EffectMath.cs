@@ -21,6 +21,14 @@ internal static class EffectMath
     // From from at 0 to to at 1, in a straight line.
     public static double Lerp(double from, double to, double amount) => from + (to - from) * amount;
 
+    // The place of index in a list of count that starts again after its end, also for a negative
+    // index: -1 is the last.
+    public static int Wrap(long index, int count)
+    {
+        var place = index % count;
+        return (int)(place < 0 ? place + count : place);
+    }
+
     // How bright a tail of length LEDs is at behind LEDs behind its point: 1 at the point, fading
     // out ever slower to 0 at its end, and 0 in front of the point or past the end.
     public static double Tail(double behind, double length)

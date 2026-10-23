@@ -2,20 +2,20 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Effects;
 
-// Warm flames: every LED flickers restlessly between dark red, red, orange and yellow. The heat of
-// an LED is value noise: random values at whole steps in time, and every LedsPerFlame LEDs along
-// the device so neighbours burn alike, smoothly blended in between; a slow layer for the flames and
-// a fast one for the flicker. The values come from EffectMath.Random, so a frame at the same time
-// is always the same image; the seed makes the values of its own, so each device burns in its own
-// way. Its colors are fixed: fire is warm, so it has no color of its own.
-public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlickersPerSecond, uint seed = 0) : IEffect
+// Flames: every LED flickers restlessly through the colors, from the first (the coldest, such as
+// dark red) to the last (the hottest, such as yellow). The heat of an LED is value noise: random
+// values at whole steps in time, and every LedsPerFlame LEDs along the device so neighbours burn
+// alike, smoothly blended in between; a slow layer for the flames and a fast one for the flicker.
+// The values come from EffectMath.Random, so a frame at the same time is always the same image; the
+// seed makes the values of its own, so each device burns in its own way. One color burns from a
+// dark one of it (OneColorDark) to itself.
+public sealed class FireEffect : IEffect
 {
     // New random values per second of the slow layer.
     public const double DefaultFlickersPerSecond = 2.0;
 
-    // From cold to hot; a heat between two colors blends them. The scene cards of the settings app
-    // show the three hottest (SceneLook.FireColors), so change those along.
-    private static readonly RgbColor[] Palette = [new(96, 8, 0), new(255, 24, 0), new(255, 100, 0), new(255, 190, 30)];
+    // How dark the coldest heat of one color is, as the dark red of the warm fire is to its red.
+    private const double OneColorDark = 0.375;
 
     private const double LedsPerFlame = 3.0;
 
@@ -28,18 +28,33 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
     private const double FastWeight = 0.4;
 
     // Blended random values mostly lie around the middle; this spreads the heat out again, so the
-    // darkest red and the yellow both show.
+    // coldest and the hottest color both show.
     private const double Contrast = 1.4;
 
     private const uint SlowStream = 0xF1AE0001;
     private const uint FastStream = 0xF1AE0002;
 
-    private readonly uint _slowStream = EffectMath.Seeded(SlowStream, seed);
-    private readonly uint _fastStream = EffectMath.Seeded(FastStream, seed);
+    // From cold to hot; a heat between two colors blends them.
+    private readonly RgbColor[] _palette;
+    private readonly uint _slowStream;
+    private readonly uint _fastStream;
 
-    public double FlickersPerSecond { get; } = EffectMath.FiniteSpeed(flickersPerSecond);
+    public FireEffect(IReadOnlyList<RgbColor> colors, double flickersPerSecond = DefaultFlickersPerSecond, uint seed = 0)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
+        Colors = [.. colors];
+        _palette = colors.Count == 1 ? [colors[0].Scale(OneColorDark), colors[0]] : [.. colors];
+        FlickersPerSecond = EffectMath.FiniteSpeed(flickersPerSecond);
+        Seed = seed;
+        _slowStream = EffectMath.Seeded(SlowStream, seed);
+        _fastStream = EffectMath.Seeded(FastStream, seed);
+    }
 
-    public uint Seed { get; } = seed;
+    public IReadOnlyList<RgbColor> Colors { get; }
+
+    public double FlickersPerSecond { get; }
+
+    public uint Seed { get; }
 
     public bool IsAnimated => true;
 
@@ -74,10 +89,10 @@ public sealed class FireEffect(double flickersPerSecond = FireEffect.DefaultFlic
         return 0.5 + (EffectMath.Lerp(thisStep, nextStep, along) - 0.5) / spread;
     }
 
-    private static RgbColor ColorAt(double heat)
+    private RgbColor ColorAt(double heat)
     {
-        var scaled = heat * (Palette.Length - 1);
-        var index = Math.Min((int)scaled, Palette.Length - 2);
-        return RgbColor.Lerp(Palette[index], Palette[index + 1], scaled - index);
+        var scaled = heat * (_palette.Length - 1);
+        var index = Math.Min((int)scaled, _palette.Length - 2);
+        return RgbColor.Lerp(_palette[index], _palette[index + 1], scaled - index);
     }
 }

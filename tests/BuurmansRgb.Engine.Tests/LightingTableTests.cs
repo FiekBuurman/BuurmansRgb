@@ -107,6 +107,32 @@ public sealed class LightingTableTests
         Assert.Empty(_table.Snapshot());
     }
 
+    [Theory]
+    [InlineData(EffectIds.Comet, 0)]
+    [InlineData(EffectIds.Fire, EffectColors.MaxColors + 1)]
+    [InlineData(EffectIds.Static, 1)]
+    [InlineData("unknown", 1)]
+    public void Set_EffectColorsThatDoNotFit_ThrowForColors(string effectId, int count)
+    {
+        var colors = EffectColors.None.With(effectId, [.. Enumerable.Repeat(Orange, count)]);
+
+        var exception = Assert.Throws<ArgumentException>(() => _table.Set("device", HalfOrange with { EffectColors = colors }));
+
+        Assert.Equal("colors", exception.ParamName);
+        Assert.False(_table.IsSet);
+    }
+
+    [Fact]
+    public void Set_SameEffectColorsAsGlobalInANewList_FollowsTheGlobalAgain()
+    {
+        _table.SetGlobal(lighting => lighting with { EffectColors = EffectColors.None.With(EffectIds.Comet, [Red, Green]) });
+        _table.Set("device", HalfOrange);
+
+        _table.Set("device", _table.Global with { EffectColors = EffectColors.None.With(EffectIds.Comet, [Red, Green]) });
+
+        Assert.Empty(_table.Snapshot());
+    }
+
     [Fact]
     public void Replace_KeepsDevicesEqualToGlobal()
     {

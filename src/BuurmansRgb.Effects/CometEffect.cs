@@ -8,8 +8,11 @@ namespace BuurmansRgb.Effects;
 // rate, and the tail is a part of the length, so it stays visible on a long device. A device of
 // fewer than MinLength LEDs shows its LEDs spread over a ring of that length, so a single LED
 // pulses: on as the head passes, then fading with the tail. A negative speed runs it towards the
-// first LED, with the tail behind it on the side of the last.
-public sealed class CometEffect(RgbColor color, double roundsPerSecond = CometEffect.DefaultRoundsPerSecond) : IEffect
+// first LED, with the tail behind it on the side of the last. With more colors every round has the
+// next one, from where the head comes in at the start of the ring: the first LED, or with a
+// negative speed the last; an LED keeps the color of the round that passed it last, so the tail of
+// the round before still fades in its own color.
+public sealed class CometEffect : IEffect
 {
     public const double DefaultRoundsPerSecond = 0.5;
 
@@ -19,9 +22,23 @@ public sealed class CometEffect(RgbColor color, double roundsPerSecond = CometEf
     private const double TailPart = 0.3;
     private const double MinTail = 2.0;
 
-    public RgbColor Color { get; } = color;
+    private readonly RgbColor[] _colors;
 
-    public double RoundsPerSecond { get; } = EffectMath.FiniteSpeed(roundsPerSecond);
+    public CometEffect(RgbColor color, double roundsPerSecond = DefaultRoundsPerSecond)
+        : this([color], roundsPerSecond)
+    {
+    }
+
+    public CometEffect(IReadOnlyList<RgbColor> colors, double roundsPerSecond = DefaultRoundsPerSecond)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
+        _colors = [.. colors];
+        RoundsPerSecond = EffectMath.FiniteSpeed(roundsPerSecond);
+    }
+
+    public IReadOnlyList<RgbColor> Colors => _colors;
+
+    public double RoundsPerSecond { get; }
 
     public bool IsAnimated => true;
 
@@ -29,17 +46,37 @@ public sealed class CometEffect(RgbColor color, double roundsPerSecond = CometEf
     {
         var length = Math.Max(leds.Length, MinLength);
         var spacing = length / (double)Math.Max(leds.Length, 1);
-        var head = EffectMath.Fraction(time.TotalSeconds * RoundsPerSecond) * length;
+        var rounds = time.TotalSeconds * RoundsPerSecond;
+        var head = EffectMath.Fraction(rounds) * length;
         var tail = Math.Max(MinTail, length * TailPart);
-        var direction = RoundsPerSecond < 0.0 ? -1.0 : 1.0;
+        var direction = RoundsPerSecond < 0.0 ? -1 : 1;
+
+        // The round of the head counted in the way it runs, so it grows also with a negative speed.
+        // An LED shows the color of the round that passed it last, or of the next as the head
+        // arrives: one of three, so they are looked up once per frame.
+        var round = direction * (long)Math.Floor(rounds);
+        var (before, now, next) = (ColorOf(round - 1), ColorOf(round), ColorOf(round + 1));
         for (var i = 0; i < leds.Length; i++)
         {
             // How far the head is past this LED, round the ring in the way it runs; within one LED
-            // before it, the LED comes up as the head arrives.
-            var behind = EffectMath.Fraction(direction * (head - i * spacing) / length) * length;
+            // before it, the LED comes up as the head arrives. Behind the start of the ring (a
+            // negative place, from -1 up to 0), the head passed the LED in the round before.
+            var place = direction * (head - i * spacing) / length;
+            var thisRound = place >= 0.0;
+            var part = thisRound ? place : place + 1.0;
+            if (part >= 1.0)
+            {
+                (part, thisRound) = (0.0, true);
+            }
+
+            var behind = part * length;
             var ahead = length - behind;
             var arriving = ahead < 1.0 ? 1.0 - ahead : 0.0;
-            leds[i] = Color.Scale(Math.Max(arriving, EffectMath.Tail(behind, tail)));
+            var level = EffectMath.Tail(behind, tail);
+            var color = arriving > level ? (thisRound ? next : now) : (thisRound ? now : before);
+            leds[i] = color.Scale(Math.Max(arriving, level));
         }
     }
+
+    private RgbColor ColorOf(long round) => _colors[EffectMath.Wrap(round, _colors.Length)];
 }

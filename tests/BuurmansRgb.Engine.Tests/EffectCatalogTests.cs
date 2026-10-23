@@ -60,10 +60,10 @@ public sealed class EffectCatalogTests
         Assert.IsType<BreathingEffect>(EffectCatalog.Create(EffectIds.Breathing, Orange, []));
         Assert.IsType<RainbowEffect>(EffectCatalog.Create(EffectIds.Rainbow, Orange, []));
         Assert.IsType<WaveEffect>(EffectCatalog.Create(EffectIds.Wave, Orange, []));
-        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Color);
-        Assert.Equal(Orange, Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [])).Color);
-        Assert.Equal(Orange, Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [])).Color);
-        Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, []));
+        Assert.Equal(Orange, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [])).Colors.Single());
+        Assert.Equal(Orange, Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [])).Colors.Single());
+        Assert.Equal(Orange, Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [])).Colors.Single());
+        Assert.Equal(EffectColors.DefaultFire, Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, [])).Colors);
     }
 
     [Fact]
@@ -82,6 +82,22 @@ public sealed class EffectCatalogTests
     {
         Assert.Equal(5u, Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [], seed: 5)).Seed);
         Assert.Equal(5u, Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, [], seed: 5)).Seed);
+    }
+
+    // Each effect with a list gets its own list, not the one of another effect.
+    [Fact]
+    public void Create_GivesTheEffectsWithAListTheirOwnColors()
+    {
+        var colors = EffectColors.None
+            .With(EffectIds.Twinkle, [Red])
+            .With(EffectIds.Comet, [Red, Green])
+            .With(EffectIds.Scanner, [Green, Blue])
+            .With(EffectIds.Fire, [Blue]);
+
+        Assert.Equal([Red], Assert.IsType<TwinkleEffect>(EffectCatalog.Create(EffectIds.Twinkle, Orange, [], effectColors: colors)).Colors);
+        Assert.Equal([Red, Green], Assert.IsType<CometEffect>(EffectCatalog.Create(EffectIds.Comet, Orange, [], effectColors: colors)).Colors);
+        Assert.Equal([Green, Blue], Assert.IsType<ScannerEffect>(EffectCatalog.Create(EffectIds.Scanner, Orange, [], effectColors: colors)).Colors);
+        Assert.Equal([Blue], Assert.IsType<FireEffect>(EffectCatalog.Create(EffectIds.Fire, Orange, [], effectColors: colors)).Colors);
     }
 
     // FNV-1a, so the same id gives the same seed in every process; these are its known values.

@@ -167,31 +167,22 @@
                         <StackPanel>
                             <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.ColorLoopHeader}" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorLoopHint}" />
-                            <WrapPanel Margin="0,12,0,0">
-                                <ItemsControl ItemsSource="{Binding ColorLoopEditor.Swatches}" Focusable="False" IsTabStop="False">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type vm:ColorLoopSwatch}">
-                                            <Button Width="44" Margin="0,0,8,8" Style="{StaticResource PresetTile}" Tag="{Binding IsSelected}"
-                                                    Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                                    ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
-                                                    Command="{Binding DataContext.ColorLoopEditor.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding Index}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                                <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="+"
-                                        ToolTip="{x:Static res:Strings.ColorLoopAdd}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopAdd}"
-                                        Command="{Binding ColorLoopEditor.AddColorCommand}" />
-                                <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="−"
-                                        ToolTip="{x:Static res:Strings.ColorLoopRemove}" AutomationProperties.Name="{x:Static res:Strings.ColorLoopRemove}"
-                                        Command="{Binding ColorLoopEditor.RemoveColorCommand}" />
-                            </WrapPanel>
+                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding ColorLoopEditor}" />
                             <CheckBox Margin="0,4,0,0" IsChecked="{Binding ColorLoopEditor.Spread}" Content="{x:Static res:Strings.ColorLoopSpread}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- With comet, scanner, twinkle or fire, the mixed color goes to the chosen color of its list. -->
+                    <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}"
+                            Visibility="{Binding HasEffectColors, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.EffectColorsHeader}" />
+                            <TextBlock Style="{StaticResource SubText}" Text="{Binding EffectColorsHint}" />
+                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding EffectColorsEditor}" />
+                            <!-- Back to the lamp color, or the warm colors of the fire; only with a list of its own. -->
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}"
+                                    Content="{x:Static res:Strings.EffectColorsDefault}" ToolTip="{x:Static res:Strings.EffectColorsDefaultToolTip}"
+                                    ToolTipService.ShowOnDisabled="True" Command="{Binding ResetEffectColorsCommand}" />
                         </StackPanel>
                     </Border>
                 </StackPanel>
@@ -240,7 +231,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <!-- Only for the color of the whole lamp: a color of the loop or of chosen LEDs changes at once. -->
+                    <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once. -->
                     <Button Margin="0,20,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
                             Command="{Binding ColorPicker.ApplyCommand}"
                             Visibility="{Binding ColorPicker.AppliesAtOnce, Converter={StaticResource InverseBoolToVisibility}}" />

@@ -67,6 +67,61 @@ public sealed class SceneCardTests
         Assert.Equal($"{name} · 50%", _card.Description);
     }
 
+    // The comet, the scanner and the twinkle show their colors in turn, not the lamp color.
+    [Theory]
+    [InlineData(EffectIds.Twinkle)]
+    [InlineData(EffectIds.Comet)]
+    [InlineData(EffectIds.Scanner)]
+    public void Show_AnEffectWithAList_ShowsItsColorsInTurn(string effectId)
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, effectId, EffectColors: EffectColors.None.With(effectId, [Red, Green])), ProfileAutomation.None);
+
+        Assert.Equal([Red, Green, Red, Green, Red], _card.Dots.Select(dot => dot.Color));
+        Assert.All(_card.Dots, dot => Assert.True(dot.IsLit));
+    }
+
+    // Blue fire: the bulbs glow up to the hottest color and back, without the dark glow of the first.
+    [Fact]
+    public void Show_FireWithAList_GlowsInItsColorsWithoutTheFirst()
+    {
+        var (glow, flame, hottest) = (new RgbColor(0, 0, 60), Blue, new RgbColor(0, 200, 255));
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [glow, flame, hottest])), ProfileAutomation.None);
+
+        Assert.Equal([flame, hottest, flame, hottest, flame], _card.Dots.Select(dot => dot.Color));
+    }
+
+    // Two colors are both flames, and one color glows on every bulb.
+    [Fact]
+    public void Show_FireWithOneOrTwoColors_ShowsThemAll()
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green])), ProfileAutomation.None);
+        Assert.Equal([Red, Green, Red, Green, Red], _card.Dots.Select(dot => dot.Color));
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Green])), ProfileAutomation.None);
+        Assert.All(_card.Dots, dot => Assert.Equal(Green, dot.Color));
+    }
+
+    // The warm fire looks as it did before there were lists: red, orange, yellow, orange, red.
+    [Fact]
+    public void Show_FireWithoutAList_GlowsAsBefore()
+    {
+        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), ProfileAutomation.None);
+
+        Assert.Equal(
+            [new RgbColor(255, 24, 0), new RgbColor(255, 100, 0), new RgbColor(255, 190, 30), new RgbColor(255, 100, 0), new RgbColor(255, 24, 0)],
+            _card.Dots.Select(dot => dot.Color));
+    }
+
+    // A list of the comet does not change the card of a scene with another effect.
+    [Fact]
+    public void Show_ListOfAnotherEffect_LeavesTheLampColor()
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, EffectColors: EffectColors.None.With(EffectIds.Comet, [Red, Green])), ProfileAutomation.None);
+
+        Assert.All(_card.Dots, dot => Assert.Equal(Orange, dot.Color));
+    }
+
     [Fact]
     public void Show_Off_DarkBulbsAndSaysSo()
     {

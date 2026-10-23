@@ -11,14 +11,11 @@ internal static class SceneLook
 {
     public const int DotCount = 5;
 
-    // Fire has no color of its own; its bulbs glow from red to yellow and back, as the flames do,
-    // in the three hottest colors of FireEffect.Palette, which the app does not reference: change
-    // them along.
-    private static readonly RgbColor[] FireColors = [new(255, 24, 0), new(255, 100, 0), new(255, 190, 30), new(255, 100, 0), new(255, 24, 0)];
-
     // Until the engine has told what the scene looks like.
     public static IReadOnlyList<SceneDot> Unknown { get; } = [.. Enumerable.Repeat(new SceneDot(RgbColor.Black, false), DotCount)];
 
+    // Comet, scanner and twinkle show the colors of their list in turn, as they do one after the
+    // other; without a list that is the lamp color.
     public static IReadOnlyList<SceneDot> DotsOf(LightingInfo lighting)
     {
         if (!lighting.On)
@@ -27,13 +24,31 @@ internal static class SceneLook
         }
 
         var loop = (lighting.Loop ?? ColorLoop.Default).Colors;
+        var colors = (lighting.EffectColors ?? EffectColors.None).For(lighting.EffectId, lighting.Color);
         return [.. Enumerable.Range(0, DotCount).Select(i => new SceneDot(lighting.EffectId switch
         {
             EffectIds.Rainbow => RgbColor.FromHsv(i / (double)DotCount, 1.0, 1.0),
             EffectIds.ColorLoop => loop[i % loop.Count],
-            EffectIds.Fire => FireColors[i],
+            EffectIds.Fire => FireColor(colors, i),
+            _ when EffectColors.Takes(lighting.EffectId) => colors[i % colors.Count],
             _ => lighting.Color,
         }, true))];
+    }
+
+    // The bulbs of a fire glow up to its hottest color and back, as the flames do. Of three or more
+    // colors the first, the coldest, is left out: that is the dark glow under the flames, such as
+    // the dark red of the warm colors, whose bulbs glow red, orange, yellow, orange and red.
+    private static RgbColor FireColor(IReadOnlyList<RgbColor> colors, int dot)
+    {
+        var flames = colors.Count >= 3 ? colors.Skip(1).ToArray() : [.. colors];
+        if (flames.Length == 1)
+        {
+            return flames[0];
+        }
+
+        var period = 2 * (flames.Length - 1);
+        var place = dot % period;
+        return flames[place < flames.Length ? place : period - place];
     }
 
     // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond".

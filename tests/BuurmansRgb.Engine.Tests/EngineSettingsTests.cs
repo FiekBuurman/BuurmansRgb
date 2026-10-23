@@ -74,6 +74,41 @@ public sealed class EngineSettingsTests
         Assert.Equal(loop, roundTripped.For("fan").Loop);
     }
 
+    [Fact]
+    public void From_ThenToLightingState_RoundTripsTheEffectColors()
+    {
+        var colors = EffectColors.None.With(EffectIds.Fire, [Blue, Green]).With(EffectIds.Comet, [Orange]);
+        var state = LightingStates.WithDevices(HalfOrange, new Dictionary<string, DeviceLighting> { ["fan"] = FullGreen with { EffectColors = colors } });
+
+        var settings = EngineSettings.From(state);
+        var roundTripped = settings.ToLightingState();
+
+        Assert.Null(settings.EffectColors);
+        Assert.Equal(EffectColors.None, roundTripped.Global.EffectColors);
+        Assert.Equal(colors, roundTripped.For("fan").EffectColors);
+    }
+
+    // Only lists of the effects that take one, with one to eight colors, count; the others have
+    // their default.
+    [Fact]
+    public void ToDeviceLighting_EffectColorsThatDoNotFit_AreLeftOut()
+    {
+        var settings = new LightingSettings
+        {
+            EffectColors = new()
+            {
+                [EffectIds.Twinkle] = [Orange, null, Blue],
+                [EffectIds.Comet] = [],
+                [EffectIds.Scanner] = null,
+                [EffectIds.Fire] = [.. Enumerable.Repeat((RgbColor?)Orange, EffectColors.MaxColors + 1)],
+                [EffectIds.Static] = [Orange],
+                ["unknown"] = [Orange],
+            },
+        };
+
+        Assert.Equal(EffectColors.None.With(EffectIds.Twinkle, [Orange, Blue]), settings.ToDeviceLighting().EffectColors);
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]

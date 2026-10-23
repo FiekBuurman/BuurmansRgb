@@ -22,6 +22,21 @@ public sealed class EffectMathTests
         Assert.InRange(EffectMath.Fraction(value), 0.0, Math.BitDecrement(1.0));
     }
 
+    // A list of three: after the last the first again, and before the first the last.
+    [Theory]
+    [InlineData(0L, 0)]
+    [InlineData(2L, 2)]
+    [InlineData(3L, 0)]
+    [InlineData(7L, 1)]
+    [InlineData(-1L, 2)]
+    [InlineData(-3L, 0)]
+    [InlineData(-4L, 2)]
+    [InlineData(long.MinValue, 1)]
+    public void Wrap_StartsAgainAfterTheEnd(long index, int place)
+    {
+        Assert.Equal(place, EffectMath.Wrap(index, 3));
+    }
+
     [Theory]
     [InlineData(0.0, 0.0)]
     [InlineData(0.5, 0.5)]

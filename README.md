@@ -18,8 +18,8 @@
 - **Licht op de achtergrond.** Een kleine engine met een tray-icoon houdt de lampen aan
   (zo'n 0,2–0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
 - **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
-  vuur, een eigen kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk
-  effect.
+  vuur (fonkelen, komeet, scanner en vuur in je eigen kleuren, bijv. blauw vuur), een eigen
+  kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
 - **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, op vaste tijden of
   zolang een spel draait.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand en scherm uit en zet de kleuren na

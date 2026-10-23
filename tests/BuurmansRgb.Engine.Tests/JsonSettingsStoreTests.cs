@@ -2,6 +2,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -149,6 +150,70 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         Assert.Contains("null", File.ReadAllText(path));
         Assert.Equal([null, new RgbColor(255, 0, 0)], store.LoadOrCreate().LedColors!["simulated-fan"]!);
+    }
+
+    [Fact]
+    public void Save_EffectColors_AreWrittenByEffectAndRoundTrip()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var colors = EffectColors.None.With(EffectIds.Fire, [new RgbColor(0, 0, 64), new RgbColor(0, 0, 255)]);
+
+        store.Save(EngineSettings.From(LightingStates.Uniform(DeviceLighting.Default with { EffectColors = colors })));
+
+        var json = File.ReadAllText(path);
+        Assert.Contains("\"effectColors\": {", json, StringComparison.Ordinal);
+        Assert.Contains("\"fire\": [", json, StringComparison.Ordinal);
+        Assert.Contains("\"#000040\"", json, StringComparison.Ordinal);
+        Assert.Equal(colors, store.LoadOrCreate().ToDeviceLighting().EffectColors);
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesEffectColorsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault());
+
+        Assert.DoesNotContain("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
+    // Back to the default colors ("Standaardkleuren"): the list goes out of the file again, for the
+    // whole house and for a device of its own.
+    [Fact]
+    public void Save_AfterTheListsAreRemoved_LeavesEffectColorsOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var colors = EffectColors.None.With(EffectIds.Comet, [new RgbColor(0, 0, 64)]);
+        var state = LightingStates.WithDevices(DeviceLighting.Default with { EffectColors = colors }, new Dictionary<string, DeviceLighting>
+        {
+            ["simulated-fan"] = DeviceLighting.Default with { EffectId = EffectIds.Fire, EffectColors = colors.With(EffectIds.Fire, [new RgbColor(0, 0, 255)]) },
+        });
+        store.Save(EngineSettings.From(state));
+        Assert.Contains("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
+        var cleared = LightingStates.WithDevices(DeviceLighting.Default with { EffectColors = colors.Without(EffectIds.Comet) }, new Dictionary<string, DeviceLighting>
+        {
+            ["simulated-fan"] = state.For("simulated-fan") with { EffectColors = state.For("simulated-fan").EffectColors.Without(EffectIds.Comet).Without(EffectIds.Fire) },
+        });
+
+        store.Save(EngineSettings.From(cleared));
+
+        Assert.DoesNotContain("effectColors", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal(EffectColors.None, store.LoadOrCreate().ToLightingState().For("simulated-fan").EffectColors);
+    }
+
+    // A file from before the lists: every effect has its default colors.
+    [Fact]
+    public void LoadOrCreate_WithoutEffectColors_GivesEveryEffectItsDefault()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "color": "#FF8800", "effect": "fire", "devices": { "simulated-fan": { "effect": "comet" } } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Equal(EffectColors.None, state.Global.EffectColors);
+        Assert.Equal(EffectColors.None, state.For("simulated-fan").EffectColors);
     }
 
     [Fact]
@@ -531,6 +596,8 @@ public sealed class JsonSettingsStoreTests : IDisposable
     [InlineData("""{ "color": "#FF8800", "devices": ["simulated-fan"] }""")]
     [InlineData("""{ "color": "#FF8800", "colorLoop": "regenboog" }""")]
     [InlineData("""{ "color": "#FF8800", "colorLoop": { "colors": ["#FF0000", "#00FF00"], "spread": "ja" } }""")]
+    [InlineData("""{ "color": "#FF8800", "effectColors": "blauw" }""")]
+    [InlineData("""{ "color": "#FF8800", "effectColors": { "fire": "blauw", "comet": ["#0000FF"] } }""")]
     public void LoadOrCreate_PartOfTheWrongShape_LeavesOutOnlyThatPart(string content)
     {
         var path = _directory.File("settings.json");
@@ -605,6 +672,30 @@ public sealed class JsonSettingsStoreTests : IDisposable
         File.WriteAllText(path, """{ "colorLoop": { "colors": ["#FF0000", "purple"] } }""");
 
         Assert.Equal(ColorLoop.Default, store.LoadOrCreate().ToDeviceLighting().Loop);
+    }
+
+    [Fact]
+    public void LoadOrCreate_EffectColorThatDoesNotRead_LeavesItOutOfTheList()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, """{ "effectColors": { "fire": ["#000040", "purple", 42, "#0000FF"], "comet": ["purple"] } }""");
+
+        var colors = store.LoadOrCreate().ToDeviceLighting().EffectColors;
+
+        Assert.Equal(EffectColors.None.With(EffectIds.Fire, [new RgbColor(0, 0, 64), new RgbColor(0, 0, 255)]), colors);
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    [Fact]
+    public void LoadOrCreate_EffectListOfTheWrongShape_KeepsTheOtherLists()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "effectColors": { "fire": "blauw", "comet": ["#0000FF"] } }""");
+
+        var colors = new JsonSettingsStore(path).LoadOrCreate().ToDeviceLighting().EffectColors;
+
+        Assert.Equal(EffectColors.None.With(EffectIds.Comet, [new RgbColor(0, 0, 255)]), colors);
     }
 
     [Fact]
