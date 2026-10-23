@@ -408,12 +408,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Another effect the user picks ends an LED edit: the picker colors the lamp or the loop again,
+    // as a color for the LEDs would put the lamp back on the per-LED effect. The effect the app
+    // follows (_syncing), such as the per-LED one after SendLeds, keeps the edit.
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
         SetPickerAppliesAtOnce();
         if (!_syncing.IsActive && value is not null)
         {
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
+            if (value.Id != EffectIds.PerLed)
+            {
+                ClearLedSelection();
+            }
+
             ShowPickerColor();
         }
     }

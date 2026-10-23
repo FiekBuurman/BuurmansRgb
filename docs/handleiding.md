@@ -192,7 +192,9 @@ de LED's ervoor houden wat je mengde.
   Een schermlezer noemt de actieve LED bij zijn naam en zegt of hij gekozen is.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
-- **Selectie opheffen**, of een andere lamp kiezen, geeft het mengpaneel weer aan de lamp.
+- **Selectie opheffen**, een andere lamp kiezen of een ander effect dan Per LED kiezen, geeft
+  het mengpaneel weer aan de lamp (bij Kleurenloop aan de kleur van de loop); een kleur zet de
+  lamp dan niet terug op Per LED.
 - De lamp krijgt bij de eerste wijziging het effect "Per LED". LED's die je niet kleurt,
   volgen de kleur van de lamp. De kleuren blijven bewaard, ook als je tussendoor een ander
   effect kiest of een zone van lengte verandert.
