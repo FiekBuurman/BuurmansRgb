@@ -283,6 +283,9 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var firstFrames = new FrameCollector(first.Api);
         var secondFrames = new FrameCollector(second.Api);
 
+        // Connecting returns once the pipe is open, before the engine made the API of that client.
+        // A call waits for it, so the second client hears the frame of the new color as well.
+        await second.Api.GetDevicesAsync(Ct);
         await first.Api.SetColorAsync(null, Orange, Ct);
 
         await firstFrames.WaitForAsync(Orange);
