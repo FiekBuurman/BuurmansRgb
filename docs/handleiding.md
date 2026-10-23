@@ -67,9 +67,9 @@ schakelaar ernaast.
   meeste lamp-apps: hij komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Lampen)
   gaat mee. Dat geldt ook voor een kleur van de kleurenloop of van een effect en voor de
   per-LED-editor: daar gaat de lamp aan bij de eerste kleur die je mengt, één keer. Alleen mengen
-  voor de hele lamp (zonder de knop), of + en − bij de kleuren, laat hem uit. Bij "Hele huis" gaan alle
-  lampen aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één lamp, dan blijven
-  de andere lampen zoals ze zijn.
+  voor de hele lamp (zonder de knop), of + en − bij de kleuren, laat hem uit. Bij "Hele huis"
+  gaan alle lampen aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één lamp,
+  dan blijven de andere lampen zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
   werkt op elk effect.
 - **Hele huis of één lamp:** een wijziging bij "Hele huis" geldt voor alle lampen, maar alleen
@@ -80,14 +80,14 @@ schakelaar ernaast.
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
   het effect, de snelheid, de kleurenloop en de kleuren van het effect meteen de nieuwe
   verlichting. Een kleur die je aan het mengen bent en nog niet op de lamp hebt gezet, blijft
-  staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop of een
-  effect met eigen kleuren op, dan toont het mengpaneel de gekozen kleur daarvan: die verandert
-  meteen mee, dus de kleur die je voor de lamp mengde vervalt.
+  staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop,
+  Fonkelen, Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan: die
+  verandert meteen mee, dus de kleur die je voor de lamp mengde vervalt.
   De gemengde kleur blijft ook staan als de lampen opnieuw binnenkomen (een zone met een nieuwe
   lengte, lampen die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang dezelfde
   lamp gekozen blijft. Verdwijnt de gekozen lamp, dan toont de pagina "Hele huis" met zijn kleur.
-- Zijn de effecten gepauzeerd, dan staat bovenaan een melding met "Hervatten" (zie
-  "Pauzeren").
+- Zijn de effecten gepauzeerd, dan staat bovenaan een melding met de reden, bij de pauze uit het
+  tray-menu met "Hervatten" (zie "Pauzeren").
 
 #### Effecten
 
@@ -195,8 +195,9 @@ geen beelden; terug op Lampen of Kleur staat meteen het nieuwste beeld er.
 
 Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks vanaf de vorige
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
-Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er LED's gekozen zijn, staat boven het mengpaneel welke dat zijn en gaat de kleur
-alleen naar die LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest;
+Een lamp met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er
+LED's gekozen zijn, staat boven het mengpaneel welke dat zijn en gaat de kleur alleen naar die
+LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest;
 de knop "Op de strip zetten" is dan weg. Staat de lamp uit, dan gaat hij aan bij de eerste
 kleur, ook bij "Verloop vullen". Kies je een andere LED, dan toont het mengpaneel diens kleur;
 de LED's ervoor houden wat je mengde.
@@ -278,7 +279,7 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   een lamp uit), dan staat er geen scène meer aan. Stopt een spel met een eigen scène, dan staat
   de scène van daarvoor weer aan. Ook na een herstart van de engine (of de pc) staat dezelfde
   scène nog aan, zolang hij nog bestaat.
-- Zonelengtes horen niet bij een scène.
+- Zonelengtes en "Zones gelijk" horen niet bij een scène.
 
 Hoe het vanzelf aanzetten werkt:
 
@@ -396,14 +397,14 @@ Hoe het vanzelf aanzetten werkt:
   beeld houden, dimmen of uitgaan (grijs zolang het pauzeren uit staat). Alle drie gelden
   meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
   wijziging meteen.
-- **Scènes op tijd:** "Gemiste tijden inhalen" zet na het ontwaken en bij het starten de scène
-  aan van de tijd die het laatst voorbij is, in plaats van zo'n tijd over te slaan (standaard
-  uit); zie "Gemiste tijden inhalen" bij Scènes. Het geldt zonder herstart, de engine bewaart
-  het, en een tweede instellingen-app toont de wijziging meteen.
+- **Scènes op tijd:** "Gemiste tijden inhalen" (standaard uit), zie "Gemiste tijden inhalen" bij
+  Scènes. Het geldt zonder herstart, de engine bewaart het, en een tweede instellingen-app toont
+  de wijziging meteen.
 - **Sneltoetsen:** "Sneltoetsen voor alles aan en uit" zet de sneltoetsen van "Alles aan" en
   "Alles uit" aan of uit (standaard aan); zie "Sneltoetsen" bij het tray-icoon. Uit geeft de
   engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
-  zonder herstart en de engine bewaart het.
+  zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
+  meteen.
 - **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
 
 ### Aan en uit
@@ -429,14 +430,19 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   op Scènes zijn weggelaten, omdat samen met de buren je lampen kleuren geen doel van de app is.
   Daarmee vervallen ook de `buren-*`-kleuren.
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
-  strip zetten" op de lamp; dat vervangt de schuiven Tint en Verzadiging van de oude app,
-  die een kleur meteen toepasten. Extra ten opzichte van het ontwerp: "Licht en beweging"
+  strip zetten" op de lamp. Extra ten opzichte van het ontwerp: "Licht en beweging"
   (helderheid, effect, snelheid) en het LED-voorbeeld met de per-LED-editor. Een kleur van de
   kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's veranderen
   wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien, dus een
   knop voegde daar niets toe.
 - **Lampkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
+- **Lampen-kop:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
+  (§ 5.1); Instellingen staat onderaan in de navigatiebalk.
+- **Schakelaars** van een lamp met een heel donkere kleur krijgen een lichter spoor (zwart wordt
+  grijs), zodat je de knop blijft zien.
+- **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
+  kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - WPF kent geen letterafstand, dus de −0,02em van de koppen ontbreekt; de navigatiebalk is
   niet uitklapbaar.
 
@@ -447,7 +453,7 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Menu:** "Instellingen openen", "Scène aanzetten", "Alles aan", "Alles uit", "Effecten
   pauzeren", "Starten met Windows", "Logbestand openen" en "Afsluiten". Dubbelklik op het icoon
   opent ook de instellingen.
-- **Alles aan** en **Alles uit** doen hetzelfde als "Alles aan of uit" in de instellingen-app.
+- **Alles aan** en **Alles uit** doen hetzelfde als de grote schakelaar bij "Hele huis" op Lampen.
   Alleen wat iets verandert, is te klikken: staat alles al aan, dan is "Alles aan" grijs. Elke
   lamp houdt zijn eigen verlichting voor als hij weer aangaat.
 - **Sneltoetsen:** **Ctrl+Alt+Shift+A** doet hetzelfde als "Alles aan" en **Ctrl+Alt+Shift+U**
@@ -457,7 +463,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   vast; uitzetten kan bij Instellingen ("Sneltoetsen") of met `"hotkeys": false` in
   `settings.json`. Gebruikt een andere app een van de toetsen al, dan meldt het icoon dat
   ("De sneltoets Ctrl+Alt+Shift+A werkt niet: een andere app gebruikt hem al."), staat die toets
-  niet in het menu en noemt het logbestand hem; de andere toets werkt gewoon. Zet de sneltoetsen
+  niet in het menu en noemt het logbestand hem; de andere toets werkt gewoon. Zijn ze allebei
+  bezet, dan staat er "De sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U werken niet: een
+  andere app gebruikt ze al.". Zet de sneltoetsen
   uit en weer aan om het opnieuw te proberen nadat die app dicht is. Typ je met het toetsenbord
   "Verenigde Staten (internationaal)" een Á of Ú met AltGr+Shift, zet de sneltoetsen dan uit:
   AltGr telt in Windows als Ctrl+Alt.
@@ -525,20 +533,18 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij
   Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`); die geldt ook voor de
-  schermbeveiliging. Uitzetten tijdens zo'n pauze laat de effecten meteen weer lopen. Naar
-  programma's kijkt de engine tijdens vergrendelen en slaapstand ook dan niet.
+  schermbeveiliging. Uitzetten tijdens zo'n pauze laat de effecten meteen weer lopen.
 - **Lampen tijdens deze pauze:** daaronder bij Instellingen (of `pausedLights` in
   `settings.json`) kies je wat de lampen doen bij vergrendelen, slaapstand, scherm uit en de
   schermbeveiliging:
   "Laatste beeld laten staan" (standaard), "Dimmen (20 %)" (het laatste beeld op een vijfde van
-  zijn helderheid) of "Uit" (zwart). Bij de slaapstand gaat dat naar de lampen vóórdat de pc
-  slaapt, zodat lampen die stroom houden niet blijven branden. Eindigt de laatste van die redenen,
-  dan komen de echte kleuren en effecten terug; is de pc wakker maar nog vergrendeld, dan blijven
-  de lampen gedimd of uit tot het ontgrendelen. Een scène op tijd tijdens de pauze gaat ook
-  gedimd of uit naar de lampen; na het ontgrendelen zie je hem echt. De pauze uit het tray-menu
-  doet hier niet aan mee: dan blijven de lampen zoals ze zijn, ook als je daarna vergrendelt.
-  Het voorbeeld in de instellingen-app toont de echte kleuren. Wijzigen tijdens zo'n pauze geldt
-  meteen.
+  zijn helderheid) of "Uit" (zwart); bij de slaapstand al vóór de pc slaapt. Eindigt de laatste
+  van die redenen, dan komen de echte kleuren en effecten terug; is de pc wakker maar nog
+  vergrendeld, dan blijven de lampen gedimd of uit tot het ontgrendelen. Een scène op tijd
+  tijdens de pauze gaat ook gedimd of uit naar de lampen; na het ontgrendelen zie je hem echt.
+  De pauze uit het tray-menu doet hier niet aan mee: dan blijven de lampen zoals ze zijn, ook als
+  je daarna vergrendelt. Het voorbeeld in de instellingen-app toont de echte kleuren. Wijzigen
+  tijdens zo'n pauze geldt meteen.
 - **Van gebruiker wisselen met "Dimmen" of "Uit":** de engine van de eerste gebruiker dimt of
   zet de lampen uit op het moment van wisselen; de engine van de tweede gebruiker stuurt daarna
   zijn eigen kleuren.
@@ -546,19 +552,21 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 ## Instellingenbestanden
 
 Beide bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
-standaardwaarden weg. Wijzigingen uit de app slaat de engine een seconde na de laatste
-wijziging op, en bij afsluiten. Met de hand aanpassen kan ook: `settings.json` terwijl de
-engine draait (zie hieronder), `profiles.json` terwijl hij niet draait.
+standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scène. Wijzigingen
+uit de app slaat de engine een seconde na de laatste wijziging op, en bij afsluiten. Met de
+hand aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder),
+`profiles.json` terwijl hij niet draait.
 
 ### settings.json
 
 Pas je `settings.json` met de hand aan terwijl de engine draait, dan neemt hij het binnen een
 seconde na het opslaan over, zonder herstart: de opties, de verlichting (algemeen, per lamp en
-per LED), de zonelengtes en "Zones gelijk". Een open instellingen-app laat het meteen zien. Het bestand blijft
-zoals jij het schreef, met je eigen opmaak en een naam die de engine niet kent (bijv. een
-tikfout als `"colour"`); je editor meldt dus niet dat het bestand veranderde. Een waarde buiten
-het bereik past de engine aan (bijv. `framesPerSecond` 500 wordt 60); in het bestand staat die
-pas verbeterd als de engine zelf iets opslaat, bijvoorbeeld omdat je in de app iets wijzigt.
+per LED), de zonelengtes en "Zones gelijk". Een open instellingen-app laat het meteen zien. Het
+bestand blijft zoals jij het schreef, met je eigen opmaak en een naam die de engine niet kent
+(bijv. een tikfout als `"colour"`); je editor meldt dus niet dat het bestand veranderde. Een
+waarde buiten het bereik past de engine aan (bijv. `framesPerSecond` 500 wordt 60); in het
+bestand staat die pas verbeterd als de engine zelf iets opslaat, bijvoorbeeld omdat je in de app
+iets wijzigt.
 Verander je alleen een optie, dan blijft de scène die aan staat aan; een andere verlichting zet
 hem uit, zoals elke wijziging. `activeScene` neemt hij niet over: een scène aanzetten doe je in
 de app of het tray-menu. Staat er in `activeScene` daardoor iets anders dan de scène die aan
@@ -598,9 +606,9 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 
 | Veld | Betekenis |
 | --- | --- |
-| `color` | `#RRGGBB` |
-| `brightness` | 0 tot 1 |
-| `effect` | Een van de effecten uit de tabel bij "Effecten"; onbekend wordt `static` |
+| `color` | `#RRGGBB`, standaard `#FFFFFF` (wit) |
+| `brightness` | 0 tot 1, standaard 1 |
+| `effect` | Een van de effecten uit de tabel bij "Effecten", standaard `static`; onbekend wordt `static` |
 | `speed` | Snelheid van een bewegend effect: 1 is normaal, van 0,1 tot 3 |
 | `colorLoop` | De 2–8 kleuren van de Kleurenloop; `spread` op `false` voor alle LED's tegelijk. Zonder (of met te weinig of te veel kleuren): geel, groen, blauw |
 | `effectColors` | Per effect de 1–8 eigen kleuren van `twinkle`, `comet`, `scanner` en `fire`, in volgorde (bij `fire` van koud naar heet). Een effect zonder lijst (of met een lege of te lange lijst) heeft zijn standaard: de kleur van de lamp, bij `fire` donkerrood, rood, oranje en geel. Een lijst voor een ander effect slaat de engine over |
@@ -686,7 +694,8 @@ gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }`
 ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde als in
 `settings.json`. Is het
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
-hij met een lege lijst.
+hij met een lege lijst. Een scène zonder naam, met een naam van meer dan 40 tekens, of met
+dezelfde naam als een eerdere (hoofdletters tellen niet), slaat de engine over.
 
 ### Logbestanden
 

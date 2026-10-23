@@ -61,10 +61,11 @@ BuurmansRgb bestaat uit twee processen: een kleine engine die altijd draait en d
 De engine kent hardware alleen via `IDeviceProvider`, dus een nieuwe bron (bijvoorbeeld later een eigen HID-driver) is een extra provider zonder wijzigingen elders. Helderheid past de engine toe ná het effect, door elke kleur te schalen; zo werkt de helderheidsschuif op elk effect.
 
 Naast wat in de tekening staat, heeft de engine inmiddels ook: scènes (`Profiles`: opslaan in
-`profiles.json`, aanzetten op tijd of bij een programma), automatisch pauzeren bij vergrendelen
-en slaapstand en herstellen na het ontwaken (`Power`), het bewaren en terugzetten van
-zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde en echte apparaten
-(`SimulatedDevicesSwitch`).
+`profiles.json`, aanzetten op tijd of bij een programma), automatisch pauzeren bij vergrendelen,
+slaapstand, scherm uit en schermbeveiliging en herstellen na het ontwaken (`Power`), sneltoetsen
+voor alles aan en uit (`Hotkeys`), `settings.json` live oppikken (`SettingsFileWatcher`), het
+bewaren en terugzetten van zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde
+en echte apparaten (`SimulatedDevicesSwitch`).
 
 Kern-interfaces in `Core`. Zo zijn ze nu; taak 0 begon met een kleinere versie (`RgbZone` met
 alleen `Resizable`, minder apparaattypes):
@@ -147,7 +148,7 @@ Solution-indeling:
 BuurmansRgb.slnx
 ├─ src/
 │  ├─ BuurmansRgb.Core                // modellen, interfaces, kleur-wiskunde
-│  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, ColorLoop, PerLed
+│  ├─ BuurmansRgb.Effects             // Static, Breathing, Rainbow, Wave, ColorLoop, Twinkle, Comet, Scanner, Fire, PerLed
 │  ├─ BuurmansRgb.Contracts           // IPC-interface, DTO's en de pipe- en RPC-opzet
 │  ├─ BuurmansRgb.Providers.Simulated // nep-apparaten voor ontwikkeling
 │  ├─ BuurmansRgb.Providers.OpenRgb   // koppeling met OpenRGB SDK-server
@@ -183,7 +184,7 @@ Maatregelen die dit mogelijk maken:
 - **Alleen wijzigingen versturen.** Vergelijk met het vorige frame en stuur per apparaat alleen als er iets veranderde.
 - **Instelbare framerate.** Standaard 30 fps, maximaal 60; animaties zijn tijdgebaseerd, niet frame-gebaseerd.
 - **Lichte GC-instellingen in de engine:** `ServerGarbageCollector=false`, `ConcurrentGarbageCollection=false`, `InvariantGlobalization=true`.
-- **Pauzeren bij vergrendelen of slaapstand** via `SystemEvents.SessionSwitch` en `PowerModeChanged`; na hervatten alles opnieuw toepassen, want veel apparaten resetten na slaap.
+- **Pauzeren bij vergrendelen of slaapstand** via `SystemEvents.SessionSwitch` en `PowerModeChanged`, en bij scherm uit (`GUID_CONSOLE_DISPLAY_STATE`) of schermbeveiliging (een `.scr` vooraan, bevestigd met `SPI_GETSCREENSAVERRUNNING`); na hervatten alles opnieuw toepassen, want veel apparaten resetten na slaap.
 - **UI is een apart proces.** Sluiten = proces stopt = geheugen vrij.
 
 ## Fasering
@@ -203,7 +204,9 @@ Bouw in tien fasen; na fase 3 heb je al een werkende app met één echte kleur o
 
 Na fase 9 als losse uitbreidingen; wat er al is, staat in "Uitbreidingen na taak 9" onderaan
 (o.a. profielen, die in de app scènes heten). Nog open zijn onder meer alle apparaten synchroon
-laten lopen en eigen HID-providers voor apparaten die OpenRGB niet kent; zie `docs/ideas.md`.
+laten lopen, kleur en helderheid per zone (de eis hierboven; nu per apparaat en globaal, per zone
+alleen via Per LED) en eigen HID-providers voor apparaten die OpenRGB niet kent; zie
+`docs/ideas.md`.
 
 ## Agent-taken
 
@@ -391,10 +394,14 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #64 | Ook pauzeren als de schermbeveiliging loopt, zonder vergrendelen: een `.scr`-venster vooraan (via de gedeelde `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)`), bevestigd met `SPI_GETSCREENSAVERRUNNING`, zonder pollen; onder `pauseOnLockAndSleep` en `pausedLights`, met een eigen melding in de app; de schermbeveiliging telt niet als wegwisselen bij een scène op de voorgrond |
 | #65 | "Zones gelijk" per lamp: het effect rendert één keer over de langste zone en elke zone krijgt hetzelfde beeld, een kortere uitgerekt (bijv. de twee zones van één LED van een muis in een regenboog één kleur); een schakelaar in het voorbeeld bij een lamp met twee of meer zones met LED's, bewaard als `zonesAlike` in `settings.json`, niet bij Per LED en geen deel van een scène |
 | #66 | Vier nieuwe effecten: Fonkelen (`twinkle`, willekeurige LED's die oplichten en langzaam uitdoven), Komeet (`comet`, een punt met een staart dat rond het apparaat loopt), Scanner (`scanner`, een punt dat heen en weer gaat, zoals bij Knight Rider) en Vuur (`fire`, warm geel, oranje en rood dat onrustig flakkert); met de snelheidsschuif, de kleur van de lamp (Vuur heeft vaste warme kleuren), op één LED nog levendig en zonder allocaties per frame: het toeval komt uit een vaste hash van LED, tijd en apparaat, dus hetzelfde beeld op dezelfde tijd en toch elke lamp zijn eigen fonkeling en vuur |
+| #67 | Opruimen na de review van #64–#66, zonder dat er voor de gebruiker iets verandert: de commentaren bij de pauze noemen ook de schermbeveiliging, de ideeën voor effecten per zone zijn één punt en de engine-tests maken een `AutoPause` met fakes op één plek (`AutoPauses.WithFakes`) |
 | #69 | Eigen kleuren voor Fonkelen, Komeet, Scanner en Vuur (1–8, net als de kleurenloop): Komeet elke ronde de volgende kleur, Scanner elke keer heen of terug, Fonkelen elke fonkeling een willekeurige kleur uit de lijst en Vuur van de eerste kleur (de gloed) naar de laatste (de felste vlam), bijv. blauw vuur of groen "gif". Per lamp per effect een eigen lijst (`effectColors` in `settings.json` en `profiles.json`, `SetEffectColorsAsync` en `ClearEffectColorsAsync`), dus wisselen tussen effecten houdt elk zijn kleuren en een scène neemt ze mee; zonder lijst de kleur van de lamp, of bij Vuur donkerrood, rood, oranje en geel, zodat bestaande instellingen en scènes er hetzelfde uitzien. Op Kleur dezelfde vakjes met + en − als bij de kleurenloop (een gedeelde editor), de kleurkiezer verft het gekozen vakje meteen; gekozen LED's gaan voor; "Standaardkleuren" haalt de eigen lijst weer weg. De scènekaart toont de kleuren. Zonder allocaties per frame |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
-het onderzoek naar OpenRGB meeleveren (#13).
+het onderzoek naar OpenRGB meeleveren (#13). Herstel-PR's zonder nieuwe functie krijgen geen rij,
+zoals #36 (een proces waarvan de naam niet te lezen is na drie pogingen overslaan) en #68 (een
+ander effect kiezen heft de LED-selectie op); de afronding van taak 4 (#37) en taak 9 (#38) staat
+bij die taken.
 
 ## Risico's en aandachtspunten
 
@@ -407,6 +414,6 @@ Het grootste risico is fabrikantsoftware die tegelijk dezelfde LED's aanstuurt; 
 | Anti-cheat in sommige games | Low-level hardwaretoegang kan gemarkeerd worden | Geldt voor OpenRGB, niet voor BuurmansRgb; bij twijfel OpenRGB sluiten tijdens het spelen |
 | Apparaat niet ondersteund door OpenRGB | Geen aansturing mogelijk | Check de supported-devices-lijst van OpenRGB vóór fase 5–8; headsets zijn het vaakst niet ondersteund |
 | Apparaten resetten na slaapstand | Standaard fabriekseffect na hervatten | Na `PowerModeChanged.Resume` alles opnieuw toepassen (zit in fase 5–8 acceptatie) |
-| OpenRGB SDK-protocolversie wijzigt | Verbinding of functies vallen weg | `OpenRGB.NET` en OpenRGB samen bijwerken; protocolversie loggen bij verbinden |
+| OpenRGB SDK-protocolversie wijzigt | Verbinding of functies vallen weg | `OpenRGB.NET` en OpenRGB samen bijwerken; de engine logt de protocolversie bij verbinden (`engine.log`) |
 
 Open vraag: welke merken en modellen zitten er in de pc? Vul dat in `docs/hardware.md` in, zodat de criteria van taak 5–8 getoetst kunnen worden tegen de OpenRGB-lijst.

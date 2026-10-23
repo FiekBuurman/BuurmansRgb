@@ -7,7 +7,8 @@ gebruikt, staat in de [handleiding](handleiding.md); het plan en de stand per ta
 ## Bouwen, starten en testen
 
 Nodig: Windows 10/11 en de .NET 10 SDK. Voor echte hardware ook OpenRGB met de SDK-server aan
-(zie "OpenRGB koppelen" in de [handleiding](handleiding.md#openrgb-koppelen)); zonder OpenRGB werkt alles met gesimuleerde lampen.
+(zie "OpenRGB koppelen" in de [handleiding](handleiding.md#openrgb-koppelen)); zonder OpenRGB
+werkt alles met gesimuleerde lampen.
 
 Open `BuurmansRgb.slnx` in Visual Studio 2026, of vanaf de commandline:
 
@@ -43,7 +44,8 @@ Zonder OpenRGB staan er twaalf gesimuleerde lampen klaar, zie "Instellingen" in 
 Pakketversies staan centraal in `Directory.Packages.props`; `nuget.config` gebruikt alleen
 nuget.org. `MessagePack` is vastgepind op een versie zonder bekend lek, omdat StreamJsonRpc
 een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.resx` en
-`src/BuurmansRgb.Engine/Resources/Strings.resx`.
+`src/BuurmansRgb.Engine/Resources/Strings.resx`; de namen van de gesimuleerde lampen in
+`src/BuurmansRgb.Providers.Simulated/Resources/Strings.resx`.
 
 ## Tests
 
@@ -53,23 +55,23 @@ zonder hardware. Per project een testproject in `tests/`. Helpers die elk testpr
 `tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
 (`FakeOpenRgbConnector`, `InMemoryOpenRgb`) staat in het hulpproject
 `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests; daarnaast is er een kleine
-SDK-server op een loopback-socket (`OpenRgbTestServer`).
+SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Providers.OpenRgb.Tests`).
 
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
 | Effecten en render-loop | Een klasse per effect in `BuurmansRgb.Effects.Tests` (`EffectSamples` volgt één LED door de tijd, bijv. hoe één LED van een muis pulseert; bij Fonkelen, Komeet, Scanner en Vuur ook met een lijst van kleuren: Komeet elke ronde de volgende en de staart van de vorige ronde in zijn eigen kleur, Scanner elke keer heen of terug de volgende, Fonkelen elke fonkeling één kleur uit de lijst die hij houdt, Vuur van de eerste naar de laatste kleur, en één kleur in een lijst geeft precies het beeld van vóór de lijsten, vastgelegd als LED-kleuren), `EffectMathTests` (de vaste toevalsbron van Fonkelen en Vuur: elke uitkomst even vaak, dezelfde invoer hetzelfde getal, een eigen reeks per seed), `EffectCatalogTests` en `LightingControllerEffectTests` (elk effect zijn eigen lijst, zonder lijst de kleur van de lamp of het warme vuur; de seed per apparaat, een FNV-1a-hash van zijn id: twee even lange apparaten fonkelen en branden bij "Hele huis" anders, en na een herstart weer hetzelfde), `FireEffectTests` (ook geen strepen om de drie LED's, en tussen twee stappen in de tijd niet vlakker dan op een stap), `AnimationLoopTests`, `LightingControllerAnimationTests` (een frame zonder verbonden app alloceert 0 bytes, met Regenboog, Fonkelen, Komeet, Scanner en Vuur, de laatste vier ook met vier kleuren), `LightingControllerSpeedTests`, `EffectClockTests` |
 | Instellingen | `JsonSettingsStoreTests` en `EngineSettingsTests` (ook `effectColors`: bewaren per effect, zonder lijst de standaard, na "Standaardkleuren" weer uit het bestand, een kleur die niet te lezen is, een lijst die te lang, leeg of van een ander effect is), `LightingSettingsSaverTests` (ook `HoldSaves`, `Adopt` en wachten op een wijziging met de hand), `EngineHostTests`, `JsonSettingsStoreChangeTests` (een wijziging met de hand tegenover de eigen opslag, half geschreven en kapot, een bestand dat open is of weg, `SaveIfUnchanged`), `SettingsReloaderTests` (de rust na de laatste wijziging, geen pollen; met `FakeSettingsFileEvents` en een nepklok), `EngineHostReloadTests` (opties, verlichting en zonelengtes toepassen en wat de app hoort; ook twee met de echte `FileSystemWatcher` in een tijdelijke map: de eigen opslag daarna komt niet terug, en een kapot bestand verandert niets tot het weer klopt), `SettingsFileWatcherTests` (de echte watcher: met de hand, via een tijdelijk bestand en rename, een ander bestand in de map), `EffectOptionsViewModelTests` (vloeiendheid en pauzeren bij vergrendelen in de app, en wat de lampen tijdens die pauze doen), `SwitchOptionViewModelTests` (de schakelaars voor gemiste tijden inhalen en de sneltoetsen), `EnumOptionTests` (de Nederlandse naam van een keuze in een lijst, of de Engelse zonder vertaling) |
-| OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests` |
+| OpenRGB | `OpenRgbDeviceMapperTests`, `OpenRgbDeviceProviderTests`, `OpenRgbNetConnectionTests`, `OpenRgbProviderStatusTests`, `OpenRgbProviderServerTests`, `OpenRgbServerWatcherTests`, `OpenRgbPacketsTests` (de kop van een pakket en de naam van de client), `OpenRgbProviderCpuTests` (sluit de server de verbinding, dan laat de provider hem los) |
 | Gesimuleerde lampen | `SimulatedDeviceProviderTests`, `SimulatedDevicesSwitchTests`, `SwitchableDeviceProviderTests` |
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Zones gelijk | `RgbZoneTests` (`PartsOf`), `DeviceOutputTests` (het beeld van de langste zone uitgerekt over elke zone, even lange zones, "Overige LED's", een zone zonder LED's, één zone, helderheid en een flits over het beeld), `LightingControllerZonesAlikeTests` (twee zones van één LED in een regenboog één kleur, en bij Fonkelen, Komeet, Scanner en Vuur samen één kleur die beweegt, per LED niet, onbekend apparaat, geen `LightingChanged`, een scène laat het staan, een apparaat dat later komt, een zone die langer wordt of zijn eerste LED's krijgt, een zone knipperen, 0 bytes per frame), `JsonSettingsStoreTests`, `EngineHostTests` en `EngineHostReloadTests` (`zonesAlike` lezen, bewaren, met de hand en niet terugschrijven), `EngineApiTests`, `EngineRpcTests` en `DeviceInfoTests` (`SetZonesAlikeAsync` en `DeviceInfo.ZonesAlike`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de schakelaar alleen bij twee of meer zones met LED's, sturen en volgen, een kleur die je mengt blijft bij het omzetten, zoals bij elke nieuwe lijst lampen: zie "Pagina's") |
 | Knipperen en plek | `LightingControllerFlashTests` (ook een apparaat zonder LED's, dat de flits van een ander stopt), `LightingControllerZoneFlashTests` (alleen de LED's van één zone, een zone zonder LED's of die er niet meer is, een nieuwe lengte tijdens het knipperen, 0 bytes per frame), `RgbZoneTests` (`RangesOf`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de knop per zone, eerst een lengte die nog wacht, een knop annuleert de flits die bij de lampkeuze wacht), `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij, en bij de loop of LED's die meteen meekleuren één keer; bij de kleurenloop in `MainViewModelColorLoopTests`) |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, `effectColors` en een scène van vóór de kleuren per effect, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, ook dat een schermbeveiliging niet telt, het eigen proces en het bureaublad, ook twee keer na elkaar, en naar de gedeelde hook luisteren alleen zolang er gevolgd wordt), `ForegroundHookTests` (één echte `SetWinEventHook` zolang iemand luistert, elk venster naar elke luisteraar, ook als er een gooit of tussendoor stopt, en met een verzonnen `SetWinEventHook` die eerst weigert: wie luisterde krijgt de vensters van een latere hook; ook in `SystemForegroundWindowTests` en `SystemScreenSaverEventsTests`), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` (ook de warme bolletjes van Vuur, en de kleuren van een effect met een lijst), `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
-| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents` en de schermbeveiliging met `FakeScreenSaverEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `WindowsProgramsTests` (welke exe-namen een schermbeveiliging of het vergrendelscherm zijn), `SystemScreenSaverEventsTests` (elk venster ervan melden en het einde één keer, een ander venster vooraan beëindigt hem, met de echte `ForegroundHook` en samen met `AutoPause` opnieuw pauzeren na ontgrendelen; met verzonnen vensters, een verzonnen `SPI_GETSCREENSAVERRUNNING` en `FakeTimeProvider`: "Voorbeeld" telt niet en komt in het logboek, wat Windows bevestigt telt, ook een seconde later, maar niet na een ander venster, en er wordt maar één keer opnieuw gevraagd; het vergrendelscherm beëindigt hem niet, zodat de pauze met `AutoPause` zonder gat doorloopt tot het ontgrendelen; geen test start een echte schermbeveiliging, en de echte vlag wordt alleen gelezen), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, `effectColors` en een scène van vóór de kleuren per effect, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, ook dat een schermbeveiliging niet telt, het eigen proces en het bureaublad, ook twee keer na elkaar, en naar de gedeelde hook luisteren alleen zolang er gevolgd wordt), `ForegroundHookTests` (één echte `SetWinEventHook` zolang iemand luistert, elk venster naar elke luisteraar, ook als er een gooit of tussendoor stopt, en met een verzonnen `SetWinEventHook` die eerst weigert: wie luisterde krijgt de vensters van een latere hook; ook in `SystemForegroundWindowTests` en `SystemScreenSaverEventsTests`), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests` (ook de warme bolletjes van Vuur, en de kleuren van een effect met een lijst), `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond), `WindowedProgramsTests` (een programma kiezen) en `SystemClockEventsTests` (ontwaken meldt een verandering van de klok) |
+| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents` en de schermbeveiliging met `FakeScreenSaverEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `WindowsProgramsTests` (welke exe-namen een schermbeveiliging of het vergrendelscherm zijn), `SystemScreenSaverEventsTests` (elk venster ervan melden en het einde één keer, een ander venster vooraan beëindigt hem, met de echte `ForegroundHook` en samen met `AutoPause` opnieuw pauzeren na ontgrendelen; met verzonnen vensters, een verzonnen `SPI_GETSCREENSAVERRUNNING` en `FakeTimeProvider`: "Voorbeeld" telt niet en komt in het logboek, wat Windows bevestigt telt, ook een seconde later, maar niet na een ander venster, en er wordt maar één keer opnieuw gevraagd; het vergrendelscherm beëindigt hem niet, zodat de pauze met `AutoPause` zonder gat doorloopt tot het ontgrendelen; geen test start een echte schermbeveiliging, en de echte vlag wordt alleen gelezen), `EffectsPauseViewModelTests`, `MainViewModelPauseTests` (de melding volgt de pauze van de engine, "Hervatten" na de wijzigingen die nog wachten), `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer, en `IsRegistered` volgt dat; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `SwitchOptionViewModelTests` |
-| Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
-| IPC | `EngineApiTests` (ook `SetEffectColorsAsync`: een kopie per effect, voor één lamp of alle, een effect zonder kleuren of een lijst van 0 of 9 kleuren geweigerd; en `ClearEffectColorsAsync`: weer de standaard, de andere lijsten blijven, bij "Hele huis" op elke lamp), `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe, ook `EffectColors` in de verlichting en `ClearEffectColorsAsync`), `EffectColorsTests` (welke effecten een lijst hebben, de standaard, `With` en `Without`, gelijkheid per lijst) |
+| Tray en opstarten | `TrayPresenterTests`, `SettingsAppLauncherTests` (de instellingen-app ontbreekt of is geen programma), `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
+| IPC | `EngineApiTests` (ook `SetEffectColorsAsync`: een kopie per effect, voor één lamp of alle, een effect zonder kleuren of een lijst van 0 of 9 kleuren geweigerd; en `ClearEffectColorsAsync`: weer de standaard, de andere lijsten blijven, bij "Hele huis" op elke lamp), `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe, ook `EffectColors` in de verlichting en `ClearEffectColorsAsync`), `EffectColorsTests` (welke effecten een lijst hebben, de standaard, `With` en `Without`, gelijkheid per lijst), `LightingTableTests` (de verlichting van "Hele huis" en per lamp: een lamp gelijk aan "Hele huis" volgt die weer, een snelheid, kleurenloop of lijst kleuren die niet past wordt geweigerd) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen de gekozen lamp), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
 | Per-LED-editor | `LedEditorViewModelTests`, `MainViewModelLedEditorTests` (ook mengen kleurt de gekozen LED's meteen, en een slepende schuif terwijl de engine bezig is geeft weinig aanroepen met de laatste kleur, met `FakeEngineApi.SetGate`, ook als de engine tussendoor `LightingChanged` meldt; ook alleen met toetsen een reeks kiezen en kleuren, twee snelle Shift+→ voordat de engine de kleuren gaf, alles kiezen en Escape; een ander effect dan Per LED kiezen heft de selectie op, ook bij Kleurenloop, een effect van de engine niet), `DevicePreviewKeyboardTests` (de actieve LED: vorige en volgende ook over zones heen, Home en End, de grenzen, ↑ en ↓ naar de rij die de view vond of de zone ernaast, Shift voor een reeks vanaf de LED waar je vandaan kwam, Ctrl+A, Escape alleen met een selectie op die lamp, een klik maakt een LED actief, bij een kortere lengte blijft hij op een LED die de zone toont), `PreviewViewModelTests` (de actieve LED blijft op zijn plek in zijn zone als de lampen opnieuw komen, ook als een zone ervoor langer werd), `LedPreviewViewKeyboardTests` (welke toets wat doet, de rij erboven of eronder in een rij die omloopt en op een toetsenbord met een brede spatiebalk, Tab-stop en focus naar de zone met de actieve LED, een echte klik op een andere lamp neemt de focus alleen mee als die al in de LED's stond, de tooltip terug naar de actieve LED als de muis weggaat, de focusring, UI Automation, ook dat het item van de actieve LED de focus meldt; met een echt venster buiten beeld) |
@@ -84,34 +86,35 @@ toetsenbord. Een paar dingen om te proberen:
 - Kies "Fonkelen", "Komeet", "Scanner" en "Vuur" bij "Hele huis" en kijk naar de ledstrip, de
   ventilator en de "Gesimuleerde headset" (twee oorschelpen van één LED): de komeet loopt de
   ring rond, de scanner gaat heen en terug en remt bij de uiteinden af, en bij de headset
-  gaan de komeet en de scanner om de beurt naar de ene en de andere oorschelp. Zet bij de
-  headset "Zones gelijk" aan: dan pulseren ze op beide tegelijk en flakkert het vuur als een
-  kaars. Bij Fonkelen en Vuur heeft elke lamp zijn eigen toeval: geen twee lampen fonkelen of
-  flakkeren gelijk, ook niet het begin van de strip en de ventilator. Zet bij Instellingen
-  "Zuinig" en de snelheid op 300 %: de punten springen dan verder, maar zijn nog te volgen.
-- Kies bij Kleur "Simulated ARGB controller" en klik bij "ARGB 2" een paar keer op + of sleep
-  de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft nog
-  steeds die lengte.
-- Klik bij "Simulated ARGB controller" naast "ARGB 1" op "Knipperen": in het voorbeeld knippert
-  alleen die zone. "ARGB 2" heeft pas een knop als het LED's heeft.
+  gaan de komeet en de scanner om de beurt naar de ene en de andere oorschelp. Bij Fonkelen en
+  Vuur heeft elke lamp zijn eigen toeval: geen twee lampen fonkelen of flakkeren gelijk, ook
+  niet het begin van de strip en de ventilator. Zet bij Instellingen "Zuinig" en bij Kleur de
+  snelheid op 300 %: de punten springen dan verder, maar zijn nog te volgen.
+- Kies bij Kleur "Gesimuleerde ARGB-controller" en klik bij "ARGB 2" een paar keer op + of
+  sleep de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft
+  nog steeds die lengte.
+- Klik bij "Gesimuleerde ARGB-controller" naast "ARGB 1" op "Knipperen": in het voorbeeld
+  knippert alleen die zone. "ARGB 2" heeft pas een knop als het LED's heeft.
 - Kies "Regenboog" en zet bij "Gesimuleerde headset" (twee oorschelpen van één LED) "Zones
   gelijk" aan: in het voorbeeld hebben beide LED's nu dezelfde kleur, en bij de ventilator met
-  twee ringen lopen de ringen gelijk op. Herstart de engine: de schakelaar staat nog aan. Kies
-  "Per LED": elke LED houdt zijn eigen kleur.
+  twee ringen lopen de ringen gelijk op. Bij Komeet en Scanner pulseren de oorschelpen dan
+  tegelijk, en Vuur flakkert als een kaars. Herstart de engine: de schakelaar staat nog aan.
+  Kies "Per LED": elke LED houdt zijn eigen kleur.
 - Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
 - Doe de per-LED-editor alleen met het toetsenbord: ga bij "Gesimuleerd toetsenbord" met Tab
   naar de toetsen (de actieve krijgt een ring en een tooltip), loop met de pijltjes, ↑ en ↓,
   Home en End, kies met Spatie, breid uit met Shift+→, kies alles met Ctrl+A en hef op met
   Escape. Kies een reeks, ga met Shift+Tab terug naar de schuif Rood en druk een paar keer →:
-  de reeks kleurt bij elke stap mee. Bij de ventilator met twee ringen gaat → van de binnenste ring door naar de
-  buitenste, en de focus gaat mee. Klik bij "Hele huis" met de focus in de toetsen op een LED
-  van een andere lamp: de ring gaat mee. Zet daarna Verteller aan (Ctrl+Win+Enter): bij elke
-  stap hoort hij de naam van de LED te zeggen ("Escape (LED 1)") en of hij geselecteerd is.
+  de reeks kleurt bij elke stap mee. Bij de ventilator met twee ringen gaat → van de binnenste
+  ring door naar de buitenste, en de focus gaat mee. Klik bij "Hele huis" met de focus in de
+  toetsen op een LED van een andere lamp: de ring gaat mee. Zet daarna Verteller aan
+  (Ctrl+Win+Enter): bij elke stap hoort hij de naam van de LED te zeggen ("Escape (LED 1)") en
+  of hij geselecteerd is.
 - Zet twee scènes in elkaar en kies er een in het tray-menu; geef een scène een tijd een minuut
   verder en met "+ Nog een tijd" een tweede een minuut daarna (zet er tussendoor een kleur), of
-  `notepad.exe`, en start en sluit Kladblok. Een tijd weghalen gaat met "−"; de kaart zegt dan bijv.
-  "Elke dag om 21:00 en nog 1", of weer alleen de ene tijd.
+  `notepad.exe`, en start en sluit Kladblok. Een tijd weghalen gaat met "−"; de kaart zegt dan
+  bijv. "Elke dag om 21:00 en nog 1", of weer alleen de ene tijd.
 - Zet op Lampen een lamp uit, kies hem bij Kleur en kies "Op de strip zetten": hij gaat aan
   en zijn schakelaar gaat mee; de andere lampen blijven zoals ze waren.
 - Kies bij Kleur het effect "Kleurenloop", klik op de tweede kleur (dikke witte rand) en sleep
@@ -139,6 +142,10 @@ toetsenbord. Een paar dingen om te proberen:
   `PeriodicTimer` op `framesPerSecond`; ook tijdens het knipperen. Een frame stuurt alleen de
   lampen waarvan de kleuren veranderden, en alloceert niets zolang de instellingen-app dicht
   is. Gaat een frame mis, dan probeert het volgende het opnieuw.
+- **Effecten:** `EffectCatalog` maakt per apparaat een effect met de kleur, de per-LED-kleuren,
+  de kleurenloop, `EffectColors` (de eigen kleuren van Fonkelen, Komeet, Scanner en Vuur; zonder
+  lijst de kleur van de lamp of `DefaultFire`) en een seed (`SeedOf`, FNV-1a over het id), zodat
+  Fonkelen en Vuur per apparaat anders lopen en na een herstart hetzelfde.
 - **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen
   dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
   het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
@@ -258,11 +265,11 @@ toetsenbord. Een paar dingen om te proberen:
   het daar één keer zag, zodat een naam die nog niet te lezen is niet als gestopt telt. Tijdens
   `Away` onthoudt hij alleen wat Windows vooraan meldt; na terugkomen telt dat op de timer (niet
   onder de lock van `AutoPause`) één keer, behalve als de proceslijst het intussen zag stoppen.
-- **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show` (waarmee
-  `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke andere
-  `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke wissel
-  (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en na het
-  starten zet `RestoreActive` hem terug als die scène nog bestaat.
+- **Welke scène aan staat:** `ProfileLibrary.ActiveName`, gezet door `Load`, `Save` en `Show`
+  (waarmee `ProgramWatcher` na een spel ook de scène van daarvoor terugzet) en gewist door elke
+  andere `LightingChanged`; de app vraagt het met `IEngineApi.GetActiveProfileAsync`. Bij elke
+  wissel (`ActiveChanged`) bewaart `EngineHost` de naam als `activeScene` in `settings.json`, en
+  na het starten zet `RestoreActive` hem terug als die scène nog bestaat.
 - **Scènes op tijd:** een scène heeft een lijst tijden (`ProfileAutomation.Times`, elk een
   `LoadTime` met eigen dagen, hooguit `MaxTimes` = 8; `Normalize` zet ze van vroeg naar laat en
   haalt dubbele weg). `ProfileTimer` zet één timer op de eerstvolgende van alle tijden van alle
@@ -416,10 +423,11 @@ Meet allocaties met de app dicht, bijvoorbeeld met
 `dotnet tool install -g dotnet-counters` en daarna
 `dotnet-counters collect -p <pid van de engine> --counters System.Runtime --refresh-interval 60 --duration 00:05:00 --format csv`.
 Vergelijk `dotnet.gc.heap.total_allocated` met een animatie en met een statische kleur: de teller
-loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De app is gemeten met 12 gesimuleerde lampen, 30 s per pagina,
-in een venster van 1240 × 820; met Windows vergrendeld tekent WPF niets, dus die oudere meting
-mist het tekenen zelf (ook van de gloed). Met een zichtbaar venster zit de app boven het budget
-van 150 MB working set; minder beelden scheelt CPU, maar geen geheugen.
+loopt in stappen van ongeveer 8 KB, dus een minuut per meetpunt zegt meer dan 5 seconden. De
+app is gemeten met 12 gesimuleerde lampen, 30 s per pagina, in een venster van 1240 × 820; met
+Windows vergrendeld tekent WPF niets, dus die oudere meting mist het tekenen zelf (ook van de
+gloed). Met een zichtbaar venster zit de app boven het budget van 150 MB working set; minder
+beelden scheelt CPU, maar geen geheugen.
 
 Waar het geheugen van de app zit (Release, zichtbaar venster, regenboog, gemeten met
 `dotnet-counters`):
@@ -606,12 +614,15 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 6. Zet een lamp uit, kies hem bij Kleur en zet er een andere kleur op: hij gaat aan, meteen in
    de nieuwe kleur, zonder eerst even de oude te tonen. Doe hetzelfde met één LED in het
    voorbeeld.
-7. Kies bij Kleur een lamp met de Kleurenloop, klik op een kleur van de loop en sleep een
+
+### Kleurenloop en kleuren van een effect
+
+1. Kies bij Kleur een lamp met de Kleurenloop, klik op een kleur van de loop en sleep een
    schuif heen en weer: de echte lamp loopt vloeiend mee, zonder achter te blijven of na het
    loslaten nog na te ijlen, en eindigt in de kleur waar je losliet. Doe hetzelfde met een reeks
    LED's van een ARGB-strip of fan. Zet de lamp eerst uit: hij gaat aan zodra je schuift, en
    knippert of flikkert daarbij niet.
-8. Geef een fan Komeet met drie kleuren en een strip Scanner met twee: de komeet wisselt van
+2. Geef een fan Komeet met drie kleuren en een strip Scanner met twee: de komeet wisselt van
    kleur waar de ronde begint, de scanner aan het eind, zonder flits. Zet Vuur op blauw
    (donkerblauw, blauw, lichtblauw, wit) en op één kleur, en kijk of de donkerste kleur op de
    echte LED's nog zichtbaar gloeit en niet uit lijkt. Fonkelen met een paar kleuren op een
@@ -640,19 +651,21 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    spel, en de scène van de tijd pas als je het spel sluit.
 7. Geef "Werk" twee tijden een paar minuten na elkaar, de tweede alleen op vandaag, en zet
    tussendoor een andere kleur: bij beide tijden hoort "Werk" aan te gaan. Een `profiles.json`
-   van vóór deze uitbreiding (met alleen `loadAt` en `loadOn`) werkt zonder iets te doen.
+   van vóór de meer tijden per scène (met alleen `loadAt` en `loadOn`) werkt zonder iets te
+   doen.
 8. Geef "Film" een programma dat je open laat staan (bijv. `vlc.exe` of `notepad.exe`) met het
    vinkje "Alleen als het op de voorgrond staat", en "Gamen" je spel zonder vinkje. Klik op het
    programma en wissel met Alt+Tab weg en terug: de scène hoort meteen aan te gaan en de
    verlichting van daarvoor meteen terug te komen. Kijk dat de taakbalk, het Alt+Tab-venster
    zelf, het startmenu (Windows-toets, dan Esc), het overloopvak van het systeemvak (het pijltje
-   naast de klok) en het tray-menu van BuurmansRgb de scène laten staan. Geef een tweede programma ook het vinkje en wissel tussen de twee: de lampen horen
-   rechtstreeks van de ene scène naar de andere te gaan, zonder flits van de verlichting van
-   daarvoor. Start het spel terwijl "Film" vooraan staat, wissel naar het spel en weer terug.
-   Vergrendel met Win+L terwijl "Film" vooraan staat: de scène blijft; ontgrendel en wissel weg.
-   Sluit het programma terwijl het vooraan staat, wacht een paar seconden en open het weer via
-   het startmenu of de taakbalk: de scène hoort weer aan te gaan. Een spel in volledig scherm (exclusive
-   fullscreen) en een programma dat als administrator draait, horen ook te tellen.
+   naast de klok) en het tray-menu van BuurmansRgb de scène laten staan. Geef een tweede
+   programma ook het vinkje en wissel tussen de twee: de lampen horen rechtstreeks van de ene
+   scène naar de andere te gaan, zonder flits van de verlichting van daarvoor. Start het spel
+   terwijl "Film" vooraan staat, wissel naar het spel en weer terug. Vergrendel met Win+L
+   terwijl "Film" vooraan staat: de scène blijft; ontgrendel en wissel weg. Sluit het programma
+   terwijl het vooraan staat, wacht een paar seconden en open het weer via het startmenu of de
+   taakbalk: de scène hoort weer aan te gaan. Een spel in volledig scherm (exclusive fullscreen)
+   en een programma dat als administrator draait, horen ook te tellen.
 
 ### Pauzeren
 

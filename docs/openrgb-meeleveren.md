@@ -99,6 +99,9 @@ Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
   OpenRGB en de setup van PawnIO op, controleert hun SHA-256 en zet ze in de installer. Voor
   eigen gebruik is dat genoeg; zie de licentie van PawnIO hierboven als je de installer wilt
   delen.
+- **Sinds #35 staat de installer als download bij GitHub Releases.** Zolang de repository privé
+  is, is dat delen met wie toegang heeft; wordt hij openbaar, kijk dan eerst opnieuw naar de
+  licentie van PawnIO en naar ondertekenen.
 - **PawnIO** wordt ook overgeslagen als het al geïnstalleerd is. De installer onthoudt in
   `HKLM\Software\BuurmansRgb` of hij OpenRGB en PawnIO zelf installeerde; alleen dan vraagt
   verwijderen of ze ook weg moeten.
