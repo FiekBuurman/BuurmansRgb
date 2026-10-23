@@ -321,7 +321,10 @@ uitbreidingen in `docs/bouwplan.md`.
   Automation en het venster vastleggen met `PrintWindow`. De echte instellingen in
   `%AppData%\BuurmansRgb` blijven heel met `USERPROFILE` en `APPDATA` naar een lege map (zie de
   meettips in `ontwikkelaars.md`), maar de mutex, de events en de pipe hangen aan de
-  Windows-sessie, dus de eigen engine en instellingen-app moeten zolang dicht
+  Windows-sessie, dus de eigen engine en instellingen-app moeten zolang dicht. Met Windows
+  vergrendeld lukt het niet altijd: op 23-10-2026 gaf `PrintWindow` om 07:45 een goed beeld, maar
+  om 08:25 gaven `PrintWindow` en zelfs `RenderTargetBitmap` van een los rood vlak een leeg beeld;
+  waarom, is niet uitgezocht
 - Een meetscript in de repo voor CPU, geheugen en allocaties van de engine; nu draait elke meting
   met een eigen script buiten de repo (zie "Metingen" in `ontwikkelaars.md`). Het meet om en om
   tegen de basis, herhaalt met `dotnet-counters` de 0-allocaties-check op het draaiende proces
