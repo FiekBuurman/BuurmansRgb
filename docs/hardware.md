@@ -13,11 +13,22 @@ niet in OpenRGB of BuurmansRgb getest.
 | CPU-koeler | Lian Li Galahad II Lite 360R (waterkoeling) | Via een ARGB-header van het moederbord, niet als eigen apparaat | Nog niet getest | De verlichting volgt de software van het moederbord (o.a. Gigabyte RGB Fusion), dus een ARGB-header, geen eigen USB-controller. Pomp met 16 LED's en drie doorgeluste 120 mm ARGB-fans (volgens winkels; LED's per fan onbekend). In de app een zone van het moederbord; header en totaal aantal LED's nog invullen |
 | RAM | 2× Kingston FURY Beast 16 GB DDR5-6000 CL30 (`KF560C30-16`) | Waarschijnlijk geen RGB | – | De code mist de "A" van de RGB-variant (bijv. `KF560C30BBEA-16`), maar Windows meldt alleen de verkorte code: kijk op de sticker of de modules oplichten |
 | GPU | PowerColor Radeon RX 9070 XT Hellhound 16GB OC | Nee, niet gevonden | Nee | Vaste ijsblauwe LED met een "Dark"-stand, geen RGB; geen software gevonden die hem aanstuurt. De "Microsoft Basic Display Adapter" is de grafische chip van de processor zonder driver |
-| Fans / fan-controller | Vier 120 mm ARGB PWM-fans van de Lian Li Vector V100R (drie aan de zijkant met omgekeerde luchtstroom, één achter) | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | Volgens winkels; hoe ze zijn aangesloten (eigen header of samen met de strip) en het aantal LED's nog invullen |
-| Case-LED / ARGB-strips | Lian Li Vector V100R midi tower: ARGB-strip langs de voedingskap en de bodem | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | 26 LED's volgens winkels; synchroniseert met de software van het moederbord |
+| Fans / fan-controller | Vier 120 mm ARGB PWM-fans van de Lian Li Vector V100R (drie aan de zijkant met omgekeerde luchtstroom, één achter) | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | Het aantal LED's per fan staat nergens, ook niet bij Lian Li (de handleiding op Google Drive vraagt om in te loggen). Ook niet bekend: hoe fans en strip zijn aangesloten (één ARGB-kabel of een hubje in de kast). Thuis meten, zie "Nog te meten" |
+| Case-LED / ARGB-strips | Lian Li Vector V100R midi tower: ARGB-strip langs de voedingskap en de bodem | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | 26 LED's (Lian Li, voor de hele V100-reeks); werkt samen met de software van het moederbord en heeft een knop op de kast |
 | Toetsenbord | Logitech G213 (`046D:C336`) | Waarschijnlijk | Nog niet getest | |
 | Muis | Logitech G502 HERO (`046D:C08B`) | Waarschijnlijk | Nog niet getest | Twee zones van één LED; met "Zones gelijk" krijgen ze tijdens een effect dezelfde kleur |
 | Headset | Logitech G733 (`046D:0AB5`) | Onbekend, te controleren | Nog niet getest | Kent OpenRGB hem niet, dan staat hij ook niet in BuurmansRgb |
+
+### Nog te meten
+
+LED's per casefan en per koelerfan, en welke header wat is:
+
+1. Kies bij Kleur het moederbord en laat elke zone knipperen ("Knipperen" naast de zonenaam),
+   zodat je ziet welke header de koeler, de casefans of de strip is.
+2. Zet bij een lege zone het aantal LED's met + hoger tot de laatste LED van de laatste fan
+   oplicht; nog hoger verandert dan niets meer.
+3. Hangen de vier casefans en de strip samen aan één header, trek dan 26 af voor de strip en
+   deel de rest door vier. Bij de koeler gaan er 16 af voor de pomp, de rest delen door drie.
 
 Overige USB-apparaten, geen RGB in BuurmansRgb:
 
