@@ -14,7 +14,7 @@ stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelij
    ```powershell
    git clone https://github.com/FiekBuurman/BuurmansRgb.git
    cd BuurmansRgb
-   .\installer\build.ps1 -Version 1.0.0
+   .\installer\build.ps1 -Version 1.2.0
    ```
 
    Nodig: Windows 10/11, [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), Git
@@ -25,7 +25,7 @@ stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelij
    Weigert PowerShell het script ("running scripts is disabled"), start het dan zo:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File .\installer\build.ps1 -Version 1.0.0
+   powershell -ExecutionPolicy Bypass -File .\installer\build.ps1 -Version 1.2.0
    ```
 
 2. Sluit fabrikantsoftware af (iCUE, Armoury Crate, Mystic Light, Synapse, G Hub, ...).
@@ -55,7 +55,7 @@ de oude heen. Of haal de nieuwe code op en bouw en draai de nieuwe installer zel
 
 ```powershell
 git pull
-.\installer\build.ps1 -Version 1.1.0
+.\installer\build.ps1 -Version 1.2.0
 ```
 
 Daarna `artifacts\installer\out\BuurmansRgb-setup.exe` draaien. De installer stopt de
