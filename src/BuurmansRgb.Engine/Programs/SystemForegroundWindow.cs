@@ -4,19 +4,13 @@ using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.Engine.Programs;
 
-// SetWinEventHook for EVENT_SYSTEM_FOREGROUND, out of context: Windows posts each new foreground
-// window to the thread that set the hook, without a DLL in other programs and without polling, and
-// this reads the exe name of its process (ProcessImageName). Follow may come from any thread, so it
-// posts to a hidden message-only window, and the hook is set and taken away (UnhookWinEvent) on the
-// tray thread; while not followed there is no hook.
+// The program of each new foreground window, from the hook the engine shares (ForegroundHook): this
+// reads the exe name of its process (ProcessImageName) and leaves out the windows that do not
+// count. Follow may come from any thread, so it posts to a hidden message-only window, and this
+// starts and stops listening to the hook on the tray thread; while not followed it does not listen,
+// and without another listener there is no hook.
 internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForegroundWindow
 {
-    private const uint EventSystemForeground = 0x0003;
-    private const uint WinEventOutOfContext = 0x0000;
-
-    // The tray menu and notifications of the engine itself do not count.
-    private const uint WinEventSkipOwnProcess = 0x0002;
-    private const int ObjIdWindow = 0;
     private const int WmApp = 0x8000;
     internal const int WmFollow = WmApp + 1;
     private const int MaxClassName = 256;
@@ -33,24 +27,31 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     // screen, the Start menu and search, and the panes for notifications and quick settings.
     private static readonly HashSet<string> PassingPrograms = new(ProgramNames.Comparer)
     {
-        "LockApp.exe", "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
+        WindowsPrograms.LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
     };
 
-    // Kept here, so the garbage collector leaves it while Windows may call it. Set after the window
-    // is made; only Apply uses it, for WmFollow, which is posted and so comes after the constructor.
-    private readonly WinEventProc _callback;
     private readonly ProcessImageName _names = new();
     private readonly char[] _className = new char[MaxClassName];
     private readonly uint _ownProcessId = (uint)Environment.ProcessId;
-    private nint _hook;
+
+    // Set after the window is made; only Apply uses them, for WmFollow, which is posted and so comes
+    // after the constructor. One delegate for Listen and Stop, so the hook knows it again.
+    private readonly ForegroundHook _hook;
+    private readonly Action<nint> _tell;
+    private bool _listening;
     private volatile bool _wanted;
 
-    public SystemForegroundWindow() => _callback = OnWinEvent;
+    // hook is shared with the rest of the engine and outlives this.
+    public SystemForegroundWindow(ForegroundHook hook)
+    {
+        _hook = hook;
+        _tell = Tell;
+    }
 
     public event EventHandler<string?>? Changed;
 
-    // Whether the hook is set now; on the tray thread.
-    internal bool IsHooked => _hook != 0;
+    // Whether this listens to the hook now; on the tray thread.
+    internal bool IsListening => _listening;
 
     public void Follow(bool on)
     {
@@ -62,12 +63,16 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
         }
     }
 
-    protected override void Release() => Unhook();
+    protected override void Release() => StopListening();
 
     // Whether a window of program with that class takes the user to that program; false for one
-    // that passes by, and for a program without a name.
+    // that passes by, and for a program without a name. A screen saver (any .scr) passes by like
+    // the lock screen: it only shows while nobody touches the pc, and AutoPause pauses for it.
     internal static bool Counts(string className, string? program) =>
-        program is not null && !PassingClasses.Contains(className) && !PassingPrograms.Contains(program);
+        program is not null
+        && !PassingClasses.Contains(className)
+        && !PassingPrograms.Contains(program)
+        && !WindowsPrograms.IsScreenSaver(program);
 
     // A window that came to the front: its program, when it counts. Also when it is the same
     // program as before, as that may have stopped and started again in between. Called by Windows
@@ -98,55 +103,46 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
         base.WndProc(ref m);
     }
 
-    // As Follow asked last; several posts in a row end in the last one.
+    // As Follow asked last; several posts in a row end in the last one. When Windows does not take
+    // the hook, this stops listening, so it gets no windows while not followed, and the next
+    // Follow(true) tries again.
     private void Apply()
     {
-        if (_wanted == IsHooked)
+        if (_wanted == _listening)
         {
             return;
         }
 
         if (!_wanted)
         {
-            Unhook();
+            StopListening();
             return;
         }
 
-        _hook = SetWinEventHook(EventSystemForeground, EventSystemForeground, 0, Marshal.GetFunctionPointerForDelegate(_callback), 0, 0, WinEventOutOfContext | WinEventSkipOwnProcess);
-        if (_hook == 0)
+        if (!_hook.Listen(_tell))
         {
-            Trace.TraceWarning("The foreground window cannot be followed: SetWinEventHook failed.");
+            _hook.Stop(_tell);
             return;
         }
 
-        Tell(GetForegroundWindow());
+        _listening = true;
+        Tell(ForegroundHook.Current);
     }
 
-    private void Unhook()
+    private void StopListening()
     {
-        if (_hook != 0 && !UnhookWinEvent(_hook))
+        if (_listening)
         {
-            Trace.TraceWarning("The hook on the foreground window could not be taken away.");
+            _hook.Stop(_tell);
+            _listening = false;
         }
-
-        _hook = 0;
-    }
-
-    private void OnWinEvent(nint hook, uint eventType, nint window, int objectId, int childId, uint threadId, uint time)
-    {
-        // An event may still be in the queue after the hook went.
-        if (hook != _hook || _hook == 0 || eventType != EventSystemForeground || objectId != ObjIdWindow || window == 0)
-        {
-            return;
-        }
-
-        Tell(window);
     }
 
     // Null for a window that does not count, of the engine itself or that is gone already.
     private string? ReadProgram(nint window)
     {
-        if (window == 0 || GetWindowThreadProcessId(window, out var processId) == 0 || processId == _ownProcessId)
+        var processId = ForegroundHook.ProcessOf(window);
+        if (processId == 0 || processId == _ownProcessId)
         {
             return null;
         }
@@ -155,22 +151,6 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
         var className = length > 0 ? new string(_className, 0, length) : string.Empty;
         return _names.TryRead(processId, out var program) && Counts(className, program) ? program : null;
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-    private delegate void WinEventProc(nint hook, uint eventType, nint window, int objectId, int childId, uint threadId, uint time);
-
-    [LibraryImport("user32.dll")]
-    private static partial nint SetWinEventHook(uint eventMin, uint eventMax, nint module, nint callback, uint processId, uint threadId, uint flags);
-
-    [LibraryImport("user32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool UnhookWinEvent(nint hook);
-
-    [LibraryImport("user32.dll")]
-    private static partial nint GetForegroundWindow();
-
-    [LibraryImport("user32.dll")]
-    private static partial uint GetWindowThreadProcessId(nint window, out uint processId);
 
     [LibraryImport("user32.dll", EntryPoint = "GetClassNameW", StringMarshalling = StringMarshalling.Utf16)]
     private static partial int GetClassName(nint window, [Out] char[] className, int maxCount);

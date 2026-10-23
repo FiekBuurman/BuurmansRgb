@@ -12,9 +12,10 @@ namespace BuurmansRgb.Engine.Lighting;
 // flashes, and nothing is paused; with static lighting no timer runs at all.
 //
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
-// manual pause also leaves the devices alone; while Windows is locked or asleep, or the screen is
-// off, a change such as a profile that loads on time, or the restore after waking up, still
-// reaches the devices. What they show then follows PausedLights: the last frame, dimmed or black.
+// manual pause also leaves the devices alone; while Windows is locked or asleep, the screen is off
+// or the screen saver runs, a change such as a profile that loads on time, or the restore after
+// waking up, still reaches the devices. What they show then follows PausedLights: the last frame,
+// dimmed or black.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
@@ -24,7 +25,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     public const double DimmedBrightness = 0.2;
 
     // The reasons PausedLights applies to: all but the manual pause.
-    private const PauseReasons AutomaticReasons = PauseReasons.Locked | PauseReasons.Asleep | PauseReasons.DisplayOff;
+    private const PauseReasons AutomaticReasons = PauseReasons.Locked | PauseReasons.Asleep | PauseReasons.DisplayOff | PauseReasons.ScreenSaver;
 
     // What a device that is switched off shows: black, and static, so it needs no frames.
     private static readonly StaticEffect Off = new(RgbColor.Black);

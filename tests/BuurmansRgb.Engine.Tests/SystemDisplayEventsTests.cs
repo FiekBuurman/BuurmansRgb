@@ -78,6 +78,7 @@ public sealed class SystemDisplayEventsTests
                 new FakePowerEvents(),
                 session,
                 display,
+                new FakeScreenSaverEvents(),
                 (reason, paused) => pause = paused ? pause | reason : pause & ~reason);
 
             Send(display, SystemDisplayEvents.ConsoleDisplayState, 0);
@@ -93,7 +94,8 @@ public sealed class SystemDisplayEventsTests
         }
     }
 
-    // Registering and unregistering with Windows itself.
+    // Registering and unregistering with Windows itself. Only its own warnings count: other tests
+    // write about the screen saver at the same time.
     [Fact]
     public void CreateAndDispose_RegisterAndUnregisterWithoutWarnings()
     {
@@ -101,7 +103,9 @@ public sealed class SystemDisplayEventsTests
 
         CreateOrSkip().Dispose();
 
-        Assert.DoesNotContain(trace.Messages, message => message.Contains("screen", StringComparison.Ordinal));
+        Assert.DoesNotContain(trace.Messages, message =>
+            message.Contains("Whether the screen is off cannot be followed", StringComparison.Ordinal)
+            || message.Contains("The screen state could not be unregistered", StringComparison.Ordinal));
     }
 
     // A POWERBROADCAST_SETTING: the GUID, DataLength and a DWORD.

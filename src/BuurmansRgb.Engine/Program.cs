@@ -57,14 +57,16 @@ internal static class Program
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
         // On this thread, which pumps the tray messages and so also the power, session, screen,
-        // clock and foreground events.
+        // clock and foreground events, and the screen saver through the foreground.
         using var powerEvents = new SystemPowerEvents();
         using var sessionEvents = new SystemSessionEvents();
         using var displayEvents = new SystemDisplayEvents();
         using var clockEvents = new SystemClockEvents(powerEvents);
-        using var foregroundWindow = new SystemForegroundWindow();
+        using var foregroundHook = new ForegroundHook();
+        using var foregroundWindow = new SystemForegroundWindow(foregroundHook);
+        using var screenSaverEvents = new SystemScreenSaverEvents(foregroundHook);
         using var resumeRestorer = new ResumeRestorer(powerEvents, lighting.RestoreDevices, TimeProvider.System, ResumeRestorer.DefaultDelays);
-        using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, lighting.SetPaused);
+        using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, screenSaverEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);

@@ -28,6 +28,7 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     [InlineData(PauseReasons.Locked, "Effecten gepauzeerd zolang Windows vergrendeld is – ze lopen weer na het ontgrendelen.")]
     [InlineData(PauseReasons.Asleep, "Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.")]
     [InlineData(PauseReasons.DisplayOff, "Effecten gepauzeerd zolang het scherm uit is – ze lopen weer als het aangaat.")]
+    [InlineData(PauseReasons.ScreenSaver, "Effecten gepauzeerd zolang de schermbeveiliging loopt – ze lopen weer als je de muis beweegt of een toets indrukt.")]
     public void Show_TellsTheReason(PauseReasons reasons, string text)
     {
         _pause.Show(reasons);
@@ -37,13 +38,18 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     }
 
     // The pause the user can end comes first; waking up goes to the lock screen, and the screen
-    // goes on before the pc is unlocked or awake.
+    // goes on before the pc is unlocked or awake; behind a screen that is off the screen saver may
+    // still run.
     [Theory]
     [InlineData(PauseReasons.Manual | PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Manual)]
     [InlineData(PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Locked)]
     [InlineData(PauseReasons.Manual | PauseReasons.DisplayOff, PauseReasons.Manual)]
     [InlineData(PauseReasons.Locked | PauseReasons.DisplayOff, PauseReasons.Locked)]
     [InlineData(PauseReasons.Asleep | PauseReasons.DisplayOff, PauseReasons.Asleep)]
+    [InlineData(PauseReasons.Manual | PauseReasons.ScreenSaver, PauseReasons.Manual)]
+    [InlineData(PauseReasons.Locked | PauseReasons.ScreenSaver, PauseReasons.Locked)]
+    [InlineData(PauseReasons.Asleep | PauseReasons.ScreenSaver, PauseReasons.Asleep)]
+    [InlineData(PauseReasons.ScreenSaver | PauseReasons.DisplayOff, PauseReasons.ScreenSaver)]
     public void Show_MoreReasons_TellsTheOneThatMattersMost(PauseReasons reasons, PauseReasons shown)
     {
         using var single = new EffectsPauseViewModel();
@@ -60,6 +66,7 @@ public sealed class EffectsPauseViewModelTests : IDisposable
     [InlineData(PauseReasons.Locked, false)]
     [InlineData(PauseReasons.Asleep, false)]
     [InlineData(PauseReasons.DisplayOff, false)]
+    [InlineData(PauseReasons.ScreenSaver, false)]
     public void Resume_OnlyForThePauseFromTheTrayMenu(PauseReasons reasons, bool canResume)
     {
         _pause.Show(reasons);

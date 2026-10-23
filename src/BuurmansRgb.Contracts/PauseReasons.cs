@@ -20,7 +20,11 @@ public enum PauseReasons
     Asleep = 4,
 
     // The screen is off, also while Windows stays unlocked; this ends when it goes on again. A
-    // dimmed screen does not count. Like Locked, only the animation stops. Asleep and DisplayOff
-    // follow PausedLightsMode too.
+    // dimmed screen does not count. Like Locked, only the animation stops. Asleep, DisplayOff and
+    // ScreenSaver follow PausedLightsMode too.
     DisplayOff = 8,
+
+    // The screen saver of Windows runs, also while Windows stays unlocked; this ends when it goes
+    // away. Its preview in the screen saver settings does not count. Like DisplayOff.
+    ScreenSaver = 16,
 }

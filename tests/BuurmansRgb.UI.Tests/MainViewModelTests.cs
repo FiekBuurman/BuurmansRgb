@@ -300,6 +300,7 @@ public sealed class MainViewModelTests
     [Theory]
     [InlineData(PauseReasons.Manual)]
     [InlineData(PauseReasons.DisplayOff)]
+    [InlineData(PauseReasons.ScreenSaver)]
     public async Task Paused_GreysOutFlashOfTheZones_AndRunningAgainNot(PauseReasons pause)
     {
         var viewModel = await ConnectAsync(api => api.Devices = [Board]);

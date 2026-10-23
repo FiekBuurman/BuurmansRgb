@@ -194,8 +194,18 @@ uitbreidingen in `docs/bouwplan.md`.
   tijdens zo'n pauze de echte kleuren
 - "Lampen tijdens deze pauze" per reden kunnen kiezen, bijv. alleen bij de slaapstand uit en bij
   vergrendelen het laatste beeld
-- Een eigen schakelaar voor pauzeren als het scherm uitgaat, los van vergrendelen en slaapstand;
-  nu valt het onder dezelfde `pauseOnLockAndSleep`
+- Een eigen schakelaar voor pauzeren als het scherm uitgaat of de schermbeveiliging loopt, los
+  van vergrendelen en slaapstand; nu valt het onder dezelfde `pauseOnLockAndSleep`. De naam van
+  die schakelaar ("Pauzeren bij vergrendelen, slaapstand en scherm uit") noemt de
+  schermbeveiliging niet; alleen de uitleg eronder doet dat
+- Tijdens de schermbeveiliging een eigen scène of een rustig effect laten zien in plaats van
+  pauzeren, bijv. langzaam ademen in de kleur van de scène
+- De schermbeveiliging wordt herkend aan een `.scr`-venster vooraan met
+  `SPI_GETSCREENSAVERRUNNING`. Een "schermbeveiliging" die een gewoon programma met een volledig
+  scherm is, telt niet
+- De exe-naam van het venster vooraan één keer lezen in `ForegroundHook` en aan elke luisteraar
+  meegeven; nu leest de schermbeveiliging hem en een scène met "Alleen op de voorgrond" nog een
+  keer, ~20–28 µs per keer (gemeten, zie de prestaties in `docs/ontwikkelaars.md`)
 - De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
   gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène

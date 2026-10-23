@@ -64,8 +64,8 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`).
 | Zones en lengtes | `RgbZoneTests`, `LedMatrixTests`, `LightingControllerZoneTests`, `LedColorStoreTests`, `ZoneLengthKeeperTests`, `ZoneLengthKeeperOpenRgbTests`, `ZoneLengthViewModelTests` |
 | Knipperen en plek | `LightingControllerFlashTests` (ook een apparaat zonder LED's, dat de flits van een ander stopt), `LightingControllerZoneFlashTests` (alleen de LED's van één zone, een zone zonder LED's of die er niet meer is, een nieuwe lengte tijdens het knipperen, 0 bytes per frame), `RgbZoneTests` (`RangesOf`), `DevicePreviewViewModelTests` en `MainViewModelTests` (de knop per zone, eerst een lengte die nog wacht, een knop annuleert de flits die bij de lampkeuze wacht), `DeviceInfoTests`, `DeviceLocationLabelsTests` |
 | Aan en uit | `LightingControllerOnTests`, `LampsViewModelTests`, `MainViewModelLampTests` (ook een kleur op een lamp die uit staat zet hem aan, na de kleur in de wachtrij, en bij de loop of LED's die meteen meekleuren één keer; bij de kleurenloop in `MainViewModelColorLoopTests`) |
-| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, het eigen proces en het bureaublad, ook twee keer na elkaar, en de echte `SetWinEventHook` alleen zolang er gevolgd wordt), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
-| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
+| Scènes | `ProfileLibraryTests`, `EngineHostTests` en `MainViewModelSceneTests` (ook welke scène aan staat, ook na een herstart), `ProfileAutomationTests` (meer tijden: volgorde, dubbele, hooguit 8), `JsonProfileStoreTests` (ook `loadTimes` naast het oude `loadAt` en `loadOn`, en waarden die niet te lezen zijn), `DailyTimeTests` (ook op gekozen dagen), `ProfileTimerTests` (ook meer tijden per scène, elk op eigen dagen, en gemiste tijden inhalen na het ontwaken en bij het starten, met de echte `ResumeRestorer` op een nepklok; bij het starten terwijl een spel draait ook in `EngineHostTests`, met de echte `ProgramWatcher`), `ProfileTriggersTests` (ook een tijd terwijl Windows vergrendeld is, met `FakeAwayState`, en terwijl een programma op de voorgrond staat), `ProgramWatcherTests`, `ProgramWatcherForegroundTests` (alleen op de voorgrond: met `FakeForegroundWindow` en `FakeRunningPrograms`, wisselen tussen twee voorgrond-scènes, samen met "zolang het draait", vergrendeld, gesloten en opnieuw vooraan, het vinkje aan en uit), `SystemForegroundWindowTests` (welke vensters meetellen, ook dat een schermbeveiliging niet telt, het eigen proces en het bureaublad, ook twee keer na elkaar, en naar de gedeelde hook luisteren alleen zolang er gevolgd wordt), `ForegroundHookTests` (één echte `SetWinEventHook` zolang iemand luistert, elk venster naar elke luisteraar, ook als er een gooit of tussendoor stopt, en met een verzonnen `SetWinEventHook` die eerst weigert: wie luisterde krijgt de vensters van een latere hook; ook in `SystemForegroundWindowTests` en `SystemScreenSaverEventsTests`), `ProcessListTests`, `ProfilesViewModelSceneTests`, `SceneCardTests`, `ProfileAutomationViewModelTests` (ook tijden toevoegen en weghalen, en het vinkje voor de voorgrond) en `WindowedProgramsTests` (een programma kiezen) |
+| Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de lampen bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents` en de schermbeveiliging met `FakeScreenSaverEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `WindowsProgramsTests` (welke exe-namen een schermbeveiliging of het vergrendelscherm zijn), `SystemScreenSaverEventsTests` (elk venster ervan melden en het einde één keer, een ander venster vooraan beëindigt hem, met de echte `ForegroundHook` en samen met `AutoPause` opnieuw pauzeren na ontgrendelen; met verzonnen vensters, een verzonnen `SPI_GETSCREENSAVERRUNNING` en `FakeTimeProvider`: "Voorbeeld" telt niet en komt in het logboek, wat Windows bevestigt telt, ook een seconde later, maar niet na een ander venster, en er wordt maar één keer opnieuw gevraagd; het vergrendelscherm beëindigt hem niet, zodat de pauze met `AutoPause` zonder gat doorloopt tot het ontgrendelen; geen test start een echte schermbeveiliging, en de echte vlag wordt alleen gelezen), `EffectsPauseViewModelTests`, `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer, en `IsRegistered` volgt dat; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `SwitchOptionViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
 | IPC | `EngineApiTests`, `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe) |
@@ -155,6 +155,34 @@ toetsenbord. Een paar dingen om te proberen:
   Ontgrendelen of verbinden beëindigt die reden ook, voor het geval Windows het aangaan van het
   scherm niet meldt. `Away` doet bij alleen een scherm dat uit is niet mee: dan kan er nog
   iemand achter de pc zitten.
+- **Schermbeveiliging:** `SystemScreenSaverEvents` (achter `IScreenSaverEvents`) luistert naar
+  dezelfde voorgrond-hook als de scènes (`ForegroundHook`, hieronder), zonder pollen. Komt een
+  venster van een programma met de extensie `.scr` vooraan, dan vraagt hij
+  `SystemParametersInfo(SPI_GETSCREENSAVERRUNNING)`; alleen als Windows zegt dat er een
+  schermbeveiliging loopt, telt het. Die vlag zet Windows alleen voor een schermbeveiliging die
+  het zelf start, dus "Voorbeeld" in de instellingen van de schermbeveiliging telt niet (het
+  kleine voorbeeld is een kindvenster en komt nooit vooraan). Staat er een `.scr` vooraan terwijl
+  de vlag uit is, dan schrijft hij dat met de exe-naam in het logboek en vraagt hij het één keer
+  opnieuw, een seconde later met een eenmalige timer (`TimeProvider`, geen pollen): staat dat
+  venster dan nog vooraan en zegt Windows nu ja, dan telt het alsnog, voor het geval Windows de
+  vlag pas na het venster zet. Elk ander venster dat daarna vooraan komt (het programma van
+  daarvoor) beëindigt hem, zonder de vlag te vragen: die kan nog even aan staan terwijl de
+  schermbeveiliging sluit. Behalve het vergrendelscherm (`LockApp.exe`, zoals bij
+  `SystemForegroundWindow.Counts`): bij een wachtwoord na hervatten komt dat vooraan vóórdat
+  Windows het vergrendelen meldt, en dan zouden gedimde of zwarte lampen even fel worden;
+  ontgrendelen beëindigt de reden toch. Hij meldt elk venster van een lopende
+  schermbeveiliging, ook als hij al liep, zodat een volgende schermbeveiliging na een pauze die
+  `AutoPause` zelf beëindigde weer pauzeert. Dat geeft de eigen reden `PauseReasons.ScreenSaver`,
+  onder `pauseOnLockAndSleep` en met `pausedLights`, zoals `DisplayOff`; ontgrendelen of
+  verbinden beëindigt ook die reden, voor het geval er na de schermbeveiliging geen ander venster
+  vooraan komt. `Away` doet niet mee: de schermbeveiliging zegt alleen dat niemand de pc een tijd
+  aanraakte, en verdwijnt bij de eerste muisbeweging; vergrendelt Windows erbij, dan maakt
+  `Locked` de gebruiker weg. Bij het starten kijkt hij één keer naar het venster dat vooraan
+  staat, alleen als `ForegroundHook` dan de hook heeft. Weigert Windows die, dan krijgt hij pas
+  na een latere geslaagde `Listen` (van een scène op de voorgrond) de volgende wisselingen, niet
+  het venster dat op dat moment vooraan staat; een schermbeveiliging die dan al loopt, pauzeert
+  niet, pas de volgende. Voor de scènes op de voorgrond telt een schermbeveiliging niet als
+  wegwisselen, net als het vergrendelscherm.
 - **Lampen tijdens de pauze:** `LightingController.PausedLights` (`PausedLightsMode` in
   `Contracts`, `pausedLights` in `settings.json` via `PausedLightsModeJsonConverter`). Zolang de
   pauze een andere reden heeft dan `Manual`, schaalt `DeviceOutput.Send` wat naar de apparaten
@@ -178,29 +206,35 @@ toetsenbord. Een paar dingen om te proberen:
   spel dat op het vergrendelscherm stopte de tijd niet tot na het ontgrendelen tegenhoudt.
 - **Programma op de voorgrond:** met `ProfileAutomation.ForegroundOnly` (`foregroundOnly` in
   `profiles.json`) telt een programma alleen zolang een venster ervan op de voorgrond staat.
-  `SystemForegroundWindow` (achter `IForegroundWindow`) zet daarvoor
-  `SetWinEventHook(EVENT_SYSTEM_FOREGROUND, …, WINEVENT_OUTOFCONTEXT | WINEVENT_SKIPOWNPROCESS)`
-  op de thread van het tray-icoon, die al een message loop heeft: Windows post elk nieuw
-  voorgrondvenster daarheen, zonder DLL in andere programma's en zonder pollen. De naam komt van
-  `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`, dezelfde als in
-  `ProcessList`), en `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher` vraagt met
-  `Follow` alleen om de hook zolang minstens één scène de keuze aan heeft; dat komt van elke
-  thread, dus `Follow` post naar een verborgen message-only venster, dat de hook op de
-  tray-thread zet of met `UnhookWinEvent` weghaalt (ook bij afsluiten). Na het zetten meldt hij
-  één keer wat er nu vooraan staat. Hij meldt elk venster dat telt, ook van het programma dat al
-  vooraan stond: dat kan intussen gesloten en opnieuw gestart zijn, met alleen de taakbalk of het
-  startmenu ertussen. `ProgramWatcher` houdt zelf bij wat nieuw is. Vensters die niet tellen
-  (`SystemForegroundWindow.Counts`): de taakbalk (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`),
-  het overloopvak van het systeemvak (`TopLevelWindowForOverflowXamlIsland` op Windows 11,
-  `NotifyIconOverflowWindow` op Windows 10), Alt+Tab en Win+Tab
-  (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`, `TaskSwitcherWnd`,
-  `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en snelle instellingen
-  (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`, `ShellExperienceHost.exe`,
-  `ShellHost.exe`), de engine zelf en een venster waarvan de naam niet te lezen is: dan blijft
-  de stand zoals hij was. In `ProgramWatcher` is op de voorgrond komen een start en wegwisselen
-  een stop, op dezelfde stapel als de programma's die tellen zolang ze draaien. Bij het wisselen
-  tussen twee voorgrond-scènes laadt hij eerst de nieuwe en haalt hij daarna de oude eronder weg
-  (die geeft zijn verlichting van daarvoor door), dus er gaat maar één wijziging naar de lampen.
+  `SystemForegroundWindow` (achter `IForegroundWindow`) luistert daarvoor naar `ForegroundHook`,
+  de ene `SetWinEventHook(EVENT_SYSTEM_FOREGROUND, …, WINEVENT_OUTOFCONTEXT |
+  WINEVENT_SKIPOWNPROCESS)` van de engine op de thread van het tray-icoon, die al een message
+  loop heeft: Windows post elk nieuw voorgrondvenster daarheen, één keer hoeveel er ook luisteren,
+  zonder DLL in andere programma's en zonder pollen. De hook is er zolang iemand luistert; omdat
+  de schermbeveiliging (hierboven) altijd luistert, is dat zolang de engine draait. Weigert
+  Windows de hook bij het starten, dan blijft de schermbeveiliging luisteren en krijgt hij de
+  vensters zodra een latere `Listen` (van een scène met de keuze) de hook wel krijgt; de scènes
+  zelf stoppen dan met luisteren en proberen het bij de volgende `Follow(true)` opnieuw. De naam
+  komt van `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`,
+  dezelfde als in `ProcessList`), en `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher`
+  vraagt met `Follow` alleen om de vensters zolang minstens één scène de keuze aan heeft; dat
+  komt van elke thread, dus `Follow` post naar een verborgen message-only venster, dat op de
+  tray-thread gaat luisteren of ermee stopt (ook bij afsluiten). Zonder scène met de keuze leest
+  hij dus geen namen. Na het luisteren meldt hij één keer wat er nu vooraan staat. Hij meldt elk
+  venster dat telt, ook van het programma dat al vooraan stond: dat kan intussen gesloten en
+  opnieuw gestart zijn, met alleen de taakbalk of het startmenu ertussen. `ProgramWatcher` houdt
+  zelf bij wat nieuw is. Vensters die niet tellen (`SystemForegroundWindow.Counts`): de taakbalk
+  (`Shell_TrayWnd`, `Shell_SecondaryTrayWnd`), het overloopvak van het systeemvak
+  (`TopLevelWindowForOverflowXamlIsland` op Windows 11, `NotifyIconOverflowWindow` op Windows
+  10), Alt+Tab en Win+Tab (`XamlExplorerHostIslandWindow`, `MultitaskingViewFrame`,
+  `TaskSwitcherWnd`, `ForegroundStaging`), `LockApp.exe`, het startmenu en zoeken, meldingen en
+  snelle instellingen (`StartMenuExperienceHost.exe`, `SearchHost.exe`, `SearchApp.exe`,
+  `ShellExperienceHost.exe`, `ShellHost.exe`), een schermbeveiliging (elke `.scr`), de engine
+  zelf en een venster waarvan de naam niet te lezen is: dan blijft de stand zoals hij was. In
+  `ProgramWatcher` is op de voorgrond komen een start en wegwisselen een stop, op dezelfde stapel
+  als de programma's die tellen zolang ze draaien. Bij het wisselen tussen twee voorgrond-scènes
+  laadt hij eerst de nieuwe en haalt hij daarna de oude eronder weg (die geeft zijn verlichting
+  van daarvoor door), dus er gaat maar één wijziging naar de lampen.
   Zolang er een voorgrond-scène aan staat, kijkt hij die naam ook in de proceslijst na, zodat
   een programma dat sluit zonder dat er een ander venster vooraan komt toch stopt; pas als hij
   het daar één keer zag, zodat een naam die nog niet te lezen is niet als gestopt telt. Tijdens
@@ -317,7 +351,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog op 30 fps, app dicht | ~0,35 % van één kern (~0,02 % van de pc) | 22–27 MB working set, 12,5–13 MB private |
 | Engine | Allocaties (`dotnet-counters`), app dicht | Regenboog ~101 KB, statisch ~89 KB per minuut: geen meetbaar verschil door 1.800 frames per minuut | |
 | Engine | Alles uit, met regenboog als effect | 0,00–0,12 % van één kern, geen render-timer | 19–28 MB working set, 12–13 MB private |
-| Engine | Vergrendeld, slaapstand of scherm uit | 0 frames, geen timer | |
+| Engine | Vergrendeld, slaapstand, scherm uit of schermbeveiliging | 0 frames, geen timer | |
 | Engine | Een scène met een programma | ~0,05 % van één kern extra (~100 miljoen CPU-cycli per minuut) | ~0,3 MB voor de procesnamen |
 | Engine | Tien scènes met een tijd en eigen kleuren | | ~51 KB op de heap |
 | Engine | Regenboog, "Gemiste tijden inhalen" aan met twee scènes met een tijd (#51) | 0,49–0,75 % van één kern, main zonder deze uitbreiding 0,65–0,73 %: geen verschil buiten de ruis | 27–30 MB working set, 11–12 MB private (main 25–29 en 11–12 MB) |
@@ -330,6 +364,8 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, Windows vergrendeld (#59): zonder app, en met een client die elke 2 s het moederbord laat knipperen (`FlashDeviceAsync`) of zijn eerste zone (`FlashZoneAsync`), zonder beelden | Zonder app 0,23–0,47 % van één kern, zonder deze uitbreiding (#58) 0,13–0,34 %; het apparaat knipperen 0,86 % tegen 0,73–1,04 %; een zone knipperen 0,94–1,01 %: geen verschil buiten de ruis. Knipperen kost alleen iets zolang het duurt (frames op 30 fps) | Zonder app 25–26,5 MB working set, 10,9–12 MB private (zonder: 25–26,3 en 11–12,7 MB); met knipperen 37–48 MB working set, 12,7–18,3 MB private, voor apparaat en zone gelijk aan #58 (37–44,5 en 12,7–18,4 MB) |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, Windows vergrendeld (#61): met de `FileSystemWatcher` op `settings.json` en niemand die het bestand wijzigt, en met elke 5 s een wijziging met de hand (`framesPerSecond` 29 en 30 om en om) | Zonder wijzigingen 0,39–0,49 % van één kern, zonder deze uitbreiding (#60) 0,36–0,44 %: geen verschil buiten de ruis, er pollt niets. Met een wijziging elke 5 s 0,88–1,07 %: lezen, toepassen en een seconde later de eigen opslag | Zonder wijzigingen 25–28 MB working set, 11,1–11,8 MB private (zonder deze uitbreiding 25–27,6 en 11–11,7 MB); met een wijziging elke 5 s 27–33 en 11,3–14 MB |
 | Engine | Regenboog, `pauseOnLockAndSleep` uit, sneltoetsen aan, Windows vergrendeld, na de refactor (#63): één lezer voor de keuzewoorden in `settings.json`, één basisklasse voor de verborgen vensters, de sneltoetsen alleen in `WindowsGlobalHotkeys` bijgehouden; drie keer 60 s om en om met `kleur-kiezen` | 0,13–0,34 % van één kern, zonder de refactor (`kleur-kiezen`) 0,16–0,39 %: geen verschil buiten de ruis | 25,5–29,2 MB working set, 11,1–15 MB private (zonder: 25,7–28,7 en 11,3–12,8 MB); de eerste ronde van elk hoger, daarna gelijk (25,5–27 en 11,1–11,9 MB) |
+| Engine | Regenboog, Windows vergrendeld, met de schermbeveiliging (#64): de voorgrond-hook staat nu altijd, ook zonder scène met `foregroundOnly`; vergrendeld komen er geen wisselingen van de voorgrond. Drie keer 60 s om en om met `pauseOnLockAndSleep` uit, en één keer met het pauzeren aan (gepauzeerd); zonder deze uitbreiding is main (#63) | Pauzeren uit 0,10–0,31 % van één kern, zonder deze uitbreiding 0,16–0,31 %: geen verschil buiten de ruis. Gepauzeerd 0,05 tegen 0,05 %. Wat een wisseling kost, staat in de rij hieronder | Pauzeren uit 25,7–28,9 MB working set, 10,9–11,8 MB private (zonder: 25,6–29 en 11,1–12,5 MB); gepauzeerd 24–25,8 en 11,2–12,1 MB (zonder: 24,1–25,9 en 11,3–12,8 MB) |
+| Engine | Het werk per wisseling van de voorgrond met de schermbeveiliging (#64), los gemeten: de handlers van een Release-build twee keer 7 × 10.000 keer aangeroepen met het venster dat vooraan stond en met het bureaublad (`explorer.exe`), zonder echte wisseling en zonder hook in Windows, met een meetprogramma buiten de repo; main (#63) op dezelfde manier. Niet gemeten: wat Windows kost om de gebeurtenis naar de tray-thread te posten | Zonder scène met `foregroundOnly` 20–29 µs per wisseling (`SystemScreenSaverEvents.Tell`; bijna alles is de exe-naam via `ProcessImageName`, 20–28 µs, en `SPI_GETSCREENSAVERRUNNING` 0,6–1,3 µs alleen bij een `.scr`), main 0 µs (geen hook). Met zo'n scène 48–62 µs, main 22–23 µs: elke luisteraar leest de exe-naam zelf. Bij één wisseling per seconde ~0,002–0,003 % van één kern extra, met zo'n scène ~0,003–0,004 % | 80 bytes per wisseling, ~4,8 KB per minuut bij één per seconde; met zo'n scène 200–224 bytes, main 120–144 bytes |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -337,6 +373,9 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 
 De engine is gemeten in Release met de gesimuleerde lampen en zonder OpenRGB (dan probeert hij
 elke 5 seconden te verbinden; dat is het grootste deel van de CPU bij een statische kleur).
+Wil je je eigen `settings.json` niet aanraken, start de engine dan met `USERPROFILE` en `APPDATA`
+naar een lege map (bijv. via `ProcessStartInfo.Environment`): de engine schrijft dan zijn
+instellingen en log daar, en een Release-build met `-p:AppOutputRoot=<map>\` komt buiten de repo.
 Meet allocaties met de app dicht, bijvoorbeeld met
 `dotnet tool install -g dotnet-counters` en daarna
 `dotnet-counters collect -p <pid van de engine> --counters System.Runtime --refresh-interval 60 --duration 00:05:00 --format csv`.
@@ -609,6 +648,27 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
     hervat: de regenboog loopt weer.
 14. Wissel met "Uit" van gebruiker naar iemand met een eigen engine: de lampen krijgen na het
     wisselen de kleuren van de tweede gebruiker en niet het zwart van de eerste.
+15. Kies "Regenboog" en "Laatste beeld laten staan", en zet bij Windows een schermbeveiliging aan
+    (Instellingen, Persoonlijke instellingen, Vergrendelingsscherm, Schermbeveiliging), bijv.
+    "Linten", met een wachttijd van 1 minuut en zonder het vinkje voor het aanmeldingsscherm bij
+    hervatten. Zet de time-out van het scherm langer dan dat. Wacht zonder muis of toetsenbord:
+    zodra de schermbeveiliging begint, staan de lampen op één frame stil en loopt de CPU-tijd
+    niet op; in de instellingen-app (als die open was) staat de melding van de schermbeveiliging.
+    Beweeg de muis: de regenboog loopt meteen weer, zonder ontgrendelen. Klik in hetzelfde
+    venster op "Voorbeeld": de regenboog loopt door, ook na een seconde, en in het logboek van de
+    engine staat de exe-naam (bijv. `Ribbons.scr`) met dat Windows geen schermbeveiliging meldt.
+    Staat daar bij de echte schermbeveiliging dat Windows het "a second later" toch zegt, noteer
+    dat dan. Zet daarna de schermbeveiliging terug zoals hij was.
+16. Doe hetzelfde met het vinkje voor het aanmeldingsscherm bij hervatten aan: na de muisbeweging
+    staat het vergrendelscherm en blijft de regenboog stil tot je ontgrendelt. Met "Dimmen" of
+    "Uit" bij "Lampen tijdens deze pauze" dimmen de lampen of gaan ze uit zodra de
+    schermbeveiliging begint, en blijven ze gedimd of uit als het vergrendelscherm komt, zonder
+    tussendoor even fel te worden; pas na het ontgrendelen loopt de regenboog weer.
+17. Geef een scène het programma van een venster dat je open laat (bijv. `notepad.exe`) met het
+    vinkje "Alleen op de voorgrond", zet Kladblok vooraan en wacht op de schermbeveiliging: de
+    scène blijft staan (de schermbeveiliging telt niet als wegwisselen), ook na de muisbeweging.
+    Met de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" uit loopt de
+    regenboog tijdens de schermbeveiliging door.
 
 ## Mappen en documenten
 

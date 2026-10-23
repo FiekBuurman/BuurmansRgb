@@ -34,7 +34,7 @@ public sealed class EngineHostReloadTests : IDisposable
         _simulatedDevices = new SimulatedDevicesSwitch(_simulated, _lighting);
         _zoneLengths = new ZoneLengthKeeper(_lighting);
         _profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, _lighting);
-        _autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), _lighting.SetPaused);
+        _autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), new FakeScreenSaverEvents(), _lighting.SetPaused);
         _profileTimer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
     }
 

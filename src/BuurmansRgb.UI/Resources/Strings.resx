@@ -473,6 +473,9 @@
   <data name="EffectsPausedAsleep" xml:space="preserve">
     <value>Effecten gepauzeerd vanwege de slaapstand – ze lopen weer na het ontwaken.</value>
   </data>
+  <data name="EffectsPausedScreenSaver" xml:space="preserve">
+    <value>Effecten gepauzeerd zolang de schermbeveiliging loopt – ze lopen weer als je de muis beweegt of een toets indrukt.</value>
+  </data>
   <data name="EffectsPausedDisplayOff" xml:space="preserve">
     <value>Effecten gepauzeerd zolang het scherm uit is – ze lopen weer als het aangaat.</value>
   </data>
@@ -561,13 +564,13 @@
     <value>Pauzeren bij vergrendelen, slaapstand en scherm uit</value>
   </data>
   <data name="PauseOnLockHint" xml:space="preserve">
-    <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, of het scherm uit is, zodat het dan geen CPU kost.</value>
+    <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt, zodat het dan geen CPU kost.</value>
   </data>
   <data name="PausedLightsLabel" xml:space="preserve">
     <value>Lampen tijdens deze pauze</value>
   </data>
   <data name="PausedLightsHint" xml:space="preserve">
-    <value>Wat de lampen doen zolang Windows vergrendeld is of slaapt, of het scherm uit is. Daarna komen de echte kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
+    <value>Wat de lampen doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Daarna komen de echte kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
   </data>
   <data name="PausedLightsMode_Keep" xml:space="preserve">
     <value>Laatste beeld laten staan</value>

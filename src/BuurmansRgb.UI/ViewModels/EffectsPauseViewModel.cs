@@ -41,11 +41,13 @@ public sealed partial class EffectsPauseViewModel : ObservableObject, IDisposabl
 
     // The pause from the tray menu first: that is the one the user can end. While Windows is locked
     // and asleep, it wakes up to the lock screen, so unlocking is what brings the effects back. The
-    // screen goes on before that, so a screen that is off comes last.
+    // screen goes on before that, so a screen saver comes next and a screen that is off last: the
+    // screen may go off while the screen saver runs, and the same touch ends both.
     public string Text =>
         CanResume ? Strings.EffectsPausedManual
         : Reasons.HasFlag(PauseReasons.Locked) ? Strings.EffectsPausedLocked
         : Reasons.HasFlag(PauseReasons.Asleep) ? Strings.EffectsPausedAsleep
+        : Reasons.HasFlag(PauseReasons.ScreenSaver) ? Strings.EffectsPausedScreenSaver
         : Reasons.HasFlag(PauseReasons.DisplayOff) ? Strings.EffectsPausedDisplayOff
         : HasResumed ? Strings.EffectsResumed
         : string.Empty;
