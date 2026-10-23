@@ -56,6 +56,24 @@ public sealed class DeviceInfoTests
     }
 
     [Fact]
+    public void Equals_ZonesAlikeDiffers_IsNotEqual()
+    {
+        var board = Board(2);
+
+        Assert.False(board.ZonesAlike);
+        Assert.NotEqual(board, board with { ZonesAlike = true });
+    }
+
+    [Fact]
+    public void From_TakesZonesAlike()
+    {
+        var device = new RgbDevice("mouse", "Mouse", DeviceType.Mouse, [RgbZone.Fixed("Primary", 1), RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
+
+        Assert.True(DeviceInfo.From(device, zonesAlike: true).ZonesAlike);
+        Assert.False(DeviceInfo.From(device).ZonesAlike);
+    }
+
+    [Fact]
     public void From_TakesTheSourceLocationAndDirectModeOfTheDevice()
     {
         var device = new RgbDevice("fan", "Fan", DeviceType.Fan, [RgbZone.Fixed("Ring", 12)])

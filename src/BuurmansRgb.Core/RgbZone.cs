@@ -43,6 +43,17 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
         return ranges;
     }
 
+    // The ranges of RangesOf, and then the LEDs after the last range, which belong to no zone, as
+    // one more part, so every LED of the device is in one part: the part of a zone has its index,
+    // the rest, when there is one, comes last at zones.Count. A device without zones is one part.
+    // The engine (zones alike) and the preview ("Overige LED's") count the parts this way.
+    public static (int FirstLed, int LedCount)[] PartsOf(IReadOnlyList<RgbZone> zones, int ledCount)
+    {
+        var ranges = RangesOf(zones, ledCount);
+        var end = ranges.Length == 0 ? 0 : ranges[^1].FirstLed + ranges[^1].LedCount;
+        return end < ledCount ? [.. ranges, (end, ledCount - end)] : ranges;
+    }
+
     public bool CanHold(int ledCount) => ledCount >= MinLedCount && ledCount <= MaxLedCount;
 
     public void ThrowIfCannotHold(int ledCount)

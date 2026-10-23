@@ -50,6 +50,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), time ?? TimeProvider.System);
         _lighting.Rendered += OnRendered;
         _lighting.DevicesChanged += OnDevicesChanged;
+        _lighting.ZonesAlikeChanged += OnDevicesChanged;
         _openRgb.StatusChanged += OnOpenRgbStatusChanged;
         _lighting.PauseChanged += OnPauseChanged;
         _lighting.LightingChanged += OnLightingChanged;
@@ -79,8 +80,13 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public event EventHandler? OptionsChanged;
 
-    public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<DeviceInfo>>([.. _lighting.Devices.Select(DeviceInfo.From)]);
+    // Zones alike is read after the devices; when it changes in between, DevicesChanged follows.
+    public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default)
+    {
+        var devices = _lighting.Devices;
+        var zonesAlike = _lighting.ZonesAlike;
+        return Task.FromResult<IReadOnlyList<DeviceInfo>>([.. devices.Select(device => DeviceInfo.From(device, zonesAlike.Contains(device.Id)))]);
+    }
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
 
@@ -156,6 +162,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
     {
         _zoneLengths.ResizeZone(deviceId, zoneIndex, ledCount);
+        return Task.CompletedTask;
+    }
+
+    public Task SetZonesAlikeAsync(string deviceId, bool alike, CancellationToken ct = default)
+    {
+        _lighting.SetZonesAlike(deviceId, alike);
         return Task.CompletedTask;
     }
 
@@ -272,6 +284,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     {
         _lighting.Rendered -= OnRendered;
         _lighting.DevicesChanged -= OnDevicesChanged;
+        _lighting.ZonesAlikeChanged -= OnDevicesChanged;
         _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
         _lighting.PauseChanged -= OnPauseChanged;
         _lighting.LightingChanged -= OnLightingChanged;

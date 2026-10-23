@@ -42,6 +42,7 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(["Escape", "F1", "F2", "Tab", "Q"], devices[^1].Zones[0].LedNames!);
         Assert.Null(devices[0].Zones[0].LedNames);
         Assert.Equal([true, false, true], devices.Select(device => device.HasDirectMode));
+        Assert.Equal([false, true, false], devices.Select(device => device.ZonesAlike));
     }
 
     [Fact]
@@ -325,6 +326,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetZonesAlikeAsync_SendsTheDeviceAndTheChoice()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetZonesAlikeAsync("board", true, Ct);
+        await client.Api.SetZonesAlikeAsync("strip", false, Ct);
+
+        Assert.Equal([("board", true), ("strip", false)], _api.ZonesAlikeCalls);
+    }
+
+    [Fact]
     public async Task FlashDeviceAsync_SendsTheDevice()
     {
         var client = await ConnectAsync();
@@ -456,6 +468,7 @@ public sealed class EngineRpcTests : IDisposable
                 Source = DeviceSource.Hardware,
                 Location = new DeviceLocation("PIIX4", "0x4E"),
                 HasDirectMode = false,
+                ZonesAlike = true,
             },
             new("keyboard", "Keyboard", DeviceType.Keyboard, 5,
                 [RgbZone.Fixed("Keys", 5) with { Matrix = new LedMatrix(2, 3, [0, 1, 2, 3, LedMatrix.NoLed, 4]), LedNames = ["Escape", "F1", "F2", "Tab", "Q"] }])
@@ -573,6 +586,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
         {
             ResizeCalls.Add((deviceId, zoneIndex, ledCount));
+            return Task.CompletedTask;
+        }
+
+        public List<(string DeviceId, bool Alike)> ZonesAlikeCalls { get; } = [];
+
+        public Task SetZonesAlikeAsync(string deviceId, bool alike, CancellationToken ct = default)
+        {
+            ZonesAlikeCalls.Add((deviceId, alike));
             return Task.CompletedTask;
         }
 

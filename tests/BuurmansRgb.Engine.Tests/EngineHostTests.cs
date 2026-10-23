@@ -264,6 +264,31 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(35, restarted.GetLeds("simulated-argb").Length);
     }
 
+    // The simulated headset has two zones of one LED; with zones alike they show one color of the
+    // rainbow, also after a restart.
+    [Fact]
+    public async Task ZonesAlike_AreKeptAfterARestart()
+    {
+        var store = new JsonSettingsStore(_directory.File("settings.json"));
+        store.Save(new EngineSettings { Effect = EffectIds.Rainbow });
+        using (var lighting = new LightingController([_simulated]))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1)))
+        {
+            await host.StartAsync(Ct);
+            lighting.SetZonesAlike("simulated-headset", true);
+        }
+
+        Assert.Equal(["simulated-headset"], store.LoadOrCreate().ReadZonesAlike());
+        var restarted = new SimulatedDeviceProvider();
+        using var restartedLighting = new LightingController([restarted]);
+        using var restartedHost = new EngineHost(store, restartedLighting);
+        await restartedHost.StartAsync(Ct);
+
+        Assert.Equal(["simulated-headset"], restartedLighting.ZonesAlike);
+        var headset = restarted.GetLeds("simulated-headset");
+        Assert.Equal(headset[0], headset[1]);
+    }
+
     // The simulated controller starts with 20 and 0 LEDs again. Until the engine has given both
     // channels their lengths back, the second channel must not get colors of the first, and after
     // it each channel shows its own colors.
@@ -425,7 +450,7 @@ public sealed class EngineHostTests : IDisposable
     [Fact]
     public async Task StartAsync_TheSavedOptions_AreNotSavedAgain()
     {
-        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, PausedLights = PausedLightsMode.Dim, Hotkeys = false } };
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, PausedLights = PausedLightsMode.Dim, Hotkeys = false, ZonesAlike = ["simulated-mouse", "simulated-headset"] } };
         var lighting = new LightingController([_simulated]);
         using var autoPause = new AutoPause(new FakePowerEvents(), new FakeSessionEvents(), new FakeDisplayEvents(), new FakeScreenSaverEvents(), lighting.SetPaused);
         var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys());

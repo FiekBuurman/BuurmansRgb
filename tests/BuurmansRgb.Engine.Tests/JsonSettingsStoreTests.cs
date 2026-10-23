@@ -199,6 +199,46 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal([30, 10], store.LoadOrCreate().ToLightingState().LedColors["simulated-argb"].ZoneLengths!);
     }
 
+    [Fact]
+    public void Save_ZonesAlike_RoundTripInOrder()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(EngineSettings.CreateDefault().WithZonesAlike(new HashSet<string> { "simulated-mouse", "simulated-headset" }));
+
+        Assert.Contains("\"zonesAlike\"", File.ReadAllText(path));
+        Assert.Equal(["simulated-headset", "simulated-mouse"], store.LoadOrCreate().ZonesAlike!);
+        Assert.Equal(new HashSet<string> { "simulated-headset", "simulated-mouse" }, store.LoadOrCreate().ReadZonesAlike());
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesZonesAlikeOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithZonesAlike(new HashSet<string>()));
+
+        Assert.DoesNotContain("zonesAlike", File.ReadAllText(path));
+    }
+
+    // Only that id is left out, or the list when it is no list; the rest of the file counts.
+    [Theory]
+    [InlineData("""["simulated-mouse", 5, null, "", { "id": "simulated-gpu" }]""", "simulated-mouse")]
+    [InlineData("\"simulated-mouse\"", null)]
+    [InlineData("true", null)]
+    public void Load_ZonesAlikeWrittenByHand_LeavesOutWhatIsNoId(string zonesAlike, string? expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#FF0000", "zonesAlike": {{zonesAlike}} }""");
+        using var trace = new TraceCapture();
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Red, settings.Color);
+        Assert.Equal(expected is null ? [] : [expected], settings.ReadZonesAlike());
+    }
+
     // Counts that add up past what an int can hold would make the colors land at a negative index.
     [Theory]
     [InlineData("[2000000000, 2000000000, 5]")]

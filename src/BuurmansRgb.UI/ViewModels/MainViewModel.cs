@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
+    private const string ZonesAlikeCall = "zones-alike";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
@@ -96,6 +97,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
+        Preview.ZonesAlikeRequested += (_, choice) => SendZonesAlike(choice);
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
@@ -496,7 +498,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // Devices came or went in the engine, for example because OpenRGB started or stopped.
+    // Devices came or went in the engine, for example because OpenRGB started or stopped, or one
+    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. A
+    // color the user is mixing for the lamp that stays selected stays in the picker, as in
+    // FollowLighting.
     private async Task ReloadDevicesAsync()
     {
         if (_connection is not { } connection)
@@ -507,12 +512,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var (ok, devices) = await TryCallAsync(connection, api => api.GetDevicesAsync());
         if (ok && ReferenceEquals(connection, _connection))
         {
+            var selectedId = SelectedDevice?.DeviceId;
             ShowDevices(devices);
-            await ShowSelectionAsync();
+            await ShowSelectionAsync(keepMixedColor: SelectedDevice?.DeviceId == selectedId);
         }
     }
 
-    private async Task ShowSelectionAsync()
+    // With keepMixedColor, a color the user is mixing when the lighting comes stays (ShowLighting).
+    private async Task ShowSelectionAsync(bool keepMixedColor = false)
     {
         RebuildPreview();
         if (_connection is not { } connection)
@@ -530,7 +537,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        ShowLighting(lighting, keepMixedColor: false);
+        ShowLighting(lighting, keepMixedColor: keepMixedColor && ColorPicker.HasUnappliedChange);
     }
 
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
@@ -744,6 +751,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
+        }
+    }
+
+    // The engine reports the device with its new choice through DevicesChanged, which rebuilds the
+    // preview; the frames that follow show the zones alike, or each with its own part again.
+    private void SendZonesAlike(ZonesAlikeChoice choice)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((ZonesAlikeCall, choice.DeviceId), () => connection.Api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
         }
     }
 

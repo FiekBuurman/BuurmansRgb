@@ -327,6 +327,46 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal("real", device.Id);
     }
 
+    // The app shows the choice with the devices, so it hears of it as of a new device list.
+    [Fact]
+    public async Task SetZonesAlikeAsync_ShowsInTheDevicesAndRaisesDevicesChanged()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        var changes = 0;
+        api.DevicesChanged += (_, _) => changes++;
+
+        await api.SetZonesAlikeAsync("simulated-headset", true, Ct);
+
+        var devices = await api.GetDevicesAsync(Ct);
+        Assert.Equal(["simulated-headset"], devices.Where(device => device.ZonesAlike).Select(device => device.Id));
+        Assert.Equal(1, changes);
+        Assert.Equal(["simulated-headset"], _lighting.ZonesAlike);
+    }
+
+    [Fact]
+    public async Task SetZonesAlikeAsync_UnknownDevice_Throws()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetZonesAlikeAsync("unknown", true, Ct));
+    }
+
+    [Fact]
+    public async Task Dispose_StopsForwardingZonesAlike()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var api = CreateApi();
+        var changes = 0;
+        api.DevicesChanged += (_, _) => changes++;
+        api.Dispose();
+
+        _lighting.SetZonesAlike("simulated-headset", true);
+
+        Assert.Equal(0, changes);
+    }
+
     [Fact]
     public async Task OpenRgbStatus_IsTheStatusOfTheProviderAndFollowsIt()
     {

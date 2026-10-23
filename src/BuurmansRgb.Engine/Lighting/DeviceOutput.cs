@@ -11,9 +11,15 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 {
     // What the device got last, so a frame that changes nothing is not sent.
     private readonly RgbColor[] _sent = new RgbColor[device.LedCount];
+
+    // The LEDs of each zone that has any, and those after the last zone, which belong to none;
+    // with zones alike they all show the image of the longest, which comes first.
+    private readonly (int FirstLed, int LedCount)[] _parts = PartsOf(device);
+
     // Until the first Show; LightingController shows the lighting before it renders.
     private IEffect _effect = new StaticEffect(DeviceLighting.Default.Color);
     private double _brightness = DeviceLighting.Default.Brightness;
+    private bool _zonesAlike;
     private DeviceFlash? _flash;
 
     public IDeviceProvider Provider { get; } = provider;
@@ -30,11 +36,15 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     public bool IsFlashing => _flash is not null;
 
     // Brightness runs from 0 to 1 and applies to whatever the effect renders; speed counts from
-    // the next Render on.
-    public void Show(IEffect effect, double brightness, double speed)
+    // the next Render on. With zonesAlike the effect renders once, over the longest zone, and
+    // every other zone gets that image stretched to its own length, so a mouse with two zones of
+    // one LED shows one color in a rainbow. A device with fewer than two zones with LEDs looks the
+    // same either way.
+    public void Show(IEffect effect, double brightness, double speed, bool zonesAlike = false)
     {
         _effect = effect;
         _brightness = brightness;
+        _zonesAlike = zonesAlike;
         Clock.Speed = speed;
     }
 
@@ -51,7 +61,21 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     public void Render(TimeSpan time)
     {
         var leds = Buffer.AsSpan();
-        _effect.Render(leds, Clock.Tick(time));
+        var effectTime = Clock.Tick(time);
+        if (_zonesAlike && _parts.Length > 1)
+        {
+            var image = leds.Slice(_parts[0].FirstLed, _parts[0].LedCount);
+            _effect.Render(image, effectTime);
+            for (var part = 1; part < _parts.Length; part++)
+            {
+                Stretch(image, leds.Slice(_parts[part].FirstLed, _parts[part].LedCount));
+            }
+        }
+        else
+        {
+            _effect.Render(leds, effectTime);
+        }
+
         if (_brightness < 1.0)
         {
             foreach (ref var led in leds)
@@ -101,5 +125,38 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
         Send();
         return true;
+    }
+
+    // Each LED of target gets the LED of image at the same place along it, measured at the middle
+    // of the LED: a target as long as image gets a copy, a target of one LED the middle of image.
+    private static void Stretch(ReadOnlySpan<RgbColor> image, Span<RgbColor> target)
+    {
+        for (var i = 0; i < target.Length; i++)
+        {
+            target[i] = image[(int)((2L * i + 1) * image.Length / (2L * target.Length))];
+        }
+    }
+
+    // The parts as RgbZone.PartsOf counts them, as the preview does, without the ones without
+    // LEDs; the longest goes first, the first of them when more are as long.
+    private static (int FirstLed, int LedCount)[] PartsOf(RgbDevice device)
+    {
+        (int FirstLed, int LedCount)[] parts =
+            [.. RgbZone.PartsOf(device.Zones, device.LedCount).Where(part => part.LedCount > 0)];
+        var longest = 0;
+        for (var part = 1; part < parts.Length; part++)
+        {
+            if (parts[part].LedCount > parts[longest].LedCount)
+            {
+                longest = part;
+            }
+        }
+
+        if (longest > 0)
+        {
+            (parts[0], parts[longest]) = (parts[longest], parts[0]);
+        }
+
+        return parts;
     }
 }

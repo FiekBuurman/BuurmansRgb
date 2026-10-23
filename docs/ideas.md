@@ -80,7 +80,21 @@ uitbreidingen in `docs/bouwplan.md`.
   nooit veranderd is; `EffectClock` zou de klok van "Hele huis" kunnen delen met elk apparaat
   zonder eigen snelheid
 - Golf en Regenboog per zone laten lopen in plaats van over het hele apparaat (bijv. elke
-  fan-ring een eigen golf)
+  fan-ring een eigen golf). "Zones gelijk" komt in de buurt: elke zone krijgt het beeld van de
+  langste, uitgerekt. Nog niet: het effect echt over de eigen lengte van elke zone renderen
+  (nu neemt een kortere zone LED's uit het lange beeld, dus tot een halve LED verschoven en bij
+  een veel kortere zone grover), of elke zone een eigen fase of richting geven
+- "Zones gelijk" kan meer: kiezen welke zone het beeld geeft (nu de langste, bij gelijke lengte
+  de eerste), een zone buiten de rest houden (bijv. het logo naast de toetsen van een
+  toetsenbord, dat nu de kleur van de middelste toets krijgt), en bij Per LED de kleuren van de
+  langste zone op de andere zetten (nu houdt elke LED zijn eigen kleur). De keuze hoort nu niet
+  bij een scène; eventueel per scène kunnen bewaren
+- In de app laten zien dat "Zones gelijk" bij Per LED niets doet, bijv. de schakelaar grijs met
+  een uitleg; nu staat dat alleen in de tooltip. Bij Statisch en Ademen maakt hij ook geen
+  verschil, maar daar is hij niet mis
+- "Zones gelijk" in- of uitschakelen bouwt het hele voorbeeld opnieuw op (de app hoort het als
+  `DevicesChanged`), zoals een nieuwe zonelengte; zie het idee bij "Voorbeeld en
+  per-LED-editor" om alleen de apparaten te vernieuwen die veranderden
 - Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
   uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
   als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
