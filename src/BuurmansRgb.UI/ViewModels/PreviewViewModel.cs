@@ -82,7 +82,8 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         }
     }
 
-    // Forgets the frames of an earlier connection, whose sequence numbers do not apply, and its count.
+    // Forgets the frames of an earlier connection, whose sequence numbers do not apply, and its
+    // count.
     public void Reset()
     {
         _latestFrame = LightingFrame.Empty;

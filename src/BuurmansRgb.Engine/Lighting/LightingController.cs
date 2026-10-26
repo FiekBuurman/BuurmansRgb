@@ -15,8 +15,8 @@ namespace BuurmansRgb.Engine.Lighting;
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash and a count
 // of LEDs. Only a manual pause also leaves the devices alone; while Windows is locked or asleep,
 // the screen is off or the screen saver runs, a change such as a profile that loads on time, or
-// the restore after waking up, still reaches the devices. What they show then follows PausedLights: the last frame,
-// dimmed or black.
+// the restore after waking up, still reaches the devices. What they show then follows
+// PausedLights: the last frame, dimmed or black.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
     public const int DefaultFramesPerSecond = 30;
@@ -533,9 +533,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // as they are, except that a flash and a count end first, so no device stays white or dark;
     // CountChanged follows then, after PauseChanged. When a reason ends and no manual pause is
     // left, the latest lighting goes out again, with a restore that waited for the manual pause:
-    // while Windows was locked another user's engine may have changed the devices. When the last reason ends, the animation runs again. Without a manual pause, the
-    // devices also get the colors again when what they show changes with PausedLights. The new
-    // pause holds and is reported even when a device fails while its colors go out.
+    // while Windows was locked another user's engine may have changed the devices. When the last
+    // reason ends, the animation runs again. Without a manual pause, the devices also get the
+    // colors again when what they show changes with PausedLights. The new pause holds and is
+    // reported even when a device fails while its colors go out.
     public void SetPaused(PauseReasons reason, bool paused)
     {
         lock (_pausing)
@@ -676,7 +677,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             var flashEnded = false;
             foreach (var output in _outputs.All)
             {
-                // The step that ends a count is drawn too, also on a device that needs no more frames then.
+                // The step that ends a count is drawn too, also on a device that needs no more
+                // frames then.
                 if (output.IsAnimated || (counted && output.IsCounting))
                 {
                     var flashing = output.IsFlashing;

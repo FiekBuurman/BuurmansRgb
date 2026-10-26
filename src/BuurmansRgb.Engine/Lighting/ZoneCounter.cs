@@ -255,7 +255,8 @@ internal sealed class ZoneCounter : IDisposable
     // The zone that is counted, with the length it had before and the longest one.
     private sealed record Counting(object? Owner, string DeviceId, int ZoneIndex, string ZoneName, int OldLength, int LedCount)
     {
-        // Whether a device list brought the longest length; an old length after that came from elsewhere.
+        // Whether a device list brought the longest length; an old length after that came from
+        // elsewhere.
         public bool Reached { get; set; }
 
         public bool Counts(string deviceId, int zoneIndex) => DeviceId == deviceId && ZoneIndex == zoneIndex;
