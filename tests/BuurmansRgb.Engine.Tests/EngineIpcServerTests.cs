@@ -280,18 +280,18 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 20);
     }
 
-    // The engine sends DevicesChanged before the answer, over the same pipe, so the app has the new
-    // list by the time "Zoeken…" ends.
+    // The engine sends DevicesChanged before the answer, over the same pipe, but the client raises
+    // the event from the thread pool, so the app may handle it just after the answer.
     [Fact]
-    public async Task RescanDevicesAsync_SimulatedDevices_IsTrueAfterDevicesChanged()
+    public async Task RescanDevicesAsync_SimulatedDevices_IsTrueAndTheClientHearsOfIt()
     {
         var client = await StartAndConnectAsync();
-        var devicesChanged = 0;
-        client.Api.DevicesChanged += (_, _) => Interlocked.Increment(ref devicesChanged);
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.DevicesChanged += (_, _) => changed.TrySetResult();
 
         Assert.True(await client.Api.RescanDevicesAsync(Ct));
 
-        Assert.True(Volatile.Read(ref devicesChanged) >= 1);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Contains(await client.Api.GetDevicesAsync(Ct), device => device.Id == Fan);
     }
 
