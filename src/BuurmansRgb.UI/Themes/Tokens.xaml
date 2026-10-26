@@ -72,7 +72,6 @@
     <!-- Buttons with text are rectangles with the corners of a preset tile, not pills as in § 4: WPF
          turns a radius of half a wide button into an ellipse instead of round ends. -->
     <CornerRadius x:Key="ButtonRadius">12</CornerRadius>
-    <sys:Double x:Key="ButtonCornerRadius">12</sys:Double>
     <sys:Double x:Key="MinClickSize">44</sys:Double>
     <!-- The tiles of the toolbox on Kleur: smaller than MinClickSize, so more colors fit; the handleiding
          names it as a deviation from the design. -->

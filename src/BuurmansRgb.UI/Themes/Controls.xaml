@@ -378,7 +378,9 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius. -->
+    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius,
+         or the Corners.Radius of a style based on it. A dashed line needs a Rectangle, which has one
+         radius: the top left one. -->
     <Style x:Key="NewButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="24,0" />
@@ -387,12 +389,14 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="views:Corners.Radius" Value="{StaticResource ButtonRadius}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Grid Background="Transparent">
-                        <Rectangle x:Name="Dashes" RadiusX="{StaticResource ButtonCornerRadius}" RadiusY="{StaticResource ButtonCornerRadius}" StrokeThickness="2" StrokeDashArray="3 2"
-                                   Stroke="{StaticResource BorderStrongBrush}" />
+                        <Rectangle x:Name="Dashes" StrokeThickness="2" StrokeDashArray="3 2" Stroke="{StaticResource BorderStrongBrush}"
+                                   RadiusX="{TemplateBinding views:Corners.Radius, Converter={x:Static views:Corners.TopLeft}}"
+                                   RadiusY="{TemplateBinding views:Corners.Radius, Converter={x:Static views:Corners.TopLeft}}" />
                         <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -450,34 +454,17 @@
         <Setter Property="MinWidth" Value="0" />
     </Style>
 
-    <!-- "+" before the own colors of the toolbox: a SmallPresetTile without a color, with a dashed
-         border-strong border as the "+ new" button. -->
-    <Style x:Key="AddTile" TargetType="Button">
+    <!-- "+" before the own colors of the toolbox: the "+ new" button as a square of SmallTileSize with
+         the corners of a SmallPresetTile. -->
+    <Style x:Key="AddTile" TargetType="Button" BasedOn="{StaticResource NewButton}">
         <Setter Property="Width" Value="{StaticResource SmallTileSize}" />
         <Setter Property="Height" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Padding" Value="0" />
         <Setter Property="FontSize" Value="18" />
-        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Grid Background="Transparent">
-                        <Rectangle x:Name="Dashes" RadiusX="8" RadiusY="8" StrokeThickness="2" StrokeDashArray="3 2"
-                                   Stroke="{StaticResource BorderStrongBrush}" />
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Dashes" Property="Stroke" Value="{StaticResource TextMutedBrush}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.4" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
     </Style>
 
     <!-- A text link as a button, such as "+ Erbij knutselen". -->

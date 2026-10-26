@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Shapes;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -17,6 +18,18 @@ public sealed class TileCornerTests
         var tile = Show(panel, style);
 
         Assert.Equal(new CornerRadius(radius), Assert.Single(AppTheme.Descendants<Border>(tile)).CornerRadius);
+    });
+
+    // "+" of the own colors is the "+ new" button with the corners of a small tile.
+    [Theory]
+    [InlineData("NewButton", 12)]
+    [InlineData("AddTile", 8)]
+    public void DashedButtons_HaveTheCornersOfTheirSize(string style, double radius) => AppTheme.Run(panel =>
+    {
+        var button = Show(panel, style);
+        var dashes = Assert.Single(AppTheme.Descendants<Rectangle>(button));
+
+        Assert.Equal((radius, radius), (dashes.RadiusX, dashes.RadiusY));
     });
 
     internal static Button Show(StackPanel panel, string style)
