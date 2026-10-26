@@ -81,13 +81,19 @@ public partial class ColorPage : UserControl
     // value; they choose 0° instead, as moving the slider chooses its degrees.
     private void OnDirectionKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Home)
+        if (e.Key == Key.Home && Keyboard.Modifiers == ModifierKeys.None)
         {
             ChooseDirection(sender);
         }
     }
 
-    private void OnDirectionThumbDragCompleted(object sender, DragCompletedEventArgs e) => ChooseDirection(sender);
+    private void OnDirectionThumbDragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (!e.Canceled)
+        {
+            ChooseDirection(sender);
+        }
+    }
 
     private static void ChooseDirection(object slider)
     {
