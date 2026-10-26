@@ -12,9 +12,6 @@ namespace BuurmansRgb.UI.ViewModels;
 // to the actions counts from the start of the device.
 public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 {
-    // The most LEDs a single fan ring has; fans have a few dozen at most.
-    public const int MaxRingLeds = LedPlaces.MaxRingLeds;
-
     private readonly string _deviceId;
     private readonly string _deviceName;
     private readonly ZoneLayout _layout;

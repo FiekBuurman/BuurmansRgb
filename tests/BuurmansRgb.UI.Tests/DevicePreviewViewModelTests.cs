@@ -166,8 +166,8 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_OfAFan_AreRings()
     {
-        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20 + ZonePreviewViewModel.MaxRingLeds,
-            [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12), RgbZone.Fixed("Big ring", ZonePreviewViewModel.MaxRingLeds)])
+        var fan = new DeviceInfo("fan", "Fan", DeviceType.Fan, 20 + LedPlaces.MaxRingLeds,
+            [RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12), RgbZone.Fixed("Big ring", LedPlaces.MaxRingLeds)])
         {
             Source = DeviceSource.Hardware,
         };
@@ -180,8 +180,8 @@ public sealed class DevicePreviewViewModelTests
     [Fact]
     public void Zones_OfAFanThatCanBeResizedOrAreLong_AreNoRings()
     {
-        var hub = new DeviceInfo("hub", "Lian Li Uni Hub", DeviceType.Fan, 16 + ZonePreviewViewModel.MaxRingLeds + 1,
-            [new RgbZone("Channel 1", 16, 0, 200), RgbZone.Fixed("Fans", ZonePreviewViewModel.MaxRingLeds + 1)])
+        var hub = new DeviceInfo("hub", "Lian Li Uni Hub", DeviceType.Fan, 16 + LedPlaces.MaxRingLeds + 1,
+            [new RgbZone("Channel 1", 16, 0, 200), RgbZone.Fixed("Fans", LedPlaces.MaxRingLeds + 1)])
         {
             Source = DeviceSource.Hardware,
         };
