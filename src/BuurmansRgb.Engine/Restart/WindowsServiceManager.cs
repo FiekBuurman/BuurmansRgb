@@ -1,16 +1,13 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace BuurmansRgb.Engine.Restart;
 
 // The service control manager of Windows through advapi32, as System.ServiceProcess.ServiceController
-// is a NuGet package of its own and not part of .NET. Waits by polling the status, as `sc` and
-// ServiceController do.
+// is a NuGet package of its own and not part of .NET. Stopping, starting and waiting for it go
+// through ServiceControl.
 internal sealed partial class WindowsServiceManager : IServiceManager
 {
-    private static readonly TimeSpan PollInterval = TimeSpan.FromMilliseconds(250);
-
     public bool Exists(string name)
     {
         using var manager = OpenManager();
@@ -52,49 +49,18 @@ internal sealed partial class WindowsServiceManager : IServiceManager
         }
     }
 
-
     public void Stop(string name, TimeSpan timeout)
     {
         using var manager = OpenManager();
         using var service = OpenExisting(manager, name, ServiceQueryStatus | ServiceStop);
-        var state = QueryState(service, name);
-        if (state == ServiceStopped)
-        {
-            return;
-        }
-
-        if (state != ServiceStopPending && !ControlService(service, ServiceControlStop, out _))
-        {
-            var error = Marshal.GetLastPInvokeError();
-            if (error != ErrorServiceNotActive)
-            {
-                throw Failure(name, error);
-            }
-        }
-
-        WaitFor(service, name, ServiceStopped, timeout);
+        ServiceControl.System.Stop(new OpenedService(service, name), name, timeout);
     }
 
     public void Start(string name, TimeSpan timeout)
     {
         using var manager = OpenManager();
         using var service = OpenExisting(manager, name, ServiceQueryStatus | ServiceStart);
-        var state = QueryState(service, name);
-        if (state == ServiceRunning)
-        {
-            return;
-        }
-
-        if (state != ServiceStartPending && !StartServiceW(service, 0, 0))
-        {
-            var error = Marshal.GetLastPInvokeError();
-            if (error != ErrorServiceAlreadyRunning)
-            {
-                throw Failure(name, error);
-            }
-        }
-
-        WaitFor(service, name, ServiceRunning, timeout);
+        ServiceControl.System.Start(new OpenedService(service, name), name, timeout);
     }
 
     private static unsafe string? Match(byte* bytes, uint count, string text)
@@ -111,35 +77,6 @@ internal sealed partial class WindowsServiceManager : IServiceManager
         }
 
         return null;
-    }
-
-    private static void WaitFor(ServiceHandle service, string name, uint wanted, TimeSpan timeout)
-    {
-        var watch = Stopwatch.StartNew();
-        while (QueryState(service, name) != wanted)
-        {
-            if (watch.Elapsed >= timeout)
-            {
-                throw new ServiceControlException(name, ServiceControlFailure.TimedOut, $"Not {(wanted == ServiceRunning ? "running" : "stopped")} within {timeout.TotalSeconds:0} s.");
-            }
-
-            Thread.Sleep(PollInterval);
-        }
-    }
-
-    private static uint QueryState(ServiceHandle service, string name) =>
-        QueryServiceStatus(service, out var status) ? status.CurrentState : throw Failure(name, Marshal.GetLastPInvokeError());
-
-    private static ServiceControlException Failure(string name, int error)
-    {
-        var failure = error switch
-        {
-            ErrorInvalidServiceControl or ErrorServiceCannotAcceptControl => ServiceControlFailure.NotStoppable,
-            ErrorDependentServicesRunning => ServiceControlFailure.DependentsRunning,
-            _ => ServiceControlFailure.Other,
-        };
-        var inner = new Win32Exception(error);
-        return new ServiceControlException(name, failure, inner.Message, inner);
     }
 
     private static ServiceHandle OpenManager()
@@ -194,18 +131,8 @@ internal sealed partial class WindowsServiceManager : IServiceManager
     private const uint ServiceStateAll = 0x00000003;
     private const int ScEnumProcessInfo = 0;
 
-    private const uint ServiceStopped = 0x00000001;
-    private const uint ServiceStartPending = 0x00000002;
-    private const uint ServiceStopPending = 0x00000003;
-    private const uint ServiceRunning = 0x00000004;
-
     private const int ErrorMoreData = 234;
-    private const int ErrorDependentServicesRunning = 1051;
-    private const int ErrorInvalidServiceControl = 1052;
-    private const int ErrorServiceAlreadyRunning = 1056;
     private const int ErrorServiceDoesNotExist = 1060;
-    private const int ErrorServiceCannotAcceptControl = 1061;
-    private const int ErrorServiceNotActive = 1062;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct ServiceStatus
@@ -233,6 +160,16 @@ internal sealed partial class WindowsServiceManager : IServiceManager
         public uint WaitHint;
         public uint ProcessId;
         public uint ServiceFlags;
+    }
+
+    private sealed class OpenedService(ServiceHandle service, string name) : IServiceHandle
+    {
+        public ServiceState QueryState() =>
+            QueryServiceStatus(service, out var status) ? (ServiceState)status.CurrentState : throw ServiceControl.Failure(name, Marshal.GetLastPInvokeError());
+
+        public int SendStop() => ControlService(service, ServiceControlStop, out _) ? 0 : Marshal.GetLastPInvokeError();
+
+        public int SendStart() => StartServiceW(service, 0, 0) ? 0 : Marshal.GetLastPInvokeError();
     }
 
     private sealed class ServiceHandle() : SafeHandle(0, ownsHandle: true)
