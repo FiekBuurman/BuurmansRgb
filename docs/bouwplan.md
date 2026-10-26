@@ -244,7 +244,7 @@ Geef agents één taak tegelijk, in volgorde. Een taak is pas klaar als alle acc
 
 Later veranderd: de pipe heet `BuurmansRgb.Engine.<sessie-id>`, zodat elke ingelogde gebruiker
 zijn eigen engine heeft, en sinds het nieuwe ontwerp (#26) heeft de UI geen apparatenlijst
-links meer maar de pagina's Lampen, Kleur, Scènes en Instellingen (zie `handleiding.md`; de lege
+links meer maar de pagina's Apparaten (eerst Lampen), Kleur, Scènes en Instellingen (zie `handleiding.md`; de lege
 pagina Buren van het ontwerp is er later weer uit gehaald).
 
 ### Taak 3 – OpenRGB-koppeling
@@ -256,7 +256,7 @@ pagina Buren van het ontwerp is er later weer uit gehaald).
 - [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI; met "Gesimuleerd: Altijd" naast de gesimuleerde (standaard, "Automatisch", verdwijnen de gesimuleerde zodra er echte zijn)
 - [ ] Statische kleur komt aan op minstens één echt apparaat
 - [ ] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart
-- [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app bij Instellingen: "Gesimuleerde lampen tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
+- [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app bij Instellingen: "Gesimuleerde apparaten tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
 
 Stand taak 3: gebouwd en getest met nepdata en een kleine SDK-server. De drie open criteria
 vragen OpenRGB met echte apparaten; die test de gebruiker zelf (zie "Zelf testen op echte
@@ -397,6 +397,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #67 | Opruimen na de review van #64–#66, zonder dat er voor de gebruiker iets verandert: de commentaren bij de pauze noemen ook de schermbeveiliging, de ideeën voor effecten per zone zijn één punt en de engine-tests maken een `AutoPause` met fakes op één plek (`AutoPauses.WithFakes`) |
 | #69 | Eigen kleuren voor Fonkelen, Komeet, Scanner en Vuur (1–8, net als de kleurenloop): Komeet elke ronde de volgende kleur, Scanner elke keer heen of terug, Fonkelen elke fonkeling een willekeurige kleur uit de lijst en Vuur van de eerste kleur (de gloed) naar de laatste (de felste vlam), bijv. blauw vuur of groen "gif". Per lamp per effect een eigen lijst (`effectColors` in `settings.json` en `profiles.json`, `SetEffectColorsAsync` en `ClearEffectColorsAsync`), dus wisselen tussen effecten houdt elk zijn kleuren en een scène neemt ze mee; zonder lijst de kleur van de lamp, of bij Vuur donkerrood, rood, oranje en geel, zodat bestaande instellingen en scènes er hetzelfde uitzien. Op Kleur dezelfde vakjes met + en − als bij de kleurenloop (een gedeelde editor), de kleurkiezer verft het gekozen vakje meteen; gekozen LED's gaan voor; "Standaardkleuren" haalt de eigen lijst weer weg. De scènekaart toont de kleuren. Zonder allocaties per frame |
 | #74 | Meer kleuren: de kleurenloop heeft 2–12 kleuren (was 2–8), en Fonkelen, Komeet, Scanner en Vuur 1–12 (was 1–8). De vakjes van een lijst staan in rijen van hooguit zes, met + en − rechts naast de eerste rij. Een oudere versie leest een lijst van 9–12 kleuren als de standaard |
+| – | "Lampen" heet nu "Apparaten" in alle teksten die je leest: de pagina Apparaten, "Apparaten in huis", "Welk apparaat?" bij Kleur, de OpenRGB-status ("verbonden, 5 apparaten") in de app en het tray-icoon, de gesimuleerde apparaten bij Instellingen en de handleiding. Er staat ook een toetsenbord, muis of headset tussen. De namen in de code (`LampsPage`, `LampItem`) blijven |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13). Herstel-PR's zonder nieuwe functie krijgen geen rij,
