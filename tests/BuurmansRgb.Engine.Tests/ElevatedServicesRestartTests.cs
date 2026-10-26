@@ -123,6 +123,74 @@ public sealed class ElevatedServicesRestartTests
         Assert.True(timeout > ServiceRestarter.MaxDuration);
     }
 
+    // "Afsluiten" during the UAC prompt or the wait: the token reaches the step, and the
+    // cancellation goes up as one, not as a failed step.
+    [Fact]
+    public async Task RestartAsync_CancelledWhileWaiting_ThrowsTheCancellation()
+    {
+        using var shutdown = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        var passed = CancellationToken.None;
+        var waiting = new TaskCompletionSource();
+        var restart = new ElevatedServicesRestart(EnginePath, _services, async (_, _, ct) =>
+        {
+            passed = ct;
+            waiting.TrySetResult();
+            await Task.Delay(Timeout.Infinite, ct);
+            return 0;
+        });
+
+        var restarting = restart.RestartAsync(shutdown.Token);
+        await waiting.Task.WaitAsync(BuurmansRgb.Tests.TestTimeouts.Short, Ct);
+        await shutdown.CancelAsync();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => restarting);
+        Assert.Equal(shutdown.Token, passed);
+    }
+
+    // A cancellation that is not the engine's own, such as the time limit, is a failed step.
+    [Fact]
+    public async Task RestartAsync_CancelledByTheStep_ReportsFailed()
+    {
+        var restart = Create(_ => throw new OperationCanceledException());
+
+        Assert.Equal(ServicesRestartReport.Failed, await restart.RestartAsync(Ct));
+    }
+
+    [Fact]
+    public async Task WaitForStepAsync_TakesTooLong_ThrowsATimeout()
+    {
+        await Assert.ThrowsAsync<TimeoutException>(() =>
+            ElevatedServicesRestart.WaitForStepAsync(ct => Task.Delay(Timeout.Infinite, ct), TimeSpan.FromMilliseconds(50), Ct));
+    }
+
+    [Fact]
+    public async Task WaitForStepAsync_Cancelled_ThrowsTheCancellation()
+    {
+        using var shutdown = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        var waiting = ElevatedServicesRestart.WaitForStepAsync(ct => Task.Delay(Timeout.Infinite, ct), TimeSpan.FromMinutes(5), shutdown.Token);
+
+        await shutdown.CancelAsync();
+
+        var exception = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => waiting);
+        Assert.IsNotType<TimeoutException>(exception);
+    }
+
+    [Fact]
+    public async Task WaitForStepAsync_StepEnds_Returns()
+    {
+        var limit = CancellationToken.None;
+
+        await ElevatedServicesRestart.WaitForStepAsync(ct =>
+        {
+            limit = ct;
+            return Task.CompletedTask;
+        }, TimeSpan.FromMinutes(5), Ct);
+
+        // The step gets a token of its own, which the time limit cancels.
+        Assert.True(limit.CanBeCanceled);
+        Assert.NotEqual(Ct, limit);
+    }
+
     private ElevatedServicesRestart Create(Func<ProcessStartInfo, Task<int>> run) =>
         new(EnginePath, _services, (startInfo, _, _) =>
         {

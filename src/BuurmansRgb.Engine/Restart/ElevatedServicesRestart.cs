@@ -83,21 +83,27 @@ internal sealed class ElevatedServicesRestart(string enginePath, IServiceManager
     }
 
     // ShellExecuteEx gives a handle to the elevated process that can wait for it and read its exit
-    // code. A step that takes longer than the timeout is left to finish by itself.
+    // code.
     private static async Task<int> RunElevatedAsync(ProcessStartInfo startInfo, TimeSpan timeout, CancellationToken ct)
     {
         using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("The restart of the services did not start.");
+        await WaitForStepAsync(process.WaitForExitAsync, timeout, ct);
+        return process.ExitCode;
+    }
+
+    // A step that takes longer than the timeout gives a TimeoutException and is left to finish by
+    // itself; a cancelled ct ("Afsluiten") stays a cancellation.
+    internal static async Task WaitForStepAsync(Func<CancellationToken, Task> waitForExit, TimeSpan timeout, CancellationToken ct)
+    {
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
         limit.CancelAfter(timeout);
         try
         {
-            await process.WaitForExitAsync(limit.Token);
+            await waitForExit(limit.Token);
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
             throw new TimeoutException($"The restart of the services took longer than {timeout.TotalSeconds:0} s.");
         }
-
-        return process.ExitCode;
     }
 }
