@@ -189,7 +189,7 @@ schakelaar ernaast.
 
 #### Voorbeeld
 
-![Het voorbeeld van een toetsenbord met de regenboog](images/voorbeeld.png)
+![Het voorbeeld van een toetsenbord met de regenboog op 45°, schuin over de toetsen](images/voorbeeld.png)
 
 Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn type, de naam en
 **Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,

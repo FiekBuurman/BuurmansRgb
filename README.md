@@ -29,7 +29,7 @@
 
 | Kleur mengen | Voorbeeld per LED | Scènes |
 | --- | --- | --- |
-| ![Kleur mengen](docs/images/kleur.png) | ![Een toetsenbord met de regenboog](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
+| ![Kleur mengen](docs/images/kleur.png) | ![Een toetsenbord met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
 
 ## Installeren
 
