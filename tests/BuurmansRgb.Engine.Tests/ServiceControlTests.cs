@@ -115,6 +115,31 @@ public sealed class ServiceControlTests
         Assert.Equal(["query", "query"], service.Calls);
     }
 
+    [Fact]
+    public void Stop_StillStarting_WaitsUntilItRunsAndStops()
+    {
+        var service = new FakeServiceHandle(ServiceState.StartPending, ServiceState.StartPending, ServiceState.Running)
+        {
+            AfterStop = [ServiceState.StopPending, ServiceState.Stopped],
+        };
+
+        _control.Stop(service, "OpenRGB", Timeout);
+
+        Assert.Equal(["query", "query", "query", "stop", "query", "query"], service.Calls);
+    }
+
+    // The wait for it to run and the wait for it to stop share one timeout.
+    [Fact]
+    public void Stop_StillStartingPastTheTimeout_TimesOutWithoutStopping()
+    {
+        var service = new FakeServiceHandle(ServiceState.StartPending);
+
+        var exception = Assert.Throws<ServiceControlException>(() => _control.Stop(service, "OpenRGB", Timeout));
+
+        Assert.Equal(ServiceControlFailure.TimedOut, exception.Failure);
+        Assert.DoesNotContain("stop", service.Calls);
+    }
+
     [Theory]
     [InlineData(1052, (int)ServiceControlFailure.NotStoppable)]
     [InlineData(1061, (int)ServiceControlFailure.NotStoppable)]

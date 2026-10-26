@@ -45,6 +45,14 @@ internal sealed class ServiceControl(TimeProvider time, Action<TimeSpan> sleep)
             return;
         }
 
+        // Still starting, such as OpenRGB that Windows just started: it accepts no stop then
+        // ("cannot accept control"). So it first waits, within the same timeout, until it runs.
+        if (state == ServiceState.StartPending)
+        {
+            WaitFor(service, name, ServiceState.Running, begin, timeout);
+            state = ServiceState.Running;
+        }
+
         if (state != ServiceState.StopPending)
         {
             var error = service.SendStop();
