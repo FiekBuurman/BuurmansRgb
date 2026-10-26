@@ -17,6 +17,16 @@ namespace BuurmansRgb.Engine;
 
 internal static class Program
 {
+    // How long the engine waits on the way out for OpenRGB to get a zone length back after a count.
+    private static readonly TimeSpan ResizesOnExitTimeout = TimeSpan.FromSeconds(2);
+
+    // Waits when disposed until OpenRGB got the work queued for it, such as the length a count gave
+    // back, but at most ResizesOnExitTimeout: an OpenRGB that takes longer keeps the zone at its
+    // longest. It always waits, as the count may have stopped another way before the counter goes,
+    // such as when the settings app went along with the engine; without work it returns at once.
+    internal static IDisposable WaitForResizesOnExit(OpenRgbDeviceProvider openRgb) =>
+        new DisposeAction(() => openRgb.WaitUntilIdle(ResizesOnExitTimeout));
+
     [STAThread]
     private static void Main(string[] args)
     {
@@ -56,6 +66,12 @@ internal static class Program
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
+        // Disposed after the counter, so a length it gave back reaches OpenRGB before the provider closes.
+        using var resizesSent = WaitForResizesOnExit(openRgb);
+
+        // Disposed before the lengths and the lighting, so a zone that is counted gets its length back.
+        using var zoneCounter = new ZoneCounter(lighting, zoneLengths);
+
         // On this thread, which pumps the tray messages and so also the power, session, screen,
         // clock and foreground events, and the screen saver through the foreground.
         using var powerEvents = new SystemPowerEvents();
@@ -81,7 +97,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,

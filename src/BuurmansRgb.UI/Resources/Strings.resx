@@ -458,6 +458,72 @@
   <data name="FlashZoneAccessibleName" xml:space="preserve">
     <value>Zone {1} van {0} laten knipperen</value>
   </data>
+  <data name="CountZone" xml:space="preserve">
+    <value>Tellen</value>
+  </data>
+  <data name="CountZoneToolTip" xml:space="preserve">
+    <value>Telt de LED's van deze zone één voor één: de zone gaat even naar zijn grootste aantal LED's en er gaat steeds één LED meer aan, de nieuwste groen. Zo zie je hoeveel LED's de fan of strip heeft. Werkt niet als de effecten gepauzeerd zijn.</value>
+  </data>
+  <data name="CountZoneAccessibleName" xml:space="preserve">
+    <value>LED's van zone {1} van {0} tellen</value>
+  </data>
+  <data name="ZoneCountLed" xml:space="preserve">
+    <value>LED {0}</value>
+  </data>
+  <data name="ZoneCountAccessibleName" xml:space="preserve">
+    <value>Teller van {0}: LED {1} van {2}</value>
+  </data>
+  <data name="ZoneCountRunningOne" xml:space="preserve">
+    <value>Elke seconde gaat er één LED bij. Gaat de groene LED op de fan of strip niet meer aan, kies dan Pauze.</value>
+  </data>
+  <data name="ZoneCountRunning" xml:space="preserve">
+    <value>Elke seconde gaan er {0} LED's bij. Gaat de groene LED op de fan of strip niet meer aan, kies dan Pauze.</value>
+  </data>
+  <data name="ZoneCountPaused" xml:space="preserve">
+    <value>Gepauzeerd bij LED {0} van {1}. Is de groene LED de laatste van de fan of strip, kies dan Dit is de laatste; met − en + ga je een LED terug of verder.</value>
+  </data>
+  <data name="ZoneCountAtEnd" xml:space="preserve">
+    <value>Alle {0} LED's branden: meer kan deze zone niet hebben. Ga met − terug tot de laatste LED van de fan of strip groen is.</value>
+  </data>
+  <data name="ZoneCountPause" xml:space="preserve">
+    <value>Pauze</value>
+  </data>
+  <data name="ZoneCountResume" xml:space="preserve">
+    <value>Doorgaan</value>
+  </data>
+  <data name="ZoneCountPauseToolTip" xml:space="preserve">
+    <value>Zet het tellen stil of laat het doorgaan</value>
+  </data>
+  <data name="ZoneCountPrevious" xml:space="preserve">
+    <value>Eén LED terug</value>
+  </data>
+  <data name="ZoneCountNext" xml:space="preserve">
+    <value>Eén LED verder</value>
+  </data>
+  <data name="ZoneCountPaceLabel" xml:space="preserve">
+    <value>LED's per seconde:</value>
+  </data>
+  <data name="ZoneCountPaceOne" xml:space="preserve">
+    <value>{0} LED per seconde</value>
+  </data>
+  <data name="ZoneCountPace" xml:space="preserve">
+    <value>{0} LED's per seconde</value>
+  </data>
+  <data name="ZoneCountPaceGroup" xml:space="preserve">
+    <value>Tempo van het tellen</value>
+  </data>
+  <data name="ZoneCountKeep" xml:space="preserve">
+    <value>Dit is de laatste</value>
+  </data>
+  <data name="ZoneCountKeepToolTip" xml:space="preserve">
+    <value>Geeft deze zone zoveel LED's als de teller zegt en stopt met tellen.</value>
+  </data>
+  <data name="ZoneCountStop" xml:space="preserve">
+    <value>Stoppen</value>
+  </data>
+  <data name="ZoneCountStopToolTip" xml:space="preserve">
+    <value>Stopt met tellen; de zone krijgt zijn eigen aantal LED's terug.</value>
+  </data>
   <data name="ZonesAlike" xml:space="preserve">
     <value>Zones gelijk</value>
   </data>

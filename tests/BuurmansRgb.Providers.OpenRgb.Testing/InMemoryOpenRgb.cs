@@ -45,6 +45,10 @@ public sealed class InMemoryOpenRgb : IDisposable
         return [.. devices.Select(OpenRgbDeviceMapper.CreateId)];
     }
 
+    // The server answers a request for the device list only once until completes, like a busy
+    // OpenRGB: the provider's work waits behind it.
+    public void HoldDeviceLists(Task until) => _server.DevicesAnswered = until;
+
     // Closes the connections, like OpenRGB that stops.
     public void Stop() => _server.Stop();
 

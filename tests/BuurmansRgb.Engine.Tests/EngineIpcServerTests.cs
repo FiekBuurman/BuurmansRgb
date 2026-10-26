@@ -17,6 +17,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     private readonly LightingController _lighting;
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly ZoneLengthKeeper _zoneLengths;
+    private readonly ZoneCounter _zoneCounter;
     private readonly FakeServerStatus _openRgb = new();
     private readonly CancellationTokenSource _shutdown = new();
     private readonly List<EngineConnection> _clients = [];
@@ -29,6 +30,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         _lighting = new LightingController([simulated]);
         _simulatedDevices = new SimulatedDevicesSwitch(simulated, _lighting);
         _zoneLengths = new ZoneLengthKeeper(_lighting);
+        _zoneCounter = new ZoneCounter(_lighting, _zoneLengths);
     }
 
     public async ValueTask DisposeAsync()
@@ -46,6 +48,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         _shutdown.Dispose();
         _allClientsGone.Dispose();
+        _zoneCounter.Dispose();
         _zoneLengths.Dispose();
         _simulatedDevices.Dispose();
         _lighting.Dispose();
@@ -211,18 +214,84 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.All(leds[8..], led => Assert.Equal(Orange, led));
     }
 
-    // The engine sends DevicesChanged before the answer, over the same pipe, so the app has the new
-    // list by the time "Zoeken…" ends.
+    // The header of the simulated ARGB strip goes to its longest while it is counted, and the app
+    // hears each LED; when the app goes, the header gets its own length back.
     [Fact]
-    public async Task RescanDevicesAsync_SimulatedDevices_IsTrueAfterDevicesChanged()
+    public async Task StartZoneCountAsync_CountsUntilTheAppGoes()
     {
+        const string argb = "simulated-argb";
         var client = await StartAndConnectAsync();
-        var devicesChanged = 0;
-        client.Api.DevicesChanged += (_, _) => Interlocked.Increment(ref devicesChanged);
+        var counted = new TaskCompletionSource<ZoneCountInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.ZoneCountChanged += (_, count) =>
+        {
+            if (count.Led >= 3)
+            {
+                counted.TrySetResult(count);
+            }
+        };
+
+        await client.Api.StartZoneCountAsync(argb, 0, ZoneCountInfo.MaxLedsPerSecond, Ct);
+
+        var count = await counted.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal((argb, 0, 60, ZoneCountInfo.MaxLedsPerSecond), (count.DeviceId, count.ZoneIndex, count.LedCount, count.LedsPerSecond));
+        await Eventually.TrueAsync(() => ArgbHeader() == 60);
+
+        await DisconnectAsync(client);
+
+        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_lighting.Count.IsCounting);
+
+        int ArgbHeader() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount;
+    }
+
+    // "Dit is de laatste": the length the user counted goes through ResizeZoneAsync and stays.
+    [Fact]
+    public async Task ResizeZoneAsync_WhileCounting_EndsTheCountWithThatLength()
+    {
+        const string argb = "simulated-argb";
+        var client = await StartAndConnectAsync();
+        var ended = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.ZoneCountChanged += (_, count) =>
+        {
+            if (!count.IsCounting)
+            {
+                ended.TrySetResult();
+            }
+        };
+        await client.Api.StartZoneCountAsync(argb, 0, 1, Ct);
+
+        await client.Api.ResizeZoneAsync(argb, 0, 37, Ct);
+
+        await ended.Task.WaitAsync(TestTimeouts.Short, Ct);
+        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 37);
+        Assert.Equal(37, _zoneLengths.Lengths[argb]["ARGB 1"]);
+    }
+
+    [Fact]
+    public async Task RescanDevicesAsync_WhileCounting_EndsTheCountWithTheOldLength()
+    {
+        const string argb = "simulated-argb";
+        var client = await StartAndConnectAsync();
+        await client.Api.StartZoneCountAsync(argb, 0, 1, Ct);
+        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 60);
 
         Assert.True(await client.Api.RescanDevicesAsync(Ct));
 
-        Assert.True(Volatile.Read(ref devicesChanged) >= 1);
+        Assert.False((await client.Api.GetZoneCountAsync(Ct)).IsCounting);
+        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount == 20);
+    }
+
+    // The engine sends DevicesChanged before the answer, over the same pipe, but the client raises
+    // the event from the thread pool, so the app may handle it just after the answer.
+    [Fact]
+    public async Task RescanDevicesAsync_SimulatedDevices_IsTrueAndTheClientHearsOfIt()
+    {
+        var client = await StartAndConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.DevicesChanged += (_, _) => changed.TrySetResult();
+
+        Assert.True(await client.Api.RescanDevicesAsync(Ct));
+
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
         Assert.Contains(await client.Api.GetDevicesAsync(Ct), device => device.Id == Fan);
     }
 
@@ -369,7 +438,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb, zoneCounter: _zoneCounter), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

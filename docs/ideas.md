@@ -81,6 +81,14 @@ uitbreidingen in `docs/bouwplan.md`.
   nieuwe zonelengte overneemt); het apparaat krijgt dan wel zijn eigen kleuren terug. Zo stuurt
   "Knipperen" eerst een wachtende lengte, en stopt de reload van OpenRGB daarna de flits weer.
   Eventueel een wachtende flits opnieuw starten zodra de nieuwe apparatenlijst binnen is
+- "Tellen" ook bij een zone met een vaste lengte, om op een fan-ring te zien waar LED 1 zit en
+  welke kant hij op telt (zie het idee over draaien en spiegelen bij "Voorbeeld en
+  per-LED-editor"); nu kan het alleen bij een zone waarvan je de lengte instelt
+- Sneller tellen bij een lange header (120 LED's duurt bij 1 per seconde twee minuten): bijv.
+  halveren ("brandt LED 60 nog?") of een vak om meteen naar een LED te springen
+- Een telling hoort bij de app die hem begon en stopt als die weggaat, ook als een tweede open
+  instellingen-app hem nog toont en bedient. Eventueel elke app die hem toont laten meetellen,
+  zodat de telling pas stopt als de laatste weggaat
 
 ## Effecten
 
@@ -317,6 +325,12 @@ uitbreidingen in `docs/bouwplan.md`.
   van een andere start. Nu staat er alleen "Engine stopped."; bij de meting van de nieuwe effecten
   stopte een engine na 55 s zonder dat het log zei waarom (waarschijnlijk een `--exit` in dezelfde
   Windows-sessie, zie "Metingen" in `ontwikkelaars.md`)
+- Tijdens het tellen van LED's de render-loop alleen op het tempo van de telling laten tikken
+  (1, 2 of 5 keer per seconde) als verder alles statisch is: nu draait hij dan op 30 fps, terwijl
+  er maar één keer per LED iets verandert (zie de meting "LED's tellen" met Statisch in
+  `ontwikkelaars.md`). `AnimationLoop.Period` kan al veranderen (bij `framesPerSecond`); de
+  controller moet dan bij elke wijziging nagaan of er naast de telling een bewegend effect of een
+  flits loopt, en een stap mag niet later komen dan nu
 
 ## Installer en uitrol
 

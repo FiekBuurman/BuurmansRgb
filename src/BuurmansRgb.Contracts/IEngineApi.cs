@@ -43,6 +43,12 @@ public partial interface IEngineApi
     // times, the hotkeys or the own colors of the toolbox, from this or another settings app.
     event EventHandler OptionsChanged;
 
+    // Raised with the new state when a count of LEDs (StartZoneCountAsync) starts, goes to another
+    // LED, pauses, goes on, gets another pace or ends: ZoneCountInfo.None then. Raised at most once
+    // per LED, so at the pace of the count. A state can arrive after a newer one; drop it by its
+    // Sequence.
+    event EventHandler<ZoneCountInfo> ZoneCountChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
@@ -102,7 +108,7 @@ public partial interface IEngineApi
     // Gives a resizable zone (an index into the device's zones) another number of LEDs, within its
     // range. The device may get its new length a little later; DevicesChanged then follows. The
     // engine saves the length and gives it back when the device reports another one, for example
-    // after OpenRGB restarted.
+    // after OpenRGB restarted. A count of the zone's LEDs ends with this length.
     Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default);
 
     // Whether every zone of the device shows the image the effect renders over its longest zone,
@@ -123,13 +129,36 @@ public partial interface IEngineApi
     // the engine does not know (any more).
     Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default);
 
+    // Counts the LEDs of a resizable zone (an index into the device's zones), so the user can see
+    // how many a strip or fan on an addressable header has: the zone gets its longest length for a
+    // while and its LEDs burn one more at a time, from LED 1 on, ledsPerSecond a second (1 to
+    // ZoneCountInfo.MaxLedsPerSecond); the newest is green, the ones before it white, and the rest
+    // of the device keeps its lighting. One zone counts at a time: another zone stops the count
+    // before, which gets its own length back. The zone gets its own length back with
+    // StopZoneCountAsync and when this settings app goes, the effects pause, the devices are searched
+    // again (RescanDevicesAsync) or the engine stops; ResizeZoneAsync of the zone ends the count
+    // with that length instead. A new device list that has another length for the zone, or not the
+    // device, ends it without a length. Nothing starts while the effects pause. ZoneCountChanged
+    // tells how it goes. Changes no lighting; a zone whose length cannot be set throws.
+    Task StartZoneCountAsync(string deviceId, int zoneIndex, int ledsPerSecond, CancellationToken ct = default);
+
+    // Pauses the count, goes on, goes to another LED or takes another pace; nothing for a zone
+    // that is not counted (any more).
+    Task SetZoneCountAsync(string deviceId, int zoneIndex, ZoneCountChange change, CancellationToken ct = default);
+
+    // Ends the count of the zone and gives it its own length back; nothing for another zone.
+    Task StopZoneCountAsync(string deviceId, int zoneIndex, CancellationToken ct = default);
+
+    // The count as it is now; ZoneCountInfo.None while no zone is counted.
+    Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default);
+
     // Lets OpenRGB, and the simulated devices, search for devices again, for example when a device
     // that was switched off and on does not come back by itself. Completes after the first new
-    // list, so DevicesChanged has gone out by then; OpenRGB may fill its list step by step while
-    // it searches, and the devices it finds later follow through DevicesChanged. That can take
-    // some seconds, as the engine connects to OpenRGB anew when OpenRGB does not answer the
-    // request in time. A device that came back gets its own lighting. False when OpenRGB could
-    // not be reached.
+    // list, so DevicesChanged has gone out by then, though a client may handle it just after the
+    // answer; OpenRGB may fill its list step by step while it searches, and the devices it finds
+    // later follow through DevicesChanged. That can take some seconds, as the engine connects to
+    // OpenRGB anew when OpenRGB does not answer the request in time. A device that came back gets
+    // its own lighting. False when OpenRGB could not be reached.
     Task<bool> RescanDevicesAsync(CancellationToken ct = default);
 
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);

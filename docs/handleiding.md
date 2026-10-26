@@ -213,6 +213,36 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   nieuwe lengte zijn apparaten opnieuw. Typen en "Toepassen" (of Enter) gaat meteen. Een zone
   met 0 LED's zegt "Nog geen LED's ingesteld", met uitleg. De lengte wordt bewaard (zie
   `zoneLengths` bij "settings.json").
+- **LED's tellen:** weet je niet hoeveel LED's de fan of strip op een header heeft, kies dan
+  **Tellen**, naast "Knipperen" (bij een apparaat met één zone staat het rechts boven de LED's).
+  De zone gaat even naar zijn grootste aantal LED's en er gaat elke seconde één LED meer aan: de
+  nieuwste groen, die ervoor wit, de rest van de zone uit; de rest van het apparaat houdt zijn
+  effect. In het voorbeeld staat, op de plek van de lengte, een grote teller ("LED 37") met:
+  - **Pauze** en **Doorgaan**: zet het tellen stil op de LED die de teller dan zegt;
+  - **−** en **+**: één LED terug of verder (dat pauzeert het tellen ook);
+  - **LED's per seconde** 1, 2 of 5;
+  - **Dit is de laatste**: de zone krijgt zoveel LED's als de teller zegt, net als met
+    "Toepassen", en het tellen stopt;
+  - **Stoppen**: het tellen stopt en de zone krijgt zijn eigen aantal LED's terug.
+
+  Zo werkt het: kijk naar de fan of strip; gaat de groene LED niet meer aan, kies dan Pauze, ga
+  met − terug tot de laatste LED groen is en kies "Dit is de laatste". Na de laatste LED die de
+  zone kan hebben, stopt het tellen vanzelf; Doorgaan begint dan weer bij LED 1. Nog eens
+  Tellen begint ook opnieuw bij LED 1. Er telt steeds één zone. Het tellen stopt ook, en de zone
+  krijgt zijn eigen aantal LED's terug, als je een andere zone laat tellen, een ander apparaat
+  kiest, van Kleur weggaat, de app sluit, op Verversen klikt, of als de effecten pauzeren (via
+  het tray-menu, of omdat Windows vergrendelt, slaapt, het scherm uitgaat of de
+  schermbeveiliging start); bij een pauze is Tellen grijs. Verdwijnt het apparaat, of krijgt de
+  zone ergens anders een ander aantal LED's (bijv. in de app van OpenRGB), dan stopt het tellen
+  zonder iets terug te zetten. Een telling die je in een tweede venster van de app startte, telt
+  daar door als je hier een ander apparaat kiest of van Kleur weggaat; hier zie je hem ook, en
+  Stoppen werkt in beide. Tellen verandert de verlichting niet, en de grootste lengte wordt
+  nooit bewaard; "Dit is de laatste" bewaart de lengte die je koos. Had de zone nog geen
+  bewaarde lengte, dan bewaart Tellen wel zijn eigen aantal LED's (niet 0) in `zoneLengths`,
+  zodat de zone dat terugkrijgt als de engine halverwege het tellen stopt. Een schermlezer noemt
+  de teller bijv. "Teller van Moederbord – ARGB 1: LED 37 van 60" en leest de regel eronder voor
+  als het tellen pauzeert, doorgaat of een ander tempo krijgt, niet bij elke LED. Met Tab bereik
+  je alle knoppen; de tempo's zijn keuzerondjes.
 
 #### Per-LED-editor
 
@@ -469,6 +499,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   voor een schermlezer. Naast de zes kleuren van het ontwerp staan Echt rood, Echt groen en Echt
   blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van het ontwerp zijn getint. De
   vakjes van de kleurenloop en de kleuren van een effect blijven 44 px.
+- **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
+  van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes
+  zoals de dagen bij een scène, en de teller staat in het monolettertype.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
@@ -839,6 +872,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   knipperen die lengte niet: OpenRGB laadt het apparaat daarna opnieuw en dat stopt het knipperen.
   Knippert de zone daardoor maar kort, klik dan nog eens. Een schermlezer noemt de knop bijv.
   "Zone ARGB 1 van Moederbord laten knipperen".
+- **Hoeveel LED's?** Bij een zone waarvan je de lengte instelt, laat **Tellen** de LED's één voor
+  één aangaan, zodat je ziet hoeveel de fan of strip erop heeft; zie "LED's tellen" bij
+  "Voorbeeld".
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de

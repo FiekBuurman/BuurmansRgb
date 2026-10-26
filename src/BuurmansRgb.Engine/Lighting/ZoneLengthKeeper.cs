@@ -56,6 +56,15 @@ internal sealed class ZoneLengthKeeper : IDisposable
         }
     }
 
+    // The length remembered for the zone with that name; null when there is none.
+    public int? LengthOf(string deviceId, string zone)
+    {
+        lock (_gate)
+        {
+            return _lengths.TryGetValue(deviceId, out var zones) && zones.TryGetValue(zone, out var ledCount) ? ledCount : null;
+        }
+    }
+
     // The lengths from the settings, before the devices are fetched: the devices get them as they
     // show up. Replaces what was known.
     public void Load(IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> lengths)
@@ -110,51 +119,111 @@ internal sealed class ZoneLengthKeeper : IDisposable
     {
         lock (_gate)
         {
-            var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
-            var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Name) == zoneIndex
-                ? device.Zones[zoneIndex]
-                : null;
-            if (zone is null)
+            if (!ResizeLocked(deviceId, zoneIndex, ledCount, Remember.Length))
             {
-                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
                 return;
-            }
-
-            var key = (deviceId, zone.Name);
-            var before = _lengths.TryGetValue(deviceId, out var zones) ? new Dictionary<string, int>(zones) : null;
-            var wasAsked = _asked.TryGetValue(key, out var asked);
-            RememberLocked(deviceId, zone.Name, ledCount);
-
-            // A length the zone has already brings no new device list to wait for.
-            if (zone.LedCount != ledCount)
-            {
-                _asked[key] = ledCount;
-            }
-
-            try
-            {
-                _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
-            }
-            catch
-            {
-                RestoreLocked(deviceId, before);
-                if (wasAsked)
-                {
-                    _asked[key] = asked;
-                }
-                else
-                {
-                    _asked.Remove(key);
-                }
-
-                throw;
             }
         }
 
         LengthsChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // A length for a while, such as the longest while the user counts the LEDs of the zone
+    // (ZoneCounter): the zone gets it, but it is not remembered, and when the device reports it,
+    // it is not taken for a length from elsewhere. A zone without a remembered length gets the one
+    // it has now remembered first (except 0), so a device that shows up again before the zone has
+    // its own length back, for example after the engine stopped halfway, gets that one. Throws
+    // like ResizeZone, and then remembers nothing.
+    public void ResizeForAWhile(string deviceId, int zoneIndex, int ledCount)
+    {
+        bool remembered;
+        lock (_gate)
+        {
+            remembered = ResizeLocked(deviceId, zoneIndex, ledCount, Remember.CurrentWhenNone);
+        }
+
+        if (remembered)
+        {
+            LengthsChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // The length a zone had before ResizeForAWhile, such as after a count: the zone gets it, as
+    // with ResizeForAWhile, but nothing is remembered, also not the length for a while it has now.
+    // Throws like ResizeZone.
+    public void GiveLengthBack(string deviceId, int zoneIndex, int ledCount)
+    {
+        lock (_gate)
+        {
+            ResizeLocked(deviceId, zoneIndex, ledCount, Remember.Nothing);
+        }
+    }
+
     public void Dispose() => _lighting.DevicesChanged -= OnDevicesChanged;
+
+    // Gives the zone the length, and waits for the device to report it before a new length counts
+    // as one from elsewhere. The last length asked for wins: also a length the zone has already is
+    // waited for while a length asked before has not come, or that one would be. What it remembers
+    // follows remember; a zone name the device has twice gives nothing to remember it by, so that
+    // zone only gets the length. Returns true when the zone is known by its name and a length was
+    // remembered (for the user's length always, so LengthsChanged follows). Throws like
+    // LightingController.ResizeZone, and then leaves the lengths and what was asked as they were.
+    private bool ResizeLocked(string deviceId, int zoneIndex, int ledCount, Remember remember)
+    {
+        var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
+        var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Name) == zoneIndex
+            ? device.Zones[zoneIndex]
+            : null;
+        if (zone is null)
+        {
+            _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+            return false;
+        }
+
+        var key = (deviceId, zone.Name);
+        var before = _lengths.TryGetValue(deviceId, out var zones) ? new Dictionary<string, int>(zones) : null;
+        var wasAsked = _asked.TryGetValue(key, out var asked);
+        var remembered = false;
+        if (remember == Remember.Length)
+        {
+            RememberLocked(deviceId, zone.Name, ledCount);
+            remembered = true;
+        }
+        else if (remember == Remember.CurrentWhenNone && zone.LedCount > 0 && zones?.ContainsKey(zone.Name) != true)
+        {
+            // Not 0, as from elsewhere (FollowLocked): that looks like a length that was never set,
+            // and a zone that had it gets it back from the counter all the same.
+            remembered = RememberLocked(deviceId, zone.Name, zone.LedCount);
+        }
+
+        // A length the zone has already brings no new device list to wait for, unless another
+        // length asked for is on its way.
+        if (zone.LedCount != ledCount || (wasAsked && asked != ledCount))
+        {
+            _asked[key] = ledCount;
+        }
+
+        try
+        {
+            _lighting.ResizeZone(deviceId, zoneIndex, ledCount);
+        }
+        catch
+        {
+            RestoreLocked(deviceId, before);
+            if (wasAsked)
+            {
+                _asked[key] = asked;
+            }
+            else
+            {
+                _asked.Remove(key);
+            }
+
+            throw;
+        }
+
+        return remembered;
+    }
 
     // Returns true when it is another length than the one remembered.
     private bool RememberLocked(string deviceId, string zone, int ledCount)
@@ -327,5 +396,14 @@ internal sealed class ZoneLengthKeeper : IDisposable
         }
 
         return changed;
+    }
+
+    // What ResizeLocked remembers: the new length (the user's choice), the length the zone has
+    // when it has none yet (before a length for a while), or nothing (a length given back).
+    private enum Remember
+    {
+        Length,
+        CurrentWhenNone,
+        Nothing,
     }
 }

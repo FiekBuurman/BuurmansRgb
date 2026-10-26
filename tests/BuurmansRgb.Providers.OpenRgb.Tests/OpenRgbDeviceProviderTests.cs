@@ -410,6 +410,34 @@ public sealed class OpenRgbDeviceProviderTests : IDisposable
         Assert.Single(_connector.Updates);
     }
 
+    // As when the engine stops right after a count gave a zone its length back.
+    [Fact]
+    public async Task WaitUntilIdle_AfterResize_ReturnsOnceTheResizeWasSent()
+    {
+        _connector.Devices = [TestDevices.Create(zones: [new("Strip", 3, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+
+        _provider.ResizeZone(device.Id, 0, 5);
+
+        Assert.True(_provider.WaitUntilIdle(TestTimeouts.Short));
+        Assert.Equal([(0, 0, 5)], _connector.Resizes);
+    }
+
+    [Fact]
+    public async Task WaitUntilIdle_WorkThatHangs_GivesUpAfterTheTimeout()
+    {
+        _connector.Devices = [TestDevices.Create(zones: [new("Strip", 3, 0, 60)])];
+        var device = Assert.Single(await ConnectAsync());
+        var answer = new TaskCompletionSource();
+        _connector.DevicesAnswered = answer.Task;
+        _provider.ResizeZone(device.Id, 0, 5);
+
+        Assert.False(_provider.WaitUntilIdle(TimeSpan.FromMilliseconds(50)));
+
+        answer.SetResult();
+        await _provider.WhenIdleAsync();
+    }
+
     // A rescan clears the devices at once, while its reload waits behind the resize.
     [Fact]
     public async Task ResizeZone_DeviceListChangesBeforeItRuns_StillResizes()
