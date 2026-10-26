@@ -24,7 +24,8 @@ internal sealed class EngineHost(
     AllOnOffHotkeys? hotkeys = null,
     ISettingsFileEvents? settingsFileEvents = null,
     TimeSpan? reloadDelay = null,
-    CustomColorList? customColors = null) : IEngineHost, IDisposable
+    CustomColorList? customColors = null,
+    CustomEffectLibrary? customEffects = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
@@ -38,13 +39,15 @@ internal sealed class EngineHost(
     // scene that was on is on again with the saved lighting, as that is still its lighting; once
     // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
     // With settingsFileEvents, a change of the file by hand is applied from then on as well, as
-    // changes from the settings app are.
+    // changes from the settings app are. The own effects are read before the lighting is applied, so
+    // a lighting that shows one keeps it.
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
         ApplyOptions(settings);
         zoneLengths?.Load(settings.ReadZoneLengths());
         await lighting.DiscoverAsync(ct);
+        customEffects?.Load();
         lighting.Apply(settings.ToLightingState());
         if (profiles is not null)
         {

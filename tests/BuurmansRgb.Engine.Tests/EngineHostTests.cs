@@ -55,6 +55,41 @@ public sealed class EngineHostTests : IDisposable
         Assert.All(_simulated.GetLeds("simulated-strip"), led => Assert.Equal(RgbColor.White, led));
     }
 
+    // The own effects are read before the saved lighting comes on, so a device keeps the one it showed.
+    [Fact]
+    public async Task StartAsync_SavedOwnEffect_ShowsIt()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Effect = "custom:blue" } } },
+        };
+        var lighting = new LightingController([_simulated]);
+        var effects = new CustomEffectLibrary(new InMemoryCustomEffectStore { Effects = [new CustomEffect("custom:blue", "Blauw", [new CustomEffectStep(new RgbColor(0, 0, 255))])] }, lighting);
+        using var host = new EngineHost(store, lighting, customEffects: effects);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal("custom:blue", lighting.GetLighting("simulated-fan").EffectId);
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+    }
+
+    // An own effect that is gone, such as one deleted by an older version or by hand: static.
+    [Fact]
+    public async Task StartAsync_SavedOwnEffectThatIsGone_ShowsTheColor()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Color = new RgbColor(0, 0, 255), Effect = "custom:gone" } } },
+        };
+        var lighting = new LightingController([_simulated]);
+        using var host = new EngineHost(store, lighting, customEffects: new CustomEffectLibrary(new InMemoryCustomEffectStore(), lighting));
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(EffectIds.Static, lighting.GetLighting("simulated-fan").EffectId);
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+    }
+
     [Fact]
     public async Task Dispose_AfterChange_SavesLighting()
     {

@@ -9,4 +9,5 @@ namespace BuurmansRgb.Engine.Settings;
     Converters = [typeof(SettingsColorJsonConverter), typeof(SettingsOptionalColorJsonConverter), typeof(SimulatedDevicesModeJsonConverter), typeof(PausedLightsModeJsonConverter), typeof(ZoneLengthsJsonConverter), typeof(LedColorZoneLengthsJsonConverter)])]
 [JsonSerializable(typeof(EngineSettings))]
 [JsonSerializable(typeof(ProfilesFile))]
+[JsonSerializable(typeof(CustomEffectsFile))]
 internal sealed partial class EngineSettingsJsonContext : JsonSerializerContext;
