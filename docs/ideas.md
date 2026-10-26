@@ -81,6 +81,14 @@ uitbreidingen in `docs/bouwplan.md`.
   nieuwe zonelengte overneemt); het apparaat krijgt dan wel zijn eigen kleuren terug. Zo stuurt
   "Knipperen" eerst een wachtende lengte, en stopt de reload van OpenRGB daarna de flits weer.
   Eventueel een wachtende flits opnieuw starten zodra de nieuwe apparatenlijst binnen is
+- "Tellen" ook bij een zone met een vaste lengte, om op een fan-ring te zien waar LED 1 zit en
+  welke kant hij op telt (zie het idee over draaien en spiegelen bij "Voorbeeld en
+  per-LED-editor"); nu kan het alleen bij een zone waarvan je de lengte instelt
+- Sneller tellen bij een lange header (120 LED's duurt bij 1 per seconde twee minuten): bijv.
+  halveren ("brandt LED 60 nog?") of een vak om meteen naar een LED te springen
+- Een telling hoort bij de app die hem begon en stopt als die weggaat, ook als een tweede open
+  instellingen-app hem nog toont en bedient. Eventueel elke app die hem toont laten meetellen,
+  zodat de telling pas stopt als de laatste weggaat
 
 ## Effecten
 

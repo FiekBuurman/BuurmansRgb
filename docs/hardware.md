@@ -25,8 +25,10 @@ LED's per casefan en per koelerfan, en welke header wat is:
 
 1. Kies bij Kleur het moederbord en laat elke zone knipperen ("Knipperen" naast de zonenaam),
    zodat je ziet welke header de koeler, de casefans of de strip is.
-2. Zet bij een lege zone het aantal LED's met + hoger tot de laatste LED van de laatste fan
-   oplicht; nog hoger verandert dan niets meer.
+2. Klik bij een lege zone op "Tellen": er gaat elke seconde één LED meer aan, de nieuwste
+   groen. Kies Pauze zodra de groene LED niet meer aangaat, ga met − terug tot de laatste LED
+   van de laatste fan groen is en kies "Dit is de laatste". De teller zegt dan het aantal.
+   (Zonder Tellen: zet het aantal LED's met + hoger tot de laatste LED oplicht.)
 3. Hangen de vier casefans en de strip samen aan één header, trek dan 26 af voor de strip en
    deel de rest door vier. Bij de koeler gaan er 16 af voor de pomp, de rest delen door drie.
 
