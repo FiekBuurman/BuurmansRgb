@@ -264,6 +264,18 @@
   <data name="PresetPurple" xml:space="preserve">
     <value>Paars</value>
   </data>
+  <data name="PresetPureRed" xml:space="preserve">
+    <value>Echt rood</value>
+    <comment>255, 0, 0: naast het getinte Rood van het ontwerp.</comment>
+  </data>
+  <data name="PresetPureGreen" xml:space="preserve">
+    <value>Echt groen</value>
+    <comment>0, 255, 0: naast het getinte Groen van het ontwerp.</comment>
+  </data>
+  <data name="PresetPureBlue" xml:space="preserve">
+    <value>Echt blauw</value>
+    <comment>0, 0, 255: naast het getinte Blauw van het ontwerp.</comment>
+  </data>
   <data name="SpeedHeader" xml:space="preserve">
     <value>Snelheid</value>
   </data>
