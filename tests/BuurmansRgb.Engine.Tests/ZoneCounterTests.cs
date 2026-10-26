@@ -319,6 +319,29 @@ public sealed class ZoneCounterTests : IDisposable
         Assert.Single(_provider.Resizes);
     }
 
+    // As OpenRGB after a resize: a list with the old length (or one on the way) may come before
+    // the longest one. That keeps the count running; once the longest came, another length ends it.
+    [Fact]
+    public async Task DevicesChanged_OldLengthBeforeTheLongest_KeepsCountingUntilAnotherLengthAfterIt()
+    {
+        await StartAsync(header: 30);
+        _provider.RefusesLengths = true;
+        _counter.Start(Board, Header, 1);
+        await SettledAsync();
+        Assert.Equal(30, _lighting.Devices.Single().Zones[Header].LedCount);
+        Assert.True(Count.Counts(Board, Header));
+
+        _provider.SetDevices(BoardWith(header: Longest));
+        await HeaderAsync(Longest);
+        await SettledAsync();
+        Assert.True(Count.Counts(Board, Header));
+
+        _provider.SetDevices(BoardWith(header: 44));
+        await Eventually.TrueAsync(() => !Count.IsCounting);
+        await SettledAsync();
+        Assert.Equal([(Board, Header, Longest)], _provider.Resizes);
+    }
+
     [Fact]
     public async Task DevicesChanged_DeviceGone_EndsTheCount()
     {

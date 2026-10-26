@@ -1,3 +1,5 @@
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Providers.OpenRgb.Testing;
 using Microsoft.Extensions.Time.Testing;
@@ -79,6 +81,31 @@ public sealed class ZoneLengthKeeperOpenRgbTests : IDisposable
         await SettledAsync();
 
         Assert.Single(_openRgb.Resizes);
+    }
+
+    // Tellen against OpenRGB: the header gets its longest length through a reload of the device
+    // list, keeps counting through it, and Stoppen gives it its own length back.
+    [Fact]
+    public async Task CountLeds_ThenStop_GivesTheHeaderItsLengthBack()
+    {
+        using var counter = new ZoneCounter(_lighting, _keeper);
+        await _lighting.DiscoverAsync(Ct);
+        await HeaderLengthAsync(30);
+        await SettledAsync();
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+
+        counter.Start(_boardId, 1, 1);
+        await HeaderLengthAsync(120);
+        await SettledAsync();
+        Assert.True(_lighting.Count.Counts(_boardId, 1));
+
+        counter.Stop(_boardId, 1);
+        await HeaderLengthAsync(30);
+        await SettledAsync();
+
+        Assert.False(_lighting.Count.IsCounting);
+        Assert.Equal([(0, 1, 30), (0, 1, 120), (0, 1, 30)], _openRgb.Resizes);
+        Assert.Equal(30, _keeper.Lengths[_boardId]["Aura Addressable 1"]);
     }
 
     // An addressable header on a motherboard, as OpenRGB lists an ASUS board.
