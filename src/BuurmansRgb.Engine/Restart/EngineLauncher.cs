@@ -12,8 +12,17 @@ internal interface IEngineLauncher
 
 internal sealed class EngineLauncher(string executablePath) : IEngineLauncher
 {
-    // The engine exe, also when it was started under another name or from another folder.
-    public static string CurrentEnginePath => Environment.ProcessPath ?? Path.Combine(AppContext.BaseDirectory, "BuurmansRgb.Engine.exe");
+    private const string EngineExe = "BuurmansRgb.Engine.exe";
+
+    // The engine exe this process runs, also from another folder.
+    public static string CurrentEnginePath => EnginePath(Environment.ProcessPath, AppContext.BaseDirectory);
+
+    // The process itself when it is the engine exe; otherwise, such as dotnet.exe for
+    // `dotnet BuurmansRgb.Engine.dll`, the engine exe next to the engine's files.
+    internal static string EnginePath(string? processPath, string baseDirectory) =>
+        processPath is not null && string.Equals(Path.GetFileName(processPath), EngineExe, StringComparison.OrdinalIgnoreCase)
+            ? processPath
+            : Path.Combine(baseDirectory, EngineExe);
 
     public static EngineLauncher ForCurrentProcess() => new(CurrentEnginePath);
 
