@@ -41,6 +41,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ProfilesReloadCall = "profiles-reload";
     private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
+    private const string CustomEffectCall = "custom-effect";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -110,6 +111,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         CustomColors = new CustomColorsViewModel(ColorPicker);
+        CustomEffectEditor = new CustomEffectEditorViewModel((id, name) =>
+            _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name)));
+        CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);
+        CustomEffectEditor.DeleteRequested += (_, id) => DeleteCustomEffect(id);
+        CustomEffectEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
@@ -199,6 +205,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SelectedLamp))]
+    [NotifyCanExecuteChangedFor(nameof(TakeLedPatternCommand))]
     public partial DeviceItem? SelectedDevice { get; set; }
 
     // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
@@ -222,6 +229,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ColorListEditorViewModel EffectColorsEditor { get; } = new(EffectColors.MinColors, EffectColors.MaxColors, [RgbColor.White]);
 
     public bool HasEffectColors => EffectColors.Takes(SelectedEffect?.Id);
+
+    // With an own effect, the panel "Eigen effect" edits it, and the color picker colors its
+    // selected step.
+    public CustomEffectEditorViewModel CustomEffectEditor { get; }
+
+    public bool IsCustomEffect => SelectedEffect?.IsCustom == true;
 
     // What the colors do in the selected effect, such as "every round the next color".
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
@@ -253,7 +266,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -487,6 +500,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
         ShowEffectColors(selectFirst: true);
+        ShowCustomEffectEditor();
         SetPickerAppliesAtOnce();
         if (!_syncing.IsActive && value is not null)
         {
@@ -543,28 +557,133 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, null));
     }
 
-    // The effects of the engine and then the own effects under their names. Only when that list
-    // changed, so the choice keeps its item; the chosen effect stays chosen while it is there.
+    // The effects of the engine and then the own effects under their names. The options that stay
+    // are moved and renamed in place, so the chosen one stays chosen and the editor of an own effect
+    // does not hide for a moment, which would take the keyboard focus out of it.
     private void ShowEffects()
     {
-        EffectOption[] options = [.. _engineEffects.Select(EffectOption.Create), .. _customEffects.Select(EffectOption.For)];
-        if (!options.SequenceEqual(Effects))
+        (string Id, string Name)[] wanted =
+            [.. _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName)), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
+        var selectedId = SelectedEffect?.Id;
+        _syncing.Run(() =>
         {
-            var selectedId = SelectedEffect?.Id;
-            _syncing.Run(() =>
+            for (var i = Effects.Count - 1; i >= 0; i--)
             {
-                Effects.Clear();
-                foreach (var option in options)
+                if (!wanted.Any(option => option.Id == Effects[i].Id))
                 {
-                    Effects.Add(option);
+                    Effects.RemoveAt(i);
+                }
+            }
+
+            for (var i = 0; i < wanted.Length; i++)
+            {
+                var (id, name) = wanted[i];
+                var at = Effects.Skip(i).ToList().FindIndex(option => option.Id == id);
+                if (at < 0)
+                {
+                    Effects.Insert(i, new EffectOption(id, name));
+                    continue;
                 }
 
-                SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == selectedId);
-            });
-        }
+                if (at > 0)
+                {
+                    Effects.Move(i + at, i);
+                }
 
+                Effects[i].DisplayName = name;
+            }
+
+            if (SelectedEffect is null || !Effects.Contains(SelectedEffect))
+            {
+                SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == selectedId);
+            }
+        });
+
+        ShowCustomEffectEditor();
         NewCustomEffectCommand.NotifyCanExecuteChanged();
     }
+
+    // The editor shows the chosen own effect as it is known here; the picker follows its step.
+    private void ShowCustomEffectEditor()
+    {
+        if (SelectedEffect is { IsCustom: true } option && _customEffects.FirstOrDefault(effect => effect.Id == option.Id) is { } effect)
+        {
+            var other = effect.Id != CustomEffectEditor.EffectId;
+            CustomEffectEditor.Show(effect);
+            if (other)
+            {
+                ShowPickerColor();
+            }
+        }
+    }
+
+    // Each change of the editor goes out as the whole effect; a newer one replaces one that waits.
+    // A new name shows in the effect choice at once.
+    private void SendCustomEffect(CustomEffect effect)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _customEffectChanges++;
+        ShowCustomEffect(effect);
+        _calls.Post((CustomEffectCall, effect.Id), () => connection.Api.SaveCustomEffectAsync(effect));
+    }
+
+    // The engine gives every device that shows it, and so this one, the static effect; the choice
+    // here goes there at once, which hides the editor. With the same key, it replaces a change of
+    // the effect that still waits.
+    private void DeleteCustomEffect(string id)
+    {
+        if (_connection is not { } connection || _customEffects.FirstOrDefault(effect => effect.Id == id) is not { } deleted)
+        {
+            return;
+        }
+
+        _customEffectChanges++;
+        _customEffects = [.. _customEffects.Where(effect => effect.Id != id)];
+        _syncing.Run(() =>
+        {
+            if (SelectedEffect?.Id == id)
+            {
+                SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.Static);
+            }
+        });
+        ShowEffects();
+        ShowPickerColor();
+        _calls.Post((CustomEffectCall, id), async () =>
+        {
+            await connection.Api.DeleteCustomEffectAsync(id);
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    StatusMessage = UiText.Format(Strings.CustomEffectDeleted, deleted.Name);
+                }
+            });
+        });
+    }
+
+    // "LED-kleuren van dit apparaat overnemen": the colors the per-LED effect gives the LEDs of the
+    // chosen device become the pattern of the selected step. Not for "Hele huis".
+    [RelayCommand(CanExecute = nameof(CanTakeLedPattern))]
+    private async Task TakeLedPatternAsync()
+    {
+        if (_connection is not { } connection || SelectedDevice?.DeviceId is not { } deviceId)
+        {
+            return;
+        }
+
+        var effectId = CustomEffectEditor.EffectId;
+        var (ok, colors) = await TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId));
+        if (ok && ReferenceEquals(connection, _connection) && CustomEffectEditor.EffectId == effectId && IsCustomEffect)
+        {
+            CustomEffectEditor.ShowPattern(colors);
+        }
+    }
+
+    private bool CanTakeLedPattern() => SelectedDevice?.DeviceId is not null;
 
     // "+ Eigen effect maken": a new effect of two steps, the color of the lamp and black, a second
     // each with a second to fade, under the first free name "Eigen effect 1", "Eigen effect 2", ...
@@ -805,7 +924,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The picker colors, in this order: the selected LEDs, the selected color of the loop or of the
-    // list of the effect, or the device. The LEDs and the lists take every mixed color at once
+    // list of the effect, the selected step of an own effect,
+    // or the device. The LEDs, the lists and the steps take every mixed color at once
     // (SetPickerAppliesAtOnce); the call queue lets a newer one replace the one that waits, so a
     // dragged slider sends few. A lamp that is off goes on with the first one, as in most lamp apps.
     private void OnColorPicked(RgbColor color)
@@ -822,6 +942,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         else if (HasEffectColors)
         {
             EffectColorsEditor.Paint(color);
+            SwitchOnForColor(SelectedDevice);
+        }
+        else if (IsCustomEffect)
+        {
+            CustomEffectEditor.Paint(color);
             SwitchOnForColor(SelectedDevice);
         }
         else
@@ -848,6 +973,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var color = LedEditor.HasSelection ? LedEditor.AnchorColor
             : IsColorLoop ? ColorLoopEditor.SelectedColor
             : HasEffectColors ? EffectColorsEditor.SelectedColor
+            : IsCustomEffect ? CustomEffectEditor.SelectedColor
             : _deviceColor;
         _syncing.Run(() => ColorPicker.Show(color));
     }
@@ -871,10 +997,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // A color of the loop, of the list of an effect or of chosen LEDs changes at once with the
+    // A color of the loop, of the list of an effect, of a step or of chosen LEDs changes at once with the
     // picker, as the tile or the LEDs show it; the color of the whole lamp waits for "Op de strip
     // zetten", so it can be mixed first.
-    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors;
+    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect;
 
     // The list of the selected effect, or its default: the lamp color, or the warm colors of the
     // fire. selectFirst for another effect, whose list has nothing to do with the selection before.

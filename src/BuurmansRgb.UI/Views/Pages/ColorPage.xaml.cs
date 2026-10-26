@@ -77,6 +77,70 @@ public partial class ColorPage : UserControl
         });
     }
 
+    // Enter keeps the name as Tab does, so the box need not lose the focus first.
+    private void OnCustomEffectNameKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && sender is TextBox box)
+        {
+            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            e.Handled = true;
+        }
+    }
+
+    // Delete on a step takes it away, as "−" does; the focus goes to the step that takes its place.
+    private void OnStepKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Delete || DataContext is not MainViewModel { CustomEffectEditor: var editor } || sender is not Button { DataContext: CustomEffectStepItem step })
+        {
+            return;
+        }
+
+        e.Handled = true;
+        editor.SelectStepCommand.Execute(step.Index);
+        if (editor.RemoveStepCommand.CanExecute(null))
+        {
+            editor.RemoveStepCommand.Execute(null);
+            FocusSelectedStep();
+        }
+    }
+
+    // "−" turns itself off at the last step, and "←" and "→" at the ends, which would leave the
+    // keyboard focus nowhere: it goes to the selected step then. Click comes before the command.
+    private void OnStepButtonClick(object sender, RoutedEventArgs e)
+    {
+        var button = (Button)sender;
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            if (!button.IsEnabled || !button.IsKeyboardFocused)
+            {
+                FocusSelectedStep(now: true);
+            }
+        });
+    }
+
+    // Once the tiles are laid out again, so the one at the selected place exists.
+    private void FocusSelectedStep(bool now = false)
+    {
+        void Focus()
+        {
+            if (DataContext is MainViewModel { CustomEffectEditor: var editor }
+                && StepTiles.ItemContainerGenerator.ContainerFromIndex(editor.SelectedIndex) is { } container
+                && FirstButton(container) is { } tile)
+            {
+                tile.Focus();
+            }
+        }
+
+        if (now)
+        {
+            Focus();
+        }
+        else
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, Focus);
+        }
+    }
+
     // Without a direction the slider stands at 0, where Home or a click on its knob changes no
     // value; they choose 0° instead, as moving the slider chooses its degrees.
     private void OnDirectionKeyDown(object sender, KeyEventArgs e)
