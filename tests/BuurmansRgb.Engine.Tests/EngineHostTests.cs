@@ -73,6 +73,34 @@ public sealed class EngineHostTests : IDisposable
         Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
     }
 
+    // effects.json out of reach at the start: the device shows its color for the moment, but keeps
+    // the own effect, and shows it once the file is read again.
+    [Fact]
+    public async Task StartAsync_OwnEffectsOutOfReach_KeepsTheOwnEffect()
+    {
+        var store = new InMemorySettingsStore
+        {
+            Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Color = new RgbColor(255, 0, 0), Effect = "custom:blue" } } },
+        };
+        var lighting = new LightingController([_simulated]);
+        var effectStore = new InMemoryCustomEffectStore
+        {
+            Effects = [new CustomEffect("custom:blue", "Blauw", [new CustomEffectStep(new RgbColor(0, 0, 255))])],
+            LoadException = new IOException("in use"),
+        };
+        var effects = new CustomEffectLibrary(effectStore, lighting);
+        using var host = new EngineHost(store, lighting, customEffects: effects);
+
+        await host.StartAsync(Ct);
+        Assert.Equal("custom:blue", lighting.GetLighting("simulated-fan").EffectId);
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(255, 0, 0), led));
+        effectStore.LoadException = null;
+
+        Assert.Single(effects.Effects);
+        Assert.Equal("custom:blue", lighting.GetLighting("simulated-fan").EffectId);
+        Assert.All(_simulated.GetLeds("simulated-fan"), led => Assert.Equal(new RgbColor(0, 0, 255), led));
+    }
+
     // An own effect that is gone, such as one deleted by an older version or by hand: static.
     [Fact]
     public async Task StartAsync_SavedOwnEffectThatIsGone_ShowsTheColor()

@@ -33,7 +33,8 @@ internal sealed class CustomEffectLibrary(ICustomEffectStore store, LightingCont
     }
 
     // Reads the file and gives the effects to the lighting. A file that cannot be read now, such as
-    // one another program holds, gives none for the moment; the next question reads it again.
+    // one another program holds, gives the lighting nothing: until the next question reads it
+    // again, a device keeps the own effect it shows and only shows its color.
     public void Load()
     {
         lock (_gate)
@@ -45,7 +46,6 @@ internal sealed class CustomEffectLibrary(ICustomEffectStore store, LightingCont
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
                 Trace.TraceError(exception.ToString());
-                lighting.SetCustomEffects([]);
             }
         }
     }

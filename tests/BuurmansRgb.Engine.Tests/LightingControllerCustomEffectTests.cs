@@ -77,6 +77,7 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
     public async Task Apply_OwnEffectThatIsGone_ShowsTheColorStatically()
     {
         await _controller.DiscoverAsync(Ct);
+        _controller.SetCustomEffects([]);
 
         _controller.Apply(Uniform(Disco));
 
@@ -85,10 +86,27 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // Before the own effects are known, such as with effects.json out of reach, the lighting keeps
+    // the effect; it shows the device color until the effects come.
+    [Fact]
+    public async Task Apply_OwnEffectBeforeTheEffectsAreKnown_KeepsIt()
+    {
+        await _controller.DiscoverAsync(Ct);
+
+        _controller.Apply(Uniform(Disco));
+        Assert.Equal(Disco, _controller.GetLighting(null).EffectId);
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+        _controller.SetCustomEffects([RedThenBlue]);
+
+        Assert.Equal(Disco, _controller.GetLighting(null).EffectId);
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+    }
+
     [Fact]
     public async Task Replace_OwnEffectThatIsGoneOnADevice_GivesThatDeviceStatic()
     {
         await _controller.DiscoverAsync(Ct);
+        _controller.SetCustomEffects([]);
         var state = LightingStates.WithDevices(
             LightingStates.StaticLighting(Blue),
             new Dictionary<string, DeviceLighting> { [RecordingDeviceProvider.DeviceId] = new(Orange, 1.0, Disco) });

@@ -53,6 +53,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // it keeps nothing between frames.
     private readonly Dictionary<string, StepEffect> _customEffects = new(StringComparer.Ordinal);
 
+    // Whether SetCustomEffects gave the own effects there are. Until then (effects.json out of
+    // reach, or no library at all) an own effect that is not in _customEffects may still exist, so
+    // the lighting keeps its id and only shows the device color for the moment.
+    private bool _customEffectsKnown;
+
     // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
     private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
     private PauseReasons _pause;
@@ -383,7 +388,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // A device, or the global lighting, that shows an own effect that is gone gets the static
     // effect in its own color, as a change (LightingChanged), so that is saved; the devices that
     // show an effect that is still there show its new steps at once. Before the lighting is
-    // applied, they are only kept for it.
+    // applied, they are only kept for it. Before the first call no own effect counts as gone.
     public void SetCustomEffects(IReadOnlyList<CustomEffect> effects)
     {
         ArgumentNullException.ThrowIfNull(effects);
@@ -391,6 +396,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         bool rendered;
         lock (_gate)
         {
+            _customEffectsKnown = true;
             _customEffects.Clear();
             foreach (var effect in effects)
             {
@@ -1070,7 +1076,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
 
     // The effect a device shows with lighting: an own effect plays its steps, and one that is gone
-    // (only for a moment, see WithoutMissingCustomLocked) shows the device color.
+    // shows the device color: only for a moment once the effects are known (see
+    // WithoutMissingCustomLocked), and until they are (_customEffectsKnown).
     private IEffect EffectLocked(DeviceLighting lighting, RgbDevice device)
     {
         if (CustomEffects.IsCustom(lighting.EffectId))
@@ -1101,7 +1108,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         IsMissingCustomLocked(lighting) ? lighting with { EffectId = EffectIds.Static } : lighting;
 
     private bool IsMissingCustomLocked(DeviceLighting lighting) =>
-        CustomEffects.IsCustom(lighting.EffectId) && !_customEffects.ContainsKey(lighting.EffectId);
+        _customEffectsKnown && CustomEffects.IsCustom(lighting.EffectId) && !_customEffects.ContainsKey(lighting.EffectId);
 
     private DeviceLighting ThrowIfMissingCustomLocked(DeviceLighting lighting) =>
         IsMissingCustomLocked(lighting) ? throw EffectCatalog.UnknownCustom(lighting.EffectId) : lighting;

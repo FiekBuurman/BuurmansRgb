@@ -851,7 +851,9 @@ public sealed class EngineApiTests : IDisposable
     public async Task SetEffectAsync_OwnEffectThatDoesNotExist_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting));
+        var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
+        library.Load();
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: library);
 
         await Assert.ThrowsAsync<ArgumentException>(() => api.SetEffectAsync(null, "custom:gone", Ct));
     }

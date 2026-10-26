@@ -908,7 +908,8 @@ wijziging uit de app. Een wijziging met de hand komt pas na een herstart binnen,
   1024e.
 - Is het bestand geen geldige JSON, dan zet de engine het opzij als `effects.json.broken` en
   begint hij zonder eigen effecten. Kan hij het niet lezen (een ander programma heeft het open),
-  dan probeert hij het bij de volgende vraag van de app opnieuw.
+  dan probeert hij het bij de volgende vraag van de app opnieuw. Tot dan toont een apparaat met
+  een eigen effect zijn eigen kleur, maar houdt het het effect.
 - Staat in `settings.json` of in een scène een eigen effect dat er niet (meer) is, dan toont dat
   apparaat Statisch in zijn eigen kleur. Bij `settings.json` schrijft de engine dat bij de
   volgende wijziging weg; een scène houdt de `id`.
