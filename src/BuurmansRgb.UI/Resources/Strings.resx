@@ -719,6 +719,24 @@
   <data name="ToolboxHeader" xml:space="preserve">
     <value>Uit de gereedschapskist</value>
   </data>
+  <data name="CustomColorsHeader" xml:space="preserve">
+    <value>Eigen kleuren</value>
+  </data>
+  <data name="CustomColorsAdd" xml:space="preserve">
+    <value>Huidige kleur bij eigen kleuren zetten</value>
+  </data>
+  <data name="CustomColorsAddToolTip" xml:space="preserve">
+    <value>Zet de huidige kleur bij je eigen kleuren: hooguit 12, en elke kleur één keer</value>
+  </data>
+  <data name="CustomColorName" xml:space="preserve">
+    <value>Eigen kleur {0}</value>
+  </data>
+  <data name="CustomColorHelp" xml:space="preserve">
+    <value>Met Delete of rechts klikken haal je deze kleur weg</value>
+  </data>
+  <data name="CustomColorRemove" xml:space="preserve">
+    <value>Weghalen</value>
+  </data>
   <data name="ApplyColor" xml:space="preserve">
     <value>Op de strip zetten</value>
   </data>

@@ -31,6 +31,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string PausedLightsCall = "paused-lights";
     private const string CatchUpCall = "catch-up";
     private const string HotkeysCall = "hotkeys";
+    private const string CustomColorsCall = "custom-colors";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
@@ -95,6 +96,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
+        CustomColors = new CustomColorsViewModel(ColorPicker);
         ColorPicker.ColorPicked += (_, color) => OnColorPicked(color);
         Preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
         Preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
@@ -135,6 +137,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         Hotkeys.Switched += (_, enabled) =>
             SendOption(HotkeysCall, api => api.SetHotkeysAsync(enabled));
+        CustomColors.ColorsChanged += (_, colors) =>
+            SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -177,6 +181,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
 
     public ColorPickerViewModel ColorPicker { get; } = new();
+
+    // "Eigen kleuren" in the toolbox, which the engine keeps; "+" adds the color of ColorPicker.
+    public CustomColorsViewModel CustomColors { get; }
 
     // While LEDs are selected in the preview, the color picker colors those LEDs instead of the device.
     public LedEditorViewModel LedEditor { get; } = new();
@@ -1027,7 +1034,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await api.GetPauseOnLockAndSleepAsync(),
         await api.GetPausedLightsAsync(),
         await api.GetCatchUpSceneTimesAsync(),
-        await api.GetHotkeysAsync());
+        await api.GetHotkeysAsync(),
+        await api.GetCustomColorsAsync());
 
     private void ShowOptions(OptionValues options)
     {
@@ -1035,6 +1043,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
         SceneTimes.Show(options.CatchUpSceneTimes);
         Hotkeys.Show(options.Hotkeys);
+        CustomColors.Show(options.CustomColors);
     }
 
     private void OnLightingChanged(object? sender, EventArgs e) => RunOnUi(() =>
@@ -1185,5 +1194,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         bool PauseOnLockAndSleep,
         PausedLightsMode PausedLights,
         bool CatchUpSceneTimes,
-        bool Hotkeys);
+        bool Hotkeys,
+        IReadOnlyList<RgbColor> CustomColors);
 }

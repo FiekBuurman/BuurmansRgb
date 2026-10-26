@@ -451,6 +451,36 @@
         <Setter Property="MinWidth" Value="0" />
     </Style>
 
+    <!-- "+" before the own colors of the toolbox: a SmallPresetTile without a color, with a dashed
+         border-strong border as the "+ new" button. -->
+    <Style x:Key="AddTile" TargetType="Button">
+        <Setter Property="Width" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="Height" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="FontSize" Value="18" />
+        <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid Background="Transparent">
+                        <Rectangle x:Name="Dashes" RadiusX="8" RadiusY="8" StrokeThickness="2" StrokeDashArray="3 2"
+                                   Stroke="{StaticResource BorderStrongBrush}" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Dashes" Property="Stroke" Value="{StaticResource TextMutedBrush}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- A text link as a button, such as "+ Erbij knutselen". -->
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />

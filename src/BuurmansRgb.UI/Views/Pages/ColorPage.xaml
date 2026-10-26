@@ -232,8 +232,46 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <!-- The own colors, kept by the engine: "+" first, so the tiles after it wrap within the
+                         column; a click mixes one, Delete or its context menu takes it away. -->
+                    <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" />
+                    <DockPanel>
+                        <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
+                                ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
+                                AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
+                                Command="{Binding CustomColors.AddCommand}" />
+                        <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CustomColorItem}">
+                                    <Button Margin="0,0,8,8" Style="{StaticResource SmallPresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                            ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
+                                            AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
+                                            Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding Color}" PreviewKeyDown="OnCustomColorKeyDown">
+                                        <Button.Tag>
+                                            <MultiBinding Converter="{StaticResource EqualValues}">
+                                                <Binding Path="Color" />
+                                                <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                            </MultiBinding>
+                                        </Button.Tag>
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="{x:Static res:Strings.CustomColorRemove}" Click="OnRemoveCustomColorClick" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+
                     <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once. -->
-                    <Button Margin="0,20,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
+                    <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
                             Command="{Binding ColorPicker.ApplyCommand}"
                             Visibility="{Binding ColorPicker.AppliesAtOnce, Converter={StaticResource InverseBoolToVisibility}}" />
                 </StackPanel>
