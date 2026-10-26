@@ -95,6 +95,24 @@ public sealed class ZoneCounterTests : IDisposable
         Assert.Equal(ZoneCountInfo.None, _lighting.Count);
     }
 
+    // A length the user set just before counting may not be in the device list yet when the count
+    // starts; the zone gets the length the user set, not the one the list had.
+    [Fact]
+    public async Task Stop_GivesTheZoneTheLengthTheUserSetLast()
+    {
+        await StartAsync(header: 30);
+        _provider.RefusesLengths = true;
+        _keeper.ResizeZone(Board, Header, 25);
+        await SettledAsync();
+        _provider.RefusesLengths = false;
+        _counter.Start(Board, Header, 1);
+        await HeaderAsync(Longest);
+
+        _counter.Stop(Board, Header);
+
+        await HeaderAsync(25);
+    }
+
     [Fact]
     public async Task Stop_AnotherZone_LeavesTheCount()
     {

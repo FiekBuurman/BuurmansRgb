@@ -56,6 +56,15 @@ internal sealed class ZoneLengthKeeper : IDisposable
         }
     }
 
+    // The length remembered for the zone with that name; null when there is none.
+    public int? LengthOf(string deviceId, string zone)
+    {
+        lock (_gate)
+        {
+            return _lengths.TryGetValue(deviceId, out var zones) && zones.TryGetValue(zone, out var ledCount) ? ledCount : null;
+        }
+    }
+
     // The lengths from the settings, before the devices are fetched: the devices get them as they
     // show up. Replaces what was known.
     public void Load(IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> lengths)

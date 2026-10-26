@@ -9,15 +9,16 @@ namespace BuurmansRgb.Engine.Lighting;
 // .ResizeForAWhile) and LightingController draws one LED more at a time (StartCount). One zone at
 // a time, for the settings app that started it (the owner).
 //
-// The zone gets the length it had back when the count stops: with Stop, when its owner goes (the
-// app closes or its connection drops), when another zone starts counting, when the effects pause
-// (for any reason: the tray menu, Windows locked or asleep, the screen off or the screen saver),
-// before the devices are searched again (StopAll) and when the engine stops. ResizeZone of the
-// counted zone ends it with the length the user chose instead ("Dit is de laatste"). A device list
-// that does not have the zone as the count left it (the device went, another zone is at its index,
-// or the zone got another length from elsewhere) ends the count without a length: the device is
-// not there to get one, or got one from elsewhere. A device list that only brings the longest
-// length, or that is made again for another reason, leaves the count running.
+// The zone gets its own length back when the count stops (the one the keeper remembers, which is
+// the length it had): with Stop, when its owner goes (the app closes or its connection drops),
+// when another zone starts counting, when the effects pause (for any reason: the tray menu,
+// Windows locked or asleep, the screen off or the screen saver), before the devices are searched
+// again (StopAll) and when the engine stops. ResizeZone of the counted zone ends it with the
+// length the user chose instead ("Dit is de laatste"). A device list that does not have the zone
+// as the count left it (the device went, another zone is at its index, or the zone was at its
+// longest and got another length from elsewhere) ends the count without a length: the device is
+// not there to get one, or got one from elsewhere. A device list that brings the longest length,
+// a length on the way before it, or that is made again for another reason, leaves the count running.
 //
 // Thread-safe. It calls the keeper and the lighting under its own lock, never the other way round:
 // the lighting raises its events outside its lock and fetches device lists on another thread.
@@ -201,7 +202,10 @@ internal sealed class ZoneCounter : IDisposable
 
         try
         {
-            _lengths.ResizeForAWhile(counting.DeviceId, counting.ZoneIndex, counting.OldLength);
+            // The length the keeper remembers is the newest: a length the user set just before the
+            // count may not have been in the device list yet when it started.
+            var length = _lengths.LengthOf(counting.DeviceId, counting.ZoneName) ?? counting.OldLength;
+            _lengths.ResizeForAWhile(counting.DeviceId, counting.ZoneIndex, length);
         }
         catch (ArgumentException exception)
         {
@@ -222,14 +226,15 @@ internal sealed class ZoneCounter : IDisposable
             var zone = device is not null && counting.ZoneIndex < device.Zones.Count ? device.Zones[counting.ZoneIndex] : null;
             if (zone is not null && zone.Name == counting.ZoneName && zone.MaxLedCount == counting.LedCount)
             {
-                // At its longest, or still at its old length while the longest is on its way.
+                // At its longest, or any length while the longest is on its way: a list may still
+                // bring a length that was asked for just before the count started.
                 if (zone.LedCount == counting.LedCount)
                 {
                     counting.Reached = true;
                     return;
                 }
 
-                if (!counting.Reached && zone.LedCount == counting.OldLength)
+                if (!counting.Reached)
                 {
                     return;
                 }
