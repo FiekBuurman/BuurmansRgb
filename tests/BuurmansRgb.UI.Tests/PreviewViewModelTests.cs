@@ -495,6 +495,26 @@ public sealed class PreviewViewModelTests
         Assert.Equal([new ZoneCountStop("board", 1)], stops);
     }
 
+    // A step the engine took just before the stop reached it does not bring the counter back; a
+    // count after the None of the engine shows again.
+    [Fact]
+    public void ShowZoneCount_StepAfterALocalStop_IsIgnoredUntilTheNone()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 1 });
+
+        preview.Count!.StopCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 5, 60, 1, true) { Sequence = 2 });
+        Assert.Null(preview.Count);
+        Assert.Null(preview.Devices[0].Zones[1].Count);
+
+        preview.ShowZoneCount(ZoneCountInfo.None with { Sequence = 3 });
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 4 });
+        Assert.Equal(1, preview.Count!.Led);
+    }
+
     private static DeviceInfo Board(int argb1, int argb2) =>
         new("board", "Board", DeviceType.Motherboard, argb1 + argb2, [new RgbZone("ARGB 1", argb1, 0, 60), new RgbZone("ARGB 2", argb2, 0, 60)])
         {

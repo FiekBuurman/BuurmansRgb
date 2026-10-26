@@ -28,6 +28,10 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // app: a None from before the start can still be on its way.
     private long? _ownCountSequence;
 
+    // The zone whose count was stopped here, until the engine reports a state that no longer
+    // counts it: a step the engine took just before the stop reached it is ignored meanwhile.
+    private (string DeviceId, int ZoneIndex)? _stoppedCount;
+
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
     // Raised when the user clicks an LED in one of the device previews.
@@ -100,6 +104,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     public void ForgetZoneCount()
     {
         _countSequence = 0;
+        _stoppedCount = null;
         ForgetOwnCount();
         Show(ZoneCountInfo.None);
     }
@@ -107,12 +112,23 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // The count of LEDs as the engine reports it: the counted zone shows it, the same view model
     // as long as the same zone counts, so the focus stays where it was. A state older than the
     // last one is dropped: the engine reports a count from more than one thread, so a step can
-    // arrive after the pause that followed it.
+    // arrive after the pause that followed it. After a stop here, states of the stopped zone wait
+    // for the engine to end its count; their sequence is not taken, so its None still comes in.
     public void ShowZoneCount(ZoneCountInfo count)
     {
         if (count.Sequence < _countSequence)
         {
             return;
+        }
+
+        if (_stoppedCount is { } stopped)
+        {
+            if (count.Counts(stopped.DeviceId, stopped.ZoneIndex))
+            {
+                return;
+            }
+
+            _stoppedCount = null;
         }
 
         _countSequence = count.Sequence;
@@ -175,6 +191,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         if (stopOutOfView && shown is not null && Count is null && _count.Counts(shown.DeviceId, shown.ZoneIndex) && IsOwn(shown))
         {
             ForgetOwnCount();
+            _stoppedCount = (shown.DeviceId, shown.ZoneIndex);
             _count = ZoneCountInfo.None;
             ZoneCountStopRequested?.Invoke(this, new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
         }
@@ -312,7 +329,8 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 
     void IPreviewActions.ChangeZoneCount(ZoneCountUpdate update) => ZoneCountChangeRequested?.Invoke(this, update);
 
-    // The count ends here at once; the engine confirms it with ZoneCountInfo.None.
+    // The count ends here at once; the engine confirms it with ZoneCountInfo.None, and its states
+    // of the zone are ignored until then.
     void IPreviewActions.StopZoneCount(ZoneCountStop stop)
     {
         if (_ownCount == (stop.DeviceId, stop.ZoneIndex))
@@ -322,6 +340,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 
         if (_count.Counts(stop.DeviceId, stop.ZoneIndex))
         {
+            _stoppedCount = (stop.DeviceId, stop.ZoneIndex);
             Show(ZoneCountInfo.None);
         }
 
