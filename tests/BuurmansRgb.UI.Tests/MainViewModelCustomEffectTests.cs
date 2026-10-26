@@ -273,6 +273,20 @@ public sealed class MainViewModelCustomEffectTests
         Assert.Equal(Strings.ChangeRejected, viewModel.StatusMessage);
     }
 
+    // The effects of the engine cannot be fetched either: the refusal is still what the app tells.
+    [Fact]
+    public async Task NewCustomEffect_RefusedAndReloadFails_TellsTheRefusal()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        Api.SetException = new RemoteInvocationException("There are at most 32 own effects.", 0, errorData: null);
+        Api.GetCustomEffectsException = new IOException("broken pipe");
+
+        viewModel.NewCustomEffectCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => viewModel.StatusMessage == Strings.ChangeRejected);
+        Assert.Equal(["Disco"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
+    }
+
     // Another settings app deleted it already, and made another.
     [Fact]
     public async Task Delete_RefusedByTheEngine_ShowsTheEffectsOfTheEngine()

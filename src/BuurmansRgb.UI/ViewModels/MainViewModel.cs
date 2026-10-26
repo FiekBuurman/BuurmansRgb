@@ -748,15 +748,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
         catch (Exception exception) when (EngineRpc.IsRejectedByEngine(exception))
         {
-            var effects = await connection.Api.GetCustomEffectsAsync();
-            RunOnUi(() =>
+            // A reload that fails too only gets logged, so the refusal still reaches OnCallFailed.
+            try
             {
-                if (ReferenceEquals(connection, _connection))
+                var effects = await connection.Api.GetCustomEffectsAsync();
+                RunOnUi(() =>
                 {
-                    _customEffects = effects;
-                    ShowEffects();
-                }
-            });
+                    if (ReferenceEquals(connection, _connection))
+                    {
+                        _customEffects = effects;
+                        ShowEffects();
+                    }
+                });
+            }
+            catch (Exception reloadException)
+            {
+                Trace.TraceWarning(reloadException.ToString());
+            }
+
             throw;
         }
     }
