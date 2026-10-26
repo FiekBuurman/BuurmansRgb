@@ -4,8 +4,9 @@ using BuurmansRgb.Providers.Simulated.Resources;
 namespace BuurmansRgb.Providers.Simulated;
 
 // Resized zones keep their length until the provider is made again, so after a restart of the
-// engine they are back to their first length.
-public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
+// engine they are back to their first length. Searching again finds the same devices, as they
+// never go away; it reports the list anew.
+public sealed class SimulatedDeviceProvider : IResizableDeviceProvider, IRescannableDeviceProvider
 {
     private static readonly IReadOnlyList<RgbDevice> InitialDevices =
     [
@@ -157,6 +158,12 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider
         }
 
         DevicesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public Task<bool> RequestRescanAsync(CancellationToken ct)
+    {
+        DevicesChanged?.Invoke(this, EventArgs.Empty);
+        return Task.FromResult(true);
     }
 
     private static RgbDevice Simulated(string id, string name, DeviceType type, IReadOnlyList<RgbZone> zones) =>

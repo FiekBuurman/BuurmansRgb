@@ -27,6 +27,22 @@ public sealed class SimulatedDeviceProviderTests
             headset => AssertDevice(headset, DeviceType.Headset, 2));
     }
 
+    // The simulated devices never go away, so a search finds them all again and keeps their lengths.
+    [Fact]
+    public async Task RequestRescanAsync_ReportsTheSameDevicesAgain()
+    {
+        var provider = new SimulatedDeviceProvider();
+        provider.ResizeZone("simulated-strip", 0, 40);
+        var before = await provider.DiscoverAsync(Ct);
+        var changes = 0;
+        provider.DevicesChanged += (_, _) => changes++;
+
+        Assert.True(await provider.RequestRescanAsync(Ct));
+
+        Assert.Equal(1, changes);
+        Assert.Equal(before, await provider.DiscoverAsync(Ct));
+    }
+
     // Shown in the settings app, so Dutch like the rest of it, and each one its own.
     [Fact]
     public async Task DiscoverAsync_EveryDeviceHasItsOwnDutchName()

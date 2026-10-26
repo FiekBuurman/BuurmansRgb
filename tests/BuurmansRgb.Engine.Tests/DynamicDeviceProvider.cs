@@ -3,10 +3,12 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Tests;
 
-// A provider whose devices the test changes, like OpenRGB starting or stopping.
-internal sealed class DynamicDeviceProvider : IDynamicDeviceProvider
+// A provider whose devices the test changes, like OpenRGB starting or stopping. A rescan takes
+// DevicesAfterRescan, when set.
+internal sealed class DynamicDeviceProvider : IRescannableDeviceProvider
 {
     private volatile IReadOnlyList<RgbDevice> _devices = [];
+    private int _rescanCount;
 
     public string Name => "Dynamic";
 
@@ -43,4 +45,30 @@ internal sealed class DynamicDeviceProvider : IDynamicDeviceProvider
     }
 
     public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors) => Leds[deviceId] = colors.ToArray();
+
+    public IReadOnlyList<RgbDevice>? DevicesAfterRescan { get; set; }
+
+    // What a rescan answers: false as if the source of the devices could not be reached.
+    public bool RescanReaches { get; set; } = true;
+
+    // When set, a rescan throws this.
+    public Exception? RescanException { get; set; }
+
+    public int RescanCount => Volatile.Read(ref _rescanCount);
+
+    public Task<bool> RequestRescanAsync(CancellationToken ct)
+    {
+        Interlocked.Increment(ref _rescanCount);
+        if (RescanException is { } exception)
+        {
+            return Task.FromException<bool>(exception);
+        }
+
+        if (DevicesAfterRescan is { } devices)
+        {
+            SetDevices(devices);
+        }
+
+        return Task.FromResult(RescanReaches);
+    }
 }
