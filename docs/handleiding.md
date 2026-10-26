@@ -236,13 +236,13 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   zone ergens anders een ander aantal LED's (bijv. in de app van OpenRGB), dan stopt het tellen
   zonder iets terug te zetten. Een telling die je in een tweede venster van de app startte, telt
   daar door als je hier een ander apparaat kiest of van Kleur weggaat; hier zie je hem ook, en
-  Stoppen werkt in beide. Tellen verandert de verlichting niet, en de grootste lengte
-  wordt nooit bewaard; "Dit is de laatste" bewaart de lengte die je koos. Had de zone nog geen
+  Stoppen werkt in beide. Tellen verandert de verlichting niet, en de grootste lengte wordt
+  nooit bewaard; "Dit is de laatste" bewaart de lengte die je koos. Had de zone nog geen
   bewaarde lengte, dan bewaart Tellen wel zijn eigen aantal LED's (niet 0) in `zoneLengths`,
-  zodat de zone dat terugkrijgt als de engine halverwege het tellen stopt. Een schermlezer noemt de teller bijv. "Teller
-  van Moederbord – ARGB 1: LED 37 van 60" en leest de regel eronder voor als het tellen pauzeert,
-  doorgaat of een ander tempo krijgt, niet bij elke LED. Met Tab bereik je alle knoppen; de
-  tempo's zijn keuzerondjes.
+  zodat de zone dat terugkrijgt als de engine halverwege het tellen stopt. Een schermlezer noemt
+  de teller bijv. "Teller van Moederbord – ARGB 1: LED 37 van 60" en leest de regel eronder voor
+  als het tellen pauzeert, doorgaat of een ander tempo krijgt, niet bij elke LED. Met Tab bereik
+  je alle knoppen; de tempo's zijn keuzerondjes.
 
 #### Per-LED-editor
 

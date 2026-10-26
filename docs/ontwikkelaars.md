@@ -391,20 +391,20 @@ toetsenbord. Een paar dingen om te proberen:
   een `Sequence` die onder de lock van de controller bij elke wijziging ophoogt. De render-thread
   en een IPC-thread kunnen hun stand in een andere volgorde versturen dan de wijzigingen, dus
   `PreviewViewModel.ShowZoneCount` laat een oudere stand vallen (`ForgetZoneCount` begint weer
-  bij 0 voor een nieuwe engine). De
-  lengtes doet `ZoneCounter`, boven `ZoneLengthKeeper`: `ResizeForAWhile` geeft de zone zijn
-  grootste lengte zonder die te onthouden (en zonder hem als lengte van elders te zien), en
-  onthoudt eerst de huidige lengte als er nog geen was, zodat een apparaat dat terugkomt na een
-  crash zijn oude lengte terugkrijgt. Een huidige lengte 0 onthoudt hij niet (zoals 0 van
-  elders): die komt dan niet in `settings.json`, en de teller zet hem toch terug, uit de lengte
-  die hij bij de start zag; alleen na een crash blijft zo'n zone op zijn grootste lengte. Het
-  terugzetten gaat met `GiveLengthBack`, dat niets onthoudt. De teller zet die onthouden lengte terug bij `Stop`, als de
-  eigenaar (de `EngineApi` van de app die begon) wordt weggegooid, bij een andere zone, bij elke
-  `PauseChanged` met een reden, vóór `RescanDevicesAsync` en bij `Dispose` van de engine. Zette
-  hij bij het afsluiten een lengte terug (`StopAll` geeft dan `true`), dan wacht `Program`
-  hooguit 2 seconden tot OpenRGB die lengte kreeg (`OpenRgbDeviceProvider.WaitUntilIdle`, via
-  `DisposeAction`s tussen de usings), voordat de provider sluit; een OpenRGB dat langer nodig
-  heeft, houdt de zone op zijn grootste lengte. Zonder telling wacht hij niet.
+  bij 0 voor een nieuwe engine). De lengtes doet `ZoneCounter`, boven `ZoneLengthKeeper`:
+  `ResizeForAWhile` geeft de zone zijn grootste lengte zonder die te onthouden (en zonder hem als
+  lengte van elders te zien), en onthoudt eerst de huidige lengte als er nog geen was, zodat een
+  apparaat dat terugkomt na een crash zijn oude lengte terugkrijgt. Een huidige lengte 0
+  onthoudt hij niet (zoals 0 van elders): die komt dan niet in `settings.json`, en de teller zet
+  hem toch terug, uit de lengte die hij bij de start zag; alleen na een crash blijft zo'n zone op
+  zijn grootste lengte. Het terugzetten gaat met `GiveLengthBack`, dat niets onthoudt. De teller
+  zet die onthouden lengte terug bij `Stop`, als de eigenaar (de `EngineApi` van de app die
+  begon) wordt weggegooid, bij een andere zone, bij elke `PauseChanged` met een reden, vóór
+  `RescanDevicesAsync` en bij `Dispose` van de engine. Zette hij bij het afsluiten een lengte
+  terug (`StopAll` geeft dan `true`), dan wacht `Program` hooguit 2 seconden tot OpenRGB die
+  lengte kreeg (`OpenRgbDeviceProvider.WaitUntilIdle`, via `DisposeAction`s tussen de usings),
+  voordat de provider sluit; een OpenRGB dat langer nodig heeft, houdt de zone op zijn grootste
+  lengte. Zonder telling wacht hij niet.
   `ResizeZoneAsync` van de getelde zone ("Dit is de laatste") gaat via `ZoneCounter.ResizeZone`:
   dat stopt de telling zonder terugzetten en geeft de lengte aan de keeper. Een lijst waarin het
   apparaat weg is, of de zone ná het bereiken van de grootste lengte een andere lengte heeft,
