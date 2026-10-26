@@ -45,8 +45,8 @@ internal sealed class ServiceRestarter(IServiceManager services)
         if (pawnIo is not null)
         {
             // OpenRGB that still runs holds the driver, so it would not stop either.
-            pawnIoOutcome = !openRgbStopped || !TryStop(pawnIo, PawnIoTimeout)
-                ? ServiceOutcome.NotStopped
+            pawnIoOutcome = !openRgbStopped ? ServiceOutcome.SkippedForOpenRgb
+                : !TryStop(pawnIo, PawnIoTimeout) ? ServiceOutcome.NotStopped
                 : TryStart(pawnIo, PawnIoTimeout) ? ServiceOutcome.Restarted : ServiceOutcome.Failed;
         }
 

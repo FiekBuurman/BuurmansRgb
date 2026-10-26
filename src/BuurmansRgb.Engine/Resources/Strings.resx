@@ -135,6 +135,9 @@
   <data name="RestartPawnIoNotStopped" xml:space="preserve">
     <value>PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt een ander programma hem.</value>
   </data>
+  <data name="RestartPawnIoSkippedForOpenRgb" xml:space="preserve">
+    <value>PawnIO is overgeslagen omdat OpenRGB niet stopte.</value>
+  </data>
   <data name="RestartPawnIoFailed" xml:space="preserve">
     <value>PawnIO kon niet opnieuw worden gestart, dus apparaten op het moederbord werken misschien niet; zie het logbestand.</value>
   </data>

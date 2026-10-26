@@ -10,8 +10,7 @@ internal enum ServiceOutcome
     // Not on this pc as a service (OpenRGB) or driver (PawnIO).
     NotInstalled = 2,
 
-    // Left as it was: PawnIO did not stop (not stoppable, or in use by another program), or
-    // OpenRGB, which holds PawnIO, did not stop first.
+    // Left as it was: PawnIO did not stop (not stoppable, or in use by another program).
     NotStopped = 3,
 
     // Stopping or starting went wrong, or the step with admin rights failed as a whole.
@@ -19,6 +18,9 @@ internal enum ServiceOutcome
 
     // The user said no to the UAC prompt.
     Declined = 5,
+
+    // PawnIO left as it was without trying, as OpenRGB, which holds it, did not stop first.
+    SkippedForOpenRgb = 6,
 }
 
 // The outcome of the step with admin rights. It comes back to the engine as the exit code of that

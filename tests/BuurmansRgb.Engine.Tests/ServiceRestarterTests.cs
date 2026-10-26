@@ -82,7 +82,7 @@ public sealed class ServiceRestarterTests
         var report = new ServiceRestarter(services).Restart();
 
         Assert.Equal(["stop OpenRGB", "start OpenRGB"], services.Calls);
-        Assert.Equal(new ServicesRestartReport(ServiceOutcome.Failed, ServiceOutcome.NotStopped), report);
+        Assert.Equal(new ServicesRestartReport(ServiceOutcome.Failed, ServiceOutcome.SkippedForOpenRgb), report);
     }
 
     // PawnIO that does not start again: OpenRGB still starts, without the devices that need it.

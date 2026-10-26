@@ -721,6 +721,16 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Equal(TrayNotificationKind.Warning, kind);
     }
 
+    // PawnIO that was not tried, as OpenRGB did not stop, says so instead of blaming another program.
+    [Fact]
+    public void DescribeRestart_PawnIoSkippedForOpenRgb_SaysWhy()
+    {
+        var (text, kind) = TrayPresenter.DescribeRestart(new(ServiceOutcome.Failed, ServiceOutcome.SkippedForOpenRgb));
+
+        Assert.Equal($"{Strings.RestartDone}\n{Strings.RestartOpenRgbFailed}\n{Strings.RestartPawnIoSkippedForOpenRgb}", text);
+        Assert.Equal(TrayNotificationKind.Warning, kind);
+    }
+
     [Fact]
     public void DescribeRestart_DeclinedOrFailedStep_IsOneLine()
     {

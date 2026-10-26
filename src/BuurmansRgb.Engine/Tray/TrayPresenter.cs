@@ -132,6 +132,7 @@ internal sealed class TrayPresenter(
             ServiceOutcome.Restarted => Strings.RestartPawnIoRestarted,
             ServiceOutcome.NotInstalled => Strings.RestartPawnIoNotInstalled,
             ServiceOutcome.NotStopped => Strings.RestartPawnIoNotStopped,
+            ServiceOutcome.SkippedForOpenRgb => Strings.RestartPawnIoSkippedForOpenRgb,
             _ => Strings.RestartPawnIoFailed,
         };
         var allWell = report.OpenRgb is ServiceOutcome.Restarted or ServiceOutcome.NotInstalled
