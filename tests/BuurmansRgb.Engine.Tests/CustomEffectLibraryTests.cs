@@ -163,6 +163,21 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Equal([disco], _store.Effects);
     }
 
+    // After a failed write the timer tries again, so a crash does not cost all since that try.
+    [Fact]
+    public void Save_StoreFails_WritesAgainAMomentLater()
+    {
+        _store.SaveException = new IOException("in use");
+        var disco = _library.Save(Effect("", "Disco"));
+        _time.Advance(Delay);
+        Assert.Empty(_store.Effects);
+
+        _store.SaveException = null;
+        _time.Advance(Delay);
+
+        Assert.Equal([disco], _store.Effects);
+    }
+
     [Fact]
     public void Delete_RemovesTheEffect()
     {

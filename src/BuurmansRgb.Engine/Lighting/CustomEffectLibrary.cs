@@ -266,8 +266,9 @@ internal sealed class CustomEffectLibrary : IDisposable
         }
     }
 
-    // A file that cannot be written now keeps the change pending: the lights show it, and the next
-    // change or the exit writes it.
+    // A file that cannot be written now keeps the change pending: the lights show it, and the timer
+    // tries again a moment later, so a crash does not cost all changes since; the next change or
+    // the exit writes it too.
     private void SavePendingLocked()
     {
         if (!_pending || _effects is null)
@@ -283,6 +284,10 @@ internal sealed class CustomEffectLibrary : IDisposable
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
+            if (!_disposed)
+            {
+                _timer.Change(_saveDelay, Timeout.InfiniteTimeSpan);
+            }
         }
     }
 
