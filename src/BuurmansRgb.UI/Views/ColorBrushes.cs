@@ -8,9 +8,13 @@ public static class ColorBrushes
 {
     internal const int MaxCached = 4096;
 
-    private static readonly Dictionary<RgbColor, SolidColorBrush> Cache = [];
+    // One cache per UI thread: the brushes are frozen, so any thread may use them, but the
+    // dictionary is not thread-safe. Tests run windows on several threads at once.
+    [ThreadStatic]
+    private static Dictionary<RgbColor, SolidColorBrush>? _cache;
 
-    // Only used on the UI thread.
+    private static Dictionary<RgbColor, SolidColorBrush> Cache => _cache ??= [];
+
     public static SolidColorBrush Get(RgbColor color)
     {
         if (Cache.TryGetValue(color, out var brush))

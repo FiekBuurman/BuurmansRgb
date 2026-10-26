@@ -427,9 +427,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - `LedPreviewViewKeyboardTests.Render_WithTheFocus_DrawsARingAroundTheActiveLed` faalt als twee
   UI-testsets tegelijk draaien in zo'n 9 % van de runs (7 van de 80); heel af en toe ook
   `ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed`. Los van de focus-poging hierboven,
-  want het gebeurde even vaak met als zonder die wijziging
-- `ColorBrushesTests.Get_CacheFull_StartsOver` faalde één keer (van vier runs van de UI-tests,
-  bij taak "gereedschapskist"): de cache van `ColorBrushes` is statisch en niet thread-safe, en
-  de tests met een venster (`AppTheme`, `OffscreenWindow`) vullen hem tegelijk op hun eigen
-  STA-thread, terwijl het commentaar van de test zegt dat alleen die klasse hem gebruikt. De test
-  in de collectie van `AppTheme` zetten, of de cache per thread maken
+  want het gebeurde even vaak met als zonder die wijziging. Ook met één testset tegelijk: 2 van de
+  20 runs, en 3 van de 40 nadat de caches van `ColorBrushes` en `LedBulb` per thread kwamen, dus
+  die gedeelde caches waren het niet. In die 40 runs faalde ook twee keer
+  `DirectionViewTests.Slider_HomeWithoutDirection_ChoosesZeroDegrees` op `slider.Focus()`
