@@ -33,6 +33,34 @@ public sealed class SingleInstanceTests
         Assert.True(next.IsPrimary);
     }
 
+    // The engine that "Herstarten" starts waits for the old one to exit.
+    [Fact]
+    public async Task AcquireWhenFree_FirstGoesAway_BecomesPrimary()
+    {
+        var first = SingleInstance.Acquire(_name);
+        var release = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(200), Ct);
+            first.Dispose();
+        }, Ct);
+
+        using var next = SingleInstance.AcquireWhenFree(_name, TestTimeouts.Short, TimeSpan.FromMilliseconds(20));
+
+        await release;
+        Assert.True(next.IsPrimary);
+    }
+
+    [Fact]
+    public void AcquireWhenFree_FirstStays_GivesUpAfterTheTimeout()
+    {
+        using var first = SingleInstance.Acquire(_name);
+
+        using var next = SingleInstance.AcquireWhenFree(_name, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(20));
+
+        Assert.False(next.IsPrimary);
+        Assert.True(first.IsPrimary);
+    }
+
     [Fact]
     public async Task SignalPrimary_InvokesActivationCallbackOfPrimary()
     {

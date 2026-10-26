@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace BuurmansRgb.Contracts;
 
 // One instance per Windows session, for the engine and for the settings app: a second start finds
@@ -27,6 +29,26 @@ public sealed class SingleInstance : IDisposable
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
         var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Exit");
         return new(mutex, activation, exit, createdNew);
+    }
+
+    // For an instance that starts in place of one that is on its way out (the engine's
+    // "Herstarten"): tries again until the other one is gone, at most for timeout. Not primary
+    // when the other one is still there then. The mutex is gone once no process holds it, so a
+    // second start meanwhile (or a --exit) only makes this wait a moment longer.
+    public static SingleInstance AcquireWhenFree(string name, TimeSpan timeout, TimeSpan pollInterval)
+    {
+        var waited = Stopwatch.StartNew();
+        while (true)
+        {
+            var instance = Acquire(name);
+            if (instance.IsPrimary || waited.Elapsed >= timeout)
+            {
+                return instance;
+            }
+
+            instance.Dispose();
+            Thread.Sleep(pollInterval);
+        }
     }
 
     public void SignalPrimary() => _activation.Set();
