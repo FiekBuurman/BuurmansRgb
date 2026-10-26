@@ -102,14 +102,6 @@ public sealed class CustomEffectsTests
         Assert.NotEqual(effect, new CustomEffect("custom:1", "Disco", [new CustomEffectStep([Red, Blue], 1, 3)]));
     }
 
-    [Fact]
-    public void IsAnimated_MoreStepsWithTime()
-    {
-        Assert.False(new CustomEffect("custom:1", "Een", [new CustomEffectStep(Red)]).IsAnimated);
-        Assert.False(new CustomEffect("custom:1", "Geen tijd", [new CustomEffectStep(Red, 0, 0), new CustomEffectStep(Blue, 0, 0)]).IsAnimated);
-        Assert.True(new CustomEffect("custom:1", "Twee", [new CustomEffectStep(Red), new CustomEffectStep(Blue)]).IsAnimated);
-    }
-
     // The steps are copied, so the caller cannot change the effect afterwards.
     [Fact]
     public void Constructor_CopiesTheLists()

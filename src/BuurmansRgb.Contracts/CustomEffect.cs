@@ -22,10 +22,6 @@ public sealed record CustomEffect
 
     public IReadOnlyList<CustomEffectStep> Steps { get; init; }
 
-    // Whether it moves: more than one step, and some time to show them in.
-    [JsonIgnore]
-    public bool IsAnimated => Steps.Count > 1 && Steps.Any(step => step.HoldSeconds + step.FadeSeconds > 0.0);
-
     public bool Equals(CustomEffect? other) =>
         other is not null
         && Id == other.Id
