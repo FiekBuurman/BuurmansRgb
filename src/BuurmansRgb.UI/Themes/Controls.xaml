@@ -454,6 +454,35 @@
         <Setter Property="MinWidth" Value="0" />
     </Style>
 
+    <!-- The tiles of a list of colors (ColorListEditor) and the steps of an own effect: rows of at
+         most six tiles 44 wide and 8 apart, with the + and − buttons (ColorListButton) behind them. -->
+    <Style x:Key="ColorTileList" TargetType="ItemsControl">
+        <Setter Property="MaxWidth" Value="312" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <WrapPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A tile of a ColorTileList; its item gives IsSelected (Tag) and Name. -->
+    <Style x:Key="ColorListTile" TargetType="Button" BasedOn="{StaticResource PresetTile}">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="Tag" Value="{Binding IsSelected}" />
+        <Setter Property="ToolTip" Value="{Binding Name}" />
+        <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+    </Style>
+
+    <Style x:Key="ColorListButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+    </Style>
+
     <!-- "+" before the own colors of the toolbox: the "+ new" button as a square of SmallTileSize with
          the corners of a SmallPresetTile. -->
     <Style x:Key="AddTile" TargetType="Button" BasedOn="{StaticResource NewButton}">

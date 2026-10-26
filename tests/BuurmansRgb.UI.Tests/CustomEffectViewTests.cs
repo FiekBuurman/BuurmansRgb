@@ -32,6 +32,10 @@ public sealed class CustomEffectViewTests
             Assert.Equal(viewModel.CustomEffectEditor.Steps.Select(step => step.Name), tiles.Select(AutomationProperties.GetName));
             Assert.All(tiles, tile => Assert.Equal(Strings.CustomEffectStepHelp, AutomationProperties.GetHelpText(tile)));
             Assert.IsType<LinearGradientBrush>(tiles[1].Background);
+
+            // The tiles of a list of colors: 44 wide, 8 apart, the selected one marked.
+            Assert.All(tiles, tile => Assert.Equal((44.0, new Thickness(0, 0, 8, 8)), (tile.ActualWidth, tile.Margin)));
+            Assert.Equal(viewModel.CustomEffectEditor.Steps.Select(step => (object)step.IsSelected), tiles.Select(tile => tile.Tag));
             Assert.Equal(Strings.CustomEffectNameAccessibleName, AutomationProperties.GetName(NameBox(page)));
         });
     }

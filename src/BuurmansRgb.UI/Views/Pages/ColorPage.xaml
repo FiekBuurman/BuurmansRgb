@@ -233,33 +233,26 @@
                             <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectStepsLabel}" />
                             <!-- Rows of at most six tiles, as the color lists; a pattern shows as a gradient. -->
                             <WrapPanel>
-                                <ItemsControl x:Name="StepTiles" MaxWidth="312" ItemsSource="{Binding Steps}" Focusable="False" IsTabStop="False">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate>
-                                            <WrapPanel />
-                                        </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
+                                <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:CustomEffectStepItem}">
-                                            <Button Width="44" Margin="0,0,8,8" Style="{StaticResource PresetTile}" Tag="{Binding IsSelected}"
-                                                    Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
-                                                    ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
+                                            <Button Style="{StaticResource ColorListTile}" Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
                                                     AutomationProperties.HelpText="{x:Static res:Strings.CustomEffectStepHelp}"
                                                     Command="{Binding DataContext.SelectStepCommand, ElementName=StepTiles}"
                                                     CommandParameter="{Binding Index}" PreviewKeyDown="OnStepKeyDown" />
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
-                                <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="+"
+                                <Button Style="{StaticResource ColorListButton}" Content="+"
                                         ToolTip="{x:Static res:Strings.CustomEffectStepAdd}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepAdd}"
                                         Command="{Binding AddStepCommand}" Click="OnStepButtonClick" />
-                                <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="−"
+                                <Button Style="{StaticResource ColorListButton}" Content="−"
                                         ToolTip="{x:Static res:Strings.CustomEffectStepRemove}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepRemove}"
                                         Command="{Binding RemoveStepCommand}" Click="OnStepButtonClick" />
-                                <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="←"
+                                <Button Style="{StaticResource ColorListButton}" Content="←"
                                         ToolTip="{x:Static res:Strings.CustomEffectStepEarlier}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepEarlier}"
                                         Command="{Binding MoveStepEarlierCommand}" Click="OnStepButtonClick" />
-                                <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="→"
+                                <Button Style="{StaticResource ColorListButton}" Content="→"
                                         ToolTip="{x:Static res:Strings.CustomEffectStepLater}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepLater}"
                                         Command="{Binding MoveStepLaterCommand}" Click="OnStepButtonClick" />
                             </WrapPanel>
