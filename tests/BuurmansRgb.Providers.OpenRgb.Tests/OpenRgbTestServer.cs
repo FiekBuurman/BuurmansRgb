@@ -11,7 +11,7 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // A small OpenRGB SDK server on a real loopback socket, speaking protocol version 4: enough of
 // the protocol for OpenRGB.NET to connect, read devices, set the custom mode, send colors and
-// resize zones.
+// resize zones, and for the watcher to ask for a rescan.
 internal sealed class OpenRgbTestServer : IAsyncDisposable
 {
     private const uint ProtocolVersion = 4;
@@ -21,6 +21,7 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     private readonly ConcurrentDictionary<Socket, bool> _clients = new();
     private readonly Task _acceptLoop;
     private int _controllerDataRequests;
+    private int _rescanRequests;
 
     public OpenRgbTestServer(int port = 0)
     {
@@ -42,6 +43,14 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
     public bool AnswersControllerData { get; set; } = true;
 
     public int ControllerDataRequests => Volatile.Read(ref _controllerDataRequests);
+
+    // Off: a rescan request is ignored, like OpenRGB before 1.0, which does not know it.
+    public bool AnswersRescan { get; set; } = true;
+
+    // The devices the server has after a rescan; null keeps Devices.
+    public IReadOnlyList<OpenRgbDeviceData>? DevicesAfterRescan { get; set; }
+
+    public int RescanRequests => Volatile.Read(ref _rescanRequests);
 
     public ConcurrentQueue<string> ClientNames { get; } = new();
 
@@ -170,6 +179,16 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
                 return null;
             case CommandId.UpdateLeds:
                 Updates.Add((deviceIndex, ReadColors(data)));
+                return null;
+            case OpenRgbPackets.RequestRescanDevicesCommand:
+                // Like OpenRGB: no answer to the request itself, the new list to every client.
+                Interlocked.Increment(ref _rescanRequests);
+                if (AnswersRescan)
+                {
+                    Devices = DevicesAfterRescan ?? Devices;
+                    NotifyDeviceListUpdated();
+                }
+
                 return null;
             case CommandId.ResizeZone:
                 // Zone index and new size, each an int32.

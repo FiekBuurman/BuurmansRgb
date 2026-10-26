@@ -10,6 +10,10 @@ internal static class OpenRgbPackets
 {
     public const int HeaderLength = 16;
 
+    // NET_PACKET_ID_REQUEST_RESCAN_DEVICES, since protocol version 5 (OpenRGB 1.0): the server
+    // searches for its devices again. OpenRGB.NET 3.1.1 does not know it.
+    public const CommandId RequestRescanDevicesCommand = (CommandId)140;
+
     private static ReadOnlySpan<byte> Magic => "ORGB"u8;
 
     // The name is sent as an ASCII string with a closing zero byte.
@@ -19,6 +23,15 @@ internal static class OpenRgbPackets
         var packet = new byte[HeaderLength + nameLength];
         WriteHeader(packet, deviceIndex: 0, CommandId.SetClientName, nameLength);
         Encoding.ASCII.GetBytes(name, packet.AsSpan(HeaderLength));
+        return packet;
+    }
+
+    // Without data, and the server gives no answer; once its device list changed, it sends
+    // DeviceListUpdated to every client.
+    public static byte[] RequestRescanDevices()
+    {
+        var packet = new byte[HeaderLength];
+        WriteHeader(packet, deviceIndex: 0, RequestRescanDevicesCommand, dataLength: 0);
         return packet;
     }
 

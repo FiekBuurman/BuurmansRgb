@@ -38,6 +38,29 @@ public sealed class OpenRgbServerWatcherTests : IAsyncDisposable
         Assert.True(watcher.IsClosed);
     }
 
+    [Fact]
+    public async Task RequestRescanAsync_ReachesTheServerAndItsDeviceListUpdateComesBack()
+    {
+        using var watcher = await ConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        watcher.DeviceListChanged += (_, _) => changed.TrySetResult();
+
+        await watcher.RequestRescanAsync(Ct);
+
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal(1, _server.RescanRequests);
+        Assert.False(watcher.IsClosed);
+    }
+
+    [Fact]
+    public async Task RequestRescanAsync_AfterDispose_Throws()
+    {
+        var watcher = await ConnectAsync();
+        watcher.Dispose();
+
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => watcher.RequestRescanAsync(Ct));
+    }
+
     public ValueTask DisposeAsync() => _server.DisposeAsync();
 
     private static byte[] Packet(CommandId command, byte[] data)

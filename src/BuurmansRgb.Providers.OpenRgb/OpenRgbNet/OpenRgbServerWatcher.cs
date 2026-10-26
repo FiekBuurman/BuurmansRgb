@@ -10,9 +10,10 @@ namespace BuurmansRgb.Providers.OpenRgb.OpenRgbNet;
 //   is created, before anyone could subscribe;
 // - after the server closes the connection, the client's read loop keeps reading zero bytes at
 //   full CPU, and Connected stays true, until the next send fails.
-// The watcher is a second connection that only reads. The server sends its device list
-// notification to every client, and the pending read ends as soon as the server goes away. While
-// nothing happens it uses no thread and no timer.
+// The watcher is a second connection that reads, and only writes to ask for a rescan, which
+// OpenRGB.NET cannot. The server sends its device list notification to every client, and the
+// pending read ends as soon as the server goes away. While nothing happens it uses no thread and
+// no timer.
 internal sealed class OpenRgbServerWatcher : IDisposable
 {
     private readonly NetworkStream _stream;
@@ -62,6 +63,15 @@ internal sealed class OpenRgbServerWatcher : IDisposable
             socket.Dispose();
             throw;
         }
+    }
+
+    // Asks the server to search for its devices again; see OpenRgbPackets.RequestRescanDevices.
+    // The packet is so small that it goes out in one send, also next to the pending read. Throws
+    // when the connection is gone.
+    public async Task RequestRescanAsync(CancellationToken ct)
+    {
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposed) != 0, this);
+        await _stream.WriteAsync(OpenRgbPackets.RequestRescanDevices(), ct).ConfigureAwait(false);
     }
 
     // Disposing does not raise Closed: whoever disposes already knows.
