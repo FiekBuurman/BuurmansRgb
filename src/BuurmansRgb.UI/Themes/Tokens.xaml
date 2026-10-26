@@ -77,6 +77,7 @@
     <!-- The tiles of the toolbox on Kleur: smaller than MinClickSize, so more colors fit; the handleiding
          names it as a deviation from the design. -->
     <sys:Double x:Key="SmallTileSize">32</sys:Double>
+    <CornerRadius x:Key="SmallTileRadius">8</CornerRadius>
     <!-- The page margin on the desktop (§ 6). -->
     <Thickness x:Key="PageMargin">32</Thickness>
     <sys:Double x:Key="PageMaxWidth">1200</sys:Double>
