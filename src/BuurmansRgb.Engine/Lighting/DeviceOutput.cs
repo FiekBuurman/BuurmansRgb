@@ -21,6 +21,9 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     private double _brightness = DeviceLighting.Default.Brightness;
     private bool _zonesAlike;
     private DeviceFlash? _flash;
+    private ZoneCount? _count;
+    private int _countFirstLed;
+    private int _countLedCount;
 
     public IDeviceProvider Provider { get; } = provider;
 
@@ -30,10 +33,13 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     public EffectClock Clock { get; } = clock ?? new();
 
-    // A device that flashes needs frames until the flash is over, whatever its effect.
-    public bool IsAnimated => _effect.IsAnimated || _flash is not null;
+    // A device that flashes needs frames until the flash is over, whatever its effect, and one
+    // with a count that runs until the count stops.
+    public bool IsAnimated => _effect.IsAnimated || _flash is not null || _count is { Running: true };
 
     public bool IsFlashing => _flash is not null;
+
+    public bool IsCounting => _count is not null;
 
     // Brightness runs from 0 to 1 and applies to whatever the effect renders; speed counts from
     // the next Render on. With zonesAlike the effect renders once, over the longest zone, and
@@ -55,9 +61,20 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     public void StopFlash() => _flash = null;
 
-    // time is the engine time; the effect gets it at the device's speed. A flash goes over the
-    // brightness, so a dimmed device still blinks bright; the first render after it shows the
-    // effect again.
+    // From now on, the renders show the count over the effect on the LEDs firstLed to
+    // firstLed + ledCount: the zone that is counted, as long as the device has it now. Null ends
+    // it. The count itself moves on in LightingController, so it goes on when the device list is
+    // made again.
+    public void ShowCount(ZoneCount? count, int firstLed = 0, int ledCount = 0)
+    {
+        _count = count;
+        _countFirstLed = firstLed;
+        _countLedCount = ledCount;
+    }
+
+    // time is the engine time; the effect gets it at the device's speed. A count and a flash go
+    // over the brightness, so a dimmed device still shows them bright, and a flash goes over a
+    // count; the first render after a flash shows the effect again.
     public void Render(TimeSpan time)
     {
         var leds = Buffer.AsSpan();
@@ -83,6 +100,8 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
                 led = led.Scale(_brightness);
             }
         }
+
+        _count?.Render(leds.Slice(_countFirstLed, _countLedCount));
 
         if (_flash is { } flash)
         {

@@ -8,13 +8,14 @@ namespace BuurmansRgb.Engine.Lighting;
 // Called from the tray thread, from IPC threads and, when a provider's devices change, from the
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
-// An AnimationLoop renders the frames, and only while an animated effect shows or a device
-// flashes, and nothing is paused; with static lighting no timer runs at all.
+// An AnimationLoop renders the frames, and only while an animated effect shows, a device
+// flashes or the LEDs of a zone are counted, and nothing is paused; with static lighting no timer
+// runs at all.
 //
-// A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash. Only a
-// manual pause also leaves the devices alone; while Windows is locked or asleep, the screen is off
-// or the screen saver runs, a change such as a profile that loads on time, or the restore after
-// waking up, still reaches the devices. What they show then follows PausedLights: the last frame,
+// A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash and a count
+// of LEDs. Only a manual pause also leaves the devices alone; while Windows is locked or asleep,
+// the screen is off or the screen saver runs, a change such as a profile that loads on time, or
+// the restore after waking up, still reaches the devices. What they show then follows PausedLights: the last frame,
 // dimmed or black.
 internal sealed class LightingController : ILightingStateSource, IDisposable
 {
@@ -51,6 +52,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
     private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
     private PauseReasons _pause;
+
+    // The LEDs of the zone that are counted (StartCount); one zone at a time.
+    private ZoneCount? _count;
 
     // A restore that waits for the manual pause to end.
     private bool _restorePending;
@@ -94,6 +98,22 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // Raised with the new reasons when the pause changes, in the order of the changes.
     public event EventHandler<PauseReasons>? PauseChanged;
+
+    // Raised when a count of LEDs starts, goes to another LED, changes or ends; read Count for
+    // the newest state. Raised from the render loop too, without allocating.
+    public event EventHandler? CountChanged;
+
+    // The count of LEDs as it is now; ZoneCountInfo.None while no zone is counted.
+    public ZoneCountInfo Count
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _count?.Info ?? ZoneCountInfo.None;
+            }
+        }
+    }
 
     public PauseReasons Pause
     {
@@ -420,6 +440,78 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // to blink, but still ends the flash before.
     public void FlashZone(string deviceId, int zoneIndex) => StartFlash(deviceId, zoneIndex);
 
+    // Counts the LEDs of one zone (ZoneCount) from LED 1 on, up to ledCount, at ledsPerSecond:
+    // only the drawing; ZoneCounter gives the zone its longest length for it and its own length
+    // back. It replaces the count of any zone and changes no lighting. While paused, or for a
+    // device or zone the engine does not know (any more), nothing starts and it returns false. A
+    // device list that is made again keeps the count on the zone with the same index and name.
+    public bool StartCount(string deviceId, int zoneIndex, int ledCount, int ledsPerSecond)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
+        ZoneCount.ThrowIfInvalidPace(ledsPerSecond);
+        lock (_gate)
+        {
+            if (_outputs.Find(deviceId) is not { } output || _pause != PauseReasons.None || !_lighting.IsSet
+                || zoneIndex < 0 || zoneIndex >= output.Device.Zones.Count)
+            {
+                return false;
+            }
+
+            StopCountLocked();
+            var time = EffectTime;
+            _count = new ZoneCount(deviceId, zoneIndex, output.Device.Zones[zoneIndex].Name, ledCount, ledsPerSecond, time);
+            ShowCountLocked(output, time);
+            UpdateAnimationLocked();
+        }
+
+        Publish(true);
+        CountChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    // Changes the count that runs, such as a pause or another LED; false when none runs.
+    public bool ChangeCount(ZoneCountChange change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        lock (_gate)
+        {
+            if (_count is not { } count)
+            {
+                return false;
+            }
+
+            var time = EffectTime;
+            count.Change(time, change);
+            if (_outputs.Find(count.DeviceId) is { } output)
+            {
+                ShowCountLocked(output, time);
+            }
+
+            UpdateAnimationLocked();
+        }
+
+        Publish(true);
+        CountChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    // Ends the count, so the zone shows the effect again.
+    public void StopCount()
+    {
+        bool stopped;
+        lock (_gate)
+        {
+            stopped = StopCountLocked();
+            UpdateAnimationLocked();
+        }
+
+        Publish(stopped);
+        if (stopped)
+        {
+            CountChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
     // Copies the buffers, so the caller can convert them without holding the lock.
     public LightingOutput GetOutput()
     {
@@ -430,10 +522,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Adds or ends one reason to pause. The first reason stops the animation and leaves the devices
-    // as they are, except that a flash ends first, so no device stays white or dark. When a reason
-    // ends and no manual pause is left, the latest lighting goes out again, with a restore that
-    // waited for the manual pause: while Windows was locked another user's engine may have changed
-    // the devices. When the last reason ends, the animation runs again. Without a manual pause, the
+    // as they are, except that a flash and a count end first, so no device stays white or dark;
+    // CountChanged follows then, after PauseChanged. When a reason ends and no manual pause is
+    // left, the latest lighting goes out again, with a restore that waited for the manual pause:
+    // while Windows was locked another user's engine may have changed the devices. When the last reason ends, the animation runs again. Without a manual pause, the
     // devices also get the colors again when what they show changes with PausedLights. The new
     // pause holds and is reported even when a device fails while its colors go out.
     public void SetPaused(PauseReasons reason, bool paused)
@@ -442,6 +534,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             var pause = PauseReasons.None;
             var changed = false;
+            var countStopped = false;
             try
             {
                 var rendered = false;
@@ -462,6 +555,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     if (old == PauseReasons.None)
                     {
                         rendered = StopFlashesLocked();
+                        countStopped = StopCountLocked();
+                        rendered |= countStopped;
                     }
                     else if (!paused && !IsManual(pause))
                     {
@@ -488,6 +583,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 if (changed)
                 {
                     PauseChanged?.Invoke(this, pause);
+                }
+
+                if (countStopped)
+                {
+                    CountChanged?.Invoke(this, EventArgs.Empty);
                 }
             }
         }
@@ -549,6 +649,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     public void RenderAnimationFrame()
     {
         var rendered = false;
+        var counted = false;
         lock (_gate)
         {
             // A tick that was already on its way when the animation stopped.
@@ -558,10 +659,12 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             var time = EffectTime;
+            counted = _count?.Advance(time) ?? false;
             var flashEnded = false;
             foreach (var output in _outputs.All)
             {
-                if (output.IsAnimated)
+                // The step that ends a count is drawn too, also on a device that needs no more frames then.
+                if (output.IsAnimated || (counted && output.IsCounting))
                 {
                     var flashing = output.IsFlashing;
                     output.Render(time);
@@ -571,7 +674,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             // With only static effects left, the timer stops again.
-            if (flashEnded)
+            if (flashEnded || (counted && _count is { Running: false }))
             {
                 UpdateAnimationLocked();
             }
@@ -583,6 +686,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         Publish(rendered);
+        if (counted)
+        {
+            CountChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public void Dispose()
@@ -595,8 +702,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             // The engine leaves the devices as they are when it stops, but not white or dark from
-            // a flash that is still running.
+            // a flash or a count that is still running.
             StopFlashesLocked();
+            StopCountLocked();
             _disposed = true;
             _animation.Dispose();
         }
@@ -652,6 +760,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 }
 
                 _outputs.Replace(providerIndex, provider, devices);
+                AttachCountLocked();
                 _ledColors.Adopt(devices);
                 rendered = render && RenderLocked();
             }
@@ -763,6 +872,57 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         return stopped;
+    }
+
+    // Draws the count over the zone of output as the device has it now, and sends it.
+    private void ShowCountLocked(DeviceOutput output, TimeSpan time)
+    {
+        AttachCountLocked(output);
+        output.Render(time);
+        output.Send(SendScaleLocked);
+        _sequence++;
+    }
+
+    // Gives the output of the counted device the count, over the LEDs its zone has now; a device
+    // list without the zone (with the same index and name) leaves it without, until ZoneCounter
+    // ends the count.
+    private void AttachCountLocked(DeviceOutput? output = null)
+    {
+        if (_count is not { } count || (output ?? _outputs.Find(count.DeviceId)) is not { } counted)
+        {
+            return;
+        }
+
+        var zones = counted.Device.Zones;
+        if (count.ZoneIndex < zones.Count && zones[count.ZoneIndex].Name == count.ZoneName)
+        {
+            var (first, ledCount) = RgbZone.RangesOf(zones, counted.Device.LedCount)[count.ZoneIndex];
+            counted.ShowCount(count, first, ledCount);
+        }
+        else
+        {
+            counted.ShowCount(null);
+        }
+    }
+
+    // Gives the counted device its own colors again. Returns true when a zone was counted.
+    private bool StopCountLocked()
+    {
+        if (_count is not { } count)
+        {
+            return false;
+        }
+
+        _count = null;
+        if (_outputs.Find(count.DeviceId) is { } output)
+        {
+            output.ShowCount(null);
+            output.Render(EffectTime);
+            output.Send(SendScaleLocked);
+        }
+
+        _sequence++;
+        return true;
     }
 
     // Sends what every device shows once more, with the scale of the pause; the buffers stay as
