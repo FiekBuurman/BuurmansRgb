@@ -19,7 +19,10 @@
     <value>Hele huis</value>
   </data>
   <data name="AllDevicesDetails" xml:space="preserve">
-    <value>{0} lampen</value>
+    <value>{0} apparaten</value>
+  </data>
+  <data name="AllDevicesDetailsOne" xml:space="preserve">
+    <value>1 apparaat</value>
   </data>
   <data name="LedCount" xml:space="preserve">
     <value>{0} LED's</value>
@@ -97,10 +100,10 @@
     <value>Locatie: {0}, adres {1}</value>
   </data>
   <data name="DeviceSource_Hardware" xml:space="preserve">
-    <value>Echte lampen (OpenRGB)</value>
+    <value>Echte apparaten (OpenRGB)</value>
   </data>
   <data name="DeviceSource_Simulated" xml:space="preserve">
-    <value>Gesimuleerde lampen</value>
+    <value>Gesimuleerde apparaten</value>
   </data>
   <data name="DeviceType_Motherboard" xml:space="preserve">
     <value>Moederbord</value>
@@ -193,7 +196,7 @@
     <value>Alles selecteren</value>
   </data>
   <data name="SelectAllToolTip" xml:space="preserve">
-    <value>Selecteert alle LED's van deze lamp, zodat je ze samen een kleur geeft.</value>
+    <value>Selecteert alle LED's van dit apparaat, zodat je ze samen een kleur geeft.</value>
   </data>
   <data name="SelectAllAccessibleName" xml:space="preserve">
     <value>Alle LED's van {0} selecteren</value>
@@ -315,7 +318,7 @@
     <value>Standaardkleuren</value>
   </data>
   <data name="EffectColorsDefaultToolTip" xml:space="preserve">
-    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van de lamp, vuur brandt weer in donkerrood, rood, oranje en geel. Bij Hele huis geldt het voor alle lampen, maar kan het alleen als het hele huis eigen kleuren heeft; kies anders de lamp met eigen kleuren.</value>
+    <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van het apparaat, vuur brandt weer in donkerrood, rood, oranje en geel. Bij Hele huis geldt het voor alle apparaten, maar kan het alleen als het hele huis eigen kleuren heeft; kies anders het apparaat met eigen kleuren.</value>
   </data>
   <data name="ProfilesHeader" xml:space="preserve">
     <value>Scènes</value>
@@ -333,7 +336,7 @@
     <value>Overschrijven</value>
   </data>
   <data name="ProfileSaveToolTip" xml:space="preserve">
-    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze naam.</value>
+    <value>Bewaart de verlichting van alle apparaten zoals die nu is onder deze naam.</value>
   </data>
   <data name="ProfileLoad" xml:space="preserve">
     <value>Aanzetten</value>
@@ -429,7 +432,7 @@
     <value>Laat knipperen</value>
   </data>
   <data name="FlashDeviceToolTip" xml:space="preserve">
-    <value>Laat deze lamp even wit knipperen, zodat je in de pc ziet welke het is. Werkt niet als de effecten gepauzeerd zijn.</value>
+    <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk apparaat het is. Werkt niet als de effecten gepauzeerd zijn.</value>
   </data>
   <data name="FlashDeviceAccessibleName" xml:space="preserve">
     <value>{0} laten knipperen</value>
@@ -456,13 +459,13 @@
     <value>Zones gelijk bij {0}</value>
   </data>
   <data name="SimulatedDevicesLabel" xml:space="preserve">
-    <value>Gesimuleerde lampen tonen</value>
+    <value>Gesimuleerde apparaten tonen</value>
   </data>
   <data name="OpenRgbHintAccessibleName" xml:space="preserve">
     <value>Tip bij de OpenRGB-status</value>
   </data>
   <data name="SimulatedDevicesHint" xml:space="preserve">
-    <value>Nep-lampen om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte lampen levert.</value>
+    <value>Nep-apparaten om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
   </data>
   <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
     <value>Automatisch</value>
@@ -478,15 +481,15 @@
     <comment>Gelijk houden met TrayOpenRgbConnecting in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnected" xml:space="preserve">
-    <value>OpenRGB: verbonden, {0} lampen</value>
+    <value>OpenRGB: verbonden, {0} apparaten</value>
     <comment>Gelijk houden met TrayOpenRgbConnected in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedOneDevice" xml:space="preserve">
-    <value>OpenRGB: verbonden, 1 lamp</value>
+    <value>OpenRGB: verbonden, 1 apparaat</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedOneDevice in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbConnectedNoDevices" xml:space="preserve">
-    <value>OpenRGB: verbonden, geen lampen gevonden</value>
+    <value>OpenRGB: verbonden, geen apparaten gevonden</value>
     <comment>Gelijk houden met TrayOpenRgbConnectedNoDevices in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachable" xml:space="preserve">
@@ -501,13 +504,13 @@
     <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbFailedHint" xml:space="preserve">
-    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de lampen mislukte. buurmansRgb blijft het proberen.</value>
+    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. buurmansRgb blijft het proberen.</value>
   </data>
   <data name="NoDirectModeWarning" xml:space="preserve">
     <value>Volgt de kleur misschien niet</value>
   </data>
   <data name="NoDirectModeHint" xml:space="preserve">
-    <value>Deze lamp heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. buurmansRgb stuurt de kleuren wel, maar de lamp kan zijn eigen effect blijven tonen. Gebeurt dat, stel hem dan in OpenRGB zelf in.</value>
+    <value>Dit apparaat heeft in OpenRGB geen modus 'Direct' of 'Custom' om kleuren per LED over te nemen. buurmansRgb stuurt de kleuren wel, maar het apparaat kan zijn eigen effect blijven tonen. Gebeurt dat, stel het dan in OpenRGB zelf in.</value>
   </data>
   <data name="EffectsPausedManual" xml:space="preserve">
     <value>Effecten gepauzeerd via het tray-menu – het voorbeeld toont wat terugkomt na hervatten.</value>
@@ -539,7 +542,7 @@
     <value>Hoofdmenu</value>
   </data>
   <data name="NavLamps" xml:space="preserve">
-    <value>Lampen</value>
+    <value>Apparaten</value>
   </data>
   <data name="NavColor" xml:space="preserve">
     <value>Kleur</value>
@@ -566,7 +569,7 @@
     <value>Kleur mengen</value>
   </data>
   <data name="LampChoiceLabel" xml:space="preserve">
-    <value>Welke lamp?</value>
+    <value>Welk apparaat?</value>
   </data>
   <data name="SettingsTitle" xml:space="preserve">
     <value>Instellingen</value>
@@ -578,10 +581,10 @@
     <value>OpenRGB</value>
   </data>
   <data name="OpenRgbExplanation" xml:space="preserve">
-    <value>Via OpenRGB praat buurmansRgb met de echte lampen in je pc.</value>
+    <value>Via OpenRGB praat buurmansRgb met de echte apparaten in je pc.</value>
   </data>
   <data name="SimulatedDevicesHeader" xml:space="preserve">
-    <value>Gesimuleerde lampen</value>
+    <value>Gesimuleerde apparaten</value>
   </data>
   <data name="EffectOptionsHeader" xml:space="preserve">
     <value>Effecten</value>
@@ -590,7 +593,7 @@
     <value>Vloeiendheid</value>
   </data>
   <data name="FrameRateHint" xml:space="preserve">
-    <value>Hoe vaak per seconde een bewegend effect de lampen bijwerkt. Zuinig kost de minste CPU; het effect loopt even snel, alleen minder vloeiend.</value>
+    <value>Hoe vaak per seconde een bewegend effect de apparaten bijwerkt. Zuinig kost de minste CPU; het effect loopt even snel, alleen minder vloeiend.</value>
   </data>
   <data name="FrameRateSaving" xml:space="preserve">
     <value>Zuinig (15 beelden per seconde)</value>
@@ -612,10 +615,10 @@
     <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt, zodat het dan geen CPU kost.</value>
   </data>
   <data name="PausedLightsLabel" xml:space="preserve">
-    <value>Lampen tijdens deze pauze</value>
+    <value>Apparaten tijdens deze pauze</value>
   </data>
   <data name="PausedLightsHint" xml:space="preserve">
-    <value>Wat de lampen doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Daarna komen de echte kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
+    <value>Wat de apparaten doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Daarna komen de echte kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
   </data>
   <data name="PausedLightsMode_Keep" xml:space="preserve">
     <value>Laatste beeld laten staan</value>
@@ -657,13 +660,13 @@
     <value>Alles aan of uit</value>
   </data>
   <data name="LampsHeader" xml:space="preserve">
-    <value>Lampen in huis</value>
+    <value>Apparaten in huis</value>
   </data>
   <data name="AddLamps" xml:space="preserve">
     <value>+ Erbij knutselen</value>
   </data>
   <data name="AddLampsToolTip" xml:space="preserve">
-    <value>Gesimuleerde lampen en de koppeling met OpenRGB vind je bij Instellingen.</value>
+    <value>Gesimuleerde apparaten en de koppeling met OpenRGB vind je bij Instellingen.</value>
   </data>
   <data name="LampSwitchAccessibleName" xml:space="preserve">
     <value>{0} aan of uit</value>
@@ -678,7 +681,7 @@
     <value>uit</value>
   </data>
   <data name="NoLamps" xml:space="preserve">
-    <value>Nog geen lampen gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde lampen aan.</value>
+    <value>Nog geen apparaten gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde apparaten aan.</value>
   </data>
   <data name="PresetKlusWhite" xml:space="preserve">
     <value>Klus-wit</value>
@@ -708,7 +711,7 @@
     <value>Op de strip zetten</value>
   </data>
   <data name="ColorNotApplied" xml:space="preserve">
-    <value>Nog niet op de lamp</value>
+    <value>Nog niet op het apparaat</value>
   </data>
   <data name="LightingHeader" xml:space="preserve">
     <value>Licht en beweging</value>
@@ -717,13 +720,13 @@
     <value>+ Nieuwe scène in elkaar zetten</value>
   </data>
   <data name="NewSceneHint" xml:space="preserve">
-    <value>Bewaart de verlichting van alle lampen zoals die nu is, onder een naam die je kiest.</value>
+    <value>Bewaart de verlichting van alle apparaten zoals die nu is, onder een naam die je kiest.</value>
   </data>
   <data name="Cancel" xml:space="preserve">
     <value>Annuleren</value>
   </data>
   <data name="NoScenes" xml:space="preserve">
-    <value>Nog geen scènes. Zet de lampen zoals je ze wilt en zet er hieronder een in elkaar.</value>
+    <value>Nog geen scènes. Zet de apparaten zoals je ze wilt en zet er hieronder een in elkaar.</value>
   </data>
   <data name="SceneLoadAccessibleName" xml:space="preserve">
     <value>{0} aanzetten</value>
@@ -742,7 +745,7 @@
     <value>Overschrijven met wat nu brandt</value>
   </data>
   <data name="SceneOverwriteToolTip" xml:space="preserve">
-    <value>Bewaart de verlichting van alle lampen zoals die nu is onder deze scène.</value>
+    <value>Bewaart de verlichting van alle apparaten zoals die nu is onder deze scène.</value>
   </data>
   <data name="SceneAtTime" xml:space="preserve">
     <value>{0} om {1:HH:mm}</value>

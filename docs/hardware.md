@@ -40,7 +40,7 @@ Handig om bij "Opmerkingen" te noteren:
 
 - of het apparaat in OpenRGB een "Direct"-modus heeft, en of het de kleur zonder die modus
   toch volgt;
-- de locatie die OpenRGB geeft (tooltip van de lampkaart), vooral bij RAM-sticks en twee
+- de locatie die OpenRGB geeft (tooltip van de apparaatkaart), vooral bij RAM-sticks en twee
   dezelfde videokaarten;
 - bij een controller of ARGB-header: hoeveel LED's er per kanaal zitten, of het type klopt
   (fan, strip of behuizing), waar LED 1 van een fan-ring zit en of OpenRGB de lengte na een
