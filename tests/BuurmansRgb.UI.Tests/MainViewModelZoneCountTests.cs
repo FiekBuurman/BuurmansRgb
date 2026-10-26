@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
+using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -125,6 +126,25 @@ public sealed class MainViewModelZoneCountTests
         Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 1 });
         await Eventually.TrueAsync(() => Header(viewModel).Count is not null);
 
+        viewModel.Navigation.GoTo(AppPage.Scenes);
+
+        Assert.NotNull(viewModel.Preview.Count);
+        Assert.DoesNotContain("count board 1 stop", Api.Calls);
+    }
+
+    // A start the engine refuses is not this app's count: a count another settings app starts on
+    // the zone afterwards goes on when the user leaves Kleur.
+    [Fact]
+    public async Task CountLeds_RefusedByTheEngine_ThenLeavingKleur_LeavesACountOfAnotherApp()
+    {
+        var viewModel = await ConnectAsync();
+        Api.SetException = new RemoteInvocationException("Unknown device.", 0, errorData: null);
+        Header(viewModel).CountLedsCommand.Execute(null);
+        await Eventually.TrueAsync(() => viewModel.StatusMessage is not null);
+        Api.SetException = null;
+
+        Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 1 });
+        await Eventually.TrueAsync(() => Header(viewModel).Count is not null);
         viewModel.Navigation.GoTo(AppPage.Scenes);
 
         Assert.NotNull(viewModel.Preview.Count);

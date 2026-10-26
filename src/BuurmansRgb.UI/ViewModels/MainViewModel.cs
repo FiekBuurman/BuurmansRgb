@@ -107,7 +107,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
         Preview.ZonesAlikeRequested += (_, choice) => SendZonesAlike(choice);
-        Preview.ZoneCountStartRequested += (_, start) => SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => api.StartZoneCountAsync(start.DeviceId, start.ZoneIndex, start.LedsPerSecond));
+        Preview.ZoneCountStartRequested += (_, start) => SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => StartZoneCountAsync(api, start));
         Preview.ZoneCountChangeRequested += (_, update) => SendZoneCount(update.DeviceId, update.ZoneIndex, update.Change, api => api.SetZoneCountAsync(update.DeviceId, update.ZoneIndex, update.Change));
         Preview.ZoneCountStopRequested += (_, stop) => SendZoneCount(stop.DeviceId, stop.ZoneIndex, "stop", api => api.StopZoneCountAsync(stop.DeviceId, stop.ZoneIndex));
         LedEditor.PropertyChanged += (_, _) =>
@@ -880,6 +880,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (_connection is { } connection)
         {
             _calls.Post((CountCall, deviceId, zoneIndex, kind), () => send(connection.Api));
+        }
+    }
+
+    // A start that fails is not a count of this app; the failure itself goes on to OnCallFailed.
+    private async Task StartZoneCountAsync(IEngineApi api, ZoneCountStart start)
+    {
+        try
+        {
+            await api.StartZoneCountAsync(start.DeviceId, start.ZoneIndex, start.LedsPerSecond);
+        }
+        catch
+        {
+            RunOnUi(() => Preview.ForgetZoneCountStart(start));
+            throw;
         }
     }
 

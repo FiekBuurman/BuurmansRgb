@@ -73,7 +73,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     public ZoneCountViewModel? Count { get; private set; }
 
     // Set from the pause of the engine; greys out "Laat knipperen" of every device, and "Knipperen"
-    // and "Tellen" of every zone.
+    // and "Tellen" of every zone. A pause ends any count in the engine, and refuses a start that
+    // reaches it after the pause, so the count of this app ends here too: a start the engine
+    // refused would otherwise never be confirmed nor ended.
     public bool CanFlash
     {
         get => _canFlash;
@@ -85,6 +87,11 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
             }
 
             _canFlash = value;
+            if (!value)
+            {
+                ForgetOwnCount();
+            }
+
             foreach (var device in Devices)
             {
                 device.FlashCommand.NotifyCanExecuteChanged();
@@ -112,6 +119,17 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         _stoppedCount = null;
         ForgetOwnCount();
         Show(ZoneCountInfo.None);
+    }
+
+    // The engine refused a start of this app, such as for a zone the list here still shows: the
+    // count is not this app's, unless the engine confirmed it meanwhile (a start after it).
+    public void ForgetZoneCountStart(ZoneCountStart start)
+    {
+        ArgumentNullException.ThrowIfNull(start);
+        if (_ownCount == (start.DeviceId, start.ZoneIndex) && _ownCountSequence is null)
+        {
+            ForgetOwnCount();
+        }
     }
 
     // The count of LEDs as the engine reports it: the counted zone shows it, the same view model

@@ -516,6 +516,63 @@ public sealed class PreviewViewModelTests
         Assert.Equal([new ZoneCountStop("board", 1)], stops);
     }
 
+    // A pause just before the start reached the engine: the engine refuses it and reports no state
+    // of it, so the count is no longer this app's at the pause, and a count another settings app
+    // starts on the zone afterwards is left alone.
+    [Fact]
+    public void Pause_BeforeTheOwnCountIsConfirmed_ThenACountOfAnotherAppGoesFromView_LeavesIt()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+
+        preview.CanFlash = false;
+        preview.CanFlash = true;
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 3 });
+        preview.ShowDevices([Fan]);
+
+        Assert.Empty(stops);
+    }
+
+    // The engine refused the start, such as for a zone the list here still shows.
+    [Fact]
+    public void ForgetZoneCountStart_ThenACountOfAnotherAppGoesFromView_LeavesIt()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStart> starts = [];
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStartRequested += (_, start) => starts.Add(start);
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+
+        preview.ForgetZoneCountStart(Assert.Single(starts));
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 3 });
+        preview.ShowDevices([Fan]);
+
+        Assert.Empty(stops);
+    }
+
+    // A failed start of the same zone that comes back after the engine confirmed a newer one
+    // leaves that count this app's.
+    [Fact]
+    public void ForgetZoneCountStart_AfterTheCountIsConfirmed_KeepsItOwn()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 3 });
+
+        preview.ForgetZoneCountStart(new ZoneCountStart("board", 1, 1));
+        preview.ShowDevices([Fan]);
+
+        Assert.Equal([new ZoneCountStop("board", 1)], stops);
+    }
+
     // A step the engine took just before the stop reached it does not bring the counter back; a
     // count after the None of the engine shows again.
     [Fact]
