@@ -195,7 +195,7 @@ internal sealed class CustomEffectLibrary : IDisposable
     }
 
     // Whether the list was read after a failed Load and the apps were not told yet; stops the
-    // retry timer then.
+    // retry timer then. After Dispose that timer is gone already, and changing it may throw.
     private bool TakeLoadedAfterFailure()
     {
         if (!_loadFailed || _effects is null)
@@ -204,7 +204,11 @@ internal sealed class CustomEffectLibrary : IDisposable
         }
 
         _loadFailed = false;
-        _loadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        if (!_disposed)
+        {
+            _loadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        }
+
         return true;
     }
 

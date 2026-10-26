@@ -314,5 +314,51 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Equal(1, _store.LoadCount);
     }
 
+    // A question after the exit that reads the file at last does not touch the stopped retry
+    // timer: ITimer.Change may throw ObjectDisposedException then.
+    [Fact]
+    public void Dispose_ThenReadAfterAFailedLoad_LeavesTheTimerAlone()
+    {
+        var store = new InMemoryCustomEffectStore { Effects = [Effect("custom:disco", "Disco")], LoadException = new IOException("in use") };
+        var library = new CustomEffectLibrary(store, _lighting, Delay, new StrictTimeProvider(_time));
+        library.Load();
+        library.Dispose();
+        store.LoadException = null;
+
+        Assert.Equal(["Disco"], library.Effects.Select(effect => effect.Name));
+        library.Save(Effect("", "Feest"));
+        Assert.Equal(["Disco", "Feest"], store.Effects.Select(effect => effect.Name));
+    }
+
+    // Timers that throw when they are changed after Dispose, as ITimer allows.
+    private sealed class StrictTimeProvider(TimeProvider inner) : TimeProvider
+    {
+        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period) =>
+            new StrictTimer(inner.CreateTimer(callback, state, dueTime, period));
+
+        private sealed class StrictTimer(ITimer inner) : ITimer
+        {
+            private bool _disposed;
+
+            public bool Change(TimeSpan dueTime, TimeSpan period)
+            {
+                ObjectDisposedException.ThrowIf(_disposed, this);
+                return inner.Change(dueTime, period);
+            }
+
+            public void Dispose()
+            {
+                _disposed = true;
+                inner.Dispose();
+            }
+
+            public ValueTask DisposeAsync()
+            {
+                Dispose();
+                return ValueTask.CompletedTask;
+            }
+        }
+    }
+
     private static CustomEffect Effect(string id, string name) => new(id, name, [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
 }
