@@ -176,16 +176,17 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         Assert.Single(await _provider.DiscoverAsync(Ct));
     }
 
-    // Connecting anew fails while the old connection still works: that one stays.
+    // Connecting anew fails while the old connection still works: that one stays, and OpenRGB was
+    // reached over it, so the settings app does not say it is unreachable.
     [Fact]
-    public async Task Rescan_ConnectingAgainFails_KeepsTheConnection()
+    public async Task Rescan_ConnectingAgainFails_KeepsTheConnectionAndIsTrue()
     {
         await ConnectAsync();
         var first = _connector.LastConnection;
         _connector.AnswersRescan = false;
         _connector.ConnectException = new InvalidOperationException("Not the protocol");
 
-        Assert.False(await RescanWhileTimePassesAsync());
+        Assert.True(await RescanWhileTimePassesAsync());
 
         Assert.False(first.IsDisposed);
         Assert.Single(await _provider.DiscoverAsync(Ct));

@@ -160,7 +160,8 @@ public sealed class OpenRgbDeviceProvider
     // for the first device list update, whose reload it waits for too. OpenRGB may send more
     // while it finds devices; each of them reloads the list as always. Without a connection, or
     // when no update comes within the rescan timeout, a new connection loads the devices instead,
-    // as after a restart of OpenRGB. False when OpenRGB could not be reached.
+    // as after a restart of OpenRGB. False when OpenRGB could not be reached; when connecting anew
+    // fails while the connection there is stays, OpenRGB is reached, so that is true.
     public Task<bool> RequestRescanAsync(CancellationToken ct)
     {
         Task<bool> rescan;
@@ -290,7 +291,8 @@ public sealed class OpenRgbDeviceProvider
                     if (connection is null || connection == tried)
                     {
                         connection = null;
-                        reached = await OpenConnectionAsync(jobCt).ConfigureAwait(false);
+                        // Failing keeps the connection there is, which still reaches OpenRGB.
+                        reached = await OpenConnectionAsync(jobCt).ConfigureAwait(false) || HasConnection;
                     }
                 }).ConfigureAwait(false);
 
