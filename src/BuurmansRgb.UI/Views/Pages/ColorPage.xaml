@@ -330,7 +330,7 @@
                                 </Path>
                                 <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.DirectionHeader}" />
                             </DockPanel>
-                            <Slider Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
+                            <Slider x:Name="DirectionSlider" Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
                                     Value="{Binding Direction}" SmallChange="5" LargeChange="45" IsSnapToTickEnabled="True" TickFrequency="1"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionHeader}"
                                     AutomationProperties.HelpText="{x:Static res:Strings.DirectionHelp}"
@@ -338,7 +338,8 @@
                             <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
                                     Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
-                                    Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}" />
+                                    Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"
+                                    views:FocusFallback.Target="{Binding ElementName=DirectionSlider}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>

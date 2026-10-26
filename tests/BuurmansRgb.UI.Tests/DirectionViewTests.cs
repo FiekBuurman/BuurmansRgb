@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -65,6 +66,30 @@ public sealed class DirectionViewTests
 
             Assert.False(viewModel.HasDirection);
             Assert.False(clear.IsVisible);
+        });
+    }
+
+    // The button hides itself with Enter; the focus goes to the slider instead of the top of the window.
+    [Fact]
+    public async Task ClearButton_Enter_GivesTheFocusToTheSlider()
+    {
+        using var viewModel = await ConnectWithAsync(EffectIds.Wave);
+
+        AppTheme.Run(panel =>
+        {
+            var page = ToolboxViewTests.Show(panel, viewModel);
+            var slider = SliderNamed(page, Strings.DirectionHeader);
+            slider.Value = 90;
+            OffscreenWindow.WaitUntilIdle();
+            var clear = ClearButton(page);
+            Assert.True(clear.Focus());
+
+            clear.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(clear), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(viewModel.HasDirection);
+            Assert.False(clear.IsVisible);
+            Assert.True(slider.IsKeyboardFocused);
         });
     }
 
