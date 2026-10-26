@@ -283,13 +283,15 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
         controller.FlashZone("simulated-gpu", 1);
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var step = 0; step < 30; step++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var step = 0; step < 30; step++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.True(controller.IsAnimating);
     }
 

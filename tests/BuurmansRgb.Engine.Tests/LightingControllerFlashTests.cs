@@ -239,13 +239,15 @@ public sealed class LightingControllerFlashTests : IDisposable
         controller.Flash("simulated-keyboard");
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var frame = 0; frame < 30; frame++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var frame = 0; frame < 30; frame++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.True(controller.IsAnimating);
     }
 
