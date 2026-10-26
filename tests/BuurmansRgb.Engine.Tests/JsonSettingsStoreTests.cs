@@ -674,6 +674,45 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(ColorLoop.Default, store.LoadOrCreate().ToDeviceLighting().Loop);
     }
 
+    // Twelve colors are the most a loop or the list of an effect has; with thirteen the loop takes
+    // the default colors and the effect its default, as a version that took eight did with nine.
+    [Fact]
+    public void LoadOrCreate_TwelveColors_ReadsThem()
+    {
+        var path = _directory.File("settings.json");
+        var twelve = HexList(Twelve);
+        File.WriteAllText(path, $$"""{ "colorLoop": { "colors": {{twelve}}, "spread": false }, "effectColors": { "comet": {{twelve}} } }""");
+
+        var lighting = new JsonSettingsStore(path).LoadOrCreate().ToDeviceLighting();
+
+        Assert.Equal(new ColorLoop(Twelve, Spread: false), lighting.Loop);
+        Assert.Equal(EffectColors.None.With(EffectIds.Comet, Twelve), lighting.EffectColors);
+    }
+
+    [Fact]
+    public void LoadOrCreate_ThirteenColors_TakesTheDefaults()
+    {
+        var path = _directory.File("settings.json");
+        var thirteen = HexList([.. Twelve, Red]);
+        File.WriteAllText(path, $$"""{ "colorLoop": { "colors": {{thirteen}}, "spread": false }, "effectColors": { "comet": {{thirteen}}, "fire": ["#0000FF"] } }""");
+
+        var lighting = new JsonSettingsStore(path).LoadOrCreate().ToDeviceLighting();
+
+        Assert.Equal(ColorLoop.Default with { Spread = false }, lighting.Loop);
+        Assert.Equal(EffectColors.None.With(EffectIds.Fire, [Blue]), lighting.EffectColors);
+    }
+
+    // Only the colors that read count: thirteen with one that does not are twelve.
+    [Fact]
+    public void LoadOrCreate_ThirteenColorsOfWhichOneDoesNotRead_ReadsTheTwelve()
+    {
+        var path = _directory.File("settings.json");
+        var list = HexList(Twelve).Replace("[", "[\"purple\", ", StringComparison.Ordinal);
+        File.WriteAllText(path, $$"""{ "colorLoop": { "colors": {{list}} } }""");
+
+        Assert.Equal(new ColorLoop(Twelve), new JsonSettingsStore(path).LoadOrCreate().ToDeviceLighting().Loop);
+    }
+
     [Fact]
     public void LoadOrCreate_EffectColorThatDoesNotRead_LeavesItOutOfTheList()
     {
@@ -749,6 +788,9 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(EngineSettings.CreateDefault(), settings);
         Assert.True(File.Exists(path));
     }
+
+    // ["#FF0000", "#FF8000", ...] for a list of colors in a JSON file.
+    private static string HexList(IEnumerable<RgbColor> colors) => $"[{string.Join(", ", colors.Select(color => $"\"{color.ToHex()}\""))}]";
 
     private static void DenyReadForCurrentUser(string path)
     {

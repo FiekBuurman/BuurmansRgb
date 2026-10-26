@@ -109,12 +109,13 @@ public sealed class EffectColorsTests
     }
 
     [Fact]
-    public void IsValid_OneToEightColorsForAnEffectThatTakesThem()
+    public void IsValid_OneToTwelveColorsForAnEffectThatTakesThem()
     {
+        Assert.Equal(12, EffectColors.MaxColors);
         Assert.True(EffectColors.None.With(EffectIds.Comet, [Red]).IsValid);
-        Assert.True(EffectColors.None.With(EffectIds.Fire, [.. Enumerable.Repeat(Red, EffectColors.MaxColors)]).IsValid);
+        Assert.True(EffectColors.None.With(EffectIds.Fire, Twelve).IsValid);
         Assert.False(EffectColors.None.With(EffectIds.Comet, []).IsValid);
-        Assert.False(EffectColors.None.With(EffectIds.Fire, [.. Enumerable.Repeat(Red, EffectColors.MaxColors + 1)]).IsValid);
+        Assert.False(EffectColors.None.With(EffectIds.Fire, [.. Twelve, Red]).IsValid);
         Assert.False(EffectColors.None.With(EffectIds.Static, [Red]).IsValid);
         Assert.False(EffectColors.None.With("unknown", [Red]).IsValid);
     }

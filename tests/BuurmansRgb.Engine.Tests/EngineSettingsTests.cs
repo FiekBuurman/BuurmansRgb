@@ -88,7 +88,7 @@ public sealed class EngineSettingsTests
         Assert.Equal(colors, roundTripped.For("fan").EffectColors);
     }
 
-    // Only lists of the effects that take one, with one to eight colors, count; the others have
+    // Only lists of the effects that take one, with one to twelve colors, count; the others have
     // their default.
     [Fact]
     public void ToDeviceLighting_EffectColorsThatDoNotFit_AreLeftOut()
