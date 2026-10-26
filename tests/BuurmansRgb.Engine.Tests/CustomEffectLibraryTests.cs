@@ -227,5 +227,61 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Equal(2, _store.LoadCount);
     }
 
+    // Without a settings app nobody asks for the effects: the library tries again by itself, until
+    // it can read the file, and then the device shows its effect and the apps hear of it.
+    [Fact]
+    public async Task Load_FileOutOfReach_ReadsItAgainBeforeLong()
+    {
+        _store.Effects = [Effect("custom:disco", "Disco")];
+        _store.LoadException = new IOException("in use");
+        await _lighting.DiscoverAsync(Ct);
+        _library.Load();
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, "custom:disco")));
+        Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay);
+        Assert.Equal(2, _store.LoadCount);
+        Assert.Equal(0, changes);
+        _store.LoadException = null;
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay);
+
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+        Assert.Equal(1, changes);
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay * 3);
+        Assert.Equal(3, _store.LoadCount);
+    }
+
+    // A question that reads the file first tells the apps too, and the library stops trying.
+    [Fact]
+    public void Load_FileOutOfReach_ReadByAQuestion_TellsTheAppsAndStopsTrying()
+    {
+        _store.Effects = [Effect("custom:disco", "Disco")];
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+        _store.LoadException = null;
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        Assert.Single(_library.Effects);
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay * 3);
+
+        Assert.Equal(1, changes);
+        Assert.Equal(2, _store.LoadCount);
+    }
+
+    [Fact]
+    public void Dispose_StopsTryingToRead()
+    {
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+
+        _library.Dispose();
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay * 3);
+
+        Assert.Equal(1, _store.LoadCount);
+    }
+
     private static CustomEffect Effect(string id, string name) => new(id, name, [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
 }

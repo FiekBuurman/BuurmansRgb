@@ -12,13 +12,15 @@ namespace BuurmansRgb.Engine.Lighting;
 // the exit (Dispose). LightingController gets every new list, so a device that shows an effect
 // shows its new steps at once, and one that shows an effect that was deleted gets static. Called
 // from IPC threads; the lock guards the list. An invalid effect or an unknown id throws
-// ArgumentException, which reaches the UI as an RPC error.
+// ArgumentException, which reaches the UI as an RPC error. A file that cannot be read at the start
+// is read again every LoadRetryDelay until that works, also without a settings app that asks.
 internal sealed class CustomEffectLibrary : IDisposable
 {
     private readonly ICustomEffectStore _store;
     private readonly LightingController _lighting;
     private readonly TimeSpan _saveDelay;
     private readonly ITimer _timer;
+    private readonly ITimer _loadTimer;
     private readonly Lock _gate = new();
     private List<CustomEffect>? _effects;
 
@@ -27,13 +29,18 @@ internal sealed class CustomEffectLibrary : IDisposable
     private bool _pending;
     private bool _disposed;
 
+    // From a Load that could not read the file until a read that went through; that read raises
+    // Changed, so a settings app that got no effects asks again.
+    private bool _loadFailed;
+
     public CustomEffectLibrary(ICustomEffectStore store, LightingController lighting, TimeSpan? saveDelay = null, TimeProvider? timeProvider = null)
     {
         _store = store;
         _lighting = lighting;
         _saveDelay = saveDelay ?? DefaultSaveDelay;
-        _timer = (timeProvider ?? TimeProvider.System).CreateTimer(
-            _ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        var time = timeProvider ?? TimeProvider.System;
+        _timer = time.CreateTimer(_ => SavePending(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _loadTimer = time.CreateTimer(_ => LoadAgain(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
 
     // Raised after the list changed: an effect was saved or deleted. Outside the lock, so a
@@ -42,15 +49,28 @@ internal sealed class CustomEffectLibrary : IDisposable
 
     public static TimeSpan DefaultSaveDelay { get; } = TimeSpan.FromSeconds(1);
 
-    // In alphabetical order of their names.
+    // How often a file that could not be read at the start is tried again.
+    public static TimeSpan LoadRetryDelay { get; } = TimeSpan.FromSeconds(5);
+
+    // In alphabetical order of their names. The first read after a failed Load raises Changed.
     public IReadOnlyList<CustomEffect> Effects
     {
         get
         {
+            List<CustomEffect> effects;
+            bool loaded;
             lock (_gate)
             {
-                return [.. EffectsLocked()];
+                effects = [.. EffectsLocked()];
+                loaded = TakeLoadedAfterFailure();
             }
+
+            if (loaded)
+            {
+                Changed?.Invoke(this, EventArgs.Empty);
+            }
+
+            return effects;
         }
     }
 
@@ -70,12 +90,13 @@ internal sealed class CustomEffectLibrary : IDisposable
         }
 
         _timer.Dispose();
+        _loadTimer.Dispose();
         SavePending();
     }
 
     // Reads the file and gives the effects to the lighting. A file that cannot be read now, such as
-    // one another program holds, gives the lighting nothing: until the next question reads it
-    // again, a device keeps the own effect it shows and only shows its color.
+    // one another program holds, gives the lighting nothing: until the retry timer or a question
+    // reads it, a device keeps the own effect it shows and only shows its color.
     public void Load()
     {
         lock (_gate)
@@ -87,6 +108,11 @@ internal sealed class CustomEffectLibrary : IDisposable
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
                 Trace.TraceError(exception.ToString());
+                if (!_disposed)
+                {
+                    _loadFailed = true;
+                    _loadTimer.Change(LoadRetryDelay, LoadRetryDelay);
+                }
             }
         }
     }
@@ -129,6 +155,9 @@ internal sealed class CustomEffectLibrary : IDisposable
             }
 
             Store([.. effects.Where(other => other.Id != saved.Id), saved]);
+
+            // Changed below also tells of a list read after a failed Load.
+            TakeLoadedAfterFailure();
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -146,6 +175,7 @@ internal sealed class CustomEffectLibrary : IDisposable
             }
 
             Store([.. effects.Where(effect => effect.Id != id)]);
+            TakeLoadedAfterFailure();
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -162,6 +192,50 @@ internal sealed class CustomEffectLibrary : IDisposable
         }
 
         return _effects;
+    }
+
+    // Whether the list was read after a failed Load and the apps were not told yet; stops the
+    // retry timer then.
+    private bool TakeLoadedAfterFailure()
+    {
+        if (!_loadFailed || _effects is null)
+        {
+            return false;
+        }
+
+        _loadFailed = false;
+        _loadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        return true;
+    }
+
+    // The retry timer: reads the file when no question did meanwhile, and tells the apps.
+    private void LoadAgain()
+    {
+        bool loaded;
+        lock (_gate)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            try
+            {
+                EffectsLocked();
+            }
+            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            {
+                Trace.TraceError(exception.ToString());
+                return;
+            }
+
+            loaded = TakeLoadedAfterFailure();
+        }
+
+        if (loaded)
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     // The lighting gets the list under the lock, so two changes at once reach it in the order they
