@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -74,6 +75,32 @@ public partial class ColorPage : UserControl
                 AddCustomColor.Focus();
             }
         });
+    }
+
+    // Without a direction the slider stands at 0, where Home or a click on its knob changes no
+    // value; they choose 0° instead, as moving the slider chooses its degrees.
+    private void OnDirectionKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Home && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            ChooseDirection(sender);
+        }
+    }
+
+    private void OnDirectionThumbDragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        if (!e.Canceled)
+        {
+            ChooseDirection(sender);
+        }
+    }
+
+    private static void ChooseDirection(object slider)
+    {
+        if (slider is FrameworkElement { DataContext: MainViewModel viewModel } && viewModel.ChooseDirectionCommand.CanExecute(null))
+        {
+            viewModel.ChooseDirectionCommand.Execute(null);
+        }
     }
 
     private static Button? FirstButton(DependencyObject parent)

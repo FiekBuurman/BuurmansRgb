@@ -115,16 +115,19 @@ uitbreidingen in `docs/bouwplan.md`.
   gooit), dan gaat `ZonesAlikeChanged` niet af: de keuze staat in het geheugen, maar wordt niet
   bewaard en de app hoort het niet. `PausedLights` meldt zijn wijziging met try/finally,
   `SetLighting` doet het net als `ZonesAlike` niet. Gelijktrekken als eigen fix, met een test
-- Regenboog en Golf op een toetsenbord over de plek van de toetsen laten lopen (kolom of rij
-  uit de matrix-map) in plaats van over de LED-volgorde; nu loopt de regenboog rij voor rij
-  als OpenRGB de LED's zo nummert, maar springt hij bij andere toetsenborden
+- Een effect over de hele kast, met apparaten op een plek in de kast: elk apparaat (en elke
+  zone) een plek en grootte in een tekening van de kast, zodat een regenboog of golf in één
+  richting van de voorste fans via het moederbord naar de achterste loopt. De richting is nu per
+  apparaat (`LedPlaces.Along`), en de zones van een apparaat delen het effect zoals in de
+  volgorde, omdat niemand zegt waar ze ten opzichte van elkaar zitten
+- Richting ook voor Komeet en Scanner: een punt dat over de plekken loopt in plaats van over de
+  volgorde. Nu kennen alleen Regenboog, Golf en een verspreide Kleurenloop een richting
 - Een effect dat de videokaart (of alles) laat kleuren naar de temperatuur of belasting van de
   GPU, bijvoorbeeld via LibreHardwareMonitor, NVML of ADLX
 - Kleur en helderheid per zone (bouwplan: "per apparaat, per zone en globaal"); de
   `IEngineApi` kent nu alleen apparaat en globaal
 - Instellingen per effect naast de snelheid, bijv. de lengte van de staart bij Komeet en
-  Scanner, hoeveel LED's er fonkelen, of de richting (nu altijd naar de laatste LED). Nu liggen
-  die vast als constanten in de effecten
+  Scanner of hoeveel LED's er fonkelen. Nu liggen die vast als constanten in de effecten
 - Komeet: kiezen tussen rondgaan (nu, goed voor een fan-ring) en aan het eind weglopen en bij
   de eerste LED weer binnenkomen (beter voor een strip, waar de staart nu nog even aan het eind
   zit als de kop alweer bij het begin is), of meer kometen tegelijk

@@ -1,7 +1,7 @@
 <!-- Kleur mengen (§ 5.2 and § 6): the lamp to change at the top; left a big preview with the strip and the
      hex code, right the Rood, Groen and Blauw sliders, the presets and "Op de strip zetten". Below them the
-     brightness, effect and speed of the lamp, and the preview of its LEDs with the per-LED editor and the
-     zone lengths. -->
+     brightness, effect, speed and direction of the lamp, and the preview of its LEDs with the per-LED editor
+     and the zone lengths. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ColorPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -277,12 +277,14 @@
                 </StackPanel>
             </Grid>
 
-            <!-- How the lamp shines: brightness, effect and speed. -->
+            <!-- How the lamp shines: brightness, effect, speed and direction. -->
             <Border Margin="0,24,0,0" Style="{StaticResource LargeCard}">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LightingHeader}" />
                     <Grid>
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="24" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="24" />
                             <ColumnDefinition Width="*" />
@@ -312,6 +314,34 @@
                                     IsEnabled="{Binding IsSpeedEnabled}" AutomationProperties.Name="{x:Static res:Strings.SpeedHeader}" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.SpeedOnlyAnimated}"
                                        Visibility="{Binding IsSpeedEnabled, Converter={StaticResource InverseBoolToVisibility}}" />
+                        </StackPanel>
+                        <!-- Only for the effects that run over the LEDs; the arrow points the way, 0° to the right. -->
+                        <StackPanel Grid.Column="6" Visibility="{Binding IsDirectionVisible, Converter={StaticResource BoolToVisibility}}">
+                            <DockPanel>
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding DirectionText}" />
+                                <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
+                                <Path DockPanel.Dock="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
+                                      Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
+                                      Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
+                                    <Path.RenderTransform>
+                                        <RotateTransform Angle="{Binding Direction}" />
+                                    </Path.RenderTransform>
+                                </Path>
+                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.DirectionHeader}" />
+                            </DockPanel>
+                            <Slider x:Name="DirectionSlider" Minimum="{x:Static vm:MainViewModel.MinDirection}" Maximum="{x:Static vm:MainViewModel.MaxDirection}"
+                                    Value="{Binding Direction}" SmallChange="5" LargeChange="45" IsSnapToTickEnabled="True" TickFrequency="1"
+                                    AutomationProperties.Name="{x:Static res:Strings.DirectionHeader}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.DirectionHelp}"
+                                    AutomationProperties.ItemStatus="{Binding DirectionText}"
+                                    ToolTip="{x:Static res:Strings.DirectionHelp}"
+                                    PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted" />
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                                    Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
+                                    AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
+                                    Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"
+                                    views:FocusFallback.Target="{Binding ElementName=DirectionSlider}" />
                         </StackPanel>
                     </Grid>
                 </StackPanel>

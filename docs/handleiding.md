@@ -82,8 +82,8 @@ schakelaar ernaast.
   voor het hele apparaat (zonder de knop), of + en − bij de kleuren, laat het uit. Bij "Hele huis"
   gaan alle apparaten aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één
   apparaat, dan blijven de andere apparaten zoals ze zijn.
-- **Licht en beweging:** de helderheid (0–100 %), het effect en de snelheid. De helderheid
-  werkt op elk effect.
+- **Licht en beweging:** de helderheid (0–100 %), het effect, de snelheid en bij Regenboog, Golf
+  en een verspreide Kleurenloop de richting. De helderheid werkt op elk effect.
 - **Hele huis of één apparaat:** een wijziging bij "Hele huis" geldt voor alle apparaten, maar
   alleen voor wat je wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die
   kleur. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat weer
@@ -99,9 +99,9 @@ schakelaar ernaast.
   een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
-  het effect, de snelheid, de kleurenloop en de kleuren van het effect meteen de nieuwe
-  verlichting. Een kleur die je aan het mengen bent en nog niet op het apparaat hebt gezet, blijft
-  staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop,
+  het effect, de snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de
+  nieuwe verlichting. Een kleur die je aan het mengen bent en nog niet op het apparaat hebt gezet,
+  blijft staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop,
   Fonkelen, Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan: die
   verandert meteen mee, dus de kleur die je voor het apparaat mengde vervalt.
   De gemengde kleur blijft ook staan als de apparaten opnieuw binnenkomen (een zone met een nieuwe
@@ -129,6 +129,26 @@ schakelaar ernaast.
 - **Snelheid** (10–300 %, standaard 100 %) werkt alleen bij een bewegend effect; bij Statisch
   en Per LED staat de schuif grijs. Een nieuwe snelheid gaat verder waar de animatie was, en
   apparaten die samen een nieuwe snelheid krijgen, blijven gelijk lopen.
+- **Richting** (0–359°) staat naast de snelheid, alleen bij Regenboog, Golf en een Kleurenloop
+  die over de LED's verdeeld is. Zonder richting ("Volgorde" naast de schuif) lopen die effecten
+  over de LED's in hun volgorde, zoals altijd. Verschuif je de schuif, dan lopen ze over de plek
+  van de LED's: 0° naar rechts, 90° naar beneden, 180° naar links en 270° naar boven, met een
+  pijltje naast de graden. Precies 0° kies je met Home op de schuif of een klik op het schuifje
+  zelf. Op een toetsenbord loopt de regenboog zo bijv. schuin over de toetsen
+  (45°: van linksboven naar rechtsonder), op een fan-ring van links naar rechts of van boven naar
+  beneden. Een **strip** (of een andere zone zonder vorm) kan alleen vooruit of achteruit: tussen
+  271° en 89° loopt hij zoals zonder richting, tussen 91° en 269° andersom, en op precies 90° of
+  270° krijgen al zijn LED's dezelfde kleur. **Volgorde van de LED's** onder de schuif zet de
+  richting weer uit. De richting geldt per apparaat, of bij "Hele huis" voor alle apparaten, elk
+  over zijn eigen LED's: een effect loopt niet van het ene apparaat naar het andere. Heeft een
+  apparaat meer zones, dan houdt elke zone zijn deel van het effect, zoals in de volgorde, en
+  loopt het binnen elke zone in de richting; met **Zones gelijk** loopt het over de langste zone
+  en krijgen de andere dat beeld. De plekken zijn die van het voorbeeld: de toetsen uit de
+  matrix-map van OpenRGB (een brede toets als de spatiebalk in het midden van zijn vakjes), een
+  fan-ring als cirkel met LED 1 bovenaan en met de klok mee, en verder een rij. OpenRGB weet niet
+  waar LED 1 van een echte fan zit en welke kant hij op telt; loopt de kleur op de fan zelf een
+  andere kant op dan in het voorbeeld, draai dan de hoek bij. Een apparaat onthoudt zijn richting
+  ook bij een ander effect, en een scène neemt hem mee.
 - **Kleurenloop:** kies het effect, dan verschijnen onder het kleurvoorbeeld de kleuren van de
   loop. Klik op een kleur (hij krijgt een dikke witte rand) en meng een nieuwe, met de hex-code
   erboven of met de schuiven en vaste kleuren rechts: het vakje
@@ -170,7 +190,7 @@ schakelaar ernaast.
 
 #### Voorbeeld
 
-![Het voorbeeld van een toetsenbord met de regenboog](images/voorbeeld.png)
+![Het voorbeeld van een toetsenbord met de regenboog op 45°, schuin over de toetsen](images/voorbeeld.png)
 
 Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn type, de naam en
 **Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
@@ -299,8 +319,8 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
 ("Regenboog · 80%", "Alles uit").
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
-  kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die van de
-  scène, en ook de opgeslagen verlichting.
+  richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
+  van de scène, en ook de opgeslagen verlichting.
 - **"+ Nieuwe scène in elkaar zetten"** vraagt een naam en bewaart de verlichting zoals die nu
   is.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
@@ -489,10 +509,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   Daarmee vervallen ook de `buren-*`-kleuren.
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
   strip zetten" op het apparaat. Extra ten opzichte van het ontwerp: "Licht en beweging"
-  (helderheid, effect, snelheid) en het LED-voorbeeld met de per-LED-editor. Een kleur van de
-  kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's veranderen
-  wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien, dus een
-  knop voegde daar niets toe.
+  (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Een kleur
+  van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's
+  veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
+  dus een knop voegde daar niets toe.
 - **Gereedschapskist:** de vakjes zijn 32 px in plaats van de 44 px van het ontwerp (§ 4,
   "Preset tile"), zodat de negen vaste kleuren op één rij passen en de eigen kleuren eronder
   ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de focusring en hebben hun naam
@@ -502,6 +522,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
   van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes
   zoals de dagen bij een scène, en de teller staat in het monolettertype.
+- **Richting** staat niet in het ontwerp: een vierde schuif in "Licht en beweging", naast en in
+  de stijl van de snelheid, met de graden in het monolettertype en een pijltje dat de kant op
+  wijst. "Volgorde van de LED's" eronder is een link, zoals Verversen. Bij een effect zonder
+  richting blijft de plek van de schuif leeg, zodat de andere drie niet verspringen.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
@@ -681,6 +705,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `brightness` | 0 tot 1, standaard 1 |
 | `effect` | Een van de effecten uit de tabel bij "Effecten", standaard `static`; onbekend wordt `static` |
 | `speed` | Snelheid van een bewegend effect: 1 is normaal, van 0,1 tot 3 |
+| `direction` | De richting van `rainbow`, `wave` en een verspreide `color-loop` in hele graden, 0–359 (0 naar rechts, 90 naar beneden); zonder (of `null`) lopen ze over de LED's in hun volgorde. Buiten één slag telt dezelfde kant (`-90` is `270`), een breuk wordt afgerond, en iets anders dan een getal laat de engine weg. Een oudere versie leest het veld niet: hij laat de effecten over de volgorde lopen en laat het weg als hij het bestand opnieuw schrijft (`settings.json` bij de eerstvolgende wijziging, een scène als je hem opnieuw bewaart), dus daarna is de richting ook voor een nieuwe versie weg |
 | `colorLoop` | De 2–12 kleuren van de Kleurenloop; `spread` op `false` voor alle LED's tegelijk. Zonder (of met te weinig of te veel kleuren): geel, groen, blauw |
 | `effectColors` | Per effect de 1–12 eigen kleuren van `twinkle`, `comet`, `scanner` en `fire`, in volgorde (bij `fire` van koud naar heet). Een effect zonder lijst (of met een lege of te lange lijst) heeft zijn standaard: de kleur van het apparaat, bij `fire` donkerrood, rood, oranje en geel. Een lijst voor een ander effect slaat de engine over |
 | `on` | `false` als het apparaat (of alles) uit staat; zonder is het aan |
@@ -832,10 +857,10 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   een Corsair Commander of een Lian Li-hub) die OpenRGB via USB bereikt. Controllers met
   ARGB-kanalen heten "LED-strip", zo noemt OpenRGB ze.
 - **Toetsenbord, muis en headset** gaan via USB. Regenboog en Golf lopen over de LED-volgorde
-  van OpenRGB, niet over de plek van de toetsen. Een muis of headset met een paar zones van één
-  LED krijgt daardoor per zone een andere kleur; wil je ze gelijk, zet dan "Zones gelijk" aan
-  (zie "Voorbeeld"). OpenRGB ondersteunt maar een deel van de
-  headsets (zie "Supported Devices" op [openrgb.org](https://openrgb.org)); een headset die
+  van OpenRGB; met een **Richting** (zie "Effecten") lopen ze over de plek van de toetsen. Een
+  muis of headset met een paar zones van één LED krijgt daardoor per zone een andere kleur; wil
+  je ze gelijk, zet dan "Zones gelijk" aan (zie "Voorbeeld"). OpenRGB ondersteunt maar een deel
+  van de headsets (zie "Supported Devices" op [openrgb.org](https://openrgb.org)); een headset die
   OpenRGB niet kent, staat ook niet in BuurmansRgb, en er komt geen eigen driver.
 - **Overige types:** muismat, headsetstandaard, speaker, gamepad, microfoon en keypad hebben
   een eigen naam en icoon. Lampen (OpenRGB-type "light"), virtuele apparaten, "accessory" en

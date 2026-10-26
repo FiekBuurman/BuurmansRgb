@@ -41,6 +41,14 @@ public sealed class EffectCatalogTests
         Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectIds.IsAnimated(id), EffectCatalog.Create(id, Orange, []).IsAnimated));
     }
 
+    // The settings app only offers the direction for the effects EffectDirection names, which are
+    // the ones that can run in one; the color loop only when it spreads.
+    [Fact]
+    public void Ids_RunInADirectionExactlyAsEffectDirectionSays()
+    {
+        Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectDirection.Applies(id, spread: true), EffectCatalog.Create(id, Orange, []) is IDirectedEffect));
+    }
+
     [Fact]
     public void Create_UnknownEffect_Throws()
     {

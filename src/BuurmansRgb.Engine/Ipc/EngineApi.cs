@@ -150,6 +150,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task SetDirectionAsync(string? deviceId, int? degrees, CancellationToken ct = default)
+    {
+        _lighting.SetLighting(deviceId, lighting => lighting with { Direction = degrees });
+        return Task.CompletedTask;
+    }
+
     // A copy of the colors, so the caller cannot change the loop afterwards.
     public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default)
     {
@@ -397,7 +403,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // The wire formats are made here, so the lighting model does not know them, and outside the
     // controller's lock.
     private static LightingInfo ToInfo(DeviceLighting lighting) =>
-        new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On, lighting.EffectColors);
+        new(lighting.Color, lighting.Brightness, lighting.EffectId, lighting.Speed, lighting.Loop, lighting.On, lighting.EffectColors, lighting.Direction);
 
     private static LightingFrame ToFrame(LightingOutput output, IReadOnlySet<string>? devices = null) =>
         new(output.Sequence, [.. output.Devices

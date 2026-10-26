@@ -18,6 +18,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string BrightnessCall = "brightness";
     private const string EffectCall = "effect";
     private const string SpeedCall = "speed";
+    private const string DirectionCall = "direction";
     private const string LoopCall = "loop";
     private const string EffectColorsCall = "effect-colors";
     private const string ColorCall = "color";
@@ -117,7 +118,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
-        ColorLoopEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
+        ColorLoopEditor.PropertyChanged += (_, e) => OnColorLoopEditorChanged(e.PropertyName);
         EffectColorsEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
@@ -242,7 +243,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -256,6 +257,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // Only an effect that moves has a speed to set.
     public bool IsSpeedEnabled => EffectIds.IsAnimated(SelectedEffect?.Id);
+
+    // The direction of the effects that run over the LEDs, 0 to 359 degrees (EffectDirection);
+    // the slider shows 0 while there is none (HasDirection).
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DirectionText))]
+    public partial double Direction { get; set; }
+
+    // False while the effect runs along the LEDs in their order, as it does until the user moves
+    // the slider; "Volgorde van de LED's" makes it so again.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DirectionText))]
+    [NotifyCanExecuteChangedFor(nameof(ClearDirectionCommand), nameof(ChooseDirectionCommand))]
+    public partial bool HasDirection { get; private set; }
+
+    // The range of Direction, for the slider.
+    public static double MinDirection { get; } = EffectDirection.Min;
+
+    public static double MaxDirection { get; } = EffectDirection.Max;
+
+    // Only the effects that run over the LEDs have a direction: the rainbow, the wave and the
+    // color loop when it spreads.
+    public bool IsDirectionVisible => EffectDirection.Applies(SelectedEffect?.Id, ColorLoopEditor.Spread);
+
+    public string DirectionText => HasDirection ? UiText.Format(Strings.DirectionDegrees, Direction) : Strings.DirectionAlongLeds;
 
     // Set by the window. While it is minimized, the engine sends no frames for the preview.
     [ObservableProperty]
@@ -473,6 +498,40 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    partial void OnDirectionChanged(double value)
+    {
+        if (!_syncing.IsActive)
+        {
+            SendDirection(value);
+        }
+    }
+
+    // Home or a click on the knob of the slider while there is no direction: the slider stays at
+    // 0 and changes no value, so this is how 0° is chosen.
+    [RelayCommand(CanExecute = nameof(CanChooseDirection))]
+    private void ChooseDirection() => SendDirection(Direction);
+
+    private bool CanChooseDirection() => !HasDirection;
+
+    private void SendDirection(double value)
+    {
+        var degrees = (int)Math.Round(Math.Clamp(value, EffectDirection.Min, EffectDirection.Max));
+        HasDirection = true;
+        Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, degrees));
+    }
+
+    // Back along the LEDs in their order, as before there was a direction.
+    [RelayCommand(CanExecute = nameof(HasDirection))]
+    private void ClearDirection()
+    {
+        _syncing.Run(() =>
+        {
+            HasDirection = false;
+            Direction = 0;
+        });
+        Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, null));
+    }
+
     private async Task LoadAsync(IEngineApi api)
     {
         var devices = await api.GetDevicesAsync();
@@ -626,6 +685,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Brightness = Math.Round(lighting.Brightness * 100.0);
             SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == lighting.EffectId);
             Speed = Math.Round(lighting.Speed * 100.0);
+            Direction = lighting.Direction ?? 0;
+            HasDirection = lighting.Direction is not null;
             // Also when the effect stayed the same, as its colors may not have.
             ShowEffectColors(selectFirst: false);
         });
@@ -695,6 +756,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             : HasEffectColors ? EffectColorsEditor.SelectedColor
             : _deviceColor;
         _syncing.Run(() => ColorPicker.Show(color));
+    }
+
+    // The picker shows the chosen loop color, and the direction only applies to a loop that spreads.
+    private void OnColorLoopEditorChanged(string? changedProperty)
+    {
+        ShowPickerColorFor(changedProperty);
+        if (changedProperty == nameof(ColorLoopEditorViewModel.Spread))
+        {
+            OnPropertyChanged(nameof(IsDirectionVisible));
+        }
     }
 
     // Another selected color in the loop or the list of the effect.

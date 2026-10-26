@@ -12,9 +12,6 @@ namespace BuurmansRgb.UI.ViewModels;
 // to the actions counts from the start of the device.
 public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 {
-    // The most LEDs a single fan ring has; fans have a few dozen at most.
-    public const int MaxRingLeds = 48;
-
     private readonly string _deviceId;
     private readonly string _deviceName;
     private readonly ZoneLayout _layout;
@@ -48,12 +45,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
             Length.PropertyChanged += OnLengthChanged;
         }
 
-        // OpenRGB has no zone type for a ring, and zone names differ per controller ("Fan" on a
-        // graphics card may well be a bar), so only the device type tells a fan. A zone whose
-        // length can be set is a channel of a hub that OpenRGB also calls a cooler (a Lian Li
-        // hub, a Corsair Commander), with a strip or several fans in a row on it, and so is a
-        // zone longer than one fan ring; those stay a row.
-        IsRing = device.Type == DeviceType.Fan && Matrix is null && !layout.Zone.Resizable && layout.LedCount <= MaxRingLeds;
+        // A fan ring as the engine places it (LedPlaces.IsRing), so an effect in a direction runs
+        // over the ring as it shows.
+        IsRing = LedPlaces.IsRing(device.Type, layout.Zone, layout.LedCount);
         LedLabels = CreateLabels();
     }
 

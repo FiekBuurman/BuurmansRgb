@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Effects;
 
@@ -40,6 +41,15 @@ internal static class EffectMath
 
         var left = 1.0 - behind / length;
         return left * left;
+    }
+
+    // An effect in a direction gets one place per LED (IDirectedEffect).
+    public static void ThrowIfNotOnePerLed(Span<RgbColor> leds, ReadOnlySpan<double> positions)
+    {
+        if (positions.Length != leds.Length)
+        {
+            throw new ArgumentException($"There are {leds.Length} LEDs but {positions.Length} places.", nameof(positions));
+        }
     }
 
     // A speed may be negative, which runs the effect the other way, but NaN or infinity would

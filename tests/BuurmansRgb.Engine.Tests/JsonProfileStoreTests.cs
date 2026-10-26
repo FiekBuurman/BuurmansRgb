@@ -78,6 +78,30 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_ThenLoad_RoundTripsTheDirection()
+    {
+        var lighting = new LightingState(
+            new DeviceLighting(Orange, 1.0, EffectIds.Rainbow) { Direction = 135 },
+            new Dictionary<string, DeviceLighting> { ["keyboard"] = new(Blue, 1.0, EffectIds.Wave) { Direction = 270 } },
+            new Dictionary<string, LedColorEntry>());
+
+        _store.Save([new Profile("Diagonaal", lighting)]);
+
+        var scene = Assert.Single(_store.Load()).Lighting;
+        Assert.Equal(135, scene.Global.Direction);
+        Assert.Equal(270, scene.Devices["keyboard"].Direction);
+    }
+
+    // A scene from before the direction: its effects run along the LEDs.
+    [Fact]
+    public void Load_SceneWithoutDirection_RunsAlongTheLeds()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """{ "profiles": [ { "name": "Regenboog", "effect": "rainbow" } ] }""");
+
+        Assert.Null(Assert.Single(_store.Load()).Lighting.Global.Direction);
+    }
+
+    [Fact]
     public void Save_WritesTheNameAndHexColors()
     {
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Orange)))]);

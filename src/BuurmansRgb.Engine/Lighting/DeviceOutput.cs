@@ -14,12 +14,19 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     // The LEDs of each zone that has any, and those after the last zone, which belong to none;
     // with zones alike they all show the image of the longest, which comes first.
-    private readonly (int FirstLed, int LedCount)[] _parts = PartsOf(device);
+    private readonly (int FirstLed, int LedCount, int Part)[] _parts = PartsOf(device);
 
     // Until the first Show; LightingController shows the lighting before it renders.
     private IEffect _effect = new StaticEffect(DeviceLighting.Default.Color);
     private double _brightness = DeviceLighting.Default.Brightness;
     private bool _zonesAlike;
+
+    // With a direction, the place of every LED along it (LedPlaces.Along), and that of the LEDs
+    // of the longest part on their own, for zones alike. Made again only when the direction
+    // changes; a new device list makes a new output.
+    private int? _direction;
+    private double[]? _positions;
+    private double[]? _imagePositions;
     private DeviceFlash? _flash;
     private ZoneCount? _count;
     private int _countFirstLed;
@@ -45,13 +52,16 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     // the next Render on. With zonesAlike the effect renders once, over the longest zone, and
     // every other zone gets that image stretched to its own length, so a mouse with two zones of
     // one LED shows one color in a rainbow. A device with fewer than two zones with LEDs looks the
-    // same either way.
-    public void Show(IEffect effect, double brightness, double speed, bool zonesAlike = false)
+    // same either way. With a direction in degrees, an effect that can run in one
+    // (IDirectedEffect) runs over where the LEDs sit; without one, or for another effect, over
+    // the LEDs in their order, as before there was a direction.
+    public void Show(IEffect effect, double brightness, double speed, bool zonesAlike = false, int? direction = null)
     {
         _effect = effect;
         _brightness = brightness;
         _zonesAlike = zonesAlike;
         Clock.Speed = speed;
+        Aim(direction);
     }
 
     // From time on, the renders show the flash over the effect on the LEDs firstLed to
@@ -82,7 +92,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         if (_zonesAlike && _parts.Length > 1)
         {
             var image = leds.Slice(_parts[0].FirstLed, _parts[0].LedCount);
-            _effect.Render(image, effectTime);
+            RenderEffect(image, _imagePositions, effectTime);
             for (var part = 1; part < _parts.Length; part++)
             {
                 Stretch(image, leds.Slice(_parts[part].FirstLed, _parts[part].LedCount));
@@ -90,7 +100,7 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         }
         else
         {
-            _effect.Render(leds, effectTime);
+            RenderEffect(leds, _positions, effectTime);
         }
 
         if (_brightness < 1.0)
@@ -156,12 +166,49 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         }
     }
 
-    // The parts as RgbZone.PartsOf counts them, as the preview does, without the ones without
-    // LEDs; the longest goes first, the first of them when more are as long.
-    private static (int FirstLed, int LedCount)[] PartsOf(RgbDevice device)
+    private void RenderEffect(Span<RgbColor> leds, double[]? positions, TimeSpan time)
     {
-        (int FirstLed, int LedCount)[] parts =
-            [.. RgbZone.PartsOf(device.Zones, device.LedCount).Where(part => part.LedCount > 0)];
+        if (positions is not null && _effect is IDirectedEffect directed)
+        {
+            directed.Render(leds, positions, time);
+        }
+        else
+        {
+            _effect.Render(leds, time);
+        }
+    }
+
+    private void Aim(int? direction)
+    {
+        if (direction == _direction)
+        {
+            return;
+        }
+
+        _direction = direction;
+        if (direction is not { } degrees)
+        {
+            (_positions, _imagePositions) = (null, null);
+            return;
+        }
+
+        _positions = LedPlaces.Along(Device, degrees);
+        if (_parts.Length > 1)
+        {
+            var (_, count, part) = _parts[0];
+            _imagePositions = LedPlaces.Along(Device.Type, LedPlaces.ZoneOfPart(Device.Zones, part, count), count, degrees);
+        }
+    }
+
+    // The parts as RgbZone.PartsOf counts them, as the preview does, without the ones without
+    // LEDs, with the index of each in PartsOf; the longest goes first, the first of them when more
+    // are as long.
+    private static (int FirstLed, int LedCount, int Part)[] PartsOf(RgbDevice device)
+    {
+        (int FirstLed, int LedCount, int Part)[] parts =
+            [.. RgbZone.PartsOf(device.Zones, device.LedCount)
+                .Select((part, index) => (part.FirstLed, part.LedCount, index))
+                .Where(part => part.LedCount > 0)];
         var longest = 0;
         for (var part = 1; part < parts.Length; part++)
         {

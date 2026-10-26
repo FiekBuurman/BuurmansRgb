@@ -282,6 +282,26 @@
   <data name="SpeedOnlyAnimated" xml:space="preserve">
     <value>Alleen voor bewegende effecten.</value>
   </data>
+  <data name="DirectionHeader" xml:space="preserve">
+    <value>Richting</value>
+    <comment>Schuif voor de hoek van Regenboog, Golf en een verspreide Kleurenloop.</comment>
+  </data>
+  <data name="DirectionDegrees" xml:space="preserve">
+    <value>{0:0}°</value>
+  </data>
+  <data name="DirectionAlongLeds" xml:space="preserve">
+    <value>Volgorde</value>
+    <comment>Waarde naast "Richting" zolang er geen hoek is: het effect loopt langs de LED's in hun volgorde.</comment>
+  </data>
+  <data name="DirectionClear" xml:space="preserve">
+    <value>Volgorde van de LED's</value>
+  </data>
+  <data name="DirectionClearAccessibleName" xml:space="preserve">
+    <value>Richting terug naar de volgorde van de LED's</value>
+  </data>
+  <data name="DirectionHelp" xml:space="preserve">
+    <value>0° loopt naar rechts, 90° naar beneden, 180° naar links en 270° naar boven, over waar de LED's van het apparaat zitten. Een strip kan alleen vooruit of achteruit.</value>
+  </data>
   <data name="SaveAutomatic" xml:space="preserve">
     <value>Wijzigingen worden automatisch opgeslagen.</value>
   </data>

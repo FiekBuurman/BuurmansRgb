@@ -135,6 +135,49 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task SetDirectionAsync_SetsTheDirectionOfTheDeviceAndClearsIt()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        await api.SetDirectionAsync("simulated-keyboard", 45, Ct);
+
+        Assert.Equal(45, (await api.GetLightingAsync("simulated-keyboard", Ct)).Direction);
+        Assert.Null((await api.GetLightingAsync(null, Ct)).Direction);
+
+        await api.SetDirectionAsync("simulated-keyboard", null, Ct);
+
+        Assert.Null((await api.GetLightingAsync("simulated-keyboard", Ct)).Direction);
+        Assert.Equal(2, changes);
+    }
+
+    [Fact]
+    public async Task SetDirectionAsync_AllDevices_SetsEveryDevice()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+        await api.SetSpeedAsync("simulated-fan", 2.0, Ct);
+
+        await api.SetDirectionAsync(null, 270, Ct);
+
+        Assert.All(await api.GetAllLightingAsync(Ct), device => Assert.Equal(270, device.Lighting.Direction));
+    }
+
+    [Theory]
+    [InlineData(EffectDirection.Min - 1)]
+    [InlineData(EffectDirection.Max + 1)]
+    public async Task SetDirectionAsync_OutOfRange_Throws(int degrees)
+    {
+        using var api = CreateApi();
+
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => api.SetDirectionAsync(null, degrees, Ct));
+
+        Assert.Equal("degrees", exception.ParamName);
+    }
+
+    [Fact]
     public async Task SetColorLoopAsync_StoresACopyOfTheColors()
     {
         await _lighting.DiscoverAsync(Ct);

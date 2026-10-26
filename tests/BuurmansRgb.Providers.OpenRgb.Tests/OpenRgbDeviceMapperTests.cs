@@ -96,7 +96,7 @@ public sealed class OpenRgbDeviceMapperTests
         Assert.Null(mapped.Device.Zones[1].Matrix);
     }
 
-    // The preview turns those cells into gaps (LedLayout.Place); the mapper does not own that rule.
+    // The preview turns those cells into gaps (LedPlaces.Place); the mapper does not own that rule.
     [Fact]
     public void Map_KeyMapPointingPastTheZone_PassesTheMapOnAsItIs()
     {

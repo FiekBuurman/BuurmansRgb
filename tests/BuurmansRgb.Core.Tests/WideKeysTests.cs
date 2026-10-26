@@ -1,7 +1,4 @@
-using BuurmansRgb.Core;
-using BuurmansRgb.UI.Views;
-
-namespace BuurmansRgb.UI.Tests;
+namespace BuurmansRgb.Core.Tests;
 
 public sealed class WideKeysTests
 {
@@ -68,14 +65,5 @@ public sealed class WideKeysTests
         var keys = new LedMatrix(2, 3, [No, No, 0, No, No, 1]);
 
         Assert.Equal(keys, WideKeys.Widen(keys, ["Space", "Space"]));
-    }
-
-    // A click on a cell a wide key took picks that key.
-    [Fact]
-    public void LedAt_CellOfAWideKey_IsThatKey()
-    {
-        var keys = WideKeys.Widen(new LedMatrix(1, 4, [0, No, No, 1]), ["Left Shift", "Z"]);
-
-        Assert.Equal(0, LedLayout.LedAt(keys, LedLayout.Pitch, 2.5 * LedLayout.Pitch, 5.0));
     }
 }
