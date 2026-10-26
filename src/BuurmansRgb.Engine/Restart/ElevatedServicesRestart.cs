@@ -43,7 +43,13 @@ internal sealed class ElevatedServicesRestart(string enginePath, IServiceManager
         {
             var code = await Task.Run(() => _runElevated(startInfo, StepTimeout, ct), ct);
             var report = ServicesRestartReport.FromExitCode(code);
+            var cause = ServicesRestartReport.CauseFromExitCode(code);
             Trace.TraceInformation($"The restart of the services ended with 0x{code:X8}: OpenRGB {report.OpenRgb}, PawnIO {report.PawnIo}.");
+            if (cause.Step != ServicesRestartStep.None)
+            {
+                Trace.TraceWarning($"The restart of the services went wrong first at {cause}.");
+            }
+
             return report;
         }
         catch (Win32Exception exception) when (exception.NativeErrorCode == ErrorCancelled)

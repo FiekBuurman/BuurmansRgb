@@ -643,7 +643,8 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
     instellingen-app open, dan gaat die dicht en weer open.
   - Een melding bij het icoon zegt wat er herstart is, bijv. "buurmansRgb is herstart.",
     "OpenRGB is herstart." en "PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt
-    een ander programma hem.".
+    een ander programma hem.". Lukte iets niet, dan staat in `engine.log` wat als eerste misging,
+    bijv. "The restart of the services went wrong first at stopping OpenRGB: TimedOut.".
   - Geef je geen toestemming, dan herstart alleen buurmansRgb ("buurmansRgb is herstart, OpenRGB
     en PawnIO niet: je gaf geen toestemming."). Staan OpenRGB en PawnIO niet als service op de
     pc (bijv. als je OpenRGB zelf start), dan komt er geen UAC-vraag en herstart ook alleen

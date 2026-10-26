@@ -32,6 +32,20 @@ public sealed class ElevatedServicesRestartTests
         Assert.Empty(_services.Calls);
     }
 
+    // The step writes no log; the engine logs the cause it gives in its exit code.
+    [Fact]
+    public async Task RestartAsync_StepGivesACause_LogsIt()
+    {
+        var report = new ServicesRestartReport(ServiceOutcome.Failed, ServiceOutcome.SkippedForOpenRgb);
+        var cause = new ServicesRestartCause(ServicesRestartStep.StopOpenRgb, ServiceControlFailure.TimedOut, 0);
+        var restart = Create(_ => Task.FromResult(report.ToExitCode(cause)));
+        using var trace = new TraceCapture();
+
+        Assert.Equal(report, await restart.RestartAsync(Ct));
+
+        Assert.Contains(trace.Messages, message => message.Contains($"went wrong first at {cause}.", StringComparison.Ordinal));
+    }
+
     [Fact]
     public async Task RestartAsync_UacDeclined_ReportsDeclined()
     {

@@ -160,17 +160,19 @@ internal static class Program
     }
 
     // Any failure ends as a failed step, which the engine reports; an exception would only give
-    // Windows' crash dialog and an exit code the engine reads as failed anyway.
+    // Windows' crash dialog and an exit code the engine reads as failed anyway. The step writes no
+    // log (no file as admin), so the cause of the first failure goes along in the exit code and
+    // the engine logs it.
     private static int RestartServices()
     {
         try
         {
-            return new ServiceRestarter(new WindowsServiceManager()).Restart().ToExitCode();
+            var restarter = new ServiceRestarter(new WindowsServiceManager());
+            return restarter.Restart().ToExitCode(restarter.Cause);
         }
         catch (Exception exception)
         {
-            Trace.TraceError(exception.ToString());
-            return ServicesRestartReport.Failed.ToExitCode();
+            return ServicesRestartReport.Failed.ToExitCode(ServicesRestartCause.From(ServicesRestartStep.Step, exception));
         }
     }
 }

@@ -109,6 +109,47 @@ public sealed class ServiceRestarterTests
         Assert.Equal(new ServicesRestartReport(ServiceOutcome.Failed, ServiceOutcome.Restarted), report);
     }
 
+    // The first failure is the cause: OpenRGB that did not stop, not the start that came after.
+    [Fact]
+    public void Restart_SomethingFails_RemembersTheFirstFailure()
+    {
+        var services = FakeServiceManager.WithBoth();
+        services.StopFailures["OpenRGB"] = ServiceControlFailure.TimedOut;
+        services.StartFailures.Add("OpenRGB");
+        var restarter = new ServiceRestarter(services);
+
+        restarter.Restart();
+
+        Assert.Equal(new ServicesRestartCause(ServicesRestartStep.StopOpenRgb, ServiceControlFailure.TimedOut, 0), restarter.Cause);
+    }
+
+    [Fact]
+    public void Restart_AllWell_HasNoCause()
+    {
+        var services = FakeServiceManager.WithBoth();
+        var restarter = new ServiceRestarter(services);
+        services.StopFailures["PawnIO"] = ServiceControlFailure.NotStoppable;
+        restarter.Restart();
+        services.StopFailures.Clear();
+
+        restarter.Restart();
+
+        Assert.Equal(default, restarter.Cause);
+    }
+
+    [Fact]
+    public void Restart_PawnIoDoesNotStop_IsTheCause()
+    {
+        var services = FakeServiceManager.WithBoth();
+        services.StopFailures["PawnIO"] = ServiceControlFailure.NotStoppable;
+        var restarter = new ServiceRestarter(services);
+
+        restarter.Restart();
+
+        Assert.Equal(ServicesRestartStep.StopPawnIo, restarter.Cause.Step);
+        Assert.Equal(ServiceControlFailure.NotStoppable, restarter.Cause.Failure);
+    }
+
     [Fact]
     public void Restart_NothingInstalled_DoesNothing()
     {
