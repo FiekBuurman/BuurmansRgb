@@ -152,6 +152,24 @@ public sealed class ServiceControlTests
         Assert.DoesNotContain("stop", service.Calls);
     }
 
+    // Runs after half the timeout, then does not stop: it times out at the end of the one timeout,
+    // not after another whole one.
+    [Fact]
+    public void Stop_StillStartingThenStopsNot_TimesOutAtTheEndOfTheOneTimeout()
+    {
+        var service = new FakeServiceHandle(
+            ServiceState.StartPending, ServiceState.StartPending, ServiceState.StartPending, ServiceState.StartPending, ServiceState.StartPending, ServiceState.Running)
+        {
+            AfterStop = [ServiceState.StopPending],
+        };
+
+        var exception = Assert.Throws<ServiceControlException>(() => _control.Stop(service, "OpenRGB", Timeout));
+
+        Assert.Equal(ServiceControlFailure.TimedOut, exception.Failure);
+        Assert.Contains("stop", service.Calls);
+        Assert.Equal(Timeout, _clock.GetElapsedTime(0));
+    }
+
     [Theory]
     [InlineData(1052, (int)ServiceControlFailure.NotStoppable)]
     [InlineData(1061, (int)ServiceControlFailure.NotStoppable)]
