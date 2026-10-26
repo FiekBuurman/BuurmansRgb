@@ -75,6 +75,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Provider
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de apparaten bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents` en de schermbeveiliging met `FakeScreenSaverEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `WindowsProgramsTests` (welke exe-namen een schermbeveiliging of het vergrendelscherm zijn), `SystemScreenSaverEventsTests` (elk venster ervan melden en het einde één keer, een ander venster vooraan beëindigt hem, met de echte `ForegroundHook` en samen met `AutoPause` opnieuw pauzeren na ontgrendelen; met verzonnen vensters, een verzonnen `SPI_GETSCREENSAVERRUNNING` en `FakeTimeProvider`: "Voorbeeld" telt niet en komt in het logboek, wat Windows bevestigt telt, ook een seconde later, maar niet na een ander venster, en er wordt maar één keer opnieuw gevraagd; het vergrendelscherm beëindigt hem niet, zodat de pauze met `AutoPause` zonder gat doorloopt tot het ontgrendelen; geen test start een echte schermbeveiliging, en de echte vlag wordt alleen gelezen), `EffectsPauseViewModelTests`, `MainViewModelPauseTests` (de melding volgt de pauze van de engine, "Hervatten" na de wijzigingen die nog wachten), `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer, en `IsRegistered` volgt dat; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `SwitchOptionViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SettingsAppLauncherTests` (de instellingen-app ontbreekt of is geen programma), `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
+| Herstarten | `ServiceRestarterTests` (de volgorde OpenRGB stoppen, PawnIO stoppen, PawnIO starten, OpenRGB starten; PawnIO dat niet stopt, niet bestaat of onder een andere naam als driver staat; OpenRGB dat niet stopt of niet start), `ServicesRestartReportTests` (de exitcode heen en terug, een crash leest als mislukt), `ElevatedServicesRestartTests` (`runas` met `--restart-services`, een geweigerde UAC, een stap die faalt of te lang duurt, zonder OpenRGB en PawnIO geen UAC), `EngineRestarterTests` (de nieuwe engine krijgt `--restarted` met de uitkomst en `--open-settings` als de app open was, een nieuwe engine die niet start, de echte `SettingsAppWindow` via een eigen mutex), `TrayPresenterTests` (de tooltip tijdens het herstarten, één herstart tegelijk, de melding na afloop en de app weer open), `SingleInstanceTests` (`AcquireWhenFree`) en `WindowsServiceManagerTests` (alleen opzoeken). Alles met fakes (`FakeServiceManager`): geen test stopt of start een echte service of driver, of vraagt UAC |
 | IPC | `EngineApiTests` (ook `SetEffectColorsAsync`: een kopie per effect, voor één apparaat of alle, een effect zonder kleuren of een lijst van 0 of 13 kleuren geweigerd, en een kleurenloop van 12 kleuren bewaard; en `ClearEffectColorsAsync`: weer de standaard, de andere lijsten blijven, bij "Hele huis" op elk apparaat), `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe, ook `EffectColors` in de verlichting en `ClearEffectColorsAsync`), `EffectColorsTests` (welke effecten een lijst hebben, de standaard, `With` en `Without`, gelijkheid per lijst), `LightingTableTests` (de verlichting van "Hele huis" en per apparaat: een apparaat gelijk aan "Hele huis" volgt dat weer, een snelheid, kleurenloop of lijst kleuren die niet past wordt geweigerd), `EngineApiTests` en `EngineRpcTests` voor `GetCustomColorsAsync` en `SetCustomColorsAsync` (een kleur twee keer wordt één, 13 kleuren geweigerd, `OptionsChanged` alleen bij een andere lijst), `CustomColorsTests` (`Normalize`) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen het gekozen apparaat), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
@@ -390,6 +391,26 @@ toetsenbord. Een paar dingen om te proberen:
   `UnregisterHotKey` de toetsen vrijgeeft, en `EngineHost` bewaart het als `hotkeys`. Een
   toets die al bezet is, geeft `false` (gelogd met de Windows-foutcode) en een melding bij het
   icoon; de andere toets werkt gewoon.
+- **Herstarten:** het tray-item roept `TrayPresenter.RestartAsync` aan, dat `EngineRestarter`
+  gebruikt. Eerst kijkt `ElevatedServicesRestart` als gewone gebruiker of de service `OpenRGB`
+  (de naam uit `installer/BuurmansRgb.iss`) of PawnIO er is; zo niet, dan geen UAC. Anders start
+  het dezelfde engine-exe met `--restart-services` via `ShellExecute` met `Verb = "runas"`, en
+  wacht hooguit `ServiceRestarter.MaxDuration` plus 30 s. Die stap (`Program.RestartServices`,
+  zonder instance, log of tray) laat `ServiceRestarter` OpenRGB stoppen, PawnIO stoppen, PawnIO
+  starten en OpenRGB starten, met `WindowsServiceManager` (advapi32 via `LibraryImport`, want
+  `System.ServiceProcess.ServiceController` is een apart NuGet-pakket) en time-outs van 30 s
+  voor OpenRGB en 15 s voor PawnIO. PawnIO zoekt hij als service `PawnIO`, anders als eerste
+  kerneldriver met "PawnIO" in de naam (de echte naam is nog niet op een pc met PawnIO
+  nagekeken). De uitkomst (`ServicesRestartReport`) komt terug als exitcode: `0x4252` in de
+  hoogste 16 bits, dan OpenRGB en PawnIO elk in een byte; al het andere (een crash) leest als
+  mislukt. Geen bestand, zodat het verhoogde proces niets schrijft waar de gebruiker kan
+  schrijven. `ERROR_CANCELLED` (1223) bij het starten is een geweigerde UAC. Daarna vraagt
+  `SettingsAppWindow` een open instellingen-app via haar mutex en exit-signaal
+  (`SingleInstance.ListenForExit`, zoals `--exit` bij de engine) om te sluiten, en start
+  `EngineLauncher` de engine met `--restarted <exitcode>` en zo nodig `--open-settings`. Lukt
+  dat, dan sluit de oude af zoals bij "Afsluiten"; de nieuwe wacht in
+  `SingleInstance.AcquireWhenFree` (elke 200 ms, hooguit 60 s) tot de mutex van de oude weg is,
+  start, meldt via `TrayPresenter.DescribeRestart` wat er herstart is en opent de app weer.
 - **settings.json met de hand:** `SettingsFileWatcher` (achter `ISettingsFileEvents`) zet een
   `FileSystemWatcher` op het bestand; Windows meldt een wijziging, niets pollt. `SettingsReloader`
   wacht 400 ms na de laatste melding (een editor schrijft soms in stappen, of naar een ander
@@ -831,6 +852,30 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    ARGB-strip uitgerekt over hun LED's.
 4. Sleep de schuif "Overlopen" heen en weer terwijl het effect op een echt apparaat staat: het
    apparaat loopt mee zonder te haperen, en de engine blijft onder 1 % van één kern.
+
+### Herstarten
+
+Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
+
+1. Kijk welke naam de driver van PawnIO heeft: `sc query type= driver | findstr /i pawn` in een
+   opdrachtprompt. Zet de naam in `docs/hardware.md`; is het niet `PawnIO`, pas dan
+   `ServiceRestarter.PawnIoService` en deze tekst aan.
+2. Kies "Herstarten" in het tray-menu en keur de UAC-vraag goed. De tooltip zegt
+   "buurmansRgb – herstarten…", het icoon verdwijnt even en komt terug, en de melding zegt
+   "buurmansRgb is herstart.", "OpenRGB is herstart." en "PawnIO is herstart.". Controleer met
+   `netstat -ano | findstr 6742` dat OpenRGB weer luistert op `127.0.0.1:6742`, en dat de
+   apparaten bij Apparaten terugkomen en hun kleur krijgen.
+3. Doe het nog een keer met de instellingen-app open: die gaat dicht en weer open en verbindt
+   met de nieuwe engine.
+4. Kies "Herstarten" en weiger de UAC-vraag: alleen buurmansRgb herstart, met de melding dat
+   OpenRGB en PawnIO niet herstart zijn; OpenRGB blijft verbonden.
+5. Start FanControl of LibreHardwareMonitor (die PawnIO gebruiken) en kies "Herstarten": PawnIO
+   wordt overgeslagen met een melding, OpenRGB herstart wel. Noteer in `docs/hardware.md` wat er
+   gebeurde, ook of PawnIO daarna nog werkt als je dat programma sluit.
+
+Zonder OpenRGB en PawnIO (zoals op een ontwikkel-pc) vraagt "Herstarten" geen UAC en herstart
+het alleen buurmansRgb, met "OpenRGB staat niet als service op deze pc." en "PawnIO is niet
+gevonden.".
 
 ### Scènes
 
