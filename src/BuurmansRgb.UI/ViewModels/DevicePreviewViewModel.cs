@@ -267,14 +267,16 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         for (var index = 0; index < parts.Length; index++)
         {
             var (first, count) = parts[index];
+            var zone = LedPlaces.ZoneOfPart(device.Zones, index, count);
             if (index < device.Zones.Count)
             {
-                layouts.Add(new(device.Zones[index], index, first, count));
+                layouts.Add(new(zone, index, first, count));
             }
             else
             {
+                // The zone the engine places these LEDs in, with the name the preview shows.
                 var name = index == 0 ? device.Name : Strings.ZoneOtherLeds;
-                layouts.Add(new(RgbZone.Fixed(name, count), ZoneLayout.NoZone, first, count));
+                layouts.Add(new(zone with { Name = name }, ZoneLayout.NoZone, first, count));
             }
         }
 
