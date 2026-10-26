@@ -47,10 +47,12 @@ public sealed class LightingControllerOpenRgbRescanTests : IDisposable
         await _openRgb.WhenIdleAsync();
         Assert.DoesNotContain(_lighting.Devices, device => device.Id == headset);
 
+        // The headset was green already before it went; only what comes after the rescan counts.
+        var before = _openRgb.Updates.Count;
         Assert.True(await _lighting.RescanDevicesAsync(Ct));
 
         Assert.Contains(_lighting.Devices, device => device.Id == headset);
-        Assert.Contains(_openRgb.Updates, update => update.Index == 1 && update.Colors.SequenceEqual([Green, Green]));
+        Assert.Contains(_openRgb.Updates.Skip(before), update => update.Index == 1 && update.Colors.SequenceEqual([Green, Green]));
     }
 
     [Fact]
