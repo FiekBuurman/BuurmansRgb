@@ -907,9 +907,13 @@ herstart binnen, zoals bij `profiles.json`. Soepel lezen, zoals `settings.json`:
   slaat de engine over, net als de effecten na de 32e, de stappen na de 32e en de kleuren na de
   1024e.
 - Is het bestand geen geldige JSON, dan zet de engine het opzij als `effects.json.broken` en
-  begint hij zonder eigen effecten. Kan hij het niet lezen (een ander programma heeft het open),
-  dan probeert hij het bij de volgende vraag van de app opnieuw. Tot dan toont een apparaat met
-  een eigen effect zijn eigen kleur, maar houdt het het effect.
+  begint hij zonder eigen effecten. Kan hij het bij het starten niet lezen (een ander programma
+  heeft het open), dan probeert hij het elke 5 seconden opnieuw tot het lukt, ook als de
+  instellingen-app niet open is. Tot dan toont een apparaat met een eigen effect zijn eigen kleur,
+  maar houdt het het effect, en toont de app geen eigen effecten; zodra de engine het bestand
+  gelezen heeft, verschijnen ze vanzelf in de app en speelt het apparaat zijn effect weer.
+- Kan de engine het bestand niet schrijven, dan houdt hij de wijziging en probeert hij het een
+  seconde later opnieuw, tot het lukt of tot afsluiten.
 - Staat in `settings.json` of in een scène een eigen effect dat er niet (meer) is, dan toont dat
   apparaat Statisch in zijn eigen kleur. Bij `settings.json` schrijft de engine dat bij de
   volgende wijziging weg; een scène houdt de `id`.
