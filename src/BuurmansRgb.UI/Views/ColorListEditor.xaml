@@ -13,26 +13,19 @@
     <!-- Rows of at most six tiles (44 wide and 8 apart), as the toolbox above: twelve colors are two
          even rows, and + and − stand to the right of the first row, or under the tiles in a narrow window. -->
     <WrapPanel>
-        <ItemsControl MaxWidth="312" ItemsSource="{Binding Swatches}" Focusable="False" IsTabStop="False">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+        <ItemsControl Style="{StaticResource ColorTileList}" ItemsSource="{Binding Swatches}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:ColorSwatch}">
-                    <Button Width="44" Margin="0,0,8,8" Style="{StaticResource PresetTile}" Tag="{Binding IsSelected}"
-                            Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                            ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
+                    <Button Style="{StaticResource ColorListTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
                             Command="{Binding DataContext.SelectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                             CommandParameter="{Binding Index}" />
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="+"
+        <Button Style="{StaticResource ColorListButton}" Content="+"
                 ToolTip="{x:Static res:Strings.ColorListAdd}" AutomationProperties.Name="{x:Static res:Strings.ColorListAdd}"
                 Command="{Binding AddColorCommand}" />
-        <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="−"
+        <Button Style="{StaticResource ColorListButton}" Content="−"
                 ToolTip="{x:Static res:Strings.ColorListRemove}" AutomationProperties.Name="{x:Static res:Strings.ColorListRemove}"
                 Command="{Binding RemoveColorCommand}" />
     </WrapPanel>

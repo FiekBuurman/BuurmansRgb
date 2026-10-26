@@ -131,4 +131,26 @@ public sealed class EffectCatalogTests
 
         Assert.Equal(ColorLoop.Default.Colors, effect.Colors);
     }
+
+    // The id of an own effect passes, so a settings file keeps it; the controller knows which exist.
+    [Theory]
+    [InlineData(EffectIds.Rainbow, true)]
+    [InlineData("custom:1a2b3c4d", true)]
+    [InlineData("custom:", false)]
+    [InlineData("unknown", false)]
+    public void IsValidId_TheCatalogOrAnOwnEffect(string effectId, bool valid)
+    {
+        Assert.Equal(valid, EffectCatalog.IsValidId(effectId));
+        Assert.Equal(valid, Record.Exception(() => EffectCatalog.ThrowIfUnknown(effectId)) is null);
+    }
+
+    [Fact]
+    public void CreateCustom_PlaysTheStepsWithTheirTimes()
+    {
+        var effect = EffectCatalog.CreateCustom(new CustomEffect("custom:1", "Disco", [new CustomEffectStep(Red, 0.5, 0.25), new CustomEffectStep([Green, Blue], 2, 0)]));
+
+        Assert.Equal(2, effect.StepCount);
+        Assert.Equal(TimeSpan.FromSeconds(2.75), effect.Round);
+        Assert.True(effect.IsAnimated);
+    }
 }

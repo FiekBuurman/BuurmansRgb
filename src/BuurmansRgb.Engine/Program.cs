@@ -86,6 +86,8 @@ internal static class Program
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var customColors = new CustomColorList();
+        // Disposed after the host, so the last change of an own effect is written at the exit.
+        using var customEffects = new CustomEffectLibrary(new JsonCustomEffectStore(JsonCustomEffectStore.DefaultFilePath), lighting);
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // Disposed after the host, which stops listening to it first.
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
@@ -97,7 +99,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -109,7 +111,8 @@ internal static class Program
             profileTimer: profileTimer,
             hotkeys: hotkeys,
             settingsFileEvents: settingsFile,
-            customColors: customColors);
+            customColors: customColors,
+            customEffects: customEffects);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))

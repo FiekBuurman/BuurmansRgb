@@ -39,9 +39,10 @@ internal record LightingSettings
     }
 
     // An unknown or missing effect falls back to static and brightness and speed are kept within
-    // their range, so an old or edited file still loads into what the IPC would accept.
+    // their range, so an old or edited file still loads into what the IPC would accept. The id of
+    // an own effect stays; LightingController shows static instead when that effect is gone.
     public DeviceLighting ToDeviceLighting() =>
-        new(Color, ClampBrightness(Brightness), EffectCatalog.IsKnown(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed))
+        new(Color, ClampBrightness(Brightness), EffectCatalog.IsValidId(Effect) ? Effect : EffectIds.Static, ClampSpeed(Speed))
         {
             Loop = ColorLoop?.ToColorLoop() ?? Contracts.ColorLoop.Default,
             EffectColors = ReadEffectColors(),

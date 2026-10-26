@@ -70,16 +70,18 @@ schakelaar ernaast.
   eigen kleuren (zie "Eigen kleuren"), en de knop **Op de strip zetten**. Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op het apparaat"); pas de
   knop zet hem op het apparaat. Dat geldt voor de kleur van het hele apparaat. Heb je een kleur van de
-  kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, of LED's in het voorbeeld
-  gekozen, dan is er geen knop: die kleur of LED's veranderen meteen mee terwijl je schuift, typt
-  of een vaste kleur kiest (zie "Kleurenloop", "Kleuren van een effect" en "Per-LED-editor").
-  Wat de kiezer kleurt, gaat in deze volgorde: gekozen LED's, dan de kleur van de loop of van het
-  effect, en anders het apparaat.
+  kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, een stap van een eigen effect of
+  LED's in het voorbeeld gekozen, dan is er geen knop: die kleur of LED's veranderen meteen mee
+  terwijl je schuift, typt of een vaste kleur kiest (zie "Kleurenloop", "Kleuren van een effect",
+  "Eigen effecten" en "Per-LED-editor"). Wat de kiezer kleurt, gaat in deze volgorde: gekozen
+  LED's, dan de kleur van de loop of van het effect, dan de gekozen stap van een eigen effect, en
+  anders het apparaat.
 - **Een apparaat dat uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
   meeste lamp-apps: het komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Apparaten)
-  gaat mee. Dat geldt ook voor een kleur van de kleurenloop of van een effect en voor de
-  per-LED-editor: daar gaat het apparaat aan bij de eerste kleur die je mengt, één keer. Alleen mengen
-  voor het hele apparaat (zonder de knop), of + en − bij de kleuren, laat het uit. Bij "Hele huis"
+  gaat mee. Dat geldt ook voor een kleur van de kleurenloop, van een effect of van een stap van
+  een eigen effect en voor de per-LED-editor: daar gaat het apparaat aan bij de eerste kleur die
+  je mengt, één keer. Alleen mengen voor het hele apparaat (zonder de knop), of + en − bij de
+  kleuren, laat het uit. Bij "Hele huis"
   gaan alle apparaten aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één
   apparaat, dan blijven de andere apparaten zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect, de snelheid en bij Regenboog, Golf
@@ -125,10 +127,12 @@ schakelaar ernaast.
 | Scanner | `scanner` | Een punt dat naar de laatste LED en terug gaat, zoals bij Knight Rider, 0,5 keer heen en terug per seconde, elke keer heen of terug in de volgende kleur van het effect (zonder eigen kleuren: de kleur van het apparaat); de kleur wisselt aan het eind, waar het punt omkeert; het remt af bij de uiteinden en trekt een staart die met zijn vaart meegroeit (tot een kwart van de lengte). Eén LED (een muis) licht op telkens als het punt voorbijkomt |
 | Vuur | `fire` | Vuur dat onrustig flakkert, met vlammen van een paar LED's breed: een rustige laag die twee keer per seconde verandert en een snelle die er overheen flakkert. De hitte loopt van de eerste kleur van het effect (de gloed) via de andere naar de laatste (de felste vlam); zonder eigen kleuren is dat donkerrood, rood, oranje en geel. De kleur van het apparaat doet niet mee (zoals bij Regenboog). Elk apparaat brandt op zijn eigen manier; één LED (een muis) flakkert als een kaars |
 | Per LED | `per-led` | Een eigen kleur per LED (zie "Per-LED-editor") |
+| Een eigen effect, onder zijn eigen naam | `custom:` met een code, bijv. `custom:1a2b3c4d` | Je eigen stappen, elk met één kleur of een patroon over de LED's, die in elkaar overlopen (zie "Eigen effecten") |
 
 - **Snelheid** (10–300 %, standaard 100 %) werkt alleen bij een bewegend effect; bij Statisch
-  en Per LED staat de schuif grijs. Een nieuwe snelheid gaat verder waar de animatie was, en
-  apparaten die samen een nieuwe snelheid krijgen, blijven gelijk lopen.
+  en Per LED staat de schuif grijs. Bij een eigen effect gaan alle tijden van de stappen mee: op
+  200 % duurt een stap van 2 seconden er 1. Een nieuwe snelheid gaat verder waar de animatie
+  was, en apparaten die samen een nieuwe snelheid krijgen, blijven gelijk lopen.
 - **Richting** (0–359°) staat naast de snelheid, alleen bij Regenboog, Golf en een Kleurenloop
   die over de LED's verdeeld is. Zonder richting ("Volgorde" naast de schuif) lopen die effecten
   over de LED's in hun volgorde, zoals altijd. Verschuif je de schuif, dan lopen ze over de plek
@@ -187,6 +191,59 @@ schakelaar ernaast.
   gekozen geldt dat voor alle apparaten, ook voor een apparaat met eigen kleuren. De knop is alleen te
   gebruiken als het effect eigen kleuren heeft; bij "Hele huis" telt daarvoor wat "Hele huis"
   zelf heeft.
+
+#### Eigen effecten
+
+![Het paneel Eigen effect op de pagina Kleur](images/eigen-effect.png)
+
+Een eigen effect maak je van **stappen**. Elke stap is één kleur voor het hele apparaat, of een
+patroon over de LED's, en heeft twee tijden: hoe lang hij **blijft staan** en hoe lang hij
+**overloopt** naar de volgende stap. Na de laatste stap begint het weer bij de eerste. Zo maak je
+bijv. een zwaailicht (rood en blauw, elk 0,3 s, zonder overlopen) of een zonsondergang (oranje,
+een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
+
+- **Maken:** kies bij "Licht en beweging" **+ Eigen effect maken** onder het effect. Er komt een
+  effect "Eigen effect 1" (of 2, 3, …) met twee stappen, de kleur van het apparaat en zwart, elk
+  1 seconde met 1 seconde overlopen, en het apparaat (of bij "Hele huis" alles) toont het meteen.
+  Je kunt tot 32 eigen effecten maken; daarna is de link grijs.
+- **Kiezen:** de eigen effecten staan in de effectkeuze onder hun naam, na de gewone effecten en
+  op alfabet. Ze gelden voor alle apparaten: hetzelfde effect kan op meer apparaten tegelijk
+  staan, elk met zijn eigen helderheid en snelheid.
+- **Aanpassen:** met een eigen effect gekozen staat onder het kleurvoorbeeld het paneel **Eigen
+  effect**. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
+  apparaten met dit effect (en het voorbeeld onderaan) laten hem meteen zien; een tweede
+  instellingen-app die open is, ook:
+  - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en twee
+    eigen effecten kunnen niet dezelfde naam hebben (hoofdletters tellen niet); dan staat er
+    een melding onder het vak en blijft de oude naam.
+  - **Stappen:** de vakjes, in rijen van hooguit zes; een patroon staat als verloop in het vakje.
+    Klik op een stap (hij krijgt een dikke witte rand) en meng een kleur met de schuiven, de
+    hex-code of de gereedschapskist: de stap verandert meteen mee. Een patroon wordt dan één
+    kleur. **+** voegt een stap toe na de gekozen, als kopie ervan; **−** haalt de gekozen weg
+    (een effect houdt minstens één stap, en heeft er hooguit 32); **←** en **→** zetten de stap
+    een plek naar voren of naar achteren. Met de toets **Delete** op een stap haal je hem ook
+    weg; de focus gaat naar de stap die ervoor in de plaats komt.
+  - **LED-kleuren van dit apparaat overnemen:** maakt van de gekozen stap een patroon met de
+    kleuren die je bij **Per LED** aan de LED's van het gekozen apparaat gaf (zie
+    "Per-LED-editor"; een LED zonder eigen kleur telt met de kleur van het apparaat). Werkwijze:
+    kies het apparaat, kies Per LED en kleur de LED's, kies dan je eigen effect, kies de stap en
+    neem de kleuren over. Bij "Hele huis" is de link grijs: kies eerst een apparaat.
+  - **Blijven staan** en **Overlopen naar de volgende:** de tijden van de gekozen stap, van 0 tot
+    60 seconden in stappen van 0,1 s (de pijltjes 0,1 s, Page Up en Page Down 1 s). Een stap
+    met 0 en 0 slaat het effect over. Overlopen gaat per LED van zijn kleur in deze stap naar
+    zijn kleur in de volgende.
+  - **Verwijderen** haalt het effect weg, zonder te vragen. Apparaten die het tonen, krijgen
+    Statisch in hun eigen kleur, en de focus gaat naar de effectkeuze.
+- **Patroon op een ander apparaat:** een patroon wordt over de LED's van het apparaat **uitgerekt**
+  (of samengedrukt), net als bij "Zones gelijk": elke LED krijgt de kleur op dezelfde plek in
+  het patroon. Een patroon van een toetsenbord loopt op een fan dus ook van begin tot eind, en
+  een patroon van 24 LED's op een strip van 48 geeft elke kleur twee LED's. Het patroon volgt de
+  volgorde van de LED's, niet de richting (die schuif is er bij een eigen effect niet).
+- **Scènes:** een scène neemt het gekozen eigen effect mee, maar als verwijzing: pas je het effect
+  later aan, dan ziet de scène er ook anders uit. Verwijder je het effect, dan toont een scène met
+  dit effect Statisch in de kleur van het apparaat. De scènekaart zegt bij een eigen effect
+  "Eigen effect", niet zijn naam, met bolletjes in de kleur van het apparaat.
+- Een eigen effect met één stap staat stil, net als Statisch: er draait dan geen animatie.
 
 #### Voorbeeld
 
@@ -510,8 +567,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
   strip zetten" op het apparaat. Extra ten opzichte van het ontwerp: "Licht en beweging"
   (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Een kleur
-  van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's
-  veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
+  van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur), een stap van een eigen
+  effect en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
   dus een knop voegde daar niets toe.
 - **Gereedschapskist:** de vakjes zijn 32 px in plaats van de 44 px van het ontwerp (§ 4,
   "Preset tile"), zodat de negen vaste kleuren op één rij passen en de eigen kleuren eronder
@@ -526,6 +583,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de stijl van de snelheid, met de graden in het monolettertype en een pijltje dat de kant op
   wijst. "Volgorde van de LED's" eronder is een link, zoals Verversen. Bij een effect zonder
   richting blijft de plek van de schuif leeg, zodat de andere drie niet verspringen.
+- **Eigen effect** staat niet in het ontwerp: het paneel onder het kleurvoorbeeld gebruikt de
+  kaart, de vakjes (44 px) met + en − van de kleurenloop, met ← en → in dezelfde ronde knopjes,
+  en de schuiven en het monolettertype van "Licht en beweging". "+ Eigen effect maken" onder de
+  effectkeuze is een link, zoals Verversen. Een eigen pagina met een lijst van alle eigen effecten
+  is er niet: je kiest ze in de effectkeuze, en het paneel past het gekozen effect aan.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
@@ -645,11 +707,12 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 
 ## Instellingenbestanden
 
-Beide bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
-standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scène. Wijzigingen
-uit de app slaat de engine een seconde na de laatste wijziging op, en bij afsluiten. Met de
-hand aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder),
-`profiles.json` terwijl hij niet draait.
+De bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
+standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scène en
+`effects.json` bij het eerste eigen effect. Wijzigingen uit de app, ook aan eigen effecten, slaat
+de engine een seconde na de laatste wijziging op, en bij afsluiten; scènes meteen. Met de hand
+aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder), `profiles.json` en
+`effects.json` terwijl hij niet draait.
 
 ### settings.json
 
@@ -801,6 +864,64 @@ ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde al
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst. Een scène zonder naam, met een naam van meer dan 40 tekens, of met
 dezelfde naam als een eerdere (hoofdletters tellen niet), slaat de engine over.
+
+### effects.json
+
+De eigen effecten (zie "Eigen effecten"), op alfabet. Elk effect heeft een `id` (`custom:` met
+een code, die de engine bij het maken kiest), een `name` en zijn `steps`. Een stap heeft
+`colors` (één kleur, of meer voor een patroon), `hold` (blijven staan) en `fade` (overlopen),
+in seconden. In `settings.json` en in een scène staat bij `effect` de `id`, zodat een nieuwe naam
+daar niets verandert:
+
+```json
+{
+  "effects": [
+    {
+      "id": "custom:1a2b3c4d",
+      "name": "Zwaailicht",
+      "steps": [
+        { "colors": ["#FF0000"], "hold": 0.3, "fade": 0 },
+        { "colors": ["#0000FF"], "hold": 0.3, "fade": 0 }
+      ]
+    },
+    {
+      "id": "custom:9f8e7d6c",
+      "name": "Zonsondergang",
+      "steps": [
+        { "colors": ["#FF8800"], "hold": 2, "fade": 1.5 },
+        { "colors": ["#FF0000", "#C00040", "#800080"], "hold": 3, "fade": 2 }
+      ]
+    }
+  ]
+}
+```
+
+De engine leest het bestand bij het starten, vóór de verlichting, en schrijft het een seconde na
+de laatste wijziging uit de app, en bij afsluiten. Een wijziging met de hand komt pas na een
+herstart binnen, zoals bij `profiles.json`. Soepel lezen, zoals `settings.json`:
+
+- Een kleur die niet te lezen is, valt uit de stap; een stap zonder kleuren valt weg. Een tijd
+  die geen getal is of ontbreekt, is 1 seconde; een tijd onder 0 of boven 60 wordt 0 of 60.
+- Een effect zonder geldige `id` (`custom:` met kleine letters, cijfers of `-`), zonder naam
+  (of met meer dan 40 tekens) of zonder stappen, of met de `id` of de naam van een eerder effect,
+  slaat de engine over, net als de effecten na de 32e, de stappen na de 32e en de kleuren na de
+  1024e.
+- Is het bestand geen geldige JSON, dan zet de engine het opzij als `effects.json.broken` en
+  begint hij zonder eigen effecten. Kan hij het bij het starten niet lezen (een ander programma
+  heeft het open), dan probeert hij het elke 5 seconden opnieuw tot het lukt, ook als de
+  instellingen-app niet open is. Tot dan toont een apparaat met een eigen effect zijn eigen kleur,
+  maar houdt het het effect, en toont de app geen eigen effecten; zodra de engine het bestand
+  gelezen heeft, verschijnen ze vanzelf in de app en speelt het apparaat zijn effect weer.
+- Kan de engine het bestand niet schrijven, dan houdt hij de wijziging en probeert hij het een
+  seconde later opnieuw, tot het lukt of tot afsluiten.
+- Staat in `settings.json` of in een scène een eigen effect dat er niet (meer) is, dan toont dat
+  apparaat Statisch in zijn eigen kleur. Bij `settings.json` schrijft de engine dat bij de
+  volgende wijziging weg; een scène houdt de `id`.
+- Een **oudere versie** van vóór de eigen effecten kent `effects.json` niet en laat het staan.
+  Een `custom:`-effect in `settings.json` of een scène leest hij als een onbekend effect, dus als
+  Statisch in de kleur van het apparaat. Bij de volgende wijziging schrijft hij `settings.json`
+  zo weg, en een scène die je opnieuw bewaart ook; ga je terug naar deze versie, dan staan de
+  eigen effecten er nog, maar staat dat apparaat op Statisch tot je het effect weer kiest.
 
 ### Logbestanden
 

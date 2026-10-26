@@ -1,5 +1,6 @@
 <!-- Kleur mengen (§ 5.2 and § 6): the lamp to change at the top; left a big preview with the strip and the
-     hex code, right the Rood, Groen and Blauw sliders, the presets and "Op de strip zetten". Below them the
+     hex code, and under it the colors of the loop or of the effect, or the editor of an own effect; right the
+     Rood, Groen and Blauw sliders, the presets and "Op de strip zetten". Below them the
      brightness, effect, speed and direction of the lamp, and the preview of its LEDs with the per-LED editor
      and the zone lengths. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ColorPage"
@@ -204,6 +205,79 @@
                                     ToolTipService.ShowOnDisabled="True" Command="{Binding ResetEffectColorsCommand}" />
                         </StackPanel>
                     </Border>
+
+                    <!-- With an own effect: its name, its steps and the times of the chosen step; the mixed color goes
+                         to that step. Deleting it hides the panel, and the focus goes to the effect choice. -->
+                    <Border x:Name="CustomEffectPanel" Margin="0,14,0,0" Style="{StaticResource LargeCard}"
+                            Visibility="{Binding IsCustomEffect, Converter={StaticResource BoolToVisibility}}"
+                            views:FocusFallback.Target="{Binding ElementName=EffectChoice}">
+                        <StackPanel DataContext="{Binding CustomEffectEditor}">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.CustomEffectDelete}"
+                                        ToolTip="{x:Static res:Strings.CustomEffectDeleteToolTip}" Command="{Binding DeleteCommand}"
+                                        AutomationProperties.Name="{x:Static res:Strings.CustomEffectDeleteAccessibleName}" />
+                                <TextBlock VerticalAlignment="Center" Style="{StaticResource Body}" Text="{x:Static res:Strings.CustomEffectHeader}" />
+                            </DockPanel>
+                            <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
+
+                            <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
+                            <!-- The name counts when the box loses the focus, or with Enter. -->
+                            <TextBox Text="{Binding Name}" MaxLength="40" KeyDown="OnCustomEffectNameKeyDown"
+                                     AutomationProperties.Name="{x:Static res:Strings.CustomEffectNameAccessibleName}" />
+                            <DockPanel Margin="0,6,0,0" Visibility="{Binding NameError, Converter={StaticResource NullToCollapsed}}">
+                                <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                                <TextBlock TextWrapping="Wrap" Text="{Binding NameError, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+                            </DockPanel>
+
+                            <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectStepsLabel}" />
+                            <!-- Rows of at most six tiles, as the color lists; a pattern shows as a gradient. -->
+                            <WrapPanel>
+                                <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="{x:Type vm:CustomEffectStepItem}">
+                                            <Button Style="{StaticResource ColorListTile}" Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
+                                                    AutomationProperties.HelpText="{x:Static res:Strings.CustomEffectStepHelp}"
+                                                    Command="{Binding DataContext.SelectStepCommand, ElementName=StepTiles}"
+                                                    CommandParameter="{Binding Index}" PreviewKeyDown="OnStepKeyDown" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Style="{StaticResource ColorListButton}" Content="+"
+                                        ToolTip="{x:Static res:Strings.CustomEffectStepAdd}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepAdd}"
+                                        Command="{Binding AddStepCommand}" Click="OnStepButtonClick" />
+                                <Button Style="{StaticResource ColorListButton}" Content="−"
+                                        ToolTip="{x:Static res:Strings.CustomEffectStepRemove}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepRemove}"
+                                        Command="{Binding RemoveStepCommand}" Click="OnStepButtonClick" />
+                                <Button Style="{StaticResource ColorListButton}" Content="←"
+                                        ToolTip="{x:Static res:Strings.CustomEffectStepEarlier}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepEarlier}"
+                                        Command="{Binding MoveStepEarlierCommand}" Click="OnStepButtonClick" />
+                                <Button Style="{StaticResource ColorListButton}" Content="→"
+                                        ToolTip="{x:Static res:Strings.CustomEffectStepLater}" AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepLater}"
+                                        Command="{Binding MoveStepLaterCommand}" Click="OnStepButtonClick" />
+                            </WrapPanel>
+                            <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedStepText}" />
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                                    Content="{x:Static res:Strings.CustomEffectTakePattern}" ToolTip="{x:Static res:Strings.CustomEffectTakePatternToolTip}"
+                                    ToolTipService.ShowOnDisabled="True"
+                                    Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+
+                            <DockPanel Margin="0,10,0,0">
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding HoldText}" />
+                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectHold}" />
+                            </DockPanel>
+                            <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                                    Value="{Binding HoldSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
+                                    AutomationProperties.Name="{x:Static res:Strings.CustomEffectHold}" AutomationProperties.ItemStatus="{Binding HoldText}" />
+                            <DockPanel Margin="0,10,0,0">
+                                <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding FadeText}" />
+                                <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectFade}" />
+                            </DockPanel>
+                            <Slider Minimum="{x:Static vm:CustomEffectEditorViewModel.MinSeconds}" Maximum="{x:Static vm:CustomEffectEditorViewModel.MaxSeconds}"
+                                    Value="{Binding FadeSeconds}" SmallChange="0.1" LargeChange="1" IsSnapToTickEnabled="True" TickFrequency="0.1"
+                                    AutomationProperties.Name="{x:Static res:Strings.CustomEffectFade}" AutomationProperties.ItemStatus="{Binding FadeText}" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2">
@@ -301,8 +375,12 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.EffectHeader}" />
-                            <ComboBox ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
+                            <ComboBox x:Name="EffectChoice" ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
                                       AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
+                            <!-- A new own effect of steps, which the editor above then shows. -->
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                                    Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
+                                    ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
                         </StackPanel>
                         <StackPanel Grid.Column="4">
                             <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
