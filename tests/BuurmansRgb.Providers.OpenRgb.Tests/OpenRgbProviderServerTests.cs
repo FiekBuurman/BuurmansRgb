@@ -84,9 +84,11 @@ public sealed class OpenRgbProviderServerTests
 
         Assert.True(await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
 
-        Assert.Equal(1, server.RescanRequests);
+        await Eventually.TrueAsync(() => server.RescanRequests == 1, TestTimeouts.Long);
         Assert.Equal(2, (await provider.DiscoverAsync(Ct)).Count);
-        Assert.Equal(4, server.ClientNames.Count);
+
+        // The new watcher sends its name without an answer, so the server may not have it yet.
+        await Eventually.TrueAsync(() => server.ClientNames.Count == 4, TestTimeouts.Long);
         await Eventually.TrueAsync(() => server.ClientCount == 2, TestTimeouts.Long);
     }
 }
