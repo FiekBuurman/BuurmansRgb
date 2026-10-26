@@ -78,7 +78,7 @@ public sealed class LedPreviewView : FrameworkElement
     // The cells of a row or key map, holding only LEDs below Colors.Count, and the arrangement of
     // the LEDs. Both are made again only when the number of LEDs, the width, the matrix or the LED
     // names change, not on every frame.
-    private LedMatrix _layout = LedLayout.Wrap(0, 1);
+    private LedMatrix _layout = LedPlaces.Wrap(0, 1);
     private (int LedCount, int Columns, LedMatrix? Matrix, IReadOnlyList<string>? Names) _layoutFor;
     private ILedArrangement? _arrangement;
 
@@ -551,7 +551,7 @@ public sealed class LedPreviewView : FrameworkElement
         if (_layoutFor.LedCount != count || _layoutFor.Columns != columns || !ReferenceEquals(_layoutFor.Matrix, matrix)
             || !ReferenceEquals(_layoutFor.Names, names))
         {
-            _layout = matrix is null ? LedLayout.Wrap(count, columns) : WideKeys.Widen(LedLayout.Place(matrix, count), names);
+            _layout = matrix is null ? LedPlaces.Wrap(count, columns) : WideKeys.Widen(LedPlaces.Place(matrix, count), names);
             _layoutFor = (count, columns, matrix, names);
         }
 

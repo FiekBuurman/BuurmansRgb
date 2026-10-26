@@ -3,9 +3,8 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
 
-// Where the preview draws the LEDs of a fan ring, at full size from the top left of the ring.
-// OpenRGB tells neither where a fan starts nor which way it counts, so the ring reads like a
-// clock: LED 0 at the top, then clockwise.
+// Where the preview draws the LEDs of a fan ring, at full size from the top left of the ring, on
+// the circle of LedPlaces.OnRing.
 public static class RingLayout
 {
     // The distance from the middle of the ring to the middle of its LEDs. Two neighbours are a
@@ -20,15 +19,13 @@ public static class RingLayout
     // The width and height of a ring of ledCount LEDs.
     public static double Size(int ledCount) => ledCount == 0 ? 0.0 : 2.0 * Radius(ledCount) + LedLayout.LedSize;
 
-    // The middle of an LED.
+    // The middle of an LED, where LedPlaces.OnRing puts it, so the engine and the preview agree.
     public static Point Center(int led, int ledCount)
     {
-        ArgumentOutOfRangeException.ThrowIfNegative(led);
-        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(led, ledCount);
+        var (right, down) = LedPlaces.OnRing(led, ledCount);
         var radius = Radius(ledCount);
         var middle = radius + LedLayout.LedSize / 2.0;
-        var angle = 2.0 * Math.PI * led / ledCount;
-        return new(middle + radius * Math.Sin(angle), middle - radius * Math.Cos(angle));
+        return new(middle + radius * right, middle + radius * down);
     }
 
     // The LED under a point of a ring drawn at scale; NoLed outside the LEDs. Like a cell of a

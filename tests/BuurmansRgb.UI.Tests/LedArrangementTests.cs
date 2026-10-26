@@ -26,7 +26,7 @@ public sealed class LedArrangementTests
     [Fact]
     public void Cells_WithoutLeds_HaveNoSize()
     {
-        var arrangement = new CellArrangement(LedLayout.Wrap(0, 1), LedLayout.Pitch, 0, keys: false);
+        var arrangement = new CellArrangement(LedPlaces.Wrap(0, 1), LedLayout.Pitch, 0, keys: false);
 
         Assert.Equal(default, arrangement.Size);
         Assert.Empty(arrangement.Bounds);
@@ -71,7 +71,7 @@ public sealed class LedArrangementTests
         [
             new RingArrangement(12, 1.0),
             new RingArrangement(12, 0.5),
-            new CellArrangement(LedLayout.Wrap(12, 5), LedLayout.Pitch, 12, keys: false),
+            new CellArrangement(LedPlaces.Wrap(12, 5), LedLayout.Pitch, 12, keys: false),
         ];
 
         foreach (var arrangement in arrangements)
