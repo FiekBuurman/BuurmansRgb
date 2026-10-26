@@ -40,11 +40,14 @@ internal readonly record struct ServicesRestartReport(ServiceOutcome OpenRgb, Se
 
     private const int OpenRgbShift = 20;
     private const int PawnIoShift = 16;
-    private const int OutcomeMask = 0xF;
     private const int StepShift = 13;
-    private const int StepMask = 0x7;
     private const int FailureShift = 11;
-    private const int FailureMask = 0x3;
+
+    // Every value of ServiceOutcome, ServicesRestartStep and ServiceControlFailure fits in its
+    // mask (ServicesRestartReportTests); the masks only keep a wrong value out of the other fields.
+    internal const int OutcomeMask = 0xF;
+    internal const int StepMask = 0x7;
+    internal const int FailureMask = 0x3;
     private const int Win32ErrorMask = 0x7FF;
 
     public static ServicesRestartReport Declined { get; } = new(ServiceOutcome.Declined, ServiceOutcome.Declined);
@@ -64,7 +67,7 @@ internal readonly record struct ServicesRestartReport(ServiceOutcome OpenRgb, Se
         }
 
         var win32Error = cause.Win32Error is > 0 and <= Win32ErrorMask ? cause.Win32Error : 0;
-        return code | ((int)cause.Step << StepShift) | (((int)cause.Failure & FailureMask) << FailureShift) | win32Error;
+        return code | (((int)cause.Step & StepMask) << StepShift) | (((int)cause.Failure & FailureMask) << FailureShift) | win32Error;
     }
 
     // Anything that is not an exit code of this step counts as a failed step.

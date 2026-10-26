@@ -125,4 +125,25 @@ public sealed class ServicesRestartReportTests
     {
         Assert.Null(ServicesRestartReport.ParseArgument(text));
     }
+
+    // Each field of the exit code holds every value of its enum; a new value past that would end
+    // up in another field.
+    [Fact]
+    public void Enums_FitInTheirBits()
+    {
+        Assert.All(Enum.GetValues<ServiceOutcome>(), outcome => Assert.InRange((int)outcome, 0, ServicesRestartReport.OutcomeMask));
+        Assert.All(Enum.GetValues<ServicesRestartStep>(), step => Assert.InRange((int)step, 0, ServicesRestartReport.StepMask));
+        Assert.All(Enum.GetValues<ServiceControlFailure>(), failure => Assert.InRange((int)failure, 0, ServicesRestartReport.FailureMask));
+    }
+
+    // A step out of range stays out of the outcomes of OpenRGB and PawnIO.
+    [Fact]
+    public void ExitCode_StepOutOfRange_LeavesTheOutcomes()
+    {
+        var report = new ServicesRestartReport(ServiceOutcome.Restarted, ServiceOutcome.NotInstalled);
+
+        var code = report.ToExitCode(new ServicesRestartCause((ServicesRestartStep)0xF, ServiceControlFailure.TimedOut, 0));
+
+        Assert.Equal(report, ServicesRestartReport.FromExitCode(code));
+    }
 }
