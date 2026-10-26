@@ -59,12 +59,21 @@ internal static class Program
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
 
-        // Disposed after the counter: the length it gives back reaches OpenRGB before the provider
-        // closes, unless OpenRGB takes longer than this.
-        using var resizesSent = new DisposeAction(() => openRgb.WaitUntilIdle(ResizesOnExitTimeout));
+        // Disposed after the counter: a length it gave back reaches OpenRGB before the provider
+        // closes, unless OpenRGB takes longer than this. Without one, nothing waits.
+        var lengthGivenBack = false;
+        using var resizesSent = new DisposeAction(() =>
+        {
+            if (lengthGivenBack)
+            {
+                openRgb.WaitUntilIdle(ResizesOnExitTimeout);
+            }
+        });
 
-        // Disposed before the lengths and the lighting, so a zone that is counted gets its length back.
+        // Disposed before the lengths and the lighting, so a zone that is counted gets its length
+        // back: the count stops just before the counter goes, which then has nothing left to stop.
         using var zoneCounter = new ZoneCounter(lighting, zoneLengths);
+        using var countStopped = new DisposeAction(() => lengthGivenBack = zoneCounter.StopAll());
 
         // On this thread, which pumps the tray messages and so also the power, session, screen,
         // clock and foreground events, and the screen saver through the foreground.

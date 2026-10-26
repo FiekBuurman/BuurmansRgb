@@ -132,12 +132,13 @@ internal sealed class ZoneCounter : IDisposable
         }
     }
 
-    // Stops any count, such as before the devices are searched again.
-    public void StopAll()
+    // Stops any count, such as before the devices are searched again. True when its zone got its
+    // length back, so a resize may still be on its way to the device.
+    public bool StopAll()
     {
         lock (_gate)
         {
-            EndLocked(restore: true);
+            return EndLocked(restore: true);
         }
     }
 
@@ -176,28 +177,27 @@ internal sealed class ZoneCounter : IDisposable
         StopAll();
     }
 
-    private void EndLocked(bool restore)
+    // True when the zone got its length back.
+    private bool EndLocked(bool restore)
     {
         if (_counting is not { } counting)
         {
-            return;
+            return false;
         }
 
         _counting = null;
         _lighting.StopCount();
-        if (restore)
-        {
-            Restore(counting);
-        }
+        return restore && Restore(counting);
     }
 
-    // Best effort: a zone that went or changed meanwhile keeps what it has.
-    private void Restore(Counting counting)
+    // Best effort: a zone that went or changed meanwhile keeps what it has. True when the zone got
+    // its length back.
+    private bool Restore(Counting counting)
     {
         var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == counting.DeviceId);
         if (device is null || counting.ZoneIndex >= device.Zones.Count || device.Zones[counting.ZoneIndex].Name != counting.ZoneName)
         {
-            return;
+            return false;
         }
 
         try
@@ -206,10 +206,12 @@ internal sealed class ZoneCounter : IDisposable
             // count may not have been in the device list yet when it started.
             var length = _lengths.LengthOf(counting.DeviceId, counting.ZoneName) ?? counting.OldLength;
             _lengths.GiveLengthBack(counting.DeviceId, counting.ZoneIndex, length);
+            return true;
         }
         catch (ArgumentException exception)
         {
             Trace.TraceWarning($"Could not give zone '{counting.ZoneName}' of '{counting.DeviceId}' its length back after counting: {exception.Message}");
+            return false;
         }
     }
 
