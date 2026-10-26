@@ -208,15 +208,16 @@
                             Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
 
                     <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" />
+                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine fit one row. -->
                     <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <views:CardGrid MinColumnWidth="44" MaxColumns="6" Gap="10" />
+                                <WrapPanel />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ColorPreset}">
-                                <Button Style="{StaticResource PresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
+                                <Button Margin="0,0,8,8" Style="{StaticResource SmallPresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
                                         ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
                                         Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding Color}">

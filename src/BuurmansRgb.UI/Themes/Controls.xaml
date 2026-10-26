@@ -440,6 +440,17 @@
         </Style.Triggers>
     </Style>
 
+    <!-- A preset tile of the toolbox on Kleur: a square of SmallTileSize instead of 44 px high, with
+         smaller corners to go with it. The tiles of a list of colors stay PresetTile. -->
+    <Style x:Key="SmallPresetTile" TargetType="Button" BasedOn="{StaticResource PresetTile}">
+        <Style.Resources>
+            <CornerRadius x:Key="TileRadius">8</CornerRadius>
+        </Style.Resources>
+        <Setter Property="Width" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="Height" Value="{StaticResource SmallTileSize}" />
+        <Setter Property="MinWidth" Value="0" />
+    </Style>
+
     <!-- A text link as a button, such as "+ Erbij knutselen". -->
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
