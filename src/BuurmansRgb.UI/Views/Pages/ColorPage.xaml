@@ -43,6 +43,25 @@
             <Setter Property="Margin" Value="-6,0,0,0" />
             <Setter Property="MaxLength" Value="7" />
         </Style>
+
+        <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
+             mixes it, and it is marked when it is the mixed color. -->
+        <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
+            <Setter Property="ToolTip" Value="{Binding Name}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="CommandParameter" Value="{Binding Color}" />
+            <Setter Property="Tag">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EqualValues}">
+                        <Binding Path="Color" />
+                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -217,17 +236,7 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ColorPreset}">
-                                <Button Margin="0,0,8,8" Style="{StaticResource SmallPresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                        ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
-                                        Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding Color}">
-                                    <Button.Tag>
-                                        <MultiBinding Converter="{StaticResource EqualValues}">
-                                            <Binding Path="Color" />
-                                            <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                        </MultiBinding>
-                                    </Button.Tag>
-                                </Button>
+                                <Button Style="{StaticResource ToolboxTile}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -248,17 +257,8 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:CustomColorItem}">
-                                    <Button Margin="0,0,8,8" Style="{StaticResource SmallPresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                            ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
-                                            AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
-                                            Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding Color}" PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
-                                        <Button.Tag>
-                                            <MultiBinding Converter="{StaticResource EqualValues}">
-                                                <Binding Path="Color" />
-                                                <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                            </MultiBinding>
-                                        </Button.Tag>
+                                    <Button Style="{StaticResource ToolboxTile}" AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
+                                            PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
                                         <Button.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem Header="{x:Static res:Strings.CustomColorRemove}" Click="OnRemoveCustomColorClick" />
