@@ -46,15 +46,17 @@ internal static class Program
             return RestartServices();
         }
 
+        IReadOnlyList<string> restartWarnings = [];
         using var instance = options.Restarted is null
             ? SingleInstance.Acquire(EngineRpc.EngineName)
-            : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, LogBeforeStart);
+            : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, out restartWarnings);
         if (!instance.IsPrimary)
         {
             // The old engine did not exit, also not after the second wait; it may still run, and
-            // this one stops. PreviousEngine logged it.
+            // this one stops. Not in engine.log, which the old one may still write.
             if (options.Restarted is not null)
             {
+                PreviousEngine.WriteStopLog(Path.Combine(FileLog.DefaultDirectory, PreviousEngine.StopLogFileName), restartWarnings);
                 return 0;
             }
 
@@ -78,6 +80,11 @@ internal static class Program
 
         // After the single-instance check, so a second start does not write to the log of the first.
         using var log = FileLog.Start("engine");
+        foreach (var warning in restartWarnings)
+        {
+            Trace.TraceWarning(warning);
+        }
+
         ApplicationConfiguration.Initialize();
 
         var autoStart = RegistryAutoStart.ForCurrentProcess();
@@ -159,14 +166,6 @@ internal static class Program
 
         Trace.TraceInformation("Engine stopped.");
         return 0;
-    }
-
-    // One line in the engine log before FileLog.Start, which only the primary engine calls. The
-    // old engine may still write to the same file; both append and share it.
-    private static void LogBeforeStart(string message)
-    {
-        using var log = new FileLog(Path.Combine(FileLog.DefaultDirectory, "engine.log"), TimeProvider.System);
-        log.TraceEvent(eventCache: null, source: string.Empty, TraceEventType.Warning, id: 0, message);
     }
 
     // Any failure ends as a failed step, which the engine reports; an exception would only give

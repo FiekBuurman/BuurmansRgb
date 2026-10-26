@@ -6,38 +6,49 @@ namespace BuurmansRgb.Engine.Tests;
 // The engine that "Herstarten" started, waiting for the old one; with a mutex of its own name, so
 // no running engine notices. The old one is like an engine on its way out after "Afsluiten": it
 // holds the mutex, but no longer listens for the exit signal.
-public sealed class PreviousEngineTests
+public sealed class PreviousEngineTests : IDisposable
 {
     private static readonly TimeSpan Wait = TimeSpan.FromMilliseconds(300);
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(20);
 
     private readonly string _name = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
-    private readonly List<string> _log = [];
+    private readonly string _directory = Path.Combine(Path.GetTempPath(), $"BuurmansRgb.Tests.{Guid.NewGuid():N}");
 
-    [Fact]
-    public void AcquireAfterRestart_OldOneGone_IsPrimaryWithoutLogging()
+    public void Dispose()
     {
-        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, _log.Add);
-
-        Assert.True(instance.IsPrimary);
-        Assert.Empty(_log);
+        if (Directory.Exists(_directory))
+        {
+            Directory.Delete(_directory, recursive: true);
+        }
     }
 
-    // An old engine that holds on past the first wait, but exits during the second.
     [Fact]
-    public void AcquireAfterRestart_OldOneExitsLate_WaitsOnceMoreAndTakesOver()
+    public void AcquireAfterRestart_OldOneGone_IsPrimaryWithoutWarnings()
     {
-        var old = OldEngineOnItsWayOut();
-
-        // The old one exits right after the first wait, when this one logs that it waits again.
-        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, line =>
-        {
-            _log.Add(line);
-            old.Dispose();
-        });
+        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, out var warnings);
 
         Assert.True(instance.IsPrimary);
-        var line = Assert.Single(_log);
+        Assert.Empty(warnings);
+    }
+
+    // An old engine that holds on past the first wait, but exits during the second. A longer wait,
+    // so the old one exits well within the second one, also on a busy test machine.
+    [Fact]
+    public async Task AcquireAfterRestart_OldOneExitsLate_WaitsOnceMoreAndTakesOver()
+    {
+        var wait = TimeSpan.FromSeconds(1);
+        var old = OldEngineOnItsWayOut();
+        var exit = Task.Run(async () =>
+        {
+            await Task.Delay(wait + wait / 2, Ct);
+            old.Dispose();
+        }, Ct);
+
+        using var instance = PreviousEngine.AcquireAfterRestart(_name, wait, Poll, out var warnings);
+
+        await exit;
+        Assert.True(instance.IsPrimary);
+        var line = Assert.Single(warnings);
         Assert.Contains("waiting another", line, StringComparison.Ordinal);
         Assert.False(ExitSignalIsSet());
     }
@@ -45,16 +56,36 @@ public sealed class PreviousEngineTests
     // An old engine that does not exit at all keeps running; this one is not primary and says so,
     // and leaves no exit signal behind for an engine that starts later.
     [Fact]
-    public void AcquireAfterRestart_OldOneStays_IsNotPrimaryAndLogsIt()
+    public void AcquireAfterRestart_OldOneStays_IsNotPrimaryAndWarns()
     {
         using var old = OldEngineOnItsWayOut();
 
-        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, _log.Add);
+        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, out var warnings);
 
         Assert.False(instance.IsPrimary);
-        Assert.Equal(2, _log.Count);
-        Assert.Contains("this engine stops", _log[1], StringComparison.Ordinal);
+        Assert.Equal(2, warnings.Count);
+        Assert.Contains("this engine stops", warnings[1], StringComparison.Ordinal);
         Assert.False(ExitSignalIsSet());
+    }
+
+    // The engine that stops writes to a file of its own, next to the engine.log of the old one,
+    // which it leaves alone.
+    [Fact]
+    public void WriteStopLog_WritesEachWarningToItsOwnFile()
+    {
+        var engineLog = Path.Combine(_directory, "engine.log");
+        Directory.CreateDirectory(_directory);
+        File.WriteAllText(engineLog, "old engine\n");
+        var path = Path.Combine(_directory, PreviousEngine.StopLogFileName);
+
+        PreviousEngine.WriteStopLog(path, ["first", "second"]);
+
+        var lines = File.ReadAllLines(path);
+        Assert.Equal(2, lines.Length);
+        Assert.Contains("Warning", lines[0], StringComparison.Ordinal);
+        Assert.EndsWith("first", lines[0], StringComparison.Ordinal);
+        Assert.EndsWith("second", lines[1], StringComparison.Ordinal);
+        Assert.Equal("old engine\n", File.ReadAllText(engineLog));
     }
 
     // Listened for the exit signal while it ran, and stopped listening when it left its message loop.
