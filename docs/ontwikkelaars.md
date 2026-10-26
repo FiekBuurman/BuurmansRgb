@@ -401,8 +401,8 @@ toetsenbord. Een paar dingen om te proberen:
   `System.ServiceProcess.ServiceController` is een apart NuGet-pakket) en time-outs van 30 s
   voor OpenRGB en 15 s voor PawnIO. PawnIO zoekt hij als service `PawnIO`, anders als eerste
   kerneldriver met "PawnIO" in de naam (de echte naam is nog niet op een pc met PawnIO
-  nagekeken). De uitkomst (`ServicesRestartReport`) komt terug als exitcode: `0x42` in de
-  hoogste byte, dan OpenRGB en PawnIO elk in 4 bits, en in de laagste 16 bits de oorzaak van de
+  nagekeken; de bronnen voor `PawnIO` staan in `openrgb-meeleveren.md`). De uitkomst
+  (`ServicesRestartReport`) komt terug als exitcode: `0x42` in de hoogste byte, dan OpenRGB en PawnIO elk in 4 bits, en in de laagste 16 bits de oorzaak van de
   eerste fout (`ServicesRestartCause`: welke stap, de `ServiceControlFailure` en de Win32-code
   tot 2047). De engine logt die oorzaak ("The restart of the services went wrong first at
   stopping OpenRGB: TimedOut."), zodat "zie het logbestand" in de melding klopt; al het andere
@@ -865,7 +865,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
 
 1. Kijk welke naam de driver van PawnIO heeft: `sc query type= driver | findstr /i pawn` in een
-   opdrachtprompt. Zet de naam in `docs/hardware.md`; is het niet `PawnIO`, pas dan
+   opdrachtprompt. Zet de naam in `docs/hardware.md` en bij "Naam van de driver" in
+   `docs/openrgb-meeleveren.md`; is het niet `PawnIO`, pas dan
    `ServiceRestarter.PawnIoService` en deze tekst aan.
 2. Kies "Herstarten" in het tray-menu en keur de UAC-vraag goed. De tooltip zegt
    "buurmansRgb – herstarten…", het icoon verdwijnt even en komt terug, en de melding zegt

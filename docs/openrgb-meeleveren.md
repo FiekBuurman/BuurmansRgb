@@ -69,6 +69,19 @@ msiexec /i OpenRGB_1.1_Windows_64_8e16de2.msi /qn /norestart ADDLOCAL=OpenRGBApp
   (2.2.0: `1F519A22E47187F70A1379A48CA604981C4FCF694F4E65B734AAA74A9FBA3032`).
 - De OpenRGB-zip bevat de PawnIO-modules (`Smbus*.bin`) en `PawnIOLib.dll`, maar **niet de
   driver**. Zonder PawnIO werken moederbord, RAM en (vaak) GPU niet.
+- **Naam van de driver (voor "Herstarten"):** vermoedelijk `PawnIO`, maar dat is een vermoeden
+  tot het op een echte pc met PawnIO is bevestigd (`sc query type= driver | findstr /i pawn`,
+  zie "Herstarten" in `ontwikkelaars.md`). Daarom zoekt `ServiceRestarter` eerst de service
+  `PawnIO` en anders de eerste kerneldriver met "PawnIO" in de naam. De bronnen:
+  - LibreHardwareMonitor herkent PawnIO aan de Uninstall-sleutel
+    `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO` en opent het apparaat
+    `\\?\GLOBALROOT\Device\PawnIO`
+    ([PawnIo.cs](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor/blob/master/LibreHardwareMonitorLib/PawnIo/PawnIo.cs)).
+  - FanControl spreekt van de "PawnIO service", zonder de precieze naam
+    ([issue 3683](https://github.com/Rem0o/FanControl.Releases/issues/3683)).
+  - winget kent het pakket `namazso.PawnIO` (2.2.0); de repository
+    [namazso/PawnIO.Setup](https://github.com/namazso/PawnIO.Setup) bevat alleen releases, dus
+    de naam staat niet in een bron van de setup.
 
 ## Voorstel voor de installer
 

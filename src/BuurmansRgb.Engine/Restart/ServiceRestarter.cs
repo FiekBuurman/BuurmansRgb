@@ -13,8 +13,9 @@ internal sealed class ServiceRestarter(IServiceManager services)
     // The name the installer gives the service (installer/BuurmansRgb.iss, OpenRgbService).
     public const string OpenRgbService = "OpenRGB";
 
-    // The name the PawnIO setup is thought to give its driver; not checked on a pc with PawnIO yet,
-    // so FindPawnIo also looks for a driver with "PawnIO" in its name.
+    // The name the PawnIO setup is thought to give its driver: a guess until it is checked on a pc
+    // with PawnIO, so FindPawnIo also looks for a driver with "PawnIO" in its name. Where the guess
+    // comes from (LibreHardwareMonitor, FanControl, winget): docs/openrgb-meeleveren.md, "PawnIO".
     public const string PawnIoService = "PawnIO";
 
     public static TimeSpan OpenRgbStopTimeout { get; } = TimeSpan.FromSeconds(30);
