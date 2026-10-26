@@ -31,22 +31,21 @@ public sealed class PreviousEngineTests : IDisposable
         Assert.Empty(warnings);
     }
 
-    // An old engine that holds on past the first wait, but exits during the second. A longer wait,
-    // so the old one exits well within the second one, also on a busy test machine.
+    // An old engine that holds on past the first wait, but exits before the second: it exits in
+    // the callback between the two waits, so the test does not hang on timing.
     [Fact]
-    public async Task AcquireAfterRestart_OldOneExitsLate_WaitsOnceMoreAndTakesOver()
+    public void AcquireAfterRestart_OldOneExitsLate_WaitsOnceMoreAndTakesOver()
     {
-        var wait = TimeSpan.FromSeconds(1);
         var old = OldEngineOnItsWayOut();
-        var exit = Task.Run(async () =>
+        var stillRunning = 0;
+
+        using var instance = PreviousEngine.AcquireAfterRestart(_name, Wait, Poll, out var warnings, () =>
         {
-            await Task.Delay(wait + wait / 2, Ct);
+            stillRunning++;
             old.Dispose();
-        }, Ct);
+        });
 
-        using var instance = PreviousEngine.AcquireAfterRestart(_name, wait, Poll, out var warnings);
-
-        await exit;
+        Assert.Equal(1, stillRunning);
         Assert.True(instance.IsPrimary);
         var line = Assert.Single(warnings);
         Assert.Contains("waiting another", line, StringComparison.Ordinal);

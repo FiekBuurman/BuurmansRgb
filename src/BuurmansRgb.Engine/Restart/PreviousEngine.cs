@@ -19,8 +19,9 @@ internal static class PreviousEngine
     // The warnings come back instead of being written here: engine.log is still the old engine's
     // until it is gone, and two FileLogs that append to the same file each write at their own
     // position and so overwrite each other's lines. The engine traces them once it is primary and
-    // its own FileLog runs; when it stops, it writes them with WriteStopLog.
-    public static SingleInstance AcquireAfterRestart(string name, TimeSpan timeout, TimeSpan pollInterval, out IReadOnlyList<string> warnings)
+    // its own FileLog runs; when it stops, it writes them with WriteStopLog. onStillRunning is
+    // called between the two waits, so a test can let the old one exit right then.
+    public static SingleInstance AcquireAfterRestart(string name, TimeSpan timeout, TimeSpan pollInterval, out IReadOnlyList<string> warnings, Action? onStillRunning = null)
     {
         var instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval);
         if (instance.IsPrimary)
@@ -34,6 +35,7 @@ internal static class PreviousEngine
             $"Restarted: the previous engine still runs after {timeout.TotalSeconds:0} s; waiting another {timeout.TotalSeconds:0} s.",
         };
         instance.Dispose();
+        onStillRunning?.Invoke();
 
         instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval);
         if (!instance.IsPrimary)
