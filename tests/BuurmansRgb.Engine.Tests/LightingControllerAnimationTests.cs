@@ -205,27 +205,34 @@ public sealed class LightingControllerAnimationTests : IDisposable
 
     // With a listener that does nothing, as with the settings app closed; an open settings app
     // copies every frame for its preview. Every effect that moves, as each renders its own way, and
-    // the effects with a list of colors also with four of them.
+    // the effects with a list of colors, and the color loop, also with four and with twelve, the most.
     [Theory]
     [InlineData(EffectIds.Rainbow, 0)]
     [InlineData(EffectIds.Twinkle, 0)]
     [InlineData(EffectIds.Comet, 0)]
     [InlineData(EffectIds.Scanner, 0)]
     [InlineData(EffectIds.Fire, 0)]
+    [InlineData(EffectIds.ColorLoop, 0)]
     [InlineData(EffectIds.Twinkle, 4)]
     [InlineData(EffectIds.Comet, 4)]
     [InlineData(EffectIds.Scanner, 4)]
     [InlineData(EffectIds.Fire, 4)]
+    [InlineData(EffectIds.ColorLoop, 4)]
+    [InlineData(EffectIds.Twinkle, 12)]
+    [InlineData(EffectIds.Comet, 12)]
+    [InlineData(EffectIds.Scanner, 12)]
+    [InlineData(EffectIds.Fire, 12)]
+    [InlineData(EffectIds.ColorLoop, 12)]
     public async Task RenderAnimationFrame_WithoutASettingsApp_AllocatesNothing(string effectId, int colorCount)
     {
         var simulated = new SimulatedDeviceProvider();
         using var controller = new LightingController([simulated], new SteppingTimeProvider(Frame));
         await controller.DiscoverAsync(Ct);
         var lighting = new DeviceLighting(Orange, 0.5, effectId);
-        controller.Apply(LightingStates.Uniform(colorCount == 0 ? lighting : lighting with
-        {
-            EffectColors = EffectColors.None.With(effectId, [.. new[] { Red, Green, Blue, Orange }.Take(colorCount)]),
-        }));
+        RgbColor[] colors = [.. Twelve.Take(colorCount)];
+        controller.Apply(LightingStates.Uniform(colorCount == 0 ? lighting
+            : effectId == EffectIds.ColorLoop ? lighting with { Loop = new ColorLoop(colors) }
+            : lighting with { EffectColors = EffectColors.None.With(effectId, colors) }));
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
