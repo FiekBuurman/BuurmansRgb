@@ -18,9 +18,15 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // The sequence of the newest count the engine reported (ZoneCountInfo.Sequence).
     private long _countSequence;
 
-    // The zone this app last started to count, until it asks to stop it: only that count stops by
-    // itself here. Another settings app may count a zone at the same time.
+    // The zone this app last started to count, until it asks to stop it, keeps its length ("Dit is
+    // de laatste") or the engine ends it: only that count stops by itself here. Another settings
+    // app may count a zone at the same time, also the same zone after this count ended.
     private (string DeviceId, int ZoneIndex)? _ownCount;
+
+    // The sequence of the first state in which the engine reported the count of this app; null
+    // until then. Only a state after it that no longer counts that zone ends the count of this
+    // app: a None from before the start can still be on its way.
+    private long? _ownCountSequence;
 
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
@@ -94,7 +100,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     public void ForgetZoneCount()
     {
         _countSequence = 0;
-        _ownCount = null;
+        ForgetOwnCount();
         Show(ZoneCountInfo.None);
     }
 
@@ -110,7 +116,33 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         }
 
         _countSequence = count.Sequence;
+        FollowOwnCount(count);
         Show(count);
+    }
+
+    // The engine confirms the count of this app, or ends it by itself, such as at a pause, at
+    // Verversen or with a new list of devices.
+    private void FollowOwnCount(ZoneCountInfo count)
+    {
+        if (_ownCount is not { } own)
+        {
+            return;
+        }
+
+        if (count.Counts(own.DeviceId, own.ZoneIndex))
+        {
+            _ownCountSequence ??= count.Sequence;
+        }
+        else if (count.Sequence > _ownCountSequence)
+        {
+            ForgetOwnCount();
+        }
+    }
+
+    private void ForgetOwnCount()
+    {
+        _ownCount = null;
+        _ownCountSequence = null;
     }
 
     private void Show(ZoneCountInfo count)
@@ -142,7 +174,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 
         if (stopOutOfView && shown is not null && Count is null && _count.Counts(shown.DeviceId, shown.ZoneIndex) && IsOwn(shown))
         {
-            _ownCount = null;
+            ForgetOwnCount();
             _count = ZoneCountInfo.None;
             ZoneCountStopRequested?.Invoke(this, new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
         }
@@ -253,7 +285,17 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
 
     void IPreviewActions.ClearLedSelection() => LedSelectionCleared?.Invoke(this, EventArgs.Empty);
 
-    void IPreviewActions.ResizeZone(ZoneResize resize) => ZoneResizeRequested?.Invoke(this, resize);
+    // A new length of the counted zone, such as from "Dit is de laatste", ends its count in the
+    // engine.
+    void IPreviewActions.ResizeZone(ZoneResize resize)
+    {
+        if (_ownCount == (resize.DeviceId, resize.ZoneIndex))
+        {
+            ForgetOwnCount();
+        }
+
+        ZoneResizeRequested?.Invoke(this, resize);
+    }
 
     void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
 
@@ -264,6 +306,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     void IPreviewActions.StartZoneCount(ZoneCountStart start)
     {
         _ownCount = (start.DeviceId, start.ZoneIndex);
+        _ownCountSequence = null;
         ZoneCountStartRequested?.Invoke(this, start);
     }
 
@@ -274,7 +317,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     {
         if (_ownCount == (stop.DeviceId, stop.ZoneIndex))
         {
-            _ownCount = null;
+            ForgetOwnCount();
         }
 
         if (_count.Counts(stop.DeviceId, stop.ZoneIndex))
