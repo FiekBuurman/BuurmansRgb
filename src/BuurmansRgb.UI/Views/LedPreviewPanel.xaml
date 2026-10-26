@@ -97,7 +97,7 @@
                                                                   views:FocusKeeper.Key="{Binding LedsFocusKey}"
                                                                   AutomationProperties.Name="{Binding AccessibleName}" />
                                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.EmptyZoneHint}"
-                                                       Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />
+                                                       Visibility="{Binding ShowsEmptyZoneHintText, Converter={StaticResource BoolToVisibility}}" />
                                             <!-- The count of the LEDs while it runs, instead of the length: a big counter, a
                                                  status that a screen reader reads when it changes (not at every LED), and the
                                                  controls, which keep the focus when the preview is made again. When the count

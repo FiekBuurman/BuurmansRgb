@@ -143,7 +143,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // The count of the LEDs of this zone while it runs (ZoneCountViewModel), shown instead of the
     // controls of the length; null otherwise.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsLength), nameof(IsCounting))]
+    [NotifyPropertyChangedFor(nameof(ShowsLength), nameof(IsCounting), nameof(ShowsEmptyZoneHintText))]
     public partial ZoneCountViewModel? Count { get; private set; }
 
     public bool IsCounting => Count is not null;
@@ -164,6 +164,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // A zone whose length can be set but that shows no LEDs, typically a header of which OpenRGB
     // does not know what is on it: the view explains how to give it the LEDs of the fan or strip.
     public bool ShowsEmptyZoneHint => CanResize && ShownLedCount == 0;
+
+    // The hint under the LEDs, which tells how to set the length: not while the count is there
+    // instead of the length controls.
+    public bool ShowsEmptyZoneHintText => ShowsEmptyZoneHint && Count is null;
 
     // The hint for the length controls too, so a screen reader reads it where the LEDs are set.
     public string? LedCountHelpText => ShowsEmptyZoneHint ? Strings.EmptyZoneHint : null;
@@ -275,6 +279,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         OnPropertyChanged(nameof(Details));
         OnPropertyChanged(nameof(Header));
         OnPropertyChanged(nameof(ShowsEmptyZoneHint));
+        OnPropertyChanged(nameof(ShowsEmptyZoneHintText));
         OnPropertyChanged(nameof(LedCountHelpText));
     }
 

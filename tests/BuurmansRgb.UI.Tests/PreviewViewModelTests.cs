@@ -288,6 +288,7 @@ public sealed class PreviewViewModelTests
         Assert.Equal(4, zones[1].Count!.Led);
         Assert.True(zones[1].IsCounting);
         Assert.False(zones[1].ShowsLength);
+        Assert.False(zones[1].ShowsEmptyZoneHintText);
         Assert.Same(zones[1].Count, preview.Count);
     }
 
