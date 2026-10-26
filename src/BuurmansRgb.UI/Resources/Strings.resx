@@ -980,4 +980,16 @@
   <data name="SceneAtTimesAndProgram" xml:space="preserve">
     <value>{0} om {1:HH:mm} en nog {2} · bij {3}</value>
   </data>
+  <data name="Effect_custom" xml:space="preserve">
+    <value>Eigen effect</value>
+  </data>
+  <data name="CustomEffectNew" xml:space="preserve">
+    <value>+ Eigen effect maken</value>
+  </data>
+  <data name="CustomEffectNewToolTip" xml:space="preserve">
+    <value>Maakt een nieuw effect van stappen, elk met een kleur of een patroon over de LED's, en kiest het meteen. Je kunt tot 32 eigen effecten maken.</value>
+  </data>
+  <data name="CustomEffectNewName" xml:space="preserve">
+    <value>Eigen effect {0}</value>
+  </data>
 </root>

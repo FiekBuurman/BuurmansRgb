@@ -40,6 +40,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FrameDevicesCall = "frame-devices";
     private const string ProfilesReloadCall = "profiles-reload";
     private const string OptionsReloadCall = "options-reload";
+    private const string CustomEffectsReloadCall = "custom-effects-reload";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -81,6 +82,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // The LED edit that waits for the stored colors of its device; see EditLedsAsync.
     private StartingEdit? _startingEdit;
+
+    // The effects of the engine itself, and the own effects of the user, in alphabetical order of
+    // their names, as the engine gave them and with the changes sent since.
+    private IReadOnlyList<string> _engineEffects = [];
+    private IReadOnlyList<CustomEffect> _customEffects = [];
+
+    // Counts the changes to own effects sent from here, so a list fetched while the user changed
+    // one does not bring back an older version.
+    private int _customEffectChanges;
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one.
@@ -255,8 +265,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public static double MaxSpeed { get; } = EffectSpeed.Max * 100.0;
 
-    // Only an effect that moves has a speed to set.
-    public bool IsSpeedEnabled => EffectIds.IsAnimated(SelectedEffect?.Id);
+    // Only an effect that moves has a speed to set; an own effect may get more steps any moment.
+    public bool IsSpeedEnabled => EffectIds.IsAnimated(SelectedEffect?.Id) || SelectedEffect?.IsCustom == true;
 
     // The direction of the effects that run over the LEDs, 0 to 359 degrees (EffectDirection);
     // the slider shows 0 while there is none (HasDirection).
@@ -331,6 +341,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.ProfilesChanged += OnProfilesChanged;
             connection.Api.OptionsChanged += OnOptionsChanged;
             connection.Api.ZoneCountChanged += OnZoneCountChanged;
+            connection.Api.CustomEffectsChanged += OnCustomEffectsChanged;
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
@@ -532,18 +543,101 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, null));
     }
 
+    // The effects of the engine and then the own effects under their names. Only when that list
+    // changed, so the choice keeps its item; the chosen effect stays chosen while it is there.
+    private void ShowEffects()
+    {
+        EffectOption[] options = [.. _engineEffects.Select(EffectOption.Create), .. _customEffects.Select(EffectOption.For)];
+        if (!options.SequenceEqual(Effects))
+        {
+            var selectedId = SelectedEffect?.Id;
+            _syncing.Run(() =>
+            {
+                Effects.Clear();
+                foreach (var option in options)
+                {
+                    Effects.Add(option);
+                }
+
+                SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == selectedId);
+            });
+        }
+
+        NewCustomEffectCommand.NotifyCanExecuteChanged();
+    }
+
+    // "+ Eigen effect maken": a new effect of two steps, the color of the lamp and black, a second
+    // each with a second to fade, under the first free name "Eigen effect 1", "Eigen effect 2", ...
+    // Once the engine has saved it, it is the chosen effect, so the lamp shows it and the editor
+    // opens on it.
+    [RelayCommand(CanExecute = nameof(CanCreateCustomEffect))]
+    private void NewCustomEffect()
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var name = Enumerable.Range(1, CustomEffects.MaxEffects + 1)
+            .Select(number => UiText.Format(Strings.CustomEffectNewName, number))
+            .First(candidate => !_customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
+        var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
+        _customEffectChanges++;
+        _calls.Post(new object(), async () =>
+        {
+            var saved = await connection.Api.SaveCustomEffectAsync(effect);
+            RunOnUi(() =>
+            {
+                if (!ReferenceEquals(connection, _connection))
+                {
+                    return;
+                }
+
+                ShowCustomEffect(saved);
+                SelectedEffect = Effects.FirstOrDefault(option => option.Id == saved.Id) ?? SelectedEffect;
+            });
+        });
+    }
+
+    private bool CanCreateCustomEffect() => _connection is not null && _customEffects.Count < CustomEffects.MaxEffects;
+
+    // An effect as this app sent it or the engine saved it, in its place in the alphabet.
+    private void ShowCustomEffect(CustomEffect effect)
+    {
+        _customEffects = [.. _customEffects.Where(other => other.Id != effect.Id).Append(effect).OrderBy(other => other.Name, CustomEffects.NameComparer)];
+        ShowEffects();
+    }
+
+    // Another settings app saved or deleted an effect, or this one did. In the queue, behind the
+    // changes of this app that wait, and only shown when no change was sent meanwhile.
+    private void OnCustomEffectsChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var changes = _customEffectChanges;
+        _calls.Post(CustomEffectsReloadCall, async () =>
+        {
+            var effects = await connection.Api.GetCustomEffectsAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection) && changes == _customEffectChanges)
+                {
+                    _customEffects = effects;
+                    ShowEffects();
+                }
+            });
+        });
+    });
+
     private async Task LoadAsync(IEngineApi api)
     {
         var devices = await api.GetDevicesAsync();
-        var effects = await api.GetEffectsAsync();
-        _syncing.Run(() =>
-        {
-            Effects.Clear();
-            foreach (var effect in effects)
-            {
-                Effects.Add(EffectOption.Create(effect));
-            }
-        });
+        _engineEffects = await api.GetEffectsAsync();
+        _customEffects = await api.GetCustomEffectsAsync();
+        ShowEffects();
 
         ShowDevices(devices);
         await ShowSelectionAsync();
@@ -1308,6 +1402,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.ProfilesChanged -= OnProfilesChanged;
         connection.Api.OptionsChanged -= OnOptionsChanged;
         connection.Api.ZoneCountChanged -= OnZoneCountChanged;
+        connection.Api.CustomEffectsChanged -= OnCustomEffectsChanged;
         connection.Dispose();
     }
 

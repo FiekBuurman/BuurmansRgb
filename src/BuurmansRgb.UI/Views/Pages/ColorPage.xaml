@@ -301,8 +301,12 @@
                         </StackPanel>
                         <StackPanel Grid.Column="2">
                             <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.EffectHeader}" />
-                            <ComboBox ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
+                            <ComboBox x:Name="EffectChoice" ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
                                       AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
+                            <!-- A new own effect of steps, which the editor above then shows. -->
+                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                                    Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
+                                    ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
                         </StackPanel>
                         <StackPanel Grid.Column="4">
                             <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
