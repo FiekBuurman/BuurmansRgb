@@ -382,6 +382,44 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Empty(_api.FlashCalls);
     }
 
+    // A change with only some values keeps the others null on the way.
+    [Fact]
+    public async Task ZoneCountCalls_SendTheDeviceZoneAndChange()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.StartZoneCountAsync("board", 2, 5, Ct);
+        await client.Api.SetZoneCountAsync("board", 2, new ZoneCountChange(Led: 37), Ct);
+        await client.Api.SetZoneCountAsync("board", 2, new ZoneCountChange(Running: false, LedsPerSecond: 2), Ct);
+        await client.Api.StopZoneCountAsync("board", 2, Ct);
+
+        Assert.Equal(
+            [
+                "start board 2 5",
+                $"set board 2 {new ZoneCountChange(Led: 37)}",
+                $"set board 2 {new ZoneCountChange(Running: false, LedsPerSecond: 2)}",
+                "stop board 2",
+            ],
+            _api.ZoneCountCalls);
+    }
+
+    [Fact]
+    public async Task ZoneCount_CrossesThePipeAsAnswerAndAsEvent()
+    {
+        var client = await ConnectAsync();
+        var received = new TaskCompletionSource<ZoneCountInfo>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.ZoneCountChanged += (_, count) => received.TrySetResult(count);
+
+        var count = await client.Api.GetZoneCountAsync(Ct);
+        _api.RaiseZoneCount(ZoneCountInfo.None);
+
+        Assert.Equal(new ZoneCountInfo("board", 1, 37, 120, 2, true), count);
+        Assert.True(count.IsCounting);
+        var none = await received.Task.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal(ZoneCountInfo.None, none);
+        Assert.False(none.IsCounting);
+    }
+
     [Fact]
     public async Task RescanDevicesAsync_GivesTheAnswerBack()
     {
@@ -493,6 +531,8 @@ public sealed class EngineRpcTests : IDisposable
         public event EventHandler? ProfilesChanged;
 
         public event EventHandler? OptionsChanged;
+
+        public event EventHandler<ZoneCountInfo>? ZoneCountChanged;
 
         public void RaiseProfilesChanged() => ProfilesChanged?.Invoke(this, EventArgs.Empty);
 
@@ -668,6 +708,31 @@ public sealed class EngineRpcTests : IDisposable
             FlashZoneCalls.Add((deviceId, zoneIndex));
             return Task.CompletedTask;
         }
+
+        public List<string> ZoneCountCalls { get; } = [];
+
+        public Task StartZoneCountAsync(string deviceId, int zoneIndex, int ledsPerSecond, CancellationToken ct = default)
+        {
+            ZoneCountCalls.Add($"start {deviceId} {zoneIndex} {ledsPerSecond}");
+            return Task.CompletedTask;
+        }
+
+        public Task SetZoneCountAsync(string deviceId, int zoneIndex, ZoneCountChange change, CancellationToken ct = default)
+        {
+            ZoneCountCalls.Add($"set {deviceId} {zoneIndex} {change}");
+            return Task.CompletedTask;
+        }
+
+        public Task StopZoneCountAsync(string deviceId, int zoneIndex, CancellationToken ct = default)
+        {
+            ZoneCountCalls.Add($"stop {deviceId} {zoneIndex}");
+            return Task.CompletedTask;
+        }
+
+        public Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default) =>
+            Task.FromResult(new ZoneCountInfo("board", 1, 37, 120, 2, true));
+
+        public void RaiseZoneCount(ZoneCountInfo count) => ZoneCountChanged?.Invoke(this, count);
 
         public int RescanCalls { get; private set; }
 

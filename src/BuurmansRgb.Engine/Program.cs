@@ -55,6 +55,8 @@ internal static class Program
         using var lighting = new LightingController([simulatedDevices, openRgb]);
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
+        // Disposed before the lengths and the lighting, so a zone that is counted gets its length back.
+        using var zoneCounter = new ZoneCounter(lighting, zoneLengths);
 
         // On this thread, which pumps the tray messages and so also the power, session, screen,
         // clock and foreground events, and the screen saver through the foreground.
@@ -81,7 +83,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,

@@ -22,6 +22,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly ProfileTimer? _profileTimer;
     private readonly AllOnOffHotkeys? _hotkeys;
     private readonly CustomColorList? _customColors;
+    private readonly ZoneCounter? _zoneCounter;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -38,8 +39,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         AutoPause? autoPause = null,
         ProfileTimer? profileTimer = null,
         AllOnOffHotkeys? hotkeys = null,
-        CustomColorList? customColors = null)
+        CustomColorList? customColors = null,
+        ZoneCounter? zoneCounter = null)
     {
+        _zoneCounter = zoneCounter;
         _autoPause = autoPause;
         _profileTimer = profileTimer;
         _hotkeys = hotkeys;
@@ -66,6 +69,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _profileTimer?.CatchUpChanged += OnOptionsChanged;
         _hotkeys?.EnabledChanged += OnOptionsChanged;
         _customColors?.Changed += OnOptionsChanged;
+        _lighting.CountChanged += OnCountChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -83,6 +87,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler? ProfilesChanged;
 
     public event EventHandler? OptionsChanged;
+
+    public event EventHandler<ZoneCountInfo>? ZoneCountChanged;
 
     // Zones alike is read after the devices; when it changes in between, DevicesChanged follows.
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default)
@@ -179,9 +185,18 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // Through the counter when there is one, so a count of the zone ends with this length.
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
     {
-        _zoneLengths.ResizeZone(deviceId, zoneIndex, ledCount);
+        if (_zoneCounter is { } counter)
+        {
+            counter.ResizeZone(deviceId, zoneIndex, ledCount);
+        }
+        else
+        {
+            _zoneLengths.ResizeZone(deviceId, zoneIndex, ledCount);
+        }
+
         return Task.CompletedTask;
     }
 
@@ -203,7 +218,36 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
-    public Task<bool> RescanDevicesAsync(CancellationToken ct = default) => _lighting.RescanDevicesAsync(ct);
+    // This UI is the owner of the count it starts, so the count stops when it goes. Without the
+    // counter (in tests) nothing is counted.
+    public Task StartZoneCountAsync(string deviceId, int zoneIndex, int ledsPerSecond, CancellationToken ct = default)
+    {
+        _zoneCounter?.Start(deviceId, zoneIndex, ledsPerSecond, owner: this);
+        return Task.CompletedTask;
+    }
+
+    public Task SetZoneCountAsync(string deviceId, int zoneIndex, ZoneCountChange change, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        _zoneCounter?.Change(deviceId, zoneIndex, change);
+        return Task.CompletedTask;
+    }
+
+    public Task StopZoneCountAsync(string deviceId, int zoneIndex, CancellationToken ct = default)
+    {
+        _zoneCounter?.Stop(deviceId, zoneIndex);
+        return Task.CompletedTask;
+    }
+
+    public Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Count);
+
+    // A count stops first and gives its zone its length back, so the new list has the zone as the
+    // user knows it.
+    public Task<bool> RescanDevicesAsync(CancellationToken ct = default)
+    {
+        _zoneCounter?.StopAll();
+        return _lighting.RescanDevicesAsync(ct);
+    }
 
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
 
@@ -335,7 +379,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _profileTimer?.CatchUpChanged -= OnOptionsChanged;
         _hotkeys?.EnabledChanged -= OnOptionsChanged;
         _customColors?.Changed -= OnOptionsChanged;
+        _lighting.CountChanged -= OnCountChanged;
         _frames.Dispose();
+
+        // The settings app that counted went, so nobody can stop the count any more.
+        _zoneCounter?.StopFor(this);
     }
 
     private static void ThrowIfWithoutEffectColors(string effectId)
@@ -369,6 +417,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnProfilesChanged(object? sender, EventArgs e) => ProfilesChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnOptionsChanged(object? sender, EventArgs e) => OptionsChanged?.Invoke(this, EventArgs.Empty);
+
+    // On the render thread at each step of a count; the state is only read for a listener.
+    private void OnCountChanged(object? sender, EventArgs e)
+    {
+        if (ZoneCountChanged is { } handler)
+        {
+            handler(this, _lighting.Count);
+        }
+    }
 
     // Nothing is copied on the render thread; PreviewFrames copies the latest output later.
     private void OnRendered(object? sender, EventArgs e)
