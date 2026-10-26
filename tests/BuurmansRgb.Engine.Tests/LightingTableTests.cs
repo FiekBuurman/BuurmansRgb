@@ -98,6 +98,16 @@ public sealed class LightingTableTests
     }
 
     [Fact]
+    public void Set_TwelveColors_AreAccepted()
+    {
+        var lighting = HalfOrange with { Loop = new ColorLoop(Twelve), EffectColors = EffectColors.None.With(EffectIds.Fire, Twelve) };
+
+        _table.Set("device", lighting);
+
+        Assert.Equal(lighting, _table.Get("device"));
+    }
+
+    [Fact]
     public void Set_SameLoopAsGlobalInANewList_FollowsTheGlobalAgain()
     {
         _table.Set("device", HalfOrange);

@@ -39,6 +39,20 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(StaticLighting(Red, 0.1), loaded[1].Lighting.Global);
     }
 
+    [Fact]
+    public void Save_ThenLoad_RoundTripsTwelveColors()
+    {
+        var lighting = Uniform(new DeviceLighting(Orange, 1.0, EffectIds.ColorLoop)
+        {
+            Loop = new ColorLoop(Twelve),
+            EffectColors = EffectColors.None.With(EffectIds.Twinkle, Twelve),
+        });
+
+        _store.Save([new Profile("Kermis", lighting)]);
+
+        Assert.Equal(lighting.Global, Assert.Single(_store.Load()).Lighting.Global);
+    }
+
     // A scene from before the lists: every effect has its default colors.
     [Fact]
     public void Load_SceneWithoutEffectColors_GivesEveryEffectItsDefault()

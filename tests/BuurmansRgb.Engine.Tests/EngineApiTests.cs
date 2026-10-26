@@ -157,6 +157,18 @@ public sealed class EngineApiTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [new RgbColor(1, 2, 3)], spread: true, Ct));
     }
 
+    [Fact]
+    public async Task SetColorLoopAsync_TwelveColors_AreStoredAndThirteenThrow()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = CreateApi();
+
+        await api.SetColorLoopAsync(null, Twelve, spread: true, Ct);
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetColorLoopAsync(null, [.. Twelve, Red], spread: true, Ct));
+
+        Assert.Equal(Twelve, (await api.GetLightingAsync(null, Ct)).Loop!.Colors);
+    }
+
     // The list of the effect, a copy of what was sent; the other lists stay and the effect too.
     [Fact]
     public async Task SetEffectColorsAsync_StoresACopyOfTheColorsOfThatEffect()

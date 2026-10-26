@@ -89,7 +89,7 @@ public sealed class MainViewModelEffectColorsTests
     }
 
     [Fact]
-    public async Task AddColor_UpToEight()
+    public async Task AddColor_UpToTwelve()
     {
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Fire });
 

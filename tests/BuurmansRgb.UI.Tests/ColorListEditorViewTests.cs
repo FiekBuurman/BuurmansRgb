@@ -66,6 +66,22 @@ public sealed class ColorListEditorViewTests
         Assert.True(add.IsEnabled);
     });
 
+    // Twelve colors, the most, are two even rows of six, with + and − to the right of the first.
+    [Fact]
+    public void Load_TwelveColors_LaysThemOutInTwoRowsOfSix() => AppTheme.Run(panel =>
+    {
+        Window.GetWindow(panel)!.Width = 600;
+        var view = Show(panel, new ColorListEditorViewModel(ColorLoop.MinColors, ColorLoop.MaxColors, Twelve));
+
+        var places = Tiles(view).Select(tile => tile.TranslatePoint(default, view)).ToList();
+        var add = ButtonNamed(view, Strings.ColorListAdd).TranslatePoint(default, view);
+
+        Assert.Equal(12, places.Count);
+        Assert.Equal([6, 6], places.GroupBy(place => place.Y).Select(row => row.Count()));
+        Assert.Equal(places[0].Y, add.Y);
+        Assert.True(add.X > places[5].X);
+    });
+
     // With the comet and a list of its own the card shows, with "Standaardkleuren" on; after it the
     // tiles show the lamp color and the button is off. Without an effect with a list the card goes.
     [Fact]

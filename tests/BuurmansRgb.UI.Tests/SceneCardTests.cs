@@ -44,6 +44,17 @@ public sealed class SceneCardTests
         Assert.Equal([Red, Blue, Red, Blue, Red], _card.Dots.Select(dot => dot.Color));
     }
 
+    // Of the most colors, twelve, the five bulbs show the first five; the fire the five after its glow.
+    [Fact]
+    public void Show_TwelveColors_TheFirstFive()
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.ColorLoop, Loop: new ColorLoop(Twelve)), ProfileAutomation.None);
+        Assert.Equal(Twelve.Take(5), _card.Dots.Select(dot => dot.Color));
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, Twelve)), ProfileAutomation.None);
+        Assert.Equal(Twelve.Skip(1).Take(5), _card.Dots.Select(dot => dot.Color));
+    }
+
     // Fire has no color of its own: warm bulbs, whatever color the lamp has.
     [Fact]
     public void Show_Fire_GlowsWarmWithoutTheColorOfTheLamp()

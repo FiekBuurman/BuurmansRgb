@@ -10,7 +10,7 @@ public sealed record ColorLoop(IReadOnlyList<RgbColor> Colors, bool Spread = tru
 {
     public const int MinColors = 2;
 
-    public const int MaxColors = 8;
+    public const int MaxColors = 12;
 
     // Yellow to green to blue and back to yellow.
     public static ColorLoop Default { get; } = new([new RgbColor(255, 255, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)]);

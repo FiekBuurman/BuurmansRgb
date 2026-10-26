@@ -97,7 +97,7 @@ schakelaar ernaast.
 | Ademen | `breathing` | De kleur fadet in 4 seconden in en uit |
 | Regenboog | `rainbow` | Alle tinten verdeeld over de LED's, schuift met 0,2 rondes per seconde |
 | Golf | `wave` | Een band van de kleur die over de LED's loopt, 0,5 golf per seconde |
-| Kleurenloop | `color-loop` | Je eigen 2–8 kleuren die in elkaar overlopen, 0,2 loop per seconde; over de LED's verdeeld of alle LED's tegelijk |
+| Kleurenloop | `color-loop` | Je eigen 2–12 kleuren die in elkaar overlopen, 0,2 loop per seconde; over de LED's verdeeld of alle LED's tegelijk |
 | Fonkelen | `twinkle` | LED's lichten willekeurig op en doven langzaam uit, elke fonkeling in een willekeurige kleur uit de kleuren van het effect (zonder eigen kleuren: de kleur van de lamp). Elke LED krijgt ongeveer elke 1,7 seconde een kans, en op een lange strip grijpt een vijfde die, zodat losse LED's fonkelen (op een toetsenbord gloeit zo'n 13 % tegelijk); bij een apparaat van een paar LED's lichten er per keer toch ongeveer twee op, bij een muis van één of twee LED's elke LED elke keer. Elke lamp fonkelt op zijn eigen manier, ook twee even lange |
 | Komeet | `comet` | Een punt met een staart die achter hem uitdooft, 0,5 ronde per seconde naar de laatste LED en weer rond, zoals op een fan-ring; elke ronde in de volgende kleur van het effect (zonder eigen kleuren: de kleur van de lamp), en de staart van de vorige ronde dooft uit in zijn eigen kleur; de staart is 30 % van de lengte. Bij een apparaat van minder dan vier LED's (een muis) staan de LED's verdeeld over een ring van vier: één LED pulseert, fel als de kop voorbijkomt en dan uitdovend, twee LED's om de beurt |
 | Scanner | `scanner` | Een punt dat naar de laatste LED en terug gaat, zoals bij Knight Rider, 0,5 keer heen en terug per seconde, elke keer heen of terug in de volgende kleur van het effect (zonder eigen kleuren: de kleur van de lamp); de kleur wisselt aan het eind, waar het punt omkeert; het remt af bij de uiteinden en trekt een staart die met zijn vaart meegroeit (tot een kwart van de lengte). Eén LED (een muis) licht op telkens als het punt voorbijkomt |
@@ -112,13 +112,14 @@ schakelaar ernaast.
   erboven of met de schuiven en vaste kleuren rechts: het vakje
   en de lamp veranderen meteen mee, en de loop wordt bewaard. Klik je daarna een andere kleur,
   dan houdt de vorige wat je mengde. + voegt een kleur toe na de gekozen, − haalt de gekozen
-  weg. Zonder vinkje bij "Kleuren over de LED's verdelen"
-  krijgen alle LED's tegelijk dezelfde kleur. Een lamp onthoudt zijn loop, ook als je
+  weg. Een loop heeft 2 tot 12 kleuren; de vakjes staan in rijen van hooguit zes, met + en −
+  rechts naast de eerste rij (in een smal venster eronder). Zonder vinkje bij "Kleuren over de
+  LED's verdelen" krijgen alle LED's tegelijk dezelfde kleur. Een lamp onthoudt zijn loop, ook als je
   tussendoor een ander effect kiest. Standaard: geel, groen, blauw.
 - **Kleuren van een effect:** bij Fonkelen, Komeet, Scanner en Vuur verschijnen onder het
   kleurvoorbeeld "Kleuren van het effect", met dezelfde vakjes, + en − als bij de kleurenloop,
   en een regel die zegt wat de kleuren doen. Klik op een vakje en meng een nieuwe kleur: het
-  vakje en de lamp veranderen meteen mee. Een effect heeft 1 tot 8 kleuren. Wat ze doen:
+  vakje en de lamp veranderen meteen mee. Een effect heeft 1 tot 12 kleuren. Wat ze doen:
   - **Komeet:** elke ronde de volgende kleur, en na de laatste weer de eerste.
   - **Scanner:** elke keer heen of terug de volgende kleur.
   - **Fonkelen:** elke fonkeling een willekeurige kleur uit de lijst; een fonkeling houdt zijn
@@ -240,7 +241,8 @@ Een scène bewaart de verlichting van alle lampen onder een naam (in de code en 
 `profiles.json` heet dat een profiel). De scènes staan als kaarten, drie of vier naast elkaar:
 vijf bolletjes met de kleuren van de scène (bij Komeet, Scanner en Fonkelen de kleuren van het
 effect om de beurt; bij Vuur zijn kleuren heen en terug, met drie of meer kleuren zonder de
-eerste, de gloed: zonder eigen kleuren rood, oranje, geel, oranje en rood), de naam en wanneer
+eerste, de gloed: zonder eigen kleuren rood, oranje, geel, oranje en rood; van meer dan vijf
+kleuren zie je de eerste vijf), de naam en wanneer
 hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien
 ("Regenboog · 80%", "Alles uit").
 
@@ -610,8 +612,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `brightness` | 0 tot 1, standaard 1 |
 | `effect` | Een van de effecten uit de tabel bij "Effecten", standaard `static`; onbekend wordt `static` |
 | `speed` | Snelheid van een bewegend effect: 1 is normaal, van 0,1 tot 3 |
-| `colorLoop` | De 2–8 kleuren van de Kleurenloop; `spread` op `false` voor alle LED's tegelijk. Zonder (of met te weinig of te veel kleuren): geel, groen, blauw |
-| `effectColors` | Per effect de 1–8 eigen kleuren van `twinkle`, `comet`, `scanner` en `fire`, in volgorde (bij `fire` van koud naar heet). Een effect zonder lijst (of met een lege of te lange lijst) heeft zijn standaard: de kleur van de lamp, bij `fire` donkerrood, rood, oranje en geel. Een lijst voor een ander effect slaat de engine over |
+| `colorLoop` | De 2–12 kleuren van de Kleurenloop; `spread` op `false` voor alle LED's tegelijk. Zonder (of met te weinig of te veel kleuren): geel, groen, blauw |
+| `effectColors` | Per effect de 1–12 eigen kleuren van `twinkle`, `comet`, `scanner` en `fire`, in volgorde (bij `fire` van koud naar heet). Een effect zonder lijst (of met een lege of te lange lijst) heeft zijn standaard: de kleur van de lamp, bij `fire` donkerrood, rood, oranje en geel. Een lijst voor een ander effect slaat de engine over |
 | `on` | `false` als de lamp (of alles) uit staat; zonder is hij aan |
 | `devices` | Per lamp de velden hierboven, alleen voor lampen die afwijken van de algemene waarden |
 | `ledColors` | Per lamp een kleur per LED voor het effect `per-led`; `null`, of een LED voorbij het eind van de lijst, volgt de kleur van de lamp |
@@ -636,6 +638,11 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
   blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
   zonder die kleur weg.
+- Een versie van vóór 12 kleuren nam er hooguit 8. Ga je terug naar zo'n versie, dan leest die
+  een `colorLoop` van 9–12 kleuren als geel, groen, blauw (het vinkje `spread` blijft), en een
+  lijst van 9–12 in `effectColors` als de standaard van dat effect; de andere lijsten blijven.
+  Dat geldt ook voor de scènes in `profiles.json`. Bij de volgende wijziging schrijft die versie
+  het bestand zo weg, en zijn de lange lijsten weg.
 - Een waarde van het verkeerde soort (bijv. `"brightness": "hoog"`, `"on": "ja"` of een getal
   waar een lijst hoort), slaat de engine ook over: die waarde krijgt de standaardwaarde, alsof
   hij niet in het bestand stond, en de rest blijft gelden, ook in `profiles.json`. In een lijst
