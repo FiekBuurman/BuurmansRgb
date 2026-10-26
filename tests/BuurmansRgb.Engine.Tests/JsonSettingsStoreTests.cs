@@ -273,6 +273,71 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     [Fact]
+    public void Save_Direction_IsWrittenInDegreesAndRoundTrips()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var state = LightingStates.WithDevices(DeviceLighting.Default with { EffectId = EffectIds.Rainbow, Direction = 0 }, new Dictionary<string, DeviceLighting>
+        {
+            ["simulated-keyboard"] = DeviceLighting.Default with { EffectId = EffectIds.Rainbow, Direction = 45 },
+        });
+
+        store.Save(EngineSettings.From(state));
+
+        var json = File.ReadAllText(path);
+        Assert.Contains("\"direction\": 0", json, StringComparison.Ordinal);
+        Assert.Contains("\"direction\": 45", json, StringComparison.Ordinal);
+        var loaded = store.LoadOrCreate().ToLightingState();
+        Assert.Equal(0, loaded.Global.Direction);
+        Assert.Equal(45, loaded.For("simulated-keyboard").Direction);
+    }
+
+    // Along the LEDs, the default, stays out of the file, so an older version reads it as before.
+    [Fact]
+    public void Save_WithoutDirection_LeavesItOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.From(LightingStates.Uniform(DeviceLighting.Default with { EffectId = EffectIds.Rainbow })));
+
+        Assert.DoesNotContain("direction", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
+    // A file from before the direction: every effect runs along the LEDs.
+    [Fact]
+    public void LoadOrCreate_WithoutDirection_RunsAlongTheLeds()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "effect": "rainbow", "devices": { "simulated-fan": { "effect": "wave" } } }""");
+
+        var state = new JsonSettingsStore(path).LoadOrCreate().ToLightingState();
+
+        Assert.Null(state.Global.Direction);
+        Assert.Null(state.For("simulated-fan").Direction);
+    }
+
+    // Written by hand: outside one turn it is the same way within it, a fraction is rounded, and a
+    // word is left out while the rest of the lighting stays.
+    [Theory]
+    [InlineData("-90", 270)]
+    [InlineData("450", 90)]
+    [InlineData("45.4", 45)]
+    [InlineData("359.7", 0)]
+    [InlineData("\"diagonaal\"", null)]
+    [InlineData("null", null)]
+    public void LoadOrCreate_DirectionWrittenByHand_IsReadWithinOneTurn(string written, int? degrees)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "effect": "rainbow", "brightness": 0.5, "direction": {{written}} }""");
+
+        var lighting = new JsonSettingsStore(path).LoadOrCreate().ToDeviceLighting();
+
+        Assert.Equal(degrees, lighting.Direction);
+        Assert.Equal(EffectIds.Rainbow, lighting.EffectId);
+        Assert.Equal(0.5, lighting.Brightness);
+    }
+
+    [Fact]
     public void Load_ZoneLengthsWrittenByHand_AreReadByDeviceAndZoneName()
     {
         var path = _directory.File("settings.json");

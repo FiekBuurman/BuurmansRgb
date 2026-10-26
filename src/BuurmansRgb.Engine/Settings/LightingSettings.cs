@@ -24,6 +24,10 @@ internal record LightingSettings
     // color that does not read is null (SettingsOptionalColorJsonConverter) and left out.
     public Dictionary<string, RgbColor?[]?>? EffectColors { get; set; }
 
+    // "direction": in degrees (EffectDirection), null or left out along the LEDs. Read as a number
+    // with a fraction too, so a direction written by hand as 45.5 is not left out.
+    public double? Direction { get; set; }
+
     // False for a device that is switched off.
     public bool On { get; set; } = DeviceLighting.Default.On;
 
@@ -42,6 +46,7 @@ internal record LightingSettings
             Loop = ColorLoop?.ToColorLoop() ?? Contracts.ColorLoop.Default,
             EffectColors = ReadEffectColors(),
             On = On,
+            Direction = ReadDirection(Direction),
         };
 
     private static double ClampBrightness(double brightness) =>
@@ -49,6 +54,11 @@ internal record LightingSettings
 
     private static double ClampSpeed(double speed) =>
         double.IsNaN(speed) ? DeviceLighting.Default.Speed : Math.Clamp(speed, EffectSpeed.Min, EffectSpeed.Max);
+
+    // A direction outside one turn, such as -90 or 450, is the same way within it; a fraction is
+    // rounded to whole degrees.
+    private static int? ReadDirection(double? degrees) =>
+        degrees is { } value && double.IsFinite(value) ? (int)(((Math.Round(value) % 360.0) + 360.0) % 360.0) : null;
 
     // A list of an effect without a list of its own (or an unknown one), and a list without colors
     // or with too many, is left out: that effect has its default colors.
@@ -79,5 +89,6 @@ internal record LightingSettings
                 .ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value.Select(color => (RgbColor?)color)])
             : null;
         On = lighting.On;
+        Direction = lighting.Direction;
     }
 }
