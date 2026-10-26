@@ -216,6 +216,27 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 10);
     }
 
+    // The user goes back to the length the zone has while the length asked before has not come:
+    // the last length asked for wins, so the earlier one is not waited for any more and a length
+    // from elsewhere after it counts again.
+    [Fact]
+    public async Task ResizeZone_BackBeforeTheLengthAskedCame_WaitsForTheLastOne()
+    {
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        _provider.RefusesLengths = true;
+        _keeper.ResizeZone("board", 1, 120);
+        await SettledAsync();
+        _provider.RefusesLengths = false;
+
+        _keeper.ResizeZone("board", 1, 30);
+        _provider.SetDevices(Board(header: 30));
+        await SettledAsync();
+        _provider.SetDevices(Board(header: 44));
+
+        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 44);
+    }
+
     [Fact]
     public async Task ResizeZone_LengthTheZoneCannotHold_ThrowsAndRemembersNothing()
     {
@@ -239,6 +260,82 @@ public sealed class ZoneLengthKeeperTests : IDisposable
 
         Assert.Throws<ArgumentException>(() => _keeper.ResizeZone("unknown", 0, 3));
         Assert.Empty(_keeper.Lengths);
+    }
+
+    // As while the LEDs of the zone are counted: the zone gets its longest length, which is not
+    // remembered, nor taken for a length from elsewhere when the device reports it.
+    [Fact]
+    public async Task ResizeForAWhile_GivesTheLengthWithoutRememberingIt()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
+
+        _keeper.ResizeForAWhile("board", 1, 120);
+
+        await ZoneLengthsAsync([2, 120, 1]);
+        await SettledAsync();
+        Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.Equal(0, Volatile.Read(ref changes));
+        Assert.Equal([("board", 1, 120)], _provider.Resizes);
+    }
+
+    // So a device that shows up again before the zone has its own length back, such as after the
+    // engine stopped halfway a count, gets the length it had.
+    [Fact]
+    public async Task ResizeForAWhile_ZoneWithoutALength_RemembersTheLengthItHas()
+    {
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
+
+        _keeper.ResizeForAWhile("board", 1, 120);
+
+        await ZoneLengthsAsync([2, 120, 1]);
+        await SettledAsync();
+        Assert.Equal(30, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.Equal(1, Volatile.Read(ref changes));
+    }
+
+    [Fact]
+    public async Task ResizeForAWhile_LengthTheZoneCannotHold_ThrowsAndRemembersNothing()
+    {
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => changes++;
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => _keeper.ResizeForAWhile("board", 1, 121));
+        Assert.Throws<ArgumentException>(() => _keeper.ResizeForAWhile("board", 0, 3));
+        Assert.Throws<ArgumentException>(() => _keeper.ResizeForAWhile("unknown", 0, 3));
+
+        Assert.Equal(0, changes);
+        Assert.Empty(_keeper.Lengths);
+    }
+
+    // Back to the length the zone has before the longest one came: the zone gets it again, and
+    // the longest one, when it still comes, is not taken for a length from elsewhere.
+    [Fact]
+    public async Task ResizeForAWhile_BackBeforeTheLengthAskedCame_WaitsForTheLastOne()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(Board(header: 30));
+        await _lighting.DiscoverAsync(Ct);
+        _provider.RefusesLengths = true;
+        _keeper.ResizeForAWhile("board", 1, 120);
+        await SettledAsync();
+        _provider.RefusesLengths = false;
+
+        _keeper.ResizeForAWhile("board", 1, 30);
+        _provider.SetDevices(Board(header: 30));
+        await SettledAsync();
+        _provider.SetDevices(Board(header: 44));
+
+        Assert.Equal([("board", 1, 120), ("board", 1, 30)], _provider.Resizes);
+        await Eventually.TrueAsync(() => _keeper.Lengths["board"]["ARGB header"] == 44);
     }
 
     // As when the user sets the length in the app of OpenRGB itself: that is the length from now on.

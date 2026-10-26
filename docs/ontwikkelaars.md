@@ -364,9 +364,11 @@ toetsenbord. Een paar dingen om te proberen:
   wijziging opnieuw, onder één lock.
 - **Zonelengtes:** `ZoneLengthKeeper` vraagt een bewaarde lengte alleen als een apparaat
   verschijnt (of `settings.json` met de hand veranderde) en wacht tot het die meldt, zodat een
-  weigerend apparaat geen lus van aanpassingen geeft. Een zone waarvan de naam weg is of dubbel
-  voorkomt, blijft met rust; een lengte buiten het bereik blijft bewaard maar wordt niet
-  gevraagd.
+  weigerend apparaat geen lus van aanpassingen geeft. De laatst gevraagde lengte wint: ook een
+  lengte die de zone al heeft, wacht hij af zolang een eerder gevraagde nog niet kwam, zodat die
+  eerdere niet blijft hangen (`ResizeZone` en `ResizeForAWhile` delen `ResizeLocked`). Een zone
+  waarvan de naam weg is of dubbel voorkomt, blijft met rust; een lengte buiten het bereik blijft
+  bewaard maar wordt niet gevraagd.
 - **Knipperen:** `IEngineApi.FlashDeviceAsync`, in de engine `LightingController.Flash` en
   `DeviceFlash`. Eén zone gaat met `FlashZoneAsync` en `LightingController.FlashZone`: de flits
   dekt dan alleen het LED-bereik van die zone (`RgbZone.RangesOf`, zoals de engine de
