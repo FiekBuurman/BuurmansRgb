@@ -93,6 +93,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         EffectsPause = new EffectsPauseViewModel(_time);
+        DeviceRescan = new DeviceRescanViewModel(_time);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
@@ -140,6 +141,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CustomColors.ColorsChanged += (_, colors) =>
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
         Navigation.PropertyChanged += (_, e) =>
@@ -221,6 +223,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public EffectsPauseViewModel EffectsPause { get; }
 
+    // "Verversen" at the heading of Apparaten.
+    public DeviceRescanViewModel DeviceRescan { get; }
+
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
     public partial double Brightness { get; set; } = 100;
@@ -262,6 +267,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _flashTimer.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
+        DeviceRescan.Dispose();
         DropConnection();
     }
 
@@ -269,6 +275,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private async Task ConnectAsync()
     {
         DropConnection();
+        DeviceRescan.Clear();
         ClearLedSelection();
         ConnectionState = ConnectionState.Connecting;
         StatusMessage = Strings.StatusConnecting;
@@ -887,6 +894,25 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Not in the call queue: the answer is awaited, and the search may take seconds, which the
+    // changes behind it should not wait for. The engine sends the new list through DevicesChanged
+    // before it answers, so the list here has it by the time the button says "Verversen" again.
+    // A call that fails has its own message; the button just ends.
+    private async Task RescanDevicesAsync(int search)
+    {
+        if (_connection is not { } connection)
+        {
+            DeviceRescan.Finish(search, openRgbReached: true);
+            return;
+        }
+
+        var (ok, reached) = await TryCallAsync(connection, api => api.RescanDevicesAsync());
+        if (ReferenceEquals(connection, _connection))
+        {
+            DeviceRescan.Finish(search, openRgbReached: !ok || reached);
+        }
+    }
+
     // The lamp's color and effect are on the Kleur page; picking it there lets it blink too.
     private void OpenLamp(string deviceId)
     {
@@ -1135,6 +1161,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusMessage = message;
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
+        DeviceRescan.Clear();
         Preview.CanFlash = true;
         DropConnection();
     }
