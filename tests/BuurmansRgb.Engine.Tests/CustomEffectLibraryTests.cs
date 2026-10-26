@@ -314,6 +314,50 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Equal(1, _store.LoadCount);
     }
 
+    // A write that keeps failing logs its first failure whole, then only the message, and the
+    // write that goes through at last.
+    [Fact]
+    public void Save_StoreKeepsFailing_LogsTheWholeExceptionOnce()
+    {
+        using var trace = new TraceCapture();
+        var message = $"in use {Guid.NewGuid()}";
+        _store.SaveException = new IOException(message);
+        _library.Save(Effect("", "Disco"));
+
+        _time.Advance(Delay);
+        _time.Advance(Delay);
+        _time.Advance(Delay);
+        _store.SaveException = null;
+        _time.Advance(Delay);
+
+        var mine = trace.Messages.Where(line => line.Contains(message, StringComparison.Ordinal)).ToList();
+        Assert.Equal(3, mine.Count);
+        Assert.Contains(typeof(IOException).FullName!, mine[0], StringComparison.Ordinal);
+        Assert.All(mine.Skip(1), line => Assert.StartsWith("Still could not write the own effects: ", line, StringComparison.Ordinal));
+        Assert.Contains("Wrote the own effects after all.", trace.Messages);
+    }
+
+    // The same for a file that cannot be read at the start.
+    [Fact]
+    public void Load_FileStaysOutOfReach_LogsTheWholeExceptionOnce()
+    {
+        using var trace = new TraceCapture();
+        var message = $"in use {Guid.NewGuid()}";
+        _store.LoadException = new IOException(message);
+        _library.Load();
+
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay);
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay);
+        _store.LoadException = null;
+        _time.Advance(CustomEffectLibrary.LoadRetryDelay);
+
+        var mine = trace.Messages.Where(line => line.Contains(message, StringComparison.Ordinal)).ToList();
+        Assert.Equal(3, mine.Count);
+        Assert.Contains(typeof(IOException).FullName!, mine[0], StringComparison.Ordinal);
+        Assert.All(mine.Skip(1), line => Assert.StartsWith("Still could not read the own effects: ", line, StringComparison.Ordinal));
+        Assert.Contains("Read the own effects after all.", trace.Messages);
+    }
+
     // A question after the exit that reads the file at last does not touch the stopped retry
     // timer: ITimer.Change may throw ObjectDisposedException then.
     [Fact]

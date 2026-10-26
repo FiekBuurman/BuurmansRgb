@@ -33,6 +33,9 @@ internal sealed class CustomEffectLibrary : IDisposable
     // Changed, so a settings app that got no effects asks again.
     private bool _loadFailed;
 
+    // From a failed write until one that went through, so only the first failure is logged whole.
+    private bool _saveFailed;
+
     public CustomEffectLibrary(ICustomEffectStore store, LightingController lighting, TimeSpan? saveDelay = null, TimeProvider? timeProvider = null)
     {
         _store = store;
@@ -229,11 +232,16 @@ internal sealed class CustomEffectLibrary : IDisposable
             }
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
-                Trace.TraceError(exception.ToString());
+                // Load logged the whole first failure; every few seconds the message is enough.
+                Trace.TraceWarning($"Still could not read the own effects: {exception.Message}");
                 return;
             }
 
             loaded = TakeLoadedAfterFailure();
+            if (loaded)
+            {
+                Trace.TraceInformation("Read the own effects after all.");
+            }
         }
 
         if (loaded)
@@ -284,10 +292,25 @@ internal sealed class CustomEffectLibrary : IDisposable
         {
             _store.Save(_effects);
             _pending = false;
+            if (_saveFailed)
+            {
+                _saveFailed = false;
+                Trace.TraceInformation("Wrote the own effects after all.");
+            }
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
-            Trace.TraceError(exception.ToString());
+            // The whole first failure; a timer that tries again every moment only adds its message.
+            if (_saveFailed)
+            {
+                Trace.TraceWarning($"Still could not write the own effects: {exception.Message}");
+            }
+            else
+            {
+                Trace.TraceError(exception.ToString());
+                _saveFailed = true;
+            }
+
             if (!_disposed)
             {
                 _timer.Change(_saveDelay, Timeout.InfiniteTimeSpan);
