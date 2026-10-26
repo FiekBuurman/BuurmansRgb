@@ -758,7 +758,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _syncing.Run(() => ColorPicker.Show(color));
     }
 
-    // Another selected color in the loop or the list of the effect.
     // The picker shows the chosen loop color, and the direction only applies to a loop that spreads.
     private void OnColorLoopEditorChanged(string? changedProperty)
     {
@@ -769,6 +768,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Another selected color in the loop or the list of the effect.
     private void ShowPickerColorFor(string? changedProperty)
     {
         if (changedProperty == nameof(ColorListEditorViewModel.SelectedColor))
