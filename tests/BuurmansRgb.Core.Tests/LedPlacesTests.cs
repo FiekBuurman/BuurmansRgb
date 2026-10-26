@@ -122,6 +122,15 @@ public sealed class LedPlacesTests
         Assert.Equal(new LedPlace(0.625, 0.125), LedPlaces.Of(DeviceType.Keyboard, zone, 2)[1]);
     }
 
+    // The space bar reaches over the empty cells beside it, as the preview draws it.
+    [Fact]
+    public void Of_WideKey_SitsInTheMiddleOfTheCellsItReaches()
+    {
+        var zone = RgbZone.Fixed("Keys", 3) with { Matrix = new LedMatrix(1, 4, [0, 1, No, 2]), LedNames = ["Left Alt", "Space", "Right Alt"] };
+
+        Assert.Equal(new LedPlace(0.5, 0.125), LedPlaces.Of(DeviceType.Keyboard, zone, 3)[1]);
+    }
+
     // The logo LED that the key map misses follows in a row below it, as the preview shows it.
     [Fact]
     public void Of_LedTheMatrixMisses_SitsInARowBelow()

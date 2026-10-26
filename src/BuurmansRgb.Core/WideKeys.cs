@@ -1,6 +1,4 @@
-using BuurmansRgb.Core;
-
-namespace BuurmansRgb.UI.Views;
+namespace BuurmansRgb.Core;
 
 // A key map from OpenRGB has one cell per key, also for the space bar, and leaves empty cells
 // where a wide key reaches. A key whose name says it is wide takes the empty cells between itself

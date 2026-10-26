@@ -96,9 +96,10 @@ public static class LedPlaces
         return part < zones.Count ? zones[part] : RgbZone.Fixed(string.Empty, ledCount);
     }
 
-    // The place of each of the ledCount LEDs of a zone. A matrix keeps its cells square; an LED
-    // in more than one cell sits in the middle of them. A ring has its middle at 0.5, 0.5 and LED
-    // 0 at the top. A line runs from left to right through the middle.
+    // The place of each of the ledCount LEDs of a zone, where the preview draws it. A matrix keeps
+    // its cells square, and a wide key such as the space bar (WideKeys) sits in the middle of its
+    // cells. A ring has its middle at 0.5, 0.5 and LED 0 at the top. A line runs from left to right
+    // through the middle.
     public static LedPlace[] Of(DeviceType type, RgbZone zone, int ledCount)
     {
         ArgumentNullException.ThrowIfNull(zone);
@@ -106,7 +107,7 @@ public static class LedPlaces
         var places = new LedPlace[ledCount];
         if (zone.Matrix is { } matrix)
         {
-            PlaceInMatrix(Place(matrix, ledCount), places);
+            PlaceInMatrix(WideKeys.Widen(Place(matrix, ledCount), zone.LedNames), places);
         }
         else if (IsRing(type, zone, ledCount))
         {

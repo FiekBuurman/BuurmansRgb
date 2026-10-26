@@ -39,6 +39,15 @@ public sealed class LedLayoutTests
         Assert.Equal(2, LedLayout.SpanAt(keys, 4));
     }
 
+    // A click on a cell a wide key took picks that key.
+    [Fact]
+    public void LedAt_CellOfAWideKey_IsThatKey()
+    {
+        var keys = WideKeys.Widen(new LedMatrix(1, 4, [0, No, No, 1]), ["Left Shift", "Z"]);
+
+        Assert.Equal(0, LedLayout.LedAt(keys, LedLayout.Pitch, 2.5 * LedLayout.Pitch, 5.0));
+    }
+
     // Ten keys in a row are 10 * 18 - 4 = 176 wide at full size.
     private static LedMatrix TenKeys() => LedPlaces.Wrap(10, 10);
 
