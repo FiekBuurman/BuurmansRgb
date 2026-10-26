@@ -699,7 +699,7 @@ public sealed class EngineApiTests : IDisposable
     {
         using var autoPause = AutoPauses.WithFakes(_lighting.SetPaused);
         using var timer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer, hotkeys: new AllOnOffHotkeys());
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoPause: autoPause, profileTimer: timer, hotkeys: new AllOnOffHotkeys(), customColors: new CustomColorList());
         var changes = 0;
         api.OptionsChanged += (_, _) => changes++;
 
@@ -708,11 +708,13 @@ public sealed class EngineApiTests : IDisposable
         await api.SetPauseOnLockAndSleepAsync(false, Ct);
         await api.SetCatchUpSceneTimesAsync(true, Ct);
         await api.SetHotkeysAsync(false, Ct);
+        await api.SetCustomColorsAsync([new RgbColor(0, 0, 255)], Ct);
+        await api.SetCustomColorsAsync([new RgbColor(0, 0, 255), new RgbColor(0, 0, 255)], Ct);
         await api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
         await api.SetFramesPerSecondAsync(60, Ct);
         await api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
 
-        Assert.Equal(6, changes);
+        Assert.Equal(7, changes);
     }
 
     [Fact]
@@ -749,6 +751,42 @@ public sealed class EngineApiTests : IDisposable
 
         Assert.False(hotkeys.Enabled);
         Assert.False(await api.GetHotkeysAsync(Ct));
+    }
+
+    // A color twice is kept once.
+    [Fact]
+    public async Task CustomColors_AreKeptByTheEngine()
+    {
+        var customColors = new CustomColorList();
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customColors: customColors);
+
+        Assert.Empty(await api.GetCustomColorsAsync(Ct));
+        await api.SetCustomColorsAsync([Red, new RgbColor(0, 0, 255), Red], Ct);
+
+        Assert.Equal([Red, new RgbColor(0, 0, 255)], customColors.Colors);
+        Assert.Equal([Red, new RgbColor(0, 0, 255)], await api.GetCustomColorsAsync(Ct));
+    }
+
+    [Fact]
+    public async Task CustomColors_MoreThanTwelve_AreRefused()
+    {
+        var customColors = new CustomColorList { Colors = [Red] };
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customColors: customColors);
+        RgbColor[] thirteen = [.. Enumerable.Range(1, 13).Select(i => new RgbColor((byte)i, 0, 0))];
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetCustomColorsAsync(thirteen, Ct));
+
+        Assert.Equal([Red], customColors.Colors);
+    }
+
+    [Fact]
+    public async Task CustomColors_WithoutTheList_AreNone()
+    {
+        using var api = CreateApi();
+
+        await api.SetCustomColorsAsync([Red], Ct);
+
+        Assert.Empty(await api.GetCustomColorsAsync(Ct));
     }
 
     [Fact]

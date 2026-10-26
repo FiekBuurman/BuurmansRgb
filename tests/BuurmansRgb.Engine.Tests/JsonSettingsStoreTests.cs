@@ -118,6 +118,62 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Contains("\"hotkeys\": false", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Save_CustomColors_AreWrittenUnderTheirNameAndReadBack()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(EngineSettings.CreateDefault().WithCustomColors([new RgbColor(255, 0, 0), new RgbColor(0, 136, 255)]));
+
+        Assert.Contains("\"customColors\": [", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Contains("\"#0088FF\"", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 136, 255)], new JsonSettingsStore(path).LoadOrCreate().ReadCustomColors());
+    }
+
+    // No own colors, as in a settings file from before them, stay out of the file.
+    [Fact]
+    public void Save_NoCustomColors_LeavesThemOut()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithCustomColors([]));
+
+        Assert.DoesNotContain("customColors", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Empty(new JsonSettingsStore(path).LoadOrCreate().ReadCustomColors());
+    }
+
+    // A color that does not read and a color twice are left out; the rest and the rest of the
+    // file count. A list that is no list is left out as a whole.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800", "customColors": ["#FF0000", "purple", 42, "#ff0000", "#0000FF"] }""", "#FF0000 #0000FF")]
+    [InlineData("""{ "color": "#FF8800", "customColors": "rood" }""", "")]
+    [InlineData("""{ "color": "#FF8800", "customColors": null }""", "")]
+    public void Load_CustomColors_LeavesOutWhatDoesNotRead(string json, string expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(expected, string.Join(" ", settings.ReadCustomColors().Select(color => color.ToHex())));
+        Assert.Equal(new RgbColor(255, 136, 0), settings.Color);
+    }
+
+    // More than the most, as an edit by hand may give: the first twelve count, so no own color the
+    // user had goes.
+    [Fact]
+    public void Load_MoreThanTwelveCustomColors_KeepsTheFirstTwelve()
+    {
+        var path = _directory.File("settings.json");
+        var colors = Enumerable.Range(1, 14).Select(i => new RgbColor((byte)i, 0, 0)).ToList();
+        File.WriteAllText(path, $$"""{ "customColors": [{{string.Join(", ", colors.Select(color => $"\"{color.ToHex()}\""))}}] }""");
+
+        var read = new JsonSettingsStore(path).LoadOrCreate().ReadCustomColors();
+
+        Assert.Equal(colors.Take(CustomColors.MaxColors), read);
+    }
+
     // A settings file from before the option skips the times as before.
     [Theory]
     [InlineData("""{ "color": "#FF8800" }""", false)]
