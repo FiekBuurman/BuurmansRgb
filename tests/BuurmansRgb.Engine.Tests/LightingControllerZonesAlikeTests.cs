@@ -284,13 +284,15 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var step = 0; step < 300; step++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var step = 0; step < 300; step++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         var headset = simulated.GetLeds("simulated-headset");
         Assert.Equal(headset[0], headset[1]);
     }

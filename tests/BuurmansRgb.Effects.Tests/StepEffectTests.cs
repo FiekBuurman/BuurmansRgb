@@ -161,13 +161,15 @@ public sealed class StepEffectTests
         var leds = new RgbColor[104];
         effect.Render(leds, TimeSpan.Zero);
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var frame = 0; frame < 300; frame++)
+        var allocated = Allocations.During(() =>
         {
-            effect.Render(leds, TimeSpan.FromSeconds(frame / 30.0));
-        }
+            for (var frame = 0; frame < 300; frame++)
+            {
+                effect.Render(leds, TimeSpan.FromSeconds(frame / 30.0));
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
     }
 
     private static EffectStep Step(RgbColor color, double hold, double fade) =>

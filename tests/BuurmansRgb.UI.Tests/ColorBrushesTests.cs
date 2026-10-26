@@ -3,7 +3,8 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The cache is static; only this class uses it in the tests, and xUnit runs its tests one by one.
+// The cache is one per thread, so the tests that run at the same time (the ones with a window on
+// their own UI thread too) never touch the one a test here fills.
 public sealed class ColorBrushesTests
 {
     [Fact]

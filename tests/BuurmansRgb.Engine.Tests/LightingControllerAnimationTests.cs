@@ -236,13 +236,15 @@ public sealed class LightingControllerAnimationTests : IDisposable
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var frame = 0; frame < 300; frame++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var frame = 0; frame < 300; frame++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.Contains(simulated.GetLeds("simulated-keyboard"), led => led != RgbColor.Black);
     }
 

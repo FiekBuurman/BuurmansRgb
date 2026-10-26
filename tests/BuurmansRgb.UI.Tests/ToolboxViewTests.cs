@@ -1,7 +1,5 @@
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Automation.Peers;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Input;
 using BuurmansRgb.Core;
@@ -15,20 +13,17 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class ToolboxViewTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
-
     // Squares of 32 px instead of the 44 of the design, all nine in one row in a wide window; the
     // tiles of a list of colors keep their 44.
     [Fact]
     public async Task Presets_AreSmallSquaresInOneRow()
     {
-        using var viewModel = await ConnectAsync();
+        using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
             Window.GetWindow(panel)!.Width = 1400;
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tiles = PresetTiles(page);
 
             Assert.Equal(ColorPickerViewModel.Presets.Count, tiles.Count);
@@ -41,18 +36,18 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Presets_TakeTheFocusHaveTheirNameAndMixTheirColor()
     {
-        using var viewModel = await ConnectAsync();
+        using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tiles = PresetTiles(page);
 
             Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), tiles.Select(AutomationProperties.GetName));
             Assert.True(tiles[8].Focus());
             Assert.True(tiles[8].IsKeyboardFocused);
 
-            Click(tiles[8]);
+            PageViews.Click(tiles[8]);
 
             Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
             Assert.Equal(true, tiles[8].Tag);
@@ -63,15 +58,15 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Add_PutsTheCurrentColorInATile()
     {
-        using var viewModel = await ConnectAsync();
+        using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var add = AddButton(page);
             viewModel.ColorPicker.HexColor = "#FF8800";
 
-            Click(add);
+            PageViews.Click(add);
 
             var tiles = CustomTiles(page);
             Assert.Equal(string.Format(Strings.CustomColorName, "#FF8800"), AutomationProperties.GetName(Assert.Single(tiles)));
@@ -87,16 +82,16 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Add_MovesTheFocusToTheNewTile()
     {
-        using var viewModel = await ConnectAsync(api => api.CustomColors = [Red]);
+        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red]);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var add = AddButton(page);
             viewModel.ColorPicker.HexColor = "#0000FF";
             Assert.True(add.Focus());
 
-            Click(add);
+            PageViews.Click(add);
 
             var tiles = CustomTiles(page);
             Assert.Equal(2, tiles.Count);
@@ -111,12 +106,12 @@ public sealed class ToolboxViewTests
     public async Task OtherColorsFromTheEngine_KeepTheFocusOnItsColor()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await ConnectAsync(api => (engine = api).CustomColors = [Red, Blue]);
+        using var viewModel = await PageViews.ConnectAsync(api => (engine = api).CustomColors = [Red, Blue]);
         var green = new RgbColor(0, 255, 0);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             Assert.True(CustomTiles(page)[1].Focus());
 
             engine!.CustomColors = [green, Red, Blue];
@@ -133,11 +128,11 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Delete_RemovesTheTileAndMovesTheFocusOn()
     {
-        using var viewModel = await ConnectAsync(api => api.CustomColors = [Red, Blue]);
+        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red, Blue]);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             Assert.True(CustomTiles(page)[0].Focus());
 
             PressDelete(CustomTiles(page)[0]);
@@ -153,15 +148,16 @@ public sealed class ToolboxViewTests
         });
     }
 
-    // "Weghalen" in the context menu of a tile.
+    // "Weghalen" in the context menu of a tile; without a tile in the place of the last one, the
+    // focus goes to the one before it.
     [Fact]
-    public async Task ContextMenuRemove_RemovesTheTile()
+    public async Task ContextMenuRemove_RemovesTheTileAndFocusesTheOneBefore()
     {
-        using var viewModel = await ConnectAsync(api => api.CustomColors = [Red, Blue]);
+        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red, Blue]);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tile = CustomTiles(page)[1];
             var menu = tile.ContextMenu!;
             menu.PlacementTarget = tile;
@@ -172,24 +168,8 @@ public sealed class ToolboxViewTests
             OffscreenWindow.WaitUntilIdle();
 
             Assert.Equal([Red], viewModel.CustomColors.Colors.Select(item => item.Color));
-            Assert.Single(CustomTiles(page));
+            Assert.True(Assert.Single(CustomTiles(page)).IsKeyboardFocused);
         });
-    }
-
-    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
-
-    internal static ColorPage Show(StackPanel panel, MainViewModel viewModel)
-    {
-        var page = new ColorPage { DataContext = viewModel };
-        panel.Children.Add(page);
-        OffscreenWindow.WaitUntilIdle();
-        return page;
     }
 
     internal static List<Button> PresetTiles(DependencyObject page) =>
@@ -199,20 +179,12 @@ public sealed class ToolboxViewTests
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is CustomColorItem)];
 
     private static Button AddButton(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetName(button) == Strings.CustomColorsAdd);
+        PageViews.ButtonNamed(page, Strings.CustomColorsAdd);
 
     // As the keyboard would, to the tile that has the focus.
     private static void PressDelete(Button tile)
     {
         tile.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(tile), 0, Key.Delete) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
-        OffscreenWindow.WaitUntilIdle();
-    }
-
-    // As a screen reader or a click would: only an enabled button does something.
-    internal static void Click(Button button)
-    {
-        var invoke = (IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke);
-        invoke.Invoke();
         OffscreenWindow.WaitUntilIdle();
     }
 }

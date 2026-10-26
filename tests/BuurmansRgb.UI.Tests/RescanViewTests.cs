@@ -15,17 +15,17 @@ public sealed class RescanViewTests
     [Fact]
     public async Task Rescan_KeepsTheFocusAndSaysZoeken()
     {
-        using var viewModel = await ToolboxViewTests.ConnectAsync(api => api.RescanGate = new TaskCompletionSource().Task);
+        using var viewModel = await PageViews.ConnectAsync(api => api.RescanGate = new TaskCompletionSource().Task);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
             var button = RescanButton(page);
             Assert.Equal(Strings.Rescan, AutomationProperties.GetName(button));
             Assert.Equal(Strings.RescanToolTip, AutomationProperties.GetHelpText(button));
             Assert.True(button.Focus());
 
-            ToolboxViewTests.Click(button);
+            PageViews.Click(button);
 
             Assert.Equal(Strings.RescanSearching, AutomationProperties.GetName(button));
             Assert.Equal(Strings.RescanSearching, button.Content);
@@ -37,29 +37,21 @@ public sealed class RescanViewTests
     [Fact]
     public async Task Rescan_OpenRgbNotReached_ShowsTheMessage()
     {
-        using var viewModel = await ToolboxViewTests.ConnectAsync(api => api.RescanReaches = false);
+        using var viewModel = await PageViews.ConnectAsync(api => api.RescanReaches = false);
 
         AppTheme.Run(panel =>
         {
-            var page = Show(panel, viewModel);
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
             var message = Message(page);
             Assert.Equal(Visibility.Collapsed, message.Visibility);
 
-            ToolboxViewTests.Click(RescanButton(page));
+            PageViews.Click(RescanButton(page));
 
             Assert.Equal(Visibility.Visible, message.Visibility);
             Assert.Equal(Strings.RescanOpenRgbUnreachable, message.Text);
             Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(message));
             Assert.Equal(Strings.Rescan, RescanButton(page).Content);
         });
-    }
-
-    private static LampsPage Show(StackPanel panel, MainViewModel viewModel)
-    {
-        var page = new LampsPage { DataContext = viewModel };
-        panel.Children.Add(page);
-        OffscreenWindow.WaitUntilIdle();
-        return page;
     }
 
     private static Button RescanButton(DependencyObject page) =>

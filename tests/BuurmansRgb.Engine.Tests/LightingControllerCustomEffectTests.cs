@@ -177,9 +177,7 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
         var green = RedThenBlue with { Steps = [new CustomEffectStep(Green)] };
         var shown = _provider.LastColors.ToArray();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        _controller.SetCustomEffects([renamed, green]);
-        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        var allocated = Allocations.During(() => _controller.SetCustomEffects([renamed, green]));
 
         Assert.InRange(allocated, 0, pattern.Length * 3);
         Assert.Equal(shown, _provider.LastColors);
@@ -234,13 +232,15 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var frame = 0; frame < 300; frame++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var frame = 0; frame < 300; frame++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.Contains(simulated.GetLeds("simulated-keyboard"), led => led != RgbColor.Black);
     }
 

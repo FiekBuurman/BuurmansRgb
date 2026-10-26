@@ -5,6 +5,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -20,16 +21,16 @@ public sealed class ZoneCountViewTests
     [Fact]
     public async Task Count_ShowsTheCounterWithNames()
     {
-        using var viewModel = await ToolboxViewTests.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var count = CountButton(page);
             Assert.Equal(string.Format(Strings.CountZoneAccessibleName, "Board", "ARGB 1"), AutomationProperties.GetName(count));
             Assert.Equal(Visibility.Visible, count.Visibility);
 
-            ToolboxViewTests.Click(count);
+            PageViews.Click(count);
 
             var counter = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == "LED 1");
             Assert.True(counter.IsVisible);
@@ -49,16 +50,16 @@ public sealed class ZoneCountViewTests
     [Fact]
     public async Task Stop_GivesTheFocusToCount()
     {
-        using var viewModel = await ToolboxViewTests.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            ToolboxViewTests.Click(CountButton(page));
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            PageViews.Click(CountButton(page));
             var stop = Buttons(page).Single(button => button.IsVisible && Equals(button.Content, Strings.ZoneCountStop));
             Assert.True(stop.Focus());
 
-            ToolboxViewTests.Click(stop);
+            PageViews.Click(stop);
 
             Assert.True(CountButton(page).IsKeyboardFocused);
             Assert.Contains(AppTheme.Descendants<Slider>(page), slider => slider.IsVisible && slider.DataContext is ZonePreviewViewModel);

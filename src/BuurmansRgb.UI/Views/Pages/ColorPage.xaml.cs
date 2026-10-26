@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
 using BuurmansRgb.UI.ViewModels;
 
@@ -18,13 +17,13 @@ public partial class ColorPage : UserControl
     {
         var count = CustomColorTiles.Items.Count;
 
-        // Once the tiles are laid out again, so the new one exists.
+        // Once the tiles are laid out again, so the new one exists; only if the color was added.
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
         {
             var added = CustomColorTiles.Items.Count;
-            if (added > count && CustomColorTiles.ItemContainerGenerator.ContainerFromIndex(added - 1) is { } next && FirstButton(next) is { } tile)
+            if (added > count)
             {
-                tile.Focus();
+                FocusTile(CustomColorTiles, added - 1, fallback: null, now: true);
             }
         });
     }
@@ -60,21 +59,7 @@ public partial class ColorPage : UserControl
 
         var index = CustomColorTiles.Items.IndexOf(item);
         item.RemoveCommand.Execute(null);
-
-        // Once the tiles are laid out again, so the one in its place exists.
-        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
-        {
-            var count = CustomColorTiles.Items.Count;
-            var next = count == 0 ? null : CustomColorTiles.ItemContainerGenerator.ContainerFromIndex(Math.Min(index, count - 1));
-            if (next is not null && FirstButton(next) is { } nextTile)
-            {
-                nextTile.Focus();
-            }
-            else
-            {
-                AddCustomColor.Focus();
-            }
-        });
+        FocusTile(CustomColorTiles, index, fallback: AddCustomColor);
     }
 
     // Enter keeps the name as Tab does, so the box need not lose the focus first.
@@ -118,16 +103,30 @@ public partial class ColorPage : UserControl
         });
     }
 
-    // Once the tiles are laid out again, so the one at the selected place exists.
     private void FocusSelectedStep(bool now = false)
+    {
+        if (DataContext is MainViewModel { CustomEffectEditor: var editor })
+        {
+            FocusTile(StepTiles, editor.SelectedIndex, fallback: null, now);
+        }
+    }
+
+    // Focuses the tile at index, or the last one when the list got shorter, and without tiles the
+    // fallback. Unless now, once the tiles are laid out again, so the one at that place exists.
+    private void FocusTile(ItemsControl tiles, int index, UIElement? fallback, bool now = false)
     {
         void Focus()
         {
-            if (DataContext is MainViewModel { CustomEffectEditor: var editor }
-                && StepTiles.ItemContainerGenerator.ContainerFromIndex(editor.SelectedIndex) is { } container
-                && FirstButton(container) is { } tile)
+            var count = tiles.Items.Count;
+            if (count > 0
+                && tiles.ItemContainerGenerator.ContainerFromIndex(Math.Clamp(index, 0, count - 1)) is { } container
+                && VisualTreeSearch.FirstDescendant<Button>(container) is { } tile)
             {
                 tile.Focus();
+            }
+            else
+            {
+                fallback?.Focus();
             }
         }
 
@@ -165,19 +164,5 @@ public partial class ColorPage : UserControl
         {
             viewModel.ChooseDirectionCommand.Execute(null);
         }
-    }
-
-    private static Button? FirstButton(DependencyObject parent)
-    {
-        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
-        {
-            var child = VisualTreeHelper.GetChild(parent, i);
-            if ((child as Button ?? FirstButton(child)) is { } button)
-            {
-                return button;
-            }
-        }
-
-        return null;
     }
 }

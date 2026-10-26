@@ -413,7 +413,18 @@ uitbreidingen in `docs/bouwplan.md`.
   `ClearLedSelection`, `FillGradient`) naar een eigen `LedEditCoordinator`. Bij de refactor na
   de review bleef het staan: zo'n klasse heeft de verbinding, de wachtrij, het voorbeeld, de
   kleurkiezer en de effectkeuze nodig, en de bewerk-logica zelf zit al in `LedEditorViewModel`.
-  Pas oppakken als het LED-bewerken groeit (bijv. per zone)
+  Pas oppakken als het LED-bewerken groeit (bijv. per zone). Ook het deel voor de eigen effecten
+  (~250 regels: `_customEffects`, `ShowEffects`, `SendCustomEffect`, `DeleteCustomEffect`,
+  `NewCustomEffect`, `CallOrShowCustomEffectsAsync` en `OnCustomEffectsChanged`) kan naar een
+  eigen klasse
+- Eén gedeelde schrijver voor `CustomEffectLibrary` en `LightingSettingsSaver`: beide schrijven
+  hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
+  opnieuw, elk met een eigen timer en eigen foutafhandeling
+- UI-teksten met een vast getal aan hun constante koppelen, via een placeholder of een test:
+  "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`), "tot 32 eigen effecten"
+  in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`) en "1 tot 40 tekens" in
+  `CustomEffectNameInvalid` (`CustomEffects.MaxNameLength`). Nu blijft de tekst stil staan als
+  een grens verandert
 - `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
   UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op
   de laatste controle (`after.IsKeyboardFocused`), meestal als eerste test in een nieuw proces
@@ -427,9 +438,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - `LedPreviewViewKeyboardTests.Render_WithTheFocus_DrawsARingAroundTheActiveLed` faalt als twee
   UI-testsets tegelijk draaien in zo'n 9 % van de runs (7 van de 80); heel af en toe ook
   `ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed`. Los van de focus-poging hierboven,
-  want het gebeurde even vaak met als zonder die wijziging
-- `ColorBrushesTests.Get_CacheFull_StartsOver` faalde één keer (van vier runs van de UI-tests,
-  bij taak "gereedschapskist"): de cache van `ColorBrushes` is statisch en niet thread-safe, en
-  de tests met een venster (`AppTheme`, `OffscreenWindow`) vullen hem tegelijk op hun eigen
-  STA-thread, terwijl het commentaar van de test zegt dat alleen die klasse hem gebruikt. De test
-  in de collectie van `AppTheme` zetten, of de cache per thread maken
+  want het gebeurde even vaak met als zonder die wijziging. Ook met één testset tegelijk: 2 van de
+  20 runs, en 3 van de 40 nadat de caches van `ColorBrushes` en `LedBulb` per thread kwamen, dus
+  die gedeelde caches waren het niet. In die 40 runs faalde ook twee keer
+  `DirectionViewTests.Slider_HomeWithoutDirection_ChoosesZeroDegrees` op `slider.Focus()`

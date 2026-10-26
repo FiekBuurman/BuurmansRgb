@@ -6,6 +6,7 @@ using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -22,9 +23,9 @@ public sealed class DirectionViewTests
         AppTheme.Run(panel =>
         {
             Window.GetWindow(panel)!.Width = 1400;
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var direction = SliderNamed(page, Strings.DirectionHeader);
-            var speed = SliderNamed(page, Strings.SpeedHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var direction = PageViews.Named<Slider>(page, Strings.DirectionHeader);
+            var speed = PageViews.Named<Slider>(page, Strings.SpeedHeader);
 
             Assert.True(direction.IsVisible);
             Assert.Equal(Strings.DirectionHelp, AutomationProperties.GetHelpText(direction));
@@ -37,13 +38,13 @@ public sealed class DirectionViewTests
     [Fact]
     public async Task Slider_StaticEffect_IsHidden()
     {
-        using var viewModel = await ToolboxViewTests.ConnectAsync();
+        using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
 
-            Assert.False(SliderNamed(page, Strings.DirectionHeader).IsVisible);
+            Assert.False(PageViews.Named<Slider>(page, Strings.DirectionHeader).IsVisible);
         });
     }
 
@@ -55,15 +56,15 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            SliderNamed(page, Strings.DirectionHeader).Value = 45;
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            PageViews.Named<Slider>(page, Strings.DirectionHeader).Value = 45;
             OffscreenWindow.WaitUntilIdle();
             var clear = ClearButton(page);
 
             Assert.True(clear.IsVisible);
             Assert.Equal("45°", viewModel.DirectionText);
 
-            ToolboxViewTests.Click(clear);
+            PageViews.Click(clear);
 
             Assert.False(viewModel.HasDirection);
             Assert.False(clear.IsVisible);
@@ -78,8 +79,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var slider = SliderNamed(page, Strings.DirectionHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var slider = PageViews.Named<Slider>(page, Strings.DirectionHeader);
             slider.Value = 90;
             OffscreenWindow.WaitUntilIdle();
             var clear = ClearButton(page);
@@ -102,8 +103,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var slider = SliderNamed(page, Strings.DirectionHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var slider = PageViews.Named<Slider>(page, Strings.DirectionHeader);
 
             Assert.Equal(Strings.DirectionAlongLeds, AutomationProperties.GetItemStatus(slider));
 
@@ -122,8 +123,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var slider = SliderNamed(page, Strings.DirectionHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var slider = PageViews.Named<Slider>(page, Strings.DirectionHeader);
             Assert.True(slider.Focus());
 
             slider.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(slider), 0, Key.Home) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
@@ -143,8 +144,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var thumb = AppTheme.Descendants<Thumb>(SliderNamed(page, Strings.DirectionHeader)).Single();
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var thumb = AppTheme.Descendants<Thumb>(PageViews.Named<Slider>(page, Strings.DirectionHeader)).Single();
 
             thumb.RaiseEvent(new DragCompletedEventArgs(0, 0, canceled: false));
             OffscreenWindow.WaitUntilIdle();
@@ -163,8 +164,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var slider = SliderNamed(page, Strings.DirectionHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var slider = PageViews.Named<Slider>(page, Strings.DirectionHeader);
             slider.Value = 30;
             OffscreenWindow.WaitUntilIdle();
 
@@ -184,8 +185,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var thumb = AppTheme.Descendants<Thumb>(SliderNamed(page, Strings.DirectionHeader)).Single();
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var thumb = AppTheme.Descendants<Thumb>(PageViews.Named<Slider>(page, Strings.DirectionHeader)).Single();
 
             thumb.RaiseEvent(new DragCompletedEventArgs(0, 0, canceled: true));
             OffscreenWindow.WaitUntilIdle();
@@ -208,8 +209,8 @@ public sealed class DirectionViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var slider = SliderNamed(page, Strings.DirectionHeader);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var slider = PageViews.Named<Slider>(page, Strings.DirectionHeader);
             Assert.True(slider.Focus());
 
             slider.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(slider), 0, Key.Home) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
@@ -220,16 +221,13 @@ public sealed class DirectionViewTests
         });
     }
 
-    private static Task<MainViewModel> ConnectWithAsync(string effectId, Action<FakeEngineApi>? arrange = null) => ToolboxViewTests.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectWithAsync(string effectId, Action<FakeEngineApi>? arrange = null) => PageViews.ConnectAsync(api =>
     {
         api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.Wave];
         api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         arrange?.Invoke(api);
     });
 
-    private static Slider SliderNamed(DependencyObject page, string name) =>
-        AppTheme.Descendants<Slider>(page).Single(slider => AutomationProperties.GetName(slider) == name);
-
     private static Button ClearButton(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetName(button) == Strings.DirectionClearAccessibleName);
+        PageViews.ButtonNamed(page, Strings.DirectionClearAccessibleName);
 }

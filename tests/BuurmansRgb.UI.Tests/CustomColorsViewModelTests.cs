@@ -7,9 +7,6 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class CustomColorsViewModelTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
-
     private readonly ColorPickerViewModel _picker = new();
     private readonly CustomColorsViewModel _customColors;
     private readonly List<IReadOnlyList<RgbColor>> _changes = [];

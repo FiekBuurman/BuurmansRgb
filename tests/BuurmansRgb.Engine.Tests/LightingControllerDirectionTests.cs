@@ -182,13 +182,15 @@ public sealed class LightingControllerDirectionTests : IDisposable
         controller.Rendered += (_, _) => { };
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var step = 0; step < 300; step++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var step = 0; step < 300; step++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.Contains(simulated.GetLeds(Keyboard), led => led != RgbColor.Black);
     }
 

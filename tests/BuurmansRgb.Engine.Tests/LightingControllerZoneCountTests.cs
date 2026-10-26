@@ -365,13 +365,15 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         controller.StartCount("simulated-argb", 0, Longest, ZoneCountInfo.MaxLedsPerSecond);
         controller.RenderAnimationFrame();
 
-        var before = GC.GetAllocatedBytesForCurrentThread();
-        for (var step = 0; step < 150; step++)
+        var allocated = Allocations.During(() =>
         {
-            controller.RenderAnimationFrame();
-        }
+            for (var step = 0; step < 150; step++)
+            {
+                controller.RenderAnimationFrame();
+            }
+        });
 
-        Assert.Equal(0, GC.GetAllocatedBytesForCurrentThread() - before);
+        Assert.Equal(0, allocated);
         Assert.True(changes >= 40);
         Assert.True(controller.IsAnimating);
     }

@@ -36,8 +36,12 @@ public sealed class LedBulb : FrameworkElement
 
     internal const int MaxCachedGlows = 2048;
 
-    // UI thread only.
-    private static readonly Dictionary<(double Diameter, double Blur, double Spread, RgbColor Color), Brush> Glows = [];
+    // One cache per UI thread: the glows are frozen, so any thread may use them, but the
+    // dictionary is not thread-safe. Tests run windows on several threads at once.
+    [ThreadStatic]
+    private static Dictionary<(double Diameter, double Blur, double Spread, RgbColor Color), Brush>? _glows;
+
+    private static Dictionary<(double Diameter, double Blur, double Spread, RgbColor Color), Brush> Glows => _glows ??= [];
 
     public RgbColor Color
     {
@@ -95,18 +99,19 @@ public sealed class LedBulb : FrameworkElement
     internal Brush Glow()
     {
         var key = (Diameter, GlowBlur, GlowSpread, Rounded(Color));
-        if (Glows.TryGetValue(key, out var glow))
+        var glows = Glows;
+        if (glows.TryGetValue(key, out var glow))
         {
             return glow;
         }
 
-        if (Glows.Count >= MaxCachedGlows)
+        if (glows.Count >= MaxCachedGlows)
         {
-            Glows.Clear();
+            glows.Clear();
         }
 
         glow = CreateGlow(key.Item4);
-        Glows[key] = glow;
+        glows[key] = glow;
         return glow;
     }
 

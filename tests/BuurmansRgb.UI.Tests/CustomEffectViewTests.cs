@@ -7,6 +7,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
+using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -25,7 +26,7 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tiles = StepTiles(page);
 
             Assert.True(Panel(page).IsVisible);
@@ -47,7 +48,7 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
 
             Assert.False(Panel(page).IsVisible);
         });
@@ -62,7 +63,7 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tile = StepTiles(page)[1];
             Assert.True(tile.Focus());
 
@@ -84,8 +85,8 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var remove = ButtonNamed(page, Strings.CustomEffectStepRemove);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var remove = PageViews.ButtonNamed(page, Strings.CustomEffectStepRemove);
             Assert.True(remove.Focus());
 
             remove.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
@@ -97,6 +98,33 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // "←" and "→" turn themselves off once the step is at an end; the focus goes to that step,
+    // which stays selected, instead of nowhere.
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(true, 2)]
+    public async Task MoveButton_ToTheEnd_GivesTheFocusToTheMovedStep(bool later, int end)
+    {
+        using var viewModel = await ConnectAsync();
+        var editor = viewModel.CustomEffectEditor;
+        editor.SelectStepCommand.Execute(1);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var move = PageViews.ButtonNamed(page, later ? Strings.CustomEffectStepLater : Strings.CustomEffectStepEarlier);
+            Assert.True(move.Focus());
+
+            move.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            (later ? editor.MoveStepLaterCommand : editor.MoveStepEarlierCommand).Execute(null);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(move.IsEnabled);
+            Assert.Equal(end, editor.SelectedIndex);
+            Assert.True(StepTiles(page)[end].IsKeyboardFocused);
+        });
+    }
+
     // The panel hides; the focus goes to the effect choice, which now says Statisch.
     [Fact]
     public async Task DeleteButton_GivesTheFocusToTheEffectChoice()
@@ -105,14 +133,14 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
-            var delete = ButtonNamed(page, Strings.CustomEffectDeleteAccessibleName);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var delete = PageViews.ButtonNamed(page, Strings.CustomEffectDeleteAccessibleName);
             Assert.True(delete.Focus());
 
-            ToolboxViewTests.Click(delete);
+            PageViews.Click(delete);
 
             Assert.False(Panel(page).IsVisible);
-            var choice = AppTheme.Descendants<ComboBox>(page).Single(box => AutomationProperties.GetName(box) == Strings.EffectHeader);
+            var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
             Assert.True(choice.IsKeyboardFocusWithin);
             Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         });
@@ -127,7 +155,7 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var box = NameBox(page);
             Assert.True(box.Focus());
             box.Text = "Feest";
@@ -150,7 +178,7 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var box = NameBox(page);
             Assert.True(box.Focus());
             box.Text = "Aaa";
@@ -158,7 +186,7 @@ public sealed class CustomEffectViewTests
             box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
             OffscreenWindow.WaitUntilIdle();
 
-            var choice = AppTheme.Descendants<ComboBox>(page).Single(combo => AutomationProperties.GetName(combo) == Strings.EffectHeader);
+            var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
             Assert.Equal(["Aaa", "Avond"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
             Assert.Equal(Disco.Id, Assert.IsType<EffectOption>(choice.SelectedItem).Id);
             Assert.True(Panel(page).IsVisible);
@@ -173,9 +201,9 @@ public sealed class CustomEffectViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = ToolboxViewTests.Show(panel, viewModel);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
 
-            ToolboxViewTests.Click(AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectNew)));
+            PageViews.Click(AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectNew)));
 
             Assert.True(Panel(page).IsVisible);
             Assert.Equal(UiText.Format(Strings.CustomEffectNewName, 1), NameBox(page).Text);
@@ -183,7 +211,7 @@ public sealed class CustomEffectViewTests
     }
 
     private static Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, CustomEffect? effect = null, string? effectId = null) =>
-        ToolboxViewTests.ConnectAsync(api =>
+        PageViews.ConnectAsync(api =>
         {
             effect ??= Disco;
             api.Effects = [EffectIds.Static, EffectIds.Rainbow];
@@ -199,8 +227,5 @@ public sealed class CustomEffectViewTests
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is CustomEffectStepItem)];
 
     private static TextBox NameBox(DependencyObject page) =>
-        AppTheme.Descendants<TextBox>(page).Single(box => AutomationProperties.GetName(box) == Strings.CustomEffectNameAccessibleName);
-
-    private static Button ButtonNamed(DependencyObject page, string name) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetName(button) == name);
+        PageViews.Named<TextBox>(page, Strings.CustomEffectNameAccessibleName);
 }
