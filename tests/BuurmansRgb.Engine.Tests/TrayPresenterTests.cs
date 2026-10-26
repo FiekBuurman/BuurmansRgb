@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
+using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
 using static BuurmansRgb.Engine.Tests.LightingStates;
@@ -581,8 +582,171 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Single(_view.Notifications);
     }
 
-    private TrayPresenter CreatePresenter(Action? openLog = null) =>
-        new(_host, _autoStart, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view);
+    // "Herstarten": the new engine started, so this one exits; the tooltip tells of it meanwhile.
+    [Fact]
+    public async Task RestartAsync_NewEngineStarted_ReturnsTrue()
+    {
+        var restart = new RestartFakes();
+        restart.Services.Pending = new TaskCompletionSource<ServicesRestartReport>();
+        var presenter = CreatePresenter(restarter: restart.Restarter);
+
+        var restarting = presenter.RestartAsync(Ct);
+        Assert.StartsWith($"{Strings.TrayToolTipRestarting}\n", _view.ToolTip, StringComparison.Ordinal);
+        restart.Services.Pending.SetResult(ServicesRestartReport.Declined);
+
+        Assert.True(await restarting);
+        Assert.Single(restart.Launcher.Starts);
+        Assert.Empty(_view.Notifications);
+        Assert.StartsWith($"{Strings.TrayToolTipRestarting}\n", _view.ToolTip, StringComparison.Ordinal);
+    }
+
+    // A second click while the first runs does nothing, so there is one UAC prompt.
+    [Fact]
+    public async Task RestartAsync_WhileRestarting_DoesNothing()
+    {
+        var restart = new RestartFakes();
+        restart.Services.Pending = new TaskCompletionSource<ServicesRestartReport>();
+        var presenter = CreatePresenter(restarter: restart.Restarter);
+
+        var first = presenter.RestartAsync(Ct);
+        Assert.False(await presenter.RestartAsync(Ct));
+        restart.Services.Pending.SetResult(ServicesRestartReport.NothingInstalled);
+
+        Assert.True(await first);
+        Assert.Equal(1, restart.Services.Count);
+    }
+
+    // Without a new engine this one keeps running: a warning, the settings app back, the tooltip
+    // as it was.
+    [Fact]
+    public async Task RestartAsync_NewEngineDoesNotStart_WarnsAndKeepsRunning()
+    {
+        var restart = new RestartFakes();
+        restart.Launcher.Result = false;
+        restart.SettingsApp.IsOpen = true;
+        var presenter = CreatePresenter(restarter: restart.Restarter);
+
+        Assert.False(await presenter.RestartAsync(Ct));
+
+        Assert.Equal([(Strings.RestartFailed, TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Equal(1, _launcher.LaunchCount);
+        Assert.Equal($"{Strings.AppName}\nOpenRGB: verbinden…", _view.ToolTip);
+
+        // It can be tried again.
+        Assert.False(await presenter.RestartAsync(Ct));
+        Assert.Equal(2, restart.Services.Count);
+    }
+
+    [Fact]
+    public async Task RestartAsync_Throws_WarnsAndKeepsRunning()
+    {
+        var restart = new RestartFakes();
+        restart.Services.Exception = new IOException("Broken.");
+        var presenter = CreatePresenter(restarter: restart.Restarter);
+
+        Assert.False(await presenter.RestartAsync(Ct));
+
+        Assert.Equal([(Strings.RestartFailed, TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Empty(restart.Launcher.Starts);
+    }
+
+    [Fact]
+    public async Task RestartAsync_WithoutRestarter_DoesNothing()
+    {
+        Assert.False(await CreatePresenter().RestartAsync(Ct));
+        Assert.Empty(_view.Notifications);
+    }
+
+    // The new engine tells what restarted once it runs, and opens the settings app that was open.
+    [Fact]
+    public async Task StartAsync_AfterRestart_TellsWhatRestartedAndOpensTheSettingsApp()
+    {
+        var report = new ServicesRestartReport(ServiceOutcome.Restarted, ServiceOutcome.NotStopped);
+
+        await CreatePresenter(restartedWith: report, openSettingsAfterStart: true).StartAsync(Ct);
+
+        Assert.Equal([TrayPresenter.DescribeRestart(report)], _view.Notifications);
+        Assert.Equal(1, _launcher.LaunchCount);
+    }
+
+    [Fact]
+    public async Task StartAsync_AfterRestartWithoutSettingsApp_OpensNothing()
+    {
+        await CreatePresenter(restartedWith: ServicesRestartReport.Declined).StartAsync(Ct);
+
+        Assert.Equal([(Strings.RestartDeclined, TrayNotificationKind.Warning)], _view.Notifications);
+        Assert.Equal(0, _launcher.LaunchCount);
+    }
+
+    // The error of the start counts more; the settings app opens anyway.
+    [Fact]
+    public async Task StartAsync_AfterRestart_StartFails_ShowsTheError()
+    {
+        _host.StartException = new IOException("Disk unavailable.");
+
+        await CreatePresenter(restartedWith: ServicesRestartReport.NothingInstalled, openSettingsAfterStart: true).StartAsync(Ct);
+
+        Assert.Equal([(Strings.StartupFailed, TrayNotificationKind.Error)], _view.Notifications);
+        Assert.Equal(1, _launcher.LaunchCount);
+    }
+
+    [Fact]
+    public void DescribeRestart_AllRestarted_IsInfo()
+    {
+        var (text, kind) = TrayPresenter.DescribeRestart(new(ServiceOutcome.Restarted, ServiceOutcome.Restarted));
+
+        Assert.Equal($"{Strings.RestartDone}\n{Strings.RestartOpenRgbRestarted}\n{Strings.RestartPawnIoRestarted}", text);
+        Assert.Equal(TrayNotificationKind.Info, kind);
+    }
+
+    [Fact]
+    public void DescribeRestart_NothingInstalled_IsInfo()
+    {
+        var (text, kind) = TrayPresenter.DescribeRestart(ServicesRestartReport.NothingInstalled);
+
+        Assert.Equal($"{Strings.RestartDone}\n{Strings.RestartOpenRgbNotInstalled}\n{Strings.RestartPawnIoNotInstalled}", text);
+        Assert.Equal(TrayNotificationKind.Info, kind);
+    }
+
+    [Theory]
+    [InlineData((int)ServiceOutcome.Restarted, (int)ServiceOutcome.NotStopped)]
+    [InlineData((int)ServiceOutcome.Restarted, (int)ServiceOutcome.Failed)]
+    [InlineData((int)ServiceOutcome.Failed, (int)ServiceOutcome.NotStopped)]
+    [InlineData((int)ServiceOutcome.Failed, (int)ServiceOutcome.Restarted)]
+    public void DescribeRestart_SomethingDidNotRestart_IsAWarning(int openRgb, int pawnIo)
+    {
+        var (text, kind) = TrayPresenter.DescribeRestart(new((ServiceOutcome)openRgb, (ServiceOutcome)pawnIo));
+
+        Assert.StartsWith($"{Strings.RestartDone}\n", text, StringComparison.Ordinal);
+        Assert.Equal(TrayNotificationKind.Warning, kind);
+    }
+
+    [Fact]
+    public void DescribeRestart_DeclinedOrFailedStep_IsOneLine()
+    {
+        Assert.Equal((Strings.RestartDeclined, TrayNotificationKind.Warning), TrayPresenter.DescribeRestart(ServicesRestartReport.Declined));
+        Assert.Equal((Strings.RestartServicesFailed, TrayNotificationKind.Warning), TrayPresenter.DescribeRestart(ServicesRestartReport.Failed));
+    }
+
+    private TrayPresenter CreatePresenter(
+        Action? openLog = null,
+        EngineRestarter? restarter = null,
+        ServicesRestartReport? restartedWith = null,
+        bool openSettingsAfterStart = false) =>
+        new(_host, _autoStart, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view, restarter, restartedWith, openSettingsAfterStart);
+
+    private sealed class RestartFakes
+    {
+        public RestartFakes() => Restarter = new EngineRestarter(Services, SettingsApp, Launcher);
+
+        public EngineRestarterTests.FakeServicesRestart Services { get; } = new();
+
+        public EngineRestarterTests.FakeSettingsAppWindow SettingsApp { get; } = new();
+
+        public EngineRestarterTests.FakeEngineLauncher Launcher { get; } = new();
+
+        public EngineRestarter Restarter { get; }
+    }
 
     private async Task<TrayPresenter> StartedPresenterAsync()
     {
