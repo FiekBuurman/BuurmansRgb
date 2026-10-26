@@ -205,7 +205,7 @@ internal sealed class ZoneCounter : IDisposable
             // The length the keeper remembers is the newest: a length the user set just before the
             // count may not have been in the device list yet when it started.
             var length = _lengths.LengthOf(counting.DeviceId, counting.ZoneName) ?? counting.OldLength;
-            _lengths.ResizeForAWhile(counting.DeviceId, counting.ZoneIndex, length);
+            _lengths.GiveLengthBack(counting.DeviceId, counting.ZoneIndex, length);
         }
         catch (ArgumentException exception)
         {

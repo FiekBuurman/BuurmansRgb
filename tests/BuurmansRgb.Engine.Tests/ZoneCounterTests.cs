@@ -68,6 +68,24 @@ public sealed class ZoneCounterTests : IDisposable
         Assert.Equal(1, changes);
     }
 
+    // A header with no LEDs set yet: nothing is saved, and the zone gets 0 back.
+    [Fact]
+    public async Task Stop_ZoneWithoutLeds_SavesNothingAndGetsZeroBack()
+    {
+        await StartAsync(header: 0);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
+        _counter.Start(Board, Header, 1);
+        await HeaderAsync(Longest);
+
+        _counter.Stop(Board, Header);
+
+        await HeaderAsync(0);
+        await SettledAsync();
+        Assert.Empty(_keeper.Lengths);
+        Assert.Equal(0, Volatile.Read(ref changes));
+    }
+
     [Fact]
     public async Task Start_ZoneWithARememberedLength_KeepsThatLength()
     {

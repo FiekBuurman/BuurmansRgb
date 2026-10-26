@@ -395,7 +395,10 @@ toetsenbord. Een paar dingen om te proberen:
   lengtes doet `ZoneCounter`, boven `ZoneLengthKeeper`: `ResizeForAWhile` geeft de zone zijn
   grootste lengte zonder die te onthouden (en zonder hem als lengte van elders te zien), en
   onthoudt eerst de huidige lengte als er nog geen was, zodat een apparaat dat terugkomt na een
-  crash zijn oude lengte terugkrijgt. De teller zet die onthouden lengte terug bij `Stop`, als de
+  crash zijn oude lengte terugkrijgt. Een huidige lengte 0 onthoudt hij niet (zoals 0 van
+  elders): die komt dan niet in `settings.json`, en de teller zet hem toch terug, uit de lengte
+  die hij bij de start zag; alleen na een crash blijft zo'n zone op zijn grootste lengte. Het
+  terugzetten gaat met `GiveLengthBack`, dat niets onthoudt. De teller zet die onthouden lengte terug bij `Stop`, als de
   eigenaar (de `EngineApi` van de app die begon) wordt weggegooid, bij een andere zone, bij elke
   `PauseChanged` met een reden, vóór `RescanDevicesAsync` en bij `Dispose` van de engine.
   `ResizeZoneAsync` van de getelde zone ("Dit is de laatste") gaat via `ZoneCounter.ResizeZone`:

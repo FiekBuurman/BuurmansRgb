@@ -300,6 +300,42 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Equal(1, Volatile.Read(ref changes));
     }
 
+    // 0 looks like a length that was never set, as with a length from elsewhere; settings.json
+    // gets no length the user did not choose.
+    [Fact]
+    public async Task ResizeForAWhile_ZoneWithoutLeds_RemembersNothing()
+    {
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _keeper.LengthsChanged += (_, _) => Interlocked.Increment(ref changes);
+
+        _keeper.ResizeForAWhile("board", 1, 120);
+
+        await ZoneLengthsAsync([2, 120, 1]);
+        await SettledAsync();
+        Assert.Empty(_keeper.Lengths);
+        Assert.Equal(0, Volatile.Read(ref changes));
+    }
+
+    // After a count of a zone that had 0: the longest length it has for a while is not remembered
+    // as the length it had.
+    [Fact]
+    public async Task GiveLengthBack_RemembersNothing()
+    {
+        _provider.SetDevices(Board(header: 0));
+        await _lighting.DiscoverAsync(Ct);
+        _keeper.ResizeForAWhile("board", 1, 120);
+        await ZoneLengthsAsync([2, 120, 1]);
+        await SettledAsync();
+
+        _keeper.GiveLengthBack("board", 1, 0);
+
+        await ZoneLengthsAsync([2, 0, 1]);
+        await SettledAsync();
+        Assert.Empty(_keeper.Lengths);
+    }
+
     [Fact]
     public async Task ResizeForAWhile_LengthTheZoneCannotHold_ThrowsAndRemembersNothing()
     {
