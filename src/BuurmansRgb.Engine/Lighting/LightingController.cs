@@ -454,7 +454,6 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     public bool StartCount(string deviceId, int zoneIndex, int ledCount, int ledsPerSecond)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
-        ZoneCount.ThrowIfInvalidPace(ledsPerSecond);
         lock (_gate)
         {
             if (_outputs.Find(deviceId) is not { } output || _pause != PauseReasons.None || !_lighting.IsSet
@@ -463,9 +462,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 return false;
             }
 
-            StopCountLocked();
+            // ZoneCount checks the pace, before the count that runs stops.
             var time = EffectTime;
-            _count = new ZoneCount(deviceId, zoneIndex, output.Device.Zones[zoneIndex].Name, ledCount, ledsPerSecond, time);
+            var count = new ZoneCount(deviceId, zoneIndex, output.Device.Zones[zoneIndex].Name, ledCount, ledsPerSecond, time);
+            StopCountLocked();
+            _count = count;
             _countSequence++;
             ShowCountLocked(output, time);
             UpdateAnimationLocked();

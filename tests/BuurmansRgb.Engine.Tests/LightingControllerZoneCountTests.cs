@@ -221,7 +221,9 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         Assert.Throws<ArgumentOutOfRangeException>(() => _controller.StartCount(Board, Header, Longest, ledsPerSecond));
         _controller.StartCount(Board, Header, Longest, 1);
         Assert.Throws<ArgumentOutOfRangeException>(() => _controller.ChangeCount(new ZoneCountChange(LedsPerSecond: ledsPerSecond)));
+        Assert.Throws<ArgumentOutOfRangeException>(() => _controller.StartCount(Board, Header, Longest, ledsPerSecond));
         Assert.Equal(1, Count.LedsPerSecond);
+        Assert.True(Count.Running);
     }
 
     [Fact]
