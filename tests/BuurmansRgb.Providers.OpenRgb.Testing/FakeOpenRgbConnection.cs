@@ -73,7 +73,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
             throw new SocketException((int)SocketError.ConnectionReset);
         }
 
-        connector.Resizes.Add((deviceIndex, zoneIndex, ledCount));
+        connector.Resizes.Enqueue((deviceIndex, zoneIndex, ledCount));
         connector.Devices =
         [
             .. connector.Devices.Select(device => device.Index != deviceIndex ? device : TestDevices.Resize(device, zoneIndex, ledCount)),
@@ -93,7 +93,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
             return false;
         }
 
-        connector.Updates.Add((deviceIndex, colors.ToArray()));
+        connector.Updates.Enqueue((deviceIndex, colors.ToArray()));
         return true;
     }
 

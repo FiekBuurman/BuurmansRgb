@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Providers.OpenRgb.Testing;
@@ -36,11 +37,11 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
 
     public int ConnectCount { get; private set; }
 
-    public List<(int Index, RgbColor[] Colors)> Updates { get; } = [];
+    public ConcurrentQueue<(int Index, RgbColor[] Colors)> Updates { get; } = new();
 
     public List<int> CustomModeIndexes { get; } = [];
 
-    public List<(int Index, int Zone, int LedCount)> Resizes { get; } = [];
+    public ConcurrentQueue<(int Index, int Zone, int LedCount)> Resizes { get; } = new();
 
     public IReadOnlyList<FakeOpenRgbConnection> Connections => _connections;
 
