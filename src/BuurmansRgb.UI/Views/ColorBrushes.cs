@@ -17,19 +17,20 @@ public static class ColorBrushes
 
     public static SolidColorBrush Get(RgbColor color)
     {
-        if (Cache.TryGetValue(color, out var brush))
+        var cache = Cache;
+        if (cache.TryGetValue(color, out var brush))
         {
             return brush;
         }
 
-        if (Cache.Count >= MaxCached)
+        if (cache.Count >= MaxCached)
         {
-            Cache.Clear();
+            cache.Clear();
         }
 
         brush = new SolidColorBrush(ToMediaColor(color));
         brush.Freeze();
-        Cache[color] = brush;
+        cache[color] = brush;
         return brush;
     }
 

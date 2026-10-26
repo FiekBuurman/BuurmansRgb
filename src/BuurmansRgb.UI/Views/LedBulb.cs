@@ -99,18 +99,19 @@ public sealed class LedBulb : FrameworkElement
     internal Brush Glow()
     {
         var key = (Diameter, GlowBlur, GlowSpread, Rounded(Color));
-        if (Glows.TryGetValue(key, out var glow))
+        var glows = Glows;
+        if (glows.TryGetValue(key, out var glow))
         {
             return glow;
         }
 
-        if (Glows.Count >= MaxCachedGlows)
+        if (glows.Count >= MaxCachedGlows)
         {
-            Glows.Clear();
+            glows.Clear();
         }
 
         glow = CreateGlow(key.Item4);
-        Glows[key] = glow;
+        glows[key] = glow;
         return glow;
     }
 
