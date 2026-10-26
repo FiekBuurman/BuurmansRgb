@@ -61,6 +61,9 @@ public sealed class OpenRgbProviderServerTests
         Assert.True(await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
 
         Assert.Equal(1, server.RescanRequests);
+
+        // Over the update OpenRGB sent, not by connecting anew: still the two clients of the first.
+        Assert.Equal(2, server.ClientNames.Count);
         var headset = (await provider.DiscoverAsync(Ct)).Single(device => device.Type == DeviceType.Headset);
         await Eventually.TrueAsync(() => server.CustomModeIndexes.Contains(1), TestTimeouts.Long);
         provider.SetLeds(headset.Id, [Orange, Orange]);
