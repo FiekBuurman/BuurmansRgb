@@ -40,6 +40,22 @@ public sealed class MainViewModelZoneCountTests
         await Eventually.TrueAsync(() => Header(viewModel).Count?.LedText == "LED 2");
     }
 
+    // A step the render thread reported arrives after the pause an IPC thread reported later.
+    [Fact]
+    public async Task EngineReportsAnOlderStepLate_TheCounterKeepsTheNewerState()
+    {
+        var viewModel = await ConnectAsync();
+        Header(viewModel).CountLedsCommand.Execute(null);
+        await Eventually.TrueAsync(() => Header(viewModel).Count is not null);
+
+        Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 31, 60, 1, false) { Sequence = 32 });
+        Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 32, 60, 1, true) { Sequence = 31 });
+        Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 31, 60, 2, false) { Sequence = 33 });
+
+        await Eventually.TrueAsync(() => Header(viewModel).Count?.LedsPerSecond == 2);
+        Assert.Equal((31, false), (Header(viewModel).Count!.Led, Header(viewModel).Count!.Running));
+    }
+
     [Fact]
     public async Task PausePreviousAndPace_GoToTheEngine()
     {

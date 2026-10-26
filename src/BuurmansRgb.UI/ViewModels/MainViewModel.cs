@@ -1196,7 +1196,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.CanFlash = true;
 
         // The engine ends the count of a connection that went.
-        Preview.ShowZoneCount(ZoneCountInfo.None);
+        Preview.ForgetZoneCount();
         DropConnection();
     }
 

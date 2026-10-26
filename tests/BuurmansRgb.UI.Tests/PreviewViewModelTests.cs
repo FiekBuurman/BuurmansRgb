@@ -322,6 +322,35 @@ public sealed class PreviewViewModelTests
         Assert.True(preview.Devices[0].Zones[0].ShowsLength);
     }
 
+    // The engine reports a count from the render thread and from IPC threads, so a step can arrive
+    // after the pause that followed it: the older state is dropped.
+    [Fact]
+    public void ShowZoneCount_OlderThanTheLastOne_IsDropped()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 31, 60, 1, false) { Sequence = 32 });
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 32, 60, 1, true) { Sequence = 31 });
+
+        Assert.Equal((31, false), (preview.Count!.Led, preview.Count.Running));
+    }
+
+    // A new engine counts its sequence from the start again.
+    [Fact]
+    public void ForgetZoneCount_TakesALowerSequenceAgain()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 31, 60, 1, false) { Sequence = 32 });
+
+        preview.ForgetZoneCount();
+        Assert.Null(preview.Count);
+
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 1, 60, 1, true) { Sequence = 1 });
+        Assert.Equal(1, preview.Count!.Led);
+    }
+
     // The user picks another device: nothing is left to stop the count with, so it stops.
     [Fact]
     public void ShowDevices_CountedZoneGoesFromView_StopsTheCount()

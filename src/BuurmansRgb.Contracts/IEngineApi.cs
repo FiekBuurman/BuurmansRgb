@@ -45,7 +45,8 @@ public partial interface IEngineApi
 
     // Raised with the new state when a count of LEDs (StartZoneCountAsync) starts, goes to another
     // LED, pauses, goes on, gets another pace or ends: ZoneCountInfo.None then. Raised at most once
-    // per LED, so at the pace of the count.
+    // per LED, so at the pace of the count. A state can arrive after a newer one; drop it by its
+    // Sequence.
     event EventHandler<ZoneCountInfo> ZoneCountChanged;
 
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);

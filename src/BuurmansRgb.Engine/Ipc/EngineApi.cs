@@ -418,7 +418,9 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     private void OnOptionsChanged(object? sender, EventArgs e) => OptionsChanged?.Invoke(this, EventArgs.Empty);
 
-    // On the render thread at each step of a count; the state is only read for a listener.
+    // On the render thread at each step of a count, and on an IPC thread at a change; the state is
+    // only read for a listener. Two threads can send their states in another order than the
+    // changes; ZoneCountInfo.Sequence lets the app drop the older one.
     private void OnCountChanged(object? sender, EventArgs e)
     {
         if (ZoneCountChanged is { } handler)

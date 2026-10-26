@@ -32,7 +32,33 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller = new LightingController([_provider], _time);
     }
 
+    // The count without its sequence, which only orders the states (Count_SequenceGrowsWithEveryChange).
+    private ZoneCountInfo Count => _controller.Count with { Sequence = 0 };
+
     public void Dispose() => _controller.Dispose();
+
+    // The app drops a state that arrives after a newer one: CountChanged goes out from the render
+    // thread and from IPC threads, and a state read late must not look newer.
+    [Fact]
+    public async Task Count_SequenceGrowsWithEveryChange()
+    {
+        await StartAsync();
+        List<long> sequences = [_controller.Count.Sequence];
+
+        _controller.StartCount(Board, Header, Longest, 1);
+        sequences.Add(_controller.Count.Sequence);
+        AdvanceAndRender(Second);
+        sequences.Add(_controller.Count.Sequence);
+        AdvanceAndRender(Second / 3);
+        sequences.Add(_controller.Count.Sequence);
+        _controller.ChangeCount(new ZoneCountChange(Running: false));
+        sequences.Add(_controller.Count.Sequence);
+        _controller.StopCount();
+        sequences.Add(_controller.Count.Sequence);
+
+        Assert.Equal([0, 1, 2, 2, 3, 4], sequences);
+        Assert.False(_controller.Count.IsCounting);
+    }
 
     [Fact]
     public async Task StartCount_LightsTheFirstLedGreenAndTheRestOfTheZoneOff()
@@ -43,7 +69,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
 
         Assert.Equal([O, O, G, K, K, K], _provider.Leds[Board]);
         Assert.Equal([O, O], _provider.Leds[Fan]);
-        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 1, true), _controller.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 1, true), Count);
         Assert.True(_controller.IsAnimating);
     }
 
@@ -61,7 +87,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
 
         AdvanceAndRender(Second * 2);
         Assert.Equal([O, O, W, W, W, G], _provider.Leds[Board]);
-        Assert.Equal(4, _controller.Count.Led);
+        Assert.Equal(4, Count.Led);
     }
 
     // LEDs past the length the zone has now do not show, but are counted all the same.
@@ -74,7 +100,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         AdvanceAndRender(Second * 6);
 
         Assert.Equal([O, O, W, W, W, W], _provider.Leds[Board]);
-        Assert.Equal(7, _controller.Count.Led);
+        Assert.Equal(7, Count.Led);
     }
 
     [Theory]
@@ -88,7 +114,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
 
         AdvanceAndRender(TimeSpan.FromSeconds(seconds));
 
-        Assert.Equal(led, _controller.Count.Led);
+        Assert.Equal(led, Count.Led);
     }
 
     [Fact]
@@ -118,7 +144,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         AdvanceAndRender(Second * 10);
 
         Assert.Equal([O, O, W, W, W, G], _provider.Leds[Board]);
-        Assert.Equal(new ZoneCountInfo(Board, Header, 4, 4, 1, false), _controller.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 4, 4, 1, false), Count);
         Assert.Equal(1, changes);
         Assert.False(_controller.IsAnimating);
     }
@@ -133,7 +159,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         Assert.True(_controller.ChangeCount(new ZoneCountChange(Running: false)));
         AdvanceAndRender(Second * 3);
 
-        Assert.Equal(new ZoneCountInfo(Board, Header, 2, Longest, 1, false), _controller.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 2, Longest, 1, false), Count);
         Assert.Equal([O, O, W, G, K, K], _provider.Leds[Board]);
         Assert.False(_controller.IsAnimating);
     }
@@ -148,10 +174,10 @@ public sealed class LightingControllerZoneCountTests : IDisposable
 
         _controller.ChangeCount(new ZoneCountChange(Running: true));
         AdvanceAndRender(Second / 2);
-        Assert.Equal(1, _controller.Count.Led);
+        Assert.Equal(1, Count.Led);
 
         AdvanceAndRender(Second / 2);
-        Assert.Equal(2, _controller.Count.Led);
+        Assert.Equal(2, Count.Led);
     }
 
     // − and + in the app: the LED shows at once, kept within 1 and the longest length.
@@ -166,7 +192,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
 
         _controller.ChangeCount(new ZoneCountChange(Led: requested, Running: false));
 
-        Assert.Equal(led, _controller.Count.Led);
+        Assert.Equal(led, Count.Led);
         if (led == 3)
         {
             Assert.Equal([O, O, W, W, G, K], _provider.Leds[Board]);
@@ -182,7 +208,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.ChangeCount(new ZoneCountChange(LedsPerSecond: 5));
         AdvanceAndRender(Second);
 
-        Assert.Equal(new ZoneCountInfo(Board, Header, 6, Longest, 5, true), _controller.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 6, Longest, 5, true), Count);
     }
 
     [Theory]
@@ -195,7 +221,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         Assert.Throws<ArgumentOutOfRangeException>(() => _controller.StartCount(Board, Header, Longest, ledsPerSecond));
         _controller.StartCount(Board, Header, Longest, 1);
         Assert.Throws<ArgumentOutOfRangeException>(() => _controller.ChangeCount(new ZoneCountChange(LedsPerSecond: ledsPerSecond)));
-        Assert.Equal(1, _controller.Count.LedsPerSecond);
+        Assert.Equal(1, Count.LedsPerSecond);
     }
 
     [Fact]
@@ -204,7 +230,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         await StartAsync();
 
         Assert.False(_controller.ChangeCount(new ZoneCountChange(Led: 3)));
-        Assert.Equal(ZoneCountInfo.None, _controller.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -219,7 +245,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.StopCount();
 
         Assert.Equal([O, O, O, O, O, O], _provider.Leds[Board]);
-        Assert.Equal(ZoneCountInfo.None, _controller.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
         Assert.Equal(1, changes);
         Assert.False(_controller.IsAnimating);
     }
@@ -233,7 +259,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.StartCount(Board, 0, 2, 1);
 
         Assert.Equal([G, K, O, O, O, O], _provider.Leds[Board]);
-        Assert.Equal(0, _controller.Count.ZoneIndex);
+        Assert.Equal(0, Count.ZoneIndex);
     }
 
     [Theory]
@@ -245,7 +271,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         await StartAsync();
 
         Assert.False(_controller.StartCount(deviceId, zoneIndex, Longest, 1));
-        Assert.Equal(ZoneCountInfo.None, _controller.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
         Assert.False(_controller.IsAnimating);
     }
 
@@ -274,7 +300,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.SetPaused(reason, true);
 
         Assert.Equal([O, O, O, O, O, O], _provider.Leds[Board]);
-        Assert.Equal(ZoneCountInfo.None, _controller.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
         Assert.Equal(["pause", "count"], events);
         Assert.False(_controller.IsAnimating);
     }

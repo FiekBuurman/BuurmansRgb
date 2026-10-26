@@ -411,12 +411,12 @@ public sealed class EngineRpcTests : IDisposable
         client.Api.ZoneCountChanged += (_, count) => received.TrySetResult(count);
 
         var count = await client.Api.GetZoneCountAsync(Ct);
-        _api.RaiseZoneCount(ZoneCountInfo.None);
+        _api.RaiseZoneCount(ZoneCountInfo.None with { Sequence = 8 });
 
-        Assert.Equal(new ZoneCountInfo("board", 1, 37, 120, 2, true), count);
+        Assert.Equal(new ZoneCountInfo("board", 1, 37, 120, 2, true) { Sequence = 7 }, count);
         Assert.True(count.IsCounting);
         var none = await received.Task.WaitAsync(TestTimeouts.Short, Ct);
-        Assert.Equal(ZoneCountInfo.None, none);
+        Assert.Equal(ZoneCountInfo.None with { Sequence = 8 }, none);
         Assert.False(none.IsCounting);
     }
 
@@ -730,7 +730,7 @@ public sealed class EngineRpcTests : IDisposable
         }
 
         public Task<ZoneCountInfo> GetZoneCountAsync(CancellationToken ct = default) =>
-            Task.FromResult(new ZoneCountInfo("board", 1, 37, 120, 2, true));
+            Task.FromResult(new ZoneCountInfo("board", 1, 37, 120, 2, true) { Sequence = 7 });
 
         public void RaiseZoneCount(ZoneCountInfo count) => ZoneCountChanged?.Invoke(this, count);
 

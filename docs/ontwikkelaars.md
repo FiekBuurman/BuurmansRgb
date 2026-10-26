@@ -385,7 +385,11 @@ toetsenbord. Een paar dingen om te proberen:
   naam, zodat een nieuwe lijst met een andere zone op die plek de telling niet krijgt; een nieuwe
   lijst met de zone hangt hem aan de nieuwe `DeviceOutput`. Zolang hij loopt, draait de
   render-loop; bij de laatste LED of een pauze stopt die weer (bij een statisch effect).
-  `CountChanged` gaat af bij een stap, zonder allocaties; `EngineApi` leest dan pas `Count`. De
+  `CountChanged` gaat af bij een stap, zonder allocaties; `EngineApi` leest dan pas `Count`, met
+  een `Sequence` die onder de lock van de controller bij elke wijziging ophoogt. De render-thread
+  en een IPC-thread kunnen hun stand in een andere volgorde versturen dan de wijzigingen, dus
+  `PreviewViewModel.ShowZoneCount` laat een oudere stand vallen (`ForgetZoneCount` begint weer
+  bij 0 voor een nieuwe engine). De
   lengtes doet `ZoneCounter`, boven `ZoneLengthKeeper`: `ResizeForAWhile` geeft de zone zijn
   grootste lengte zonder die te onthouden (en zonder hem als lengte van elders te zien), en
   onthoudt eerst de huidige lengte als er nog geen was, zodat een apparaat dat terugkomt na een

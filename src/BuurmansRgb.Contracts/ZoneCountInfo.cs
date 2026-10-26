@@ -14,6 +14,11 @@ public sealed record ZoneCountInfo(string DeviceId, int ZoneIndex, int Led, int 
 
     public static ZoneCountInfo None { get; } = new(string.Empty, -1, 0, 0, DefaultLedsPerSecond, false);
 
+    // Grows with every change of the count in the engine, also when it ends, so a client can drop
+    // a state that arrives after a newer one: ZoneCountChanged goes out from more than one thread.
+    // Starts again when the engine restarts.
+    public long Sequence { get; init; }
+
     [JsonIgnore]
     public bool IsCounting => DeviceId.Length > 0;
 

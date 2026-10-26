@@ -15,6 +15,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // The count as the engine reported it last, also while its zone is not in view.
     private ZoneCountInfo _count = ZoneCountInfo.None;
 
+    // The sequence of the newest count the engine reported (ZoneCountInfo.Sequence).
+    private long _countSequence;
+
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
     // Raised when the user clicks an LED in one of the device previews.
@@ -79,12 +82,32 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     public void Reset()
     {
         _latestFrame = LightingFrame.Empty;
-        ShowZoneCount(ZoneCountInfo.None);
+        ForgetZoneCount();
+    }
+
+    // Forgets the count of a connection that went, with its sequence: a new engine starts again.
+    public void ForgetZoneCount()
+    {
+        _countSequence = 0;
+        Show(ZoneCountInfo.None);
     }
 
     // The count of LEDs as the engine reports it: the counted zone shows it, the same view model
-    // as long as the same zone counts, so the focus stays where it was.
+    // as long as the same zone counts, so the focus stays where it was. A state older than the
+    // last one is dropped: the engine reports a count from more than one thread, so a step can
+    // arrive after the pause that followed it.
     public void ShowZoneCount(ZoneCountInfo count)
+    {
+        if (count.Sequence < _countSequence)
+        {
+            return;
+        }
+
+        _countSequence = count.Sequence;
+        Show(count);
+    }
+
+    private void Show(ZoneCountInfo count)
     {
         _count = count;
         if (Count?.Counts(count.DeviceId, count.ZoneIndex) == true)
@@ -237,7 +260,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     {
         if (_count.Counts(stop.DeviceId, stop.ZoneIndex))
         {
-            ShowZoneCount(ZoneCountInfo.None);
+            Show(ZoneCountInfo.None);
         }
 
         ZoneCountStopRequested?.Invoke(this, stop);

@@ -29,6 +29,9 @@ public sealed class ZoneCounterTests : IDisposable
         _lighting.DevicesChanged += (_, _) => Interlocked.Increment(ref _listsHandled);
     }
 
+    // The count without its sequence, which only orders the states.
+    private ZoneCountInfo Count => _lighting.Count with { Sequence = 0 };
+
     public void Dispose()
     {
         _counter.Dispose();
@@ -45,7 +48,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         await HeaderAsync(Longest);
         Assert.Equal([(Board, Header, Longest)], _provider.Resizes);
-        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 2, true), _lighting.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 2, true), Count);
     }
 
     // The longest length is for a while: it is not saved, and the length the zone had is, so a
@@ -92,7 +95,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         await HeaderAsync(30);
         Assert.Equal([(Board, Header, Longest), (Board, Header, 30)], _provider.Resizes);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     // A length the user set just before counting may not be in the device list yet when the count
@@ -121,7 +124,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         _counter.Stop(Board, SecondHeader);
 
-        Assert.True(_lighting.Count.Counts(Board, Header));
+        Assert.True(Count.Counts(Board, Header));
         Assert.Single(_provider.Resizes);
     }
 
@@ -139,7 +142,7 @@ public sealed class ZoneCounterTests : IDisposable
         await SettledAsync();
         Assert.Equal([(Board, Header, Longest), (Board, Header, 37)], _provider.Resizes);
         Assert.Equal(37, _keeper.Lengths[Board]["ARGB 1"]);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -153,7 +156,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         await HeaderAsync(30);
         Assert.Equal(30, _keeper.Lengths[Board]["ARGB 1"]);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -167,7 +170,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         await Eventually.TrueAsync(() => _lighting.Devices.Single().Zones[SecondHeader].LedCount == 5);
         await SettledAsync();
-        Assert.True(_lighting.Count.Counts(Board, Header));
+        Assert.True(Count.Counts(Board, Header));
     }
 
     [Fact]
@@ -181,7 +184,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         await Eventually.TrueAsync(() => _lighting.Devices.Single().Zones[SecondHeader].LedCount == 60);
         await HeaderAsync(30);
-        Assert.True(_lighting.Count.Counts(Board, SecondHeader));
+        Assert.True(Count.Counts(Board, SecondHeader));
     }
 
     [Fact]
@@ -194,7 +197,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         _counter.Start(Board, Header, 5);
 
-        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 5, true), _lighting.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 1, Longest, 5, true), Count);
         Assert.Single(_provider.Resizes);
     }
 
@@ -207,11 +210,11 @@ public sealed class ZoneCounterTests : IDisposable
         await HeaderAsync(Longest);
 
         _counter.StopFor(new object());
-        Assert.True(_lighting.Count.IsCounting);
+        Assert.True(Count.IsCounting);
 
         _counter.StopFor(app);
         await HeaderAsync(30);
-        Assert.False(_lighting.Count.IsCounting);
+        Assert.False(Count.IsCounting);
     }
 
     [Theory]
@@ -227,7 +230,7 @@ public sealed class ZoneCounterTests : IDisposable
         _lighting.SetPaused(reason, true);
 
         await HeaderAsync(30);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -239,7 +242,7 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.Start(Board, Header, 1);
 
         Assert.Empty(_provider.Resizes);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -252,7 +255,7 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.StopAll();
 
         await HeaderAsync(30);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     [Fact]
@@ -265,7 +268,7 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.Dispose();
 
         await HeaderAsync(30);
-        Assert.Equal(ZoneCountInfo.None, _lighting.Count);
+        Assert.Equal(ZoneCountInfo.None, Count);
     }
 
     // A new list that has the zone at its longest, such as after OpenRGB searched again, keeps it counting.
@@ -279,7 +282,7 @@ public sealed class ZoneCounterTests : IDisposable
         _provider.SetDevices(_provider.Devices.Single());
         await SettledAsync();
 
-        Assert.True(_lighting.Count.Counts(Board, Header));
+        Assert.True(Count.Counts(Board, Header));
     }
 
     // Another length from elsewhere, such as the app of OpenRGB itself: the count ends, and the
@@ -293,7 +296,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         _provider.SetDevices(BoardWith(header: 44));
 
-        await Eventually.TrueAsync(() => !_lighting.Count.IsCounting);
+        await Eventually.TrueAsync(() => !Count.IsCounting);
         await SettledAsync();
         Assert.Single(_provider.Resizes);
     }
@@ -307,7 +310,7 @@ public sealed class ZoneCounterTests : IDisposable
 
         _provider.SetDevices();
 
-        await Eventually.TrueAsync(() => !_lighting.Count.IsCounting);
+        await Eventually.TrueAsync(() => !Count.IsCounting);
         Assert.Single(_provider.Resizes);
     }
 
@@ -325,7 +328,7 @@ public sealed class ZoneCounterTests : IDisposable
         _provider.SetDevices(BoardWith(header: Longest));
 
         await HeaderAsync(30);
-        Assert.False(_lighting.Count.IsCounting);
+        Assert.False(Count.IsCounting);
     }
 
     [Fact]
@@ -347,10 +350,10 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.Start(Board, Header, 1);
 
         _counter.Change(Board, SecondHeader, new ZoneCountChange(Led: 4));
-        Assert.Equal(1, _lighting.Count.Led);
+        Assert.Equal(1, Count.Led);
 
         _counter.Change(Board, Header, new ZoneCountChange(Led: 4, Running: false));
-        Assert.Equal(new ZoneCountInfo(Board, Header, 4, Longest, 1, false), _lighting.Count);
+        Assert.Equal(new ZoneCountInfo(Board, Header, 4, Longest, 1, false), Count);
     }
 
     // A board with two fixed LEDs, two addressable headers of up to 120 and 60 LEDs, and a logo.

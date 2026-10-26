@@ -56,6 +56,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // The LEDs of the zone that are counted (StartCount); one zone at a time.
     private ZoneCount? _count;
 
+    // Grows with every change of the count, under the lock, so a listener can drop a state that
+    // arrives late (ZoneCountInfo.Sequence): CountChanged goes out from the render thread and from
+    // IPC threads.
+    private long _countSequence;
+
     // A restore that waits for the manual pause to end.
     private bool _restorePending;
     private bool _disposed;
@@ -103,14 +108,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // the newest state. Raised from the render loop too, without allocating.
     public event EventHandler? CountChanged;
 
-    // The count of LEDs as it is now; ZoneCountInfo.None while no zone is counted.
+    // The count of LEDs as it is now, with the sequence of its last change; ZoneCountInfo.None
+    // (with that sequence) while no zone is counted.
     public ZoneCountInfo Count
     {
         get
         {
             lock (_gate)
             {
-                return _count?.Info ?? ZoneCountInfo.None;
+                return (_count?.Info ?? ZoneCountInfo.None) with { Sequence = _countSequence };
             }
         }
     }
@@ -460,6 +466,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             StopCountLocked();
             var time = EffectTime;
             _count = new ZoneCount(deviceId, zoneIndex, output.Device.Zones[zoneIndex].Name, ledCount, ledsPerSecond, time);
+            _countSequence++;
             ShowCountLocked(output, time);
             UpdateAnimationLocked();
         }
@@ -482,6 +489,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             var time = EffectTime;
             count.Change(time, change);
+            _countSequence++;
             if (_outputs.Find(count.DeviceId) is { } output)
             {
                 ShowCountLocked(output, time);
@@ -660,6 +668,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             var time = EffectTime;
             counted = _count?.Advance(time) ?? false;
+            if (counted)
+            {
+                _countSequence++;
+            }
+
             var flashEnded = false;
             foreach (var output in _outputs.All)
             {
@@ -914,6 +927,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         _count = null;
+        _countSequence++;
         if (_outputs.Find(count.DeviceId) is { } output)
         {
             output.ShowCount(null);
