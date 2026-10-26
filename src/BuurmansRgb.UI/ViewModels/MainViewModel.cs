@@ -628,7 +628,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _customEffectChanges++;
         ShowCustomEffect(effect);
-        _calls.Post((CustomEffectCall, effect.Id), () => connection.Api.SaveCustomEffectAsync(effect));
+        _calls.Post((CustomEffectCall, effect.Id), () => CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect)));
     }
 
     // The engine gives every device that shows it, and so this one, the static effect; the choice
@@ -654,7 +654,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowPickerColor();
         _calls.Post((CustomEffectCall, id), async () =>
         {
-            await connection.Api.DeleteCustomEffectAsync(id);
+            await CallOrShowCustomEffectsAsync(connection, async () =>
+            {
+                await connection.Api.DeleteCustomEffectAsync(id);
+                return true;
+            });
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
@@ -704,7 +708,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _customEffectChanges++;
         _calls.Post(new object(), async () =>
         {
-            var saved = await connection.Api.SaveCustomEffectAsync(effect);
+            var saved = await CallOrShowCustomEffectsAsync(connection, () => connection.Api.SaveCustomEffectAsync(effect));
             RunOnUi(() =>
             {
                 if (!ReferenceEquals(connection, _connection))
@@ -725,6 +729,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _customEffects = [.. _customEffects.Where(other => other.Id != effect.Id).Append(effect).OrderBy(other => other.Name, CustomEffects.NameComparer)];
         ShowEffects();
+    }
+
+    // A change of an own effect the engine refused, such as a name another settings app took
+    // meanwhile or an effect it deleted: the effects as the engine keeps them replace the ones shown
+    // here, without the check of OnCustomEffectsChanged, as the list it sent may have been dropped
+    // for this very change. The error still goes on to OnCallFailed.
+    private async Task<T> CallOrShowCustomEffectsAsync<T>(IEngineConnection connection, Func<Task<T>> call)
+    {
+        try
+        {
+            return await call();
+        }
+        catch (Exception exception) when (EngineRpc.IsRejectedByEngine(exception))
+        {
+            var effects = await connection.Api.GetCustomEffectsAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    _customEffects = effects;
+                    ShowEffects();
+                }
+            });
+            throw;
+        }
     }
 
     // Another settings app saved or deleted an effect, or this one did. In the queue, behind the

@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -215,6 +216,56 @@ public sealed class MainViewModelCustomEffectTests
 
         Assert.Equal("Feest", viewModel.SelectedEffect?.DisplayName);
         Assert.Equal("Feest", viewModel.CustomEffectEditor.Name);
+    }
+
+    // The engine refused the new name, which another settings app took meanwhile: the app shows the
+    // effects as the engine keeps them, also though a list it sent was dropped for the change.
+    [Fact]
+    public async Task Rename_RefusedByTheEngine_ShowsTheEffectsOfTheEngine()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        Api.CustomEffects = [Disco, Avond with { Name = "Feest" }];
+        Api.SetException = new RemoteInvocationException("There is already an own effect named 'Feest'.", 0, errorData: null);
+        var gate = new TaskCompletionSource();
+        Api.SetGate = gate.Task;
+
+        viewModel.CustomEffectEditor.Name = "Feest";
+        Api.RaiseCustomEffectsChanged();
+        gate.SetResult();
+
+        await Eventually.TrueAsync(() => viewModel.CustomEffectEditor.Name == "Disco");
+        Assert.Equal(["Disco", "Feest"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
+        Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
+    }
+
+    // Another settings app made the last one there can be meanwhile.
+    [Fact]
+    public async Task NewCustomEffect_RefusedByTheEngine_ShowsTheEffectsOfTheEngine()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        Api.CustomEffects = [Avond, Disco];
+        Api.SetException = new RemoteInvocationException("There are at most 32 own effects.", 0, errorData: null);
+
+        viewModel.NewCustomEffectCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => viewModel.Effects.Count(effect => effect.IsCustom) == 2);
+        Assert.Equal(["Avond", "Disco"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
+        Assert.Equal(Strings.ChangeRejected, viewModel.StatusMessage);
+    }
+
+    // Another settings app deleted it already, and made another.
+    [Fact]
+    public async Task Delete_RefusedByTheEngine_ShowsTheEffectsOfTheEngine()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        Api.CustomEffects = [Avond];
+        Api.SetException = new RemoteInvocationException("There is no own effect 'custom:disco'.", 0, errorData: null);
+
+        viewModel.CustomEffectEditor.DeleteCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => viewModel.Effects.Any(effect => effect.IsCustom));
+        Assert.Equal(["Avond"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
+        Assert.Equal(Strings.ChangeRejected, viewModel.StatusMessage);
     }
 
     [Fact]
