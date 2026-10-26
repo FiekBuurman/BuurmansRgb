@@ -22,7 +22,7 @@ internal static class Program
     private static readonly TimeSpan ResizesOnExitTimeout = TimeSpan.FromSeconds(2);
 
     // How long an engine that "Herstarten" started waits for the old one to exit, and once more
-    // after it sent the exit signal (PreviousEngine). The old one exits as with "Afsluiten", which
+    // when it still runs then (PreviousEngine). The old one exits as with "Afsluiten", which
     // takes a few seconds at most.
     private static readonly TimeSpan PreviousEngineTimeout = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan PreviousEnginePollInterval = TimeSpan.FromMilliseconds(200);
@@ -51,7 +51,7 @@ internal static class Program
             : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, LogBeforeStart);
         if (!instance.IsPrimary)
         {
-            // The old engine did not exit, also not after the exit signal; it may still run, and
+            // The old engine did not exit, also not after the second wait; it may still run, and
             // this one stops. PreviousEngine logged it.
             if (options.Restarted is not null)
             {

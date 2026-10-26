@@ -49,6 +49,9 @@ uitbreidingen in `docs/bouwplan.md`.
   eerste fout (via de exitcode), niet elke fout met zijn volledige tekst
 - Herstarten: een service die nog aan het starten is (`StartPending`) eerst laten opstarten en
   dan pas stoppen; nu geeft stoppen dan meteen "niet te stoppen"
+- Herstarten: de PID van de oude engine meegeven aan de nieuwe (bijv. `--restarted <code>
+  <pid>`), zodat die een oude engine die na de wachttijd nog hangt kan beëindigen in plaats van
+  zelf te stoppen
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 - Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met
