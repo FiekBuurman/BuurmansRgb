@@ -770,9 +770,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   headsets (zie "Supported Devices" op [openrgb.org](https://openrgb.org)); een headset die
   OpenRGB niet kent, staat ook niet in BuurmansRgb, en er komt geen eigen driver.
 - **Overige types:** muismat, headsetstandaard, speaker, gamepad, microfoon en keypad hebben
-  een eigen naam en icoon. Lampen, virtuele apparaten, "accessory" en "storage" staan zonder
-  type. OpenRGB.NET 3.1.1 kent "case", "microphone" en "keypad" niet bij naam; BuurmansRgb
-  herkent ze aan hun nummer.
+  een eigen naam en icoon. Lampen (OpenRGB-type "light"), virtuele apparaten, "accessory" en
+  "storage" staan zonder type. OpenRGB.NET 3.1.1 kent "case", "microphone" en "keypad" niet bij
+  naam; BuurmansRgb herkent ze aan hun nummer.
 - **Na slaapstand** gaan veel apparaten terug naar hun eigen effect. Daarom zet de engine 2 en
   10 seconden na het ontwaken de OpenRGB-apparaten opnieuw klaar en stuurt hij alle kleuren
   opnieuw (bij een pauze uit het tray-menu pas bij hervatten). Een USB-apparaat dat je opnieuw
