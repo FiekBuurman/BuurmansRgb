@@ -49,6 +49,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly LedColorStore _ledColors = new();
     private readonly HashSet<string> _zonesAlike = new(StringComparer.Ordinal);
 
+    // The own effects by effect id, each with the effect that plays it: one for every device, as
+    // it keeps nothing between frames.
+    private readonly Dictionary<string, StepEffect> _customEffects = new(StringComparer.Ordinal);
+
     // Removed again on Dispose, so a provider that outlives the controller cannot refresh it.
     private readonly List<(IDynamicDeviceProvider Provider, EventHandler Handler)> _devicesChangedHandlers = [];
     private PauseReasons _pause;
@@ -350,8 +354,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // A global change also applies to every device with its own lighting, so a global color keeps
     // a device's own brightness and the other way round. Changing one device starts from what
-    // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect
-    // throws ArgumentException and changes nothing.
+    // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect, also
+    // an own effect that does not exist (SetCustomEffects), throws ArgumentException and changes
+    // nothing.
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
     {
         bool rendered;
@@ -359,12 +364,12 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         {
             if (deviceId is null)
             {
-                _lighting.SetGlobal(change);
+                _lighting.SetGlobal(lighting => ThrowIfMissingCustomLocked(change(lighting)));
             }
             else
             {
                 KnownDeviceLocked(deviceId);
-                _lighting.Set(deviceId, change(_lighting.Get(deviceId)));
+                _lighting.Set(deviceId, ThrowIfMissingCustomLocked(change(_lighting.Get(deviceId))));
             }
 
             rendered = RenderLocked();
@@ -372,6 +377,45 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
         Publish(rendered);
         LightingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    // The own effects there are now (CustomEffectLibrary), which a lighting can show by their id.
+    // A device, or the global lighting, that shows an own effect that is gone gets the static
+    // effect in its own color, as a change (LightingChanged), so that is saved; the devices that
+    // show an effect that is still there show its new steps at once. Before the lighting is
+    // applied, they are only kept for it.
+    public void SetCustomEffects(IReadOnlyList<CustomEffect> effects)
+    {
+        ArgumentNullException.ThrowIfNull(effects);
+        var changed = false;
+        bool rendered;
+        lock (_gate)
+        {
+            _customEffects.Clear();
+            foreach (var effect in effects)
+            {
+                _customEffects[effect.Id] = EffectCatalog.CreateCustom(effect);
+            }
+
+            if (_lighting.IsSet)
+            {
+                var state = StateLocked();
+                var kept = WithoutMissingCustomLocked(state);
+                if (!ReferenceEquals(kept, state))
+                {
+                    _lighting.Replace(kept.Global, kept.Devices);
+                    changed = true;
+                }
+            }
+
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        if (changed)
+        {
+            LightingChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     // The colors the per-LED effect shows, one per LED: the stored color, or the device color for
@@ -803,9 +847,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         foreach (var output in _outputs.All)
         {
             var lighting = _lighting.Get(output.Device.Id);
-            var effect = lighting.On
-                ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop, EffectCatalog.SeedOf(output.Device.Id), lighting.EffectColors)
-                : Off;
+            var effect = lighting.On ? EffectLocked(lighting, output.Device) : Off;
             var zonesAlike = lighting.EffectId != EffectIds.PerLed && _zonesAlike.Contains(output.Device.Id);
             output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike, lighting.Direction);
             output.Render(time);
@@ -1012,6 +1054,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         LightingState? applied;
         lock (_gate)
         {
+            state = WithoutMissingCustomLocked(state);
             _lighting.Replace(state.Global, state.Devices);
             _ledColors.Replace(state.LedColors);
             _ledColors.Adopt(_outputs.All.Select(output => output.Device));
@@ -1025,6 +1068,43 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
+
+    // The effect a device shows with lighting: an own effect plays its steps, and one that is gone
+    // (only for a moment, see WithoutMissingCustomLocked) shows the device color.
+    private IEffect EffectLocked(DeviceLighting lighting, RgbDevice device)
+    {
+        if (CustomEffects.IsCustom(lighting.EffectId))
+        {
+            return _customEffects.TryGetValue(lighting.EffectId, out var custom) ? custom : new StaticEffect(lighting.Color);
+        }
+
+        return EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(device), lighting.Loop, EffectCatalog.SeedOf(device.Id), lighting.EffectColors);
+    }
+
+    // The state with the static effect in place of an own effect that does not exist (any more),
+    // such as from a scene saved before it was deleted; the same state when there is none.
+    private LightingState WithoutMissingCustomLocked(LightingState state)
+    {
+        if (!IsMissingCustomLocked(state.Global) && !state.Devices.Values.Any(IsMissingCustomLocked))
+        {
+            return state;
+        }
+
+        return state with
+        {
+            Global = WithoutMissingCustomLocked(state.Global),
+            Devices = state.Devices.ToDictionary(pair => pair.Key, pair => WithoutMissingCustomLocked(pair.Value)),
+        };
+    }
+
+    private DeviceLighting WithoutMissingCustomLocked(DeviceLighting lighting) =>
+        IsMissingCustomLocked(lighting) ? lighting with { EffectId = EffectIds.Static } : lighting;
+
+    private bool IsMissingCustomLocked(DeviceLighting lighting) =>
+        CustomEffects.IsCustom(lighting.EffectId) && !_customEffects.ContainsKey(lighting.EffectId);
+
+    private DeviceLighting ThrowIfMissingCustomLocked(DeviceLighting lighting) =>
+        IsMissingCustomLocked(lighting) ? throw EffectCatalog.UnknownCustom(lighting.EffectId) : lighting;
 
     private void Publish(bool rendered)
     {

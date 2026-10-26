@@ -28,13 +28,25 @@ internal static class EffectCatalog
 
     public static bool IsKnown([NotNullWhen(true)] string? effectId) => effectId is not null && Factories.ContainsKey(effectId);
 
+    // An effect of the catalog, or the id of an own effect (CustomEffects.IsCustom), which
+    // LightingController plays when it has that effect.
+    public static bool IsValidId([NotNullWhen(true)] string? effectId) => IsKnown(effectId) || CustomEffects.IsCustom(effectId);
+
+    // Also for the id of an own effect, whether or not it exists: LightingController checks that.
     public static void ThrowIfUnknown(string? effectId)
     {
-        if (!IsKnown(effectId))
+        if (!IsValidId(effectId))
         {
             throw UnknownEffect(effectId);
         }
     }
+
+    // The steps of an own effect as the effect that plays them.
+    public static StepEffect CreateCustom(CustomEffect effect) =>
+        new([.. effect.Steps.Select(step => new EffectStep(step.Colors, TimeSpan.FromSeconds(step.HoldSeconds), TimeSpan.FromSeconds(step.FadeSeconds)))]);
+
+    // The same error as for an unknown effect of the catalog.
+    public static ArgumentException UnknownCustom(string effectId) => UnknownEffect(effectId);
 
     // Without effectColors every effect with a list has its default (EffectColors.For).
     public static IEffect Create(string effectId, RgbColor color, IReadOnlyList<RgbColor?> ledColors, ColorLoop? loop = null, uint seed = 0, EffectColors? effectColors = null) =>

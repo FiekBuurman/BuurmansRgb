@@ -6,7 +6,9 @@ namespace BuurmansRgb.Engine.Lighting;
 // the lighting is applied or first changed, everything counts as the default and IsSet is false.
 // Rejects a brightness outside 0 to 1, a speed outside EffectSpeed, a direction outside
 // EffectDirection, a color loop or own colors of an effect that do not fit (ColorLoop.IsValid,
-// EffectColors.IsValid) and an unknown effect with ArgumentException, before it changes anything. Not thread-safe: LightingController uses it under its lock.
+// EffectColors.IsValid) and an unknown effect with ArgumentException, before it changes anything;
+// the id of an own effect passes here, and LightingController checks that the effect exists. Not
+// thread-safe: LightingController uses it under its lock.
 internal sealed class LightingTable
 {
     private readonly Dictionary<string, DeviceLighting> _devices = [];
