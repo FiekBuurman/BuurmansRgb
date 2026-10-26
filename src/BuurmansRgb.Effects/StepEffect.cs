@@ -77,6 +77,12 @@ public sealed class StepEffect : IEffect
         var amount = Math.Min(into / _fades[step], 1.0);
         var from = _colors[step];
         var to = _colors[(step + 1) % _colors.Length];
+        if (from.Length == 1 && to.Length == 1)
+        {
+            leds.Fill(RgbColor.Lerp(from[0], to[0], amount));
+            return;
+        }
+
         for (var i = 0; i < leds.Length; i++)
         {
             leds[i] = RgbColor.Lerp(ColorAt(from, i, leds.Length), ColorAt(to, i, leds.Length), amount);
