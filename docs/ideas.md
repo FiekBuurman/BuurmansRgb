@@ -156,6 +156,26 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een apparaat eigen kleuren voor
   het effect heeft; nu telt voor de knop alleen wat "Hele huis" zelf heeft, en moet je eerst
   dat apparaat kiezen
+- Eigen effecten, na de eerste versie (stappen met een kleur of patroon, blijven staan en
+  overlopen):
+  - `effects.json` met de hand live oppikken, zoals `settings.json` met `SettingsFileWatcher`;
+    nu leest de engine het alleen bij het starten, zoals `profiles.json`
+  - Een stap die een bestaand effect een tijd laat lopen (bijv. 5 s Regenboog, dan 2 s rood), of
+    een effect dat er een ander overheen legt; lagen en scripts zitten er bewust niet in
+  - Per stap kiezen of een patroon wordt uitgerekt (nu) of herhaald, of over de plekken van de
+    LED's loopt in plaats van over de volgorde, met de richting
+  - Andere manieren van overlopen: zacht beginnen en eindigen (`SmoothStep`), via zwart, of een
+    veeg van de ene naar de andere kant in plaats van alle LED's tegelijk
+  - Een effect dupliceren, en exporteren of importeren (delen met anderen)
+  - De stappen slepen om ze te ordenen (nu met ← en →), en de tijden ook als getal typen
+  - Verwijderen ongedaan maken, of eerst vragen; nu verwijdert de knop meteen, zoals bij scènes
+  - In het voorbeeld de gekozen stap laten zien in plaats van het lopende effect, zodat je een
+    lange stap niet hoeft af te wachten
+  - Op de scènekaart de naam van het eigen effect en de kleuren van zijn stappen als bolletjes;
+    nu staat er "Eigen effect" met de kleur van het apparaat
+  - Een scène die een kopie van het effect bewaart in plaats van een verwijzing, zodat hij er
+    hetzelfde uit blijft zien als je het effect later aanpast of verwijdert
+  - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
 
 ## Instellingen-app en ontwerp
 

@@ -20,6 +20,8 @@
 - **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
   vuur (fonkelen, komeet, scanner en vuur in je eigen kleuren, bijv. blauw vuur), een eigen
   kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
+- **Eigen effecten** van stappen: elke stap een kleur of een patroon over de LED's, met hoe lang
+  hij blijft staan en overloopt naar de volgende.
 - **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, op vaste tijden of
   zolang een spel draait.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand, scherm uit en schermbeveiliging en
