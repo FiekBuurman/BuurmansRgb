@@ -822,6 +822,49 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal([Red], customColors.Colors);
     }
 
+    // A new effect gets its id, which the lighting then takes as its effect; CustomEffectsChanged
+    // follows each change.
+    [Fact]
+    public async Task CustomEffects_SaveShowAndDelete()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(LightingStates.Uniform(LightingStates.StaticLighting(Orange)));
+        var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: library);
+        var changes = 0;
+        api.CustomEffectsChanged += (_, _) => changes++;
+
+        var saved = await api.SaveCustomEffectAsync(new CustomEffect("", "Disco", [new CustomEffectStep(Red)]), Ct);
+        await api.SetEffectAsync("simulated-fan", saved.Id, Ct);
+
+        Assert.Equal([saved], await api.GetCustomEffectsAsync(Ct));
+        Assert.Equal(saved.Id, (await api.GetLightingAsync("simulated-fan", Ct)).EffectId);
+
+        await api.DeleteCustomEffectAsync(saved.Id, Ct);
+
+        Assert.Empty(await api.GetCustomEffectsAsync(Ct));
+        Assert.Equal(EffectIds.Static, (await api.GetLightingAsync("simulated-fan", Ct)).EffectId);
+        Assert.Equal(2, changes);
+    }
+
+    [Fact]
+    public async Task SetEffectAsync_OwnEffectThatDoesNotExist_Throws()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetEffectAsync(null, "custom:gone", Ct));
+    }
+
+    [Fact]
+    public async Task CustomEffects_WithoutTheLibrary_AreNoneAndCannotBeSaved()
+    {
+        using var api = CreateApi();
+
+        Assert.Empty(await api.GetCustomEffectsAsync(Ct));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => api.SaveCustomEffectAsync(new CustomEffect("", "Disco", [new CustomEffectStep(Red)]), Ct));
+    }
+
     [Fact]
     public async Task CustomColors_WithoutTheList_AreNone()
     {

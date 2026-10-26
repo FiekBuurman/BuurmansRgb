@@ -98,7 +98,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,

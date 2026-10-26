@@ -480,6 +480,27 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off", "custom colors #0000FF #FFFFFF"], _api.OptionCalls);
     }
 
+    // The steps go over the pipe with their colors and times, and a new effect comes back with its id.
+    [Fact]
+    public async Task CustomEffects_ReachServerAndBack()
+    {
+        var client = await ConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.CustomEffectsChanged += (_, _) => changed.TrySetResult();
+        var effect = new CustomEffect("", "Feest", [new CustomEffectStep(new RgbColor(0, 255, 0), 1.5, 0), new CustomEffectStep([RgbColor.White, RgbColor.Black])]);
+
+        var effects = await client.Api.GetCustomEffectsAsync(Ct);
+        var saved = await client.Api.SaveCustomEffectAsync(effect, Ct);
+        await client.Api.DeleteCustomEffectAsync("custom:1", Ct);
+        _api.RaiseCustomEffectsChanged();
+
+        Assert.Equal([new CustomEffect("custom:1", "Disco", [new CustomEffectStep([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], 0.5, 2)])], effects);
+        Assert.Equal(effect with { Id = "custom:new" }, saved);
+        Assert.Equal([effect], _api.CustomEffectCalls);
+        Assert.Equal(["custom:1"], _api.DeletedCustomEffects);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
     [Fact]
     public async Task ServerError_ReachesClientAsRemoteInvocationException()
     {
@@ -821,6 +842,30 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             OptionCalls.Add($"custom colors {string.Join(" ", colors.Select(color => color.ToHex()))}");
+            return Task.CompletedTask;
+        }
+
+        public event EventHandler? CustomEffectsChanged;
+
+        public void RaiseCustomEffectsChanged() => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);
+
+        public List<CustomEffect> CustomEffectCalls { get; } = [];
+
+        public List<string> DeletedCustomEffects { get; } = [];
+
+        public Task<IReadOnlyList<CustomEffect>> GetCustomEffectsAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<CustomEffect>>([new CustomEffect("custom:1", "Disco", [new CustomEffectStep([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], 0.5, 2)])]);
+
+        // Like the engine: a new effect gets an id.
+        public Task<CustomEffect> SaveCustomEffectAsync(CustomEffect effect, CancellationToken ct = default)
+        {
+            CustomEffectCalls.Add(effect);
+            return Task.FromResult(effect.Id.Length == 0 ? effect with { Id = "custom:new" } : effect);
+        }
+
+        public Task DeleteCustomEffectAsync(string id, CancellationToken ct = default)
+        {
+            DeletedCustomEffects.Add(id);
             return Task.CompletedTask;
         }
 

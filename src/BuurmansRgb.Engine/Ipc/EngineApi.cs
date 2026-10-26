@@ -23,6 +23,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly AllOnOffHotkeys? _hotkeys;
     private readonly CustomColorList? _customColors;
     private readonly ZoneCounter? _zoneCounter;
+    private readonly CustomEffectLibrary? _customEffects;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -40,9 +41,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         ProfileTimer? profileTimer = null,
         AllOnOffHotkeys? hotkeys = null,
         CustomColorList? customColors = null,
-        ZoneCounter? zoneCounter = null)
+        ZoneCounter? zoneCounter = null,
+        CustomEffectLibrary? customEffects = null)
     {
         _zoneCounter = zoneCounter;
+        _customEffects = customEffects;
         _autoPause = autoPause;
         _profileTimer = profileTimer;
         _hotkeys = hotkeys;
@@ -70,6 +73,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _hotkeys?.EnabledChanged += OnOptionsChanged;
         _customColors?.Changed += OnOptionsChanged;
         _lighting.CountChanged += OnCountChanged;
+        _customEffects?.Changed += OnCustomEffectsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -90,6 +94,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public event EventHandler<ZoneCountInfo>? ZoneCountChanged;
 
+    public event EventHandler? CustomEffectsChanged;
+
     // Zones alike is read after the devices; when it changes in between, DevicesChanged follows.
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default)
     {
@@ -99,6 +105,19 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     }
 
     public Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default) => Task.FromResult(EffectCatalog.Ids);
+
+    // Without the library (in tests) there are none, and none can be saved.
+    public Task<IReadOnlyList<CustomEffect>> GetCustomEffectsAsync(CancellationToken ct = default) =>
+        Task.FromResult(_customEffects?.Effects ?? []);
+
+    public Task<CustomEffect> SaveCustomEffectAsync(CustomEffect effect, CancellationToken ct = default) =>
+        Task.FromResult(CustomEffectsOrThrow().Save(effect));
+
+    public Task DeleteCustomEffectAsync(string id, CancellationToken ct = default)
+    {
+        CustomEffectsOrThrow().Delete(id);
+        return Task.CompletedTask;
+    }
 
     public Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default) =>
         Task.FromResult(ToInfo(_lighting.GetLighting(deviceId)));
@@ -386,6 +405,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _hotkeys?.EnabledChanged -= OnOptionsChanged;
         _customColors?.Changed -= OnOptionsChanged;
         _lighting.CountChanged -= OnCountChanged;
+        _customEffects?.Changed -= OnCustomEffectsChanged;
         _frames.Dispose();
 
         // The settings app that counted went, so nobody can stop the count any more.
@@ -423,6 +443,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnProfilesChanged(object? sender, EventArgs e) => ProfilesChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnOptionsChanged(object? sender, EventArgs e) => OptionsChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnCustomEffectsChanged(object? sender, EventArgs e) => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);
+
+    private CustomEffectLibrary CustomEffectsOrThrow() =>
+        _customEffects ?? throw new InvalidOperationException("This engine keeps no own effects.");
 
     // On the render thread at each step of a count, and on an IPC thread at a change; the state is
     // only read for a listener. Two threads can send their states in another order than the

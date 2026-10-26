@@ -49,9 +49,30 @@ public partial interface IEngineApi
     // Sequence.
     event EventHandler<ZoneCountInfo> ZoneCountChanged;
 
+    // Raised when an own effect was saved or deleted, from this or another settings app.
+    // GetCustomEffectsAsync then gives the new list.
+    event EventHandler CustomEffectsChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
+    // The effects of the engine itself; the own effects of the user come from GetCustomEffectsAsync.
     Task<IReadOnlyList<string>> GetEffectsAsync(CancellationToken ct = default);
+
+    // The own effects of the user (CustomEffect), in alphabetical order of their names. The Id of
+    // each is its effect id, for SetEffectAsync and in the lighting and the scenes.
+    Task<IReadOnlyList<CustomEffect>> GetCustomEffectsAsync(CancellationToken ct = default);
+
+    // Saves an own effect, which the engine keeps in effects.json: with an empty Id as a new effect,
+    // which gets an id of its own, or else in place of the effect with that Id. Returns it as the
+    // engine keeps it (CustomEffects.Normalize). The devices that show it show its new steps at
+    // once. Throws for an invalid effect, a name another effect has, more than
+    // CustomEffects.MaxEffects or an Id the engine does not know (any more).
+    Task<CustomEffect> SaveCustomEffectAsync(CustomEffect effect, CancellationToken ct = default);
+
+    // Deletes an own effect. Every device that shows it, and the lighting of all devices, gets the
+    // static effect in its own color, as a change (LightingChanged); a scene that names it keeps the
+    // id and shows static when it loads. Throws for an id the engine does not know (any more).
+    Task DeleteCustomEffectAsync(string id, CancellationToken ct = default);
 
     Task<LightingInfo> GetLightingAsync(string? deviceId, CancellationToken ct = default);
 
