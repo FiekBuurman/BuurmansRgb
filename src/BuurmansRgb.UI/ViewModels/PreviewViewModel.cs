@@ -144,6 +144,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
             return;
         }
 
+        // States can arrive out of order here too: a step of a new count of the stopped zone (such
+        // as one another settings app starts) that overtakes the None is ignored, and then the None
+        // hides the count. That misses one tick; the next step shows the count again.
         if (_stoppedCount is { } stopped)
         {
             if (count.Counts(stopped.DeviceId, stopped.ZoneIndex))
