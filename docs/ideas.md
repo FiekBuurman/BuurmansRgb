@@ -142,6 +142,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
+- Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
+  in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
+- "+" van de eigen kleuren achter het laatste vakje zetten in plaats van ervoor, met een paneel
+  dat de vakjes en + samen laat omlopen; nu staat + vooraan, zodat de vakjes binnen de kolom
+  omlopen
 - Een gekozen kleur bij Kleur die nog niet op het apparaat staat, gaat verloren als je een ander apparaat
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per apparaat. Geldt alleen nog voor de
   kleur van het hele apparaat: een kleur van de kleurenloop, van de kleuren van een effect en van
@@ -366,3 +371,8 @@ uitbreidingen in `docs/bouwplan.md`.
   UI-testsets tegelijk draaien in zo'n 9 % van de runs (7 van de 80); heel af en toe ook
   `ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed`. Los van de focus-poging hierboven,
   want het gebeurde even vaak met als zonder die wijziging
+- `ColorBrushesTests.Get_CacheFull_StartsOver` faalde één keer (van vier runs van de UI-tests,
+  bij taak "gereedschapskist"): de cache van `ColorBrushes` is statisch en niet thread-safe, en
+  de tests met een venster (`AppTheme`, `OffscreenWindow`) vullen hem tegelijk op hun eigen
+  STA-thread, terwijl het commentaar van de test zegt dat alleen die klasse hem gebruikt. De test
+  in de collectie van `AppTheme` zetten, of de cache per thread maken

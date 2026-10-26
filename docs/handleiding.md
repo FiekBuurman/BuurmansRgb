@@ -54,8 +54,9 @@ schakelaar ernaast.
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
-  (0–255, ook met de pijltjes), "Uit de gereedschapskist" met zes vaste kleuren (Klus-wit,
-  Rood, Oranje, Groen, Blauw, Paars) en de knop **Op de strip zetten**. Schuiven, hex-code en
+  (0–255, ook met de pijltjes), "Uit de gereedschapskist" met negen vaste kleuren (Klus-wit,
+  Rood, Oranje, Groen, Blauw, Paars, en Echt rood, Echt groen en Echt blauw) met daaronder je
+  eigen kleuren (zie "Eigen kleuren"), en de knop **Op de strip zetten**. Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op het apparaat"); pas de
   knop zet hem op het apparaat. Dat geldt voor de kleur van het hele apparaat. Heb je een kleur van de
   kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, of LED's in het voorbeeld
@@ -76,6 +77,15 @@ schakelaar ernaast.
   alleen voor wat je wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die
   kleur. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat weer
   gelijk aan "Hele huis", dan volgt het "Hele huis" weer.
+- **Eigen kleuren:** onder de vaste kleuren van de gereedschapskist. Het vakje **+** zet de
+  huidige kleur van de kiezer erbij, achteraan de rij; hooguit 12, en elke kleur één keer (staat
+  de kleur er al, of zijn het er 12, dan is + grijs). Een klik op een eigen kleur mengt hem, net
+  als een vaste kleur. Weghalen doe je met rechts klikken en **Weghalen**, of met de toets
+  **Delete** op het vakje dat de focus heeft; de focus gaat dan naar het vakje dat ervoor in de
+  plaats komt, of naar +. De eigen kleuren gelden voor alle apparaten en blijven bewaard, ook
+  als je de app sluit: de engine bewaart ze als `customColors` in `settings.json`. Een andere
+  instellingen-app die tegelijk open is, ziet ze meteen. Ze zijn iets anders dan de kleuren van
+  een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
   het effect, de snelheid, de kleurenloop en de kleuren van het effect meteen de nieuwe
@@ -442,6 +452,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur) en gekozen LED's veranderen
   wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien, dus een
   knop voegde daar niets toe.
+- **Gereedschapskist:** de vakjes zijn 32 px in plaats van de 44 px van het ontwerp (§ 4,
+  "Preset tile"), zodat de negen vaste kleuren op één rij passen en de eigen kleuren eronder
+  ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de focusring en hebben hun naam
+  voor een schermlezer. Naast de zes kleuren van het ontwerp staan Echt rood, Echt groen en Echt
+  blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van het ontwerp zijn getint. De
+  vakjes van de kleurenloop en de kleuren van een effect blijven 44 px.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
@@ -607,7 +623,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "zoneLengths": {
     "simulated-argb": { "ARGB 2": 15 }
   },
-  "zonesAlike": ["simulated-headset", "simulated-mouse"]
+  "zonesAlike": ["simulated-headset", "simulated-mouse"],
+  "customColors": ["#FF0000", "#40C0FF"]
 }
 ```
 
@@ -632,6 +649,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `zoneLengths` | Per apparaat de lengte die je een instelbare zone gaf, op de naam van de zone |
 | `zonesAlike` | De apparaten (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elk apparaat uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
+| `customColors` | De eigen kleuren van de gereedschapskist op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
 
 - Een apparaat van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
   plus een code uit de locatie en het serienummer, zodat die na een herstart dezelfde blijft.
@@ -640,7 +658,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 - Een kleur die niet te lezen is (bijv. `"purple"` of een getal), slaat de engine ook over: bij
   `color` wordt het wit, in `ledColors` volgt die LED de kleur van het apparaat, in `effectColors`
   gaat het effect zonder die kleur (zonder kleuren over: zijn standaard), en in `colorLoop`
-  loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw). De rest
+  loopt de loop zonder die kleur (met minder dan twee kleuren: geel, groen, blauw); in
+  `customColors` valt die eigen kleur weg. De rest
   blijft gelden, ook in `profiles.json`. Bij de volgende wijziging schrijft de engine het bestand
   zonder die kleur weg.
 - Een versie van vóór 12 kleuren nam er hooguit 8. Ga je terug naar zo'n versie, dan leest die
@@ -648,6 +667,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   lijst van 9–12 in `effectColors` als de standaard van dat effect; de andere lijsten blijven.
   Dat geldt ook voor de scènes in `profiles.json`. Bij de volgende wijziging schrijft die versie
   het bestand zo weg, en zijn de lange lijsten weg.
+- Een versie van vóór de eigen kleuren kent `customColors` niet: die laat het veld liggen en
+  schrijft het bij de volgende wijziging niet mee weg, dus dan zijn je eigen kleuren weg.
 - Een waarde van het verkeerde soort (bijv. `"brightness": "hoog"`, `"on": "ja"` of een getal
   waar een lijst hoort), slaat de engine ook over: die waarde krijgt de standaardwaarde, alsof
   hij niet in het bestand stond, en de rest blijft gelden, ook in `profiles.json`. In een lijst
