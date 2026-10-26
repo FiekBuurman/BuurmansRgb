@@ -22,6 +22,13 @@ public interface IPreviewActions
     // "Zones gelijk" switched for a device.
     void SetZonesAlike(ZonesAlikeChoice choice);
 
-    // False while the effects are paused: a device or zone does not blink then.
+    // "Tellen" of a resizable zone, and what the user does with the count after that.
+    void StartZoneCount(ZoneCountStart start);
+
+    void ChangeZoneCount(ZoneCountUpdate update);
+
+    void StopZoneCount(ZoneCountStop stop);
+
+    // False while the effects are paused: a device or zone does not blink then, nor counts.
     bool CanFlash { get; }
 }

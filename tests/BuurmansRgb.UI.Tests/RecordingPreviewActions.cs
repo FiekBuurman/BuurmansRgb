@@ -21,5 +21,11 @@ internal sealed class RecordingPreviewActions : IPreviewActions
 
     public void SetZonesAlike(ZonesAlikeChoice choice) => Requests.Add(choice);
 
+    public void StartZoneCount(ZoneCountStart start) => Requests.Add(start);
+
+    public void ChangeZoneCount(ZoneCountUpdate update) => Requests.Add(update);
+
+    public void StopZoneCount(ZoneCountStop stop) => Requests.Add(stop);
+
     public bool CanFlash { get; set; } = true;
 }

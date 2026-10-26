@@ -24,6 +24,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
     private const string FlashCall = "flash";
+    private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
     private const string SimulatedDevicesCall = "simulated-devices";
     private const string FramesPerSecondCall = "frames-per-second";
@@ -106,6 +107,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.FlashRequested += (_, deviceId) => FlashDevice(deviceId);
         Preview.ZoneFlashRequested += (_, flash) => FlashZone(flash);
         Preview.ZonesAlikeRequested += (_, choice) => SendZonesAlike(choice);
+        Preview.ZoneCountStartRequested += (_, start) => SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => api.StartZoneCountAsync(start.DeviceId, start.ZoneIndex, start.LedsPerSecond));
+        Preview.ZoneCountChangeRequested += (_, update) => SendZoneCount(update.DeviceId, update.ZoneIndex, update.Change, api => api.SetZoneCountAsync(update.DeviceId, update.ZoneIndex, update.Change));
+        Preview.ZoneCountStopRequested += (_, stop) => SendZoneCount(stop.DeviceId, stop.ZoneIndex, "stop", api => api.StopZoneCountAsync(stop.DeviceId, stop.ZoneIndex));
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
@@ -150,6 +154,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 SendFramesWanted();
                 SendFrameDevices();
+
+                // The count shows only on Kleur; elsewhere there is nothing to stop it with.
+                if (Navigation.CurrentPage != AppPage.Color)
+                {
+                    Preview.StopCount();
+                }
             }
         };
     }
@@ -294,6 +304,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.LightingChanged += OnLightingChanged;
             connection.Api.ProfilesChanged += OnProfilesChanged;
             connection.Api.OptionsChanged += OnOptionsChanged;
+            connection.Api.ZoneCountChanged += OnZoneCountChanged;
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
@@ -855,6 +866,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // A count of LEDs: the engine reports how it goes through ZoneCountChanged, and the device at
+    // its longest, or with its length back, through DevicesChanged. Each kind of call has its own
+    // key, so a change does not replace a start or another change that still waits.
+    private void SendZoneCount(string deviceId, int zoneIndex, object kind, Func<IEngineApi, Task> send)
+    {
+        CancelPendingFlash();
+        if (_connection is { } connection)
+        {
+            _calls.Post((CountCall, deviceId, zoneIndex, kind), () => send(connection.Api));
+        }
+    }
+
     // The engine reports the device with its new choice through DevicesChanged, which rebuilds the
     // preview; the frames that follow show the zones alike, or each with its own part again.
     private void SendZonesAlike(ZonesAlikeChoice choice)
@@ -1104,6 +1127,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.CanFlash = pause == PauseReasons.None;
     }
 
+    // At each LED of a count, so at most a few times a second.
+    private void OnZoneCountChanged(object? sender, ZoneCountInfo count) => RunOnUi(() => Preview.ShowZoneCount(count));
+
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
         var now = _time.GetLocalNow();
@@ -1168,6 +1194,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         EffectsPause.Clear();
         DeviceRescan.Clear();
         Preview.CanFlash = true;
+
+        // The engine ends the count of a connection that went.
+        Preview.ShowZoneCount(ZoneCountInfo.None);
         DropConnection();
     }
 
@@ -1188,6 +1217,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.LightingChanged -= OnLightingChanged;
         connection.Api.ProfilesChanged -= OnProfilesChanged;
         connection.Api.OptionsChanged -= OnOptionsChanged;
+        connection.Api.ZoneCountChanged -= OnZoneCountChanged;
         connection.Dispose();
     }
 

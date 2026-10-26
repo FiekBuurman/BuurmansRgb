@@ -232,6 +232,146 @@ public sealed class PreviewViewModelTests
         Assert.False(preview.Devices[0].Zones[0].Length!.HasUnsentChange);
     }
 
+    // "Tellen" of a zone: a length that waits goes first, then the count starts at the pace of 1.
+    [Fact]
+    public void CountLeds_SendsAWaitingLengthFirstAndStartsTheCount()
+    {
+        var preview = new PreviewViewModel(new FakeTimeProvider());
+        List<object> requests = [];
+        preview.ZoneResizeRequested += (_, resize) => requests.Add(resize);
+        preview.ZoneCountStartRequested += (_, start) => requests.Add(start);
+        preview.ShowDevices([Board(20, 0)]);
+        var zone = preview.Devices[0].Zones[0];
+        zone.Length!.IncreaseCommand.Execute(null);
+
+        zone.CountLedsCommand.Execute(null);
+
+        Assert.Equal([new ZoneResize("board", 0, 21), new ZoneCountStart("board", 0, ZoneCountInfo.DefaultLedsPerSecond)], requests);
+    }
+
+    // Also for a device with one zone, which shows no zone name; not for a zone of a fixed length.
+    [Fact]
+    public void ShowsCount_OnlyForAZoneWhoseLengthCanBeSet()
+    {
+        var preview = new PreviewViewModel();
+
+        preview.ShowDevices([Strip(10), Fan]);
+
+        Assert.True(preview.Devices[0].Zones[0].ShowsCount);
+        Assert.False(preview.Devices[0].Zones[0].ShowsHeader);
+        Assert.False(preview.Devices[1].Zones[0].ShowsCount);
+    }
+
+    [Fact]
+    public void CountLeds_WhilePaused_CannotBeChosen()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10)]);
+
+        preview.CanFlash = false;
+
+        Assert.False(preview.Devices[0].Zones[0].CountLedsCommand.CanExecute(null));
+    }
+
+    // The counted zone shows the count instead of its length controls.
+    [Fact]
+    public void ShowZoneCount_GivesTheCountToItsZone()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+
+        var zones = preview.Devices[0].Zones;
+        Assert.Null(zones[0].Count);
+        Assert.True(zones[0].ShowsLength);
+        Assert.Equal(4, zones[1].Count!.Led);
+        Assert.True(zones[1].IsCounting);
+        Assert.False(zones[1].ShowsLength);
+        Assert.Same(zones[1].Count, preview.Count);
+    }
+
+    // The engine reports the board again with the header at its longest: the same count goes on.
+    [Fact]
+    public void ShowDevices_WhileCounting_KeepsTheSameCount()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
+        var count = preview.Count;
+
+        preview.ShowDevices([Board(60, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 5, 60, 1, true));
+
+        Assert.Same(count, preview.Devices[0].Zones[0].Count);
+        Assert.Equal(5, count!.Led);
+    }
+
+    [Fact]
+    public void ShowZoneCount_None_EndsTheCount()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
+
+        preview.ShowZoneCount(ZoneCountInfo.None);
+
+        Assert.Null(preview.Count);
+        Assert.Null(preview.Devices[0].Zones[0].Count);
+        Assert.True(preview.Devices[0].Zones[0].ShowsLength);
+    }
+
+    // The user picks another device: nothing is left to stop the count with, so it stops.
+    [Fact]
+    public void ShowDevices_CountedZoneGoesFromView_StopsTheCount()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+
+        preview.ShowDevices([Fan]);
+
+        Assert.Equal([new ZoneCountStop("board", 1)], stops);
+        Assert.Null(preview.Count);
+    }
+
+    // Another settings app counts a zone that is not in view here: that one is left alone, and
+    // shows when its zone comes in view.
+    [Fact]
+    public void ShowZoneCount_ZoneNotInView_IsLeftAloneAndShowsLater()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Fan]);
+
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+        preview.ShowDevices([Fan]);
+        Assert.Null(preview.Count);
+
+        preview.ShowDevices([Board(20, 0)]);
+        Assert.Equal(4, preview.Devices[0].Zones[1].Count!.Led);
+        Assert.Empty(stops);
+    }
+
+    [Fact]
+    public void StopCount_StopsTheCountInView()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.StopCount();
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
+
+        preview.StopCount();
+
+        Assert.Equal([new ZoneCountStop("board", 0)], stops);
+        Assert.Null(preview.Devices[0].Zones[0].Count);
+    }
+
     private static DeviceInfo Board(int argb1, int argb2) =>
         new("board", "Board", DeviceType.Motherboard, argb1 + argb2, [new RgbZone("ARGB 1", argb1, 0, 60), new RgbZone("ARGB 2", argb2, 0, 60)])
         {

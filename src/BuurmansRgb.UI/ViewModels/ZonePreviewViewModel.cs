@@ -41,6 +41,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         // Zone names such as "DRAM" repeat across devices, so the device name always comes first.
         AccessibleName = showsName ? UiText.Format(Strings.ZoneAccessibleName, device.Name, Name) : device.Name;
         FlashAccessibleName = UiText.Format(Strings.FlashZoneAccessibleName, device.Name, Name);
+        CountAccessibleName = UiText.Format(Strings.CountZoneAccessibleName, device.Name, Name);
         if (layout.Index != ZoneLayout.NoZone && layout.Zone.Resizable)
         {
             Length = new ZoneLengthViewModel(device.Id, layout.Index, layout.Zone, AccessibleName, actions, time);
@@ -139,6 +140,27 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     public bool CanResize => Length is not null;
 
+    // The count of the LEDs of this zone while it runs (ZoneCountViewModel), shown instead of the
+    // controls of the length; null otherwise.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsLength), nameof(IsCounting))]
+    public partial ZoneCountViewModel? Count { get; private set; }
+
+    public bool IsCounting => Count is not null;
+
+    // The controls of the length, which the count replaces while it runs: during it the zone is at
+    // its longest, and "Dit is de laatste" sets the length.
+    public bool ShowsLength => CanResize && Count is null;
+
+    // A zone whose length can be set can count its LEDs ("Tellen"), also when its device has no
+    // other zones and so shows no zone name.
+    public bool ShowsCount => CanResize;
+
+    // What a screen reader calls "Tellen", with the device name, as zone names repeat.
+    public string CountAccessibleName { get; }
+
+    public string CountFocusKey => $"zone-count-start/{_deviceId}/{_layout.Index}";
+
     // A zone whose length can be set but that shows no LEDs, typically a header of which OpenRGB
     // does not know what is on it: the view explains how to give it the LEDs of the fan or strip.
     public bool ShowsEmptyZoneHint => CanResize && ShownLedCount == 0;
@@ -187,6 +209,12 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     internal void ShowDeviceActiveLed(int led) => ActiveLed = Holds(led) ? led - FirstLed : LedMatrix.NoLed;
 
+    internal void ShowCount(ZoneCountViewModel? count) => Count = count;
+
+    // A new ZoneCountViewModel for a count of this zone, which the preview keeps while the zone is
+    // made again.
+    internal ZoneCountViewModel CreateCount(ZoneCountInfo count) => new(count, _layout.Zone, AccessibleName, _actions);
+
     // An LED that only shows because of a new length has no color to edit yet.
     [RelayCommand]
     private void ClickLed(LedHit hit)
@@ -221,6 +249,18 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     }
 
     private bool CanFlash() => _actions?.CanFlash ?? true;
+
+    // As with Flash, a length that still waits goes to the engine first, so the count gives the
+    // zone that one back. Once more while counting starts again from LED 1, at the same pace.
+    [RelayCommand(CanExecute = nameof(CanFlash))]
+    private void CountLeds()
+    {
+        if (ShowsCount)
+        {
+            Length?.SendNow();
+            _actions?.StartZoneCount(new ZoneCountStart(_deviceId, _layout.Index, Count?.LedsPerSecond ?? ZoneCountInfo.DefaultLedsPerSecond));
+        }
+    }
 
     private void OnLengthChanged(object? sender, PropertyChangedEventArgs e)
     {
