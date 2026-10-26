@@ -23,6 +23,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly ToolStripMenuItem _profilesItem;
     private readonly ToolStripMenuItem _allOnItem;
     private readonly ToolStripMenuItem _allOffItem;
+    private readonly ToolStripMenuItem _restartItem;
     private readonly SynchronizationContext _uiContext;
     private readonly IEngineHost _host;
     private readonly IServerStatusSource _openRgb;
@@ -60,6 +61,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
         _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
         _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
+        _restartItem = new ToolStripMenuItem(Strings.MenuRestart, image: null, async (_, _) => await RestartAsync());
 
         // Click, not CheckedChanged: the check also follows a pause that ends elsewhere (ShowPause).
         _pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
@@ -78,7 +80,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             _autoStartItem,
             new ToolStripSeparator(),
             new ToolStripMenuItem(Strings.MenuOpenLog, image: null, (_, _) => _presenter.OpenLog()),
-            new ToolStripMenuItem(Strings.MenuRestart, image: null, async (_, _) => await RestartAsync()),
+            _restartItem,
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
         ]);
         _menu.Opening += (_, _) =>
@@ -185,6 +187,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _allOnItem.ShortcutKeyDisplayString = allOn;
         _allOffItem.ShortcutKeyDisplayString = allOff;
     }
+
+    void ITrayView.SetRestartEnabled(bool enabled) => _restartItem.Enabled = enabled;
 
     void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>
         _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, ToToolTipIcon(kind));

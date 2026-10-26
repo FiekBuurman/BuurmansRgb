@@ -21,4 +21,7 @@ internal interface ITrayView
     void ShowAllOnOffHotkeys(string? allOn, string? allOff);
 
     void ShowNotification(string text, TrayNotificationKind kind);
+
+    // Whether "Herstarten" can be clicked: not while a restart runs.
+    void SetRestartEnabled(bool enabled);
 }

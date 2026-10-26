@@ -592,12 +592,14 @@ public sealed class TrayPresenterTests : IDisposable
 
         var restarting = presenter.RestartAsync(Ct);
         Assert.StartsWith($"{Strings.TrayToolTipRestarting}\n", _view.ToolTip, StringComparison.Ordinal);
+        Assert.False(_view.RestartEnabled);
         restart.Services.Pending.SetResult(ServicesRestartReport.Declined);
 
         Assert.True(await restarting);
         Assert.Single(restart.Launcher.Starts);
         Assert.Empty(_view.Notifications);
         Assert.StartsWith($"{Strings.TrayToolTipRestarting}\n", _view.ToolTip, StringComparison.Ordinal);
+        Assert.False(_view.RestartEnabled);
     }
 
     // A second click while the first runs does nothing, so there is one UAC prompt.
@@ -631,6 +633,7 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Equal([(Strings.RestartFailed, TrayNotificationKind.Warning)], _view.Notifications);
         Assert.Equal(1, _launcher.LaunchCount);
         Assert.Equal($"{Strings.AppName}\nOpenRGB: verbinden…", _view.ToolTip);
+        Assert.True(_view.RestartEnabled);
 
         // It can be tried again.
         Assert.False(await presenter.RestartAsync(Ct));
@@ -648,6 +651,7 @@ public sealed class TrayPresenterTests : IDisposable
 
         Assert.Equal([(Strings.RestartFailed, TrayNotificationKind.Warning)], _view.Notifications);
         Assert.Empty(restart.Launcher.Starts);
+        Assert.True(_view.RestartEnabled);
     }
 
     [Fact]
@@ -844,5 +848,9 @@ public sealed class TrayPresenterTests : IDisposable
         public void ShowAllOnOffHotkeys(string? allOn, string? allOff) => Hotkeys = (allOn, allOff);
 
         public void ShowNotification(string text, TrayNotificationKind kind) => Notifications.Add((text, kind));
+
+        public bool RestartEnabled { get; private set; } = true;
+
+        public void SetRestartEnabled(bool enabled) => RestartEnabled = enabled;
     }
 }

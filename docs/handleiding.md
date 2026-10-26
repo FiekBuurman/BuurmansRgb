@@ -633,7 +633,7 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   toestemming (UAC). Daarna gaat het zo:
   - OpenRGB stopt, PawnIO stopt, PawnIO start weer en OpenRGB start weer. Dat duurt meestal een
     paar seconden, hooguit zo'n anderhalve minuut; zolang staat er in de tooltip
-    "buurmansRgb – herstarten…".
+    "buurmansRgb – herstarten…" en is "Herstarten" in het menu grijs.
   - PawnIO gaat alleen mee als het kan. Gebruikt een ander programma de driver (bijv. FanControl
     of LibreHardwareMonitor) of is hij niet te stoppen, dan blijft hij zoals hij was; staat
     PawnIO niet op de pc, dan wordt hij overgeslagen. Stopt OpenRGB niet, dan blijft PawnIO ook

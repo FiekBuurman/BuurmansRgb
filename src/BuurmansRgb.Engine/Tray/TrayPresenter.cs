@@ -67,8 +67,9 @@ internal sealed class TrayPresenter(
     }
 
     // "Herstarten": restarts OpenRGB and PawnIO, starts a new engine and returns true, after which
-    // the caller exits this one. The tooltip tells of it meanwhile. Returns false, and keeps this
-    // engine as it was, when a new engine did not start or a restart runs already. Never throws.
+    // the caller exits this one. Meanwhile the tooltip tells of it and the item is grey. Returns
+    // false, and keeps this engine as it was, when a new engine did not start or a restart runs
+    // already. Never throws.
     public async Task<bool> RestartAsync(CancellationToken ct)
     {
         if (restarter is null || _restarting)
@@ -78,6 +79,7 @@ internal sealed class TrayPresenter(
 
         _restarting = true;
         ShowToolTip();
+        view.SetRestartEnabled(false);
         try
         {
             var result = await restarter.RestartAsync(ct);
@@ -104,6 +106,7 @@ internal sealed class TrayPresenter(
 
         _restarting = false;
         ShowToolTip();
+        view.SetRestartEnabled(true);
         return false;
     }
 
