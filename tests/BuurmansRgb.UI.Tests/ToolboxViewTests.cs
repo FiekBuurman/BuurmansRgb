@@ -148,9 +148,10 @@ public sealed class ToolboxViewTests
         });
     }
 
-    // "Weghalen" in the context menu of a tile.
+    // "Weghalen" in the context menu of a tile; without a tile in the place of the last one, the
+    // focus goes to the one before it.
     [Fact]
-    public async Task ContextMenuRemove_RemovesTheTile()
+    public async Task ContextMenuRemove_RemovesTheTileAndFocusesTheOneBefore()
     {
         using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red, Blue]);
 
@@ -167,7 +168,7 @@ public sealed class ToolboxViewTests
             OffscreenWindow.WaitUntilIdle();
 
             Assert.Equal([Red], viewModel.CustomColors.Colors.Select(item => item.Color));
-            Assert.Single(CustomTiles(page));
+            Assert.True(Assert.Single(CustomTiles(page)).IsKeyboardFocused);
         });
     }
 
