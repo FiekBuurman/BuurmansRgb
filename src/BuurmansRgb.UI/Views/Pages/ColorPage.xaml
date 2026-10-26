@@ -252,7 +252,7 @@
                                             ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
                                             AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
                                             Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding Color}" PreviewKeyDown="OnCustomColorKeyDown">
+                                            CommandParameter="{Binding Color}" PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
                                         <Button.Tag>
                                             <MultiBinding Converter="{StaticResource EqualValues}">
                                                 <Binding Path="Color" />

@@ -27,7 +27,8 @@ public sealed partial class CustomColorsViewModel : ObservableObject
     public ObservableCollection<CustomColorItem> Colors { get; } = [];
 
     // Shows the colors of the engine, without sending them back. The tiles stay when the colors
-    // are the same, so a tile with the keyboard focus keeps it.
+    // are the same, so a tile with the keyboard focus keeps it; else FocusKeeper gives the focus
+    // back to the new tile of its color, such as after settings.json changed.
     public void Show(IReadOnlyList<RgbColor> colors)
     {
         var shown = CustomColors.Normalize(colors);

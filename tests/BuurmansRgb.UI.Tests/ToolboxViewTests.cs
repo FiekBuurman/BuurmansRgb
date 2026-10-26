@@ -105,6 +105,30 @@ public sealed class ToolboxViewTests
         });
     }
 
+    // Other colors from the engine, such as after settings.json changed, make the tiles anew; the
+    // focus goes back to the tile of the same color.
+    [Fact]
+    public async Task OtherColorsFromTheEngine_KeepTheFocusOnItsColor()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await ConnectAsync(api => (engine = api).CustomColors = [Red, Blue]);
+        var green = new RgbColor(0, 255, 0);
+
+        AppTheme.Run(panel =>
+        {
+            var page = Show(panel, viewModel);
+            Assert.True(CustomTiles(page)[1].Focus());
+
+            engine!.CustomColors = [green, Red, Blue];
+            engine.RaiseOptionsChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            var tiles = CustomTiles(page);
+            Assert.Equal([green, Red, Blue], tiles.Select(tile => ((CustomColorItem)tile.DataContext).Color));
+            Assert.True(tiles[2].IsKeyboardFocused);
+        });
+    }
+
     // Delete takes the focused tile away, and the focus goes to the tile in its place, or to "+".
     [Fact]
     public async Task Delete_RemovesTheTileAndMovesTheFocusOn()
