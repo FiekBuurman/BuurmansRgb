@@ -131,6 +131,21 @@ public sealed class MainViewModelZoneCountTests
         Assert.DoesNotContain("count board 1 stop", Api.Calls);
     }
 
+    // A count another settings app paused gives no event any more: the app asks when it connects.
+    [Fact]
+    public async Task Connecting_ShowsTheCountThatRuns()
+    {
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+        {
+            api.Devices = [Board];
+            api.ZoneCount = new ZoneCountInfo("board", 1, 12, 60, 1, false) { Sequence = 5 };
+        }));
+
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+
+        Assert.Equal((12, false), (Header(viewModel).Count!.Led, Header(viewModel).Count!.Running));
+    }
+
     [Fact]
     public async Task Paused_GreysOutCountLeds()
     {

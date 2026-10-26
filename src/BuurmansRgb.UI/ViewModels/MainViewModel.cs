@@ -510,6 +510,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             ShowPause(pause);
         }
+
+        // A count that runs already, such as one another settings app paused, shows here too; a
+        // newer state from ZoneCountChanged wins by its sequence.
+        Preview.ShowZoneCount(await api.GetZoneCountAsync());
     }
 
     // Keeps the selected device when it is still there, and falls back to "all devices" when not.

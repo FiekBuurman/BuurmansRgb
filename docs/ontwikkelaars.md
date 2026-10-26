@@ -409,7 +409,9 @@ toetsenbord. Een paar dingen om te proberen:
   hem in plaats van de lengte. Verdwijnt de getelde zone uit beeld (een ander apparaat), of gaat
   de app van Kleur weg, dan vraagt de app zelf om te stoppen, maar alleen voor een telling die
   hij zelf startte (`PreviewViewModel` onthoudt de zone bij `StartZoneCount`): de telling van een
-  tweede app loopt door.
+  tweede app loopt door. Bij het verbinden haalt de app de stand op met `GetZoneCountAsync`
+  (naast de pauze en de apparaten), zodat hij ook een gepauzeerde telling van een andere app
+  toont, die geen events meer geeft.
 - **Zones gelijk:** `LightingController.ZonesAlike` (een set apparaat-id's, in `settings.json`
   als `zonesAlike`) en `SetZonesAlike`, via `IEngineApi.SetZonesAlikeAsync`. Het hoort niet bij
   de verlichting: `LightingChanged` gaat niet af, een scène laat het staan, en de app hoort het
