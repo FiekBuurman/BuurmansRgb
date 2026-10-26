@@ -895,9 +895,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Not in the call queue: the answer is awaited, and the search may take seconds, which the
-    // changes behind it should not wait for. The engine sends the new list through DevicesChanged
-    // before it answers, so the list here has it by the time the button says "Verversen" again.
-    // A call that fails has its own message; the button just ends.
+    // changes behind it should not wait for. The engine raises DevicesChanged before it answers,
+    // but the list here follows that with its own GetDevicesAsync, which runs apart from this call,
+    // so the answer may come first and the list a moment later. A call that fails has its own
+    // message; the button just ends.
     private async Task RescanDevicesAsync(int search)
     {
         if (_connection is not { } connection)

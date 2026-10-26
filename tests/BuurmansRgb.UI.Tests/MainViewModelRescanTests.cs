@@ -11,7 +11,8 @@ public sealed class MainViewModelRescanTests
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
-    // The headset that came back is in the list by the time the button says "Verversen" again.
+    // The headset that came back is in the list once the engine answered; the list follows its own
+    // GetDevicesAsync, which may end just after the answer.
     [Fact]
     public async Task Rescan_SearchesUntilTheEngineAnswersWithTheNewList()
     {
@@ -26,7 +27,7 @@ public sealed class MainViewModelRescanTests
         Api.Devices = [.. Api.Devices, TestDevices.Create("headset", "Koptelefoon", DeviceType.Headset, 2)];
         gate.SetResult();
         await Eventually.TrueAsync(() => !viewModel.DeviceRescan.IsSearching);
-        Assert.Contains(viewModel.Lamps.Lamps, lamp => lamp.DeviceId == "headset");
+        await Eventually.TrueAsync(() => viewModel.Lamps.Lamps.Any(lamp => lamp.DeviceId == "headset"));
         Assert.False(viewModel.DeviceRescan.HasMessage);
     }
 

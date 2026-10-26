@@ -565,6 +565,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 3. Klik op "Verversen" terwijl de OpenRGB-service gestopt is: de melding "OpenRGB is niet
    bereikbaar" verschijnt. Start de service weer: zodra de engine verbonden is, verdwijnt de
    melding.
+4. Kijk bij een echte rescan of de lijst bij Apparaten even leeg wordt of maar een deel toont.
+   De engine antwoordt na de eerste nieuwe lijst van OpenRGB, en OpenRGB vult zijn lijst mogelijk
+   stapsgewijs, dus de knop kan al "Verversen" zeggen voordat alle apparaten terug zijn. Noteer
+   wat je ziet in `docs/hardware.md`.
 
 ### Fans, case-LED en ARGB-strips
 

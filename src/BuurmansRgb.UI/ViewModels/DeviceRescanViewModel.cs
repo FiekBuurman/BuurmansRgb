@@ -7,7 +7,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // "Verversen" on Apparaten: lets the engine search for devices again, for a device that does not
 // come back by itself, such as a headset that was switched off and on. While it searches the
 // button says "Zoeken…" and stays where it is, so the keyboard focus stays on it; a second click
-// then does nothing. It ends when the engine answers, which it does after the new list came, or
+// then does nothing. It ends when the engine answers, which it does after the first new list, or
 // after SearchTimeout, so the button never stays stuck. This only asks; MainViewModel sends it to
 // the engine and calls Finish with the answer.
 public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposable
