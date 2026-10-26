@@ -11,6 +11,10 @@ public static class EngineRpc
     // The base of the pipe name, and the name of the engine's single-instance mutex.
     public const string EngineName = "BuurmansRgb.Engine";
 
+    // The name of the settings app's single-instance mutex, so the engine knows whether it is open
+    // and can ask it to close ("Herstarten").
+    public const string SettingsAppName = "BuurmansRgb.UI";
+
     // Pipe names are machine-wide, but the engine runs once per Windows session (its mutex is
     // Local\). The session id keeps the engines of two logged-in users apart.
     public static string PipeName { get; } = $"{EngineName}.{CurrentSessionId()}";

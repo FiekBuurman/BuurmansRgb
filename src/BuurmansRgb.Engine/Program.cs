@@ -7,6 +7,7 @@ using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Programs;
+using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
@@ -20,6 +21,12 @@ internal static class Program
     // How long the engine waits on the way out for OpenRGB to get a zone length back after a count.
     private static readonly TimeSpan ResizesOnExitTimeout = TimeSpan.FromSeconds(2);
 
+    // How long an engine that "Herstarten" started waits for the old one to exit, and once more
+    // when it still runs then (PreviousEngine). The old one exits as with "Afsluiten", which
+    // takes a few seconds at most.
+    private static readonly TimeSpan PreviousEngineTimeout = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan PreviousEnginePollInterval = TimeSpan.FromMilliseconds(200);
+
     // Waits when disposed until OpenRGB got the work queued for it, such as the length a count gave
     // back, but at most ResizesOnExitTimeout: an OpenRGB that takes longer keeps the zone at its
     // longest. It always waits, as the count may have stopped another way before the counter goes,
@@ -28,12 +35,31 @@ internal static class Program
         new DisposeAction(() => openRgb.WaitUntilIdle(ResizesOnExitTimeout));
 
     [STAThread]
-    private static void Main(string[] args)
+    private static int Main(string[] args)
     {
         var options = EngineOptions.Parse(args);
-        using var instance = SingleInstance.Acquire(EngineRpc.EngineName);
+
+        // The step with admin rights of "Herstarten", next to the engine that runs: no instance,
+        // log or tray. What it did is its exit code.
+        if (options.RestartServices)
+        {
+            return RestartServices();
+        }
+
+        IReadOnlyList<string> restartWarnings = [];
+        using var instance = options.Restarted is null
+            ? SingleInstance.Acquire(EngineRpc.EngineName)
+            : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, out restartWarnings);
         if (!instance.IsPrimary)
         {
+            // The old engine did not exit, also not after the second wait; it may still run, and
+            // this one stops. Not in engine.log, which the old one may still write.
+            if (options.Restarted is not null)
+            {
+                PreviousEngine.WriteStopLog(Path.Combine(FileLog.DefaultDirectory, PreviousEngine.StopLogFileName), restartWarnings);
+                return 0;
+            }
+
             if (options.Exit)
             {
                 instance.SignalPrimaryToExit();
@@ -43,17 +69,22 @@ internal static class Program
                 instance.SignalPrimary();
             }
 
-            return;
+            return 0;
         }
 
         // No engine runs, so there is nothing to stop.
         if (options.Exit)
         {
-            return;
+            return 0;
         }
 
         // After the single-instance check, so a second start does not write to the log of the first.
         using var log = FileLog.Start("engine");
+        foreach (var warning in restartWarnings)
+        {
+            Trace.TraceWarning(warning);
+        }
+
         ApplicationConfiguration.Initialize();
 
         var autoStart = RegistryAutoStart.ForCurrentProcess();
@@ -114,7 +145,19 @@ internal static class Program
             customColors: customColors,
             customEffects: customEffects);
 
-        using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
+        using var context = new TrayApplicationContext(
+            host,
+            autoStart,
+            SettingsAppLauncher.NextToEngine(),
+            profiles,
+            lighting,
+            openRgb,
+            hotkeys,
+            log.FilePath,
+            MemoryTrimmer.Trim,
+            EngineRestarter.ForCurrentProcess(),
+            options.Restarted,
+            options.OpenSettings);
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
         {
@@ -122,5 +165,23 @@ internal static class Program
         }
 
         Trace.TraceInformation("Engine stopped.");
+        return 0;
+    }
+
+    // Any failure ends as a failed step, which the engine reports; an exception would only give
+    // Windows' crash dialog and an exit code the engine reads as failed anyway. The step writes no
+    // log (no file as admin), so the cause of the first failure goes along in the exit code and
+    // the engine logs it.
+    private static int RestartServices()
+    {
+        try
+        {
+            var restarter = new ServiceRestarter(new WindowsServiceManager());
+            return restarter.Restart().ToExitCode(restarter.Cause);
+        }
+        catch (Exception exception)
+        {
+            return ServicesRestartReport.Failed.ToExitCode(ServicesRestartCause.From(ServicesRestartStep.Step, exception));
+        }
     }
 }

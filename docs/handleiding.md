@@ -607,8 +607,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 
 - **Menu:** "Instellingen openen", "Scène aanzetten", "Alles aan", "Alles uit", "Effecten
-  pauzeren", "Starten met Windows", "Logbestand openen" en "Afsluiten". Dubbelklik op het icoon
-  opent ook de instellingen.
+  pauzeren", "Starten met Windows", "Logbestand openen", "Herstarten" en "Afsluiten". Dubbelklik
+  op het icoon opent ook de instellingen.
 - **Alles aan** en **Alles uit** doen hetzelfde als de grote schakelaar bij "Hele huis" op Apparaten.
   Alleen wat iets verandert, is te klikken: staat alles al aan, dan is "Alles aan" grijs. Elk
   apparaat houdt zijn eigen verlichting voor als het weer aangaat.
@@ -627,13 +627,42 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   AltGr telt in Windows als Ctrl+Alt.
 - **Logbestand openen** opent `engine.log` (zie "Logbestanden") in Kladblok of het programma dat
   bij `.log` hoort.
+- **Herstarten** helpt als een apparaat of de verbinding met OpenRGB hapert: het herstart
+  buurmansRgb zelf en de services OpenRGB en PawnIO (de driver voor moederbord, RAM en
+  videokaart). Services herstarten mag alleen met adminrechten, dus Windows vraagt één keer om
+  toestemming (UAC). Daarna gaat het zo:
+  - OpenRGB stopt, PawnIO stopt, PawnIO start weer en OpenRGB start weer. Dat duurt meestal een
+    paar seconden, hooguit zo'n anderhalve minuut; zolang staat er in de tooltip
+    "buurmansRgb – herstarten…" en is "Herstarten" in het menu grijs.
+  - PawnIO gaat alleen mee als het kan. Gebruikt een ander programma de driver (bijv. FanControl
+    of LibreHardwareMonitor) of is hij niet te stoppen, dan blijft hij zoals hij was; staat
+    PawnIO niet op de pc, dan wordt hij overgeslagen. Stopt OpenRGB niet, dan blijft PawnIO ook
+    staan ("PawnIO is overgeslagen omdat OpenRGB niet stopte."): OpenRGB houdt de driver vast.
+    OpenRGB start altijd weer.
+  - Daarna sluit buurmansRgb af zoals bij "Afsluiten" en start meteen opnieuw. Was de
+    instellingen-app open, dan gaat die dicht en weer open. Is de oude buurmansRgb na een
+    minuut nog niet weg, dan wacht de nieuwe nog een minuut; is hij er dan nog, dan blijft de
+    oude draaien en stopt de nieuwe. Neemt de nieuwe het alsnog over, dan staat dat in
+    `engine.log`; stopt hij, dan staat alles in `engine.restart.log` ernaast (`engine.log` is dan
+    nog van de oude). Hangt de oude, sluit hem dan via Taakbeheer en start buurmansRgb opnieuw.
+  - Een melding bij het icoon zegt wat er herstart is, bijv. "buurmansRgb is herstart.",
+    "OpenRGB is herstart." en "PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt
+    een ander programma hem.". Lukte iets niet, dan staat in `engine.log` wat als eerste misging,
+    bijv. "The restart of the services went wrong first at stopping OpenRGB: TimedOut.".
+  - Geef je geen toestemming, dan herstart alleen buurmansRgb ("buurmansRgb is herstart, OpenRGB
+    en PawnIO niet: je gaf geen toestemming."). Staan OpenRGB en PawnIO niet als service op de
+    pc (bijv. als je OpenRGB zelf start), dan komt er geen UAC-vraag en herstart ook alleen
+    buurmansRgb.
+  - Lukt het starten van de nieuwe engine niet, dan blijft de oude gewoon draaien en meldt het
+    icoon dat.
 - **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
   klik er een aan. Zonder scènes staat er
   "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
   `profiles.json` niet gelezen worden, dan is het grijs en meldt het icoon dat; ook de eerste
   seconden na het starten is het grijs, tot de engine de opgeslagen verlichting heeft gezet.
-- **Tooltip:** "buurmansRgb" (of "buurmansRgb – effecten gepauzeerd") en daaronder de
-  OpenRGB-status, bijv. "OpenRGB: verbonden, 5 apparaten".
+- **Tooltip:** "buurmansRgb" (of "buurmansRgb – effecten gepauzeerd", of tijdens Herstarten
+  "buurmansRgb – herstarten…") en daaronder de OpenRGB-status, bijv. "OpenRGB: verbonden, 5
+  apparaten".
 - **Starten met Windows** zet `BuurmansRgb` in
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg. Staat
   de engine die daar stond er niet meer (verplaatst of ergens anders geïnstalleerd), dan zet de
@@ -645,6 +674,8 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Afsluiten vanaf de commandline:** `BuurmansRgb.Engine.exe --exit` sluit de draaiende engine
   af zoals "Afsluiten" in het menu, dus met het bewaren van de laatste wijziging en zonder een
   icoon dat in de tray blijft hangen. Draait er geen engine, dan doet het niets.
+  `--restart-services`, `--restarted` en `--open-settings` gebruikt Herstarten zelf; start ze
+  niet met de hand.
 - **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
   geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
   icoon of een tweede start van `BuurmansRgb.UI.exe`.
@@ -932,10 +963,12 @@ tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen 
 eigen hardware niet werkt. Het log van de engine open je ook met "Logbestand openen" in het
 tray-menu.
 
+- Stopt een engine die "Herstarten" startte omdat de oude niet afsloot, dan schrijft hij dat in
+  `engine.restart.log`: `engine.log` is dan nog van de oude.
 - Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
   één keer, met daaronder hoe vaak hij nog kwam.
-- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`) en begint er
-  een nieuw; meer dan twee per app worden het niet.
+- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`,
+  `engine.restart.old.log`) en begint er een nieuw; van elk logbestand zijn er dus hooguit twee.
 - Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
   de code.
 - Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.

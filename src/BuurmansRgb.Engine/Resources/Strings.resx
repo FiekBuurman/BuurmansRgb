@@ -102,4 +102,46 @@
     <value>OpenRGB: geen goed antwoord</value>
     <comment>Gelijk houden met OpenRgbFailed in src/BuurmansRgb.UI/Resources/Strings.resx.</comment>
   </data>
+  <data name="MenuRestart" xml:space="preserve">
+    <value>Herstarten</value>
+  </data>
+  <data name="TrayToolTipRestarting" xml:space="preserve">
+    <value>buurmansRgb – herstarten…</value>
+  </data>
+  <data name="RestartDone" xml:space="preserve">
+    <value>buurmansRgb is herstart.</value>
+  </data>
+  <data name="RestartDeclined" xml:space="preserve">
+    <value>buurmansRgb is herstart, OpenRGB en PawnIO niet: je gaf geen toestemming.</value>
+  </data>
+  <data name="RestartServicesFailed" xml:space="preserve">
+    <value>buurmansRgb is herstart, maar OpenRGB en PawnIO konden niet worden herstart. Zie het logbestand.</value>
+  </data>
+  <data name="RestartOpenRgbRestarted" xml:space="preserve">
+    <value>OpenRGB is herstart.</value>
+  </data>
+  <data name="RestartOpenRgbNotInstalled" xml:space="preserve">
+    <value>OpenRGB staat niet als service op deze pc.</value>
+  </data>
+  <data name="RestartOpenRgbFailed" xml:space="preserve">
+    <value>OpenRGB kon niet worden herstart; zie het logbestand.</value>
+  </data>
+  <data name="RestartPawnIoRestarted" xml:space="preserve">
+    <value>PawnIO is herstart.</value>
+  </data>
+  <data name="RestartPawnIoNotInstalled" xml:space="preserve">
+    <value>PawnIO is niet gevonden.</value>
+  </data>
+  <data name="RestartPawnIoNotStopped" xml:space="preserve">
+    <value>PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt een ander programma hem.</value>
+  </data>
+  <data name="RestartPawnIoSkippedForOpenRgb" xml:space="preserve">
+    <value>PawnIO is overgeslagen omdat OpenRGB niet stopte.</value>
+  </data>
+  <data name="RestartPawnIoFailed" xml:space="preserve">
+    <value>PawnIO kon niet opnieuw worden gestart, dus apparaten op het moederbord werken misschien niet; zie het logbestand.</value>
+  </data>
+  <data name="RestartFailed" xml:space="preserve">
+    <value>Herstarten is niet gelukt: de nieuwe engine kon niet worden gestart. buurmansRgb draait gewoon door.</value>
+  </data>
 </root>

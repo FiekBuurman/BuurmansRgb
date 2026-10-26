@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace BuurmansRgb.Contracts;
 
 // One instance per Windows session, for the engine and for the settings app: a second start finds
@@ -23,10 +25,56 @@ public sealed class SingleInstance : IDisposable
 
     public static SingleInstance Acquire(string name)
     {
-        var mutex = new Mutex(initiallyOwned: false, $@"Local\{name}", out var createdNew);
+        var mutex = new Mutex(initiallyOwned: false, MutexName(name), out var createdNew);
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
-        var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Exit");
+        var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ExitName(name));
         return new(mutex, activation, exit, createdNew);
+    }
+
+    // Asks a running instance to exit, from outside (the engine's "Herstarten" closing the
+    // settings app). Only opens what is there: unlike Acquire it never creates the mutex, so an
+    // instance that starts meanwhile does not take it for a second start. False when none runs.
+    public static bool SignalExitIfRunning(string name)
+    {
+        if (!Mutex.TryOpenExisting(MutexName(name), out var mutex))
+        {
+            return false;
+        }
+
+        using (mutex)
+        {
+            // Named events are Windows only, as the apps are.
+            if (!OperatingSystem.IsWindows() || !EventWaitHandle.TryOpenExisting(ExitName(name), out var exit))
+            {
+                return false;
+            }
+
+            using (exit)
+            {
+                exit.Set();
+                return true;
+            }
+        }
+    }
+
+    // For an instance that starts in place of one that is on its way out (the engine's
+    // "Herstarten"): tries again until the other one is gone, at most for timeout. Not primary
+    // when the other one is still there then. The mutex is gone once no process holds it, so a
+    // second start meanwhile (or a --exit) only makes this wait a moment longer.
+    public static SingleInstance AcquireWhenFree(string name, TimeSpan timeout, TimeSpan pollInterval)
+    {
+        var waited = Stopwatch.StartNew();
+        while (true)
+        {
+            var instance = Acquire(name);
+            if (instance.IsPrimary || waited.Elapsed >= timeout)
+            {
+                return instance;
+            }
+
+            instance.Dispose();
+            Thread.Sleep(pollInterval);
+        }
     }
 
     public void SignalPrimary() => _activation.Set();
@@ -48,6 +96,10 @@ public sealed class SingleInstance : IDisposable
         _exit.Dispose();
         _mutex.Dispose();
     }
+
+    private static string MutexName(string name) => $@"Local\{name}";
+
+    private static string ExitName(string name) => $@"Local\{name}.Exit";
 
     private SignalListener Listen(EventWaitHandle signal, ref SignalListener? listener, Action onSignal)
     {

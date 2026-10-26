@@ -39,9 +39,17 @@ uitbreidingen in `docs/bouwplan.md`.
 - Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
   per id in `settings.json`
 - OpenRGB-status: een eigen stand "verbinding verbroken" (nu staat er na het wegvallen 5
-  seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" een knop om de
-  service `OpenRGB` te starten (via UAC) in plaats van alleen de tip, en de versie van OpenRGB
+  seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" in de
+  instellingen-app een knop "Herstarten" die doet wat het tray-item al doet (de service
+  `OpenRGB` en PawnIO herstarten via UAC), in plaats van alleen de tip, en de versie van OpenRGB
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
+- Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
+  instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
+  niet stopt. De stap met adminrechten logt nu niets; de engine logt de uitkomst en alleen de
+  eerste fout (via de exitcode), niet elke fout met zijn volledige tekst
+- Herstarten: de PID van de oude engine meegeven aan de nieuwe (bijv. `--restarted <code>
+  <pid>`), zodat die een oude engine die na de wachttijd nog hangt kan beëindigen in plaats van
+  zelf te stoppen
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 - Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met

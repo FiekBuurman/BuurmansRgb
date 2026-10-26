@@ -9,13 +9,15 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
+using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Engine.SettingsApp;
 
 namespace BuurmansRgb.Engine.Tray;
 
 // The tray menu logic without WinForms types, so it can be tested with fakes. Call it on the tray
-// thread only.
+// thread only. restartedWith is set when "Herstarten" started this engine: once it runs, a
+// notification tells what restarted, and with openSettingsAfterStart the settings app opens again.
 internal sealed class TrayPresenter(
     IEngineHost host,
     IAutoStart autoStart,
@@ -25,7 +27,10 @@ internal sealed class TrayPresenter(
     AllOnOffHotkeys hotkeys,
     IGlobalHotkeys globalHotkeys,
     Action openLog,
-    ITrayView view)
+    ITrayView view,
+    EngineRestarter? restarter = null,
+    ServicesRestartReport? restartedWith = null,
+    bool openSettingsAfterStart = false)
 {
     private PauseReasons _pause;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
@@ -33,6 +38,9 @@ internal sealed class TrayPresenter(
     // Profiles can be loaded once the engine has put on the saved lighting, which would overwrite a
     // profile loaded before it, and keeps what is loaded from then on.
     private bool _started;
+
+    // From "Herstarten" until this engine exits, or until a restart that failed.
+    private bool _restarting;
 
     // Never throws, so the caller can start it without awaiting.
     public async Task StartAsync(CancellationToken ct)
@@ -51,6 +59,88 @@ internal sealed class TrayPresenter(
         {
             ReportFailure(exception, Strings.StartupFailed, TrayNotificationKind.Error);
         }
+
+        if (!ct.IsCancellationRequested)
+        {
+            ShowRestarted();
+        }
+    }
+
+    // "Herstarten": restarts OpenRGB and PawnIO, starts a new engine and returns true, after which
+    // the caller exits this one. Meanwhile the tooltip tells of it and the item is grey. Returns
+    // false, and keeps this engine as it was, when a new engine did not start or a restart runs
+    // already. Never throws.
+    public async Task<bool> RestartAsync(CancellationToken ct)
+    {
+        if (restarter is null || _restarting)
+        {
+            return false;
+        }
+
+        _restarting = true;
+        ShowToolTip();
+        view.SetRestartEnabled(false);
+        try
+        {
+            var result = await restarter.RestartAsync(ct);
+            if (result.NewEngineStarted)
+            {
+                Trace.TraceInformation("Restarting: a new engine started, this one exits.");
+                return true;
+            }
+
+            view.ShowNotification(Strings.RestartFailed, TrayNotificationKind.Warning);
+            if (result.SettingsAppClosed)
+            {
+                OpenSettings();
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // The engine is shutting down already.
+        }
+        catch (Exception exception)
+        {
+            ReportFailure(exception, Strings.RestartFailed, TrayNotificationKind.Warning);
+        }
+
+        _restarting = false;
+        ShowToolTip();
+        view.SetRestartEnabled(true);
+        return false;
+    }
+
+    // What "Herstarten" did, in lines: the engine, then OpenRGB and PawnIO. A warning when one of
+    // them did not restart while it is on this pc.
+    internal static (string Text, TrayNotificationKind Kind) DescribeRestart(ServicesRestartReport report)
+    {
+        if (report == ServicesRestartReport.Declined)
+        {
+            return (Strings.RestartDeclined, TrayNotificationKind.Warning);
+        }
+
+        if (report == ServicesRestartReport.Failed)
+        {
+            return (Strings.RestartServicesFailed, TrayNotificationKind.Warning);
+        }
+
+        var openRgb = report.OpenRgb switch
+        {
+            ServiceOutcome.Restarted => Strings.RestartOpenRgbRestarted,
+            ServiceOutcome.NotInstalled => Strings.RestartOpenRgbNotInstalled,
+            _ => Strings.RestartOpenRgbFailed,
+        };
+        var pawnIo = report.PawnIo switch
+        {
+            ServiceOutcome.Restarted => Strings.RestartPawnIoRestarted,
+            ServiceOutcome.NotInstalled => Strings.RestartPawnIoNotInstalled,
+            ServiceOutcome.NotStopped => Strings.RestartPawnIoNotStopped,
+            ServiceOutcome.SkippedForOpenRgb => Strings.RestartPawnIoSkippedForOpenRgb,
+            _ => Strings.RestartPawnIoFailed,
+        };
+        var allWell = report.OpenRgb is ServiceOutcome.Restarted or ServiceOutcome.NotInstalled
+            && report.PawnIo is ServiceOutcome.Restarted or ServiceOutcome.NotInstalled;
+        return ($"{Strings.RestartDone}\n{openRgb}\n{pawnIo}", allWell ? TrayNotificationKind.Info : TrayNotificationKind.Warning);
     }
 
     public void OpenSettings()
@@ -220,9 +310,32 @@ internal sealed class TrayPresenter(
 
     private string? HotkeyText(Keys key) => globalHotkeys.IsRegistered(key) ? AllOnOffHotkeys.DisplayText(key) : null;
 
-    // The first line tells whether the effects run, the second how it goes with OpenRGB.
+    // After a start by "Herstarten": a notification tells what restarted, unless the lighting did
+    // not start, which its own notification tells. The settings app that was closed for the
+    // restart opens again either way.
+    private void ShowRestarted()
+    {
+        if (restartedWith is not { } report)
+        {
+            return;
+        }
+
+        if (_started)
+        {
+            var (text, kind) = DescribeRestart(report);
+            view.ShowNotification(text, kind);
+        }
+
+        if (openSettingsAfterStart)
+        {
+            OpenSettings();
+        }
+    }
+
+    // The first line tells whether the engine restarts or the effects run, the second how it goes
+    // with OpenRGB.
     private void ShowToolTip() =>
-        view.SetToolTip($"{(_pause != PauseReasons.None ? Strings.TrayToolTipPaused : Strings.AppName)}\n{OpenRgbText(_openRgbStatus)}");
+        view.SetToolTip($"{(_restarting ? Strings.TrayToolTipRestarting : _pause != PauseReasons.None ? Strings.TrayToolTipPaused : Strings.AppName)}\n{OpenRgbText(_openRgbStatus)}");
 
     private static string OpenRgbText(ServerStatus status) => status.State switch
     {

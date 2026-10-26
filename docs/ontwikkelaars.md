@@ -75,6 +75,7 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Provider
 | Pauzeren en slaapstand | `LightingControllerPauseTests`, `LightingControllerPausedLightsTests` (wat de apparaten bij elke stand en elke reden krijgen, en na het hervatten; de handmatige pauze stuurt niets), `LightingControllerRestoreTests`, `AutoPauseTests` (ook `Away` met het pauzeren uit, het scherm uit met `FakeDisplayEvents` en de schermbeveiliging met `FakeScreenSaverEvents`, samen met vergrendelen en slaap, en reeksen van gebeurtenissen met `pausedLights` op "off", ook zwart vóór het slapen en na het ontwaken met `ResumeRestorer`), `ResumeRestorerTests`, `SystemSessionEventsTests`, `SystemDisplayEventsTests` (het lezen van `POWERBROADCAST_SETTING`, een `WM_POWERBROADCAST` via `SendMessage` op de eigen thread, en de echte registratie zonder waarschuwing), `WindowsProgramsTests` (welke exe-namen een schermbeveiliging of het vergrendelscherm zijn), `SystemScreenSaverEventsTests` (elk venster ervan melden en het einde één keer, een ander venster vooraan beëindigt hem, met de echte `ForegroundHook` en samen met `AutoPause` opnieuw pauzeren na ontgrendelen; met verzonnen vensters, een verzonnen `SPI_GETSCREENSAVERRUNNING` en `FakeTimeProvider`: "Voorbeeld" telt niet en komt in het logboek, wat Windows bevestigt telt, ook een seconde later, maar niet na een ander venster, en er wordt maar één keer opnieuw gevraagd; het vergrendelscherm beëindigt hem niet, zodat de pauze met `AutoPause` zonder gat doorloopt tot het ontgrendelen; geen test start een echte schermbeveiliging, en de echte vlag wordt alleen gelezen), `EffectsPauseViewModelTests`, `MainViewModelPauseTests` (de melding volgt de pauze van de engine, "Hervatten" na de wijzigingen die nog wachten), `ProgramWatcherTests` (niet in de proceslijst kijken zolang Windows vergrendeld is, slaapt of op geen scherm staat, ook via een extern bureaublad en een slaap die met ontgrendelen eindigt, met `pauseOnLockAndSleep` aan en uit; met `FakeSessionEvents`, `FakePowerEvents` en `FakeRunningPrograms`; andere tests van `ProgramWatcher` krijgen `FakeAwayState`, waarbij niemand weg is) |
 | Sneltoetsen | `TrayPresenterTests` (een toets doet wat "Alles aan" of "Alles uit" doet, aan en uit zetten, een bezette toets; met `FakeGlobalHotkeys`), `AllOnOffHotkeysTests`, `WindowsGlobalHotkeysTests` (de echte `RegisterHotKey` op Ctrl+Alt+Shift+F24, die op geen toetsenbord zit: twee keer registreren faalt en wordt gelogd; een `WM_HOTKEY` via `SendMessage` op de eigen thread draait de actie van de toets met dat vaste id en na `Unregister` niets meer, en `IsRegistered` volgt dat; is de toets bezet door een andere testrun of is er geen bureaublad, dan slaat de test zich over), `EngineHostTests` en `JsonSettingsStoreTests` (`hotkeys`), `EngineApiTests`, `SwitchOptionViewModelTests` |
 | Tray en opstarten | `TrayPresenterTests`, `SettingsAppLauncherTests` (de instellingen-app ontbreekt of is geen programma), `SingleInstanceTests`, `EngineOptionsTests`, `AutoStartExtensionsTests` (nooit tegen de echte Run-sleutel), `RegistryAutoStartTests` (ook een verplaatste engine) |
+| Herstarten | `ServiceRestarterTests` (de volgorde OpenRGB stoppen, PawnIO stoppen, PawnIO starten, OpenRGB starten; PawnIO dat niet stopt, niet bestaat of onder een andere naam als driver staat; OpenRGB dat niet stopt of niet start), `ServicesRestartReportTests` (de exitcode heen en terug, ook met de oorzaak van de eerste fout, een crash leest als mislukt, elke waarde van de enums past in zijn bits), `ElevatedServicesRestartTests` (`runas` met `--restart-services`, een geweigerde UAC, een stap die faalt of te lang duurt, "Afsluiten" tijdens de UAC-vraag of het wachten, de oorzaak uit de exitcode in het log, zonder OpenRGB en PawnIO geen UAC), `ServiceControlTests` (starten van een service die nog stopt, stoppen van een service die nog start, "draait al" alleen als hij echt draait, time-outs en foutcodes), `EngineRestarterTests` (de nieuwe engine krijgt `--restarted` met de uitkomst en `--open-settings` als de app open was, een nieuwe engine die niet start, de echte `SettingsAppWindow` via een eigen mutex), `EngineLauncherTests` (de engine-exe, ook hernoemd, en de exe naast de engine als hij via `dotnet BuurmansRgb.Engine.dll` draait), `TrayPresenterTests` (de tooltip en het grijze menu-item tijdens het herstarten, één herstart tegelijk, de melding na afloop en de app weer open), `SingleInstanceTests` (`AcquireWhenFree`, `SignalExitIfRunning`), `PreviousEngineTests` (een oude engine die laat afsluit en niet meer naar het exit-signaal luistert: de nieuwe wacht nog eens en laat geen exit-signaal achter; blijft hij, dan stopt de nieuwe, met de waarschuwingen in een eigen `engine.restart.log`) en `WindowsServiceManagerTests` (alleen opzoeken). Alles met fakes (`FakeServiceManager`): geen test stopt of start een echte service of driver, of vraagt UAC |
 | IPC | `EngineApiTests` (ook `SetEffectColorsAsync`: een kopie per effect, voor één apparaat of alle, een effect zonder kleuren of een lijst van 0 of 13 kleuren geweigerd, en een kleurenloop van 12 kleuren bewaard; en `ClearEffectColorsAsync`: weer de standaard, de andere lijsten blijven, bij "Hele huis" op elk apparaat), `EngineIpcServerTests`, `EngineRpcTests` (over een echte named pipe, ook `EffectColors` in de verlichting en `ClearEffectColorsAsync`), `EffectColorsTests` (welke effecten een lijst hebben, de standaard, `With` en `Without`, gelijkheid per lijst), `LightingTableTests` (de verlichting van "Hele huis" en per apparaat: een apparaat gelijk aan "Hele huis" volgt dat weer, een snelheid, kleurenloop of lijst kleuren die niet past wordt geweigerd), `EngineApiTests` en `EngineRpcTests` voor `GetCustomColorsAsync` en `SetCustomColorsAsync` (een kleur twee keer wordt één, 13 kleuren geweigerd, `OptionsChanged` alleen bij een andere lijst), `CustomColorsTests` (`Normalize`) |
 | Logbestand | `FileLogTests` (regels, herhalingen tellen, een nieuw bestand na 1 MB, lezen terwijl het open is) |
 | Voorbeeld | `PreviewFramesTests` en `MainViewModelFramesTests` (hooguit 20 beelden per seconde, geen beelden als de app ze niet wil, op Kleur alleen het gekozen apparaat), `DevicePreviewViewModelTests`, `PreviewViewModelTests`, `LedLayoutTests`, `RingLayoutTests`, `WideKeysTests`, `LedPreviewViewTests` (UI Automation), `FocusKeeperTests` en `SliderDragTests` (met een echt venster buiten beeld) |
@@ -390,6 +391,42 @@ toetsenbord. Een paar dingen om te proberen:
   `UnregisterHotKey` de toetsen vrijgeeft, en `EngineHost` bewaart het als `hotkeys`. Een
   toets die al bezet is, geeft `false` (gelogd met de Windows-foutcode) en een melding bij het
   icoon; de andere toets werkt gewoon.
+- **Herstarten:** het tray-item roept `TrayPresenter.RestartAsync` aan, dat `EngineRestarter`
+  gebruikt. Eerst kijkt `ElevatedServicesRestart` als gewone gebruiker of de service `OpenRGB`
+  (de naam uit `installer/BuurmansRgb.iss`) of PawnIO er is; zo niet, dan geen UAC. Anders start
+  het dezelfde engine-exe met `--restart-services` via `ShellExecute` met `Verb = "runas"`, en
+  wacht hooguit `ServiceRestarter.MaxDuration` plus 30 s. Die stap (`Program.RestartServices`,
+  zonder instance, log of tray) laat `ServiceRestarter` OpenRGB stoppen, PawnIO stoppen, PawnIO
+  starten en OpenRGB starten, met `WindowsServiceManager` (advapi32 via `LibraryImport`, want
+  `System.ServiceProcess.ServiceController` is een apart NuGet-pakket) en time-outs van 30 s
+  voor OpenRGB en 15 s voor PawnIO (een service die nog start, laat hij binnen die tijd eerst
+  opstarten voordat hij hem stopt, en een die nog stopt eerst stoppen voordat hij hem start).
+  PawnIO zoekt hij als service `PawnIO`, anders als eerste
+  kerneldriver met "PawnIO" in de naam (de echte naam is nog niet op een pc met PawnIO
+  nagekeken; de bronnen voor `PawnIO` staan in `openrgb-meeleveren.md`). De uitkomst
+  (`ServicesRestartReport`) komt terug als exitcode: `0x42` in de hoogste byte, dan OpenRGB en PawnIO elk in 4 bits, en in de laagste 16 bits de oorzaak van de
+  eerste fout (`ServicesRestartCause`: welke stap, de `ServiceControlFailure` en de Win32-code
+  tot 2047). De engine logt die oorzaak ("The restart of the services went wrong first at
+  stopping OpenRGB: TimedOut."), zodat "zie het logbestand" in de melding klopt; al het andere
+  (een crash) leest als mislukt. Geen bestand, zodat het verhoogde proces niets schrijft waar de
+  gebruiker kan schrijven. `ERROR_CANCELLED` (1223) bij het starten is een geweigerde UAC. Daarna vraagt
+  `SettingsAppWindow` een open instellingen-app via haar mutex en exit-signaal
+  (`SingleInstance.SignalExitIfRunning`, dat de mutex alleen opent en nooit aanmaakt; de app
+  hoort het via `ListenForExit`, zoals `--exit` bij de engine) om te sluiten, en start
+  `EngineLauncher` de engine met `--restarted <exitcode>` en zo nodig `--open-settings`. Lukt
+  dat, dan sluit de oude af zoals bij "Afsluiten"; de nieuwe wacht in
+  `PreviousEngine.AcquireAfterRestart` (`SingleInstance.AcquireWhenFree`, elke 200 ms, hooguit
+  60 s) tot de mutex van de oude weg is. Is hij er dan nog, dan wacht de nieuwe nog eens 60 s;
+  blijft de oude, dan stopt de nieuwe. Geen exit-signaal (`--exit`) ertussen: de oude heeft zijn
+  message loop al verlaten en luistert dus niet meer (de `ListenForExit` in `Program.Main` is dan
+  al gedisposed); het AutoReset-signaal zou blijven staan en een later gestarte engine meteen
+  sluiten. De waarschuwingen geeft `AcquireAfterRestart` terug in plaats van ze te schrijven:
+  `engine.log` is nog van de oude, en twee `FileLog`s die aan hetzelfde bestand toevoegen
+  schrijven elk op hun eigen positie en overschrijven zo elkaars regels (en kunnen tegelijk
+  roteren). Wordt de nieuwe primary, dan traceert hij ze na `FileLog.Start`; stopt hij, dan
+  schrijft `PreviousEngine.WriteStopLog` ze naar `engine.restart.log` in dezelfde map, dat
+  alleen zo'n engine schrijft. Anders start de nieuwe, meldt via
+  `TrayPresenter.DescribeRestart` wat er herstart is en opent de app weer.
 - **settings.json met de hand:** `SettingsFileWatcher` (achter `ISettingsFileEvents`) zet een
   `FileSystemWatcher` op het bestand; Windows meldt een wijziging, niets pollt. `SettingsReloader`
   wacht 400 ms na de laatste melding (een editor schrijft soms in stappen, of naar een ander
@@ -557,6 +594,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Richting (#79) op 30 fps in Release, Regenboog, `pauseOnLockAndSleep` uit, zonder OpenRGB: zonder richting tegen de basis (#78), en met `direction` 45 bij "Hele huis" (alle gesimuleerde apparaten over hun plekken); drie rondes van 60 s om en om, de volgorde per ronde omgedraaid (na 15 s opwarmen). Daarnaast de tijd van één `Render` over 104 LED's (het gesimuleerde toetsenbord) in een Release-meetprogramma buiten de repo, 200.000 frames na het opwarmen, per index en over de plekken van 45°. De plekken rekent de engine alleen uit als de hoek of de apparatenlijst verandert, en een frame alloceert ook met een richting niets (`LightingControllerDirectionTests`) | Zonder richting 0,29–0,47 % van één kern, basis 0,21–0,47 %; met 45° 0,13–0,55 %: geen verschil buiten de ruis. Per frame van 104 LED's: Regenboog per index 1,1–1,2 µs, over de plekken 1,0–1,5 µs; Golf 1,6–1,8 tegen 1,5–1,6 µs; Kleurenloop 1,7–1,9 tegen 2,2 µs (de plekken springen over de toetsen, de index loopt op); bij 30 fps is het verschil ~0,002 % van één kern. De plekken van het toetsenbord uitrekenen kost ~17 µs per nieuwe hoek | Zonder richting 26,7–29,0 MB working set, 11,2–12,0 MB private (basis: 26,6–28,9 en 11,1–11,9 MB); met 45° 27,0–28,5 en 11,1–11,7 MB. De plekken zelf zijn een `double` per LED per apparaat (~1 KB voor het toetsenbord) |
 | Engine | Eigen effecten (#80) op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB: Regenboog op de basis (richting, #79), Regenboog met één eigen effect in `effects.json`, en dat eigen effect bij "Hele huis" (alle gesimuleerde apparaten): een patroon van 104 kleuren, een kleur en een kleur zonder blijven staan, met 1–2 s overlopen, dus bijna altijd een overgang; drie rondes van 60 s om en om, de volgorde per ronde omgedraaid (na 15 s opwarmen). Daarnaast de tijd van één `Render` over 104 LED's in een Release-meetprogramma buiten de repo, 200.000 frames na het opwarmen. Een eigen effect maakt de engine alleen als de lijst van effecten of de verlichting verandert, en een frame alloceert niets (`StepEffectTests`, `LightingControllerCustomEffectTests`) | Regenboog op de basis 0,26–0,68 % van één kern, met deze uitbreiding 0,29–0,75 %; het eigen effect 0,26–0,49 %: geen verschil buiten de ruis (in de eerste ronde lag alles hoger, ook de basis). Per frame van 104 LED's: Regenboog 1,1–1,5 µs; een stap van één kleur 0,08–0,14 µs, ook tijdens het overlopen (één kleur voor alle LED's); een patroon van 104 kleuren 0,64–0,99 µs als het blijft staan en 1,4–1,8 µs tijdens het overlopen; een patroon van 24 kleuren uitgerekt over 104 LED's tijdens het overlopen naar een patroon van 104 2,0–2,4 µs; bij 30 fps hooguit ~0,007 % van één kern | Regenboog op de basis 26,6–29,9 MB working set, 11,1–12,0 MB private; met deze uitbreiding 26,7–29,1 en 11,0–12,0 MB; het eigen effect 27,1–29,5 en 11,1–12,0 MB. Een stap houdt zijn kleuren één keer in het geheugen (3 bytes per kleur), voor alle apparaten samen |
 | Engine | Slepen in het paneel Eigen effect (#80, na review) in Release, zonder OpenRGB en zonder beelden voor de app: een client bewaart één eigen effect (4 stappen: twee patronen van 104 kleuren en twee kleuren) 30 keer per seconde, 30 s lang, één aanroep tegelijk, met zes eigen effecten in de lijst, en haalt bij elke `CustomEffectsChanged` de lijst op zoals de app; het effect staat op alle gesimuleerde apparaten. Basis: `effects.json` bij elke wijziging; nieuw: een seconde na de laatste wijziging en bij afsluiten. Drie rondes, de volgorde per ronde omgedraaid; gemeten over 25 s van het slepen | Basis 8,8–14,3 % van één kern, nieuw 6,1–7,2 %; een aanroep gemiddeld 1,5–1,9 ms, nieuw 0,4–0,6 ms; `effects.json` 900 keer geschreven, nieuw 1 keer, met de laatste waarde. Wat overblijft is vooral het ophalen van de hele lijst bij elke wijziging (zie `docs/ideas.md`) | Basis 56–65 MB working set, 25–35 MB private; nieuw 54–61 MB en 24–30 MB |
+| Engine | Herstarten (#81) op 30 fps in Release, Regenboog, `pauseOnLockAndSleep` uit, zonder OpenRGB, zonder te herstarten: tegen de basis (eigen effecten, #80); drie rondes van 60 s om en om, de volgorde per ronde omgedraaid (na 15 s opwarmen). Zolang je niet herstart, doet de uitbreiding niets: één menu-item en een `null`-controle bij het starten. Herstarten zelf is niet gemeten (dat stopt en start services, wat alleen op de eigen pc mag) | Basis 0,31–0,44 % van één kern, nieuw 0,13–0,57 %: geen verschil buiten de ruis | Basis 26,8–29,7 MB working set, 11,1–12,2 MB private; nieuw 26,8–29,6 en 11,2–12,0 MB |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -831,6 +869,31 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    ARGB-strip uitgerekt over hun LED's.
 4. Sleep de schuif "Overlopen" heen en weer terwijl het effect op een echt apparaat staat: het
    apparaat loopt mee zonder te haperen, en de engine blijft onder 1 % van één kern.
+
+### Herstarten
+
+Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
+
+1. Kijk welke naam de driver van PawnIO heeft: `sc query type= driver | findstr /i pawn` in een
+   opdrachtprompt. Zet de naam in `docs/hardware.md` en bij "Naam van de driver" in
+   `docs/openrgb-meeleveren.md`; is het niet `PawnIO`, pas dan
+   `ServiceRestarter.PawnIoService` en deze tekst aan.
+2. Kies "Herstarten" in het tray-menu en keur de UAC-vraag goed. De tooltip zegt
+   "buurmansRgb – herstarten…", het icoon verdwijnt even en komt terug, en de melding zegt
+   "buurmansRgb is herstart.", "OpenRGB is herstart." en "PawnIO is herstart.". Controleer met
+   `netstat -ano | findstr 6742` dat OpenRGB weer luistert op `127.0.0.1:6742`, en dat de
+   apparaten bij Apparaten terugkomen en hun kleur krijgen.
+3. Doe het nog een keer met de instellingen-app open: die gaat dicht en weer open en verbindt
+   met de nieuwe engine.
+4. Kies "Herstarten" en weiger de UAC-vraag: alleen buurmansRgb herstart, met de melding dat
+   OpenRGB en PawnIO niet herstart zijn; OpenRGB blijft verbonden.
+5. Start FanControl of LibreHardwareMonitor (die PawnIO gebruiken) en kies "Herstarten": PawnIO
+   wordt overgeslagen met een melding, OpenRGB herstart wel. Noteer in `docs/hardware.md` wat er
+   gebeurde, ook of PawnIO daarna nog werkt als je dat programma sluit.
+
+Zonder OpenRGB en PawnIO (zoals op een ontwikkel-pc) vraagt "Herstarten" geen UAC en herstart
+het alleen buurmansRgb, met "OpenRGB staat niet als service op deze pc." en "PawnIO is niet
+gevonden.".
 
 ### Scènes
 

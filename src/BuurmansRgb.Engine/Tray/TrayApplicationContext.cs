@@ -6,6 +6,7 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
+using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.SettingsApp;
 
 namespace BuurmansRgb.Engine.Tray;
@@ -22,6 +23,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     private readonly ToolStripMenuItem _profilesItem;
     private readonly ToolStripMenuItem _allOnItem;
     private readonly ToolStripMenuItem _allOffItem;
+    private readonly ToolStripMenuItem _restartItem;
     private readonly SynchronizationContext _uiContext;
     private readonly IEngineHost _host;
     private readonly IServerStatusSource _openRgb;
@@ -38,7 +40,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         IServerStatusSource openRgb,
         AllOnOffHotkeys hotkeys,
         string logPath,
-        Action? trimMemory = null)
+        Action? trimMemory = null,
+        EngineRestarter? restarter = null,
+        ServicesRestartReport? restartedWith = null,
+        bool openSettingsAfterStart = false)
     {
         _presenter = new TrayPresenter(
             host,
@@ -49,10 +54,14 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             hotkeys,
             _globalHotkeys,
             () => Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true })?.Dispose(),
-            this);
+            this,
+            restarter,
+            restartedWith,
+            openSettingsAfterStart);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
         _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
         _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
+        _restartItem = new ToolStripMenuItem(Strings.MenuRestart, image: null, async (_, _) => await RestartAsync());
 
         // Click, not CheckedChanged: the check also follows a pause that ends elsewhere (ShowPause).
         _pauseItem = new ToolStripMenuItem(Strings.MenuPauseEffects) { CheckOnClick = true };
@@ -71,6 +80,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             _autoStartItem,
             new ToolStripSeparator(),
             new ToolStripMenuItem(Strings.MenuOpenLog, image: null, (_, _) => _presenter.OpenLog()),
+            _restartItem,
             new ToolStripMenuItem(Strings.MenuExit, image: null, (_, _) => ExitThread()),
         ]);
         _menu.Opening += (_, _) =>
@@ -126,6 +136,16 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
+    // "Herstarten": exits like "Afsluiten" once the new engine started, which waits for this one.
+    // The presenter never throws, so the click handler cannot take the engine down.
+    private async Task RestartAsync()
+    {
+        if (await _presenter.RestartAsync(_shutdown.Token))
+        {
+            ExitThread();
+        }
+    }
+
     void ITrayView.SetAutoStartChecked(bool isChecked) => _autoStartItem.Checked = isChecked;
 
     void ITrayView.SetPauseChecked(bool isChecked) => _pauseItem.Checked = isChecked;
@@ -167,6 +187,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _allOnItem.ShortcutKeyDisplayString = allOn;
         _allOffItem.ShortcutKeyDisplayString = allOff;
     }
+
+    void ITrayView.SetRestartEnabled(bool enabled) => _restartItem.Enabled = enabled;
 
     void ITrayView.ShowNotification(string text, TrayNotificationKind kind) =>
         _notifyIcon.ShowBalloonTip(BalloonTimeoutMs, Strings.AppName, text, ToToolTipIcon(kind));
