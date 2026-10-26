@@ -3,9 +3,10 @@ using BuurmansRgb.Core;
 namespace BuurmansRgb.Effects;
 
 // Runs through the given colors and back to the first, blending smoothly from one to the next.
-// Spread lays one whole loop over the LEDs by index and shifts it along with time, like the
-// rainbow with your own colors; without it every LED shows the same color.
-public sealed class ColorLoopEffect : IEffect
+// Spread lays one whole loop over the LEDs by index, or by their place along a direction, and
+// shifts it along with time, like the rainbow with your own colors; without it every LED shows
+// the same color.
+public sealed class ColorLoopEffect : IDirectedEffect
 {
     public const double DefaultLoopsPerSecond = 0.2;
 
@@ -39,6 +40,23 @@ public sealed class ColorLoopEffect : IEffect
         for (var i = 0; i < leds.Length; i++)
         {
             leds[i] = ColorAt(i / (double)leds.Length + shift);
+        }
+    }
+
+    // Without Spread the LEDs show one color, wherever they sit.
+    public void Render(Span<RgbColor> leds, ReadOnlySpan<double> positions, TimeSpan time)
+    {
+        EffectMath.ThrowIfNotOnePerLed(leds, positions);
+        var shift = time.TotalSeconds * LoopsPerSecond;
+        if (!Spread)
+        {
+            leds.Fill(ColorAt(shift));
+            return;
+        }
+
+        for (var i = 0; i < leds.Length; i++)
+        {
+            leds[i] = ColorAt(positions[i] + shift);
         }
     }
 
