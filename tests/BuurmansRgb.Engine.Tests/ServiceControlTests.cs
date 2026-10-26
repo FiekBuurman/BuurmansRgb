@@ -128,6 +128,18 @@ public sealed class ServiceControlTests
         Assert.Equal(["query", "query", "query", "stop", "query", "query"], service.Calls);
     }
 
+    // A service that fails while starting stops by itself: there is nothing left to stop then.
+    [Fact]
+    public void Stop_StillStartingThenStoppedByItself_IsDoneWithoutStopping()
+    {
+        var service = new FakeServiceHandle(ServiceState.StartPending, ServiceState.StartPending, ServiceState.Stopped);
+
+        _control.Stop(service, "OpenRGB", Timeout);
+
+        Assert.Equal(["query", "query", "query"], service.Calls);
+        Assert.True(_clock.GetElapsedTime(0) < Timeout);
+    }
+
     // The wait for it to run and the wait for it to stop share one timeout.
     [Fact]
     public void Stop_StillStartingPastTheTimeout_TimesOutWithoutStopping()

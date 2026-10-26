@@ -46,11 +46,15 @@ internal sealed class ServiceControl(TimeProvider time, Action<TimeSpan> sleep)
         }
 
         // Still starting, such as OpenRGB that Windows just started: it accepts no stop then
-        // ("cannot accept control"). So it first waits, within the same timeout, until it runs.
+        // ("cannot accept control"). So it first waits, within the same timeout, until it runs;
+        // one that fails while starting stops by itself, and then there is nothing left to stop.
         if (state == ServiceState.StartPending)
         {
-            WaitFor(service, name, ServiceState.Running, begin, timeout);
-            state = ServiceState.Running;
+            state = WaitFor(service, name, ServiceState.Running, ServiceState.Stopped, begin, timeout);
+            if (state == ServiceState.Stopped)
+            {
+                return;
+            }
         }
 
         if (state != ServiceState.StopPending)
@@ -124,9 +128,15 @@ internal sealed class ServiceControl(TimeProvider time, Action<TimeSpan> sleep)
         _ => 0,
     };
 
-    private void WaitFor(IServiceHandle service, string name, ServiceState wanted, long begin, TimeSpan timeout)
+    private void WaitFor(IServiceHandle service, string name, ServiceState wanted, long begin, TimeSpan timeout) =>
+        WaitFor(service, name, wanted, wanted, begin, timeout);
+
+    // Waits until the service is in wanted or in alternative, and gives the state it reached; a
+    // timeout names wanted.
+    private ServiceState WaitFor(IServiceHandle service, string name, ServiceState wanted, ServiceState alternative, long begin, TimeSpan timeout)
     {
-        while (service.QueryState() != wanted)
+        ServiceState state;
+        while ((state = service.QueryState()) != wanted && state != alternative)
         {
             if (time.GetElapsedTime(begin) >= timeout)
             {
@@ -135,6 +145,8 @@ internal sealed class ServiceControl(TimeProvider time, Action<TimeSpan> sleep)
 
             sleep(PollInterval);
         }
+
+        return state;
     }
 
     private const int ErrorDependentServicesRunning = 1051;
