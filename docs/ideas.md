@@ -45,7 +45,10 @@ uitbreidingen in `docs/bouwplan.md`.
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
 - Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
   instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
-  niet stopt. De stap met adminrechten logt nu niets; de engine logt alleen de uitkomst
+  niet stopt. De stap met adminrechten logt nu niets; de engine logt de uitkomst en alleen de
+  eerste fout (via de exitcode), niet elke fout met zijn volledige tekst
+- Herstarten: een service die nog aan het starten is (`StartPending`) eerst laten opstarten en
+  dan pas stoppen; nu geeft stoppen dan meteen "niet te stoppen"
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 - Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met
