@@ -4,9 +4,9 @@ namespace BuurmansRgb.Engine.Lighting;
 
 // The lighting of every device: a global lighting plus the devices that differ from it. Until
 // the lighting is applied or first changed, everything counts as the default and IsSet is false.
-// Rejects a brightness outside 0 to 1, a speed outside EffectSpeed, a color loop or own colors of
-// an effect that do not fit (ColorLoop.IsValid, EffectColors.IsValid) and an unknown effect with
-// ArgumentException, before it changes anything. Not thread-safe: LightingController uses it under its lock.
+// Rejects a brightness outside 0 to 1, a speed outside EffectSpeed, a direction outside
+// EffectDirection, a color loop or own colors of an effect that do not fit (ColorLoop.IsValid,
+// EffectColors.IsValid) and an unknown effect with ArgumentException, before it changes anything. Not thread-safe: LightingController uses it under its lock.
 internal sealed class LightingTable
 {
     private readonly Dictionary<string, DeviceLighting> _devices = [];
@@ -74,6 +74,12 @@ internal sealed class LightingTable
         if (!EffectSpeed.IsValid(lighting.Speed))
         {
             throw new ArgumentOutOfRangeException("speed", lighting.Speed, $"Speed runs from {EffectSpeed.Min} to {EffectSpeed.Max}.");
+        }
+
+        if (!EffectDirection.IsValid(lighting.Direction))
+        {
+            throw new ArgumentOutOfRangeException(
+                "degrees", lighting.Direction, $"A direction runs from {EffectDirection.Min} to {EffectDirection.Max} degrees.");
         }
 
         if (!lighting.Loop.IsValid)

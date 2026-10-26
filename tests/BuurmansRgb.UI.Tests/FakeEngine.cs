@@ -220,6 +220,9 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default) =>
         Record(string.Create(CultureInfo.InvariantCulture, $"speed {deviceId ?? "all"} {speed:0.00}"));
 
+    public Task SetDirectionAsync(string? deviceId, int? degrees, CancellationToken ct = default) =>
+        Record($"direction {deviceId ?? "all"} {(degrees is { } value ? value.ToString(CultureInfo.InvariantCulture) : "leds")}");
+
     public Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default) =>
         Record($"loop {deviceId ?? "all"} {string.Join(",", colors.Select(color => color.ToHex()))} {(spread ? "spread" : "together")}");
 

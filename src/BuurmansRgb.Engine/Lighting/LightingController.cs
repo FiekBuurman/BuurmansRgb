@@ -807,7 +807,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 ? EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(output.Device), lighting.Loop, EffectCatalog.SeedOf(output.Device.Id), lighting.EffectColors)
                 : Off;
             var zonesAlike = lighting.EffectId != EffectIds.PerLed && _zonesAlike.Contains(output.Device.Id);
-            output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike);
+            output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike, lighting.Direction);
             output.Render(time);
             if (!IsManual(_pause))
             {

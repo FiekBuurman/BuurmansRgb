@@ -326,6 +326,17 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetDirectionAsync_ReachesServerWithDegreesOrNull()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.SetDirectionAsync("keyboard", 45, Ct);
+        await client.Api.SetDirectionAsync(null, null, Ct);
+
+        Assert.Equal([("keyboard", (int?)45), (null, null)], _api.DirectionCalls);
+    }
+
+    [Fact]
     public async Task LedColors_RoundTripThroughThePipe()
     {
         var client = await ConnectAsync();
@@ -557,7 +568,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public LightingInfo Lighting { get; } = new(
             new RgbColor(10, 20, 30), 0.25, EffectIds.Static, 1.5, new ColorLoop([new RgbColor(1, 2, 3), new RgbColor(4, 5, 6)], Spread: false), On: false,
-            EffectColors: EffectColors.None.With(EffectIds.Comet, [new RgbColor(7, 8, 9)]).With(EffectIds.Fire, [new RgbColor(1, 1, 1), new RgbColor(9, 9, 9)]));
+            EffectColors: EffectColors.None.With(EffectIds.Comet, [new RgbColor(7, 8, 9)]).With(EffectIds.Fire, [new RgbColor(1, 1, 1), new RgbColor(9, 9, 9)]),
+            Direction: 135);
 
         public List<(string? DeviceId, RgbColor Color)> ColorCalls { get; } = [];
 
@@ -644,6 +656,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default)
         {
             SpeedCalls.Add((deviceId, speed));
+            return Task.CompletedTask;
+        }
+
+        public List<(string? DeviceId, int? Degrees)> DirectionCalls { get; } = [];
+
+        public Task SetDirectionAsync(string? deviceId, int? degrees, CancellationToken ct = default)
+        {
+            DirectionCalls.Add((deviceId, degrees));
             return Task.CompletedTask;
         }
 

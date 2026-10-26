@@ -83,6 +83,11 @@ public partial interface IEngineApi
     // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
     Task SetSpeedAsync(string? deviceId, double speed, CancellationToken ct = default);
 
+    // The direction of the effects that run over the LEDs (EffectDirection.Applies), in degrees
+    // from EffectDirection.Min to EffectDirection.Max; null runs them along the LEDs in their
+    // order again. The other effects keep it for when they switch to such an effect.
+    Task SetDirectionAsync(string? deviceId, int? degrees, CancellationToken ct = default);
+
     // The colors of the color-loop effect, ColorLoop.MinColors to ColorLoop.MaxColors of them,
     // and whether they spread over the LEDs. Does not switch the effect.
     Task SetColorLoopAsync(string? deviceId, IReadOnlyList<RgbColor> colors, bool spread, CancellationToken ct = default);
