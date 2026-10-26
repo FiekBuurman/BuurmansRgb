@@ -26,6 +26,16 @@ public sealed class SceneCardTests
         Assert.Equal("Statisch · 80%", _card.Description);
     }
 
+    // The card knows only the id of an own effect, not its name or steps.
+    [Fact]
+    public void Show_OwnEffect_IsAnOwnEffectInTheColorOfTheLamp()
+    {
+        _card.Show(new LightingInfo(Orange, 0.8, "custom:1a2b3c4d"), ProfileAutomation.None);
+
+        Assert.All(_card.Dots, dot => Assert.Equal(new SceneDot(Orange, true), dot));
+        Assert.Equal("Eigen effect · 80%", _card.Description);
+    }
+
     [Fact]
     public void Show_Rainbow_GoesRoundTheColors()
     {
