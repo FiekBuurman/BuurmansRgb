@@ -325,6 +325,12 @@ uitbreidingen in `docs/bouwplan.md`.
   van een andere start. Nu staat er alleen "Engine stopped."; bij de meting van de nieuwe effecten
   stopte een engine na 55 s zonder dat het log zei waarom (waarschijnlijk een `--exit` in dezelfde
   Windows-sessie, zie "Metingen" in `ontwikkelaars.md`)
+- Tijdens het tellen van LED's de render-loop alleen op het tempo van de telling laten tikken
+  (1, 2 of 5 keer per seconde) als verder alles statisch is: nu draait hij dan op 30 fps, terwijl
+  er maar één keer per LED iets verandert (zie de meting "LED's tellen" met Statisch in
+  `ontwikkelaars.md`). `AnimationLoop.Period` kan al veranderen (bij `framesPerSecond`); de
+  controller moet dan bij elke wijziging nagaan of er naast de telling een bewegend effect of een
+  flits loopt, en een stap mag niet later komen dan nu
 
 ## Installer en uitrol
 
