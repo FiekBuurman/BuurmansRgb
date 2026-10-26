@@ -25,10 +25,36 @@ public sealed class SingleInstance : IDisposable
 
     public static SingleInstance Acquire(string name)
     {
-        var mutex = new Mutex(initiallyOwned: false, $@"Local\{name}", out var createdNew);
+        var mutex = new Mutex(initiallyOwned: false, MutexName(name), out var createdNew);
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
-        var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Exit");
+        var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ExitName(name));
         return new(mutex, activation, exit, createdNew);
+    }
+
+    // Asks a running instance to exit, from outside (the engine's "Herstarten" closing the
+    // settings app). Only opens what is there: unlike Acquire it never creates the mutex, so an
+    // instance that starts meanwhile does not take it for a second start. False when none runs.
+    public static bool SignalExitIfRunning(string name)
+    {
+        if (!Mutex.TryOpenExisting(MutexName(name), out var mutex))
+        {
+            return false;
+        }
+
+        using (mutex)
+        {
+            // Named events are Windows only, as the apps are.
+            if (!OperatingSystem.IsWindows() || !EventWaitHandle.TryOpenExisting(ExitName(name), out var exit))
+            {
+                return false;
+            }
+
+            using (exit)
+            {
+                exit.Set();
+                return true;
+            }
+        }
     }
 
     // For an instance that starts in place of one that is on its way out (the engine's
@@ -70,6 +96,10 @@ public sealed class SingleInstance : IDisposable
         _exit.Dispose();
         _mutex.Dispose();
     }
+
+    private static string MutexName(string name) => $@"Local\{name}";
+
+    private static string ExitName(string name) => $@"Local\{name}.Exit";
 
     private SignalListener Listen(EventWaitHandle signal, ref SignalListener? listener, Action onSignal)
     {

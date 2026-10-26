@@ -10,18 +10,8 @@ internal interface ISettingsAppWindow
 }
 
 // Through the single-instance mutex and exit signal of the settings app (SingleInstance), as
-// --exit does with the engine.
+// --exit does with the engine, but without creating the mutex when no settings app runs.
 internal sealed class SettingsAppWindow(string instanceName = EngineRpc.SettingsAppName) : ISettingsAppWindow
 {
-    public bool CloseIfOpen()
-    {
-        using var instance = SingleInstance.Acquire(instanceName);
-        if (instance.IsPrimary)
-        {
-            return false;
-        }
-
-        instance.SignalPrimaryToExit();
-        return true;
-    }
+    public bool CloseIfOpen() => SingleInstance.SignalExitIfRunning(instanceName);
 }

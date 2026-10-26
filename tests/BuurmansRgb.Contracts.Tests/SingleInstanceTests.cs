@@ -62,6 +62,29 @@ public sealed class SingleInstanceTests
     }
 
     [Fact]
+    public async Task SignalExitIfRunning_Running_AsksItToExit()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        var exited = new TaskCompletionSource();
+        using var listening = primary.ListenForExit(() => exited.TrySetResult());
+
+        Assert.True(SingleInstance.SignalExitIfRunning(_name));
+
+        await exited.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
+    // It only looks: an instance that starts right after it is still the first.
+    [Fact]
+    public void SignalExitIfRunning_NoneRunning_CreatesNothing()
+    {
+        Assert.False(SingleInstance.SignalExitIfRunning(_name));
+
+        Assert.False(Mutex.TryOpenExisting($@"Local\{_name}", out _));
+        using var next = SingleInstance.Acquire(_name);
+        Assert.True(next.IsPrimary);
+    }
+
+    [Fact]
     public async Task SignalPrimary_InvokesActivationCallbackOfPrimary()
     {
         using var primary = SingleInstance.Acquire(_name);
