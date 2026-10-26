@@ -359,12 +359,32 @@ public sealed class PreviewViewModelTests
         List<ZoneCountStop> stops = [];
         preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
         preview.ShowDevices([Board(20, 0)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
 
         preview.ShowDevices([Fan]);
 
         Assert.Equal([new ZoneCountStop("board", 1)], stops);
         Assert.Null(preview.Count);
+    }
+
+    // A count another settings app started goes on when its zone goes from view here, and shows
+    // again when it comes back.
+    [Fact]
+    public void ShowDevices_CountOfAnotherAppGoesFromView_LeavesTheCount()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+
+        preview.ShowDevices([Fan]);
+        Assert.Null(preview.Count);
+        preview.ShowDevices([Board(20, 0)]);
+
+        Assert.Empty(stops);
+        Assert.Equal(4, preview.Devices[0].Zones[1].Count!.Led);
     }
 
     // Another settings app counts a zone that is not in view here: that one is left alone, and
@@ -394,12 +414,29 @@ public sealed class PreviewViewModelTests
         preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
         preview.ShowDevices([Board(20, 0)]);
         preview.StopCount();
+        preview.Devices[0].Zones[0].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
 
         preview.StopCount();
 
         Assert.Equal([new ZoneCountStop("board", 0)], stops);
         Assert.Null(preview.Devices[0].Zones[0].Count);
+    }
+
+    // As when the user leaves Kleur: a count another settings app started goes on.
+    [Fact]
+    public void StopCount_CountOfAnotherApp_LeavesIt()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 0, 4, 60, 1, true));
+
+        preview.StopCount();
+
+        Assert.Empty(stops);
+        Assert.Equal(4, preview.Devices[0].Zones[0].Count!.Led);
     }
 
     private static DeviceInfo Board(int argb1, int argb2) =>

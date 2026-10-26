@@ -155,7 +155,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SendFramesWanted();
                 SendFrameDevices();
 
-                // The count shows only on Kleur; elsewhere there is nothing to stop it with.
+                // The count shows only on Kleur; elsewhere there is nothing to stop it with. Only
+                // a count this app started stops so.
                 if (Navigation.CurrentPage != AppPage.Color)
                 {
                     Preview.StopCount();

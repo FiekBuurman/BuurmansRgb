@@ -117,6 +117,20 @@ public sealed class MainViewModelZoneCountTests
         Assert.Null(viewModel.Preview.Count);
     }
 
+    // A count another settings app started is not this app's to stop.
+    [Fact]
+    public async Task LeavingKleur_CountOfAnotherApp_GoesOn()
+    {
+        var viewModel = await ConnectAsync();
+        Api.RaiseZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 1 });
+        await Eventually.TrueAsync(() => Header(viewModel).Count is not null);
+
+        viewModel.Navigation.GoTo(AppPage.Scenes);
+
+        Assert.NotNull(viewModel.Preview.Count);
+        Assert.DoesNotContain("count board 1 stop", Api.Calls);
+    }
+
     [Fact]
     public async Task Paused_GreysOutCountLeds()
     {
