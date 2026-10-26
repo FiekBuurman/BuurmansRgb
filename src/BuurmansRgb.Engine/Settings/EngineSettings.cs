@@ -1,5 +1,6 @@
 using System.Text.Json;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Settings;
@@ -42,7 +43,21 @@ internal sealed record EngineSettings : LightingStateSettings
     // on after a restart; null, and so not in the file, when none is.
     public string? ActiveScene { get; set; }
 
+    // "customColors": the own colors of the toolbox on Kleur (CustomColorList). Null instead of
+    // empty, so the default settings stay out of the file; a color that does not read is null
+    // (SettingsOptionalColorJsonConverter) and left out, as are a color twice and every color
+    // after the first CustomColors.MaxColors (ReadCustomColors).
+    public RgbColor?[]? CustomColors { get; set; }
+
     public static EngineSettings CreateDefault() => new();
+
+    public IReadOnlyList<RgbColor> ReadCustomColors() =>
+        Contracts.CustomColors.Normalize((CustomColors ?? []).OfType<RgbColor>());
+
+    public EngineSettings WithCustomColors(IReadOnlyList<RgbColor> colors) => this with
+    {
+        CustomColors = colors.Count > 0 ? [.. colors.Select(color => (RgbColor?)color)] : null,
+    };
 
     // The zone lengths as ZoneLengthKeeper takes them; a device without zones (null) is left out.
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> ReadZoneLengths() =>

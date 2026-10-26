@@ -225,6 +225,7 @@ public sealed class EngineSettingsTests
         _ when type == typeof(string) => current + "-changed",
         _ when type == typeof(Dictionary<string, Dictionary<string, int>?>) => new Dictionary<string, Dictionary<string, int>?> { ["device"] = new() { ["zone"] = 30 } },
         _ when type == typeof(List<string?>) => new List<string?> { "device" },
+        _ when type == typeof(RgbColor?[]) => new RgbColor?[] { new RgbColor(255, 0, 0) },
         _ when type.IsEnum => Enum.GetValues(type).Cast<object>().First(value => !value.Equals(current)),
         _ => throw new NotSupportedException($"Give {type} a value in {nameof(WithLighting_KeepsEveryStartupOption)}."),
     };

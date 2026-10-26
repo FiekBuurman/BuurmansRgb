@@ -449,12 +449,41 @@ public sealed class EngineHostTests : IDisposable
     }
 
     [Fact]
+    public async Task StartAsync_GivesTheSavedCustomColors()
+    {
+        var store = new InMemorySettingsStore { Settings = EngineSettings.CreateDefault().WithCustomColors([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)]) };
+        using var lighting = new LightingController([_simulated]);
+        var customColors = new CustomColorList();
+        using var host = new EngineHost(store, lighting, customColors: customColors);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], customColors.Colors);
+    }
+
+    [Fact]
+    public async Task Dispose_AfterTheCustomColorsChanged_SavesThem()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        var customColors = new CustomColorList();
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), customColors: customColors);
+        await host.StartAsync(Ct);
+
+        customColors.Colors = [new RgbColor(0, 255, 0)];
+        host.Dispose();
+
+        Assert.Equal([new RgbColor(0, 255, 0)], store.Settings.ReadCustomColors());
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    [Fact]
     public async Task StartAsync_TheSavedOptions_AreNotSavedAgain()
     {
-        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, PausedLights = PausedLightsMode.Dim, Hotkeys = false, ZonesAlike = ["simulated-mouse", "simulated-headset"] } };
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { FramesPerSecond = 12, PauseOnLockAndSleep = false, PausedLights = PausedLightsMode.Dim, Hotkeys = false, ZonesAlike = ["simulated-mouse", "simulated-headset"], CustomColors = [new RgbColor(255, 0, 0)] } };
         var lighting = new LightingController([_simulated]);
         using var autoPause = AutoPauses.WithFakes(lighting.SetPaused);
-        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys());
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), autoPause: autoPause, hotkeys: new AllOnOffHotkeys(), customColors: new CustomColorList());
         await host.StartAsync(Ct);
 
         host.Dispose();

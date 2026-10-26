@@ -43,6 +43,25 @@
             <Setter Property="Margin" Value="-6,0,0,0" />
             <Setter Property="MaxLength" Value="7" />
         </Style>
+
+        <!-- A tile of the toolbox, of a preset or an own color: shows its Color under its Name, a click
+             mixes it, and it is marked when it is the mixed color. -->
+        <Style x:Key="ToolboxTile" TargetType="Button" BasedOn="{StaticResource SmallPresetTile}">
+            <Setter Property="Margin" Value="0,0,8,8" />
+            <Setter Property="Background" Value="{Binding Color, Converter={StaticResource ColorToBrush}}" />
+            <Setter Property="ToolTip" Value="{Binding Name}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Name}" />
+            <Setter Property="Command" Value="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <Setter Property="CommandParameter" Value="{Binding Color}" />
+            <Setter Property="Tag">
+                <Setter.Value>
+                    <MultiBinding Converter="{StaticResource EqualValues}">
+                        <Binding Path="Color" />
+                        <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                    </MultiBinding>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -208,31 +227,51 @@
                             Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
 
                     <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" />
+                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine fit one row. -->
                     <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <views:CardGrid MinColumnWidth="44" MaxColumns="6" Gap="10" />
+                                <WrapPanel />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ColorPreset}">
-                                <Button Style="{StaticResource PresetTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
-                                        ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
-                                        Command="{Binding DataContext.ColorPicker.SelectPresetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding Color}">
-                                    <Button.Tag>
-                                        <MultiBinding Converter="{StaticResource EqualValues}">
-                                            <Binding Path="Color" />
-                                            <Binding Path="DataContext.ColorPicker.Color" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                        </MultiBinding>
-                                    </Button.Tag>
-                                </Button>
+                                <Button Style="{StaticResource ToolboxTile}" />
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <!-- The own colors, kept by the engine: "+" first, so the tiles after it wrap within the
+                         column; a click mixes one, Delete or its context menu takes it away. -->
+                    <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" />
+                    <DockPanel>
+                        <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
+                                ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
+                                AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
+                                Command="{Binding CustomColors.AddCommand}" Click="OnAddCustomColorClick" />
+                        <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:CustomColorItem}">
+                                    <Button Style="{StaticResource ToolboxTile}" AutomationProperties.HelpText="{x:Static res:Strings.CustomColorHelp}"
+                                            PreviewKeyDown="OnCustomColorKeyDown" views:FocusKeeper.Key="{Binding FocusKey}">
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="{x:Static res:Strings.CustomColorRemove}" Click="OnRemoveCustomColorClick" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </DockPanel>
+
                     <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once. -->
-                    <Button Margin="0,20,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
+                    <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
                             Command="{Binding ColorPicker.ApplyCommand}"
                             Visibility="{Binding ColorPicker.AppliesAtOnce, Converter={StaticResource InverseBoolToVisibility}}" />
                 </StackPanel>

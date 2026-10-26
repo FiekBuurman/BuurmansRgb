@@ -69,6 +69,7 @@ internal static class Program
         using var autoPause = new AutoPause(powerEvents, sessionEvents, displayEvents, screenSaverEvents, lighting.SetPaused);
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
+        var customColors = new CustomColorList();
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // Disposed after the host, which stops listening to it first.
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
@@ -80,7 +81,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -91,7 +92,8 @@ internal static class Program
             profiles: profiles,
             profileTimer: profileTimer,
             hotkeys: hotkeys,
-            settingsFileEvents: settingsFile);
+            settingsFileEvents: settingsFile,
+            customColors: customColors);
 
         using var context = new TrayApplicationContext(host, autoStart, SettingsAppLauncher.NextToEngine(), profiles, lighting, openRgb, hotkeys, log.FilePath, MemoryTrimmer.Trim);
         using (instance.ListenForActivation(context.RequestOpenSettings))

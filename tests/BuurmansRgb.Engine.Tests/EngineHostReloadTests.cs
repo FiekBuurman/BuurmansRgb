@@ -25,6 +25,7 @@ public sealed class EngineHostReloadTests : IDisposable
     private readonly AutoPause _autoPause;
     private readonly ProfileTimer _profileTimer;
     private readonly AllOnOffHotkeys _hotkeys = new();
+    private readonly CustomColorList _customColors = new();
     private readonly FakeSettingsFileEvents _fileEvents = new();
     private readonly InMemorySettingsStore _store = new();
 
@@ -54,7 +55,7 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         using var host = CreateHost();
         await host.StartAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), autoPause: _autoPause, profileTimer: _profileTimer, hotkeys: _hotkeys);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), autoPause: _autoPause, profileTimer: _profileTimer, hotkeys: _hotkeys, customColors: _customColors);
         var changes = 0;
         api.OptionsChanged += (_, _) => Interlocked.Increment(ref changes);
 
@@ -66,15 +67,17 @@ public sealed class EngineHostReloadTests : IDisposable
             PausedLights = PausedLightsMode.Dim,
             CatchUpSceneTimes = true,
             Hotkeys = false,
+            CustomColors = [new RgbColor(0, 0, 255), null],
         });
 
-        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 6);
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 7);
         Assert.Equal(SimulatedDevicesMode.Always, _simulatedDevices.Mode);
         Assert.Equal(12, _lighting.FramesPerSecond);
         Assert.False(_autoPause.Enabled);
         Assert.Equal(PausedLightsMode.Dim, _lighting.PausedLights);
         Assert.True(_profileTimer.CatchUp);
         Assert.False(_hotkeys.Enabled);
+        Assert.Equal([new RgbColor(0, 0, 255)], _customColors.Colors);
     }
 
     // As at the start: kept within its range.
@@ -361,7 +364,8 @@ public sealed class EngineHostReloadTests : IDisposable
         profileTimer: _profileTimer,
         hotkeys: _hotkeys,
         settingsFileEvents: _fileEvents,
-        reloadDelay: ReloadDelay);
+        reloadDelay: ReloadDelay,
+        customColors: _customColors);
 
     // The engine may be moving its own save over the file just then.
     private static bool FileContains(string path, string text)

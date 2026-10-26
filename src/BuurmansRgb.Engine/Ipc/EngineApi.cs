@@ -21,6 +21,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly AutoPause? _autoPause;
     private readonly ProfileTimer? _profileTimer;
     private readonly AllOnOffHotkeys? _hotkeys;
+    private readonly CustomColorList? _customColors;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -36,11 +37,13 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         TimeProvider? time = null,
         AutoPause? autoPause = null,
         ProfileTimer? profileTimer = null,
-        AllOnOffHotkeys? hotkeys = null)
+        AllOnOffHotkeys? hotkeys = null,
+        CustomColorList? customColors = null)
     {
         _autoPause = autoPause;
         _profileTimer = profileTimer;
         _hotkeys = hotkeys;
+        _customColors = customColors;
         _lighting = lighting;
         _zoneLengths = zoneLengths;
         _profiles = profiles;
@@ -62,6 +65,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _autoPause?.EnabledChanged += OnOptionsChanged;
         _profileTimer?.CatchUpChanged += OnOptionsChanged;
         _hotkeys?.EnabledChanged += OnOptionsChanged;
+        _customColors?.Changed += OnOptionsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -262,6 +266,22 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // Without the list (in tests) nothing is kept, so there are none.
+    public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>
+        Task.FromResult(_customColors?.Colors ?? []);
+
+    public Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        if (colors.Count > CustomColors.MaxColors)
+        {
+            throw new ArgumentException($"At most {CustomColors.MaxColors} own colors, not {colors.Count}.", nameof(colors));
+        }
+
+        _customColors?.Colors = colors;
+        return Task.CompletedTask;
+    }
+
     public Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.Names);
 
     public Task SaveProfileAsync(string name, CancellationToken ct = default)
@@ -312,6 +332,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _autoPause?.EnabledChanged -= OnOptionsChanged;
         _profileTimer?.CatchUpChanged -= OnOptionsChanged;
         _hotkeys?.EnabledChanged -= OnOptionsChanged;
+        _customColors?.Changed -= OnOptionsChanged;
         _frames.Dispose();
     }
 

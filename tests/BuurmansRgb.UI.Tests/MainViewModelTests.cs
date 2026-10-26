@@ -572,6 +572,7 @@ public sealed class MainViewModelTests
             api.PausedLights = PausedLightsMode.Off;
             api.CatchUpSceneTimes = true;
             api.Hotkeys = false;
+            api.CustomColors = [new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)];
         });
 
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
@@ -579,6 +580,7 @@ public sealed class MainViewModelTests
         Assert.Equal(PausedLightsMode.Off, viewModel.EffectOptions.SelectedPausedLights?.Mode);
         Assert.True(viewModel.SceneTimes.IsOn);
         Assert.False(viewModel.Hotkeys.IsOn);
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], viewModel.CustomColors.Colors.Select(item => item.Color));
         Assert.Empty(Api.Calls);
     }
 
@@ -592,8 +594,10 @@ public sealed class MainViewModelTests
         viewModel.EffectOptions.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions.Single(option => option.Mode == PausedLightsMode.Dim);
         viewModel.SceneTimes.IsOn = true;
         viewModel.Hotkeys.IsOn = false;
+        viewModel.ColorPicker.HexColor = "#00FF00";
+        viewModel.CustomColors.AddCommand.Execute(null);
 
-        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "custom colors #00FF00"], Api.Calls);
     }
 
     [Fact]
@@ -694,6 +698,7 @@ public sealed class MainViewModelTests
         Api.PausedLights = PausedLightsMode.Dim;
         Api.CatchUpSceneTimes = true;
         Api.Hotkeys = false;
+        Api.CustomColors = [new RgbColor(0, 255, 0)];
         Api.RaiseOptionsChanged();
 
         Assert.Equal(SimulatedDevicesMode.Never, viewModel.SimulatedDevices.SelectedOption?.Mode);
@@ -702,6 +707,7 @@ public sealed class MainViewModelTests
         Assert.Equal(PausedLightsMode.Dim, viewModel.EffectOptions.SelectedPausedLights?.Mode);
         Assert.True(viewModel.SceneTimes.IsOn);
         Assert.False(viewModel.Hotkeys.IsOn);
+        Assert.Equal([new RgbColor(0, 255, 0)], viewModel.CustomColors.Colors.Select(item => item.Color));
         Assert.Empty(Api.Calls);
     }
 

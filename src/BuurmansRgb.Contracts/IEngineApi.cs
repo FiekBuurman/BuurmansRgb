@@ -40,7 +40,7 @@ public partial interface IEngineApi
 
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
     // pause on lock and sleep and what the lamps do during that pause, the catch-up of scene
-    // times or the hotkeys, from this or another settings app.
+    // times, the hotkeys or the own colors of the toolbox, from this or another settings app.
     event EventHandler OptionsChanged;
 
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
@@ -171,6 +171,13 @@ public partial interface IEngineApi
     Task<bool> GetHotkeysAsync(CancellationToken ct = default);
 
     Task SetHotkeysAsync(bool enabled, CancellationToken ct = default);
+
+    // The own colors of the toolbox on Kleur ("Eigen kleuren"), which the settings app keeps here
+    // as it stops when it closes; saved like the lighting. Empty until the app gives some.
+    Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default);
+
+    // Replaces them all. A color twice is kept once; more than CustomColors.MaxColors throws.
+    Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
 
     // The names of the saved profiles, in alphabetical order.
     Task<IReadOnlyList<string>> GetProfilesAsync(CancellationToken ct = default);

@@ -23,7 +23,8 @@ internal sealed class EngineHost(
     ProfileTimer? profileTimer = null,
     AllOnOffHotkeys? hotkeys = null,
     ISettingsFileEvents? settingsFileEvents = null,
-    TimeSpan? reloadDelay = null) : IEngineHost, IDisposable
+    TimeSpan? reloadDelay = null,
+    CustomColorList? customColors = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
@@ -61,6 +62,7 @@ internal sealed class EngineHost(
         lighting.ZonesAlikeChanged += OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
+        customColors?.Changed += OnCustomColorsChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -98,6 +100,7 @@ internal sealed class EngineHost(
         lighting.ZonesAlikeChanged -= OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
+        customColors?.Changed -= OnCustomColorsChanged;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -146,6 +149,7 @@ internal sealed class EngineHost(
         lighting.ZonesAlike = settings.ReadZonesAlike();
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
+        customColors?.Colors = settings.ReadCustomColors();
     }
 
     // Reads the newest mode, so two changes that cross each other still save the last one.
@@ -178,4 +182,7 @@ internal sealed class EngineHost(
 
     private void OnHotkeysEnabledChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { Hotkeys = hotkeys!.Enabled });
+
+    private void OnCustomColorsChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings.WithCustomColors(customColors!.Colors));
 }

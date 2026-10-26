@@ -409,13 +409,16 @@ public sealed class EngineRpcTests : IDisposable
         await client.Api.SetHotkeysAsync(false, Ct);
         var pausedLights = await client.Api.GetPausedLightsAsync(Ct);
         await client.Api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
+        var customColors = await client.Api.GetCustomColorsAsync(Ct);
+        await client.Api.SetCustomColorsAsync([new RgbColor(0, 0, 255), RgbColor.White], Ct);
 
         Assert.Equal(24, framesPerSecond);
         Assert.True(pauseOnLock);
         Assert.False(catchUp);
         Assert.True(hotkeys);
         Assert.Equal(PausedLightsMode.Dim, pausedLights);
-        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off"], _api.OptionCalls);
+        Assert.Equal([new RgbColor(255, 0, 0)], customColors);
+        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off", "custom colors #0000FF #FFFFFF"], _api.OptionCalls);
     }
 
     [Fact]
@@ -706,6 +709,15 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetHotkeysAsync(bool enabled, CancellationToken ct = default)
         {
             OptionCalls.Add($"hotkeys {enabled}");
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<RgbColor>>([new RgbColor(255, 0, 0)]);
+
+        public Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"custom colors {string.Join(" ", colors.Select(color => color.ToHex()))}");
             return Task.CompletedTask;
         }
 

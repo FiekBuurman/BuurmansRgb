@@ -325,6 +325,17 @@ internal sealed class FakeEngineApi : IEngineApi
         Hotkeys = enabled;
     }
 
+    public List<RgbColor> CustomColors { get; set; } = [];
+
+    public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<RgbColor>>([.. CustomColors]);
+
+    public async Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
+    {
+        await Record($"custom colors {string.Join(" ", colors.Select(color => color.ToHex()))}");
+        CustomColors = [.. colors];
+    }
+
     // Like the engine: saving adds the name, deleting removes it, in alphabetical order.
     public List<string> Profiles { get; } = [];
 

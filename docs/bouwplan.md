@@ -65,7 +65,8 @@ Naast wat in de tekening staat, heeft de engine inmiddels ook: scènes (`Profile
 slaapstand, scherm uit en schermbeveiliging en herstellen na het ontwaken (`Power`), sneltoetsen
 voor alles aan en uit (`Hotkeys`), `settings.json` live oppikken (`SettingsFileWatcher`), het
 bewaren en terugzetten van zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde
-en echte apparaten (`SimulatedDevicesSwitch`).
+en echte apparaten (`SimulatedDevicesSwitch`). Ook bewaart hij de eigen kleuren van de
+gereedschapskist voor de instellingen-app (`CustomColorList`), die zelf niets bewaart.
 
 Kern-interfaces in `Core`. Zo zijn ze nu; taak 0 begon met een kleinere versie (`RgbZone` met
 alleen `Resizable`, minder apparaattypes):
@@ -398,6 +399,7 @@ getest zonder hardware; wat op echte hardware getest moet worden, staat in `ontw
 | #69 | Eigen kleuren voor Fonkelen, Komeet, Scanner en Vuur (1–8, net als de kleurenloop): Komeet elke ronde de volgende kleur, Scanner elke keer heen of terug, Fonkelen elke fonkeling een willekeurige kleur uit de lijst en Vuur van de eerste kleur (de gloed) naar de laatste (de felste vlam), bijv. blauw vuur of groen "gif". Per lamp per effect een eigen lijst (`effectColors` in `settings.json` en `profiles.json`, `SetEffectColorsAsync` en `ClearEffectColorsAsync`), dus wisselen tussen effecten houdt elk zijn kleuren en een scène neemt ze mee; zonder lijst de kleur van de lamp, of bij Vuur donkerrood, rood, oranje en geel, zodat bestaande instellingen en scènes er hetzelfde uitzien. Op Kleur dezelfde vakjes met + en − als bij de kleurenloop (een gedeelde editor), de kleurkiezer verft het gekozen vakje meteen; gekozen LED's gaan voor; "Standaardkleuren" haalt de eigen lijst weer weg. De scènekaart toont de kleuren. Zonder allocaties per frame |
 | #74 | Meer kleuren: de kleurenloop heeft 2–12 kleuren (was 2–8), en Fonkelen, Komeet, Scanner en Vuur 1–12 (was 1–8). De vakjes van een lijst staan in rijen van hooguit zes, met + en − rechts naast de eerste rij. Een oudere versie leest een lijst van 9–12 kleuren als de standaard |
 | #75 | "Lampen" heet nu "Apparaten" in alle teksten die je leest: de pagina Apparaten, "Apparaten in huis", "Welk apparaat?" bij Kleur, de OpenRGB-status ("verbonden, 5 apparaten") in de app en het tray-icoon, de gesimuleerde apparaten bij Instellingen en de handleiding. Er staat ook een toetsenbord, muis of headset tussen. De namen in de code (`LampsPage`, `LampItem`) blijven |
+| #76 | De gereedschapskist op Kleur: kleinere vakjes (32 px in plaats van 44), Echt rood, Echt groen en Echt blauw naast de zes kleuren van het ontwerp, en "Eigen kleuren": + zet de huidige kleur erbij (hooguit 12, elke kleur één keer), weghalen met rechts klikken of Delete. De engine bewaart ze als `customColors` in `settings.json` |
 
 Daarvoor kwamen al: een refactor na de code-review (#11), de installatie-uitleg (#12, #15) en
 het onderzoek naar OpenRGB meeleveren (#13). Herstel-PR's zonder nieuwe functie krijgen geen rij,
