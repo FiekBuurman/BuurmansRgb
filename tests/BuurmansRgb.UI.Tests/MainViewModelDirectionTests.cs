@@ -66,6 +66,27 @@ public sealed class MainViewModelDirectionTests
         Assert.Equal(["direction all leds"], Api.Calls);
     }
 
+    [Fact]
+    public async Task ChooseDirection_WithoutDirection_SendsZeroDegrees()
+    {
+        var viewModel = await ConnectAsync();
+
+        viewModel.ChooseDirectionCommand.Execute(null);
+
+        Assert.True(viewModel.HasDirection);
+        Assert.Equal("0°", viewModel.DirectionText);
+        Assert.False(viewModel.ChooseDirectionCommand.CanExecute(null));
+        Assert.Equal(["direction all 0"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task ChooseDirection_WithDirection_CannotRun()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { Direction = 200 });
+
+        Assert.False(viewModel.ChooseDirectionCommand.CanExecute(null));
+    }
+
     [Theory]
     [InlineData(EffectIds.Rainbow, true, true)]
     [InlineData(EffectIds.Wave, true, true)]

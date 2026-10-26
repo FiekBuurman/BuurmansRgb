@@ -133,7 +133,8 @@ schakelaar ernaast.
   die over de LED's verdeeld is. Zonder richting ("Volgorde" naast de schuif) lopen die effecten
   over de LED's in hun volgorde, zoals altijd. Verschuif je de schuif, dan lopen ze over de plek
   van de LED's: 0° naar rechts, 90° naar beneden, 180° naar links en 270° naar boven, met een
-  pijltje naast de graden. Op een toetsenbord loopt de regenboog zo bijv. schuin over de toetsen
+  pijltje naast de graden. Precies 0° kies je met Home op de schuif of een klik op het schuifje
+  zelf. Op een toetsenbord loopt de regenboog zo bijv. schuin over de toetsen
   (45°: van linksboven naar rechtsonder), op een fan-ring van links naar rechts of van boven naar
   beneden. Een **strip** (of een andere zone zonder vorm) kan alleen vooruit of achteruit: tussen
   271° en 89° loopt hij zoals zonder richting, tussen 91° en 269° andersom, en op precies 90° of

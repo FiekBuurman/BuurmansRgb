@@ -275,7 +275,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // the slider; "Volgorde van de LED's" makes it so again.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DirectionText))]
-    [NotifyCanExecuteChangedFor(nameof(ClearDirectionCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearDirectionCommand), nameof(ChooseDirectionCommand))]
     public partial bool HasDirection { get; private set; }
 
     // The range of Direction, for the slider.
@@ -509,10 +509,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (!_syncing.IsActive)
         {
-            var degrees = (int)Math.Round(Math.Clamp(value, EffectDirection.Min, EffectDirection.Max));
-            HasDirection = true;
-            Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, degrees));
+            SendDirection(value);
         }
+    }
+
+    // Home or a click on the knob of the slider while there is no direction: the slider stays at
+    // 0 and changes no value, so this is how 0° is chosen.
+    [RelayCommand(CanExecute = nameof(CanChooseDirection))]
+    private void ChooseDirection() => SendDirection(Direction);
+
+    private bool CanChooseDirection() => !HasDirection;
+
+    private void SendDirection(double value)
+    {
+        var degrees = (int)Math.Round(Math.Clamp(value, EffectDirection.Min, EffectDirection.Max));
+        HasDirection = true;
+        Send(DirectionCall, (api, deviceId) => api.SetDirectionAsync(deviceId, degrees));
     }
 
     // Back along the LEDs in their order, as before there was a direction.

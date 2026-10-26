@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
@@ -90,6 +91,66 @@ public sealed class DirectionViewTests
             Assert.False(viewModel.HasDirection);
             Assert.False(clear.IsVisible);
             Assert.True(slider.IsKeyboardFocused);
+        });
+    }
+
+    // A screen reader hears "Volgorde" rather than the 0 of the slider, and the degrees once there are.
+    [Fact]
+    public async Task Slider_ItemStatus_SaysTheOrderOrTheDegrees()
+    {
+        using var viewModel = await ConnectWithAsync(EffectIds.Wave);
+
+        AppTheme.Run(panel =>
+        {
+            var page = ToolboxViewTests.Show(panel, viewModel);
+            var slider = SliderNamed(page, Strings.DirectionHeader);
+
+            Assert.Equal(Strings.DirectionAlongLeds, AutomationProperties.GetItemStatus(slider));
+
+            slider.Value = 270;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("270°", AutomationProperties.GetItemStatus(slider));
+        });
+    }
+
+    // At 0 Home changes no value; without a direction it chooses 0°.
+    [Fact]
+    public async Task Slider_HomeWithoutDirection_ChoosesZeroDegrees()
+    {
+        using var viewModel = await ConnectWithAsync(EffectIds.Wave);
+
+        AppTheme.Run(panel =>
+        {
+            var page = ToolboxViewTests.Show(panel, viewModel);
+            var slider = SliderNamed(page, Strings.DirectionHeader);
+            Assert.True(slider.Focus());
+
+            slider.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(slider), 0, Key.Home) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(viewModel.HasDirection);
+            Assert.Equal("0°", AutomationProperties.GetItemStatus(slider));
+            Assert.True(ClearButton(page).IsVisible);
+        });
+    }
+
+    // So does a click on the knob, which moves it nowhere.
+    [Fact]
+    public async Task Slider_ClickOnTheKnobWithoutDirection_ChoosesZeroDegrees()
+    {
+        using var viewModel = await ConnectWithAsync(EffectIds.Wave);
+
+        AppTheme.Run(panel =>
+        {
+            var page = ToolboxViewTests.Show(panel, viewModel);
+            var thumb = AppTheme.Descendants<Thumb>(SliderNamed(page, Strings.DirectionHeader)).Single();
+
+            thumb.RaiseEvent(new DragCompletedEventArgs(0, 0, canceled: false));
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(viewModel.HasDirection);
+            Assert.Equal(0.0, viewModel.Direction);
         });
     }
 

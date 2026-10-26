@@ -334,7 +334,9 @@
                                     Value="{Binding Direction}" SmallChange="5" LargeChange="45" IsSnapToTickEnabled="True" TickFrequency="1"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionHeader}"
                                     AutomationProperties.HelpText="{x:Static res:Strings.DirectionHelp}"
-                                    ToolTip="{x:Static res:Strings.DirectionHelp}" />
+                                    AutomationProperties.ItemStatus="{Binding DirectionText}"
+                                    ToolTip="{x:Static res:Strings.DirectionHelp}"
+                                    PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted" />
                             <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
                                     Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
