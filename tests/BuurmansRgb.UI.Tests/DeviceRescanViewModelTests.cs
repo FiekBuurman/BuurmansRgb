@@ -123,6 +123,29 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenRgbConnected_ClearsTheUnreachableMessage()
+    {
+        _rescan.RescanCommand.Execute(null);
+        _rescan.Finish(_requests[0], openRgbReached: false);
+
+        _rescan.OnOpenRgbConnected();
+
+        Assert.False(_rescan.HasMessage);
+    }
+
+    // That OpenRGB is connected says nothing about a search that took long.
+    [Fact]
+    public void OpenRgbConnected_KeepsTheSlowMessage()
+    {
+        _rescan.RescanCommand.Execute(null);
+        _time.Advance(DeviceRescanViewModel.SearchTimeout);
+
+        _rescan.OnOpenRgbConnected();
+
+        Assert.True(_rescan.HasMessage);
+    }
+
+    [Fact]
     public void Clear_EndsTheSearchAndForgetsItsAnswer()
     {
         _rescan.RescanCommand.Execute(null);

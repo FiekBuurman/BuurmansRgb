@@ -1085,6 +1085,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _openRgbStatusChanges++;
         OpenRgbStatus.Show(status);
+        if (status.State == ServerState.Connected)
+        {
+            DeviceRescan.OnOpenRgbConnected();
+        }
     });
 
     private void OnPauseChanged(object? sender, PauseReasons pause) => RunOnUi(() =>

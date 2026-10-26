@@ -37,7 +37,8 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     [NotifyPropertyChangedFor(nameof(ButtonText))]
     public partial bool IsSearching { get; private set; }
 
-    // What the last search left to say: OpenRGB could not be reached, or it took long.
+    // What the last search left to say: OpenRGB could not be reached (until it is connected
+    // again), or it took long.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     public partial string? Message { get; private set; }
@@ -58,6 +59,15 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
         StopTimer();
         IsSearching = false;
         Message = openRgbReached ? null : Strings.RescanOpenRgbUnreachable;
+    }
+
+    // OpenRGB is connected again, so the message that it could not be reached no longer holds.
+    public void OnOpenRgbConnected()
+    {
+        if (Message == Strings.RescanOpenRgbUnreachable)
+        {
+            Message = null;
+        }
     }
 
     // Without the engine nothing is searched, and its answer will not come.

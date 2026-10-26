@@ -49,8 +49,9 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   Zolang er gezocht wordt, staat er "Zoeken…"; nog een klik doet dan niets. Een apparaat dat
   terugkomt, krijgt zijn eigen kleur en effect weer. De lijst kan zich in stappen vullen: OpenRGB
   meldt elk apparaat dat het vindt. Is OpenRGB niet bereikbaar, dan zegt een melding onder de kop
-  dat er niet gezocht is; duurt het zoeken langer dan 15 seconden, dan zegt de melding dat
-  apparaten die OpenRGB nog vindt vanzelf verschijnen. Kent OpenRGB de vraag om opnieuw te zoeken
+  dat er niet gezocht is; die melding verdwijnt zodra OpenRGB weer verbonden is. Duurt het zoeken
+  langer dan 15 seconden, dan zegt de melding dat apparaten die OpenRGB nog vindt vanzelf
+  verschijnen. Kent OpenRGB de vraag om opnieuw te zoeken
   niet (versies voor 1.0) of antwoordt het niet binnen 5 seconden, dan verbindt BuurmansRgb
   opnieuw met OpenRGB en haalt het de apparatenlijst opnieuw op. De knop is met Tab te bereiken
   en een schermlezer leest de melding voor.

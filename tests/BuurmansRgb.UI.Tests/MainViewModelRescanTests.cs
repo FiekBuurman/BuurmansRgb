@@ -42,6 +42,22 @@ public sealed class MainViewModelRescanTests
         Assert.Equal(Strings.RescanOpenRgbUnreachable, viewModel.DeviceRescan.Message);
     }
 
+    // OpenRGB that starts after all: the message that it could not be reached goes.
+    [Fact]
+    public async Task Rescan_OpenRgbConnectsLater_ClearsTheMessage()
+    {
+        var viewModel = await ConnectAsync();
+        Api.RescanReaches = false;
+        viewModel.DeviceRescan.RescanCommand.Execute(null);
+        await Eventually.TrueAsync(() => viewModel.DeviceRescan.HasMessage);
+
+        Api.RaiseOpenRgbStatus(new(ServerState.Unreachable));
+        Assert.True(viewModel.DeviceRescan.HasMessage);
+        Api.RaiseOpenRgbStatus(new(ServerState.Connected, 2));
+
+        await Eventually.TrueAsync(() => !viewModel.DeviceRescan.HasMessage);
+    }
+
     // The engine rejected the call: its own message tells that, the button just ends.
     [Fact]
     public async Task Rescan_CallFails_EndsWithoutTheOpenRgbMessage()
