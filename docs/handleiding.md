@@ -642,9 +642,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   - Daarna sluit buurmansRgb af zoals bij "Afsluiten" en start meteen opnieuw. Was de
     instellingen-app open, dan gaat die dicht en weer open. Is de oude buurmansRgb na een
     minuut nog niet weg, dan wacht de nieuwe nog een minuut; is hij er dan nog, dan blijft de
-    oude draaien en stopt de nieuwe. Het eerste staat in `engine.log`, het stoppen in
-    `engine.restart.log` ernaast (`engine.log` is dan nog van de oude). Hangt de oude, sluit hem dan
-    via Taakbeheer en start buurmansRgb opnieuw.
+    oude draaien en stopt de nieuwe. Neemt de nieuwe het alsnog over, dan staat dat in
+    `engine.log`; stopt hij, dan staat alles in `engine.restart.log` ernaast (`engine.log` is dan
+    nog van de oude). Hangt de oude, sluit hem dan via Taakbeheer en start buurmansRgb opnieuw.
   - Een melding bij het icoon zegt wat er herstart is, bijv. "buurmansRgb is herstart.",
     "OpenRGB is herstart." en "PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt
     een ander programma hem.". Lukte iets niet, dan staat in `engine.log` wat als eerste misging,
@@ -967,8 +967,8 @@ tray-menu.
   `engine.restart.log`: `engine.log` is dan nog van de oude.
 - Een melding die steeds terugkomt, zoals "OpenRGB is not reachable" elke 5 seconden, staat er
   één keer, met daaronder hoe vaak hij nog kwam.
-- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`) en begint er
-  een nieuw; meer dan twee per app worden het niet.
+- Groter dan 1 MB, dan gaat het bestand naar `engine.old.log` (of `ui.old.log`,
+  `engine.restart.old.log`) en begint er een nieuw; van elk logbestand zijn er dus hooguit twee.
 - Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
   de code.
 - Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
