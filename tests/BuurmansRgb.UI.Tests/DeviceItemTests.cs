@@ -218,4 +218,13 @@ public sealed class DeviceItemTests
         Assert.Null(item.Group);
         Assert.Equal("3 apparaten", item.Details);
     }
+
+    [Theory]
+    [InlineData(0, "0 apparaten")]
+    [InlineData(1, "1 apparaat")]
+    [InlineData(2, "2 apparaten")]
+    public void AllDevices_CountsDevicesInSingularAndPlural(int deviceCount, string expected)
+    {
+        Assert.Equal(expected, DeviceItem.AllDevices(deviceCount).Details);
+    }
 }

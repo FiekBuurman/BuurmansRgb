@@ -32,7 +32,7 @@ public sealed record DeviceItem(
         : LocationLabel;
 
     public static DeviceItem AllDevices(int deviceCount) =>
-        new(null, Strings.AllDevices, UiText.Format(Strings.AllDevicesDetails, deviceCount));
+        new(null, Strings.AllDevices, deviceCount == 1 ? Strings.AllDevicesDetailsOne : UiText.Format(Strings.AllDevicesDetails, deviceCount));
 
     public static DeviceItem For(DeviceInfo device, string? locationLabel = null)
     {
