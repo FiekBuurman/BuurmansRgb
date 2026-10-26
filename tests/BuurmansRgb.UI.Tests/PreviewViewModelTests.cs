@@ -495,6 +495,27 @@ public sealed class PreviewViewModelTests
         Assert.Equal([new ZoneCountStop("board", 1)], stops);
     }
 
+    // Another settings app counts the zone and this app starts it again: a step of the other count
+    // that arrives once more does not confirm the count of this app, so the None with which the
+    // engine ends the other count before it starts this one leaves the count of this app its own.
+    [Fact]
+    public void ShowZoneCount_StepFromBeforeTheStart_DoesNotConfirmTheOwnCount()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 0)]);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 4 });
+
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true) { Sequence = 4 });
+        preview.ShowZoneCount(ZoneCountInfo.None with { Sequence = 5 });
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 6 });
+        preview.ShowDevices([Fan]);
+
+        Assert.Equal([new ZoneCountStop("board", 1)], stops);
+    }
+
     // A step the engine took just before the stop reached it does not bring the counter back; a
     // count after the None of the engine shows again.
     [Fact]

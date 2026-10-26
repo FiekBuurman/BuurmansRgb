@@ -28,6 +28,11 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // app: a None from before the start can still be on its way.
     private long? _ownCountSequence;
 
+    // The sequence of the newest state when this app started its count: a state up to it is from
+    // before the start, so it does not confirm the count, such as a step of the same zone that
+    // another settings app counted.
+    private long _ownCountStartedAfter;
+
     // The zone whose count was stopped here, until the engine reports a state that no longer
     // counts it: a step the engine took just before the stop reached it is ignored meanwhile.
     private (string DeviceId, int ZoneIndex)? _stoppedCount;
@@ -140,7 +145,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // Verversen or with a new list of devices.
     private void FollowOwnCount(ZoneCountInfo count)
     {
-        if (_ownCount is not { } own)
+        if (_ownCount is not { } own || count.Sequence <= _ownCountStartedAfter)
         {
             return;
         }
@@ -324,6 +329,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     {
         _ownCount = (start.DeviceId, start.ZoneIndex);
         _ownCountSequence = null;
+        _ownCountStartedAfter = _countSequence;
         ZoneCountStartRequested?.Invoke(this, start);
     }
 
