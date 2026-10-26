@@ -11,6 +11,23 @@ public partial class ColorPage : UserControl
 {
     public ColorPage() => InitializeComponent();
 
+    // "+" turns itself off once the color is in the list, which would leave the keyboard focus
+    // nowhere: it moves on to the new tile. Click comes before the command adds the color.
+    private void OnAddCustomColorClick(object sender, RoutedEventArgs e)
+    {
+        var count = CustomColorTiles.Items.Count;
+
+        // Once the tiles are laid out again, so the new one exists.
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+        {
+            var added = CustomColorTiles.Items.Count;
+            if (added > count && CustomColorTiles.ItemContainerGenerator.ContainerFromIndex(added - 1) is { } next && FirstButton(next) is { } tile)
+            {
+                tile.Focus();
+            }
+        });
+    }
+
     // Delete on an own color of the toolbox takes it away.
     private void OnCustomColorKeyDown(object sender, KeyEventArgs e)
     {

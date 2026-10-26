@@ -239,7 +239,7 @@
                         <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
                                 ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
                                 AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
-                                Command="{Binding CustomColors.AddCommand}" />
+                                Command="{Binding CustomColors.AddCommand}" Click="OnAddCustomColorClick" />
                         <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>

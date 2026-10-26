@@ -83,6 +83,28 @@ public sealed class ToolboxViewTests
         });
     }
 
+    // "+" turns itself off after adding the color; a keyboard user goes on from the new tile.
+    [Fact]
+    public async Task Add_MovesTheFocusToTheNewTile()
+    {
+        using var viewModel = await ConnectAsync(api => api.CustomColors = [Red]);
+
+        AppTheme.Run(panel =>
+        {
+            var page = Show(panel, viewModel);
+            var add = AddButton(page);
+            viewModel.ColorPicker.HexColor = "#0000FF";
+            Assert.True(add.Focus());
+
+            Click(add);
+
+            var tiles = CustomTiles(page);
+            Assert.Equal(2, tiles.Count);
+            Assert.False(add.IsEnabled);
+            Assert.True(tiles[1].IsKeyboardFocused);
+        });
+    }
+
     // Delete takes the focused tile away, and the focus goes to the tile in its place, or to "+".
     [Fact]
     public async Task Delete_RemovesTheTileAndMovesTheFocusOn()
