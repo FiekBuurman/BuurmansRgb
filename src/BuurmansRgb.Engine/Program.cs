@@ -86,7 +86,8 @@ internal static class Program
         var saveEvents = new SettingsSaveEvents();
         var hotkeys = new AllOnOffHotkeys();
         var customColors = new CustomColorList();
-        var customEffects = new CustomEffectLibrary(new JsonCustomEffectStore(JsonCustomEffectStore.DefaultFilePath), lighting);
+        // Disposed after the host, so the last change of an own effect is written at the exit.
+        using var customEffects = new CustomEffectLibrary(new JsonCustomEffectStore(JsonCustomEffectStore.DefaultFilePath), lighting);
         var profiles = new ProfileLibrary(new JsonProfileStore(JsonProfileStore.DefaultFilePath), lighting);
         // Disposed after the host, which stops listening to it first.
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);

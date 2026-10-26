@@ -709,8 +709,8 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 
 De bestanden staan in `%AppData%\BuurmansRgb\`. Bij de eerste start schrijft de engine de
 standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scène en
-`effects.json` bij het eerste eigen effect. Wijzigingen uit de app slaat de engine een seconde
-na de laatste wijziging op, en bij afsluiten; scènes en eigen effecten meteen. Met de hand
+`effects.json` bij het eerste eigen effect. Wijzigingen uit de app, ook aan eigen effecten, slaat
+de engine een seconde na de laatste wijziging op, en bij afsluiten; scènes meteen. Met de hand
 aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder), `profiles.json` en
 `effects.json` terwijl hij niet draait.
 
@@ -896,9 +896,9 @@ daar niets verandert:
 }
 ```
 
-De engine leest het bestand bij het starten, vóór de verlichting, en schrijft het bij elke
-wijziging uit de app. Een wijziging met de hand komt pas na een herstart binnen, zoals bij
-`profiles.json`. Soepel lezen, zoals `settings.json`:
+De engine leest het bestand bij het starten, vóór de verlichting, en schrijft het een seconde na
+de laatste wijziging uit de app, en bij afsluiten. Een wijziging met de hand komt pas na een
+herstart binnen, zoals bij `profiles.json`. Soepel lezen, zoals `settings.json`:
 
 - Een kleur die niet te lezen is, valt uit de stap; een stap zonder kleuren valt weg. Een tijd
   die geen getal is of ontbreekt, is 1 seconde; een tijd onder 0 of boven 60 wordt 0 of 60.

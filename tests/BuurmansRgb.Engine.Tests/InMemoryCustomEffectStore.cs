@@ -13,6 +13,9 @@ internal sealed class InMemoryCustomEffectStore : ICustomEffectStore
 
     public int LoadCount { get; private set; }
 
+    // The writes that went through.
+    public int SaveCount { get; private set; }
+
     public IReadOnlyList<CustomEffect> Load()
     {
         LoadCount++;
@@ -32,5 +35,6 @@ internal sealed class InMemoryCustomEffectStore : ICustomEffectStore
         }
 
         Effects = [.. effects];
+        SaveCount++;
     }
 }

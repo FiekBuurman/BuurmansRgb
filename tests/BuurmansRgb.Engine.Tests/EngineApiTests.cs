@@ -829,7 +829,7 @@ public sealed class EngineApiTests : IDisposable
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(LightingStates.StaticLighting(Orange)));
-        var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
+        using var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
         using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: library);
         var changes = 0;
         api.CustomEffectsChanged += (_, _) => changes++;
@@ -851,7 +851,7 @@ public sealed class EngineApiTests : IDisposable
     public async Task SetEffectAsync_OwnEffectThatDoesNotExist_Throws()
     {
         await _lighting.DiscoverAsync(Ct);
-        var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
+        using var library = new CustomEffectLibrary(new InMemoryCustomEffectStore(), _lighting);
         library.Load();
         using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, customEffects: library);
 

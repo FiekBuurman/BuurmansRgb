@@ -64,7 +64,7 @@ public sealed class EngineHostTests : IDisposable
             Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Effect = "custom:blue" } } },
         };
         var lighting = new LightingController([_simulated]);
-        var effects = new CustomEffectLibrary(new InMemoryCustomEffectStore { Effects = [new CustomEffect("custom:blue", "Blauw", [new CustomEffectStep(new RgbColor(0, 0, 255))])] }, lighting);
+        using var effects = new CustomEffectLibrary(new InMemoryCustomEffectStore { Effects = [new CustomEffect("custom:blue", "Blauw", [new CustomEffectStep(new RgbColor(0, 0, 255))])] }, lighting);
         using var host = new EngineHost(store, lighting, customEffects: effects);
 
         await host.StartAsync(Ct);
@@ -88,7 +88,7 @@ public sealed class EngineHostTests : IDisposable
             Effects = [new CustomEffect("custom:blue", "Blauw", [new CustomEffectStep(new RgbColor(0, 0, 255))])],
             LoadException = new IOException("in use"),
         };
-        var effects = new CustomEffectLibrary(effectStore, lighting);
+        using var effects = new CustomEffectLibrary(effectStore, lighting);
         using var host = new EngineHost(store, lighting, customEffects: effects);
 
         await host.StartAsync(Ct);
@@ -110,7 +110,8 @@ public sealed class EngineHostTests : IDisposable
             Settings = new EngineSettings { Devices = new() { ["simulated-fan"] = new LightingSettings { Color = new RgbColor(0, 0, 255), Effect = "custom:gone" } } },
         };
         var lighting = new LightingController([_simulated]);
-        using var host = new EngineHost(store, lighting, customEffects: new CustomEffectLibrary(new InMemoryCustomEffectStore(), lighting));
+        using var effects = new CustomEffectLibrary(new InMemoryCustomEffectStore(), lighting);
+        using var host = new EngineHost(store, lighting, customEffects: effects);
 
         await host.StartAsync(Ct);
 

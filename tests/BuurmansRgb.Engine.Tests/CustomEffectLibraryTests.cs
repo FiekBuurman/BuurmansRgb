@@ -1,10 +1,14 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
+using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Engine.Tests;
 
 public sealed class CustomEffectLibraryTests : IDisposable
 {
+    private static readonly TimeSpan Delay = TimeSpan.FromSeconds(1);
+
+    private readonly FakeTimeProvider _time = new();
     private readonly InMemoryCustomEffectStore _store = new();
     private readonly RecordingDeviceProvider _provider = new();
     private readonly LightingController _lighting;
@@ -13,10 +17,14 @@ public sealed class CustomEffectLibraryTests : IDisposable
     public CustomEffectLibraryTests()
     {
         _lighting = new LightingController([_provider]);
-        _library = new CustomEffectLibrary(_store, _lighting);
+        _library = new CustomEffectLibrary(_store, _lighting, Delay, _time);
     }
 
-    public void Dispose() => _lighting.Dispose();
+    public void Dispose()
+    {
+        _library.Dispose();
+        _lighting.Dispose();
+    }
 
     [Fact]
     public void Save_NewEffect_GetsAnIdAndIsStored()
@@ -25,6 +33,7 @@ public sealed class CustomEffectLibraryTests : IDisposable
         _library.Changed += (_, _) => changes++;
 
         var saved = _library.Save(Effect("", " Disco "));
+        _time.Advance(Delay);
 
         Assert.True(CustomEffects.IsCustom(saved.Id));
         Assert.Equal("Disco", saved.Name);
@@ -91,14 +100,67 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Throws<ArgumentException>(() => _library.Save(Effect("", "Een te veel")));
     }
 
-    // The list only changes once the file is written.
+    // The list changes at once, and so does the lighting; the file a moment after the last change,
+    // so dragging a slider of the editor writes it once.
     [Fact]
-    public void Save_StoreFails_KeepsTheList()
+    public async Task Save_WritesTheFileAMomentAfterTheLastChange()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var disco = _library.Save(Effect("", "Disco"));
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, disco.Id)));
+
+        for (var i = 1; i <= 5; i++)
+        {
+            _time.Advance(Delay / 2);
+            _library.Save(disco with { Steps = [new CustomEffectStep(Green, i, 0)] });
+        }
+
+        Assert.Equal(0, _store.SaveCount);
+        Assert.Equal(5, _library.Effects[0].Steps[0].HoldSeconds);
+        Assert.Equal([Green, Green, Green], _provider.LastColors);
+        _time.Advance(Delay);
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(5, _store.Effects[0].Steps[0].HoldSeconds);
+    }
+
+    // At the exit a change that waits is written at once.
+    [Fact]
+    public void Dispose_WritesAChangeThatWaits()
+    {
+        var disco = _library.Save(Effect("", "Disco"));
+
+        _library.Dispose();
+
+        Assert.Equal([disco], _store.Effects);
+        Assert.Equal(1, _store.SaveCount);
+    }
+
+    [Fact]
+    public void Dispose_NothingWaits_WritesNothing()
+    {
+        _library.Save(Effect("", "Disco"));
+        _time.Advance(Delay);
+
+        _library.Dispose();
+
+        Assert.Equal(1, _store.SaveCount);
+    }
+
+    // A file that cannot be written now keeps the change in memory; the next change, or the exit,
+    // writes it.
+    [Fact]
+    public void Save_StoreFails_KeepsTheChangeAndWritesItAtTheExit()
     {
         _store.SaveException = new IOException("in use");
+        var disco = _library.Save(Effect("", "Disco"));
+        _time.Advance(Delay);
+        Assert.Equal([disco], _library.Effects);
+        Assert.Empty(_store.Effects);
 
-        Assert.Throws<IOException>(() => _library.Save(Effect("", "Disco")));
-        Assert.Empty(_library.Effects);
+        _store.SaveException = null;
+        _library.Dispose();
+
+        Assert.Equal([disco], _store.Effects);
     }
 
     [Fact]
@@ -109,6 +171,7 @@ public sealed class CustomEffectLibraryTests : IDisposable
         _library.Changed += (_, _) => changes++;
 
         _library.Delete(disco.Id);
+        _time.Advance(Delay);
 
         Assert.Empty(_library.Effects);
         Assert.Empty(_store.Effects);

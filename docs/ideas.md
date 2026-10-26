@@ -176,6 +176,10 @@ uitbreidingen in `docs/bouwplan.md`.
   - Een scène die een kopie van het effect bewaart in plaats van een verwijzing, zodat hij er
     hetzelfde uit blijft zien als je het effect later aanpast of verwijdert
   - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
+  - Bij een wijziging niet de hele lijst laten ophalen: `CustomEffectsChanged` met het gewijzigde
+    effect, of zonder melding aan de verbinding die het zelf bewaarde. Nu haalt elke app bij elke
+    stap van een slepende schuif alle eigen effecten op; dat is het grootste deel van de CPU van
+    de engine tijdens het slepen (zie "Metingen" in `docs/ontwikkelaars.md`)
 
 ## Instellingen-app en ontwerp
 
