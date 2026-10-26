@@ -400,7 +400,10 @@ toetsenbord. Een paar dingen om te proberen:
   die hij bij de start zag; alleen na een crash blijft zo'n zone op zijn grootste lengte. Het
   terugzetten gaat met `GiveLengthBack`, dat niets onthoudt. De teller zet die onthouden lengte terug bij `Stop`, als de
   eigenaar (de `EngineApi` van de app die begon) wordt weggegooid, bij een andere zone, bij elke
-  `PauseChanged` met een reden, vóór `RescanDevicesAsync` en bij `Dispose` van de engine.
+  `PauseChanged` met een reden, vóór `RescanDevicesAsync` en bij `Dispose` van de engine. Bij
+  het afsluiten wacht `Program` daarna hooguit 2 seconden tot OpenRGB die lengte kreeg
+  (`OpenRgbDeviceProvider.WaitUntilIdle`, via een `DisposeAction` tussen de usings), voordat de
+  provider sluit; een OpenRGB dat langer nodig heeft, houdt de zone op zijn grootste lengte.
   `ResizeZoneAsync` van de getelde zone ("Dit is de laatste") gaat via `ZoneCounter.ResizeZone`:
   dat stopt de telling zonder terugzetten en geeft de lengte aan de keeper. Een lijst waarin het
   apparaat weg is, of de zone ná het bereiken van de grootste lengte een andere lengte heeft,

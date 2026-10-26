@@ -17,6 +17,9 @@ namespace BuurmansRgb.Engine;
 
 internal static class Program
 {
+    // How long the engine waits on the way out for OpenRGB to get a zone length back after a count.
+    private static readonly TimeSpan ResizesOnExitTimeout = TimeSpan.FromSeconds(2);
+
     [STAThread]
     private static void Main(string[] args)
     {
@@ -55,6 +58,11 @@ internal static class Program
         using var lighting = new LightingController([simulatedDevices, openRgb]);
         using var simulatedDevicesSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting, openRgb);
         using var zoneLengths = new ZoneLengthKeeper(lighting);
+
+        // Disposed after the counter: the length it gives back reaches OpenRGB before the provider
+        // closes, unless OpenRGB takes longer than this.
+        using var resizesSent = new DisposeAction(() => openRgb.WaitUntilIdle(ResizesOnExitTimeout));
+
         // Disposed before the lengths and the lighting, so a zone that is counted gets its length back.
         using var zoneCounter = new ZoneCounter(lighting, zoneLengths);
 

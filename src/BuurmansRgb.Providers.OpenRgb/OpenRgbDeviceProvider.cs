@@ -202,6 +202,11 @@ public sealed class OpenRgbDeviceProvider
         connection?.Dispose();
     }
 
+    // Waits until no work is queued any more, such as a resize that has to reach OpenRGB before
+    // Dispose, but at most timeout. Returns false when the work did not finish in time. For the
+    // engine when it stops; the work runs on the thread pool, so any thread can wait.
+    public bool WaitUntilIdle(TimeSpan timeout) => WhenIdleAsync().Wait(timeout);
+
     // Completes when no work is queued any more, including work queued while waiting; tests use
     // it to wait for the background.
     internal async Task WhenIdleAsync()
