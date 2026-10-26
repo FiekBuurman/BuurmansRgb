@@ -1187,7 +1187,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
     private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
 
-    // The options of the engine that Instellingen shows, read when connecting and after OptionsChanged.
+    // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting
+    // and after OptionsChanged.
     private sealed record OptionValues(
         SimulatedDevicesMode SimulatedDevices,
         int FramesPerSecond,
