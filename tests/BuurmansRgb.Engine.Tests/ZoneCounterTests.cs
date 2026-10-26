@@ -270,20 +270,10 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.Start(Board, Header, 1);
         await HeaderAsync(Longest);
 
-        Assert.True(_counter.StopAll());
+        _counter.StopAll();
 
         await HeaderAsync(30);
         Assert.Equal(ZoneCountInfo.None, Count);
-    }
-
-    // The engine waits for a length on its way to OpenRGB only when there is one.
-    [Fact]
-    public async Task StopAll_NothingCounted_GivesNoLengthBack()
-    {
-        await StartAsync(header: 30);
-
-        Assert.False(_counter.StopAll());
-        Assert.Empty(_provider.Resizes);
     }
 
     [Fact]

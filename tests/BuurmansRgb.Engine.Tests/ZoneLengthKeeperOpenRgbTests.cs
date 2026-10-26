@@ -108,6 +108,32 @@ public sealed class ZoneLengthKeeperOpenRgbTests : IDisposable
         Assert.Equal(30, _keeper.Lengths[_boardId]["Aura Addressable 1"]);
     }
 
+    // The settings app closes along with the engine: its count gave the length back before the
+    // counter goes, and the engine still waits on the way out until OpenRGB got that length.
+    [Fact]
+    public async Task Exit_AfterTheOwnerStoppedTheCount_WaitsUntilOpenRgbGotTheLengthBack()
+    {
+        using var counter = new ZoneCounter(_lighting, _keeper);
+        await _lighting.DiscoverAsync(Ct);
+        await HeaderLengthAsync(30);
+        await SettledAsync();
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        var app = new object();
+        var busy = new TaskCompletionSource();
+        _openRgb.HoldDeviceLists(busy.Task);
+        counter.Start(_boardId, 1, 1, app);
+        await Eventually.TrueAsync(() => _openRgb.Resizes.Count == 2);
+
+        counter.StopFor(app);
+        var exit = Task.Run(() => Program.WaitForResizesOnExit(_openRgb.Provider).Dispose(), Ct);
+
+        await Task.Delay(100, Ct);
+        Assert.False(exit.IsCompleted);
+        busy.SetResult();
+        await exit.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal([(0, 1, 30), (0, 1, 120), (0, 1, 30)], _openRgb.Resizes);
+    }
+
     // An addressable header on a motherboard, as OpenRGB lists an ASUS board.
     private string SetBoard(int header) =>
         _openRgb.SetMotherboard("ASUS board", ("Aura Mainboard", 2, 2, 2), ("Aura Addressable 1", header, 0, 120));
