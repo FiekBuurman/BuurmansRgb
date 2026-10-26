@@ -21,8 +21,9 @@ internal static class Program
     // How long the engine waits on the way out for OpenRGB to get a zone length back after a count.
     private static readonly TimeSpan ResizesOnExitTimeout = TimeSpan.FromSeconds(2);
 
-    // How long an engine that "Herstarten" started waits for the old one to exit. The old one
-    // exits as with "Afsluiten", which takes a few seconds at most.
+    // How long an engine that "Herstarten" started waits for the old one to exit, and once more
+    // after it sent the exit signal (PreviousEngine). The old one exits as with "Afsluiten", which
+    // takes a few seconds at most.
     private static readonly TimeSpan PreviousEngineTimeout = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan PreviousEnginePollInterval = TimeSpan.FromMilliseconds(200);
 
@@ -47,10 +48,11 @@ internal static class Program
 
         using var instance = options.Restarted is null
             ? SingleInstance.Acquire(EngineRpc.EngineName)
-            : SingleInstance.AcquireWhenFree(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval);
+            : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, LogBeforeStart);
         if (!instance.IsPrimary)
         {
-            // The old engine did not exit in time; it keeps running, and this one stops quietly.
+            // The old engine did not exit, also not after the exit signal; it may still run, and
+            // this one stops. PreviousEngine logged it.
             if (options.Restarted is not null)
             {
                 return 0;
@@ -157,6 +159,14 @@ internal static class Program
 
         Trace.TraceInformation("Engine stopped.");
         return 0;
+    }
+
+    // One line in the engine log before FileLog.Start, which only the primary engine calls. The
+    // old engine may still write to the same file; both append and share it.
+    private static void LogBeforeStart(string message)
+    {
+        using var log = new FileLog(Path.Combine(FileLog.DefaultDirectory, "engine.log"), TimeProvider.System);
+        log.TraceEvent(eventCache: null, source: string.Empty, TraceEventType.Warning, id: 0, message);
     }
 
     // Any failure ends as a failed step, which the engine reports; an exception would only give

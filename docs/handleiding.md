@@ -640,7 +640,10 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
     staan ("PawnIO is overgeslagen omdat OpenRGB niet stopte."): OpenRGB houdt de driver vast.
     OpenRGB start altijd weer.
   - Daarna sluit buurmansRgb af zoals bij "Afsluiten" en start meteen opnieuw. Was de
-    instellingen-app open, dan gaat die dicht en weer open.
+    instellingen-app open, dan gaat die dicht en weer open. Is de oude buurmansRgb na een
+    minuut nog niet weg, dan vraagt de nieuwe hem nog een keer om af te sluiten en wacht nog een
+    minuut; lukt ook dat niet, dan blijft de oude draaien en stopt de nieuwe. Beide staan in
+    `engine.log`.
   - Een melding bij het icoon zegt wat er herstart is, bijv. "buurmansRgb is herstart.",
     "OpenRGB is herstart." en "PawnIO is overgeslagen: de driver stopte niet, misschien gebruikt
     een ander programma hem.". Lukte iets niet, dan staat in `engine.log` wat als eerste misging,
