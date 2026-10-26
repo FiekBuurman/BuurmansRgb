@@ -131,6 +131,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De kleuren van de kleurenloop en die van de andere effecten op één manier bewaren (nu
   `colorLoop` met `spread` en daarnaast `effectColors`); kan pas als een oudere versie het
   bestand niet meer hoeft te lezen
+- Een scènekaart toont vijf bolletjes, dus van een kleurenloop of effect met meer kleuren (tot
+  twaalf) alleen de eerste vijf; eventueel de bolletjes over de hele lijst verdelen of een
+  verloop tonen
 - "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een lamp eigen kleuren voor
   het effect heeft; nu telt voor de knop alleen wat "Hele huis" zelf heeft, en moet je eerst
   die lamp kiezen
