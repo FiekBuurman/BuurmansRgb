@@ -44,6 +44,16 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   blijft zien.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen.
+- **Verversen** (naast "+ Erbij knutselen") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
+  het als een apparaat niet terugkomt, bijvoorbeeld een koptelefoon die je uit en weer aan zette.
+  Zolang er gezocht wordt, staat er "Zoeken…"; nog een klik doet dan niets. Een apparaat dat
+  terugkomt, krijgt zijn eigen kleur en effect weer. De lijst kan zich in stappen vullen: OpenRGB
+  meldt elk apparaat dat het vindt. Is OpenRGB niet bereikbaar, dan zegt een melding onder de kop
+  dat er niet gezocht is; duurt het zoeken langer dan 15 seconden, dan zegt de melding dat
+  apparaten die OpenRGB nog vindt vanzelf verschijnen. Kent OpenRGB de vraag om opnieuw te zoeken
+  niet (versies voor 1.0) of antwoordt het niet binnen 5 seconden, dan verbindt BuurmansRgb
+  opnieuw met OpenRGB en haalt het de apparatenlijst opnieuw op. De knop is met Tab te bereiken
+  en een schermlezer leest de melding voor.
 
 ### Kleur
 
@@ -461,7 +471,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
-  (§ 5.1); Instellingen staat onderaan in de navigatiebalk.
+  (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in huis" staat naast
+  "+ Erbij knutselen" de knop **Verversen**, die het ontwerp niet heeft, in dezelfde linkstijl.
+  Hij blijft tijdens het zoeken bruikbaar (er staat "Zoeken…") in plaats van grijs te worden,
+  zodat de toetsenbordfocus erop blijft.
 - **Schakelaars** van een apparaat met een heel donkere kleur krijgen een lichter spoor (zwart wordt
   grijs), zodat je de knop blijft zien.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
@@ -797,7 +810,8 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 - **Na slaapstand** gaan veel apparaten terug naar hun eigen effect. Daarom zet de engine 2 en
   10 seconden na het ontwaken de OpenRGB-apparaten opnieuw klaar en stuurt hij alle kleuren
   opnieuw (bij een pauze uit het tray-menu pas bij hervatten). Een USB-apparaat dat je opnieuw
-  aansluit, ziet OpenRGB mogelijk pas nadat het opnieuw naar apparaten heeft gezocht.
+  aansluit, ziet OpenRGB mogelijk pas nadat het opnieuw naar apparaten heeft gezocht: klik dan
+  op **Verversen** bij Apparaten.
 - **Zonelengtes:** een lengte die je in BuurmansRgb instelt, zet de engine terug als OpenRGB hem
   vergeten is (bijv. na een herstart van OpenRGB), op de naam van de zone. Neemt OpenRGB hem niet
   over, dan blijft het bij één poging tot het apparaat opnieuw verschijnt. Verander je de lengte

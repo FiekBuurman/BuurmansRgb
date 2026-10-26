@@ -44,6 +44,14 @@ uitbreidingen in `docs/bouwplan.md`.
   en het SDK-protocol in de tip, handig bij "geen goed antwoord"
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
+- Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met
+  `DBT_DEVICEARRIVAL`, op het verborgen venster van de engine), met een wachttijd van een paar
+  seconden zodat een apparaat dat net aangaat klaar is en meer meldingen na elkaar één keer
+  zoeken worden; nu moet je zelf op "Verversen" bij Apparaten klikken
+- Neemt OpenRGB het verzoek om opnieuw te zoeken (pakket 140) alleen aan van een client die
+  protocolversie 5 of hoger heeft afgesproken, laat de watcher dan eerst zelf
+  `REQUEST_PROTOCOL_VERSION` sturen; nu valt "Verversen" dan na 5 seconden terug op opnieuw
+  verbinden, wat ook werkt maar trager is
 
 ## Zones en zonelengtes
 
