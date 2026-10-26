@@ -5,9 +5,6 @@ namespace BuurmansRgb.Contracts.Tests;
 
 public sealed class CustomEffectsTests
 {
-    private static readonly RgbColor Red = new(255, 0, 0);
-    private static readonly RgbColor Blue = new(0, 0, 255);
-
     [Theory]
     [InlineData("custom:1a2b3c4d", true)]
     [InlineData("custom:a-b", true)]

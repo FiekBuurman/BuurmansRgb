@@ -1,0 +1,46 @@
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
+using System.Windows.Controls;
+using BuurmansRgb.UI.ViewModels;
+
+namespace BuurmansRgb.UI.Tests;
+
+// For the tests that load a real page of the app in a window off screen (AppTheme.Run).
+internal static class PageViews
+{
+    // A view model connected to a fake engine, which arrange prepares before the view model loads
+    // from it.
+    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
+    {
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)));
+        await viewModel.ConnectCommand.ExecuteAsync(null);
+        Assert.True(viewModel.IsConnected);
+        return viewModel;
+    }
+
+    internal static TPage Show<TPage>(StackPanel panel, MainViewModel viewModel)
+        where TPage : FrameworkElement, new()
+    {
+        var page = new TPage { DataContext = viewModel };
+        panel.Children.Add(page);
+        OffscreenWindow.WaitUntilIdle();
+        return page;
+    }
+
+    // As a screen reader or a click would: only an enabled button does something.
+    internal static void Click(Button button)
+    {
+        var invoke = (IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke);
+        invoke.Invoke();
+        OffscreenWindow.WaitUntilIdle();
+    }
+
+    internal static Button ButtonNamed(DependencyObject parent, string name) => Named<Button>(parent, name);
+
+    // The one T with this name for a screen reader.
+    internal static T Named<T>(DependencyObject parent, string name)
+        where T : DependencyObject =>
+        AppTheme.Descendants<T>(parent).Single(element => AutomationProperties.GetName(element) == name);
+}

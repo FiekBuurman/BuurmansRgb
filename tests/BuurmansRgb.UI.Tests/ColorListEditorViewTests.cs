@@ -1,7 +1,5 @@
 using System.Windows;
 using System.Windows.Automation;
-using System.Windows.Automation.Peers;
-using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Media;
 using BuurmansRgb.Contracts;
@@ -37,7 +35,7 @@ public sealed class ColorListEditorViewTests
         var editor = new ColorListEditorViewModel(1, 3, [Red, Blue]);
         var view = Show(panel, editor);
 
-        Click(Tiles(view)[1]);
+        PageViews.Click(Tiles(view)[1]);
 
         Assert.Equal(1, editor.SelectedIndex);
         Assert.Equal([false, true], Tiles(view).Select(tile => tile.Tag));
@@ -49,17 +47,17 @@ public sealed class ColorListEditorViewTests
     {
         var editor = new ColorListEditorViewModel(1, 3, [Red, Blue]);
         var view = Show(panel, editor);
-        var add = ButtonNamed(view, Strings.ColorListAdd);
-        var remove = ButtonNamed(view, Strings.ColorListRemove);
+        var add = PageViews.ButtonNamed(view, Strings.ColorListAdd);
+        var remove = PageViews.ButtonNamed(view, Strings.ColorListRemove);
 
-        Click(add);
+        PageViews.Click(add);
 
         Assert.Equal([Red, Red, Blue], editor.Colors);
         Assert.Equal(3, Tiles(view).Count);
         Assert.False(add.IsEnabled);
 
-        Click(remove);
-        Click(remove);
+        PageViews.Click(remove);
+        PageViews.Click(remove);
 
         Assert.Equal([Red], editor.Colors);
         Assert.Single(Tiles(view));
@@ -75,7 +73,7 @@ public sealed class ColorListEditorViewTests
         var view = Show(panel, new ColorListEditorViewModel(ColorLoop.MinColors, ColorLoop.MaxColors, Twelve));
 
         var places = Tiles(view).Select(tile => tile.TranslatePoint(default, view)).ToList();
-        var add = ButtonNamed(view, Strings.ColorListAdd).TranslatePoint(default, view);
+        var add = PageViews.ButtonNamed(view, Strings.ColorListAdd).TranslatePoint(default, view);
 
         Assert.Equal(12, places.Count);
         Assert.Equal([6, 6], places.GroupBy(place => place.Y).Select(row => row.Count()));
@@ -92,9 +90,7 @@ public sealed class ColorListEditorViewTests
 
         AppTheme.Run(panel =>
         {
-            var page = new ColorPage { DataContext = viewModel };
-            panel.Children.Add(page);
-            OffscreenWindow.WaitUntilIdle();
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
             var header = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.EffectColorsHeader);
             var reset = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.EffectColorsDefault));
 
@@ -102,7 +98,7 @@ public sealed class ColorListEditorViewTests
             Assert.True(reset.IsVisible);
             Assert.True(reset.IsEnabled);
 
-            Click(reset);
+            PageViews.Click(reset);
 
             Assert.False(reset.IsEnabled);
             Assert.Equal([new RgbColor(255, 0, 0)], viewModel.EffectColorsEditor.Colors);
@@ -125,26 +121,9 @@ public sealed class ColorListEditorViewTests
     private static List<Button> Tiles(ColorListEditor view) =>
         [.. AppTheme.Descendants<Button>(view).Where(button => button.DataContext is ColorSwatch)];
 
-    private static Button ButtonNamed(DependencyObject parent, string name) =>
-        AppTheme.Descendants<Button>(parent).Single(button => AutomationProperties.GetName(button) == name);
-
-    // As a screen reader or a click would: only an enabled button does something.
-    private static void Click(Button button)
+    private static Task<MainViewModel> ConnectAsync(string effectId, EffectColors colors) => PageViews.ConnectAsync(api =>
     {
-        var invoke = (IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke);
-        invoke.Invoke();
-        OffscreenWindow.WaitUntilIdle();
-    }
-
-    private static async Task<MainViewModel> ConnectAsync(string effectId, EffectColors colors)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api =>
-        {
-            api.Effects = [EffectIds.Static, EffectIds.Comet];
-            api.Lighting[""] = api.Lighting[""] with { EffectId = effectId, EffectColors = colors };
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        api.Effects = [EffectIds.Static, EffectIds.Comet];
+        api.Lighting[""] = api.Lighting[""] with { EffectId = effectId, EffectColors = colors };
+    });
 }
