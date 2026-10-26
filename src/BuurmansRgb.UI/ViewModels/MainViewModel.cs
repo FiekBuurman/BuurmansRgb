@@ -785,11 +785,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
     });
 
+    // An engine that cannot read effects.json yet, as another program holds it, refuses the
+    // question; the app connects without own effects then, and shows them at the
+    // CustomEffectsChanged the engine sends once it has read the file.
+    private static async Task<IReadOnlyList<CustomEffect>> GetCustomEffectsOrNoneAsync(IEngineApi api)
+    {
+        try
+        {
+            return await api.GetCustomEffectsAsync();
+        }
+        catch (Exception exception) when (EngineRpc.IsRejectedByEngine(exception))
+        {
+            Trace.TraceWarning(exception.ToString());
+            return [];
+        }
+    }
+
     private async Task LoadAsync(IEngineApi api)
     {
         var devices = await api.GetDevicesAsync();
         _engineEffects = await api.GetEffectsAsync();
-        _customEffects = await api.GetCustomEffectsAsync();
+        _customEffects = await GetCustomEffectsOrNoneAsync(api);
         ShowEffects();
 
         ShowDevices(devices);

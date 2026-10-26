@@ -428,8 +428,13 @@ internal sealed class FakeEngineApi : IEngineApi
 
     private int _nextCustomEffect = 1;
 
+    // Such as the engine that cannot read effects.json yet.
+    public Exception? GetCustomEffectsException { get; set; }
+
     public Task<IReadOnlyList<CustomEffect>> GetCustomEffectsAsync(CancellationToken ct = default) =>
-        Task.FromResult<IReadOnlyList<CustomEffect>>([.. CustomEffects]);
+        GetCustomEffectsException is { } exception
+            ? Task.FromException<IReadOnlyList<CustomEffect>>(exception)
+            : Task.FromResult<IReadOnlyList<CustomEffect>>([.. CustomEffects]);
 
     public async Task<CustomEffect> SaveCustomEffectAsync(CustomEffect effect, CancellationToken ct = default)
     {

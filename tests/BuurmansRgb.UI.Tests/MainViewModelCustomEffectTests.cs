@@ -81,6 +81,26 @@ public sealed class MainViewModelCustomEffectTests
         Assert.Empty(Api.Calls);
     }
 
+    // The engine cannot read effects.json yet, as another program holds it: the app connects
+    // without own effects, and shows them when the engine tells it has read the file.
+    [Fact]
+    public async Task Connect_OwnEffectsOutOfReach_ConnectsAndShowsThemLater()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.CustomEffects = [Disco];
+            api.GetCustomEffectsException = new RemoteInvocationException("in use", 0, errorData: null);
+        });
+        Assert.DoesNotContain(viewModel.Effects, effect => effect.IsCustom);
+
+        Api.GetCustomEffectsException = null;
+        Api.RaiseCustomEffectsChanged();
+
+        await Eventually.TrueAsync(() => viewModel.Effects.Any(effect => effect.IsCustom));
+        Assert.Equal(["Disco"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
+        Assert.Empty(Api.Calls);
+    }
+
     // The editor shows the chosen effect, and the picker its first step, at once.
     [Fact]
     public async Task Connect_WithAnOwnEffect_ShowsItInTheEditor()
