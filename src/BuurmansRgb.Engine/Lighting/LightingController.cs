@@ -515,6 +515,33 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         Publish(rendered);
     }
 
+    // Lets every provider that can search for its devices again do so, all at the same time, and
+    // then takes over their lists, so DevicesChanged has gone out and a device that came back has
+    // its lighting again once this completes. The providers report their new lists themselves
+    // too; taking them over once more costs a refresh, but nobody has to wait for that report.
+    // False when a provider could not reach the source of its devices, such as OpenRGB that does
+    // not run.
+    public async Task<bool> RescanDevicesAsync(CancellationToken ct)
+    {
+        List<(int Index, Task<bool> Rescan)> rescans = [];
+        for (var index = 0; index < _providers.Count; index++)
+        {
+            if (_providers[index] is IRescannableDeviceProvider provider)
+            {
+                rescans.Add((index, RescanAsync(provider, ct)));
+            }
+        }
+
+        var reached = true;
+        foreach (var (index, rescan) in rescans)
+        {
+            reached &= await rescan;
+            await UpdateDevicesAsync(index, render: true, ct);
+        }
+
+        return reached;
+    }
+
     // One step of the animation: renders the animated effects and sends only the devices whose
     // colors changed. Allocates nothing, so it can run 60 times a second without feeding the GC.
     // The Rendered listeners run on this thread too; the one of a connected settings app copies
@@ -590,6 +617,20 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         catch (Exception exception)
         {
             Trace.TraceError(exception.ToString());
+        }
+    }
+
+    // A provider that fails counts as one that could not reach its source; the others go on.
+    private static async Task<bool> RescanAsync(IRescannableDeviceProvider provider, CancellationToken ct)
+    {
+        try
+        {
+            return await provider.RequestRescanAsync(ct);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException || !ct.IsCancellationRequested)
+        {
+            Trace.TraceError($"Rescanning the devices of {provider.Name} failed: {exception}");
+            return false;
         }
     }
 

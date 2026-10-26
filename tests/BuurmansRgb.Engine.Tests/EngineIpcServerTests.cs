@@ -211,6 +211,21 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.All(leds[8..], led => Assert.Equal(Orange, led));
     }
 
+    // The engine sends DevicesChanged before the answer, over the same pipe, so the app has the new
+    // list by the time "Zoeken…" ends.
+    [Fact]
+    public async Task RescanDevicesAsync_SimulatedDevices_IsTrueAfterDevicesChanged()
+    {
+        var client = await StartAndConnectAsync();
+        var devicesChanged = 0;
+        client.Api.DevicesChanged += (_, _) => Interlocked.Increment(ref devicesChanged);
+
+        Assert.True(await client.Api.RescanDevicesAsync(Ct));
+
+        Assert.True(Volatile.Read(ref devicesChanged) >= 1);
+        Assert.Contains(await client.Api.GetDevicesAsync(Ct), device => device.Id == Fan);
+    }
+
     // Flashing changes nothing, so a device that just went away is no error for the settings app.
     [Fact]
     public async Task FlashDeviceAsync_UnknownDevice_IsIgnored()

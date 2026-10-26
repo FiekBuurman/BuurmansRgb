@@ -30,6 +30,21 @@ public sealed class InMemoryOpenRgb : IDisposable
         return OpenRgbDeviceMapper.CreateId(device);
     }
 
+    // The colors the server got: device index and colors.
+    public IReadOnlyList<(int Index, RgbColor[] Colors)> Updates => [.. _server.Updates];
+
+    // Gives the server these LED strips, in this order, without telling the provider: as a device
+    // that comes or goes while OpenRGB does not look. Returns the ids the provider gives them.
+    public IReadOnlyList<string> SetStrips(params IReadOnlyList<(string Name, int LedCount)> strips)
+    {
+        OpenRgbDeviceData[] devices =
+        [
+            .. strips.Select((strip, index) => TestDevices.Create(index: index, name: strip.Name, location: $"HID: {strip.Name}", ledCount: strip.LedCount)),
+        ];
+        _server.Devices = devices;
+        return [.. devices.Select(OpenRgbDeviceMapper.CreateId)];
+    }
+
     // Closes the connections, like OpenRGB that stops.
     public void Stop() => _server.Stop();
 

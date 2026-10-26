@@ -265,6 +265,25 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default) => Record($"flash {deviceId} zone {zoneIndex}");
 
+    // When set, a rescan answers once this task completes, like an engine that waits for OpenRGB.
+    public Task? RescanGate { get; set; }
+
+    // What a rescan answers: false as if OpenRGB could not be reached.
+    public bool RescanReaches { get; set; } = true;
+
+    // Like the engine: the new list goes out through DevicesChanged before the answer.
+    public async Task<bool> RescanDevicesAsync(CancellationToken ct = default)
+    {
+        await Record("rescan");
+        if (RescanGate is { } gate)
+        {
+            await gate;
+        }
+
+        RaiseDevicesChanged();
+        return RescanReaches;
+    }
+
     public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
 
     public Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default) => Task.FromResult(SimulatedDevices);
