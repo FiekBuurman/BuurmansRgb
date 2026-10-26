@@ -97,6 +97,33 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // "←" and "→" turn themselves off once the step is at an end; the focus goes to that step,
+    // which stays selected, instead of nowhere.
+    [Theory]
+    [InlineData(false, 0)]
+    [InlineData(true, 2)]
+    public async Task MoveButton_ToTheEnd_GivesTheFocusToTheMovedStep(bool later, int end)
+    {
+        using var viewModel = await ConnectAsync();
+        var editor = viewModel.CustomEffectEditor;
+        editor.SelectStepCommand.Execute(1);
+
+        AppTheme.Run(panel =>
+        {
+            var page = ToolboxViewTests.Show(panel, viewModel);
+            var move = ButtonNamed(page, later ? Strings.CustomEffectStepLater : Strings.CustomEffectStepEarlier);
+            Assert.True(move.Focus());
+
+            move.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            (later ? editor.MoveStepLaterCommand : editor.MoveStepEarlierCommand).Execute(null);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(move.IsEnabled);
+            Assert.Equal(end, editor.SelectedIndex);
+            Assert.True(StepTiles(page)[end].IsKeyboardFocused);
+        });
+    }
+
     // The panel hides; the focus goes to the effect choice, which now says Statisch.
     [Fact]
     public async Task DeleteButton_GivesTheFocusToTheEffectChoice()
