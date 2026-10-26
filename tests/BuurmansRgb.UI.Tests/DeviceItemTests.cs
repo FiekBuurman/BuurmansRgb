@@ -129,8 +129,8 @@ public sealed class DeviceItemTests
     }
 
     [Theory]
-    [InlineData(DeviceSource.Hardware, "Echte lampen (OpenRGB)")]
-    [InlineData(DeviceSource.Simulated, "Gesimuleerde lampen")]
+    [InlineData(DeviceSource.Hardware, "Echte apparaten (OpenRGB)")]
+    [InlineData(DeviceSource.Simulated, "Gesimuleerde apparaten")]
     public void For_RealOrSimulated_HasItsHeading(DeviceSource source, string group)
     {
         var device = TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source);
@@ -216,6 +216,6 @@ public sealed class DeviceItemTests
         Assert.Null(item.DeviceId);
         Assert.Null(item.Type);
         Assert.Null(item.Group);
-        Assert.Equal("3 lampen", item.Details);
+        Assert.Equal("3 apparaten", item.Details);
     }
 }

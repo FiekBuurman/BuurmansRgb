@@ -23,7 +23,7 @@ public sealed class LiveRegionTests
             OffscreenWindow.WaitUntilIdle();
             Assert.Empty(announced);
 
-            status.Text = "OpenRGB: verbonden, 3 lampen";
+            status.Text = "OpenRGB: verbonden, 3 apparaten";
             OffscreenWindow.WaitUntilIdle();
             Assert.Equal([first], announced);
 
