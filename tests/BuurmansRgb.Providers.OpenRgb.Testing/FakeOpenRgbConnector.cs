@@ -26,6 +26,14 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
     // The connection reports IsClosed from the start, but raised Closed before anyone listened.
     public bool CloseBeforeSubscribing { get; set; }
 
+    // Off: a rescan request is ignored, like OpenRGB before 1.0, which does not know it.
+    public bool AnswersRescan { get; set; } = true;
+
+    // The devices the server has after a rescan; null keeps Devices.
+    public IReadOnlyList<OpenRgbDeviceData>? DevicesAfterRescan { get; set; }
+
+    public int RescanRequests { get; set; }
+
     public int ConnectCount { get; private set; }
 
     public List<(int Index, RgbColor[] Colors)> Updates { get; } = [];

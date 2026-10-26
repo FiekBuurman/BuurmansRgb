@@ -26,6 +26,11 @@ internal interface IOpenRgbConnection : IDisposable
     // caller reloads the devices to see the new length.
     void ResizeZone(int deviceIndex, int zoneIndex, int ledCount);
 
+    // Asks the server to search for its devices again. It gives no answer: once its list changed,
+    // DeviceListChanged follows, but only from a server that knows the request (OpenRGB 1.0 and
+    // later); an older one ignores it.
+    Task RequestRescanAsync(CancellationToken ct);
+
     // Returns false, without waiting and without sending, while another call still waits for the
     // server, such as a device reload. Callers may hold a lock, and that wait can last until the
     // request times out.
