@@ -17,14 +17,18 @@ internal sealed class EngineLauncher(string executablePath) : IEngineLauncher
     // The engine exe this process runs, also from another folder.
     public static string CurrentEnginePath => EnginePath(Environment.ProcessPath, AppContext.BaseDirectory);
 
-    // The process itself when it is the engine exe; otherwise, such as dotnet.exe for
-    // `dotnet BuurmansRgb.Engine.dll`, the engine exe next to the engine's files.
+    // The process itself, also an engine exe under another name. Only when that is dotnet.exe,
+    // for `dotnet BuurmansRgb.Engine.dll`, or unknown: the engine exe next to the engine's files,
+    // as dotnet would start without the engine.
     internal static string EnginePath(string? processPath, string baseDirectory) =>
-        processPath is not null && string.Equals(Path.GetFileName(processPath), EngineExe, StringComparison.OrdinalIgnoreCase)
-            ? processPath
-            : Path.Combine(baseDirectory, EngineExe);
+        processPath is null || IsDotnetHost(processPath)
+            ? Path.Combine(baseDirectory, EngineExe)
+            : processPath;
 
     public static EngineLauncher ForCurrentProcess() => new(CurrentEnginePath);
+
+    private static bool IsDotnetHost(string processPath) =>
+        string.Equals(Path.GetFileNameWithoutExtension(processPath), "dotnet", StringComparison.OrdinalIgnoreCase);
 
     public bool Start(IReadOnlyList<string> arguments)
     {
