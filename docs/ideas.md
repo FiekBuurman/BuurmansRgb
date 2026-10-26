@@ -119,7 +119,7 @@ uitbreidingen in `docs/bouwplan.md`.
   strip en hitte die van frame tot frame blijft; nu komt elk frame vers uit de tijd, zodat er
   geen buffer per apparaat nodig is
 - Ademen en Golf ook met een lijst van kleuren, zoals Komeet en Scanner: elke ademhaling of elke
-  golf de volgende kleur. Nu hebben ze één kleur, de kleur van de lamp
+  golf de volgende kleur. Nu hebben ze één kleur, de kleur van het apparaat
 - Bij Komeet en Scanner de kleur laten overlopen in plaats van wisselen (nu wisselt de komeet
   waar de ronde begint en de scanner aan het eind), of de staart in een verloop van de ene
   kleur naar de volgende
@@ -134,22 +134,22 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een scènekaart toont vijf bolletjes, dus van een kleurenloop of effect met meer kleuren (tot
   twaalf) alleen de eerste vijf; eventueel de bolletjes over de hele lijst verdelen of een
   verloop tonen
-- "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een lamp eigen kleuren voor
+- "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een apparaat eigen kleuren voor
   het effect heeft; nu telt voor de knop alleen wat "Hele huis" zelf heeft, en moet je eerst
-  die lamp kiezen
+  dat apparaat kiezen
 
 ## Instellingen-app en ontwerp
 
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
-- Een gekozen kleur bij Kleur die nog niet op de lamp staat, gaat verloren als je een andere lamp
-  kiest of de pagina wisselt; eventueel vragen of hem bewaren per lamp. Geldt alleen nog voor de
-  kleur van de hele lamp: een kleur van de kleurenloop, van de kleuren van een effect en van
-  gekozen LED's gaat meteen naar de lamp (sinds "kleur-kiezen" en "effect-kleuren")
+- Een gekozen kleur bij Kleur die nog niet op het apparaat staat, gaat verloren als je een ander apparaat
+  kiest of de pagina wisselt; eventueel vragen of hem bewaren per apparaat. Geldt alleen nog voor de
+  kleur van het hele apparaat: een kleur van de kleurenloop, van de kleuren van een effect en van
+  gekozen LED's gaat meteen naar het apparaat (sinds "kleur-kiezen" en "effect-kleuren")
 - Ongedaan maken voor een kleur van de kleurenloop, van de kleuren van een effect of van LED's
-  die je meteen meekleurde, nu er geen knop meer tussen mengen en de lamp zit
-- Een kleur op een lamp die uit staat, zet hem nu aan; de helderheid of een effect kiezen doet
-  dat (nog) niet. Misschien moet ook een helderheid boven 0 % de lamp aanzetten, zoals bij een
+  die je meteen meekleurde, nu er geen knop meer tussen mengen en het apparaat zit
+- Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
+  dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
@@ -166,8 +166,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Met ↑ en ↓ in het voorbeeld naar de LED die in de zone erboven of eronder recht boven of
   onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
   de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast
-- Met het toetsenbord ook van de ene lamp naar de andere in het voorbeeld gaan (bijv. Page Up en
-  Page Down); nu gaat dat met Tab, dat één keer per lamp stopt
+- Met het toetsenbord ook van het ene apparaat naar het andere in het voorbeeld gaan (bijv. Page Up en
+  Page Down); nu gaat dat met Tab, dat één keer per apparaat stopt
 - Met ← en → over de LED's heen gaan die een zone niet meer toont terwijl je een kortere lengte
   instelt; de actieve LED springt nu terug naar de laatste getoonde LED als de lengte korter
   wordt, maar → kan er in de 600 ms voordat de lengte naar de engine gaat nog op komen (zonder
@@ -212,7 +212,7 @@ uitbreidingen in `docs/bouwplan.md`.
   wegwisselen, zodat je een voorgrond-scène kunt bijstellen terwijl hij brandt; nu komt bij het
   openen van de app de verlichting van daarvoor terug
 - Bij "Alleen als het op de voorgrond staat" een korte wachttijd (bijv. een halve seconde)
-  voordat de scène wisselt, zodat snel heen en weer alt-tabben de lampen niet laat flitsen; nu
+  voordat de scène wisselt, zodat snel heen en weer alt-tabben de apparaten niet laat flitsen; nu
   wisselen ze bij elk venster dat vooraan komt
 - "Gemiste tijden inhalen" (#51) laat bij het starten de tijd altijd winnen, ook van een kleur
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
@@ -237,13 +237,13 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- De helderheid van "Dimmen" bij "Lampen tijdens deze pauze" instelbaar maken; nu vast 20 %
+- De helderheid van "Dimmen" bij "Apparaten tijdens deze pauze" instelbaar maken; nu vast 20 %
 - Met "Dimmen" of "Uit" ook dimmen of uitgaan als de pauze uit het tray-menu al liep toen
-  Windows vergrendelde of ging slapen; nu laat die pauze de lampen zoals ze zijn. Daarvoor moet
-  de engine onthouden wat de lampen bij het begin van die pauze lieten zien
-- Het voorbeeld in de instellingen-app laten zien dat de lampen gedimd of uit zijn; nu toont het
+  Windows vergrendelde of ging slapen; nu laat die pauze de apparaten zoals ze zijn. Daarvoor moet
+  de engine onthouden wat de apparaten bij het begin van die pauze lieten zien
+- Het voorbeeld in de instellingen-app laten zien dat de apparaten gedimd of uit zijn; nu toont het
   tijdens zo'n pauze de echte kleuren
-- "Lampen tijdens deze pauze" per reden kunnen kiezen, bijv. alleen bij de slaapstand uit en bij
+- "Apparaten tijdens deze pauze" per reden kunnen kiezen, bijv. alleen bij de slaapstand uit en bij
   vergrendelen het laatste beeld
 - Een eigen schakelaar voor pauzeren als het scherm uitgaat of de schermbeveiliging loopt, los
   van vergrendelen en slaapstand; nu valt het onder dezelfde `pauseOnLockAndSleep`. De naam van
@@ -259,9 +259,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De reden van een pauze ook in de tooltip van het tray-icoon; nu staat daar alleen "effecten
   gepauzeerd"
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
-  op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde lampen
+  op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde apparaten
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat. Met
-  "Dimmen" of "Uit" bij "Lampen tijdens deze pauze" stuurt hij bij het wisselen ook nog het
+  "Dimmen" of "Uit" bij "Apparaten tijdens deze pauze" stuurt hij bij het wisselen ook nog het
   gedimde beeld of zwart
 - Herstellen na het ontwaken ook bij Modern Standby (S0) controleren: of `PowerModeChanged`
   dan `Resume` meldt, verschilt per pc. Eventueel ook herstellen (de apparaten opnieuw laden)
@@ -275,7 +275,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het geheugen van de instellingen-app onder het budget van 150 MB krijgen. Uitgezocht in #43
   (zie "Metingen" in `ontwikkelaars.md`): de .NET-heap is ~8 MB, de rest is WPF met DirectX.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
-  het naar 130–143 MB, maar kost op Lampen CPU; eventueel als keuze bij Instellingen, of alleen
+  het naar 130–143 MB, maar kost op Apparaten CPU; eventueel als keuze bij Instellingen, of alleen
   zonder bewegend effect
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
@@ -335,7 +335,7 @@ uitbreidingen in `docs/bouwplan.md`.
   `BuurmansRgb*`-processen draaien en verklaart een run ongeldig als de engine al gestopt is
   vóór de eigen `--exit`; een eigen `APPDATA` scheidt alleen de bestanden, niet de mutex en de
   events van de sessie
-- De andere pagina's (Lampen, Scènes, Instellingen) en `MainWindow` offscreen laden met de
+- De andere pagina's (Apparaten, Scènes, Instellingen) en `MainWindow` offscreen laden met de
   resources van `App.xaml`, zoals `ColorListEditorViewTests` dat sinds #69 met `AppTheme` voor de
   pagina Kleur doet, zodat een fout in de XAML niet pas bij het starten opvalt. Bijv. voor
   `SettingsPage` controleren dat de schakelaars `IsOn` van hun viewmodel volgen, of bindingfouten

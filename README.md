@@ -9,13 +9,13 @@
   toetsenbord, muis en headset.
 </p>
 
-![De pagina Lampen: alle lampen in huis met hun kleur en een schakelaar](docs/images/lampen.png)
+![De pagina Apparaten: alle apparaten in huis met hun kleur en een schakelaar](docs/images/lampen.png)
 
 ## Wat het doet
 
 - **Eén plek voor alles.** BuurmansRgb stuurt je hardware via [OpenRGB](https://openrgb.org),
   dus geen aparte app per merk.
-- **Licht op de achtergrond.** Een kleine engine met een tray-icoon houdt de lampen aan
+- **Licht op de achtergrond.** Een kleine engine met een tray-icoon houdt de verlichting aan
   (zo'n 0,2–0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
 - **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
   vuur (fonkelen, komeet, scanner en vuur in je eigen kleuren, bijv. blauw vuur), een eigen
@@ -24,7 +24,7 @@
   zolang een spel draait.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand, scherm uit en schermbeveiliging en
   zet de kleuren na het ontwaken terug.
-- **Werkt zonder hardware:** zonder OpenRGB staan er twaalf gesimuleerde lampen klaar om mee te
+- **Werkt zonder hardware:** zonder OpenRGB staan er twaalf gesimuleerde apparaten klaar om mee te
   spelen.
 
 | Kleur mengen | Voorbeeld per LED | Scènes |
@@ -55,7 +55,7 @@ draaien zonder hardware. Meer in [docs/ontwikkelaars.md](docs/ontwikkelaars.md).
 ## Status
 
 Taak 0 t/m 9 uit het [bouwplan](docs/bouwplan.md) zijn gebouwd, plus een reeks uitbreidingen.
-Alles is getest met gesimuleerde lampen en de installer op een echte pc; het testen per
+Alles is getest met gesimuleerde apparaten en de installer op een echte pc; het testen per
 apparaattype op echte hardware staat nog open.
 
 ## Meer lezen
