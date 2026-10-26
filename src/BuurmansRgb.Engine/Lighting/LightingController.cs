@@ -50,8 +50,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly HashSet<string> _zonesAlike = new(StringComparer.Ordinal);
 
     // The own effects by effect id, each with the effect that plays it: one for every device, as
-    // it keeps nothing between frames.
-    private readonly Dictionary<string, StepEffect> _customEffects = new(StringComparer.Ordinal);
+    // it keeps nothing between frames. SetCustomEffects fills the spare one from the current one
+    // and swaps them, so an effect with the same steps keeps its StepEffect.
+    private Dictionary<string, CustomEffectPlayer> _customEffects = new(StringComparer.Ordinal);
+    private Dictionary<string, CustomEffectPlayer> _spareCustomEffects = new(StringComparer.Ordinal);
 
     // Whether SetCustomEffects gave the own effects there are. Until then (effects.json out of
     // reach, or no library at all) an own effect that is not in _customEffects may still exist, so
@@ -397,11 +399,16 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         lock (_gate)
         {
             _customEffectsKnown = true;
+            (_customEffects, _spareCustomEffects) = (_spareCustomEffects, _customEffects);
             _customEffects.Clear();
             foreach (var effect in effects)
             {
-                _customEffects[effect.Id] = EffectCatalog.CreateCustom(effect);
+                _customEffects[effect.Id] = _spareCustomEffects.TryGetValue(effect.Id, out var player) && player.Plays(effect)
+                    ? player with { Effect = effect }
+                    : new CustomEffectPlayer(effect, EffectCatalog.CreateCustom(effect));
             }
+
+            _spareCustomEffects.Clear();
 
             if (_lighting.IsSet)
             {
@@ -1082,7 +1089,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     {
         if (CustomEffects.IsCustom(lighting.EffectId))
         {
-            return _customEffects.TryGetValue(lighting.EffectId, out var custom) ? custom : new StaticEffect(lighting.Color);
+            return _customEffects.TryGetValue(lighting.EffectId, out var custom) ? custom.Steps : new StaticEffect(lighting.Color);
         }
 
         return EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(device), lighting.Loop, EffectCatalog.SeedOf(device.Id), lighting.EffectColors);
@@ -1126,4 +1133,12 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private DeviceOutput KnownOutputLocked(string deviceId) =>
         _outputs.Find(deviceId)
             ?? throw DeviceErrors.Unknown(deviceId);
+
+    // An own effect and the StepEffect that plays its steps. Equal steps are compared one color at a
+    // time, as an effect from the pipe is a new copy even when only its name changed.
+    private readonly record struct CustomEffectPlayer(CustomEffect Effect, StepEffect Steps)
+    {
+        public bool Plays(CustomEffect effect) =>
+            ReferenceEquals(Effect.Steps, effect.Steps) || Effect.Steps.SequenceEqual(effect.Steps);
+    }
 }

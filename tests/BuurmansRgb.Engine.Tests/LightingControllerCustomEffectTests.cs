@@ -162,6 +162,29 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // Only an effect with other steps gets a new StepEffect: one that is only renamed, here as a new
+    // copy as from the pipe, keeps its own and copies none of its colors.
+    [Fact]
+    public async Task SetCustomEffects_SameSteps_CopiesNoColors()
+    {
+        await _controller.DiscoverAsync(Ct);
+        RgbColor[] pattern = [.. Enumerable.Range(0, CustomEffects.MaxLeds).Select(i => Twelve[i % Twelve.Count])];
+        var big = new CustomEffect("custom:big", "Groot", [.. Enumerable.Range(0, 8).Select(_ => new CustomEffectStep(pattern))]);
+        _controller.SetCustomEffects([big, RedThenBlue]);
+        _controller.Apply(Uniform(big.Id));
+        _controller.SetCustomEffects([big, RedThenBlue with { Steps = [new CustomEffectStep(Blue)] }]);
+        var renamed = new CustomEffect(big.Id, "Anders", [.. big.Steps.Select(step => new CustomEffectStep(step.Colors))]);
+        var green = RedThenBlue with { Steps = [new CustomEffectStep(Green)] };
+        var shown = _provider.LastColors.ToArray();
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+        _controller.SetCustomEffects([renamed, green]);
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.InRange(allocated, 0, pattern.Length * 3);
+        Assert.Equal(shown, _provider.LastColors);
+    }
+
     // A deleted effect leaves the device color, statically, as a change that is saved.
     [Fact]
     public async Task SetCustomEffects_EffectInUseGone_SwitchesToStatic()

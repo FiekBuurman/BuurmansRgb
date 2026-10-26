@@ -201,7 +201,9 @@ toetsenbord. Een paar dingen om te proberen:
   geheugen en schrijft `effects.json` (`JsonCustomEffectStore`, naast `profiles.json`) bij elke
   wijziging; `EngineHost` leest het bij het starten, vóór `Apply` van de verlichting. Elke nieuwe
   lijst gaat naar `LightingController.SetCustomEffects`, die per effect één `StepEffect` maakt
-  (in `Effects`, voor alle apparaten samen: het houdt niets bij tussen frames), de apparaten die
+  (in `Effects`, voor alle apparaten samen: het houdt niets bij tussen frames; een effect met
+  dezelfde stappen, zoals na een nieuwe naam of een wijziging van een ander effect, houdt het
+  zijne), de apparaten die
   het tonen meteen opnieuw rendert en een verlichting met een effect dat weg is op Statisch zet
   (als wijziging, zodat het bewaard wordt). `Apply` en `Replace` doen dat ook voor een scène of
   `settings.json` met zo'n effect; `SetLighting` weigert een `custom:`-id die er niet is. Dat
