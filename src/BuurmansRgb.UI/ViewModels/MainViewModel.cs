@@ -118,14 +118,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
-        ColorLoopEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
-        ColorLoopEditor.PropertyChanged += (_, e) =>
-        {
-            if (e.PropertyName == nameof(ColorLoopEditorViewModel.Spread))
-            {
-                OnPropertyChanged(nameof(IsDirectionVisible));
-            }
-        };
+        ColorLoopEditor.PropertyChanged += (_, e) => OnColorLoopEditorChanged(e.PropertyName);
         EffectColorsEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
         Profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
         Profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
@@ -766,6 +759,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Another selected color in the loop or the list of the effect.
+    // The picker shows the chosen loop color, and the direction only applies to a loop that spreads.
+    private void OnColorLoopEditorChanged(string? changedProperty)
+    {
+        ShowPickerColorFor(changedProperty);
+        if (changedProperty == nameof(ColorLoopEditorViewModel.Spread))
+        {
+            OnPropertyChanged(nameof(IsDirectionVisible));
+        }
+    }
+
     private void ShowPickerColorFor(string? changedProperty)
     {
         if (changedProperty == nameof(ColorListEditorViewModel.SelectedColor))
