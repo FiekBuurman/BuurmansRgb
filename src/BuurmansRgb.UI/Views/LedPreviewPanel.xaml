@@ -1,6 +1,7 @@
 <!-- The preview of the selected lamp, or of all of them: per device a button to let it blink and, with more
      zones, the switch "Zones gelijk"; per zone its name with a button to let only that zone blink, a dot or
-     key per LED, and the length of a zone whose length can be set. The DataContext is MainViewModel. -->
+     key per LED, and the length of a zone whose length can be set, with "Tellen" to count its LEDs and the
+     count while it runs. The DataContext is MainViewModel. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.LedPreviewPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -61,6 +62,13 @@
                                                         Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
                                                         ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding FlashFocusKey}"
                                                         Visibility="{Binding ShowsFlash, Converter={StaticResource BoolToVisibility}}" />
+                                                <!-- "Tellen" beside it, for a zone whose length can be set; once more while
+                                                     counting starts again from LED 1. -->
+                                                <Button x:Name="CountButton" DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource SecondaryButton}"
+                                                        Content="{x:Static res:Strings.CountZone}" ToolTip="{x:Static res:Strings.CountZoneToolTip}"
+                                                        Command="{Binding CountLedsCommand}" AutomationProperties.Name="{Binding CountAccessibleName}"
+                                                        ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding CountFocusKey}"
+                                                        Visibility="{Binding ShowsCount, Converter={StaticResource BoolToVisibility}}" />
                                                 <StackPanel VerticalAlignment="Center">
                                                     <TextBlock FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"
                                                                Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
@@ -90,8 +98,66 @@
                                                                   AutomationProperties.Name="{Binding AccessibleName}" />
                                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.EmptyZoneHint}"
                                                        Visibility="{Binding ShowsEmptyZoneHint, Converter={StaticResource BoolToVisibility}}" />
+                                            <!-- The count of the LEDs while it runs, instead of the length: a big counter, a
+                                                 status that a screen reader reads when it changes (not at every LED), and the
+                                                 controls, which keep the focus when the preview is made again. When the count
+                                                 ends with the focus in it, the focus goes to "Tellen". -->
+                                            <Border Margin="0,8,0,0" Style="{StaticResource Card}" Padding="16,12"
+                                                    Visibility="{Binding IsCounting, Converter={StaticResource BoolToVisibility}}"
+                                                    views:FocusFallback.Target="{Binding ElementName=CountButton}">
+                                                <StackPanel DataContext="{Binding Count}">
+                                                    <TextBlock Style="{StaticResource BigValue}" FontSize="44" FontFamily="{StaticResource MonoFont}"
+                                                               Text="{Binding LedText}" AutomationProperties.Name="{Binding AccessibleName}" />
+                                                    <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{Binding Status, NotifyOnTargetUpdated=True}"
+                                                               AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+                                                    <WrapPanel Margin="0,10,0,0">
+                                                        <Button Margin="0,0,10,8" Style="{StaticResource SecondaryButton}" MinWidth="110"
+                                                                Content="{Binding PauseOrResumeText}" ToolTip="{x:Static res:Strings.ZoneCountPauseToolTip}"
+                                                                Command="{Binding PauseOrResumeCommand}"
+                                                                views:FocusKeeper.Key="{Binding FocusKey, StringFormat={}{0}/pause}" />
+                                                        <Button Margin="0,0,10,8" Style="{StaticResource IconButton}" Content="−"
+                                                                ToolTip="{x:Static res:Strings.ZoneCountPrevious}" Command="{Binding PreviousCommand}"
+                                                                AutomationProperties.Name="{x:Static res:Strings.ZoneCountPrevious}"
+                                                                views:FocusKeeper.Key="{Binding FocusKey, StringFormat={}{0}/previous}" />
+                                                        <Button Margin="0,0,18,8" Style="{StaticResource IconButton}" Content="+"
+                                                                ToolTip="{x:Static res:Strings.ZoneCountNext}" Command="{Binding NextCommand}"
+                                                                AutomationProperties.Name="{x:Static res:Strings.ZoneCountNext}"
+                                                                views:FocusKeeper.Key="{Binding FocusKey, StringFormat={}{0}/next}" />
+                                                        <StackPanel Margin="0,0,0,8" Orientation="Horizontal">
+                                                            <TextBlock Margin="0,0,8,0" VerticalAlignment="Center" Style="{StaticResource SubText}"
+                                                                       Text="{x:Static res:Strings.ZoneCountPaceLabel}" />
+                                                            <ItemsControl ItemsSource="{Binding PaceOptions}" Focusable="False"
+                                                                          AutomationProperties.Name="{x:Static res:Strings.ZoneCountPaceGroup}">
+                                                                <ItemsControl.ItemsPanel>
+                                                                    <ItemsPanelTemplate>
+                                                                        <StackPanel Orientation="Horizontal" />
+                                                                    </ItemsPanelTemplate>
+                                                                </ItemsControl.ItemsPanel>
+                                                                <ItemsControl.ItemTemplate>
+                                                                    <DataTemplate DataType="{x:Type vm:ZoneCountPaceOption}">
+                                                                        <RadioButton Margin="0,0,6,0" Style="{StaticResource DayToggle}" Content="{Binding Text}"
+                                                                                     GroupName="{Binding GroupName}" IsChecked="{Binding IsChecked}"
+                                                                                     AutomationProperties.Name="{Binding AccessibleName}" ToolTip="{Binding AccessibleName}"
+                                                                                     views:FocusKeeper.Key="{Binding GroupName, StringFormat={}{0}/option}" />
+                                                                    </DataTemplate>
+                                                                </ItemsControl.ItemTemplate>
+                                                            </ItemsControl>
+                                                        </StackPanel>
+                                                    </WrapPanel>
+                                                    <WrapPanel>
+                                                        <Button Margin="0,0,10,0" Style="{StaticResource SecondaryButton}"
+                                                                Content="{x:Static res:Strings.ZoneCountKeep}" ToolTip="{x:Static res:Strings.ZoneCountKeepToolTip}"
+                                                                Command="{Binding KeepCommand}" ToolTipService.ShowOnDisabled="True"
+                                                                views:FocusKeeper.Key="{Binding FocusKey, StringFormat={}{0}/keep}" />
+                                                        <Button Style="{StaticResource SecondaryButton}"
+                                                                Content="{x:Static res:Strings.ZoneCountStop}" ToolTip="{x:Static res:Strings.ZoneCountStopToolTip}"
+                                                                Command="{Binding StopCommand}"
+                                                                views:FocusKeeper.Key="{Binding FocusKey, StringFormat={}{0}/stop}" />
+                                                    </WrapPanel>
+                                                </StackPanel>
+                                            </Border>
                                             <!-- The controls keep the focus when the preview is made again after a resize. -->
-                                            <StackPanel Margin="0,8,0,0" Visibility="{Binding CanResize, Converter={StaticResource BoolToVisibility}}">
+                                            <StackPanel Margin="0,8,0,0" Visibility="{Binding ShowsLength, Converter={StaticResource BoolToVisibility}}">
                                                 <TextBlock Style="{StaticResource SubText}" Text="{Binding Length.Label}" />
                                                 <Grid Margin="0,4,0,0">
                                                     <Grid.ColumnDefinitions>
