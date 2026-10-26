@@ -10,8 +10,10 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:ColorListEditorViewModel}"
              Focusable="False">
+    <!-- Rows of at most six tiles (44 wide and 8 apart), as the toolbox above: twelve colors are two
+         even rows, and + and − stand to the right of the first row, or under the tiles in a narrow window. -->
     <WrapPanel>
-        <ItemsControl ItemsSource="{Binding Swatches}" Focusable="False" IsTabStop="False">
+        <ItemsControl MaxWidth="312" ItemsSource="{Binding Swatches}" Focusable="False" IsTabStop="False">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <WrapPanel />
@@ -27,10 +29,10 @@
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="+"
+        <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="+"
                 ToolTip="{x:Static res:Strings.ColorListAdd}" AutomationProperties.Name="{x:Static res:Strings.ColorListAdd}"
                 Command="{Binding AddColorCommand}" />
-        <Button Margin="0,0,8,8" Style="{StaticResource IconButton}" Content="−"
+        <Button Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource IconButton}" Content="−"
                 ToolTip="{x:Static res:Strings.ColorListRemove}" AutomationProperties.Name="{x:Static res:Strings.ColorListRemove}"
                 Command="{Binding RemoveColorCommand}" />
     </WrapPanel>
