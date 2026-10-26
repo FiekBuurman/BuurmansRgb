@@ -10,16 +10,18 @@ namespace BuurmansRgb.UI;
 
 // Closing the window ends the process, so the settings app holds no memory while it is closed.
 // One settings app per Windows session: a second start ("Instellingen openen" again, a double
-// click on the tray icon) brings the open window to the front and stops.
+// click on the tray icon) brings the open window to the front and stops. "Herstarten" in the tray
+// asks it to close, as --exit does with the engine, and the new engine opens it again.
 public partial class App : Application
 {
-    private const string InstanceName = "BuurmansRgb.UI";
+    private const string InstanceName = EngineRpc.SettingsAppName;
 
     // ASFW_ANY: whichever process the activation reaches may take the foreground from this one.
     private const int AnyProcess = -1;
 
     private SingleInstance? _instance;
     private IDisposable? _activation;
+    private IDisposable? _exit;
     private MainViewModel? _viewModel;
     private FileLog? _log;
 
@@ -48,6 +50,7 @@ public partial class App : Application
         MainWindow = window;
         window.Show();
         _activation = _instance.ListenForActivation(() => Dispatcher.BeginInvoke(window.BringToFront));
+        _exit = _instance.ListenForExit(() => Dispatcher.BeginInvoke(() => Shutdown()));
         _viewModel.ConnectCommand.Execute(null);
     }
 
@@ -55,6 +58,7 @@ public partial class App : Application
     {
         // Before what the activation uses: it waits for a callback that is still running.
         _activation?.Dispose();
+        _exit?.Dispose();
         // Closes the pipe right away instead of leaving the engine to notice a dead process.
         _viewModel?.Dispose();
         _instance?.Dispose();
