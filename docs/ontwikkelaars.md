@@ -180,7 +180,11 @@ toetsenbord. Een paar dingen om te proberen:
   per zone geschaald naar zijn deel van `0` tot `1` in de volgorde van de zones) en geeft die aan
   een `IDirectedEffect` (Regenboog, Golf, Kleurenloop) in plaats van de index; een frame
   alloceert zo niets. Met "Zones gelijk" krijgt de langste zone de plekken van zichzelf alleen.
-  De instellingen-app tekent fan-ringen en toetsen met dezelfde `LedPlaces` en `WideKeys`.
+  De instellingen-app rekent `LedPlaces.Of` niet zelf uit, maar tekent met dezelfde bouwstenen:
+  een fan-ring met `LedPlaces.IsRing` en `LedPlaces.OnRing`, toetsen met `LedPlaces.Place` en
+  `WideKeys.Widen`. Een brede toets beslaat in het voorbeeld al zijn vakjes; alleen de engine
+  neemt het midden ervan als plek. Een zone zonder vorm tekent het voorbeeld in regels
+  (`LedPlaces.Wrap`), terwijl de engine er één lijn van links naar rechts van maakt.
 - **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen
   dat er iets nieuws is; een timer op de thread pool kopieert dan het nieuwste beeld en stuurt
   het, hooguit 20 keer per seconde, zodat de animatie nooit op de app wacht. De app zegt met
