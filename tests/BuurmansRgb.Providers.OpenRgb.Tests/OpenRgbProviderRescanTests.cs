@@ -142,6 +142,25 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         Assert.Equal(new ServerStatus(ServerState.Connected, 1), _provider.Status);
     }
 
+    // A connect that was on its way when the request came: the request goes over that connection,
+    // without connecting a second time.
+    [Fact]
+    public async Task Rescan_WhileConnecting_AsksOverThatConnection()
+    {
+        var answered = new TaskCompletionSource();
+        _connector.DevicesAnswered = answered.Task;
+        await _provider.DiscoverAsync(Ct);
+        _connector.DevicesAfterRescan = [Strip, Headset];
+
+        var rescan = _provider.RequestRescanAsync(Ct);
+        answered.SetResult();
+
+        Assert.True(await rescan);
+        Assert.Equal(1, _connector.ConnectCount);
+        Assert.Equal(1, _connector.RescanRequests);
+        Assert.Equal(2, (await _provider.DiscoverAsync(Ct)).Count);
+    }
+
     [Fact]
     public async Task Rescan_ServerDoesNotRun_IsFalseAndTriesAgainLater()
     {

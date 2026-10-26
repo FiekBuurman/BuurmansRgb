@@ -271,21 +271,41 @@ public sealed class OpenRgbDeviceProvider
         var ct = _disposing.Token;
         try
         {
-            IOpenRgbConnection? connection;
-            lock (_gate)
+            // The connection that did not answer the request, if any.
+            IOpenRgbConnection? tried = null;
+            while (true)
             {
-                connection = _connection;
-            }
+                // Looked up in the queue, behind the work that waits, such as a connect on its way
+                // or the drop of a connection that closed. Another connection than the one tried
+                // gets the request; without one, a new connection loads the devices.
+                IOpenRgbConnection? connection = null;
+                var reached = false;
+                await Enqueue(async jobCt =>
+                {
+                    lock (_gate)
+                    {
+                        connection = _connection;
+                    }
 
-            if (connection is not null && await TryRescanAsync(connection, ct).ConfigureAwait(false))
-            {
-                return true;
-            }
+                    if (connection is null || connection == tried)
+                    {
+                        connection = null;
+                        reached = await OpenConnectionAsync(jobCt).ConfigureAwait(false);
+                    }
+                }).ConfigureAwait(false);
 
-            // Behind the work that waits, such as the drop of a connection that closed.
-            var reached = false;
-            await Enqueue(async jobCt => reached = await OpenConnectionAsync(jobCt).ConfigureAwait(false)).ConfigureAwait(false);
-            return reached;
+                if (connection is null)
+                {
+                    return reached;
+                }
+
+                if (await TryRescanAsync(connection, ct).ConfigureAwait(false))
+                {
+                    return true;
+                }
+
+                tried = connection;
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
