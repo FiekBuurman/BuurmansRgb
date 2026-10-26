@@ -8,13 +8,23 @@ namespace BuurmansRgb.Providers.OpenRgb;
 // DiscoverAsync starts it and returns no devices; they follow through DevicesChanged once the
 // server answers. When connecting fails or the connection is lost, the provider tries again
 // after RetryDelay. That timer only runs while there is no connection. Status follows the tries
-// and loads that happen anyway, so telling how it goes costs no extra work.
-public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorableDeviceProvider, IServerStatusSource, IDisposable
+// and loads that happen anyway, so telling how it goes costs no extra work. A rescan asks OpenRGB
+// to search again, and connects anew when that does not work.
+public sealed class OpenRgbDeviceProvider
+    : IResizableDeviceProvider, IRestorableDeviceProvider, IRescannableDeviceProvider, IServerStatusSource, IDisposable
 {
     public static TimeSpan RetryDelay { get; } = TimeSpan.FromSeconds(5);
 
+    // How long a rescan waits for the first device list update before it connects anew. OpenRGB
+    // sends one as soon as its list changes, which it does at the start of a search; an OpenRGB
+    // before 1.0 sends none. Short enough that connecting anew still fits in the 15 s the settings
+    // app waits.
+    public static TimeSpan RescanTimeout { get; } = TimeSpan.FromSeconds(5);
+
     private readonly IOpenRgbConnector _connector;
+    private readonly TimeProvider _time;
     private readonly TimeSpan _retryDelay;
+    private readonly TimeSpan _rescanTimeout;
     private readonly ITimer _retryTimer;
     private readonly Lock _gate = new();
 
@@ -30,13 +40,19 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
     // Only the queued work changes it, one job after the other, so StatusChanged goes out in order
     // even though it is raised outside the lock.
     private ServerStatus _status = ServerStatus.Connecting;
+
+    // The rescan on its way, which a second request joins.
+    private Task<bool>? _rescan;
     private bool _started;
     private bool _disposed;
 
-    internal OpenRgbDeviceProvider(IOpenRgbConnector connector, TimeProvider timeProvider, TimeSpan retryDelay)
+    // Without rescanTimeout, RescanTimeout.
+    internal OpenRgbDeviceProvider(IOpenRgbConnector connector, TimeProvider timeProvider, TimeSpan retryDelay, TimeSpan? rescanTimeout = null)
     {
         _connector = connector;
+        _time = timeProvider;
         _retryDelay = retryDelay;
+        _rescanTimeout = rescanTimeout ?? RescanTimeout;
         _retryTimer = timeProvider.CreateTimer(
             _ => Enqueue(ConnectAsync), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
@@ -140,6 +156,31 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
     public void ResizeZone(string deviceId, int zoneIndex, int ledCount) =>
         Enqueue(ct => ResizeAsync(deviceId, zoneIndex, ledCount, ct));
 
+    // Asks OpenRGB to search for its devices again (OpenRgbPackets.RequestRescanDevices) and waits
+    // for the first device list update, whose reload it waits for too. OpenRGB may send more
+    // while it finds devices; each of them reloads the list as always. Without a connection, or
+    // when no update comes within the rescan timeout, a new connection loads the devices instead,
+    // as after a restart of OpenRGB. A connection that came meanwhile gets the request first.
+    // False when OpenRGB could not be reached; when connecting anew fails while the connection
+    // there is stays, OpenRGB is reached, so that is true.
+    public Task<bool> RequestRescanAsync(CancellationToken ct)
+    {
+        Task<bool> rescan;
+        lock (_gate)
+        {
+            if (_disposed)
+            {
+                return Task.FromResult(false);
+            }
+
+            // Connecting counts as started, so the first DiscoverAsync does not connect again.
+            _started = true;
+            rescan = _rescan ??= Task.Run(RescanAsync);
+        }
+
+        return rescan.WaitAsync(ct);
+    }
+
     public void Dispose()
     {
         IOpenRgbConnection? connection;
@@ -184,7 +225,8 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         }
     }
 
-    private void Enqueue(Func<CancellationToken, Task> work)
+    // Returns the task of this job, which ends without an exception, also when the work failed.
+    private Task Enqueue(Func<CancellationToken, Task> work)
     {
         lock (_gate)
         {
@@ -192,6 +234,7 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
             // hold the engine's lock.
             _work = _work.ContinueWith(_ => RunAsync(work), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default)
                 .Unwrap();
+            return _work;
         }
     }
 
@@ -221,6 +264,111 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
             }
         }
 
+        _ = await OpenConnectionAsync(ct).ConfigureAwait(false);
+    }
+
+    // The rescan on its way; when it is over, a new request starts another one.
+    private async Task<bool> RescanAsync()
+    {
+        var ct = _disposing.Token;
+        try
+        {
+            // The connection that did not answer the request, if any.
+            IOpenRgbConnection? tried = null;
+            while (true)
+            {
+                // Looked up in the queue, behind the work that waits, such as a connect on its way
+                // or the drop of a connection that closed. Another connection than the one tried
+                // gets the request; without one, a new connection loads the devices.
+                IOpenRgbConnection? connection = null;
+                var reached = false;
+                await Enqueue(async jobCt =>
+                {
+                    lock (_gate)
+                    {
+                        connection = _connection;
+                    }
+
+                    if (connection is null || connection == tried)
+                    {
+                        connection = null;
+                        // Failing keeps the connection there is, which still reaches OpenRGB.
+                        reached = await OpenConnectionAsync(jobCt).ConfigureAwait(false) || HasConnection;
+                    }
+                }).ConfigureAwait(false);
+
+                if (connection is null)
+                {
+                    return reached;
+                }
+
+                if (await TryRescanAsync(connection, ct).ConfigureAwait(false))
+                {
+                    return true;
+                }
+
+                tried = connection;
+            }
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            return false;
+        }
+        finally
+        {
+            lock (_gate)
+            {
+                _rescan = null;
+            }
+        }
+    }
+
+    // True once the update after the request has been loaded on this connection. False when the
+    // request could not go out, the connection closed, or no update came in time.
+    private async Task<bool> TryRescanAsync(IOpenRgbConnection connection, CancellationToken ct)
+    {
+        // The provider's own handler came first, so the reload of the update is queued by then.
+        var updated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EventHandler onUpdate = (_, _) => updated.TrySetResult();
+        connection.DeviceListChanged += onUpdate;
+        connection.Closed += onUpdate;
+        try
+        {
+            if (connection.IsClosed)
+            {
+                return false;
+            }
+
+            await connection.RequestRescanAsync(ct).ConfigureAwait(false);
+            await updated.Task.WaitAsync(_rescanTimeout, _time, ct).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            Trace.TraceWarning($"OpenRGB sent no new device list within {_rescanTimeout.TotalSeconds:0} s after the rescan request; connecting again.");
+            return false;
+        }
+        catch (Exception exception) when (!ct.IsCancellationRequested)
+        {
+            Trace.TraceWarning($"Asking OpenRGB to rescan failed, connecting again: {exception.Message}");
+            return false;
+        }
+        finally
+        {
+            connection.DeviceListChanged -= onUpdate;
+            connection.Closed -= onUpdate;
+        }
+
+        // After the reload, or the drop of a connection that closed.
+        await Enqueue(_ => Task.CompletedTask).ConfigureAwait(false);
+        return IsCurrent(connection);
+    }
+
+    // Connects and loads the devices; the new connection takes the place of the one there is, if
+    // any, only once it works, so the devices stay in the list meanwhile. When it fails without a
+    // connection, the provider tries again after RetryDelay; with one, it keeps that one. True
+    // when the new connection took over.
+    private async Task<bool> OpenConnectionAsync(CancellationToken ct)
+    {
         IOpenRgbConnection? connection = null;
         IReadOnlyList<MappedDevice> devices;
         try
@@ -239,10 +387,16 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         catch (Exception exception) when (!ct.IsCancellationRequested)
         {
             connection?.Dispose();
+            if (HasConnection)
+            {
+                Trace.TraceWarning($"Connecting to OpenRGB again failed, keeping the connection there is: {exception.Message}");
+                return false;
+            }
+
             Trace.TraceInformation($"OpenRGB is not reachable, trying again in {_retryDelay.TotalSeconds:0} s: {exception.Message}");
             SetStatus(new(exception is OpenRgbUnreachableException ? ServerState.Unreachable : ServerState.Failed));
             ScheduleRetry();
-            return;
+            return false;
         }
         catch
         {
@@ -251,11 +405,13 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         }
 
         bool accepted;
+        IOpenRgbConnection? old = null;
         lock (_gate)
         {
             accepted = !_disposed;
             if (accepted)
             {
+                old = _connection;
                 _connection = connection;
                 SetDevicesLocked(devices);
             }
@@ -264,12 +420,16 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         if (!accepted)
         {
             connection.Dispose();
-            return;
+            return false;
         }
 
+        // Disposing raises no Closed, and the events the old one still raises are for a connection
+        // that is no longer current, so they change nothing.
+        old?.Dispose();
         Trace.TraceInformation($"Connected to OpenRGB with protocol version {connection.ProtocolVersion}, {devices.Count} devices.");
         DevicesChanged?.Invoke(this, EventArgs.Empty);
         SetStatus(new(ServerState.Connected, devices.Count));
+        return true;
     }
 
     // The server indexes may have shifted, so no colors go out until the reload has mapped the
@@ -451,6 +611,17 @@ public sealed class OpenRgbDeviceProvider : IResizableDeviceProvider, IRestorabl
         }
 
         StatusChanged?.Invoke(this, status);
+    }
+
+    private bool HasConnection
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _connection is not null;
+            }
+        }
     }
 
     private bool IsCurrent(IOpenRgbConnection connection)

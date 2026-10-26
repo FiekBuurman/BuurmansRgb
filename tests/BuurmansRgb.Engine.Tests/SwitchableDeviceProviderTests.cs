@@ -106,6 +106,42 @@ public sealed class SwitchableDeviceProviderTests
         var switchable = SwitchableDeviceProvider.For(new RecordingDeviceProvider());
 
         Assert.False(switchable is IResizableDeviceProvider);
+        Assert.False(switchable is IRescannableDeviceProvider);
         Assert.Equal("Recording", switchable.Name);
+    }
+
+    [Fact]
+    public async Task RequestRescan_Enabled_SearchesAgainAndPassesTheChangeOn()
+    {
+        await _switchable.DiscoverAsync(Ct);
+        var rescannable = Assert.IsAssignableFrom<IRescannableDeviceProvider>(_switchable);
+
+        Assert.True(await rescannable.RequestRescanAsync(Ct));
+
+        Assert.Equal(1, _changes);
+    }
+
+    [Fact]
+    public async Task RequestRescan_Disabled_DoesNothingAndCountsAsDone()
+    {
+        var inner = new DynamicDeviceProvider { RescanReaches = false };
+        var switchable = SwitchableDeviceProvider.For(inner);
+        switchable.IsEnabled = false;
+
+        Assert.True(await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
+
+        Assert.Equal(0, inner.RescanCount);
+    }
+
+    // A provider that can search again but not resize keeps only the first.
+    [Fact]
+    public async Task For_InnerCanRescanButNotResize_IsOnlyRescannable()
+    {
+        var inner = new DynamicDeviceProvider { RescanReaches = false };
+        var switchable = SwitchableDeviceProvider.For(inner);
+
+        Assert.False(switchable is IResizableDeviceProvider);
+        Assert.False(await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
+        Assert.Equal(1, inner.RescanCount);
     }
 }

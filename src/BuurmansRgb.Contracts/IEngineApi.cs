@@ -123,6 +123,15 @@ public partial interface IEngineApi
     // the engine does not know (any more).
     Task FlashZoneAsync(string deviceId, int zoneIndex, CancellationToken ct = default);
 
+    // Lets OpenRGB, and the simulated devices, search for devices again, for example when a device
+    // that was switched off and on does not come back by itself. Completes after the first new
+    // list, so DevicesChanged has gone out by then; OpenRGB may fill its list step by step while
+    // it searches, and the devices it finds later follow through DevicesChanged. That can take
+    // some seconds, as the engine connects to OpenRGB anew when OpenRGB does not answer the
+    // request in time. A device that came back gets its own lighting. False when OpenRGB could
+    // not be reached.
+    Task<bool> RescanDevicesAsync(CancellationToken ct = default);
+
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
 
     // Why the effects are paused; PauseReasons.None while they run.

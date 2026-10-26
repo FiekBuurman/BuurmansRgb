@@ -56,6 +56,9 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         }
     }
 
+    // OpenRGB.NET cannot send it, so it goes over the watcher's connection, outside _calls.
+    public Task RequestRescanAsync(CancellationToken ct) => _watcher.RequestRescanAsync(ct);
+
     public bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors)
     {
         if (!_calls.TryEnter())

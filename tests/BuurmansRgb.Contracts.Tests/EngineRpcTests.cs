@@ -383,6 +383,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task RescanDevicesAsync_GivesTheAnswerBack()
+    {
+        var client = await ConnectAsync();
+
+        Assert.False(await client.Api.RescanDevicesAsync(Ct));
+
+        Assert.Equal(1, _api.RescanCalls);
+    }
+
+    [Fact]
     public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
     {
         var client = await ConnectAsync();
@@ -657,6 +667,14 @@ public sealed class EngineRpcTests : IDisposable
         {
             FlashZoneCalls.Add((deviceId, zoneIndex));
             return Task.CompletedTask;
+        }
+
+        public int RescanCalls { get; private set; }
+
+        public Task<bool> RescanDevicesAsync(CancellationToken ct = default)
+        {
+            RescanCalls++;
+            return Task.FromResult(false);
         }
 
         public List<SimulatedDevicesMode> SimulatedDevicesCalls { get; } = [];

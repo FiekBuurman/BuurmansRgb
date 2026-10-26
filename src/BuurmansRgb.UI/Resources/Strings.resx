@@ -680,6 +680,21 @@
   <data name="AddLampsToolTip" xml:space="preserve">
     <value>Gesimuleerde apparaten en de koppeling met OpenRGB vind je bij Instellingen.</value>
   </data>
+  <data name="Rescan" xml:space="preserve">
+    <value>Verversen</value>
+  </data>
+  <data name="RescanSearching" xml:space="preserve">
+    <value>Zoeken…</value>
+  </data>
+  <data name="RescanToolTip" xml:space="preserve">
+    <value>Laat OpenRGB opnieuw naar apparaten zoeken, bijvoorbeeld als een apparaat dat uit en weer aan ging niet terugkomt.</value>
+  </data>
+  <data name="RescanOpenRgbUnreachable" xml:space="preserve">
+    <value>OpenRGB is niet bereikbaar, dus er is niet opnieuw naar apparaten gezocht. Kijk of OpenRGB draait met de SDK-server aan.</value>
+  </data>
+  <data name="RescanSlow" xml:space="preserve">
+    <value>Het zoeken duurt lang. Apparaten die OpenRGB nog vindt, verschijnen vanzelf in de lijst.</value>
+  </data>
   <data name="LampSwitchAccessibleName" xml:space="preserve">
     <value>{0} aan of uit</value>
   </data>

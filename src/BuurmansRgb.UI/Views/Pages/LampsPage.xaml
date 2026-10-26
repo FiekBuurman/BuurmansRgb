@@ -1,6 +1,7 @@
 <!-- Lampen (§ 5.1 and § 6): the whole house with how many lamps are on and what they show, then every
      lamp as a card, the real ones and the simulated ones each under their own heading. A card opens
-     the lamp on the Kleur page; its switch puts it on or off. -->
+     the lamp on the Kleur page; its switch puts it on or off. "Verversen" at the heading is not in
+     the design (see docs/handleiding.md). -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.LampsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -66,12 +67,27 @@
                 </StackPanel>
             </Border>
 
+            <!-- "Verversen" lets OpenRGB search again and says "Zoeken…" meanwhile; it stays enabled, so
+                 the keyboard focus stays on it, and a second click while it searches does nothing. -->
             <DockPanel Margin="0,22,0,4">
-                <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.AddLamps}"
-                        ToolTip="{x:Static res:Strings.AddLampsToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.AddLampsToolTip}"
-                        Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Margin="0,0,12,0" Style="{StaticResource LinkButton}" Content="{Binding DeviceRescan.ButtonText}"
+                            ToolTip="{x:Static res:Strings.RescanToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RescanToolTip}"
+                            AutomationProperties.Name="{Binding DeviceRescan.ButtonText}" AutomationProperties.AutomationId="RescanDevices"
+                            Command="{Binding DeviceRescan.RescanCommand}" />
+                    <Button Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.AddLamps}"
+                            ToolTip="{x:Static res:Strings.AddLampsToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.AddLampsToolTip}"
+                            Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
+                </StackPanel>
                 <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}" />
             </DockPanel>
+
+            <!-- What the last search left to say, read out by a screen reader when it appears. -->
+            <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap"
+                       Text="{Binding DeviceRescan.Message, NotifyOnTargetUpdated=True}"
+                       Visibility="{Binding DeviceRescan.HasMessage, Converter={StaticResource BoolToVisibility}}"
+                       AutomationProperties.AutomationId="RescanMessage" AutomationProperties.LiveSetting="Polite"
+                       views:LiveRegion.AnnouncesUpdates="True" />
 
             <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoLamps}"
                        Visibility="{Binding Lamps.HasLamps, Converter={StaticResource InverseBoolToVisibility}}" />

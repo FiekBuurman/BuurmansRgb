@@ -5,8 +5,8 @@ namespace BuurmansRgb.Engine.Lighting;
 // Lets a setting hide the devices of a provider, such as the simulated ones (see
 // SimulatedDevicesSwitch). Switching raises DevicesChanged, so the lighting picks up the change at
 // once. Changes of the inner provider pass through while it is enabled. Made with For, which only
-// gives a resizable wrapper for a resizable provider, so the type tells what the inner provider
-// can do.
+// gives a resizable or rescannable wrapper for a resizable or rescannable provider, so the type
+// tells what the inner provider can do.
 internal class SwitchableDeviceProvider : IDynamicDeviceProvider
 {
     private readonly IDeviceProvider _inner;
@@ -70,7 +70,9 @@ internal class SwitchableDeviceProvider : IDynamicDeviceProvider
     public static SwitchableDeviceProvider For(IDeviceProvider inner) => inner switch
     {
         IRestorableDeviceProvider => throw new NotSupportedException($"Provider '{inner.Name}' can restore its devices, which a switchable provider does not pass on yet."),
+        IResizableDeviceProvider resizable and IRescannableDeviceProvider => new ResizableRescannable(resizable),
         IResizableDeviceProvider resizable => new Resizable(resizable),
+        IRescannableDeviceProvider rescannable => new Rescannable(rescannable),
         _ => new SwitchableDeviceProvider(inner),
     };
 
@@ -94,7 +96,21 @@ internal class SwitchableDeviceProvider : IDynamicDeviceProvider
         }
     }
 
-    private sealed class Resizable(IResizableDeviceProvider inner) : SwitchableDeviceProvider(inner), IResizableDeviceProvider
+    // While disabled the devices are hidden, so there is nothing to search for: that counts as done.
+    private Task<bool> RescanInnerAsync(CancellationToken ct) =>
+        IsEnabled ? ((IRescannableDeviceProvider)_inner).RequestRescanAsync(ct) : Task.FromResult(true);
+
+    private sealed class Rescannable(IRescannableDeviceProvider inner) : SwitchableDeviceProvider(inner), IRescannableDeviceProvider
+    {
+        public Task<bool> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
+    }
+
+    private sealed class ResizableRescannable(IResizableDeviceProvider inner) : Resizable(inner), IRescannableDeviceProvider
+    {
+        public Task<bool> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
+    }
+
+    private class Resizable(IResizableDeviceProvider inner) : SwitchableDeviceProvider(inner), IResizableDeviceProvider
     {
         // While disabled the devices are hidden, so they cannot be resized either.
         public void ResizeZone(string deviceId, int zoneIndex, int ledCount)

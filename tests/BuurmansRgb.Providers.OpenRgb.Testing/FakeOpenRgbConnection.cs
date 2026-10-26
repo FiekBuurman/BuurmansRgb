@@ -45,6 +45,25 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
         connector.CustomModeIndexes.Add(deviceIndex);
     }
 
+    // Like OpenRGB: no answer to the request itself; the device list update follows.
+    public Task RequestRescanAsync(CancellationToken ct)
+    {
+        ThrowIfGone();
+        if (FailSends)
+        {
+            throw new SocketException((int)SocketError.ConnectionReset);
+        }
+
+        connector.RescanRequests++;
+        if (connector.AnswersRescan)
+        {
+            connector.Devices = connector.DevicesAfterRescan ?? connector.Devices;
+            RaiseDeviceListChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
     // Like OpenRGB: the device gets its new length, without a device list update.
     public void ResizeZone(int deviceIndex, int zoneIndex, int ledCount)
     {
@@ -54,7 +73,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
             throw new SocketException((int)SocketError.ConnectionReset);
         }
 
-        connector.Resizes.Add((deviceIndex, zoneIndex, ledCount));
+        connector.Resizes.Enqueue((deviceIndex, zoneIndex, ledCount));
         connector.Devices =
         [
             .. connector.Devices.Select(device => device.Index != deviceIndex ? device : TestDevices.Resize(device, zoneIndex, ledCount)),
@@ -74,7 +93,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
             return false;
         }
 
-        connector.Updates.Add((deviceIndex, colors.ToArray()));
+        connector.Updates.Enqueue((deviceIndex, colors.ToArray()));
         return true;
     }
 

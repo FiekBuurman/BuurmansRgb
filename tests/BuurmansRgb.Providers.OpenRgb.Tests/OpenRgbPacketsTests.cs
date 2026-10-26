@@ -48,4 +48,15 @@ public sealed class OpenRgbPacketsTests
         Assert.Equal(5u, dataLength);
         Assert.Equal("Test\0", Encoding.ASCII.GetString(packet, OpenRgbPackets.HeaderLength, (int)dataLength));
     }
+
+    [Fact]
+    public void RequestRescanDevices_IsAHeaderWithCommand140AndNoData()
+    {
+        var packet = OpenRgbPackets.RequestRescanDevices();
+
+        Assert.Equal(OpenRgbPackets.HeaderLength, packet.Length);
+        Assert.True(OpenRgbPackets.TryReadHeader(packet, out var command, out var dataLength));
+        Assert.Equal(140u, (uint)command);
+        Assert.Equal(0u, dataLength);
+    }
 }
