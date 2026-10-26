@@ -178,6 +178,22 @@ public sealed class CustomEffectLibraryTests : IDisposable
         Assert.Equal([disco], _store.Effects);
     }
 
+    // A second change after a failed write: the file gets both.
+    [Fact]
+    public void Save_StoreFailsThenAnotherChange_WritesBoth()
+    {
+        _store.SaveException = new IOException("in use");
+        var disco = _library.Save(Effect("", "Disco"));
+        _time.Advance(Delay);
+        _store.SaveException = null;
+
+        var feest = _library.Save(Effect("", "Feest"));
+        _time.Advance(Delay);
+
+        Assert.Equal([disco, feest], _store.Effects);
+        Assert.Equal(1, _store.SaveCount);
+    }
+
     [Fact]
     public void Delete_RemovesTheEffect()
     {
