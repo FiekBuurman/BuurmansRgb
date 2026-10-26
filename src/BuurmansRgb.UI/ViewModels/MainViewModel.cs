@@ -578,16 +578,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             for (var i = 0; i < wanted.Length; i++)
             {
                 var (id, name) = wanted[i];
-                var at = Effects.Skip(i).ToList().FindIndex(option => option.Id == id);
-                if (at < 0)
+                var at = i;
+                while (at < Effects.Count && Effects[at].Id != id)
+                {
+                    at++;
+                }
+
+                if (at == Effects.Count)
                 {
                     Effects.Insert(i, new EffectOption(id, name));
                     continue;
                 }
 
-                if (at > 0)
+                if (at > i)
                 {
-                    Effects.Move(i + at, i);
+                    Effects.Move(at, i);
                 }
 
                 Effects[i].DisplayName = name;
