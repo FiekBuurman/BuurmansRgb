@@ -551,11 +551,11 @@ toetsenbord. Een paar dingen om te proberen:
   niet elk bolletje elk frame apart gerenderd wordt.
 - **Schermlezer:** UI Automation noemt een item van een `ItemsControl` naar de `ToString` van
   zijn view model, ook als de knop erin een eigen `AutomationProperties.Name` heeft. Elk view
-  model in een lijst heeft daarom een `ToString` met zijn Nederlandse naam (`ColorSwatch`,
-  `LampItem`, `ColorPreset`, ...), ook een record. Gelijke records worden voor UI Automation één
-  item. Een rij bolletjes die alleen sier is, is een `DecorativeItemsControl`: zonder
-  `AutomationProperties.Name` slaat UI Automation hem over, met een naam is hij één afbeelding
-  (de bolletjes van een scènekaart). `AccessibleNamesViewTests` bewaakt dat per pagina.
+  model in een lijst heeft daarom een `ToString` met de naam die de UI ervoor toont
+  (`ColorSwatch`, `LampItem`, `ColorPreset`, ...), ook een record. Gelijke records worden voor UI
+  Automation één item. Een rij bolletjes die alleen sier is, is een `DecorativeItemsControl`:
+  zonder `AutomationProperties.Name` slaat UI Automation hem over, met een naam is hij één
+  afbeelding (de bolletjes van een scènekaart). `AccessibleNamesViewTests` bewaakt dat per pagina.
 - **Lettertypes:** Bricolage Grotesque (Regular, SemiBold, ExtraBold) en IBM Plex Mono Medium
   zitten als resource in `BuurmansRgb.UI.dll` (`src/BuurmansRgb.UI/Fonts`), per gewicht een
   eigen bestand omdat WPF van een variabel lettertype alleen het standaardgewicht toont. Ze
