@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -174,6 +175,41 @@ public sealed class ToolboxViewTests
 
     internal static List<Button> PresetTiles(DependencyObject page) =>
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is ColorPreset)];
+
+    // With the rainbow, which uses no color of the device, "Op de strip zetten" is gone and the
+    // preview says why, under "Nog niet op het apparaat", which it does not say then; the toolbox
+    // and "+" stay. With Statisch the button is back, without the message.
+    [Fact]
+    public async Task ApplyButton_Rainbow_IsGoneAndThePreviewSaysWhy()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var apply = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.ApplyColor));
+            var message = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == viewModel.DeviceColorUnusedText);
+            var notApplied = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == Strings.ColorNotApplied);
+
+            PageViews.Click(PresetTiles(page)[1]);
+
+            Assert.False(apply.IsVisible);
+            Assert.True(message.IsVisible);
+            Assert.StartsWith("Regenboog", message.Text, StringComparison.Ordinal);
+            Assert.False(notApplied.IsVisible);
+            Assert.True(AddButton(page).IsEnabled);
+
+            viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(apply.IsVisible);
+            Assert.False(message.IsVisible);
+        });
+    }
 
     private static List<Button> CustomTiles(DependencyObject page) =>
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is CustomColorItem)];

@@ -235,6 +235,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool IsCustomEffect => SelectedEffect?.IsCustom == true;
 
+    // The selected effect shows no color of the device (EffectIds.UsesDeviceColor), such as the
+    // rainbow: what that does to the color picker is in SetPickerAppliesAtOnce.
+    private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
+
+    // "Regenboog gebruikt geen kleur van het apparaat. ...", under the mixed color.
+    public string DeviceColorUnusedText => SelectedEffect is { } effect ? UiText.Format(Strings.DeviceColorUnused, effect.DisplayName) : string.Empty;
+
     // What the colors do in the selected effect, such as "every round the next color".
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
 
@@ -265,7 +272,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect), nameof(DeviceColorUnusedText))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -1068,7 +1075,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // A color of the loop, of the list of an effect, of a step or of chosen LEDs changes at once with the
     // picker, as the tile or the LEDs show it; the color of the whole lamp waits for "Op de strip
     // zetten", so it can be mixed first.
-    private void SetPickerAppliesAtOnce() => ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect;
+    // An effect that uses no color of the device, such as the rainbow, leaves the mixed color nowhere
+    // to go: the page says so, without "Op de strip zetten".
+    private void SetPickerAppliesAtOnce()
+    {
+        ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect;
+        ColorPicker.IsUnused = !ColorPicker.AppliesAtOnce && IsDeviceColorUnused;
+    }
 
     // The list of the selected effect, or its default: the lamp color, or the warm colors of the
     // fire. selectFirst for another effect, whose list has nothing to do with the selection before.

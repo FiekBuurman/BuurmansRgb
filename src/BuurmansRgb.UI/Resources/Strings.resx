@@ -844,6 +844,10 @@
   <data name="ColorNotApplied" xml:space="preserve">
     <value>Nog niet op het apparaat</value>
   </data>
+  <data name="DeviceColorUnused" xml:space="preserve">
+    <value>{0} gebruikt geen kleur van het apparaat. Een kleur die je hier mengt, kun je bij je eigen kleuren bewaren voor een ander effect.</value>
+    <comment>{0} is de naam van het effect, bijv. Regenboog. Onder de gemengde kleur, in plaats van de knop Op de strip zetten.</comment>
+  </data>
   <data name="LightingHeader" xml:space="preserve">
     <value>Licht en beweging</value>
   </data>
