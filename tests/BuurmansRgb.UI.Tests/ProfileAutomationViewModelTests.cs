@@ -224,7 +224,7 @@ public sealed class ProfileAutomationViewModelTests
 
         automation.FindProgramsCommand.Execute(null);
 
-        Assert.Equal(programs, automation.RunningPrograms);
+        Assert.Equal(programs, automation.RunningPrograms.Select(item => item.Program));
         Assert.True(automation.HasRunningPrograms);
     }
 
@@ -247,7 +247,7 @@ public sealed class ProfileAutomationViewModelTests
         first.SetResult([new("old.exe")]);
         await firstSearch;
 
-        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(program => program.ExeName));
+        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(item => item.Program.ExeName));
     }
 
     // The same programs again keep the list as it is, so an open list keeps its highlighted item and
@@ -274,7 +274,7 @@ public sealed class ProfileAutomationViewModelTests
 
         await automation.FindProgramsCommand.ExecuteAsync(null);
 
-        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(program => program.ExeName));
+        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(item => item.Program.ExeName));
         Assert.Equal(2, changes.Count(change => change == nameof(automation.RunningPrograms)));
     }
 

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using BuurmansRgb.UI.Resources;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Win32;
 
@@ -55,9 +54,9 @@ public partial class ScenesPage : UserControl
     // it selects.
     private void OnRunningProgramPicked(object sender, SelectionChangedEventArgs e)
     {
-        if (RunningPrograms.SelectedItem is RunningProgram program)
+        if (RunningPrograms.SelectedItem is RunningProgramItem item)
         {
-            Automation?.PickRunningProgramCommand.Execute(program);
+            Automation?.PickRunningProgramCommand.Execute(item);
             Dispatcher.BeginInvoke(DispatcherPriority.Background, () => RunningPrograms.SelectedItem = null);
         }
     }

@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using BuurmansRgb.UI.Services;
+using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -15,7 +16,7 @@ public sealed class WindowedProgramsTests
             [new(1, "olk", "Inbox - fiek - Outlook"), new(2, "TOTALCMD64", "Total Commander 11.03 - NOT REGISTERED")],
             new() { [1] = "Outlook", [2] = "Total Commander 64+" });
 
-        Assert.Equal(["Outlook (olk.exe)", "Total Commander 64+ (TOTALCMD64.exe)"], programs.Select(program => program.Label));
+        Assert.Equal(["Outlook (olk.exe)", "Total Commander 64+ (TOTALCMD64.exe)"], Labels(programs));
         Assert.Equal(["olk.exe", "TOTALCMD64.exe"], programs.Select(program => program.ExeName));
     }
 
@@ -25,7 +26,7 @@ public sealed class WindowedProgramsTests
     {
         var programs = Find([new(1, "mRemoteNG", "mRemoteNG - confCons.xml"), new(2, "game", ""), new(3, "tool", "  ")], new() { [2] = " " });
 
-        Assert.Equal(["game.exe", "mRemoteNG - confCons.xml (mRemoteNG.exe)", "tool.exe"], programs.Select(program => program.Label));
+        Assert.Equal(["game.exe", "mRemoteNG - confCons.xml (mRemoteNG.exe)", "tool.exe"], Labels(programs));
         Assert.All(programs.Where(program => program.ExeName != "mRemoteNG.exe"), program => Assert.Equal(program.ExeName, program.Name));
     }
 
@@ -52,7 +53,7 @@ public sealed class WindowedProgramsTests
 
         Assert.Equal(
             ["Brave Browser (brave.exe)", "Locked 1 (locked1.exe)", "Locked 3 (locked3.exe)", "Locked 5 (locked5.exe)", "locked2.exe", "locked4.exe"],
-            programs.Select(program => program.Label).Order(StringComparer.Ordinal));
+            Labels(programs).Order(StringComparer.Ordinal));
     }
 
     // In the order of the names a user reads, not of the exe names.
@@ -82,7 +83,7 @@ public sealed class WindowedProgramsTests
             });
 
         var program = Assert.Single(programs);
-        Assert.Equal("Notepad++ : a free (GNU) source code editor (notepad++.exe)", program.Label);
+        Assert.Equal("Notepad++ : a free (GNU) source code editor (notepad++.exe)", Label(program));
         Assert.Equal([1, 2], read);
     }
 
@@ -94,7 +95,7 @@ public sealed class WindowedProgramsTests
     {
         var program = Assert.Single(Find([new(1, "notepad", "")], new() { [1] = description }));
 
-        Assert.Equal("notepad.exe", program.Label);
+        Assert.Equal("notepad.exe", Label(program));
     }
 
     // So a description that only says the exe name again leaves the turn to the title of the
@@ -106,7 +107,7 @@ public sealed class WindowedProgramsTests
     {
         var programs = Find([new(1, "game", "ELDEN RING"), new(2, "tool", "Tool")], new() { [1] = description, [2] = "tool" });
 
-        Assert.Equal(["ELDEN RING (game.exe)", "tool.exe"], programs.Select(program => program.Label));
+        Assert.Equal(["ELDEN RING (game.exe)", "tool.exe"], Labels(programs));
     }
 
     // The title of a document can be long; the list stays narrow and the field still gets the exe.
@@ -181,6 +182,11 @@ public sealed class WindowedProgramsTests
         Assert.Equal(expected, SystemProcesses.Description(Environment.ProcessId));
         Assert.Null(SystemProcesses.Description(0));
     }
+
+    // As the list shows them (RunningProgramItem).
+    private static IEnumerable<string> Labels(IEnumerable<RunningProgram> programs) => programs.Select(Label);
+
+    private static string Label(RunningProgram program) => new RunningProgramItem(program).Label;
 
     private static IReadOnlyList<RunningProgram> Find(WindowedProcess[] processes, Dictionary<int, string?> descriptions) =>
         WindowedPrograms.Find(processes, id => descriptions.GetValueOrDefault(id));

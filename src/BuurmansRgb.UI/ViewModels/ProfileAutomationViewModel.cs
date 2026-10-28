@@ -43,7 +43,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // until then. The list opens with what it had and gets the new programs a moment later.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRunningPrograms))]
-    public partial IReadOnlyList<RunningProgram> RunningPrograms { get; private set; } = [];
+    public partial IReadOnlyList<RunningProgramItem> RunningPrograms { get; private set; } = [];
 
     public bool HasRunningPrograms => RunningPrograms.Count > 0;
 
@@ -55,15 +55,15 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     {
         var search = ++_programSearches;
         var programs = await _findPrograms();
-        if (search == _programSearches && !programs.SequenceEqual(RunningPrograms))
+        if (search == _programSearches && !programs.SequenceEqual(RunningPrograms.Select(item => item.Program)))
         {
-            RunningPrograms = programs;
+            RunningPrograms = [.. programs.Select(program => new RunningProgramItem(program))];
         }
     }
 
     // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
     [RelayCommand]
-    private void PickRunningProgram(RunningProgram? program) => PickProgram(program?.ExeName);
+    private void PickRunningProgram(RunningProgramItem? item) => PickProgram(item?.Program.ExeName);
 
     // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts.
     [RelayCommand]
