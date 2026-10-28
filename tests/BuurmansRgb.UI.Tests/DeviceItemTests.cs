@@ -178,6 +178,25 @@ public sealed class DeviceItemTests
         Assert.Null(item.LocationToolTip);
     }
 
+    // A long name is cut off on a narrow card; the tooltip holds the whole one.
+    [Fact]
+    public void CardToolTip_DeviceWithoutLocation_IsTheWholeName()
+    {
+        var item = DeviceItem.For(TestDevices.Create("fan", "Gesimuleerde ventilator met twee ringen", DeviceType.Fan, 12));
+
+        Assert.Equal("Gesimuleerde ventilator met twee ringen", item.CardToolTip);
+    }
+
+    [Fact]
+    public void CardToolTip_DeviceWithALocation_IsTheNameAndTheWholeLocation()
+    {
+        var stick = TestDevices.Create("ram", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x52") };
+
+        var item = DeviceItem.For(stick, "Adres 0x52");
+
+        Assert.Equal($"ENE DRAM 2{Environment.NewLine}Locatie: PIIX4, adres 0x52", item.CardToolTip);
+    }
+
     [Fact]
     public void For_DeviceWithDirectMode_WarnsNothing()
     {

@@ -48,7 +48,8 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
   "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een heel
   donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
-  blijft zien.
+  blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
+  kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen.
 - **Verversen** (naast "+ Erbij knutselen") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik

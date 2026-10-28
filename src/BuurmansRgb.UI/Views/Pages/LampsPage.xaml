@@ -129,7 +129,7 @@
                         <Grid>
                             <Button Style="{StaticResource CardButton}" Padding="16,14,82,14"
                                     Command="{Binding DataContext.Lamps.OpenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}" ToolTip="{Binding Device.LocationToolTip}"
+                                    CommandParameter="{Binding}" ToolTip="{Binding Device.CardToolTip}"
                                     AutomationProperties.Name="{Binding OpenAccessibleName}"
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
                                 <DockPanel Background="Transparent">
