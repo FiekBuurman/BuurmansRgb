@@ -40,6 +40,11 @@ public sealed class ConfirmDialogViewTests
             Assert.Same(owner, dialog.Owner);
             Assert.Equal(WindowStartupLocation.CenterOwner, dialog.WindowStartupLocation);
             Assert.False(dialog.ShowInTaskbar);
+
+            // The title bar of the app: its icon, which a screen reader names, and the word mark.
+            var icon = Assert.Single(AppTheme.Descendants<Image>(dialog));
+            Assert.Equal(Strings.WindowTitle, new ImageAutomationPeer(icon).GetName());
+            Assert.Contains(Texts(dialog), text => text.IsVisible && new TextBlockAutomationPeer(text).GetName() == "buurmansRgb");
         });
     }
 

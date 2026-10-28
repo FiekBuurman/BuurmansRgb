@@ -18,10 +18,7 @@
         <DockPanel Height="44">
             <Button DockPanel.Dock="Right" Style="{StaticResource CloseCaptionButton}" Click="OnCancelClick"
                     AutomationProperties.Name="{x:Static res:Strings.CaptionClose}" />
-            <StackPanel Margin="18,0,0,0" Orientation="Horizontal" VerticalAlignment="Center">
-                <Image Width="26" Height="26" Source="{StaticResource AppIconSmallDark}" AutomationProperties.Name="{x:Static res:Strings.WindowTitle}" />
-                <ContentControl Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource Wordmark}" />
-            </StackPanel>
+            <ContentControl Style="{StaticResource TitleBarLogo}" />
         </DockPanel>
 
         <StackPanel Margin="24,12,24,24">
