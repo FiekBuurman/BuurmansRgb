@@ -49,7 +49,7 @@ public sealed class LampsPageViewTests
             var hint = Hint(page);
             Assert.True(hint.IsVisible);
             Assert.Equal(Strings.SimulatedDevicesOnlyHint, hint.Text);
-            Assert.Contains(Tree(page), peer => peer.GetName() == Strings.SimulatedDevicesOnlyHint);
+            Assert.Contains(PageViews.AutomationTree(page), peer => peer.GetName() == Strings.SimulatedDevicesOnlyHint);
 
             var link = HintLink(page);
             Assert.Equal(Strings.SimulatedDevicesOnlyLink, new ButtonAutomationPeer(link).GetName());
@@ -95,20 +95,4 @@ public sealed class LampsPageViewTests
 
     private static Button HintLink(DependencyObject page) =>
         AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "SimulatedDevicesHintLink");
-
-    // Every element UI Automation finds in the page, as a screen reader walks it.
-    private static List<AutomationPeer> Tree(FrameworkElement page) =>
-        [.. Descendants(UIElementAutomationPeer.CreatePeerForElement(page))];
-
-    private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer)
-    {
-        yield return peer;
-        foreach (var child in peer.GetChildren() ?? [])
-        {
-            foreach (var descendant in Descendants(child))
-            {
-                yield return descendant;
-            }
-        }
-    }
 }

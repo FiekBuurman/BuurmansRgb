@@ -28,7 +28,7 @@ public sealed class AccessibleNamesViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
-            var tree = Tree(page);
+            var tree = PageViews.AutomationTree(page);
 
             AssertNoNameOfCode(tree);
             Assert.Equal(["LED strip", "Fan"], ItemNames<LampItem>(tree));
@@ -114,7 +114,7 @@ public sealed class AccessibleNamesViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var tree = Tree(page);
+            var tree = PageViews.AutomationTree(page);
 
             AssertNoNameOfCode(tree);
             Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), ItemNames<ColorPreset>(tree));
@@ -132,7 +132,7 @@ public sealed class AccessibleNamesViewTests
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.CountZoneAccessibleName, "Board", "ARGB 1")));
-            var tree = Tree(page);
+            var tree = PageViews.AutomationTree(page);
 
             AssertNoNameOfCode(tree);
             Assert.Equal(
@@ -158,7 +158,7 @@ public sealed class AccessibleNamesViewTests
         {
             var page = PageViews.Show<ScenesPage>(panel, viewModel);
             PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.SceneEditAccessibleName, "Avond")));
-            var tree = Tree(page);
+            var tree = PageViews.AutomationTree(page);
 
             AssertNoNameOfCode(tree);
             Assert.Equal(["Avond"], ItemNames<SceneCard>(tree));
@@ -178,24 +178,8 @@ public sealed class AccessibleNamesViewTests
         {
             var page = PageViews.Show<SettingsPage>(panel, viewModel);
 
-            AssertNoNameOfCode(Tree(page));
+            AssertNoNameOfCode(PageViews.AutomationTree(page));
         });
-    }
-
-    // Every element UI Automation finds in the page, as a screen reader walks it.
-    private static List<AutomationPeer> Tree(FrameworkElement page) =>
-        [.. Descendants(UIElementAutomationPeer.CreatePeerForElement(page))];
-
-    private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer)
-    {
-        yield return peer;
-        foreach (var child in peer.GetChildren() ?? [])
-        {
-            foreach (var descendant in Descendants(child))
-            {
-                yield return descendant;
-            }
-        }
     }
 
     // The type of a view model or the text of a record: what WPF says without a name of its own.
