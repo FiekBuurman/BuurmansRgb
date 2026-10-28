@@ -43,6 +43,37 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
+    // SizeToContent measures with the frame of Windows, which the title bar of our own then
+    // takes away; the window is as large as what is in it plus its border, without empty space
+    // on the right and at the bottom.
+    [Theory]
+    [InlineData(Detail)]
+    [InlineData(null)]
+    public void Dialog_IsAsLargeAsItsContent(string? detail)
+    {
+        Show(detail, (_, dialog) =>
+        {
+            var content = (FrameworkElement)dialog.Content;
+            var border = dialog.BorderThickness;
+
+            Assert.Equal(content.ActualWidth + border.Left + border.Right, dialog.ActualWidth, 0.5);
+            Assert.Equal(content.ActualHeight + border.Top + border.Bottom, dialog.ActualHeight, 0.5);
+        });
+    }
+
+    // Measured again, the window still stands in the middle of its owner. Windows moves a window
+    // off screen onto it, so here the owner stands on screen, for as long as the test lasts. Up
+    // to a pixel, which Windows rounds to.
+    [Fact]
+    public void Dialog_StaysInTheMiddleOfItsOwner()
+    {
+        Show(Detail, (owner, dialog) =>
+        {
+            Assert.Equal(owner.Left + (owner.ActualWidth / 2), dialog.Left + (dialog.ActualWidth / 2), 1.0);
+            Assert.Equal(owner.Top + (owner.ActualHeight / 2), dialog.Top + (dialog.ActualHeight / 2), 1.0);
+        }, ownerOnScreen: true);
+    }
+
     [Fact]
     public void Dialog_WithoutDetail_ShowsOnlyTheQuestion()
     {
@@ -103,9 +134,18 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
-    private static void Show(string? detail, Action<Window, ConfirmDialog> test) => AppTheme.Run(panel =>
+    private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool ownerOnScreen = false) => AppTheme.Run(panel =>
     {
         var owner = Window.GetWindow(panel)!;
+        if (ownerOnScreen)
+        {
+            owner.Left = 100;
+            owner.Top = 100;
+            owner.Width = 600;
+            owner.Height = 400;
+            OffscreenWindow.WaitUntilIdle();
+        }
+
         var dialog = ConfirmDialog.For(owner, Question, detail);
         dialog.ShowActivated = false;
         var closed = false;
