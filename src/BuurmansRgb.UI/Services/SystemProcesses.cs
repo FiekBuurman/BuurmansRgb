@@ -9,7 +9,8 @@ namespace BuurmansRgb.UI.Services;
 internal static class SystemProcesses
 {
     // By the path of the exe: a file keeps its description, so a list that opens again only reads
-    // the programs that started since.
+    // the programs that started since. Never read again while the app runs, so a program that is
+    // updated meanwhile to another description keeps the old one until the app starts again.
     private static readonly ConcurrentDictionary<string, string?> Descriptions = new(StringComparer.OrdinalIgnoreCase);
 
     // The processes with a main window, except this app itself. The name and the title come from
