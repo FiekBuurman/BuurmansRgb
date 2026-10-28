@@ -241,6 +241,29 @@ public sealed class MainViewModelLampTests
         Assert.Contains(nameof(MainViewModel.ShowsSimulatedDevicesHint), changes);
     }
 
+    // Connecting shows the devices before the engine said the mode of the simulated devices: the
+    // line stays away until "Automatisch" is in, so it does not flash up for someone with "Altijd".
+    [Fact]
+    public async Task SimulatedDevicesHint_WaitsForTheModeOfTheEngine()
+    {
+        var slowLighting = new TaskCompletionSource();
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+        {
+            api.Devices = [TestDevices.Create("sim", "Simulated fan", DeviceType.Fan, 2, DeviceSource.Simulated)];
+            api.LightingGate = slowLighting.Task;
+        }));
+
+        var connecting = viewModel.ConnectCommand.ExecuteAsync(null);
+        await Eventually.TrueAsync(() => viewModel.Lamps.HasOnlySimulatedLamps);
+        Assert.Null(viewModel.SimulatedDevices.SelectedOption);
+        Assert.False(viewModel.ShowsSimulatedDevicesHint);
+
+        slowLighting.SetResult();
+        await connecting;
+        Assert.Equal(SimulatedDevicesMode.Automatic, viewModel.SimulatedDevices.SelectedOption?.Mode);
+        Assert.True(viewModel.ShowsSimulatedDevicesHint);
+    }
+
     [Fact]
     public async Task Disconnected_StopsFollowingTheLighting()
     {
