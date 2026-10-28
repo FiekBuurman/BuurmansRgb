@@ -184,6 +184,11 @@ uitbreidingen in `docs/bouwplan.md`.
   - Een scène die een kopie van het effect bewaart in plaats van een verwijzing, zodat hij er
     hetzelfde uit blijft zien als je het effect later aanpast of verwijdert
   - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
+  - De namen van de ingebouwde effecten op één plek: nu staan ze in de `Strings.resx` van de app
+    én van de engine, die een eigen effect onder zo'n naam weigert (`EffectNamesTests` houdt ze
+    gelijk). Bij een vertaling kan de engine ze bijv. met `GetEffectsAsync` meegeven
+  - Melden dat de engine een eigen effect uit `effects.json` een nieuwe naam gaf ("Regenboog" werd
+    "Regenboog (eigen)"); nu staat dat alleen in het logboek
   - Bij een wijziging niet de hele lijst laten ophalen: `CustomEffectsChanged` met het gewijzigde
     effect, of zonder melding aan de verbinding die het zelf bewaarde. Nu haalt elke app bij elke
     stap van een slepende schuif alle eigen effecten op; dat is het grootste deel van de CPU van
