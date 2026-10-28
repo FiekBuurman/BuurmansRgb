@@ -89,7 +89,7 @@ schakelaar ernaast.
   zodra de code klopt. Een code die geen kleur is (`zzz`, `#12`) doet niets terwijl je typt,
   want `#12` kan nog `#123456` worden. Verlaat je het veld (Tab of een klik ergens anders), dan
   staat de code van de kleur er weer en zegt een melding eronder bijv. "'zzz' is geen kleurcode
-  zoals #FF9A3D; de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
+  (zes tekens, zoals #FF9A3D); de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
   een andere kleur of een ander apparaat haalt de melding weg. Een leeg veld krijgt de code
   terug zonder melding.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")

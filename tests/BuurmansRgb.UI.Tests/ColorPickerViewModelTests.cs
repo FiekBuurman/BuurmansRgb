@@ -105,7 +105,7 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal("#FF9A3D", _picker.HexColor);
         Assert.Equal(new RgbColor(255, 154, 61), _picker.Color);
-        Assert.Equal($"'{text}' is geen kleurcode zoals #FF9A3D; de kleur blijft #FF9A3D.", _picker.HexError);
+        Assert.Equal($"'{text}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF9A3D.", _picker.HexError);
         Assert.False(_picker.HasUnappliedChange);
         Assert.Empty(_picked);
     }
@@ -121,7 +121,7 @@ public sealed class ColorPickerViewModelTests
         _picker.EndHexEdit();
 
         Assert.Equal("#FF0000", _picker.HexColor);
-        Assert.Equal("'rood' is geen kleurcode zoals #FF9A3D; de kleur blijft #FF0000.", _picker.HexError);
+        Assert.Equal("'rood' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF0000.", _picker.HexError);
         Assert.True(_picker.HasUnappliedChange);
     }
 

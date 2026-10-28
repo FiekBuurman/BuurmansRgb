@@ -158,7 +158,7 @@
     <value>Hex-code</value>
   </data>
   <data name="HexCodeInvalidKept" xml:space="preserve">
-    <value>'{0}' is geen kleurcode zoals #FF9A3D; de kleur blijft {1}.</value>
+    <value>'{0}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft {1}.</value>
     <comment>Nadat het veld van de hex-code de focus verloor met een code die geen kleur is, zoals "zzz" of "#12", en de code van de kleur weer toont. {0} = de getypte code, {1} = de code van de kleur die blijft.</comment>
   </data>
   <data name="BrightnessHeader" xml:space="preserve">
