@@ -43,9 +43,9 @@ public sealed class EffectCatalogTests
         Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectIds.IsAnimated(id), EffectCatalog.Create(id, Orange, []).IsAnimated));
     }
 
-    // The settings app says that an effect uses no color of its own, and leaves out "Op de strip
-    // zetten", for the effects EffectIds says do not use the color of the device: their LEDs are
-    // the same in another device color, over a few seconds of the animation.
+    // The settings app says that an effect uses no color of its own, and leaves out "Op het
+    // apparaat zetten", for the effects EffectIds says do not use the color of the device: their
+    // LEDs are the same in another device color, over a few seconds of the animation.
     [Fact]
     public void Ids_UseTheDeviceColorExactlyAsEffectIdsSays()
     {
