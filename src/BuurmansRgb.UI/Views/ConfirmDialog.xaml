@@ -23,7 +23,7 @@
 
         <StackPanel Margin="24,12,24,24">
             <TextBlock x:Name="QuestionText" Style="{StaticResource SectionHeader}" TextWrapping="Wrap" />
-            <TextBlock x:Name="DetailText" Margin="0,8,0,0" Style="{StaticResource SubText}" />
+            <TextBlock x:Name="DetailText" Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" />
             <!-- Annuleren first, where the focus starts; Enter does the button that has the focus. -->
             <StackPanel Margin="0,24,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button x:Name="CancelButton" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.Cancel}" Click="OnCancelClick" />

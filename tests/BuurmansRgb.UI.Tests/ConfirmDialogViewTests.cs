@@ -108,6 +108,29 @@ public sealed class ConfirmDialogViewTests
         }, centeredOnOwner: true);
     }
 
+    // A longer detail, or one in a longer language, wraps as the question does: the dialog stays
+    // within its MaxWidth and the detail takes more lines instead of being cut off on the right.
+    [Fact]
+    public void Dialog_WrapsALongDetail()
+    {
+        const string longDetail = "Apparaten en scènes met dit effect worden dan Statisch, ook de scènes die nu niet aan "
+            + "staan en de scènes die aangaan als een programma start; dat kun je daarna niet meer ongedaan maken.";
+        Show(longDetail, (_, dialog) =>
+        {
+            var detail = Texts(dialog).Single(text => text.Text == longDetail);
+            var content = (FrameworkElement)dialog.Content;
+            var oneLine = new TextBlock { Text = "Apparaten", FontFamily = detail.FontFamily, FontSize = detail.FontSize };
+            oneLine.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var whole = new TextBlock { Text = longDetail, FontFamily = detail.FontFamily, FontSize = detail.FontSize };
+            whole.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+
+            Assert.Equal(TextWrapping.Wrap, detail.TextWrapping);
+            Assert.True(whole.DesiredSize.Width > detail.ActualWidth, "the detail is longer than one line of the dialog");
+            Assert.True(content.ActualWidth <= content.MaxWidth + 0.5, "the dialog stays within its MaxWidth");
+            Assert.True(detail.ActualHeight >= 2 * oneLine.DesiredSize.Height, "the detail takes more than one line");
+        });
+    }
+
     [Fact]
     public void Dialog_WithoutDetail_ShowsOnlyTheQuestion()
     {
