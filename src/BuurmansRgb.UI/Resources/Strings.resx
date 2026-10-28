@@ -78,6 +78,10 @@
   <data name="ApplyLedCountToolTip" xml:space="preserve">
     <value>Geeft deze zone het nieuwe aantal LED's, bijvoorbeeld de lengte van de strip die erop zit.</value>
   </data>
+  <data name="ZoneLedCountInvalid" xml:space="preserve">
+    <value>Kies {0} tot {1} LED's.</value>
+    <comment>Onder het getypte aantal LED's als dat geen getal is of buiten het bereik van de zone valt. {0} = het kleinste aantal, {1} = het grootste.</comment>
+  </data>
   <data name="ZoneHeader" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>

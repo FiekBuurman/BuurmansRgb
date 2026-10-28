@@ -1,3 +1,5 @@
+using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using BuurmansRgb.Contracts;
@@ -35,6 +37,31 @@ public sealed class LedPreviewPanelViewTests
                     string.Format(Strings.FlashZoneAccessibleName, "Board", "ARGB 1"),
                 ],
                 flashes.Select(button => new ButtonAutomationPeer(button).GetName()));
+        });
+    }
+
+    // A typed length the zone cannot hold gets a message under the field, which a screen reader
+    // reads when it comes; a length it holds takes it away.
+    [Fact]
+    public async Task TypedLengthTheZoneCannotHold_ShowsTheMessageUnderTheField()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var field = PageViews.Named<TextBox>(preview, string.Format(Strings.ZoneLedCountTextAccessibleName, "Board – ARGB 1"));
+
+            field.Text = "999";
+            OffscreenWindow.WaitUntilIdle();
+            var message = AppTheme.Descendants<TextBlock>(preview).Single(text => text.Text == "Kies 0 tot 60 LED's.");
+            Assert.True(message.IsVisible);
+            Assert.True(message.TranslatePoint(new Point(0, 0), field).Y >= field.ActualHeight);
+            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(message));
+
+            field.Text = "35";
+            OffscreenWindow.WaitUntilIdle();
+            Assert.False(message.IsVisible);
         });
     }
 }

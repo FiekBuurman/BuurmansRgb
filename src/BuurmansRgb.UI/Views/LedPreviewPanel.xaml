@@ -198,6 +198,12 @@
                                                             AutomationProperties.Name="{Binding Length.ApplyAccessibleName}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/apply}" />
                                                 </Grid>
+                                                <!-- Why "Toepassen" cannot take the typed length; a screen reader reads it when it comes. -->
+                                                <DockPanel Margin="0,6,0,0" Visibility="{Binding Length.LedCountError, Converter={StaticResource NullToCollapsed}}">
+                                                    <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                                                    <TextBlock TextWrapping="Wrap" Text="{Binding Length.LedCountError, NotifyOnTargetUpdated=True}"
+                                                               AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+                                                </DockPanel>
                                             </StackPanel>
                                         </StackPanel>
                                     </DataTemplate>
