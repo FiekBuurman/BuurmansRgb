@@ -186,7 +186,11 @@ uitbreidingen in `docs/bouwplan.md`.
   - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
   - De namen van de ingebouwde effecten op één plek: nu staan ze in de `Strings.resx` van de app
     én van de engine, die een eigen effect onder zo'n naam weigert (`EffectNamesTests` houdt ze
-    gelijk). Bij een vertaling kan de engine ze bijv. met `GetEffectsAsync` meegeven
+    gelijk, ook voor elke vertaling van de app). Bij een vertaling kan de engine ze bijv. met
+    `GetEffectsAsync` meegeven. Let dan op een taalwissel: de engine weigert alleen de namen in
+    de taal van dat moment, dus na een wissel kan een eigen effect heten als een ingebouwd effect
+    in de nieuwe taal en hernoemt hij het bij het lezen van `effects.json`, met "(eigen)" in de
+    taal van dat moment
   - Melden dat de engine een eigen effect uit `effects.json` een nieuwe naam gaf ("Regenboog" werd
     "Regenboog (eigen)"); nu staat dat alleen in het logboek
   - Bij een wijziging niet de hele lijst laten ophalen: `CustomEffectsChanged` met het gewijzigde
