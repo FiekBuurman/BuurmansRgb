@@ -269,9 +269,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
     // The line on Apparaten that says the simulated devices are there to try the app, and that the
-    // real ones come by themselves through OpenRGB: only with "Automatisch" while they are all there
-    // is. With "Altijd" the user chose them, with "Nooit" they go, and until the engine said the
-    // mode it stays away, so it does not flash up for someone who chose "Altijd".
+    // real ones come by themselves through OpenRGB: only with "Automatisch", while every device is a
+    // simulated one. With "Altijd" the user chose them, with "Nooit" they go, and until the engine
+    // said the mode it stays away, so it does not flash up for someone who chose "Altijd".
     public bool ShowsSimulatedDevicesHint =>
         Lamps.HasOnlySimulatedLamps && SimulatedDevices.SelectedOption?.Mode == SimulatedDevicesMode.Automatic;
 
