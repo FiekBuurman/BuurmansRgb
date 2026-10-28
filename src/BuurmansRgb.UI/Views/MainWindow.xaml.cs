@@ -54,8 +54,6 @@ public partial class MainWindow : Window
 
     private void OnCloseClick(object sender, RoutedEventArgs e) => SystemCommands.CloseWindow(this);
 
-    // A deleted profile cannot come back, so the user confirms it; No is the default button.
-    private bool ConfirmDelete(string name) =>
-        MessageBox.Show(this, UiText.Format(Strings.ProfileDeleteConfirm, name), Strings.WindowTitle,
-            MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No) == MessageBoxResult.Yes;
+    // A deleted profile cannot come back, so the user confirms it; the focus starts on Annuleren.
+    private bool ConfirmDelete(string name) => ConfirmDialog.Ask(this, UiText.Format(Strings.ProfileDeleteConfirm, name));
 }

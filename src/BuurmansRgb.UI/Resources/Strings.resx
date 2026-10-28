@@ -429,6 +429,10 @@
   <data name="ProfileDeleteConfirm" xml:space="preserve">
     <value>Scène '{0}' verwijderen?</value>
   </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Verwijderen</value>
+    <comment>De knop in de vraag of iets weg mag, naast Annuleren.</comment>
+  </data>
   <data name="ProfileSaved" xml:space="preserve">
     <value>Scène '{0}' in elkaar gezet.</value>
   </data>
