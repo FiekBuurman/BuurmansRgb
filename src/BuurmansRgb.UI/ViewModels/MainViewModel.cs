@@ -705,9 +705,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var name = Enumerable.Range(1, CustomEffects.MaxEffects + 1)
-            .Select(number => UiText.Format(Strings.CustomEffectNewName, number))
-            .First(candidate => !_customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
+        var name = CustomEffects.FirstFreeName(
+            number => UiText.Format(Strings.CustomEffectNewName, number),
+            candidate => _customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
         var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
         _customEffectChanges++;
         _calls.Post(new object(), async () =>

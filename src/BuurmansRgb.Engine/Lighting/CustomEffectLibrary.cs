@@ -341,9 +341,9 @@ internal sealed class CustomEffectLibrary : IDisposable
             }
 
             var own = string.Format(CultureInfo.CurrentCulture, Strings.CustomEffectOwnName, effect.Name);
-            var name = Enumerable.Range(1, CustomEffects.MaxEffects + 1)
-                .Select(number => number == 1 ? own : string.Create(CultureInfo.CurrentCulture, $"{own} {number}"))
-                .First(candidate => !EffectNames.IsBuiltIn(candidate) && !renamed.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
+            var name = CustomEffects.FirstFreeName(
+                number => number == 1 ? own : string.Create(CultureInfo.CurrentCulture, $"{own} {number}"),
+                candidate => EffectNames.IsBuiltIn(candidate) || renamed.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
             Trace.TraceWarning($"The own effect '{effect.Name}' has the name of an effect of the engine; it is called '{name}' now.");
             renamed[i] = effect with { Name = name };
         }
