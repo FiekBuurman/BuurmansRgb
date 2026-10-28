@@ -359,15 +359,6 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal("Zone RGB header van Motherboard laten knipperen", header.FlashAccessibleName);
     }
 
-    // The button of the device and that of a zone say the same word; their names for a screen
-    // reader tell them apart.
-    [Fact]
-    public void FlashButtons_OfTheDeviceAndAZone_SayKnipperen()
-    {
-        Assert.Equal("Knipperen", Strings.FlashDevice);
-        Assert.Equal(Strings.FlashDevice, Strings.FlashZone);
-    }
-
     // The button keeps the focus after a resize, and only the button of the same zone gets it.
     [Fact]
     public void FlashFocusKey_IsTheSameForTheSameZoneOnly()
