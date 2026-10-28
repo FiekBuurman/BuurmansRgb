@@ -129,7 +129,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         LedEditor.PropertyChanged += (_, _) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
-            SetPickerAppliesAtOnce();
+            SetPickerMode();
         };
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
@@ -236,7 +236,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool IsCustomEffect => SelectedEffect?.IsCustom == true;
 
     // The selected effect shows no color of the device (EffectIds.UsesDeviceColor), such as the
-    // rainbow: what that does to the color picker is in SetPickerAppliesAtOnce.
+    // rainbow: SetPickerMode then leaves the picker unused, unless it colors a tile, a step or LEDs.
     private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
 
     // "Regenboog gebruikt geen kleur van het apparaat. ...", under the mixed color.
@@ -507,7 +507,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         ShowEffectColors(selectFirst: true);
         ShowCustomEffectEditor();
-        SetPickerAppliesAtOnce();
+        SetPickerMode();
         if (!_syncing.IsActive && value is not null)
         {
             Send(EffectCall, (api, deviceId) => api.SetEffectAsync(deviceId, value.Id));
@@ -1001,7 +1001,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The picker colors, in this order: the selected LEDs, the selected color of the loop or of the
     // list of the effect, the selected step of an own effect,
     // or the device. The LEDs, the lists and the steps take every mixed color at once
-    // (SetPickerAppliesAtOnce); the call queue lets a newer one replace the one that waits, so a
+    // (SetPickerMode); the call queue lets a newer one replace the one that waits, so a
     // dragged slider sends few. A lamp that is off goes on with the first one, as in most lamp apps.
     private void OnColorPicked(RgbColor color)
     {
@@ -1072,12 +1072,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // A color of the loop, of the list of an effect, of a step or of chosen LEDs changes at once with the
-    // picker, as the tile or the LEDs show it; the color of the whole lamp waits for "Op de strip
-    // zetten", so it can be mixed first.
-    // An effect that uses no color of the device, such as the rainbow, leaves the mixed color nowhere
-    // to go: the page says so, without "Op de strip zetten".
-    private void SetPickerAppliesAtOnce()
+    // What the picker does with a mixed color, one of three:
+    // - at once (AppliesAtOnce): a color of the loop, of the list of an effect, of a step or of chosen
+    //   LEDs changes with the picker, as the tile or the LEDs show it;
+    // - nothing (IsUnused): an effect that uses no color of the device, such as the rainbow, leaves
+    //   the mixed color nowhere to go; the page says so, without "Op de strip zetten";
+    // - with the button: the color of the whole lamp waits for "Op de strip zetten", so it can be
+    //   mixed first.
+    private void SetPickerMode()
     {
         ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect;
         ColorPicker.IsUnused = !ColorPicker.AppliesAtOnce && IsDeviceColorUnused;

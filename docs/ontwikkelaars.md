@@ -194,7 +194,7 @@ toetsenbord. Een paar dingen om te proberen:
   `Contracts`, net als `IsAnimated`: niet Regenboog, de Kleurenloop, Vuur en een eigen effect.
   `EffectCatalogTests` rendert elk effect in twee kleuren van het apparaat en faalt als een nieuw
   effect er niet goed in staat. De app leidt er alleen uit af wat de kiezer met de kleur doet
-  (`MainViewModel.SetPickerAppliesAtOnce`): heeft het effect geen lijst, loop of stappen die de
+  (`MainViewModel.SetPickerMode`): heeft het effect geen lijst, loop of stappen die de
   kleur krijgen en gebruikt het de kleur van het apparaat niet, dan is `ColorPicker.IsUnused`
   waar, zonder "Op de strip zetten" en met de regel `DeviceColorUnused` met de naam van het
   effect. Zo krijgt een later effect zonder kleur die regel vanzelf.
