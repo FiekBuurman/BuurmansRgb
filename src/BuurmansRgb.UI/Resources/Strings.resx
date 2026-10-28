@@ -836,14 +836,19 @@
     <value>Weghalen</value>
   </data>
   <data name="ApplyColor" xml:space="preserve">
-    <value>Op de strip zetten</value>
+    <value>Op het apparaat zetten</value>
+    <comment>De knop onder de schuiven bij één apparaat; het ontwerp zegt "Op de strip zetten".</comment>
+  </data>
+  <data name="ApplyColorAll" xml:space="preserve">
+    <value>Op alle apparaten zetten</value>
+    <comment>Dezelfde knop bij Hele huis.</comment>
   </data>
   <data name="ColorNotApplied" xml:space="preserve">
     <value>Nog niet op het apparaat</value>
   </data>
   <data name="DeviceColorUnused" xml:space="preserve">
     <value>{0} gebruikt geen kleur van het apparaat. Een kleur die je hier mengt, kun je bij je eigen kleuren bewaren voor een ander effect.</value>
-    <comment>{0} is de naam van het effect, bijv. Regenboog. Onder de gemengde kleur, in plaats van de knop Op de strip zetten.</comment>
+    <comment>{0} is de naam van het effect, bijv. Regenboog. Onder de gemengde kleur, in plaats van de knop Op het apparaat zetten.</comment>
   </data>
   <data name="LightingHeader" xml:space="preserve">
     <value>Licht en beweging</value>

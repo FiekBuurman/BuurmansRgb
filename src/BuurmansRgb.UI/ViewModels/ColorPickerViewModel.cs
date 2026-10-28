@@ -7,7 +7,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code and the
 // presets change Color at once, so the preview shows it, but the color only goes to the lamp with
-// Apply ("Op de strip zetten"), which raises ColorPicked. With AppliesAtOnce, as for a color of the
+// Apply ("Op het apparaat zetten"), which raises ColorPicked. With AppliesAtOnce, as for a color of the
 // loop or chosen LEDs, every mixed color raises ColorPicked by itself and Apply has nothing to do.
 // With IsUnused, as for the rainbow, the effect uses no color of the lamp: a mixed color only shows,
 // for the own colors, and Apply is off. Show shows the color the lamp has and raises nothing.
@@ -70,7 +70,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial bool IsUnused { get; set; }
 
-    // "Op de strip zetten" is there only when it has something to do.
+    // "Op het apparaat zetten" is there only when it has something to do.
     public bool ShowsApply => !AppliesAtOnce && !IsUnused;
 
     // "Nog niet op het apparaat", unless the color would not go on it.

@@ -7,7 +7,7 @@ using BuurmansRgb.UI.ViewModels;
 namespace BuurmansRgb.UI.Tests;
 
 // An effect that uses no color of the device, such as the rainbow (EffectIds.UsesDeviceColor): the
-// Kleur page says so under the mixed color, without "Op de strip zetten", and the mixed color only
+// Kleur page says so under the mixed color, without "Op het apparaat zetten", and the mixed color only
 // stays in the picker, for the own colors.
 public sealed class MainViewModelDeviceColorTests
 {

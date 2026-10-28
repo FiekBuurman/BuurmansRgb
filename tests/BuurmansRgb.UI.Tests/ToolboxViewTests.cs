@@ -176,7 +176,29 @@ public sealed class ToolboxViewTests
     internal static List<Button> PresetTiles(DependencyObject page) =>
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is ColorPreset)];
 
-    // With the rainbow, which uses no color of the device, "Op de strip zetten" is gone and the
+    // The button says where the color goes, also for a keyboard or the whole house: "Op alle
+    // apparaten zetten" with Hele huis, "Op het apparaat zetten" with one device.
+    [Fact]
+    public async Task ApplyButton_SaysAllDevicesOrTheDevice()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var apply = AppTheme.Descendants<Button>(page).Single(button => button.Command == viewModel.ColorPicker.ApplyCommand);
+
+            Assert.Equal("Op alle apparaten zetten", apply.Content);
+
+            viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("Op het apparaat zetten", apply.Content);
+            Assert.True(apply.IsVisible);
+        });
+    }
+
+    // With the rainbow, which uses no color of the device, "Op alle apparaten zetten" is gone and the
     // preview says why, under "Nog niet op het apparaat", which it does not say then; the toolbox
     // and "+" stay. With Statisch the button is back, without the message.
     [Fact]
@@ -191,7 +213,7 @@ public sealed class ToolboxViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var apply = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.ApplyColor));
+            var apply = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.ApplyColorAll));
             var message = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == viewModel.DeviceColorUnusedText);
             var notApplied = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == Strings.ColorNotApplied);
 

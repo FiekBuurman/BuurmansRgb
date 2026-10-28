@@ -70,7 +70,7 @@ public sealed class MainViewModelColorLoopTests
         Assert.Equal(new RgbColor(255, 154, 61), viewModel.ColorLoopEditor.Swatches[2].Color);
     }
 
-    // "Op de strip zetten" is only for the color of the whole lamp.
+    // "Op het apparaat zetten" is only for the color of the whole lamp.
     [Fact]
     public async Task SwitchEffect_ThePickerAppliesAtOnceOnlyForTheColorLoop()
     {
@@ -182,7 +182,7 @@ public sealed class MainViewModelColorLoopTests
         Assert.Equal(["loop all #FFFFFF,#00FF00,#0000FF spread"], Api.Calls);
     }
 
-    // The other lamp has no color loop: its color waits for "Op de strip zetten" again.
+    // The other lamp has no color loop: its color waits for "Op het apparaat zetten" again.
     [Fact]
     public async Task SelectAnotherLamp_AfterMixingALoopColor_ShowsTheColorOfThatLamp()
     {
