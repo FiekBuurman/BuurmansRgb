@@ -214,7 +214,7 @@
     <value>Je eigen kleuren lopen in elkaar over.</value>
   </data>
   <data name="EffectDescription_twinkle" xml:space="preserve">
-    <value>Hier en daar licht een LED op en dooft weer, als sterretjes.</value>
+    <value>LED's lichten hier en daar op, als sterretjes.</value>
   </data>
   <data name="EffectDescription_comet" xml:space="preserve">
     <value>Een lichtpunt met een staart erachter loopt rond.</value>
@@ -223,10 +223,10 @@
     <value>Een lichtpunt gaat heen en weer, zoals bij Knight Rider.</value>
   </data>
   <data name="EffectDescription_fire" xml:space="preserve">
-    <value>Flakkert als een vuur, van gloed tot felle vlam.</value>
+    <value>Het licht flakkert als een vuur, van gloed tot felle vlam.</value>
   </data>
   <data name="EffectDescription_per-led" xml:space="preserve">
-    <value>Elke LED een eigen kleur: klik in het voorbeeld op een LED.</value>
+    <value>Geef elke LED in het voorbeeld een eigen kleur.</value>
   </data>
   <data name="CustomEffectDescription" xml:space="preserve">
     <value>Jouw effect: {0} stappen.</value>
