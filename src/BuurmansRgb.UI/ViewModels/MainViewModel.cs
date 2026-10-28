@@ -562,7 +562,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ShowEffects()
     {
         (string Id, string Name)[] wanted =
-            [.. _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName)), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
+            [.. EngineEffectNames(), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
         var selectedId = SelectedEffect?.Id;
         _syncing.Run(() =>
         {
@@ -732,7 +732,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
     private bool IsCustomEffectNameTaken(string id, string name) =>
         _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name))
-        || _engineEffects.Any(effectId => CustomEffects.NameComparer.Equals(EffectOption.Create(effectId).DisplayName, name));
+        || EngineEffectNames().Any(effect => CustomEffects.NameComparer.Equals(effect.Name, name));
+
+    // The effects of the engine under the names the effect choice shows them with.
+    private IEnumerable<(string Id, string Name)> EngineEffectNames() =>
+        _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName));
 
     // An effect as this app sent it or the engine saved it, in its place in the alphabet.
     private void ShowCustomEffect(CustomEffect effect)
