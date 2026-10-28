@@ -250,7 +250,8 @@ toetsenbord. Een paar dingen om te proberen:
   melding die de geweigerde en de echte naam noemt (`CustomEffectNameTakenKept`,
   `CustomEffectNameEmptyKept`), zodat een schermlezer één melding hoort. Die melding gaat weg bij
   een goede naam, een ander effect of een nieuwe naam van de engine; dezelfde melding voor een
-  volgende naam leest een schermlezer opnieuw voor.
+  volgende naam leest een schermlezer opnieuw voor. Escape zet met
+  `CustomEffectEditorViewModel.CancelNameEdit` de echte naam terug, zonder melding.
   `effects.json` met de hand aanpassen terwijl de engine draait, pikt hij niet op, net als
   `profiles.json` (zie `docs/ideas.md`).
 - **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen
