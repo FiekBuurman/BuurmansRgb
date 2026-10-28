@@ -72,14 +72,14 @@ public partial class ColorPage : UserControl
         }
     }
 
-    // A name that is not kept makes way for the name of the effect. The binding writes the name at
-    // LostFocus too; written here first, it does not matter which of the two comes first.
+    // The binding writes only here and with Enter, so a name that is not kept gives one message, the
+    // one that says it made way for the name of the effect, which the box then shows again.
     private void OnCustomEffectNameLostFocus(object sender, RoutedEventArgs e)
     {
         if (sender is TextBox { DataContext: CustomEffectEditorViewModel editor } box)
         {
-            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
-            editor.EndNameEdit();
+            editor.EndNameEdit(box.Text);
+            box.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
         }
     }
 

@@ -34,8 +34,8 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     [ObservableProperty]
     public partial string Name { get; set; } = string.Empty;
 
-    // Why the name typed last is not kept, also once the box shows the name of the effect again;
-    // null while it is.
+    // Why the name typed last is not kept; once the box shows the name of the effect again, which
+    // name was refused and that the effect keeps its name. Null while it is kept.
     [ObservableProperty]
     public partial string? NameError { get; private set; }
 
@@ -77,7 +77,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
 
     // Shows an effect of the engine. The selection stays on the same place for the same effect,
     // and goes to the first step for another one; a name being typed that is not valid stays, and
-    // so does the message of one that made way (EndNameEdit).
+    // so does the message of one that made way (EndNameEdit), until the effect gets another name.
     public void Show(CustomEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
@@ -90,6 +90,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         {
             var same = effect.Id == _id;
             var typing = same && Name != _name;
+            var renamed = same && effect.Name != _name;
             _id = effect.Id;
             _name = effect.Name;
             if (!typing)
@@ -97,7 +98,8 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
                 Name = effect.Name;
             }
 
-            if (!same)
+            // The message of a name that made way names the one the effect kept.
+            if (!same || (renamed && !typing))
             {
                 NameError = null;
             }
@@ -108,11 +110,25 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         });
     }
 
-    // The text box lost the focus: a name in it that is not kept, empty or that of another effect,
-    // makes way for the name of the effect, so the box shows what the effect choice does. The
-    // message stays, to tell why, until a valid name or another effect.
-    public void EndNameEdit()
+    // The text box lost the focus with this text in it. A valid name that no other effect has is
+    // kept, as with Enter; one that is empty or that of another effect makes way for the name of
+    // the effect, so the box shows what the effect choice does, and the message says which name
+    // was refused and which one the effect keeps, until a valid name or another effect.
+    public void EndNameEdit(string text)
     {
+        ArgumentNullException.ThrowIfNull(text);
+        var name = CustomEffects.NormalizeName(text);
+        if (name is not null && (name == _name || !isNameTaken(_id, name)))
+        {
+            Name = text;
+        }
+        else
+        {
+            ShowNameError(name is null
+                ? UiText.Format(Strings.CustomEffectNameEmptyKept, _name)
+                : UiText.Format(Strings.CustomEffectNameTakenKept, name, _name));
+        }
+
         if (Name != _name)
         {
             _showing.Run(() => Name = _name);
@@ -198,14 +214,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         var error = name is null ? Strings.CustomEffectNameInvalid
             : isNameTaken(_id, name) ? Strings.CustomEffectNameTaken
             : null;
-
-        // The same message for another name is news too: a screen reader says it again.
-        if (error is not null && error == NameError)
-        {
-            OnPropertyChanged(nameof(NameError));
-        }
-
-        NameError = error;
+        ShowNameError(error);
         if (name is null || error is not null || name == _name)
         {
             return;
@@ -230,6 +239,17 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         {
             ChangeStep(step => step with { FadeSeconds = Seconds(value) }, notifyColor: false);
         }
+    }
+
+    // The same message for another name is news too: a screen reader says it again.
+    private void ShowNameError(string? error)
+    {
+        if (error is not null && error == NameError)
+        {
+            OnPropertyChanged(nameof(NameError));
+        }
+
+        NameError = error;
     }
 
     // Tenths of a second, within the range.

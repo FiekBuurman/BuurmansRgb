@@ -175,51 +175,101 @@ public sealed class CustomEffectEditorViewModelTests
         Assert.Equal("Disco", _editor.Effect.Name);
     }
 
-    // When the box loses the focus, it shows the name the effect has again; the message stays to
-    // tell why, until a valid name.
+    // When the box loses the focus, it shows the name the effect has again, and the message says
+    // which name was refused and that the effect keeps its name; also after Enter showed why.
     [Theory]
-    [InlineData("")]
-    [InlineData("Feest")]
-    public void EndNameEdit_NameNotKept_ShowsTheNameOfTheEffectAndKeepsTheMessage(string name)
+    [InlineData("", false)]
+    [InlineData(" ", true)]
+    [InlineData(" Feest ", false)]
+    [InlineData("Feest", true)]
+    public void EndNameEdit_NameNotKept_ShowsTheNameOfTheEffectAndSaysItStays(string text, bool enterFirst)
     {
         _editor.Show(Disco);
-        _editor.Name = name;
-        var message = _editor.NameError;
+        if (enterFirst)
+        {
+            _editor.Name = text;
+        }
 
-        _editor.EndNameEdit();
+        _editor.EndNameEdit(text);
 
         Assert.Equal("Disco", _editor.Name);
-        Assert.NotNull(message);
-        Assert.Equal(message, _editor.NameError);
+        Assert.Equal(
+            text.Trim().Length == 0 ? UiText.Format(Strings.CustomEffectNameEmptyKept, "Disco") : UiText.Format(Strings.CustomEffectNameTakenKept, "Feest", "Disco"),
+            _editor.NameError);
         Assert.Empty(_changes);
     }
 
-    [Fact]
-    public void EndNameEdit_NameKept_ChangesNothing()
-    {
-        _editor.Show(Disco);
-        _editor.Name = "Avond";
-
-        _editor.EndNameEdit();
-
-        Assert.Equal("Avond", _editor.Name);
-        Assert.Null(_editor.NameError);
-        Assert.Single(_changes);
-    }
-
-    // Once the name made way, the box follows the effect again, such as another settings app that
-    // renames it.
-    [Fact]
-    public void Show_SameEffectAfterTheNameMadeWay_ShowsItsNewName()
+    // A valid name that the box still had keeps it, as Enter does.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EndNameEdit_NameKept_KeepsIt(bool enterFirst)
     {
         _editor.Show(Disco);
         _editor.Name = "";
-        _editor.EndNameEdit();
+        if (enterFirst)
+        {
+            _editor.Name = " Avond ";
+        }
+
+        _editor.EndNameEdit(" Avond ");
+
+        Assert.Equal("Avond", _editor.Name);
+        Assert.Null(_editor.NameError);
+        Assert.Equal(["Avond"], _changes.Select(effect => effect.Name));
+    }
+
+    // The name of the effect itself, also with spaces around it, is no other name.
+    [Fact]
+    public void EndNameEdit_NameOfTheEffect_ShowsItWithoutAMessage()
+    {
+        _editor.Show(Disco);
+
+        _editor.EndNameEdit(" Disco ");
+
+        Assert.Equal("Disco", _editor.Name);
+        Assert.Null(_editor.NameError);
+        Assert.Empty(_changes);
+    }
+
+    // The same name refused again is news too, for a screen reader.
+    [Fact]
+    public void EndNameEdit_SameNameRefusedAgain_TellsItAgain()
+    {
+        _editor.Show(Disco);
+        _editor.EndNameEdit("Feest");
+        var told = 0;
+        _editor.PropertyChanged += (_, e) => told += e.PropertyName == nameof(CustomEffectEditorViewModel.NameError) ? 1 : 0;
+
+        _editor.EndNameEdit("Feest");
+
+        Assert.Equal(1, told);
+    }
+
+    // Once the name made way, the box follows the effect again, such as another settings app that
+    // renames it; the message named the name the effect had, so it goes.
+    [Fact]
+    public void Show_SameEffectAfterTheNameMadeWay_ShowsItsNewNameWithoutTheMessage()
+    {
+        _editor.Show(Disco);
+        _editor.EndNameEdit("");
 
         _editor.Show(Disco with { Name = "Avond" });
 
         Assert.Equal("Avond", _editor.Name);
-        Assert.Equal(Strings.CustomEffectNameInvalid, _editor.NameError);
+        Assert.Null(_editor.NameError);
+    }
+
+    // Another change of the effect, with the same name, leaves the message.
+    [Fact]
+    public void Show_SameEffectAndNameAfterTheNameMadeWay_KeepsTheMessage()
+    {
+        _editor.Show(Disco);
+        _editor.EndNameEdit("");
+
+        _editor.Show(Disco with { Steps = [new CustomEffectStep(Blue)] });
+
+        Assert.Equal(UiText.Format(Strings.CustomEffectNameEmptyKept, "Disco"), _editor.NameError);
     }
 
     // The same message for another name that is not kept is news too, for a screen reader.

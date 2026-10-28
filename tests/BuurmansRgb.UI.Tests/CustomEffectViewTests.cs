@@ -169,6 +169,29 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // Without Enter, the name counts once the focus goes, as with Tab.
+    [Fact]
+    public async Task NameBox_FocusGoes_SendsTheName()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await ConnectAsync(api => engine = api);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = NameBox(page);
+            Assert.True(box.Focus());
+            box.Text = " Feest ";
+
+            Assert.True(StepTiles(page)[0].Focus());
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("Feest", viewModel.SelectedEffect?.DisplayName);
+            Assert.Equal("Feest", box.Text);
+            Assert.Single(engine!.Calls);
+        });
+    }
+
     // Another name moves the effect to its place in the alphabet; it stays chosen, and the box keeps
     // the focus.
     [Fact]
@@ -196,15 +219,19 @@ public sealed class CustomEffectViewTests
 
     // An empty name or that of another effect says why under the box, also to a screen reader, and
     // the box keeps it while it has the focus, so the user can change it; once the focus goes, the
-    // box shows the name the effect choice shows, and the message stays.
+    // box shows the name the effect choice shows, and the message says which name was refused and
+    // that Disco stays. A name typed without Enter gives that one message only.
     [Theory]
-    [InlineData("", nameof(Strings.CustomEffectNameInvalid))]
-    [InlineData("regenboog", nameof(Strings.CustomEffectNameTaken))]
-    public async Task NameBox_NameNotKept_SaysWhyAndShowsTheNameAgainWhenTheFocusGoes(string name, string message)
+    [InlineData("", " ")]
+    [InlineData("regenboog", "STATISCH")]
+    public async Task NameBox_NameNotKept_SaysWhyAndShowsTheNameAgainWhenTheFocusGoes(string name, string other)
     {
         FakeEngineApi? engine = null;
         using var viewModel = await ConnectAsync(api => engine = api);
-        var text = Strings.ResourceManager.GetString(message, Strings.Culture)!;
+        var text = name.Length == 0 ? Strings.CustomEffectNameInvalid : Strings.CustomEffectNameTaken;
+        string Kept(string refused) => refused.Trim().Length == 0
+            ? UiText.Format(Strings.CustomEffectNameEmptyKept, "Disco")
+            : UiText.Format(Strings.CustomEffectNameTakenKept, refused, "Disco");
         List<UIElement> announced = [];
         var (hasListener, announce) = (LiveRegion.HasListener, LiveRegion.Announce);
         LiveRegion.HasListener = () => true;
@@ -231,17 +258,21 @@ public sealed class CustomEffectViewTests
 
                 Assert.Equal("Disco", box.Text);
                 Assert.True(error.IsVisible);
+                Assert.Equal(Kept(name), error.Text);
+                Assert.Equal([error, error], announced);
                 Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
                 Assert.Empty(engine!.Calls);
 
-                // Another name with the same message is said again.
+                // Another name refused without Enter is said once, also with the same message.
                 Assert.True(box.Focus());
-                box.Text = name.Length == 0 ? " " : "STATISCH";
+                box.Text = other;
                 Assert.True(StepTiles(page)[0].Focus());
                 OffscreenWindow.WaitUntilIdle();
 
-                Assert.Equal([error, error], announced);
+                Assert.Equal(Kept(other), error.Text);
+                Assert.Equal([error, error, error], announced);
                 Assert.Equal("Disco", box.Text);
+                Assert.Empty(engine.Calls);
             });
         }
         finally

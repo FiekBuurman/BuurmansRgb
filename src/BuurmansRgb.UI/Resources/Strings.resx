@@ -1024,6 +1024,14 @@
     <value>Deze naam heeft al een effect.</value>
     <comment>Een ander eigen effect of een ingebouwd effect (Statisch, Regenboog, ...), ook in andere hoofdletters.</comment>
   </data>
+  <data name="CustomEffectNameEmptyKept" xml:space="preserve">
+    <value>Een effect heeft een naam nodig; de naam blijft '{0}'.</value>
+    <comment>Nadat het naamveld de focus verloor met een lege naam en de naam van het effect weer toont. {0} = die naam.</comment>
+  </data>
+  <data name="CustomEffectNameTakenKept" xml:space="preserve">
+    <value>Er is al een effect dat '{0}' heet; de naam blijft '{1}'.</value>
+    <comment>Nadat het naamveld de focus verloor met de naam van een ander effect en de naam van het effect weer toont. {0} = de geweigerde naam, {1} = de naam die blijft.</comment>
+  </data>
   <data name="CustomEffectStepsLabel" xml:space="preserve">
     <value>Stappen</value>
   </data>
