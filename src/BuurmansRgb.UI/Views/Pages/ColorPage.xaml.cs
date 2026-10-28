@@ -62,12 +62,24 @@ public partial class ColorPage : UserControl
         FocusTile(CustomColorTiles, index, fallback: AddCustomColor);
     }
 
-    // Enter keeps the name as Tab does, so the box need not lose the focus first.
+    // Enter keeps the name as Tab does, so the box need not lose the focus first; Escape puts back
+    // the name the effect has, and the box keeps the focus.
     private void OnCustomEffectNameKeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Enter && sender is TextBox box)
+        if (sender is not TextBox box)
+        {
+            return;
+        }
+
+        if (e.Key == Key.Enter)
         {
             box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Escape && box.DataContext is CustomEffectEditorViewModel editor)
+        {
+            editor.CancelNameEdit();
+            box.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
             e.Handled = true;
         }
     }

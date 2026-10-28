@@ -135,6 +135,14 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         }
     }
 
+    // Escape in the text box: the box shows the name the effect has again, without a message, as
+    // nothing was refused.
+    public void CancelNameEdit()
+    {
+        _showing.Run(() => Name = _name);
+        NameError = null;
+    }
+
     // Gives the selected step one color: a pattern becomes that color for the whole device.
     // SelectedColor is not raised: the color picker that painted it shows it already.
     public void Paint(RgbColor color)

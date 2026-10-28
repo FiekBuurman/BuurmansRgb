@@ -192,6 +192,45 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // Escape puts back the name of the effect, typed over with or without Enter, without a message
+    // or a name sent; the box keeps the focus, and losing it later refuses nothing.
+    [Theory]
+    [InlineData("Feest", false)]
+    [InlineData("regenboog", true)]
+    public async Task NameBox_Escape_PutsBackTheName(string typed, bool enterFirst)
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await ConnectAsync(api => engine = api);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = NameBox(page);
+            Assert.True(box.Focus());
+            box.Text = typed;
+            if (enterFirst)
+            {
+                box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
+                OffscreenWindow.WaitUntilIdle();
+                Assert.NotNull(viewModel.CustomEffectEditor.NameError);
+            }
+
+            box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Escape) { RoutedEvent = Keyboard.KeyDownEvent });
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("Disco", box.Text);
+            Assert.True(box.IsKeyboardFocused);
+            Assert.Null(viewModel.CustomEffectEditor.NameError);
+
+            Assert.True(StepTiles(page)[0].Focus());
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
+            Assert.Null(viewModel.CustomEffectEditor.NameError);
+            Assert.Empty(engine!.Calls);
+        });
+    }
+
     // Another name moves the effect to its place in the alphabet; it stays chosen, and the box keeps
     // the focus.
     [Fact]

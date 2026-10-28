@@ -232,6 +232,22 @@ public sealed class CustomEffectEditorViewModelTests
         Assert.Empty(_changes);
     }
 
+    // Escape puts back the name of the effect, also after Enter refused one, and drops the message.
+    [Theory]
+    [InlineData("Feest")]
+    [InlineData("")]
+    public void CancelNameEdit_ShowsTheNameOfTheEffectWithoutAMessage(string refused)
+    {
+        _editor.Show(Disco);
+        _editor.Name = refused;
+
+        _editor.CancelNameEdit();
+
+        Assert.Equal("Disco", _editor.Name);
+        Assert.Null(_editor.NameError);
+        Assert.Empty(_changes);
+    }
+
     // The same name refused again is news too, for a screen reader.
     [Fact]
     public void EndNameEdit_SameNameRefusedAgain_TellsItAgain()
