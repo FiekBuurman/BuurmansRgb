@@ -421,9 +421,8 @@ uitbreidingen in `docs/bouwplan.md`.
   hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
   opnieuw, elk met een eigen timer en eigen foutafhandeling
 - UI-teksten met een vast getal aan hun constante koppelen, via een placeholder of een test:
-  "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`), "tot 32 eigen effecten"
-  in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`) en "1 tot 40 tekens" in
-  `CustomEffectNameInvalid` (`CustomEffects.MaxNameLength`). Nu blijft de tekst stil staan als
+  "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`) en "tot 32 eigen effecten"
+  in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`). Nu blijft de tekst stil staan als
   een grens verandert
 - `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
   UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op

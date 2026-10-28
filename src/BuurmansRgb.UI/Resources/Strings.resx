@@ -1017,10 +1017,12 @@
     <value>Naam van het eigen effect</value>
   </data>
   <data name="CustomEffectNameInvalid" xml:space="preserve">
-    <value>Geef het effect een naam van 1 tot 40 tekens.</value>
+    <value>Geef het effect een naam.</value>
+    <comment>Bij een lege naam; langer dan 40 tekens laat het naamveld niet toe.</comment>
   </data>
   <data name="CustomEffectNameTaken" xml:space="preserve">
-    <value>Er is al een eigen effect met de naam '{0}'.</value>
+    <value>Deze naam heeft al een effect.</value>
+    <comment>Een ander eigen effect of een ingebouwd effect (Statisch, Regenboog, ...), ook in andere hoofdletters.</comment>
   </data>
   <data name="CustomEffectStepsLabel" xml:space="preserve">
     <value>Stappen</value>

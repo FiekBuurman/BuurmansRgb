@@ -11,8 +11,8 @@ namespace BuurmansRgb.UI.ViewModels;
 // of which one is selected, and how long that step stays and fades into the next. The color picker
 // colors the selected step (Paint), and the LED colors of the device make it a pattern
 // (ShowPattern). Each change the user makes goes out as the whole effect with Changed; Show shows
-// the effect of the engine without sending it back. isNameTaken tells whether another own effect
-// (by id) has the name.
+// the effect of the engine without sending it back. isNameTaken tells whether another effect, an
+// own one with another id or one of the engine, has the name.
 public sealed partial class CustomEffectEditorViewModel(Func<string, string, bool> isNameTaken) : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
@@ -178,7 +178,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
 
         var name = CustomEffects.NormalizeName(value);
         NameError = name is null ? Strings.CustomEffectNameInvalid
-            : isNameTaken(_id, name) ? UiText.Format(Strings.CustomEffectNameTaken, name)
+            : isNameTaken(_id, name) ? Strings.CustomEffectNameTaken
             : null;
         if (name is null || NameError is not null || name == _name)
         {

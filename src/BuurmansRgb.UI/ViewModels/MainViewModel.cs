@@ -111,8 +111,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         CustomColors = new CustomColorsViewModel(ColorPicker);
-        CustomEffectEditor = new CustomEffectEditorViewModel((id, name) =>
-            _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name)));
+        CustomEffectEditor = new CustomEffectEditorViewModel(IsCustomEffectNameTaken);
         CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);
         CustomEffectEditor.DeleteRequested += (_, id) => DeleteCustomEffect(id);
         CustomEffectEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
@@ -728,6 +727,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanCreateCustomEffect() => _connection is not null && _customEffects.Count < CustomEffects.MaxEffects;
+
+    // Whether another own effect, or an effect of the engine, has the name in the effect choice;
+    // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
+    private bool IsCustomEffectNameTaken(string id, string name) =>
+        _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name))
+        || _engineEffects.Any(effectId => CustomEffects.NameComparer.Equals(EffectOption.Create(effectId).DisplayName, name));
 
     // An effect as this app sent it or the engine saved it, in its place in the alphabet.
     private void ShowCustomEffect(CustomEffect effect)
