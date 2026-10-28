@@ -931,7 +931,9 @@ tijden laat de engine de rest weg. Zonder `foregroundOnly` (of met `false`) telt
 zolang het draait, zoals in een bestand van vóór deze keuze; de engine schrijft het alleen als
 het aan staat. Zonder `program` doet het niets, en een waarde die geen `true` of `false` is,
 telt als uit. Een tijd met de hand leest de engine zoals de app hem leest: ook `"7:30"`,
-`"21.30"` en `"2130"`. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
+`"21.30"` en `"2130"`, als tekst tussen aanhalingstekens (een getal als `2130` zonder
+aanhalingstekens niet). Zelf schrijft de engine hem als `"21:30"`. Een oudere versie leest
+`"21.30"` en `"2130"` niet en laat die tijd weg; de rest van de scène blijft gelden. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
 `"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest blijft
 gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat hij
 ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde als in
