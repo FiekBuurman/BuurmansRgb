@@ -12,8 +12,6 @@ namespace BuurmansRgb.UI.Views;
 // reads the question as the name of the window, and the detail as its help.
 public partial class ConfirmDialog : Window
 {
-    private bool _isRendered;
-
     public ConfirmDialog(string question, string? detail = null)
     {
         InitializeComponent();
@@ -49,33 +47,22 @@ public partial class ConfirmDialog : Window
 
     // SizeToContent measures the window with the frame of Windows, which the WindowChrome takes
     // away; WPF does not measure again on its own, which left empty space on the right and at
-    // the bottom. Measured again, the window is its content plus its border.
+    // the bottom. Measured again, the window is its content plus its border. WPF already centered
+    // it on its owner with the size of before, so it shrinks around its center and stays in the
+    // middle of the owner; a window that is put somewhere itself stays there.
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        var before = RenderSize;
         InvalidateMeasure();
-    }
-
-    // WPF centered the window on its owner with the size of before; until it shows, it shrinks
-    // around its center, so it stays in the middle of the owner. A window that is put somewhere
-    // itself stays there.
-    protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-    {
-        base.OnRenderSizeChanged(sizeInfo);
-        var previous = sizeInfo.PreviousSize;
-        if (_isRendered || WindowStartupLocation == WindowStartupLocation.Manual || previous.Width == 0 || previous.Height == 0)
+        UpdateLayout();
+        if (WindowStartupLocation == WindowStartupLocation.Manual || before.Width == 0 || before.Height == 0)
         {
             return;
         }
 
-        Left -= (sizeInfo.NewSize.Width - previous.Width) / 2;
-        Top -= (sizeInfo.NewSize.Height - previous.Height) / 2;
-    }
-
-    protected override void OnContentRendered(EventArgs e)
-    {
-        _isRendered = true;
-        base.OnContentRendered(e);
+        Left -= (RenderSize.Width - before.Width) / 2;
+        Top -= (RenderSize.Height - before.Height) / 2;
     }
 
     private void OnConfirmClick(object sender, RoutedEventArgs e)
