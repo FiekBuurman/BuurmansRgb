@@ -127,27 +127,31 @@
                     <DataTemplate DataType="{x:Type vm:LampItem}">
                         <!-- The card itself opens the lamp; its switch sits on it, after it for the keyboard.
                              The tooltip sits on its content, not on the button: WPF reads the tooltip of a
-                             button without help text out as its help text, so the name would sound twice. -->
+                             button without help text out as its help text, so the name would sound twice.
+                             It fills the whole card, padding included, so the edge of the card and the strip
+                             that a taller card in the same row adds show the tooltip too. -->
                         <Grid>
-                            <Button Style="{StaticResource CardButton}" Padding="16,14,82,14"
+                            <Button Style="{StaticResource CardButton}" Padding="0" VerticalContentAlignment="Stretch"
                                     Command="{Binding DataContext.Lamps.OpenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     CommandParameter="{Binding}"
                                     AutomationProperties.Name="{Binding OpenAccessibleName}"
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
-                                <DockPanel Background="Transparent" ToolTip="{Binding Device.CardToolTip}">
-                                    <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
-                                                   IsLit="{Binding IsOn}" Color="{Binding Color}" />
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
-                                        <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
-                                        <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
-                                                   Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
-                                        <TextBlock Style="{StaticResource SubText}" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
-                                                   Visibility="{Binding Device.LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
-                                            <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{StaticResource LedYellowBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
-                                        </TextBlock>
-                                    </StackPanel>
-                                </DockPanel>
+                                <Border Background="Transparent" Padding="16,14,82,14" ToolTip="{Binding Device.CardToolTip}">
+                                    <DockPanel VerticalAlignment="Center">
+                                        <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
+                                                       IsLit="{Binding IsOn}" Color="{Binding Color}" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
+                                            <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
+                                            <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
+                                                       Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
+                                            <TextBlock Style="{StaticResource SubText}" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
+                                                       Visibility="{Binding Device.LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
+                                                <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{StaticResource LedYellowBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
                             </Button>
                             <ToggleButton Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
                                           Tag="{Binding Color, Converter={StaticResource SwitchTrackBrush}}"

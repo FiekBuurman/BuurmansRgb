@@ -55,6 +55,45 @@ public sealed class AccessibleNamesViewTests
         });
     }
 
+    // A twin shows its place under the name: a screen reader says that place after the name, and the
+    // tooltip, still inside the button, adds the whole location under the name.
+    [Fact]
+    public async Task LampsPage_CardOfADeviceWithAPlace_HasThePlaceAsHelpTextAndTheNameAndLocationAsToolTip()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices =
+        [
+            TestDevices.Create("ram-1", "ENE DRAM 1", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x70") },
+            TestDevices.Create("ram-2", "ENE DRAM 2", DeviceType.Ram, 8) with { Location = new DeviceLocation("PIIX4", "0x71") },
+        ]);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var card = PageViews.ButtonNamed(page, string.Format(Strings.LampOpenAccessibleName, "ENE DRAM 1"));
+
+            Assert.Null(card.ToolTip);
+            Assert.Equal($"ENE DRAM 1{Environment.NewLine}Locatie: PIIX4, adres 0x70", Assert.IsAssignableFrom<FrameworkElement>(card.Content).ToolTip);
+            Assert.Equal("Adres 0x70", new ButtonAutomationPeer(card).GetHelpText());
+        });
+    }
+
+    // The tooltip fills the whole card, so its edge, inside the padding, shows it too.
+    [Fact]
+    public async Task LampsPage_CardToolTip_FillsTheCardUpToItsEdge()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var card = PageViews.ButtonNamed(page, string.Format(Strings.LampOpenAccessibleName, "LED strip"));
+            var content = Assert.IsAssignableFrom<FrameworkElement>(card.Content);
+
+            Assert.Equal(card.ActualWidth - card.BorderThickness.Left - card.BorderThickness.Right, content.ActualWidth, 1);
+            Assert.Equal(card.ActualHeight - card.BorderThickness.Top - card.BorderThickness.Bottom, content.ActualHeight, 1);
+        });
+    }
+
     // The loop, the colors of a comet and an own effect each open a part of their own; the strip of
     // the preview has no items, as the preview is named after what it shows.
     [Theory]
