@@ -107,6 +107,17 @@ public sealed class ConfirmDialogViewTests
         }, ownerOnScreen: true);
     }
 
+    // Put somewhere itself, the window stays where it is put, also when it is measured again.
+    [Fact]
+    public void Dialog_PutSomewhere_StaysThere()
+    {
+        Show(Detail, (_, dialog) =>
+        {
+            Assert.Equal(-10000, dialog.Left);
+            Assert.Equal(-10000, dialog.Top);
+        }, offScreen: true);
+    }
+
     [Fact]
     public void Dialog_WithoutDetail_ShowsOnlyTheQuestion()
     {
@@ -167,7 +178,7 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
-    private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool ownerOnScreen = false) => AppTheme.Run(panel =>
+    private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool ownerOnScreen = false, bool offScreen = false) => AppTheme.Run(panel =>
     {
         var owner = Window.GetWindow(panel)!;
         if (ownerOnScreen)
@@ -181,6 +192,13 @@ public sealed class ConfirmDialogViewTests
 
         var dialog = ConfirmDialog.For(owner, Question, detail);
         dialog.ShowActivated = false;
+        if (offScreen)
+        {
+            dialog.WindowStartupLocation = WindowStartupLocation.Manual;
+            dialog.Left = -10000;
+            dialog.Top = -10000;
+        }
+
         var closed = false;
         dialog.Closed += (_, _) => closed = true;
         dialog.Show();

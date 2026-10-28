@@ -57,12 +57,13 @@ public partial class ConfirmDialog : Window
     }
 
     // WPF centered the window on its owner with the size of before; until it shows, it shrinks
-    // around its center, so it stays in the middle of the owner.
+    // around its center, so it stays in the middle of the owner. A window that is put somewhere
+    // itself stays there.
     protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
     {
         base.OnRenderSizeChanged(sizeInfo);
         var previous = sizeInfo.PreviousSize;
-        if (_isRendered || previous.Width == 0 || previous.Height == 0)
+        if (_isRendered || WindowStartupLocation == WindowStartupLocation.Manual || previous.Width == 0 || previous.Height == 0)
         {
             return;
         }
