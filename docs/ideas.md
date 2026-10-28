@@ -233,6 +233,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - De optische maten van Bricolage Grotesque gebruiken (de statische `12pt`- en `96pt`-bestanden):
   nu draaien alle maten op de standaardversie, terwijl een browser bij 30 px een grotere optische
   maat kiest
+- Eén gedeeld `WarningMessage`-template of -control voor een melding onder een veld (een
+  `DockPanel` met `WarningMark` en een `TextBlock` als live region met
+  `LiveRegion.AnnouncesUpdates`); nu staat dat blok drie keer in de XAML: bij de hex-code en de
+  naam van een eigen effect in `ColorPage.xaml` en bij de lengte van een zone in
+  `LedPreviewPanel.xaml`
 
 ### Voorbeeld en per-LED-editor
 
