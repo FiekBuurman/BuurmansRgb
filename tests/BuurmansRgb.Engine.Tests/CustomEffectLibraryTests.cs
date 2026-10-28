@@ -112,14 +112,21 @@ public sealed class CustomEffectLibraryTests : IDisposable
     [Fact]
     public void Load_EffectWithTheNameOfABuiltInEffect_GetsAnOwnName()
     {
+        using var trace = new TraceCapture();
         _store.Effects = [Effect("custom:a", "regenboog"), Effect("custom:b", "Regenboog (eigen)"), Effect("custom:c", "Vuur")];
+        (string, string)[] renamed = [("custom:b", "Regenboog (eigen)"), ("custom:a", "regenboog (eigen) 2"), ("custom:c", "Vuur (eigen)")];
 
         _library.Load();
 
-        Assert.Equal(
-            [("custom:b", "Regenboog (eigen)"), ("custom:a", "regenboog (eigen) 2"), ("custom:c", "Vuur (eigen)")],
-            _library.Effects.Select(effect => (effect.Id, effect.Name)));
+        Assert.Equal(renamed, _library.Effects.Select(effect => (effect.Id, effect.Name)));
+        Assert.Contains(trace.Messages, message => message.Contains("'regenboog'", StringComparison.Ordinal) && message.Contains("'regenboog (eigen) 2'", StringComparison.Ordinal));
+        Assert.Contains(trace.Messages, message => message.Contains("'Vuur'", StringComparison.Ordinal) && message.Contains("'Vuur (eigen)'", StringComparison.Ordinal));
+
+        // The next change writes the file with the new names of all of them.
         Assert.Equal("Vuur (eigen)", _library.Save(_library.Effects[2] with { Steps = [new CustomEffectStep(Blue)] }).Name);
+        _time.Advance(Delay);
+
+        Assert.Equal(renamed, _store.Effects.OrderBy(effect => effect.Name, CustomEffects.NameComparer).Select(effect => (effect.Id, effect.Name)));
     }
 
     [Fact]
