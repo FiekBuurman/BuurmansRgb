@@ -19,9 +19,13 @@ public sealed partial class SceneCard(string name) : ObservableObject
     public partial IReadOnlyList<SceneDot> Dots { get; private set; } = SceneLook.Unknown;
 
     // The bulbs in one go for a screen reader, each color once: "Aan: #FF0000, #FFFF00", or "Uit".
-    public string DotsAccessibleName => Dots.Any(dot => dot.IsLit)
-        ? UiText.Format(Strings.SceneDotsOn, string.Join(", ", Dots.Where(dot => dot.IsLit).Select(dot => dot.Color.ToHex()).Distinct()))
-        : Strings.SceneDotsOff;
+    // No name while the engine has not told what the scene looks like (or could not), so a screen
+    // reader skips the dark bulbs instead of calling the scene off.
+    public string DotsAccessibleName =>
+        ReferenceEquals(Dots, SceneLook.Unknown) ? string.Empty
+        : Dots.Any(dot => dot.IsLit)
+            ? UiText.Format(Strings.SceneDotsOn, string.Join(", ", Dots.Where(dot => dot.IsLit).Select(dot => dot.Color.ToHex()).Distinct()))
+            : Strings.SceneDotsOff;
 
     [ObservableProperty]
     public partial string Description { get; private set; } = string.Empty;
