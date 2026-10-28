@@ -7,8 +7,7 @@ public static class ProgramNames
     public const int MaxLength = 100;
 
     // The lock screen of Windows, also the sign-in screen after a screen saver with
-    // "aanmeldingsscherm bij hervatten": the engine does not let it count as a program in the
-    // foreground, and "Kies uit wat nu draait" leaves it out.
+    // "aanmeldingsscherm bij hervatten"; one of the ShellParts.
     public const string LockScreen = "LockApp.exe";
 
     private const string Extension = ".exe";
@@ -18,6 +17,16 @@ public static class ProgramNames
 
     // Windows does not tell file names apart by case.
     public static StringComparer Comparer { get; } = StringComparer.OrdinalIgnoreCase;
+
+    // Parts of Windows that show over a program without taking the user away from it: the lock
+    // screen, the Start menu and search (SearchHost.exe on Windows 11, SearchApp.exe on Windows 10),
+    // and the panes for notifications and quick settings (ShellExperienceHost.exe, and ShellHost.exe
+    // since Windows 11 24H2). The engine does not let them count as a program in the foreground, and
+    // "Kies uit wat nu draait" leaves them out. After Comparer, which it needs.
+    public static IReadOnlySet<string> ShellParts { get; } = new HashSet<string>(Comparer)
+    {
+        LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
+    };
 
     // The file name with ".exe", or null when it is empty, too long, a shortcut or script, or holds
     // a character that a file name cannot have. A path gives its file name, and a name without

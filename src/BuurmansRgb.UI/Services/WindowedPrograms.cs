@@ -14,22 +14,17 @@ public static class WindowedPrograms
     internal const int MaxNameLength = 60;
 
     // Parts of Windows itself that have a window, often an invisible one, without being an app a
-    // user opens: the frame around Store apps (which stands for any Store app, not for one), the
-    // touch keyboard and emoji panel, the start menu, search (SearchUI.exe on Windows 10), the panes
-    // for notifications and quick settings (ShellHost.exe since Windows 11 24H2) and the lock screen.
-    // Windows that a user does open, such as Instellingen (SystemSettings.exe) and Verkenner
-    // (explorer.exe), stay in the list. Typed in the field, these still work as before.
-    internal static IReadOnlySet<string> WindowsParts { get; } = new HashSet<string>(ProgramNames.Comparer)
+    // user opens: those that the engine lets pass by in the foreground (ProgramNames.ShellParts:
+    // the start menu, search, the panes for notifications and quick settings, the lock screen), and
+    // also the frame around Store apps (which stands for any Store app, not for one), the touch
+    // keyboard and emoji panel, and search on older Windows 10 (SearchUI.exe). Windows that a user
+    // does open, such as Instellingen (SystemSettings.exe) and Verkenner (explorer.exe), stay in
+    // the list. Typed in the field, these still work as before.
+    internal static IReadOnlySet<string> WindowsParts { get; } = new HashSet<string>(ProgramNames.ShellParts, ProgramNames.Comparer)
     {
         "ApplicationFrameHost.exe",
         "TextInputHost.exe",
-        "ShellExperienceHost.exe",
-        "StartMenuExperienceHost.exe",
-        "SearchHost.exe",
-        "SearchApp.exe",
         "SearchUI.exe",
-        "ShellHost.exe",
-        ProgramNames.LockScreen,
     };
 
     public static IReadOnlyList<RunningProgram> Find() => Find(SystemProcesses.Windowed(), SystemProcesses.Description);

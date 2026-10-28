@@ -23,13 +23,6 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
         "MultitaskingViewFrame", "TaskSwitcherWnd", "XamlExplorerHostIslandWindow", "ForegroundStaging",
     };
 
-    // Parts of Windows that show over a program without taking the user away from it: the lock
-    // screen, the Start menu and search, and the panes for notifications and quick settings.
-    private static readonly HashSet<string> PassingPrograms = new(ProgramNames.Comparer)
-    {
-        ProgramNames.LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
-    };
-
     private readonly ProcessImageName _names = new();
     private readonly char[] _className = new char[MaxClassName];
     private readonly uint _ownProcessId = (uint)Environment.ProcessId;
@@ -71,7 +64,7 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     internal static bool Counts(string className, string? program) =>
         program is not null
         && !PassingClasses.Contains(className)
-        && !PassingPrograms.Contains(program)
+        && !ProgramNames.ShellParts.Contains(program)
         && !WindowsPrograms.IsScreenSaver(program);
 
     // A window that came to the front: its program, when it counts. Also when it is the same

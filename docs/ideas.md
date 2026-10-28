@@ -313,6 +313,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Bij "Alleen als het op de voorgrond staat" een korte wachttijd (bijv. een halve seconde)
   voordat de scène wisselt, zodat snel heen en weer alt-tabben de apparaten niet laat flitsen; nu
   wisselen ze bij elk venster dat vooraan komt
+- Bij "Alleen als het op de voorgrond staat" ook het zoeken van oudere Windows 10-versies
+  (`SearchUI.exe`, vóór 2004) laten voorbijgaan, zoals `SearchApp.exe` en `SearchHost.exe` in
+  `ProgramNames.ShellParts`; "Kies uit wat nu draait" laat hem al weg, maar op zo'n pc niet
+  nagekeken of het zoekvenster daar vooraan komt
 - "Gemiste tijden inhalen" (#51) laat bij het starten de tijd altijd winnen, ook van een kleur
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
   hij niet draaide. Met een tijdstempel van de laatste wijziging van de verlichting in

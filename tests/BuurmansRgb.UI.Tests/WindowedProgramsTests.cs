@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 
@@ -163,6 +164,17 @@ public sealed class WindowedProgramsTests
 
         Assert.Equal(["SystemSettings.exe", "explorer.exe"], programs.Select(program => program.ExeName).Order(StringComparer.Ordinal));
         Assert.DoesNotContain(1, read);
+    }
+
+    // Each part of Windows that the engine lets pass by in the foreground, also one added later.
+    [Fact]
+    public void Find_LeavesOutEachShellPart()
+    {
+        var programs = WindowedPrograms.Find(
+            [.. ProgramNames.ShellParts.Select((part, index) => new WindowedProcess(index + 1, part, "Windows")), new(99, "game", "Game")],
+            _ => null);
+
+        Assert.Equal(["game.exe"], programs.Select(program => program.ExeName));
     }
 
     // A name that is no exe name the field takes, such as an empty one, is left out.
