@@ -1,5 +1,10 @@
+using System.Windows;
 using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Input;
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views.Pages;
@@ -19,7 +24,7 @@ public sealed class LampsPageViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
-            var button = AppTheme.Descendants<Button>(page).Single(link => Equals(link.Content, Strings.AddLamps));
+            var button = AddLamps(page);
             Assert.Equal(Strings.AddLampsToolTip, button.ToolTip);
             Assert.Equal(Strings.AddLampsToolTip, AutomationProperties.GetHelpText(button));
             Assert.Contains("OpenRGB", Strings.AddLampsToolTip, StringComparison.Ordinal);
@@ -29,5 +34,81 @@ public sealed class LampsPageViewTests
 
             Assert.Equal(AppPage.Settings, viewModel.Navigation.CurrentPage);
         });
+    }
+
+    // With only simulated devices on "Automatisch", a line under the heading says what they are; a
+    // screen reader finds it, and Tab goes from "+ Erbij knutselen" to its link to Instellingen.
+    [Fact]
+    public async Task SimulatedDevicesHint_OnlySimulatedDevices_IsReadOutWithALinkToSettings()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Simulated("sim-strip"), Simulated("sim-fan")]);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var hint = Hint(page);
+            Assert.True(hint.IsVisible);
+            Assert.Equal(Strings.SimulatedDevicesOnlyHint, hint.Text);
+            Assert.Contains(Tree(page), peer => peer.GetName() == Strings.SimulatedDevicesOnlyHint);
+
+            var link = HintLink(page);
+            Assert.Equal(Strings.SimulatedDevicesOnlyLink, new ButtonAutomationPeer(link).GetName());
+            Assert.Equal(Strings.SimulatedDevicesOnlyLinkToolTip, AutomationProperties.GetHelpText(link));
+            Assert.True(AddLamps(page).Focus());
+            Assert.True(AddLamps(page).MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
+            Assert.True(link.IsKeyboardFocused);
+
+            PageViews.Click(link);
+
+            Assert.Equal(AppPage.Settings, viewModel.Navigation.CurrentPage);
+        });
+    }
+
+    // A real device, or "Altijd" or "Nooit", leaves the line away.
+    [Theory]
+    [InlineData(true, SimulatedDevicesMode.Automatic)]
+    [InlineData(false, SimulatedDevicesMode.Always)]
+    [InlineData(false, SimulatedDevicesMode.Never)]
+    public async Task SimulatedDevicesHint_RealDeviceOrAnotherMode_IsAway(bool withRealDevice, SimulatedDevicesMode mode)
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = withRealDevice ? [TestDevices.Create("fan", "Fan", DeviceType.Fan, 2), Simulated("sim-strip")] : [Simulated("sim-strip")];
+            api.SimulatedDevices = mode;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Assert.False(Hint(page).IsVisible);
+            Assert.False(HintLink(page).IsVisible);
+        });
+    }
+
+    private static DeviceInfo Simulated(string id) => TestDevices.Create(id, $"Simulated {id}", DeviceType.LedStrip, 3, DeviceSource.Simulated);
+
+    private static Button AddLamps(DependencyObject page) =>
+        AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.AddLamps));
+
+    private static TextBlock Hint(DependencyObject page) =>
+        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "SimulatedDevicesHint");
+
+    private static Button HintLink(DependencyObject page) =>
+        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "SimulatedDevicesHintLink");
+
+    // Every element UI Automation finds in the page, as a screen reader walks it.
+    private static List<AutomationPeer> Tree(FrameworkElement page) =>
+        [.. Descendants(UIElementAutomationPeer.CreatePeerForElement(page))];
+
+    private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer)
+    {
+        yield return peer;
+        foreach (var child in peer.GetChildren() ?? [])
+        {
+            foreach (var descendant in Descendants(child))
+            {
+                yield return descendant;
+            }
+        }
     }
 }
