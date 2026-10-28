@@ -111,6 +111,33 @@ public sealed class WindowedProgramsTests
         Assert.Equal("WINWORD.exe", program.ExeName);
     }
 
+    // Parts of Windows without an app of their own are left out, in any case, without reading
+    // their file; Instellingen and Verkenner, which a user opens, stay.
+    [Theory]
+    [InlineData("ApplicationFrameHost")]
+    [InlineData("TextInputHost")]
+    [InlineData("textinputhost")]
+    [InlineData("ShellExperienceHost")]
+    [InlineData("StartMenuExperienceHost")]
+    [InlineData("SearchHost")]
+    [InlineData("SearchApp")]
+    [InlineData("LockApp")]
+    public void Find_LeavesOutPartsOfWindows(string part)
+    {
+        var read = new List<int>();
+
+        var programs = WindowedPrograms.Find(
+            [new(1, part, "Windows Input Experience"), new(2, "SystemSettings", "Instellingen"), new(3, "explorer", "Downloads")],
+            id =>
+            {
+                read.Add(id);
+                return null;
+            });
+
+        Assert.Equal(["SystemSettings.exe", "explorer.exe"], programs.Select(program => program.ExeName).Order(StringComparer.Ordinal));
+        Assert.DoesNotContain(1, read);
+    }
+
     // A name that is no exe name the field takes, such as an empty one, is left out.
     [Fact]
     public void Find_LeavesOutNamesThatAreNoProgram()
