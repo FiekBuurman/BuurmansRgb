@@ -3,6 +3,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Views.Pages;
 
@@ -57,6 +58,25 @@ public sealed class SettingsViewTests
 
             Assert.False(viewModel.AutoStart.IsOn);
             Assert.Equal(["autostart False"], engine!.Calls);
+        });
+    }
+
+    // As the item in the tray menu, the button opens the log of the engine (here into opened).
+    [Fact]
+    public async Task OpenLog_OpensTheLogOfTheEngine()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var button = PageViews.ButtonNamed(page, Strings.OpenLog);
+            Assert.Equal(Strings.LogHint, AutomationProperties.GetHelpText(button));
+
+            PageViews.Click(button);
+
+            Assert.Equal([FileLog.PathOf(FileLog.EngineName)], opened);
         });
     }
 }

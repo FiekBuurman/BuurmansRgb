@@ -79,7 +79,7 @@ internal static class Program
         }
 
         // After the single-instance check, so a second start does not write to the log of the first.
-        using var log = FileLog.Start("engine");
+        using var log = FileLog.Start(FileLog.EngineName);
         foreach (var warning in restartWarnings)
         {
             Trace.TraceWarning(warning);

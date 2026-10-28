@@ -131,6 +131,18 @@
                         </DockPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- "Logbestand openen", as in the tray menu: engine.log in the app that opens .log files. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LogHeader}" />
+                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.LogHint}" />
+                        <Button HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenLog}"
+                                Command="{Binding AppInfo.OpenLogCommand}"
+                                AutomationProperties.Name="{x:Static res:Strings.OpenLog}"
+                                AutomationProperties.HelpText="{x:Static res:Strings.LogHint}" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

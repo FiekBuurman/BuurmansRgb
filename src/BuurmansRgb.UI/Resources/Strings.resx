@@ -812,6 +812,18 @@
   <data name="AutoStartFailed" xml:space="preserve">
     <value>Starten met Windows kon niet worden aangepast.</value>
   </data>
+  <data name="LogHeader" xml:space="preserve">
+    <value>Logbestand</value>
+  </data>
+  <data name="LogHint" xml:space="preserve">
+    <value>Wat de engine doet en wat er misgaat, in het Engels. Handig om mee te sturen als iets op je eigen hardware niet werkt.</value>
+  </data>
+  <data name="OpenLog" xml:space="preserve">
+    <value>Logbestand openen</value>
+  </data>
+  <data name="LogOpenFailed" xml:space="preserve">
+    <value>Het logbestand kon niet worden geopend.</value>
+  </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>
   </data>

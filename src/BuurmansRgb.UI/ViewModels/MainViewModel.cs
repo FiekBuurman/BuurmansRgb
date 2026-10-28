@@ -99,10 +99,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
-    // instead of the programs that run (WindowedPrograms.Find).
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
+    // instead of the programs that run (WindowedPrograms.Find), and a fake open for what
+    // Instellingen opens (the log), instead of opening it (ShellLauncher.Open).
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, Action<string>? open = null)
     {
         _connector = connector;
+        AppInfo = new AppInfoViewModel(open ?? ShellLauncher.Open, FileLog.PathOf(FileLog.EngineName));
+        AppInfo.Failed += (_, message) => StatusMessage = message;
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
@@ -294,6 +297,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
     // Off until the engine said.
     public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
+
+    // "Logbestand openen" at the bottom of Instellingen.
+    public AppInfoViewModel AppInfo { get; }
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 

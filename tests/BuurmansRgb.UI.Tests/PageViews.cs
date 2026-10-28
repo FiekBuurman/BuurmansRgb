@@ -20,10 +20,11 @@ internal static class PageViews
         windowWidth - NavigationWidth - SystemParameters.VerticalScrollBarWidth;
 
     // A view model connected to a fake engine, which arrange prepares before the view model loads
-    // from it. "Kies uit wat nu draait" lists programs, or nothing, but never what runs on this pc.
-    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null)
+    // from it. "Kies uit wat nu draait" lists programs, or nothing, but never what runs on this pc,
+    // and what Instellingen opens (the log) goes into opened instead of opening on this pc.
+    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null, List<string>? opened = null)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []));
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []), open: target => opened?.Add(target));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
