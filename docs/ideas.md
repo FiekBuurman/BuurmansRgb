@@ -204,6 +204,8 @@ uitbreidingen in `docs/bouwplan.md`.
   verzadiging kiest
 - Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
+- Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
+  verlaten van het veld de melding dat het geen kleurcode is (sinds "invoer-uitleg")
 - "+" van de eigen kleuren achter het laatste vakje zetten in plaats van ervoor, met een paneel
   dat de vakjes en + samen laat omlopen; nu staat + vooraan, zodat de vakjes binnen de kolom
   omlopen
