@@ -1,5 +1,5 @@
 <!-- Instellingen: how buurmansRgb gets on with OpenRGB, when the simulated lamps show, the effects,
-     the scene times and the hotkeys. Whether saving worked is in the status line of MainWindow. -->
+     the scene times, the hotkeys and "Starten met Windows". Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -109,6 +109,24 @@
                             <StackPanel>
                                 <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.HotkeysLabel}" />
                                 <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.HotkeysHint}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- "Starten met Windows", the same as in the tray menu; the engine keeps it, so both show the same. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" />
+                        <DockPanel Margin="0,12,0,0">
+                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                          IsChecked="{Binding AutoStart.IsOn}"
+                                          AutomationProperties.Name="{x:Static res:Strings.AutoStartLabel}"
+                                          AutomationProperties.HelpText="{x:Static res:Strings.AutoStartHint}"
+                                          AutomationProperties.AutomationId="AutoStart" />
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.AutoStartLabel}" />
+                                <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.AutoStartHint}" />
                             </StackPanel>
                         </DockPanel>
                     </StackPanel>

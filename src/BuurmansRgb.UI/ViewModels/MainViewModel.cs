@@ -33,6 +33,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string PausedLightsCall = "paused-lights";
     private const string CatchUpCall = "catch-up";
     private const string HotkeysCall = "hotkeys";
+    private const string AutoStartCall = "autostart";
     private const string CustomColorsCall = "custom-colors";
     private const string ResumeCall = "resume";
     private const string FollowLightingCall = "follow-lighting";
@@ -174,6 +175,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         Hotkeys.Switched += (_, enabled) =>
             SendOption(HotkeysCall, api => api.SetHotkeysAsync(enabled));
+        AutoStart.Switched += (_, enabled) => SendAutoStart(enabled);
         CustomColors.ColorsChanged += (_, colors) =>
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
@@ -287,6 +289,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // switch everything on and off; the engine registers or frees the keys. On, as the engine has
     // it until said.
     public SwitchOptionViewModel Hotkeys { get; } = new(isOn: true);
+
+    // "Starten met Windows" on Instellingen, the same as the item in the tray menu: the engine
+    // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
+    // Off until the engine said.
+    public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
@@ -1339,6 +1346,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // A change comes back through OptionsChanged. When Windows did not let it change, the switch
+    // shows what the engine has again, with the message the tray menu gives too.
+    private void SendAutoStart(bool enabled)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(AutoStartCall, async () =>
+        {
+            if (await connection.Api.SetAutoStartAsync(enabled))
+            {
+                return;
+            }
+
+            var current = await connection.Api.GetAutoStartAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    AutoStart.Show(current);
+                    StatusMessage = Strings.AutoStartFailed;
+                }
+            });
+        });
+    }
+
     // The engine reports the pause that is left through PauseChanged, so the message follows by itself.
     private void ResumeEffects()
     {
@@ -1516,6 +1551,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await api.GetPausedLightsAsync(),
         await api.GetCatchUpSceneTimesAsync(),
         await api.GetHotkeysAsync(),
+        await api.GetAutoStartAsync(),
         await api.GetCustomColorsAsync());
 
     private void ShowOptions(OptionValues options)
@@ -1524,6 +1560,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
         SceneTimes.Show(options.CatchUpSceneTimes);
         Hotkeys.Show(options.Hotkeys);
+        AutoStart.Show(options.AutoStart);
         CustomColors.Show(options.CustomColors);
     }
 
@@ -1690,5 +1727,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         PausedLightsMode PausedLights,
         bool CatchUpSceneTimes,
         bool Hotkeys,
+        bool AutoStart,
         IReadOnlyList<RgbColor> CustomColors);
 }
