@@ -118,7 +118,11 @@ schakelaar ernaast.
   gaan alle apparaten aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één
   apparaat, dan blijven de andere apparaten zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect, de snelheid en bij Regenboog, Golf
-  en een verspreide Kleurenloop de richting. De helderheid werkt op elk effect.
+  en een verspreide Kleurenloop de richting. De helderheid werkt op elk effect. Onder de
+  effectkeuze zegt één korte zin wat het gekozen effect doet, bijv. "Een lichtpunt gaat heen en
+  weer, zoals bij Knight Rider." bij Scanner, en bij een eigen effect hoeveel stappen het heeft
+  ("Jouw effect: 3 stappen."). Een schermlezer leest die zin als de hulptekst van de keuze. Hij
+  verandert mee met het effect, ook als een scène of het tray-menu het effect wijzigt.
 - **Hele huis of één apparaat:** een wijziging bij "Hele huis" geldt voor alle apparaten, maar
   alleen voor wat je wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die
   kleur. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat weer
@@ -147,6 +151,8 @@ schakelaar ernaast.
   tray-menu met "Hervatten" (zie "Pauzeren").
 
 #### Effecten
+
+Onder de effectkeuze staat van elk effect een korte zin; hier staat precies wat het doet.
 
 | Effect | In `settings.json` | Wat het doet |
 | --- | --- | --- |
@@ -635,6 +641,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de stijl van de snelheid, met de graden in het monolettertype en een pijltje dat de kant op
   wijst. "Volgorde van de LED's" eronder is een link, zoals Verversen. Bij een effect zonder
   richting blijft de plek van de schuif leeg, zodat de andere drie niet verspringen.
+- **Uitleg bij het effect** staat niet in het ontwerp: de zin onder de effectkeuze is subtekst,
+  zoals "Alleen voor bewegende effecten." onder de snelheid. Hij houdt de ruimte van de langste
+  zin vrij, zodat de schuiven ernaast, "+ Eigen effect maken" eronder en de kaart niet
+  verspringen als je een ander effect kiest.
 - **Eigen effect** staat niet in het ontwerp: het paneel onder het kleurvoorbeeld gebruikt de
   kaart, de vakjes (44 px) met + en − van de kleurenloop, met ← en → in dezelfde ronde knopjes,
   en de schuiven en het monolettertype van "Licht en beweging". "+ Eigen effect maken" onder de

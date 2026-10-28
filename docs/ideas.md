@@ -227,6 +227,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
+- De zin over wat een effect doet ook in de open effectkeuze tonen (als tweede regel of tooltip
+  bij elk effect), zodat je het leest vóór je kiest; nu staat hij alleen onder de keuze, bij het
+  gekozen effect (sinds "effect-uitleg")
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
 - De Snap Layouts van Windows 11 (het menu bij het aanwijzen van de maximaliseerknop) ook bij de
