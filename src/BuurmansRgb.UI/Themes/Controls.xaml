@@ -665,13 +665,16 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Center"
+                        <!-- The box and the first line both sit in the middle of the 32 px of MinHeight: the box
+                             (22 px) 5 px from the top, a line of body text (20 px) 6 px. A text over more lines
+                             goes on downwards and keeps the box beside its first line. -->
+                        <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Top" Margin="0,5,0,0"
                                 BorderBrush="{StaticResource BorderStrongBrush}" Background="Transparent">
                             <Path x:Name="Check" Data="M5,11 L9,15 L17,7" Stretch="None" Margin="-2" Stroke="{StaticResource BgBrush}" StrokeThickness="2.5"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed" />
                         </Border>
                         <!-- A text that does not fit goes on over more lines, such as that of the color loop in a narrow window. -->
-                        <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True">
+                        <ContentPresenter Grid.Column="1" Margin="10,6,0,0" VerticalAlignment="Top" RecognizesAccessKey="True">
                             <ContentPresenter.Resources>
                                 <Style TargetType="AccessText">
                                     <Setter Property="TextWrapping" Value="Wrap" />
