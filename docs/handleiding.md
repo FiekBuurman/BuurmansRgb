@@ -51,7 +51,9 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
   kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
-  "+ Erbij knutselen" gaat naar Instellingen.
+  "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
+  maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
+  het opnieuw zoeken. Dat zegt ook de tooltip van "+ Erbij knutselen".
 - **Verversen** (naast "+ Erbij knutselen") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
   het als een apparaat niet terugkomt, bijvoorbeeld een koptelefoon die je uit en weer aan zette.
   Zolang er gezocht wordt, staat er "Zoeken…"; nog een klik doet dan niets. Een apparaat dat
