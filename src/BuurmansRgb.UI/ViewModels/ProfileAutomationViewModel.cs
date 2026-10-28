@@ -48,13 +48,14 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     public bool HasRunningPrograms => RunningPrograms.Count > 0;
 
     // A list that opens again while the last one is still read gets the newest programs, also when
-    // the reading of before ends later.
+    // the reading of before ends later. The same programs as before leave the list as it is, so an
+    // open list keeps its highlighted item and focus, and a screen reader hears no new list.
     [RelayCommand]
     private async Task FindProgramsAsync()
     {
         var search = ++_programSearches;
         var programs = await _findPrograms();
-        if (search == _programSearches)
+        if (search == _programSearches && !programs.SequenceEqual(RunningPrograms))
         {
             RunningPrograms = programs;
         }

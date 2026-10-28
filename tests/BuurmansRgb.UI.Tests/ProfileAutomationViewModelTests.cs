@@ -250,6 +250,34 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal(["game.exe"], automation.RunningPrograms.Select(program => program.ExeName));
     }
 
+    // The same programs again keep the list as it is, so an open list keeps its highlighted item and
+    // a screen reader hears no new list; other programs replace it.
+    [Fact]
+    public async Task FindPrograms_TheSameProgramsAgain_LeaveTheList()
+    {
+        var found = new Queue<IReadOnlyList<RunningProgram>>(
+        [
+            [new("olk.exe", "Outlook"), new("game.exe")],
+            [new("olk.exe", "Outlook"), new("game.exe")],
+            [new("game.exe")],
+        ]);
+        var automation = new ProfileAutomationViewModel(() => Task.FromResult(found.Dequeue()));
+        var changes = new List<string?>();
+        automation.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
+        await automation.FindProgramsCommand.ExecuteAsync(null);
+        var first = automation.RunningPrograms;
+        await automation.FindProgramsCommand.ExecuteAsync(null);
+
+        Assert.Same(first, automation.RunningPrograms);
+        Assert.Single(changes, nameof(automation.RunningPrograms));
+
+        await automation.FindProgramsCommand.ExecuteAsync(null);
+
+        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(program => program.ExeName));
+        Assert.Equal(2, changes.Count(change => change == nameof(automation.RunningPrograms)));
+    }
+
     // The list shows "Outlook (olk.exe)"; the field gets the exe name, which the engine compares.
     [Fact]
     public void PickRunningProgram_FillsInTheExeName()
