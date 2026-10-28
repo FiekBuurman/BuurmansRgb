@@ -561,8 +561,9 @@ Hoe het vanzelf aanzetten werkt:
   engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
   zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
   meteen.
-- **Opslaan:** wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in
-  de statusregel ("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
+
+Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
+("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
 
 ### Aan en uit
 
@@ -570,7 +571,8 @@ Elk apparaat, en met "Hele huis" alles tegelijk, kan aan en uit (de schakelaars 
 en naast de apparaatkeuze bij Kleur). Een apparaat dat uit is, wordt zwart en houdt zijn kleur,
 effect en helderheid voor als het weer aan gaat. De grote schakelaar staat aan zolang er
 minstens één apparaat aan is. Met alles uit loopt er geen timer in de engine, ook niet als het
-effect een regenboog is. "Knipperen" bij een apparaat werkt ook bij een apparaat dat uit is; daarna is het weer zwart.
+effect een regenboog is. "Knipperen" naast de naam van een apparaat werkt ook als het uit
+staat; daarna is het weer zwart.
 Een kleur op een apparaat zetten bij Kleur zet het ook aan (zie "Kleur").
 
 ### Ontwerp en bewuste afwijkingen
