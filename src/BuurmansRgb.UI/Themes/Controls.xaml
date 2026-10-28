@@ -497,8 +497,10 @@
     </Style>
 
     <!-- A text link as a button, such as "+ Erbij knutselen". One that does nothing now, such as
-         "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey and faded like the other
-         disabled controls, without the hand, so it no longer looks like a link. -->
+         "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey, so it no longer looks like a
+         link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
+         gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF
+         shows the cursor of the parent over a disabled element. -->
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
         <Setter Property="FontSize" Value="14" />
@@ -519,7 +521,6 @@
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
                 <Setter Property="Opacity" Value="0.6" />
-                <Setter Property="Cursor" Value="Arrow" />
             </Trigger>
         </Style.Triggers>
     </Style>

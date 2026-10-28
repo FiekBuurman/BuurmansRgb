@@ -321,7 +321,7 @@ public sealed class CustomEffectViewTests
     }
 
     // With Hele huis there are no LED colors of one device to take, so the link is off, and looks
-    // it: grey and faded, without the hand. With a device it is a blue link again.
+    // it: grey and faded. With a device it is a blue link again.
     [Fact]
     public async Task TakePattern_WholeHouse_LooksDisabled()
     {
@@ -335,7 +335,6 @@ public sealed class CustomEffectViewTests
             Assert.False(take.IsEnabled);
             Assert.Same(page.FindResource("TextMutedBrush"), take.Foreground);
             Assert.True(take.Opacity < 1);
-            Assert.Equal(Cursors.Arrow, take.Cursor);
 
             viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
             OffscreenWindow.WaitUntilIdle();
