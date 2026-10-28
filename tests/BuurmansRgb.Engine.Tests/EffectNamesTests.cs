@@ -12,13 +12,16 @@ public sealed class EffectNamesTests
     private static readonly string AppStrings = Path.Combine(AppContext.BaseDirectory, "AppStrings");
 
     // The engine refuses an own effect under the names the settings app shows for its effects, so
-    // both Strings.resx files have the same name for every effect of the catalog.
+    // both Strings.resx files have the same name for every effect of the catalog. The neutral ones,
+    // whatever the language of the machine (EffectNames.BuiltIn has the names in that language).
     [Fact]
     public void BuiltIn_AreTheNamesOfTheSettingsApp()
     {
         var app = Values(Path.Combine(AppStrings, "Strings.resx"));
 
-        Assert.Equal(EffectCatalog.Ids.Select(id => app["Effect_" + id]), EffectNames.BuiltIn);
+        Assert.Equal(
+            EffectCatalog.Ids.Select(id => app["Effect_" + id]),
+            EffectCatalog.Ids.Select(id => Strings.ResourceManager.GetString("Effect_" + id, CultureInfo.InvariantCulture)));
     }
 
     // A translation of the app needs one of the engine with the same names, or the engine would
