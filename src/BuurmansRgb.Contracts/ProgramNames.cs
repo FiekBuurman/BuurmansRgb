@@ -6,6 +6,11 @@ public static class ProgramNames
 {
     public const int MaxLength = 100;
 
+    // The lock screen of Windows, also the sign-in screen after a screen saver with
+    // "aanmeldingsscherm bij hervatten": the engine does not let it count as a program in the
+    // foreground, and "Kies uit wat nu draait" leaves it out.
+    public const string LockScreen = "LockApp.exe";
+
     private const string Extension = ".exe";
 
     // What a user may pick instead of the program itself; the process that runs is another one.

@@ -26,7 +26,7 @@ public static class WindowedPrograms
         "StartMenuExperienceHost.exe",
         "SearchHost.exe",
         "SearchApp.exe",
-        "LockApp.exe",
+        ProgramNames.LockScreen,
     };
 
     public static IReadOnlyList<RunningProgram> Find() => Find(SystemProcesses.Windowed(), SystemProcesses.Description);

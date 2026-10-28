@@ -27,7 +27,7 @@ internal sealed partial class SystemForegroundWindow : MessageOnlyWindow, IForeg
     // screen, the Start menu and search, and the panes for notifications and quick settings.
     private static readonly HashSet<string> PassingPrograms = new(ProgramNames.Comparer)
     {
-        WindowsPrograms.LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
+        ProgramNames.LockScreen, "StartMenuExperienceHost.exe", "SearchHost.exe", "SearchApp.exe", "ShellExperienceHost.exe", "ShellHost.exe",
     };
 
     private readonly ProcessImageName _names = new();
