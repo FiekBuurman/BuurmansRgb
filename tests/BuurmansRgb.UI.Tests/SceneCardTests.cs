@@ -17,15 +17,22 @@ public sealed class SceneCardTests
         Assert.Equal("Klusmodus aanpassen", _card.EditAccessibleName);
     }
 
-    // WPF names the card and its bulbs after their ToString for a screen reader.
+    // WPF names the card after its ToString for a screen reader; the bulbs are one image that says
+    // on or off, with each of their colors once.
     [Fact]
-    public void ToString_IsTheNameAndTheBulbsSayOnOrOffWithTheirColor()
+    public void AccessibleNames_TheCardIsItsNameAndTheBulbsSayOnOrOffWithTheirColors()
     {
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
-
         Assert.Equal("Klusmodus", _card.ToString());
-        Assert.Equal($"Aan: {Orange.ToHex()}", _card.Dots[0].ToString());
-        Assert.Equal("Uit", new SceneDot(RgbColor.Black, false).ToString());
+        Assert.Equal("Uit", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
+        Assert.Equal($"Aan: {Orange.ToHex()}", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green, Blue])), ProfileAutomation.None);
+        Assert.Equal($"Aan: {Green.ToHex()}, {Blue.ToHex()}", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static, On: false), ProfileAutomation.None);
+        Assert.Equal("Uit", _card.DotsAccessibleName);
     }
 
     [Fact]

@@ -51,19 +51,19 @@
                             <TextBlock Style="{StaticResource BigValue}" Text="{Binding Lamps.Summary}" AutomationProperties.AutomationId="WholeHouseSummary" />
                         </StackPanel>
                     </DockPanel>
-                    <ItemsControl Margin="4,18,4,6" ItemsSource="{Binding Lamps.Strip}" Focusable="False" IsTabStop="False">
-                        <ItemsControl.ItemsPanel>
+                    <views:DecorativeItemsControl Margin="4,18,4,6" ItemsSource="{Binding Lamps.Strip}" Focusable="False" IsTabStop="False">
+                        <views:DecorativeItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <UniformGrid Rows="1" />
                             </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+                        </views:DecorativeItemsControl.ItemsPanel>
+                        <views:DecorativeItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:StripLed}">
                                 <views:LedBulb Diameter="12" GlowBlur="10" GlowSpread="2" IsLit="{Binding IsLit}"
                                                Color="{Binding Color}" />
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </views:DecorativeItemsControl.ItemTemplate>
+                    </views:DecorativeItemsControl>
                 </StackPanel>
             </Border>
 

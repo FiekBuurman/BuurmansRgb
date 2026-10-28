@@ -43,19 +43,20 @@
                                     CommandParameter="{Binding}" ToolTip="{x:Static res:Strings.ProfileLoadToolTip}"
                                     AutomationProperties.Name="{Binding LoadAccessibleName}" AutomationProperties.HelpText="{Binding Description}">
                                 <StackPanel Background="Transparent">
-                                    <ItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False">
-                                        <ItemsControl.ItemsPanel>
+                                    <views:DecorativeItemsControl Margin="0,0,52,0" ItemsSource="{Binding Dots}" Focusable="False" IsTabStop="False"
+                                                                  AutomationProperties.Name="{Binding DotsAccessibleName}">
+                                        <views:DecorativeItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <StackPanel Orientation="Horizontal" />
                                             </ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
+                                        </views:DecorativeItemsControl.ItemsPanel>
+                                        <views:DecorativeItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type vm:SceneDot}">
                                                 <views:LedBulb Margin="0,0,6,0" Diameter="12" GlowBlur="8" GlowSpread="1" IsLit="{Binding IsLit}"
                                                                Color="{Binding Color}" />
                                             </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                        </views:DecorativeItemsControl.ItemTemplate>
+                                    </views:DecorativeItemsControl>
                                     <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
                                     <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
                                 </StackPanel>

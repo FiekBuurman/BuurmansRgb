@@ -15,7 +15,13 @@ public sealed partial class SceneCard(string name) : ObservableObject
     public string EditAccessibleName => UiText.Format(Strings.SceneEditAccessibleName, Name);
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DotsAccessibleName))]
     public partial IReadOnlyList<SceneDot> Dots { get; private set; } = SceneLook.Unknown;
+
+    // The bulbs in one go for a screen reader, each color once: "Aan: #FF0000, #FFFF00", or "Uit".
+    public string DotsAccessibleName => Dots.Any(dot => dot.IsLit)
+        ? UiText.Format(Strings.SceneDotsOn, string.Join(", ", Dots.Where(dot => dot.IsLit).Select(dot => dot.Color.ToHex()).Distinct()))
+        : Strings.SceneDotsOff;
 
     [ObservableProperty]
     public partial string Description { get; private set; } = string.Empty;
