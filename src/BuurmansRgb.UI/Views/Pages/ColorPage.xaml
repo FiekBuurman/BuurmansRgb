@@ -388,7 +388,26 @@
                         <StackPanel Grid.Column="2">
                             <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.EffectHeader}" />
                             <ComboBox x:Name="EffectChoice" ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
-                                      AutomationProperties.Name="{x:Static res:Strings.EffectHeader}" />
+                                      AutomationProperties.Name="{x:Static res:Strings.EffectHeader}"
+                                      AutomationProperties.HelpText="{Binding SelectedEffect.Description}" />
+                            <!-- What the chosen effect does, in one sentence. Underneath, hidden, every sentence of the
+                                 choice keeps the room of the longest, so "+ Eigen effect maken" and the card below
+                                 do not move with another effect. A screen reader reads it as the help of the choice. -->
+                            <Grid Margin="0,6,0,0">
+                                <views:DecorativeItemsControl ItemsSource="{Binding Effects}" Focusable="False" IsTabStop="False" Visibility="Hidden">
+                                    <views:DecorativeItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <Grid />
+                                        </ItemsPanelTemplate>
+                                    </views:DecorativeItemsControl.ItemsPanel>
+                                    <views:DecorativeItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:EffectOption">
+                                            <TextBlock Style="{StaticResource SubText}" Text="{Binding Description}" />
+                                        </DataTemplate>
+                                    </views:DecorativeItemsControl.ItemTemplate>
+                                </views:DecorativeItemsControl>
+                                <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedEffect.Description}" />
+                            </Grid>
                             <!-- A new own effect of steps, which the editor above then shows. -->
                             <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
                                     Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
