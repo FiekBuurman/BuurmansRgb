@@ -125,14 +125,16 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:LampItem}">
-                        <!-- The card itself opens the lamp; its switch sits on it, after it for the keyboard. -->
+                        <!-- The card itself opens the lamp; its switch sits on it, after it for the keyboard.
+                             The tooltip sits on its content, not on the button: WPF reads the tooltip of a
+                             button without help text out as its help text, so the name would sound twice. -->
                         <Grid>
                             <Button Style="{StaticResource CardButton}" Padding="16,14,82,14"
                                     Command="{Binding DataContext.Lamps.OpenCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}" ToolTip="{Binding Device.CardToolTip}"
+                                    CommandParameter="{Binding}"
                                     AutomationProperties.Name="{Binding OpenAccessibleName}"
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
-                                <DockPanel Background="Transparent">
+                                <DockPanel Background="Transparent" ToolTip="{Binding Device.CardToolTip}">
                                     <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
                                                    IsLit="{Binding IsOn}" Color="{Binding Color}" />
                                     <StackPanel VerticalAlignment="Center">

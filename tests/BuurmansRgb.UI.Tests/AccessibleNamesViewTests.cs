@@ -37,6 +37,24 @@ public sealed class AccessibleNamesViewTests
         });
     }
 
+    // A card shows the whole name as its tooltip, but a screen reader does not say it twice: WPF reads
+    // the tooltip of a button without help text out as its help text, so the tooltip sits inside it.
+    [Fact]
+    public async Task LampsPage_CardOfADeviceWithoutAPlace_HasTheNameAsToolTipButNoHelpText()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var card = PageViews.ButtonNamed(page, string.Format(Strings.LampOpenAccessibleName, "LED strip"));
+
+            Assert.Null(card.ToolTip);
+            Assert.Equal("LED strip", Assert.IsAssignableFrom<FrameworkElement>(card.Content).ToolTip);
+            Assert.Equal("", new ButtonAutomationPeer(card).GetHelpText());
+        });
+    }
+
     // The loop, the colors of a comet and an own effect each open a part of their own; the strip of
     // the preview has no items, as the preview is named after what it shows.
     [Theory]
