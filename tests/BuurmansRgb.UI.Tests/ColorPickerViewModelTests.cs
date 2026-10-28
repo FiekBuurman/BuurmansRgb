@@ -26,6 +26,7 @@ public sealed class ColorPickerViewModelTests
     {
         Assert.Equal(ColorPickerViewModel.Presets.Count, ColorPickerViewModel.Presets.Select(preset => preset.Color).Distinct().Count());
         Assert.Equal(ColorPickerViewModel.Presets.Count, ColorPickerViewModel.Presets.Select(preset => preset.Name).Distinct().Count());
+        Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), ColorPickerViewModel.Presets.Select(preset => preset.ToString()));
     }
 
     [Fact]

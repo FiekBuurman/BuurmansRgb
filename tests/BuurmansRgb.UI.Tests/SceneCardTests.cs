@@ -17,6 +17,17 @@ public sealed class SceneCardTests
         Assert.Equal("Klusmodus aanpassen", _card.EditAccessibleName);
     }
 
+    // WPF names the card and its bulbs after their ToString for a screen reader.
+    [Fact]
+    public void ToString_IsTheNameAndTheBulbsSayOnOrOffWithTheirColor()
+    {
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
+
+        Assert.Equal("Klusmodus", _card.ToString());
+        Assert.Equal($"Aan: {Orange.ToHex()}", _card.Dots[0].ToString());
+        Assert.Equal("Uit", new SceneDot(RgbColor.Black, false).ToString());
+    }
+
     [Fact]
     public void Show_StaticColor_FiveBulbsInThatColorAndTheEffectWithItsBrightness()
     {

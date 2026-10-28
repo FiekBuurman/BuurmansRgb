@@ -40,4 +40,7 @@ public sealed partial class ZoneCountPaceOption : ObservableObject
     }
 
     internal void Refresh() => OnPropertyChanged(nameof(IsChecked));
+
+    // WPF names the list item around the button after it for screen readers.
+    public override string ToString() => AccessibleName;
 }

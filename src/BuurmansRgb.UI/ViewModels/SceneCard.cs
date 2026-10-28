@@ -29,4 +29,7 @@ public sealed partial class SceneCard(string name) : ObservableObject
         Dots = SceneLook.DotsOf(lighting);
         Description = SceneLook.Describe(lighting, automation);
     }
+
+    // WPF names the list item, the card, after it for screen readers.
+    public override string ToString() => Name;
 }

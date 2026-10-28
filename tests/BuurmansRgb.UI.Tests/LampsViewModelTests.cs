@@ -40,6 +40,7 @@ public sealed class LampsViewModelTests
         Assert.True(_lamps.IsAnyOn);
         Assert.Equal("LED-strip · 80%", _lamps.Lamps[0].Details);
         Assert.Equal("Ventilator · uit", _lamps.Lamps[1].Details);
+        Assert.Equal(["LED strip", "Fan", "Simulated"], _lamps.Lamps.Select(lamp => lamp.ToString()));
         Assert.Empty(_switches);
     }
 

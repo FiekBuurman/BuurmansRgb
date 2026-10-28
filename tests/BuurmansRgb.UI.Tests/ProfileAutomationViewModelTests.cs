@@ -297,6 +297,7 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal(["Aanzetten om, tijd 1", "Aanzetten om, tijd 2"], _automation.Times.Select(row => row.TimeAccessibleName));
         Assert.Equal("Dagen van tijd 2", _automation.Times[1].DaysAccessibleName);
         Assert.Equal("Tijd 2 weghalen", _automation.Times[1].RemoveAccessibleName);
+        Assert.Equal(["Tijd 1", "Tijd 2"], _automation.Times.Select(row => row.ToString()));
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
@@ -358,6 +359,7 @@ public sealed class ProfileAutomationViewModelTests
 
         var row = Assert.Single(_automation.Times);
         Assert.Equal(1, row.Number);
+        Assert.Equal("Tijd 1", row.ToString());
         Assert.Equal([new ProfileAutomationChange("Ochtend", new ProfileAutomation(new TimeOnly(9, 0), Days: WeekDays.Weekend))], _requests);
     }
 
