@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -100,11 +101,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
     // instead of the programs that run (WindowedPrograms.Find), and a fake open for what
-    // Instellingen opens (the log), instead of opening it (ShellLauncher.Open).
+    // Instellingen opens (the log, the guide), instead of opening it (ShellLauncher.Open).
     public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, Action<string>? open = null)
     {
         _connector = connector;
-        AppInfo = new AppInfoViewModel(open ?? ShellLauncher.Open, FileLog.PathOf(FileLog.EngineName));
+        AppInfo = new AppInfoViewModel(
+            open ?? ShellLauncher.Open,
+            FileLog.PathOf(FileLog.EngineName),
+            typeof(MainViewModel).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
         AppInfo.Failed += (_, message) => StatusMessage = message;
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
@@ -298,7 +302,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Off until the engine said.
     public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
 
-    // "Logbestand openen" at the bottom of Instellingen.
+    // "Logbestand openen", the version and the guide at the bottom of Instellingen.
     public AppInfoViewModel AppInfo { get; }
 
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();

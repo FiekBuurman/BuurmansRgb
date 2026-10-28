@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -77,6 +78,32 @@ public sealed class SettingsViewTests
             PageViews.Click(button);
 
             Assert.Equal([FileLog.PathOf(FileLog.EngineName)], opened);
+        });
+    }
+
+    // At the very bottom, after the last card: the version and the link to the guide.
+    [Fact]
+    public async Task Bottom_ShowsTheVersionAndOpensTheGuide()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var texts = AppTheme.Descendants<TextBlock>(page).Where(text => text.IsVisible).ToList();
+            var version = texts.Single(text => AutomationProperties.GetAutomationId(text) == "AppVersion");
+            Assert.Equal(viewModel.AppInfo.VersionText, version.Text);
+            var guide = PageViews.ButtonNamed(page, Strings.GuideLink);
+            Assert.Equal(Strings.GuideHint, AutomationProperties.GetHelpText(guide));
+            Assert.Equal(Strings.GuideHint, guide.ToolTip);
+
+            var logButton = PageViews.ButtonNamed(page, Strings.OpenLog);
+            Assert.True(version.TranslatePoint(default, page).Y > logButton.TranslatePoint(default, page).Y);
+
+            PageViews.Click(guide);
+
+            Assert.Equal([AppInfoViewModel.GuideAddress], opened);
         });
     }
 }

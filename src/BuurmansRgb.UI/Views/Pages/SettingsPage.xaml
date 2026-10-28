@@ -1,5 +1,6 @@
 <!-- Instellingen: how buurmansRgb gets on with OpenRGB, when the simulated lamps show, the effects,
-     the scene times, the hotkeys and "Starten met Windows". Whether saving worked is in the status line of MainWindow. -->
+     the scene times, the hotkeys and "Starten met Windows", the log of the engine, and at the bottom
+     the version and the guide. Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -143,6 +144,17 @@
                                 AutomationProperties.HelpText="{x:Static res:Strings.LogHint}" />
                     </StackPanel>
                 </Border>
+
+                <!-- At the very bottom, under the cards: the version and the guide, a link in the style of Verversen. -->
+                <StackPanel Margin="4,14,0,0" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" Text="{Binding AppInfo.VersionText}"
+                               AutomationProperties.AutomationId="AppVersion" />
+                    <Button Margin="12,0,0,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.GuideLink}"
+                            Command="{Binding AppInfo.OpenGuideCommand}"
+                            ToolTip="{x:Static res:Strings.GuideHint}"
+                            AutomationProperties.Name="{x:Static res:Strings.GuideLink}"
+                            AutomationProperties.HelpText="{x:Static res:Strings.GuideHint}" />
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

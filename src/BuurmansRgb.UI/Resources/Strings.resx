@@ -824,6 +824,21 @@
   <data name="LogOpenFailed" xml:space="preserve">
     <value>Het logbestand kon niet worden geopend.</value>
   </data>
+  <data name="AppVersion" xml:space="preserve">
+    <value>buurmansRgb {0}</value>
+  </data>
+  <data name="VersionUnknown" xml:space="preserve">
+    <value>(versie onbekend)</value>
+  </data>
+  <data name="GuideLink" xml:space="preserve">
+    <value>Handleiding</value>
+  </data>
+  <data name="GuideHint" xml:space="preserve">
+    <value>Opent de handleiding op GitHub in je browser.</value>
+  </data>
+  <data name="GuideOpenFailed" xml:space="preserve">
+    <value>De handleiding kon niet worden geopend.</value>
+  </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>
   </data>
