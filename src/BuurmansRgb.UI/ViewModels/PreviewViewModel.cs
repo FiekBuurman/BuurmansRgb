@@ -72,8 +72,8 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // zone is counted, or while the counted zone is not in view.
     public ZoneCountViewModel? Count { get; private set; }
 
-    // Set from the pause of the engine; greys out "Laat knipperen" of every device, and "Knipperen"
-    // and "Tellen" of every zone. A pause ends any count in the engine, and refuses a start that
+    // Set from the pause of the engine; greys out "Knipperen" of every device, and "Knipperen" and
+    // "Tellen" of every zone. A pause ends any count in the engine, and refuses a start that
     // reaches it after the pause, so the count of this app ends here too: a start the engine
     // refused would otherwise never be confirmed nor ended.
     public bool CanFlash

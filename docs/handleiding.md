@@ -274,7 +274,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
 ![Het voorbeeld van een toetsenbord met de regenboog op 45°, schuin over de toetsen](images/voorbeeld.png)
 
 Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn type, de naam en
-**Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
+**Knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
 ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
 voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
@@ -568,7 +568,7 @@ Elk apparaat, en met "Hele huis" alles tegelijk, kan aan en uit (de schakelaars 
 en naast de apparaatkeuze bij Kleur). Een apparaat dat uit is, wordt zwart en houdt zijn kleur,
 effect en helderheid voor als het weer aan gaat. De grote schakelaar staat aan zolang er
 minstens één apparaat aan is. Met alles uit loopt er geen timer in de engine, ook niet als het
-effect een regenboog is. "Laat knipperen" werkt ook bij een apparaat dat uit is; daarna is het weer zwart.
+effect een regenboog is. "Knipperen" bij een apparaat werkt ook bij een apparaat dat uit is; daarna is het weer zwart.
 Een kleur op een apparaat zetten bij Kleur zet het ook aan (zie "Kleur").
 
 ### Ontwerp en bewuste afwijkingen
@@ -1059,10 +1059,10 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 
 - **Knipperen:** open je een apparaat (een klik op zijn kaart, of de apparaatkeuze bij Kleur),
   dan knippert het op de hardware 1,5 seconde: drie keer fel wit en uit, ook bij een lage
-  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Laat knipperen" in het
+  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam in het
   voorbeeld doet het nog eens. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
   het apparaat waar je 0,3 seconde op blijft staan. Er knippert steeds één apparaat; knipperen
-  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
+  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs.
 - **Eén zone knipperen:** heeft een apparaat meer zones, zoals een moederbord met een paar
   ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**, behalve bij
   "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
@@ -1082,5 +1082,5 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de
-  tooltip van de kaart. Welke welke is in de pc, zie je met "Laat knipperen".
+  tooltip van de kaart. Welke welke is in de pc, zie je met "Knipperen".
 - **Echt of gesimuleerd:** elk onder een eigen kop, zie "Apparaten".

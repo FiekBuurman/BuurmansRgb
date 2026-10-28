@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // A short label for devices that look the same in the list, such as the RAM sticks of a kit or two
 // graphics cards of one model: only the part of their location that differs, such as "Adres 0x52".
-// It tells them apart; which one is which in the pc shows with "Laat knipperen". A device that has
+// It tells them apart; which one is which in the pc shows with "Knipperen". A device that has
 // no twin gets no label.
 internal static partial class DeviceLocationLabels
 {

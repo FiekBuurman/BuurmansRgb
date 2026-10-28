@@ -461,7 +461,7 @@
     <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
-    <value>Laat knipperen</value>
+    <value>Knipperen</value>
   </data>
   <data name="FlashDeviceToolTip" xml:space="preserve">
     <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk apparaat het is. Werkt niet als de effecten gepauzeerd zijn.</value>

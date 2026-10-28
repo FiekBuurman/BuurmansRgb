@@ -847,9 +847,9 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    terugkrijgt, ook bij een bewegend effect.
 2. Pauzeer de effecten in het tray-menu en open een apparaat: er hoort niets te knipperen.
 3. Kijk of de RAM-sticks (en eventueel twee dezelfde videokaarten) een verschillend adres of
-   een verschillende bus tonen, en zoek met "Laat knipperen" uit welke welke is. Noteer wat
+   een verschillende bus tonen, en zoek met "Knipperen" bij het apparaat uit welke welke is. Noteer wat
    OpenRGB als locatie geeft (tooltip).
-4. Zet bij een ARGB-header met 0 LED's het aantal LED's en controleer met "Laat knipperen" dat
+4. Zet bij een ARGB-header met 0 LED's het aantal LED's en controleer met "Knipperen" bij het apparaat dat
    de hele fan of strip oplicht.
 5. Klik bij het moederbord (of een hub met meer kanalen) naast elke zone op "Knipperen": alleen
    de fan of strip op die header hoort te knipperen, de rest van het apparaat houdt zijn kleur
