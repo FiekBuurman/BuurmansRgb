@@ -1,35 +1,69 @@
-using System.Diagnostics;
+using System.ComponentModel;
+using System.IO;
 using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.UI.Services;
 
-// The programs that show a window now, as the .exe names "Aanzetten als dit programma start" takes:
-// a game or app the user has open, without the background processes nobody would pick. The name
-// comes from the process, so it also works for programs that run as administrator.
+// The programs that show a window now, for "Kies uit wat nu draait": a game or app the user has
+// open, without the background processes nobody would pick. Each one by the name a user knows it
+// by: the description in its exe file, else the title of its window, else its exe name; the field
+// still gets the exe name. In the order of those names.
 public static class WindowedPrograms
 {
-    public static IReadOnlyList<string> Find()
+    // A longer title, such as that of a document, is cut off, so the list does not get that wide.
+    internal const int MaxNameLength = 60;
+
+    public static IReadOnlyList<RunningProgram> Find() => Find(SystemProcesses.Windowed(), SystemProcesses.Description);
+
+    // describe gives the description in the exe file of a process by its id; when it throws, as it
+    // does for a process that ended or cannot be read, the title or the exe name stands instead.
+    internal static IReadOnlyList<RunningProgram> Find(IEnumerable<WindowedProcess> processes, Func<int, string?> describe)
     {
-        var own = Environment.ProcessId;
-        var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var process in Process.GetProcesses())
+        var programs = new List<RunningProgram>();
+        var byExeName = processes
+            .Select(process => (Process: process, ExeName: ProgramNames.Normalize(process.Name)))
+            .Where(found => found.ExeName is not null)
+            .GroupBy(found => found.ExeName!, found => found.Process, ProgramNames.Comparer);
+        foreach (var program in byExeName)
         {
-            using (process)
-            {
-                try
-                {
-                    if (process.Id != own && process.MainWindowHandle != IntPtr.Zero && ProgramNames.Normalize(process.ProcessName) is { } name)
-                    {
-                        names.Add(name);
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // Ended while the list was read.
-                }
-            }
+            // One process of the program that describes it is enough; the others are not read.
+            var name = program.Select(process => Describe(process.Id, describe)).FirstOrDefault(IsName)
+                ?? program.Select(process => process.Title).FirstOrDefault(IsName);
+            programs.Add(new RunningProgram(program.Key, Readable(name, program.Key)));
         }
 
-        return [.. names];
+        return [.. programs
+            .OrderBy(program => program.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(program => program.ExeName, ProgramNames.Comparer)];
+    }
+
+    private static string? Describe(int processId, Func<int, string?> describe)
+    {
+        try
+        {
+            return describe(processId);
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            // Ended, of another user, protected, or its file gone: no description then.
+            return null;
+        }
+    }
+
+    private static bool IsName(string? name) => !string.IsNullOrWhiteSpace(name);
+
+    // The name, trimmed and cut off when it is long; the exe name itself when there is none, or
+    // when the name only says the exe name again ("notepad" for notepad.exe).
+    private static string Readable(string? name, string exeName)
+    {
+        name = name?.Trim();
+        if (string.IsNullOrEmpty(name)
+            || ProgramNames.Comparer.Equals(name, exeName)
+            || ProgramNames.Comparer.Equals(name, Path.GetFileNameWithoutExtension(exeName)))
+        {
+            return exeName;
+        }
+
+        return name.Length <= MaxNameLength ? name : string.Concat(name.AsSpan(0, MaxNameLength - 1).TrimEnd(), "…");
     }
 }

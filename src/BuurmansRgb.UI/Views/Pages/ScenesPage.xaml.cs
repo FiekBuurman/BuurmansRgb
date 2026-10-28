@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Win32;
 
@@ -40,13 +41,14 @@ public partial class ScenesPage : UserControl
     // The list is read when it opens, so a game started a moment ago is in it.
     private void OnRunningProgramsOpened(object? sender, EventArgs e) => Automation?.FindProgramsCommand.Execute(null);
 
-    // The pick goes into the program field; the list goes back to its hint, so the same program can
-    // be picked again after the field changed. Posted: WPF ignores a change while it selects.
+    // The exe name of the pick goes into the program field; the list goes back to its hint, so the
+    // same program can be picked again after the field changed. Posted: WPF ignores a change while
+    // it selects.
     private void OnRunningProgramPicked(object sender, SelectionChangedEventArgs e)
     {
-        if (RunningPrograms.SelectedItem is string program)
+        if (RunningPrograms.SelectedItem is RunningProgram program)
         {
-            Automation?.PickProgramCommand.Execute(program);
+            Automation?.PickRunningProgramCommand.Execute(program);
             Dispatcher.BeginInvoke(DispatcherPriority.Background, () => RunningPrograms.SelectedItem = null);
         }
     }

@@ -13,7 +13,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // MainViewModel sends the change to the engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
-    private readonly Func<IReadOnlyList<string>> _findPrograms;
+    private readonly Func<IReadOnlyList<RunningProgram>> _findPrograms;
 
     // What the engine has, so Apply only runs for a change.
     private ProfileAutomation _saved = ProfileAutomation.None;
@@ -21,8 +21,8 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // While Display fills in the fields.
     private bool _displaying;
 
-    // findPrograms lists the programs to pick from, as .exe names (WindowedPrograms.Find).
-    public ProfileAutomationViewModel(Func<IReadOnlyList<string>>? findPrograms = null)
+    // findPrograms lists the programs to pick from (WindowedPrograms.Find).
+    public ProfileAutomationViewModel(Func<IReadOnlyList<RunningProgram>>? findPrograms = null)
     {
         _findPrograms = findPrograms ?? WindowedPrograms.Find;
         Times.CollectionChanged += OnTimesChanged;
@@ -38,12 +38,16 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // The programs with a window, read again each time the list opens; empty until then.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRunningPrograms))]
-    public partial IReadOnlyList<string> RunningPrograms { get; private set; } = [];
+    public partial IReadOnlyList<RunningProgram> RunningPrograms { get; private set; } = [];
 
     public bool HasRunningPrograms => RunningPrograms.Count > 0;
 
     [RelayCommand]
     private void FindPrograms() => RunningPrograms = _findPrograms();
+
+    // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
+    [RelayCommand]
+    private void PickRunningProgram(RunningProgram? program) => PickProgram(program?.ExeName);
 
     // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts.
     [RelayCommand]

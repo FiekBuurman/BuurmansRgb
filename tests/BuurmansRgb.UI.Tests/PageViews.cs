@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -19,10 +20,10 @@ internal static class PageViews
         windowWidth - NavigationWidth - SystemParameters.VerticalScrollBarWidth;
 
     // A view model connected to a fake engine, which arrange prepares before the view model loads
-    // from it.
-    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
+    // from it. "Kies uit wat nu draait" lists programs, or nothing, but never what runs on this pc.
+    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)));
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => programs ?? []);
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;

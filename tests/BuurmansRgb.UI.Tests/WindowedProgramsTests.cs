@@ -1,17 +1,136 @@
+using System.ComponentModel;
+using System.Diagnostics;
 using BuurmansRgb.UI.Services;
 
 namespace BuurmansRgb.UI.Tests;
 
+// The list of "Kies uit wat nu draait" from a made-up list of processes, with the descriptions of
+// their exe files by process id; a description that throws stands for a process that cannot be read.
 public sealed class WindowedProgramsTests
 {
-    // What runs differs per pc; the form does not. The test process itself shows no window.
     [Fact]
-    public void Find_GivesSortedExeNamesOnce()
+    public void Find_NamesEachProgramByTheDescriptionOfItsExe()
     {
-        var programs = WindowedPrograms.Find();
+        var programs = Find(
+            [new(1, "olk", "Inbox - fiek - Outlook"), new(2, "TOTALCMD64", "Total Commander 11.03 - NOT REGISTERED")],
+            new() { [1] = "Outlook", [2] = "Total Commander 64+" });
 
-        Assert.All(programs, program => Assert.EndsWith(".exe", program, StringComparison.OrdinalIgnoreCase));
-        Assert.Equal(programs.Order(StringComparer.OrdinalIgnoreCase), programs);
-        Assert.Equal(programs.Count, programs.Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.Equal(["Outlook (olk.exe)", "Total Commander 64+ (TOTALCMD64.exe)"], programs.Select(program => program.Label));
+        Assert.Equal(["olk.exe", "TOTALCMD64.exe"], programs.Select(program => program.ExeName));
     }
+
+    // Without a description the title of its window names it, and without that its exe name, once.
+    [Fact]
+    public void Find_WithoutDescription_TakesTheTitleThenTheExeName()
+    {
+        var programs = Find([new(1, "mRemoteNG", "mRemoteNG - confCons.xml"), new(2, "game", ""), new(3, "tool", "  ")], new() { [2] = " " });
+
+        Assert.Equal(["game.exe", "mRemoteNG - confCons.xml (mRemoteNG.exe)", "tool.exe"], programs.Select(program => program.Label));
+        Assert.All(programs.Where(program => program.ExeName != "mRemoteNG.exe"), program => Assert.Equal(program.ExeName, program.Name));
+    }
+
+    // A process of another user, a protected one, one that ended or whose file is gone: the title
+    // or the exe name instead, and the others still have theirs.
+    [Fact]
+    public void Find_WhenTheDescriptionCannotBeRead_FallsBack()
+    {
+        Exception[] failures =
+        [
+            new Win32Exception(5),
+            new InvalidOperationException(),
+            new UnauthorizedAccessException(),
+            new FileNotFoundException(),
+            new ArgumentException(),
+        ];
+        WindowedProcess[] processes =
+        [
+            new(0, "brave", ""),
+            .. failures.Select((_, i) => new WindowedProcess(i + 1, $"locked{i + 1}", i % 2 == 0 ? $"Locked {i + 1}" : "")),
+        ];
+
+        var programs = WindowedPrograms.Find(processes, id => id == 0 ? "Brave Browser" : throw failures[id - 1]);
+
+        Assert.Equal(
+            ["Brave Browser (brave.exe)", "Locked 1 (locked1.exe)", "Locked 3 (locked3.exe)", "Locked 5 (locked5.exe)", "locked2.exe", "locked4.exe"],
+            programs.Select(program => program.Label).Order(StringComparer.Ordinal));
+    }
+
+    // In the order of the names a user reads, not of the exe names.
+    [Fact]
+    public void Find_SortsByTheReadableName()
+    {
+        var programs = Find(
+            [new(1, "olk", ""), new(2, "ms-teams", ""), new(3, "brave", ""), new(4, "devenv", "")],
+            new() { [1] = "Outlook", [2] = "Microsoft Teams", [3] = "Brave Browser" });
+
+        Assert.Equal(["Brave Browser", "devenv.exe", "Microsoft Teams", "Outlook"], programs.Select(program => program.Name));
+    }
+
+    // A program with more windows, or processes with one, is in the list once; one process that
+    // describes it is enough, so the others are not read.
+    [Fact]
+    public void Find_GivesEachExeNameOnce()
+    {
+        var read = new List<int>();
+
+        var programs = WindowedPrograms.Find(
+            [new(1, "notepad++", "a.txt - Notepad++"), new(2, "NOTEPAD++", "b.txt - Notepad++"), new(3, "notepad++", "c.txt - Notepad++")],
+            id =>
+            {
+                read.Add(id);
+                return id == 1 ? throw new Win32Exception(5) : "Notepad++ : a free (GNU) source code editor";
+            });
+
+        var program = Assert.Single(programs);
+        Assert.Equal("Notepad++ : a free (GNU) source code editor (notepad++.exe)", program.Label);
+        Assert.Equal([1, 2], read);
+    }
+
+    // A name that only says the exe name again adds nothing.
+    [Theory]
+    [InlineData("notepad")]
+    [InlineData("Notepad.exe")]
+    public void Find_ANameThatIsTheExeName_ShowsOnlyTheExeName(string description)
+    {
+        var program = Assert.Single(Find([new(1, "notepad", "")], new() { [1] = description }));
+
+        Assert.Equal("notepad.exe", program.Label);
+    }
+
+    // The title of a document can be long; the list stays narrow and the field still gets the exe.
+    [Fact]
+    public void Find_CutsOffALongName()
+    {
+        var title = "Een heel lang document met een titel die maar doorgaat en doorgaat.docx - Word";
+
+        var program = Assert.Single(Find([new(1, "WINWORD", title)], new()));
+
+        Assert.InRange(program.Name.Length, WindowedPrograms.MaxNameLength - 2, WindowedPrograms.MaxNameLength);
+        Assert.StartsWith(title[..40], program.Name, StringComparison.Ordinal);
+        Assert.EndsWith("…", program.Name, StringComparison.Ordinal);
+        Assert.Equal("WINWORD.exe", program.ExeName);
+    }
+
+    // A name that is no exe name the field takes, such as an empty one, is left out.
+    [Fact]
+    public void Find_LeavesOutNamesThatAreNoProgram()
+    {
+        var programs = Find([new(1, "", "Zonder naam"), new(2, "bad|name", ""), new(3, "game", "")], new());
+
+        Assert.Equal(["game.exe"], programs.Select(program => program.ExeName));
+    }
+
+    // The description of the test process, as Windows reads it from its file; the idle process,
+    // which no one can open, has none. Only this own process: what else runs differs per pc.
+    [Fact]
+    public void SystemProcesses_ReadsTheDescriptionOfAnExe()
+    {
+        var expected = FileVersionInfo.GetVersionInfo(Environment.ProcessPath!).FileDescription;
+
+        Assert.Equal(expected, SystemProcesses.Description(Environment.ProcessId));
+        Assert.Null(SystemProcesses.Description(0));
+    }
+
+    private static IReadOnlyList<RunningProgram> Find(WindowedProcess[] processes, Dictionary<int, string?> descriptions) =>
+        WindowedPrograms.Find(processes, id => descriptions.GetValueOrDefault(id));
 }

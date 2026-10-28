@@ -1,4 +1,5 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -217,13 +218,29 @@ public sealed class ProfileAutomationViewModelTests
     [Fact]
     public void FindPrograms_ShowsTheProgramsWithAWindow()
     {
-        var automation = new ProfileAutomationViewModel(() => ["eldenring.exe", "notepad.exe"]);
+        RunningProgram[] programs = [new("eldenring.exe", "ELDEN RING™"), new("notepad.exe")];
+        var automation = new ProfileAutomationViewModel(() => programs);
         Assert.False(automation.HasRunningPrograms);
 
         automation.FindProgramsCommand.Execute(null);
 
-        Assert.Equal(["eldenring.exe", "notepad.exe"], automation.RunningPrograms);
+        Assert.Equal(programs, automation.RunningPrograms);
         Assert.True(automation.HasRunningPrograms);
+    }
+
+    // The list shows "Outlook (olk.exe)"; the field gets the exe name, which the engine compares.
+    [Fact]
+    public void PickRunningProgram_FillsInTheExeName()
+    {
+        var automation = new ProfileAutomationViewModel(() => [new("olk.exe", "Outlook")]);
+        automation.Show("Mail", ProfileAutomation.None);
+        automation.FindProgramsCommand.Execute(null);
+
+        automation.PickRunningProgramCommand.Execute(automation.RunningPrograms[0]);
+
+        Assert.Equal("Outlook (olk.exe)", automation.RunningPrograms[0].Label);
+        Assert.Equal("olk.exe", automation.ProgramText);
+        Assert.True(automation.ApplyCommand.CanExecute(null));
     }
 
     // From the list as it is, from "Bladeren" with its whole path: the field gets the file name.

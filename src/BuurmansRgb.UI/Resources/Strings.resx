@@ -475,6 +475,10 @@
   <data name="ProgramPickPlaceholder" xml:space="preserve">
     <value>Kies uit wat nu draait</value>
   </data>
+  <data name="ProgramPickItem" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>A program in "Kies uit wat nu draait": its name, such as Outlook, and its exe name, such as olk.exe.</comment>
+  </data>
   <data name="ProgramPickToolTip" xml:space="preserve">
     <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij.</value>
   </data>
