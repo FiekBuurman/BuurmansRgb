@@ -64,6 +64,22 @@ public sealed class LampsViewModelTests
         Assert.False(_lamps.IsAnyOn);
     }
 
+    // Real and simulated lamps, then only the simulated one, then none.
+    [Fact]
+    public void HasOnlySimulatedLamps_OnlyWithSimulatedLampsAndNoOther()
+    {
+        List<string?> changes = [];
+        _lamps.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        Assert.False(_lamps.HasOnlySimulatedLamps);
+
+        _lamps.ShowDevices([DeviceItem.AllDevices(1), DeviceItem.For(TestDevices.Create("sim", "Simulated", DeviceType.Other, 1, DeviceSource.Simulated))]);
+        Assert.True(_lamps.HasOnlySimulatedLamps);
+        Assert.Contains(nameof(LampsViewModel.HasOnlySimulatedLamps), changes);
+
+        _lamps.ShowDevices([DeviceItem.AllDevices(0)]);
+        Assert.False(_lamps.HasOnlySimulatedLamps);
+    }
+
     [Fact]
     public async Task IsAnyOn_SwitchedOnWithOneLampOn_SwitchesEveryLampOn()
     {

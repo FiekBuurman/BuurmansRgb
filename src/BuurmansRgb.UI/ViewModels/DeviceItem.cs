@@ -9,6 +9,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // under, such as the simulated devices; "all devices" has none. LocationLabel tells twins apart
 // (DeviceLocationLabels) and shows under the device; LocationToolTip holds the whole location.
 // LacksDirectMode warns that the device may not show the colors (DeviceInfo.HasDirectMode).
+// IsSimulated is true for a device of Providers.Simulated, not of OpenRGB.
 public sealed record DeviceItem(
     string? DeviceId,
     string Name,
@@ -18,7 +19,8 @@ public sealed record DeviceItem(
     string? Group = null,
     string? LocationLabel = null,
     string? LocationToolTip = null,
-    bool LacksDirectMode = false)
+    bool LacksDirectMode = false,
+    bool IsSimulated = false)
 {
     public bool ShowsLocationLabel => LocationLabel is not null;
 
@@ -46,7 +48,7 @@ public sealed record DeviceItem(
             : UiText.LedCount(device.LedCount);
         var details = typeName is null ? leds : UiText.Format(Strings.DeviceDetailsWithType, typeName, leds);
         return new(device.Id, device.Name, details, device.Type, typeName, UiText.Lookup("DeviceSource", device.Source),
-            locationLabel, ToolTipOf(device.Location), !device.HasDirectMode);
+            locationLabel, ToolTipOf(device.Location), !device.HasDirectMode, device.Source == DeviceSource.Simulated);
     }
 
     // A screen reader names a ComboBox item, such as in the lamp choice, by its ToString.

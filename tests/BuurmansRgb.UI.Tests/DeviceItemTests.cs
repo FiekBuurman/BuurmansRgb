@@ -197,6 +197,14 @@ public sealed class DeviceItemTests
         Assert.Equal($"ENE DRAM 2{Environment.NewLine}Locatie: PIIX4, adres 0x52", item.CardToolTip);
     }
 
+    [Theory]
+    [InlineData(DeviceSource.Hardware, false)]
+    [InlineData(DeviceSource.Simulated, true)]
+    public void For_IsSimulatedOnlyForASimulatedDevice(DeviceSource source, bool isSimulated)
+    {
+        Assert.Equal(isSimulated, DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 12, source)).IsSimulated);
+    }
+
     [Fact]
     public void For_DeviceWithDirectMode_WarnsNothing()
     {

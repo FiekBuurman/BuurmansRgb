@@ -194,6 +194,53 @@ public sealed class MainViewModelLampTests
         Assert.Equal("keyboard", Assert.Single(viewModel.Lamps.Lamps).DeviceId);
     }
 
+    // The line that the simulated devices are there to try the app: only while they are all there
+    // is with "Automatisch". With "Altijd" the user chose them, and with "Nooit" they go.
+    [Theory]
+    [InlineData(new[] { DeviceSource.Simulated, DeviceSource.Simulated }, SimulatedDevicesMode.Automatic, true)]
+    [InlineData(new[] { DeviceSource.Hardware, DeviceSource.Simulated }, SimulatedDevicesMode.Automatic, false)]
+    [InlineData(new[] { DeviceSource.Hardware, DeviceSource.Hardware }, SimulatedDevicesMode.Automatic, false)]
+    [InlineData(new DeviceSource[0], SimulatedDevicesMode.Automatic, false)]
+    [InlineData(new[] { DeviceSource.Simulated, DeviceSource.Simulated }, SimulatedDevicesMode.Always, false)]
+    [InlineData(new[] { DeviceSource.Hardware, DeviceSource.Simulated }, SimulatedDevicesMode.Always, false)]
+    [InlineData(new[] { DeviceSource.Simulated, DeviceSource.Simulated }, SimulatedDevicesMode.Never, false)]
+    [InlineData(new[] { DeviceSource.Hardware, DeviceSource.Hardware }, SimulatedDevicesMode.Never, false)]
+    public async Task SimulatedDevicesHint_ShowsOnlyWithOnlySimulatedDevicesOnAutomatic(DeviceSource[] sources, SimulatedDevicesMode mode, bool shows)
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Devices = [.. sources.Select((source, i) => TestDevices.Create($"device-{i}", $"Device {i}", DeviceType.Fan, 2, source))];
+            api.SimulatedDevices = mode;
+        });
+
+        Assert.Equal(shows, viewModel.ShowsSimulatedDevicesHint);
+    }
+
+    // A real device that OpenRGB finds takes the line away, and so does picking "Altijd".
+    [Fact]
+    public async Task SimulatedDevicesHint_GoesWithARealDeviceOrAlways()
+    {
+        var simulated = TestDevices.Create("sim", "Simulated fan", DeviceType.Fan, 2, DeviceSource.Simulated);
+        var viewModel = await ConnectAsync(api => api.Devices = [simulated]);
+        List<string?> changes = [];
+        viewModel.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        Assert.True(viewModel.ShowsSimulatedDevicesHint);
+
+        Api.Devices = [TestDevices.Create("fan", "Fan", DeviceType.Fan, 2)];
+        Api.RaiseDevicesChanged();
+        Assert.False(viewModel.ShowsSimulatedDevicesHint);
+        Assert.Contains(nameof(MainViewModel.ShowsSimulatedDevicesHint), changes);
+
+        Api.Devices = [simulated];
+        Api.RaiseDevicesChanged();
+        Assert.True(viewModel.ShowsSimulatedDevicesHint);
+        changes.Clear();
+
+        viewModel.SimulatedDevices.SelectedOption = SimulatedDevicesViewModel.Options.Single(option => option.Mode == SimulatedDevicesMode.Always);
+        Assert.False(viewModel.ShowsSimulatedDevicesHint);
+        Assert.Contains(nameof(MainViewModel.ShowsSimulatedDevicesHint), changes);
+    }
+
     [Fact]
     public async Task Disconnected_StopsFollowingTheLighting()
     {
