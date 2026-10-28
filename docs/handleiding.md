@@ -450,7 +450,19 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
-  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. Met een vinkje
+  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. De lijst
+  noemt elk programma bij de naam die het zelf in zijn .exe-bestand heeft, met de exe-naam
+  erachter, bijv. "Microsoft Outlook (olk.exe)", op alfabet van die naam; heeft het geen naam,
+  dan de titel van zijn venster, en anders alleen de exe-naam ("notepad++.exe"). Die namen
+  staan er zoals het programma ze meegeeft, vaak in het Engels ("Settings" voor de
+  Instellingen van Windows). In het veld komt alleen de exe-naam (`olk.exe`). Een programma
+  dat als administrator draait, of van een andere gebruiker is, staat er soms met alleen zijn
+  venstertitel of exe-naam bij. Onderdelen van Windows zonder eigen app staan er niet bij: het
+  aanraaktoetsenbord en emojivenster (`TextInputHost.exe`), het startmenu, zoeken, het
+  vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
+  (zie "Alleen op de voorgrond" hieronder). Typ je zo'n naam zelf in het veld, dan werkt hij
+  wel. De lijst wordt bij elke keer openklappen opnieuw gelezen; een programma dat je net
+  startte, komt er na een ogenblik bij. Met een vinkje
   bij "Alleen als het op de voorgrond staat" (daaronder, grijs zonder programma) telt het
   programma alleen zolang je het voor je hebt, zie "Alleen op de voorgrond" hieronder.
 - **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;

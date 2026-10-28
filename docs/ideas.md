@@ -299,6 +299,14 @@ uitbreidingen in `docs/bouwplan.md`.
   herkennen: dat venster (`ApplicationFrameWindow`) hoort bij `ApplicationFrameHost.exe`, en de
   echte app staat in het kindvenster `Windows.UI.Core.CoreWindow`, waarvan het proces te lezen is
   (bijv. met `EnumChildWindows`). Nu telt zo'n app als `ApplicationFrameHost.exe`
+- Dezelfde Store-apps ook in "Kies uit wat nu draait" tonen, via het proces van hun
+  `Windows.UI.Core.CoreWindow`: hun eigen proces heeft geen hoofdvenster, en
+  `ApplicationFrameHost.exe` staat er sinds de herkenbare namen niet meer bij (gebruikerstest
+  28-10, B14)
+- In "Kies uit wat nu draait" de naam in de taal van Windows tonen ("Instellingen" en
+  "Verkenner" in plaats van "Settings" en "Windows Explorer"): `FileVersionInfo` leest de
+  taalneutrale versie-informatie; de vertaalde staat in het `.mui`-bestand of is via de shell
+  te lezen (`PKEY_FileDescription`)
 - Bij "Alleen als het op de voorgrond staat" de instellingen-app niet laten tellen als
   wegwisselen, zodat je een voorgrond-scène kunt bijstellen terwijl hij brandt; nu komt bij het
   openen van de app de verlichting van daarvoor terug
