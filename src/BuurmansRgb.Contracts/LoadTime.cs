@@ -14,7 +14,16 @@ public sealed record LoadTime(TimeOnly At, WeekDays Days = WeekDays.Every)
         (Days & WeekDays.Every) is var days && days != WeekDays.None ? days : WeekDays.Every);
 
     // A time as someone types it, in the app or in profiles.json by hand: "23:00", "7:30" and
-    // "07.30". Shared, so the app and the engine read the same times.
-    public static bool TryParseAt(string? text, out TimeOnly at) =>
-        TimeOnly.TryParseExact(text?.Trim(), AtFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out at);
+    // "07.30", and without anything between the hours and the minutes "2130", "0930" and "930".
+    // Shared, so the app and the engine read the same times.
+    public static bool TryParseAt(string? text, out TimeOnly at)
+    {
+        var trimmed = text?.Trim();
+        if (trimmed is { Length: 3 or 4 } && trimmed.All(char.IsAsciiDigit))
+        {
+            trimmed = $"{trimmed[..^2]}:{trimmed[^2..]}";
+        }
+
+        return TimeOnly.TryParseExact(trimmed, AtFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out at);
+    }
 }

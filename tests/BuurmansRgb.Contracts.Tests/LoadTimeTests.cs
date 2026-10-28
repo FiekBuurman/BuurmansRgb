@@ -9,6 +9,10 @@ public sealed class LoadTimeTests
     [InlineData("21.30", 21, 30)]
     [InlineData("07.30", 7, 30)]
     [InlineData("0:00", 0, 0)]
+    [InlineData("2130", 21, 30)]
+    [InlineData("0930", 9, 30)]
+    [InlineData("930", 9, 30)]
+    [InlineData(" 0000 ", 0, 0)]
     public void TryParseAt_Time_ReadsIt(string text, int hour, int minute)
     {
         Assert.True(LoadTime.TryParseAt(text, out var at));
@@ -25,6 +29,12 @@ public sealed class LoadTimeTests
     [InlineData("9:5")]
     [InlineData("9u")]
     [InlineData("23:00:00")]
+    [InlineData("2400")]
+    [InlineData("2360")]
+    [InlineData("960")]
+    [InlineData("21")]
+    [InlineData("12345")]
+    [InlineData("21 30")]
     [InlineData("half elf")]
     public void TryParseAt_NoTime_ReadsNothing(string? text) =>
         Assert.False(LoadTime.TryParseAt(text, out _));
