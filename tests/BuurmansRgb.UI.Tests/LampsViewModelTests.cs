@@ -72,6 +72,9 @@ public sealed class LampsViewModelTests
         _lamps.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
         Assert.False(_lamps.HasOnlySimulatedLamps);
 
+        _lamps.ShowDevices([DeviceItem.AllDevices(2), DeviceItem.For(TestDevices.Create("fan", "Fan", DeviceType.Fan, 1)), DeviceItem.For(TestDevices.Create("sim", "Simulated", DeviceType.Other, 1, DeviceSource.Simulated))]);
+        Assert.False(_lamps.HasOnlySimulatedLamps);
+
         _lamps.ShowDevices([DeviceItem.AllDevices(1), DeviceItem.For(TestDevices.Create("sim", "Simulated", DeviceType.Other, 1, DeviceSource.Simulated))]);
         Assert.True(_lamps.HasOnlySimulatedLamps);
         Assert.Contains(nameof(LampsViewModel.HasOnlySimulatedLamps), changes);
