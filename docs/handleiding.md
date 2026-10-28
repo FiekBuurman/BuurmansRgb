@@ -453,13 +453,14 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. De lijst
   noemt elk programma bij de naam die het zelf in zijn .exe-bestand heeft, met de exe-naam
   erachter, bijv. "Microsoft Outlook (olk.exe)", op alfabet van die naam; heeft het geen naam,
-  of alleen zijn exe-naam nog eens ("game"), dan de titel van zijn venster, en anders alleen de exe-naam ("notepad++.exe"). Die namen
-  staan er zoals het programma ze meegeeft, vaak in het Engels ("Settings" voor de
-  Instellingen van Windows). In het veld komt alleen de exe-naam (`olk.exe`). Een programma
-  dat als administrator draait, of van een andere gebruiker is, staat er soms met alleen zijn
-  venstertitel of exe-naam bij. Onderdelen van Windows zonder eigen app staan er niet bij: het
-  aanraaktoetsenbord en emojivenster (`TextInputHost.exe`), het startmenu, zoeken, de
-  meldingen en snelle instellingen, het vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
+  of alleen zijn exe-naam nog eens ("game"), dan de titel van zijn venster, en anders alleen
+  de exe-naam ("notepad++.exe"). Die namen staan er zoals het programma ze meegeeft, vaak in
+  het Engels ("Settings" voor de Instellingen van Windows). In het veld komt alleen de
+  exe-naam (`olk.exe`). Een programma dat als administrator draait, of van een andere
+  gebruiker is, staat er soms met alleen zijn venstertitel of exe-naam bij. Onderdelen van
+  Windows zonder eigen app staan er niet bij: het aanraaktoetsenbord en emojivenster
+  (`TextInputHost.exe`), het startmenu, zoeken, de meldingen en snelle instellingen, het
+  vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
   (zie "Alleen op de voorgrond" hieronder). Typ je zo'n naam zelf in het veld, dan werkt hij
   wel. De lijst wordt gelezen zodra je een scène opent, en bij elke keer openklappen opnieuw;
   een programma dat je net startte, komt er na een ogenblik bij. Met een vinkje
