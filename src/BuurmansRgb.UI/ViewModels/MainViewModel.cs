@@ -99,7 +99,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
     // instead of the programs that run (WindowedPrograms.Find).
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<IReadOnlyList<RunningProgram>>? findPrograms = null)
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
     {
         _connector = connector;
         Profiles = new ProfilesViewModel(findPrograms);

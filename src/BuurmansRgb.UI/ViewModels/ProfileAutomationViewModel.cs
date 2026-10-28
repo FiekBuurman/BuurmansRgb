@@ -13,7 +13,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // MainViewModel sends the change to the engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
-    private readonly Func<IReadOnlyList<RunningProgram>> _findPrograms;
+    private readonly Func<Task<IReadOnlyList<RunningProgram>>> _findPrograms;
 
     // What the engine has, so Apply only runs for a change.
     private ProfileAutomation _saved = ProfileAutomation.None;
@@ -21,10 +21,14 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // While Display fills in the fields.
     private bool _displaying;
 
-    // findPrograms lists the programs to pick from (WindowedPrograms.Find).
-    public ProfileAutomationViewModel(Func<IReadOnlyList<RunningProgram>>? findPrograms = null)
+    // Counts the times the programs are read, so only the newest list shows.
+    private int _programSearches;
+
+    // findPrograms lists the programs to pick from; by default WindowedPrograms.Find on the thread
+    // pool, as it reads the exe file of each program, which would make the list hang as it opens.
+    public ProfileAutomationViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
     {
-        _findPrograms = findPrograms ?? WindowedPrograms.Find;
+        _findPrograms = findPrograms ?? (() => Task.Run(WindowedPrograms.Find));
         Times.CollectionChanged += OnTimesChanged;
         Times.Add(new LoadTimeRow());
     }
@@ -35,15 +39,26 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public event EventHandler<ProfileAutomationChange>? ApplyRequested;
 
-    // The programs with a window, read again each time the list opens; empty until then.
+    // The programs with a window, read again each time the list opens; empty until then. The list
+    // opens with what it had and gets the new programs a moment later.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRunningPrograms))]
     public partial IReadOnlyList<RunningProgram> RunningPrograms { get; private set; } = [];
 
     public bool HasRunningPrograms => RunningPrograms.Count > 0;
 
+    // A list that opens again while the last one is still read gets the newest programs, also when
+    // the reading of before ends later.
     [RelayCommand]
-    private void FindPrograms() => RunningPrograms = _findPrograms();
+    private async Task FindProgramsAsync()
+    {
+        var search = ++_programSearches;
+        var programs = await _findPrograms();
+        if (search == _programSearches)
+        {
+            RunningPrograms = programs;
+        }
+    }
 
     // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
     [RelayCommand]

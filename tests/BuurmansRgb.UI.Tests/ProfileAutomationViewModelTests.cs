@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Tests;
 
 public sealed class ProfileAutomationViewModelTests
 {
-    private readonly ProfileAutomationViewModel _automation = new(() => []);
+    private readonly ProfileAutomationViewModel _automation = new(Found());
     private readonly List<ProfileAutomationChange> _requests = [];
 
     public ProfileAutomationViewModelTests() => _automation.ApplyRequested += (_, change) => _requests.Add(change);
@@ -219,7 +219,7 @@ public sealed class ProfileAutomationViewModelTests
     public void FindPrograms_ShowsTheProgramsWithAWindow()
     {
         RunningProgram[] programs = [new("eldenring.exe", "ELDEN RING™"), new("notepad.exe")];
-        var automation = new ProfileAutomationViewModel(() => programs);
+        var automation = new ProfileAutomationViewModel(Found(programs));
         Assert.False(automation.HasRunningPrograms);
 
         automation.FindProgramsCommand.Execute(null);
@@ -228,11 +228,33 @@ public sealed class ProfileAutomationViewModelTests
         Assert.True(automation.HasRunningPrograms);
     }
 
+    // Reading the programs takes a moment, off the UI thread; until then the list keeps what it
+    // had. A list read twice shows the newest programs, also when the first reading ends last.
+    [Fact]
+    public async Task FindPrograms_ShowsTheNewestListWhenItIsRead()
+    {
+        var first = new TaskCompletionSource<IReadOnlyList<RunningProgram>>();
+        var second = new TaskCompletionSource<IReadOnlyList<RunningProgram>>();
+        var searches = new Queue<TaskCompletionSource<IReadOnlyList<RunningProgram>>>([first, second]);
+        var automation = new ProfileAutomationViewModel(() => searches.Dequeue().Task);
+
+        var firstSearch = automation.FindProgramsCommand.ExecuteAsync(null);
+        var secondSearch = automation.FindProgramsCommand.ExecuteAsync(null);
+        Assert.Empty(automation.RunningPrograms);
+
+        second.SetResult([new("game.exe")]);
+        await secondSearch;
+        first.SetResult([new("old.exe")]);
+        await firstSearch;
+
+        Assert.Equal(["game.exe"], automation.RunningPrograms.Select(program => program.ExeName));
+    }
+
     // The list shows "Outlook (olk.exe)"; the field gets the exe name, which the engine compares.
     [Fact]
     public void PickRunningProgram_FillsInTheExeName()
     {
-        var automation = new ProfileAutomationViewModel(() => [new("olk.exe", "Outlook")]);
+        var automation = new ProfileAutomationViewModel(Found(new RunningProgram("olk.exe", "Outlook")));
         automation.Show("Mail", ProfileAutomation.None);
         automation.FindProgramsCommand.Execute(null);
 
@@ -498,6 +520,10 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal(0, raised);
         Assert.Null(_automation.Error);
     }
+
+    // Programs that are found at once.
+    private static Func<Task<IReadOnlyList<RunningProgram>>> Found(params RunningProgram[] programs) =>
+        () => Task.FromResult<IReadOnlyList<RunningProgram>>(programs);
 
     // 07:00 on workdays and 09:00 in the weekend, as the engine saves it.
     private static ProfileAutomation MorningAndWeekend { get; } =

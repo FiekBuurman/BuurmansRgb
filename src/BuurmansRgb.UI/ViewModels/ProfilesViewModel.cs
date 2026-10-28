@@ -25,7 +25,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public event EventHandler<string>? AutomationNeeded;
 
     // findPrograms lists the programs to pick from for Automation (WindowedPrograms.Find).
-    public ProfilesViewModel(Func<IReadOnlyList<RunningProgram>>? findPrograms = null) => Automation = new(findPrograms);
+    public ProfilesViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null) => Automation = new(findPrograms);
 
     // When the selected profile loads by itself.
     public ProfileAutomationViewModel Automation { get; }

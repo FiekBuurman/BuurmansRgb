@@ -23,7 +23,7 @@ internal static class PageViews
     // from it. "Kies uit wat nu draait" lists programs, or nothing, but never what runs on this pc.
     internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => programs ?? []);
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
