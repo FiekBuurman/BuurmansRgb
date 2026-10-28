@@ -272,6 +272,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een LED in het voorbeeld via UI Automation in beeld laten schuiven (`ScrollItem`) en hem
   `IsOffscreen` laten melden als hij buiten de zichtbare rand valt; nu volgen de LED's daarin de
   hele zone
+- De kop van Apparaten "Apparaten" laten zeggen in plaats van een tweede woordmerk onder dat van
+  de titelbalk (gebruikerstest 28-10, B4), zoals Kleur, Scènes en Instellingen een eigen kop
+  hebben; dat vraagt eerst een keuze in het ontwerp, want § 5.1 zet het woordmerk bovenaan de
+  pagina Lampen en § 6 ook in de titelbalk
+- Bij "Hele huis" "Nog niet op de apparaten" zeggen in plaats van "Nog niet op het apparaat",
+  zoals de knop daar "Op alle apparaten zetten" heet
 
 ## Scènes
 
