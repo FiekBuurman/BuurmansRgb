@@ -940,7 +940,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
     // or one that came on by itself. In the queue, behind the changes of the user that are still on
     // their way, so the answer already holds them; a change sent meanwhile wins. A color the user is
-    // mixing for the whole lamp and has not put on it yet stays in the picker (see ShowLighting).
+    // mixing for the whole lamp and has not put on it yet stays in the picker (see ShowLighting for
+    // when it does not).
     private void FollowLighting()
     {
         if (_connection is not { } connection)
@@ -965,6 +966,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ShowLighting(LightingInfo lighting, bool keepMixedColor)
     {
+        var wasUnused = ColorPicker.IsUnused;
         _syncing.Run(() =>
         {
             _deviceColor = lighting.Color;
@@ -980,7 +982,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         // A mixed color stays, but not once the picker colors the loop or the LEDs at once, as after
         // a scene with the color loop: its next step would put the color mixed for the lamp there.
-        if (!keepMixedColor || ColorPicker.AppliesAtOnce)
+        // Nor a color mixed with the rainbow once the effect uses the color, as after a scene with
+        // Statisch: it was not mixed for the device, so the picker shows the device, as when the
+        // user picks Statisch.
+        if (!keepMixedColor || ColorPicker.AppliesAtOnce || (wasUnused && !ColorPicker.IsUnused))
         {
             ShowPickerColor();
         }

@@ -123,6 +123,41 @@ public sealed class MainViewModelDeviceColorTests
         Assert.False(viewModel.ColorPicker.ShowsApply);
     }
 
+    // A scene with Statisch after mixing with the rainbow: the mixed color was not for the device,
+    // so the picker shows the device, as when the user picks Statisch, and not "Nog niet op het
+    // apparaat" with a color the user may no longer know about.
+    [Fact]
+    public async Task FollowLighting_FromRainbowToStaticWithAMixedColor_ShowsTheDeviceColor()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow });
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Api.Lighting[""] = new(Blue, 0.3, EffectIds.Static);
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => viewModel.SelectedEffect?.Id == EffectIds.Static);
+        Assert.Equal(Blue, viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.ShowsUnappliedChange);
+        Assert.True(viewModel.ColorPicker.ShowsApply);
+    }
+
+    // A scene that keeps the rainbow keeps the mixed color too, for the own colors.
+    [Fact]
+    public async Task FollowLighting_RainbowStaysWithAMixedColor_KeepsIt()
+    {
+        var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow });
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Api.Lighting[""] = new(Blue, 0.3, EffectIds.Rainbow);
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => viewModel.Brightness == 30.0);
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        Assert.True(viewModel.ColorPicker.IsUnused);
+        Assert.False(viewModel.ColorPicker.ShowsUnappliedChange);
+    }
+
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
