@@ -97,6 +97,18 @@ public sealed class WindowedProgramsTests
         Assert.Equal("notepad.exe", program.Label);
     }
 
+    // So a description that only says the exe name again leaves the turn to the title of the
+    // window; a title that does the same leaves the exe name.
+    [Theory]
+    [InlineData("game")]
+    [InlineData("GAME.exe")]
+    public void Find_ADescriptionThatIsTheExeName_TakesTheTitle(string description)
+    {
+        var programs = Find([new(1, "game", "ELDEN RING"), new(2, "tool", "Tool")], new() { [1] = description, [2] = "tool" });
+
+        Assert.Equal(["ELDEN RING (game.exe)", "tool.exe"], programs.Select(program => program.Label));
+    }
+
     // The title of a document can be long; the list stays narrow and the field still gets the exe.
     [Fact]
     public void Find_CutsOffALongName()

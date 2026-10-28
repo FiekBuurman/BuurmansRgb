@@ -453,7 +453,7 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. De lijst
   noemt elk programma bij de naam die het zelf in zijn .exe-bestand heeft, met de exe-naam
   erachter, bijv. "Microsoft Outlook (olk.exe)", op alfabet van die naam; heeft het geen naam,
-  dan de titel van zijn venster, en anders alleen de exe-naam ("notepad++.exe"). Die namen
+  of alleen zijn exe-naam nog eens ("game"), dan de titel van zijn venster, en anders alleen de exe-naam ("notepad++.exe"). Die namen
   staan er zoals het programma ze meegeeft, vaak in het Engels ("Settings" voor de
   Instellingen van Windows). In het veld komt alleen de exe-naam (`olk.exe`). Een programma
   dat als administrator draait, of van een andere gebruiker is, staat er soms met alleen zijn
