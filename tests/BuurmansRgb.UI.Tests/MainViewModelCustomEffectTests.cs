@@ -81,6 +81,29 @@ public sealed class MainViewModelCustomEffectTests
         Assert.Empty(Api.Calls);
     }
 
+    // The line under the effect choice counts the steps, also when another settings app took one away.
+    [Fact]
+    public async Task CustomEffectsChanged_FewerSteps_CountsThemUnderTheChoice()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        Assert.Equal("Jouw effect: 2 stappen.", viewModel.SelectedEffect?.Description);
+
+        Api.CustomEffects = [Disco with { Steps = [Disco.Steps[0]] }];
+        Api.RaiseCustomEffectsChanged();
+
+        Assert.Equal("Jouw effect: 1 stap.", viewModel.SelectedEffect?.Description);
+    }
+
+    [Fact]
+    public async Task AddStep_CountsTheNewStepUnderTheChoice()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+
+        viewModel.CustomEffectEditor.AddStepCommand.Execute(null);
+
+        Assert.Equal("Jouw effect: 3 stappen.", viewModel.SelectedEffect?.Description);
+    }
+
     // The engine cannot read effects.json yet, as another program holds it: the app connects
     // without own effects, and shows them when the engine tells it has read the file.
     [Fact]

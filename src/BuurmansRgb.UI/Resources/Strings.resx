@@ -197,6 +197,45 @@
   <data name="Effect_per-led" xml:space="preserve">
     <value>Per LED</value>
   </data>
+  <data name="EffectDescription_static" xml:space="preserve">
+    <value>Eén kleur die blijft staan.</value>
+    <comment>Onder de effectkeuze op Kleur, en de hulptekst van die keuze voor een schermlezer: wat het effect doet, in gewone taal. Zo ook de andere EffectDescription_-teksten.</comment>
+  </data>
+  <data name="EffectDescription_breathing" xml:space="preserve">
+    <value>De kleur gloeit op en dooft weer, als ademhalen.</value>
+  </data>
+  <data name="EffectDescription_rainbow" xml:space="preserve">
+    <value>Alle kleuren van de regenboog schuiven over de LED's.</value>
+  </data>
+  <data name="EffectDescription_wave" xml:space="preserve">
+    <value>Een golf van de kleur rolt over de LED's.</value>
+  </data>
+  <data name="EffectDescription_color-loop" xml:space="preserve">
+    <value>Je eigen kleuren lopen in elkaar over.</value>
+  </data>
+  <data name="EffectDescription_twinkle" xml:space="preserve">
+    <value>Hier en daar licht een LED op en dooft weer, als sterretjes.</value>
+  </data>
+  <data name="EffectDescription_comet" xml:space="preserve">
+    <value>Een lichtpunt met een staart erachter loopt rond.</value>
+  </data>
+  <data name="EffectDescription_scanner" xml:space="preserve">
+    <value>Een lichtpunt gaat heen en weer, zoals bij Knight Rider.</value>
+  </data>
+  <data name="EffectDescription_fire" xml:space="preserve">
+    <value>Flakkert als een vuur, van gloed tot felle vlam.</value>
+  </data>
+  <data name="EffectDescription_per-led" xml:space="preserve">
+    <value>Elke LED een eigen kleur: klik in het voorbeeld op een LED.</value>
+  </data>
+  <data name="CustomEffectDescription" xml:space="preserve">
+    <value>Jouw effect: {0} stappen.</value>
+    <comment>Onder de effectkeuze op Kleur bij een eigen effect. {0} = het aantal stappen, 2 of meer.</comment>
+  </data>
+  <data name="CustomEffectDescriptionOne" xml:space="preserve">
+    <value>Jouw effect: 1 stap.</value>
+    <comment>Onder de effectkeuze op Kleur bij een eigen effect van één stap.</comment>
+  </data>
   <data name="PreviewHint" xml:space="preserve">
     <value>Klik op een LED en kies hierboven een kleur: de LED krijgt hem meteen. Met Shift+klik kies je een reeks, met een klik op de naam van een zone (bijv. een ring van een ventilator) de hele zone.</value>
   </data>
