@@ -7,6 +7,8 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class EffectCatalogTests
 {
+    // A new effect also gets a row in MainViewModelDeviceColorTests, for what the color picker does
+    // with it; that test fails for a new id in EffectIds until it has one.
     [Fact]
     public void Ids_AreInTheOrderTheSettingsAppLists()
     {

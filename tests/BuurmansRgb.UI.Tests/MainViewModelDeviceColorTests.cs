@@ -1,3 +1,4 @@
+using System.Reflection;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -12,13 +13,20 @@ public sealed class MainViewModelDeviceColorTests
 {
     private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red), new CustomEffectStep(Blue)]);
 
+    // Every effect id in Contracts, so that a new one is offered here too.
+    private static readonly string[] BuiltInEffects =
+    [
+        .. typeof(EffectIds).GetFields(BindingFlags.Public | BindingFlags.Static).Select(field => (string)field.GetValue(null)!),
+    ];
+
     private readonly FakeEngineConnector _connector = new();
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
-    // Every effect of the engine: only the rainbow leaves the color nowhere to go. The color loop,
-    // the effects with a list and an own effect color a tile or a step at once, so they have no
-    // button either, but no message; the others put the color on with the button.
+    // Every effect of the engine (EveryBuiltInEffect_IsInTheTheory): only the rainbow leaves the
+    // color nowhere to go. The color loop, the effects with a list and an own effect color a tile or
+    // a step at once, so they have no button either, but no message; the others put the color on
+    // with the button.
     [Theory]
     [InlineData(EffectIds.Static, false, true)]
     [InlineData(EffectIds.Breathing, false, true)]
@@ -40,6 +48,17 @@ public sealed class MainViewModelDeviceColorTests
         Assert.Equal(unused, viewModel.ColorPicker.IsUnused);
         Assert.Equal(apply, viewModel.ColorPicker.ShowsApply);
         Assert.Equal(apply, viewModel.ColorPicker.ApplyCommand.CanExecute(null));
+    }
+
+    // A new effect in EffectIds needs a row above, so that what the picker does with it is said.
+    [Fact]
+    public void EveryBuiltInEffect_IsInTheTheory()
+    {
+        var rows = typeof(MainViewModelDeviceColorTests).GetMethod(nameof(SwitchEffect_SaysWhetherTheColorIsUsed))!
+            .GetCustomAttributes<InlineDataAttribute>()
+            .Select(row => (string)row.Data[0]!);
+
+        Assert.Empty(BuiltInEffects.Except(rows));
     }
 
     // The message names the effect, so a later effect without a color says its own name.
@@ -108,7 +127,7 @@ public sealed class MainViewModelDeviceColorTests
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop, EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed];
+            api.Effects = BuiltInEffects;
             api.CustomEffects = [Disco];
             arrange?.Invoke(api);
         }));
