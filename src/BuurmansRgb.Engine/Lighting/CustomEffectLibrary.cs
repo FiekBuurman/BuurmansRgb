@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Globalization;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Lighting;
@@ -122,7 +124,8 @@ internal sealed class CustomEffectLibrary : IDisposable
 
     // Saves a new effect, with an empty id, under a new id, or replaces the effect with its id,
     // and returns it as it is kept (CustomEffects.Normalize). The name must differ from that of the
-    // other effects, and there are at most CustomEffects.MaxEffects.
+    // other effects and from those of the effects of the engine (EffectNames), and there are at
+    // most CustomEffects.MaxEffects.
     public CustomEffect Save(CustomEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
@@ -152,6 +155,11 @@ internal sealed class CustomEffectLibrary : IDisposable
             }
 
             saved = CustomEffects.Normalize(effect);
+            if (EffectNames.IsBuiltIn(saved.Name))
+            {
+                throw new ArgumentException($"'{saved.Name}' is the name of an effect of the engine.", nameof(effect));
+            }
+
             if (effects.Exists(other => other.Id != saved.Id && CustomEffects.NameComparer.Equals(other.Name, saved.Name)))
             {
                 throw new ArgumentException($"There is already an own effect named '{saved.Name}'.", nameof(effect));
@@ -190,7 +198,7 @@ internal sealed class CustomEffectLibrary : IDisposable
     {
         if (_effects is null)
         {
-            _effects = Sorted(_store.Load());
+            _effects = Sorted(WithoutBuiltInNames(_store.Load()));
             _lighting.SetCustomEffects(_effects);
         }
 
@@ -316,6 +324,31 @@ internal sealed class CustomEffectLibrary : IDisposable
                 _timer.Change(_saveDelay, Timeout.InfiniteTimeSpan);
             }
         }
+    }
+
+    // An effect that was saved under the name of an effect of the engine before the engine refused
+    // that, such as "Regenboog", is not lost but gets "Regenboog (eigen)", or with a number when
+    // that is taken too; the file gets the new name with the next change.
+    private static List<CustomEffect> WithoutBuiltInNames(IReadOnlyList<CustomEffect> effects)
+    {
+        var renamed = effects.ToList();
+        for (var i = 0; i < renamed.Count; i++)
+        {
+            var effect = renamed[i];
+            if (!EffectNames.IsBuiltIn(effect.Name))
+            {
+                continue;
+            }
+
+            var own = string.Format(CultureInfo.CurrentCulture, Strings.CustomEffectOwnName, effect.Name);
+            var name = Enumerable.Range(1, CustomEffects.MaxEffects + 1)
+                .Select(number => number == 1 ? own : string.Create(CultureInfo.CurrentCulture, $"{own} {number}"))
+                .First(candidate => !EffectNames.IsBuiltIn(candidate) && !renamed.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
+            Trace.TraceWarning($"The own effect '{effect.Name}' has the name of an effect of the engine; it is called '{name}' now.");
+            renamed[i] = effect with { Name = name };
+        }
+
+        return renamed;
     }
 
     private static List<CustomEffect> Sorted(IEnumerable<CustomEffect> effects) => [.. effects.OrderBy(effect => effect.Name, CustomEffects.NameComparer)];
