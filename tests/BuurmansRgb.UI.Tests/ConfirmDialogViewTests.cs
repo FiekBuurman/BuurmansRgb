@@ -10,8 +10,9 @@ using BuurmansRgb.UI.Views;
 namespace BuurmansRgb.UI.Tests;
 
 // The question before something is deleted, as a real window off screen beside the window of the
-// test, its owner. Shown without ShowDialog, which would take the focus of the desktop; Ask only
-// adds that.
+// test, its owner. Put off screen itself, as WPF moves a window centered on an owner off screen
+// onto the desktop; only the test of the centering shows it, on an owner on screen. Shown without
+// ShowDialog, which would take the focus of the desktop; Ask only adds that.
 [Collection(AppThemeCollection.Name)]
 public sealed class ConfirmDialogViewTests
 {
@@ -38,9 +39,8 @@ public sealed class ConfirmDialogViewTests
             Assert.Contains(Texts(dialog), text => text.IsVisible && text.Text == Question);
             Assert.Contains(Texts(dialog), text => text.IsVisible && text.Text == Detail);
 
-            // Modal on the window that asks, centered on it and not on the taskbar.
+            // Modal on the window that asks and not on the taskbar.
             Assert.Same(owner, dialog.Owner);
-            Assert.Equal(WindowStartupLocation.CenterOwner, dialog.WindowStartupLocation);
             Assert.False(dialog.ShowInTaskbar);
 
             // The title bar of the app: its icon, which a screen reader names, and the word mark.
@@ -95,27 +95,17 @@ public sealed class ConfirmDialogViewTests
     }
 
     // Measured again, the window still stands in the middle of its owner. Windows moves a window
-    // off screen onto it, so here the owner stands on screen, for as long as the test lasts. Up
-    // to a pixel, which Windows rounds to.
+    // that WPF centers on an owner off screen onto the screen, so only here the owner and the
+    // dialog stand on screen, for as long as the test lasts. Up to a pixel, which Windows rounds to.
     [Fact]
     public void Dialog_StaysInTheMiddleOfItsOwner()
     {
         Show(Detail, (owner, dialog) =>
         {
+            Assert.Equal(WindowStartupLocation.CenterOwner, dialog.WindowStartupLocation);
             Assert.Equal(owner.Left + (owner.ActualWidth / 2), dialog.Left + (dialog.ActualWidth / 2), 1.0);
             Assert.Equal(owner.Top + (owner.ActualHeight / 2), dialog.Top + (dialog.ActualHeight / 2), 1.0);
-        }, ownerOnScreen: true);
-    }
-
-    // Put somewhere itself, the window stays where it is put, also when it is measured again.
-    [Fact]
-    public void Dialog_PutSomewhere_StaysThere()
-    {
-        Show(Detail, (_, dialog) =>
-        {
-            Assert.Equal(-10000, dialog.Left);
-            Assert.Equal(-10000, dialog.Top);
-        }, offScreen: true);
+        }, centeredOnOwner: true);
     }
 
     [Fact]
@@ -178,10 +168,13 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
-    private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool ownerOnScreen = false, bool offScreen = false) => AppTheme.Run(panel =>
+    // Shows the dialog off screen, put there itself; only centeredOnOwner shows it in the middle of
+    // its owner, which then stands on screen.
+    private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool centeredOnOwner = false) => AppTheme.Run(panel =>
     {
+        const double offScreen = -10000;
         var owner = Window.GetWindow(panel)!;
-        if (ownerOnScreen)
+        if (centeredOnOwner)
         {
             owner.Left = 100;
             owner.Top = 100;
@@ -192,11 +185,11 @@ public sealed class ConfirmDialogViewTests
 
         var dialog = ConfirmDialog.For(owner, Question, detail);
         dialog.ShowActivated = false;
-        if (offScreen)
+        if (!centeredOnOwner)
         {
             dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = -10000;
-            dialog.Top = -10000;
+            dialog.Left = offScreen;
+            dialog.Top = offScreen;
         }
 
         var closed = false;
@@ -205,6 +198,13 @@ public sealed class ConfirmDialogViewTests
         OffscreenWindow.WaitUntilIdle();
         try
         {
+            // Off screen it stays, also when it is measured again.
+            if (!centeredOnOwner)
+            {
+                Assert.Equal(offScreen, dialog.Left);
+                Assert.Equal(offScreen, dialog.Top);
+            }
+
             test(owner, dialog);
         }
         finally
