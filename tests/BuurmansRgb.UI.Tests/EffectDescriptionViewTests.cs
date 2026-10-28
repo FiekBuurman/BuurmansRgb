@@ -60,15 +60,18 @@ public sealed class EffectDescriptionViewTests
     // Narrow, so the sentences wrap: the sliders and "+ Eigen effect maken" stay where they are in
     // "Licht en beweging" for every effect, an own one too, and the card keeps its height, as the
     // room of the longest sentence is kept. The card itself moves with the panels above it, such as
-    // the color loop, so the places count from its heading.
-    [Fact]
-    public async Task Description_EveryEffect_MovesNothing()
+    // the color loop, so the places count from its heading. Also in the smallest window (960 × 640),
+    // where the sentences wrap the most.
+    [Theory]
+    [InlineData(960)]
+    [InlineData(1000)]
+    public async Task Description_EveryEffect_MovesNothing(double windowWidth)
     {
         using var viewModel = await ConnectWithAsync(EffectIds.Static);
 
         AppTheme.Run(panel =>
         {
-            Window.GetWindow(panel)!.Width = 1000;
+            Window.GetWindow(panel)!.Width = PageViews.PageWidth(windowWidth);
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             var places = new List<(string Effect, string Place)>();
 
