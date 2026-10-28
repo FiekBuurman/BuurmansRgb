@@ -46,7 +46,7 @@ public sealed class ColorLoopViewTests
 
             Assert.True(spread.IsVisible);
             Assert.True(text.ActualHeight >= whole.DesiredSize.Height - 0.5, $"{text.ActualHeight} < {whole.DesiredSize.Height}");
-            // A text that does not fit keeps its whole width and is clipped at the edge of the box.
+            // The text stays within the check box, so no part of it is clipped at its edge.
             Assert.True(text.TranslatePoint(new Point(text.ActualWidth, 0), spread).X <= spread.ActualWidth + 0.5);
             Assert.True(spread.TranslatePoint(new Point(spread.ActualWidth, 0), page).X <= page.ActualWidth);
         });
