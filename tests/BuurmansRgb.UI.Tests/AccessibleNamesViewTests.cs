@@ -62,6 +62,7 @@ public sealed class AccessibleNamesViewTests
             AssertNoNameOfCode(tree);
             Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), ItemNames<ColorPreset>(tree));
             Assert.Empty(ItemNames<int>(tree));
+            Assert.False(Assert.Single(tree, peer => peer.GetClassName() == nameof(DecorativeItemsControl)).IsControlElement());
         });
     }
 
