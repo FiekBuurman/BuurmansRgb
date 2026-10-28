@@ -211,6 +211,11 @@ uitbreidingen in `docs/bouwplan.md`.
   kiest of de pagina wisselt; eventueel vragen of hem bewaren per apparaat. Geldt alleen nog voor de
   kleur van het hele apparaat: een kleur van de kleurenloop, van de kleuren van een effect en van
   gekozen LED's gaat meteen naar het apparaat (sinds "kleur-kiezen" en "effect-kleuren")
+- Een kleur die je bij Regenboog mengt, meenemen als je daarna een effect met één kleur kiest
+  (Statisch, Ademen, Golf), met "Nog niet op het apparaat" en de knop; nu toont de kiezer dan de
+  kleur van het apparaat en bewaar je de gemengde kleur alleen met + bij je eigen kleuren
+- Bij Regenboog de strip in het kleurvoorbeeld een regenboog laten tonen, zoals de apparaten; nu
+  toont hij de gemengde kleur, met eronder dat Regenboog geen kleur van het apparaat gebruikt
 - Ongedaan maken voor een kleur van de kleurenloop, van de kleuren van een effect of van LED's
   die je meteen meekleurde, nu er geen knop meer tussen mengen en het apparaat zit
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet

@@ -83,6 +83,14 @@ schakelaar ernaast.
   "Eigen effecten" en "Per-LED-editor"). Wat de kiezer kleurt, gaat in deze volgorde: gekozen
   LED's, dan de kleur van de loop of van het effect, dan de gekozen stap van een eigen effect, en
   anders het apparaat.
+- **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
+  staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
+  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op de strip
+  zetten** weg: de regenboog heeft zijn eigen tinten, dus een kleur zou niets veranderen. De
+  schuiven, de hex-code en de gereedschapskist werken wel, en met **+** zet je de gemengde kleur
+  bij je eigen kleuren. Kies je daarna bijv. Statisch, dan is de knop terug en staat de kleur van
+  het apparaat weer in de kiezer; de kleur die je bij Regenboog mengde, klik je dan aan bij je
+  eigen kleuren.
 - **Een apparaat dat uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
   meeste lamp-apps: het komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Apparaten)
   gaat mee. Dat geldt ook voor een kleur van de kleurenloop, van een effect of van een stap van
@@ -584,7 +592,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Een kleur
   van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur), een stap van een eigen
   effect en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
-  dus een knop voegde daar niets toe.
+  dus een knop voegde daar niets toe. Bij Regenboog, dat geen kleur van het apparaat gebruikt, is
+  de knop er ook niet, met een regel onder de hex-code die zegt waarom: daar zou hij niets doen.
 - **Gereedschapskist:** de vakjes zijn 32 px in plaats van de 44 px van het ontwerp (§ 4,
   "Preset tile"), zodat de negen vaste kleuren op één rij passen en de eigen kleuren eronder
   ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de focusring en hebben hun naam
