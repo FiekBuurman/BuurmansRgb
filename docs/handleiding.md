@@ -50,6 +50,13 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
   blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
   kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
+- **Alleen gesimuleerde apparaten:** zolang er bij "Gesimuleerde apparaten tonen" "Automatisch"
+  staat (zie "Instellingen") en OpenRGB geen echte apparaten geeft, staat onder "Apparaten in huis"
+  dat dit nep-apparaten zijn om BuurmansRgb te proberen, en dat je echte apparaten er vanzelf voor
+  in de plaats komen zodra OpenRGB ze ziet. "Naar Instellingen" ernaast gaat naar Instellingen.
+  De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit": dan koos je zelf of
+  de nep-apparaten er staan. Een schermlezer leest de regel mee, en de link is met Tab te bereiken
+  (na "+ Erbij knutselen").
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
   maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
@@ -640,6 +647,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   "+ Erbij knutselen" de knop **Verversen**, die het ontwerp niet heeft, in dezelfde linkstijl.
   Hij blijft tijdens het zoeken bruikbaar (er staat "Zoeken…") in plaats van grijs te worden,
   zodat de toetsenbordfocus erop blijft.
+- **Uitleg bij de gesimuleerde apparaten** staat niet in het ontwerp (dat kent geen nep-apparaten):
+  de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
+  kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
+  dezelfde stijl als Verversen en "+ Erbij knutselen".
 - **Schakelaars** van een apparaat met een heel donkere kleur krijgen een lichter spoor (zwart wordt
   grijs), zodat je de knop blijft zien.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,

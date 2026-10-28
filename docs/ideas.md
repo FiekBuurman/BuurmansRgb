@@ -50,6 +50,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Herstarten: de PID van de oude engine meegeven aan de nieuwe (bijv. `--restarted <code>
   <pid>`), zodat die een oude engine die na de wachttijd nog hangt kan beëindigen in plaats van
   zelf te stoppen
+- Bij "Nog geen apparaten gevonden" op Apparaten (bijv. met "Nooit" en zonder OpenRGB) ook een
+  link "Naar Instellingen", zoals bij de regel over de gesimuleerde apparaten (sinds
+  "nep-apparaten-uitleg"); nu noemt de tekst Instellingen alleen
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 - Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met
