@@ -668,7 +668,10 @@
                         </Grid.ColumnDefinitions>
                         <!-- The box and the first line both sit in the middle of the 32 px of MinHeight: the box
                              (22 px) 5 px from the top, a line of body text (20 px) 6 px. A text over more lines
-                             goes on downwards and keeps the box beside its first line. -->
+                             goes on downwards and keeps the box beside its first line. The margins assume the body
+                             size; a BulletDecorator does not help: it only moves the box down to a line taller than
+                             the box, never a lower line down to the box, so a body text over more lines would sit
+                             1 px off and lose its place in the middle of the 32 px. -->
                         <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Top" Margin="0,5,0,0"
                                 BorderBrush="{StaticResource BorderStrongBrush}" Background="Transparent">
                             <Path x:Name="Check" Data="M5,11 L9,15 L17,7" Stretch="None" Margin="-2" Stroke="{StaticResource BgBrush}" StrokeThickness="2.5"
