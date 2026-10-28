@@ -461,8 +461,8 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   aanraaktoetsenbord en emojivenster (`TextInputHost.exe`), het startmenu, zoeken, de
   meldingen en snelle instellingen, het vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
   (zie "Alleen op de voorgrond" hieronder). Typ je zo'n naam zelf in het veld, dan werkt hij
-  wel. De lijst wordt bij elke keer openklappen opnieuw gelezen; een programma dat je net
-  startte, komt er na een ogenblik bij. Met een vinkje
+  wel. De lijst wordt gelezen zodra je een scène opent, en bij elke keer openklappen opnieuw;
+  een programma dat je net startte, komt er na een ogenblik bij. Met een vinkje
   bij "Alleen als het op de voorgrond staat" (daaronder, grijs zonder programma) telt het
   programma alleen zolang je het voor je hebt, zie "Alleen op de voorgrond" hieronder.
 - **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
