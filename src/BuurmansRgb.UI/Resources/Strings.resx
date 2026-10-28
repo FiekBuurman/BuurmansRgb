@@ -745,9 +745,6 @@
   <data name="HotkeysHint" xml:space="preserve">
     <value>Ctrl+Alt+Shift+A zet alles aan en Ctrl+Alt+Shift+U alles uit, net als in het tray-menu, ook als deze app dicht is. Gebruikt een andere app dezelfde toetsen, zet ze dan hier uit.</value>
   </data>
-  <data name="SaveHeader" xml:space="preserve">
-    <value>Opslaan</value>
-  </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>
   </data>

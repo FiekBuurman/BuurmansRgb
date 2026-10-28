@@ -560,7 +560,8 @@ Hoe het vanzelf aanzetten werkt:
   engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
   zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
   meteen.
-- **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
+- **Opslaan:** wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in
+  de statusregel ("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
 
 ### Aan en uit
 
