@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using BuurmansRgb.Engine.Lighting;
 
@@ -25,6 +24,6 @@ public sealed class EffectNamesTests
     public void IsBuiltIn_WithoutRegardToCase(string name, bool expected) =>
         Assert.Equal(expected, EffectNames.IsBuiltIn(name));
 
-    private static string AppStringsPath([CallerFilePath] string testFile = "") =>
-        Path.GetFullPath(Path.Combine(Path.GetDirectoryName(testFile)!, "..", "..", "src", "BuurmansRgb.UI", "Resources", "Strings.resx"));
+    // Linked in the project file, so it is next to the tests.
+    private static string AppStringsPath() => Path.Combine(AppContext.BaseDirectory, "AppStrings", "Strings.resx");
 }

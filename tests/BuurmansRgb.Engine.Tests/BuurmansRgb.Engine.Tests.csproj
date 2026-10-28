@@ -21,4 +21,9 @@
     <ProjectReference Include="..\BuurmansRgb.Providers.OpenRgb.Testing\BuurmansRgb.Providers.OpenRgb.Testing.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The texts of the settings app and its translations, for EffectNamesTests. -->
+    <None Include="..\..\src\BuurmansRgb.UI\Resources\Strings*.resx" LinkBase="AppStrings" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
