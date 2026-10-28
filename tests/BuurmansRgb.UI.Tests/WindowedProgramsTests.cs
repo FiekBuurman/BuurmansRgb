@@ -146,6 +146,8 @@ public sealed class WindowedProgramsTests
     [InlineData("StartMenuExperienceHost")]
     [InlineData("SearchHost")]
     [InlineData("SearchApp")]
+    [InlineData("SearchUI")]
+    [InlineData("ShellHost")]
     [InlineData("LockApp")]
     public void Find_LeavesOutPartsOfWindows(string part)
     {

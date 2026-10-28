@@ -458,8 +458,8 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
   Instellingen van Windows). In het veld komt alleen de exe-naam (`olk.exe`). Een programma
   dat als administrator draait, of van een andere gebruiker is, staat er soms met alleen zijn
   venstertitel of exe-naam bij. Onderdelen van Windows zonder eigen app staan er niet bij: het
-  aanraaktoetsenbord en emojivenster (`TextInputHost.exe`), het startmenu, zoeken, het
-  vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
+  aanraaktoetsenbord en emojivenster (`TextInputHost.exe`), het startmenu, zoeken, de
+  meldingen en snelle instellingen, het vergrendelscherm en `ApplicationFrameHost.exe`, het kader om apps uit de Microsoft Store
   (zie "Alleen op de voorgrond" hieronder). Typ je zo'n naam zelf in het veld, dan werkt hij
   wel. De lijst wordt bij elke keer openklappen opnieuw gelezen; een programma dat je net
   startte, komt er na een ogenblik bij. Met een vinkje
