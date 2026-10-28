@@ -169,7 +169,7 @@ internal sealed partial class ProcessList : IRunningPrograms
         {
             if (!_ended)
             {
-                _handle ??= ProcessImageName.OpenProcess(Synchronize | ProcessImageName.QueryLimitedInformation, inheritHandle: false, processId);
+                _handle ??= ProcessImageName.Open(Synchronize | ProcessImageName.QueryLimitedInformation, processId);
                 if (_handle.IsInvalid)
                 {
                     return true;
