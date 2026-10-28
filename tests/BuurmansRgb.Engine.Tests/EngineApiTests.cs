@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
@@ -875,6 +876,61 @@ public sealed class EngineApiTests : IDisposable
         await api.SetCustomColorsAsync([Red], Ct);
 
         Assert.Empty(await api.GetCustomColorsAsync(Ct));
+    }
+
+    [Fact]
+    public async Task AutoStart_IsTheSwitchOfTheEngine()
+    {
+        var registry = new FakeAutoStart();
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoStart: new AutoStartSwitch(registry));
+
+        Assert.False(await api.GetAutoStartAsync(Ct));
+        Assert.True(await api.SetAutoStartAsync(true, Ct));
+
+        Assert.True(registry.IsEnabled);
+        Assert.True(await api.GetAutoStartAsync(Ct));
+    }
+
+    // As in the tray menu: the registry may not be writable. The app hears it from the answer.
+    [Fact]
+    public async Task AutoStart_WhenWindowsRefuses_AnswersFalseAndStays()
+    {
+        var registry = new FakeAutoStart { SetEnabledException = new UnauthorizedAccessException() };
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoStart: new AutoStartSwitch(registry));
+        var changes = 0;
+        api.OptionsChanged += (_, _) => changes++;
+
+        Assert.False(await api.SetAutoStartAsync(true, Ct));
+
+        Assert.False(await api.GetAutoStartAsync(Ct));
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
+    public async Task AutoStart_WithoutTheSwitch_IsOffAndCannotChange()
+    {
+        using var api = CreateApi();
+
+        Assert.False(await api.SetAutoStartAsync(true, Ct));
+        Assert.False(await api.GetAutoStartAsync(Ct));
+    }
+
+    // Also when the tray menu changes it, which uses the same switch; once for each new value.
+    [Fact]
+    public async Task AutoStart_AnotherValue_RaisesOptionsChanged()
+    {
+        var autoStart = new AutoStartSwitch(new FakeAutoStart());
+        var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, autoStart: autoStart);
+        var changes = 0;
+        api.OptionsChanged += (_, _) => changes++;
+
+        await api.SetAutoStartAsync(true, Ct);
+        await api.SetAutoStartAsync(true, Ct);
+        autoStart.SetEnabled(false);
+        api.Dispose();
+        autoStart.SetEnabled(true);
+
+        Assert.Equal(2, changes);
     }
 
     [Fact]

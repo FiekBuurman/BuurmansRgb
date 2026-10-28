@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
@@ -24,6 +25,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly CustomColorList? _customColors;
     private readonly ZoneCounter? _zoneCounter;
     private readonly CustomEffectLibrary? _customEffects;
+    private readonly AutoStartSwitch? _autoStart;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -42,10 +44,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         AllOnOffHotkeys? hotkeys = null,
         CustomColorList? customColors = null,
         ZoneCounter? zoneCounter = null,
-        CustomEffectLibrary? customEffects = null)
+        CustomEffectLibrary? customEffects = null,
+        AutoStartSwitch? autoStart = null)
     {
         _zoneCounter = zoneCounter;
         _customEffects = customEffects;
+        _autoStart = autoStart;
         _autoPause = autoPause;
         _profileTimer = profileTimer;
         _hotkeys = hotkeys;
@@ -74,6 +78,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _customColors?.Changed += OnOptionsChanged;
         _lighting.CountChanged += OnCountChanged;
         _customEffects?.Changed += OnCustomEffectsChanged;
+        _autoStart?.Changed += OnOptionsChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -337,6 +342,12 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // Without the switch (in tests) Windows starts no engine, so it reads as off and cannot change.
+    public Task<bool> GetAutoStartAsync(CancellationToken ct = default) => Task.FromResult(_autoStart?.IsEnabled ?? false);
+
+    public Task<bool> SetAutoStartAsync(bool enabled, CancellationToken ct = default) =>
+        Task.FromResult(_autoStart?.TrySetEnabled(enabled) ?? false);
+
     // Without the list (in tests) nothing is kept, so there are none.
     public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>
         Task.FromResult(_customColors?.Colors ?? []);
@@ -406,6 +417,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _customColors?.Changed -= OnOptionsChanged;
         _lighting.CountChanged -= OnCountChanged;
         _customEffects?.Changed -= OnCustomEffectsChanged;
+        _autoStart?.Changed -= OnOptionsChanged;
         _frames.Dispose();
 
         // The settings app that counted went, so nobody can stop the count any more.

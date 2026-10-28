@@ -33,7 +33,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     public TrayApplicationContext(
         IEngineHost host,
-        IAutoStart autoStart,
+        AutoStartSwitch autoStart,
         ISettingsAppLauncher settingsAppLauncher,
         ProfileLibrary profiles,
         LightingController lighting,

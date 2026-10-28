@@ -406,6 +406,26 @@ internal sealed class FakeEngineApi : IEngineApi
         Hotkeys = enabled;
     }
 
+    // Off, as the engine in a test has it; never the registry of this pc.
+    public bool AutoStart { get; set; }
+
+    // False lets SetAutoStartAsync fail as when Windows does not let it change.
+    public bool AutoStartChangeable { get; set; } = true;
+
+    public Task<bool> GetAutoStartAsync(CancellationToken ct = default) => Task.FromResult(AutoStart);
+
+    public async Task<bool> SetAutoStartAsync(bool enabled, CancellationToken ct = default)
+    {
+        await Record($"autostart {enabled}");
+        if (!AutoStartChangeable)
+        {
+            return false;
+        }
+
+        AutoStart = enabled;
+        return true;
+    }
+
     public List<RgbColor> CustomColors { get; set; } = [];
 
     public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>
