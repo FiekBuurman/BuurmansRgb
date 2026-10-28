@@ -1152,6 +1152,12 @@
   <data name="CustomEffectDeleteToolTip" xml:space="preserve">
     <value>Verwijdert dit eigen effect. Apparaten die het tonen, krijgen Statisch in hun eigen kleur; een scène met dit effect toont dan ook Statisch.</value>
   </data>
+  <data name="CustomEffectDeleteConfirm" xml:space="preserve">
+    <value>Eigen effect '{0}' verwijderen?</value>
+  </data>
+  <data name="CustomEffectDeleteConfirmDetail" xml:space="preserve">
+    <value>Apparaten en scènes met dit effect worden dan Statisch.</value>
+  </data>
   <data name="CustomEffectDeleted" xml:space="preserve">
     <value>Eigen effect '{0}' verwijderd.</value>
   </data>

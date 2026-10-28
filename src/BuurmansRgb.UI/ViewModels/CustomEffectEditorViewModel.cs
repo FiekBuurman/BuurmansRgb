@@ -75,6 +75,11 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
 
     public CustomEffect Effect => new(_id, _name, [.. _steps]);
 
+    // Asked before the effect is deleted, with its name; the view shows the question, which says
+    // that devices and scenes with it become static. Without it, the effect is deleted without
+    // asking.
+    public Func<string, bool>? ConfirmDelete { get; set; }
+
     // Shows an effect of the engine. The selection stays on the same place for the same effect,
     // and goes to the first step for another one; a name being typed that is not valid stays, and
     // so does the message of one that made way (EndNameEdit), until the effect gets another name.
@@ -205,9 +210,11 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     [RelayCommand]
     private void Delete()
     {
-        if (_id.Length > 0)
+        // The effect that was asked about, also when another one shows while the question is open.
+        var id = _id;
+        if (id.Length > 0 && (ConfirmDelete?.Invoke(_name) ?? true))
         {
-            DeleteRequested?.Invoke(this, _id);
+            DeleteRequested?.Invoke(this, id);
         }
     }
 

@@ -125,11 +125,12 @@ public sealed class CustomEffectViewTests
         });
     }
 
-    // The panel hides; the focus goes to the effect choice, which now says Statisch.
+    // Confirmed, the panel hides; the focus goes to the effect choice, which now says Statisch.
     [Fact]
     public async Task DeleteButton_GivesTheFocusToTheEffectChoice()
     {
         using var viewModel = await ConnectAsync();
+        viewModel.CustomEffectEditor.ConfirmDelete = _ => true;
 
         AppTheme.Run(panel =>
         {
@@ -143,6 +144,27 @@ public sealed class CustomEffectViewTests
             var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
             Assert.True(choice.IsKeyboardFocusWithin);
             Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
+        });
+    }
+
+    // Annuleren: the panel stays, and so does the focus on Verwijderen.
+    [Fact]
+    public async Task DeleteButton_NotConfirmed_KeepsThePanelAndTheFocus()
+    {
+        using var viewModel = await ConnectAsync();
+        viewModel.CustomEffectEditor.ConfirmDelete = _ => false;
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var delete = PageViews.ButtonNamed(page, Strings.CustomEffectDeleteAccessibleName);
+            Assert.True(delete.Focus());
+
+            PageViews.Click(delete);
+
+            Assert.True(Panel(page).IsVisible);
+            Assert.True(delete.IsKeyboardFocused);
+            Assert.Equal(Disco.Id, viewModel.SelectedEffect?.Id);
         });
     }
 

@@ -241,6 +241,20 @@ public sealed class MainViewModelCustomEffectTests
         Assert.Equal(UiText.Format(Strings.CustomEffectDeleted, "Disco"), viewModel.StatusMessage);
     }
 
+    // Annuleren in the question keeps the effect, chosen and in the engine.
+    [Fact]
+    public async Task Delete_NotConfirmed_KeepsTheEffect()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+        viewModel.CustomEffectEditor.ConfirmDelete = _ => false;
+
+        viewModel.CustomEffectEditor.DeleteCommand.Execute(null);
+
+        Assert.Empty(Api.Calls);
+        Assert.Equal("custom:disco", viewModel.SelectedEffect?.Id);
+        Assert.True(viewModel.IsCustomEffect);
+    }
+
     // The colors the per-LED effect gives the LEDs of the lamp become the pattern of the step.
     [Fact]
     public async Task TakeLedPattern_MakesTheStepAPatternOfTheLeds()
