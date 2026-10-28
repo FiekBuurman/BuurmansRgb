@@ -85,6 +85,13 @@ public static class WindowedPrograms
             return exeName;
         }
 
-        return name.Length <= MaxNameLength ? name : string.Concat(name.AsSpan(0, MaxNameLength - 1).TrimEnd(), "…");
+        if (name.Length <= MaxNameLength)
+        {
+            return name;
+        }
+
+        // An emoji or other character of two halves (a surrogate pair) goes whole, not half.
+        var kept = char.IsHighSurrogate(name[MaxNameLength - 2]) ? MaxNameLength - 2 : MaxNameLength - 1;
+        return string.Concat(name.AsSpan(0, kept).TrimEnd(), "…");
     }
 }

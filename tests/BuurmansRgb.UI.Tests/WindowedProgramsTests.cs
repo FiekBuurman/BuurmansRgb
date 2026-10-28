@@ -123,6 +123,18 @@ public sealed class WindowedProgramsTests
         Assert.Equal("WINWORD.exe", program.ExeName);
     }
 
+    // An emoji where the name is cut off goes whole, so no half of it shows as a box.
+    [Fact]
+    public void Find_CutsOffALongNameBeforeAnEmoji()
+    {
+        var title = new string('a', WindowedPrograms.MaxNameLength - 2) + "🎮 en nog wat meer";
+
+        var program = Assert.Single(Find([new(1, "game", title)], new()));
+
+        Assert.Equal(new string('a', WindowedPrograms.MaxNameLength - 2) + "…", program.Name);
+        Assert.DoesNotContain(program.Name, char.IsSurrogate);
+    }
+
     // Parts of Windows without an app of their own are left out, in any case, without reading
     // their file; Instellingen and Verkenner, which a user opens, stay.
     [Theory]
