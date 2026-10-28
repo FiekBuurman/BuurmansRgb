@@ -1,8 +1,10 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Input;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
@@ -45,6 +47,32 @@ public sealed class ConfirmDialogViewTests
             var icon = Assert.Single(AppTheme.Descendants<Image>(dialog));
             Assert.Equal(Strings.WindowTitle, new ImageAutomationPeer(icon).GetName());
             Assert.Contains(Texts(dialog), text => text.IsVisible && new TextBlockAutomationPeer(text).GetName() == "buurmansRgb");
+        });
+    }
+
+    // The two questions of the app, with the name of what goes; only the own effect says what
+    // then happens to the devices and scenes that have it.
+    [Fact]
+    public void ForScene_AsksWithTheNameOfTheScene()
+    {
+        Make(owner => ConfirmDialog.ForScene(owner, "Avond"), (owner, dialog) =>
+        {
+            Assert.Same(owner, dialog.Owner);
+            Assert.Equal(UiText.Format(Strings.ProfileDeleteConfirm, "Avond"), dialog.Title);
+            Assert.Contains("'Avond'", dialog.Title, StringComparison.Ordinal);
+            Assert.Equal(string.Empty, AutomationProperties.GetHelpText(dialog));
+        });
+    }
+
+    [Fact]
+    public void ForCustomEffect_AsksWithTheNameAndWhatHappensToTheDevices()
+    {
+        Make(owner => ConfirmDialog.ForCustomEffect(owner, "Disco"), (owner, dialog) =>
+        {
+            Assert.Same(owner, dialog.Owner);
+            Assert.Equal(UiText.Format(Strings.CustomEffectDeleteConfirm, "Disco"), dialog.Title);
+            Assert.Contains("'Disco'", dialog.Title, StringComparison.Ordinal);
+            Assert.Equal(Strings.CustomEffectDeleteConfirmDetail, AutomationProperties.GetHelpText(dialog));
         });
     }
 
@@ -167,6 +195,21 @@ public sealed class ConfirmDialogViewTests
             {
                 dialog.Close();
             }
+        }
+    });
+
+    // A dialog that does not show, for what it asks.
+    private static void Make(Func<Window, ConfirmDialog> make, Action<Window, ConfirmDialog> test) => AppTheme.Run(panel =>
+    {
+        var owner = Window.GetWindow(panel)!;
+        var dialog = make(owner);
+        try
+        {
+            test(owner, dialog);
+        }
+        finally
+        {
+            dialog.Close();
         }
     });
 

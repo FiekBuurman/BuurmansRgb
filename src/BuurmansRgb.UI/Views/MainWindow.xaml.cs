@@ -1,5 +1,4 @@
 using System.Windows;
-using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
@@ -57,8 +56,7 @@ public partial class MainWindow : Window
 
     // A deleted profile or own effect cannot come back, so the user confirms it; the focus starts
     // on Annuleren.
-    private bool ConfirmDeleteProfile(string name) => ConfirmDialog.Ask(this, UiText.Format(Strings.ProfileDeleteConfirm, name));
+    private bool ConfirmDeleteProfile(string name) => ConfirmDialog.ForScene(this, name).Ask();
 
-    private bool ConfirmDeleteCustomEffect(string name) =>
-        ConfirmDialog.Ask(this, UiText.Format(Strings.CustomEffectDeleteConfirm, name), Strings.CustomEffectDeleteConfirmDetail);
+    private bool ConfirmDeleteCustomEffect(string name) => ConfirmDialog.ForCustomEffect(this, name).Ask();
 }

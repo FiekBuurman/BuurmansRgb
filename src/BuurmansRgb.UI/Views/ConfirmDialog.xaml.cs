@@ -1,6 +1,8 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Input;
+using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -25,13 +27,21 @@ public partial class ConfirmDialog : Window
     // Whether the user chose "Verwijderen"; false until then.
     public bool IsConfirmed { get; private set; }
 
-    // Asks over owner, which waits until the user answers.
-    public static bool Ask(Window owner, string question, string? detail = null)
+    // Shows over its owner, which waits until the user answers; true for "Verwijderen".
+    public bool Ask()
     {
-        var dialog = For(owner, question, detail);
-        dialog.ShowDialog();
-        return dialog.IsConfirmed;
+        ShowDialog();
+        return IsConfirmed;
     }
+
+    // The question before a scene is deleted, with its name.
+    internal static ConfirmDialog ForScene(Window owner, string name) =>
+        For(owner, UiText.Format(Strings.ProfileDeleteConfirm, name));
+
+    // The question before an own effect is deleted, with its name, and what then happens to the
+    // devices and scenes that have it.
+    internal static ConfirmDialog ForCustomEffect(Window owner, string name) =>
+        For(owner, UiText.Format(Strings.CustomEffectDeleteConfirm, name), Strings.CustomEffectDeleteConfirmDetail);
 
     // The dialog that belongs to owner, before it shows.
     internal static ConfirmDialog For(Window owner, string question, string? detail = null) =>
