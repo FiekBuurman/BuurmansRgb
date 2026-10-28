@@ -92,11 +92,21 @@ public sealed class WindowedProgramsTests
     [Theory]
     [InlineData("notepad")]
     [InlineData("Notepad.exe")]
+    [InlineData("  notepad ")]
     public void Find_ANameThatIsTheExeName_ShowsOnlyTheExeName(string description)
     {
         var program = Assert.Single(Find([new(1, "notepad", "")], new() { [1] = description }));
 
         Assert.Equal("notepad.exe", Label(program));
+    }
+
+    // Spaces around a description or title do not show in the list.
+    [Fact]
+    public void Find_TrimsTheName()
+    {
+        var programs = Find([new(1, "olk", ""), new(2, "game", "  ELDEN RING ")], new() { [1] = " Outlook  " });
+
+        Assert.Equal(["ELDEN RING (game.exe)", "Outlook (olk.exe)"], Labels(programs));
     }
 
     // So a description that only says the exe name again leaves the turn to the title of the

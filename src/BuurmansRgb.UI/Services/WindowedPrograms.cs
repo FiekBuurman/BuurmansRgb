@@ -41,8 +41,8 @@ public static class WindowedPrograms
         foreach (var program in byExeName)
         {
             // One process of the program that describes it is enough; the others are not read.
-            var name = program.Select(process => Describe(process.Id, describe)).FirstOrDefault(description => IsName(description, program.Key))
-                ?? program.Select(process => process.Title).FirstOrDefault(title => IsName(title, program.Key));
+            var name = program.Select(process => Describe(process.Id, describe)?.Trim()).FirstOrDefault(description => IsName(description, program.Key))
+                ?? program.Select(process => process.Title?.Trim()).FirstOrDefault(title => IsName(title, program.Key));
             programs.Add(new RunningProgram(program.Key, Readable(name, program.Key)));
         }
 
@@ -65,19 +65,15 @@ public static class WindowedPrograms
     }
 
     // A name that only says the exe name again ("game" for game.exe) adds nothing, so a description
-    // like that leaves the turn to the title of the window ("ELDEN RING").
-    private static bool IsName(string? name, string exeName)
-    {
-        name = name?.Trim();
-        return !string.IsNullOrEmpty(name)
-            && !ProgramNames.Comparer.Equals(name, exeName)
-            && !ProgramNames.Comparer.Equals(name, Path.GetFileNameWithoutExtension(exeName));
-    }
+    // like that leaves the turn to the title of the window ("ELDEN RING"). The name comes trimmed.
+    private static bool IsName(string? name, string exeName) =>
+        !string.IsNullOrEmpty(name)
+        && !ProgramNames.Comparer.Equals(name, exeName)
+        && !ProgramNames.Comparer.Equals(name, Path.GetFileNameWithoutExtension(exeName));
 
-    // The name, trimmed and cut off when it is long; the exe name itself when there is none.
+    // The name, already trimmed, cut off when it is long; the exe name itself when there is none.
     private static string Readable(string? name, string exeName)
     {
-        name = name?.Trim();
         if (string.IsNullOrEmpty(name))
         {
             return exeName;
