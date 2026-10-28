@@ -175,6 +175,68 @@ public sealed class CustomEffectEditorViewModelTests
         Assert.Equal("Disco", _editor.Effect.Name);
     }
 
+    // When the box loses the focus, it shows the name the effect has again; the message stays to
+    // tell why, until a valid name.
+    [Theory]
+    [InlineData("")]
+    [InlineData("Feest")]
+    public void EndNameEdit_NameNotKept_ShowsTheNameOfTheEffectAndKeepsTheMessage(string name)
+    {
+        _editor.Show(Disco);
+        _editor.Name = name;
+        var message = _editor.NameError;
+
+        _editor.EndNameEdit();
+
+        Assert.Equal("Disco", _editor.Name);
+        Assert.NotNull(message);
+        Assert.Equal(message, _editor.NameError);
+        Assert.Empty(_changes);
+    }
+
+    [Fact]
+    public void EndNameEdit_NameKept_ChangesNothing()
+    {
+        _editor.Show(Disco);
+        _editor.Name = "Avond";
+
+        _editor.EndNameEdit();
+
+        Assert.Equal("Avond", _editor.Name);
+        Assert.Null(_editor.NameError);
+        Assert.Single(_changes);
+    }
+
+    // Once the name made way, the box follows the effect again, such as another settings app that
+    // renames it.
+    [Fact]
+    public void Show_SameEffectAfterTheNameMadeWay_ShowsItsNewName()
+    {
+        _editor.Show(Disco);
+        _editor.Name = "";
+        _editor.EndNameEdit();
+
+        _editor.Show(Disco with { Name = "Avond" });
+
+        Assert.Equal("Avond", _editor.Name);
+        Assert.Equal(Strings.CustomEffectNameInvalid, _editor.NameError);
+    }
+
+    // The same message for another name that is not kept is news too, for a screen reader.
+    [Fact]
+    public void Name_SameMessageAgain_TellsItAgain()
+    {
+        _editor.Show(Disco);
+        _editor.Name = "";
+        var told = 0;
+        _editor.PropertyChanged += (_, e) => told += e.PropertyName == nameof(CustomEffectEditorViewModel.NameError) ? 1 : 0;
+
+        _editor.Name = " ";
+
+        Assert.Equal(1, told);
+        Assert.Equal(Strings.CustomEffectNameInvalid, _editor.NameError);
+    }
+
     // A valid name again ends the message.
     [Fact]
     public void Name_ValidAfterAnInvalidOne_EndsTheMessage()

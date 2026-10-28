@@ -72,6 +72,17 @@ public partial class ColorPage : UserControl
         }
     }
 
+    // A name that is not kept makes way for the name of the effect. The binding writes the name at
+    // LostFocus too; written here first, it does not matter which of the two comes first.
+    private void OnCustomEffectNameLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (sender is TextBox { DataContext: CustomEffectEditorViewModel editor } box)
+        {
+            box.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            editor.EndNameEdit();
+        }
+    }
+
     // Delete on a step takes it away, as "−" does; the focus goes to the step that takes its place.
     private void OnStepKeyDown(object sender, KeyEventArgs e)
     {

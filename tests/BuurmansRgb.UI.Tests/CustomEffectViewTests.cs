@@ -194,6 +194,62 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // An empty name or that of another effect says why under the box, also to a screen reader, and
+    // the box keeps it while it has the focus, so the user can change it; once the focus goes, the
+    // box shows the name the effect choice shows, and the message stays.
+    [Theory]
+    [InlineData("", nameof(Strings.CustomEffectNameInvalid))]
+    [InlineData("regenboog", nameof(Strings.CustomEffectNameTaken))]
+    public async Task NameBox_NameNotKept_SaysWhyAndShowsTheNameAgainWhenTheFocusGoes(string name, string message)
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await ConnectAsync(api => engine = api);
+        var text = Strings.ResourceManager.GetString(message, Strings.Culture)!;
+        List<UIElement> announced = [];
+        var (hasListener, announce) = (LiveRegion.HasListener, LiveRegion.Announce);
+        LiveRegion.HasListener = () => true;
+        LiveRegion.Announce = announced.Add;
+        try
+        {
+            AppTheme.Run(panel =>
+            {
+                var page = PageViews.Show<ColorPage>(panel, viewModel);
+                var box = NameBox(page);
+                Assert.True(box.Focus());
+                box.Text = name;
+
+                box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
+                OffscreenWindow.WaitUntilIdle();
+
+                var error = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == text);
+                Assert.True(error.IsVisible);
+                Assert.Equal([error], announced);
+                Assert.Equal(name, box.Text);
+
+                Assert.True(StepTiles(page)[0].Focus());
+                OffscreenWindow.WaitUntilIdle();
+
+                Assert.Equal("Disco", box.Text);
+                Assert.True(error.IsVisible);
+                Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
+                Assert.Empty(engine!.Calls);
+
+                // Another name with the same message is said again.
+                Assert.True(box.Focus());
+                box.Text = name.Length == 0 ? " " : "STATISCH";
+                Assert.True(StepTiles(page)[0].Focus());
+                OffscreenWindow.WaitUntilIdle();
+
+                Assert.Equal([error, error], announced);
+                Assert.Equal("Disco", box.Text);
+            });
+        }
+        finally
+        {
+            (LiveRegion.HasListener, LiveRegion.Announce) = (hasListener, announce);
+        }
+    }
+
     [Fact]
     public async Task NewButton_MakesAnEffectAndShowsThePanel()
     {

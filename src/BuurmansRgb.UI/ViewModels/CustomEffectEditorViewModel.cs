@@ -34,7 +34,8 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     [ObservableProperty]
     public partial string Name { get; set; } = string.Empty;
 
-    // Why the name in the text box is not kept; null while it is.
+    // Why the name typed last is not kept, also once the box shows the name of the effect again;
+    // null while it is.
     [ObservableProperty]
     public partial string? NameError { get; private set; }
 
@@ -75,7 +76,8 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     public CustomEffect Effect => new(_id, _name, [.. _steps]);
 
     // Shows an effect of the engine. The selection stays on the same place for the same effect,
-    // and goes to the first step for another one; a name being typed that is not valid stays.
+    // and goes to the first step for another one; a name being typed that is not valid stays, and
+    // so does the message of one that made way (EndNameEdit).
     public void Show(CustomEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
@@ -87,11 +89,16 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         _showing.Run(() =>
         {
             var same = effect.Id == _id;
+            var typing = same && Name != _name;
             _id = effect.Id;
             _name = effect.Name;
-            if (!same || NameError is null)
+            if (!typing)
             {
                 Name = effect.Name;
+            }
+
+            if (!same)
+            {
                 NameError = null;
             }
 
@@ -99,6 +106,17 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
             _steps.AddRange(effect.Steps);
             Refresh(same ? Math.Min(SelectedIndex, _steps.Count - 1) : 0);
         });
+    }
+
+    // The text box lost the focus: a name in it that is not kept, empty or that of another effect,
+    // makes way for the name of the effect, so the box shows what the effect choice does. The
+    // message stays, to tell why, until a valid name or another effect.
+    public void EndNameEdit()
+    {
+        if (Name != _name)
+        {
+            _showing.Run(() => Name = _name);
+        }
     }
 
     // Gives the selected step one color: a pattern becomes that color for the whole device.
@@ -177,10 +195,18 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
         }
 
         var name = CustomEffects.NormalizeName(value);
-        NameError = name is null ? Strings.CustomEffectNameInvalid
+        var error = name is null ? Strings.CustomEffectNameInvalid
             : isNameTaken(_id, name) ? Strings.CustomEffectNameTaken
             : null;
-        if (name is null || NameError is not null || name == _name)
+
+        // The same message for another name is news too: a screen reader says it again.
+        if (error is not null && error == NameError)
+        {
+            OnPropertyChanged(nameof(NameError));
+        }
+
+        NameError = error;
+        if (name is null || error is not null || name == _name)
         {
             return;
         }
