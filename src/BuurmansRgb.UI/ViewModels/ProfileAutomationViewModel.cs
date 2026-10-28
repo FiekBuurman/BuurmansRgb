@@ -39,8 +39,8 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     public event EventHandler<ProfileAutomationChange>? ApplyRequested;
 
-    // The programs with a window, read again each time the list opens; empty until then. The list
-    // opens with what it had and gets the new programs a moment later.
+    // The programs with a window, read when the list shows and again each time it opens; empty
+    // until then. The list opens with what it had and gets the new programs a moment later.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasRunningPrograms))]
     public partial IReadOnlyList<RunningProgram> RunningPrograms { get; private set; } = [];

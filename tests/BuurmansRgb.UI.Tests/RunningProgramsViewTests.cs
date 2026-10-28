@@ -25,13 +25,33 @@ public sealed class RunningProgramsViewTests
             var page = PageViews.Show<ScenesPage>(panel, viewModel);
             PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.SceneEditAccessibleName, "Mail")));
             var list = PageViews.Named<ComboBox>(page, Strings.ProgramPickPlaceholder);
-            viewModel.Profiles.Automation.FindProgramsCommand.Execute(null);
             OffscreenWindow.WaitUntilIdle();
 
             Assert.Equal(["Outlook (olk.exe)", "game.exe"], list.Items.Cast<object>().Select(item => item.ToString()));
             // Nothing else shows the items, so ToString is what a user sees and hears.
             Assert.Empty(list.DisplayMemberPath);
             Assert.Null(list.ItemTemplate);
+        });
+    }
+
+    // The programs are read as soon as the settings of a scene show, so the list does not open
+    // empty the first time; it is not open here.
+    [Fact]
+    public async Task TheList_IsReadBeforeItFirstOpens()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Profiles.Add("Mail"), [new("olk.exe", "Outlook")]);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ScenesPage>(panel, viewModel);
+            Assert.Empty(viewModel.Profiles.Automation.RunningPrograms);
+
+            PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.SceneEditAccessibleName, "Mail")));
+            OffscreenWindow.WaitUntilIdle();
+
+            var list = PageViews.Named<ComboBox>(page, Strings.ProgramPickPlaceholder);
+            Assert.False(list.IsDropDownOpen);
+            Assert.Equal(["Outlook (olk.exe)"], list.Items.Cast<object>().Select(item => item.ToString()));
         });
     }
 
@@ -46,7 +66,6 @@ public sealed class RunningProgramsViewTests
             var page = PageViews.Show<ScenesPage>(panel, viewModel);
             PageViews.Click(PageViews.ButtonNamed(page, string.Format(Strings.SceneEditAccessibleName, "Mail")));
             var list = PageViews.Named<ComboBox>(page, Strings.ProgramPickPlaceholder);
-            viewModel.Profiles.Automation.FindProgramsCommand.Execute(null);
             OffscreenWindow.WaitUntilIdle();
 
             list.SelectedItem = list.Items[0];

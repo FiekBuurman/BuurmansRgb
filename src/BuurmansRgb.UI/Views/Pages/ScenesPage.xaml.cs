@@ -38,7 +38,16 @@ public partial class ScenesPage : UserControl
             }
         });
 
-    // The list is read when it opens, so a game started a moment ago is in it.
+    // The list is read once it shows, with the settings of a scene, so it does not open empty the
+    // first time; and again when it opens, so a game started a moment ago is in it.
+    private void OnRunningProgramsShown(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            Automation?.FindProgramsCommand.Execute(null);
+        }
+    }
+
     private void OnRunningProgramsOpened(object? sender, EventArgs e) => Automation?.FindProgramsCommand.Execute(null);
 
     // The exe name of the pick goes into the program field; the list goes back to its hint, so the

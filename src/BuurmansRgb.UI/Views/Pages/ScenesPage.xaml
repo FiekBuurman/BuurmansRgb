@@ -199,7 +199,7 @@
                                         Click="OnBrowseProgramClick" />
                                 <ComboBox x:Name="RunningPrograms" ItemsSource="{Binding Profiles.Automation.RunningPrograms}"
                                           Tag="{x:Static res:Strings.ProgramPickPlaceholder}"
-                                          DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"
+                                          IsVisibleChanged="OnRunningProgramsShown" DropDownOpened="OnRunningProgramsOpened" SelectionChanged="OnRunningProgramPicked"
                                           ToolTip="{x:Static res:Strings.ProgramPickToolTip}"
                                           AutomationProperties.Name="{x:Static res:Strings.ProgramPickPlaceholder}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.ProgramPickToolTip}" />
