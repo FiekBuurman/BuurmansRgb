@@ -229,8 +229,8 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
     en zegt de melding welke naam niet kon en dat de oude blijft, bijv. "Er is al een effect dat
     'Regenboog' heet; de naam blijft 'Disco'.". Die melding staat tot je een goede naam geeft of
     een ander effect kiest. Met Escape staat de naam van het effect weer in het vak, zonder
-    melding, en blijf je in het vak. Had een eigen effect uit een eerdere
-    versie al de naam van een ingebouwd effect, dan heet het nu bijv. "Regenboog (eigen)".
+    melding, en blijf je in het vak. Had een eigen effect uit een eerdere versie al de naam van
+    een ingebouwd effect, dan heet het nu bijv. "Regenboog (eigen)".
   - **Stappen:** de vakjes, in rijen van hooguit zes; een patroon staat als verloop in het vakje.
     Klik op een stap (hij krijgt een dikke witte rand) en meng een kleur met de schuiven, de
     hex-code of de gereedschapskist: de stap verandert meteen mee. Een patroon wordt dan één

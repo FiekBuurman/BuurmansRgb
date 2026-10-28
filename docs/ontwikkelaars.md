@@ -237,15 +237,14 @@ toetsenbord. Een paar dingen om te proberen:
   engine toont geen effectnamen, maar heeft dezelfde in zijn eigen `Strings.resx`, zodat hij
   zonder de app kan weigeren (`EffectNames.IsBuiltIn`, net als een dubbele naam in
   `CustomEffectLibrary.Save`) en ook `effects.json` kan nakijken. `EffectNamesTests` leest de
-  `Strings*.resx` van de app (gekoppeld in het testproject) en houdt beide gelijk, ook voor
-  elke vertaling: een vertaling van de app vraagt er een van de engine. Een effect uit
-  `effects.json` dat al zo heet (van vóór deze controle) gooit de library niet weg, maar noemt
-  hij "Regenboog (eigen)" (of
-  met een nummer als die naam ook bezet is); het bestand krijgt de nieuwe naam bij de volgende
-  wijziging. De app kijkt vóór hij iets stuurt (`MainViewModel.IsCustomEffectNameTaken`, met de
-  namen van `GetEffectsAsync`) en zet de melding (`NameError`) onder het vak, een live region.
-  Het vak schrijft de naam alleen bij Enter en als het de focus verliest
-  (`UpdateSourceTrigger=Explicit`, `ColorPage.xaml.cs`): dan bewaart
+  `Strings*.resx` van de app (gekoppeld in het testproject) en houdt beide gelijk, ook voor elke
+  vertaling: een vertaling van de app vraagt er een van de engine. Staat in `effects.json` een
+  effect dat al zo heet (van vóór deze controle), dan gooit de library het niet weg; hij noemt
+  het "Regenboog (eigen)" (of met een nummer als die naam ook bezet is), en het bestand krijgt de
+  nieuwe naam bij de volgende wijziging. De app kijkt vóór hij iets stuurt
+  (`MainViewModel.IsCustomEffectNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
+  (`NameError`) onder het vak, een live region. Het vak schrijft de naam alleen bij Enter en als
+  het de focus verliest (`UpdateSourceTrigger=Explicit`, `ColorPage.xaml.cs`): dan bewaart
   `CustomEffectEditorViewModel.EndNameEdit` een goede naam, of zet de echte naam terug met een
   melding die de geweigerde en de echte naam noemt (`CustomEffectNameTakenKept`,
   `CustomEffectNameEmptyKept`), zodat een schermlezer één melding hoort. Die melding gaat weg bij
