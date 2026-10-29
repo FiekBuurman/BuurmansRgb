@@ -221,8 +221,9 @@
                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
 
                             <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
-                            <!-- The name counts when the box loses the focus, or with Enter. -->
-                            <TextBox Text="{Binding Name}" MaxLength="40" KeyDown="OnCustomEffectNameKeyDown"
+                            <!-- The name counts with Enter, or when the box loses the focus: then one that is not kept
+                                 makes way for the name of the effect, and the message says so (OnCustomEffectNameLostFocus). -->
+                            <TextBox Text="{Binding Name, UpdateSourceTrigger=Explicit}" MaxLength="40" KeyDown="OnCustomEffectNameKeyDown" LostFocus="OnCustomEffectNameLostFocus"
                                      AutomationProperties.Name="{x:Static res:Strings.CustomEffectNameAccessibleName}" />
                             <DockPanel Margin="0,6,0,0" Visibility="{Binding NameError, Converter={StaticResource NullToCollapsed}}">
                                 <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />

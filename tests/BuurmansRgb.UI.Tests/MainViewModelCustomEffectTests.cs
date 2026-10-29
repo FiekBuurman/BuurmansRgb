@@ -169,7 +169,37 @@ public sealed class MainViewModelCustomEffectTests
 
         viewModel.CustomEffectEditor.Name = "avond";
 
-        Assert.Equal(UiText.Format(Strings.CustomEffectNameTaken, "avond"), viewModel.CustomEffectEditor.NameError);
+        Assert.Equal(Strings.CustomEffectNameTaken, viewModel.CustomEffectEditor.NameError);
+        Assert.Empty(Api.Calls);
+    }
+
+    // The effect choice would show Regenboog twice, so the engine would refuse it.
+    [Theory]
+    [InlineData("Regenboog")]
+    [InlineData(" regenboog ")]
+    [InlineData("STATISCH")]
+    public async Task Rename_ToTheNameOfAnEffectOfTheEngine_IsRefused(string name)
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+
+        viewModel.CustomEffectEditor.Name = name;
+
+        Assert.Equal(Strings.CustomEffectNameTaken, viewModel.CustomEffectEditor.NameError);
+        Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
+        Assert.Equal([Strings.Effect_static, Strings.Effect_rainbow, "Disco"], viewModel.Effects.Select(effect => effect.DisplayName));
+        Assert.Empty(Api.Calls);
+    }
+
+    // An empty name says so and leaves the effect its name.
+    [Fact]
+    public async Task Rename_Empty_SaysSoAndKeepsTheName()
+    {
+        var viewModel = await ConnectWithDiscoAsync();
+
+        viewModel.CustomEffectEditor.Name = "  ";
+
+        Assert.Equal(Strings.CustomEffectNameInvalid, viewModel.CustomEffectEditor.NameError);
+        Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
         Assert.Empty(Api.Calls);
     }
 

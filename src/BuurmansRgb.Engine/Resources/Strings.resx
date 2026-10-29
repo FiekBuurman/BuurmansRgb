@@ -144,4 +144,48 @@
   <data name="RestartFailed" xml:space="preserve">
     <value>Herstarten is niet gelukt: de nieuwe engine kon niet worden gestart. buurmansRgb draait gewoon door.</value>
   </data>
+  <data name="Effect_static" xml:space="preserve">
+    <value>Statisch</value>
+    <comment>Gelijk houden met Effect_static in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_breathing" xml:space="preserve">
+    <value>Ademen</value>
+    <comment>Gelijk houden met Effect_breathing in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_rainbow" xml:space="preserve">
+    <value>Regenboog</value>
+    <comment>Gelijk houden met Effect_rainbow in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_wave" xml:space="preserve">
+    <value>Golf</value>
+    <comment>Gelijk houden met Effect_wave in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_color-loop" xml:space="preserve">
+    <value>Kleurenloop</value>
+    <comment>Gelijk houden met Effect_color-loop in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_twinkle" xml:space="preserve">
+    <value>Fonkelen</value>
+    <comment>Gelijk houden met Effect_twinkle in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_comet" xml:space="preserve">
+    <value>Komeet</value>
+    <comment>Gelijk houden met Effect_comet in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_scanner" xml:space="preserve">
+    <value>Scanner</value>
+    <comment>Gelijk houden met Effect_scanner in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_fire" xml:space="preserve">
+    <value>Vuur</value>
+    <comment>Gelijk houden met Effect_fire in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="Effect_per-led" xml:space="preserve">
+    <value>Per LED</value>
+    <comment>Gelijk houden met Effect_per-led in src/BuurmansRgb.UI/Resources/Strings.resx: een eigen effect mag niet zo heten.</comment>
+  </data>
+  <data name="CustomEffectOwnName" xml:space="preserve">
+    <value>{0} (eigen)</value>
+    <comment>De nieuwe naam van een eigen effect uit effects.json dat heet als een ingebouwd effect, bijv. "Regenboog (eigen)".</comment>
+  </data>
 </root>

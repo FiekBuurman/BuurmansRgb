@@ -184,6 +184,15 @@ uitbreidingen in `docs/bouwplan.md`.
   - Een scène die een kopie van het effect bewaart in plaats van een verwijzing, zodat hij er
     hetzelfde uit blijft zien als je het effect later aanpast of verwijdert
   - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
+  - De namen van de ingebouwde effecten op één plek: nu staan ze in de `Strings.resx` van de app
+    én van de engine, die een eigen effect onder zo'n naam weigert (`EffectNamesTests` houdt ze
+    gelijk, ook voor elke vertaling van de app). Bij een vertaling kan de engine ze bijv. met
+    `GetEffectsAsync` meegeven. Let dan op een taalwissel: de engine weigert alleen de namen in
+    de taal van dat moment, dus na een wissel kan een eigen effect heten als een ingebouwd effect
+    in de nieuwe taal en hernoemt hij het bij het lezen van `effects.json`, met "(eigen)" in de
+    taal van dat moment
+  - Melden dat de engine een eigen effect uit `effects.json` een nieuwe naam gaf ("Regenboog" werd
+    "Regenboog (eigen)"); nu staat dat alleen in het logboek
   - Bij een wijziging niet de hele lijst laten ophalen: `CustomEffectsChanged` met het gewijzigde
     effect, of zonder melding aan de verbinding die het zelf bewaarde. Nu haalt elke app bij elke
     stap van een slepende schuif alle eigen effecten op; dat is het grootste deel van de CPU van
@@ -421,9 +430,8 @@ uitbreidingen in `docs/bouwplan.md`.
   hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
   opnieuw, elk met een eigen timer en eigen foutafhandeling
 - UI-teksten met een vast getal aan hun constante koppelen, via een placeholder of een test:
-  "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`), "tot 32 eigen effecten"
-  in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`) en "1 tot 40 tekens" in
-  `CustomEffectNameInvalid` (`CustomEffects.MaxNameLength`). Nu blijft de tekst stil staan als
+  "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`) en "tot 32 eigen effecten"
+  in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`). Nu blijft de tekst stil staan als
   een grens verandert
 - `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
   UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op

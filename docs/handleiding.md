@@ -220,9 +220,17 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   effect**. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
   apparaten met dit effect (en het voorbeeld onderaan) laten hem meteen zien; een tweede
   instellingen-app die open is, ook:
-  - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en twee
-    eigen effecten kunnen niet dezelfde naam hebben (hoofdletters tellen niet); dan staat er
-    een melding onder het vak en blijft de oude naam.
+  - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en een
+    eigen effect kan niet heten als een ander effect: een ander eigen effect of een ingebouwd
+    effect zoals Statisch of Regenboog (hoofdletters en spaties eromheen tellen niet). Dan staat
+    er onder het vak "Deze naam heeft al een effect.", bij een lege naam "Geef het effect een
+    naam."; een schermlezer leest de melding voor. Na Enter kun je de naam nog verbeteren; zodra
+    je het vak verlaat, staat de echte naam van het effect er weer in, zoals in de effectkeuze,
+    en zegt de melding welke naam niet kon en dat de oude blijft, bijv. "Er is al een effect dat
+    'Regenboog' heet; de naam blijft 'Disco'.". Die melding staat tot je een goede naam geeft of
+    een ander effect kiest. Met Escape staat de naam van het effect weer in het vak, zonder
+    melding, en blijf je in het vak. Had een eigen effect uit een eerdere versie al de naam van
+    een ingebouwd effect, dan heet het nu bijv. "Regenboog (eigen)".
   - **Stappen:** de vakjes, in rijen van hooguit zes; een patroon staat als verloop in het vakje.
     Klik op een stap (hij krijgt een dikke witte rand) en meng een kleur met de schuiven, de
     hex-code of de gereedschapskist: de stap verandert meteen mee. Een patroon wordt dan één

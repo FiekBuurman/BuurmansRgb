@@ -47,6 +47,23 @@ public sealed class CustomEffectsTests
     }
 
     [Fact]
+    public void FirstFreeName_SkipsTheTakenNames()
+    {
+        HashSet<string> taken = ["Effect 1", "Effect 2", "Effect 4"];
+
+        Assert.Equal("Effect 3", CustomEffects.FirstFreeName(number => $"Effect {number}", taken.Contains));
+    }
+
+    // With MaxEffects effects, all of them on one of the names, the next one is still free.
+    [Fact]
+    public void FirstFreeName_AllEffectsOnTheFirstNames_GivesTheNext()
+    {
+        var names = Enumerable.Range(1, CustomEffects.MaxEffects).Select(number => $"Effect {number}").ToHashSet();
+
+        Assert.Equal($"Effect {CustomEffects.MaxEffects + 1}", CustomEffects.FirstFreeName(number => $"Effect {number}", names.Contains));
+    }
+
+    [Fact]
     public void Normalize_ValidEffect_TrimsTheName()
     {
         var effect = new CustomEffect("custom:1", " Disco ", [new CustomEffectStep(Red)]);

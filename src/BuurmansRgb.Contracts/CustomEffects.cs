@@ -50,6 +50,15 @@ public static class CustomEffects
         return string.IsNullOrEmpty(trimmed) || trimmed.Length > MaxNameLength || trimmed.Any(char.IsControl) ? null : trimmed;
     }
 
+    // The first of the names numbered 1, 2, ... that is not taken, such as "Eigen effect 3". There
+    // are at most MaxEffects effects, so one of the first MaxEffects + 1 is free.
+    public static string FirstFreeName(Func<int, string> numbered, Func<string, bool> isTaken)
+    {
+        ArgumentNullException.ThrowIfNull(numbered);
+        ArgumentNullException.ThrowIfNull(isTaken);
+        return Enumerable.Range(1, MaxEffects + 1).Select(numbered).First(name => !isTaken(name));
+    }
+
     public static bool IsValidSeconds(double seconds) => seconds is >= MinSeconds and <= MaxSeconds;
 
     // The effect as the engine keeps it: a valid id and name (NormalizeName) and MinSteps to

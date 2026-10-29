@@ -111,8 +111,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         CustomColors = new CustomColorsViewModel(ColorPicker);
-        CustomEffectEditor = new CustomEffectEditorViewModel((id, name) =>
-            _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name)));
+        CustomEffectEditor = new CustomEffectEditorViewModel(IsCustomEffectNameTaken);
         CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);
         CustomEffectEditor.DeleteRequested += (_, id) => DeleteCustomEffect(id);
         CustomEffectEditor.PropertyChanged += (_, e) => ShowPickerColorFor(e.PropertyName);
@@ -563,7 +562,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ShowEffects()
     {
         (string Id, string Name)[] wanted =
-            [.. _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName)), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
+            [.. EngineEffectNames(), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
         var selectedId = SelectedEffect?.Id;
         _syncing.Run(() =>
         {
@@ -706,9 +705,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        var name = Enumerable.Range(1, CustomEffects.MaxEffects + 1)
-            .Select(number => UiText.Format(Strings.CustomEffectNewName, number))
-            .First(candidate => !_customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
+        var name = CustomEffects.FirstFreeName(
+            number => UiText.Format(Strings.CustomEffectNewName, number),
+            candidate => _customEffects.Any(effect => CustomEffects.NameComparer.Equals(effect.Name, candidate)));
         var effect = new CustomEffect(string.Empty, name, [new CustomEffectStep(_deviceColor), new CustomEffectStep(RgbColor.Black)]);
         _customEffectChanges++;
         _calls.Post(new object(), async () =>
@@ -728,6 +727,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private bool CanCreateCustomEffect() => _connection is not null && _customEffects.Count < CustomEffects.MaxEffects;
+
+    // Whether another own effect, or an effect of the engine, has the name in the effect choice;
+    // the engine refuses both (CustomEffectLibrary), so the editor says so before it asks.
+    private bool IsCustomEffectNameTaken(string id, string name) =>
+        _customEffects.Any(effect => effect.Id != id && CustomEffects.NameComparer.Equals(effect.Name, name))
+        || EngineEffectNames().Any(effect => CustomEffects.NameComparer.Equals(effect.Name, name));
+
+    // The effects of the engine under the names the effect choice shows them with.
+    private IEnumerable<(string Id, string Name)> EngineEffectNames() =>
+        _engineEffects.Select(id => (id, EffectOption.Create(id).DisplayName));
 
     // An effect as this app sent it or the engine saved it, in its place in the alphabet.
     private void ShowCustomEffect(CustomEffect effect)
