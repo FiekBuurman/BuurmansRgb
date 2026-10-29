@@ -496,7 +496,11 @@
         <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
     </Style>
 
-    <!-- A text link as a button, such as "+ Erbij knutselen". -->
+    <!-- A text link as a button, such as "+ Erbij knutselen". One that does nothing now, such as
+         "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey, so it no longer looks like a
+         link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
+         gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF
+         shows the cursor of the parent over a disabled element. -->
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource LinkBrush}" />
         <Setter Property="FontSize" Value="14" />
@@ -513,6 +517,10 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource LinkHoverBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+                <Setter Property="Opacity" Value="0.6" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -658,12 +666,28 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Center"
+                        <!-- The box and the first line both sit in the middle of the 32 px of MinHeight: the box
+                             (22 px) 5 px from the top, a line of body text (20 px) 6 px. A text over more lines
+                             goes on downwards and keeps the box beside its first line. The margins assume the body
+                             size; a BulletDecorator does not help: it only moves the box down to a line taller than
+                             the box, never a lower line down to the box, so a body text over more lines would sit
+                             1 px off and lose its place in the middle of the 32 px. -->
+                        <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Top" Margin="0,5,0,0"
                                 BorderBrush="{StaticResource BorderStrongBrush}" Background="Transparent">
                             <Path x:Name="Check" Data="M5,11 L9,15 L17,7" Stretch="None" Margin="-2" Stroke="{StaticResource BgBrush}" StrokeThickness="2.5"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed" />
                         </Border>
-                        <ContentPresenter Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        <!-- A text that does not fit goes on over more lines, such as that of the color loop in a narrow window. -->
+                        <ContentPresenter Grid.Column="1" Margin="10,6,0,0" VerticalAlignment="Top" RecognizesAccessKey="True">
+                            <ContentPresenter.Resources>
+                                <Style TargetType="AccessText">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextWrapping" Value="Wrap" />
+                                </Style>
+                            </ContentPresenter.Resources>
+                        </ContentPresenter>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">

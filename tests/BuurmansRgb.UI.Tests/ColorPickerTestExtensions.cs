@@ -4,7 +4,7 @@ namespace BuurmansRgb.UI.Tests;
 
 internal static class ColorPickerTestExtensions
 {
-    // Mixes a color with its hex code and puts it on the lamp with "Op de strip zetten", which
+    // Mixes a color with its hex code and puts it on the lamp with "Op het apparaat zetten", which
     // only the color of the whole lamp has.
     public static void Pick(this ColorPickerViewModel picker, string hexColor)
     {

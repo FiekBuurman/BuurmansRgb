@@ -461,7 +461,7 @@
     <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
-    <value>Laat knipperen</value>
+    <value>Knipperen</value>
   </data>
   <data name="FlashDeviceToolTip" xml:space="preserve">
     <value>Laat dit apparaat even wit knipperen, zodat je in de pc ziet welk apparaat het is. Werkt niet als de effecten gepauzeerd zijn.</value>
@@ -745,9 +745,6 @@
   <data name="HotkeysHint" xml:space="preserve">
     <value>Ctrl+Alt+Shift+A zet alles aan en Ctrl+Alt+Shift+U alles uit, net als in het tray-menu, ook als deze app dicht is. Gebruikt een andere app dezelfde toetsen, zet ze dan hier uit.</value>
   </data>
-  <data name="SaveHeader" xml:space="preserve">
-    <value>Opslaan</value>
-  </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>
   </data>
@@ -839,14 +836,19 @@
     <value>Weghalen</value>
   </data>
   <data name="ApplyColor" xml:space="preserve">
-    <value>Op de strip zetten</value>
+    <value>Op het apparaat zetten</value>
+    <comment>De knop onder de schuiven bij één apparaat; het ontwerp zegt "Op de strip zetten".</comment>
+  </data>
+  <data name="ApplyColorAll" xml:space="preserve">
+    <value>Op alle apparaten zetten</value>
+    <comment>Dezelfde knop bij Hele huis.</comment>
   </data>
   <data name="ColorNotApplied" xml:space="preserve">
     <value>Nog niet op het apparaat</value>
   </data>
   <data name="DeviceColorUnused" xml:space="preserve">
     <value>{0} gebruikt geen kleur van het apparaat. Een kleur die je hier mengt, kun je bij je eigen kleuren bewaren voor een ander effect.</value>
-    <comment>{0} is de naam van het effect, bijv. Regenboog. Onder de gemengde kleur, in plaats van de knop Op de strip zetten.</comment>
+    <comment>{0} is de naam van het effect, bijv. Regenboog. Onder de gemengde kleur, in plaats van de knop Op het apparaat zetten.</comment>
   </data>
   <data name="LightingHeader" xml:space="preserve">
     <value>Licht en beweging</value>

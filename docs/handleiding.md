@@ -48,7 +48,8 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
   "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een heel
   donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
-  blijft zien.
+  blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
+  kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen.
 - **Verversen** (naast "+ Erbij knutselen") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
@@ -74,7 +75,8 @@ schakelaar ernaast.
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
   (0–255, ook met de pijltjes), "Uit de gereedschapskist" met negen vaste kleuren (Klus-wit,
   Rood, Oranje, Groen, Blauw, Paars, en Echt rood, Echt groen en Echt blauw) met daaronder je
-  eigen kleuren (zie "Eigen kleuren"), en de knop **Op de strip zetten**. Schuiven, hex-code en
+  eigen kleuren (zie "Eigen kleuren"), en de knop **Op het apparaat zetten** (bij "Hele huis"
+  **Op alle apparaten zetten**). Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op het apparaat"); pas de
   knop zet hem op het apparaat. Dat geldt voor de kleur van het hele apparaat. Heb je een kleur van de
   kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, een stap van een eigen effect of
@@ -85,8 +87,8 @@ schakelaar ernaast.
   anders het apparaat.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
-  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op de strip
-  zetten** weg: de regenboog heeft zijn eigen tinten, dus een kleur zou niets veranderen. De
+  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op het
+  apparaat zetten** weg: de regenboog heeft zijn eigen tinten, dus een kleur zou niets veranderen. De
   schuiven, de hex-code en de gereedschapskist werken wel, en met **+** zet je de gemengde kleur
   bij je eigen kleuren. Kies je daarna bijv. Statisch, of zet een scène (bijv. uit het tray-menu)
   Statisch aan, dan is de knop terug en staat de kleur van het apparaat weer in de kiezer; de kleur
@@ -197,7 +199,7 @@ schakelaar ernaast.
   effect ziet er dus hetzelfde uit als vóór er kleuren per effect waren, en Vuur zonder eigen
   kleuren brandt warm, zoals altijd: donkerrood, rood, oranje en geel. Pas je de kleuren aan, dan
   doet de kleur van het apparaat bij dat effect niet meer mee; hij blijft bewaard voor de
-  effecten met één kleur. "Op de strip zetten" is er bij deze effecten niet, want de schuiven
+  effecten met één kleur. "Op het apparaat zetten" is er bij deze effecten niet, want de schuiven
   kleuren het gekozen vakje. Golf en Ademen hebben nog één kleur.
 
   **Standaardkleuren** onder de vakjes haalt de eigen kleuren van het gekozen effect weg: Komeet,
@@ -273,7 +275,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
 ![Het voorbeeld van een toetsenbord met de regenboog op 45°, schuin over de toetsen](images/voorbeeld.png)
 
 Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn type, de naam en
-**Laat knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
+**Knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
 ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
 voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
@@ -351,7 +353,7 @@ klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring 
 Een apparaat met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er
 LED's gekozen zijn, staat boven het mengpaneel welke dat zijn en gaat de kleur alleen naar die
 LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest;
-de knop "Op de strip zetten" is dan weg. Staat het apparaat uit, dan gaat het aan bij de eerste
+de knop "Op het apparaat zetten" is dan weg. Staat het apparaat uit, dan gaat het aan bij de eerste
 kleur, ook bij "Verloop vullen". Kies je een andere LED, dan toont het mengpaneel diens kleur;
 de LED's ervoor houden wat je mengde.
 
@@ -559,7 +561,9 @@ Hoe het vanzelf aanzetten werkt:
   engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
   zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
   meteen.
-- **Opslaan:** wijzigingen worden automatisch opgeslagen; hier staat of dat gelukt is.
+
+Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
+("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
 
 ### Aan en uit
 
@@ -567,7 +571,8 @@ Elk apparaat, en met "Hele huis" alles tegelijk, kan aan en uit (de schakelaars 
 en naast de apparaatkeuze bij Kleur). Een apparaat dat uit is, wordt zwart en houdt zijn kleur,
 effect en helderheid voor als het weer aan gaat. De grote schakelaar staat aan zolang er
 minstens één apparaat aan is. Met alles uit loopt er geen timer in de engine, ook niet als het
-effect een regenboog is. "Laat knipperen" werkt ook bij een apparaat dat uit is; daarna is het weer zwart.
+effect een regenboog is. "Knipperen" naast de naam van een apparaat werkt ook als het uit
+staat; daarna is het weer zwart.
 Een kleur op een apparaat zetten bij Kleur zet het ook aan (zie "Kleur").
 
 ### Ontwerp en bewuste afwijkingen
@@ -587,8 +592,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Buren** zit er niet in: de pagina (§ 5.4), de buren-kaart op Apparaten en "Samen aan de slag"
   op Scènes zijn weggelaten, omdat samen met de buren je apparaten kleuren geen doel van de app is.
   Daarmee vervallen ook de `buren-*`-kleuren.
-- **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met "Op de
-  strip zetten" op het apparaat. Extra ten opzichte van het ontwerp: "Licht en beweging"
+- **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met een knop op
+  het apparaat. Die knop heet niet "Op de strip zetten" (§ 4 en § 5.2) maar "Op het apparaat
+  zetten", en bij "Hele huis" "Op alle apparaten zetten": net als bij "Apparaten in plaats van
+  Lampen" is het lang niet altijd een strip, maar ook een toetsenbord, een muis of het hele huis.
+  Extra ten opzichte van het ontwerp: "Licht en beweging"
   (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Een kleur
   van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur), een stap van een eigen
   effect en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
@@ -1058,10 +1066,10 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 
 - **Knipperen:** open je een apparaat (een klik op zijn kaart, of de apparaatkeuze bij Kleur),
   dan knippert het op de hardware 1,5 seconde: drie keer fel wit en uit, ook bij een lage
-  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Laat knipperen" in het
+  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam in het
   voorbeeld doet het nog eens. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
   het apparaat waar je 0,3 seconde op blijft staan. Er knippert steeds één apparaat; knipperen
-  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Laat knipperen" grijs.
+  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs.
 - **Eén zone knipperen:** heeft een apparaat meer zones, zoals een moederbord met een paar
   ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**, behalve bij
   "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
@@ -1081,5 +1089,5 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de
-  tooltip van de kaart. Welke welke is in de pc, zie je met "Laat knipperen".
+  tooltip van de kaart. Welke welke is in de pc, zie je met "Knipperen".
 - **Echt of gesimuleerd:** elk onder een eigen kop, zie "Apparaten".

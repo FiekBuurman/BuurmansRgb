@@ -203,9 +203,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial string? StatusMessage { get; private set; } = Strings.StatusConnecting;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedLamp))]
+    [NotifyPropertyChangedFor(nameof(SelectedLamp), nameof(ApplyColorText))]
     [NotifyCanExecuteChangedFor(nameof(TakeLedPatternCommand))]
     public partial DeviceItem? SelectedDevice { get; set; }
+
+    // The button that puts the mixed color on: "Op het apparaat zetten", or with Hele huis "Op alle
+    // apparaten zetten". The design says "Op de strip zetten", which does not fit a keyboard or the
+    // whole house (see docs/handleiding.md).
+    public string ApplyColorText => SelectedDevice?.DeviceId is null ? Strings.ApplyColorAll : Strings.ApplyColor;
 
     // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
     public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
@@ -1081,8 +1086,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // - at once (AppliesAtOnce): a color of the loop, of the list of an effect, of a step or of chosen
     //   LEDs changes with the picker, as the tile or the LEDs show it;
     // - nothing (IsUnused): an effect that uses no color of the device, such as the rainbow, leaves
-    //   the mixed color nowhere to go; the page says so, without "Op de strip zetten";
-    // - with the button: the color of the whole lamp waits for "Op de strip zetten", so it can be
+    //   the mixed color nowhere to go; the page says so, without "Op het apparaat zetten";
+    // - with the button: the color of the whole lamp waits for "Op het apparaat zetten", so it can be
     //   mixed first.
     private void SetPickerMode()
     {

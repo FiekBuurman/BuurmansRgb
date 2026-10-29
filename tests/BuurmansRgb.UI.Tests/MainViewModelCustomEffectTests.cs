@@ -113,7 +113,7 @@ public sealed class MainViewModelCustomEffectTests
         Assert.True(viewModel.ColorPicker.AppliesAtOnce);
     }
 
-    // Without "Op de strip zetten": the step changes with the mixed color, and the engine gets it.
+    // Without "Op het apparaat zetten": the step changes with the mixed color, and the engine gets it.
     [Fact]
     public async Task MixColor_WithAnOwnEffect_PaintsTheSelectedStep()
     {

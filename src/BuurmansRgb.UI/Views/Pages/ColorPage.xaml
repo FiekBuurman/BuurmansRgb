@@ -1,6 +1,7 @@
 <!-- Kleur mengen (§ 5.2 and § 6): the lamp to change at the top; left a big preview with the strip and the
      hex code, and under it the colors of the loop or of the effect, or the editor of an own effect; right the
-     Rood, Groen and Blauw sliders, the presets and "Op de strip zetten". Below them the
+     Rood, Groen and Blauw sliders, the presets and "Op het apparaat zetten" (the design's "Op de strip
+     zetten"). Below them the
      brightness, effect, speed and direction of the lamp, and the preview of its LEDs with the per-LED editor
      and the zone lengths. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ColorPage"
@@ -178,7 +179,7 @@
                             </DockPanel>
                             <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorNotApplied}"
                                        Visibility="{Binding ColorPicker.ShowsUnappliedChange, Converter={StaticResource BoolToVisibility}}" />
-                            <!-- An effect without a color of the device, such as the rainbow, says so instead of "Op de strip zetten". -->
+                            <!-- An effect without a color of the device, such as the rainbow, says so instead of "Op het apparaat zetten". -->
                             <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{Binding DeviceColorUnusedText}"
                                        Visibility="{Binding ColorPicker.IsUnused, Converter={StaticResource BoolToVisibility}}" />
                         </StackPanel>
@@ -350,7 +351,7 @@
 
                     <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once, and an
                          effect without a color of the device, such as the rainbow, has nothing to put on. -->
-                    <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
+                    <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{Binding ApplyColorText}"
                             Command="{Binding ColorPicker.ApplyCommand}"
                             Visibility="{Binding ColorPicker.ShowsApply, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>

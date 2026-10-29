@@ -320,6 +320,32 @@ public sealed class CustomEffectViewTests
         }
     }
 
+    // With Hele huis there are no LED colors of one device to take, so the link is off, and looks
+    // it: grey and faded. With a device it is a blue link again.
+    [Fact]
+    public async Task TakePattern_WholeHouse_LooksDisabled()
+    {
+        using var viewModel = await ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var take = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectTakePattern));
+
+            Assert.False(take.IsEnabled);
+            Assert.Same(page.FindResource("TextMutedBrush"), take.Foreground);
+            Assert.True(take.Opacity < 1);
+
+            viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(take.IsEnabled);
+            Assert.Same(page.FindResource("LinkBrush"), take.Foreground);
+            Assert.Equal(1.0, take.Opacity);
+            Assert.Equal(Cursors.Hand, take.Cursor);
+        });
+    }
+
     [Fact]
     public async Task NewButton_MakesAnEffectAndShowsThePanel()
     {

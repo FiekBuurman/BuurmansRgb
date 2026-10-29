@@ -26,6 +26,10 @@ public sealed record DeviceItem(
     // only one line fits, such as in the lamp choice.
     public string DisplayName => LocationLabel is null ? Name : UiText.Format(Strings.DeviceDetailsWithType, Name, LocationLabel);
 
+    // The tooltip of its card on Apparaten: the whole name, which a narrow card cuts off, and under
+    // it the whole location, if OpenRGB gave one.
+    public string CardToolTip => LocationToolTip is null ? Name : $"{Name}{Environment.NewLine}{LocationToolTip}";
+
     // What a screen reader says after the name: the short texts the list shows under it.
     public string? AccessibleHelpText => LacksDirectMode
         ? (LocationLabel is null ? Strings.NoDirectModeWarning : $"{LocationLabel}. {Strings.NoDirectModeWarning}")

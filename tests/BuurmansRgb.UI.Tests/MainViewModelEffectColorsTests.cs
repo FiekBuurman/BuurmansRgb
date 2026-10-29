@@ -46,7 +46,7 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Equal(EffectColors.Default(effectId, LampColor)[0], viewModel.ColorPicker.Color);
     }
 
-    // Without "Op de strip zetten": the tile changes with the mixed color and the engine gets the list.
+    // Without "Op het apparaat zetten": the tile changes with the mixed color and the engine gets the list.
     [Fact]
     public async Task MixColor_WithComet_PaintsTheSelectedColorAtOnce()
     {
@@ -102,7 +102,7 @@ public sealed class MainViewModelEffectColorsTests
         Assert.False(viewModel.EffectColorsEditor.AddColorCommand.CanExecute(null));
     }
 
-    // "Op de strip zetten" is only for the color of the whole lamp.
+    // "Op het apparaat zetten" is only for the color of the whole lamp.
     [Theory]
     [InlineData(EffectIds.Static, false)]
     [InlineData(EffectIds.Rainbow, false)]
