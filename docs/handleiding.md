@@ -42,6 +42,18 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
   uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
   van Kleur, die donker blijft, blijft hij grijs.
+- **Tekstgrootte:** maak je in Windows de tekst groter (Instellingen → Toegankelijkheid →
+  Tekstgrootte, tot 225 %), dan groeit de tekst van de app mee, ook terwijl hij open is: zodra je
+  op "Toepassen" klikt. Zodat alles blijft passen, wordt de navigatiebalk breder als de namen
+  van de pagina's dat nodig hebben, loopt tekst om naar een volgende regel in plaats van
+  afgekapt te worden, worden velden en keuzelijsten breder (het veld van de hex-code past altijd
+  een hele code) en gaan kolommen onder elkaar als ze naast elkaar niet meer passen: op Kleur
+  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, en bij "Licht en
+  beweging" twee of drie in plaats van vier naast elkaar. De dagen bij een scènetijd worden
+  pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
+  klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
+  een titelbalk die even hoog blijft. Een lange naam van een apparaat of scène op een kaart eindigt
+  met "…", zoals bij 100 %.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -768,6 +780,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   in plaats van geel, dat op een licht thema wegvalt. Een link krijgt onder de muis alleen in een
   contrastthema een streep eronder, waar de kleur alleen niet genoeg zegt; de links van het
   ontwerp hebben geen streep, en zonder contrastthema blijft dat zo.
+- **De tekstgrootte van Windows** noemt het ontwerp niet: daar hebben de letters vaste maten (§ 2).
+  De app vermenigvuldigt ze met de tekstgrootte (zie "Tekstgrootte" bovenaan), en maakt dan plaats:
+  de navigatiebalk is minstens 88 px en breder als de labels dat vragen (het ontwerp zegt
+  ~72–88 px), en op Kleur gaan het voorbeeld en de schuiven en de vier kolommen van "Licht en
+  beweging" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
+  ontwerp. Het woordmerk blijft 22 px, ook boven Apparaten.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
