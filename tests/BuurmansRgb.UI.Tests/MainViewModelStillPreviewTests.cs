@@ -278,6 +278,33 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Null(board.FlashMark);
     }
 
+    // An image asked while the flash still waits in the queue is taken just after the flash went
+    // through, so it may show the white of it: it is dropped, and a new one comes after the flash.
+    [Fact]
+    public async Task StillQueuedBehindFlash_ShowsNoWhite()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var fan = viewModel.Preview.Devices.Single(device => device.DeviceId == "fan");
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        fan.FlashCommand.Execute(null);
+        Api.RaiseLightingChanged();
+        var before = Api.FrameCalls;
+        Api.Frame = Frame(2, RgbColor.White);
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.FrameCalls > before);
+
+        Assert.Contains("flash fan", Api.Calls);
+        Assert.Equal([Red, Red], FanColors(viewModel));
+
+        Api.Frame = Frame(3, Blue);
+        _time.Advance(PreviewViewModel.FlashTime + MainViewModel.StillAfterFlash);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
     // During a pause the engine does not flash: no mark, and the next image comes at once.
     [Fact]
     public async Task FlashWhilePaused_HasNoMarkAndHoldsNothing()
