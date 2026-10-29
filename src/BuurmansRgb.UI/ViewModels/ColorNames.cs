@@ -35,9 +35,10 @@ public static class ColorNames
     // list: what is nearly off is black, what has hardly any tint is a grey by its value, and the
     // rest a hue, light when it is pale and bright, dark when it is dim. Dark orange is brown, dark
     // yellow olive green, light red pink and dark pink purple, as people name them; a light magenta
-    // such as #EE82EE is lila, so light purple. Blue ends at 250°, so #A07BFF, close to the Paars of
-    // the toolbox, is purple, and red goes on to 340°, so a red with a touch of blue (#FF0040) stays
-    // red.
+    // such as #EE82EE is lila, so light purple. Yellow starts at 40°, so the yellow of Vuur (#FFBE1E)
+    // and goldenrod (#DAA520) are yellow and #FFA500 orange. Blue ends at 250°, so #A07BFF, close to
+    // the Paars of the toolbox, is purple, and red goes on to 340°, so a red with a touch of blue
+    // (#FF0040) stays red.
     // ColorNamesTests holds a series of colors around the borders.
     public static ColorTone ToneOf(RgbColor color)
     {
@@ -67,7 +68,7 @@ public static class ColorNames
         return HueOf(color, max, chroma) switch
         {
             < 18 or >= 340 => light ? ColorTone.Pink : dark ? ColorTone.DarkRed : ColorTone.Red,
-            < 45 => light ? ColorTone.LightOrange : value < 0.65 ? ColorTone.Brown : ColorTone.Orange,
+            < 40 => light ? ColorTone.LightOrange : value < 0.65 ? ColorTone.Brown : ColorTone.Orange,
             < 70 => light ? ColorTone.LightYellow : dark ? ColorTone.Olive : ColorTone.Yellow,
             < 160 => light ? ColorTone.LightGreen : dark ? ColorTone.DarkGreen : ColorTone.Green,
             < 190 => light ? ColorTone.LightTurquoise : dark ? ColorTone.DarkTurquoise : ColorTone.Turquoise,

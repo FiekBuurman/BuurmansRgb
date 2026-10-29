@@ -1,4 +1,5 @@
 using System.Globalization;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -46,13 +47,17 @@ public sealed class ColorNamesTests
     [InlineData("#FF8800", ColorTone.Orange)]
     [InlineData("#FF9A3D", ColorTone.Orange)]
     [InlineData("#FFA500", ColorTone.Orange)]
+    [InlineData("#FFA900", ColorTone.Orange)]
     [InlineData("#D2691E", ColorTone.Orange)]
     [InlineData("#A0522D", ColorTone.Brown)]
     [InlineData("#8B4513", ColorTone.Brown)]
-    // Yellow, and dark yellow is olive green.
+    // Yellow from 40° on, and dark yellow is olive green.
+    [InlineData("#FFAA00", ColorTone.Yellow)]
     [InlineData("#FFFF00", ColorTone.Yellow)]
     [InlineData("#FFD700", ColorTone.Yellow)]
     [InlineData("#FFD84D", ColorTone.Yellow)]
+    [InlineData("#FFBE1E", ColorTone.Yellow)]
+    [InlineData("#DAA520", ColorTone.Yellow)]
     [InlineData("#FFFF99", ColorTone.LightYellow)]
     [InlineData("#808000", ColorTone.Olive)]
     // Green, from yellowish to bluish.
@@ -94,6 +99,15 @@ public sealed class ColorNamesTests
     [InlineData("#DC143C", ColorTone.Red)]
     public void ToneOf_GivesTheRoughTone(string hex, ColorTone tone) =>
         Assert.Equal(tone, ColorNames.ToneOf(Parse(hex)));
+
+    // The colors an effect starts with get the names they have in the code: Vuur from dark red to
+    // yellow, and the color loop yellow, green and blue.
+    [Fact]
+    public void ToneOf_DefaultColorsOfTheEffects_GiveTheirNames()
+    {
+        Assert.Equal([ColorTone.DarkRed, ColorTone.Red, ColorTone.Orange, ColorTone.Yellow], EffectColors.DefaultFire.Select(ColorNames.ToneOf));
+        Assert.Equal([ColorTone.Yellow, ColorTone.Green, ColorTone.Blue], ColorLoop.Default.Colors.Select(ColorNames.ToneOf));
+    }
 
     [Theory]
     [InlineData("#FFFF00", "geel, #FFFF00")]
