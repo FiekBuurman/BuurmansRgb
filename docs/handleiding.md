@@ -8,8 +8,9 @@ instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken. Insta
 ## De instellingen-app
 
 De app volgt het ontwerp "Werkplaats bij nacht" uit [design/DESIGN.md](../design/DESIGN.md):
-altijd donker, zodat de kleuren van de apparaten gloeien, met een eigen titelbalk en links een
-navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instellingen**.
+altijd donker, zodat de kleuren van de apparaten gloeien (behalve met een contrastthema van
+Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met **Apparaten**,
+**Kleur**, **Scènes** en onderaan **Instellingen**.
 
 - **Venster:** donkere titelbalk met het kleine icoon en het woordmerk. Slepen, dubbelklikken
   om te maximaliseren, Aero Snap en Alt+Spatie werken zoals altijd. Minimaal 960 × 640.
@@ -23,6 +24,15 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
   afbeelding ("Aan: #FF8800" of "Uit"), en zolang de app nog niet weet hoe de scène eruitziet
   slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
   want de tekst ernaast zegt al wat ze tonen.
+- **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
+  Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
+  over: tekst, achtergrond, kaarten, randen, links en de focusring. De pagina die je open hebt in
+  de navigatiebalk, het gekozen item van een keuzelijst en een knop in de titelbalk onder de muis
+  krijgen de markeerkleur van het thema, en een schakelaar die aan staat ook, in plaats van de
+  kleur van het apparaat; uit is het een rand met de knop in de tekstkleur. Dat gaat terwijl de
+  app open is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld
+  met hun gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en
+  het woordmerk houden hun eigen kleuren: dat zijn de kleuren die je instelt.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -716,6 +726,15 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker
   blijft. In het ontwerp (§ 5.2) is het losse tekst, waaraan je niet ziet dat je erin kunt typen.
   Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".
+- **Contrastthema's van Windows** noemt het ontwerp niet: daar is de app altijd donker. Met een
+  contrastthema aan volgen tekst, vlakken, randen, links, focus en selectie de kleuren van Windows
+  (zie "Contrastthema" bovenaan). Gedempte tekst (`text-muted`) wordt dan gewone tekst, want de
+  grijze tekst van een contrastthema betekent "uitgeschakeld". De kaart van het voorbeeld
+  (`preview-bg`) krijgt de achtergrond van het venster, omdat er tekst en knoppen op staan; de strip
+  onder de bolletjes blijft donker, zodat de LED's erop gloeien. Een schakelaar die aan staat,
+  toont de markeerkleur in plaats van de kleur van het apparaat, zoals de schakelaars van Windows;
+  de kleur zie je in het voorbeeld en op de kaart. Het waarschuwingsteken ⚠ krijgt de tekstkleur
+  in plaats van geel, dat op een licht thema wegvalt.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
