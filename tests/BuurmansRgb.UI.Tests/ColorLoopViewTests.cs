@@ -10,9 +10,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class ColorLoopViewTests
 {
-    // The width of the navigation bar of MainWindow, beside the page.
-    private const double NavigationWidth = 88;
-
     // "Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)" goes on over more
     // lines instead of being cut off, also in the smallest window (960 × 640) and in the one of the
     // user test (1240 px wide), with room for the scroll bar of the page.
@@ -29,7 +26,7 @@ public sealed class ColorLoopViewTests
 
         AppTheme.Run(panel =>
         {
-            Window.GetWindow(panel)!.Width = windowWidth - NavigationWidth - SystemParameters.VerticalScrollBarWidth;
+            Window.GetWindow(panel)!.Width = PageViews.PageWidth(windowWidth);
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             var spread = AppTheme.Descendants<CheckBox>(page).Single(box => Equals(box.Content, Strings.ColorLoopSpread));
             var text = AppTheme.Descendants<TextBlock>(spread).Single();

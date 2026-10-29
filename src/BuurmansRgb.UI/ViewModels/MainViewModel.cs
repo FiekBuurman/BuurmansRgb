@@ -590,12 +590,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The effects of the engine and then the own effects under their names. The options that stay
-    // are moved and renamed in place, so the chosen one stays chosen and the editor of an own effect
-    // does not hide for a moment, which would take the keyboard focus out of it.
+    // are moved, renamed and get their steps in place, so the chosen one stays chosen, its line under
+    // the choice follows, and the editor of an own effect does not hide for a moment, which would
+    // take the keyboard focus out of it.
     private void ShowEffects()
     {
-        (string Id, string Name)[] wanted =
-            [.. EngineEffectNames(), .. _customEffects.Select(effect => (effect.Id, effect.Name))];
+        (string Id, string Name, int Steps)[] wanted =
+        [
+            .. EngineEffectNames().Select(effect => (effect.Id, effect.Name, 0)),
+            .. _customEffects.Select(effect => (effect.Id, effect.Name, effect.Steps.Count)),
+        ];
         var selectedId = SelectedEffect?.Id;
         _syncing.Run(() =>
         {
@@ -609,7 +613,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
             for (var i = 0; i < wanted.Length; i++)
             {
-                var (id, name) = wanted[i];
+                var (id, name, steps) = wanted[i];
                 var at = i;
                 while (at < Effects.Count && Effects[at].Id != id)
                 {
@@ -618,7 +622,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
                 if (at == Effects.Count)
                 {
-                    Effects.Insert(i, new EffectOption(id, name));
+                    Effects.Insert(i, new EffectOption(id, name, steps));
                     continue;
                 }
 
@@ -628,6 +632,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
 
                 Effects[i].DisplayName = name;
+                Effects[i].Steps = steps;
             }
 
             if (SelectedEffect is null || !Effects.Contains(SelectedEffect))

@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -38,6 +39,20 @@ public sealed class MainViewModelFollowLightingTests
 
         Assert.Equal(Green, viewModel.ColorPicker.Color);
         Assert.Equal(20.0, viewModel.Brightness);
+    }
+
+    // A scene from the tray menu with another effect: the line under the effect choice says what
+    // that one does.
+    [Fact]
+    public async Task LightingChanged_AnotherEffect_ShowsWhatItDoes()
+    {
+        var viewModel = await ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.Scanner, EffectIds.PerLed]);
+        Assert.Equal(Strings.EffectDescription_static, viewModel.SelectedEffect?.Description);
+
+        Api.Lighting[""] = new(Green, 0.3, EffectIds.Scanner);
+        Api.RaiseLightingChanged();
+
+        Assert.Equal(Strings.EffectDescription_scanner, viewModel.SelectedEffect?.Description);
     }
 
     // Showing the engine state is not a change of the user, so nothing goes back to the engine.

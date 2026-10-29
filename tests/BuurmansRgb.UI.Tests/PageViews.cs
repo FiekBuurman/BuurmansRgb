@@ -10,6 +10,14 @@ namespace BuurmansRgb.UI.Tests;
 // For the tests that load a real page of the app in a window off screen (AppTheme.Run).
 internal static class PageViews
 {
+    // The width of the navigation bar of MainWindow, beside the page.
+    private const double NavigationWidth = 88;
+
+    // The width a page gets in a window of windowWidth: beside the navigation bar, with room for
+    // the scroll bar of the page. The smallest window is 960 px wide.
+    internal static double PageWidth(double windowWidth) =>
+        windowWidth - NavigationWidth - SystemParameters.VerticalScrollBarWidth;
+
     // A view model connected to a fake engine, which arrange prepares before the view model loads
     // from it.
     internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)

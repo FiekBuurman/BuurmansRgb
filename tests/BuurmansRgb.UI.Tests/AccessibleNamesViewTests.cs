@@ -119,7 +119,8 @@ public sealed class AccessibleNamesViewTests
             AssertNoNameOfCode(tree);
             Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), ItemNames<ColorPreset>(tree));
             Assert.Empty(ItemNames<int>(tree));
-            Assert.False(Assert.Single(tree, peer => peer.GetClassName() == nameof(DecorativeItemsControl)).IsControlElement());
+            // The strip of the preview, and the hidden sentences that keep the room under the effect choice.
+            Assert.Equal([false, false], tree.Where(peer => peer.GetClassName() == nameof(DecorativeItemsControl)).Select(peer => peer.IsControlElement()));
         });
     }
 
