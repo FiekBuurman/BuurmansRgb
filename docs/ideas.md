@@ -495,7 +495,28 @@ uitbreidingen in `docs/bouwplan.md`.
   (zie "Metingen" in `ontwikkelaars.md`): de .NET-heap is ~8 MB, de rest is WPF met DirectX.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
   het naar 130–143 MB, maar kost op Apparaten CPU; eventueel als keuze bij Instellingen, of alleen
-  zonder bewegend effect
+  zonder bewegend effect. Sinds #100 draait de app zonder tiered compilation (8–17 MB minder),
+  maar dat is alleen gemeten over Extern bureaublad, waar WPF zonder videokaart tekent
+  (122–133 MB); het kost ~0,4–1,1 procentpunt van één kern meer CPU, geen harde eis voor de
+  app. Openstaand punt: de app met een zichtbaar venster op het eigen scherm opnieuw
+  meten (Apparaten en Kleur met "Hele huis", zie "Metingen"), om te zien of hij nu onder de
+  150 MB blijft; vóór #100 was dat 166–191 MB. Wat er daarna nog te halen is, met wat de proeven
+  in #100 opleverden:
+  - De kleinste gen0 van de GC (`GCgen0size`, bijv. 4 MB): 4–8 MB op Apparaten, 0–6 MB op Kleur,
+    maar alleen als omgevingsvariabele (`DOTNET_GCgen0size`); `System.GC.Gen0Size` in
+    `runtimeconfig.json` deed niets. Dan zou de engine de app met die variabele moeten starten
+  - De voorbeeldkaarten van "Hele huis" op Kleur pas maken als ze in beeld komen, of de delen
+    per zone die verborgen zijn (Tellen en de lengte) pas als ze zichtbaar worden: vergrendeld
+    hooguit 3–7 en 0–3 MB, en de focus (`FocusKeeper`, `FocusFallback`), Tab door de kaarten en
+    UI Automation moeten dan blijven werken
+  - Wat het tekenen op de videokaart kost (het stuurprogramma, de buffers van DirectX, de gloed
+    van `LedBulb`) is nog nooit apart gemeten; dat kan alleen met een venster op het eigen scherm
+- De gedeelde DLL's van engine en app (Contracts, Core, StreamJsonRpc, MessagePack en wat daarbij
+  hoort) ook met ReadyToRun publiceren: de app is dan ~0,1 s eerder bruikbaar (1.047–1.096 tegen
+  941–986 ms, zie "Metingen" in `ontwikkelaars.md`). Ze staan in dezelfde map als de engine, dus
+  eerst de engine meten met en zonder (working set, private bytes, CPU; statisch en regenboog), en
+  alleen doen als die niet slechter wordt; dan `ReadyToRunAssemblies` in `BuurmansRgb.UI.csproj`
+  aanvullen of het target `KeepSharedAssembliesIL` weghalen
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze

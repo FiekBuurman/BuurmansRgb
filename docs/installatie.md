@@ -18,7 +18,10 @@ stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelij
    ```
 
    Nodig: Windows 10/11, [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0), Git
-   en internet (het script downloadt OpenRGB, PawnIO en Inno Setup en controleert ze). Met
+   en internet (het script downloadt OpenRGB, PawnIO en Inno Setup en controleert ze, en
+   `dotnet publish` haalt de eerste keer de runtime van .NET voor win-x64 van nuget.org, die de
+   installer meelevert, en `microsoft.netcore.app.crossgen2.win-x64`, dat de instellingen-app
+   vooraf compileert). Met
    `-Version` geef je de versie mee; zonder is het 1.0.0. De installer staat daarna in
    `artifacts\installer\out\BuurmansRgb-setup.exe`.
 
@@ -81,7 +84,12 @@ dotnet publish src/BuurmansRgb.UI -c Release -o $dest
 ```
 
 Engine en instellingen-app moeten in dezelfde map staan; daarom twee keer `publish` naar
-`$dest`. Zo heb je wel de .NET 10 Desktop Runtime nodig (die zit bij de SDK).
+`$dest`. Zo heb je wel de .NET 10 Desktop Runtime nodig (die zit bij de SDK). De tweede
+`publish` compileert de instellingen-app vooraf (ReadyToRun) en haalt daarvoor de eerste keer
+vier pakketten van nuget.org: de compiler `microsoft.netcore.app.crossgen2.win-x64` en de
+runtime waartegen hij compileert (`microsoft.netcore.app.runtime.win-x64`,
+`microsoft.windowsdesktop.app.runtime.win-x64` en `microsoft.aspnetcore.app.runtime.win-x64`).
+De app gebruikt daarna toch de geïnstalleerde .NET. Een gewone `dotnet build` haalt ze niet.
 
 Meer uitleg over de instellingen-app, de instellingenbestanden en per apparaattype staat in
 de [handleiding](handleiding.md); hoe de installer werkt in
