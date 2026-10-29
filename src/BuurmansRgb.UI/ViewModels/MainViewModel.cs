@@ -1865,11 +1865,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
     // The key of a flash in the queue, so OnCallSucceeded knows which flash went through; a null
     // ZoneIndex flashes the whole device.
     private sealed record FlashTarget(string DeviceId, int? ZoneIndex);
 
+    // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
     private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
 
     // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting
