@@ -142,6 +142,60 @@ public sealed class LedPreviewViewTests
         Assert.True(view.BoundsOf(0).IsEmpty);
     });
 
+    // A black LED, as in Per LED or a custom effect, gets the ring inside its edge, so it still shows
+    // where it is; an LED in a color keeps the faint outline. As a dot, in a ring and as a key.
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Render_BlackLed_HasTheRingInsideItsEdge(bool ring, bool keys) => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView
+        {
+            Colors = [RgbColor.Black, new RgbColor(255, 0, 0), new RgbColor(7, 0, 7)],
+            IsRing = ring,
+            Matrix = keys ? new LedMatrix(1, 3, [0, 1, 2]) : null,
+            OffRingBrush = Brushes.Gray,
+        });
+
+        var drawings = Drawings(view);
+
+        Assert.Equal(3, drawings.Count);
+        foreach (var led in new[] { 0, 2 })
+        {
+            Assert.Equal(Colors.Gray, PenColor(drawings[led]));
+            Assert.Equal(1.5, drawings[led].Pen.Thickness);
+            Assert.True(Contains(view.BoundsOf(led), drawings[led].Geometry.GetRenderBounds(drawings[led].Pen)));
+        }
+
+        Assert.NotEqual(Colors.Gray, PenColor(drawings[1]));
+        Assert.Equal(1.0, drawings[1].Pen.Thickness);
+    });
+
+    // Without a ring brush, as outside the app, a black LED has the outline of the others.
+    [Fact]
+    public void Render_BlackLedWithoutRingBrush_HasTheOutline() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = [RgbColor.Black, new RgbColor(255, 0, 0)] });
+
+        var drawings = Drawings(view);
+
+        Assert.Same(drawings[1].Pen, drawings[0].Pen);
+    });
+
+    // The preview draws up to 20 frames a second: every frame uses the same frozen pen for the ring.
+    [Fact]
+    public void Render_NewFrame_UsesTheSameRing() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = [RgbColor.Black, RgbColor.Black], OffRingBrush = new SolidColorBrush(Colors.Gray) });
+        var pen = Drawings(view)[0].Pen;
+
+        view.Colors = [new RgbColor(255, 0, 0), RgbColor.Black];
+
+        Assert.True(pen.IsFrozen);
+        Assert.Same(pen, Drawings(view)[1].Pen);
+    });
+
     [Fact]
     public void LabelOf_WithoutLabelsOrLed_IsNull() => Sta.Run(() =>
     {
@@ -162,5 +216,27 @@ public sealed class LedPreviewViewTests
         view.Measure(new Size(width, double.PositiveInfinity));
         view.Arrange(new Rect(0, 0, width, view.DesiredSize.Height));
         return view;
+    }
+
+    private static LedPreviewView Added(System.Windows.Controls.Panel panel, LedPreviewView view)
+    {
+        panel.Children.Add(view);
+        return view;
+    }
+
+    // What OnRender drew last, one drawing per LED.
+    private static List<GeometryDrawing> Drawings(LedPreviewView view)
+    {
+        OffscreenWindow.WaitUntilIdle();
+        return [.. (VisualTreeHelper.GetDrawing(view)?.Children ?? []).Cast<GeometryDrawing>()];
+    }
+
+    private static Color PenColor(GeometryDrawing drawing) => Assert.IsType<SolidColorBrush>(drawing.Pen.Brush).Color;
+
+    // With a little room for rounding.
+    private static bool Contains(Rect outer, Rect inner)
+    {
+        outer.Inflate(0.001, 0.001);
+        return outer.Contains(inner);
     }
 }

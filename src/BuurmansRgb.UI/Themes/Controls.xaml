@@ -275,6 +275,10 @@
         <Setter Property="OffBrush" Value="{StaticResource LedOffBrush}" />
         <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
     </Style>
+    <!-- The preview of the LEDs of a device: a black LED gets the same ring. -->
+    <Style TargetType="views:LedPreviewView">
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
+    </Style>
 
     <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->
     <Style x:Key="StripBoard" TargetType="Border">

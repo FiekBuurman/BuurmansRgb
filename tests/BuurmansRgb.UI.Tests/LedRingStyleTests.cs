@@ -24,7 +24,17 @@ public sealed class LedRingStyleTests
         Assert.Same(panel.FindResource("LedOffBrush"), off.OffBrush);
     });
 
-    // The pen of the one drawing of a bulb that gives no light.
+    [Fact]
+    public void LedPreviewView_BlackLed_HasTheRingOfTheTheme() => AppTheme.Run(panel =>
+    {
+        var view = new LedPreviewView { Colors = [RgbColor.Black] };
+        panel.Children.Add(view);
+        OffscreenWindow.WaitUntilIdle();
+
+        Assert.Equal(Assert.IsType<SolidColorBrush>(panel.FindResource("LedOffRingBrush")).Color, PenColor(view));
+    });
+
+    // The pen of the one drawing of a bulb that gives no light, or of a preview with one black LED.
     private static Color PenColor(System.Windows.Media.Visual visual)
     {
         var drawing = Assert.IsType<GeometryDrawing>(Assert.Single(VisualTreeHelper.GetDrawing(visual).Children));

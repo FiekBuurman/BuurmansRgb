@@ -14,7 +14,8 @@ namespace BuurmansRgb.UI.Views;
 // and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them.
 // A ring and a key map shrink when they are wider than the available width. One element per
 // zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
-// ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring.
+// ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring. A
+// black LED gets the ring of an LED that is off (OffRingBrush), so you still see where it is.
 // With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
 // ring. The views of one KeyGroup, such as the zones of a device, share one active LED, and only
 // the view that holds it is a Tab stop, so Tab stops once per device. A mouse click only takes the
@@ -59,6 +60,9 @@ public sealed class LedPreviewView : FrameworkElement
 
     public static readonly DependencyProperty KeyGroupProperty = DependencyProperty.Register(
         nameof(KeyGroup), typeof(string), typeof(LedPreviewView), new PropertyMetadata(null));
+
+    public static readonly DependencyProperty OffRingBrushProperty = DependencyProperty.Register(
+        nameof(OffRingBrush), typeof(Brush), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
@@ -167,6 +171,15 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(KeyGroupProperty, value);
     }
 
+    // The ring of a black LED (LedOffRingBrush of the tokens, set by its style in Controls.xaml), in
+    // place of the faint outline of the others: black hardly stands out on the dark preview. Without
+    // one, such as outside the app, a black LED gets that outline too.
+    public Brush? OffRingBrush
+    {
+        get => (Brush?)GetValue(OffRingBrushProperty);
+        set => SetValue(OffRingBrushProperty, value);
+    }
+
     // Where the mouse is on the view; null for where Windows says it is. A test puts it on an LED
     // here, as it cannot move the mouse.
     internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
@@ -270,6 +283,7 @@ public sealed class LedPreviewView : FrameworkElement
         // gap to the selection ring stays, so the 2 px ring never covers the LED.
         var cornerRadius = KeyCornerRadius * arrangement.Scale;
         var selectionRing = SelectionRing();
+        var offRing = LedRing.PenOf(OffRingBrush);
         var count = Math.Min(colors.Count, arrangement.Bounds.Count);
         for (var led = 0; led < count; led++)
         {
@@ -279,11 +293,19 @@ public sealed class LedPreviewView : FrameworkElement
                 continue;
             }
 
-            var brush = ColorBrushes.Get(colors[led]);
+            var color = colors[led];
+            var brush = ColorBrushes.Get(color);
             var selected = IsSelected(led);
+
+            // The ring of a black LED lies inside its edge, so the selection ring keeps its gap.
+            var ring = offRing is not null && LedRing.IsDark(color) ? offRing : null;
+            var inset = ring is null ? 0.0 : LedRing.Thickness / 2.0;
             if (arrangement.Keys)
             {
-                drawingContext.DrawRoundedRectangle(brush, Outline, bounds, cornerRadius, cornerRadius);
+                var key = bounds;
+                key.Inflate(-inset, -inset);
+                var keyRadius = Math.Max(0.0, cornerRadius - inset);
+                drawingContext.DrawRoundedRectangle(brush, ring ?? Outline, key, keyRadius, keyRadius);
                 if (selected)
                 {
                     bounds.Inflate(SelectionGap, SelectionGap);
@@ -294,7 +316,7 @@ public sealed class LedPreviewView : FrameworkElement
             {
                 var center = new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0);
                 var radius = bounds.Height / 2.0;
-                drawingContext.DrawEllipse(brush, Outline, center, radius, radius);
+                drawingContext.DrawEllipse(brush, ring ?? Outline, center, radius - inset, radius - inset);
                 if (selected)
                 {
                     drawingContext.DrawEllipse(null, selectionRing, center, radius + SelectionGap, radius + SelectionGap);
