@@ -63,6 +63,10 @@ uitbreidingen in `docs/bouwplan.md`.
   protocolversie 5 of hoger heeft afgesproken, laat de watcher dan eerst zelf
   `REQUEST_PROTOCOL_VERSION` sturen; nu valt "Verversen" dan na 5 seconden terug op opnieuw
   verbinden, wat ook werkt maar trager is
+- Nederlandse namen voor de zones en toetsen van de gesimuleerde apparaten ("Lichtbalk", "Linker
+  oorschelp", "Binnenring", "Scrollwiel"), uit `Strings.resx` van `Providers.Simulated`; nu zijn
+  ze Engels, zoals OpenRGB ze bij echte apparaten geeft, maar bij de gesimuleerde kiezen we ze
+  zelf (gebruikerstest 28-10)
 
 ## Zones en zonelengtes
 
@@ -245,6 +249,35 @@ uitbreidingen in `docs/bouwplan.md`.
   `LiveRegion.AnnouncesUpdates`); nu staat dat blok drie keer in de XAML: bij de hex-code en de
   naam van een eigen effect in `ColorPage.xaml` en bij de lengte van een zone in
   `LedPreviewPanel.xaml`
+- De statusregel onderaan leegmaken bij het wisselen van pagina (of na een tijdje); nu blijft de
+  laatste melding staan, bijv. "Vanzelf aanzetten van 'Avond' opgeslagen." van Scènes nog op
+  Kleur, zodat hij bij die pagina lijkt te horen (gebruikerstest 28-10, B3). Geldt ook voor de
+  meldingen van Instellingen, zoals "Starten met Windows kon niet worden aangepast."
+- De pagina Kleur in de volgorde van het effect: eerst het effect kiezen, dan wat bij dat effect
+  hoort (de kleur, de kleuren van de loop of het effect, de stappen); nu kies je het effect pas
+  halverwege bij "Licht en beweging", en blijft bij Statisch en Regenboog links onder het
+  kleurvoorbeeld een groot leeg vlak (gebruikerstest 28-10, B7). Een grote verbouwing
+- De grote schakelaar bij "Hele huis" op Apparaten bij een gemengde stand (bijv. 1 van 12 aan)
+  eerst alles aan laten zetten; nu staat hij aan zolang er één apparaat aan is, dus een klik zet
+  alles uit, en wie alles aan wil, moet twee keer klikken (gebruikerstest 28-10)
+- Een bolletje per apparaat in de strip bij "Hele huis" (tot een maximum) in plaats van de vaste
+  veertien (`LampsViewModel.StripLength`), of minder nadruk op de strip: een gebruiker gaat ze
+  tellen en vergelijkt ze met "12 van 12 aan" (gebruikerstest 28-10)
+- Op de schuif Snelheid 100 % als middenmarkering, of een streepje bij 100 %: nu staat de normale
+  snelheid op een derde van de schuif (10–300 %), dus zie je niet dat 100 % normaal is en je tot
+  300 % kunt (gebruikerstest 28-10)
+- Kleurnamen in plaats van hexcodes voor een schermlezer, bijv. "Kleur 1: geel" in plaats van
+  "Kleur 1: #FFFF00" bij de kleurenloop en de kleuren van een effect, met de naam van de
+  dichtstbijzijnde bekende kleur (gebruikerstest 28-10)
+- De handleiding met de installer meeleveren, bijv. als HTML die `installer\build.ps1` uit
+  `docs/handleiding.md` maakt, en die lokaal openen met "Handleiding" onderaan Instellingen: zo
+  opent hij voor iedereen, ook zonder internet, en gaat hij over de versie die geïnstalleerd is,
+  niet over functies die die nog niet heeft. Nu is de link verborgen
+  (`AppInfoViewModel.GuideAddress` is `null`), want de repo op GitHub is privé en geeft een
+  gewone gebruiker een inlogscherm of een 404; het pad van de meegeleverde handleiding in
+  `GuideAddress` zet hem weer aan (gebruikerstest 28-10)
+- Bij Instellingen ook de versie van de engine tonen als die een andere is dan die van de app
+  (bijv. na een update waarbij de oude engine bleef draaien); nu toont hij alleen die van de app
 
 ### Voorbeeld en per-LED-editor
 
@@ -292,6 +325,9 @@ uitbreidingen in `docs/bouwplan.md`.
   pagina Lampen en § 6 ook in de titelbalk
 - Bij "Hele huis" "Nog niet op de apparaten" zeggen in plaats van "Nog niet op het apparaat",
   zoals de knop daar "Op alle apparaten zetten" heet
+- In het voorbeeld bij "Hele huis" de kaarten van de apparaten in- en uitklappen, of met één
+  klik naar een apparaat springen; nu staan alle apparaten met hun LED's, knoppen en
+  LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10)
 
 ## Scènes
 
@@ -329,6 +365,10 @@ uitbreidingen in `docs/bouwplan.md`.
   bij het starten; `IClockEvents` zegt niet of de klok verzet werd of de pc ontwaakte)
 - "Overschrijven met wat nu brandt" ook eerst laten vragen, met dezelfde vraag als Verwijderen;
   nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug
+- Een tijd of programma bij "Vanzelf aanzetten" dat je wel typte maar niet toepaste, zichtbaar
+  maken (bijv. "Nog niet toegepast", zoals "Nog niet op het apparaat" bij Kleur) of vanzelf
+  opslaan, zoals de rest van de app; nu staat 22:00 na het wisselen van pagina nog in het veld,
+  terwijl de scène om de oude tijd aangaat (gebruikerstest 28-10, B13)
 
 ## Tray-menu
 
@@ -374,6 +414,9 @@ uitbreidingen in `docs/bouwplan.md`.
   dan alleen de kleuren opnieuw
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
+- In `engine.log` een regel bij het begin en het einde van een pauze, met de reden
+  (vergrendeld, slaapstand, scherm uit, schermbeveiliging, tray-menu); nu staat er niets, zodat
+  je achteraf niet kunt zien waarom de effecten stilstonden (gebruikerstest 28-10)
 
 ## Engine en prestaties
 

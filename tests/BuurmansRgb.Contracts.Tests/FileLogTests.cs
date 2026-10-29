@@ -13,6 +13,14 @@ public sealed class FileLogTests : IDisposable
 
     private string LogPath => Path.Combine(_directory, "logs", "engine.log");
 
+    // The settings app opens the log of the engine where the engine writes it.
+    [Fact]
+    public void PathOf_IsTheLogInTheLogsFolder()
+    {
+        Assert.Equal(Path.Combine(FileLog.DefaultDirectory, "engine.log"), FileLog.PathOf(FileLog.EngineName));
+        Assert.Equal(Path.Combine(FileLog.DefaultDirectory, "ui.log"), FileLog.PathOf(FileLog.UiName));
+    }
+
     [Fact]
     public void TraceEvent_WritesTheTimeTheLevelAndTheMessage()
     {

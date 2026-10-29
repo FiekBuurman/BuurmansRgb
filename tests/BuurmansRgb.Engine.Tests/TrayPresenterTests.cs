@@ -1,13 +1,16 @@
 using System.Windows.Forms;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
+using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.SettingsApp;
 using BuurmansRgb.Engine.Tray;
+using BuurmansRgb.Providers.Simulated;
 using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -16,6 +19,7 @@ public sealed class TrayPresenterTests : IDisposable
 {
     private readonly FakeEngineHost _host = new();
     private readonly FakeAutoStart _autoStart = new();
+    private readonly AutoStartSwitch _autoStartSwitch;
     private readonly FakeSettingsAppLauncher _launcher = new();
     private readonly FakeTrayView _view = new();
     private readonly AllOnOffHotkeys _hotkeys = new();
@@ -24,7 +28,11 @@ public sealed class TrayPresenterTests : IDisposable
     private readonly LightingController _lighting = new([new RecordingDeviceProvider()]);
     private readonly ProfileLibrary _profiles;
 
-    public TrayPresenterTests() => _profiles = new ProfileLibrary(_profileStore, _lighting);
+    public TrayPresenterTests()
+    {
+        _profiles = new ProfileLibrary(_profileStore, _lighting);
+        _autoStartSwitch = new AutoStartSwitch(_autoStart);
+    }
 
     public void Dispose() => _lighting.Dispose();
 
@@ -222,6 +230,39 @@ public sealed class TrayPresenterTests : IDisposable
 
         Assert.False(_view.AutoStartChecked);
         Assert.Equal([(Strings.AutoStartFailed, TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    // The tray menu and the settings app share one switch: a click in the menu reaches the app
+    // through OptionsChanged, with the new value.
+    [Fact]
+    public async Task SetAutoStart_InTheMenu_ReachesTheSettingsApp()
+    {
+        using var settingsApp = new SettingsAppSide(_lighting, _profiles, _autoStartSwitch);
+        var changes = 0;
+        settingsApp.Api.OptionsChanged += (_, _) => changes++;
+
+        CreatePresenter().SetAutoStart(true);
+
+        Assert.Equal(1, changes);
+        Assert.True(await settingsApp.Api.GetAutoStartAsync(Ct));
+    }
+
+    // And the other way round: the menu reads it when it opens (RefreshAutoStart), so it shows
+    // what the settings app set.
+    [Fact]
+    public async Task SetAutoStartAsync_InTheSettingsApp_ShowsInTheMenu()
+    {
+        using var settingsApp = new SettingsAppSide(_lighting, _profiles, _autoStartSwitch);
+        var presenter = CreatePresenter();
+
+        await settingsApp.Api.SetAutoStartAsync(true, Ct);
+        presenter.RefreshAutoStart();
+        Assert.True(_view.AutoStartChecked);
+
+        await settingsApp.Api.SetAutoStartAsync(false, Ct);
+        presenter.RefreshAutoStart();
+        Assert.False(_view.AutoStartChecked);
+        Assert.Empty(_view.Notifications);
     }
 
     [Fact]
@@ -747,7 +788,30 @@ public sealed class TrayPresenterTests : IDisposable
         EngineRestarter? restarter = null,
         ServicesRestartReport? restartedWith = null,
         bool openSettingsAfterStart = false) =>
-        new(_host, _autoStart, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view, restarter, restartedWith, openSettingsAfterStart);
+        new(_host, _autoStartSwitch, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view, restarter, restartedWith, openSettingsAfterStart);
+
+    // The engine as a settings app talks to it, beside the tray menu of the same engine.
+    private sealed class SettingsAppSide : IDisposable
+    {
+        private readonly ZoneLengthKeeper _zoneLengths;
+        private readonly SimulatedDevicesSwitch _simulatedDevices;
+
+        public SettingsAppSide(LightingController lighting, ProfileLibrary profiles, AutoStartSwitch autoStart)
+        {
+            _zoneLengths = new ZoneLengthKeeper(lighting);
+            _simulatedDevices = new SimulatedDevicesSwitch(SwitchableDeviceProvider.For(new SimulatedDeviceProvider()), lighting);
+            Api = new EngineApi(lighting, _zoneLengths, profiles, _simulatedDevices, new FakeServerStatus(), autoStart: autoStart);
+        }
+
+        public EngineApi Api { get; }
+
+        public void Dispose()
+        {
+            Api.Dispose();
+            _simulatedDevices.Dispose();
+            _zoneLengths.Dispose();
+        }
+    }
 
     private sealed class RestartFakes
     {

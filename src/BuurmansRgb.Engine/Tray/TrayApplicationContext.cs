@@ -33,7 +33,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     public TrayApplicationContext(
         IEngineHost host,
-        IAutoStart autoStart,
+        AutoStartSwitch autoStart,
         ISettingsAppLauncher settingsAppLauncher,
         ProfileLibrary profiles,
         LightingController lighting,
@@ -53,7 +53,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             lighting,
             hotkeys,
             _globalHotkeys,
-            () => Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true })?.Dispose(),
+            () => ShellLauncher.Open(logPath),
             this,
             restarter,
             restartedWith,

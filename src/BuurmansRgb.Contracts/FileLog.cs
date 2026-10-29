@@ -12,6 +12,10 @@ public sealed class FileLog : TraceListener
 {
     public const long DefaultMaxBytes = 1_000_000;
 
+    // The names of the logs of the engine and the settings app, for Start and PathOf.
+    public const string EngineName = "engine";
+    public const string UiName = "ui";
+
     private readonly Lock _gate = new();
     private readonly string _path;
     private readonly TimeProvider _clock;
@@ -35,6 +39,10 @@ public sealed class FileLog : TraceListener
 
     public string FilePath => _path;
 
+    // Where the log named name ("engine", "ui") is, also for the other app: "Logbestand openen" on
+    // Instellingen opens the log of the engine.
+    public static string PathOf(string name) => Path.Combine(DefaultDirectory, name + ".log");
+
     public string OldPath => Path.ChangeExtension(_path, ".old.log");
 
     // Adds a log named name ("engine", "ui") to the trace listeners, notes the start and also logs
@@ -42,7 +50,7 @@ public sealed class FileLog : TraceListener
     // nothing; the app runs the same without it.
     public static FileLog Start(string name)
     {
-        var log = new FileLog(Path.Combine(DefaultDirectory, name + ".log"), TimeProvider.System);
+        var log = new FileLog(PathOf(name), TimeProvider.System);
         Trace.Listeners.Add(log);
         AppDomain.CurrentDomain.UnhandledException += (_, e) => Trace.TraceError($"Unhandled exception: {e.ExceptionObject}");
         TaskScheduler.UnobservedTaskException += (_, e) => Trace.TraceError($"Unobserved task exception: {e.Exception}");

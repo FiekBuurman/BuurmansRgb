@@ -40,7 +40,8 @@ public partial interface IEngineApi
 
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
     // pause on lock and sleep and what the lamps do during that pause, the catch-up of scene
-    // times, the hotkeys or the own colors of the toolbox, from this or another settings app.
+    // times, the hotkeys or the own colors of the toolbox, from this or another settings app; or
+    // "Starten met Windows", also from the tray menu.
     event EventHandler OptionsChanged;
 
     // Raised with the new state when a count of LEDs (StartZoneCountAsync) starts, goes to another
@@ -235,6 +236,16 @@ public partial interface IEngineApi
     Task<bool> GetHotkeysAsync(CancellationToken ct = default);
 
     Task SetHotkeysAsync(bool enabled, CancellationToken ct = default);
+
+    // Whether Windows starts the engine when the user signs in, as "Starten met Windows" in the
+    // tray menu: the engine keeps it in the registry, not in its settings file, so it also counts
+    // when the user changes it in the tray menu. Off when it cannot be read.
+    Task<bool> GetAutoStartAsync(CancellationToken ct = default);
+
+    // The same as clicking the tray item; the tray menu shows it the next time it opens. False when
+    // Windows did not let it change (the registry not writable); it stays as it was then, and the
+    // reason is in the log of the engine. OptionsChanged follows a change.
+    Task<bool> SetAutoStartAsync(bool enabled, CancellationToken ct = default);
 
     // The own colors of the toolbox on Kleur ("Eigen kleuren"), which the settings app keeps here
     // as it stops when it closes; saved like the lighting. Empty until the app gives some.

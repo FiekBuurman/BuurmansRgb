@@ -1,7 +1,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Security;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
@@ -20,7 +19,7 @@ namespace BuurmansRgb.Engine.Tray;
 // notification tells what restarted, and with openSettingsAfterStart the settings app opens again.
 internal sealed class TrayPresenter(
     IEngineHost host,
-    IAutoStart autoStart,
+    AutoStartSwitch autoStart,
     ISettingsAppLauncher settingsAppLauncher,
     ProfileLibrary profiles,
     LightingController lighting,
@@ -286,16 +285,13 @@ internal sealed class TrayPresenter(
         }
     }
 
+    // Through the switch the settings app shares, so it follows; the reason of a failure is logged there.
     public void SetAutoStart(bool enabled)
     {
-        try
-        {
-            autoStart.SetEnabled(enabled);
-        }
-        catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException or IOException)
+        if (!autoStart.TrySetEnabled(enabled))
         {
             RefreshAutoStart();
-            ReportFailure(exception, Strings.AutoStartFailed, TrayNotificationKind.Warning);
+            view.ShowNotification(Strings.AutoStartFailed, TrayNotificationKind.Warning);
         }
     }
 

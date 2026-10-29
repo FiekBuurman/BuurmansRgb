@@ -79,7 +79,7 @@ internal static class Program
         }
 
         // After the single-instance check, so a second start does not write to the log of the first.
-        using var log = FileLog.Start("engine");
+        using var log = FileLog.Start(FileLog.EngineName);
         foreach (var warning in restartWarnings)
         {
             Trace.TraceWarning(warning);
@@ -87,9 +87,12 @@ internal static class Program
 
         ApplicationConfiguration.Initialize();
 
-        var autoStart = RegistryAutoStart.ForCurrentProcess();
-        autoStart.EnableOnFirstRun(options);
-        autoStart.FollowMoveOnStart();
+        var registryAutoStart = RegistryAutoStart.ForCurrentProcess();
+        registryAutoStart.EnableOnFirstRun(options);
+        registryAutoStart.FollowMoveOnStart();
+
+        // Shared by the tray menu and the settings apps, so each shows what the other set.
+        var autoStart = new AutoStartSwitch(registryAutoStart);
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
         using var openRgb = OpenRgbDeviceProvider.ForLocalServer();
@@ -130,7 +133,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,

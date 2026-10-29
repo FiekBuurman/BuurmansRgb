@@ -480,6 +480,22 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off", "custom colors #0000FF #FFFFFF"], _api.OptionCalls);
     }
 
+    // "Starten met Windows" crosses the pipe both ways, with whether Windows let it change.
+    [Fact]
+    public async Task AutoStart_CrossesThePipeWithItsAnswer()
+    {
+        var client = await ConnectAsync();
+
+        var enabled = await client.Api.GetAutoStartAsync(Ct);
+        var turnedOff = await client.Api.SetAutoStartAsync(false, Ct);
+        var turnedOn = await client.Api.SetAutoStartAsync(true, Ct);
+
+        Assert.True(enabled);
+        Assert.True(turnedOff);
+        Assert.False(turnedOn);
+        Assert.Equal(["autostart False", "autostart True"], _api.OptionCalls);
+    }
+
     // The steps go over the pipe with their colors and times, and a new effect comes back with its id.
     [Fact]
     public async Task CustomEffects_ReachServerAndBack()
@@ -834,6 +850,15 @@ public sealed class EngineRpcTests : IDisposable
         {
             OptionCalls.Add($"hotkeys {enabled}");
             return Task.CompletedTask;
+        }
+
+        public Task<bool> GetAutoStartAsync(CancellationToken ct = default) => Task.FromResult(true);
+
+        // Only turning it off works here, as when Windows lets nobody add it.
+        public Task<bool> SetAutoStartAsync(bool enabled, CancellationToken ct = default)
+        {
+            OptionCalls.Add($"autostart {enabled}");
+            return Task.FromResult(!enabled);
         }
 
         public Task<IReadOnlyList<RgbColor>> GetCustomColorsAsync(CancellationToken ct = default) =>

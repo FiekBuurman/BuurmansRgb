@@ -1,5 +1,6 @@
 <!-- Instellingen: how buurmansRgb gets on with OpenRGB, when the simulated lamps show, the effects,
-     the scene times and the hotkeys. Whether saving worked is in the status line of MainWindow. -->
+     the scene times, the hotkeys and "Starten met Windows", the log of the engine, and at the bottom
+     the version and the guide. Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -113,6 +114,47 @@
                         </DockPanel>
                     </StackPanel>
                 </Border>
+
+                <!-- "Starten met Windows", the same as in the tray menu; the engine keeps it, so both show the same. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" />
+                        <DockPanel Margin="0,12,0,0">
+                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                          IsChecked="{Binding AutoStart.IsOn}"
+                                          AutomationProperties.Name="{x:Static res:Strings.AutoStartLabel}"
+                                          AutomationProperties.HelpText="{x:Static res:Strings.AutoStartHint}"
+                                          AutomationProperties.AutomationId="AutoStart" />
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.AutoStartLabel}" />
+                                <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.AutoStartHint}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- "Logbestand openen", as in the tray menu: engine.log in the app that opens .log files. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LogHeader}" />
+                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.LogHint}" />
+                        <Button HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenLog}"
+                                Command="{Binding AppInfo.OpenLogCommand}"
+                                AutomationProperties.Name="{x:Static res:Strings.OpenLog}"
+                                AutomationProperties.HelpText="{x:Static res:Strings.LogHint}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- At the very bottom, under the cards: the version and the guide, a link in the style of Verversen
+                     that only shows when there is a guide to open (AppInfoViewModel.GuideAddress). -->
+                <StackPanel Margin="4,14,0,0" Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" Text="{Binding AppInfo.VersionText}"
+                               AutomationProperties.AutomationId="AppVersion" />
+                    <Button Margin="12,0,0,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.GuideLink}"
+                            Command="{Binding AppInfo.OpenGuideCommand}"
+                            Visibility="{Binding AppInfo.HasGuide, Converter={StaticResource BoolToVisibility}}"
+                            AutomationProperties.Name="{x:Static res:Strings.GuideLink}" />
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

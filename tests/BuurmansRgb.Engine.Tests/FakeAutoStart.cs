@@ -2,13 +2,23 @@ using BuurmansRgb.Engine.AutoStart;
 
 namespace BuurmansRgb.Engine.Tests;
 
+// Autostart without the registry, so no test changes what Windows starts on this pc.
 internal sealed class FakeAutoStart : IAutoStart
 {
+    private bool _enabled;
+
     public Exception? SetEnabledException { get; set; }
+
+    // Thrown when IsEnabled is read, as when the Run key cannot be read.
+    public Exception? IsEnabledException { get; set; }
 
     public int SetEnabledCount { get; private set; }
 
-    public bool IsEnabled { get; set; }
+    public bool IsEnabled
+    {
+        get => IsEnabledException is not null ? throw IsEnabledException : _enabled;
+        set => _enabled = value;
+    }
 
     public void SetEnabled(bool enabled)
     {
@@ -18,7 +28,7 @@ internal sealed class FakeAutoStart : IAutoStart
             throw SetEnabledException;
         }
 
-        IsEnabled = enabled;
+        _enabled = enabled;
     }
 
     public string? FollowMoveResult { get; set; }

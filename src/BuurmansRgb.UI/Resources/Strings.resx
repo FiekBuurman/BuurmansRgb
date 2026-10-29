@@ -800,6 +800,42 @@
   <data name="HotkeysHint" xml:space="preserve">
     <value>Ctrl+Alt+Shift+A zet alles aan en Ctrl+Alt+Shift+U alles uit, net als in het tray-menu, ook als deze app dicht is. Gebruikt een andere app dezelfde toetsen, zet ze dan hier uit.</value>
   </data>
+  <data name="AutoStartHeader" xml:space="preserve">
+    <value>Opstarten</value>
+  </data>
+  <data name="AutoStartLabel" xml:space="preserve">
+    <value>Starten met Windows</value>
+  </data>
+  <data name="AutoStartHint" xml:space="preserve">
+    <value>buurmansRgb start als je je aanmeldt bij Windows, zodat je apparaten meteen hun verlichting krijgen. Hetzelfde als "Starten met Windows" in het tray-menu.</value>
+  </data>
+  <data name="AutoStartFailed" xml:space="preserve">
+    <value>Starten met Windows kon niet worden aangepast.</value>
+  </data>
+  <data name="LogHeader" xml:space="preserve">
+    <value>Logbestand</value>
+  </data>
+  <data name="LogHint" xml:space="preserve">
+    <value>Wat de engine doet en wat er misgaat, in het Engels. Handig om mee te sturen als iets op je eigen hardware niet werkt.</value>
+  </data>
+  <data name="OpenLog" xml:space="preserve">
+    <value>Logbestand openen</value>
+  </data>
+  <data name="LogOpenFailed" xml:space="preserve">
+    <value>Het logbestand kon niet worden geopend.</value>
+  </data>
+  <data name="AppVersion" xml:space="preserve">
+    <value>buurmansRgb {0}</value>
+  </data>
+  <data name="VersionUnknown" xml:space="preserve">
+    <value>(versie onbekend)</value>
+  </data>
+  <data name="GuideLink" xml:space="preserve">
+    <value>Handleiding</value>
+  </data>
+  <data name="GuideOpenFailed" xml:space="preserve">
+    <value>De handleiding kon niet worden geopend.</value>
+  </data>
   <data name="WholeHouse" xml:space="preserve">
     <value>Hele huis</value>
   </data>

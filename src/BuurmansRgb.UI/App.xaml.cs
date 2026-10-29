@@ -41,11 +41,11 @@ public partial class App : Application
         }
 
         // After the single-instance check, so a second start does not write to the log of the first.
-        _log = FileLog.Start("ui");
+        _log = FileLog.Start(FileLog.UiName);
         // Logged only; the app still ends as it did, rather than going on in a state nobody planned for.
         DispatcherUnhandledException += (_, args) => Trace.TraceError($"Unhandled exception: {args.Exception}");
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine());
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open));
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
         window.Show();
