@@ -317,6 +317,10 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ### Voorbeeld en per-LED-editor
 
+- `AutomationProperties.HelpText="{Binding LedCountHelpText}"` op de schuif en het veld van het
+  aantal LED's (`LedPreviewPanel`) schrijft een bindingswaarschuwing zodra de tekst `null` is
+  ("Value produced by BindingExpression is not valid"); `TargetNullValue` met een lege tekst
+  haalt die weg. Gezien met de luisteraar van `DeviceChoiceViewTests`
 - Met ↑ en ↓ in het voorbeeld naar de LED die in de zone erboven of eronder recht boven of
   onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
   de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast
