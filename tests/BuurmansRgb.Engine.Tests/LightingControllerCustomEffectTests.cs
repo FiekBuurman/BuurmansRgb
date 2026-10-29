@@ -163,7 +163,10 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
     }
 
     // Only an effect with other steps gets a new StepEffect: one that is only renamed, here as a new
-    // copy as from the pipe, keeps its own and copies none of its colors.
+    // copy as from the pipe, keeps its own and copies none of its colors. The other effect does get
+    // new steps, so the window allocates itself and may count a context that a GC of another test
+    // takes away (see Allocations); the least of a few windows, each with fresh effects, is the
+    // measurement.
     [Fact]
     public async Task SetCustomEffects_SameSteps_CopiesNoColors()
     {
@@ -173,13 +176,19 @@ public sealed class LightingControllerCustomEffectTests : IDisposable
         _controller.SetCustomEffects([big, RedThenBlue]);
         _controller.Apply(Uniform(big.Id));
         _controller.SetCustomEffects([big, RedThenBlue with { Steps = [new CustomEffectStep(Blue)] }]);
-        var renamed = new CustomEffect(big.Id, "Anders", [.. big.Steps.Select(step => new CustomEffectStep(step.Colors))]);
-        var green = RedThenBlue with { Steps = [new CustomEffectStep(Green)] };
         var shown = _provider.LastColors.ToArray();
+        var least = long.MaxValue;
 
-        var allocated = Allocations.During(() => _controller.SetCustomEffects([renamed, green]));
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            var renamed = new CustomEffect(big.Id, $"Anders {attempt}", [.. big.Steps.Select(step => new CustomEffectStep(step.Colors))]);
+            var other = RedThenBlue with { Steps = [new CustomEffectStep(attempt % 2 == 0 ? Green : Blue)] };
+            CustomEffect[] effects = [renamed, other];
 
-        Assert.InRange(allocated, 0, pattern.Length * 3);
+            least = Math.Min(least, Allocations.During(() => _controller.SetCustomEffects(effects)));
+        }
+
+        Assert.InRange(least, 0, pattern.Length * 3);
         Assert.Equal(shown, _provider.LastColors);
     }
 
