@@ -198,7 +198,7 @@
         </Setter>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
+                <Setter Property="Background" Value="{DynamicResource ItemHighlightBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
@@ -304,11 +304,11 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Grid>
-                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchTrackOffBrush}" />
+                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource ControlTrackBrush}" />
                         <Border x:Name="Cover" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOnCoverBrush}" Visibility="Collapsed" />
                         <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
                         <Border x:Name="Shine" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource TextBrush}" Opacity="0" />
-                        <Border x:Name="Outline" CornerRadius="{DynamicResource SwitchRadius}" BorderThickness="1" BorderBrush="{DynamicResource SwitchOutlineBrush}" />
+                        <Border x:Name="Outline" CornerRadius="{DynamicResource SwitchRadius}" BorderThickness="1" BorderBrush="{DynamicResource ControlOutlineBrush}" />
                         <Ellipse x:Name="Knob" Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" Fill="{DynamicResource KnobOffBrush}"
                                  Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" />
                     </Grid>
@@ -319,7 +319,7 @@
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
                             <Setter TargetName="Cover" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource KnobOnBrush}" />
+                            <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource OnAccentBrush}" />
                             <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
@@ -339,7 +339,7 @@
     </Style>
 
     <!-- § 4 Primary button: text-colored, with the corners of ButtonRadius; in a contrast theme the
-         highlight (PrimaryButtonBrush). Under the mouse a little lighter; in a contrast theme, where
+         highlight (AccentBrush). Under the mouse a little lighter; in a contrast theme, where
          that would not show, the colors swap and a ring in the highlight keeps the shape of the
          button, as the accent buttons of Windows do. Without one the hover tokens are the colors at
          rest and the ring is transparent. -->
@@ -348,8 +348,8 @@
         <Setter Property="Padding" Value="28,0" />
         <Setter Property="FontSize" Value="17" />
         <Setter Property="FontWeight" Value="ExtraBold" />
-        <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonTextBrush}" />
-        <Setter Property="Background" Value="{DynamicResource PrimaryButtonBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+        <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
         <Setter Property="Template">
@@ -364,9 +364,9 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Face" Property="Opacity" Value="0.9" />
-                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource PrimaryButtonHoverBrush}" />
-                            <Setter TargetName="HoverRing" Property="BorderBrush" Value="{DynamicResource PrimaryButtonHoverBorderBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonHoverTextBrush}" />
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+                            <Setter TargetName="HoverRing" Property="BorderBrush" Value="{DynamicResource HoverOutlineBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource OnAccentHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Face" Property="Opacity" Value="0.8" />
@@ -439,9 +439,9 @@
         <Setter Property="Padding" Value="0" />
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
-                <Setter Property="Background" Value="{DynamicResource CheckedBrush}" />
-                <Setter Property="BorderBrush" Value="{DynamicResource CheckedBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource CheckedTextBrush}" />
+                <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -480,7 +480,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Dashes" Property="Stroke" Value="{DynamicResource NewButtonHoverBrush}" />
+                            <Setter TargetName="Dashes" Property="Stroke" Value="{DynamicResource ControlHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -580,7 +580,7 @@
          link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
          gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF
          shows the cursor of the parent over a disabled element. Under the mouse a link gets lighter;
-         in a contrast theme it takes the highlight and a line under it (LinkHoverUnderlineBrush), so
+         in a contrast theme it takes the highlight and a line under it (HoverOutlineBrush), so
          the hover shows by more than color. The links of the design have no line, so without a
          contrast theme that line is transparent. -->
     <Style x:Key="LinkButton" TargetType="Button">
@@ -598,7 +598,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Underline" Property="Background" Value="{DynamicResource LinkHoverUnderlineBrush}" />
+                            <Setter TargetName="Underline" Property="Background" Value="{DynamicResource HoverOutlineBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -676,9 +676,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
                     <Grid Background="Transparent">
-                        <Border Height="6" CornerRadius="3" Background="{DynamicResource SliderRailBrush}" VerticalAlignment="Center" Margin="2,0" />
+                        <Border Height="6" CornerRadius="3" Background="{DynamicResource ControlTrackBrush}" VerticalAlignment="Center" Margin="2,0" />
                         <!-- The ring around the rail, which shows only in a contrast theme, as around a switch that is off. -->
-                        <Border Height="6" CornerRadius="3" BorderThickness="1" BorderBrush="{DynamicResource SliderRailOutlineBrush}" VerticalAlignment="Center" Margin="2,0" />
+                        <Border Height="6" CornerRadius="3" BorderThickness="1" BorderBrush="{DynamicResource ControlOutlineBrush}" VerticalAlignment="Center" Margin="2,0" />
                         <Track x:Name="PART_Track">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource SliderRail}" Command="Slider.DecreaseLarge" Background="{TemplateBinding Foreground}" />
@@ -728,7 +728,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource ControlHoverBrush}" />
                         </Trigger>
                         <!-- Typing goes here: the same 2 px text ring as the focus of other controls. -->
                         <Trigger Property="IsKeyboardFocused" Value="True">
@@ -766,7 +766,7 @@
                              1 px off and lose its place in the middle of the 32 px. -->
                         <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" BorderThickness="2" VerticalAlignment="Top" Margin="0,5,0,0"
                                 BorderBrush="{DynamicResource InputBorderBrush}" Background="Transparent">
-                            <Path x:Name="Check" Data="M5,11 L9,15 L17,7" Stretch="None" Margin="-2" Stroke="{DynamicResource CheckedTextBrush}" StrokeThickness="2.5"
+                            <Path x:Name="Check" Data="M5,11 L9,15 L17,7" Stretch="None" Margin="-2" Stroke="{DynamicResource OnAccentBrush}" StrokeThickness="2.5"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" Visibility="Collapsed" />
                         </Border>
                         <!-- A text that does not fit goes on over more lines, such as that of the color loop in a narrow window. -->
@@ -783,11 +783,11 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource ControlHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource CheckedBrush}" />
-                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource CheckedBrush}" />
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                             <Setter TargetName="Check" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
@@ -813,7 +813,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="Item" Property="Background" Value="{DynamicResource ListSelectedBrush}" />
+                            <Setter TargetName="Item" Property="Background" Value="{DynamicResource ItemHighlightBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
@@ -851,7 +851,7 @@
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="Field" Property="BorderBrush" Value="{DynamicResource InputHoverBorderBrush}" />
+                                            <Setter TargetName="Field" Property="BorderBrush" Value="{DynamicResource ControlHoverBrush}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -896,7 +896,7 @@
                     <Border x:Name="Bar" CornerRadius="4" Background="{DynamicResource BorderStrongBrush}" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bar" Property="Background" Value="{DynamicResource ScrollBarHoverBrush}" />
+                            <Setter TargetName="Bar" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

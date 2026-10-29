@@ -14,15 +14,18 @@ public sealed class ContrastTheme : IDisposable
 {
     // Per token the color it takes in a contrast theme. Muted text takes the text color, not
     // GrayText: in a contrast theme that means disabled. Surfaces are all the window, so borders and
-    // the rings around a switch and the rail of a slider, in the text color, show where a card or a
-    // control is (not GrayText, which would make a slider look disabled); a selected or
-    // hovered item takes the highlight, as in Windows. Buttons and cards you click take the face and
-    // text of a button (in WPF Control and ControlText); the primary button, a ticked check box and
-    // a day that is on take the highlight, like a switch that is on. Every hover shows in the
+    // the outline around the track of a switch and a slider, in the text color, show where a card or
+    // a control is (not GrayText, which would make a slider look disabled); a selected or hovered
+    // item takes the highlight, as in Windows. Buttons and cards you click take the face and text of
+    // a button (in WPF Control and ControlText); the accent (the primary button, a ticked check box,
+    // a day that is on) takes the highlight, like a switch that is on. Every hover shows in the
     // highlight: a link also gets a line under it, and the primary button, already the highlight,
     // swaps its colors and gets a ring.
     internal static readonly IReadOnlyDictionary<string, Func<SolidColorBrush>> SystemBrushes = new Dictionary<string, Func<SolidColorBrush>>
     {
+        // Text, surfaces and borders.
+        ["TextBrush"] = () => SystemColors.WindowTextBrush,
+        ["TextMutedBrush"] = () => SystemColors.WindowTextBrush,
         ["BgBrush"] = () => SystemColors.WindowBrush,
         ["SurfaceBrush"] = () => SystemColors.WindowBrush,
         ["SurfaceRaisedBrush"] = () => SystemColors.WindowBrush,
@@ -31,43 +34,36 @@ public sealed class ContrastTheme : IDisposable
         ["BorderBrush"] = () => SystemColors.WindowTextBrush,
         ["BorderStrongBrush"] = () => SystemColors.WindowTextBrush,
         ["InputBorderBrush"] = () => SystemColors.WindowTextBrush,
-        ["HoverBorderBrush"] = () => SystemColors.HighlightBrush,
-        ["InputHoverBorderBrush"] = () => SystemColors.HighlightBrush,
-        ["NewButtonHoverBrush"] = () => SystemColors.HighlightBrush,
-        ["ScrollBarHoverBrush"] = () => SystemColors.HighlightBrush,
         ["EditingCardBorderBrush"] = () => SystemColors.HighlightBrush,
-        ["TextBrush"] = () => SystemColors.WindowTextBrush,
-        ["TextMutedBrush"] = () => SystemColors.WindowTextBrush,
-        ["LinkBrush"] = () => SystemColors.HotTrackBrush,
-        ["LinkHoverBrush"] = () => SystemColors.HighlightBrush,
-        ["LinkHoverUnderlineBrush"] = () => SystemColors.HighlightBrush,
+        ["WarningBrush"] = () => SystemColors.WindowTextBrush,
+
+        // Hover, selection and links.
+        ["HoverBorderBrush"] = () => SystemColors.HighlightBrush,
+        ["ControlHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["HoverOutlineBrush"] = () => SystemColors.HighlightBrush,
         ["NavSelectedBrush"] = () => SystemColors.HighlightBrush,
-        ["ListSelectedBrush"] = () => SystemColors.HighlightBrush,
-        ["CaptionHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["ItemHighlightBrush"] = () => SystemColors.HighlightBrush,
         ["CaptionPressedBrush"] = () => SystemColors.HighlightBrush,
         ["CloseHoverBrush"] = () => SystemColors.HighlightBrush,
         ["CloseHoverTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["OnHighlightTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["OnHighlightMutedTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["TextSelectionBrush"] = () => SystemColors.HighlightBrush,
-        ["SwitchTrackOffBrush"] = () => SystemColors.WindowBrush,
-        ["SwitchOutlineBrush"] = () => SystemColors.WindowTextBrush,
-        ["SwitchOnCoverBrush"] = () => SystemColors.HighlightBrush,
-        ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
-        ["KnobOnBrush"] = () => SystemColors.HighlightTextBrush,
-        ["SliderRailBrush"] = () => SystemColors.WindowBrush,
-        ["SliderRailOutlineBrush"] = () => SystemColors.WindowTextBrush,
+        ["LinkBrush"] = () => SystemColors.HotTrackBrush,
+        ["LinkHoverBrush"] = () => SystemColors.HighlightBrush,
+
+        // Buttons, the accent and the track of a switch or slider.
         ["ButtonFaceBrush"] = () => SystemColors.ControlBrush,
         ["ButtonTextBrush"] = () => SystemColors.ControlTextBrush,
         ["ButtonBorderBrush"] = () => SystemColors.ControlTextBrush,
-        ["PrimaryButtonBrush"] = () => SystemColors.HighlightBrush,
-        ["PrimaryButtonTextBrush"] = () => SystemColors.HighlightTextBrush,
-        ["CheckedBrush"] = () => SystemColors.HighlightBrush,
-        ["CheckedTextBrush"] = () => SystemColors.HighlightTextBrush,
-        ["PrimaryButtonHoverBrush"] = () => SystemColors.HighlightTextBrush,
-        ["PrimaryButtonHoverTextBrush"] = () => SystemColors.HighlightBrush,
-        ["PrimaryButtonHoverBorderBrush"] = () => SystemColors.HighlightBrush,
-        ["WarningBrush"] = () => SystemColors.WindowTextBrush,
+        ["AccentBrush"] = () => SystemColors.HighlightBrush,
+        ["OnAccentBrush"] = () => SystemColors.HighlightTextBrush,
+        ["AccentHoverBrush"] = () => SystemColors.HighlightTextBrush,
+        ["OnAccentHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["ControlTrackBrush"] = () => SystemColors.WindowBrush,
+        ["ControlOutlineBrush"] = () => SystemColors.WindowTextBrush,
+        ["SwitchOnCoverBrush"] = () => SystemColors.HighlightBrush,
+        ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
     };
 
     private readonly ResourceDictionary _resources;

@@ -35,67 +35,61 @@
 
     <!-- The hover border of cards and buttons (§ 6), which is border-strong. -->
     <SolidColorBrush x:Key="HoverBorderBrush" Color="{StaticResource BorderStrongColor}" />
-    <!-- The hover of the dashed border of "+ new" and of the thumb of a scroll bar, which is
-         text-muted; a contrast theme gives every hover the highlight (ContrastTheme). -->
-    <SolidColorBrush x:Key="NewButtonHoverBrush" Color="{StaticResource TextMutedColor}" />
-    <SolidColorBrush x:Key="ScrollBarHoverBrush" Color="{StaticResource TextMutedColor}" />
 
     <!-- The border of a field you type in or pick from, and of a check box: not in the design, whose
          border (1.2:1) and border-strong (1.8:1) do not make a field recognizable. It stands out at
-         least 3:1 on bg, surface and preview-bg (WCAG 1.4.11), and is lighter on hover (text-muted);
-         the focus is the ring of 2 px in text. TokenContrastTests checks the ratios. -->
+         least 3:1 on bg, surface and preview-bg (WCAG 1.4.11); the focus is the ring of 2 px in text.
+         TokenContrastTests checks the ratios. -->
     <Color x:Key="InputBorderColor">#74727A</Color>
     <SolidColorBrush x:Key="InputBorderBrush" Color="{StaticResource InputBorderColor}" />
-    <SolidColorBrush x:Key="InputHoverBorderBrush" Color="{StaticResource TextMutedColor}" />
+    <!-- The hover of a control whose edge or thumb lights up under the mouse: the border of a field
+         and a check box, the dashed border of "+ new" and the thumb of a scroll bar. Text-muted,
+         lighter than HoverBorderBrush of cards and buttons. -->
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource TextMutedColor}" />
 
     <!-- Links, as in the screens of the design. -->
     <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
     <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
-    <!-- The line under a link under the mouse: only in a contrast theme (ContrastTheme), as the links
-         of the design have none. -->
-    <SolidColorBrush x:Key="LinkHoverUnderlineBrush" Color="Transparent" />
 
     <!-- Roles of the colors above that a contrast theme of Windows gives a color of its own
-         (ContrastTheme): here they look as the design says. A selected or hovered item, which a
-         contrast theme gives the highlight, with OnHighlightTextBrush (or muted,
-         OnHighlightMutedTextBrush) on it; and the border of the scene card you edit. Not the same
-         as TextSelectionBrush below, the selected text in a field. -->
+         (ContrastTheme): here they look as the design says. Not the same as TextSelectionBrush
+         below, the selected text in a field. -->
+    <!-- A selected or hovered item, which a contrast theme gives the highlight, with
+         OnHighlightTextBrush (or muted, OnHighlightMutedTextBrush) on it: the page in the menu, an
+         item of a list and a button of the title bar under the mouse, or pressed. -->
     <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource SurfaceRaisedColor}" />
-    <SolidColorBrush x:Key="ListSelectedBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="CaptionHoverBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="ItemHighlightBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="CaptionPressedBrush" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="OnHighlightTextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="OnHighlightMutedTextBrush" Color="{StaticResource TextMutedColor}" />
     <!-- The close button of the title bar under the mouse: red with a white cross, as in Windows. -->
     <SolidColorBrush x:Key="CloseHoverBrush" Color="#C42B1C" />
     <SolidColorBrush x:Key="CloseHoverTextBrush" Color="White" />
-    <SolidColorBrush x:Key="OnHighlightTextBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="OnHighlightMutedTextBrush" Color="{StaticResource TextMutedColor}" />
+    <!-- The border of the scene card you edit. -->
     <SolidColorBrush x:Key="EditingCardBorderBrush" Color="{StaticResource BorderStrongColor}" />
-    <!-- The switch (§ 4): the track when off, and the knob when on. The cover over the track of a
-         switch that is on, and the ring around its track, show only in a contrast theme. -->
-    <SolidColorBrush x:Key="SwitchTrackOffBrush" Color="{StaticResource LedOffColor}" />
-    <SolidColorBrush x:Key="KnobOnBrush" Color="{StaticResource BgColor}" />
-    <SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />
-    <SolidColorBrush x:Key="SwitchOutlineBrush" Color="Transparent" />
-    <!-- The rail of a slider beside its fill, and the ring around it, which shows only in a contrast
-         theme. -->
-    <SolidColorBrush x:Key="SliderRailBrush" Color="{StaticResource LedOffColor}" />
-    <SolidColorBrush x:Key="SliderRailOutlineBrush" Color="Transparent" />
     <!-- Buttons (§ 4): a secondary button, an icon button and a card you click are a surface with
-         text and a border; the primary button, a day that is on and a ticked check box are
-         text-colored with bg on them. A contrast theme gives a button the face and text of a
-         button (ButtonFace, ButtonText), and what is primary or on the highlight, as Windows does. -->
+         text and a border. A contrast theme gives a button the face and text of a button
+         (ButtonFace, ButtonText), as Windows does. -->
     <SolidColorBrush x:Key="ButtonFaceBrush" Color="{StaticResource SurfaceColor}" />
     <SolidColorBrush x:Key="ButtonTextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="PrimaryButtonBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="PrimaryButtonTextBrush" Color="{StaticResource BgColor}" />
-    <SolidColorBrush x:Key="CheckedBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="CheckedTextBrush" Color="{StaticResource BgColor}" />
-    <!-- The primary button under the mouse: in a contrast theme its colors swap, with a ring in the
-         highlight around it; here the colors at rest and no ring (the face gets a little lighter). -->
-    <SolidColorBrush x:Key="PrimaryButtonHoverBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="PrimaryButtonHoverTextBrush" Color="{StaticResource BgColor}" />
-    <SolidColorBrush x:Key="PrimaryButtonHoverBorderBrush" Color="Transparent" />
+    <!-- The accent: what is primary or on, which a contrast theme gives the highlight, as Windows does.
+         Text-colored with bg on it: the primary button, a day that is on and a ticked check box, with
+         the text, the tick and the knob of a switch that is on in OnAccentBrush. Under the mouse the
+         colors of the primary button swap in a contrast theme; here they are the colors at rest. -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="OnAccentHoverBrush" Color="{StaticResource BgColor}" />
+    <!-- The track of a control (§ 4): of a switch that is off, and the rail of a slider beside its
+         fill. The cover over the track of a switch that is on shows only in a contrast theme. -->
+    <SolidColorBrush x:Key="ControlTrackBrush" Color="{StaticResource LedOffColor}" />
+    <SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />
+    <!-- Outlines: lines that show only in a contrast theme, so they are transparent here. Around the
+         track of a switch and the rail of a slider in the text color, and in the highlight on what
+         is under the mouse: the ring of the primary button and the line under a link. -->
+    <SolidColorBrush x:Key="ControlOutlineBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="HoverOutlineBrush" Color="Transparent" />
 
     <!-- LED colors, always with a glow (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>

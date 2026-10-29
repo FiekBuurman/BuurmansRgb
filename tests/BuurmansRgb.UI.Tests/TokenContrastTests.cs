@@ -59,7 +59,7 @@ public sealed class TokenContrastTests
     public void InputBorder_GetsLighterOnHoverAndWithTheFocus()
     {
         var rest = Wcag.RelativeLuminance(Tokens.Value["InputBorderBrush"]);
-        var hover = Wcag.RelativeLuminance(Tokens.Value["InputHoverBorderBrush"]);
+        var hover = Wcag.RelativeLuminance(Tokens.Value["ControlHoverBrush"]);
         var focus = Wcag.RelativeLuminance(Tokens.Value["TextBrush"]);
 
         Assert.True(rest < hover, $"The hover border ({hover:0.000}) is not lighter than the one at rest ({rest:0.000}).");

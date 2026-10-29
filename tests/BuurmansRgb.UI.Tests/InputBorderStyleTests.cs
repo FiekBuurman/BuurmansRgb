@@ -19,7 +19,7 @@ public sealed class InputBorderStyleTests
 
         AssertColor(panel, "InputBorderBrush", box.BorderBrush);
         Assert.Equal(new Thickness(1), box.BorderThickness);
-        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(textBox.Template));
+        Assert.Equal("ControlHoverBrush", HoverBorderKey(textBox.Template));
     });
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class InputBorderStyleTests
         var toggle = AppTheme.Descendants<ToggleButton>(comboBox).Single();
 
         AssertColor(panel, "InputBorderBrush", field.BorderBrush);
-        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(toggle.Template));
+        Assert.Equal("ControlHoverBrush", HoverBorderKey(toggle.Template));
     });
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class InputBorderStyleTests
         var checkBox = Show(panel, new CheckBox { Content = "Kort" });
 
         AssertColor(panel, "InputBorderBrush", BorderNamed(checkBox, "Box").BorderBrush);
-        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(checkBox.Template));
+        Assert.Equal("ControlHoverBrush", HoverBorderKey(checkBox.Template));
     });
 
     private static T Show<T>(StackPanel panel, T control)
