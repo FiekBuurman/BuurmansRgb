@@ -9,6 +9,7 @@ namespace BuurmansRgb.UI.Tests;
 // TextScale on the resources of Themes/Theme.xaml, with a fake text size: the setting of Windows is
 // never read or changed. The sizes of text take the factor, and those of the design once it is 1.0
 // again; the word mark and the sizes that are no text never change.
+[Collection(AppThemeCollection.Name)]
 public sealed partial class TextScaleTests
 {
     private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);

@@ -6,6 +6,7 @@ namespace BuurmansRgb.UI.Tests;
 
 // A dictionary of its own over the resources: at the end, in place of the one before, and gone with
 // null; and ContrastTheme and TextScale, which both lay one over the resources of Theme.xaml.
+[Collection(AppThemeCollection.Name)]
 public sealed class ResourceOverlayTests
 {
     private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
