@@ -109,8 +109,9 @@ public sealed class ContrastThemeTests
         Assert.Equal(merged, resources.MergedDictionaries.Count);
     });
 
-    // The LEDs, their glow, the strip board under them and the switch of a lamp in its color are
-    // content: a contrast theme does not touch them.
+    // The LEDs, their glow and the strip board under them are content: a contrast theme does not
+    // touch them. The switch of a lamp keeps its color in Tag too, but there the highlight of a
+    // contrast theme covers it (SwitchOnCoverBrush).
     [Theory]
     [InlineData("LedRedBrush")]
     [InlineData("LedYellowBrush")]
