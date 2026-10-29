@@ -126,6 +126,59 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal(before + 1, Api.FrameCalls);
     }
 
+    // A device that comes, goes or changes gives an image too.
+    [Fact]
+    public async Task DevicesChanged_ShowsANewImage()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var before = Api.FrameCalls;
+
+        Api.Frame = Frame(2, Blue);
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(before + 1, Api.FrameCalls);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
+    // With animations on, the frames of the engine show everything: no image is fetched besides.
+    [Fact]
+    public async Task AnimationsOn_FetchesNoImage()
+    {
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var before = Api.FrameCalls;
+
+        viewModel.Brightness = 40;
+        Api.RaiseLightingChanged();
+        Api.RaisePause(PauseReasons.Manual);
+        Api.RaisePause(PauseReasons.None);
+        Api.RaiseZoneCount(new ZoneCountInfo("strip", 0, 2, 3, 1, true) { Sequence = 1 });
+
+        Assert.Contains(Api.Calls, call => call.StartsWith("brightness", StringComparison.Ordinal));
+        Assert.Equal(before, Api.FrameCalls);
+    }
+
+    // An image that was on its way when "Laten lopen" was chosen goes: the frames show then.
+    [Fact]
+    public async Task ImageAfterLetRun_IsDropped()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var slowImage = new TaskCompletionSource();
+        Api.FrameGate = slowImage.Task;
+        Api.RaiseLightingChanged();
+
+        viewModel.Motion.ToggleCommand.Execute(null);
+        Api.RaiseFrame(Frame(2, Green));
+
+        // The engine answers with its latest frame, newer than the one shown.
+        Api.Frame = Frame(3, Blue);
+        slowImage.SetResult();
+
+        Assert.True(Api.FramesWanted);
+        Assert.Equal([Green, Green], FanColors(viewModel));
+    }
+
     // A change from another app that the queue reads back, such as the lights during a pause or
     // an own effect, gives an image after the reload.
     [Fact]

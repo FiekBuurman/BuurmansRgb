@@ -184,10 +184,18 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public int FrameCalls { get; private set; }
 
-    public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default)
+    // When set, GetFrameAsync answers once this task completes, with the frame of that moment.
+    public Task? FrameGate { get; set; }
+
+    public async Task<LightingFrame> GetFrameAsync(CancellationToken ct = default)
     {
         FrameCalls++;
-        return Task.FromResult(Frame);
+        if (FrameGate is { } gate)
+        {
+            await gate;
+        }
+
+        return Frame;
     }
 
     // What the app said last; null while it said nothing, so the engine sends frames.
