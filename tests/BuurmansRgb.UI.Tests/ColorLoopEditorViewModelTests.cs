@@ -80,7 +80,7 @@ public sealed class ColorLoopEditorViewModelTests
         Assert.Equal(swatches, _editor.Swatches);
         Assert.Equal(Red, _editor.Swatches[1].Color);
         Assert.Equal([false, true, false], _editor.Swatches.Select(swatch => swatch.IsSelected));
-        Assert.Equal("Kleur 2: #FF0000", _editor.Swatches[1].Name);
+        Assert.Equal("Kleur 2: Echt rood, #FF0000", _editor.Swatches[1].Name);
         Assert.Contains(nameof(ColorSwatch.Name), changed);
     }
 
@@ -145,9 +145,10 @@ public sealed class ColorLoopEditorViewModelTests
     }
 
     [Fact]
-    public void Swatch_HasADutchNameWithNumberAndHexCode()
+    public void Swatch_HasADutchNameWithNumberColorNameAndHexCode()
     {
-        Assert.Equal("Kleur 2: #00FF00", _editor.Swatches[1].Name);
-        Assert.Equal("Kleur 2: #00FF00", _editor.Swatches[1].ToString());
+        Assert.Equal("Kleur 1: geel, #FFFF00", _editor.Swatches[0].Name);
+        Assert.Equal("Kleur 2: Echt groen, #00FF00", _editor.Swatches[1].Name);
+        Assert.Equal("Kleur 2: Echt groen, #00FF00", _editor.Swatches[1].ToString());
     }
 }

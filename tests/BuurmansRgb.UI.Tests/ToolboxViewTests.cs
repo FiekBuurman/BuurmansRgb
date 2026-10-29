@@ -70,7 +70,7 @@ public sealed class ToolboxViewTests
             PageViews.Click(add);
 
             var tiles = CustomTiles(page);
-            Assert.Equal(string.Format(Strings.CustomColorName, "#FF8800"), AutomationProperties.GetName(Assert.Single(tiles)));
+            Assert.Equal("Eigen kleur: oranje, #FF8800", AutomationProperties.GetName(Assert.Single(tiles)));
             Assert.Equal(Strings.CustomColorHelp, AutomationProperties.GetHelpText(tiles[0]));
             Assert.Equal(32.0, tiles[0].ActualWidth);
             Assert.Equal(true, tiles[0].Tag);

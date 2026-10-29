@@ -392,6 +392,93 @@
   </data>
   <data name="ColorListSwatch" xml:space="preserve">
     <value>Kleur {0}: {1}</value>
+    <comment>Een vakje van de kleurenloop of van de kleuren van een effect, voor een schermlezer en als tooltip. {0} = het nummer, {1} = ColorNameWithHex, bijv. "geel, #FFFF00".</comment>
+  </data>
+  <data name="ColorNameWithHex" xml:space="preserve">
+    <value>{0}, {1}</value>
+    <comment>Een kleur voor een schermlezer. {0} = de naam van een vaste kleur (bijv. Klus-wit) of anders een benaderende kleurnaam (ColorName_…), {1} = de hex-code, bijv. #FFFF00.</comment>
+  </data>
+  <data name="ColorName_Black" xml:space="preserve">
+    <value>zwart</value>
+    <comment>De benaderende kleurnamen (ColorNames): klein geschreven, want ze staan midden in een zin.</comment>
+  </data>
+  <data name="ColorName_DarkGrey" xml:space="preserve">
+    <value>donkergrijs</value>
+  </data>
+  <data name="ColorName_Grey" xml:space="preserve">
+    <value>grijs</value>
+  </data>
+  <data name="ColorName_LightGrey" xml:space="preserve">
+    <value>lichtgrijs</value>
+  </data>
+  <data name="ColorName_White" xml:space="preserve">
+    <value>wit</value>
+  </data>
+  <data name="ColorName_Red" xml:space="preserve">
+    <value>rood</value>
+  </data>
+  <data name="ColorName_DarkRed" xml:space="preserve">
+    <value>donkerrood</value>
+  </data>
+  <data name="ColorName_Pink" xml:space="preserve">
+    <value>roze</value>
+  </data>
+  <data name="ColorName_LightPink" xml:space="preserve">
+    <value>lichtroze</value>
+  </data>
+  <data name="ColorName_Orange" xml:space="preserve">
+    <value>oranje</value>
+  </data>
+  <data name="ColorName_LightOrange" xml:space="preserve">
+    <value>lichtoranje</value>
+  </data>
+  <data name="ColorName_Brown" xml:space="preserve">
+    <value>bruin</value>
+  </data>
+  <data name="ColorName_Yellow" xml:space="preserve">
+    <value>geel</value>
+  </data>
+  <data name="ColorName_LightYellow" xml:space="preserve">
+    <value>lichtgeel</value>
+  </data>
+  <data name="ColorName_Olive" xml:space="preserve">
+    <value>olijfgroen</value>
+  </data>
+  <data name="ColorName_Green" xml:space="preserve">
+    <value>groen</value>
+  </data>
+  <data name="ColorName_LightGreen" xml:space="preserve">
+    <value>lichtgroen</value>
+  </data>
+  <data name="ColorName_DarkGreen" xml:space="preserve">
+    <value>donkergroen</value>
+  </data>
+  <data name="ColorName_Turquoise" xml:space="preserve">
+    <value>turquoise</value>
+  </data>
+  <data name="ColorName_LightTurquoise" xml:space="preserve">
+    <value>lichtturquoise</value>
+  </data>
+  <data name="ColorName_DarkTurquoise" xml:space="preserve">
+    <value>donkerturquoise</value>
+  </data>
+  <data name="ColorName_Blue" xml:space="preserve">
+    <value>blauw</value>
+  </data>
+  <data name="ColorName_LightBlue" xml:space="preserve">
+    <value>lichtblauw</value>
+  </data>
+  <data name="ColorName_DarkBlue" xml:space="preserve">
+    <value>donkerblauw</value>
+  </data>
+  <data name="ColorName_Purple" xml:space="preserve">
+    <value>paars</value>
+  </data>
+  <data name="ColorName_LightPurple" xml:space="preserve">
+    <value>lichtpaars</value>
+  </data>
+  <data name="ColorName_DarkPurple" xml:space="preserve">
+    <value>donkerpaars</value>
   </data>
   <data name="EffectColorsDefault" xml:space="preserve">
     <value>Standaardkleuren</value>
@@ -934,7 +1021,8 @@
     <value>Zet de huidige kleur bij je eigen kleuren: hooguit 12, en elke kleur één keer</value>
   </data>
   <data name="CustomColorName" xml:space="preserve">
-    <value>Eigen kleur {0}</value>
+    <value>Eigen kleur: {0}</value>
+    <comment>Een vakje van de eigen kleuren, voor een schermlezer en als tooltip. {0} = ColorNameWithHex, bijv. "geel, #FFFF00".</comment>
   </data>
   <data name="CustomColorHelp" xml:space="preserve">
     <value>Met Delete of rechts klikken haal je deze kleur weg</value>
@@ -1150,6 +1238,7 @@
   </data>
   <data name="CustomEffectStepName" xml:space="preserve">
     <value>Stap {0}: {1}, {2:0.0} s blijven staan, {3:0.0} s overlopen</value>
+    <comment>Een stap van een eigen effect, voor een schermlezer en als tooltip. {1} = ColorNameWithHex (bijv. "rood, #FF3B3B") of CustomEffectPattern.</comment>
   </data>
   <data name="CustomEffectStepHelp" xml:space="preserve">
     <value>Kies de stap om hem te kleuren en zijn tijden te zetten. Delete haalt hem weg.</value>

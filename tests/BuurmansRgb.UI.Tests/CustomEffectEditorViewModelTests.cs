@@ -414,7 +414,7 @@ public sealed class CustomEffectEditorViewModelTests
     {
         _editor.Show(Disco);
 
-        Assert.Equal(UiText.Format(Strings.CustomEffectStepName, 1, "#FF0000", 1.0, 0.0), _editor.Steps[0].Name);
+        Assert.Equal(UiText.Format(Strings.CustomEffectStepName, 1, "Echt rood, #FF0000", 1.0, 0.0), _editor.Steps[0].Name);
         Assert.Equal(UiText.Format(Strings.CustomEffectStepName, 2, UiText.Format(Strings.CustomEffectPattern, 2), 2.0, 0.5), _editor.Steps[1].ToString());
     }
 }

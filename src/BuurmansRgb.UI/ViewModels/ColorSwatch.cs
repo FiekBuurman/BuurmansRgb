@@ -17,7 +17,8 @@ public sealed partial class ColorSwatch(int index, RgbColor color, bool isSelect
     [ObservableProperty]
     public partial bool IsSelected { get; set; } = isSelected;
 
-    public string Name => UiText.Format(Resources.Strings.ColorListSwatch, Index + 1, Color.ToHex());
+    // "Kleur 2: geel, #FFFF00".
+    public string Name => UiText.Format(Resources.Strings.ColorListSwatch, Index + 1, ColorNames.WithHex(Color));
 
     // WPF names the list item after it for screen readers; the object's own text means nothing there.
     public override string ToString() => Name;
