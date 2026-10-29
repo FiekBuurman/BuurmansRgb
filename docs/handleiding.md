@@ -67,9 +67,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde apparaten", twee of drie naast elkaar. Op de
   kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
   "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
-  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een heel
-  donkere kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat je de knop
-  blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
+  "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een
+  donkere of diepblauwe kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat
+  je de knop blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
   kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - **Alleen gesimuleerde apparaten:** zolang er bij "Gesimuleerde apparaten tonen" "Automatisch"
   staat (zie "Instellingen") en OpenRGB geen echte apparaten geeft, staat onder "Apparaten in huis"
@@ -730,8 +730,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
   kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
   dezelfde stijl als Verversen en "+ Erbij knutselen".
-- **Schakelaars** van een apparaat met een heel donkere kleur krijgen een lichter spoor (zwart wordt
-  grijs), zodat je de knop blijft zien.
+- **Schakelaars** van een apparaat met een donkere of diepblauwe kleur krijgen een lichter spoor
+  (zwart wordt grijs, `#0000FF` een lichter blauw), zodat de knop (`bg`) er minstens 3:1 op
+  haalt: in dezelfde tint, en maar zo veel lichter als nodig.
 - **Velden** (een tekstvak, een keuzelijst en een vinkje) hebben een lichtere rand dan het ontwerp:
   `#74727A` in plaats van `border` (`#2E2E36`, 1,2:1 op een kaart) of `border-strong` (`#4A4A54`,
   1,8:1), zodat je een veld ook zonder focus herkent: minstens 3:1 op `surface`, `bg` en

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Windows;
 using System.Windows.Media;
+using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -73,6 +74,16 @@ public sealed class TokenContrastTests
 
         Assert.True(rest < hover, $"The hover border ({hover:0.000}) is not lighter than the one at rest ({rest:0.000}).");
         Assert.True(hover < focus, $"The focus ({focus:0.000}) is not lighter than the hover border ({hover:0.000}).");
+    }
+
+    // SwitchTrackBrushConverter lifts the track of a switch that is on until its knob stands out:
+    // that knob is OnAccentBrush.
+    [Fact]
+    public void SwitchTrack_LiftsForTheKnobOfTheTokens()
+    {
+        var knob = SwitchTrackBrushConverter.KnobColor;
+
+        Assert.Equal(Tokens.Value["OnAccentBrush"], Color.FromRgb(knob.R, knob.G, knob.B));
     }
 
     // The formula itself, with ratios WCAG gives: black on white, a color on itself, and the grey
