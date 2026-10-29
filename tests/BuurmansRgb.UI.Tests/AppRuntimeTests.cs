@@ -21,14 +21,17 @@ public sealed class AppRuntimeTests
 
     // Only a guard against removing the settings from the project by accident: it reads the project
     // file and does not publish. Without ReadyToRun the app is 0.2-0.7 s later on screen; with it on
-    // assemblies the engine loads as well, the engine would run other code than was measured. That
+    // assemblies the engine loads as well, the engine would run other code than was measured; on a
+    // plain build or restore, the SDK would fetch the ReadyToRun compiler and the runtime packs. That
     // the publish does what the project says was checked by hand (docs/ontwikkelaars.md, "Metingen").
     [Fact]
     public void Project_PublishesOnlyTheAppsOwnAssembliesReadyToRun()
     {
         var project = XDocument.Load(Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI", "BuurmansRgb.UI.csproj"));
 
-        Assert.Equal("true", project.Descendants("PublishReadyToRun").Single().Value);
+        var readyToRun = project.Descendants("PublishReadyToRun").Single();
+        Assert.Equal("true", readyToRun.Value);
+        Assert.Equal("'$(_IsPublishing)' == 'true'", (string?)readyToRun.Attribute("Condition"));
         Assert.Equal("$(AssemblyName);CommunityToolkit.Mvvm", project.Descendants("ReadyToRunAssemblies").Single().Value);
         Assert.Contains(project.Descendants("Target"), target => (string?)target.Attribute("Name") == "KeepSharedAssembliesIL");
     }

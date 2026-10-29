@@ -15,9 +15,12 @@
          version and later an optimized second one of every method that runs often, which cost the
          app 8-17 MB of working set. Without it, each method is compiled once. Every publish of the
          app (with the installer or without) compiles it ahead of time (ReadyToRun), so the app is
-         usable only ~0.15 s later for it; a plain build without it starts 0.2-0.7 s later. -->
+         usable only ~0.15 s later for it; a plain build without it starts 0.2-0.7 s later.
+         Only on publish (dotnet publish sets _IsPublishing, also for its restore): set always, the
+         SDK would give every restore a runtime identifier and fetch the ReadyToRun compiler and the
+         win-x64 runtime packs for a plain build and test as well. -->
     <TieredCompilation>false</TieredCompilation>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRun Condition="'$(_IsPublishing)' == 'true'">true</PublishReadyToRun>
     <!-- Only these assemblies get ReadyToRun code, see KeepSharedAssembliesIL. -->
     <ReadyToRunAssemblies>$(AssemblyName);CommunityToolkit.Mvvm</ReadyToRunAssemblies>
   </PropertyGroup>
