@@ -7,8 +7,9 @@ namespace BuurmansRgb.UI.Views;
 // An LED of the design (§ 4): a dot in its color with a glow around it, like the CSS box-shadow
 // "0 0 <GlowBlur> <GlowSpread> <color>". The glow is a radial gradient drawn past the bounds
 // instead of a DropShadowEffect, which would render every bulb off screen on each frame. Off, it
-// shows OffBrush (led-off of the tokens, set by its style in Controls.xaml) without a glow. Only
-// decoration: what it shows is also said in text nearby.
+// shows OffBrush (led-off of the tokens, set by its style in Controls.xaml) without a glow. Off or
+// black, it gets a ring in OffRingBrush (LedRing), so you still see where it is. Only decoration:
+// what it shows is also said in text nearby.
 //
 // The glows are cached by size and color for all bulbs, with the color rounded to 5 bits per
 // channel, which a soft glow does not show: an animation then shows the same few hundred glows
@@ -21,6 +22,9 @@ public sealed class LedBulb : FrameworkElement
 
     public static readonly DependencyProperty OffBrushProperty = DependencyProperty.Register(
         nameof(OffBrush), typeof(Brush), typeof(LedBulb), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty OffRingBrushProperty = DependencyProperty.Register(
+        nameof(OffRingBrush), typeof(Brush), typeof(LedBulb), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
     public static readonly DependencyProperty IsLitProperty = DependencyProperty.Register(
         nameof(IsLit), typeof(bool), typeof(LedBulb), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
@@ -53,6 +57,13 @@ public sealed class LedBulb : FrameworkElement
     {
         get => (Brush?)GetValue(OffBrushProperty);
         set => SetValue(OffBrushProperty, value);
+    }
+
+    // The ring of a bulb that is off or black (LedOffRingBrush of the tokens, set by its style).
+    public Brush? OffRingBrush
+    {
+        get => (Brush?)GetValue(OffRingBrushProperty);
+        set => SetValue(OffRingBrushProperty, value);
     }
 
     public bool IsLit
@@ -88,13 +99,25 @@ public sealed class LedBulb : FrameworkElement
     {
         var center = new Point(ActualWidth / 2.0, ActualHeight / 2.0);
         var radius = Diameter / 2.0;
-        if (IsLit)
+        if (!GivesNoLight)
         {
             drawingContext.DrawEllipse(Glow(), null, center, GlowRadius, GlowRadius);
+            drawingContext.DrawEllipse(ColorBrushes.Get(Color), null, center, radius, radius);
+            return;
         }
 
-        drawingContext.DrawEllipse(IsLit ? ColorBrushes.Get(Color) : OffBrush, null, center, radius, radius);
+        // Without a glow, which black would only make a dark halo; the ring inside the edge.
+        var ring = LedRing.PenOf(OffRingBrush);
+        if (ring is not null)
+        {
+            radius = Math.Max(0.0, radius - ring.Thickness / 2.0);
+        }
+
+        drawingContext.DrawEllipse(IsLit ? ColorBrushes.Get(Color) : OffBrush, ring, center, radius, radius);
     }
+
+    // Off, or on in a color too dark to see, such as black in Per LED or a step of a custom effect.
+    internal bool GivesNoLight => !IsLit || LedRing.IsDark(Color);
 
     internal Brush Glow()
     {

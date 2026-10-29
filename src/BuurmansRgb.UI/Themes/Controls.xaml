@@ -270,9 +270,10 @@
         <Setter Property="CornerRadius" Value="{StaticResource LargeCardRadius}" />
         <Setter Property="Padding" Value="18" />
     </Style>
-    <!-- An LED bulb that is off shows led-off. -->
+    <!-- An LED bulb that is off shows led-off; off or black, it gets a ring that shows where it is. -->
     <Style TargetType="views:LedBulb">
         <Setter Property="OffBrush" Value="{StaticResource LedOffBrush}" />
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
     </Style>
 
     <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->
