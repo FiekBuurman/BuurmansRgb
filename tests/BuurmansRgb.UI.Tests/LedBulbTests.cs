@@ -129,6 +129,25 @@ public sealed class LedBulbTests
         Assert.Equal(Colors.White, Assert.IsType<SolidColorBrush>(Assert.Single(Drawings(first)).Pen.Brush).Color);
     });
 
+    // Two kinds of LEDs on one page that redraw in turn, such as the preview and the strip board of
+    // Kleur, each keep their pen: no new pen on every frame.
+    [Fact]
+    public void Render_TwoRingsInTurn_KeepTheirPens() => OffscreenWindow.Run(panel =>
+    {
+        var first = Added(panel, new LedBulb { IsLit = false, OffRingBrush = new SolidColorBrush(Colors.Gray) });
+        var second = Added(panel, new LedBulb { IsLit = false, OffRingBrush = new SolidColorBrush(Colors.White) });
+        var firstPen = Assert.Single(Drawings(first)).Pen;
+        var secondPen = Assert.Single(Drawings(second)).Pen;
+
+        first.Diameter = 14;
+        second.Diameter = 14;
+        first.Diameter = 12;
+
+        Assert.NotSame(firstPen, secondPen);
+        Assert.Same(firstPen, Assert.Single(Drawings(first)).Pen);
+        Assert.Same(secondPen, Assert.Single(Drawings(second)).Pen);
+    });
+
     [Theory]
     [InlineData(0, 0)]
     [InlineData(255, 255)]
