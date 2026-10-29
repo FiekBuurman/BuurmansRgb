@@ -36,11 +36,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   tekstkleur, en het spoor van een schuif een rand in de tekstkleur. Onder de muis krijgt alles
   de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
   rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
-  grote knop draait zijn
-  kleuren om en krijgt een rand. Dat gaat terwijl de app open
-  is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun
-  gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het
-  woordmerk houden hun eigen kleuren: dat zijn de kleuren die je instelt.
+  grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
+  je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
+  bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
+  houden hun eigen kleuren: dat zijn de kleuren die je instelt.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is

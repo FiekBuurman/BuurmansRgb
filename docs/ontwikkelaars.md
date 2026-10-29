@@ -647,14 +647,14 @@ toetsenbord. Een paar dingen om te proberen:
   app, met per token uit `ContrastTheme.SystemBrushes` een kleur van `SystemColors` (tekst
   `WindowText`, vlakken `Window`, randen `WindowText`, hover en selectie `Highlight` met
   `HighlightText`, links `HotTrack`, het spoor van een schuif `Window` met een ring in
-  `WindowText` zoals een schakelaar die uit staat (`GrayText` zou "uitgeschakeld" betekenen);
-  knoppen en kaarten om op te klikken `ButtonFace` en `ButtonText`, in WPF `SystemColors.Control`
-  en `ControlText`, en de
-  primaire knop, een aangevinkt vakje en een dag die aan staat `Highlight` met `HighlightText`,
-  zoals de richtlijnen van Microsoft voor contrastthema's zeggen; elke hover `Highlight`, een
-  link onder de muis ook met een streep eronder en een schakelaar met een ring
-  (`HoverOutlineBrush`, zonder thema doorzichtig), en de primaire knop draait dan zijn kleuren om met een ring in `Highlight`); gaat
-  het thema uit, dan haalt hij dat woordenboek weg en gelden de kleuren van het ontwerp weer.
+  `WindowText` zoals een schakelaar die uit staat; `GrayText` zou "uitgeschakeld" betekenen).
+  Knoppen en kaarten om op te klikken krijgen `ButtonFace` en `ButtonText` (in WPF
+  `SystemColors.Control` en `ControlText`), en de primaire knop, een aangevinkt vakje en een dag
+  die aan staat `Highlight` met `HighlightText`, zoals de richtlijnen van Microsoft voor
+  contrastthema's zeggen. Elke hover is `Highlight`: een link onder de muis krijgt ook een streep
+  eronder en een schakelaar een ring (`HoverOutlineBrush`, zonder thema doorzichtig), en de
+  primaire knop draait dan zijn kleuren om met een ring in `Highlight`. Gaat het thema uit, dan
+  haalt hij dat woordenboek weg en gelden de kleuren van het ontwerp weer.
   `App` start hem vóór het venster met `SystemHighContrast`, dat `SystemParameters.HighContrast`
   leest en `SystemParameters.StaticPropertyChanged` volgt, en ook `SystemEvents.UserPreferenceChanged`
   met de categorie `Color` (`WM_SYSCOLORCHANGE`): `ContrastTheme` legt de brushes van
@@ -666,8 +666,8 @@ toetsenbord. Een paar dingen om te proberen:
   als Windows er een reeks stuurt; `SystemHighContrast` geeft ze alleen door, zodat
   `HighContrastMessagesTests` het filteren en samenvoegen test zonder `SystemEvents`. Tests geven
   een `FakeHighContrast` via `IHighContrast`, zodat geen test de instelling van Windows leest of
-  verandert. Wil je het zelf zien zonder je eigen instelling om te
-  zetten, gebruik dan Windows Sandbox of een virtuele machine, met de app open:
+  verandert. Wil je het zelf zien zonder je eigen instelling om te zetten, gebruik dan Windows
+  Sandbox of een virtuele machine, met de app open:
   1. Zet een contrastthema aan (bijv. "Woestijn"): de open pagina krijgt de kleuren van het thema.
   2. Kies direct een ander contrastthema (bijv. "Nachthemel"), zonder het eerste uit te zetten:
      alles krijgt de kleuren van het nieuwe thema, ook knoppen, links en de focusring.
@@ -677,12 +677,12 @@ toetsenbord. Een paar dingen om te proberen:
      kruisje: elk krijgt de markeerkleur, een link ook een streep eronder.
   5. Zet het contrastthema uit: de app is weer donker, gelijk aan hoe hij was.
 
-  Een token dat hij vervangt, staat in de XAML altijd als
-  `DynamicResource`: een `StaticResource` houdt de kleur van bij het laden, en
-  `ContrastThemeTests` wordt rood als er een in `src/BuurmansRgb.UI` staat. Waar een token twee
-  rollen had (bijv. `border` als rand en als achtergrond van een gekozen item), kreeg de tweede
-  rol een eigen token (`ItemHighlightBrush`, `NavSelectedBrush`, ...) met dezelfde kleur, zodat
-  het ontwerp gelijk blijft. Zo'n token hoort bij een rol, niet bij één onderdeel: onderdelen met
+  Een token dat hij vervangt, staat in de XAML altijd als `DynamicResource`: een
+  `StaticResource` houdt de kleur van bij het laden, en `ContrastThemeTests` wordt rood als er
+  een in `src/BuurmansRgb.UI` staat. Waar een token twee rollen had (bijv. `border` als rand en
+  als achtergrond van een gekozen item), kreeg de tweede rol een eigen token
+  (`ItemHighlightBrush`, `NavSelectedBrush`, ...) met dezelfde kleur, zodat het ontwerp gelijk
+  blijft. Zo'n token hoort bij een rol, niet bij één onderdeel: onderdelen met
   dezelfde rol delen het, en een nieuw onderdeel gebruikt een bestaand token als de rol klopt.
   De rollen: `AccentBrush` met `OnAccentBrush` (wat primair is of aan staat: de primaire knop,
   een aangevinkt vakje, een dag die aan staat, de knop van een schakelaar die aan staat) en
