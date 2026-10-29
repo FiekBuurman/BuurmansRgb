@@ -4,6 +4,7 @@ using System.Windows.Controls;
 namespace BuurmansRgb.UI.Tests;
 
 // The tile of a color, in the toolbox and in the color loop: the chosen one has a thick border.
+[Collection(AppThemeCollection.Name)]
 public sealed class PresetTileTests
 {
     [Fact]
