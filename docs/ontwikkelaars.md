@@ -659,8 +659,8 @@ toetsenbord. Een paar dingen om te proberen:
   tilt `SwitchTrackBrushConverter` op tot de knop er minstens 3:1 op haalt, met de formule van
   WCAG: eerst feller in dezelfde tint, en is het felste kanaal al vol (zoals bij `#0000FF`), met
   wit gemengd; zwart wordt grijs. Een kleur die het al haalt, blijft. Dat zijn twee binaire
-  zoektochten over 0–255 met een tabel van de lineaire kanaalwaarden: hooguit 16 pogingen, zonder
-  allocaties (`SwitchTrackBrushConverterTests`; `TokenContrastTests` houdt de knop gelijk aan
+  zoektochten over 0–255 met een tabel van de lineaire kanaalwaarden; ze sluiten elkaar
+  uit, dus hooguit 8 stappen, plus een paar losse controles, zonder allocaties (`SwitchTrackBrushConverterTests`; `TokenContrastTests` houdt de knop gelijk aan
   `OnAccentBrush`). Bij een schuif dragen de knop en het gevulde deel de waarde, in de tekstkleur (14:1 op een kaart) of in
   rood, groen of blauw (5,2–9:1); de rest van de rail toont alleen hoe ver hij nog kan.
 - **Contrastthema:** `ContrastTheme` (in `Views`) volgt de contrastthema's van Windows. Staat er

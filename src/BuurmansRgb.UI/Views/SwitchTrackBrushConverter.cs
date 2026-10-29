@@ -30,7 +30,8 @@ public sealed class SwitchTrackBrushConverter : IValueConverter
         throw new NotSupportedException();
 
     // The least lift that gives MinContrast; a color that already has it stays. Both steps are a
-    // binary search over 0–255, as the luminance only grows along them: at most 16 tries.
+    // binary search over 0–255, as the luminance only grows along them, and the two searches exclude
+    // each other: at most 8 steps, plus a few single checks.
     internal static RgbColor Lift(RgbColor color)
     {
         if (Luminance(color) >= MinLuminance)
