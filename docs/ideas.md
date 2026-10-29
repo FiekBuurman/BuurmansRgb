@@ -293,6 +293,14 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het veld van de hex-code op Kleur is 180 px breed, gemeten voor de 30 px van `HexCodeSize`.
   Gaan de lettermaten de tekstgrootte van Windows volgen, dan moet die breedte meeschalen (of
   uit de lettermaat volgen); `HexCodeViewTests` controleert dat een hele code past
+- Met een contrastthema van Windows een knop, schuif of veld dat niets doet in `GrayText` tonen,
+  zoals Windows dat doet, in plaats van alleen doorzichtiger (`Opacity` 0,4–0,6); dat laatste
+  geeft in een contrastthema minder contrast dan het thema belooft
+- Met een licht contrastthema (bijv. "Woestijn") een lichte versie van het kleine icoon in de
+  titelbalk (`AppIconSmallDark`); nu staat daar het donkere icoon op een licht vlak
+- De focusring van de actieve LED in het voorbeeld (`LedPreviewView`) leest de tekstkleur pas bij
+  het volgende beeld; bij een statisch effect krijgt hij de kleur van een contrastthema dat net
+  aanging pas als de focus of de LED's veranderen
 
 ### Voorbeeld en per-LED-editor
 
