@@ -618,7 +618,7 @@ Hoe het vanzelf aanzetten werkt:
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
   logbestand, of kan Windows het niet openen, dan staat in de statusregel "Het logbestand kon
   niet worden geopend.".
-- **Onderaan** staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0") en de link
+- **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0") en de link
   "Handleiding", die deze handleiding op GitHub in je browser opent.
 
 Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
