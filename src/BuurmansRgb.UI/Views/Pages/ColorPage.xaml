@@ -77,19 +77,31 @@
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
                         <!-- The location label tells twins apart, such as the RAM sticks of a kit. On the
                              selected item of the open list it takes the color for muted text there, which
-                             a contrast theme makes the text on its highlight. -->
-                        <ComboBox.ItemTemplate>
+                             a contrast theme makes the text on its highlight: the item takes that template
+                             from ItemContainerStyle while it is selected. The selection box has no
+                             ComboBoxItem around it, so it shows the template by type; there is no
+                             ItemTemplate, which would win over both. -->
+                        <ComboBox.Resources>
                             <DataTemplate DataType="{x:Type vm:DeviceItem}">
                                 <TextBlock>
-                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run x:Name="Location" Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource TextMutedBrush}" />
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource TextMutedBrush}" />
                                 </TextBlock>
-                                <DataTemplate.Triggers>
-                                    <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue=False}" Value="True">
-                                        <Setter TargetName="Location" Property="Foreground" Value="{DynamicResource OnHighlightMutedTextBrush}" />
-                                    </DataTrigger>
-                                </DataTemplate.Triggers>
                             </DataTemplate>
-                        </ComboBox.ItemTemplate>
+                            <DataTemplate x:Key="SelectedDeviceTemplate" DataType="{x:Type vm:DeviceItem}">
+                                <TextBlock>
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource OnHighlightMutedTextBrush}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.Resources>
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource SelectedDeviceTemplate}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
                         <ComboBox.GroupStyle>
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>
