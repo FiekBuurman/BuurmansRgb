@@ -38,7 +38,8 @@ public static class ColorNames
     // such as #EE82EE is lila, so light purple. Yellow starts at 40°, so the yellow of Vuur (#FFBE1E)
     // and goldenrod (#DAA520) are yellow and #FFA500 orange. Blue ends at 250°, so #A07BFF, close to
     // the Paars of the toolbox, is purple, and red goes on to 340°, so a red with a touch of blue
-    // (#FF0040) stays red.
+    // (#FF0040) stays red. A magenta of middle value or bright (#FF00FF, #C71585) is pink on purpose:
+    // that is how people name such a LED color, more than "magenta" or "paars".
     // ColorNamesTests holds a series of colors around the borders.
     public static ColorTone ToneOf(RgbColor color)
     {
