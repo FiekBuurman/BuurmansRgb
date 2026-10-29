@@ -34,15 +34,17 @@
             <Setter Property="Margin" Value="0,0,0,6" />
         </Style>
 
-        <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color. -->
+        <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
+             A field like the others, with their border, hover and focus, so you see you can type in it;
+             without their fill, so it stays on the dark of the preview. Just wide enough for a code. -->
         <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="{StaticResource HexCodeSize}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="6,0" />
-            <Setter Property="Margin" Value="-6,0,0,0" />
+            <Setter Property="Width" Value="180" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="Margin" Value="0,4,0,0" />
             <Setter Property="MaxLength" Value="7" />
         </Style>
 
