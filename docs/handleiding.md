@@ -356,7 +356,8 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   een scène, een pauze of een andere pagina komt er één nieuw beeld. **Knipperen** flitst dan
   niet wit aan en uit in het voorbeeld: de kaart van het apparaat krijgt zolang de markering
   "Knippert nu op het apparaat" (bij een zone met de naam van de zone), en het voorbeeld houdt
-  zijn beeld tot het knipperen voorbij is. Bij **Tellen** komt er per stap één beeld: één LED
+  zijn beeld tot het knipperen voorbij is. Tijdens een pauze knippert er niets, en dan komt er
+  ook geen markering. Bij **Tellen** komt er per stap één beeld: één LED
   meer, er gaat niets aan en uit. Met "Laten lopen" boven het voorbeeld beweegt het weer zoals
   altijd.
 
