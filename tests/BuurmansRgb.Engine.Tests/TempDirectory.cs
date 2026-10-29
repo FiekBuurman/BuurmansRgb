@@ -10,7 +10,9 @@ internal sealed class TempDirectory : IDisposable
 
     // Windows may hold on to a file for a moment after the last handle to it closed, such as the exe
     // of a program a test started and stopped, so the delete is tried again for a while. A directory
-    // that stays is left in the temp folder with a warning: it does not make a test fail that passed.
+    // that stays is left in the temp folder, and the test that passed stays green. It gets a warning,
+    // which the test exe itself shows, and the same line as output, as dotnet test leaves a warning
+    // out: that shows it with --output Detailed (and --fail-warns on makes such a test fail).
     public void Dispose()
     {
         var stopwatch = Stopwatch.StartNew();
@@ -24,7 +26,9 @@ internal sealed class TempDirectory : IDisposable
             {
                 if (stopwatch.Elapsed >= TestTimeouts.Short)
                 {
-                    Trace.TraceWarning($"Could not delete {Path}: {exception.Message}");
+                    var message = $"Could not delete {Path}: {exception.Message}";
+                    TestContext.Current.AddWarning(message);
+                    TestContext.Current.TestOutputHelper?.WriteLine(message);
                     return;
                 }
 
