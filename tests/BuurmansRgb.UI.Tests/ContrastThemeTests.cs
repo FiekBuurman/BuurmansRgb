@@ -253,13 +253,13 @@ public sealed partial class ContrastThemeTests
 
     // The keys a XAML refers to with StaticResource, as a markup extension in an attribute (with or
     // without ResourceKey=) or as an element of its own, where ResourceKey may be on another line.
-    private static IEnumerable<(string Key, int Index)> StaticReferences(string xaml) =>
+    internal static IEnumerable<(string Key, int Index)> StaticReferences(string xaml) =>
         StaticResourcePattern().Matches(xaml).Select(match => (match.Groups["key"].Value, match.Index));
 
     [GeneratedRegex("""\{StaticResource\s+(?:ResourceKey\s*=\s*)?(?<key>[^\s,}]+)\s*\}|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*"(?<key>[^"]+)"|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*'(?<key>[^']+)'""")]
     private static partial Regex StaticResourcePattern();
 
-    private static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
+    internal static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
 
     [Fact]
     public void Dispose_StopsFollowing() => Sta.Run(() =>
@@ -277,7 +277,7 @@ public sealed partial class ContrastThemeTests
 
     private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
 
-    private static string RepoRoot()
+    internal static string RepoRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "BuurmansRgb.slnx")))

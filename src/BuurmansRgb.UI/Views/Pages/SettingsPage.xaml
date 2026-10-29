@@ -11,6 +11,13 @@
              xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
+    <UserControl.Resources>
+        <!-- The width of a choice, in em of its text: 240 and 300 px at 100 %, wider with a larger text
+             size of Windows, so the longest option still fits. -->
+        <views:EmConverter x:Key="NarrowChoiceWidth" Ems="16" />
+        <views:EmConverter x:Key="ChoiceWidth" Ems="20" />
+    </UserControl.Resources>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.SettingsTitle}" />
@@ -42,7 +49,7 @@
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SimulatedDevicesHeader}" />
                         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SimulatedDevicesHint}" />
-                        <ComboBox Width="240" HorizontalAlignment="Left" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
+                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource NarrowChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
                                   SelectedItem="{Binding SimulatedDevices.SelectedOption}"
                                   AutomationProperties.Name="{x:Static res:Strings.SimulatedDevicesLabel}"
                                   AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesHint}" />
@@ -55,7 +62,7 @@
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" />
                         <TextBlock Margin="0,12,0,0" Style="{StaticResource Body}" Text="{x:Static res:Strings.FrameRateLabel}" />
                         <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" Text="{x:Static res:Strings.FrameRateHint}" />
-                        <ComboBox Width="300" HorizontalAlignment="Left" ItemsSource="{Binding EffectOptions.FrameRates}" DisplayMemberPath="DisplayName"
+                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{Binding EffectOptions.FrameRates}" DisplayMemberPath="DisplayName"
                                   SelectedItem="{Binding EffectOptions.SelectedFrameRate}"
                                   AutomationProperties.Name="{x:Static res:Strings.FrameRateLabel}"
                                   AutomationProperties.HelpText="{x:Static res:Strings.FrameRateHint}" />
@@ -73,7 +80,7 @@
                         <StackPanel Margin="0,18,0,0" IsEnabled="{Binding EffectOptions.PauseOnLockAndSleep}">
                             <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.PausedLightsLabel}" />
                             <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PausedLightsHint}" />
-                            <ComboBox Width="300" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
+                            <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
                                       SelectedItem="{Binding EffectOptions.SelectedPausedLights}"
                                       AutomationProperties.Name="{x:Static res:Strings.PausedLightsLabel}"
                                       AutomationProperties.HelpText="{x:Static res:Strings.PausedLightsHint}" />

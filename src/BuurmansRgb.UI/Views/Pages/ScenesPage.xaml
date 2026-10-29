@@ -16,12 +16,16 @@
         <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
             <Setter Property="Margin" Value="0,0,0,6" />
         </Style>
+
+        <!-- A time of five characters of 0.6 em in the mono font, plus the padding and the border: 110 px
+             at 100 %, wider with a larger text size of Windows. -->
+        <views:EmConverter x:Key="TimeBoxWidth" Ems="3" Extra="65" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" />
-            <TextBlock Margin="0,2,0,20" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
+            <TextBlock Margin="0,2,0,20" FontSize="{DynamicResource SmallBodySize}" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
 
             <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
                        Visibility="{Binding Profiles.HasScenes, Converter={StaticResource InverseBoolToVisibility}}" />
@@ -57,7 +61,8 @@
                                             </DataTemplate>
                                         </views:DecorativeItemsControl.ItemTemplate>
                                     </views:DecorativeItemsControl>
-                                    <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
+                                    <!-- The top of the name is beside the wrench, so it ends before it. -->
+                                    <TextBlock Margin="0,16,36,0" Style="{StaticResource CardTitle}" FontSize="{DynamicResource SceneCardTitleSize}" Text="{Binding Name}" />
                                     <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
                                 </StackPanel>
                             </Button>
@@ -136,7 +141,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:LoadTimeRow}">
                                     <WrapPanel Margin="0,0,0,6">
-                                        <TextBox Width="110" Margin="0,0,12,6" VerticalAlignment="Center" MaxLength="5" FontFamily="{StaticResource MonoFont}"
+                                        <TextBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource TimeBoxWidth}}" Margin="0,0,12,6" VerticalAlignment="Center" MaxLength="5" FontFamily="{StaticResource MonoFont}"
                                                  Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                                                  ToolTip="{x:Static res:Strings.ProfileLoadAtHint}"
                                                  AutomationProperties.Name="{Binding TimeAccessibleName}"

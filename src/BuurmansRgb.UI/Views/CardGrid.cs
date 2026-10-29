@@ -5,7 +5,7 @@ namespace BuurmansRgb.UI.Views;
 
 // Lays cards out in equal columns, as many as fit at MinColumnWidth up to MaxColumns (§ 6: two to
 // three lamps, three to four scenes side by side), with Gap between them. A row is as high as its
-// highest card.
+// highest card. A collapsed child takes no place, so it leaves no empty row and no gap behind.
 public sealed class CardGrid : Panel
 {
     public static readonly DependencyProperty MinColumnWidthProperty = DependencyProperty.Register(
@@ -47,22 +47,30 @@ public sealed class CardGrid : Panel
         var columnWidth = double.IsFinite(availableSize.Width)
             ? Math.Max(0, (availableSize.Width - Gap * (columns - 1)) / columns)
             : MinColumnWidth;
+        var cards = CardCount();
         var height = 0.0;
         var rowHeight = 0.0;
-        for (var i = 0; i < InternalChildren.Count; i++)
+        var place = 0;
+        foreach (UIElement child in InternalChildren)
         {
-            var child = InternalChildren[i];
             child.Measure(new Size(columnWidth, double.PositiveInfinity));
-            rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
-            if (i % columns == columns - 1 || i == InternalChildren.Count - 1)
+            if (child.Visibility == Visibility.Collapsed)
             {
-                height += rowHeight + (i >= columns ? Gap : 0);
+                continue;
+            }
+
+            rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
+            if (place % columns == columns - 1 || place == cards - 1)
+            {
+                height += rowHeight + (place >= columns ? Gap : 0);
                 rowHeight = 0;
             }
+
+            place++;
         }
 
         var width = double.IsFinite(availableSize.Width) ? availableSize.Width : columnWidth * columns + Gap * (columns - 1);
-        return new Size(InternalChildren.Count == 0 ? 0 : width, height);
+        return new Size(cards == 0 ? 0 : width, height);
     }
 
     protected override Size ArrangeOverride(Size finalSize)
@@ -70,24 +78,53 @@ public sealed class CardGrid : Panel
         var columns = ColumnsFor(finalSize.Width, MinColumnWidth, Gap, MaxColumns);
         var columnWidth = Math.Max(0, (finalSize.Width - Gap * (columns - 1)) / columns);
         var y = 0.0;
-        for (var row = 0; row * columns < InternalChildren.Count; row++)
+        var next = 0;
+        while (next < InternalChildren.Count)
         {
-            var first = row * columns;
-            var last = Math.Min(first + columns, InternalChildren.Count);
+            // A row is the next columns cards, with the collapsed children between them.
+            var first = next;
             var rowHeight = 0.0;
-            for (var i = first; i < last; i++)
+            for (var placed = 0; next < InternalChildren.Count && placed < columns; next++)
             {
-                rowHeight = Math.Max(rowHeight, InternalChildren[i].DesiredSize.Height);
+                var child = InternalChildren[next];
+                if (child.Visibility != Visibility.Collapsed)
+                {
+                    rowHeight = Math.Max(rowHeight, child.DesiredSize.Height);
+                    placed++;
+                }
             }
 
-            for (var i = first; i < last; i++)
+            var column = 0;
+            for (var i = first; i < next; i++)
             {
-                InternalChildren[i].Arrange(new Rect((i - first) * (columnWidth + Gap), y, columnWidth, rowHeight));
+                var child = InternalChildren[i];
+                if (child.Visibility == Visibility.Collapsed)
+                {
+                    child.Arrange(default);
+                    continue;
+                }
+
+                child.Arrange(new Rect(column++ * (columnWidth + Gap), y, columnWidth, rowHeight));
             }
 
             y += rowHeight + Gap;
         }
 
         return finalSize;
+    }
+
+    // The children that take a place: a collapsed one takes none.
+    private int CardCount()
+    {
+        var count = 0;
+        foreach (UIElement child in InternalChildren)
+        {
+            if (child.Visibility != Visibility.Collapsed)
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 }

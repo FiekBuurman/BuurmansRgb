@@ -290,9 +290,6 @@ uitbreidingen in `docs/bouwplan.md`.
   en kaarten (`border`, 1,2:1) nalopen op 3:1. Knoppen en kaarten zijn aan hun tekst te
   herkennen, dus WCAG vraagt het daar niet; de velden kregen in "contrast-invoer" wel een eigen
   rand (`InputBorderColor`)
-- Het veld van de hex-code op Kleur is 180 px breed, gemeten voor de 30 px van `HexCodeSize`.
-  Gaan de lettermaten de tekstgrootte van Windows volgen, dan moet die breedte meeschalen (of
-  uit de lettermaat volgen); `HexCodeViewTests` controleert dat een hele code past
 - Met een contrastthema van Windows een knop, schuif of veld dat niets doet in `GrayText` tonen,
   zoals Windows dat doet, in plaats van alleen doorzichtiger (`Opacity` 0,4–0,6); dat laatste
   geeft in een contrastthema minder contrast dan het thema belooft
@@ -317,6 +314,19 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het tekenen van de ring van een LED die uit staat of zwart is meten met een zichtbaar venster
   (niet vergrendeld): de meting bij "led-uit-zichtbaar" telde `OnRender` en de layout, niet het
   tekenen van de lijnen door WPF zelf
+- Met een grote tekstgrootte van Windows ook nalopen wat `TextScaleViewTests` niet toont: een open
+  keuzelijst, een tooltip en "Kies uit wat nu draait" met programma's. Nu controleert de test de
+  pagina's zelf, met de panelen die komen en gaan (ook Tellen bij een zone en de melding onder de
+  hex-code)
+- Een tooltip met de hele naam op de keuze van een apparaat op Kleur als die op "…" eindigt
+- De tekst van een knop laten omlopen als de knop smaller is dan zijn tekst (de primaire knop, een
+  gewone knop); bij de pagina's van nu gebeurt dat met elke tekstgrootte niet, omdat de kolommen
+  op Kleur onder elkaar gaan, maar een smallere plek zou de tekst afkappen
+- De breedste regel op Instellingen (`MaxWidth` 760) en de kolommen van Apparaten en Scènes
+  (`MinColumnWidth` 280 en 220) in em laten meegroeien met de tekstgrootte, zodat een regel bij
+  200 % niet half zo veel woorden heeft
+- Het tekenen van de app bij een grote tekstgrootte meten met een zichtbaar venster (niet
+  vergrendeld); bij "tekstgrootte" is alleen het opbouwen van een pagina en een wissel gemeten
 
 ### Voorbeeld en per-LED-editor
 

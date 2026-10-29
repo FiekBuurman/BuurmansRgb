@@ -7,9 +7,9 @@ namespace BuurmansRgb.UI.Views;
 // Follows the contrast themes of Windows: while one is on, the tokens of Themes/Tokens.xaml for text,
 // surfaces, borders, links, focus and selection take the colors of that theme (SystemColors), and
 // when it goes off the colors of the design come back, both while the app runs. It does so with a
-// dictionary of its own on top of the theme, so the XAML has to refer to these tokens with
-// DynamicResource. The LEDs, their glow, the strip board under them and the colors of a scene are
-// content and keep their colors, as do the logo and the R, G and B of the sliders on Kleur.
+// dictionary of its own on top of the theme (a ResourceOverlay), so the XAML has to refer to these
+// tokens with DynamicResource. The LEDs, their glow, the strip board under them and the colors of a
+// scene are content and keep their colors, as do the logo and the R, G and B of the sliders on Kleur.
 public sealed class ContrastTheme : IDisposable
 {
     // Per token the color it takes in a contrast theme. Muted text takes the text color, not
@@ -73,18 +73,17 @@ public sealed class ContrastTheme : IDisposable
         ["CardLedOffRingBrush"] = () => SystemColors.ControlTextBrush,
     };
 
-    private readonly ResourceDictionary _resources;
+    private readonly ResourceOverlay _colors;
     private readonly IHighContrast _highContrast;
-    private ResourceDictionary? _colors;
 
     private ContrastTheme(ResourceDictionary resources, IHighContrast highContrast)
     {
-        _resources = resources;
+        _colors = new ResourceOverlay(resources);
         _highContrast = highContrast;
     }
 
     // Whether the colors of a contrast theme are in the resources now.
-    public bool IsApplied => _colors is not null;
+    public bool IsApplied => _colors.Current is not null;
 
     // From now on, the resources of the app (or of a test) follow highContrast.
     public static ContrastTheme Follow(ResourceDictionary resources, IHighContrast highContrast)
@@ -101,32 +100,8 @@ public sealed class ContrastTheme : IDisposable
     private void OnChanged(object? sender, EventArgs e) => Apply();
 
     // Always anew while a contrast theme is on, as another one may have taken over or its colors may
-    // have changed: SystemColors then has new brushes. A replace is one change of the resources, so
-    // WPF looks the tokens up again once.
-    private void Apply()
-    {
-        var merged = _resources.MergedDictionaries;
-        var colors = _highContrast.IsOn ? SystemColorsDictionary() : null;
-        var index = _colors is null ? -1 : merged.IndexOf(_colors);
-        if (index >= 0 && colors is not null)
-        {
-            merged[index] = colors;
-        }
-        else
-        {
-            if (index >= 0)
-            {
-                merged.RemoveAt(index);
-            }
-
-            if (colors is not null)
-            {
-                merged.Add(colors);
-            }
-        }
-
-        _colors = colors;
-    }
+    // have changed: SystemColors then has new brushes.
+    private void Apply() => _colors.Set(_highContrast.IsOn ? SystemColorsDictionary() : null);
 
     private static ResourceDictionary SystemColorsDictionary()
     {

@@ -13,6 +13,12 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
              Focusable="False">
+    <UserControl.Resources>
+        <!-- A length of four digits of 0.6 em in the mono font, plus the padding and the border: 64 px at
+             100 %, wider with a larger text size of Windows. -->
+        <views:EmConverter x:Key="LengthBoxWidth" Ems="2.4" Extra="28" />
+    </UserControl.Resources>
+
     <StackPanel>
         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" />
         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PreviewHint}" />
@@ -70,7 +76,7 @@
                                                         ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding CountFocusKey}"
                                                         Visibility="{Binding ShowsCount, Converter={StaticResource BoolToVisibility}}" />
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"
+                                                    <TextBlock FontSize="{DynamicResource SubTextSize}" TextWrapping="Wrap"
                                                                Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
                                                         <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
                                                             <Run Text="{Binding Header, Mode=OneWay}" />
@@ -78,7 +84,7 @@
                                                     </TextBlock>
                                                     <TextBlock Style="{StaticResource SubText}" Text="{Binding Header}"
                                                                Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                                    <TextBlock FontSize="{StaticResource SubTextSize}"
+                                                    <TextBlock FontSize="{DynamicResource SubTextSize}"
                                                                Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
                                                         <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
                                                                    AutomationProperties.Name="{Binding SelectAllAccessibleName}">
@@ -106,7 +112,7 @@
                                                     Visibility="{Binding IsCounting, Converter={StaticResource BoolToVisibility}}"
                                                     views:FocusFallback.Target="{Binding ElementName=CountButton}">
                                                 <StackPanel DataContext="{Binding Count}">
-                                                    <TextBlock Style="{StaticResource BigValue}" FontSize="44" FontFamily="{StaticResource MonoFont}"
+                                                    <TextBlock Style="{StaticResource BigValue}" FontSize="{DynamicResource CountValueSize}" FontFamily="{StaticResource MonoFont}"
                                                                Text="{Binding LedText}" AutomationProperties.Name="{Binding AccessibleName}" />
                                                     <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{Binding Status, NotifyOnTargetUpdated=True}"
                                                                AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
@@ -184,7 +190,7 @@
                                                             ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}" Command="{Binding Length.IncreaseCommand}"
                                                             AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/increase}" />
-                                                    <TextBox Grid.Column="3" Width="64" Margin="10,0,0,0" FontFamily="{StaticResource MonoFont}"
+                                                    <TextBox Grid.Column="3" Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource LengthBoxWidth}}" Margin="10,0,0,0" FontFamily="{StaticResource MonoFont}"
                                                              Text="{Binding Length.LedCountText, UpdateSourceTrigger=PropertyChanged}"
                                                              AutomationProperties.Name="{Binding Length.TextAccessibleName}"
                                                              AutomationProperties.HelpText="{Binding LedCountHelpText}"

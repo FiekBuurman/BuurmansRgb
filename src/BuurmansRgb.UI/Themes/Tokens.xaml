@@ -127,15 +127,26 @@
     <FontFamily x:Key="TextFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="MonoFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#IBM Plex Mono, Cascadia Mono, Consolas</FontFamily>
 
+    <!-- The sizes of text follow the text size of Windows (TextScale), so the XAML refers to them with
+         DynamicResource. The word mark is the logo and keeps its size. -->
     <sys:Double x:Key="ScreenTitleSize">30</sys:Double>
     <sys:Double x:Key="BigValueSize">26</sys:Double>
     <sys:Double x:Key="WordmarkSize">22</sys:Double>
+    <sys:Double x:Key="SmallScreenTitleSize">22</sys:Double>
     <sys:Double x:Key="SectionHeaderSize">18</sys:Double>
     <sys:Double x:Key="CardTitleSize">16</sys:Double>
     <sys:Double x:Key="BodySize">15</sys:Double>
     <sys:Double x:Key="SubTextSize">13</sys:Double>
     <sys:Double x:Key="NavLabelSize">12</sys:Double>
     <sys:Double x:Key="HexCodeSize">30</sys:Double>
+    <!-- Sizes of the screens of the design outside the type scale: the card title of a scene and the
+         text of the primary button (17), of "+ nieuw" (16), smaller body text such as links and the
+         numbers beside a slider (14), and the counter of the LEDs of a zone (44). -->
+    <sys:Double x:Key="SceneCardTitleSize">17</sys:Double>
+    <sys:Double x:Key="PrimaryButtonSize">17</sys:Double>
+    <sys:Double x:Key="NewButtonSize">16</sys:Double>
+    <sys:Double x:Key="SmallBodySize">14</sys:Double>
+    <sys:Double x:Key="CountValueSize">44</sys:Double>
 
     <!-- § 3 Sizes -->
     <CornerRadius x:Key="LargeCardRadius">22</CornerRadius>

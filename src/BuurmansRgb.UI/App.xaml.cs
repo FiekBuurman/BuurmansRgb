@@ -26,6 +26,8 @@ public partial class App : Application
     private FileLog? _log;
     private SystemHighContrast? _highContrast;
     private ContrastTheme? _contrastTheme;
+    private SystemTextScale? _systemTextScale;
+    private TextScale? _textScale;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -50,6 +52,9 @@ public partial class App : Application
         // Before the window loads, so it opens in the colors of a contrast theme that is on.
         _highContrast = new SystemHighContrast();
         _contrastTheme = ContrastTheme.Follow(Resources, _highContrast);
+        // Likewise, so it opens in the text size of Windows.
+        _systemTextScale = new SystemTextScale();
+        _textScale = TextScale.Follow(Resources, _systemTextScale);
 
         _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open));
         var window = new MainWindow { DataContext = _viewModel };
@@ -69,6 +74,8 @@ public partial class App : Application
         _viewModel?.Dispose();
         _contrastTheme?.Dispose();
         _highContrast?.Dispose();
+        _textScale?.Dispose();
+        _systemTextScale?.Dispose();
         _instance?.Dispose();
         _log?.Dispose();
         base.OnExit(e);
