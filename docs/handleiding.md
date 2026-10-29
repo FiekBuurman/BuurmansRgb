@@ -39,7 +39,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
   je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
   bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
-  houden hun eigen kleuren: dat zijn de kleuren die je instelt.
+  houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
+  uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -59,6 +60,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 - De kaart **Hele huis** zegt hoeveel apparaten aan zijn ("11 van 12 aan"), heeft een grote
   schakelaar voor alles en een strip van 14 bolletjes die laat zien wat de apparaten nu echt doen:
   elk bolletje is een LED uit alle apparaten achter elkaar, dus bij een regenboog loopt hij mee.
+  Een LED die uit staat of zwart is, is een donker bolletje met een grijze ring en zonder gloed:
+  zo zie je waar hij zit, en dat hij geen licht geeft. Zo staat een apparaat dat uit staat ook
+  op zijn kaart, en een scène met de apparaten uit (of in het zwart) op zijn scènekaart.
 - **Apparaten in huis:** elk apparaat als kaart, de echte onder "Echte apparaten
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde apparaten", twee of drie naast elkaar. Op de
   kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
@@ -323,6 +327,10 @@ ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een 
 voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
 
+- **Zwarte LED's** (bijv. in Per LED, een stap van een eigen effect, of een apparaat dat uit
+  staat) krijgen een grijze ring binnen hun rand, zodat je ziet waar ze zitten en erop kunt
+  klikken; een LED in een kleur heeft die ring niet. De ring van een gekozen LED staat er net
+  buiten, in de markeerkleur van Windows.
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een apparaat met één zone
   toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
   apparaat is wat?"), behalve bij "Overige LED's": de LED's die OpenRGB bij geen zone indeelt.
@@ -730,6 +738,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   `preview-bg` (WCAG 1.4.11). Onder de muis wordt de rand `text-muted` in plaats van de
   `#4A4A54` van § 6, want die is donkerder dan de rand in rust; met de focus blijft het de ring van
   2 px in `text`. Kaarten en knoppen houden de randen van het ontwerp.
+- **Een LED die uit staat** (of zwart is) heeft een grijze ring van 1,5 px binnen zijn rand
+  (`#7A7880`): het ontwerp (§ 4, "LED-bolletje") geeft hem alleen `led-off` zonder gloed, en dat is
+  1,4–1,7:1 op een kaart en in het voorbeeld, en zwart nog minder. De ring is minstens 3:1 op
+  `bg`, `surface`, `preview-bg` en de strip, zonder gloed, zodat hij niet op een LED lijkt die aan
+  is. In het voorbeeld krijgt een zwarte LED die ring in plaats van de vage omtrek van de andere.
+  Een LED die bijna zwart is (elk kanaal onder 8) telt als zwart: daar zie je ook geen licht van.
+  Het spoor van een schakelaar en de rail van een schuif houden `led-off`: daar toont de knop de
+  stand (zie "Contrast" in `docs/ontwikkelaars.md`).
 - **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker
   blijft. In het ontwerp (§ 5.2) is het losse tekst, waaraan je niet ziet dat je erin kunt typen.
   Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".
