@@ -300,8 +300,11 @@ public sealed class LedPreviewView : FrameworkElement
         var offRing = LedRing.PenOf(OffRingBrush);
         var count = Math.Min(colors.Count, arrangement.Bounds.Count);
 
-        // Unseen, and first, so under the LEDs: WPF only asks HitTestCore for a point within what
-        // the view draws, and this reaches LedLayout.HitRadius beyond its edges.
+        // Unseen, and first, so under the LEDs: WPF only asks HitTestCore for a point within its own
+        // size together with what the view draws, and this reaches LedLayout.HitRadius beyond its
+        // edges. Clips still cut the strip off: that of the view itself (such as a key map at
+        // MinScale that is wider than its slot) and those of its parents (the edge of the
+        // ScrollViewer).
         if (count > 0)
         {
             var hitArea = new Rect(arrangement.Size);
