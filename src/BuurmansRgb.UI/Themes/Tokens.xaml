@@ -92,7 +92,21 @@
     <SolidColorBrush x:Key="ControlOutlineBrush" Color="Transparent" />
     <SolidColorBrush x:Key="HoverOutlineBrush" Color="Transparent" />
 
-    <!-- LED colors, always with a glow (LedBulb). -->
+    <!-- The ring of an LED that is off or black, in the bulbs and the preview (LedRing): not in the
+         design, where led-off (1.4–1.7:1) and black hardly stand out on bg, surface, preview-bg and
+         the strip board. Grey and without a glow, so it does not look like an LED that is on; at
+         least 3:1 on those four (WCAG 1.4.11, TokenContrastTests). -->
+    <Color x:Key="LedOffRingColor">#7A7880</Color>
+    <SolidColorBrush x:Key="LedOffRingBrush" Color="{StaticResource LedOffRingColor}" />
+    <!-- The same ring on a card that is a button (CardButton: a device, a scene), which a contrast
+         theme gives ButtonFace instead of Window, so the ring takes ButtonText there. -->
+    <SolidColorBrush x:Key="CardLedOffRingBrush" Color="{StaticResource LedOffRingColor}" />
+    <!-- The same ring on the strip board of Kleur, which stays dark in a contrast theme (content, as
+         StripBgBrush): so not in ContrastTheme.SystemBrushes, or the text color of a light theme
+         would vanish on it. -->
+    <SolidColorBrush x:Key="StripLedOffRingBrush" Color="{StaticResource LedOffRingColor}" />
+
+    <!-- LED colors, with a glow, except black (LedRing.IsDark), which gets the ring instead (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>
     <Color x:Key="LedYellowColor">#FFD84D</Color>
     <Color x:Key="LedGreenColor">#3DDC84</Color>

@@ -314,6 +314,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het tekenen van de app met en zonder contrastthema meten met een zichtbaar venster (niet
   vergrendeld); de meting bij "contrastthema" telde het opbouwen van een pagina en een wissel,
   niet het tekenen zelf
+- Het tekenen van de ring van een LED die uit staat of zwart is meten met een zichtbaar venster
+  (niet vergrendeld): de meting bij "led-uit-zichtbaar" telde `OnRender` en de layout, niet het
+  tekenen van de lijnen door WPF zelf
 
 ### Voorbeeld en per-LED-editor
 

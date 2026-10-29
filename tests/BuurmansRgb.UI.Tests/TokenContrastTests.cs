@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Windows;
 using System.Windows.Media;
+using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -34,14 +35,30 @@ public sealed class TokenContrastTests
     };
 
     // What is no text but tells what something is or does, and the background it is on: the border
-    // of a field, on a card, on the window and in the preview (the hex code on Kleur), and the cross
-    // of the close button on its red under the mouse.
+    // of a field, on a card, on the window and in the preview (the hex code on Kleur), the cross
+    // of the close button on its red under the mouse, and the ring of an LED that is off or black
+    // wherever LEDs are: in the preview, on the window, on a card (Hele huis, a device, a scene) and
+    // on the strip board of Kleur. The track of a switch that is off is led-off, 1.4:1 on a card,
+    // so its knob tells the state: on the card and on that track. The rail of a slider is led-off
+    // too, so its knob and filled part tell the value, in the text color or in red, green or blue.
     public static TheoryData<string, string> NonTextPairs => new()
     {
         { "InputBorderColor", "SurfaceColor" },
         { "InputBorderColor", "BgColor" },
         { "InputBorderColor", "PreviewBgColor" },
         { "CloseHoverTextBrush", "CloseHoverBrush" },
+        { "LedOffRingColor", "PreviewBgColor" },
+        { "LedOffRingColor", "BgColor" },
+        { "LedOffRingColor", "SurfaceColor" },
+        { "LedOffRingColor", "StripBgColor" },
+        { "StripLedOffRingBrush", "StripBgColor" },
+        { "CardLedOffRingBrush", "SurfaceColor" },
+        { "KnobOffColor", "SurfaceColor" },
+        { "KnobOffColor", "LedOffColor" },
+        { "TextColor", "SurfaceColor" },
+        { "LedRedColor", "SurfaceColor" },
+        { "LedGreenColor", "SurfaceColor" },
+        { "LedBlueColor", "SurfaceColor" },
     };
 
     [Theory]
@@ -65,6 +82,16 @@ public sealed class TokenContrastTests
 
         Assert.True(rest < hover, $"The hover border ({hover:0.000}) is not lighter than the one at rest ({rest:0.000}).");
         Assert.True(hover < focus, $"The focus ({focus:0.000}) is not lighter than the hover border ({hover:0.000}).");
+    }
+
+    // SwitchTrackBrushConverter lifts the track of a switch that is on until its knob stands out:
+    // that knob is OnAccentBrush.
+    [Fact]
+    public void SwitchTrack_LiftsForTheKnobOfTheTokens()
+    {
+        var knob = SwitchTrackBrushConverter.KnobColor;
+
+        Assert.Equal(Tokens.Value["OnAccentBrush"], Color.FromRgb(knob.R, knob.G, knob.B));
     }
 
     // The formula itself, with ratios WCAG gives: black on white, a color on itself, and the grey

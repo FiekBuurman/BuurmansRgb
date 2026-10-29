@@ -270,9 +270,14 @@
         <Setter Property="CornerRadius" Value="{StaticResource LargeCardRadius}" />
         <Setter Property="Padding" Value="18" />
     </Style>
-    <!-- An LED bulb that is off shows led-off. -->
+    <!-- An LED bulb that is off shows led-off; off or black, it gets a ring that shows where it is. -->
     <Style TargetType="views:LedBulb">
         <Setter Property="OffBrush" Value="{StaticResource LedOffBrush}" />
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
+    </Style>
+    <!-- The preview of the LEDs of a device: a black LED gets the same ring. -->
+    <Style TargetType="views:LedPreviewView">
+        <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
     </Style>
 
     <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->
@@ -621,6 +626,12 @@
     <!-- A card that opens something (§ 4, § 6): the whole card is the button, so the hover border and the
          focus ring follow the card. Other controls on the card sit beside it, not in it. -->
     <Style x:Key="CardButton" TargetType="Button">
+        <Style.Resources>
+            <!-- A bulb on the card: its ring on the face of a button (CardLedOffRingBrush). -->
+            <Style TargetType="views:LedBulb" BasedOn="{StaticResource {x:Type views:LedBulb}}">
+                <Setter Property="OffRingBrush" Value="{DynamicResource CardLedOffRingBrush}" />
+            </Style>
+        </Style.Resources>
         <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}" />
         <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />

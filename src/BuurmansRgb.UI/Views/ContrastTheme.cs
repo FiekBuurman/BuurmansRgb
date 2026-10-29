@@ -64,6 +64,13 @@ public sealed class ContrastTheme : IDisposable
         ["ControlOutlineBrush"] = () => SystemColors.WindowTextBrush,
         ["SwitchOnCoverBrush"] = () => SystemColors.HighlightBrush,
         ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
+
+        // The ring of an LED that is off or black, in the text color like the outline of a switch
+        // that is off: it shows where an LED is on the window, which the preview and the card of
+        // Hele huis become, and on the face of a button, which the cards of a device and a scene
+        // (CardButton) become. The LED itself keeps its colors.
+        ["LedOffRingBrush"] = () => SystemColors.WindowTextBrush,
+        ["CardLedOffRingBrush"] = () => SystemColors.ControlTextBrush,
     };
 
     private readonly ResourceDictionary _resources;
