@@ -53,7 +53,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             lighting,
             hotkeys,
             _globalHotkeys,
-            () => Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true })?.Dispose(),
+            () => ShellLauncher.Open(logPath),
             this,
             restarter,
             restartedWith,
