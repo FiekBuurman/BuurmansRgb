@@ -47,7 +47,7 @@ internal sealed class CellArrangement : ILedArrangement
 
     public IReadOnlyList<Rect> Bounds => _bounds;
 
-    public int LedAt(Point point) => LedLayout.LedAt(Layout, Pitch, point.X, point.Y);
+    public int LedAt(Point point) => LedLayout.NearestLed(_bounds, point);
 
     // Rows lie a pitch apart, so the nearest row is the one closest by its top. Sideways, a key
     // that reaches over the middle of the LED, such as the space bar below B, counts as right

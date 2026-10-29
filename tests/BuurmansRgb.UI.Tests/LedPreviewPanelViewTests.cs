@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -37,6 +39,36 @@ public sealed class LedPreviewPanelViewTests
                     string.Format(Strings.FlashZoneAccessibleName, "Board", "ARGB 1"),
                 ],
                 flashes.Select(button => new ButtonAutomationPeer(button).GetName()));
+        });
+    }
+
+    // On the page, the mouse finds the LEDs of a zone also in the room between them and the name of
+    // the zone, 3.5 px above the first LED; the name of the zone stays a link, the same as before.
+    [Fact]
+    public async Task ZoneLeds_FoundJustAboveThemAndTheNameStaysALink()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+
+        AppTheme.Run(panel =>
+        {
+            Window.GetWindow(panel)!.Width = 600;
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var views = AppTheme.Descendants<LedPreviewView>(preview).Where(view => view.IsVisible).ToList();
+            Assert.Equal(2, views.Count);
+
+            foreach (var view in views)
+            {
+                var zone = (StackPanel)VisualTreeHelper.GetParent(view);
+                var name = AppTheme.Descendants<TextBlock>(zone).Single(text => text.IsVisible && text.Inlines.FirstInline is Hyperlink);
+                var first = view.BoundsOf(0);
+
+                var aboveFirst = preview.InputHitTest(view.TranslatePoint(new Point(first.X + first.Width / 2.0, first.Y - 3.5), preview));
+                var onName = preview.InputHitTest(name.TranslatePoint(new Point(4.0, name.ActualHeight / 2.0), preview));
+
+                var link = name.Inlines.FirstInline;
+                Assert.Same(view, aboveFirst);
+                Assert.True(onName == link || (onName is Run run && run.Parent == link));
+            }
         });
     }
 

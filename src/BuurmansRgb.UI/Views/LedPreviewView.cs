@@ -13,8 +13,9 @@ namespace BuurmansRgb.UI.Views;
 // ring. With a Matrix, such as the key map of a keyboard, every LED is a key at its own position,
 // and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them.
 // A ring and a key map shrink when they are wider than the available width. One element per
-// zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED runs
-// ClickCommand with a LedHit; the LEDs SelectionFirst to SelectionLast get a selection ring. A
+// zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED, or
+// within LedLayout.HitRadius of its middle (the nearest LED), runs ClickCommand with a LedHit;
+// the LEDs SelectionFirst to SelectionLast get a selection ring. A
 // black LED gets the ring of an LED that is off (OffRingBrush), so you still see where it is.
 // With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
 // ring. The views of one KeyGroup, such as the zones of a device, share one active LED, and only
@@ -184,6 +185,9 @@ public sealed class LedPreviewView : FrameworkElement
     // here, as it cannot move the mouse.
     internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
 
+    // The keys held with a click; null for what Windows says. A test holds Shift here.
+    internal Func<ModifierKeys>? ClickModifiers { get; set; }
+
     // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
     internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
 
@@ -252,7 +256,8 @@ public sealed class LedPreviewView : FrameworkElement
         return led >= 0 && led < bounds.Count ? bounds[led] : Rect.Empty;
     }
 
-    // The LED under a point, NoLed for a gap.
+    // The LED a click or the tooltip at a point goes to: the one under it or the nearest within
+    // LedLayout.HitRadius; NoLed farther away.
     internal int LedAt(Point position) => ArrangementFor(ActualWidth).LedAt(position);
 
     // Runs ClickCommand for an LED, as a click (with Shift: extend) on it does; UI Automation
@@ -271,6 +276,15 @@ public sealed class LedPreviewView : FrameworkElement
 
     protected override AutomationPeer OnCreateAutomationPeer() => new LedPreviewAutomationPeer(this);
 
+    // The mouse finds the view near an LED, not only on it: within LedLayout.HitRadius of its
+    // middle, also in a gap or just outside the view (as far as the hit area of OnRender reaches),
+    // so a dot of 14 px is a target of 24. Farther from every LED it finds what lies behind.
+    protected override HitTestResult? HitTestCore(PointHitTestParameters hitTestParameters)
+    {
+        var point = hitTestParameters.HitPoint;
+        return LedAt(point) == LedMatrix.NoLed || YieldsAt(point) ? null : new PointHitTestResult(this, point);
+    }
+
     protected override Size MeasureOverride(Size availableSize) =>
         Colors.Count == 0 ? default : ArrangementFor(availableSize.Width).Size;
 
@@ -285,6 +299,16 @@ public sealed class LedPreviewView : FrameworkElement
         var selectionRing = SelectionRing();
         var offRing = LedRing.PenOf(OffRingBrush);
         var count = Math.Min(colors.Count, arrangement.Bounds.Count);
+
+        // Unseen, and first, so under the LEDs: WPF only asks HitTestCore for a point within what
+        // the view draws, and this reaches LedLayout.HitRadius beyond its edges.
+        if (count > 0)
+        {
+            var hitArea = new Rect(arrangement.Size);
+            hitArea.Inflate(LedLayout.HitRadius, LedLayout.HitRadius);
+            drawingContext.DrawRectangle(Brushes.Transparent, null, hitArea);
+        }
+
         for (var led = 0; led < count; led++)
         {
             var bounds = arrangement.Bounds[led];
@@ -388,7 +412,8 @@ public sealed class LedPreviewView : FrameworkElement
         }
     }
 
-    // A click on a gap between keys or beside a ring picks nothing. While the keyboard focus is in
+    // A click picks the LED under it or the nearest one within LedLayout.HitRadius; farther from
+    // every LED, such as in the middle of a ring, it picks nothing. While the keyboard focus is in
     // the LEDs of another device, as in "Hele huis", it comes along to the LED that was clicked,
     // so the keys go on where the selection is; a click in the same device already moved it there
     // with the active LED (OnActiveLedChanged).
@@ -397,7 +422,8 @@ public sealed class LedPreviewView : FrameworkElement
         base.OnMouseLeftButtonDown(e);
         _toolTip?.Hide();
         var led = LedAt(PositionOf(e));
-        if (led == LedMatrix.NoLed || !ClickLed(led, Keyboard.Modifiers.HasFlag(ModifierKeys.Shift)))
+        var modifiers = ClickModifiers?.Invoke() ?? Keyboard.Modifiers;
+        if (led == LedMatrix.NoLed || !ClickLed(led, modifiers.HasFlag(ModifierKeys.Shift)))
         {
             return;
         }
@@ -411,7 +437,33 @@ public sealed class LedPreviewView : FrameworkElement
 
     private Point PositionOf(MouseEventArgs e) => MousePosition?.Invoke(e) ?? e.GetPosition(this);
 
-    // Hides the tooltip for no LED, such as a gap between the keys.
+    // Outside its own box the view leaves a point to what its panel shows there before it, such as
+    // the name of the zone or "Knipperen" just above the LEDs: WPF tries the view first, as it
+    // comes later. Elements after it, such as the length below, WPF tries before the view.
+    private bool YieldsAt(Point point)
+    {
+        if (new Rect(RenderSize).Contains(point) || VisualTreeHelper.GetParent(this) is not System.Windows.Controls.Panel panel)
+        {
+            return false;
+        }
+
+        foreach (UIElement child in panel.Children)
+        {
+            if (child == this)
+            {
+                return false;
+            }
+
+            if (child.IsVisible && child.InputHitTest(TranslatePoint(point, child)) is not null)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Hides the tooltip for no LED, such as far from every LED.
     private void ShowToolTip(int led) => (_toolTip ??= new LedToolTip(this)).Show(led, LabelOf(led), BoundsOf(led));
 
     private static void OnClickCommandChanged(DependencyObject element, DependencyPropertyChangedEventArgs e) =>

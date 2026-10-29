@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using BuurmansRgb.Core;
@@ -127,6 +128,97 @@ public sealed class LedPreviewViewTests
         Assert.True(view.BoundsOf(-1).IsEmpty);
     });
 
+    // WPF finds the view near an LED too, within 12 px of its middle, also just outside the view,
+    // and passes a point farther from every LED on to what lies behind: in a strip, a ring and a
+    // key map. The middle of a fan ring of six is 18 px from every LED.
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void HitTest_NearAnLed_FindsTheView(bool ring, bool keys) => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView
+        {
+            Margin = new Thickness(30),
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Colors = new RgbColor[6],
+            IsRing = ring,
+            Matrix = keys ? new LedMatrix(1, 6, [0, 1, 2, 3, 4, 5]) : null,
+        });
+        OffscreenWindow.WaitUntilIdle();
+        var top = Middle(view, 0);
+
+        Assert.Same(view, HitAt(view, top));
+        Assert.Same(view, HitAt(view, top + new Vector(0.0, -11.0)));
+        Assert.Same(view, HitAt(view, top + new Vector(-11.0, 0.0)));
+        Assert.Null(HitAt(view, top + new Vector(0.0, -13.0)));
+        if (ring)
+        {
+            Assert.Null(HitAt(view, new Point(view.ActualWidth / 2.0, view.ActualHeight / 2.0)));
+        }
+    });
+
+    // Just above the LEDs, what comes before the view in its panel keeps its own room, as the name of
+    // a zone and "Knipperen" do; beside it the view takes the point.
+    [Fact]
+    public void HitTest_AboveTheLeds_LeavesWhatComesBefore() => OffscreenWindow.Run(panel =>
+    {
+        var button = new System.Windows.Controls.Button { Width = 30, Height = 20, HorizontalAlignment = HorizontalAlignment.Left };
+        panel.Children.Add(button);
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[6], HorizontalAlignment = HorizontalAlignment.Left });
+        OffscreenWindow.WaitUntilIdle();
+
+        var onButton = HitAt(view, Middle(view, 0) + new Vector(0.0, -10.0));
+        var besideButton = HitAt(view, Middle(view, 2) + new Vector(0.0, -10.0));
+
+        Assert.True(onButton is Visual visual && (visual == button || visual.IsDescendantOf(button)));
+        Assert.Same(view, besideButton);
+    });
+
+    // A click beside an LED, away from the others, picks it; between two LEDs 18 px apart the
+    // nearer, and with Shift it extends the range; a click 13 px from every LED picks nothing and is
+    // left to what lies behind. In a strip, a ring (away from its middle) and a key map.
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void Click_BesideOrBetweenLeds_PicksTheNearest(bool ring, bool keys) => Sta.Run(() =>
+    {
+        var hits = new List<LedHit>();
+        var view = Arranged(new LedPreviewView
+        {
+            Colors = new RgbColor[6],
+            IsRing = ring,
+            Matrix = keys ? new LedMatrix(1, 6, [0, 1, 2, 3, 4, 5]) : null,
+            ClickCommand = new RelayCommand<LedHit>(hit => hits.Add(hit!)),
+        });
+        var led = Middle(view, 2);
+        var away = ring ? Direction(new Point(RingLayout.Size(6) / 2.0, RingLayout.Size(6) / 2.0), led) : new Vector(0.0, 1.0);
+        var toNext = Direction(led, Middle(view, 3));
+
+        Assert.True(Click(view, led + away * 10.0));
+        Assert.True(Click(view, led + toNext * 8.0));
+        Assert.True(Click(view, led + toNext * 10.0, ModifierKeys.Shift));
+        Assert.False(Click(view, led + away * 13.0));
+
+        Assert.Equal([new LedHit(2, false), new LedHit(2, false), new LedHit(3, true)], hits);
+    });
+
+    // The tooltip names the LED a click picks: beside one too, and none far from every LED.
+    [Fact]
+    public void MouseMove_BesideAnLed_ShowsItsToolTip() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], LedLabels = Labels });
+        OffscreenWindow.WaitUntilIdle();
+        var led = Middle(view, 1);
+
+        MoveMouse(view, led + new Vector(0.0, 11.0));
+        Assert.Equal(1, view.ToolTipLed);
+
+        MoveMouse(view, led + new Vector(0.0, 13.0));
+        Assert.Equal(LedMatrix.NoLed, view.ToolTipLed);
+    });
+
     // The preview of a header without LEDs is drawn too, as an empty row.
     [Theory]
     [InlineData(false)]
@@ -211,6 +303,42 @@ public sealed class LedPreviewViewTests
     private static ISelectionItemProvider SelectionItem(AutomationPeer led) =>
         (ISelectionItemProvider)led.GetPattern(PatternInterface.SelectionItem);
 
+    private static Point Middle(LedPreviewView view, int led)
+    {
+        var bounds = view.BoundsOf(led);
+        return new Point(bounds.X + bounds.Width / 2.0, bounds.Y + bounds.Height / 2.0);
+    }
+
+    private static Vector Direction(Point from, Point to)
+    {
+        var direction = to - from;
+        direction.Normalize();
+        return direction;
+    }
+
+    // What the mouse finds at a point of the view, in the window as WPF looks for it.
+    private static IInputElement? HitAt(LedPreviewView view, Point point)
+    {
+        var panel = (UIElement)VisualTreeHelper.GetParent(view);
+        return panel.InputHitTest(view.TranslatePoint(point, panel));
+    }
+
+    // A left click as Windows gives it, at a point of the view; true when the view took it.
+    private static bool Click(LedPreviewView view, Point point, ModifierKeys modifiers = ModifierKeys.None)
+    {
+        view.MousePosition = _ => point;
+        view.ClickModifiers = () => modifiers;
+        var click = new MouseButtonEventArgs(Mouse.PrimaryDevice, Environment.TickCount, MouseButton.Left) { RoutedEvent = Mouse.MouseDownEvent };
+        view.RaiseEvent(click);
+        return click.Handled;
+    }
+
+    private static void MoveMouse(LedPreviewView view, Point point)
+    {
+        view.MousePosition = _ => point;
+        view.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, Environment.TickCount) { RoutedEvent = Mouse.MouseMoveEvent });
+    }
+
     private static LedPreviewView Arranged(LedPreviewView view, double width = 300.0)
     {
         view.Measure(new Size(width, double.PositiveInfinity));
@@ -225,11 +353,7 @@ public sealed class LedPreviewViewTests
     }
 
     // What OnRender drew last, one drawing per LED.
-    private static List<GeometryDrawing> Drawings(LedPreviewView view)
-    {
-        OffscreenWindow.WaitUntilIdle();
-        return [.. (VisualTreeHelper.GetDrawing(view)?.Children ?? []).Cast<GeometryDrawing>()];
-    }
+    private static List<GeometryDrawing> Drawings(LedPreviewView view) => LedDrawings.Of(view);
 
     private static Color PenColor(GeometryDrawing drawing) => Assert.IsType<SolidColorBrush>(drawing.Pen.Brush).Color;
 

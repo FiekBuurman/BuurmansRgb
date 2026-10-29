@@ -141,7 +141,7 @@ public sealed class LedRingStyleTests
     // The pen of the one drawing of a bulb that gives no light, or of a preview with one black LED.
     private static Color PenColor(Visual visual)
     {
-        var drawing = Assert.IsType<GeometryDrawing>(Assert.Single(VisualTreeHelper.GetDrawing(visual).Children));
+        var drawing = Assert.IsType<GeometryDrawing>(Assert.Single(VisualTreeHelper.GetDrawing(visual).Children, drawing => !LedDrawings.IsHitArea(drawing)));
         return Assert.IsType<SolidColorBrush>(drawing.Pen.Brush).Color;
     }
 }

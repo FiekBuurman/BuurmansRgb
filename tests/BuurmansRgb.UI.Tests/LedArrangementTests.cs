@@ -84,4 +84,62 @@ public sealed class LedArrangementTests
             }
         }
     }
+
+    // A strip of two rows of five: middles a pitch apart, at 7,7 (LED 0), 25,7 (LED 1) and 7,25
+    // (LED 5). Beside an LED, within 12 px of its middle, also outside the strip, is that LED;
+    // between two the nearer; farther from all none.
+    [Theory]
+    [InlineData(7.0, -4.0, 0)]
+    [InlineData(-4.0, 7.0, 0)]
+    [InlineData(17.0, 7.0, 1)]
+    [InlineData(7.0, 17.0, 5)]
+    [InlineData(7.0, -6.0, No)]
+    [InlineData(100.0, 7.0, No)]
+    public void LedAt_Strip_IsTheNearestLedWithin12Px(double x, double y, int led)
+    {
+        var strip = new CellArrangement(LedPlaces.Wrap(10, 5), LedLayout.Pitch, 10, keys: false);
+
+        Assert.Equal(led, strip.LedAt(new Point(x, y)));
+    }
+
+    // A fan of twelve: beside an LED outward, nearer one of two neighbours, and the middle of the
+    // ring, 35 px from every LED, is none. A shrunk ring keeps 12 px.
+    [Fact]
+    public void LedAt_Ring_IsTheNearestLedWithin12Px()
+    {
+        var ring = new RingArrangement(12, 1.0);
+        var right = RingLayout.Center(3, 12);
+        var first = RingLayout.Center(0, 12);
+        var second = RingLayout.Center(1, 12);
+        var middle = RingLayout.Radius(12) + LedLayout.LedSize / 2.0;
+        var shrunk = new RingArrangement(12, 0.5);
+
+        Assert.Equal(3, ring.LedAt(right + new Vector(11.0, 0.0)));
+        Assert.Equal(No, ring.LedAt(right + new Vector(12.5, 0.0)));
+        Assert.Equal(1, ring.LedAt(first + (second - first) * 0.6));
+        Assert.Equal(0, ring.LedAt(first + (second - first) * 0.4));
+        Assert.Equal(No, ring.LedAt(new Point(middle, middle)));
+        Assert.Equal(0, shrunk.LedAt(new Point(first.X * 0.5, first.Y * 0.5 - 11.0)));
+    }
+
+    // A key map with a space bar over four cells (LED 6, 18–86 by 18–32, its middle line from
+    // x 25 to 79): beside a key, beside the space bar along its whole width, and an empty cell far
+    // from every key is none. Shrunk to half, a key of 7 px still counts to 12 px from its middle.
+    [Theory]
+    [InlineData(1.0, 14.0, 25.0, 6)]
+    [InlineData(1.0, 70.0, 36.0, 6)]
+    [InlineData(1.0, 90.0, 25.0, 6)]
+    [InlineData(1.0, 7.0, 17.0, 0)]
+    [InlineData(1.0, 4.0, 25.0, No)]
+    [InlineData(1.0, 70.0, 38.0, No)]
+    [InlineData(0.5, 21.5, -6.5, 2)]
+    [InlineData(0.5, 17.5, 3.5, 2)]
+    [InlineData(0.5, 21.5, -9.0, No)]
+    public void LedAt_KeyMap_IsTheNearestKeyWithin12Px(double scale, double x, double y, int led)
+    {
+        var keys = new LedMatrix(2, 6, [0, 1, 2, 3, 4, 5, No, 6, 6, 6, 6, No]);
+        var arrangement = new CellArrangement(keys, LedLayout.Pitch * scale, 7, keys: true);
+
+        Assert.Equal(led, arrangement.LedAt(new Point(x, y)));
+    }
 }

@@ -1,3 +1,4 @@
+using System.Windows;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
@@ -24,16 +25,48 @@ public static class LedLayout
     public static double ScaleFor(double naturalWidth, double width) =>
         !double.IsFinite(width) || naturalWidth <= width ? 1.0 : Math.Max(width / naturalWidth, MinScale);
 
-    // The LED in the cell under a point, with cells of pitch by pitch from the top left; NoLed for
-    // a gap between keys or a point outside the layout. The whole cell counts, so a click
-    // between two LEDs still picks one.
-    public static int LedAt(LedMatrix layout, double pitch, double x, double y)
+    // How far from its middle a click still finds an LED: a target of at least 24 px across (WCAG
+    // 2.5.8), also for an LED that is drawn smaller, such as a dot of 14 px or a shrunk key of 7.
+    public const double HitRadius = 12.0;
+
+    // The LED a click on point picks, of the LEDs drawn in bounds (Rect.Empty for one that is not
+    // shown): the one drawn under it, or else the nearest within HitRadius of its middle; NoLed
+    // farther away. The middle of a wide key, such as the space bar, is the line through it that
+    // ends half its height from its ends, so the whole key counts, and HitRadius around that line.
+    // Of two as near, the first in LED order. Allocates nothing, as it runs on every mouse move.
+    public static int NearestLed(ReadOnlySpan<Rect> bounds, Point point)
     {
-        var column = (int)Math.Floor(x / pitch);
-        var row = (int)Math.Floor(y / pitch);
-        return column >= 0 && column < layout.Width && row >= 0 && row < layout.Height
-            ? layout[row, column]
-            : LedMatrix.NoLed;
+        var nearest = LedMatrix.NoLed;
+        var nearestDistance = HitRadius * HitRadius;
+        for (var led = 0; led < bounds.Length; led++)
+        {
+            ref readonly var box = ref bounds[led];
+            var (left, top, width, height) = (box.X, box.Y, box.Width, box.Height);
+
+            // Most LEDs are farther than HitRadius from the box; so is every point from Rect.Empty.
+            if (box.IsEmpty || point.X < left - HitRadius || point.X > left + width + HitRadius
+                || point.Y < top - HitRadius || point.Y > top + height + HitRadius)
+            {
+                continue;
+            }
+
+            if (point.X >= left && point.X <= left + width && point.Y >= top && point.Y <= top + height)
+            {
+                return led;
+            }
+
+            var half = Math.Min(width, height) / 2.0;
+            var dx = Math.Max(Math.Max(left + half - point.X, point.X - (left + width - half)), 0.0);
+            var dy = Math.Max(Math.Max(top + half - point.Y, point.Y - (top + height - half)), 0.0);
+            var distance = dx * dx + dy * dy;
+            if (distance < nearestDistance || (distance == nearestDistance && nearest == LedMatrix.NoLed))
+            {
+                nearest = led;
+                nearestDistance = distance;
+            }
+        }
+
+        return nearest;
     }
 
     // How many cells from this one on in its row hold the same LED: the width of a wide key.
