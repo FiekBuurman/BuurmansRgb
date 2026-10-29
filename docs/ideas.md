@@ -495,13 +495,13 @@ uitbreidingen in `docs/bouwplan.md`.
   (zie "Metingen" in `ontwikkelaars.md`): de .NET-heap is ~8 MB, de rest is WPF met DirectX.
   Tekenen zonder videokaart (`RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly`) brengt
   het naar 130–143 MB, maar kost op Apparaten CPU; eventueel als keuze bij Instellingen, of alleen
-  zonder bewegend effect. Sinds #? draait de app zonder tiered compilation (8–17 MB minder),
+  zonder bewegend effect. Sinds #100 draait de app zonder tiered compilation (8–17 MB minder),
   maar dat is alleen gemeten over Extern bureaublad, waar WPF zonder videokaart tekent
   (122–133 MB); het kost ~0,4–1,1 procentpunt van één kern meer CPU, geen harde eis voor de
   app. Openstaand punt: de app met een zichtbaar venster op het eigen scherm opnieuw
   meten (Apparaten en Kleur met "Hele huis", zie "Metingen"), om te zien of hij nu onder de
-  150 MB blijft; vóór #? was dat 166–191 MB. Wat er daarna nog te halen is, met wat de proeven
-  in #? opleverden:
+  150 MB blijft; vóór #100 was dat 166–191 MB. Wat er daarna nog te halen is, met wat de proeven
+  in #100 opleverden:
   - De kleinste gen0 van de GC (`GCgen0size`, bijv. 4 MB): 4–8 MB op Apparaten, 0–6 MB op Kleur,
     maar alleen als omgevingsvariabele (`DOTNET_GCgen0size`); `System.GC.Gen0Size` in
     `runtimeconfig.json` deed niets. Dan zou de engine de app met die variabele moeten starten

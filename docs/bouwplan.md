@@ -178,7 +178,7 @@ Gemeten (Release, gesimuleerde apparaten, zonder OpenRGB; de details staan in `o
 onder "Metingen"): statisch ~0,07 % van één kern en ~21–24 MB working set, regenboog op 30 fps
 ~0,35 % van één kern en ~22–27 MB, de instellingen-app (Release, venster zichtbaar, regenboog)
 166–191 MB, dus boven het budget (zie `docs/ideas.md`). Sinds de app zonder tiered compilation
-draait (#?) is dat 8–17 MB minder: over Extern bureaublad, waar WPF zonder videokaart tekent,
+draait (#100) is dat 8–17 MB minder: over Extern bureaublad, waar WPF zonder videokaart tekent,
 122–133 MB tegen 130–149 MB; met de videokaart is het niet opnieuw gemeten. Dat kost
 ~0,4–1,1 procentpunt van één kern meer CPU, waarvoor de app geen harde eis heeft.
 
