@@ -1,5 +1,8 @@
+using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -45,4 +48,34 @@ public sealed class HexCodeViewTests
             Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
         });
     }
+
+    // The code is a field like the others, so you see you can type in it: their border, which stands
+    // out on the preview (TokenContrastTests), and their ring with the focus. A whole code fits in it,
+    // also with the ring, so nothing scrolls away; in the smallest window too.
+    [Fact]
+    public async Task HexBox_IsAFieldThatFitsACode()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            Window.GetWindow(panel)!.Width = PageViews.PageWidth(960);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = PageViews.Named<TextBox>(page, Strings.HexLabel);
+            var border = AppTheme.Descendants<Border>(box).Single(element => element.Name == "Box");
+            Assert.Equal(ColorOf(page, "InputBorderBrush"), Assert.IsType<SolidColorBrush>(border.BorderBrush).Color);
+
+            Assert.True(box.Focus());
+            box.Text = "#FFFFFF";
+            box.CaretIndex = box.Text.Length;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(ColorOf(page, "TextBrush"), Assert.IsType<SolidColorBrush>(border.BorderBrush).Color);
+            Assert.True(box.ExtentWidth <= box.ViewportWidth, $"The code is {box.ExtentWidth:0.0} px wide, the field has {box.ViewportWidth:0.0} px of {box.ActualWidth:0.0}.");
+            Assert.Equal(0, box.HorizontalOffset);
+            Assert.Null(LayoutInformation.GetLayoutClip(box));
+        });
+    }
+
+    private static Color ColorOf(FrameworkElement scope, string key) => ((SolidColorBrush)scope.FindResource(key)).Color;
 }

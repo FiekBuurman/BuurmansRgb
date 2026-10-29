@@ -10,7 +10,10 @@ namespace BuurmansRgb.UI.Tests;
 // collection runs. The collection runs alone, so the implicit styles of the theme, such as those
 // of Slider and LedBulb, do not reach the other tests. The application stays for the rest of the
 // run, on the dispatcher of a thread that has ended; nothing in the app reads Application.Current,
-// so the other tests do not notice it.
+// so the other tests do not notice it. A test that loads XAML of the theme itself, with
+// Application.LoadComponent or a ResourceDictionary with a pack URI as its Source, is in the
+// collection too: loading a part of the package is not thread-safe, and fails now and then when
+// two tests do it at the same time.
 [CollectionDefinition(Name, DisableParallelization = true)]
 public sealed class AppThemeCollection
 {
