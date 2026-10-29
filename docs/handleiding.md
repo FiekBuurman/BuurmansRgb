@@ -608,8 +608,9 @@ Hoe het vanzelf aanzetten werkt:
   zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
   meteen.
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
-  met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. De
-  schakelaar en het vinkje in het tray-menu staan altijd hetzelfde: zet je het in het menu om,
+  met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
+  geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
+  er komt geen "Opgeslagen ✓" in de statusregel. De schakelaar en het vinkje in het tray-menu staan altijd hetzelfde: zet je het in het menu om,
   dan gaat de schakelaar meteen mee, en het menu toont wat je hier koos. Laat Windows het niet
   toe (het register is niet te schrijven), dan springt de schakelaar terug en staat in de
   statusregel "Starten met Windows kon niet worden aangepast."; het logbestand zegt waarom.
@@ -623,7 +624,8 @@ Hoe het vanzelf aanzetten werkt:
   iedereen kan openen.
 
 Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
-("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
+("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina. "Starten met Windows" is de
+uitzondering (zie "Opstarten").
 
 ### Aan en uit
 
