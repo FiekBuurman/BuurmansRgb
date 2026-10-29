@@ -97,8 +97,9 @@ public sealed class ContrastTheme : IDisposable
 
     private void OnChanged(object? sender, EventArgs e) => Apply();
 
-    // Always anew while a contrast theme is on, as another one may have taken over. A replace is one
-    // change of the resources, so WPF looks the tokens up again once.
+    // Always anew while a contrast theme is on, as another one may have taken over or its colors may
+    // have changed: SystemColors then has new brushes. A replace is one change of the resources, so
+    // WPF looks the tokens up again once.
     private void Apply()
     {
         var merged = _resources.MergedDictionaries;

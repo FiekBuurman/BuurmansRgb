@@ -6,6 +6,6 @@ public interface IHighContrast
 {
     bool IsOn { get; }
 
-    // On the UI thread: on, off, or another contrast theme.
+    // On the UI thread: on, off, another contrast theme, or other colors of the one that is on.
     event EventHandler? Changed;
 }

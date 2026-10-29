@@ -656,10 +656,25 @@ toetsenbord. Een paar dingen om te proberen:
   doorzichtig), en de primaire knop draait dan zijn kleuren om met een ring in `Highlight`); gaat
   het thema uit, dan haalt hij dat woordenboek weg en gelden de kleuren van het ontwerp weer.
   `App` start hem vóór het venster met `SystemHighContrast`, dat `SystemParameters.HighContrast`
-  leest en `SystemParameters.StaticPropertyChanged` volgt; tests geven een `FakeHighContrast` via
-  `IHighContrast`, zodat geen test de instelling van Windows leest of verandert. Wil je het zelf
-  zien zonder je eigen instelling om te zetten, zet dan een contrastthema aan in Windows Sandbox of
-  een virtuele machine. Een token dat hij vervangt, staat in de XAML altijd als
+  leest en `SystemParameters.StaticPropertyChanged` volgt, en ook `SystemEvents.UserPreferenceChanged`
+  met de categorie `Color` (`WM_SYSCOLORCHANGE`): `ContrastTheme` legt de brushes van
+  `SystemColors` vast, en die vernieuwt WPF pas als de kleuren van Windows veranderen, ook zonder
+  dat `HighContrast` verandert (bijv. als je de kleuren van een thema bewerkt). Brushes met een
+  `DynamicResource` op `SystemColors.*ColorKey` zouden zichzelf bijwerken, maar zijn dan niet
+  bevroren en niet meer de brushes van `SystemColors` zelf, die de tests met `Assert.Same`
+  vergelijken. Tests geven een `FakeHighContrast` via `IHighContrast`, zodat geen test de
+  instelling van Windows leest of verandert. Wil je het zelf zien zonder je eigen instelling om te
+  zetten, gebruik dan Windows Sandbox of een virtuele machine, met de app open:
+  1. Zet een contrastthema aan (bijv. "Woestijn"): de open pagina krijgt de kleuren van het thema.
+  2. Kies direct een ander contrastthema (bijv. "Nachthemel"), zonder het eerste uit te zetten:
+     alles krijgt de kleuren van het nieuwe thema, ook knoppen, links en de focusring.
+  3. Bewerk de kleuren van het thema dat aan staat (Bewerken bij het thema, bijv. een andere
+     tekstkleur) en pas ze toe: de app volgt.
+  4. Ga met de muis over een knop, kaart, link, "+ nieuw", de schuifbalk en het kruisje: elk krijgt
+     de markeerkleur, een link ook een streep eronder.
+  5. Zet het contrastthema uit: de app is weer donker, gelijk aan hoe hij was.
+
+  Een token dat hij vervangt, staat in de XAML altijd als
   `DynamicResource`: een `StaticResource` houdt de kleur van bij het laden, en
   `ContrastThemeTests` wordt rood als er een in `src/BuurmansRgb.UI` staat. Waar een token twee
   rollen had (bijv. `border` als rand en als achtergrond van een gekozen item), kreeg de tweede
