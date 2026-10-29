@@ -199,11 +199,11 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{DynamicResource CaptionHoverBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource SelectedTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{DynamicResource CaptionPressedBrush}" />
-                <Setter Property="Foreground" Value="{DynamicResource SelectedTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -790,7 +790,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="Item" Property="Background" Value="{DynamicResource ListSelectedBrush}" />
-                            <Setter Property="Foreground" Value="{DynamicResource SelectedTextBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="True">

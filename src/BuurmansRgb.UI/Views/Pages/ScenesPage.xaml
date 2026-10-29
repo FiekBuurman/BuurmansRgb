@@ -75,7 +75,7 @@
                                         <Binding Path="DataContext.Profiles.SelectedName" RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                     </MultiBinding>
                                 </DataTrigger.Binding>
-                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SelectedBorderBrush}" />
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource EditingCardBorderBrush}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsActive}" Value="True">
                                 <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource TextBrush}" />

@@ -30,7 +30,7 @@ public sealed class ContrastThemeTests
     [InlineData("LinkBrush", nameof(SystemColors.HotTrackColor))]
     [InlineData("LinkHoverBrush", nameof(SystemColors.HotTrackColor))]
     [InlineData("NavSelectedBrush", nameof(SystemColors.HighlightColor))]
-    [InlineData("SelectedTextBrush", nameof(SystemColors.HighlightTextColor))]
+    [InlineData("OnHighlightTextBrush", nameof(SystemColors.HighlightTextColor))]
     [InlineData("SwitchOnCoverBrush", nameof(SystemColors.HighlightColor))]
     [InlineData("KnobOnBrush", nameof(SystemColors.HighlightTextColor))]
     [InlineData("SliderRailBrush", nameof(SystemColors.GrayTextColor))]

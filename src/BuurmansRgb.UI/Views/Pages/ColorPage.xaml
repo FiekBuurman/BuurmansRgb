@@ -85,7 +85,7 @@
                                 </TextBlock>
                                 <DataTemplate.Triggers>
                                     <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ComboBoxItem}, FallbackValue=False}" Value="True">
-                                        <Setter TargetName="Location" Property="Foreground" Value="{DynamicResource SelectedMutedTextBrush}" />
+                                        <Setter TargetName="Location" Property="Foreground" Value="{DynamicResource OnHighlightMutedTextBrush}" />
                                     </DataTrigger>
                                 </DataTemplate.Triggers>
                             </DataTemplate>

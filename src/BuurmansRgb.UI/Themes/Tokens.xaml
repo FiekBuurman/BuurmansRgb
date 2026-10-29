@@ -49,15 +49,17 @@
     <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
 
     <!-- Roles of the colors above that a contrast theme of Windows gives a color of its own
-         (ContrastTheme): here they look as the design says. A selected or hovered item with
-         SelectedTextBrush (or muted, SelectedMutedTextBrush) on it, and a scene card you edit. -->
+         (ContrastTheme): here they look as the design says. A selected or hovered item, which a
+         contrast theme gives the highlight, with OnHighlightTextBrush (or muted,
+         OnHighlightMutedTextBrush) on it; and the border of the scene card you edit. Not the same
+         as TextSelectionBrush below, the selected text in a field. -->
     <SolidColorBrush x:Key="NavSelectedBrush" Color="{StaticResource SurfaceRaisedColor}" />
     <SolidColorBrush x:Key="ListSelectedBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="CaptionHoverBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="CaptionPressedBrush" Color="{StaticResource BorderStrongColor}" />
-    <SolidColorBrush x:Key="SelectedTextBrush" Color="{StaticResource TextColor}" />
-    <SolidColorBrush x:Key="SelectedMutedTextBrush" Color="{StaticResource TextMutedColor}" />
-    <SolidColorBrush x:Key="SelectedBorderBrush" Color="{StaticResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="OnHighlightTextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="OnHighlightMutedTextBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="EditingCardBorderBrush" Color="{StaticResource BorderStrongColor}" />
     <!-- The switch (§ 4): the track when off, and the knob when on. The cover over the track of a
          switch that is on, and the ring around its track, show only in a contrast theme. -->
     <SolidColorBrush x:Key="SwitchTrackOffBrush" Color="{StaticResource LedOffColor}" />

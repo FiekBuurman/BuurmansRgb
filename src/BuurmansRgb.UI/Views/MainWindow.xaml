@@ -53,7 +53,7 @@
                                 <Setter TargetName="Item" Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource SelectedTextBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
                                 <Setter TargetName="Item" Property="Background" Value="{DynamicResource NavSelectedBrush}" />
                                 <Setter TargetName="Label" Property="FontWeight" Value="SemiBold" />
                             </Trigger>
