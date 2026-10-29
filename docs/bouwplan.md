@@ -177,7 +177,9 @@ Doel: met gesloten UI en een statische kleur gebruikt de engine vrijwel 0% CPU, 
 Gemeten (Release, gesimuleerde apparaten, zonder OpenRGB; de details staan in `ontwikkelaars.md`
 onder "Metingen"): statisch ~0,07 % van één kern en ~21–24 MB working set, regenboog op 30 fps
 ~0,35 % van één kern en ~22–27 MB, de instellingen-app (Release, venster zichtbaar, regenboog)
-~165–190 MB, dus boven het budget (zie `docs/ideas.md`).
+~165–190 MB, dus boven het budget (zie `docs/ideas.md`). Sinds de app zonder tiered compilation
+draait (#?) is dat 8–17 MB minder: over Extern bureaublad, waar WPF zonder videokaart tekent,
+122–133 MB tegen 130–149 MB; met de videokaart is het niet opnieuw gemeten.
 
 Maatregelen die dit mogelijk maken:
 
