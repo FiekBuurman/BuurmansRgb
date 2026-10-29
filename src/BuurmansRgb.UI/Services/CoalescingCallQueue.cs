@@ -2,8 +2,9 @@ namespace BuurmansRgb.UI.Services;
 
 // Runs engine calls one at a time, in order. A call replaces the queued call with the same key
 // when that one is last in line, so a dragged slider only sends its latest value. onSucceeded
-// hears about every call that went through, so a message about an earlier one can go.
-public sealed class CoalescingCallQueue(Action<Exception> onError, Action? onSucceeded = null)
+// hears about every call that went through, with its key, so a message about an earlier one can
+// go and a preview that stands still can show what the call changed.
+public sealed class CoalescingCallQueue(Action<Exception> onError, Action<object>? onSucceeded = null)
 {
     private readonly Lock _gate = new();
     private readonly List<(object Key, Func<Task> Call)> _queue = [];
@@ -37,6 +38,7 @@ public sealed class CoalescingCallQueue(Action<Exception> onError, Action? onSuc
     {
         while (true)
         {
+            object key;
             Func<Task> call;
             lock (_gate)
             {
@@ -46,7 +48,7 @@ public sealed class CoalescingCallQueue(Action<Exception> onError, Action? onSuc
                     return;
                 }
 
-                call = _queue[0].Call;
+                (key, call) = _queue[0];
                 _queue.RemoveAt(0);
             }
 
@@ -60,7 +62,7 @@ public sealed class CoalescingCallQueue(Action<Exception> onError, Action? onSuc
                 continue;
             }
 
-            onSucceeded?.Invoke();
+            onSucceeded?.Invoke(key);
         }
     }
 }

@@ -1205,4 +1205,38 @@
   <data name="CustomEffectDeleted" xml:space="preserve">
     <value>Eigen effect '{0}' verwijderd.</value>
   </data>
+  <data name="PreviewStill" xml:space="preserve">
+    <value>Voorbeeld staat stil omdat animaties in Windows uit staan.</value>
+    <comment>In een balk op Apparaten en bij het voorbeeld op Kleur, als "Animatie-effecten" van Windows uit staat. Een schermlezer leest hem voor als hij verandert.</comment>
+  </data>
+  <data name="PreviewRunsAnyway" xml:space="preserve">
+    <value>Voorbeeld loopt, ook al staan animaties in Windows uit.</value>
+    <comment>Dezelfde balk nadat de gebruiker "Laten lopen" koos; geldt tot de app sluit.</comment>
+  </data>
+  <data name="PreviewRun" xml:space="preserve">
+    <value>Laten lopen</value>
+  </data>
+  <data name="PreviewRunAccessibleName" xml:space="preserve">
+    <value>Voorbeeld laten lopen</value>
+  </data>
+  <data name="PreviewRunHelp" xml:space="preserve">
+    <value>Laat het voorbeeld bewegen tot je de app sluit. De apparaten zelf doen altijd wat je koos.</value>
+  </data>
+  <data name="PreviewStop" xml:space="preserve">
+    <value>Stilzetten</value>
+  </data>
+  <data name="PreviewStopAccessibleName" xml:space="preserve">
+    <value>Voorbeeld stilzetten</value>
+  </data>
+  <data name="PreviewStopHelp" xml:space="preserve">
+    <value>Zet het voorbeeld weer stil, zoals Windows vraagt. De apparaten zelf doen altijd wat je koos.</value>
+  </data>
+  <data name="FlashMarkDevice" xml:space="preserve">
+    <value>Knippert nu op het apparaat</value>
+    <comment>Markering in de kaart van het voorbeeld zolang een apparaat knippert en het voorbeeld stilstaat, in plaats van wit aan en uit.</comment>
+  </data>
+  <data name="FlashMarkZone" xml:space="preserve">
+    <value>{0} knippert nu op het apparaat</value>
+    <comment>Hetzelfde voor één zone. {0} = de naam van de zone.</comment>
+  </data>
 </root>
