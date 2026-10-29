@@ -1,4 +1,3 @@
-using System.Windows.Forms;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;

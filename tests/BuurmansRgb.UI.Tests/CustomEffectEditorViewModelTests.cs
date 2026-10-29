@@ -1,5 +1,4 @@
 using BuurmansRgb.Contracts;
-using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using BuurmansRgb.Contracts;
 using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Contracts.Tests;

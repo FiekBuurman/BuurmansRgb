@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
-using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;

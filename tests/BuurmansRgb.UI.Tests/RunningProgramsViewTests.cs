@@ -1,6 +1,5 @@
 using System.Windows.Controls;
 using BuurmansRgb.UI.Resources;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views.Pages;
 
