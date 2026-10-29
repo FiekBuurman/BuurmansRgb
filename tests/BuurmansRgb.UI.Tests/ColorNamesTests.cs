@@ -51,7 +51,8 @@ public sealed class ColorNamesTests
     [InlineData("#D2691E", ColorTone.Orange)]
     [InlineData("#A0522D", ColorTone.Brown)]
     [InlineData("#8B4513", ColorTone.Brown)]
-    // Yellow from 40° on, and dark yellow is olive green.
+    // Yellow from 40° on (#FFA900 at 39,8° is orange, #FFAA00 at 40° yellow), and dark yellow is
+    // olive green.
     [InlineData("#FFAA00", ColorTone.Yellow)]
     [InlineData("#FFFF00", ColorTone.Yellow)]
     [InlineData("#FFD700", ColorTone.Yellow)]
@@ -79,7 +80,9 @@ public sealed class ColorNamesTests
     [InlineData("#87CEEB", ColorTone.LightBlue)]
     [InlineData("#000080", ColorTone.DarkBlue)]
     [InlineData("#6A5ACD", ColorTone.Blue)]
-    // Purple, from 250° on.
+    [InlineData("#2A00FF", ColorTone.Blue)]
+    // Purple, from 250° on: #2A00FF at 249,9° is still blue, #2B00FF at 250,1° purple.
+    [InlineData("#2B00FF", ColorTone.Purple)]
     [InlineData("#A07BFF", ColorTone.Purple)]
     [InlineData("#9370DB", ColorTone.LightPurple)]
     [InlineData("#A97BFF", ColorTone.Purple)]
@@ -94,7 +97,13 @@ public sealed class ColorNamesTests
     [InlineData("#DDA0DD", ColorTone.LightPurple)]
     [InlineData("#FF99CC", ColorTone.LightPink)]
     [InlineData("#800080", ColorTone.Purple)]
-    // Red again from 340° on, also with a touch of blue.
+    // A light color just under 320° (314,7°) is light purple, just above it (320,6°) light pink.
+    [InlineData("#FF99E6", ColorTone.LightPurple)]
+    [InlineData("#FF99DC", ColorTone.LightPink)]
+    // Red again from 340° on, also with a touch of blue: #FF0058 at 339,3° is pink, #FF0055 at 340°
+    // red.
+    [InlineData("#FF0058", ColorTone.Pink)]
+    [InlineData("#FF0055", ColorTone.Red)]
     [InlineData("#FF0040", ColorTone.Red)]
     [InlineData("#DC143C", ColorTone.Red)]
     public void ToneOf_GivesTheRoughTone(string hex, ColorTone tone) =>
