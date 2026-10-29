@@ -28,13 +28,14 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
   benaderende kleurnaam met de hex-code erachter: "Kleur 1: geel, #FFFF00", "Eigen kleur:
   oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
-  vaste kleur uit de gereedschapskist houdt zijn eigen naam, ook in een vakje of een stap ("Kleur
-  2: Echt groen, #00FF00", "Klus-wit, #FFF4E5"). De naam is een ruwe benadering op tint,
-  verzadiging en helderheid: zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit,
-  en verder rood, roze, oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo
-  nodig met licht- of donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met
-  maar een vleugje tint heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B")
-  blijft de hex-code tonen, want daar zie je de kleur.
+  vaste kleur uit de gereedschapskist houdt zijn eigen naam, ook in een vakje of een stap, met een
+  kleine beginletter omdat hij midden in de zin staat ("Kleur 2: echt groen, #00FF00", "Eigen
+  kleur: klus-wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
+  zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
+  oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
+  donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
+  heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B") blijft de hex-code
+  tonen, want daar zie je de kleur.
 - **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
   Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
   over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je
