@@ -618,8 +618,9 @@ Hoe het vanzelf aanzetten werkt:
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
   logbestand, of kan Windows het niet openen, dan staat in de statusregel "Het logbestand kon
   niet worden geopend.".
-- **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0") en de link
-  "Handleiding", die deze handleiding op GitHub in je browser opent.
+- **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0"). Een
+  link naar deze handleiding staat er nog niet: die komt zodra de handleiding een plek heeft die
+  iedereen kan openen.
 
 Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
 ("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
@@ -706,9 +707,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
   schakelaar en de knop zoals de andere opties. "Logbestand openen" is een gewone knop, geen
-  primaire: hij zet niets op een apparaat. Het versienummer en "Handleiding" staan onder de
-  laatste kaart, zonder eigen kaart: het versienummer als subtekst en "Handleiding" als link in
-  dezelfde stijl als Verversen.
+  primaire: hij zet niets op een apparaat. Het versienummer staat onder de laatste kaart,
+  zonder eigen kaart, als subtekst; zodra de handleiding een plek heeft, komt "Handleiding"
+  ernaast als link in dezelfde stijl als Verversen.
 - WPF kent geen letterafstand, dus de −0,02em van de koppen ontbreekt; de navigatiebalk is
   niet uitklapbaar.
 

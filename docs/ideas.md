@@ -269,10 +269,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - Kleurnamen in plaats van hexcodes voor een schermlezer, bijv. "Kleur 1: geel" in plaats van
   "Kleur 1: #FFFF00" bij de kleurenloop en de kleuren van een effect, met de naam van de
   dichtstbijzijnde bekende kleur (gebruikerstest 28-10)
-- "Handleiding" onderaan Instellingen naar de handleiding van de eigen versie laten wijzen (de
-  tag van de release, bijv. `blob/v1.2.0/docs/handleiding.md`) in plaats van die op `main`, zodat
-  hij niet over functies gaat die de geïnstalleerde versie nog niet heeft; of de handleiding als
-  HTML met de installer meeleveren, zodat hij ook zonder internet opent
+- De handleiding met de installer meeleveren, bijv. als HTML die `installer\build.ps1` uit
+  `docs/handleiding.md` maakt, en die lokaal openen met "Handleiding" onderaan Instellingen: zo
+  opent hij voor iedereen, ook zonder internet, en gaat hij over de versie die geïnstalleerd is,
+  niet over functies die die nog niet heeft. Nu is de link verborgen
+  (`AppInfoViewModel.GuideAddress` is `null`), want de repo op GitHub is privé en geeft een
+  gewone gebruiker een inlogscherm of een 404; het pad van de meegeleverde handleiding in
+  `GuideAddress` zet hem weer aan (gebruikerstest 28-10)
 - Bij Instellingen ook de versie van de engine tonen als die een andere is dan die van de app
   (bijv. na een update waarbij de oude engine bleef draaien); nu toont hij alleen die van de app
 
