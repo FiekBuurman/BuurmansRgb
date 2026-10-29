@@ -833,9 +833,6 @@
   <data name="GuideLink" xml:space="preserve">
     <value>Handleiding</value>
   </data>
-  <data name="GuideHint" xml:space="preserve">
-    <value>Opent de handleiding op GitHub in je browser.</value>
-  </data>
   <data name="GuideOpenFailed" xml:space="preserve">
     <value>De handleiding kon niet worden geopend.</value>
   </data>

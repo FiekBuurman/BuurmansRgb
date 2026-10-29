@@ -81,12 +81,12 @@ public sealed class SettingsViewTests
         });
     }
 
-    // At the very bottom, after the last card: the version and the link to the guide.
+    // At the very bottom, after the last card: the version, and no link to the guide while there
+    // is no guide every user can open (AppInfoViewModel.GuideAddress).
     [Fact]
-    public async Task Bottom_ShowsTheVersionAndOpensTheGuide()
+    public async Task Bottom_ShowsTheVersionWithoutAGuideToOpen()
     {
-        var opened = new List<string>();
-        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+        using var viewModel = await PageViews.ConnectAsync(guideAddress: null);
 
         AppTheme.Run(panel =>
         {
@@ -94,16 +94,30 @@ public sealed class SettingsViewTests
             var texts = AppTheme.Descendants<TextBlock>(page).Where(text => text.IsVisible).ToList();
             var version = texts.Single(text => AutomationProperties.GetAutomationId(text) == "AppVersion");
             Assert.Equal(viewModel.AppInfo.VersionText, version.Text);
-            var guide = PageViews.ButtonNamed(page, Strings.GuideLink);
-            Assert.Equal(Strings.GuideHint, AutomationProperties.GetHelpText(guide));
-            Assert.Equal(Strings.GuideHint, guide.ToolTip);
+            Assert.False(PageViews.ButtonNamed(page, Strings.GuideLink).IsVisible);
 
             var logButton = PageViews.ButtonNamed(page, Strings.OpenLog);
             Assert.True(version.TranslatePoint(default, page).Y > logButton.TranslatePoint(default, page).Y);
+        });
+    }
+
+    // With an address, the link shows after the version and opens the guide (here into opened).
+    [Fact]
+    public async Task Bottom_WithAGuide_OpensIt()
+    {
+        const string guideAddress = @"C:\Program Files\BuurmansRgb\handleiding.html";
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(opened: opened, guideAddress: guideAddress);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var guide = PageViews.ButtonNamed(page, Strings.GuideLink);
+            Assert.True(guide.IsVisible);
 
             PageViews.Click(guide);
 
-            Assert.Equal([AppInfoViewModel.GuideAddress], opened);
+            Assert.Equal([guideAddress], opened);
         });
     }
 }

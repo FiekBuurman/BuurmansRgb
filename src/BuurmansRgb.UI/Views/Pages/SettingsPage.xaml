@@ -145,15 +145,15 @@
                     </StackPanel>
                 </Border>
 
-                <!-- At the very bottom, under the cards: the version and the guide, a link in the style of Verversen. -->
+                <!-- At the very bottom, under the cards: the version and the guide, a link in the style of Verversen
+                     that only shows when there is a guide to open (AppInfoViewModel.GuideAddress). -->
                 <StackPanel Margin="4,14,0,0" Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" Text="{Binding AppInfo.VersionText}"
                                AutomationProperties.AutomationId="AppVersion" />
                     <Button Margin="12,0,0,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.GuideLink}"
                             Command="{Binding AppInfo.OpenGuideCommand}"
-                            ToolTip="{x:Static res:Strings.GuideHint}"
-                            AutomationProperties.Name="{x:Static res:Strings.GuideLink}"
-                            AutomationProperties.HelpText="{x:Static res:Strings.GuideHint}" />
+                            Visibility="{Binding AppInfo.HasGuide, Converter={StaticResource BoolToVisibility}}"
+                            AutomationProperties.Name="{x:Static res:Strings.GuideLink}" />
                 </StackPanel>
             </StackPanel>
         </StackPanel>

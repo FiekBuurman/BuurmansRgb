@@ -10,6 +10,7 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class AppInfoViewModelTests
 {
     private const string LogPath = @"C:\Users\buurman\AppData\Roaming\BuurmansRgb\logs\engine.log";
+    private const string GuideAddress = @"C:\Program Files\BuurmansRgb\handleiding.html";
 
     private readonly List<string> _opened = [];
 
@@ -42,16 +43,40 @@ public sealed class AppInfoViewModelTests
         Assert.Equal([Strings.LogOpenFailed], failures);
     }
 
-    [Fact]
-    public void OpenGuide_OpensTheGuideOnGitHub()
+    // Until there is a guide every user can open, there is no link and nothing to open.
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Guide_WithoutAddress_IsHidden(string? address)
     {
-        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0");
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0", address);
 
+        Assert.False(appInfo.HasGuide);
+        Assert.False(appInfo.OpenGuideCommand.CanExecute(null));
+        appInfo.OpenGuideCommand.Execute(null);
+        Assert.Empty(_opened);
+    }
+
+    // The app as it is built: the guide follows GuideAddress, which has no address yet.
+    [Fact]
+    public void ForThisApp_HasTheGuideOfGuideAddress()
+    {
+        var appInfo = AppInfoViewModel.ForThisApp(_opened.Add);
+
+        Assert.Equal(!string.IsNullOrWhiteSpace(AppInfoViewModel.GuideAddress), appInfo.HasGuide);
+    }
+
+    // One address turns the link on.
+    [Fact]
+    public void OpenGuide_OpensTheAddress()
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0", GuideAddress);
+
+        Assert.True(appInfo.HasGuide);
         appInfo.OpenGuideCommand.Execute(null);
 
-        Assert.Equal([AppInfoViewModel.GuideAddress], _opened);
-        Assert.StartsWith("https://github.com/", AppInfoViewModel.GuideAddress, StringComparison.Ordinal);
-        Assert.EndsWith("/docs/handleiding.md", AppInfoViewModel.GuideAddress, StringComparison.Ordinal);
+        Assert.Equal([GuideAddress], _opened);
     }
 
     // No browser, or Windows refuses: a message instead of a crash.
@@ -59,7 +84,7 @@ public sealed class AppInfoViewModelTests
     [MemberData(nameof(OpenErrors))]
     public void OpenGuide_WhenWindowsCannotOpenIt_SaysSo(Exception error)
     {
-        var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0");
+        var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0", GuideAddress);
         var failures = new List<string>();
         appInfo.Failed += (_, message) => failures.Add(message);
 

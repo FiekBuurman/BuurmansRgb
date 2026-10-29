@@ -21,10 +21,11 @@ internal static class PageViews
 
     // A view model connected to a fake engine, which arrange prepares before the view model loads
     // from it. "Kies uit wat nu draait" lists programs, or nothing, but never what runs on this pc,
-    // and what Instellingen opens (the log) goes into opened instead of opening on this pc.
-    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null, List<string>? opened = null)
+    // and what Instellingen opens (the log, the guide at guideAddress) goes into opened instead of
+    // opening on this pc.
+    internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null, List<string>? opened = null, string? guideAddress = AppInfoViewModel.GuideAddress)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []), appInfo: AppInfoViewModel.ForThisApp(target => opened?.Add(target)));
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []), appInfo: AppInfoViewModel.ForThisApp(target => opened?.Add(target), guideAddress));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
