@@ -610,10 +610,11 @@ Hoe het vanzelf aanzetten werkt:
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
   met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
   geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
-  er komt geen "Opgeslagen ✓" in de statusregel. De schakelaar en het vinkje in het tray-menu staan altijd hetzelfde: zet je het in het menu om,
-  dan gaat de schakelaar meteen mee, en het menu toont wat je hier koos. Laat Windows het niet
-  toe (het register is niet te schrijven), dan springt de schakelaar terug en staat in de
-  statusregel "Starten met Windows kon niet worden aangepast."; het logbestand zegt waarom.
+  er komt geen "Opgeslagen ✓" in de statusregel. De schakelaar en het vinkje in het tray-menu
+  staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
+  menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
+  dan springt de schakelaar terug en staat in de statusregel "Starten met Windows kon niet
+  worden aangepast."; het logbestand zegt waarom.
 - **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
