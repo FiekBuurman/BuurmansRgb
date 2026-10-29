@@ -30,9 +30,12 @@ public sealed partial class ContrastThemeTests
     [InlineData("InputBorderBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("HoverBorderBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("InputHoverBorderBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("NewButtonHoverBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("ScrollBarHoverBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("EditingCardBorderBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("LinkBrush", nameof(SystemColors.HotTrackBrush))]
-    [InlineData("LinkHoverBrush", nameof(SystemColors.HotTrackBrush))]
+    [InlineData("LinkHoverBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("LinkHoverUnderlineBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("NavSelectedBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("ListSelectedBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("CaptionHoverBrush", nameof(SystemColors.HighlightBrush))]
@@ -53,6 +56,9 @@ public sealed partial class ContrastThemeTests
     [InlineData("PrimaryButtonTextBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("CheckedBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("CheckedTextBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("PrimaryButtonHoverBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("PrimaryButtonHoverTextBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("PrimaryButtonHoverBorderBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("WarningBrush", nameof(SystemColors.WindowTextBrush))]
     public void ContrastThemeOn_GivesTheTokenItsSystemBrush(string token, string systemBrush) => Sta.Run(() =>
     {
@@ -73,12 +79,26 @@ public sealed partial class ContrastThemeTests
     [InlineData("PrimaryButtonTextBrush", "BgBrush")]
     [InlineData("CheckedBrush", "TextBrush")]
     [InlineData("CheckedTextBrush", "BgBrush")]
+    [InlineData("NewButtonHoverBrush", "TextMutedBrush")]
+    [InlineData("ScrollBarHoverBrush", "TextMutedBrush")]
+    [InlineData("PrimaryButtonHoverBrush", "TextBrush")]
+    [InlineData("PrimaryButtonHoverTextBrush", "BgBrush")]
     public void RoleToken_HasTheColorOfTheDesign(string role, string design) => Sta.Run(() =>
     {
         var resources = LoadTheme();
 
         Assert.Equal(ColorOf(resources, design), ColorOf(resources, role));
     });
+
+    // What shows only in a contrast theme, such as the line under a link under the mouse, is
+    // transparent without one, so it draws nothing.
+    [Theory]
+    [InlineData("SwitchOnCoverBrush")]
+    [InlineData("SwitchOutlineBrush")]
+    [InlineData("LinkHoverUnderlineBrush")]
+    [InlineData("PrimaryButtonHoverBorderBrush")]
+    public void ContrastOnlyToken_IsTransparentWithoutAContrastTheme(string token) => Sta.Run(() =>
+        Assert.Equal(Colors.Transparent, ColorOf(LoadTheme(), token)));
 
     [Fact]
     public void ContrastThemeOff_LeavesTheColorsOfTheDesign() => Sta.Run(() =>

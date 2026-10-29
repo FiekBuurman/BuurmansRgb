@@ -66,6 +66,62 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.HighlightTextBrush, Part<System.Windows.Shapes.Path>(checkBox, "Check").Stroke);
     });
 
+    // Under the mouse the primary button, already the highlight, swaps its colors and gets a ring in
+    // the highlight. A test cannot move the mouse, so it reads the tokens of the hover trigger.
+    [Fact]
+    public void PrimaryButton_OnHover_SwapsItsColorsAndGetsARing() => InContrastTheme(panel =>
+    {
+        var button = Show(panel, new Button { Style = (Style)panel.FindResource("PrimaryButton"), Content = "Toepassen" });
+        var hover = HoverSetters(button.Template.Triggers);
+
+        Assert.Same(SystemColors.HighlightTextBrush, panel.FindResource(hover[("Face", Border.BackgroundProperty)]));
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[(null, Control.ForegroundProperty)]));
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[("HoverRing", Border.BorderBrushProperty)]));
+        Assert.NotNull(Part<Border>(button, "HoverRing"));
+    });
+
+    // A link takes the highlight under the mouse instead of the HotTrack it has at rest, with a
+    // line under it.
+    [Fact]
+    public void LinkButton_OnHover_HasTheHighlightAndALineUnderIt() => InContrastTheme(panel =>
+    {
+        var link = Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "+ Erbij knutselen" });
+
+        Assert.Same(SystemColors.HotTrackBrush, link.Foreground);
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Style.Triggers)[(null, Control.ForegroundProperty)]));
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Template.Triggers)[("Underline", Border.BackgroundProperty)]));
+        Assert.Equal(Colors.Transparent, Assert.IsType<SolidColorBrush>(Part<Border>(link, "Underline").Background).Color);
+    });
+
+    // The dashed border of "+ new" and the thumb of a scroll bar: the text color at rest, the
+    // highlight under the mouse.
+    [Fact]
+    public void NewButton_OnHover_HasTheHighlight() => InContrastTheme(panel =>
+    {
+        var button = Show(panel, new Button { Style = (Style)panel.FindResource("NewButton"), Content = "+ Nieuw" });
+
+        Assert.Same(SystemColors.WindowTextBrush, Part<System.Windows.Shapes.Rectangle>(button, "Dashes").Stroke);
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(button.Template.Triggers)[("Dashes", System.Windows.Shapes.Shape.StrokeProperty)]));
+    });
+
+    [Fact]
+    public void ScrollBarThumb_OnHover_HasTheHighlight() => InContrastTheme(panel =>
+    {
+        var thumb = Show(panel, new Thumb { Style = (Style)panel.FindResource("ScrollBarThumb"), Width = 10, Height = 40 });
+
+        Assert.Same(SystemColors.WindowTextBrush, Part<Border>(thumb, "Bar").Background);
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(thumb.Template.Triggers)[("Bar", Border.BackgroundProperty)]));
+    });
+
+    // The setters of the trigger on IsMouseOver that set a DynamicResource, by the element they set
+    // (null: the control itself) and the property, each with the key of its resource.
+    private static Dictionary<(string? TargetName, DependencyProperty Property), object> HoverSetters(TriggerCollection triggers) => triggers
+        .OfType<Trigger>()
+        .Single(trigger => trigger.Property == UIElement.IsMouseOverProperty)
+        .Setters.OfType<Setter>()
+        .Where(setter => setter.Value is DynamicResourceExtension)
+        .ToDictionary(setter => ((string?)setter.TargetName, setter.Property), setter => ((DynamicResourceExtension)setter.Value).ResourceKey);
+
     // On the resources of the window, as in ContrastThemeViewTests.
     private static void InContrastTheme(Action<StackPanel> test) => AppTheme.Run(panel =>
     {

@@ -17,7 +17,9 @@ public sealed class ContrastTheme : IDisposable
     // the ring around a switch, in the text color, show where a card or a control is; a selected or
     // hovered item takes the highlight, as in Windows. Buttons and cards you click take the face and
     // text of a button (in WPF Control and ControlText); the primary button, a ticked check box and
-    // a day that is on take the highlight, like a switch that is on.
+    // a day that is on take the highlight, like a switch that is on. Every hover shows in the
+    // highlight: a link also gets a line under it, and the primary button, already the highlight,
+    // swaps its colors and gets a ring.
     internal static readonly IReadOnlyDictionary<string, Func<SolidColorBrush>> SystemBrushes = new Dictionary<string, Func<SolidColorBrush>>
     {
         ["BgBrush"] = () => SystemColors.WindowBrush,
@@ -30,11 +32,14 @@ public sealed class ContrastTheme : IDisposable
         ["InputBorderBrush"] = () => SystemColors.WindowTextBrush,
         ["HoverBorderBrush"] = () => SystemColors.HighlightBrush,
         ["InputHoverBorderBrush"] = () => SystemColors.HighlightBrush,
+        ["NewButtonHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["ScrollBarHoverBrush"] = () => SystemColors.HighlightBrush,
         ["EditingCardBorderBrush"] = () => SystemColors.HighlightBrush,
         ["TextBrush"] = () => SystemColors.WindowTextBrush,
         ["TextMutedBrush"] = () => SystemColors.WindowTextBrush,
         ["LinkBrush"] = () => SystemColors.HotTrackBrush,
-        ["LinkHoverBrush"] = () => SystemColors.HotTrackBrush,
+        ["LinkHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["LinkHoverUnderlineBrush"] = () => SystemColors.HighlightBrush,
         ["NavSelectedBrush"] = () => SystemColors.HighlightBrush,
         ["ListSelectedBrush"] = () => SystemColors.HighlightBrush,
         ["CaptionHoverBrush"] = () => SystemColors.HighlightBrush,
@@ -55,6 +60,9 @@ public sealed class ContrastTheme : IDisposable
         ["PrimaryButtonTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["CheckedBrush"] = () => SystemColors.HighlightBrush,
         ["CheckedTextBrush"] = () => SystemColors.HighlightTextBrush,
+        ["PrimaryButtonHoverBrush"] = () => SystemColors.HighlightTextBrush,
+        ["PrimaryButtonHoverTextBrush"] = () => SystemColors.HighlightBrush,
+        ["PrimaryButtonHoverBorderBrush"] = () => SystemColors.HighlightBrush,
         ["WarningBrush"] = () => SystemColors.WindowTextBrush,
     };
 

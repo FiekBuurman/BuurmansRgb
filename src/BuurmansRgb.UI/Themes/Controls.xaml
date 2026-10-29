@@ -338,7 +338,10 @@
     </Style>
 
     <!-- § 4 Primary button: text-colored, with the corners of ButtonRadius; in a contrast theme the
-         highlight (PrimaryButtonBrush). -->
+         highlight (PrimaryButtonBrush). Under the mouse a little lighter; in a contrast theme, where
+         that would not show, the colors swap and a ring in the highlight keeps the shape of the
+         button, as the accent buttons of Windows do. Without one the hover tokens are the colors at
+         rest and the ring is transparent. -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="28,0" />
@@ -351,12 +354,18 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="Face" CornerRadius="{StaticResource ButtonRadius}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                        <Border x:Name="HoverRing" CornerRadius="{StaticResource ButtonRadius}" BorderThickness="2" BorderBrush="Transparent" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Face" Property="Opacity" Value="0.9" />
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource PrimaryButtonHoverBrush}" />
+                            <Setter TargetName="HoverRing" Property="BorderBrush" Value="{DynamicResource PrimaryButtonHoverBorderBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource PrimaryButtonHoverTextBrush}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Face" Property="Opacity" Value="0.8" />
@@ -470,7 +479,7 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Dashes" Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
+                            <Setter TargetName="Dashes" Property="Stroke" Value="{DynamicResource NewButtonHoverBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.4" />
@@ -569,7 +578,10 @@
          "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey, so it no longer looks like a
          link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
          gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF
-         shows the cursor of the parent over a disabled element. -->
+         shows the cursor of the parent over a disabled element. Under the mouse a link gets lighter;
+         in a contrast theme it takes the highlight and a line under it (LinkHoverUnderlineBrush), so
+         the hover shows by more than color. The links of the design have no line, so without a
+         contrast theme that line is transparent. -->
     <Style x:Key="LinkButton" TargetType="Button">
         <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
         <Setter Property="FontSize" Value="14" />
@@ -579,7 +591,15 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <ContentPresenter VerticalAlignment="Center" Margin="4,0" RecognizesAccessKey="True" />
+                    <Grid VerticalAlignment="Center" Margin="4,0">
+                        <ContentPresenter RecognizesAccessKey="True" />
+                        <Border x:Name="Underline" Height="1" VerticalAlignment="Bottom" Background="Transparent" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Underline" Property="Background" Value="{DynamicResource LinkHoverUnderlineBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -873,7 +893,7 @@
                     <Border x:Name="Bar" CornerRadius="4" Background="{DynamicResource BorderStrongBrush}" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bar" Property="Background" Value="{DynamicResource TextMutedBrush}" />
+                            <Setter TargetName="Bar" Property="Background" Value="{DynamicResource ScrollBarHoverBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

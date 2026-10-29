@@ -35,6 +35,10 @@
 
     <!-- The hover border of cards and buttons (§ 6), which is border-strong. -->
     <SolidColorBrush x:Key="HoverBorderBrush" Color="{StaticResource BorderStrongColor}" />
+    <!-- The hover of the dashed border of "+ new" and of the thumb of a scroll bar, which is
+         text-muted; a contrast theme gives every hover the highlight (ContrastTheme). -->
+    <SolidColorBrush x:Key="NewButtonHoverBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="ScrollBarHoverBrush" Color="{StaticResource TextMutedColor}" />
 
     <!-- The border of a field you type in or pick from, and of a check box: not in the design, whose
          border (1.2:1) and border-strong (1.8:1) do not make a field recognizable. It stands out at
@@ -47,6 +51,9 @@
     <!-- Links, as in the screens of the design. -->
     <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
     <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
+    <!-- The line under a link under the mouse: only in a contrast theme (ContrastTheme), as the links
+         of the design have none. -->
+    <SolidColorBrush x:Key="LinkHoverUnderlineBrush" Color="Transparent" />
 
     <!-- Roles of the colors above that a contrast theme of Windows gives a color of its own
          (ContrastTheme): here they look as the design says. A selected or hovered item, which a
@@ -79,6 +86,11 @@
     <SolidColorBrush x:Key="PrimaryButtonTextBrush" Color="{StaticResource BgColor}" />
     <SolidColorBrush x:Key="CheckedBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="CheckedTextBrush" Color="{StaticResource BgColor}" />
+    <!-- The primary button under the mouse: in a contrast theme its colors swap, with a ring in the
+         highlight around it; here the colors at rest and no ring (the face gets a little lighter). -->
+    <SolidColorBrush x:Key="PrimaryButtonHoverBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="PrimaryButtonHoverTextBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="PrimaryButtonHoverBorderBrush" Color="Transparent" />
 
     <!-- LED colors, always with a glow (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>

@@ -32,10 +32,12 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   markeerkleur van het thema, net als wat aan staat of de hoofdactie is: een aangevinkt vakje,
   een dag die aan staat, de grote knop (bijv. "Op het apparaat zetten") en een schakelaar die aan
   staat, in plaats van de kleur van het apparaat; uit is een schakelaar een rand met de knop in
-  de tekstkleur. Dat gaat terwijl de app open is, en zet je het thema weer uit, dan is de app
-  weer donker. De LED's in het voorbeeld met hun gloed, de bolletjes op een scènekaart, de vakjes
-  met kleuren, de schuiven R, G en B en het woordmerk houden hun eigen kleuren: dat zijn de
-  kleuren die je instelt.
+  de tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld,
+  de streepjesrand van "+ nieuw", de schuifbalk en een link, die dan ook een streep eronder
+  krijgt; de grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open
+  is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun
+  gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het
+  woordmerk houden hun eigen kleuren: dat zijn de kleuren die je instelt.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -737,7 +739,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   onder de bolletjes blijft donker, zodat de LED's erop gloeien. Een schakelaar die aan staat,
   toont de markeerkleur in plaats van de kleur van het apparaat, zoals de schakelaars van Windows;
   de kleur zie je in het voorbeeld en op de kaart. Het waarschuwingsteken ⚠ krijgt de tekstkleur
-  in plaats van geel, dat op een licht thema wegvalt.
+  in plaats van geel, dat op een licht thema wegvalt. Een link krijgt onder de muis alleen in een
+  contrastthema een streep eronder, waar de kleur alleen niet genoeg zegt; de links van het
+  ontwerp hebben geen streep, en zonder contrastthema blijft dat zo.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
