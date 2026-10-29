@@ -999,6 +999,12 @@ geïnstalleerde .NET. Een gewone build of test haalt geen van vier. De DLL's die
 laadt, laat de app daarbij zoals ze zijn (target `KeepSharedAssembliesIL` in
 `BuurmansRgb.UI.csproj`).
 
+Omdat ReadyToRun alleen aanstaat als `dotnet publish` loopt, publiceer je de app met
+`dotnet publish` zonder `--no-restore`: na een gewone build mist het assets-bestand het target
+`net10.0-windows/win-x64` en faalt de publish met NETSDK1047. Een publicatie uit Visual Studio of
+met `msbuild -t:Publish` of `dotnet build -t:Publish` zet `_IsPublishing` niet en krijgt dus geen
+ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
+
 - **Na installeren** start de installer de engine als de gewone gebruiker met `--first-run`.
   Die zet "Starten met Windows" aan, alleen als dat nog uit staat.
 - **Engine stoppen** in een script: `BuurmansRgb.Engine.exe --exit` (een tweede start geeft het

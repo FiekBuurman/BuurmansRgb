@@ -18,7 +18,9 @@
          usable only ~0.15 s later for it; a plain build without it starts 0.2-0.7 s later.
          Only on publish (dotnet publish sets _IsPublishing, also for its restore): set always, the
          SDK would give every restore a runtime identifier and fetch the ReadyToRun compiler and the
-         win-x64 runtime packs for a plain build and test as well. -->
+         win-x64 runtime packs for a plain build and test as well. So publish with dotnet publish
+         and its own restore, and a publish from Visual Studio or with -t:Publish gets no
+         ReadyToRun (docs/ontwikkelaars.md, "Installer bouwen en testen"). -->
     <TieredCompilation>false</TieredCompilation>
     <PublishReadyToRun Condition="'$(_IsPublishing)' == 'true'">true</PublishReadyToRun>
     <!-- Only these assemblies get ReadyToRun code, see KeepSharedAssembliesIL. -->
