@@ -1238,7 +1238,7 @@
   </data>
   <data name="CustomEffectStepName" xml:space="preserve">
     <value>Stap {0}: {1}, {2:0.0} s blijven staan, {3:0.0} s overlopen</value>
-    <comment>Een stap van een eigen effect, voor een schermlezer en als tooltip. {1} = ColorNameWithHex (bijv. "rood, #FF3B3B") of CustomEffectPattern.</comment>
+    <comment>Een stap van een eigen effect, voor een schermlezer en als tooltip. {1} = ColorNameWithHex (bijv. "oranje, #FF8800") of CustomEffectPattern.</comment>
   </data>
   <data name="CustomEffectStepHelp" xml:space="preserve">
     <value>Kies de stap om hem te kleuren en zijn tijden te zetten. Delete haalt hem weg.</value>
