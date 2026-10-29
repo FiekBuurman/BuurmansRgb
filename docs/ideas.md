@@ -269,6 +269,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - Kleurnamen in plaats van hexcodes voor een schermlezer, bijv. "Kleur 1: geel" in plaats van
   "Kleur 1: #FFFF00" bij de kleurenloop en de kleuren van een effect, met de naam van de
   dichtstbijzijnde bekende kleur (gebruikerstest 28-10)
+- "Handleiding" onderaan Instellingen naar de handleiding van de eigen versie laten wijzen (de
+  tag van de release, bijv. `blob/v1.2.0/docs/handleiding.md`) in plaats van die op `main`, zodat
+  hij niet over functies gaat die de geïnstalleerde versie nog niet heeft; of de handleiding als
+  HTML met de installer meeleveren, zodat hij ook zonder internet opent
+- Bij Instellingen ook de versie van de engine tonen als die een andere is dan die van de app
+  (bijv. na een update waarbij de oude engine bleef draaien); nu toont hij alleen die van de app
 
 ### Voorbeeld en per-LED-editor
 
