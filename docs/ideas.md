@@ -283,6 +283,11 @@ uitbreidingen in `docs/bouwplan.md`.
   "blauw", "rood" of "geel". Een derde
   stap op verzadiging tussen grijs en de tint houdt het voorspelbaar, maar kaki heeft al 43 %,
   dus de grens vraagt een reeks kleuren om te kiezen (review 29-10)
+- Eén grens voor "zwart": een LED krijgt de ring in plaats van een gloed als elk kanaal onder 8
+  ligt (`LedRing.IsDark`), maar heet "zwart" voor een schermlezer zodra het felste kanaal onder 24
+  ligt (`ColorNames.BlackBelow`), dus `#101010` heet zwart en gloeit toch. Ze hebben een ander
+  doel (geen licht dat je ziet, tegenover een naam die klopt met wat je ziet), en gelijktrekken
+  verandert het gedrag van een van beide; eerst kiezen welke grens het moet zijn (audit 29-10)
 - De handleiding met de installer meeleveren, bijv. als HTML die `installer\build.ps1` uit
   `docs/handleiding.md` maakt, en die lokaal openen met "Handleiding" onderaan Instellingen: zo
   opent hij voor iedereen, ook zonder internet, en gaat hij over de versie die geïnstalleerd is,
@@ -613,6 +618,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Eén gedeelde schrijver voor `CustomEffectLibrary` en `LightingSettingsSaver`: beide schrijven
   hun bestand even na de laatste wijziging, loggen de eerste fout volledig en proberen het daarna
   opnieuw, elk met een eigen timer en eigen foutafhandeling
+- Eén patroon voor de instellingen van Windows die de app volgt (contrastthema, tekstgrootte en
+  animatie-effecten), bijv. een `ISystemSetting<T>`: de vorm is al gelijk, het gedeelde deel (de
+  meldingen naar de dispatcher) zit in `SystemParameterMessages`, en de rest verschilt echt, dus
+  het scheelt nu ~20–30 regels. Bij een vierde instelling opnieuw bekijken (audit 29-10)
 - UI-teksten met een vast getal aan hun constante koppelen, via een placeholder of een test:
   "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`) en "tot 32 eigen effecten"
   in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`). Nu blijft de tekst stil staan als
