@@ -77,9 +77,9 @@ public sealed partial class ContrastThemeTests
     ];
 
     // Per token for a role the color it has without a contrast theme: the token of the design that
-    // the control had before, so the app looks the same, or a color of its own. What shows only in a
-    // contrast theme, such as the line under a link under the mouse, is transparent, so it draws
-    // nothing.
+    // the control had before, so the app looks the same, or a Color token of its own, such as the red
+    // of the close button. What shows only in a contrast theme, such as the line under a link under
+    // the mouse, is transparent, so it draws nothing.
     private static readonly Dictionary<string, string> RoleDesignColors = new()
     {
         ["ControlHoverBrush"] = "TextMutedBrush",
@@ -89,7 +89,7 @@ public sealed partial class ContrastThemeTests
         ["CaptionPressedBrush"] = "BorderStrongBrush",
         ["OnHighlightTextBrush"] = "TextBrush",
         ["OnHighlightMutedTextBrush"] = "TextMutedBrush",
-        ["CloseHoverBrush"] = "#C42B1C",
+        ["CloseHoverBrush"] = "CloseHoverColor",
         ["CloseHoverTextBrush"] = "White",
         ["TextSelectionBrush"] = "LedBlueBrush",
         ["WarningBrush"] = "LedYellowBrush",
@@ -104,8 +104,8 @@ public sealed partial class ContrastThemeTests
         ["SwitchOnCoverBrush"] = "Transparent",
         ["ControlOutlineBrush"] = "Transparent",
         ["HoverOutlineBrush"] = "Transparent",
-        ["LedOffRingBrush"] = "#7A7880",
-        ["CardLedOffRingBrush"] = "#7A7880",
+        ["LedOffRingBrush"] = "LedOffRingColor",
+        ["CardLedOffRingBrush"] = "LedOffRingColor",
     };
 
     public static TheoryData<string> RoleTokens => [.. RoleDesignColors.Keys];
@@ -127,7 +127,12 @@ public sealed partial class ContrastThemeTests
     {
         var resources = LoadTheme();
         var design = RoleDesignColors[role];
-        var expected = resources[design] is SolidColorBrush brush ? brush.Color : Parse(design);
+        var expected = resources[design] switch
+        {
+            SolidColorBrush brush => brush.Color,
+            Color color => color,
+            _ => Parse(design),
+        };
 
         Assert.Equal(expected, ColorOf(resources, role));
     });

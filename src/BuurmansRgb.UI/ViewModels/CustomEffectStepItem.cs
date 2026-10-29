@@ -21,12 +21,15 @@ public sealed partial class CustomEffectStepItem(int index, CustomEffectStep ste
 
     public IReadOnlyList<RgbColor> Colors => Step.Colors;
 
-    // "Stap 2: #FF0000, 1,0 s blijven staan, 0,5 s overlopen", or with "patroon van 104 LED's".
-    public string Name => UiText.Format(Strings.CustomEffectStepName, Index + 1, Describe(Step), Step.HoldSeconds, Step.FadeSeconds);
+    // "Stap 2: echt rood, #FF0000, 1,0 s blijven staan, 0,5 s overlopen", or with "patroon van 104
+    // LED's".
+    public string Name => UiText.Format(Strings.CustomEffectStepName, Index + 1, Describe(Step, ColorNames.WithHex), Step.HoldSeconds, Step.FadeSeconds);
 
-    // "#FF0000", or "patroon van 104 LED's".
-    public static string Describe(CustomEffectStep step) =>
-        step.IsPattern ? UiText.Format(Strings.CustomEffectPattern, step.Colors.Count) : step.Colors[0].ToHex();
+    // "#FF0000", or "patroon van 104 LED's": the line under the steps, where you see the color.
+    public static string Describe(CustomEffectStep step) => Describe(step, color => color.ToHex());
+
+    private static string Describe(CustomEffectStep step, Func<RgbColor, string> color) =>
+        step.IsPattern ? UiText.Format(Strings.CustomEffectPattern, step.Colors.Count) : color(step.Colors[0]);
 
     // WPF names the item after it for screen readers; the object's own text means nothing there.
     public override string ToString() => Name;

@@ -16,7 +16,8 @@ public sealed class CustomColorItem
 
     public RgbColor Color { get; }
 
-    public string Name => UiText.Format(Strings.CustomColorName, Color.ToHex());
+    // "Eigen kleur: geel, #FFFF00".
+    public string Name => UiText.Format(Strings.CustomColorName, ColorNames.WithHex(Color));
 
     // FocusKeeper gives the focus back to the tile of this color when the engine sends other colors.
     public string FocusKey => $"custom-color/{Color.ToHex()}";

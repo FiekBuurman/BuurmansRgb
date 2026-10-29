@@ -25,7 +25,7 @@ public sealed class ColorListEditorViewTests
 
         Assert.Equal([Red, Blue], tiles.Select(tile => ((SolidColorBrush)tile.Background).Color).Select(color => new RgbColor(color.R, color.G, color.B)));
         Assert.Equal([true, false], tiles.Select(tile => tile.Tag));
-        Assert.Equal(string.Format(Strings.ColorListSwatch, 2, "#0000FF"), AutomationProperties.GetName(tiles[1]));
+        Assert.Equal("Kleur 2: echt blauw, #0000FF", AutomationProperties.GetName(tiles[1]));
         Assert.All(tiles, tile => Assert.Equal((44.0, new Thickness(0, 0, 8, 8)), (tile.ActualWidth, tile.Margin)));
     });
 
