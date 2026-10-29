@@ -15,7 +15,9 @@ public sealed class ContrastTheme : IDisposable
     // Per token the color it takes in a contrast theme. Muted text takes the text color, not
     // GrayText: in a contrast theme that means disabled. Surfaces are all the window, so borders and
     // the ring around a switch, in the text color, show where a card or a control is; a selected or
-    // hovered item takes the highlight, as in Windows.
+    // hovered item takes the highlight, as in Windows. Buttons and cards you click take the face and
+    // text of a button (in WPF Control and ControlText); the primary button, a ticked check box and
+    // a day that is on take the highlight, like a switch that is on.
     internal static readonly IReadOnlyDictionary<string, Func<SolidColorBrush>> SystemBrushes = new Dictionary<string, Func<SolidColorBrush>>
     {
         ["BgBrush"] = () => SystemColors.WindowBrush,
@@ -46,6 +48,13 @@ public sealed class ContrastTheme : IDisposable
         ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
         ["KnobOnBrush"] = () => SystemColors.HighlightTextBrush,
         ["SliderRailBrush"] = () => SystemColors.GrayTextBrush,
+        ["ButtonFaceBrush"] = () => SystemColors.ControlBrush,
+        ["ButtonTextBrush"] = () => SystemColors.ControlTextBrush,
+        ["ButtonBorderBrush"] = () => SystemColors.ControlTextBrush,
+        ["PrimaryButtonBrush"] = () => SystemColors.HighlightBrush,
+        ["PrimaryButtonTextBrush"] = () => SystemColors.HighlightTextBrush,
+        ["CheckedBrush"] = () => SystemColors.HighlightBrush,
+        ["CheckedTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["WarningBrush"] = () => SystemColors.WindowTextBrush,
     };
 

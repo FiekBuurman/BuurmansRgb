@@ -26,13 +26,16 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   want de tekst ernaast zegt al wat ze tonen.
 - **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
   Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
-  over: tekst, achtergrond, kaarten, randen, links en de focusring. De pagina die je open hebt in
-  de navigatiebalk, het gekozen item van een keuzelijst en een knop in de titelbalk onder de muis
-  krijgen de markeerkleur van het thema, en een schakelaar die aan staat ook, in plaats van de
-  kleur van het apparaat; uit is het een rand met de knop in de tekstkleur. Dat gaat terwijl de
-  app open is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld
-  met hun gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en
-  het woordmerk houden hun eigen kleuren: dat zijn de kleuren die je instelt.
+  over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je
+  klikt, krijgen de knopkleuren van het thema. De pagina die je open hebt in de navigatiebalk, het
+  gekozen item van een keuzelijst en een knop in de titelbalk onder de muis krijgen de
+  markeerkleur van het thema, net als wat aan staat of de hoofdactie is: een aangevinkt vakje,
+  een dag die aan staat, de grote knop (bijv. "Op het apparaat zetten") en een schakelaar die aan
+  staat, in plaats van de kleur van het apparaat; uit is een schakelaar een rand met de knop in
+  de tekstkleur. Dat gaat terwijl de app open is, en zet je het thema weer uit, dan is de app
+  weer donker. De LED's in het voorbeeld met hun gloed, de bolletjes op een scènekaart, de vakjes
+  met kleuren, de schuiven R, G en B en het woordmerk houden hun eigen kleuren: dat zijn de
+  kleuren die je instelt.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is

@@ -68,6 +68,17 @@
     <SolidColorBrush x:Key="SwitchOutlineBrush" Color="Transparent" />
     <!-- The rail of a slider beside its fill. -->
     <SolidColorBrush x:Key="SliderRailBrush" Color="{StaticResource LedOffColor}" />
+    <!-- Buttons (§ 4): a secondary button, an icon button and a card you click are a surface with
+         text and a border; the primary button, a day that is on and a ticked check box are
+         text-colored with bg on them. A contrast theme gives a button the face and text of a
+         button (ButtonFace, ButtonText), and what is primary or on the highlight, as Windows does. -->
+    <SolidColorBrush x:Key="ButtonFaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="ButtonTextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="PrimaryButtonBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="PrimaryButtonTextBrush" Color="{StaticResource BgColor}" />
+    <SolidColorBrush x:Key="CheckedBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="CheckedTextBrush" Color="{StaticResource BgColor}" />
 
     <!-- LED colors, always with a glow (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>

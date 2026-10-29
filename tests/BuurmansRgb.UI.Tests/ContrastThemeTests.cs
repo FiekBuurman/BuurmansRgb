@@ -46,6 +46,13 @@ public sealed partial class ContrastThemeTests
     [InlineData("KnobOffBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("KnobOnBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("SliderRailBrush", nameof(SystemColors.GrayTextBrush))]
+    [InlineData("ButtonFaceBrush", nameof(SystemColors.ControlBrush))]
+    [InlineData("ButtonTextBrush", nameof(SystemColors.ControlTextBrush))]
+    [InlineData("ButtonBorderBrush", nameof(SystemColors.ControlTextBrush))]
+    [InlineData("PrimaryButtonBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("PrimaryButtonTextBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("CheckedBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("CheckedTextBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("WarningBrush", nameof(SystemColors.WindowTextBrush))]
     public void ContrastThemeOn_GivesTheTokenItsSystemBrush(string token, string systemBrush) => Sta.Run(() =>
     {
@@ -54,6 +61,23 @@ public sealed partial class ContrastThemeTests
 
         Assert.True(theme.IsApplied);
         Assert.Same(SystemBrush(systemBrush), resources[token]);
+    });
+
+    // A token for a role that a contrast theme colors on its own has, without one, the color of the
+    // design that the control had before, so the app looks the same.
+    [Theory]
+    [InlineData("ButtonFaceBrush", "SurfaceBrush")]
+    [InlineData("ButtonTextBrush", "TextBrush")]
+    [InlineData("ButtonBorderBrush", "BorderBrush")]
+    [InlineData("PrimaryButtonBrush", "TextBrush")]
+    [InlineData("PrimaryButtonTextBrush", "BgBrush")]
+    [InlineData("CheckedBrush", "TextBrush")]
+    [InlineData("CheckedTextBrush", "BgBrush")]
+    public void RoleToken_HasTheColorOfTheDesign(string role, string design) => Sta.Run(() =>
+    {
+        var resources = LoadTheme();
+
+        Assert.Equal(ColorOf(resources, design), ColorOf(resources, role));
     });
 
     [Fact]
