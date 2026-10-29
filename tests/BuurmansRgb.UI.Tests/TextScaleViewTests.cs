@@ -18,7 +18,12 @@ public sealed class TextScaleViewTests
 {
     private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(new RgbColor(255, 0, 0), 1, 0), new CustomEffectStep(new RgbColor(0, 0, 255), 1, 0)]);
 
-    // On each of the four pages, also with the panels that come and go, no text is cut off or lies
+    // A board with an addressable header that can be counted, as on Kleur.
+    private static readonly DeviceInfo Board = new("board", "ASUS ROG STRIX B550-F GAMING", DeviceType.Motherboard, 8,
+        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 6, 0, 60)]) { Source = DeviceSource.Hardware };
+
+    // On each of the four pages, also with the panels that come and go (counting the LEDs of a zone,
+    // the message under the hex code and the settings of a scene among them), no text is cut off or lies
     // over another text or a control, in the rail, the page and the status bar; a name in a card
     // may end in "…", as at 100 %. From the 100 % of Windows up to its largest, 225 %.
     [Theory]
@@ -44,6 +49,24 @@ public sealed class TextScaleViewTests
 
             Check(AppPage.Lamps, "");
             Check(AppPage.Color, "alle apparaten");
+            Check(AppPage.Color, "melding onder de hex-code", () =>
+            {
+                var box = PageViews.Named<TextBox>(window, Strings.HexLabel);
+                var color = viewModel.ColorPicker.Color.ToHex();
+                Assert.True(box.Focus());
+                box.Text = "#12";
+                Assert.True(PageViews.Named<Slider>(window, Strings.ChannelRed).Focus());
+                OffscreenWindow.WaitUntilIdle();
+                Assert.Contains(AppTheme.Descendants<TextBlock>(window), text => text.IsVisible && text.Text == UiText.Format(Strings.HexCodeInvalidKept, "#12", color));
+            });
+            Check(AppPage.Color, "bord, tellen bij een zone", () =>
+            {
+                viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "board");
+                OffscreenWindow.WaitUntilIdle();
+                PageViews.Click(PageViews.ButtonNamed(window, string.Format(Strings.CountZoneAccessibleName, Board.Name, "ARGB 1")));
+                Assert.NotNull(StopCounting());
+            });
+            PageViews.Click(StopCounting());
             Check(AppPage.Color, "strip, kleurenloop", () =>
             {
                 viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
@@ -55,6 +78,8 @@ public sealed class TextScaleViewTests
             Check(AppPage.Scenes, "");
             Check(AppPage.Scenes, "Klusmodus aanpassen", () => viewModel.Profiles.EditCommand.Execute(viewModel.Profiles.Cards[0]));
             Check(AppPage.Settings, "");
+
+            Button StopCounting() => AppTheme.Descendants<Button>(window).Single(button => button.IsVisible && Equals(button.Content, Strings.ZoneCountStop));
         });
 
         Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
@@ -193,7 +218,7 @@ public sealed class TextScaleViewTests
         [
             TestDevices.Create("strip", "Corsair LS100 Smart Lighting Strip", DeviceType.LedStrip, 30),
             TestDevices.Create("ram", "Corsair Vengeance RGB PRO", DeviceType.Ram, 10),
-            TestDevices.Create("board", "ASUS ROG STRIX B550-F GAMING", DeviceType.Motherboard, 8),
+            Board,
             TestDevices.Create("fan", "Fan", DeviceType.Fan, 12),
         ];
         api.Effects = [EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.ColorLoop, EffectIds.Comet, EffectIds.PerLed];

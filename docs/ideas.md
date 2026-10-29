@@ -314,10 +314,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het tekenen van de ring van een LED die uit staat of zwart is meten met een zichtbaar venster
   (niet vergrendeld): de meting bij "led-uit-zichtbaar" telde `OnRender` en de layout, niet het
   tekenen van de lijnen door WPF zelf
-- Met een grote tekstgrootte van Windows ook nalopen wat `TextScaleViewTests` niet toont: Tellen
-  bij een zone, een open keuzelijst, een tooltip, "Kies uit wat nu draait" met programma's en de
-  melding onder de hex-code. Nu controleert de test de pagina's zelf, met de panelen die komen en
-  gaan
+- Met een grote tekstgrootte van Windows ook nalopen wat `TextScaleViewTests` niet toont: een open
+  keuzelijst, een tooltip en "Kies uit wat nu draait" met programma's. Nu controleert de test de
+  pagina's zelf, met de panelen die komen en gaan (ook Tellen bij een zone en de melding onder de
+  hex-code)
 - `TextFit` (de controle van `TextScaleViewTests`) ook een tekst uit losse `Run`s laten nalopen,
   zoals de naam in de keuze op Kleur en de regel onder de titel: van zo'n `TextBlock` is `Text`
   leeg, dus slaat hij die nu over. Kan nieuwe meldingen geven die eerst bekeken moeten worden
