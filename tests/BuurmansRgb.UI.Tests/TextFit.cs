@@ -99,9 +99,9 @@ internal static class TextFit
             }
 
             if (element is FrameworkElement framework && LayoutInformation.GetLayoutClip(framework) is { } clip
-                && (clip.Bounds.Right < framework.ActualWidth - pixel || clip.Bounds.Bottom < framework.ActualHeight - pixel))
+                && (clip.Bounds.Left > pixel || clip.Bounds.Top > pixel || clip.Bounds.Right < framework.ActualWidth - pixel || clip.Bounds.Bottom < framework.ActualHeight - pixel))
             {
-                return Invariant($"is cut off in {framework.GetType().Name} '{framework.Name}' of {framework.ActualWidth:0.#} × {framework.ActualHeight:0.#} at {clip.Bounds.Right:0.#} × {clip.Bounds.Bottom:0.#}");
+                return Invariant($"is cut off in {framework.GetType().Name} '{framework.Name}' of {framework.ActualWidth:0.#} × {framework.ActualHeight:0.#} to {clip.Bounds.Left:0.#},{clip.Bounds.Top:0.#} – {clip.Bounds.Right:0.#},{clip.Bounds.Bottom:0.#}");
             }
         }
 

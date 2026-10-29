@@ -108,6 +108,38 @@ public sealed class TextScaleViewTests
         });
     }
 
+    // The question before an own effect is deleted, the longest of the two, with its buttons beside
+    // each other: nothing cut off or over another.
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(1.5)]
+    [InlineData(2.0)]
+    [InlineData(2.25)]
+    public void ConfirmDialog_AtTheTextSize_CutsOffAndOverlapsNothing(double factor) => AppTheme.Run(panel =>
+    {
+        var dialog = ConfirmDialog.ForCustomEffect(Window.GetWindow(panel)!, "Disco met een hele lange naam");
+        dialog.ShowActivated = false;
+        dialog.WindowStartupLocation = WindowStartupLocation.Manual;
+        dialog.Left = OffscreenWindow.Offset;
+        dialog.Top = OffscreenWindow.Offset;
+        using var scale = TextScale.Follow(dialog.Resources, new FakeTextScale { Factor = factor });
+        dialog.Show();
+        OffscreenWindow.WaitUntilIdle();
+        try
+        {
+            var problems = TextFit.Problems((FrameworkElement)dialog.Content);
+            var buttons = AppTheme.Descendants<Button>(dialog).Where(button => button.Focusable).ToList();
+
+            Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+            Assert.Equal(2, buttons.Count);
+            Assert.Equal(buttons[0].TranslatePoint(default, dialog).Y, buttons[1].TranslatePoint(default, dialog).Y);
+        }
+        finally
+        {
+            dialog.Close();
+        }
+    });
+
     private static Task<MainViewModel> ConnectAsync() => PageViews.ConnectAsync(api =>
     {
         api.Devices =
