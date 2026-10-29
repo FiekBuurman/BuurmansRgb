@@ -510,6 +510,12 @@ uitbreidingen in `docs/bouwplan.md`.
     UI Automation moeten dan blijven werken
   - Wat het tekenen op de videokaart kost (het stuurprogramma, de buffers van DirectX, de gloed
     van `LedBulb`) is nog nooit apart gemeten; dat kan alleen met een venster op het eigen scherm
+- De gedeelde DLL's van engine en app (Contracts, Core, StreamJsonRpc, MessagePack en wat daarbij
+  hoort) ook met ReadyToRun publiceren: de app is dan ~0,1 s eerder bruikbaar (1.047–1.096 tegen
+  941–986 ms, zie "Metingen" in `ontwikkelaars.md`). Ze staan in dezelfde map als de engine, dus
+  eerst de engine meten met en zonder (working set, private bytes, CPU; statisch en regenboog), en
+  alleen doen als die niet slechter wordt; dan `ReadyToRunAssemblies` in `BuurmansRgb.UI.csproj`
+  aanvullen of het target `KeepSharedAssembliesIL` weghalen
 - Geheugen van de engine: het budget in `docs/bouwplan.md` is working set, maar die telt
   gedeelde pagina's van .NET en WinForms mee; vergelijk daarom private bytes (~11–13 MB).
   `MemoryTrimmer` maakt de working set klein, maar de pagina's komen terug zodra de engine ze
