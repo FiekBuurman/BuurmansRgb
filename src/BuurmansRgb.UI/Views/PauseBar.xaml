@@ -21,7 +21,7 @@
                     AutomationProperties.Name="{x:Static res:Strings.ResumeEffectsAccessibleName}" />
             <!-- A pause sign drawn as a shape, which a screen reader skips: the text already says it. -->
             <Path DockPanel.Dock="Left" Margin="0,0,12,0" VerticalAlignment="Center" Data="M0,0 H3.5 V12 H0 Z M6.5,0 H10 V12 H6.5 Z"
-                  Fill="{StaticResource TextMutedBrush}"
+                  Fill="{DynamicResource TextMutedBrush}"
                   Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}" />
             <TextBlock VerticalAlignment="Center" TextWrapping="Wrap" Text="{Binding Text, NotifyOnTargetUpdated=True}"
                        AutomationProperties.AutomationId="EffectsPause" AutomationProperties.LiveSetting="Polite"

@@ -21,7 +21,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" />
-            <TextBlock Margin="0,2,0,20" FontSize="14" Foreground="{StaticResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
+            <TextBlock Margin="0,2,0,20" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
 
             <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
                        Visibility="{Binding Profiles.HasScenes, Converter={StaticResource InverseBoolToVisibility}}" />
@@ -75,10 +75,10 @@
                                         <Binding Path="DataContext.Profiles.SelectedName" RelativeSource="{RelativeSource AncestorType=UserControl}" />
                                     </MultiBinding>
                                 </DataTrigger.Binding>
-                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource SelectedBorderBrush}" />
                             </DataTrigger>
                             <DataTrigger Binding="{Binding IsActive}" Value="True">
-                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource TextBrush}" />
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource TextBrush}" />
                                 <Setter TargetName="Card" Property="BorderThickness" Value="2" />
                                 <Setter TargetName="Card" Property="Padding" Value="15" />
                                 <Setter TargetName="Card" Property="AutomationProperties.ItemStatus" Value="{x:Static res:Strings.SceneActiveStatus}" />

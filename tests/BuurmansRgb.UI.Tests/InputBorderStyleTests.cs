@@ -19,7 +19,7 @@ public sealed class InputBorderStyleTests
 
         AssertColor(panel, "InputBorderBrush", box.BorderBrush);
         Assert.Equal(new Thickness(1), box.BorderThickness);
-        AssertColor(panel, "InputHoverBorderBrush", HoverBorder(textBox.Template));
+        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(textBox.Template));
     });
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class InputBorderStyleTests
         var toggle = AppTheme.Descendants<ToggleButton>(comboBox).Single();
 
         AssertColor(panel, "InputBorderBrush", field.BorderBrush);
-        AssertColor(panel, "InputHoverBorderBrush", HoverBorder(toggle.Template));
+        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(toggle.Template));
     });
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class InputBorderStyleTests
         var checkBox = Show(panel, new CheckBox { Content = "Kort" });
 
         AssertColor(panel, "InputBorderBrush", BorderNamed(checkBox, "Box").BorderBrush);
-        AssertColor(panel, "InputHoverBorderBrush", HoverBorder(checkBox.Template));
+        Assert.Equal("InputHoverBorderBrush", HoverBorderKey(checkBox.Template));
     });
 
     private static T Show<T>(StackPanel panel, T control)
@@ -66,13 +66,14 @@ public sealed class InputBorderStyleTests
     private static Border BorderNamed(DependencyObject control, string name) =>
         AppTheme.Descendants<Border>(control).Single(border => border.Name == name);
 
-    // What the template sets as the border while the mouse is over the control.
-    private static object HoverBorder(ControlTemplate template) => template.Triggers
+    // The token the template sets as the border while the mouse is over the control: a
+    // DynamicResource, so a contrast theme can give it its own color (ContrastTheme).
+    private static object HoverBorderKey(ControlTemplate template) => Assert.IsType<DynamicResourceExtension>(template.Triggers
         .OfType<Trigger>()
         .Single(trigger => trigger.Property == UIElement.IsMouseOverProperty)
         .Setters.OfType<Setter>()
         .Single(setter => setter.Property == Border.BorderBrushProperty)
-        .Value;
+        .Value).ResourceKey;
 
     // The theme merges the tokens more than once, so a brush is compared by its color.
     private static void AssertColor(FrameworkElement scope, string key, object? brush) =>

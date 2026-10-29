@@ -4,8 +4,8 @@
         xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
         SizeToContent="WidthAndHeight" ResizeMode="NoResize" ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner" UseLayoutRounding="True"
-        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
-        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource TextBrush}"
+        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
         FontFamily="{StaticResource TextFont}" FontSize="{StaticResource BodySize}"
         KeyboardNavigation.TabNavigation="Cycle" FocusManager.FocusedElement="{Binding ElementName=CancelButton}"
         PreviewKeyDown="OnPreviewKeyDown">
