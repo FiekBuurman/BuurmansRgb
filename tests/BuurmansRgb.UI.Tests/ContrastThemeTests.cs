@@ -10,6 +10,7 @@ namespace BuurmansRgb.UI.Tests;
 // ContrastTheme on the resources of Themes/Theme.xaml, with a fake contrast theme: the setting of
 // Windows is never read or changed. A token takes its system color while a contrast theme is on,
 // and the color of the design once it is off again; the LED colors never change.
+[Collection(AppThemeCollection.Name)]
 public sealed partial class ContrastThemeTests
 {
     private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
