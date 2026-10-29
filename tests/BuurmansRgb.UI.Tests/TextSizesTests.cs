@@ -6,14 +6,12 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// TextScale on the resources of Themes/Theme.xaml, with a fake text size: the setting of Windows is
+// TextSizes on the resources of Themes/Theme.xaml, with a fake text size: the setting of Windows is
 // never read or changed. The sizes of text take the factor, and those of the design once it is 1.0
 // again; the word mark and the sizes that are no text never change.
 [Collection(AppThemeCollection.Name)]
-public sealed partial class TextScaleTests
+public sealed partial class TextSizesTests
 {
-    private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
-
     // Sizes in the tokens that are no text, or the logo: they keep their size at every factor.
     private static readonly string[] FixedSizes = ["WordmarkSize", "MinClickSize", "SmallTileSize"];
 
@@ -32,15 +30,15 @@ public sealed partial class TextScaleTests
         var merged = resources.MergedDictionaries.Count;
         var design = Sizes(resources);
         var textScale = new FakeTextScale();
-        using var scale = TextScale.Follow(resources, textScale);
+        using var sizes = TextSizes.Follow(resources, textScale);
         Assert.Equal(design, Sizes(resources));
 
         textScale.Set(factor);
 
-        Assert.Equal(factor, scale.Factor);
+        Assert.Equal(factor, sizes.Factor);
         Assert.Equal(15 * factor, (double)resources["BodySize"], 6);
         Assert.Equal(12 * factor, (double)resources["NavLabelSize"], 6);
-        foreach (var key in TextScale.FontSizeKeys)
+        foreach (var key in TextSizes.FontSizeKeys)
         {
             Assert.Equal(design[key] * factor, (double)resources[key], 6);
         }
@@ -49,7 +47,7 @@ public sealed partial class TextScaleTests
 
         textScale.Set(1.0);
 
-        Assert.Equal(1.0, scale.Factor);
+        Assert.Equal(1.0, sizes.Factor);
         Assert.Equal(design, Sizes(resources));
         Assert.Equal(merged, resources.MergedDictionaries.Count);
     });
@@ -60,9 +58,9 @@ public sealed partial class TextScaleTests
     {
         var resources = LoadTheme();
 
-        using var scale = TextScale.Follow(resources, new FakeTextScale { Factor = 2.0 });
+        using var sizes = TextSizes.Follow(resources, new FakeTextScale { Factor = 2.0 });
 
-        Assert.Equal(2.0, scale.Factor);
+        Assert.Equal(2.0, sizes.Factor);
         Assert.Equal(30.0, (double)resources["BodySize"], 6);
     });
 
@@ -73,7 +71,7 @@ public sealed partial class TextScaleTests
         var resources = LoadTheme();
         var merged = resources.MergedDictionaries.Count;
         var textScale = new FakeTextScale();
-        using var scale = TextScale.Follow(resources, textScale);
+        using var sizes = TextSizes.Follow(resources, textScale);
 
         textScale.Set(1.5);
         textScale.Set(2.0);
@@ -87,12 +85,12 @@ public sealed partial class TextScaleTests
     {
         var resources = LoadTheme();
         var textScale = new FakeTextScale();
-        var scale = TextScale.Follow(resources, textScale);
+        var sizes = TextSizes.Follow(resources, textScale);
 
-        scale.Dispose();
+        sizes.Dispose();
         textScale.Set(2.0);
 
-        Assert.Equal(1.0, scale.Factor);
+        Assert.Equal(1.0, sizes.Factor);
         Assert.Equal(15.0, (double)resources["BodySize"]);
     });
 
@@ -103,9 +101,9 @@ public sealed partial class TextScaleTests
     {
         var sizes = Sizes(LoadTheme());
 
-        Assert.Equal(sizes.Keys.Order(), TextScale.FontSizeKeys.Concat(FixedSizes).Order());
-        Assert.Equal(TextScale.FontSizeKeys.Order(), TextScale.DesignSizes.Keys.Order());
-        Assert.All(TextScale.DesignSizes, size => Assert.Equal(sizes[size.Key], size.Value));
+        Assert.Equal(sizes.Keys.Order(), TextSizes.FontSizeKeys.Concat(FixedSizes).Order());
+        Assert.Equal(TextSizes.FontSizeKeys.Order(), TextSizes.DesignSizes.Keys.Order());
+        Assert.All(TextSizes.DesignSizes, size => Assert.Equal(sizes[size.Key], size.Value));
     });
 
     // A StaticResource keeps the size it found when the XAML loaded, and a number never changes, so
@@ -114,18 +112,15 @@ public sealed partial class TextScaleTests
     [Fact]
     public void Xaml_RefersToTheSizesOfTextOnlyWithDynamicResource()
     {
-        var source = Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI");
         var found = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(source, "*.xaml", SearchOption.AllDirectories))
+        foreach (var (name, xaml) in AppXaml.Files())
         {
-            var xaml = File.ReadAllText(file);
-            var name = Path.GetRelativePath(source, file);
-            found.AddRange(ContrastThemeTests.StaticReferences(xaml)
-                .Where(reference => TextScale.FontSizeKeys.Contains(reference.Key))
-                .Select(reference => $"{name}:{ContrastThemeTests.LineOf(xaml, reference.Index)} {reference.Key}"));
+            found.AddRange(AppXaml.StaticReferences(xaml)
+                .Where(reference => TextSizes.FontSizeKeys.Contains(reference.Key))
+                .Select(reference => $"{name}:{AppXaml.LineOf(xaml, reference.Index)} {reference.Key}"));
             found.AddRange(LiteralFontSizePattern().Matches(xaml)
-                .Where(match => !FixedFontSizeStyles.Contains($"{Path.GetFileName(file)} {StyleAt(xaml, match.Index)}"))
-                .Select(match => $"{name}:{ContrastThemeTests.LineOf(xaml, match.Index)} {match.Value}"));
+                .Where(match => !FixedFontSizeStyles.Contains($"{Path.GetFileName(name)} {StyleAt(xaml, match.Index)}"))
+                .Select(match => $"{name}:{AppXaml.LineOf(xaml, match.Index)} {match.Value}"));
         }
 
         Assert.Empty(found);
@@ -187,15 +182,12 @@ public sealed partial class TextScaleTests
     [GeneratedRegex("""<Style\b[^>]*?(?:\bx:Key="(?<key>[^"]+)"[^>]*?)?(?<end>/?)>""")]
     private static partial Regex StyleKeyPattern();
 
-    private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
+    private static ResourceDictionary LoadTheme() => AppTheme.Load("Theme.xaml");
 
     // Every double of the theme whose key ends in Size, as a lookup finds it.
     private static Dictionary<string, double> Sizes(ResourceDictionary resources) =>
-        Keys(resources).Where(key => key.EndsWith("Size", StringComparison.Ordinal) && resources[key] is double)
+        AppTheme.Keys(resources).Where(key => key.EndsWith("Size", StringComparison.Ordinal) && resources[key] is double)
             .ToDictionary(key => key, key => (double)resources[key]);
-
-    private static IEnumerable<string> Keys(ResourceDictionary resources) =>
-        resources.Keys.OfType<string>().Concat(resources.MergedDictionaries.SelectMany(Keys)).Distinct();
 }
 
 // A text size that a test sets, as Windows would.

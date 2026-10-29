@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using BuurmansRgb.UI.Services;
@@ -11,10 +10,8 @@ namespace BuurmansRgb.UI.Tests;
 // Windows is never read or changed. A token takes its system color while a contrast theme is on,
 // and the color of the design once it is off again; the LED colors never change.
 [Collection(AppThemeCollection.Name)]
-public sealed partial class ContrastThemeTests
+public sealed class ContrastThemeTests
 {
-    private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
-
     // The roles of the tokens in a contrast theme, by the name of a brush of SystemColors. The token
     // is that very brush: several system colors can be the same (HighlightText and Window are both
     // white by default), so comparing colors would not tell those roles apart.
@@ -227,15 +224,9 @@ public sealed partial class ContrastThemeTests
     [Fact]
     public void Xaml_RefersToTheTokensOfAContrastThemeOnlyWithDynamicResource()
     {
-        var source = Path.Combine(RepoRoot(), "src", "BuurmansRgb.UI");
-        var found = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(source, "*.xaml", SearchOption.AllDirectories))
-        {
-            var xaml = File.ReadAllText(file);
-            found.AddRange(StaticReferences(xaml)
-                .Where(reference => ContrastTheme.SystemBrushes.ContainsKey(reference.Key))
-                .Select(reference => $"{Path.GetRelativePath(source, file)}:{LineOf(xaml, reference.Index)} {reference.Key}"));
-        }
+        var found = AppXaml.Files().SelectMany(file => AppXaml.StaticReferences(file.Xaml)
+            .Where(reference => ContrastTheme.SystemBrushes.ContainsKey(reference.Key))
+            .Select(reference => $"{file.Name}:{AppXaml.LineOf(file.Xaml, reference.Index)} {reference.Key}"));
 
         Assert.Empty(found);
     }
@@ -253,18 +244,8 @@ public sealed partial class ContrastThemeTests
     {
         string[] expected = key is null ? [] : [key];
 
-        Assert.Equal(expected, StaticReferences(xaml).Select(reference => reference.Key));
+        Assert.Equal(expected, AppXaml.StaticReferences(xaml).Select(reference => reference.Key));
     }
-
-    // The keys a XAML refers to with StaticResource, as a markup extension in an attribute (with or
-    // without ResourceKey=) or as an element of its own, where ResourceKey may be on another line.
-    internal static IEnumerable<(string Key, int Index)> StaticReferences(string xaml) =>
-        StaticResourcePattern().Matches(xaml).Select(match => (match.Groups["key"].Value, match.Index));
-
-    [GeneratedRegex("""\{StaticResource\s+(?:ResourceKey\s*=\s*)?(?<key>[^\s,}]+)\s*\}|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*"(?<key>[^"]+)"|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*'(?<key>[^']+)'""")]
-    private static partial Regex StaticResourcePattern();
-
-    internal static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
 
     [Fact]
     public void Dispose_StopsFollowing() => Sta.Run(() =>
@@ -280,18 +261,7 @@ public sealed partial class ContrastThemeTests
         Assert.Equal(Parse("#F4F1EA"), ColorOf(resources, "TextBrush"));
     });
 
-    private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
-
-    internal static string RepoRoot()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "BuurmansRgb.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return Assert.IsType<DirectoryInfo>(directory).FullName;
-    }
+    private static ResourceDictionary LoadTheme() => AppTheme.Load("Theme.xaml");
 
     private static Color ColorOf(ResourceDictionary resources, string token) => Assert.IsType<SolidColorBrush>(resources[token]).Color;
 
@@ -307,7 +277,7 @@ public sealed partial class ContrastThemeTests
     private static Dictionary<string, Color> TokenColors(ResourceDictionary resources)
     {
         var colors = new Dictionary<string, Color>();
-        foreach (var key in Keys(resources))
+        foreach (var key in AppTheme.Keys(resources))
         {
             if (resources[key] is SolidColorBrush brush)
             {
@@ -317,9 +287,6 @@ public sealed partial class ContrastThemeTests
 
         return colors;
     }
-
-    private static IEnumerable<string> Keys(ResourceDictionary resources) =>
-        resources.Keys.OfType<string>().Concat(resources.MergedDictionaries.SelectMany(Keys)).Distinct();
 }
 
 // A contrast theme that a test turns on and off, as Windows would.

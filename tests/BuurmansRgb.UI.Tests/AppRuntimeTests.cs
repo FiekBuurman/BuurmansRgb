@@ -27,7 +27,7 @@ public sealed class AppRuntimeTests
     [Fact]
     public void Project_PublishesOnlyTheAppsOwnAssembliesReadyToRun()
     {
-        var project = XDocument.Load(Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI", "BuurmansRgb.UI.csproj"));
+        var project = XDocument.Load(Path.Combine(RepoFiles.AppSource, "BuurmansRgb.UI.csproj"));
 
         var readyToRun = project.Descendants("PublishReadyToRun").Single();
         Assert.Equal("true", readyToRun.Value);

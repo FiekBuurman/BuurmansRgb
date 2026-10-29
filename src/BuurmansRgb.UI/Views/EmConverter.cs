@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Views;
 
 // A length in em: a font size times Ems, plus Extra in px for what does not grow with the text, such
 // as padding and a border. Bound to the font size an element inherits, the length follows the text
-// size of Windows (TextScale), so what holds text gets wider along with it.
+// size of Windows (TextSizes), so what holds text gets wider along with it.
 public sealed class EmConverter : IValueConverter
 {
     public double Ems { get; set; } = 1;

@@ -5,7 +5,7 @@ namespace BuurmansRgb.UI.Views;
 // A dictionary of its own over the resources of the app (or of a test): it goes at the end of their
 // merged dictionaries, so its keys win over those of the theme. Set puts another one in its place,
 // in one change of the resources, so WPF looks the keys up again once; null takes it away. Two
-// overlays on the same resources, such as those of ContrastTheme and TextScale, each keep to their
+// overlays on the same resources, such as those of ContrastTheme and TextSizes, each keep to their
 // own dictionary, whichever came first.
 internal sealed class ResourceOverlay(ResourceDictionary resources)
 {
