@@ -179,7 +179,8 @@ uitbreidingen in `docs/bouwplan.md`.
     veeg van de ene naar de andere kant in plaats van alle LED's tegelijk
   - Een effect dupliceren, en exporteren of importeren (delen met anderen)
   - De stappen slepen om ze te ordenen (nu met ← en →), en de tijden ook als getal typen
-  - Verwijderen ongedaan maken, of eerst vragen; nu verwijdert de knop meteen, zoals bij scènes
+  - Verwijderen ongedaan maken, bijv. met "Ongedaan maken" in de statusregel, ook voor scènes; nu
+    vraagt Verwijderen het eerst, maar een verwijderd effect of een verwijderde scène komt niet terug
   - In het voorbeeld de gekozen stap laten zien in plaats van het lopende effect, zodat je een
     lange stap niet hoeft af te wachten
   - Op de scènekaart de naam van het eigen effect en de kleuren van zijn stappen als bolletjes;
@@ -314,6 +315,8 @@ uitbreidingen in `docs/bouwplan.md`.
   (na 07:00 op werkdagen dus za en zo); nu begint hij op elke dag
 - Ook inhalen als de klok van Windows over een tijd heen springt (nu alleen na het ontwaken en
   bij het starten; `IClockEvents` zegt niet of de klok verzet werd of de pc ontwaakte)
+- "Overschrijven met wat nu brandt" ook eerst laten vragen, met dezelfde vraag als Verwijderen;
+  nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug
 
 ## Tray-menu
 

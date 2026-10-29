@@ -370,6 +370,46 @@ public sealed class CustomEffectEditorViewModelTests
         Assert.Equal(Disco.Id, deleted);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Delete_AsksForConfirmationFirst(bool confirmed)
+    {
+        _editor.Show(Disco);
+        string? asked = null;
+        _editor.ConfirmDelete = name =>
+        {
+            asked = name;
+            return confirmed;
+        };
+        var deleted = new List<string>();
+        _editor.DeleteRequested += (_, id) => deleted.Add(id);
+
+        _editor.DeleteCommand.Execute(null);
+
+        Assert.Equal("Disco", asked);
+        Assert.Equal(confirmed ? [Disco.Id] : [], deleted);
+    }
+
+    // The question waits for the user while the app goes on, so another app can choose another
+    // effect meanwhile: the yes still deletes the effect that was asked about.
+    [Fact]
+    public void Delete_OtherEffectWhileAsking_DeletesTheOneAskedAbout()
+    {
+        _editor.Show(Disco);
+        _editor.ConfirmDelete = _ =>
+        {
+            _editor.Show(new CustomEffect("custom:feest", "Feest", [new CustomEffectStep(Blue, 1, 0)]));
+            return true;
+        };
+        string? deleted = null;
+        _editor.DeleteRequested += (_, id) => deleted = id;
+
+        _editor.DeleteCommand.Execute(null);
+
+        Assert.Equal(Disco.Id, deleted);
+    }
+
     [Fact]
     public void StepItem_NameSaysTheStepAndItsTimes()
     {

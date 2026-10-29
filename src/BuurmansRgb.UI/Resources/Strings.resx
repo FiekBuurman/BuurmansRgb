@@ -429,6 +429,10 @@
   <data name="ProfileDeleteConfirm" xml:space="preserve">
     <value>Scène '{0}' verwijderen?</value>
   </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Verwijderen</value>
+    <comment>De knop in de vraag of iets weg mag, naast Annuleren.</comment>
+  </data>
   <data name="ProfileSaved" xml:space="preserve">
     <value>Scène '{0}' in elkaar gezet.</value>
   </data>
@@ -1147,6 +1151,12 @@
   </data>
   <data name="CustomEffectDeleteToolTip" xml:space="preserve">
     <value>Verwijdert dit eigen effect. Apparaten die het tonen, krijgen Statisch in hun eigen kleur; een scène met dit effect toont dan ook Statisch.</value>
+  </data>
+  <data name="CustomEffectDeleteConfirm" xml:space="preserve">
+    <value>Eigen effect '{0}' verwijderen?</value>
+  </data>
+  <data name="CustomEffectDeleteConfirmDetail" xml:space="preserve">
+    <value>Apparaten en scènes met dit effect worden dan Statisch.</value>
   </data>
   <data name="CustomEffectDeleted" xml:space="preserve">
     <value>Eigen effect '{0}' verwijderd.</value>

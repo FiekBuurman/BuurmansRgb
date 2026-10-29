@@ -279,8 +279,11 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
     60 seconden in stappen van 0,1 s (de pijltjes 0,1 s, Page Up en Page Down 1 s). Een stap
     met 0 en 0 slaat het effect over. Overlopen gaat per LED van zijn kleur in deze stap naar
     zijn kleur in de volgende.
-  - **Verwijderen** haalt het effect weg, zonder te vragen. Apparaten die het tonen, krijgen
-    Statisch in hun eigen kleur, en de focus gaat naar de effectkeuze.
+  - **Verwijderen** vraagt eerst "Eigen effect '…' verwijderen?", met erbij dat apparaten en
+    scènes met dit effect dan Statisch worden. Kies je "Verwijderen", dan gaat het effect weg:
+    apparaten die het tonen, krijgen Statisch in hun eigen kleur, en de focus gaat naar de
+    effectkeuze. "Annuleren" (of Escape) laat alles staan, met de focus weer op Verwijderen.
+    Hoe de vraag werkt, staat bij Scènes.
 - **Patroon op een ander apparaat:** een patroon wordt over de LED's van het apparaat **uitgerekt**
   (of samengedrukt), net als bij "Zones gelijk": elke LED krijgt de kleur op dezelfde plek in
   het patroon. Een patroon van een toetsenbord loopt op een fan dus ook van begin tot eind, en
@@ -431,8 +434,12 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
 - **"+ Nieuwe scène in elkaar zetten"** vraagt een naam en bewaart de verlichting zoals die nu
   is.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
-  "Overschrijven met wat nu brandt", "Verwijderen" (vraagt eerst of het zeker is) en
-  "Vanzelf aanzetten".
+  "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
+- **Verwijderen** vraagt eerst "Scène '…' verwijderen?" in een klein venster boven de app, met
+  de knoppen "Annuleren" en "Verwijderen". De focus begint op Annuleren, dus een Enter te veel
+  laat de scène staan; Tab gaat naar Verwijderen, Enter of Spatie doet de knop met de focus, en
+  Escape of het kruisje is Annuleren. Zolang de vraag open is, doet het hoofdvenster niets. Een
+  schermlezer leest de vraag voor. Een verwijderde scène komt niet terug.
 - **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00`, `23.00` of zonder iets
   ertussen `2300`; `930` en `0930` worden 09:30) en/of bij
   "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`; `eldenring` of een
@@ -650,6 +657,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   en de schuiven en het monolettertype van "Licht en beweging". "+ Eigen effect maken" onder de
   effectkeuze is een link, zoals Verversen. Een eigen pagina met een lijst van alle eigen effecten
   is er niet: je kiest ze in de effectkeuze, en het paneel past het gekozen effect aan.
+- **De vraag voor het verwijderen** van een scène of een eigen effect staat niet in het ontwerp:
+  een klein venster met dezelfde eigen titelbalk (icoon, woordmerk en kruisje) als het
+  hoofdvenster, in `bg` met een rand in `border`, de vraag als sectiekop en de uitleg als
+  subtekst. "Verwijderen" is de primaire knop, maar 44 px hoog en in de tekstgrootte van
+  "Annuleren" ernaast, die een gewone knop is. Zo zijn de knoppen Nederlands, ook op een Windows in
+  een andere taal, wat een `MessageBox` van Windows niet is.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
