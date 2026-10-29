@@ -607,6 +607,19 @@ Hoe het vanzelf aanzetten werkt:
   engine de toetsen meteen terug aan Windows, zodat een andere app ze kan gebruiken. Het geldt
   zonder herstart, de engine bewaart het, en een tweede instellingen-app toont de wijziging
   meteen.
+- **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
+  met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. De
+  schakelaar en het vinkje in het tray-menu staan altijd hetzelfde: zet je het in het menu om,
+  dan gaat de schakelaar meteen mee, en het menu toont wat je hier koos. Laat Windows het niet
+  toe (het register is niet te schrijven), dan springt de schakelaar terug en staat in de
+  statusregel "Starten met Windows kon niet worden aangepast."; het logbestand zegt waarom.
+- **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
+  programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
+  niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
+  logbestand, of kan Windows het niet openen, dan staat in de statusregel "Het logbestand kon
+  niet worden geopend.".
+- **Onderaan** staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0") en de link
+  "Handleiding", die deze handleiding op GitHub in je browser opent.
 
 Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
 ("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina.
@@ -691,6 +704,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   grijs), zodat je de knop blijft zien.
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
+- **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
+  schakelaar en de knop zoals de andere opties. "Logbestand openen" is een gewone knop, geen
+  primaire: hij zet niets op een apparaat. Het versienummer en "Handleiding" staan onder de
+  laatste kaart, zonder eigen kaart: het versienummer als subtekst en "Handleiding" als link in
+  dezelfde stijl als Verversen.
 - WPF kent geen letterafstand, dus de −0,02em van de koppen ontbreekt; de navigatiebalk is
   niet uitklapbaar.
 
@@ -718,7 +736,7 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   "Verenigde Staten (internationaal)" een Á of Ú met AltGr+Shift, zet de sneltoetsen dan uit:
   AltGr telt in Windows als Ctrl+Alt.
 - **Logbestand openen** opent `engine.log` (zie "Logbestanden") in Kladblok of het programma dat
-  bij `.log` hoort.
+  bij `.log` hoort. Bij Instellingen in de app staat dezelfde knop.
 - **Herstarten** helpt als een apparaat of de verbinding met OpenRGB hapert: het herstart
   buurmansRgb zelf en de services OpenRGB en PawnIO (de driver voor moederbord, RAM en
   videokaart). Services herstarten mag alleen met adminrechten, dus Windows vraagt één keer om
@@ -759,6 +777,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`; nogmaals klikken haalt hem weg. Staat
   de engine die daar stond er niet meer (verplaatst of ergens anders geïnstalleerd), dan zet de
   engine bij het starten zijn eigen pad erin; een andere engine die er nog wel staat, houdt hem.
+  Bij Instellingen in de app staat dezelfde schakelaar ("Opstarten"); het vinkje en de schakelaar
+  lopen gelijk, en lukt het niet, dan meldt het icoon (of de app) "Starten met Windows kon niet
+  worden aangepast.".
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
@@ -1056,7 +1077,7 @@ in een instellingenbestand die niet te lezen is, fouten), schrijven de engine en
 instellingen-app in `%AppData%\BuurmansRgb\logs`: `engine.log` en `ui.log`. Elke regel heeft de
 tijd en het niveau (`Information`, `Warning`, `Error`). Handig om mee te sturen als iets op je
 eigen hardware niet werkt. Het log van de engine open je ook met "Logbestand openen" in het
-tray-menu.
+tray-menu of bij Instellingen in de app.
 
 - Stopt een engine die "Herstarten" startte omdat de oude niet afsloot, dan schrijft hij dat in
   `engine.restart.log`: `engine.log` is dan nog van de oude.
