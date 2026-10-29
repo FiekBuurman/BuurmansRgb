@@ -35,7 +35,7 @@ Zonder OpenRGB staan er twaalf gesimuleerde apparaten klaar, zie "Instellingen" 
 | --- | --- |
 | `BuurmansRgb.Core` | Modellen (`RgbColor`, `RgbDevice`, `RgbZone`, `LedMatrix`), de plekken van de LED's (`LedPlaces`, `WideKeys`), `IDeviceProvider`, `IEffect`, `IDirectedEffect`, `ServerStatus`; geen hardware, UI of IPC |
 | `BuurmansRgb.Effects` | De effecten, tijdgebaseerd, schrijven in een buffer die de engine hergebruikt |
-| `BuurmansRgb.Contracts` | `IEngineApi`, de DTO's en de opzet van pipe en StreamJsonRpc, en wat engine en app allebei gebruiken (`ProgramNames`, `ProcessImageName`, `SingleInstance`, `FileLog`) |
+| `BuurmansRgb.Contracts` | `IEngineApi`, de DTO's en de opzet van pipe en StreamJsonRpc, en wat engine en app allebei gebruiken (`ProgramNames`, `ProcessImageName`, `ShellLauncher`, `SingleInstance`, `FileLog`) |
 | `BuurmansRgb.Providers.Simulated` | De gesimuleerde apparaten |
 | `BuurmansRgb.Providers.OpenRgb` | De koppeling met de SDK-server via OpenRGB.NET |
 | `BuurmansRgb.Engine` | Tray, render-loop, IPC-server, opslag, scènes, pauzeren (WinExe met WinForms) |

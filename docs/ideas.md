@@ -244,11 +244,15 @@ uitbreidingen in `docs/bouwplan.md`.
 - De optische maten van Bricolage Grotesque gebruiken (de statische `12pt`- en `96pt`-bestanden):
   nu draaien alle maten op de standaardversie, terwijl een browser bij 30 px een grotere optische
   maat kiest
-- Eén gedeeld `WarningMessage`-template of -control voor een melding onder een veld (een
-  `DockPanel` met `WarningMark` en een `TextBlock` als live region met
-  `LiveRegion.AnnouncesUpdates`); nu staat dat blok drie keer in de XAML: bij de hex-code en de
-  naam van een eigen effect in `ColorPage.xaml` en bij de lengte van een zone in
-  `LedPreviewPanel.xaml`
+- Eén gedeelde stijl voor een melding onder een veld (een `DockPanel` met `WarningMark` en een
+  `TextBlock` als live region met `LiveRegion.AnnouncesUpdates`); nu staat dat blok vier keer in
+  de XAML: bij de hex-code en de naam van een eigen effect in `ColorPage.xaml`, bij de lengte van
+  een zone in `LedPreviewPanel.xaml` en bij "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
+  `HasError` en `BoolToVisibility`, de andere drie met `NullToCollapsed`). Geen control met een
+  eigen `Text`-property: die slikt dezelfde melding opnieuw in, zodat er geen nieuwe aankondiging
+  komt, terwijl `CustomEffectViewTests` juist controleert dat een schermlezer hem dan weer hoort.
+  De `TextBlock` met `NotifyOnTargetUpdated=True` blijft dus bij de aanroeper, bijv. met een
+  `ContentControl`-stijl rond de tekst
 - De statusregel onderaan leegmaken bij het wisselen van pagina (of na een tijdje); nu blijft de
   laatste melding staan, bijv. "Vanzelf aanzetten van 'Avond' opgeslagen." van Scènes nog op
   Kleur, zodat hij bij die pagina lijkt te horen (gebruikerstest 28-10, B3). Geldt ook voor de
