@@ -106,7 +106,7 @@
          would vanish on it. -->
     <SolidColorBrush x:Key="StripLedOffRingBrush" Color="{StaticResource LedOffRingColor}" />
 
-    <!-- LED colors, always with a glow (LedBulb). -->
+    <!-- LED colors, with a glow, except black (LedRing.IsDark), which gets the ring instead (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>
     <Color x:Key="LedYellowColor">#FFD84D</Color>
     <Color x:Key="LedGreenColor">#3DDC84</Color>
