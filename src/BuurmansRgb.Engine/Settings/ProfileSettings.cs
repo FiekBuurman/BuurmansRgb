@@ -11,13 +11,11 @@ namespace BuurmansRgb.Engine.Settings;
 // times are "loadTimes", a list of { "at": "07:00", "on": "mon,tue,wed,thu,fri" }. A file with
 // both counts all of them. "foregroundOnly": true goes with the program, only while it is in the
 // foreground; it is left out while off. Older files have none of them; a value that does not read
-// leaves that one off, and the rest of the profile still counts.
+// leaves that one off, and the rest of the profile still counts. A time edited by hand reads as one
+// typed in the app, such as "7:30" (LoadTime.TryParseAt).
 internal sealed record ProfileSettings : LightingStateSettings
 {
     private const string TimeFormat = "HH:mm";
-
-    // "H:mm" also reads "07:30", and "7:30" from a hand-edited file.
-    private const string LenientTimeFormat = "H:mm";
 
     // Written in English; a hand-edited file may also have the Dutch "ma" to "zo".
     private static readonly (WeekDays Day, string Name, string DutchName)[] DayNames =
@@ -158,7 +156,7 @@ internal sealed record ProfileSettings : LightingStateSettings
         }
 
         var value = text!.Value;
-        if (value.IsText && TimeOnly.TryParseExact(value.Value.Trim(), LenientTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        if (value.IsText && LoadTime.TryParseAt(value.Value, out var time))
         {
             return time;
         }

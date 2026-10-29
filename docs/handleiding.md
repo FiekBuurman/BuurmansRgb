@@ -85,6 +85,13 @@ schakelaar ernaast.
   "Eigen effecten" en "Per-LED-editor"). Wat de kiezer kleurt, gaat in deze volgorde: gekozen
   LED's, dan de kleur van de loop of van het effect, dan de gekozen stap van een eigen effect, en
   anders het apparaat.
+- **Hex-code typen:** zes tekens, met of zonder `#` (`#00FF00` of `00ff00`); de kleur verandert
+  zodra de code klopt. Een code die geen kleur is (`zzz`, `#12`) doet niets terwijl je typt,
+  want `#12` kan nog `#123456` worden. Verlaat je het veld (Tab of een klik ergens anders), dan
+  staat de code van de kleur er weer en zegt een melding eronder bijv. "'zzz' is geen kleurcode
+  (zes tekens, zoals #FF9A3D); de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
+  een andere kleur of een ander apparaat haalt de melding weg. Een leeg veld krijgt de code
+  terug zonder melding.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
   mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op het
@@ -312,7 +319,10 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
   Met −, + en de schuif groeit het voorbeeld meteen; de zone zelf krijgt de lengte
   pas als je 0,6 seconde niets verandert of de schuif loslaat, want OpenRGB laadt bij elke
-  nieuwe lengte zijn apparaten opnieuw. Typen en "Toepassen" (of Enter) gaat meteen. Een zone
+  nieuwe lengte zijn apparaten opnieuw. Typen en "Toepassen" (of Enter) gaat meteen. Typ je
+  iets wat de zone niet kan hebben (`abc`, `-3` of meer dan het grootste aantal), dan blijft
+  "Toepassen" grijs en zegt een melding onder het vak welk bereik wel kan ("Kies 0 tot 120
+  LED's."); een schermlezer leest hem voor. Een leeg vak geeft nog geen melding. Een zone
   met 0 LED's zegt "Nog geen LED's ingesteld", met uitleg. De lengte wordt bewaard (zie
   `zoneLengths` bij "settings.json").
 - **LED's tellen:** weet je niet hoeveel LED's de fan of strip op een header heeft, kies dan
@@ -408,7 +418,8 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" (vraagt eerst of het zeker is) en
   "Vanzelf aanzetten".
-- **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00` of `23.00`) en/of bij
+- **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00`, `23.00` of zonder iets
+  ertussen `2300`; `930` en `0930` worden 09:30) en/of bij
   "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`; `eldenring` of een
   heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit. Achter elke tijd
   staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv. alleen
@@ -919,7 +930,10 @@ er met de hand allebei, dan tellen ze allebei; dezelfde tijd twee keer telt éé
 tijden laat de engine de rest weg. Zonder `foregroundOnly` (of met `false`) telt een programma
 zolang het draait, zoals in een bestand van vóór deze keuze; de engine schrijft het alleen als
 het aan staat. Zonder `program` doet het niets, en een waarde die geen `true` of `false` is,
-telt als uit. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
+telt als uit. Een tijd met de hand leest de engine zoals de app hem leest: ook `"7:30"`,
+`"21.30"` en `"2130"`, als tekst tussen aanhalingstekens (een getal als `2130` zonder
+aanhalingstekens niet). Zelf schrijft de engine hem als `"21:30"`. Een oudere versie leest
+`"21.30"` en `"2130"` niet en laat die tijd weg; de rest van de scène blijft gelden. Een tijd, dagen of programma die niet te lezen zijn (bijv. `"25:00"`,
 `"someday"` of een getal), laat de engine weg (zonder dagen: elke dag); de rest blijft
 gelden. Een `loadTimes` die geen lijst is, of een tijd daarin die geen `{ … }` is, laat hij
 ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde als in

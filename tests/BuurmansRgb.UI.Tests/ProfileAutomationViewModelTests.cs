@@ -59,6 +59,9 @@ public sealed class ProfileAutomationViewModelTests
     [InlineData("23:00", 23, 0)]
     [InlineData(" 7:30 ", 7, 30)]
     [InlineData("07.30", 7, 30)]
+    [InlineData("2130", 21, 30)]
+    [InlineData("930", 9, 30)]
+    [InlineData("0930", 9, 30)]
     public void Apply_ValidTime_AsksWithIt(string text, int hour, int minute)
     {
         _automation.Show("Nacht", ProfileAutomation.None);
@@ -71,8 +74,9 @@ public sealed class ProfileAutomationViewModelTests
 
     [Theory]
     [InlineData("25:00")]
-    [InlineData("2300")]
     [InlineData("23:0")]
+    [InlineData("2400")]
+    [InlineData("9u")]
     [InlineData("half elf")]
     public void InvalidTime_SaysHowAndCannotApply(string text)
     {

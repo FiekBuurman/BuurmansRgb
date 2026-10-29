@@ -78,6 +78,10 @@
   <data name="ApplyLedCountToolTip" xml:space="preserve">
     <value>Geeft deze zone het nieuwe aantal LED's, bijvoorbeeld de lengte van de strip die erop zit.</value>
   </data>
+  <data name="ZoneLedCountInvalid" xml:space="preserve">
+    <value>Kies {0} tot {1} LED's.</value>
+    <comment>Onder het getypte aantal LED's als dat geen getal is of buiten het bereik van de zone valt. {0} = het kleinste aantal, {1} = het grootste.</comment>
+  </data>
   <data name="ZoneHeader" xml:space="preserve">
     <value>{0} · {1}</value>
   </data>
@@ -152,6 +156,10 @@
   </data>
   <data name="HexLabel" xml:space="preserve">
     <value>Hex-code</value>
+  </data>
+  <data name="HexCodeInvalidKept" xml:space="preserve">
+    <value>'{0}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft {1}.</value>
+    <comment>Nadat het veld van de hex-code de focus verloor met een code die geen kleur is, zoals "zzz" of "#12", en de code van de kleur weer toont. {0} = de getypte code, {1} = de code van de kleur die blijft.</comment>
   </data>
   <data name="BrightnessHeader" xml:space="preserve">
     <value>Helderheid</value>

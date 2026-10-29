@@ -11,9 +11,6 @@ public sealed partial class LoadTimeRow : ObservableObject
 {
     private const string TimeFormat = "HH:mm";
 
-    // "H" also reads "07:30"; a dot is how many people write a time in Dutch.
-    private static readonly string[] TimeFormats = ["H:mm", "H.mm"];
-
     // Empty, on every day, without a time.
     public LoadTimeRow(LoadTime? time = null)
     {
@@ -73,7 +70,7 @@ public sealed partial class LoadTimeRow : ObservableObject
             return true;
         }
 
-        if (!TimeOnly.TryParseExact(Text.Trim(), TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var at))
+        if (!LoadTime.TryParseAt(Text, out var at))
         {
             return false;
         }

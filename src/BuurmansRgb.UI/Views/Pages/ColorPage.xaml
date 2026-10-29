@@ -174,8 +174,14 @@
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
                                     <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
-                                             AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                                             LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
                                 </StackPanel>
+                            </DockPanel>
+                            <!-- A code that is no color makes way for that of the color when the field loses the focus; this says so. -->
+                            <DockPanel Margin="0,6,0,0" Visibility="{Binding ColorPicker.HexError, Converter={StaticResource NullToCollapsed}}">
+                                <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                                <TextBlock TextWrapping="Wrap" Text="{Binding ColorPicker.HexError, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
                             </DockPanel>
                             <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorNotApplied}"
                                        Visibility="{Binding ColorPicker.ShowsUnappliedChange, Converter={StaticResource BoolToVisibility}}" />

@@ -45,8 +45,16 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     [ObservableProperty]
     public partial double Blue { get; set; } = 255;
 
+    // A code with or without "#" mixes its color as it is typed; one that is no color changes
+    // nothing until the field loses the focus (EndHexEdit).
     [ObservableProperty]
     public partial string HexColor { get; set; } = RgbColor.White.ToHex();
+
+    // Why the code typed last was not taken: it was no color, so the field shows the code of the
+    // color again, and this says which code went and which color stays. Null again with a code that
+    // is a color, another color, or a color that Show shows.
+    [ObservableProperty]
+    public partial string? HexError { get; private set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange), nameof(ShowsUnappliedChange))]
@@ -80,9 +88,29 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     {
         _applied = color;
         ShowColor(color);
+        HexError = null;
         OnPropertyChanged(nameof(HasUnappliedChange));
         OnPropertyChanged(nameof(ShowsUnappliedChange));
     });
+
+    // The hex field lost the focus. A code that is no color, such as "zzz" or "#12", makes way for
+    // the code of the color, so the field shows what the color is, and HexError says so; an empty
+    // field gets the code back without a message, as nothing was typed.
+    public void EndHexEdit()
+    {
+        var text = HexColor.Trim();
+        if (RgbColor.TryParseHex(text, out _))
+        {
+            return;
+        }
+
+        if (text.Length > 0)
+        {
+            ShowHexError(UiText.Format(Strings.HexCodeInvalidKept, text, Color.ToHex()));
+        }
+
+        _showing.Run(() => HexColor = Color.ToHex());
+    }
 
     [RelayCommand(CanExecute = nameof(CanApply))]
     private void Apply()
@@ -108,8 +136,22 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     {
         if (!_showing.IsActive && RgbColor.TryParseHex(value.Trim(), out var color))
         {
+            HexError = null;
             Mix(() => ShowColor(color, updateHex: false));
         }
+    }
+
+    partial void OnColorChanged(RgbColor value) => HexError = null;
+
+    // The same message again is news too: a screen reader says it again.
+    private void ShowHexError(string error)
+    {
+        if (error == HexError)
+        {
+            OnPropertyChanged(nameof(HexError));
+        }
+
+        HexError = error;
     }
 
     private void ColorFromSliders()

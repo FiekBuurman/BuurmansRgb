@@ -140,6 +140,20 @@ public sealed class MainViewModelProfileTests
         Assert.Equal("Vanzelf aanzetten van 'Gamen' opgeslagen.", viewModel.StatusMessage);
     }
 
+    // A time typed without a colon goes out as a time, and the field shows it as one after saving.
+    [Fact]
+    public async Task ApplyAutomation_TimeWithoutAColon_ShowsItWithOneAfterSaving()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.Add("Avond"));
+        viewModel.Profiles.SelectedName = "Avond";
+
+        viewModel.Profiles.Automation.Times[0].Text = "930";
+        viewModel.Profiles.Automation.ApplyCommand.Execute(null);
+
+        Assert.Equal(["profile automation Avond 09:30 -"], Api.Calls);
+        Assert.Equal("09:30", viewModel.Profiles.Automation.Times[0].Text);
+    }
+
     [Fact]
     public async Task ApplyAutomation_MoreTimes_SendsThemAndTheCardSaysSo()
     {

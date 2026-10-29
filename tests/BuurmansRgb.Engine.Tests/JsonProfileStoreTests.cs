@@ -233,6 +233,21 @@ public sealed class JsonProfileStoreTests : IDisposable
             automation.Times);
     }
 
+    // Edited by hand: a time reads as one typed in the app, also with a dot or without anything between.
+    [Fact]
+    public void Load_TimeAsTypedInTheApp_ReadsIt()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "Avond", "loadAt": "21.30", "loadTimes": [ { "at": " 7:05 " }, { "at": "930" }, { "at": "2215" } ] } ] }
+            """);
+
+        var automation = Assert.Single(_store.Load()).Automation;
+
+        Assert.Equal(
+            [new LoadTime(new TimeOnly(7, 5)), new LoadTime(new TimeOnly(9, 30)), new LoadTime(new TimeOnly(21, 30)), new LoadTime(new TimeOnly(22, 15))],
+            automation.Times);
+    }
+
     // A time that does not read goes; days that do not read leave that time on every day; the
     // same time twice counts once.
     [Fact]

@@ -88,6 +88,12 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string LedCountText { get; set; }
 
+    // Why Apply cannot take the typed length, under the field: "Kies 0 tot 60 LED's." for a text that
+    // is no number or a number the zone cannot hold. Null for a length it can hold, and for an empty
+    // field, in which a new number is on its way.
+    [ObservableProperty]
+    public partial string? LedCountError { get; private set; }
+
     // The slider's thumb is held: the length goes out when it is let go.
     [RelayCommand]
     public void BeginDrag()
@@ -127,6 +133,11 @@ public sealed partial class ZoneLengthViewModel : ObservableObject, IDisposable
     }
 
     partial void OnLedCountChanging(int value) => _zone.ThrowIfCannotHold(value);
+
+    partial void OnLedCountTextChanged(string value) =>
+        LedCountError = string.IsNullOrWhiteSpace(value) || TryReadText(out _)
+            ? null
+            : UiText.Format(Strings.ZoneLedCountInvalid, Minimum, Maximum);
 
     partial void OnLedCountChanged(int value)
     {

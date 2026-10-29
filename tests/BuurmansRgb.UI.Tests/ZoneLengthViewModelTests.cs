@@ -121,6 +121,85 @@ public sealed class ZoneLengthViewModelTests
         Assert.Empty(_actions.Requests);
     }
 
+    // Not only a grey "Toepassen": the message under the field says which lengths the zone takes.
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("999")]
+    [InlineData("61")]
+    [InlineData("-3")]
+    [InlineData("3,5")]
+    public void TypedLengthTheZoneCannotHold_SaysWhichItCanAndCannotApply(string text)
+    {
+        var length = Create();
+
+        length.LedCountText = text;
+
+        Assert.Equal("Kies 0 tot 60 LED's.", length.LedCountError);
+        Assert.False(length.ApplyCommand.CanExecute(null));
+    }
+
+    // The range is that of the zone.
+    [Fact]
+    public void TypedLengthTheZoneCannotHold_SaysTheRangeOfTheZone()
+    {
+        var length = Create(new RgbZone("Strip", 10, 5, 120));
+
+        length.LedCountText = "4";
+
+        Assert.Equal("Kies 5 tot 120 LED's.", length.LedCountError);
+    }
+
+    // An empty field is on its way to a new number; a length the zone holds and a step with − or +
+    // take the message away.
+    [Fact]
+    public void LedCountError_GoesWithAnEmptyFieldOrALengthTheZoneHolds()
+    {
+        var length = Create();
+        Assert.Null(length.LedCountError);
+
+        length.LedCountText = "999";
+        length.LedCountText = "";
+        Assert.Null(length.LedCountError);
+
+        length.LedCountText = "999";
+        length.LedCountText = " 35 ";
+        Assert.Null(length.LedCountError);
+
+        length.LedCountText = "-3";
+        length.IncreaseCommand.Execute(null);
+        Assert.Null(length.LedCountError);
+        Assert.Equal("21", length.LedCountText);
+    }
+
+    // The length the engine has already cannot be applied again, but it is no mistake.
+    [Fact]
+    public void TypedTheSentLength_HasNoMessage()
+    {
+        var length = Create();
+
+        length.LedCountText = "20";
+
+        Assert.Null(length.LedCountError);
+        Assert.False(length.ApplyCommand.CanExecute(null));
+    }
+
+    // A screen reader reads the message out when it changes, so not on every key that keeps it.
+    [Fact]
+    public void LedCountError_IsOnlyRaisedWhenItChanges()
+    {
+        var length = Create();
+        var raised = 0;
+        length.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ZoneLengthViewModel.LedCountError) ? 1 : 0;
+
+        length.LedCountText = "9";
+        length.LedCountText = "99";
+        length.LedCountText = "999";
+        length.LedCountText = "99";
+        length.LedCountText = "9";
+
+        Assert.Equal(2, raised);
+    }
+
     [Fact]
     public void Apply_WhileAStepWaits_SendsItRightAway()
     {

@@ -28,6 +28,15 @@ public partial class ColorPage : UserControl
         });
     }
 
+    // A hex code that is no color makes way for the code of the color once the field loses the focus.
+    private void OnHexLostFocus(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.ColorPicker.EndHexEdit();
+        }
+    }
+
     // Delete on an own color of the toolbox takes it away.
     private void OnCustomColorKeyDown(object sender, KeyEventArgs e)
     {

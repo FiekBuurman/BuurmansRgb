@@ -76,6 +76,112 @@ public sealed class ColorPickerViewModelTests
         Assert.Empty(_picked);
     }
 
+    // "00ff00" without "#" is a color too; leaving the field keeps the text and says nothing.
+    [Fact]
+    public void EndHexEdit_CodeWithoutHash_KeepsItWithoutAMessage()
+    {
+        _picker.HexColor = "00ff00";
+
+        _picker.EndHexEdit();
+
+        Assert.Equal(new RgbColor(0, 255, 0), _picker.Color);
+        Assert.Equal("00ff00", _picker.HexColor);
+        Assert.Null(_picker.HexError);
+    }
+
+    // Typing it changes nothing and says nothing yet: "#12" may become "#123456". Leaving the field
+    // puts back the code of the color, and the message says which code went and which color stays.
+    [Theory]
+    [InlineData("zzz")]
+    [InlineData("#12")]
+    [InlineData("#12345G")]
+    public void EndHexEdit_CodeThatIsNoColor_PutsBackTheColorAndSaysSo(string text)
+    {
+        _picker.Show(new RgbColor(255, 154, 61));
+
+        _picker.HexColor = text;
+        Assert.Null(_picker.HexError);
+        _picker.EndHexEdit();
+
+        Assert.Equal("#FF9A3D", _picker.HexColor);
+        Assert.Equal(new RgbColor(255, 154, 61), _picker.Color);
+        Assert.Equal($"'{text}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF9A3D.", _picker.HexError);
+        Assert.False(_picker.HasUnappliedChange);
+        Assert.Empty(_picked);
+    }
+
+    // A mixed color that is not on the lamp yet stays, and so does its code.
+    [Fact]
+    public void EndHexEdit_CodeThatIsNoColor_KeepsTheMixedColor()
+    {
+        _picker.Show(RgbColor.Black);
+        _picker.Red = 255;
+
+        _picker.HexColor = "rood";
+        _picker.EndHexEdit();
+
+        Assert.Equal("#FF0000", _picker.HexColor);
+        Assert.Equal("'rood' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF0000.", _picker.HexError);
+        Assert.True(_picker.HasUnappliedChange);
+    }
+
+    // An empty field gets the code back; nothing was typed, so there is no message.
+    [Fact]
+    public void EndHexEdit_EmptyField_PutsBackTheColorWithoutAMessage()
+    {
+        _picker.Show(RgbColor.Black);
+
+        _picker.HexColor = " ";
+        _picker.EndHexEdit();
+
+        Assert.Equal("#000000", _picker.HexColor);
+        Assert.Null(_picker.HexError);
+    }
+
+    // The message goes with a code that is a color, another color, or the color of another lamp.
+    [Fact]
+    public void HexError_GoesWithACodeThatIsAColorAnotherColorOrShow()
+    {
+        _picker.Show(RgbColor.Black);
+        void Refuse()
+        {
+            _picker.HexColor = "zzz";
+            _picker.EndHexEdit();
+            Assert.NotNull(_picker.HexError);
+        }
+
+        Refuse();
+        _picker.HexColor = "000000";
+        Assert.Null(_picker.HexError);
+
+        Refuse();
+        _picker.Green = 200;
+        Assert.Null(_picker.HexError);
+
+        Refuse();
+        _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[1].Color);
+        Assert.Null(_picker.HexError);
+
+        Refuse();
+        _picker.Show(_picker.Color);
+        Assert.Null(_picker.HexError);
+    }
+
+    // The same message twice is raised twice, so a screen reader says it again.
+    [Fact]
+    public void EndHexEdit_SameCodeTwice_RaisesTheMessageAgain()
+    {
+        var raised = 0;
+        _picker.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ColorPickerViewModel.HexError) ? 1 : 0;
+
+        _picker.HexColor = "zzz";
+        _picker.EndHexEdit();
+        _picker.HexColor = "zzz";
+        _picker.EndHexEdit();
+
+        Assert.Equal(2, raised);
+    }
+
     [Fact]
     public void AppliesAtOnce_SlidersHexAndPresetsPutEachMixedColorOnTheLamp()
     {
