@@ -40,7 +40,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
   bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
   houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
-  uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat.
+  uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
+  van Kleur, die donker blijft, blijft hij grijs.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is

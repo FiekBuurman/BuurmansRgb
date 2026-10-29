@@ -193,6 +193,7 @@ public sealed partial class ContrastThemeTests
     [InlineData("LedBlueBrush")]
     [InlineData("LedOffBrush")]
     [InlineData("StripBgBrush")]
+    [InlineData("StripLedOffRingBrush")]
     public void ContrastThemeOn_KeepsTheLedColors(string token) => Sta.Run(() =>
     {
         var resources = LoadTheme();

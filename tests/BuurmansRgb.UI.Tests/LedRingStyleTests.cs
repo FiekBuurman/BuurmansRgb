@@ -1,7 +1,10 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using BuurmansRgb.Core;
+using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Views;
+using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -64,6 +67,38 @@ public sealed class LedRingStyleTests
         Assert.Equal(design, PenColor(bulb));
         Assert.Equal(design, PenColor(view));
     });
+
+    // The strip board of Kleur stays dark in a contrast theme (StripBgBrush), so its black LEDs keep
+    // the grey ring of the design (StripLedOffRingBrush) instead of the text color of the theme,
+    // which in a light theme would vanish on it; and so do they once the theme is off again.
+    [Fact]
+    public async Task ContrastTheme_StripOfColorPage_KeepsTheRingOfTheDesign()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var highContrast = new FakeHighContrast();
+            using var theme = ContrastTheme.Follow(Window.GetWindow(panel).Resources, highContrast);
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            PageViews.Named<TextBox>(page, Strings.HexLabel).Text = "000000";
+            OffscreenWindow.WaitUntilIdle();
+            var strip = AppTheme.Descendants<LedBulb>(page).ToList();
+            Assert.NotEmpty(strip);
+            var design = (Color)page.FindResource("LedOffRingColor");
+
+            highContrast.Turn(on: true);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.NotEqual(design, Assert.IsType<SolidColorBrush>(page.FindResource("LedOffRingBrush")).Color);
+            Assert.All(strip, bulb => Assert.Equal(design, PenColor(bulb)));
+
+            highContrast.Turn(on: false);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.All(strip, bulb => Assert.Equal(design, PenColor(bulb)));
+        });
+    }
 
     // The pen of the one drawing of a bulb that gives no light, or of a preview with one black LED.
     private static Color PenColor(Visual visual)

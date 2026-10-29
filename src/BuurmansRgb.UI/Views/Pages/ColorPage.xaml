@@ -183,7 +183,7 @@
                                     </views:DecorativeItemsControl.ItemsPanel>
                                     <views:DecorativeItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4"
+                                            <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4" OffRingBrush="{StaticResource StripLedOffRingBrush}"
                                                            Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                         </DataTemplate>
                                     </views:DecorativeItemsControl.ItemTemplate>

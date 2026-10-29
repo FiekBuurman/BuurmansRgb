@@ -49,6 +49,7 @@ public sealed class TokenContrastTests
         { "LedOffRingColor", "BgColor" },
         { "LedOffRingColor", "SurfaceColor" },
         { "LedOffRingColor", "StripBgColor" },
+        { "StripLedOffRingBrush", "StripBgColor" },
         { "KnobOffColor", "SurfaceColor" },
         { "KnobOffColor", "LedOffColor" },
     };
