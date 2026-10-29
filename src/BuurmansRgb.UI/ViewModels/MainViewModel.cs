@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Reflection;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -100,15 +99,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
-    // instead of the programs that run (WindowedPrograms.Find), and a fake open for what
-    // Instellingen opens (the log, the guide), instead of opening it (ShellLauncher.Open).
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, Action<string>? open = null)
+    // instead of the programs that run (WindowedPrograms.Find). appInfo is the bottom of
+    // Instellingen, which the composition root (App) makes with ShellLauncher.Open; without it
+    // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null)
     {
         _connector = connector;
-        AppInfo = new AppInfoViewModel(
-            open ?? ShellLauncher.Open,
-            FileLog.PathOf(FileLog.EngineName),
-            typeof(MainViewModel).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+        AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;

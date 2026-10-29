@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.Input;
 
@@ -18,6 +20,14 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
     // The guide as GitHub shows it: the installer brings no copy of the docs, and GitHub shows
     // the Markdown readable in any browser, also for a version that is newer than this app.
     public const string GuideAddress = "https://github.com/FiekBuurman/BuurmansRgb/blob/main/docs/handleiding.md";
+
+    // The log of the engine and the version of this app. The composition root (App) passes
+    // ShellLauncher.Open, tests a fake, so no test opens Kladblok or a browser.
+    public static AppInfoViewModel ForThisApp(Action<string> open) =>
+        new(
+            open,
+            FileLog.PathOf(FileLog.EngineName),
+            typeof(AppInfoViewModel).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 
     // Raised with the message for the status line when something could not be opened.
     public event EventHandler<string>? Failed;

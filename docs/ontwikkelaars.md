@@ -467,7 +467,10 @@ toetsenbord. Een paar dingen om te proberen:
   zonder de commit na de `+` (`installer\build.ps1` zet hem met `-p:Version`, anders is het
   1.0.0). "Handleiding" opent `docs/handleiding.md` op GitHub (`AppInfoViewModel.GuideAddress`):
   de installer levert de docs niet mee, en GitHub toont de Markdown leesbaar in elke browser.
-  `MainViewModel` krijgt `open` mee, zodat tests een nep geven.
+  `App` maakt `AppInfoViewModel.ForThisApp(ShellLauncher.Open)` en geeft hem aan
+  `MainViewModel`; tests geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets,
+  zodat een test nooit echt Kladblok of de browser opent. `ShellLauncher` staat in
+  `BuurmansRgb.Contracts`, want het item in het tray-menu gebruikt hem ook.
 - **Herstarten:** het tray-item roept `TrayPresenter.RestartAsync` aan, dat `EngineRestarter`
   gebruikt. Eerst kijkt `ElevatedServicesRestart` als gewone gebruiker of de service `OpenRGB`
   (de naam uit `installer/BuurmansRgb.iss`) of PawnIO er is; zo niet, dan geen UAC. Anders start

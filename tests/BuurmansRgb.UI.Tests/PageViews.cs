@@ -24,7 +24,7 @@ internal static class PageViews
     // and what Instellingen opens (the log) goes into opened instead of opening on this pc.
     internal static async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null, IReadOnlyList<RunningProgram>? programs = null, List<string>? opened = null)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []), open: target => opened?.Add(target));
+        var viewModel = new MainViewModel(new ArrangingConnector(new FakeEngineConnector(), api => arrange?.Invoke(api)), findPrograms: () => Task.FromResult(programs ?? []), appInfo: AppInfoViewModel.ForThisApp(target => opened?.Add(target)));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;

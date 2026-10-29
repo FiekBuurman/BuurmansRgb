@@ -86,7 +86,7 @@ public sealed class AppInfoViewModelTests
     [Fact]
     public void MainViewModel_ShowsTheVersionOfTheApp()
     {
-        using var viewModel = new MainViewModel(new FakeEngineConnector(), open: _opened.Add);
+        using var viewModel = new MainViewModel(new FakeEngineConnector(), appInfo: AppInfoViewModel.ForThisApp(_opened.Add));
         var version = typeof(MainViewModel).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
 
         Assert.Equal($"buurmansRgb {version.Split('+')[0]}", viewModel.AppInfo.VersionText);
@@ -98,7 +98,7 @@ public sealed class AppInfoViewModelTests
     public void MainViewModel_OpensTheLogWhereTheEngineWritesIt()
     {
         var connector = new FakeEngineConnector();
-        using var viewModel = new MainViewModel(connector, open: _opened.Add);
+        using var viewModel = new MainViewModel(connector, appInfo: AppInfoViewModel.ForThisApp(_opened.Add));
 
         viewModel.AppInfo.OpenLogCommand.Execute(null);
 
@@ -109,7 +109,7 @@ public sealed class AppInfoViewModelTests
     [Fact]
     public void MainViewModel_ShowsAFailureInTheStatusLine()
     {
-        using var viewModel = new MainViewModel(new FakeEngineConnector(), open: _ => throw new Win32Exception(2));
+        using var viewModel = new MainViewModel(new FakeEngineConnector(), appInfo: AppInfoViewModel.ForThisApp(_ => throw new Win32Exception(2)));
 
         viewModel.AppInfo.OpenLogCommand.Execute(null);
 
