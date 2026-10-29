@@ -12,7 +12,7 @@
         Title="{x:Static res:Strings.WindowTitle}"
         Width="1180" Height="800" MinWidth="960" MinHeight="640"
         WindowStartupLocation="CenterScreen" UseLayoutRounding="True"
-        Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
+        Background="{DynamicResource BgBrush}" Foreground="{DynamicResource TextBrush}"
         FontFamily="{StaticResource TextFont}" FontSize="{StaticResource BodySize}">
     <!-- A title bar of our own in bg (§ 6). Windows still moves, snaps and sizes the window, and a
          double click or Alt+Space on the bar work as usual. One pixel of glass keeps the shadow of
@@ -25,7 +25,7 @@
         <!-- The navigation rail (§ 6): icon above label; the active page in text and semibold, the others muted. -->
         <Style x:Key="NavItem" TargetType="ListBoxItem">
             <Setter Property="DockPanel.Dock" Value="Top" />
-            <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="AutomationProperties.Name" Value="{Binding Label}" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
@@ -50,11 +50,11 @@
                                 <Setter TargetName="Icon" Property="Data" Value="{StaticResource IconSettings}" />
                             </DataTrigger>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Item" Property="BorderBrush" Value="{StaticResource HoverBorderBrush}" />
+                                <Setter TargetName="Item" Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
-                                <Setter TargetName="Item" Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource OnHighlightTextBrush}" />
+                                <Setter TargetName="Item" Property="Background" Value="{DynamicResource NavSelectedBrush}" />
                                 <Setter TargetName="Label" Property="FontWeight" Value="SemiBold" />
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -118,7 +118,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <DockPanel Background="{StaticResource BgBrush}">
+            <DockPanel Background="{DynamicResource BgBrush}">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                     <Button Style="{StaticResource CaptionButton}" Content="&#xE921;" Click="OnMinimizeClick"
                             AutomationProperties.Name="{x:Static res:Strings.CaptionMinimize}" />
@@ -147,7 +147,7 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Background="{StaticResource NavBgBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,1,0">
+                <Border Background="{DynamicResource NavBgBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,1,0">
                     <ListBox Margin="0,8" Background="Transparent" BorderThickness="0" IsEnabled="{Binding IsConnected}"
                              ItemsSource="{x:Static vm:NavigationViewModel.Items}" SelectedItem="{Binding Navigation.SelectedItem}"
                              ItemContainerStyle="{StaticResource NavItem}" KeyboardNavigation.DirectionalNavigation="Cycle"
@@ -184,7 +184,7 @@
                     </DockPanel>
 
                     <Grid Grid.RowSpan="2" Visibility="{Binding IsConnected, Converter={StaticResource InverseBoolToVisibility}}">
-                        <Rectangle Fill="{StaticResource BgBrush}" Opacity="0.94" />
+                        <Rectangle Fill="{DynamicResource BgBrush}" Opacity="0.94" />
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="440">
                             <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding StatusMessage}" TextWrapping="Wrap" TextAlignment="Center"
                                        AutomationProperties.AutomationId="ConnectionMessage" />

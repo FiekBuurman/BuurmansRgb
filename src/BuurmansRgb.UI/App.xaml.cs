@@ -24,6 +24,8 @@ public partial class App : Application
     private IDisposable? _exit;
     private MainViewModel? _viewModel;
     private FileLog? _log;
+    private SystemHighContrast? _highContrast;
+    private ContrastTheme? _contrastTheme;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -45,6 +47,10 @@ public partial class App : Application
         // Logged only; the app still ends as it did, rather than going on in a state nobody planned for.
         DispatcherUnhandledException += (_, args) => Trace.TraceError($"Unhandled exception: {args.Exception}");
 
+        // Before the window loads, so it opens in the colors of a contrast theme that is on.
+        _highContrast = new SystemHighContrast();
+        _contrastTheme = ContrastTheme.Follow(Resources, _highContrast);
+
         _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open));
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
@@ -61,6 +67,8 @@ public partial class App : Application
         _exit?.Dispose();
         // Closes the pipe right away instead of leaving the engine to notice a dead process.
         _viewModel?.Dispose();
+        _contrastTheme?.Dispose();
+        _highContrast?.Dispose();
         _instance?.Dispose();
         _log?.Dispose();
         base.OnExit(e);

@@ -19,7 +19,7 @@
         <ItemsControl ItemsSource="{Binding Preview.Devices}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
-                    <Border Margin="0,0,0,12" Style="{StaticResource LargeCard}" Background="{StaticResource PreviewBgBrush}">
+                    <Border Margin="0,0,0,12" Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}">
                         <StackPanel>
                             <DockPanel Margin="0,0,0,10">
                                 <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"

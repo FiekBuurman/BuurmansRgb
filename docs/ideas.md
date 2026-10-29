@@ -293,9 +293,34 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het veld van de hex-code op Kleur is 180 px breed, gemeten voor de 30 px van `HexCodeSize`.
   Gaan de lettermaten de tekstgrootte van Windows volgen, dan moet die breedte meeschalen (of
   uit de lettermaat volgen); `HexCodeViewTests` controleert dat een hele code past
+- Met een contrastthema van Windows een knop, schuif of veld dat niets doet in `GrayText` tonen,
+  zoals Windows dat doet, in plaats van alleen doorzichtiger (`Opacity` 0,4–0,6); dat laatste
+  geeft in een contrastthema minder contrast dan het thema belooft
+- Met een licht contrastthema (bijv. "Woestijn") een lichte versie van het kleine icoon in de
+  titelbalk (`AppIconSmallDark`); nu staat daar het donkere icoon op een licht vlak
+- De focusring van de actieve LED in het voorbeeld (`LedPreviewView`) leest de tekstkleur pas bij
+  het volgende beeld; bij een statisch effect krijgt hij de kleur van een contrastthema dat net
+  aanging pas als de focus of de LED's veranderen
+- Een gewone knop die je indrukt in een contrastthema `Highlight` met `HighlightText` geven, zoals
+  Windows; nu wordt hij `Window` (`SurfaceRaisedBrush`), wat op `ButtonFace` weinig of niets
+  verandert
+- De streep onder een link in een contrastthema is een rand onder de regel, iets lager dan een
+  echte onderstreping; `TextDecorations` zou dichter bij de letters staan, maar dat is geen brush
+  en past dus niet in `ContrastTheme.SystemBrushes`
+- De primaire knop onder de muis en ingedrukt (`Face.Opacity` 0,9 en 0,8) alleen zonder
+  contrastthema doorzichtiger maken; in een contrastthema mengt dat `HighlightText` en
+  `Highlight` met het vlak erachter, terwijl de omgedraaide kleuren en de ring de hover al tonen.
+  Een `Opacity` is geen brush, dus `ContrastTheme.SystemBrushes` kan het nu niet vervangen
+- Het tekenen van de app met en zonder contrastthema meten met een zichtbaar venster (niet
+  vergrendeld); de meting bij "contrastthema" telde het opbouwen van een pagina en een wissel,
+  niet het tekenen zelf
 
 ### Voorbeeld en per-LED-editor
 
+- `AutomationProperties.HelpText="{Binding LedCountHelpText}"` op de schuif en het veld van het
+  aantal LED's (`LedPreviewPanel`) schrijft een bindingswaarschuwing zodra de tekst `null` is
+  ("Value produced by BindingExpression is not valid"); `TargetNullValue` met een lege tekst
+  haalt die weg. Gezien met de luisteraar van `DeviceChoiceViewTests`
 - Met ↑ en ↓ in het voorbeeld naar de LED die in de zone erboven of eronder recht boven of
   onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
   de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast

@@ -75,14 +75,33 @@
                     <ComboBox MinWidth="280" VerticalAlignment="Center"
                               ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
-                        <!-- The location label tells twins apart, such as the RAM sticks of a kit. -->
-                        <ComboBox.ItemTemplate>
+                        <!-- The location label tells twins apart, such as the RAM sticks of a kit. On the
+                             selected item of the open list it takes the color for muted text there, which
+                             a contrast theme makes the text on its highlight: the item takes that template
+                             from ItemContainerStyle while it is selected. The selection box has no
+                             ComboBoxItem around it, so it shows the template by type; there is no
+                             ItemTemplate, which would win over both. -->
+                        <ComboBox.Resources>
                             <DataTemplate DataType="{x:Type vm:DeviceItem}">
                                 <TextBlock>
-                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{StaticResource TextMutedBrush}" />
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource TextMutedBrush}" />
                                 </TextBlock>
                             </DataTemplate>
-                        </ComboBox.ItemTemplate>
+                            <DataTemplate x:Key="SelectedDeviceTemplate" DataType="{x:Type vm:DeviceItem}">
+                                <TextBlock>
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource OnHighlightMutedTextBrush}" />
+                                </TextBlock>
+                            </DataTemplate>
+                        </ComboBox.Resources>
+                        <ComboBox.ItemContainerStyle>
+                            <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="ContentTemplate" Value="{StaticResource SelectedDeviceTemplate}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ComboBox.ItemContainerStyle>
                         <ComboBox.GroupStyle>
                             <GroupStyle>
                                 <GroupStyle.ContainerStyle>
@@ -152,7 +171,7 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel>
-                    <Border Style="{StaticResource LargeCard}" Background="{StaticResource PreviewBgBrush}" Padding="18,26,18,20"
+                    <Border Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}" Padding="18,26,18,20"
                             AutomationProperties.Name="{x:Static res:Strings.ColorPreviewAccessibleName}">
                         <StackPanel>
                             <Border Style="{StaticResource StripBoard}">
@@ -432,7 +451,7 @@
                                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding DirectionText}" />
                                 <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
                                 <Path DockPanel.Dock="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="12" Height="12"
-                                      Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{StaticResource TextMutedBrush}" StrokeThickness="1.5"
+                                      Data="M1,6 H11 M7,2 L11,6 L7,10" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.5"
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" RenderTransformOrigin="0.5,0.5"
                                       Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}">
                                     <Path.RenderTransform>

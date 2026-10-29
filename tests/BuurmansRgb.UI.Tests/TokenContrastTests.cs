@@ -34,12 +34,14 @@ public sealed class TokenContrastTests
     };
 
     // What is no text but tells what something is or does, and the background it is on: the border
-    // of a field, on a card, on the window and in the preview (the hex code on Kleur).
+    // of a field, on a card, on the window and in the preview (the hex code on Kleur), and the cross
+    // of the close button on its red under the mouse.
     public static TheoryData<string, string> NonTextPairs => new()
     {
         { "InputBorderColor", "SurfaceColor" },
         { "InputBorderColor", "BgColor" },
         { "InputBorderColor", "PreviewBgColor" },
+        { "CloseHoverTextBrush", "CloseHoverBrush" },
     };
 
     [Theory]
@@ -58,7 +60,7 @@ public sealed class TokenContrastTests
     public void InputBorder_GetsLighterOnHoverAndWithTheFocus()
     {
         var rest = Wcag.RelativeLuminance(Tokens.Value["InputBorderBrush"]);
-        var hover = Wcag.RelativeLuminance(Tokens.Value["InputHoverBorderBrush"]);
+        var hover = Wcag.RelativeLuminance(Tokens.Value["ControlHoverBrush"]);
         var focus = Wcag.RelativeLuminance(Tokens.Value["TextBrush"]);
 
         Assert.True(rest < hover, $"The hover border ({hover:0.000}) is not lighter than the one at rest ({rest:0.000}).");

@@ -160,7 +160,7 @@
                                                        Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />
                                             <TextBlock Style="{StaticResource SubText}" ToolTip="{x:Static res:Strings.NoDirectModeHint}"
                                                        Visibility="{Binding Device.LacksDirectMode, Converter={StaticResource BoolToVisibility}}">
-                                                <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{StaticResource LedYellowBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
+                                                <Run Text="⚠" FontFamily="Segoe UI Symbol" Foreground="{DynamicResource WarningBrush}" /> <Run Text="{x:Static res:Strings.NoDirectModeWarning}" />
                                             </TextBlock>
                                         </StackPanel>
                                     </DockPanel>
