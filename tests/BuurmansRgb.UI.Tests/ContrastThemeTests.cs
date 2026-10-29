@@ -54,6 +54,7 @@ public sealed partial class ContrastThemeTests
     [InlineData("AccentHoverBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("OnAccentHoverBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("WarningBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("LedOffRingBrush", nameof(SystemColors.WindowTextBrush))]
     public void ContrastThemeOn_GivesTheTokenItsSystemBrush(string token, string systemBrush) => Sta.Run(() =>
     {
         var resources = LoadTheme();
@@ -101,6 +102,7 @@ public sealed partial class ContrastThemeTests
         ["SwitchOnCoverBrush"] = "Transparent",
         ["ControlOutlineBrush"] = "Transparent",
         ["HoverOutlineBrush"] = "Transparent",
+        ["LedOffRingBrush"] = "#7A7880",
     };
 
     public static TheoryData<string> RoleTokens => [.. RoleDesignColors.Keys];
