@@ -726,6 +726,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
 | App (Debug, Windows vergrendeld) | Lampen of Kleur, regenboog | ~2,1–2,4 % van één kern | 113–133 MB working set, 39–43 MB private |
+| App (Release, Windows vergrendeld) | Contrastthema (#?): de kleuren van de templates als `DynamicResource`, zonder contrastthema; op Apparaten met het voorbeeld, regenboog op 30 fps, `pauseOnLockAndSleep` uit, zonder OpenRGB, venster 1240 × 820; drie rondes van 60 s om en om met de basis (`contrast-invoer`), na 15 s opwarmen. Vergrendeld tekent WPF niets, dus het tekenen zelf zit er niet in | 0,96–1,61 % van één kern, basis 0,96–1,90 %: geen verschil buiten de ruis. De LED's en de gloed lopen niet via `DynamicResource` | 116,9–117,6 MB working set, 39,9–42,1 MB private (basis 116,7–117,7 en 39,8–42,1 MB) |
 
 De engine is gemeten in Release met de gesimuleerde lampen en zonder OpenRGB (dan probeert hij
 elke 5 seconden te verbinden; dat is het grootste deel van de CPU bij een statische kleur).
