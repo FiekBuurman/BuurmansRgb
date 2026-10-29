@@ -307,6 +307,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - De streep onder een link in een contrastthema is een rand onder de regel, iets lager dan een
   echte onderstreping; `TextDecorations` zou dichter bij de letters staan, maar dat is geen brush
   en past dus niet in `ContrastTheme.SystemBrushes`
+- De primaire knop onder de muis en ingedrukt (`Face.Opacity` 0,9 en 0,8) alleen zonder
+  contrastthema doorzichtiger maken; in een contrastthema mengt dat `HighlightText` en
+  `Highlight` met het vlak erachter, terwijl de omgedraaide kleuren en de ring de hover al tonen.
+  Een `Opacity` is geen brush, dus `ContrastTheme.SystemBrushes` kan het nu niet vervangen
 - Het tekenen van de app met en zonder contrastthema meten met een zichtbaar venster (niet
   vergrendeld); de meting bij "contrastthema" telde het opbouwen van een pagina en een wissel,
   niet het tekenen zelf
