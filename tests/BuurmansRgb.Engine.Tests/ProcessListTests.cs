@@ -87,11 +87,12 @@ public sealed class ProcessListTests
     private static HashSet<string> Names(params string[] names) => new(names, ProgramNames.Comparer);
 
     // Only once its handle is signalled is a process really gone, and its exe free to delete;
-    // WaitForExitAsync already returns when the exit code is set.
+    // WaitForExitAsync already returns when the exit code is set. Under the load of a full test run
+    // that signal can take longer than a few seconds.
     private static void WaitUntilGone(Process process)
     {
         using var gone = new ProcessWaitHandle(process);
-        Assert.True(gone.WaitOne(TestTimeouts.Short));
+        Assert.True(gone.WaitOne(TestTimeouts.Long));
     }
 
     // Waits on the handle of the process, without owning it.
