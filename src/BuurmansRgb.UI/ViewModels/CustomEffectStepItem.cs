@@ -21,7 +21,7 @@ public sealed partial class CustomEffectStepItem(int index, CustomEffectStep ste
 
     public IReadOnlyList<RgbColor> Colors => Step.Colors;
 
-    // "Stap 2: Echt rood, #FF0000, 1,0 s blijven staan, 0,5 s overlopen", or with "patroon van 104
+    // "Stap 2: echt rood, #FF0000, 1,0 s blijven staan, 0,5 s overlopen", or with "patroon van 104
     // LED's".
     public string Name => UiText.Format(Strings.CustomEffectStepName, Index + 1, Describe(Step, ColorNames.WithHex), Step.HoldSeconds, Step.FadeSeconds);
 

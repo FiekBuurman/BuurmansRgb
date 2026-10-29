@@ -396,7 +396,7 @@
   </data>
   <data name="ColorNameWithHex" xml:space="preserve">
     <value>{0}, {1}</value>
-    <comment>Een kleur voor een schermlezer. {0} = de naam van een vaste kleur (bijv. Klus-wit) of anders een benaderende kleurnaam (ColorName_…), {1} = de hex-code, bijv. #FFFF00.</comment>
+    <comment>Een kleur voor een schermlezer. {0} = de naam van een vaste kleur met een kleine beginletter (bijv. klus-wit) of anders een benaderende kleurnaam (ColorName_…), {1} = de hex-code, bijv. #FFFF00.</comment>
   </data>
   <data name="ColorName_Black" xml:space="preserve">
     <value>zwart</value>

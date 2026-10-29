@@ -1,3 +1,4 @@
+using System.Globalization;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 
@@ -5,20 +6,25 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // A color as a screen reader says it: a rough name with the hex code after it, "geel, #FFFF00",
 // for the tiles of a list of colors, the own colors and the steps of an own effect. A color of the
-// toolbox keeps its own name ("Klus-wit, #FFF4E5"). The words are in Strings.resx, as
-// "ColorName_<tone>".
+// toolbox keeps its own name, with a small letter in the middle of a sentence ("klus-wit, #FFF4E5").
+// The words are in Strings.resx, as "ColorName_<tone>".
 public static class ColorNames
 {
-    // "geel, #FFFF00", or "Echt blauw, #0000FF" for a color of the toolbox.
+    // "geel, #FFFF00", or "echt blauw, #0000FF" for a color of the toolbox.
     public static string WithHex(RgbColor color) => UiText.Format(Strings.ColorNameWithHex, NameOf(color), color.ToHex());
 
-    // The name of a color of the toolbox, or else the word of its tone.
+    // The name of a color of the toolbox as it stands in the middle of a sentence ("echt groen"),
+    // or else the word of its tone.
     public static string NameOf(RgbColor color) =>
-        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color)?.Name
-        ?? UiText.Lookup(TonePrefix, ToneOf(color))
-        ?? color.ToHex();
+        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color) is { } preset
+            ? InSentence(preset.Name)
+            : UiText.Lookup(TonePrefix, ToneOf(color)) ?? color.ToHex();
 
     internal const string TonePrefix = "ColorName";
+
+    // "Echt groen" with a small first letter, "echt groen"; the rest of the name stays as it is.
+    private static string InSentence(string name) =>
+        name.Length == 0 ? name : string.Concat(name[..1].ToLower(CultureInfo.CurrentCulture), name[1..]);
 
     // A small, predictable rough guess by hue, saturation and value (HSV), not the nearest of a long
     // list: what is nearly off is black, what has hardly any tint is a grey by its value, and the

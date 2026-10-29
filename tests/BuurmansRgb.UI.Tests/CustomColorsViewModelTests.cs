@@ -27,7 +27,7 @@ public sealed class CustomColorsViewModelTests
 
         Assert.Equal([Red, Blue], Colors());
         Assert.Equal([[Red, Blue]], _changes);
-        Assert.Equal("Eigen kleur: Echt blauw, #0000FF", _customColors.Colors[1].Name);
+        Assert.Equal("Eigen kleur: echt blauw, #0000FF", _customColors.Colors[1].Name);
     }
 
     // The same color twice is no use; another color of the picker can go in again.

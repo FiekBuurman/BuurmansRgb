@@ -105,14 +105,22 @@ public sealed class ColorNamesTests
     public void WithHex_SaysTheNameAndThenTheHexCode(string hex, string expected) =>
         Assert.Equal(expected, ColorNames.WithHex(Parse(hex)));
 
-    // A color of the toolbox keeps its own name, also in a list of colors or a step.
+    // A color of the toolbox keeps its own name, also in a list of colors or a step, with a small
+    // first letter as it stands in the middle of a sentence.
     [Fact]
-    public void WithHex_ColorOfTheToolbox_KeepsItsOwnName()
+    public void WithHex_ColorOfTheToolbox_KeepsItsOwnNameInSmallLetters()
     {
         Assert.All(ColorPickerViewModel.Presets, preset =>
-            Assert.Equal(UiText.Format(Strings.ColorNameWithHex, preset.Name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color)));
-        Assert.Equal("Klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
-        Assert.Equal("Echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
+        {
+            var name = ColorNames.NameOf(preset.Color);
+
+            Assert.Equal(preset.Name[..1].ToLower(CultureInfo.CurrentCulture), name[..1]);
+            Assert.Equal(preset.Name[1..], name[1..]);
+            Assert.Equal(UiText.Format(Strings.ColorNameWithHex, name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color));
+        });
+        Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+        Assert.Equal("echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
+        Assert.Equal("echt groen", ColorNames.NameOf(new(0, 255, 0)));
     }
 
     // Each tone has a word in Strings.resx, in lower case, as it stands in the middle of a sentence.
