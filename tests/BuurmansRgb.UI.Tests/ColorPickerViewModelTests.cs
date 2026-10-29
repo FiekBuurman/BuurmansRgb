@@ -104,6 +104,29 @@ public sealed class ColorPickerViewModelTests
         Assert.Empty(_picked);
     }
 
+    // The effect uses no color of the lamp: a mixed color only shows, without the button or "Nog
+    // niet op het apparaat"; it is still a mixed color, so following the lamp keeps it.
+    [Fact]
+    public void IsUnused_MixesWithoutTheButton()
+    {
+        _picker.Show(RgbColor.Black);
+        _picker.IsUnused = true;
+
+        _picker.Red = 255;
+
+        Assert.Empty(_picked);
+        Assert.True(_picker.HasUnappliedChange);
+        Assert.False(_picker.ShowsUnappliedChange);
+        Assert.False(_picker.ShowsApply);
+        Assert.False(_picker.ApplyCommand.CanExecute(null));
+
+        _picker.IsUnused = false;
+
+        Assert.True(_picker.ShowsUnappliedChange);
+        Assert.True(_picker.ShowsApply);
+        Assert.True(_picker.ApplyCommand.CanExecute(null));
+    }
+
     [Fact]
     public void AppliesAtOnce_Ended_MixesAgainWithoutPuttingItOnTheLamp()
     {

@@ -7,6 +7,8 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class EffectCatalogTests
 {
+    // A new effect also gets a row in MainViewModelDeviceColorTests, for what the color picker does
+    // with it; that test fails for a new id in EffectIds until it has one.
     [Fact]
     public void Ids_AreInTheOrderTheSettingsAppLists()
     {
@@ -39,6 +41,27 @@ public sealed class EffectCatalogTests
     public void Ids_AnimateExactlyAsEffectIdsSays()
     {
         Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectIds.IsAnimated(id), EffectCatalog.Create(id, Orange, []).IsAnimated));
+    }
+
+    // The settings app says that an effect uses no color of its own, and leaves out "Op de strip
+    // zetten", for the effects EffectIds says do not use the color of the device: their LEDs are
+    // the same in another device color, over a few seconds of the animation.
+    [Fact]
+    public void Ids_UseTheDeviceColorExactlyAsEffectIdsSays()
+    {
+        Assert.All(EffectCatalog.Ids, id => Assert.Equal(EffectIds.UsesDeviceColor(id), !Frames(id, Orange).SequenceEqual(Frames(id, Blue))));
+
+        static RgbColor[] Frames(string id, RgbColor color)
+        {
+            var effect = EffectCatalog.Create(id, color, new RgbColor?[30], seed: 7);
+            var frames = new RgbColor[30 * 50];
+            for (var frame = 0; frame < 50; frame++)
+            {
+                effect.Render(frames.AsSpan(frame * 30, 30), TimeSpan.FromSeconds(frame * 0.1));
+            }
+
+            return frames;
+        }
     }
 
     // The settings app only offers the direction for the effects EffectDirection names, which are

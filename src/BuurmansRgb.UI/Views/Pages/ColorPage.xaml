@@ -177,7 +177,10 @@
                                 </StackPanel>
                             </DockPanel>
                             <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorNotApplied}"
-                                       Visibility="{Binding ColorPicker.HasUnappliedChange, Converter={StaticResource BoolToVisibility}}" />
+                                       Visibility="{Binding ColorPicker.ShowsUnappliedChange, Converter={StaticResource BoolToVisibility}}" />
+                            <!-- An effect without a color of the device, such as the rainbow, says so instead of "Op de strip zetten". -->
+                            <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{Binding DeviceColorUnusedText}"
+                                       Visibility="{Binding ColorPicker.IsUnused, Converter={StaticResource BoolToVisibility}}" />
                         </StackPanel>
                     </Border>
 
@@ -345,10 +348,11 @@
                         </ItemsControl>
                     </DockPanel>
 
-                    <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once. -->
+                    <!-- Only for the color of the whole lamp: a color of a list or of chosen LEDs changes at once, and an
+                         effect without a color of the device, such as the rainbow, has nothing to put on. -->
                     <Button Margin="0,12,0,0" HorizontalAlignment="Stretch" Style="{StaticResource PrimaryButton}" Content="{x:Static res:Strings.ApplyColor}"
                             Command="{Binding ColorPicker.ApplyCommand}"
-                            Visibility="{Binding ColorPicker.AppliesAtOnce, Converter={StaticResource InverseBoolToVisibility}}" />
+                            Visibility="{Binding ColorPicker.ShowsApply, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
             </Grid>
 
