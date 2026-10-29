@@ -8,6 +8,7 @@ namespace BuurmansRgb.UI.Tests;
 // The contrasts of the colors in Themes/Tokens.xaml, by the formula of WCAG 2, so a change of a
 // color that makes something hard to see fails here. Each pair names a token in front, as a Color
 // or a SolidColorBrush, and the token it stands on. A new pair goes in the list it belongs to.
+[Collection(AppThemeCollection.Name)]
 public sealed class TokenContrastTests
 {
     // Text and the background it is on: body text and subtext on every surface, the selected item

@@ -59,6 +59,10 @@ SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Provider
 De viewtests van de instellingen-app draaien in een echt venster buiten beeld (`OffscreenWindow`,
 op `OffscreenWindow.Offset`); `PageViews.Press` drukt er een toets zoals het toetsenbord dat doet,
 en `LiveRegionCapture` vangt wat een schermlezer zou voorlezen en zet `LiveRegion` daarna terug.
+Een testklasse die XAML van het thema laadt (`AppTheme.Run`, of zelf met `Application.LoadComponent`
+of een `ResourceDictionary` met een pack-URI als `Source`) staat in de collectie `AppThemeCollection`,
+die niet parallel loopt: dat laden is niet thread-safe en faalt af en toe als twee klassen het
+tegelijk doen.
 
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
