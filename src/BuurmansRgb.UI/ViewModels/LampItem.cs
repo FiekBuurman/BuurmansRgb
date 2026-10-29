@@ -51,6 +51,9 @@ public sealed partial class LampItem(DeviceItem device) : ObservableObject
         Brightness = lighting.Brightness;
     });
 
+    // WPF names the list item, the card, after it for screen readers: the name the device list has.
+    public override string ToString() => Device.DisplayName;
+
     // On or off as the whole house was just switched, until the engine tells what it did.
     public void Show(bool on) => _showing.Run(() => IsOn = on);
 

@@ -38,8 +38,11 @@ public sealed partial class LoadTimeRow : ObservableObject
 
     // Its place in the list, from 1, for a screen reader: there is one field per time.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TimeAccessibleName), nameof(DaysAccessibleName), nameof(RemoveAccessibleName))]
+    [NotifyPropertyChangedFor(nameof(Name), nameof(TimeAccessibleName), nameof(DaysAccessibleName), nameof(RemoveAccessibleName))]
     public partial int Number { get; set; } = 1;
+
+    // "Tijd 2": the row around the field, the days and "−".
+    public string Name => UiText.Format(Strings.ProfileTimeName, Number);
 
     public string TimeAccessibleName => UiText.Format(Strings.ProfileTimeAccessibleName, Number);
 
@@ -78,6 +81,9 @@ public sealed partial class LoadTimeRow : ObservableObject
         time = new LoadTime(at, CheckedDays);
         return true;
     }
+
+    // WPF names the list item, the row, after it for screen readers.
+    public override string ToString() => Name;
 
     partial void OnTextChanged(string value) => Changed?.Invoke(this, EventArgs.Empty);
 }

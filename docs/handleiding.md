@@ -16,6 +16,13 @@ navigatiebalk met **Apparaten**, **Kleur**, **Scènes** en onderaan **Instelling
 - **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
   knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
   actieve LED (zie "Per-LED-editor").
+- **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
+  van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
+  ("Klus-wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
+  een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
+  afbeelding ("Aan: #FF8800" of "Uit"), en zolang de app nog niet weet hoe de scène eruitziet
+  slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
+  want de tekst ernaast zegt al wat ze tonen.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is

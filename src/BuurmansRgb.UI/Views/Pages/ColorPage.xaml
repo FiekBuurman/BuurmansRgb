@@ -153,19 +153,19 @@
                             AutomationProperties.Name="{x:Static res:Strings.ColorPreviewAccessibleName}">
                         <StackPanel>
                             <Border Style="{StaticResource StripBoard}">
-                                <ItemsControl ItemsSource="{StaticResource StripBulbs}" Focusable="False" IsTabStop="False" VerticalAlignment="Center">
-                                    <ItemsControl.ItemsPanel>
+                                <views:DecorativeItemsControl ItemsSource="{StaticResource StripBulbs}" Focusable="False" IsTabStop="False" VerticalAlignment="Center">
+                                    <views:DecorativeItemsControl.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <UniformGrid Rows="1" />
                                         </ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
+                                    </views:DecorativeItemsControl.ItemsPanel>
+                                    <views:DecorativeItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <views:LedBulb Diameter="12" GlowBlur="14" GlowSpread="4"
                                                            Color="{Binding DataContext.ColorPicker.Color, RelativeSource={RelativeSource AncestorType=UserControl}}" />
                                         </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                    </views:DecorativeItemsControl.ItemTemplate>
+                                </views:DecorativeItemsControl>
                             </Border>
                             <DockPanel Margin="0,22,0,0">
                                 <TextBlock DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Bottom" Style="{StaticResource MonoValue}" FontSize="13"

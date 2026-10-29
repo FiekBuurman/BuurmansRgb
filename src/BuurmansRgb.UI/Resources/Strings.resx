@@ -869,6 +869,14 @@
     <value>Staat aan</value>
     <comment>Read out by a screen reader for the scene card of the scene that is on.</comment>
   </data>
+  <data name="SceneDotsOn" xml:space="preserve">
+    <value>Aan: {0}</value>
+    <comment>The bulbs of a scene card for a screen reader; {0} is each of their colors once, as hex codes with a comma between them.</comment>
+  </data>
+  <data name="SceneDotsOff" xml:space="preserve">
+    <value>Uit</value>
+    <comment>The bulbs of a scene card for a screen reader, when the scene has the lamps off.</comment>
+  </data>
   <data name="SceneEditToolTip" xml:space="preserve">
     <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
   </data>
@@ -958,6 +966,10 @@
   </data>
   <data name="ProfileTimeAccessibleName" xml:space="preserve">
     <value>Aanzetten om, tijd {0}</value>
+  </data>
+  <data name="ProfileTimeName" xml:space="preserve">
+    <value>Tijd {0}</value>
+    <comment>A row of a time in "Vanzelf aanzetten" for a screen reader, around its field, its days and its "−".</comment>
   </data>
   <data name="ProfileTimeDaysAccessibleName" xml:space="preserve">
     <value>Dagen van tijd {0}</value>

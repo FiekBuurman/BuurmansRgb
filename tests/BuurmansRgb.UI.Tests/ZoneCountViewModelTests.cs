@@ -105,6 +105,7 @@ public sealed class ZoneCountViewModelTests
         Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(LedsPerSecond: 5))], _actions.Requests);
         Assert.Equal(string.Format(Strings.ZoneCountPace, 5), count.PaceOptions[2].AccessibleName);
         Assert.Equal(string.Format(Strings.ZoneCountPaceOne, 1), count.PaceOptions[0].AccessibleName);
+        Assert.Equal(count.PaceOptions.Select(option => option.AccessibleName), count.PaceOptions.Select(option => option.ToString()));
     }
 
     [Fact]

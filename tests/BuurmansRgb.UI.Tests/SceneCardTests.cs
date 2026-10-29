@@ -13,8 +13,28 @@ public sealed class SceneCardTests
     {
         Assert.Equal(5, _card.Dots.Count);
         Assert.All(_card.Dots, dot => Assert.False(dot.IsLit));
+        Assert.False(_card.IsShown);
         Assert.Equal("Klusmodus aanzetten", _card.LoadAccessibleName);
         Assert.Equal("Klusmodus aanpassen", _card.EditAccessibleName);
+    }
+
+    // WPF names the card after its ToString for a screen reader; the bulbs are one image that says
+    // on or off, with each of their colors once, and have no name until the engine has told what
+    // the scene looks like.
+    [Fact]
+    public void AccessibleNames_TheCardIsItsNameAndTheBulbsSayOnOrOffWithTheirColors()
+    {
+        Assert.Equal("Klusmodus", _card.ToString());
+        Assert.Equal(string.Empty, _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
+        Assert.Equal($"Aan: {Orange.ToHex()}", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green, Blue])), ProfileAutomation.None);
+        Assert.Equal($"Aan: {Green.ToHex()}, {Blue.ToHex()}", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static, On: false), ProfileAutomation.None);
+        Assert.Equal("Uit", _card.DotsAccessibleName);
     }
 
     [Fact]
@@ -143,13 +163,21 @@ public sealed class SceneCardTests
         Assert.All(_card.Dots, dot => Assert.Equal(Orange, dot.Color));
     }
 
+    // The dark bulbs of a new card are those of a scene with the lights off; that the engine has told
+    // so is what gives them their name, and tells a screen reader.
     [Fact]
     public void Show_Off_DarkBulbsAndSaysSo()
     {
+        var changed = new List<string?>();
+        _card.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), ProfileAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.False(dot.IsLit));
         Assert.Equal("Alles uit", _card.Description);
+        Assert.True(_card.IsShown);
+        Assert.Equal("Uit", _card.DotsAccessibleName);
+        Assert.Contains(nameof(SceneCard.DotsAccessibleName), changed);
     }
 
     [Theory]

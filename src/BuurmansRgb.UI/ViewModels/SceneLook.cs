@@ -11,8 +11,8 @@ internal static class SceneLook
 {
     public const int DotCount = 5;
 
-    // Until the engine has told what the scene looks like.
-    public static IReadOnlyList<SceneDot> Unknown { get; } = [.. Enumerable.Repeat(new SceneDot(RgbColor.Black, false), DotCount)];
+    // A scene with the lights off, and a card until the engine has told what its scene looks like.
+    public static IReadOnlyList<SceneDot> Off { get; } = [.. Enumerable.Repeat(new SceneDot(RgbColor.Black, false), DotCount)];
 
     // Comet, scanner and twinkle show the colors of their list in turn, as they do one after the
     // other; without a list that is the lamp color.
@@ -20,7 +20,7 @@ internal static class SceneLook
     {
         if (!lighting.On)
         {
-            return Unknown;
+            return Off;
         }
 
         var loop = (lighting.Loop ?? ColorLoop.Default).Colors;
