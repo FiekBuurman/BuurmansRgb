@@ -20,7 +20,7 @@ public sealed class AppRuntimeTests
     }
 
     // Only a guard against removing the settings from the project by accident: it reads the project
-    // file and does not publish. Without ReadyToRun the app is 0.2-0.7 s later on screen; with it on
+    // file and does not publish. Without ReadyToRun the app is 0.2-0.7 s later usable; with it on
     // assemblies the engine loads as well, the engine would run other code than was measured; on a
     // plain build or restore, the SDK would fetch the ReadyToRun compiler and the runtime packs. That
     // the publish does what the project says was checked by hand (docs/ontwikkelaars.md, "Metingen").
