@@ -7,6 +7,7 @@ using System.Windows.Media;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
@@ -43,19 +44,24 @@ public sealed class LedPreviewPanelViewTests
     }
 
     // On the page, the mouse finds the LEDs of a zone also in the room between them and the name of
-    // the zone, 3.5 px above the first LED; the name of the zone stays a link, the same as before.
+    // the zone, 3.5 px above the first LED; the name of the zone stays a link, the same as before,
+    // and so does "Alles selecteren" of a device with one zone. Below a zone with a length, the
+    // LEDs are found 3.5 px under the last one, and the label of the length under them wins.
     [Fact]
     public async Task ZoneLeds_FoundJustAboveThemAndTheNameStaysALink()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        var strip = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 8, [RgbZone.Fixed("Strip", 8)]) { Source = DeviceSource.Hardware };
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, strip]);
 
         AppTheme.Run(panel =>
         {
             Window.GetWindow(panel)!.Width = 600;
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
             var views = AppTheme.Descendants<LedPreviewView>(preview).Where(view => view.IsVisible).ToList();
-            Assert.Equal(2, views.Count);
+            Assert.Equal(3, views.Count);
 
+            var names = new List<string>();
+            var lengths = 0;
             foreach (var view in views)
             {
                 var zone = (StackPanel)VisualTreeHelper.GetParent(view);
@@ -65,10 +71,26 @@ public sealed class LedPreviewPanelViewTests
                 var aboveFirst = preview.InputHitTest(view.TranslatePoint(new Point(first.X + first.Width / 2.0, first.Y - 3.5), preview));
                 var onName = preview.InputHitTest(name.TranslatePoint(new Point(4.0, name.ActualHeight / 2.0), preview));
 
-                var link = name.Inlines.FirstInline;
+                var link = (Hyperlink)name.Inlines.FirstInline;
+                names.Add(((Run)link.Inlines.FirstInline).Text);
                 Assert.Same(view, aboveFirst);
                 Assert.True(onName == link || (onName is Run run && run.Parent == link));
+
+                if (((ZonePreviewViewModel)view.DataContext).Length is { } length)
+                {
+                    var label = AppTheme.Descendants<TextBlock>(zone).Single(text => text.IsVisible && text.Text == length.Label);
+                    var last = view.BoundsOf(view.Colors.Count - 1);
+                    var underLast = preview.InputHitTest(view.TranslatePoint(new Point(last.X + last.Width / 2.0, last.Bottom + 3.5), preview));
+                    var onLabel = preview.InputHitTest(label.TranslatePoint(new Point(4.0, 1.0), preview));
+
+                    Assert.Same(view, underLast);
+                    Assert.True(onLabel == label || (onLabel is Run text && text.Parent == label));
+                    lengths++;
+                }
             }
+
+            Assert.Contains(Strings.SelectAll, names);
+            Assert.Equal(1, lengths);
         });
     }
 
