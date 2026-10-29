@@ -471,9 +471,10 @@ toetsenbord. Een paar dingen om te proberen:
   geeft een gewone gebruiker een inlogscherm of een 404, en de installer levert de docs (nog)
   niet mee. Eén adres in `GuideAddress` (een webadres of het pad van een meegeleverde
   handleiding) zet de link aan; hij opent het met `ShellLauncher.Open`. `App` maakt
-  `AppInfoViewModel.ForThisApp(ShellLauncher.Open)` en geeft hem aan `MainViewModel`; tests geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets,
-  zodat een test nooit echt Kladblok of de browser opent. `ShellLauncher` staat in
-  `BuurmansRgb.Contracts`, want het item in het tray-menu gebruikt hem ook.
+  `AppInfoViewModel.ForThisApp(ShellLauncher.Open)` en geeft hem aan `MainViewModel`; tests
+  geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets, zodat een test nooit
+  echt Kladblok of de browser opent. `ShellLauncher` staat in `BuurmansRgb.Contracts`, want het
+  item in het tray-menu gebruikt hem ook.
 - **Herstarten:** het tray-item roept `TrayPresenter.RestartAsync` aan, dat `EngineRestarter`
   gebruikt. Eerst kijkt `ElevatedServicesRestart` als gewone gebruiker of de service `OpenRGB`
   (de naam uit `installer/BuurmansRgb.iss`) of PawnIO er is; zo niet, dan geen UAC. Anders start
