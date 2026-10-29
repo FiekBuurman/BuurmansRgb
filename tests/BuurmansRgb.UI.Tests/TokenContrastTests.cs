@@ -38,7 +38,8 @@ public sealed class TokenContrastTests
     // of the close button on its red under the mouse, and the ring of an LED that is off or black
     // wherever LEDs are: in the preview, on the window, on a card (Hele huis, a device, a scene) and
     // on the strip board of Kleur. The track of a switch that is off is led-off, 1.4:1 on a card,
-    // so its knob tells the state: on the card and on that track.
+    // so its knob tells the state: on the card and on that track. The rail of a slider is led-off
+    // too, so its knob and filled part tell the value, in the text color or in red, green or blue.
     public static TheoryData<string, string> NonTextPairs => new()
     {
         { "InputBorderColor", "SurfaceColor" },
@@ -53,6 +54,10 @@ public sealed class TokenContrastTests
         { "CardLedOffRingBrush", "SurfaceColor" },
         { "KnobOffColor", "SurfaceColor" },
         { "KnobOffColor", "LedOffColor" },
+        { "TextColor", "SurfaceColor" },
+        { "LedRedColor", "SurfaceColor" },
+        { "LedGreenColor", "SurfaceColor" },
+        { "LedBlueColor", "SurfaceColor" },
     };
 
     [Theory]
