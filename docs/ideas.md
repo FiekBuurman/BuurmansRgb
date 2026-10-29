@@ -286,6 +286,13 @@ uitbreidingen in `docs/bouwplan.md`.
   `GuideAddress` zet hem weer aan (gebruikerstest 28-10)
 - Bij Instellingen ook de versie van de engine tonen als die een andere is dan die van de app
   (bijv. na een update waarbij de oude engine bleef draaien); nu toont hij alleen die van de app
+- De rand van de open lijst van een keuzelijst (`border-strong`, 1,8:1) en de randen van knoppen
+  en kaarten (`border`, 1,2:1) nalopen op 3:1. Knoppen en kaarten zijn aan hun tekst te
+  herkennen, dus WCAG vraagt het daar niet; de velden kregen in "contrast-invoer" wel een eigen
+  rand (`InputBorderColor`)
+- Het veld van de hex-code op Kleur is 180 px breed, gemeten voor de 30 px van `HexCodeSize`.
+  Gaan de lettermaten de tekstgrootte van Windows volgen, dan moet die breedte meeschalen (of
+  uit de lettermaat volgen); `HexCodeViewTests` controleert dat een hele code past
 
 ### Voorbeeld en per-LED-editor
 
