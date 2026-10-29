@@ -23,8 +23,10 @@ public static class ColorNames
     // A small, predictable rough guess by hue, saturation and value (HSV), not the nearest of a long
     // list: what is nearly off is black, what has hardly any tint is a grey by its value, and the
     // rest a hue, light when it is pale and bright, dark when it is dim. Dark orange is brown, dark
-    // yellow olive green, light red pink and dark pink purple, as people name them.
-    // Blue ends at 250°, so a violet such as #A07BFF, close to the Paars of the toolbox, is purple.
+    // yellow olive green, light red pink and dark pink purple, as people name them; a light magenta
+    // such as #EE82EE is lila, so light purple. Blue ends at 250°, so #A07BFF, close to the Paars of
+    // the toolbox, is purple, and red goes on to 340°, so a red with a touch of blue (#FF0040) stays
+    // red.
     // ColorNamesTests holds a series of colors around the borders.
     public static ColorTone ToneOf(RgbColor color)
     {
@@ -53,13 +55,14 @@ public static class ColorNames
         bool dark = value < 0.55;
         return HueOf(color, max, chroma) switch
         {
-            < 18 or >= 345 => light ? ColorTone.Pink : dark ? ColorTone.DarkRed : ColorTone.Red,
+            < 18 or >= 340 => light ? ColorTone.Pink : dark ? ColorTone.DarkRed : ColorTone.Red,
             < 45 => light ? ColorTone.LightOrange : value < 0.65 ? ColorTone.Brown : ColorTone.Orange,
             < 70 => light ? ColorTone.LightYellow : dark ? ColorTone.Olive : ColorTone.Yellow,
             < 160 => light ? ColorTone.LightGreen : dark ? ColorTone.DarkGreen : ColorTone.Green,
             < 190 => light ? ColorTone.LightTurquoise : dark ? ColorTone.DarkTurquoise : ColorTone.Turquoise,
             < 250 => light ? ColorTone.LightBlue : dark ? ColorTone.DarkBlue : ColorTone.Blue,
             < 290 => light ? ColorTone.LightPurple : dark ? ColorTone.DarkPurple : ColorTone.Purple,
+            < 320 when light => ColorTone.LightPurple,
             _ => light ? ColorTone.LightPink : dark ? ColorTone.Purple : ColorTone.Pink,
         };
     }

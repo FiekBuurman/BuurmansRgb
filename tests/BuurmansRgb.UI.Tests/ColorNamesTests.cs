@@ -81,11 +81,17 @@ public sealed class ColorNamesTests
     [InlineData("#8A2BE2", ColorTone.Purple)]
     [InlineData("#CC99FF", ColorTone.LightPurple)]
     [InlineData("#4B0082", ColorTone.DarkPurple)]
-    // Pink, from magenta on, and dark pink is purple.
+    // Pink, from magenta on to 340°, and dark pink is purple; light magenta is lila, light purple.
     [InlineData("#FF00FF", ColorTone.Pink)]
     [InlineData("#C71585", ColorTone.Pink)]
-    [InlineData("#EE82EE", ColorTone.LightPink)]
+    [InlineData("#FF1493", ColorTone.Pink)]
+    [InlineData("#EE82EE", ColorTone.LightPurple)]
+    [InlineData("#DDA0DD", ColorTone.LightPurple)]
+    [InlineData("#FF99CC", ColorTone.LightPink)]
     [InlineData("#800080", ColorTone.Purple)]
+    // Red again from 340° on, also with a touch of blue.
+    [InlineData("#FF0040", ColorTone.Red)]
+    [InlineData("#DC143C", ColorTone.Red)]
     public void ToneOf_GivesTheRoughTone(string hex, ColorTone tone) =>
         Assert.Equal(tone, ColorNames.ToneOf(Parse(hex)));
 
