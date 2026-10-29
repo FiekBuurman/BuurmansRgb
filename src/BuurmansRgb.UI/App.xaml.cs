@@ -28,6 +28,7 @@ public partial class App : Application
     private ContrastTheme? _contrastTheme;
     private SystemTextScale? _systemTextScale;
     private TextScale? _textScale;
+    private SystemAnimationEffects? _animationEffects;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -55,8 +56,10 @@ public partial class App : Application
         // Likewise, so it opens in the text size of Windows.
         _systemTextScale = new SystemTextScale();
         _textScale = TextScale.Follow(Resources, _systemTextScale);
+        // The preview stands still while "Animatie-effecten" of Windows is off.
+        _animationEffects = new SystemAnimationEffects();
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open));
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects);
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
         window.Show();
@@ -76,6 +79,7 @@ public partial class App : Application
         _highContrast?.Dispose();
         _textScale?.Dispose();
         _systemTextScale?.Dispose();
+        _animationEffects?.Dispose();
         _instance?.Dispose();
         _log?.Dispose();
         base.OnExit(e);

@@ -182,7 +182,21 @@ internal sealed class FakeEngineApi : IEngineApi
         return Task.FromResult<IReadOnlyList<DeviceLightingInfo>>([.. Devices.Select(device => new DeviceLightingInfo(device.Id, Lighting.GetValueOrDefault(device.Id, Lighting[""])))]);
     }
 
-    public Task<LightingFrame> GetFrameAsync(CancellationToken ct = default) => Task.FromResult(Frame);
+    public int FrameCalls { get; private set; }
+
+    // When set, GetFrameAsync answers once this task completes, with the frame of that moment.
+    public Task? FrameGate { get; set; }
+
+    public async Task<LightingFrame> GetFrameAsync(CancellationToken ct = default)
+    {
+        FrameCalls++;
+        if (FrameGate is { } gate)
+        {
+            await gate;
+        }
+
+        return Frame;
+    }
 
     // What the app said last; null while it said nothing, so the engine sends frames.
     public bool? FramesWanted { get; private set; }

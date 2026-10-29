@@ -22,6 +22,7 @@
     <StackPanel>
         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" />
         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PreviewHint}" />
+        <views:PreviewMotionBar Margin="0,0,0,12" DataContext="{Binding Motion}" />
         <ItemsControl ItemsSource="{Binding Preview.Devices}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
@@ -35,6 +36,15 @@
                                 <Path Style="{StaticResource DeviceIcon}" Margin="0,0,10,0" VerticalAlignment="Center" />
                                 <TextBlock Style="{StaticResource CardTitle}" VerticalAlignment="Center" Text="{Binding Name}" />
                             </DockPanel>
+                            <!-- While the preview stands still, a flash of the device or a zone is this mark instead of
+                                 white on and off; a screen reader reads it when it comes. -->
+                            <Border Margin="0,0,0,10" HorizontalAlignment="Left" Padding="10,2" CornerRadius="999"
+                                    BorderThickness="2" BorderBrush="{DynamicResource AccentBrush}"
+                                    Visibility="{Binding FlashMark, Converter={StaticResource NullToCollapsed}}">
+                                <TextBlock Style="{StaticResource SubText}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"
+                                           Text="{Binding FlashMark, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
+                            </Border>
                             <!-- "Zones gelijk", only for a device with more zones with LEDs, with a short line under
                                  it as the switches on the Instellingen page have; the rest of the explanation is the
                                  tooltip, so a card stays short. The switch keeps the focus when the preview is made

@@ -87,6 +87,20 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; set; }
 
+    // While the preview stands still, a flash of this device or of one of its zones shows as this
+    // mark on its card instead of white on and off (PreviewViewModel.MarkFlash); null without one.
+    [ObservableProperty]
+    public partial string? FlashMark { get; private set; }
+
+    // zoneIndex points into the zones of the device; null for the whole device.
+    public void ShowFlashMark(bool marked, int? zoneIndex)
+    {
+        FlashMark = !marked ? null
+            : zoneIndex is { } index && Zones.FirstOrDefault(zone => zone.ZoneIndex == index) is { } zone
+                ? UiText.Format(Strings.FlashMarkZone, zone.Name)
+                : Strings.FlashMarkDevice;
+    }
+
     public void ShowLedSelection(LedSelection? selection)
     {
         var mine = selection?.DeviceId == DeviceId;

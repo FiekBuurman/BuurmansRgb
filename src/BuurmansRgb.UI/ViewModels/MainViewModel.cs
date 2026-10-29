@@ -24,7 +24,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
-    private const string FlashCall = "flash";
     private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
     private const string SimulatedDevicesCall = "simulated-devices";
@@ -39,6 +38,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
     private const string FrameDevicesCall = "frame-devices";
+    private const string StillCall = "still";
     private const string ProfilesReloadCall = "profiles-reload";
     private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
@@ -52,6 +52,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly SceneCardLoader _sceneCards;
     private readonly ReentrancyGuard _syncing = new();
     private readonly ITimer _flashTimer;
+    private readonly ITimer _stillTimer;
     private long? _lastPick;
     private string? _flashPending;
     private IEngineConnection? _connection;
@@ -78,6 +79,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The same for the pause of the effects.
     private int _pauseChanges;
 
+    // While a flash runs in the engine, a preview that stands still gets no new image until then,
+    // so it never shows the white of the flash (RequestStill, OnFlashStarted).
+    private DateTimeOffset _stillsHeldUntil = DateTimeOffset.MinValue;
+
     // Counts the changes sent for the selected device, so lighting fetched while the user changed
     // something newer does not move a slider back.
     private int _sentChanges;
@@ -97,12 +102,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // How long the choice of a lamp rests before it flashes, when the picks follow each other.
     public static TimeSpan FlashRest { get; } = TimeSpan.FromMilliseconds(300);
 
+    // How long after a flash a preview that stands still waits beyond PreviewViewModel.FlashTime
+    // for its next image: the engine ends the flash at its first frame after that, and the word
+    // that the flash went through reaches the UI thread a little after the flash started.
+    public static TimeSpan StillAfterFlash { get; } = TimeSpan.FromMilliseconds(250);
+
     // time gives the clock time in the save status and the delay before a new zone length goes to
     // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
     // instead of the programs that run (WindowedPrograms.Find). appInfo is the bottom of
     // Instellingen, which the composition root (App) makes with ShellLauncher.Open; without it
     // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null)
+    // animationEffects is "Animatie-effecten" of Windows (SystemAnimationEffects in App); without
+    // it the animations are on, so the preview moves.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null)
     {
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
@@ -112,9 +124,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
         _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _stillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
+        Motion.StillChanged += (_, _) =>
+        {
+            SendFramesWanted();
+            RequestStill();
+        };
         EffectsPause = new EffectsPauseViewModel(_time);
         DeviceRescan = new DeviceRescanViewModel(_time);
-        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), () => RunOnUi(OnCallSucceeded));
+        _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
         CustomColors = new CustomColorsViewModel(ColorPicker);
@@ -192,6 +211,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 SendFramesWanted();
                 SendFrameDevices();
+                RequestStill();
 
                 // The count shows only on Kleur; elsewhere there is nothing to stop it with. Only
                 // a count this app started stops so.
@@ -208,6 +228,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ObservableCollection<EffectOption> Effects { get; } = [];
 
     public PreviewViewModel Preview { get; }
+
+    // Whether the preview, and the lamps on Lampen, move or stand still (Animatie-effecten).
+    public PreviewMotionViewModel Motion { get; }
 
     public NavigationViewModel Navigation { get; } = new();
 
@@ -358,7 +381,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial bool IsWindowMinimized { get; set; }
 
     // Only Lampen and Kleur show what the lamps do now; the other pages need no frames.
-    public bool WantsFrames => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
+    public bool ShowsPreview => !IsWindowMinimized && Navigation.CurrentPage is AppPage.Lamps or AppPage.Color;
+
+    // A preview that stands still gets one image at a time instead (RequestStill).
+    public bool WantsFrames => ShowsPreview && !Motion.IsStill;
 
     // Kleur with one lamp shows only that lamp; Lampen, and Kleur for the whole house, show them
     // all (null).
@@ -372,6 +398,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _flashTimer.Dispose();
+        _stillTimer.Dispose();
+        Motion.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
         DeviceRescan.Dispose();
@@ -433,6 +461,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (newValue is not null)
         {
             SendFrameDevices();
+            RequestStill();
         }
 
         if (_syncing.IsActive)
@@ -503,7 +532,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _flashPending = null;
     }
 
-    partial void OnIsWindowMinimizedChanged(bool value) => SendFramesWanted();
+    partial void OnIsWindowMinimizedChanged(bool value)
+    {
+        SendFramesWanted();
+        RequestStill();
+    }
 
     // Only when it differs from what this connection told the engine last. Coming back sends the
     // latest frame by itself, so the preview is right again at once.
@@ -530,6 +563,72 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _frameDevice = device;
         _calls.Post(FrameDevicesCall, () => connection.Api.SetFrameDevicesAsync(device is null ? null : [device]));
+    }
+
+    // While the preview stands still, the engine sends no frames (WantsFrames), and the preview
+    // gets one image instead after anything that can change what the devices show: a change from
+    // here that went through (OnCallSucceeded), a change from elsewhere (LightingChanged,
+    // DevicesChanged, OptionsChanged such as the lights during a pause, CustomEffectsChanged, a
+    // pause, a step of a count), another page, device or window state. Nothing moves in between,
+    // so even a rainbow is one image. The image comes after the calls that wait, such as the
+    // reload of the options, so it shows them; during a flash it waits until the flash is over,
+    // so it never shows the white of it. GetFrameAsync gives every device, also on Kleur with one
+    // lamp.
+    private void RequestStill()
+    {
+        if (!Motion.IsStill || !ShowsPreview || _connection is not { } connection)
+        {
+            return;
+        }
+
+        var wait = _stillsHeldUntil - _time.GetUtcNow();
+        if (wait > TimeSpan.Zero)
+        {
+            _stillTimer.Change(wait, Timeout.InfiniteTimeSpan);
+            return;
+        }
+
+        _calls.Post(StillCall, async () =>
+        {
+            var frame = await connection.Api.GetFrameAsync();
+            RunOnUi(() =>
+            {
+                if (!ReferenceEquals(connection, _connection) || !Motion.IsStill)
+                {
+                    return;
+                }
+
+                // A flash that went through just before this image was taken holds the stills
+                // only now, as OnCallSucceeded reaches the UI thread first: the image may show
+                // the white of it, so it goes, and a new one comes after the flash.
+                if (_stillsHeldUntil > _time.GetUtcNow())
+                {
+                    RequestStill();
+                    return;
+                }
+
+                ShowFrame(frame);
+            });
+        });
+    }
+
+    // A flash that went through runs in the engine now: until it is over (a little after, so the
+    // engine is surely done), the preview gets no still image, also when it comes to stand still
+    // meanwhile, so it never shows the white of it. A preview that stands still shows a mark on
+    // the card of the device instead. A flash that failed holds and marks nothing, nor does one
+    // during a pause (CanFlash), as the engine does not flash then.
+    private void OnFlashStarted(FlashTarget flash)
+    {
+        if (!Preview.CanFlash)
+        {
+            return;
+        }
+
+        _stillsHeldUntil = _time.GetUtcNow() + PreviewViewModel.FlashTime + StillAfterFlash;
+        if (Motion.IsStill)
+        {
+            Preview.MarkFlash(flash.DeviceId, flash.ZoneIndex);
+        }
     }
 
     partial void OnBrightnessChanged(double value)
@@ -855,6 +954,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             });
         });
+
+        // An own effect that runs may have new steps: a preview that stands still shows them.
+        RequestStill();
     });
 
     // An engine that cannot read effects.json yet, as another program holds it, refuses the
@@ -882,9 +984,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ShowDevices(devices);
         await ShowSelectionAsync();
-        var frame = await api.GetFrameAsync();
-        Preview.ShowFrame(frame);
-        Lamps.ShowFrame(frame);
+        ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
@@ -1284,7 +1384,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CancelPendingFlash();
         if (_connection is { } connection)
         {
-            _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
+            _calls.Post(new FlashTarget(deviceId, ZoneIndex: null), () => connection.Api.FlashDeviceAsync(deviceId));
         }
     }
 
@@ -1293,7 +1393,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CancelPendingFlash();
         if (_connection is { } connection)
         {
-            _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
+            _calls.Post(new FlashTarget(flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
         }
     }
 
@@ -1499,11 +1599,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ShowLedSelection(null);
     }
 
+    // A frame that was on its way when the preview came to stand still is dropped: only
+    // RequestStill brings an image then.
     private void OnFrameRendered(object? sender, LightingFrame frame) => RunOnUi(() =>
+    {
+        if (!Motion.IsStill)
+        {
+            ShowFrame(frame);
+        }
+    });
+
+    private void ShowFrame(LightingFrame frame)
     {
         Preview.ShowFrame(frame);
         Lamps.ShowFrame(frame);
-    });
+    }
 
     // Another settings app saved or deleted a scene, or this one did: the list and the cards
     // follow, the selection stays, and so do fields being typed in for the same scene. In the
@@ -1549,6 +1659,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             });
         });
+
+        // Such as the lights during a pause: a preview that stands still shows them.
+        RequestStill();
     });
 
     private static async Task<OptionValues> ReadOptionsAsync(IEngineApi api) => new(
@@ -1576,9 +1689,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _lampSync.RefreshAsync();
         _ = _sceneCards.ShowActiveAsync();
         FollowLighting();
+        RequestStill();
     });
 
-    private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() => _ = ReloadDevicesAsync());
+    private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        _ = ReloadDevicesAsync();
+        RequestStill();
+    });
 
     private void OnOpenRgbStatusChanged(object? sender, ServerStatus status) => RunOnUi(() =>
     {
@@ -1594,6 +1712,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _pauseChanges++;
         ShowPause(pause);
+        RequestStill();
     });
 
     private void ShowPause(PauseReasons pause)
@@ -1603,7 +1722,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // At each LED of a count, so at most a few times a second.
-    private void OnZoneCountChanged(object? sender, ZoneCountInfo count) => RunOnUi(() => Preview.ShowZoneCount(count));
+    // While the preview stands still, it gets an image at each step too: one LED more, nothing
+    // that goes on and off.
+    private void OnZoneCountChanged(object? sender, ZoneCountInfo count) => RunOnUi(() =>
+    {
+        Preview.ShowZoneCount(count);
+        RequestStill();
+    });
 
     private void OnSettingsSaved(object? sender, SettingsSaveResult result) => RunOnUi(() =>
     {
@@ -1652,12 +1777,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // The next change that works ends the message about one that did not.
-    private void OnCallSucceeded()
+    // The next change that works ends the message about one that did not, and a preview that
+    // stands still shows what it changed. The image itself is no change; a call that only reads,
+    // or that tells the engine what the preview wants, changes nothing the devices show either,
+    // so it gives no image: the change that made it fetches one itself.
+    private void OnCallSucceeded(object key)
     {
+        if (Equals(key, StillCall))
+        {
+            return;
+        }
+
         if (StatusMessage == Strings.ChangeRejected)
         {
             StatusMessage = null;
+        }
+
+        if (key is FlashTarget flash)
+        {
+            OnFlashStarted(flash);
+        }
+
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall))
+        {
+            RequestStill();
         }
     }
 
@@ -1723,6 +1866,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
+    // The key of a flash in the queue, so OnCallSucceeded knows which flash went through; a null
+    // ZoneIndex flashes the whole device.
+    private sealed record FlashTarget(string DeviceId, int? ZoneIndex);
+
     private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
 
     // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting

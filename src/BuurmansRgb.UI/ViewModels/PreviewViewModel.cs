@@ -8,7 +8,15 @@ namespace BuurmansRgb.UI.ViewModels;
 // the engine (ZoneLengthViewModel).
 public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewActions, IDisposable
 {
+    private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
     private LightingFrame _latestFrame = LightingFrame.Empty;
+
+    // The flash that is marked now (MarkFlash), with a null ZoneIndex for the whole device, and
+    // until when.
+    private (string DeviceId, int? ZoneIndex)? _flashMark;
+    private DateTimeOffset _flashMarkEnd;
+    private ITimer? _flashMarkTimer;
     private LedSelection? _ledSelection;
     private bool _canFlash = true;
 
@@ -36,6 +44,9 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // The zone whose count was stopped here, until the engine reports a state that no longer
     // counts it: a step the engine took just before the stop reached it is ignored meanwhile.
     private (string DeviceId, int ZoneIndex)? _stoppedCount;
+
+    // As long as a flash in the engine lasts: three blinks of half a second (DeviceFlash.Duration).
+    public static TimeSpan FlashTime { get; } = TimeSpan.FromSeconds(1.5);
 
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
 
@@ -267,7 +278,52 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
             preview.Dispose();
         }
 
+        ShowFlashMark();
         ShowFrame(_latestFrame);
+    }
+
+    // While the preview stands still, a flash shows as a mark on the card of its device instead of
+    // white on and off, for FlashTime; a newer flash takes its place. The mark stays when the
+    // preview is made again meanwhile, such as after picking the device that flashes.
+    public void MarkFlash(string deviceId, int? zoneIndex)
+    {
+        _flashMark = (deviceId, zoneIndex);
+        _flashMarkEnd = _time.GetUtcNow() + FlashTime;
+        ShowFlashMark();
+        _flashMarkTimer ??= _time.CreateTimer(_ => OnFlashMarkTimer(), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _flashMarkTimer.Change(FlashTime, Timeout.InfiniteTimeSpan);
+    }
+
+    private void ShowFlashMark()
+    {
+        foreach (var preview in Devices)
+        {
+            var marked = _flashMark is { } mark && mark.DeviceId == preview.DeviceId;
+            preview.ShowFlashMark(marked, _flashMark?.ZoneIndex);
+        }
+    }
+
+    // The timer runs on the thread pool; the mark belongs to the UI thread. A newer flash that
+    // came meanwhile keeps its mark.
+    private void OnFlashMarkTimer()
+    {
+        if (_uiContext is null)
+        {
+            EndFlashMark();
+        }
+        else
+        {
+            _uiContext.Post(_ => EndFlashMark(), state: null);
+        }
+    }
+
+    private void EndFlashMark()
+    {
+        if (_flashMark is not null && _time.GetUtcNow() >= _flashMarkEnd)
+        {
+            _flashMark = null;
+            ShowFlashMark();
+        }
     }
 
     // Stops a count this app started that shows here, such as when the user leaves the page with
@@ -283,6 +339,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // The window closes: lengths that wait for their delay or the end of a drag go out now.
     public void Dispose()
     {
+        _flashMarkTimer?.Dispose();
         foreach (var length in LengthsOf(Devices))
         {
             length.EndDrag();

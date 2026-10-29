@@ -387,6 +387,18 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een grotere weergave van het voorbeeld in de per-LED-editor (bijv. een knop "Groter", met LED's
   van 24 px of meer en de afstand ertussen), voor een touchscreen of wie minder nauwkeurig wijst;
   de klik tot 12 px van een LED ("led-klikdoel") haalt WCAG 2.5.8 al, maar maakt de LED niet groter
+- "Laten lopen" bij animaties uit bewaren, of een eigen keuze "Voorbeeld laten bewegen" in
+  Instellingen naast die van Windows; nu geldt de knop tot de app sluit ("minder-beweging")
+- Bij Tellen met animaties uit de getelde LED een ring geven in plaats van per stap een nieuw
+  beeld; nu gaat er per stap één LED meer aan, zonder iets wat aan en uit gaat ("minder-beweging")
+- Een stilstaand voorbeeld van Ademen of Golf op een herkenbaar moment laten zien (bijv. op zijn
+  helderst); nu is het beeld het moment waarop de wijziging kwam, dat bij Ademen ook bijna donker
+  kan zijn ("minder-beweging")
+- De duur van een flits (`DeviceFlash.Duration`, 1,5 s) in `BuurmansRgb.Contracts` zetten, zodat
+  de markering van Knipperen in de app (`PreviewViewModel.FlashTime`) hem niet hoeft over te nemen
+- Het CPU-gebruik van de app met een stilstaand voorbeeld meten (zichtbaar venster, regenboog):
+  vergrendeld tekent WPF niets en de instelling van Windows hoort niet omgezet te worden, dus dat
+  vraagt een Windows Sandbox of een schakelaar om de instelling na te bootsen ("minder-beweging")
 
 ## Scènes
 
