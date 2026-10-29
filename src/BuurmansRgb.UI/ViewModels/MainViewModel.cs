@@ -984,9 +984,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         ShowDevices(devices);
         await ShowSelectionAsync();
-        var frame = await api.GetFrameAsync();
-        Preview.ShowFrame(frame);
-        Lamps.ShowFrame(frame);
+        ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
