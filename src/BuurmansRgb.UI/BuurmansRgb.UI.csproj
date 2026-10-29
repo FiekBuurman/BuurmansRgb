@@ -13,12 +13,27 @@
     <OutDir>$(AppOutputRoot)$(Configuration)$(AppOutputSuffix)\</OutDir>
     <!-- Memory (docs/ontwikkelaars.md, "Metingen"): with tiered compilation .NET keeps a quick first
          version and later an optimized second one of every method that runs often, which cost the
-         app 8-17 MB of working set. Without it, each method is compiled once. The publish of the
-         installer compiles the app ahead of time (ReadyToRun), so the app does not start slower
-         for it; a plain build without it starts ~0.25 s later. -->
+         app 8-17 MB of working set. Without it, each method is compiled once. Every publish of the
+         app (with the installer or without) compiles it ahead of time (ReadyToRun), so the app does
+         not start slower for it; a plain build without it starts 0.2-0.7 s later. -->
     <TieredCompilation>false</TieredCompilation>
     <PublishReadyToRun>true</PublishReadyToRun>
+    <!-- Only these assemblies get ReadyToRun code, see KeepSharedAssembliesIL. -->
+    <ReadyToRunAssemblies>$(AssemblyName);CommunityToolkit.Mvvm</ReadyToRunAssemblies>
   </PropertyGroup>
+
+  <!-- The engine is published to the same folder (installer\build.ps1, docs/installatie.md) and
+       loads the same BuurmansRgb.Contracts, BuurmansRgb.Core, StreamJsonRpc, MessagePack and the
+       rest of what comes in through Contracts. The app is published second, so ReadyToRun on those
+       would change the engine too, unmeasured. Keep every assembly but the app's own as it is. -->
+  <Target Name="KeepSharedAssembliesIL" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <_ReadyToRunAssembly Include="$(ReadyToRunAssemblies)" />
+      <PublishReadyToRunExclude Include="@(ResolvedFileToPublish->'%(Filename)%(Extension)')"
+                                Condition="'%(ResolvedFileToPublish.Extension)' == '.dll'" />
+      <PublishReadyToRunExclude Remove="@(_ReadyToRunAssembly->'%(Identity).dll')" />
+    </ItemGroup>
+  </Target>
 
   <!-- Unlike the engine and the providers, the view models, views and converters stay public,
        although no other assembly uses them: XAML binds to them by reflection, and a binding to a
