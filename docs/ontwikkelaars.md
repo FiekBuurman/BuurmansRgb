@@ -744,8 +744,10 @@ toetsenbord. Een paar dingen om te proberen:
   Windows-TargetFramework (`net10.0-windows10.0.x`) met de projectie van de Windows SDK erbij
   (enkele MB extra voor de app en de installer, en meer geheugen), en WPF heeft er geen
   gebeurtenis voor. `RegNotifyChangeKeyValue` (asynchroon, `REG_NOTIFY_THREAD_AGNOSTIC`) zet een
-  event zodra Windows een waarde onder die sleutel zet. Een wachtende thread van de pool vraagt de
-  volgende melding aan en geeft het signaal aan `TextScaleMessages`: die leest de waarde op de dispatcher, en
+  event zodra Windows een waarde onder die sleutel zet. De eerste melding vraagt hij aan vóór hij
+  de waarde leest, zodat een wijziging daartussen niet verloren gaat. Een wachtende thread van de
+  pool vraagt de volgende melding aan (lukt dat niet, dan schrijft hij een waarschuwing in het
+  log) en geeft het signaal aan `TextScaleMessages`: die leest de waarde op de dispatcher, en
   alleen een nieuwe factor geeft `Changed`. Die klasse krijgt een `Func<object?>` als lezer, zodat
   `TextScaleMessagesTests` dat test zonder register. Tests geven verder een `FakeTextScale` via
   `ITextScale`, zodat geen test de instelling leest of verandert.
