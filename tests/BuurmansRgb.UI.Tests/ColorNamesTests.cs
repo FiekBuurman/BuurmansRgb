@@ -114,13 +114,34 @@ public sealed class ColorNamesTests
         {
             var name = ColorNames.NameOf(preset.Color);
 
-            Assert.Equal(preset.Name[..1].ToLower(CultureInfo.CurrentCulture), name[..1]);
+            Assert.Equal(preset.Name[..1].ToLower(Strings.Culture ?? CultureInfo.CurrentUICulture), name[..1]);
             Assert.Equal(preset.Name[1..], name[1..]);
             Assert.Equal(UiText.Format(Strings.ColorNameWithHex, name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color));
         });
         Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
         Assert.Equal("echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         Assert.Equal("echt groen", ColorNames.NameOf(new(0, 255, 0)));
+    }
+
+    // The small letter follows the culture of the text, not the region format: under tr-TR the names
+    // are the same.
+    [Fact]
+    public void WithHex_ColorOfTheToolbox_UnderTurkishRegionFormat_GivesTheSameName()
+    {
+        var expected = ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)).ToList();
+        var regionFormat = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+
+            Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
+            Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+            Assert.Equal("echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = regionFormat;
+        }
     }
 
     // Each tone has a word in Strings.resx, in lower case, as it stands in the middle of a sentence.

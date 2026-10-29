@@ -22,9 +22,14 @@ public static class ColorNames
 
     internal const string TonePrefix = "ColorName";
 
-    // "Echt groen" with a small first letter, "echt groen"; the rest of the name stays as it is.
+    // "Echt groen" with a small first letter, "echt groen"; the rest of the name stays as it is. The
+    // letter is made small in the culture the text is in, not that of the region format (under tr-TR
+    // an "I" would become a dotless "ı"), and the Preset texts in Strings.resx start with a common
+    // word for it.
     private static string InSentence(string name) =>
-        name.Length == 0 ? name : string.Concat(name[..1].ToLower(CultureInfo.CurrentCulture), name[1..]);
+        name.Length == 0 ? name : string.Concat(name[..1].ToLower(TextCulture), name[1..]);
+
+    private static CultureInfo TextCulture => Strings.Culture ?? CultureInfo.CurrentUICulture;
 
     // A small, predictable rough guess by hue, saturation and value (HSV), not the nearest of a long
     // list: what is nearly off is black, what has hardly any tint is a grey by its value, and the

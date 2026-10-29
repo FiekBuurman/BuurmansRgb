@@ -298,6 +298,7 @@
   </data>
   <data name="PresetRed" xml:space="preserve">
     <value>Rood</value>
+    <comment>De naam van een vaste kleur in de gereedschapskist, zoals alle Preset-teksten. Begin hem met een gewoon woord: ColorNames maakt de eerste letter klein als de naam midden in een zin staat ("Kleur 2: echt groen, #00FF00").</comment>
   </data>
   <data name="PresetOrange" xml:space="preserve">
     <value>Oranje</value>
@@ -989,6 +990,7 @@
   </data>
   <data name="PresetKlusWhite" xml:space="preserve">
     <value>Klus-wit</value>
+    <comment>Een vaste kleur, met een gewoon woord vooraan zoals bij PresetRed: ColorNames maakt de eerste letter klein ("klus-wit, #FFF4E5").</comment>
   </data>
   <data name="RgbText" xml:space="preserve">
     <value>{0} · {1} · {2}</value>
