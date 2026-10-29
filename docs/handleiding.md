@@ -56,6 +56,15 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   met "…", zoals bij 100 %, en ook een naam die niet meer in de keuze op Kleur past. Bij een
   lange naam van een apparaat staat die keuze ook bij 100 % onder de titel, zodat de titel
   leesbaar blijft.
+- **Minder beweging:** zet je in Windows de animaties uit (Instellingen → Toegankelijkheid →
+  Visuele effecten → Animatie-effecten), dan staat het voorbeeld op Apparaten en Kleur stil: je
+  ziet één beeld van wat de apparaten doen, ook bij een bewegend effect zoals Regenboog of Vuur,
+  en een nieuw beeld zodra je iets verandert. Een regel boven het voorbeeld zegt "Voorbeeld staat
+  stil omdat animaties in Windows uit staan.", met de knop **Laten lopen**: dan beweegt het
+  voorbeeld toch, tot je de app sluit; **Stilzetten** zet het weer stil. De knop bereik je met
+  Tab, en een schermlezer leest de regel voor als hij verandert. Je apparaten zelf veranderen
+  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de regel weg en beweegt het
+  voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -341,6 +350,15 @@ Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn ty
 ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
 voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
+
+- **Animaties uit:** staan in Windows de animaties uit (zie "Minder beweging" bovenaan), dan
+  staat het voorbeeld stil en stuurt de engine geen beelden. Na elke wijziging, van jou of van
+  een scène, een pauze of een andere pagina komt er één nieuw beeld. **Knipperen** flitst dan
+  niet wit aan en uit in het voorbeeld: de kaart van het apparaat krijgt zolang de markering
+  "Knippert nu op het apparaat" (bij een zone met de naam van de zone), en het voorbeeld houdt
+  zijn beeld tot het knipperen voorbij is. Bij **Tellen** komt er per stap één beeld: één LED
+  meer, er gaat niets aan en uit. Met "Laten lopen" boven het voorbeeld beweegt het weer zoals
+  altijd.
 
 - **Zwarte LED's** (bijv. in Per LED, een stap van een eigen effect, of een apparaat dat uit
   staat) krijgen een grijze ring binnen hun rand, zodat je ziet waar ze zitten en erop kunt
@@ -796,6 +814,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   ~72–88 px), en op Kleur gaan het voorbeeld en de schuiven en de vier kolommen van "Licht en
   beweging" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
   ontwerp. Het woordmerk blijft 22 px, ook boven Apparaten.
+- **Minder beweging** noemt het ontwerp niet: daar gloeit het voorbeeld altijd mee. Met de
+  animaties van Windows uit staat het stil (zie "Minder beweging" bovenaan). De regel met "Laten
+  lopen" is een kaart zoals de pauzemelding, en de markering van Knipperen een pil met een rand
+  van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
@@ -1247,7 +1269,9 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam in het
   voorbeeld doet het nog eens. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
   het apparaat waar je 0,3 seconde op blijft staan. Er knippert steeds één apparaat; knipperen
-  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs.
+  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs. Staat het
+  voorbeeld stil omdat de animaties van Windows uit staan, dan knippert het voorbeeld niet mee:
+  de kaart zegt dan "Knippert nu op het apparaat" (zie "Animaties uit" bij "Voorbeeld").
 - **Eén zone knipperen:** heeft een apparaat meer zones, zoals een moederbord met een paar
   ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**, behalve bij
   "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
