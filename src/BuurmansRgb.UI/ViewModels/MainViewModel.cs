@@ -566,12 +566,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // While the preview stands still, the engine sends no frames (WantsFrames), and the preview
-    // gets one image instead after anything that can change what the devices show: a call from
-    // here that went through, a change from elsewhere (LightingChanged, DevicesChanged, a pause, a
-    // step of a count), another page, device or window state. Nothing moves in between, so even a
-    // rainbow is one image. The image comes after the calls that wait, so it shows them; during a
-    // flash it waits until the flash is over, so it never shows the white of it. GetFrameAsync
-    // gives every device, also on Kleur with one lamp.
+    // gets one image instead after anything that can change what the devices show: a change from
+    // here that went through (OnCallSucceeded), a change from elsewhere (LightingChanged,
+    // DevicesChanged, OptionsChanged such as the lights during a pause, CustomEffectsChanged, a
+    // pause, a step of a count), another page, device or window state. Nothing moves in between,
+    // so even a rainbow is one image. The image comes after the calls that wait, such as the
+    // reload of the options, so it shows them; during a flash it waits until the flash is over,
+    // so it never shows the white of it. GetFrameAsync gives every device, also on Kleur with one
+    // lamp.
     private void RequestStill()
     {
         if (!Motion.IsStill || !ShowsPreview || _connection is not { } connection)
@@ -952,6 +954,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             });
         });
+
+        // An own effect that runs may have new steps: a preview that stands still shows them.
+        RequestStill();
     });
 
     // An engine that cannot read effects.json yet, as another program holds it, refuses the
@@ -1656,6 +1661,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 }
             });
         });
+
+        // Such as the lights during a pause: a preview that stands still shows them.
+        RequestStill();
     });
 
     private static async Task<OptionValues> ReadOptionsAsync(IEngineApi api) => new(
@@ -1772,7 +1780,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The next change that works ends the message about one that did not, and a preview that
-    // stands still shows what it changed. The image itself is no change.
+    // stands still shows what it changed. The image itself is no change; a call that only reads,
+    // or that tells the engine what the preview wants, changes nothing the devices show either,
+    // so it gives no image: the change that made it fetches one itself.
     private void OnCallSucceeded(object key)
     {
         if (Equals(key, StillCall))
@@ -1790,7 +1800,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        RequestStill();
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall))
+        {
+            RequestStill();
+        }
     }
 
     private void Fail(string message)

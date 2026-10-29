@@ -126,6 +126,40 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal(before + 1, Api.FrameCalls);
     }
 
+    // A change from another app that the queue reads back, such as the lights during a pause or
+    // an own effect, gives an image after the reload.
+    [Fact]
+    public async Task OptionsOrEffectsFromElsewhere_ShowANewImage()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+
+        Api.Frame = Frame(2, Blue);
+        Api.RaiseOptionsChanged();
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+
+        Api.Frame = Frame(3, Green);
+        Api.RaiseCustomEffectsChanged();
+        Assert.Equal([Green, Green], FanColors(viewModel));
+    }
+
+    // Kleur with one device tells the engine which device the frames are for; that call changes
+    // nothing on the devices, so the page gives one image, not two.
+    [Fact]
+    public async Task PageWithOtherFrameDevice_FetchesOneImage()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+        _time.Advance(PreviewViewModel.FlashTime + MainViewModel.StillAfterFlash);
+        var before = Api.FrameCalls;
+
+        viewModel.Navigation.GoTo(AppPage.Color);
+
+        Assert.Equal("fan", viewModel.FrameDevice);
+        Assert.Equal(before + 1, Api.FrameCalls);
+    }
+
     // Away from a page with the preview, or minimized, no image is fetched; back, one is.
     [Fact]
     public async Task PageWithoutPreview_FetchesNoImageUntilBack()
