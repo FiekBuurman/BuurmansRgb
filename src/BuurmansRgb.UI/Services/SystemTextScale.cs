@@ -10,8 +10,9 @@ namespace BuurmansRgb.UI.Services;
 // what UISettings.TextScaleFactor of WinRT reads too, but WinRT would need a Windows target framework
 // and its projection (some MB more for the app and the installer), and WPF has no event for it.
 // This only reads the key: Windows tells when a value under it is set (RegNotifyChangeKeyValue), on
-// a thread of the pool, and Changed then comes on the UI thread once the factor really changed. The
-// key exists in every Windows profile; without it the factor stays 1.0 until the app starts again.
+// a thread of the pool, and TextScaleMessages turns that into a Changed on the UI thread once the
+// factor really changed. The key exists in every Windows profile; without it the factor stays 1.0
+// until the app starts again.
 internal sealed partial class SystemTextScale : ITextScale, IDisposable
 {
     private const string KeyPath = @"Software\Microsoft\Accessibility";
@@ -22,15 +23,16 @@ internal sealed partial class SystemTextScale : ITextScale, IDisposable
     private const uint NotifyChangeLastSet = 0x4;
     private const uint NotifyThreadAgnostic = 0x10000000;
 
-    private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
     private readonly RegistryKey? _key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: false);
     private readonly AutoResetEvent _signal = new(false);
+    private readonly TextScaleMessages _messages;
     private readonly RegisteredWaitHandle? _wait;
     private bool _disposed;
 
     public SystemTextScale()
     {
-        Factor = Read();
+        _messages = new TextScaleMessages(Dispatcher.CurrentDispatcher, () => _key?.GetValue(ValueName));
+        _messages.Changed += (_, _) => Changed?.Invoke(this, EventArgs.Empty);
         if (_key is not null && Watch())
         {
             _wait = ThreadPool.RegisterWaitForSingleObject(_signal, OnSignaled, null, Timeout.Infinite, executeOnlyOnce: false);
@@ -39,11 +41,7 @@ internal sealed partial class SystemTextScale : ITextScale, IDisposable
 
     public event EventHandler? Changed;
 
-    public double Factor { get; private set; }
-
-    // The factor of a value of TextScaleFactor: a percentage within the range of Windows, else 1.0.
-    internal static double FactorOf(object? value) =>
-        value is int percent and >= 100 ? Math.Min(percent, 225) / 100.0 : 1.0;
+    public double Factor => _messages.Factor;
 
     public void Dispose()
     {
@@ -53,6 +51,7 @@ internal sealed partial class SystemTextScale : ITextScale, IDisposable
         }
 
         _disposed = true;
+        _messages.Dispose();
         if (_wait is not null)
         {
             // Waits for a callback that runs, which still uses the key.
@@ -67,8 +66,6 @@ internal sealed partial class SystemTextScale : ITextScale, IDisposable
         _signal.Dispose();
     }
 
-    private double Read() => FactorOf(_key?.GetValue(ValueName));
-
     // Asks Windows once to set _signal at the next change of a value of the key.
     private bool Watch() =>
         RegNotifyChangeKeyValue(_key!.Handle, watchSubtree: false, NotifyChangeLastSet | NotifyThreadAgnostic, _signal.SafeWaitHandle, asynchronous: true) == 0;
@@ -76,23 +73,7 @@ internal sealed partial class SystemTextScale : ITextScale, IDisposable
     private void OnSignaled(object? state, bool timedOut)
     {
         Watch();
-        _dispatcher.BeginInvoke(DispatcherPriority.Background, Refresh);
-    }
-
-    // Windows can set the value more than once for one change; only a new factor counts.
-    private void Refresh()
-    {
-        if (_disposed)
-        {
-            return;
-        }
-
-        var factor = Read();
-        if (factor != Factor)
-        {
-            Factor = factor;
-            Changed?.Invoke(this, EventArgs.Empty);
-        }
+        _messages.OnSignaled();
     }
 
     [LibraryImport("advapi32.dll")]

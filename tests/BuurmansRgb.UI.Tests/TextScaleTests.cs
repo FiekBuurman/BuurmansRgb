@@ -147,18 +147,6 @@ public sealed partial class TextScaleTests
     [GeneratedRegex("""(?:FontSize=|Property="(?:TextElement\.)?FontSize"\s+Value=)"(?<size>[\d.]+)(?=")""")]
     private static partial Regex LiteralFontSizePattern();
 
-    // The value Windows stores, a percentage from 100 to 225; anything else is 100 %.
-    [Theory]
-    [InlineData(null, 1.0)]
-    [InlineData(100, 1.0)]
-    [InlineData(150, 1.5)]
-    [InlineData(225, 2.25)]
-    [InlineData(300, 2.25)]
-    [InlineData(50, 1.0)]
-    [InlineData("150", 1.0)]
-    public void SystemTextScale_ReadsThePercentageOfWindows(object? value, double factor) =>
-        Assert.Equal(factor, SystemTextScale.FactorOf(value));
-
     private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
 
     // Every double of the theme whose key ends in Size, as a lookup finds it.
