@@ -214,6 +214,10 @@ uitbreidingen in `docs/bouwplan.md`.
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
   verlaten van het veld de melding dat het geen kleurcode is (sinds "invoer-uitleg")
+- Escape in het veld van de hex-code de code van de kleur laten terugzetten, zoals Escape in het
+  naamveld van een eigen effect de naam terugzet; nu blijft een getypte code staan tot je het
+  veld verlaat. Bij de refactor na de review bleef het staan, omdat het de manieren van fouten
+  tonen (hex-code, naam, zonelengte) gelijktrekt en dus gedrag verandert
 - "+" van de eigen kleuren achter het laatste vakje zetten in plaats van ervoor, met een paneel
   dat de vakjes en + samen laat omlopen; nu staat + vooraan, zodat de vakjes binnen de kolom
   omlopen
@@ -462,6 +466,9 @@ uitbreidingen in `docs/bouwplan.md`.
   `ontwikkelaars.md`). `AnimationLoop.Period` kan al veranderen (bij `framesPerSecond`); de
   controller moet dan bij elke wijziging nagaan of er naast de telling een bewegend effect of een
   flits loopt, en een stap mag niet later komen dan nu
+- `ProcessImageName` en `ShellLauncher` uit `BuurmansRgb.Contracts` naar een eigen gedeeld
+  project voor Windows-code van engine en app; nu staan ze bij de IPC-contracten omdat beide ze
+  gebruiken. Pas oppakken als er meer van zulke Windows-code bij komt
 
 ## Installer en uitrol
 
@@ -520,6 +527,11 @@ uitbreidingen in `docs/bouwplan.md`.
   "hooguit 12" in `CustomColorsAddToolTip` (`CustomColors.MaxColors`) en "tot 32 eigen effecten"
   in `CustomEffectNewToolTip` (`CustomEffects.MaxEffects`). Nu blijft de tekst stil staan als
   een grens verandert
+- Een test die de teksten die tray-menu en instellingen-app delen gelijk houdt, zoals
+  `EffectNamesTests` dat voor de namen van de effecten doet: `AutoStartLabel`, `AutoStartFailed`,
+  `OpenLog` en `LogOpenFailed` van de app tegen `MenuAutoStart`, `AutoStartFailed`, `MenuOpenLog`
+  en `LogOpenFailed` van de engine, en de `OpenRgb*`-teksten tegen `TrayOpenRgb*`. Nu staat dat
+  alleen als opmerking in `Strings.resx`
 - `FocusKeeperTests.ElementMadeAgain_GetsTheFocusBack` faalt af en toe: los gedraaid terwijl de
   UI-testset tegelijk draait 1 tot 2 van de 50 keer, ook in de testset zelf. Hij faalt altijd op
   de laatste controle (`after.IsKeyboardFocused`), meestal als eerste test in een nieuw proces
