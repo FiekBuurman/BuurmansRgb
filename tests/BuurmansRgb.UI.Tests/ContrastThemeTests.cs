@@ -13,34 +13,46 @@ public sealed class ContrastThemeTests
 {
     private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
 
-    // The roles of the tokens in a contrast theme, by the name of a color of SystemColors.
+    // The roles of the tokens in a contrast theme, by the name of a brush of SystemColors. The token
+    // is that very brush: several system colors can be the same (HighlightText and Window are both
+    // white by default), so comparing colors would not tell those roles apart.
     [Theory]
-    [InlineData("TextBrush", nameof(SystemColors.WindowTextColor))]
-    [InlineData("TextMutedBrush", nameof(SystemColors.WindowTextColor))]
-    [InlineData("BgBrush", nameof(SystemColors.WindowColor))]
-    [InlineData("SurfaceBrush", nameof(SystemColors.WindowColor))]
-    [InlineData("SurfaceRaisedBrush", nameof(SystemColors.WindowColor))]
-    [InlineData("NavBgBrush", nameof(SystemColors.WindowColor))]
-    [InlineData("PreviewBgBrush", nameof(SystemColors.WindowColor))]
-    [InlineData("BorderBrush", nameof(SystemColors.WindowTextColor))]
-    [InlineData("BorderStrongBrush", nameof(SystemColors.WindowTextColor))]
-    [InlineData("InputBorderBrush", nameof(SystemColors.WindowTextColor))]
-    [InlineData("HoverBorderBrush", nameof(SystemColors.HighlightColor))]
-    [InlineData("InputHoverBorderBrush", nameof(SystemColors.HighlightColor))]
-    [InlineData("LinkBrush", nameof(SystemColors.HotTrackColor))]
-    [InlineData("LinkHoverBrush", nameof(SystemColors.HotTrackColor))]
-    [InlineData("NavSelectedBrush", nameof(SystemColors.HighlightColor))]
-    [InlineData("OnHighlightTextBrush", nameof(SystemColors.HighlightTextColor))]
-    [InlineData("SwitchOnCoverBrush", nameof(SystemColors.HighlightColor))]
-    [InlineData("KnobOnBrush", nameof(SystemColors.HighlightTextColor))]
-    [InlineData("SliderRailBrush", nameof(SystemColors.GrayTextColor))]
-    public void ContrastThemeOn_GivesTheTokenItsSystemColor(string token, string systemColor) => Sta.Run(() =>
+    [InlineData("TextBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("TextMutedBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("BgBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("SurfaceBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("SurfaceRaisedBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("NavBgBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("PreviewBgBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("BorderBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("BorderStrongBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("InputBorderBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("HoverBorderBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("InputHoverBorderBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("EditingCardBorderBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("LinkBrush", nameof(SystemColors.HotTrackBrush))]
+    [InlineData("LinkHoverBrush", nameof(SystemColors.HotTrackBrush))]
+    [InlineData("NavSelectedBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("ListSelectedBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("CaptionHoverBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("CaptionPressedBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("OnHighlightTextBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("OnHighlightMutedTextBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("TextSelectionBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("SwitchTrackOffBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("SwitchOutlineBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("SwitchOnCoverBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("KnobOffBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("KnobOnBrush", nameof(SystemColors.HighlightTextBrush))]
+    [InlineData("SliderRailBrush", nameof(SystemColors.GrayTextBrush))]
+    [InlineData("WarningBrush", nameof(SystemColors.WindowTextBrush))]
+    public void ContrastThemeOn_GivesTheTokenItsSystemBrush(string token, string systemBrush) => Sta.Run(() =>
     {
         var resources = LoadTheme();
         using var theme = ContrastTheme.Follow(resources, new FakeHighContrast { IsOn = true });
 
         Assert.True(theme.IsApplied);
-        Assert.Equal(SystemColor(systemColor), ColorOf(resources, token));
+        Assert.Same(SystemBrush(systemBrush), resources[token]);
     });
 
     [Fact]
@@ -69,7 +81,7 @@ public sealed class ContrastThemeTests
         Assert.True(theme.IsApplied);
         foreach (var (token, brush) in ContrastTheme.SystemBrushes)
         {
-            Assert.Equal(brush().Color, ColorOf(resources, token));
+            Assert.Same(brush(), resources[token]);
         }
 
         highContrast.Turn(on: false);
@@ -176,8 +188,10 @@ public sealed class ContrastThemeTests
 
     private static Color ColorOf(ResourceDictionary resources, string token) => Assert.IsType<SolidColorBrush>(resources[token]).Color;
 
-    private static Color SystemColor(string name) =>
-        (Color)typeof(SystemColors).GetProperty(name, BindingFlags.Public | BindingFlags.Static)!.GetValue(null)!;
+    // SystemColors keeps its brushes until Windows changes a color, so a name gives the same brush
+    // each time.
+    private static SolidColorBrush SystemBrush(string name) =>
+        (SolidColorBrush)typeof(SystemColors).GetProperty(name, BindingFlags.Public | BindingFlags.Static)!.GetValue(null)!;
 
     private static Color Parse(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 
