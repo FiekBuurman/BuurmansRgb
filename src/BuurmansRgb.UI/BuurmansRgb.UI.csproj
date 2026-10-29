@@ -11,6 +11,13 @@
     <AssemblyName>BuurmansRgb.UI</AssemblyName>
     <!-- Shared with BuurmansRgb.Engine, see Directory.Build.props. -->
     <OutDir>$(AppOutputRoot)$(Configuration)$(AppOutputSuffix)\</OutDir>
+    <!-- Memory (docs/ontwikkelaars.md, "Metingen"): with tiered compilation .NET keeps a quick first
+         version and later an optimized second one of every method that runs often, which cost the
+         app 8-17 MB of working set. Without it, each method is compiled once. The publish of the
+         installer compiles the app ahead of time (ReadyToRun), so the app does not start slower
+         for it; a plain build without it starts ~0.25 s later. -->
+    <TieredCompilation>false</TieredCompilation>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <!-- Unlike the engine and the providers, the view models, views and converters stay public,
