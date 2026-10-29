@@ -22,13 +22,11 @@ public sealed class AppThemeCollection
 
 internal static class AppTheme
 {
-    private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
-
     // An off-screen window, with the theme of the app for what loads in it.
     public static void Run(Action<StackPanel> test) => OffscreenWindow.Run(panel =>
     {
         var app = Application.Current ?? new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
-        app.Resources = (ResourceDictionary)Application.LoadComponent(Theme);
+        app.Resources = Load("Theme.xaml");
         try
         {
             test(panel);
@@ -38,6 +36,15 @@ internal static class AppTheme
             app.Resources = new ResourceDictionary();
         }
     });
+
+    // A new copy of a dictionary of Themes in the app, such as "Theme.xaml"; only from a test of the
+    // collection.
+    public static ResourceDictionary Load(string file) =>
+        (ResourceDictionary)Application.LoadComponent(new Uri($"/BuurmansRgb.UI;component/Themes/{file}", UriKind.Relative));
+
+    // Every key of a dictionary that is a string, also those of its merged dictionaries, once each.
+    public static IEnumerable<string> Keys(ResourceDictionary resources) =>
+        resources.Keys.OfType<string>().Concat(resources.MergedDictionaries.SelectMany(Keys)).Distinct();
 
     public static IEnumerable<T> Descendants<T>(DependencyObject parent)
         where T : DependencyObject

@@ -12,8 +12,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed partial class TextScaleTests
 {
-    private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
-
     // Sizes in the tokens that are no text, or the logo: they keep their size at every factor.
     private static readonly string[] FixedSizes = ["WordmarkSize", "MinClickSize", "SmallTileSize"];
 
@@ -114,18 +112,15 @@ public sealed partial class TextScaleTests
     [Fact]
     public void Xaml_RefersToTheSizesOfTextOnlyWithDynamicResource()
     {
-        var source = Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI");
         var found = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(source, "*.xaml", SearchOption.AllDirectories))
+        foreach (var (name, xaml) in AppXaml.Files())
         {
-            var xaml = File.ReadAllText(file);
-            var name = Path.GetRelativePath(source, file);
-            found.AddRange(ContrastThemeTests.StaticReferences(xaml)
+            found.AddRange(AppXaml.StaticReferences(xaml)
                 .Where(reference => TextScale.FontSizeKeys.Contains(reference.Key))
-                .Select(reference => $"{name}:{ContrastThemeTests.LineOf(xaml, reference.Index)} {reference.Key}"));
+                .Select(reference => $"{name}:{AppXaml.LineOf(xaml, reference.Index)} {reference.Key}"));
             found.AddRange(LiteralFontSizePattern().Matches(xaml)
-                .Where(match => !FixedFontSizeStyles.Contains($"{Path.GetFileName(file)} {StyleAt(xaml, match.Index)}"))
-                .Select(match => $"{name}:{ContrastThemeTests.LineOf(xaml, match.Index)} {match.Value}"));
+                .Where(match => !FixedFontSizeStyles.Contains($"{Path.GetFileName(name)} {StyleAt(xaml, match.Index)}"))
+                .Select(match => $"{name}:{AppXaml.LineOf(xaml, match.Index)} {match.Value}"));
         }
 
         Assert.Empty(found);
@@ -187,15 +182,12 @@ public sealed partial class TextScaleTests
     [GeneratedRegex("""<Style\b[^>]*?(?:\bx:Key="(?<key>[^"]+)"[^>]*?)?(?<end>/?)>""")]
     private static partial Regex StyleKeyPattern();
 
-    private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
+    private static ResourceDictionary LoadTheme() => AppTheme.Load("Theme.xaml");
 
     // Every double of the theme whose key ends in Size, as a lookup finds it.
     private static Dictionary<string, double> Sizes(ResourceDictionary resources) =>
-        Keys(resources).Where(key => key.EndsWith("Size", StringComparison.Ordinal) && resources[key] is double)
+        AppTheme.Keys(resources).Where(key => key.EndsWith("Size", StringComparison.Ordinal) && resources[key] is double)
             .ToDictionary(key => key, key => (double)resources[key]);
-
-    private static IEnumerable<string> Keys(ResourceDictionary resources) =>
-        resources.Keys.OfType<string>().Concat(resources.MergedDictionaries.SelectMany(Keys)).Distinct();
 }
 
 // A text size that a test sets, as Windows would.

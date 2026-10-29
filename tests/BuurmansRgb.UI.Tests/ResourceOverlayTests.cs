@@ -9,8 +9,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class ResourceOverlayTests
 {
-    private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
-
     [Fact]
     public void Set_PutsTheDictionaryAtTheEnd() => Sta.Run(() =>
     {
@@ -69,7 +67,7 @@ public sealed class ResourceOverlayTests
     [InlineData(false, false)]
     public void ContrastThemeAndTextScale_WorkTogether(bool contrastFirst, bool contrastOffFirst) => Sta.Run(() =>
     {
-        var resources = (ResourceDictionary)Application.LoadComponent(Theme);
+        var resources = AppTheme.Load("Theme.xaml");
         var merged = resources.MergedDictionaries.Count;
         var designText = resources["TextBrush"];
         var highContrast = new FakeHighContrast();

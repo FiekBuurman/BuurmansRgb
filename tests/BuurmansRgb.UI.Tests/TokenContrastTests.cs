@@ -101,7 +101,7 @@ public sealed partial class TokenContrastTests
     [Fact]
     public void Brushes_HaveNoLooseHexColor()
     {
-        var xaml = File.ReadAllText(Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI", "Themes", "Tokens.xaml"));
+        var xaml = File.ReadAllText(Path.Combine(RepoFiles.AppSource, "Themes", "Tokens.xaml"));
 
         var loose = LooseBrushPattern().Matches(xaml).Select(match => match.Value);
 
@@ -144,7 +144,7 @@ public sealed partial class TokenContrastTests
         var colors = new Dictionary<string, Color>();
         Sta.Run(() =>
         {
-            var tokens = (ResourceDictionary)Application.LoadComponent(new Uri("/BuurmansRgb.UI;component/Themes/Tokens.xaml", UriKind.Relative));
+            var tokens = AppTheme.Load("Tokens.xaml");
             foreach (DictionaryEntry entry in tokens)
             {
                 switch (entry.Value)

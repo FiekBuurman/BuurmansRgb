@@ -10,7 +10,7 @@ public sealed class PresetTileTests
     [Fact]
     public void Tag_True_GivesTheChosenTileAThickBorder() => OffscreenWindow.Run(panel =>
     {
-        var theme = (ResourceDictionary)Application.LoadComponent(new Uri("/BuurmansRgb.UI;component/Themes/Controls.xaml", UriKind.Relative));
+        var theme = AppTheme.Load("Controls.xaml");
         var style = (Style)theme["PresetTile"];
         var chosen = new Button { Style = style, Tag = true };
         var other = new Button { Style = style, Tag = false };
