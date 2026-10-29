@@ -5,10 +5,10 @@ namespace BuurmansRgb.UI.Views;
 
 // Follows the text size of Windows: the font sizes of Themes/Tokens.xaml for text take the factor of
 // that setting, while the app runs too, and go back to those of the design at 100 %. It does so the
-// way ContrastTheme does the colors, with a dictionary of its own on top of the theme, so the XAML
-// has to refer to these sizes with DynamicResource. Icons, LEDs, click sizes and the word mark do not
-// take the factor: the word mark is the logo, in a title bar of a fixed height, like the app icon
-// beside it.
+// way ContrastTheme does the colors, with a dictionary of its own on top of the theme (a
+// ResourceOverlay), so the XAML has to refer to these sizes with DynamicResource. Icons, LEDs, click
+// sizes and the word mark do not take the factor: the word mark is the logo, in a title bar of a
+// fixed height, like the app icon beside it.
 public sealed class TextScale : IDisposable
 {
     // The sizes of text in the tokens: every one but WordmarkSize.
@@ -25,13 +25,12 @@ public sealed class TextScale : IDisposable
     // on, which may be those of a window, without the tokens.
     private static readonly Lazy<IReadOnlyDictionary<string, double>> Design = new(ReadDesignSizes);
 
-    private readonly ResourceDictionary _resources;
+    private readonly ResourceOverlay _sizes;
     private readonly ITextScale _textScale;
-    private ResourceDictionary? _sizes;
 
     private TextScale(ResourceDictionary resources, ITextScale textScale)
     {
-        _resources = resources;
+        _sizes = new ResourceOverlay(resources);
         _textScale = textScale;
     }
 
@@ -54,7 +53,6 @@ public sealed class TextScale : IDisposable
 
     private void OnChanged(object? sender, EventArgs e) => Apply();
 
-    // A replace is one change of the resources, so WPF looks the sizes up again once.
     private void Apply()
     {
         var factor = _textScale.Factor;
@@ -63,27 +61,7 @@ public sealed class TextScale : IDisposable
             return;
         }
 
-        var merged = _resources.MergedDictionaries;
-        var sizes = factor == 1.0 ? null : Scaled(factor);
-        var index = _sizes is null ? -1 : merged.IndexOf(_sizes);
-        if (index >= 0 && sizes is not null)
-        {
-            merged[index] = sizes;
-        }
-        else
-        {
-            if (index >= 0)
-            {
-                merged.RemoveAt(index);
-            }
-
-            if (sizes is not null)
-            {
-                merged.Add(sizes);
-            }
-        }
-
-        _sizes = sizes;
+        _sizes.Set(factor == 1.0 ? null : Scaled(factor));
         Factor = factor;
     }
 
