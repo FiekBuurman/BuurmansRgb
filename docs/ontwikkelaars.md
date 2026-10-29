@@ -56,6 +56,9 @@ zonder hardware. Per project een testproject in `tests/`. Helpers die elk testpr
 (`FakeOpenRgbConnector`, `InMemoryOpenRgb`) staat in het hulpproject
 `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests; daarnaast is er een kleine
 SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Providers.OpenRgb.Tests`).
+De viewtests van de instellingen-app draaien in een echt venster buiten beeld (`OffscreenWindow`,
+op `OffscreenWindow.Offset`); `PageViews.Press` drukt er een toets zoals het toetsenbord dat doet,
+en `LiveRegionCapture` vangt wat een schermlezer zou voorlezen en zet `LiveRegion` daarna terug.
 
 | Onderdeel | Belangrijkste testklassen |
 | --- | --- |
