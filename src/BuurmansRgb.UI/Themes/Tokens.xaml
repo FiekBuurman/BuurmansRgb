@@ -76,8 +76,10 @@
     <SolidColorBrush x:Key="KnobOnBrush" Color="{StaticResource BgColor}" />
     <SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />
     <SolidColorBrush x:Key="SwitchOutlineBrush" Color="Transparent" />
-    <!-- The rail of a slider beside its fill. -->
+    <!-- The rail of a slider beside its fill, and the ring around it, which shows only in a contrast
+         theme. -->
     <SolidColorBrush x:Key="SliderRailBrush" Color="{StaticResource LedOffColor}" />
+    <SolidColorBrush x:Key="SliderRailOutlineBrush" Color="Transparent" />
     <!-- Buttons (§ 4): a secondary button, an icon button and a card you click are a surface with
          text and a border; the primary button, a day that is on and a ticked check box are
          text-colored with bg on them. A contrast theme gives a button the face and text of a

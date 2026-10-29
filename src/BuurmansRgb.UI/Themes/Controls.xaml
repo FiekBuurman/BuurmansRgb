@@ -677,6 +677,8 @@
                 <ControlTemplate TargetType="Slider">
                     <Grid Background="Transparent">
                         <Border Height="6" CornerRadius="3" Background="{DynamicResource SliderRailBrush}" VerticalAlignment="Center" Margin="2,0" />
+                        <!-- The ring around the rail, which shows only in a contrast theme, as around a switch that is off. -->
+                        <Border Height="6" CornerRadius="3" BorderThickness="1" BorderBrush="{DynamicResource SliderRailOutlineBrush}" VerticalAlignment="Center" Margin="2,0" />
                         <Track x:Name="PART_Track">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource SliderRail}" Command="Slider.DecreaseLarge" Background="{TemplateBinding Foreground}" />

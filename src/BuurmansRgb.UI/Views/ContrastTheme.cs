@@ -14,7 +14,8 @@ public sealed class ContrastTheme : IDisposable
 {
     // Per token the color it takes in a contrast theme. Muted text takes the text color, not
     // GrayText: in a contrast theme that means disabled. Surfaces are all the window, so borders and
-    // the ring around a switch, in the text color, show where a card or a control is; a selected or
+    // the rings around a switch and the rail of a slider, in the text color, show where a card or a
+    // control is (not GrayText, which would make a slider look disabled); a selected or
     // hovered item takes the highlight, as in Windows. Buttons and cards you click take the face and
     // text of a button (in WPF Control and ControlText); the primary button, a ticked check box and
     // a day that is on take the highlight, like a switch that is on. Every hover shows in the
@@ -54,7 +55,8 @@ public sealed class ContrastTheme : IDisposable
         ["SwitchOnCoverBrush"] = () => SystemColors.HighlightBrush,
         ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
         ["KnobOnBrush"] = () => SystemColors.HighlightTextBrush,
-        ["SliderRailBrush"] = () => SystemColors.GrayTextBrush,
+        ["SliderRailBrush"] = () => SystemColors.WindowBrush,
+        ["SliderRailOutlineBrush"] = () => SystemColors.WindowTextBrush,
         ["ButtonFaceBrush"] = () => SystemColors.ControlBrush,
         ["ButtonTextBrush"] = () => SystemColors.ControlTextBrush,
         ["ButtonBorderBrush"] = () => SystemColors.ControlTextBrush,

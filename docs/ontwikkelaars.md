@@ -646,8 +646,10 @@ toetsenbord. Een paar dingen om te proberen:
   een aan, dan zet hij een eigen `ResourceDictionary` achter de samengevoegde woordenboeken van de
   app, met per token uit `ContrastTheme.SystemBrushes` een kleur van `SystemColors` (tekst
   `WindowText`, vlakken `Window`, randen `WindowText`, hover en selectie `Highlight` met
-  `HighlightText`, links `HotTrack`, het spoor van een schuif `GrayText`; knoppen en kaarten om op
-  te klikken `ButtonFace` en `ButtonText`, in WPF `SystemColors.Control` en `ControlText`, en de
+  `HighlightText`, links `HotTrack`, het spoor van een schuif `Window` met een ring in
+  `WindowText` zoals een schakelaar die uit staat (`GrayText` zou "uitgeschakeld" betekenen);
+  knoppen en kaarten om op te klikken `ButtonFace` en `ButtonText`, in WPF `SystemColors.Control`
+  en `ControlText`, en de
   primaire knop, een aangevinkt vakje en een dag die aan staat `Highlight` met `HighlightText`,
   zoals de richtlijnen van Microsoft voor contrastthema's zeggen; elke hover `Highlight`, een
   link onder de muis ook met een streep eronder (`LinkHoverUnderlineBrush`, zonder thema

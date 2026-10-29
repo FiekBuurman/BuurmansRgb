@@ -50,7 +50,8 @@ public sealed partial class ContrastThemeTests
     [InlineData("SwitchOnCoverBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("KnobOffBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("KnobOnBrush", nameof(SystemColors.HighlightTextBrush))]
-    [InlineData("SliderRailBrush", nameof(SystemColors.GrayTextBrush))]
+    [InlineData("SliderRailBrush", nameof(SystemColors.WindowBrush))]
+    [InlineData("SliderRailOutlineBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("ButtonFaceBrush", nameof(SystemColors.ControlBrush))]
     [InlineData("ButtonTextBrush", nameof(SystemColors.ControlTextBrush))]
     [InlineData("ButtonBorderBrush", nameof(SystemColors.ControlTextBrush))]
@@ -109,6 +110,7 @@ public sealed partial class ContrastThemeTests
     [InlineData("SwitchOutlineBrush")]
     [InlineData("LinkHoverUnderlineBrush")]
     [InlineData("PrimaryButtonHoverBorderBrush")]
+    [InlineData("SliderRailOutlineBrush")]
     public void ContrastOnlyToken_IsTransparentWithoutAContrastTheme(string token) => Sta.Run(() =>
         Assert.Equal(Colors.Transparent, ColorOf(LoadTheme(), token)));
 

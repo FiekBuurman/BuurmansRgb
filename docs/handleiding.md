@@ -30,12 +30,13 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   klikt, krijgen de knopkleuren van het thema. De pagina die je open hebt in de navigatiebalk, het
   gekozen item van een keuzelijst en een knop in de titelbalk onder de muis (ook het kruisje,
   dat zonder contrastthema rood wordt) krijgen de markeerkleur van het thema, net als wat aan
-  staat of de hoofdactie is: een aangevinkt vakje,
-  een dag die aan staat, de grote knop (bijv. "Op het apparaat zetten") en een schakelaar die aan
-  staat, in plaats van de kleur van het apparaat; uit is een schakelaar een rand met de knop in
-  de tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld,
-  de streepjesrand van "+ nieuw", de schuifbalk en een link, die dan ook een streep eronder
-  krijgt; de grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open
+  staat of de hoofdactie is: een aangevinkt vakje, een dag die aan staat, de grote knop (bijv.
+  "Op het apparaat zetten") en een schakelaar die aan staat, in plaats van de kleur van het
+  apparaat. Een schakelaar die uit staat is een rand in de tekstkleur met de knop in de
+  tekstkleur, en het spoor van een schuif een rand in de tekstkleur. Onder de muis krijgt alles
+  de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
+  schuifbalk en een link, die dan ook een streep eronder krijgt; de grote knop draait zijn
+  kleuren om en krijgt een rand. Dat gaat terwijl de app open
   is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun
   gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het
   woordmerk houden hun eigen kleuren: dat zijn de kleuren die je instelt.
