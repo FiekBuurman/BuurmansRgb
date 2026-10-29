@@ -94,8 +94,9 @@ schakelaar ernaast.
   "Eigen effecten" en "Per-LED-editor"). Wat de kiezer kleurt, gaat in deze volgorde: gekozen
   LED's, dan de kleur van de loop of van het effect, dan de gekozen stap van een eigen effect, en
   anders het apparaat.
-- **Hex-code typen:** zes tekens, met of zonder `#` (`#00FF00` of `00ff00`); de kleur verandert
-  zodra de code klopt. Een code die geen kleur is (`zzz`, `#12`) doet niets terwijl je typt,
+- **Hex-code typen:** de code onder "Huidige kleur" staat in een veld met een rand, zoals de andere
+  velden; klik erin of ga er met Tab heen. Zes tekens, met of zonder `#` (`#00FF00` of
+  `00ff00`); de kleur verandert zodra de code klopt. Een code die geen kleur is (`zzz`, `#12`) doet niets terwijl je typt,
   want `#12` kan nog `#123456` worden. Verlaat je het veld (Tab of een klik ergens anders), dan
   staat de code van de kleur er weer en zegt een melding eronder bijv. "'zzz' is geen kleurcode
   (zes tekens, zoals #FF9A3D); de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
@@ -706,6 +707,15 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   dezelfde stijl als Verversen en "+ Erbij knutselen".
 - **Schakelaars** van een apparaat met een heel donkere kleur krijgen een lichter spoor (zwart wordt
   grijs), zodat je de knop blijft zien.
+- **Velden** (een tekstvak, een keuzelijst en een vinkje) hebben een lichtere rand dan het ontwerp:
+  `#74727A` in plaats van `border` (`#2E2E36`, 1,2:1 op een kaart) of `border-strong` (`#4A4A54`,
+  1,8:1), zodat je een veld ook zonder focus herkent: minstens 3:1 op `surface`, `bg` en
+  `preview-bg` (WCAG 1.4.11). Onder de muis wordt de rand `text-muted` in plaats van de
+  `#4A4A54` van § 6, want die is donkerder dan de rand in rust; met de focus blijft het de ring van
+  2 px in `text`. Kaarten en knoppen houden de randen van het ontwerp.
+- **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker
+  blijft. In het ontwerp (§ 5.2) is het losse tekst, waaraan je niet ziet dat je erin kunt typen.
+  Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
   kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
