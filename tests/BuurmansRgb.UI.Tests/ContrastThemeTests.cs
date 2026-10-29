@@ -40,6 +40,8 @@ public sealed partial class ContrastThemeTests
     [InlineData("ListSelectedBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("CaptionHoverBrush", nameof(SystemColors.HighlightBrush))]
     [InlineData("CaptionPressedBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("CloseHoverBrush", nameof(SystemColors.HighlightBrush))]
+    [InlineData("CloseHoverTextBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("OnHighlightTextBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("OnHighlightMutedTextBrush", nameof(SystemColors.HighlightTextBrush))]
     [InlineData("TextSelectionBrush", nameof(SystemColors.HighlightBrush))]
@@ -88,6 +90,16 @@ public sealed partial class ContrastThemeTests
         var resources = LoadTheme();
 
         Assert.Equal(ColorOf(resources, design), ColorOf(resources, role));
+    });
+
+    // The red of the close button under the mouse, which was in the XAML itself.
+    [Fact]
+    public void CloseHover_IsRedWithAWhiteCrossWithoutAContrastTheme() => Sta.Run(() =>
+    {
+        var resources = LoadTheme();
+
+        Assert.Equal(Parse("#C42B1C"), ColorOf(resources, "CloseHoverBrush"));
+        Assert.Equal(Colors.White, ColorOf(resources, "CloseHoverTextBrush"));
     });
 
     // What shows only in a contrast theme, such as the line under a link under the mouse, is

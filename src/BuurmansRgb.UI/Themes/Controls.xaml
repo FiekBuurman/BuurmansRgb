@@ -207,13 +207,14 @@
             </Trigger>
         </Style.Triggers>
     </Style>
-    <!-- The cross, red under the mouse as in Windows. -->
+    <!-- The cross, red under the mouse as in Windows; in a contrast theme the highlight, like the
+         other buttons of the title bar. -->
     <Style x:Key="CloseCaptionButton" TargetType="Button" BasedOn="{StaticResource CaptionButton}">
         <Setter Property="Content" Value="&#xE8BB;" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#C42B1C" />
-                <Setter Property="Foreground" Value="White" />
+                <Setter Property="Background" Value="{DynamicResource CloseHoverBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource CloseHoverTextBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>

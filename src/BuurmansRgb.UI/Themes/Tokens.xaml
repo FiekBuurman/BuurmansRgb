@@ -64,6 +64,9 @@
     <SolidColorBrush x:Key="ListSelectedBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="CaptionHoverBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="CaptionPressedBrush" Color="{StaticResource BorderStrongColor}" />
+    <!-- The close button of the title bar under the mouse: red with a white cross, as in Windows. -->
+    <SolidColorBrush x:Key="CloseHoverBrush" Color="#C42B1C" />
+    <SolidColorBrush x:Key="CloseHoverTextBrush" Color="White" />
     <SolidColorBrush x:Key="OnHighlightTextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="OnHighlightMutedTextBrush" Color="{StaticResource TextMutedColor}" />
     <SolidColorBrush x:Key="EditingCardBorderBrush" Color="{StaticResource BorderStrongColor}" />

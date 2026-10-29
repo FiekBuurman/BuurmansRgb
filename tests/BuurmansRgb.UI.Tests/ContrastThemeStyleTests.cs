@@ -113,6 +113,18 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(thumb.Template.Triggers)[("Bar", Border.BackgroundProperty)]));
     });
 
+    // The close button of the title bar is red under the mouse, but in a contrast theme the highlight
+    // with the cross on it, like the other buttons of the title bar.
+    [Fact]
+    public void CloseCaptionButton_OnHover_HasTheHighlight() => InContrastTheme(panel =>
+    {
+        var close = Show(panel, new Button { Style = (Style)panel.FindResource("CloseCaptionButton") });
+        var hover = HoverSetters(close.Style.Triggers);
+
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[(null, Control.BackgroundProperty)]));
+        Assert.Same(SystemColors.HighlightTextBrush, panel.FindResource(hover[(null, Control.ForegroundProperty)]));
+    });
+
     // The setters of the trigger on IsMouseOver that set a DynamicResource, by the element they set
     // (null: the control itself) and the property, each with the key of its resource.
     private static Dictionary<(string? TargetName, DependencyProperty Property), object> HoverSetters(TriggerCollection triggers) => triggers

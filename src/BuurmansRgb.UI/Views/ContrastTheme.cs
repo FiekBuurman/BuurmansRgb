@@ -44,6 +44,8 @@ public sealed class ContrastTheme : IDisposable
         ["ListSelectedBrush"] = () => SystemColors.HighlightBrush,
         ["CaptionHoverBrush"] = () => SystemColors.HighlightBrush,
         ["CaptionPressedBrush"] = () => SystemColors.HighlightBrush,
+        ["CloseHoverBrush"] = () => SystemColors.HighlightBrush,
+        ["CloseHoverTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["OnHighlightTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["OnHighlightMutedTextBrush"] = () => SystemColors.HighlightTextBrush,
         ["TextSelectionBrush"] = () => SystemColors.HighlightBrush,
