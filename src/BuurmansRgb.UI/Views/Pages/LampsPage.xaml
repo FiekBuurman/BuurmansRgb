@@ -82,6 +82,19 @@
                 <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}" />
             </DockPanel>
 
+            <!-- Only while every device is a simulated one, with "Automatisch" (ShowsSimulatedDevicesHint): what
+                 they are, and that the real ones come by themselves. Not in the design (see docs/handleiding.md);
+                 the link is in the style of Verversen. -->
+            <DockPanel Visibility="{Binding ShowsSimulatedDevicesHint, Converter={StaticResource BoolToVisibility}}">
+                <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource LinkButton}"
+                        Content="{x:Static res:Strings.SimulatedDevicesOnlyLink}"
+                        ToolTip="{x:Static res:Strings.SimulatedDevicesOnlyLinkToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesOnlyLinkToolTip}"
+                        AutomationProperties.AutomationId="SimulatedDevicesHintLink"
+                        Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
+                <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.SimulatedDevicesOnlyHint}"
+                           AutomationProperties.AutomationId="SimulatedDevicesHint" />
+            </DockPanel>
+
             <!-- What the last search left to say, read out by a screen reader when it appears. -->
             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap"
                        Text="{Binding DeviceRescan.Message, NotifyOnTargetUpdated=True}"

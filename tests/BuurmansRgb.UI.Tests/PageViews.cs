@@ -39,8 +39,24 @@ internal static class PageViews
 
     internal static Button ButtonNamed(DependencyObject parent, string name) => Named<Button>(parent, name);
 
+    // Every element UI Automation finds in the page, as a screen reader walks it.
+    internal static List<AutomationPeer> AutomationTree(FrameworkElement page) =>
+        [.. Descendants(UIElementAutomationPeer.CreatePeerForElement(page))];
+
     // The one T with this name for a screen reader.
     internal static T Named<T>(DependencyObject parent, string name)
         where T : DependencyObject =>
         AppTheme.Descendants<T>(parent).Single(element => AutomationProperties.GetName(element) == name);
+
+    private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer)
+    {
+        yield return peer;
+        foreach (var child in peer.GetChildren() ?? [])
+        {
+            foreach (var descendant in Descendants(child))
+            {
+                yield return descendant;
+            }
+        }
+    }
 }

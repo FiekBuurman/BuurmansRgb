@@ -43,6 +43,9 @@ public sealed partial class LampsViewModel : ObservableObject
 
     public bool HasLamps => Lamps.Count > 0;
 
+    // Every lamp is a simulated one: OpenRGB gave no real device, or none yet.
+    public bool HasOnlySimulatedLamps => HasLamps && Lamps.All(lamp => lamp.Device.IsSimulated);
+
     // The big switch is on while any lamp is on. Switched off, every lamp goes off; switched on,
     // every lamp goes on.
     public bool IsAnyOn
@@ -123,6 +126,7 @@ public sealed partial class LampsViewModel : ObservableObject
 
         OnLampsChanged();
         OnPropertyChanged(nameof(HasLamps));
+        OnPropertyChanged(nameof(HasOnlySimulatedLamps));
     }
 
     // Asks the lighting of all lamps in one go. A refresh asked while one runs makes it go round once

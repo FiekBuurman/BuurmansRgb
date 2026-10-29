@@ -769,7 +769,19 @@
     <value>+ Erbij knutselen</value>
   </data>
   <data name="AddLampsToolTip" xml:space="preserve">
-    <value>Gesimuleerde apparaten en de koppeling met OpenRGB vind je bij Instellingen.</value>
+    <value>Apparaten toevoegen doet OpenRGB: zodra het een apparaat ziet, komt dat er hier vanzelf bij, en Verversen laat het opnieuw zoeken. Bij Instellingen vind je de gesimuleerde apparaten en de koppeling met OpenRGB.</value>
+    <comment>Tooltip en hulptekst voor een schermlezer van "+ Erbij knutselen", dat naar Instellingen gaat: apparaten toevoegen kan niet in buurmansRgb.</comment>
+  </data>
+  <data name="SimulatedDevicesOnlyHint" xml:space="preserve">
+    <value>Dit zijn nep-apparaten om buurmansRgb te proberen. Zodra OpenRGB je echte apparaten ziet, komen die er vanzelf voor in de plaats.</value>
+    <comment>Onder "Apparaten in huis", alleen zolang er bij "Automatisch" alleen gesimuleerde apparaten zijn.</comment>
+  </data>
+  <data name="SimulatedDevicesOnlyLink" xml:space="preserve">
+    <value>Naar Instellingen</value>
+    <comment>Link naast SimulatedDevicesOnlyHint.</comment>
+  </data>
+  <data name="SimulatedDevicesOnlyLinkToolTip" xml:space="preserve">
+    <value>Bij Instellingen kies je of de gesimuleerde apparaten er staan, en zie je hoe het met OpenRGB gaat.</value>
   </data>
   <data name="Rescan" xml:space="preserve">
     <value>Verversen</value>

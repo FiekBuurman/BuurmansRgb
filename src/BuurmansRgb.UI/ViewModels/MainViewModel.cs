@@ -148,6 +148,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
+        SimulatedDevices.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(SimulatedDevicesViewModel.SelectedOption))
+            {
+                OnPropertyChanged(nameof(ShowsSimulatedDevicesHint));
+            }
+        };
+        Lamps.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LampsViewModel.HasOnlySimulatedLamps))
+            {
+                OnPropertyChanged(nameof(ShowsSimulatedDevicesHint));
+            }
+        };
         EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
             SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
         EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
@@ -253,6 +267,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public ProfilesViewModel Profiles { get; } = new();
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
+
+    // The line on Apparaten that says the simulated devices are there to try the app, and that the
+    // real ones come by themselves through OpenRGB: only with "Automatisch", while every device is a
+    // simulated one. With "Altijd" the user chose them, with "Nooit" they go, and until the engine
+    // said the mode it stays away, so it does not flash up for someone who chose "Altijd".
+    public bool ShowsSimulatedDevicesHint =>
+        Lamps.HasOnlySimulatedLamps && SimulatedDevices.SelectedOption?.Mode == SimulatedDevicesMode.Automatic;
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
 
