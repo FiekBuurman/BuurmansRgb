@@ -647,4 +647,10 @@ uitbreidingen in `docs/bouwplan.md`.
   want het gebeurde even vaak met als zonder die wijziging. Ook met één testset tegelijk: 2 van de
   20 runs, en 3 van de 40 nadat de caches van `ColorBrushes` en `LedBulb` per thread kwamen, dus
   die gedeelde caches waren het niet. In die 40 runs faalde ook twee keer
-  `DirectionViewTests.Slider_HomeWithoutDirection_ChoosesZeroDegrees` op `slider.Focus()`
+  `DirectionViewTests.Slider_HomeWithoutDirection_ChoosesZeroDegrees` op `slider.Focus()`.
+  Bij de refactor na de audit van 29-10 faalde `Render_WithTheFocus_DrawsARingAroundTheActiveLed`
+  weer 1 keer in 6 volledige testruns
+- `ProcessListTests.Find_SeesAProgramStartAndStop` faalde af en toe; de oorzaak is niet gevonden
+  (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
+  `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
+  het wissen een tijd opnieuw. Faalt hij weer, leg dan vast op welke regel
