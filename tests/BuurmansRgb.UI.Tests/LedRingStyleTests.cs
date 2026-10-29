@@ -100,6 +100,44 @@ public sealed class LedRingStyleTests
         });
     }
 
+    // A contrast theme makes the card of a device a button face (CardButton, ButtonFace) and the card
+    // of Hele huis the window (Window): the bulbs on each take the text color of their ground,
+    // ButtonText and WindowText, and both the grey of the design without a theme.
+    [Fact]
+    public async Task ContrastTheme_BulbsOnACardButton_GetTheTextColorOfAButton()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var highContrast = new FakeHighContrast();
+            using var theme = ContrastTheme.Follow(Window.GetWindow(panel).Resources, highContrast);
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var cardStyle = page.FindResource("CardButton");
+            var onCards = AppTheme.Descendants<Button>(page).Where(button => button.Style == cardStyle)
+                .SelectMany(AppTheme.Descendants<LedBulb>).ToList();
+            var others = AppTheme.Descendants<LedBulb>(page).Except(onCards).ToList();
+            Assert.NotEmpty(onCards);
+            Assert.NotEmpty(others);
+            var design = (Color)page.FindResource("LedOffRingColor");
+            AssertDesign();
+
+            highContrast.Turn(on: true);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.All(onCards, bulb => Assert.Same(SystemColors.ControlTextBrush, bulb.OffRingBrush));
+            Assert.All(others, bulb => Assert.Same(SystemColors.WindowTextBrush, bulb.OffRingBrush));
+            Assert.All(onCards, bulb => Assert.Same(page.FindResource("LedOffBrush"), bulb.OffBrush));
+
+            highContrast.Turn(on: false);
+            OffscreenWindow.WaitUntilIdle();
+
+            AssertDesign();
+
+            void AssertDesign() => Assert.All(onCards.Concat(others), bulb => Assert.Equal(design, Assert.IsType<SolidColorBrush>(bulb.OffRingBrush).Color));
+        });
+    }
+
     // The pen of the one drawing of a bulb that gives no light, or of a preview with one black LED.
     private static Color PenColor(Visual visual)
     {
