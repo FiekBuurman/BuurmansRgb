@@ -96,7 +96,7 @@ public sealed class TextScaleViewTests
         Show(viewModel, 1.0, window =>
         {
             var textScale = new FakeTextScale();
-            using var scale = TextScale.Follow(window.Resources, textScale);
+            using var scale = TextSizes.Follow(window.Resources, textScale);
             viewModel.Navigation.GoTo(AppPage.Color);
             OffscreenWindow.WaitUntilIdle();
             var page = (FrameworkElement)window.Content;
@@ -194,7 +194,7 @@ public sealed class TextScaleViewTests
         dialog.WindowStartupLocation = WindowStartupLocation.Manual;
         dialog.Left = OffscreenWindow.Offset;
         dialog.Top = OffscreenWindow.Offset;
-        using var scale = TextScale.Follow(dialog.Resources, new FakeTextScale { Factor = factor });
+        using var scale = TextSizes.Follow(dialog.Resources, new FakeTextScale { Factor = factor });
         dialog.Show();
         OffscreenWindow.WaitUntilIdle();
         try
@@ -241,7 +241,7 @@ public sealed class TextScaleViewTests
             ShowActivated = false,
             ShowInTaskbar = false,
         };
-        using var scale = TextScale.Follow(window.Resources, new FakeTextScale { Factor = factor });
+        using var scale = TextSizes.Follow(window.Resources, new FakeTextScale { Factor = factor });
         window.Show();
         try
         {

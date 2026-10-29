@@ -5,7 +5,7 @@ using BuurmansRgb.UI.Views;
 namespace BuurmansRgb.UI.Tests;
 
 // A dictionary of its own over the resources: at the end, in place of the one before, and gone with
-// null; and ContrastTheme and TextScale, which both lay one over the resources of Theme.xaml.
+// null; and ContrastTheme and TextSizes, which both lay one over the resources of Theme.xaml.
 [Collection(AppThemeCollection.Name)]
 public sealed class ResourceOverlayTests
 {
@@ -65,15 +65,15 @@ public sealed class ResourceOverlayTests
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(false, false)]
-    public void ContrastThemeAndTextScale_WorkTogether(bool contrastFirst, bool contrastOffFirst) => Sta.Run(() =>
+    public void ContrastThemeAndTextSizes_WorkTogether(bool contrastFirst, bool contrastOffFirst) => Sta.Run(() =>
     {
         var resources = AppTheme.Load("Theme.xaml");
         var merged = resources.MergedDictionaries.Count;
         var designText = resources["TextBrush"];
         var highContrast = new FakeHighContrast();
         var textScale = new FakeTextScale();
-        using var first = contrastFirst ? (IDisposable)ContrastTheme.Follow(resources, highContrast) : TextScale.Follow(resources, textScale);
-        using var second = contrastFirst ? (IDisposable)TextScale.Follow(resources, textScale) : ContrastTheme.Follow(resources, highContrast);
+        using var first = contrastFirst ? (IDisposable)ContrastTheme.Follow(resources, highContrast) : TextSizes.Follow(resources, textScale);
+        using var second = contrastFirst ? (IDisposable)TextSizes.Follow(resources, textScale) : ContrastTheme.Follow(resources, highContrast);
 
         TurnOn(contrastFirst);
         TurnOn(!contrastFirst);

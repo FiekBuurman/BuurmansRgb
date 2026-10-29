@@ -27,7 +27,7 @@ public partial class App : Application
     private SystemHighContrast? _highContrast;
     private ContrastTheme? _contrastTheme;
     private SystemTextScale? _systemTextScale;
-    private TextScale? _textScale;
+    private TextSizes? _textSizes;
     private SystemAnimationEffects? _animationEffects;
 
     protected override void OnStartup(StartupEventArgs e)
@@ -55,7 +55,7 @@ public partial class App : Application
         _contrastTheme = ContrastTheme.Follow(Resources, _highContrast);
         // Likewise, so it opens in the text size of Windows.
         _systemTextScale = new SystemTextScale();
-        _textScale = TextScale.Follow(Resources, _systemTextScale);
+        _textSizes = TextSizes.Follow(Resources, _systemTextScale);
         // The preview stands still while "Animatie-effecten" of Windows is off.
         _animationEffects = new SystemAnimationEffects();
 
@@ -77,7 +77,7 @@ public partial class App : Application
         _viewModel?.Dispose();
         _contrastTheme?.Dispose();
         _highContrast?.Dispose();
-        _textScale?.Dispose();
+        _textSizes?.Dispose();
         _systemTextScale?.Dispose();
         _animationEffects?.Dispose();
         _instance?.Dispose();

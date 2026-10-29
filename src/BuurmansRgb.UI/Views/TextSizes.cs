@@ -9,7 +9,7 @@ namespace BuurmansRgb.UI.Views;
 // ResourceOverlay), so the XAML has to refer to these sizes with DynamicResource. Icons, LEDs, click
 // sizes and the word mark do not take the factor: the word mark is the logo, in a title bar of a
 // fixed height, like the app icon beside it.
-public sealed class TextScale : IDisposable
+public sealed class TextSizes : IDisposable
 {
     // The sizes of text in the tokens: every one but WordmarkSize.
     internal static readonly IReadOnlyList<string> FontSizeKeys =
@@ -28,7 +28,7 @@ public sealed class TextScale : IDisposable
     private readonly ResourceOverlay _sizes;
     private readonly ITextScale _textScale;
 
-    private TextScale(ResourceDictionary resources, ITextScale textScale)
+    private TextSizes(ResourceDictionary resources, ITextScale textScale)
     {
         _sizes = new ResourceOverlay(resources);
         _textScale = textScale;
@@ -40,12 +40,12 @@ public sealed class TextScale : IDisposable
     internal static IReadOnlyDictionary<string, double> DesignSizes => Design.Value;
 
     // From now on, the resources of the app (or of a test) follow textScale.
-    public static TextScale Follow(ResourceDictionary resources, ITextScale textScale)
+    public static TextSizes Follow(ResourceDictionary resources, ITextScale textScale)
     {
-        var scale = new TextScale(resources, textScale);
-        scale.Apply();
-        textScale.Changed += scale.OnChanged;
-        return scale;
+        var sizes = new TextSizes(resources, textScale);
+        sizes.Apply();
+        textScale.Changed += sizes.OnChanged;
+        return sizes;
     }
 
     // Stops following; the sizes stay as they are.

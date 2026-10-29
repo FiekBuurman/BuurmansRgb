@@ -130,7 +130,7 @@
     <FontFamily x:Key="TextFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#Bricolage Grotesque, Segoe UI Variable Text, Segoe UI</FontFamily>
     <FontFamily x:Key="MonoFont">pack://application:,,,/BuurmansRgb.UI;component/Fonts/#IBM Plex Mono, Cascadia Mono, Consolas</FontFamily>
 
-    <!-- The sizes of text follow the text size of Windows (TextScale), so the XAML refers to them with
+    <!-- The sizes of text follow the text size of Windows (TextSizes), so the XAML refers to them with
          DynamicResource. The word mark is the logo and keeps its size. -->
     <sys:Double x:Key="ScreenTitleSize">30</sys:Double>
     <sys:Double x:Key="BigValueSize">26</sys:Double>

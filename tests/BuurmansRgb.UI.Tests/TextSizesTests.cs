@@ -6,11 +6,11 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// TextScale on the resources of Themes/Theme.xaml, with a fake text size: the setting of Windows is
+// TextSizes on the resources of Themes/Theme.xaml, with a fake text size: the setting of Windows is
 // never read or changed. The sizes of text take the factor, and those of the design once it is 1.0
 // again; the word mark and the sizes that are no text never change.
 [Collection(AppThemeCollection.Name)]
-public sealed partial class TextScaleTests
+public sealed partial class TextSizesTests
 {
     // Sizes in the tokens that are no text, or the logo: they keep their size at every factor.
     private static readonly string[] FixedSizes = ["WordmarkSize", "MinClickSize", "SmallTileSize"];
@@ -30,7 +30,7 @@ public sealed partial class TextScaleTests
         var merged = resources.MergedDictionaries.Count;
         var design = Sizes(resources);
         var textScale = new FakeTextScale();
-        using var scale = TextScale.Follow(resources, textScale);
+        using var scale = TextSizes.Follow(resources, textScale);
         Assert.Equal(design, Sizes(resources));
 
         textScale.Set(factor);
@@ -38,7 +38,7 @@ public sealed partial class TextScaleTests
         Assert.Equal(factor, scale.Factor);
         Assert.Equal(15 * factor, (double)resources["BodySize"], 6);
         Assert.Equal(12 * factor, (double)resources["NavLabelSize"], 6);
-        foreach (var key in TextScale.FontSizeKeys)
+        foreach (var key in TextSizes.FontSizeKeys)
         {
             Assert.Equal(design[key] * factor, (double)resources[key], 6);
         }
@@ -58,7 +58,7 @@ public sealed partial class TextScaleTests
     {
         var resources = LoadTheme();
 
-        using var scale = TextScale.Follow(resources, new FakeTextScale { Factor = 2.0 });
+        using var scale = TextSizes.Follow(resources, new FakeTextScale { Factor = 2.0 });
 
         Assert.Equal(2.0, scale.Factor);
         Assert.Equal(30.0, (double)resources["BodySize"], 6);
@@ -71,7 +71,7 @@ public sealed partial class TextScaleTests
         var resources = LoadTheme();
         var merged = resources.MergedDictionaries.Count;
         var textScale = new FakeTextScale();
-        using var scale = TextScale.Follow(resources, textScale);
+        using var scale = TextSizes.Follow(resources, textScale);
 
         textScale.Set(1.5);
         textScale.Set(2.0);
@@ -85,7 +85,7 @@ public sealed partial class TextScaleTests
     {
         var resources = LoadTheme();
         var textScale = new FakeTextScale();
-        var scale = TextScale.Follow(resources, textScale);
+        var scale = TextSizes.Follow(resources, textScale);
 
         scale.Dispose();
         textScale.Set(2.0);
@@ -101,9 +101,9 @@ public sealed partial class TextScaleTests
     {
         var sizes = Sizes(LoadTheme());
 
-        Assert.Equal(sizes.Keys.Order(), TextScale.FontSizeKeys.Concat(FixedSizes).Order());
-        Assert.Equal(TextScale.FontSizeKeys.Order(), TextScale.DesignSizes.Keys.Order());
-        Assert.All(TextScale.DesignSizes, size => Assert.Equal(sizes[size.Key], size.Value));
+        Assert.Equal(sizes.Keys.Order(), TextSizes.FontSizeKeys.Concat(FixedSizes).Order());
+        Assert.Equal(TextSizes.FontSizeKeys.Order(), TextSizes.DesignSizes.Keys.Order());
+        Assert.All(TextSizes.DesignSizes, size => Assert.Equal(sizes[size.Key], size.Value));
     });
 
     // A StaticResource keeps the size it found when the XAML loaded, and a number never changes, so
@@ -116,7 +116,7 @@ public sealed partial class TextScaleTests
         foreach (var (name, xaml) in AppXaml.Files())
         {
             found.AddRange(AppXaml.StaticReferences(xaml)
-                .Where(reference => TextScale.FontSizeKeys.Contains(reference.Key))
+                .Where(reference => TextSizes.FontSizeKeys.Contains(reference.Key))
                 .Select(reference => $"{name}:{AppXaml.LineOf(xaml, reference.Index)} {reference.Key}"));
             found.AddRange(LiteralFontSizePattern().Matches(xaml)
                 .Where(match => !FixedFontSizeStyles.Contains($"{Path.GetFileName(name)} {StyleAt(xaml, match.Index)}"))
