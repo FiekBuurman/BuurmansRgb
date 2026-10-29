@@ -314,6 +314,17 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het tekenen van de app met en zonder contrastthema meten met een zichtbaar venster (niet
   vergrendeld); de meting bij "contrastthema" telde het opbouwen van een pagina en een wissel,
   niet het tekenen zelf
+- De knop van een schakelaar die aan staat (`OnAccentBrush`, `bg`) op een spoor in een fel blauw
+  is maar 2,1:1 (op `#0000FF`), en dat spoor 1,9:1 op een kaart: `SwitchTrackBrushConverter`
+  licht alleen een kleur op waarvan het felste kanaal onder de helft is. Optillen tot de knop
+  minstens 3:1 haalt, met de formule van WCAG in plaats van het felste kanaal
+- In een licht contrastthema krijgt een zwarte LED op de strip van Kleur de ring in `WindowText`
+  (bijv. zwart) op de strip, die donker blijft (`StripBgBrush`, inhoud): daar valt de ring weg.
+  Die strip is alleen sier en de hex-code ernaast zegt de kleur, maar een eigen ring voor de
+  strip (die geen systeemkleur volgt) zou hem zichtbaar houden
+- Het tekenen van de ring van een LED die uit staat of zwart is meten met een zichtbaar venster
+  (niet vergrendeld): de meting bij "led-uit-zichtbaar" telde `OnRender` en de layout, niet het
+  tekenen van de lijnen door WPF zelf
 
 ### Voorbeeld en per-LED-editor
 
