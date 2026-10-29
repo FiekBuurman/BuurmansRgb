@@ -746,6 +746,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   `bg`, `surface`, `preview-bg` en de strip, zonder gloed, zodat hij niet op een LED lijkt die aan
   is. In het voorbeeld krijgt een zwarte LED die ring in plaats van de vage omtrek van de andere.
   Een LED die bijna zwart is (elk kanaal onder 8) telt als zwart: daar zie je ook geen licht van.
+  Bij een effect dat door het zwart gaat, komt de ring dus even op: bij Ademen op het donkerste
+  moment (een paar tienden van een seconde per ademhaling), bij Komeet op de LED's achter de
+  staart. Dat is bewust: zo lang geeft de LED geen licht, en de ring zegt dat net als bij een LED
+  die stil op zwart staat. Een drempel met speling (hysterese) zou dat moment alleen verschuiven,
+  en de ring alleen bij een stilstaand beeld tonen maakt de LED's van een bewegend effect juist
+  onvindbaar als ze donker zijn.
   Het spoor van een schakelaar en de rail van een schuif houden `led-off`: daar toont de knop de
   stand (zie "Contrast" in `docs/ontwikkelaars.md`).
 - **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker

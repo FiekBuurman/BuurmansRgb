@@ -27,7 +27,9 @@ internal static class LedRing
     private static int _next;
 
     // An LED of which every channel is below 8 gives no light you see, and its glow is black (as
-    // LedBulb.Rounded makes it).
+    // LedBulb.Rounded makes it). A hard limit on purpose: in an effect that passes through black,
+    // such as Ademen or the tail of Komeet, the ring comes for as long as the LED gives no light, as
+    // with an LED that stays black (docs/handleiding.md, "Ontwerp en bewuste afwijkingen").
     internal static bool IsDark(RgbColor color) => color.R < 8 && color.G < 8 && color.B < 8;
 
     // The frozen pen of a ring in brush; null for no brush.
