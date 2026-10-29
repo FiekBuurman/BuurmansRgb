@@ -63,42 +63,69 @@ public sealed partial class ContrastThemeTests
         Assert.Same(SystemBrush(systemBrush), resources[token]);
     });
 
-    // A token for a role that a contrast theme colors on its own has, without one, the color of the
-    // design that the control had before, so the app looks the same.
-    [Theory]
-    [InlineData("ButtonFaceBrush", "SurfaceBrush")]
-    [InlineData("ButtonTextBrush", "TextBrush")]
-    [InlineData("ButtonBorderBrush", "BorderBrush")]
-    [InlineData("AccentBrush", "TextBrush")]
-    [InlineData("OnAccentBrush", "BgBrush")]
-    [InlineData("ControlHoverBrush", "TextMutedBrush")]
-    [InlineData("AccentHoverBrush", "TextBrush")]
-    [InlineData("OnAccentHoverBrush", "BgBrush")]
-    public void RoleToken_HasTheColorOfTheDesign(string role, string design) => Sta.Run(() =>
+    // The tokens of the design that a contrast theme gives another color: the colors of
+    // design/DESIGN.md, the border of a field and the hover of cards and buttons. Every other key of
+    // ContrastTheme.SystemBrushes is a token for a role of its own, which needs a row in
+    // RoleDesignColors.
+    private static readonly HashSet<string> DesignTokens =
+    [
+        "TextBrush", "TextMutedBrush", "BgBrush", "SurfaceBrush", "SurfaceRaisedBrush", "NavBgBrush", "PreviewBgBrush",
+        "BorderBrush", "BorderStrongBrush", "InputBorderBrush", "HoverBorderBrush", "KnobOffBrush", "LinkBrush", "LinkHoverBrush",
+    ];
+
+    // Per token for a role the color it has without a contrast theme: the token of the design that
+    // the control had before, so the app looks the same, or a color of its own. What shows only in a
+    // contrast theme, such as the line under a link under the mouse, is transparent, so it draws
+    // nothing.
+    private static readonly Dictionary<string, string> RoleDesignColors = new()
     {
-        var resources = LoadTheme();
+        ["ControlHoverBrush"] = "TextMutedBrush",
+        ["EditingCardBorderBrush"] = "BorderStrongBrush",
+        ["NavSelectedBrush"] = "SurfaceRaisedBrush",
+        ["ItemHighlightBrush"] = "BorderBrush",
+        ["CaptionPressedBrush"] = "BorderStrongBrush",
+        ["OnHighlightTextBrush"] = "TextBrush",
+        ["OnHighlightMutedTextBrush"] = "TextMutedBrush",
+        ["CloseHoverBrush"] = "#C42B1C",
+        ["CloseHoverTextBrush"] = "White",
+        ["TextSelectionBrush"] = "LedBlueBrush",
+        ["WarningBrush"] = "LedYellowBrush",
+        ["ButtonFaceBrush"] = "SurfaceBrush",
+        ["ButtonTextBrush"] = "TextBrush",
+        ["ButtonBorderBrush"] = "BorderBrush",
+        ["AccentBrush"] = "TextBrush",
+        ["OnAccentBrush"] = "BgBrush",
+        ["AccentHoverBrush"] = "TextBrush",
+        ["OnAccentHoverBrush"] = "BgBrush",
+        ["ControlTrackBrush"] = "LedOffBrush",
+        ["SwitchOnCoverBrush"] = "Transparent",
+        ["ControlOutlineBrush"] = "Transparent",
+        ["HoverOutlineBrush"] = "Transparent",
+    };
 
-        Assert.Equal(ColorOf(resources, design), ColorOf(resources, role));
-    });
+    public static TheoryData<string> RoleTokens => [.. RoleDesignColors.Keys];
 
-    // The red of the close button under the mouse, which was in the XAML itself.
+    // A new token for a role without a row in RoleDesignColors makes this red, as does a row for a
+    // token that is gone.
     [Fact]
-    public void CloseHover_IsRedWithAWhiteCrossWithoutAContrastTheme() => Sta.Run(() =>
+    public void EveryRoleToken_HasAnExpectedColorOfTheDesign()
+    {
+        var roles = ContrastTheme.SystemBrushes.Keys.Where(token => !DesignTokens.Contains(token)).ToHashSet();
+
+        Assert.Empty(roles.Except(RoleDesignColors.Keys));
+        Assert.Empty(RoleDesignColors.Keys.Except(roles));
+    }
+
+    [Theory]
+    [MemberData(nameof(RoleTokens))]
+    public void RoleToken_HasTheColorOfTheDesign(string role) => Sta.Run(() =>
     {
         var resources = LoadTheme();
+        var design = RoleDesignColors[role];
+        var expected = resources[design] is SolidColorBrush brush ? brush.Color : Parse(design);
 
-        Assert.Equal(Parse("#C42B1C"), ColorOf(resources, "CloseHoverBrush"));
-        Assert.Equal(Colors.White, ColorOf(resources, "CloseHoverTextBrush"));
+        Assert.Equal(expected, ColorOf(resources, role));
     });
-
-    // What shows only in a contrast theme, such as the line under a link under the mouse, is
-    // transparent without one, so it draws nothing.
-    [Theory]
-    [InlineData("SwitchOnCoverBrush")]
-    [InlineData("ControlOutlineBrush")]
-    [InlineData("HoverOutlineBrush")]
-    public void ContrastOnlyToken_IsTransparentWithoutAContrastTheme(string token) => Sta.Run(() =>
-        Assert.Equal(Colors.Transparent, ColorOf(LoadTheme(), token)));
 
     [Fact]
     public void ContrastThemeOff_LeavesTheColorsOfTheDesign() => Sta.Run(() =>
