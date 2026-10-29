@@ -381,6 +381,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - In het voorbeeld bij "Hele huis" de kaarten van de apparaten in- en uitklappen, of met één
   klik naar een apparaat springen; nu staan alle apparaten met hun LED's, knoppen en
   LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10)
+- In het voorbeeld meteen laten zien welke LED een klik kiest, bijv. een dunne ring om de LED die
+  `LedLayout.NearestLed` onder de muis vindt; nu kiest een klik naast een LED de dichtstbijzijnde
+  ("led-klikdoel"), maar dat zie je pas aan de tooltip, na zijn vertraging
+- Een grotere weergave van het voorbeeld in de per-LED-editor (bijv. een knop "Groter", met LED's
+  van 24 px of meer en de afstand ertussen), voor een touchscreen of wie minder nauwkeurig wijst;
+  de klik tot 12 px van een LED ("led-klikdoel") haalt WCAG 2.5.8 al, maar maakt de LED niet groter
 
 ## Scènes
 
