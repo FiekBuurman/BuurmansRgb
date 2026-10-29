@@ -301,6 +301,15 @@ uitbreidingen in `docs/bouwplan.md`.
 - De focusring van de actieve LED in het voorbeeld (`LedPreviewView`) leest de tekstkleur pas bij
   het volgende beeld; bij een statisch effect krijgt hij de kleur van een contrastthema dat net
   aanging pas als de focus of de LED's veranderen
+- Een gewone knop die je indrukt in een contrastthema `Highlight` met `HighlightText` geven, zoals
+  Windows; nu wordt hij `Window` (`SurfaceRaisedBrush`), wat op `ButtonFace` weinig of niets
+  verandert
+- De streep onder een link in een contrastthema is een rand onder de regel, iets lager dan een
+  echte onderstreping; `TextDecorations` zou dichter bij de letters staan, maar dat is geen brush
+  en past dus niet in `ContrastTheme.SystemBrushes`
+- Het tekenen van de app met en zonder contrastthema meten met een zichtbaar venster (niet
+  vergrendeld); de meting bij "contrastthema" telde het opbouwen van een pagina en een wissel,
+  niet het tekenen zelf
 
 ### Voorbeeld en per-LED-editor
 
