@@ -25,13 +25,14 @@ in plaats van eerst snel en later nog eens geoptimaliseerd, en dat scheelt 8–1
 (zie "Metingen"). Elke `dotnet publish` van de app, met de installer of zonder, compileert hem
 vooraf met ReadyToRun (`PublishReadyToRun`), zodat hij bijna even snel start als met tiered
 compilation (~0,15 s later bruikbaar); een gewone build heeft dat niet en staat 0,2–0,7 s later
-klaar. `PublishReadyToRun` staat daarom alleen aan als `dotnet publish` loopt (`_IsPublishing`,
-ook bij de restore van die publish): een gewone `dotnet build` of `dotnet test` haalt dus geen
-extra pakketten en kan offline met wat er al in de NuGet-cache staat; de pakketten voor
-ReadyToRun haalt pas de eerste publish (zie "Installer bouwen en testen"). Alleen de eigen DLL van de app en
-`CommunityToolkit.Mvvm` krijgen die code (`ReadyToRunAssemblies`): de app komt in dezelfde map
-als de engine, en de DLL's die de engine ook laadt (Contracts, Core, StreamJsonRpc, MessagePack
-en de rest) blijven gelijk aan die van de engine zelf (zie "Metingen"). Daarna:
+klaar. Elke restore zou de pakketten voor ReadyToRun halen als het altijd aanstond, dus staat
+`PublishReadyToRun` alleen aan als `dotnet publish` loopt (`_IsPublishing`, ook bij de restore van
+die publish): een gewone `dotnet build` of `dotnet test` haalt geen extra pakketten en kan offline
+met wat er al in de NuGet-cache staat; de pakketten voor ReadyToRun haalt pas de eerste publish
+(zie "Installer bouwen en testen"). Alleen de eigen DLL van de app en `CommunityToolkit.Mvvm`
+krijgen die code (`ReadyToRunAssemblies`): de app komt in dezelfde map als de engine, en de DLL's
+die de engine ook laadt (Contracts, Core, StreamJsonRpc, MessagePack en de rest) blijven gelijk
+aan die van de engine zelf (zie "Metingen"). Daarna:
 
 ```bash
 dotnet run --project src/BuurmansRgb.Engine   # engine met tray-icoon
@@ -987,15 +988,16 @@ downloads en haalt de Inno Setup-compiler van NuGet; met `-Iscc <pad>` gebruik j
 negeert. Hoe het werkt en waarom: [openrgb-meeleveren.md](openrgb-meeleveren.md).
 
 Het script publiceert eerst de engine en dan de instellingen-app naar dezelfde map. Die tweede
-publicatie compileert de app vooraf met ReadyToRun (zie "Bouwen, starten en testen"), net als elke andere
-`dotnet publish` van de app. Wat `dotnet publish` daarvoor de eerste keer van nuget.org haalt:
-met `-r win-x64 --self-contained`, zoals het script, haalt de engine al de runtime voor win-x64
-(`microsoft.netcore.app.runtime.win-x64`, `microsoft.windowsdesktop.app.runtime.win-x64` en
-`microsoft.aspnetcore.app.runtime.win-x64`) en de app daarna alleen de compiler
+publicatie compileert de app vooraf met ReadyToRun (zie "Bouwen, starten en testen"), net als elke
+andere `dotnet publish` van de app. Wat `dotnet publish` daarvoor de eerste keer van nuget.org
+haalt: met `-r win-x64 --self-contained`, zoals het script, haalt de engine al de runtime voor
+win-x64 (`microsoft.netcore.app.runtime.win-x64`, `microsoft.windowsdesktop.app.runtime.win-x64`
+en `microsoft.aspnetcore.app.runtime.win-x64`) en de app daarna alleen de compiler
 `microsoft.netcore.app.crossgen2.win-x64`; zonder `-r` (zie `installatie.md`) haalt de app alle
 vier, want ReadyToRun compileert tegen die runtime, al blijft de app afhankelijk van de
-geïnstalleerde .NET. Een gewone build of test haalt geen van vier. De DLL's die de engine ook laadt, laat de app daarbij zoals ze zijn (target
-`KeepSharedAssembliesIL` in `BuurmansRgb.UI.csproj`).
+geïnstalleerde .NET. Een gewone build of test haalt geen van vier. De DLL's die de engine ook
+laadt, laat de app daarbij zoals ze zijn (target `KeepSharedAssembliesIL` in
+`BuurmansRgb.UI.csproj`).
 
 - **Na installeren** start de installer de engine als de gewone gebruiker met `--first-run`.
   Die zet "Starten met Windows" aan, alleen als dat nog uit staat.
