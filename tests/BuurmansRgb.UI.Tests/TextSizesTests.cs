@@ -30,12 +30,12 @@ public sealed partial class TextSizesTests
         var merged = resources.MergedDictionaries.Count;
         var design = Sizes(resources);
         var textScale = new FakeTextScale();
-        using var scale = TextSizes.Follow(resources, textScale);
+        using var sizes = TextSizes.Follow(resources, textScale);
         Assert.Equal(design, Sizes(resources));
 
         textScale.Set(factor);
 
-        Assert.Equal(factor, scale.Factor);
+        Assert.Equal(factor, sizes.Factor);
         Assert.Equal(15 * factor, (double)resources["BodySize"], 6);
         Assert.Equal(12 * factor, (double)resources["NavLabelSize"], 6);
         foreach (var key in TextSizes.FontSizeKeys)
@@ -47,7 +47,7 @@ public sealed partial class TextSizesTests
 
         textScale.Set(1.0);
 
-        Assert.Equal(1.0, scale.Factor);
+        Assert.Equal(1.0, sizes.Factor);
         Assert.Equal(design, Sizes(resources));
         Assert.Equal(merged, resources.MergedDictionaries.Count);
     });
@@ -58,9 +58,9 @@ public sealed partial class TextSizesTests
     {
         var resources = LoadTheme();
 
-        using var scale = TextSizes.Follow(resources, new FakeTextScale { Factor = 2.0 });
+        using var sizes = TextSizes.Follow(resources, new FakeTextScale { Factor = 2.0 });
 
-        Assert.Equal(2.0, scale.Factor);
+        Assert.Equal(2.0, sizes.Factor);
         Assert.Equal(30.0, (double)resources["BodySize"], 6);
     });
 
@@ -71,7 +71,7 @@ public sealed partial class TextSizesTests
         var resources = LoadTheme();
         var merged = resources.MergedDictionaries.Count;
         var textScale = new FakeTextScale();
-        using var scale = TextSizes.Follow(resources, textScale);
+        using var sizes = TextSizes.Follow(resources, textScale);
 
         textScale.Set(1.5);
         textScale.Set(2.0);
@@ -85,12 +85,12 @@ public sealed partial class TextSizesTests
     {
         var resources = LoadTheme();
         var textScale = new FakeTextScale();
-        var scale = TextSizes.Follow(resources, textScale);
+        var sizes = TextSizes.Follow(resources, textScale);
 
-        scale.Dispose();
+        sizes.Dispose();
         textScale.Set(2.0);
 
-        Assert.Equal(1.0, scale.Factor);
+        Assert.Equal(1.0, sizes.Factor);
         Assert.Equal(15.0, (double)resources["BodySize"]);
     });
 
