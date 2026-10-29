@@ -35,7 +35,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   apparaat. Een schakelaar die uit staat is een rand in de tekstkleur met de knop in de
   tekstkleur, en het spoor van een schuif een rand in de tekstkleur. Onder de muis krijgt alles
   de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
-  schuifbalk en een link, die dan ook een streep eronder krijgt; de grote knop draait zijn
+  rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
+  grote knop draait zijn
   kleuren om en krijgt een rand. Dat gaat terwijl de app open
   is, en zet je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun
   gloed, de bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het

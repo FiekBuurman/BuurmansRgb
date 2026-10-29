@@ -87,7 +87,8 @@
     <SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />
     <!-- Outlines: lines that show only in a contrast theme, so they are transparent here. Around the
          track of a switch and the rail of a slider in the text color, and in the highlight on what
-         is under the mouse: the ring of the primary button and the line under a link. -->
+         is under the mouse: the ring of the primary button and of a switch, and the line under a
+         link. -->
     <SolidColorBrush x:Key="ControlOutlineBrush" Color="Transparent" />
     <SolidColorBrush x:Key="HoverOutlineBrush" Color="Transparent" />
 

@@ -287,8 +287,8 @@
          for the whole house) and the knob bg; off, led-off with a knob-off knob. The track radius is
          half its height (SwitchRadius), so its ends are round; a larger one would make it an ellipse.
          In a contrast theme of Windows (ContrastTheme) the highlight covers the track when on, as in
-         the switches of Windows, and a ring in the text color shows the track; otherwise the cover
-         and the ring are transparent. -->
+         the switches of Windows, and a ring in the text color shows the track, in the highlight under
+         the mouse (HoverOutlineBrush); otherwise the cover and the ring are transparent. -->
     <Style x:Key="Switch" TargetType="ToggleButton">
         <Style.Resources>
             <CornerRadius x:Key="SwitchRadius">16</CornerRadius>
@@ -315,6 +315,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Shine" Property="Opacity" Value="0.15" />
+                            <Setter TargetName="Outline" Property="BorderBrush" Value="{DynamicResource HoverOutlineBrush}" />
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Track" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />

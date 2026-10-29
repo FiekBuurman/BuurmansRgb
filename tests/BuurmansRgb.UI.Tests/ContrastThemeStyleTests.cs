@@ -113,6 +113,19 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(thumb.Template.Triggers)[("Bar", Border.BackgroundProperty)]));
     });
 
+    // A switch keeps its ring in the text color at rest and gets a ring in the highlight under the
+    // mouse, on or off.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Switch_OnHover_HasARingInTheHighlight(bool isChecked) => InContrastTheme(panel =>
+    {
+        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = isChecked });
+
+        Assert.Same(SystemColors.WindowTextBrush, Part<Border>(toggle, "Outline").BorderBrush);
+        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(toggle.Template.Triggers)[("Outline", Border.BorderBrushProperty)]));
+    });
+
     // The close button of the title bar is red under the mouse, but in a contrast theme the highlight
     // with the cross on it, like the other buttons of the title bar.
     [Fact]
