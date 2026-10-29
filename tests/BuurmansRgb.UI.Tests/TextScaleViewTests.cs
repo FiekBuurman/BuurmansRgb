@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Media;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -106,6 +107,52 @@ public sealed class TextScaleViewTests
             Assert.Equal(180, box.ActualWidth);
             Assert.Equal(88, ((FrameworkElement)rail.Parent).ActualWidth);
         });
+    }
+
+    // A name of a device too long for the page: the choice on Kleur ends it in "…" within the page,
+    // with its switch beside it, at 100 % as at the largest text size.
+    [Theory]
+    [InlineData(1.0)]
+    [InlineData(2.0)]
+    [InlineData(2.25)]
+    public async Task LongDeviceName_EndsInAnEllipsisWithinThePage(double factor)
+    {
+        const string name = "Corsair iCUE LINK System Hub met de hele lange naam die iemand in OpenRGB gaf";
+        using var viewModel = await PageViews.ConnectAsync(api =>
+            api.Devices = [TestDevices.Create("hub", name, DeviceType.LedStrip, 30)]);
+
+        Show(viewModel, factor, window =>
+        {
+            viewModel.Navigation.GoTo(AppPage.Color);
+            viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "hub");
+            OffscreenWindow.WaitUntilIdle();
+            var page = (FrameworkElement)window.Content;
+            var choice = PageViews.Named<ComboBox>(page, Strings.LampChoiceLabel);
+            var presenter = Ancestor<ScrollContentPresenter>(choice);
+            var selection = AppTheme.Descendants<TextBlock>(choice).First(text => text.Inlines.OfType<System.Windows.Documents.Run>().Any(run => run.Text == name));
+            var toggle = AppTheme.Descendants<ToggleButton>(choice.Parent).Single(button => button.TemplatedParent is null && button.IsVisible);
+            var problems = TextFit.Problems(page);
+
+            Assert.True(Right(toggle, presenter) <= presenter.ActualWidth + 0.5, $"The switch ends at {Right(toggle, presenter):0.#}, past the {presenter.ActualWidth:0.#} of the page.");
+            Assert.True(Right(choice, presenter) <= toggle.TranslatePoint(default, presenter).X, "The choice lies under its switch.");
+            Assert.True(Right(selection, presenter) <= Right(choice, presenter), "The name runs past its choice.");
+            Assert.Equal(TextTrimming.CharacterEllipsis, selection.TextTrimming);
+            Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+        });
+
+        static double Right(FrameworkElement element, UIElement ancestor) => element.TranslatePoint(new Point(element.ActualWidth, 0), ancestor).X;
+
+        static T Ancestor<T>(DependencyObject element)
+            where T : DependencyObject
+        {
+            for (var parent = VisualTreeHelper.GetParent(element); ; parent = VisualTreeHelper.GetParent(parent))
+            {
+                if (parent is T found)
+                {
+                    return found;
+                }
+            }
+        }
     }
 
     // The question before an own effect is deleted, the longest of the two, with its buttons beside

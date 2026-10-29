@@ -93,7 +93,13 @@
                         <Run Text="{Binding SelectedDevice.DisplayName, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- The choice takes the width the page has left beside the switch, so a very long name
+                     ends in "…" instead of past the edge of the page. -->
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
                     <ComboBox MinWidth="280" VerticalAlignment="Center"
                               ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
@@ -105,7 +111,7 @@
                              ItemTemplate, which would win over both. -->
                         <ComboBox.Resources>
                             <DataTemplate DataType="{x:Type vm:DeviceItem}">
-                                <TextBlock>
+                                <TextBlock TextTrimming="CharacterEllipsis">
                                     <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="{Binding LocationLabel, Mode=OneWay, StringFormat={}  {0}, TargetNullValue={x:Static sys:String.Empty}}" Foreground="{DynamicResource TextMutedBrush}" />
                                 </TextBlock>
                             </DataTemplate>
@@ -150,14 +156,14 @@
                         </ComboBox.GroupStyle>
                     </ComboBox>
                     <!-- The chosen lamp on or off, or the whole house. -->
-                    <ToggleButton Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding SelectedLamp.IsOn}"
+                    <ToggleButton Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding SelectedLamp.IsOn}"
                                   Tag="{Binding SelectedLamp.Color, Converter={StaticResource SwitchTrackBrush}}"
                                   AutomationProperties.Name="{Binding SelectedLamp.SwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToCollapsed}}" />
-                    <ToggleButton Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding Lamps.IsAnyOn}" IsEnabled="{Binding Lamps.HasLamps}"
+                    <ToggleButton Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding Lamps.IsAnyOn}" IsEnabled="{Binding Lamps.HasLamps}"
                                   AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToVisible}}" />
-                </StackPanel>
+                </Grid>
             </views:HeaderPanel>
 
             <views:PauseBar Margin="0,0,0,14" DataContext="{Binding EffectsPause}" />

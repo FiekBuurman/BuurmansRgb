@@ -318,9 +318,10 @@ uitbreidingen in `docs/bouwplan.md`.
   bij een zone, een open keuzelijst, een tooltip, "Kies uit wat nu draait" met programma's en de
   melding onder de hex-code. Nu controleert de test de pagina's zelf, met de panelen die komen en
   gaan
-- Een heel lange naam van een apparaat in de keuze op Kleur bij een grote tekstgrootte op "…"
-  laten eindigen; nu wordt de keuzelijst zo breed als de naam, en een naam die met de schakelaar
-  erbij breder is dan de pagina, valt er rechts af ("Corsair LS100 Smart Lighting Strip" past nog)
+- `TextFit` (de controle van `TextScaleViewTests`) ook een tekst uit losse `Run`s laten nalopen,
+  zoals de naam in de keuze op Kleur en de regel onder de titel: van zo'n `TextBlock` is `Text`
+  leeg, dus slaat hij die nu over. Kan nieuwe meldingen geven die eerst bekeken moeten worden
+- Een tooltip met de hele naam op de keuze van een apparaat op Kleur als die op "…" eindigt
 - De tekst van een knop laten omlopen als de knop smaller is dan zijn tekst (de primaire knop, een
   gewone knop); bij de pagina's van nu gebeurt dat met elke tekstgrootte niet, omdat de kolommen
   op Kleur onder elkaar gaan, maar een smallere plek zou de tekst afkappen
