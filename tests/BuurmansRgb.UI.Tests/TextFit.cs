@@ -3,30 +3,37 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media;
 
 namespace BuurmansRgb.UI.Tests;
 
 // What a larger text can do wrong in a window, as far as it shows: text that is cut off, by the room
 // it gets or at the edge of an element around it, a field too narrow for its text, and text over
-// another text or over a control. A
-// name in a card title may end in "…" (CardTitle), as it does at 100 % with a long name.
+// another text or over a control, also a text of runs or with a link in it. A name in a card title
+// may end in "…" (CardTitle), as it does at 100 % with a long name.
 internal static class TextFit
 {
     public static List<string> Problems(FrameworkElement root)
     {
         var problems = new List<string>();
-        var texts = new List<(TextBlock Text, Rect Ink)>();
-        foreach (var text in Visible<TextBlock>(root).Where(text => text.Text.Length > 0))
+        var texts = new List<(string Text, TextBlock Block, Rect Ink)>();
+        foreach (var block in Visible<TextBlock>(root))
         {
-            if (CutOff(text) is { } cut)
+            var text = TextOf(block);
+            if (text.Length == 0)
             {
-                problems.Add($"'{text.Text}' {cut}");
+                continue;
             }
 
-            if (Shown(text, InkOf(text), root) is { } ink)
+            if (CutOff(block) is { } cut)
             {
-                texts.Add((text, ink));
+                problems.Add($"'{text}' {cut}");
+            }
+
+            if (Shown(block, InkOf(block), root) is { } ink)
+            {
+                texts.Add((text, block, ink));
             }
         }
 
@@ -49,7 +56,7 @@ internal static class TextFit
             {
                 if (Overlap(texts[i].Ink, texts[j].Ink))
                 {
-                    problems.Add($"'{texts[i].Text.Text}' lies over '{texts[j].Text.Text}'");
+                    problems.Add($"'{texts[i].Text}' lies over '{texts[j].Text}'");
                 }
             }
         }
@@ -63,11 +70,11 @@ internal static class TextFit
                 continue;
             }
 
-            foreach (var (text, ink) in texts)
+            foreach (var (text, block, ink) in texts)
             {
-                if (!IsInside(text, control) && Overlap(bounds, ink))
+                if (!IsInside(block, control) && Overlap(bounds, ink))
                 {
-                    problems.Add($"'{text.Text}' lies over {control.GetType().Name} '{AutomationProperties.GetName(control)}'");
+                    problems.Add($"'{text}' lies over {control.GetType().Name} '{AutomationProperties.GetName(control)}'");
                 }
             }
         }
@@ -108,10 +115,19 @@ internal static class TextFit
         return null;
     }
 
+    // The text of a text block: Text, or else the text of its runs and links, which leave Text empty.
+    private static string TextOf(TextBlock text) =>
+        text.Text.Length > 0 || text.Inlines.Count == 0 ? text.Text : new TextRange(text.ContentStart, text.ContentEnd).Text;
+
     // Where the letters are in the text block, which may be wider than they: as wide as the text,
-    // placed by its alignment.
+    // placed by its alignment. Of runs and links the whole block.
     private static Rect InkOf(TextBlock text)
     {
+        if (text.Text.Length == 0)
+        {
+            return new Rect(text.RenderSize);
+        }
+
         var whole = new TextBlock
         {
             Text = text.Text,
