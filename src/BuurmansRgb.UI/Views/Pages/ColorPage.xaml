@@ -34,15 +34,29 @@
             <Setter Property="Margin" Value="0,0,0,6" />
         </Style>
 
+        <!-- Least widths in em of the body text, which a larger text size of Windows makes wider, so
+             fewer columns fit and the rest goes under them. A column of the preview and the sliders
+             fits the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding
+             and border of the preview (38 px), with a little to spare: 358 px at 100 %. A column of
+             brightness, effect, speed or direction fits its name beside its value: 150 px. The title
+             of the page (10 em) keeps 12 em beside the choice of the lamp. -->
+        <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
+        <views:EmConverter x:Key="LightingColumnWidth" Ems="10" />
+        <views:EmConverter x:Key="HeadingWidth" Ems="12" />
+
         <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
              A field like the others, with their border, hover and focus, so you see you can type in it;
-             without their fill, so it stays on the dark of the preview. Just wide enough for a code. -->
+             without their fill, so it stays on the dark of the preview. Just wide enough for a code, at
+             every text size of Windows: seven characters of 0.6 em in the mono font, plus 54 px for the
+             padding, the border of the focus and the caret (180 px at 30 px). The width only follows the
+             font size, so it does not change while you type. -->
+        <views:EmConverter x:Key="HexBoxWidth" Ems="4.2" Extra="54" />
         <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
             <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Width" Value="180" />
+            <Setter Property="Width" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource HexBoxWidth}}" />
             <Setter Property="HorizontalAlignment" Value="Left" />
             <Setter Property="Margin" Value="0,4,0,0" />
             <Setter Property="MaxLength" Value="7" />
@@ -70,8 +84,16 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
-            <DockPanel Margin="0,0,0,18">
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+            <!-- The title, with the choice of the lamp and its switch beside it, or under it when the text of a
+                 larger text size of Windows needs the room. -->
+            <views:HeaderPanel Margin="0,0,0,18" MinHeadingWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource HeadingWidth}}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" />
+                    <TextBlock Style="{StaticResource SubText}">
+                        <Run Text="{Binding SelectedDevice.DisplayName, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
+                    </TextBlock>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <ComboBox MinWidth="280" VerticalAlignment="Center"
                               ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
@@ -136,13 +158,7 @@
                                   AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToVisible}}" />
                 </StackPanel>
-                <StackPanel>
-                    <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" />
-                    <TextBlock Style="{StaticResource SubText}">
-                        <Run Text="{Binding SelectedDevice.DisplayName, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
-                    </TextBlock>
-                </StackPanel>
-            </DockPanel>
+            </views:HeaderPanel>
 
             <views:PauseBar Margin="0,0,0,14" DataContext="{Binding EffectsPause}" />
 
@@ -163,12 +179,8 @@
                 </DockPanel>
             </Border>
 
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="24" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
+            <!-- The preview beside the sliders, or above them when the text of a larger text size of Windows needs the room. -->
+            <views:CardGrid MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource MixColumnWidth}}">
 
                 <StackPanel>
                     <Border Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}" Padding="18,26,18,20"
@@ -312,7 +324,7 @@
                     </Border>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2">
+                <StackPanel>
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding ColorPicker.Red, StringFormat={}{0:0}}" />
                         <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ChannelRed}" />
@@ -382,22 +394,14 @@
                             Command="{Binding ColorPicker.ApplyCommand}"
                             Visibility="{Binding ColorPicker.ShowsApply, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
-            </Grid>
+            </views:CardGrid>
 
             <!-- How the lamp shines: brightness, effect, speed and direction. -->
             <Border Margin="0,24,0,0" Style="{StaticResource LargeCard}">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LightingHeader}" />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="24" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="24" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="24" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
+                    <!-- Four columns, or fewer when the text of a larger text size of Windows needs the room. -->
+                    <views:CardGrid MaxColumns="4" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource LightingColumnWidth}}">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Brightness, StringFormat={}{0:0}%}" />
@@ -406,7 +410,7 @@
                             <Slider Minimum="0" Maximum="100" Value="{Binding Brightness}" SmallChange="1" LargeChange="10"
                                     IsSnapToTickEnabled="True" TickFrequency="1" AutomationProperties.Name="{x:Static res:Strings.BrightnessHeader}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="2">
+                        <StackPanel>
                             <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.EffectHeader}" />
                             <ComboBox x:Name="EffectChoice" ItemsSource="{Binding Effects}" SelectedItem="{Binding SelectedEffect}" DisplayMemberPath="DisplayName"
                                       AutomationProperties.Name="{x:Static res:Strings.EffectHeader}"
@@ -434,7 +438,7 @@
                                     Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
                                     ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="4">
+                        <StackPanel>
                             <DockPanel IsEnabled="{Binding IsSpeedEnabled}">
                                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Speed, StringFormat={}{0:0}%}" />
                                 <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.SpeedHeader}" />
@@ -446,7 +450,7 @@
                                        Visibility="{Binding IsSpeedEnabled, Converter={StaticResource InverseBoolToVisibility}}" />
                         </StackPanel>
                         <!-- Only for the effects that run over the LEDs; the arrow points the way, 0° to the right. -->
-                        <StackPanel Grid.Column="6" Visibility="{Binding IsDirectionVisible, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Visibility="{Binding IsDirectionVisible, Converter={StaticResource BoolToVisibility}}">
                             <DockPanel>
                                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding DirectionText}" />
                                 <!-- An arrow drawn as a shape, which a screen reader skips: the degrees already say it. -->
@@ -473,7 +477,7 @@
                                     Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"
                                     views:FocusFallback.Target="{Binding ElementName=DirectionSlider}" />
                         </StackPanel>
-                    </Grid>
+                    </views:CardGrid>
                 </StackPanel>
             </Border>
 

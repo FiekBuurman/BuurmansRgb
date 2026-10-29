@@ -13,6 +13,12 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
              Focusable="False">
+    <UserControl.Resources>
+        <!-- A length of four digits of 0.6 em in the mono font, plus the padding and the border: 64 px at
+             100 %, wider with a larger text size of Windows. -->
+        <views:EmConverter x:Key="LengthBoxWidth" Ems="2.4" Extra="28" />
+    </UserControl.Resources>
+
     <StackPanel>
         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" />
         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PreviewHint}" />
@@ -184,7 +190,7 @@
                                                             ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}" Command="{Binding Length.IncreaseCommand}"
                                                             AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
                                                             views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/increase}" />
-                                                    <TextBox Grid.Column="3" Width="64" Margin="10,0,0,0" FontFamily="{StaticResource MonoFont}"
+                                                    <TextBox Grid.Column="3" Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource LengthBoxWidth}}" Margin="10,0,0,0" FontFamily="{StaticResource MonoFont}"
                                                              Text="{Binding Length.LedCountText, UpdateSourceTrigger=PropertyChanged}"
                                                              AutomationProperties.Name="{Binding Length.TextAccessibleName}"
                                                              AutomationProperties.HelpText="{Binding LedCountHelpText}"

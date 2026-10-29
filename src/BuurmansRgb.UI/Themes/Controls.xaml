@@ -232,18 +232,23 @@
         <Setter Property="FontSize" Value="{DynamicResource SmallScreenTitleSize}" />
         <Setter Property="FontWeight" Value="ExtraBold" />
     </Style>
+    <!-- A heading goes on over more lines too, such as beside the links of Apparaten. -->
     <Style x:Key="SectionHeader" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{DynamicResource SectionHeaderSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style x:Key="CardTitle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{DynamicResource CardTitleSize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     </Style>
+    <!-- Body text goes on over more lines, as subtext does, when it no longer fits beside its control,
+         such as with a larger text size of Windows. -->
     <Style x:Key="Body" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
     <Style x:Key="SubText" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{DynamicResource SubTextSize}" />
@@ -436,15 +441,16 @@
     </Style>
 
     <!-- A round toggle with a short text, such as a day of the week: on, text-colored like the primary
-         button with bg text; off, a surface with a border like the secondary button. -->
+         button with bg text; off, a surface with a border like the secondary button. A larger text
+         size of Windows makes it a pill, as wide as its text. -->
     <Style x:Key="DayToggle" TargetType="ToggleButton" BasedOn="{StaticResource SecondaryButton}">
         <Style.Resources>
             <CornerRadius x:Key="ButtonRadius">22</CornerRadius>
         </Style.Resources>
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
-        <Setter Property="Width" Value="{StaticResource MinClickSize}" />
-        <Setter Property="Height" Value="{StaticResource MinClickSize}" />
-        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="8,0" />
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">
                 <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
@@ -876,7 +882,7 @@
                                           ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                                           ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" />
                         <!-- A text in Tag shows while nothing is selected, as a hint what to pick. -->
-                        <TextBlock x:Name="Placeholder" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" IsHitTestVisible="False"
+                        <TextBlock x:Name="Placeholder" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" IsHitTestVisible="False" TextWrapping="Wrap"
                                    Text="{TemplateBinding Tag}" Foreground="{DynamicResource TextMutedBrush}" Visibility="Collapsed" />
                         <Popup x:Name="PART_Popup" Placement="Bottom" VerticalOffset="4" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade"
                                IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}}">
