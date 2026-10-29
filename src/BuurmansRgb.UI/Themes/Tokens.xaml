@@ -48,8 +48,10 @@
     <SolidColorBrush x:Key="ControlHoverBrush" Color="{StaticResource TextMutedColor}" />
 
     <!-- Links, as in the screens of the design. -->
-    <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
-    <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
+    <Color x:Key="LinkColor">#7FB0FF</Color>
+    <Color x:Key="LinkHoverColor">#A9C9FF</Color>
+    <SolidColorBrush x:Key="LinkBrush" Color="{StaticResource LinkColor}" />
+    <SolidColorBrush x:Key="LinkHoverBrush" Color="{StaticResource LinkHoverColor}" />
 
     <!-- Roles of the colors above that a contrast theme of Windows gives a color of its own
          (ContrastTheme): here they look as the design says. Not the same as TextSelectionBrush
@@ -63,7 +65,8 @@
     <SolidColorBrush x:Key="OnHighlightTextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="OnHighlightMutedTextBrush" Color="{StaticResource TextMutedColor}" />
     <!-- The close button of the title bar under the mouse: red with a white cross, as in Windows. -->
-    <SolidColorBrush x:Key="CloseHoverBrush" Color="#C42B1C" />
+    <Color x:Key="CloseHoverColor">#C42B1C</Color>
+    <SolidColorBrush x:Key="CloseHoverBrush" Color="{StaticResource CloseHoverColor}" />
     <SolidColorBrush x:Key="CloseHoverTextBrush" Color="White" />
     <!-- The border of the scene card you edit. -->
     <SolidColorBrush x:Key="EditingCardBorderBrush" Color="{StaticResource BorderStrongColor}" />

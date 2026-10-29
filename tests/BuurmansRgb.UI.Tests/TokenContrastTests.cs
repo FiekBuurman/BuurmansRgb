@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using BuurmansRgb.UI.Views;
@@ -9,7 +10,7 @@ namespace BuurmansRgb.UI.Tests;
 // color that makes something hard to see fails here. Each pair names a token in front, as a Color
 // or a SolidColorBrush, and the token it stands on. A new pair goes in the list it belongs to.
 [Collection(AppThemeCollection.Name)]
-public sealed class TokenContrastTests
+public sealed partial class TokenContrastTests
 {
     // Text and the background it is on: body text and subtext on every surface, the selected item
     // of a list, the text of the primary button and the links.
@@ -93,6 +94,30 @@ public sealed class TokenContrastTests
 
         Assert.Equal(Tokens.Value["OnAccentBrush"], Color.FromRgb(knob.R, knob.G, knob.B));
     }
+
+    // Every color of Tokens.xaml is a Color token, and a brush refers to one (or to a named color
+    // such as Transparent), so a color has one place and its brushes cannot drift apart. Read from
+    // the XAML in the repo, next to which the tests are built.
+    [Fact]
+    public void Brushes_HaveNoLooseHexColor()
+    {
+        var xaml = File.ReadAllText(Path.Combine(ContrastThemeTests.RepoRoot(), "src", "BuurmansRgb.UI", "Themes", "Tokens.xaml"));
+
+        var loose = LooseBrushPattern().Matches(xaml).Select(match => match.Value);
+
+        Assert.Empty(loose);
+    }
+
+    [Theory]
+    [InlineData("""<SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />""", true)]
+    [InlineData("""<SolidColorBrush Color="#7FB0FF" x:Key="LinkBrush" />""", true)]
+    [InlineData("""<SolidColorBrush x:Key="LinkBrush" Color="{StaticResource LinkColor}" />""", false)]
+    [InlineData("""<SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />""", false)]
+    public void LooseBrushPattern_FindsABrushWithAHexColor(string xaml, bool loose) =>
+        Assert.Equal(loose, LooseBrushPattern().IsMatch(xaml));
+
+    [GeneratedRegex("""<SolidColorBrush\b[^>]*\bColor\s*=\s*"#[^"]*"[^>]*>""")]
+    private static partial Regex LooseBrushPattern();
 
     // The formula itself, with ratios WCAG gives: black on white, a color on itself, and the grey
     // that just misses 4.5:1 on white.
