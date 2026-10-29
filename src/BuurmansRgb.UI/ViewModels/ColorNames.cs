@@ -24,7 +24,8 @@ public static class ColorNames
     // list: what is nearly off is black, what has hardly any tint is a grey by its value, and the
     // rest a hue, light when it is pale and bright, dark when it is dim. Dark orange is brown, dark
     // yellow olive green, light red pink and dark pink purple, as people name them.
-    // ColorNamesTests pins the borders.
+    // Blue ends at 250°, so a violet such as #A07BFF, close to the Paars of the toolbox, is purple.
+    // ColorNamesTests holds a series of colors around the borders.
     public static ColorTone ToneOf(RgbColor color)
     {
         int max = Math.Max(color.R, Math.Max(color.G, color.B));
@@ -57,7 +58,7 @@ public static class ColorNames
             < 70 => light ? ColorTone.LightYellow : dark ? ColorTone.Olive : ColorTone.Yellow,
             < 160 => light ? ColorTone.LightGreen : dark ? ColorTone.DarkGreen : ColorTone.Green,
             < 190 => light ? ColorTone.LightTurquoise : dark ? ColorTone.DarkTurquoise : ColorTone.Turquoise,
-            < 260 => light ? ColorTone.LightBlue : dark ? ColorTone.DarkBlue : ColorTone.Blue,
+            < 250 => light ? ColorTone.LightBlue : dark ? ColorTone.DarkBlue : ColorTone.Blue,
             < 290 => light ? ColorTone.LightPurple : dark ? ColorTone.DarkPurple : ColorTone.Purple,
             _ => light ? ColorTone.LightPink : dark ? ColorTone.Purple : ColorTone.Pink,
         };

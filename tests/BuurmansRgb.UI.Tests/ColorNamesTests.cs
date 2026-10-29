@@ -73,7 +73,10 @@ public sealed class ColorNamesTests
     [InlineData("#0000FF", ColorTone.Blue)]
     [InlineData("#87CEEB", ColorTone.LightBlue)]
     [InlineData("#000080", ColorTone.DarkBlue)]
-    // Purple.
+    [InlineData("#6A5ACD", ColorTone.Blue)]
+    // Purple, from 250° on.
+    [InlineData("#A07BFF", ColorTone.Purple)]
+    [InlineData("#9370DB", ColorTone.LightPurple)]
     [InlineData("#A97BFF", ColorTone.Purple)]
     [InlineData("#8A2BE2", ColorTone.Purple)]
     [InlineData("#CC99FF", ColorTone.LightPurple)]
