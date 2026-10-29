@@ -21,7 +21,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
             <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" />
-            <TextBlock Margin="0,2,0,20" FontSize="14" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
+            <TextBlock Margin="0,2,0,20" FontSize="{DynamicResource SmallBodySize}" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
 
             <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
                        Visibility="{Binding Profiles.HasScenes, Converter={StaticResource InverseBoolToVisibility}}" />
@@ -57,7 +57,7 @@
                                             </DataTemplate>
                                         </views:DecorativeItemsControl.ItemTemplate>
                                     </views:DecorativeItemsControl>
-                                    <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="17" Text="{Binding Name}" />
+                                    <TextBlock Margin="0,16,0,0" Style="{StaticResource CardTitle}" FontSize="{DynamicResource SceneCardTitleSize}" Text="{Binding Name}" />
                                     <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
                                 </StackPanel>
                             </Button>

@@ -13,7 +13,7 @@
         Width="1180" Height="800" MinWidth="960" MinHeight="640"
         WindowStartupLocation="CenterScreen" UseLayoutRounding="True"
         Background="{DynamicResource BgBrush}" Foreground="{DynamicResource TextBrush}"
-        FontFamily="{StaticResource TextFont}" FontSize="{StaticResource BodySize}">
+        FontFamily="{StaticResource TextFont}" FontSize="{DynamicResource BodySize}">
     <!-- A title bar of our own in bg (§ 6). Windows still moves, snaps and sizes the window, and a
          double click or Alt+Space on the bar work as usual. One pixel of glass keeps the shadow of
          Windows around the window, and on Windows 11 its rounded corners. -->
@@ -36,7 +36,7 @@
                                 Background="Transparent" BorderBrush="Transparent">
                             <StackPanel VerticalAlignment="Center">
                                 <Path x:Name="Icon" Style="{StaticResource LineIcon}" HorizontalAlignment="Center" Data="{StaticResource IconLamps}" />
-                                <TextBlock x:Name="Label" Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="{StaticResource NavLabelSize}" Text="{Binding Label}" />
+                                <TextBlock x:Name="Label" Margin="0,4,0,0" HorizontalAlignment="Center" FontSize="{DynamicResource NavLabelSize}" Text="{Binding Label}" />
                             </StackPanel>
                         </Border>
                         <ControlTemplate.Triggers>

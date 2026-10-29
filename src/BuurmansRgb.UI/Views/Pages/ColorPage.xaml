@@ -40,7 +40,7 @@
         <Style x:Key="HexBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
             <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="FontSize" Value="{StaticResource HexCodeSize}" />
+            <Setter Property="FontSize" Value="{DynamicResource HexCodeSize}" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Width" Value="180" />
             <Setter Property="HorizontalAlignment" Value="Left" />
@@ -190,7 +190,7 @@
                                 </views:DecorativeItemsControl>
                             </Border>
                             <DockPanel Margin="0,22,0,0">
-                                <TextBlock DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Bottom" Style="{StaticResource MonoValue}" FontSize="13"
+                                <TextBlock DockPanel.Dock="Right" Margin="12,0,0,8" VerticalAlignment="Bottom" Style="{StaticResource MonoValue}" FontSize="{DynamicResource SubTextSize}"
                                            Text="{Binding ColorPicker.RgbText}" />
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />

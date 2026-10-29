@@ -70,7 +70,7 @@
                                                         ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding CountFocusKey}"
                                                         Visibility="{Binding ShowsCount, Converter={StaticResource BoolToVisibility}}" />
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock FontSize="{StaticResource SubTextSize}" TextWrapping="Wrap"
+                                                    <TextBlock FontSize="{DynamicResource SubTextSize}" TextWrapping="Wrap"
                                                                Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
                                                         <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
                                                             <Run Text="{Binding Header, Mode=OneWay}" />
@@ -78,7 +78,7 @@
                                                     </TextBlock>
                                                     <TextBlock Style="{StaticResource SubText}" Text="{Binding Header}"
                                                                Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                                    <TextBlock FontSize="{StaticResource SubTextSize}"
+                                                    <TextBlock FontSize="{DynamicResource SubTextSize}"
                                                                Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
                                                         <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
                                                                    AutomationProperties.Name="{Binding SelectAllAccessibleName}">
@@ -106,7 +106,7 @@
                                                     Visibility="{Binding IsCounting, Converter={StaticResource BoolToVisibility}}"
                                                     views:FocusFallback.Target="{Binding ElementName=CountButton}">
                                                 <StackPanel DataContext="{Binding Count}">
-                                                    <TextBlock Style="{StaticResource BigValue}" FontSize="44" FontFamily="{StaticResource MonoFont}"
+                                                    <TextBlock Style="{StaticResource BigValue}" FontSize="{DynamicResource CountValueSize}" FontFamily="{StaticResource MonoFont}"
                                                                Text="{Binding LedText}" AutomationProperties.Name="{Binding AccessibleName}" />
                                                     <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{Binding Status, NotifyOnTargetUpdated=True}"
                                                                AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
