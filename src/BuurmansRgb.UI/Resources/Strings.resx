@@ -477,7 +477,7 @@
   </data>
   <data name="ProgramPickItem" xml:space="preserve">
     <value>{0} ({1})</value>
-    <comment>A program in "Kies uit wat nu draait": its name, such as Outlook, and its exe name, such as olk.exe.</comment>
+    <comment>Een programma in "Kies uit wat nu draait". {0} = de naam, zoals Outlook, {1} = de naam van de exe, zoals olk.exe.</comment>
   </data>
   <data name="ProgramPickToolTip" xml:space="preserve">
     <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij.</value>
@@ -805,12 +805,14 @@
   </data>
   <data name="AutoStartLabel" xml:space="preserve">
     <value>Starten met Windows</value>
+    <comment>Gelijk houden met MenuAutoStart in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="AutoStartHint" xml:space="preserve">
     <value>buurmansRgb start als je je aanmeldt bij Windows, zodat je apparaten meteen hun verlichting krijgen. Hetzelfde als "Starten met Windows" in het tray-menu.</value>
   </data>
   <data name="AutoStartFailed" xml:space="preserve">
     <value>Starten met Windows kon niet worden aangepast.</value>
+    <comment>Gelijk houden met AutoStartFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="LogHeader" xml:space="preserve">
     <value>Logbestand</value>
@@ -820,9 +822,11 @@
   </data>
   <data name="OpenLog" xml:space="preserve">
     <value>Logbestand openen</value>
+    <comment>Gelijk houden met MenuOpenLog in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="LogOpenFailed" xml:space="preserve">
     <value>Het logbestand kon niet worden geopend.</value>
+    <comment>Gelijk houden met LogOpenFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="AppVersion" xml:space="preserve">
     <value>buurmansRgb {0}</value>
@@ -980,11 +984,11 @@
   </data>
   <data name="SceneDotsOn" xml:space="preserve">
     <value>Aan: {0}</value>
-    <comment>The bulbs of a scene card for a screen reader; {0} is each of their colors once, as hex codes with a comma between them.</comment>
+    <comment>De bolletjes van een scènekaart voor een schermlezer. {0} = elk van hun kleuren één keer, als hex-codes met een komma ertussen.</comment>
   </data>
   <data name="SceneDotsOff" xml:space="preserve">
     <value>Uit</value>
-    <comment>The bulbs of a scene card for a screen reader, when the scene has the lamps off.</comment>
+    <comment>De bolletjes van een scènekaart voor een schermlezer, als de scène de verlichting uit zet.</comment>
   </data>
   <data name="SceneEditToolTip" xml:space="preserve">
     <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
@@ -1078,7 +1082,7 @@
   </data>
   <data name="ProfileTimeName" xml:space="preserve">
     <value>Tijd {0}</value>
-    <comment>A row of a time in "Vanzelf aanzetten" for a screen reader, around its field, its days and its "−".</comment>
+    <comment>Een rij met een tijd in "Vanzelf aanzetten" voor een schermlezer, rond het veld, de dagen en de "−". {0} = het nummer van de tijd.</comment>
   </data>
   <data name="ProfileTimeDaysAccessibleName" xml:space="preserve">
     <value>Dagen van tijd {0}</value>

@@ -6,7 +6,6 @@ using System.Windows.Media;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
-using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -67,8 +66,7 @@ public sealed class CustomEffectViewTests
             var tile = StepTiles(page)[1];
             Assert.True(tile.Focus());
 
-            tile.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(tile), 0, Key.Delete) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
-            OffscreenWindow.WaitUntilIdle();
+            PageViews.Press(tile, Key.Delete, Keyboard.PreviewKeyDownEvent);
 
             var tiles = StepTiles(page);
             Assert.Equal(2, tiles.Count);
@@ -182,8 +180,7 @@ public sealed class CustomEffectViewTests
             Assert.True(box.Focus());
             box.Text = "Feest";
 
-            box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
-            OffscreenWindow.WaitUntilIdle();
+            PageViews.Press(box, Key.Enter);
 
             Assert.Equal("Feest", viewModel.SelectedEffect?.DisplayName);
             Assert.Single(engine!.Calls);
@@ -232,13 +229,11 @@ public sealed class CustomEffectViewTests
             box.Text = typed;
             if (enterFirst)
             {
-                box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
-                OffscreenWindow.WaitUntilIdle();
+                PageViews.Press(box, Key.Enter);
                 Assert.NotNull(viewModel.CustomEffectEditor.NameError);
             }
 
-            box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Escape) { RoutedEvent = Keyboard.KeyDownEvent });
-            OffscreenWindow.WaitUntilIdle();
+            PageViews.Press(box, Key.Escape);
 
             Assert.Equal("Disco", box.Text);
             Assert.True(box.IsKeyboardFocused);
@@ -267,8 +262,7 @@ public sealed class CustomEffectViewTests
             Assert.True(box.Focus());
             box.Text = "Aaa";
 
-            box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
-            OffscreenWindow.WaitUntilIdle();
+            PageViews.Press(box, Key.Enter);
 
             var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
             Assert.Equal(["Aaa", "Avond"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
@@ -293,53 +287,43 @@ public sealed class CustomEffectViewTests
         string Kept(string refused) => refused.Trim().Length == 0
             ? UiText.Format(Strings.CustomEffectNameEmptyKept, "Disco")
             : UiText.Format(Strings.CustomEffectNameTakenKept, refused, "Disco");
-        List<UIElement> announced = [];
-        var (hasListener, announce) = (LiveRegion.HasListener, LiveRegion.Announce);
-        LiveRegion.HasListener = () => true;
-        LiveRegion.Announce = announced.Add;
-        try
+        using var live = LiveRegionCapture.Start();
+
+        AppTheme.Run(panel =>
         {
-            AppTheme.Run(panel =>
-            {
-                var page = PageViews.Show<ColorPage>(panel, viewModel);
-                var box = NameBox(page);
-                Assert.True(box.Focus());
-                box.Text = name;
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = NameBox(page);
+            Assert.True(box.Focus());
+            box.Text = name;
 
-                box.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(box), 0, Key.Enter) { RoutedEvent = Keyboard.KeyDownEvent });
-                OffscreenWindow.WaitUntilIdle();
+            PageViews.Press(box, Key.Enter);
 
-                var error = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == text);
-                Assert.True(error.IsVisible);
-                Assert.Equal([error], announced);
-                Assert.Equal(name, box.Text);
+            var error = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == text);
+            Assert.True(error.IsVisible);
+            Assert.Equal([error], live.Announced);
+            Assert.Equal(name, box.Text);
 
-                Assert.True(StepTiles(page)[0].Focus());
-                OffscreenWindow.WaitUntilIdle();
+            Assert.True(StepTiles(page)[0].Focus());
+            OffscreenWindow.WaitUntilIdle();
 
-                Assert.Equal("Disco", box.Text);
-                Assert.True(error.IsVisible);
-                Assert.Equal(Kept(name), error.Text);
-                Assert.Equal([error, error], announced);
-                Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
-                Assert.Empty(engine!.Calls);
+            Assert.Equal("Disco", box.Text);
+            Assert.True(error.IsVisible);
+            Assert.Equal(Kept(name), error.Text);
+            Assert.Equal([error, error], live.Announced);
+            Assert.Equal("Disco", viewModel.SelectedEffect?.DisplayName);
+            Assert.Empty(engine!.Calls);
 
-                // Another name refused without Enter is said once, also with the same message.
-                Assert.True(box.Focus());
-                box.Text = other;
-                Assert.True(StepTiles(page)[0].Focus());
-                OffscreenWindow.WaitUntilIdle();
+            // Another name refused without Enter is said once, also with the same message.
+            Assert.True(box.Focus());
+            box.Text = other;
+            Assert.True(StepTiles(page)[0].Focus());
+            OffscreenWindow.WaitUntilIdle();
 
-                Assert.Equal(Kept(other), error.Text);
-                Assert.Equal([error, error, error], announced);
-                Assert.Equal("Disco", box.Text);
-                Assert.Empty(engine.Calls);
-            });
-        }
-        finally
-        {
-            (LiveRegion.HasListener, LiveRegion.Announce) = (hasListener, announce);
-        }
+            Assert.Equal(Kept(other), error.Text);
+            Assert.Equal([error, error, error], live.Announced);
+            Assert.Equal("Disco", box.Text);
+            Assert.Empty(engine.Calls);
+        });
     }
 
     // With Hele huis there are no LED colors of one device to take, so the link is off, and looks

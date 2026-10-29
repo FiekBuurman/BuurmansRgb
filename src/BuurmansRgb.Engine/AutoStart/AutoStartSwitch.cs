@@ -60,7 +60,9 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         }
     }
 
-    private static bool IsAccessError(Exception exception) =>
+    // What Windows throws when it does not let autostart be read or changed; AutoStartExtensions
+    // catches the same.
+    internal static bool IsAccessError(Exception exception) =>
         exception is UnauthorizedAccessException or SecurityException or IOException;
 
     private bool ReadEnabled()

@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using BuurmansRgb.UI.Views;
@@ -12,31 +11,21 @@ public sealed class LiveRegionTests
     [Fact]
     public void TextOfAnElementBeingMade_IsNotReadOutButAChangeAfterwardsIs() => OffscreenWindow.Run(panel =>
     {
-        List<UIElement> announced = [];
-        var (hasListener, announce) = (LiveRegion.HasListener, LiveRegion.Announce);
-        LiveRegion.HasListener = () => true;
-        LiveRegion.Announce = announced.Add;
-        try
-        {
-            var status = new Status { Text = "OpenRGB: niet bereikbaar" };
-            var first = Region(panel, status);
-            OffscreenWindow.WaitUntilIdle();
-            Assert.Empty(announced);
+        using var live = LiveRegionCapture.Start();
+        var status = new Status { Text = "OpenRGB: niet bereikbaar" };
+        var first = Region(panel, status);
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Empty(live.Announced);
 
-            status.Text = "OpenRGB: verbonden, 3 apparaten";
-            OffscreenWindow.WaitUntilIdle();
-            Assert.Equal([first], announced);
+        status.Text = "OpenRGB: verbonden, 3 apparaten";
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal([first], live.Announced);
 
-            // The page is made again when the user comes back to it.
-            panel.Children.Remove(first);
-            Region(panel, status);
-            OffscreenWindow.WaitUntilIdle();
-            Assert.Equal([first], announced);
-        }
-        finally
-        {
-            (LiveRegion.HasListener, LiveRegion.Announce) = (hasListener, announce);
-        }
+        // The page is made again when the user comes back to it.
+        panel.Children.Remove(first);
+        Region(panel, status);
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal([first], live.Announced);
     });
 
     private static TextBlock Region(Panel panel, Status status)

@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using System.Windows.Input;
 using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 
@@ -45,6 +46,14 @@ internal static class PageViews
     {
         var invoke = (IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke);
         invoke.Invoke();
+        OffscreenWindow.WaitUntilIdle();
+    }
+
+    // As the keyboard would, to the element that has the focus: KeyDown, or the routed event given,
+    // such as PreviewKeyDown for a key the element takes before its template does.
+    internal static void Press(UIElement element, Key key, RoutedEvent? routedEvent = null)
+    {
+        element.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(element), 0, key) { RoutedEvent = routedEvent ?? Keyboard.KeyDownEvent });
         OffscreenWindow.WaitUntilIdle();
     }
 

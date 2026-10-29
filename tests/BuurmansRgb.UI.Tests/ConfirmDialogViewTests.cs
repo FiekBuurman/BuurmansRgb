@@ -154,7 +154,7 @@ public sealed class ConfirmDialogViewTests
         {
             var button = Buttons(dialog)[index];
 
-            Press(button, Key.Enter, Keyboard.KeyDownEvent);
+            PageViews.Press(button, Key.Enter);
 
             Assert.Equal(confirmed, dialog.IsConfirmed);
             Assert.False(dialog.IsVisible);
@@ -166,7 +166,7 @@ public sealed class ConfirmDialogViewTests
     {
         Show(null, (_, dialog) =>
         {
-            Press(Buttons(dialog)[1], Key.Escape, Keyboard.PreviewKeyDownEvent);
+            PageViews.Press(Buttons(dialog)[1], Key.Escape, Keyboard.PreviewKeyDownEvent);
 
             Assert.False(dialog.IsConfirmed);
             Assert.False(dialog.IsVisible);
@@ -195,7 +195,6 @@ public sealed class ConfirmDialogViewTests
     // its owner, which then stands on screen.
     private static void Show(string? detail, Action<Window, ConfirmDialog> test, bool centeredOnOwner = false) => AppTheme.Run(panel =>
     {
-        const double offScreen = -10000;
         var owner = Window.GetWindow(panel)!;
         if (centeredOnOwner)
         {
@@ -211,8 +210,8 @@ public sealed class ConfirmDialogViewTests
         if (!centeredOnOwner)
         {
             dialog.WindowStartupLocation = WindowStartupLocation.Manual;
-            dialog.Left = offScreen;
-            dialog.Top = offScreen;
+            dialog.Left = OffscreenWindow.Offset;
+            dialog.Top = OffscreenWindow.Offset;
         }
 
         var closed = false;
@@ -224,8 +223,8 @@ public sealed class ConfirmDialogViewTests
             // Off screen it stays, also when it is measured again.
             if (!centeredOnOwner)
             {
-                Assert.Equal(offScreen, dialog.Left);
-                Assert.Equal(offScreen, dialog.Top);
+                Assert.Equal(OffscreenWindow.Offset, dialog.Left);
+                Assert.Equal(OffscreenWindow.Offset, dialog.Top);
             }
 
             test(owner, dialog);
@@ -258,10 +257,4 @@ public sealed class ConfirmDialogViewTests
     private static Button[] Buttons(Window dialog) => [.. AppTheme.Descendants<Button>(dialog).Where(button => button.Focusable)];
 
     private static IEnumerable<TextBlock> Texts(Window dialog) => AppTheme.Descendants<TextBlock>(dialog);
-
-    private static void Press(UIElement element, Key key, RoutedEvent routedEvent)
-    {
-        element.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(element), 0, key) { RoutedEvent = routedEvent });
-        OffscreenWindow.WaitUntilIdle();
-    }
 }

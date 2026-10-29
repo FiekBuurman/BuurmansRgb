@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;

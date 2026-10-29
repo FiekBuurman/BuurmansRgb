@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Security;
 
 namespace BuurmansRgb.Engine.AutoStart;
 
@@ -18,7 +17,7 @@ internal static class AutoStartExtensions
         {
             autoStart.SetEnabled(true);
         }
-        catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException or IOException)
+        catch (Exception exception) when (AutoStartSwitch.IsAccessError(exception))
         {
             Trace.TraceWarning($"Could not turn on autostart on the first run: {exception.Message}");
         }
@@ -35,7 +34,7 @@ internal static class AutoStartExtensions
                 Trace.TraceInformation($"Autostart started {oldCommand}, which is gone; it now starts this engine.");
             }
         }
-        catch (Exception exception) when (exception is UnauthorizedAccessException or SecurityException or IOException)
+        catch (Exception exception) when (AutoStartSwitch.IsAccessError(exception))
         {
             Trace.TraceWarning($"Could not move autostart to this engine: {exception.Message}");
         }

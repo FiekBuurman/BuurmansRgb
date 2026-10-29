@@ -4,7 +4,6 @@ using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
-using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;

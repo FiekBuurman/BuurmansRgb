@@ -136,13 +136,13 @@ public sealed class ToolboxViewTests
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             Assert.True(CustomTiles(page)[0].Focus());
 
-            PressDelete(CustomTiles(page)[0]);
+            PageViews.Press(CustomTiles(page)[0], Key.Delete, Keyboard.PreviewKeyDownEvent);
 
             var left = Assert.Single(CustomTiles(page));
             Assert.Equal([Blue], viewModel.CustomColors.Colors.Select(item => item.Color));
             Assert.True(left.IsKeyboardFocused);
 
-            PressDelete(left);
+            PageViews.Press(left, Key.Delete, Keyboard.PreviewKeyDownEvent);
 
             Assert.Empty(CustomTiles(page));
             Assert.True(AddButton(page).IsKeyboardFocused);
@@ -238,11 +238,4 @@ public sealed class ToolboxViewTests
 
     private static Button AddButton(DependencyObject page) =>
         PageViews.ButtonNamed(page, Strings.CustomColorsAdd);
-
-    // As the keyboard would, to the tile that has the focus.
-    private static void PressDelete(Button tile)
-    {
-        tile.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(tile), 0, Key.Delete) { RoutedEvent = Keyboard.PreviewKeyDownEvent });
-        OffscreenWindow.WaitUntilIdle();
-    }
 }

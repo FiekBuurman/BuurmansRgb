@@ -8,14 +8,17 @@ namespace BuurmansRgb.UI.Tests;
 // the tests do not take the focus of the desktop.
 internal static class OffscreenWindow
 {
+    // Left and top of a window off screen, far from any screen.
+    internal const double Offset = -10000;
+
     public static void Run(Action<StackPanel> test) => Sta.Run(() =>
     {
         var panel = new StackPanel();
         var window = new Window
         {
             Content = panel,
-            Left = -10000,
-            Top = -10000,
+            Left = Offset,
+            Top = Offset,
             Width = 200,
             Height = 200,
             ShowActivated = false,
