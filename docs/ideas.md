@@ -277,6 +277,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - De bolletjes van een scènekaart voor een schermlezer ook met kleurnamen (`ColorNames`), bijv.
   "Aan: oranje, blauw" in plaats van "Aan: #FF8800, #2F6BFF"; dan noemen ze dezelfde naam maar één
   keer. Nu noemen alleen de vakjes van de kleuren en de stappen van een eigen effect een kleurnaam
+- Gedempte kleuren een eigen naam geven in `ColorNames`, zoals "grijsblauw" (`#708090`),
+  "grijsrood" of "oudroze" (`#BC8F8F`) en "kaki" (`#BDB76B`): nu krijgt een middelhelle kleur met
+  weinig tint (boven de 20 % van grijs) de volle tintnaam, "blauw", "rood" of "geel". Een derde
+  stap op verzadiging tussen grijs en de tint houdt het voorspelbaar, maar kaki heeft al 43 %,
+  dus de grens vraagt een reeks kleuren om te kiezen (review 29-10)
 - De handleiding met de installer meeleveren, bijv. als HTML die `installer\build.ps1` uit
   `docs/handleiding.md` maakt, en die lokaal openen met "Handleiding" onderaan Instellingen: zo
   opent hij voor iedereen, ook zonder internet, en gaat hij over de versie die geïnstalleerd is,
