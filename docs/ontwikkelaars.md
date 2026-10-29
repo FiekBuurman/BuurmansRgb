@@ -768,10 +768,14 @@ toetsenbord. Een paar dingen om te proberen:
   `MinHeadingWidth` (12 em) houdt, en anders de keuze eronder. Die keuzelijst staat in een kolom
   `*` naast de schakelaar (`Auto`), dus krijgt hij hooguit wat de pagina naast de schakelaar
   overlaat; een naam die daar niet in past, eindigt op "…" (`TextTrimming` in de template van
-  `DeviceItem`). `Body`, `SectionHeader` en de tekst in een lege keuzelijst lopen om, een dag bij een scènetijd
-  heeft een `MinWidth` in plaats van een `Width`, en de naam op een scènekaart houdt rechts plaats
-  voor de moersleutel. Bij 100 % blijft alles zoals het was (de lijsten van wat elke pagina
-  tekent, vóór en na, zijn gelijk; zie "Metingen").
+  `DeviceItem`). `Body`, `SectionHeader` en de tekst in een lege keuzelijst lopen om, een dag bij
+  een scènetijd heeft een `MinWidth` in plaats van een `Width`, en de naam op een scènekaart houdt
+  rechts plaats voor de moersleutel. Bij 100 % blijft alles zoals het was, op twee terechte
+  verbeteringen na die ook dan gelden: de naam op een scènekaart houdt rechts 36 px vrij
+  (`ScenesPage.xaml`), zodat een lange naam op "…" eindigt vóór de moersleutel in plaats van
+  eronder, en een naam van een apparaat die breder is dan de pagina eindigt in de keuze op Kleur
+  op "…". Verder is wat elke pagina tekent bij 100 % gelijk aan vóór de tekstgrootte (zie
+  "Metingen").
   Wil je het zelf zien zonder je eigen instelling om te zetten, gebruik dan Windows Sandbox of
   een virtuele machine, met de app open op 960 × 640:
   1. Zet de tekstgrootte op 150 % en klik op Toepassen: de tekst van de open pagina groeit mee,
