@@ -343,7 +343,9 @@
          highlight (AccentBrush). Under the mouse a little lighter; in a contrast theme, where
          that would not show, the colors swap and a ring in the highlight keeps the shape of the
          button, as the accent buttons of Windows do. Without one the hover tokens are the colors at
-         rest and the ring is transparent. -->
+         rest and the ring is transparent. Under the mouse the face always takes AccentHoverBrush, as
+         the trigger sets the face itself: a Background of your own on a PrimaryButton shows only at
+         rest. -->
     <Style x:Key="PrimaryButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="28,0" />
