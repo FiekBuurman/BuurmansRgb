@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Media;
 using BuurmansRgb.UI.Services;
@@ -9,7 +10,7 @@ namespace BuurmansRgb.UI.Tests;
 // ContrastTheme on the resources of Themes/Theme.xaml, with a fake contrast theme: the setting of
 // Windows is never read or changed. A token takes its system color while a contrast theme is on,
 // and the color of the design once it is off again; the LED colors never change.
-public sealed class ContrastThemeTests
+public sealed partial class ContrastThemeTests
 {
     private static readonly Uri Theme = new("/BuurmansRgb.UI;component/Themes/Theme.xaml", UriKind.Relative);
 
@@ -148,17 +149,40 @@ public sealed class ContrastThemeTests
         var found = new List<string>();
         foreach (var file in Directory.EnumerateFiles(source, "*.xaml", SearchOption.AllDirectories))
         {
-            var lines = File.ReadAllLines(file);
-            for (var i = 0; i < lines.Length; i++)
-            {
-                found.AddRange(ContrastTheme.SystemBrushes.Keys
-                    .Where(token => lines[i].Contains($"{{StaticResource {token}}}", StringComparison.Ordinal))
-                    .Select(token => $"{Path.GetRelativePath(source, file)}:{i + 1} {token}"));
-            }
+            var xaml = File.ReadAllText(file);
+            found.AddRange(StaticReferences(xaml)
+                .Where(reference => ContrastTheme.SystemBrushes.ContainsKey(reference.Key))
+                .Select(reference => $"{Path.GetRelativePath(source, file)}:{LineOf(xaml, reference.Index)} {reference.Key}"));
         }
 
         Assert.Empty(found);
     }
+
+    // The forms of a StaticResource that XAML knows, and none that is no StaticResource.
+    [Theory]
+    [InlineData("""Foreground="{StaticResource TextBrush}" """, "TextBrush")]
+    [InlineData("""Foreground="{StaticResource ResourceKey=TextBrush}" """, "TextBrush")]
+    [InlineData("""<StaticResource ResourceKey="TextBrush" />""", "TextBrush")]
+    [InlineData("""<StaticResourceExtension ResourceKey="TextBrush" />""", "TextBrush")]
+    [InlineData("<StaticResource x:Name=\"Text\"\r\n    ResourceKey=\"TextBrush\" />", "TextBrush")]
+    [InlineData("""Foreground="{DynamicResource TextBrush}" """, null)]
+    [InlineData("""<DynamicResource ResourceKey="TextBrush" />""", null)]
+    public void StaticReferences_FindsEveryFormOfAStaticResource(string xaml, string? key)
+    {
+        string[] expected = key is null ? [] : [key];
+
+        Assert.Equal(expected, StaticReferences(xaml).Select(reference => reference.Key));
+    }
+
+    // The keys a XAML refers to with StaticResource, as a markup extension in an attribute (with or
+    // without ResourceKey=) or as an element of its own, where ResourceKey may be on another line.
+    private static IEnumerable<(string Key, int Index)> StaticReferences(string xaml) =>
+        StaticResourcePattern().Matches(xaml).Select(match => (match.Groups["key"].Value, match.Index));
+
+    [GeneratedRegex("""\{StaticResource\s+(?:ResourceKey\s*=\s*)?(?<key>[^\s,}]+)\s*\}|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*"(?<key>[^"]+)"|<StaticResource(?:Extension)?\b[^>]*?\bResourceKey\s*=\s*'(?<key>[^']+)'""")]
+    private static partial Regex StaticResourcePattern();
+
+    private static int LineOf(string text, int index) => text.AsSpan(0, index).Count('\n') + 1;
 
     [Fact]
     public void Dispose_StopsFollowing() => Sta.Run(() =>
