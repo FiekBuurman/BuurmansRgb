@@ -126,6 +126,27 @@ public sealed class ContrastThemeTests
         Assert.All(ContrastTheme.SystemBrushes.Keys, token => Assert.Contains(token, tokens.Keys));
     });
 
+    // A StaticResource keeps the color it found when the XAML loaded, so a contrast theme would pass
+    // it by. Read from the XAML of the app in the repo, next to which the tests are built.
+    [Fact]
+    public void Xaml_RefersToTheTokensOfAContrastThemeOnlyWithDynamicResource()
+    {
+        var source = Path.Combine(RepoRoot(), "src", "BuurmansRgb.UI");
+        var found = new List<string>();
+        foreach (var file in Directory.EnumerateFiles(source, "*.xaml", SearchOption.AllDirectories))
+        {
+            var lines = File.ReadAllLines(file);
+            for (var i = 0; i < lines.Length; i++)
+            {
+                found.AddRange(ContrastTheme.SystemBrushes.Keys
+                    .Where(token => lines[i].Contains($"{{StaticResource {token}}}", StringComparison.Ordinal))
+                    .Select(token => $"{Path.GetRelativePath(source, file)}:{i + 1} {token}"));
+            }
+        }
+
+        Assert.Empty(found);
+    }
+
     [Fact]
     public void Dispose_StopsFollowing() => Sta.Run(() =>
     {
@@ -141,6 +162,17 @@ public sealed class ContrastThemeTests
     });
 
     private static ResourceDictionary LoadTheme() => (ResourceDictionary)Application.LoadComponent(Theme);
+
+    private static string RepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "BuurmansRgb.slnx")))
+        {
+            directory = directory.Parent;
+        }
+
+        return Assert.IsType<DirectoryInfo>(directory).FullName;
+    }
 
     private static Color ColorOf(ResourceDictionary resources, string token) => Assert.IsType<SolidColorBrush>(resources[token]).Color;
 
