@@ -34,6 +34,14 @@
     <!-- The hover border of cards and buttons (§ 6), which is border-strong. -->
     <SolidColorBrush x:Key="HoverBorderBrush" Color="{StaticResource BorderStrongColor}" />
 
+    <!-- The border of a field you type in or pick from, and of a check box: not in the design, whose
+         border (1.2:1) and border-strong (1.8:1) do not make a field recognizable. It stands out at
+         least 3:1 on bg, surface and preview-bg (WCAG 1.4.11), and is lighter on hover (text-muted);
+         the focus is the ring of 2 px in text. TokenContrastTests checks the ratios. -->
+    <Color x:Key="InputBorderColor">#74727A</Color>
+    <SolidColorBrush x:Key="InputBorderBrush" Color="{StaticResource InputBorderColor}" />
+    <SolidColorBrush x:Key="InputHoverBorderBrush" Color="{StaticResource TextMutedColor}" />
+
     <!-- Links, as in the screens of the design. -->
     <SolidColorBrush x:Key="LinkBrush" Color="#7FB0FF" />
     <SolidColorBrush x:Key="LinkHoverBrush" Color="#A9C9FF" />
