@@ -497,7 +497,8 @@ uitbreidingen in `docs/bouwplan.md`.
   het naar 130–143 MB, maar kost op Apparaten CPU; eventueel als keuze bij Instellingen, of alleen
   zonder bewegend effect. Sinds #? draait de app zonder tiered compilation (8–17 MB minder),
   maar dat is alleen gemeten over Extern bureaublad, waar WPF zonder videokaart tekent
-  (122–133 MB). Openstaand punt: de app met een zichtbaar venster op het eigen scherm opnieuw
+  (122–133 MB); het kost ~0,4–1,1 procentpunt van één kern meer CPU, geen harde eis voor de
+  app. Openstaand punt: de app met een zichtbaar venster op het eigen scherm opnieuw
   meten (Apparaten en Kleur met "Hele huis", zie "Metingen"), om te zien of hij nu onder de
   150 MB blijft; vóór #? was dat 166–191 MB. Wat er daarna nog te halen is, met wat de proeven
   in #? opleverden:
