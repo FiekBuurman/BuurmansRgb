@@ -693,9 +693,9 @@ toetsenbord. Een paar dingen om te proberen:
   de muis); `Button*Brush` (gewone knoppen en kaarten om op te klikken). Een *outline* is een
   lijn die alleen in een contrastthema te zien is en zonder thema doorzichtig is:
   `ControlOutlineBrush` (in de tekstkleur, om het spoor van een schakelaar en een schuif) en
-  `HoverOutlineBrush` (in `Highlight` onder de muis: de ring van de primaire knop en de streep
-  onder een link). Wat inhoud is, blijft `StaticResource` en
-  verandert niet: de LED-kleuren, `LedOffBrush` van de bolletjes, `StripBgBrush`, de gloed en
+  `HoverOutlineBrush` (in `Highlight` onder de muis: de ring van de primaire knop en van een
+  schakelaar, en de streep onder een link). Wat inhoud is, blijft `StaticResource` en verandert
+  niet: de LED-kleuren, `LedOffBrush` van de bolletjes, `StripBgBrush`, de gloed en
   de kleuren van het voorbeeld (die tekent `LedPreviewView` zelf, elk beeld opnieuw), het
   woordmerk en de schuiven R, G en B.
 - **Schermlezer:** UI Automation noemt een item van een `ItemsControl` naar de `ToString` van
