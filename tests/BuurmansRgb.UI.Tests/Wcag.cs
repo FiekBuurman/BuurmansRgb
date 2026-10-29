@@ -13,9 +13,9 @@ internal static class Wcag
 
     public static double ContrastRatio(Color first, Color second)
     {
-        var lighter = Math.Max(RelativeLuminance(first), RelativeLuminance(second));
-        var darker = Math.Min(RelativeLuminance(first), RelativeLuminance(second));
-        return (lighter + 0.05) / (darker + 0.05);
+        var a = RelativeLuminance(first);
+        var b = RelativeLuminance(second);
+        return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
     }
 
     public static double RelativeLuminance(Color color) =>
@@ -24,6 +24,9 @@ internal static class Wcag
     private static double Linear(byte channel)
     {
         var value = channel / 255.0;
+
+        // WCAG 2.x names 0.03928, sRGB 0.04045. No 8-bit channel lies between them (10/255 is 0.0392,
+        // 11/255 is 0.0431), so both give the same result here.
         return value <= 0.03928 ? value / 12.92 : Math.Pow((value + 0.055) / 1.055, 2.4);
     }
 }
