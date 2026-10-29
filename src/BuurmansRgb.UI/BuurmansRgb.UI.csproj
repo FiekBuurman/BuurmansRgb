@@ -14,8 +14,8 @@
     <!-- Memory (docs/ontwikkelaars.md, "Metingen"): with tiered compilation .NET keeps a quick first
          version and later an optimized second one of every method that runs often, which cost the
          app 8-17 MB of working set. Without it, each method is compiled once. Every publish of the
-         app (with the installer or without) compiles it ahead of time (ReadyToRun), so the app does
-         not start slower for it; a plain build without it starts 0.2-0.7 s later. -->
+         app (with the installer or without) compiles it ahead of time (ReadyToRun), so the app is
+         usable only ~0.15 s later for it; a plain build without it starts 0.2-0.7 s later. -->
     <TieredCompilation>false</TieredCompilation>
     <PublishReadyToRun>true</PublishReadyToRun>
     <!-- Only these assemblies get ReadyToRun code, see KeepSharedAssembliesIL. -->

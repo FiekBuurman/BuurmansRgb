@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.Tests;
 
 // How .NET runs the settings app, for its memory (docs/ontwikkelaars.md, "Metingen"): every method
 // compiled once instead of a quick and later an optimized version, and compiled ahead of time when
-// the app is published, so it starts as fast as with tiered compilation.
+// the app is published, so it starts nearly as fast as with tiered compilation.
 public sealed class AppRuntimeTests
 {
     // The build puts the runtimeconfig.json of the app next to the app, also in the test output.
