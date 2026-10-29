@@ -53,7 +53,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
   klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
   een titelbalk die even hoog blijft. Een lange naam van een apparaat of scène op een kaart eindigt
-  met "…", zoals bij 100 %, en ook een naam die niet meer in de keuze op Kleur past.
+  met "…", zoals bij 100 %, en ook een naam die niet meer in de keuze op Kleur past. Bij een
+  lange naam van een apparaat staat die keuze ook bij 100 % onder de titel, zodat de titel
+  leesbaar blijft.
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
