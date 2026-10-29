@@ -61,6 +61,21 @@ public sealed class CoalescingCallQueueTests
         Assert.Equal(["b1"], _calls);
     }
 
+    // onSucceeded hears the key of each call that went through, so the caller knows which one.
+    [Fact]
+    public void SucceededCall_IsReportedWithItsKey()
+    {
+        var succeeded = new List<object>();
+        var queue = new CoalescingCallQueue(_errors.Add, succeeded.Add);
+
+        queue.Post("a", () => Record("a1"));
+        queue.Post(("flash", "fan"), () => Task.FromException(new InvalidOperationException("Boom.")));
+        queue.Post(("flash", "strip"), () => Record("flash strip"));
+
+        Assert.Equal<object>(["a", ("flash", "strip")], succeeded);
+        Assert.Single(_errors);
+    }
+
     private CoalescingCallQueue CreateQueue() => new(exception =>
     {
         lock (_errors)
