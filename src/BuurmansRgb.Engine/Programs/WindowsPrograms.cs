@@ -6,13 +6,9 @@ namespace BuurmansRgb.Engine.Programs;
 // window (SystemForegroundWindow, SystemScreenSaverEvents).
 internal static class WindowsPrograms
 {
-    // The lock screen, also the sign-in screen after a screen saver with "aanmeldingsscherm bij
-    // hervatten".
-    public const string LockScreen = "LockApp.exe";
-
     private const string ScreenSaverExtension = ".scr";
 
-    public static bool IsLockScreen(string? program) => program is not null && ProgramNames.Comparer.Equals(program, LockScreen);
+    public static bool IsLockScreen(string? program) => program is not null && ProgramNames.Comparer.Equals(program, ProgramNames.LockScreen);
 
     // Whether program is a screen saver, by its exe name (any case).
     public static bool IsScreenSaver(string? program) =>

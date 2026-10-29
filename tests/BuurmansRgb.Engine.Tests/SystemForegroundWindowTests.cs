@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Programs;
 
 namespace BuurmansRgb.Engine.Tests;
@@ -34,6 +35,14 @@ public sealed class SystemForegroundWindowTests : IDisposable
     [InlineData("UnityWndClass", null, false)]
     public void Counts_OnlyAWindowThatTakesTheUserToAProgram(string className, string? program, bool counts) =>
         Assert.Equal(counts, SystemForegroundWindow.Counts(className, program));
+
+    // Each part of Windows that shows over a program passes by, also one added to the list later.
+    [Fact]
+    public void Counts_NoneOfTheShellParts()
+    {
+        Assert.NotEmpty(ProgramNames.ShellParts);
+        Assert.All(ProgramNames.ShellParts, part => Assert.False(SystemForegroundWindow.Counts("Windows.UI.Core.CoreWindow", part), part));
+    }
 
     // The desktop is a window of explorer.exe; a window of the engine itself changes nothing. The
     // same program again is told again too, as it may have stopped and started in between.

@@ -37,16 +37,26 @@ public partial class ScenesPage : UserControl
             }
         });
 
-    // The list is read when it opens, so a game started a moment ago is in it.
+    // The list is read once it shows, with the settings of a scene, so it does not open empty the
+    // first time; and again when it opens, so a game started a moment ago is in it.
+    private void OnRunningProgramsShown(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            Automation?.FindProgramsCommand.Execute(null);
+        }
+    }
+
     private void OnRunningProgramsOpened(object? sender, EventArgs e) => Automation?.FindProgramsCommand.Execute(null);
 
-    // The pick goes into the program field; the list goes back to its hint, so the same program can
-    // be picked again after the field changed. Posted: WPF ignores a change while it selects.
+    // The exe name of the pick goes into the program field; the list goes back to its hint, so the
+    // same program can be picked again after the field changed. Posted: WPF ignores a change while
+    // it selects.
     private void OnRunningProgramPicked(object sender, SelectionChangedEventArgs e)
     {
-        if (RunningPrograms.SelectedItem is string program)
+        if (RunningPrograms.SelectedItem is RunningProgramItem item)
         {
-            Automation?.PickProgramCommand.Execute(program);
+            Automation?.PickRunningProgramCommand.Execute(item);
             Dispatcher.BeginInvoke(DispatcherPriority.Background, () => RunningPrograms.SelectedItem = null);
         }
     }

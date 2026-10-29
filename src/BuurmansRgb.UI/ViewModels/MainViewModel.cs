@@ -93,14 +93,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // one does not bring back an older version.
     private int _customEffectChanges;
 
-    // time gives the clock time in the save status and the delay before a new zone length goes to
-    // the engine; tests pass a fake one.
     // How long the choice of a lamp rests before it flashes, when the picks follow each other.
     public static TimeSpan FlashRest { get; } = TimeSpan.FromMilliseconds(300);
 
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null)
+    // time gives the clock time in the save status and the delay before a new zone length goes to
+    // the engine; tests pass a fake one, and also a fake findPrograms for "Kies uit wat nu draait"
+    // instead of the programs that run (WindowedPrograms.Find).
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null)
     {
         _connector = connector;
+        Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
         Preview = new PreviewViewModel(_time);
@@ -264,7 +266,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // What the colors do in the selected effect, such as "every round the next color".
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
 
-    public ProfilesViewModel Profiles { get; } = new();
+    public ProfilesViewModel Profiles { get; }
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 

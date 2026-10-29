@@ -299,12 +299,24 @@ uitbreidingen in `docs/bouwplan.md`.
   herkennen: dat venster (`ApplicationFrameWindow`) hoort bij `ApplicationFrameHost.exe`, en de
   echte app staat in het kindvenster `Windows.UI.Core.CoreWindow`, waarvan het proces te lezen is
   (bijv. met `EnumChildWindows`). Nu telt zo'n app als `ApplicationFrameHost.exe`
+- Dezelfde Store-apps ook in "Kies uit wat nu draait" tonen, via het proces van hun
+  `Windows.UI.Core.CoreWindow`: hun eigen proces heeft geen hoofdvenster, en
+  `ApplicationFrameHost.exe` staat er sinds de herkenbare namen niet meer bij (gebruikerstest
+  28-10, B14)
+- In "Kies uit wat nu draait" de naam in de taal van Windows tonen ("Instellingen" en
+  "Verkenner" in plaats van "Settings" en "Windows Explorer"): `FileVersionInfo` leest de
+  taalneutrale versie-informatie; de vertaalde staat in het `.mui`-bestand of is via de shell
+  te lezen (`PKEY_FileDescription`)
 - Bij "Alleen als het op de voorgrond staat" de instellingen-app niet laten tellen als
   wegwisselen, zodat je een voorgrond-scène kunt bijstellen terwijl hij brandt; nu komt bij het
   openen van de app de verlichting van daarvoor terug
 - Bij "Alleen als het op de voorgrond staat" een korte wachttijd (bijv. een halve seconde)
   voordat de scène wisselt, zodat snel heen en weer alt-tabben de apparaten niet laat flitsen; nu
   wisselen ze bij elk venster dat vooraan komt
+- Bij "Alleen als het op de voorgrond staat" ook het zoeken van oudere Windows 10-versies
+  (`SearchUI.exe`, vóór 2004) laten voorbijgaan, zoals `SearchApp.exe` en `SearchHost.exe` in
+  `ProgramNames.ShellParts`; "Kies uit wat nu draait" laat hem al weg, maar op zo'n pc niet
+  nagekeken of het zoekvenster daar vooraan komt
 - "Gemiste tijden inhalen" (#51) laat bij het starten de tijd altijd winnen, ook van een kleur
   of scène die je na de laatste tijd zelf koos, omdat de engine niet weet wat er gebeurde terwijl
   hij niet draaide. Met een tijdstempel van de laatste wijziging van de verlichting in

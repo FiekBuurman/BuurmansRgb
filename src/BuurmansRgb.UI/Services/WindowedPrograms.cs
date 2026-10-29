@@ -1,35 +1,91 @@
-using System.Diagnostics;
+using System.ComponentModel;
+using System.IO;
 using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.UI.Services;
 
-// The programs that show a window now, as the .exe names "Aanzetten als dit programma start" takes:
-// a game or app the user has open, without the background processes nobody would pick. The name
-// comes from the process, so it also works for programs that run as administrator.
+// The programs that show a window now, for "Kies uit wat nu draait": a game or app the user has
+// open, without the background processes and the parts of Windows nobody would pick. Each one by
+// the name a user knows it by: the description in its exe file, else the title of its window, else
+// its exe name; the field still gets the exe name. In the order of those names.
 public static class WindowedPrograms
 {
-    public static IReadOnlyList<string> Find()
+    // A longer title, such as that of a document, is cut off, so the list does not get that wide.
+    internal const int MaxNameLength = 60;
+
+    // Parts of Windows itself that have a window, often an invisible one, without being an app a
+    // user opens: those that the engine lets pass by in the foreground (ProgramNames.ShellParts:
+    // the start menu, search, the panes for notifications and quick settings, the lock screen), and
+    // also the frame around Store apps (which stands for any Store app, not for one), the touch
+    // keyboard and emoji panel, and search on older Windows 10 (SearchUI.exe). Windows that a user
+    // does open, such as Instellingen (SystemSettings.exe) and Verkenner (explorer.exe), stay in
+    // the list. Typed in the field, these still work as before.
+    internal static IReadOnlySet<string> WindowsParts { get; } = new HashSet<string>(ProgramNames.ShellParts, ProgramNames.Comparer)
     {
-        var own = Environment.ProcessId;
-        var names = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var process in Process.GetProcesses())
+        "ApplicationFrameHost.exe",
+        "TextInputHost.exe",
+        "SearchUI.exe",
+    };
+
+    public static IReadOnlyList<RunningProgram> Find() => Find(SystemProcesses.Windowed(), SystemProcesses.Description);
+
+    // describe gives the description in the exe file of a process by its id; when it throws, as it
+    // does for a process that ended or cannot be read, the title or the exe name stands instead.
+    internal static IReadOnlyList<RunningProgram> Find(IEnumerable<WindowedProcess> processes, Func<int, string?> describe)
+    {
+        var programs = new List<RunningProgram>();
+        var byExeName = processes
+            .Select(process => (Process: process, ExeName: ProgramNames.Normalize(process.Name)))
+            .Where(found => found.ExeName is not null && !WindowsParts.Contains(found.ExeName))
+            .GroupBy(found => found.ExeName!, found => found.Process, ProgramNames.Comparer);
+        foreach (var program in byExeName)
         {
-            using (process)
-            {
-                try
-                {
-                    if (process.Id != own && process.MainWindowHandle != IntPtr.Zero && ProgramNames.Normalize(process.ProcessName) is { } name)
-                    {
-                        names.Add(name);
-                    }
-                }
-                catch (InvalidOperationException)
-                {
-                    // Ended while the list was read.
-                }
-            }
+            // One process of the program that describes it is enough; the others are not read.
+            var name = program.Select(process => Describe(process.Id, describe)?.Trim()).FirstOrDefault(description => IsName(description, program.Key))
+                ?? program.Select(process => process.Title?.Trim()).FirstOrDefault(title => IsName(title, program.Key));
+            programs.Add(new RunningProgram(program.Key, Readable(name, program.Key)));
         }
 
-        return [.. names];
+        return [.. programs
+            .OrderBy(program => program.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(program => program.ExeName, ProgramNames.Comparer)];
+    }
+
+    private static string? Describe(int processId, Func<int, string?> describe)
+    {
+        try
+        {
+            return describe(processId);
+        }
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            // Ended, of another user, protected, or its file gone: no description then.
+            return null;
+        }
+    }
+
+    // A name that only says the exe name again ("game" for game.exe) adds nothing, so a description
+    // like that leaves the turn to the title of the window ("ELDEN RING"). The name comes trimmed.
+    private static bool IsName(string? name, string exeName) =>
+        !string.IsNullOrEmpty(name)
+        && !ProgramNames.Comparer.Equals(name, exeName)
+        && !ProgramNames.Comparer.Equals(name, Path.GetFileNameWithoutExtension(exeName));
+
+    // The name, already trimmed, cut off when it is long; the exe name itself when there is none.
+    private static string Readable(string? name, string exeName)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return exeName;
+        }
+
+        if (name.Length <= MaxNameLength)
+        {
+            return name;
+        }
+
+        // An emoji or other character of two halves (a surrogate pair) goes whole, not half.
+        var kept = char.IsHighSurrogate(name[MaxNameLength - 2]) ? MaxNameLength - 2 : MaxNameLength - 1;
+        return string.Concat(name.AsSpan(0, kept).TrimEnd(), "…");
     }
 }

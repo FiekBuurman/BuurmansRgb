@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -23,8 +24,11 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // selected. Not for the same profile again, so what the user typed there stays.
     public event EventHandler<string>? AutomationNeeded;
 
+    // findPrograms lists the programs to pick from for Automation (WindowedPrograms.Find).
+    public ProfilesViewModel(Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null) => Automation = new(findPrograms);
+
     // When the selected profile loads by itself.
-    public ProfileAutomationViewModel Automation { get; } = new();
+    public ProfileAutomationViewModel Automation { get; }
 
     // In the order of the engine, which is alphabetical.
     public ObservableCollection<string> Names { get; } = [];

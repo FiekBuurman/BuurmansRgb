@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Programs;
 
 namespace BuurmansRgb.Engine.Power;
