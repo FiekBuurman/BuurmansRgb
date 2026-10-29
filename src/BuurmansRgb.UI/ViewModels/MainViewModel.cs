@@ -24,7 +24,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
     private const string ResizeCall = "resize";
-    private const string FlashCall = "flash";
     private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
     private const string SimulatedDevicesCall = "simulated-devices";
@@ -81,7 +80,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private int _pauseChanges;
 
     // While a flash runs in the engine, a preview that stands still gets no new image until then,
-    // so it never shows the white of the flash (RequestStill).
+    // so it never shows the white of the flash (RequestStill, OnFlashStarted).
     private DateTimeOffset _stillsHeldUntil = DateTimeOffset.MinValue;
 
     // Counts the changes sent for the selected device, so lighting fetched while the user changed
@@ -104,7 +103,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public static TimeSpan FlashRest { get; } = TimeSpan.FromMilliseconds(300);
 
     // How long after a flash a preview that stands still waits beyond PreviewViewModel.FlashTime
-    // for its next image: the flash starts in the engine a little after the call leaves here.
+    // for its next image: the engine ends the flash at its first frame after that, and the word
+    // that the flash went through reaches the UI thread a little after the flash started.
     public static TimeSpan StillAfterFlash { get; } = TimeSpan.FromMilliseconds(250);
 
     // time gives the clock time in the save status and the delay before a new zone length goes to
@@ -591,26 +591,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var frame = await connection.Api.GetFrameAsync();
             RunOnUi(() =>
             {
-                if (ReferenceEquals(connection, _connection) && Motion.IsStill)
+                if (!ReferenceEquals(connection, _connection) || !Motion.IsStill)
                 {
-                    ShowFrame(frame);
+                    return;
                 }
+
+                // A flash that went through just before this image was taken holds the stills
+                // only now, as OnCallSucceeded reaches the UI thread first: the image may show
+                // the white of it, so it goes, and a new one comes after the flash.
+                if (_stillsHeldUntil > _time.GetUtcNow())
+                {
+                    RequestStill();
+                    return;
+                }
+
+                ShowFrame(frame);
             });
         });
     }
 
-    // While the preview stands still, a flash shows as a mark on the card of its device instead
-    // of white on and off, and no image comes until the flash is over (a little after, so the
-    // engine is surely done).
-    private void HoldStillsForFlash(string deviceId, int? zoneIndex)
+    // A flash that went through runs in the engine now: until it is over (a little after, so the
+    // engine is surely done), the preview gets no still image, also when it comes to stand still
+    // meanwhile, so it never shows the white of it. A preview that stands still shows a mark on
+    // the card of the device instead. A flash that failed holds and marks nothing, nor does one
+    // during a pause (CanFlash), as the engine does not flash then.
+    private void OnFlashStarted(FlashTarget flash)
     {
-        if (!Motion.IsStill)
+        if (!Preview.CanFlash)
         {
             return;
         }
 
-        Preview.MarkFlash(deviceId, zoneIndex);
         _stillsHeldUntil = _time.GetUtcNow() + PreviewViewModel.FlashTime + StillAfterFlash;
+        if (Motion.IsStill)
+        {
+            Preview.MarkFlash(flash.DeviceId, flash.ZoneIndex);
+        }
     }
 
     partial void OnBrightnessChanged(double value)
@@ -1365,8 +1381,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CancelPendingFlash();
         if (_connection is { } connection)
         {
-            HoldStillsForFlash(deviceId, zoneIndex: null);
-            _calls.Post((FlashCall, deviceId), () => connection.Api.FlashDeviceAsync(deviceId));
+            _calls.Post(new FlashTarget(deviceId, ZoneIndex: null), () => connection.Api.FlashDeviceAsync(deviceId));
         }
     }
 
@@ -1375,8 +1390,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CancelPendingFlash();
         if (_connection is { } connection)
         {
-            HoldStillsForFlash(flash.DeviceId, flash.ZoneIndex);
-            _calls.Post((FlashCall, flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
+            _calls.Post(new FlashTarget(flash.DeviceId, flash.ZoneIndex), () => connection.Api.FlashZoneAsync(flash.DeviceId, flash.ZoneIndex));
         }
     }
 
@@ -1771,6 +1785,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             StatusMessage = null;
         }
 
+        if (key is FlashTarget flash)
+        {
+            OnFlashStarted(flash);
+        }
+
         RequestStill();
     }
 
@@ -1836,6 +1855,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
+    // The key of a flash in the queue, so OnCallSucceeded knows which flash went through; a null
+    // ZoneIndex flashes the whole device.
+    private sealed record FlashTarget(string DeviceId, int? ZoneIndex);
+
     private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
 
     // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting

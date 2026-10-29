@@ -191,6 +191,62 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Null(board.FlashMark);
     }
 
+    // During a pause the engine does not flash: no mark, and the next image comes at once.
+    [Fact]
+    public async Task FlashWhilePaused_HasNoMarkAndHoldsNothing()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        Api.RaisePause(PauseReasons.Manual);
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        Assert.Contains("flash fan", Api.Calls);
+        Assert.All(viewModel.Preview.Devices, device => Assert.Null(device.FlashMark));
+        Api.Frame = Frame(2, Blue);
+        Api.RaiseLightingChanged();
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
+    // A flash the engine did not get flashes nothing: no mark, and the next image comes at once.
+    [Fact]
+    public async Task FailedFlash_HasNoMarkAndHoldsNothing()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var fan = viewModel.Preview.Devices.Single(device => device.DeviceId == "fan");
+
+        Api.SetException = new InvalidOperationException("Boom.");
+        fan.FlashCommand.Execute(null);
+        Api.SetException = null;
+
+        Assert.Null(fan.FlashMark);
+        Api.Frame = Frame(2, Blue);
+        Api.RaiseLightingChanged();
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
+    // A preview that comes to stand still during a flash waits for the end of it too, so it does
+    // not stand still on white; it shows no mark, as the flash started while it moved.
+    [Fact]
+    public async Task StillDuringFlash_ShowsNoWhite()
+    {
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        var fan = viewModel.Preview.Devices.Single(device => device.DeviceId == "fan");
+        Api.RaiseFrame(Frame(2, Red));
+
+        fan.FlashCommand.Execute(null);
+        Api.Frame = Frame(3, RgbColor.White);
+        _animations.Turn(on: false);
+
+        Assert.Null(fan.FlashMark);
+        Assert.Equal([Red, Red], FanColors(viewModel));
+
+        Api.Frame = Frame(4, Blue);
+        _time.Advance(PreviewViewModel.FlashTime + MainViewModel.StillAfterFlash);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
     // With animations on, a flash shows as the engine renders it: no mark, frames as always.
     [Fact]
     public async Task Flash_WithAnimationsOn_HasNoMark()
