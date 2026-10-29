@@ -334,9 +334,5 @@ public sealed class LedPreviewViewKeyboardTests
     }
 
     // What OnRender drew last, one drawing per LED and ring.
-    private static DrawingCollection Drawings(LedPreviewView view)
-    {
-        OffscreenWindow.WaitUntilIdle();
-        return VisualTreeHelper.GetDrawing(view)?.Children ?? [];
-    }
+    private static List<GeometryDrawing> Drawings(LedPreviewView view) => LedDrawings.Of(view);
 }

@@ -1,13 +1,10 @@
 using System.Windows;
-using BuurmansRgb.Core;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
 public sealed class RingLayoutTests
 {
-    private const int No = LedMatrix.NoLed;
-
     // Twelve LEDs: neighbours are a pitch apart, so the radius is 18 / (2 sin 15°).
     private static readonly double TwelveRadius = LedLayout.Pitch / (2.0 * Math.Sin(Math.PI / 12));
 
@@ -56,43 +53,6 @@ public sealed class RingLayoutTests
     [Fact]
     public void RingCenter_SingleLed_SitsInTheMiddle() =>
         Assert.Equal(new Point(LedLayout.LedSize / 2.0, LedLayout.LedSize / 2.0), RingLayout.Center(0, 1));
-
-    [Fact]
-    public void RingLedAt_TheMiddleOfEveryLed_IsThatLed()
-    {
-        foreach (var scale in new[] { 1.0, 0.5 })
-        {
-            for (var led = 0; led < 12; led++)
-            {
-                var center = RingLayout.Center(led, 12);
-
-                Assert.Equal(led, RingLayout.LedAt(12, scale, center.X * scale, center.Y * scale));
-            }
-        }
-    }
-
-    // Like a cell of a row, an LED counts up to half a pitch from its middle.
-    [Fact]
-    public void RingLedAt_JustBesideAnLed_IsThatLed()
-    {
-        var center = RingLayout.Center(3, 12);
-
-        Assert.Equal(3, RingLayout.LedAt(12, 1.0, center.X + LedLayout.Pitch / 2.0 - 0.1, center.Y));
-        Assert.Equal(LedMatrix.NoLed, RingLayout.LedAt(12, 1.0, center.X + LedLayout.Pitch / 2.0 + 0.1, center.Y));
-    }
-
-    // The middle of the ring and its corners are no LED; LED 0 also counts just left of the top.
-    [Fact]
-    public void RingLedAt_InsideOrOutsideTheRing_IsNoLed()
-    {
-        var middle = TwelveRadius + LedLayout.LedSize / 2.0;
-        var top = RingLayout.Center(0, 12);
-
-        Assert.Equal(No, RingLayout.LedAt(12, 1.0, middle, middle));
-        Assert.Equal(No, RingLayout.LedAt(12, 1.0, 0.0, 0.0));
-        Assert.Equal(No, RingLayout.LedAt(0, 1.0, 0.0, 0.0));
-        Assert.Equal(0, RingLayout.LedAt(12, 1.0, top.X - 2.0, top.Y));
-    }
 
     private static double Distance(Point a, Point b) => (a - b).Length;
 }

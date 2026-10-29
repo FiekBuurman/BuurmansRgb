@@ -6,10 +6,11 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Views;
 
-// The tooltip of the LED under the mouse in a LedPreviewView. A WPF tooltip belongs to a whole
+// The tooltip of the LED the mouse points at in a LedPreviewView: the one a click there picks,
+// under the mouse or the nearest within LedLayout.HitRadius. A WPF tooltip belongs to a whole
 // element and keeps its text while the mouse stays on it; this one follows the mouse from LED to
-// LED, shows below the LED it names and stays away from the gaps between the LEDs. Its timer only
-// runs while the mouse waits on an LED.
+// LED, shows below the LED it names and stays away from the room far from every LED. Its timer
+// only runs while the mouse waits on an LED.
 internal sealed class LedToolTip
 {
     private readonly ToolTip _toolTip;

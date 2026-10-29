@@ -426,6 +426,14 @@ de knop "Op het apparaat zetten" is dan weg. Staat het apparaat uit, dan gaat he
 kleur, ook bij "Verloop vullen". Kies je een andere LED, dan toont het mengpaneel diens kleur;
 de LED's ervoor houden wat je mengde.
 
+- **Naast een LED klikken mag:** een klik tot 12 px van het midden van een LED kiest die LED,
+  ook als het bolletje kleiner is, ook net boven of naast het voorbeeld en ook met Shift. Zo is
+  elke LED een doel van minstens 24 px, ook bij een verkleind toetsenbord. Tussen twee LED's kies
+  je de dichtstbijzijnde; klik je op een LED zelf, dan altijd die. Een brede toets, zoals de
+  spatiebalk, telt over zijn hele breedte, met 12 px rond de lijn door zijn midden. Verder van
+  elke LED, bijv. in het midden van een ring, kiest een klik niets. De naam van de LED onder de
+  muis (de tooltip) is die van de LED die een klik daar kiest. De naam van een zone, "Alles
+  selecteren" en Knipperen erboven houden hun eigen plek: daarop klik je nog steeds die.
 - **Met het toetsenbord:** ga met Tab naar de LED's van een apparaat; de actieve LED krijgt een
   witte ring van 2 px en zijn naam als tooltip, die terugkomt als de muis van de LED's af gaat.
   Tab stopt één keer per apparaat, bij de zone met de actieve LED; die begint bij LED 1 en is

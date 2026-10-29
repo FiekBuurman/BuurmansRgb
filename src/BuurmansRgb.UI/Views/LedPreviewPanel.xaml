@@ -94,7 +94,10 @@
                                                 </StackPanel>
                                             </DockPanel>
                                             <!-- The LEDs, also with the keys of the per-LED editor; they keep the focus
-                                                 when the preview is made again. -->
+                                                 when the preview is made again. The click strip of the view (HitRadius
+                                                 beyond its edges) counts on this order and these margins: what comes
+                                                 before it (the name, Knipperen) wins above it through YieldsAt, and what
+                                                 comes after it (8 px below, such as the label of the length) wins below. -->
                                             <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                                   IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
                                                                   SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"

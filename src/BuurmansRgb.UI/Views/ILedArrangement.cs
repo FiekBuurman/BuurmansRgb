@@ -3,7 +3,7 @@ using System.Windows;
 namespace BuurmansRgb.UI.Views;
 
 // Where a LedPreviewView draws the LEDs of a zone at one width, from the top left of the view:
-// the box of each LED, the size of the whole and the LED under a point. Measure, OnRender, the
+// the box of each LED, the size of the whole and the LED a click picks. Measure, OnRender, the
 // click, the tooltip and UI Automation all use the same arrangement, so a click lands on the LED
 // that is drawn there.
 internal interface ILedArrangement
@@ -19,7 +19,8 @@ internal interface ILedArrangement
     // The box of each LED of the zone; Rect.Empty for an LED it does not show.
     IReadOnlyList<Rect> Bounds { get; }
 
-    // NoLed for a gap or a point outside the LEDs.
+    // The LED a click on point picks: the one drawn there or the nearest within
+    // LedLayout.HitRadius of its middle (LedLayout.NearestLed); NoLed farther from every LED.
     int LedAt(Point point);
 
     // The LED in the row above (up) or below an LED that is nearest to it sideways, for the arrow
