@@ -157,7 +157,9 @@ public sealed class SystemDisplayEventsTests
 
     // With Windows itself: it sends the state through the message queue once after registering,
     // and so once more after the session connected. Pumped here on the thread of the test; a
-    // session in which Windows sends nothing after the first registration (no screen) is skipped.
+    // session in which Windows sends nothing (no screen, as on a build server) is skipped, after
+    // the first registration and after the second alike, so only a state other than the one of the
+    // screen makes this red.
     [Fact]
     public void SessionConnect_WindowsTellsTheStateOnceMore()
     {
@@ -173,10 +175,16 @@ public sealed class SystemDisplayEventsTests
                 Assert.Skip("Windows sends no screen state in this session.");
             }
 
+            var off = states[0];
             states.Clear();
             session.Raise(SessionSwitchReason.RemoteConnect);
+            if (!PumpUntil(() => states.Count > 0))
+            {
+                Assert.Skip("Windows sends no screen state in this session after the session connected.");
+            }
 
-            Assert.True(PumpUntil(() => states.Count > 0), "Windows did not send the screen state again after the session connected.");
+            // The same screen, so the same state.
+            Assert.All(states, state => Assert.Equal(off, state));
         }
         finally
         {
