@@ -1040,6 +1040,22 @@
     <value>Nog geen apparaten gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde apparaten aan.</value>
     <comment>Zonder apparaten op een pc die nog nooit een echt apparaat had; met wel een echt apparaat ooit staat er DevicesLost.</comment>
   </data>
+  <data name="StatusConnectionLost" xml:space="preserve">
+    <value>Geen verbinding met je apparaten – wat je instelt, komt erop zodra de verbinding terug is.</value>
+    <comment>In de statusregel bovenaan Apparaten en Kleur, met "Opnieuw verbinden".</comment>
+  </data>
+  <data name="StatusDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="StatusDetailsAccessibleName" xml:space="preserve">
+    <value>Details: nog {0} meldingen</value>
+  </data>
+  <data name="StatusDetailsAccessibleNameOne" xml:space="preserve">
+    <value>Details: nog 1 melding</value>
+  </data>
+  <data name="StatusDetailsToolTip" xml:space="preserve">
+    <value>Toont de andere meldingen die nu gelden, elk met zijn eigen knop.</value>
+  </data>
   <data name="DevicesLost" xml:space="preserve">
     <value>De verbinding met je apparaten is weg.</value>
     <comment>De lege staat van Apparaten op een pc die echte apparaten had, zonder apparaten: OpenRGB geeft ze niet (meer) door. Een schermlezer leest hem voor als hij verschijnt.</comment>

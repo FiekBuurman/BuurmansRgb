@@ -1,5 +1,5 @@
 <!-- Why "Knipperen" and "Tellen" in the preview are grey: one line above the cards of the preview, close
-     to the buttons, with "Hervatten" when the pause comes from the tray menu. Calm, like the PauseBar: a
+     to the buttons, with "Hervatten" when the pause comes from the tray menu. Calm, like the status line: a
      pause is a choice or Windows being locked, not an error; subtext without a card of its own, so it does
      not look like a device. A screen reader reads the line when it comes or changes: the panel inside
      hides, not the control, so the line is loaded before it shows and its new text counts as a change

@@ -43,8 +43,8 @@
                 <ContentControl Style="{StaticResource Wordmark}" VerticalAlignment="Center" />
             </DockPanel>
 
-            <views:PauseBar Margin="0,0,0,16" DataContext="{Binding EffectsPause}" />
-            <views:PreviewMotionBar Margin="0,0,0,16" DataContext="{Binding Motion}" />
+            <!-- One message at most (the connection gone, a pause, the preview still), the rest under Details. -->
+            <views:StatusLine Margin="0,0,0,16" DataContext="{Binding StatusLine}" />
 
             <!-- Hele huis: how many lamps are on, a big switch for all of them, and a strip with what they show now. -->
             <Border Style="{StaticResource LargeCard}">

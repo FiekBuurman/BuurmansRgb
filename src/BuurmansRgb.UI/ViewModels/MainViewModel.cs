@@ -134,6 +134,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         EffectsPause = new EffectsPauseViewModel(_time);
         DeviceRescan = new DeviceRescanViewModel(_time);
+        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
@@ -358,6 +359,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Verversen" at the heading of Apparaten.
     public DeviceRescanViewModel DeviceRescan { get; }
 
+    // The one message at the top of Apparaten and Kleur, with the others under "Details".
+    public StatusLineViewModel StatusLine { get; }
+
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
     public partial double Brightness { get; set; } = 100;
@@ -425,12 +429,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        StatusLine.Dispose();
         Motion.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
         DeviceRescan.Dispose();
         DropConnection();
     }
+
+    // A lost connection with OpenRGB is a message only on a pc that had real devices.
+    partial void OnHadRealDevicesChanged(bool? value) => StatusLine.DevicesExpected = value == true;
 
     [RelayCommand]
     private async Task ConnectAsync()

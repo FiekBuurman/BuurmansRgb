@@ -166,7 +166,8 @@
                 </Grid>
             </views:HeaderPanel>
 
-            <views:PauseBar Margin="0,0,0,14" DataContext="{Binding EffectsPause}" />
+            <!-- One message at most (the connection gone, a pause, the preview still), the rest under Details. -->
+            <views:StatusLine Margin="0,0,0,14" DataContext="{Binding StatusLine}" />
 
             <!-- While LEDs are chosen in the preview, the mixed color goes to those LEDs. -->
             <Border Margin="0,0,0,14" Style="{StaticResource Card}"
