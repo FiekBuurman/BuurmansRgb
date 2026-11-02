@@ -46,9 +46,13 @@ Dezelfde twee commando's draait GitHub ook: `.github/workflows/build.yml` bouwt 
 solution op een Windows-runner bij elke pull request naar `main` en bij elke push naar `main`, met
 de .NET-versie uit `global.json`, zodat een pull request een groene of rode check krijgt voordat
 hij gemerged wordt. Een nieuwe push naar dezelfde pull request breekt de lopende run af. De
-testresultaten (één TRX-bestand per testproject, via `--report-xunit-trx` van xUnit; lokaal werkt
-dat ook, met `--results-directory <map>` erbij) staan op GitHub bij **Actions → de run →
-Artifacts → testresultaten**, ook als een test faalt. Deze workflow bouwt geen installer en
+testresultaten staan op GitHub bij **Actions → de run → Artifacts → testresultaten**, ook als een
+test faalt: één TRX-bestand per testproject, `<project>.trx`, via `-p:TrxReport=true` uit
+`tests/Directory.Build.props` (een kale `--report-xunit-trx` van xUnit noemt de bestanden naar
+gebruiker, machine en tijdstip, en dan zie je niet welk bestand bij welk project hoort). Lokaal
+werkt dat ook: `dotnet test --solution BuurmansRgb.slnx -p:TrxReport=true` zet ze in `TestResults/`
+in de map waar je het draait (in `.gitignore`), en met `--results-directory <map>` erbij komen ze
+in een map naar keuze. Deze workflow bouwt geen installer en
 publiceert niets; dat doet `release.yml` apart (zie "Een release maken").
 
 ## Projecten
