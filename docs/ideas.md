@@ -39,10 +39,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
   per id in `settings.json`
 - OpenRGB-status: een eigen stand "verbinding verbroken" (nu staat er na het wegvallen 5
-  seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" in de
-  instellingen-app een knop "Herstarten" die doet wat het tray-item al doet (de service
-  `OpenRGB` en PawnIO herstarten via UAC), in plaats van alleen de tip, en de versie van OpenRGB
-  en het SDK-protocol in de tip, handig bij "geen goed antwoord"
+  seconden "Verbinden met je apparaten…" tot de volgende poging, en pas daarna "Geen verbinding
+  met je apparaten" met de melding in de statusregel), en de versie van OpenRGB en het
+  SDK-protocol in de tooltip, handig bij "geen goed antwoord"
+- Herstarten vanuit de app (sinds `een-melding`): de app hoort alleen dat de engine het verzoek
+  aannam; start de nieuwe engine niet (het tray-icoon meldt dat), dan blijft onderaan
+  "buurmansRgb herstart…" staan tot de volgende wijziging of het opnieuw verbinden. Een
+  gebeurtenis van de engine (herstart mislukt) zou dat opruimen en de knop weer vrijgeven
 - Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
   instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
   niet stopt. De stap met adminrechten logt nu niets; de engine logt de uitkomst en alleen de
@@ -313,12 +316,17 @@ uitbreidingen in `docs/bouwplan.md`.
   een contrastthema geeft doorzichtig minder contrast dan het thema belooft, waar `GrayText` (zoals
   bij de gewone knoppen nu) zegt dat hij uit staat. Een `Opacity` is geen brush, dus
   `ContrastTheme.SystemBrushes` kan het niet vervangen
-- De pauzemelding (`PauseBar`) en "Voorbeeld staat stil" (`PreviewMotionBar`) verbergen zichzelf
-  met `Visibility` op het `UserControl`; de tekst erin laadt dan pas als de melding komt, zodat
-  `LiveRegion` die eerste tekst niet als wijziging ziet en een schermlezer hem misschien niet
-  voorleest als hij verschijnt (bij "knop-reden" bleek dat in `PreviewActionsHintViewTests`; die
-  regel verbergt daarom het paneel erin). Nagaan met een test die de melding laat komen, en zo
-  nodig hetzelfde doen
+- Op Apparaten zonder apparaten zeggen de kaart "De verbinding met je apparaten is weg." bij de
+  lijst en de statusregel bovenaan allebei dat de verbinding weg is (sinds `een-melding`); de
+  kaart zou dan alleen de lege staat van de lijst en de verwijzing naar Herstarten kunnen zijn,
+  met "Opnieuw verbinden" alleen in de statusregel
+- "Wijzigingen worden automatisch opgeslagen." onderaan alleen tonen tot de eerste wijziging is
+  opgeslagen, en daarna alleen "Opgeslagen ✓" met de tijd; het panel (voorstel B) noemde de zin
+  als een van de dingen die op een fout lijken, en hij staat nu op elke pagina tot de eerste
+  wijziging. Hij bleef bij `een-melding` als subtekst staan omdat hij bij het hele venster hoort,
+  niet bij een pagina, en de statusregel anders altijd zou staan
+- Onder "Details" van de statusregel ook de technische OpenRGB-status tonen (nu alleen in de
+  tooltip rechtsboven, achter de ⓘ en bij Instellingen), zodat hij op Kleur ook zonder tooltip te lezen is
 - Ook bij andere grijze knoppen zeggen waarom, zoals "Toepassen" bij een lengte die al staat en
   de schakelaar "Hele huis" zonder apparaten; nu zegt alleen de tooltip het, en een knop die uit
   staat krijgt geen Tab-focus, dus een toetsenbordgebruiker ziet die tooltip niet
