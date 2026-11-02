@@ -53,6 +53,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - Bij "Nog geen apparaten gevonden" op Apparaten (bijv. met "Nooit" en zonder OpenRGB) ook een
   link "Naar Instellingen", zoals bij de regel over de gesimuleerde apparaten (sinds
   "nep-apparaten-uitleg"); nu noemt de tekst Instellingen alleen
+- De laatst bekende apparaten grijs blijven tonen als OpenRGB weg is, met hun naam, type en plek
+  en zonder schakelaar, in plaats van alleen "De verbinding met je apparaten is weg" (sinds
+  `openrgb-weg`): dan zie je welke apparaten het waren en komt de lijst zonder sprong terug.
+  Daarvoor moet de engine de laatste lijst van OpenRGB onthouden (ook over een herstart heen, in
+  `settings.json` of een eigen bestand) en als "weg" aan de app geven, en moeten Kleur en de
+  scènes zo'n apparaat overslaan
 - In de instellingen-app een korte uitleg tonen als er geen headset is gevonden, met een
   link naar de lijst van OpenRGB; nu staat dat alleen in `handleiding.md`
 - Vanzelf verversen als Windows een USB- of HID-apparaat ziet verschijnen (`WM_DEVICECHANGE` met
