@@ -15,12 +15,19 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class DisabledStyleTests
 {
+    // Every style based on SecondaryButton: the round icon button and the one that repeats while
+    // held down (− and + of a zone length) too.
     [Theory]
-    [InlineData("SecondaryButton")]
-    [InlineData("IconButton")]
-    public void Button_Disabled_HasTheGreyTextOnAFaceThatShowsTheCard(string style) => AppTheme.Run(panel =>
+    [InlineData("SecondaryButton", typeof(Button))]
+    [InlineData("IconButton", typeof(Button))]
+    [InlineData("IconRepeatButton", typeof(RepeatButton))]
+    public void Button_Disabled_HasTheGreyTextOnAFaceThatShowsTheCard(string style, Type buttonType) => AppTheme.Run(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource(style), Content = "Knipperen", IsEnabled = false });
+        var button = (ButtonBase)Activator.CreateInstance(buttonType)!;
+        button.Style = (Style)panel.FindResource(style);
+        button.Content = "Knipperen";
+        button.IsEnabled = false;
+        Show(panel, button);
         var face = Part<Border>(button, "Face");
 
         Assert.Equal(1.0, button.Opacity);
