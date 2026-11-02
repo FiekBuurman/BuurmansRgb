@@ -41,7 +41,8 @@ public partial interface IEngineApi
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
     // pause on lock and sleep and what the lamps do during that pause, the catch-up of scene
     // times, the hotkeys or the own colors of the toolbox, from this or another settings app; or
-    // "Starten met Windows", also from the tray menu.
+    // "Starten met Windows", also from the tray menu; or the engine saw a real device for the
+    // first time (GetHadRealDevicesAsync).
     event EventHandler OptionsChanged;
 
     // Raised with the new state when a count of LEDs (StartZoneCountAsync) starts, goes to another
