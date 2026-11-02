@@ -238,6 +238,16 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task RestartAsync_ReachesServer()
+    {
+        var client = await ConnectAsync();
+
+        await client.Api.RestartAsync(Ct);
+
+        Assert.Equal(1, _api.RestartCalls);
+    }
+
+    [Fact]
     public async Task SetColorLoopAsync_ReachesServerWithColorsInOrder()
     {
         var client = await ConnectAsync();
@@ -647,6 +657,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task ResumeEffectsAsync(CancellationToken ct = default)
         {
             ResumeCalls++;
+            return Task.CompletedTask;
+        }
+
+        public int RestartCalls { get; private set; }
+
+        public Task RestartAsync(CancellationToken ct = default)
+        {
+            RestartCalls++;
             return Task.CompletedTask;
         }
 

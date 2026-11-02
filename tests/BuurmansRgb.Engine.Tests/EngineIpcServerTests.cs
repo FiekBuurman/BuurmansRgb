@@ -295,6 +295,19 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         Assert.Contains(await client.Api.GetDevicesAsync(Ct), device => device.Id == Fan);
     }
 
+    // "Herstarten" from the settings app: the request reaches what the tray item does, and the
+    // answer comes back before that gets anywhere.
+    [Fact]
+    public async Task RestartAsync_AsksTheEngineToRestart()
+    {
+        var restarts = 0;
+        var client = await StartAndConnectAsync(restart: () => restarts++);
+
+        await client.Api.RestartAsync(Ct);
+
+        Assert.Equal(1, restarts);
+    }
+
     // Flashing changes nothing, so a device that just went away is no error for the settings app.
     [Fact]
     public async Task FlashDeviceAsync_UnknownDevice_IsIgnored()
@@ -434,11 +447,11 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
             () => EngineConnection.ConnectAsync(_pipeName, TimeSpan.FromMilliseconds(200), Ct));
     }
 
-    private async Task<EngineConnection> StartAndConnectAsync()
+    private async Task<EngineConnection> StartAndConnectAsync(Action? restart = null)
     {
         await _lighting.DiscoverAsync(Ct);
         _lighting.Apply(LightingStates.Uniform(DeviceLighting.Default));
-        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb, zoneCounter: _zoneCounter), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
+        _server = new EngineIpcServer(_pipeName, () => new EngineApi(_lighting, _zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), _lighting), _simulatedDevices, _openRgb, zoneCounter: _zoneCounter, restart: restart), () => _allClientsGone.Release()).RunAsync(_shutdown.Token);
         return await ConnectAsync();
     }
 

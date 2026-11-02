@@ -128,12 +128,15 @@ internal static class Program
         // The host disposes them, before it saves for the last time.
         var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
+        // "Herstarten" asked by the settings app: what a click on the tray item does, which the tray
+        // context knows; that is made after the host, so the api gets it through this variable.
+        Action? requestRestart = null;
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke()),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -161,6 +164,7 @@ internal static class Program
             EngineRestarter.ForCurrentProcess(),
             options.Restarted,
             options.OpenSettings);
+        requestRestart = context.RequestRestart;
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
         {

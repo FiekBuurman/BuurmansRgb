@@ -26,6 +26,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly ZoneCounter? _zoneCounter;
     private readonly CustomEffectLibrary? _customEffects;
     private readonly AutoStartSwitch? _autoStart;
+    private readonly Action? _restart;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -45,8 +46,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         CustomColorList? customColors = null,
         ZoneCounter? zoneCounter = null,
         CustomEffectLibrary? customEffects = null,
-        AutoStartSwitch? autoStart = null)
+        AutoStartSwitch? autoStart = null,
+        Action? restart = null)
     {
+        _restart = restart;
         _zoneCounter = zoneCounter;
         _customEffects = customEffects;
         _autoStart = autoStart;
@@ -287,6 +290,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task ResumeEffectsAsync(CancellationToken ct = default)
     {
         _lighting.SetPaused(PauseReasons.Manual, false);
+        return Task.CompletedTask;
+    }
+
+    // restart is what a click on "Herstarten" in the tray menu does (Program gives it); the answer
+    // goes out before the restart gets anywhere, so the app hears it before it is closed.
+    public Task RestartAsync(CancellationToken ct = default)
+    {
+        _restart?.Invoke();
         return Task.CompletedTask;
     }
 
