@@ -23,6 +23,8 @@
         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" />
         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PreviewHint}" />
         <views:PreviewMotionBar Margin="0,0,0,12" DataContext="{Binding Motion}" />
+        <!-- Why Knipperen and Tellen are grey: once, above the cards, also with more devices. -->
+        <views:PreviewActionsHint DataContext="{Binding Preview.ActionsHint}" />
         <ItemsControl ItemsSource="{Binding Preview.Devices}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">

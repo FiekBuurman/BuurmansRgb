@@ -1,0 +1,30 @@
+<!-- Why "Knipperen" and "Tellen" in the preview are grey: one line above the cards of the preview, close
+     to the buttons, with "Hervatten" when the pause comes from the tray menu. Calm, like the PauseBar: a
+     pause is a choice or Windows being locked, not an error; subtext without a card of its own, so it does
+     not look like a device. A screen reader reads the line when it comes or changes: the panel inside
+     hides, not the control, so the line is loaded before it shows and its new text counts as a change
+     (LiveRegion). The DataContext is PreviewActionsHintViewModel. -->
+<UserControl x:Class="BuurmansRgb.UI.Views.PreviewActionsHint"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+             xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
+             xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:PreviewActionsHintViewModel}"
+             Focusable="False">
+    <DockPanel Margin="0,0,0,12" Visibility="{Binding IsShown, Converter={StaticResource BoolToVisibility}}">
+        <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
+                Content="{x:Static res:Strings.ResumeEffects}" ToolTip="{x:Static res:Strings.ResumeEffectsToolTip}"
+                Command="{Binding ResumeCommand}" Click="OnResumeClick"
+                Visibility="{Binding CanResume, Converter={StaticResource BoolToVisibility}}"
+                AutomationProperties.Name="{x:Static res:Strings.ResumeEffectsAccessibleName}"
+                AutomationProperties.AutomationId="PreviewActionsResume" />
+        <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" Foreground="{DynamicResource TextBrush}" TextWrapping="Wrap"
+                   Text="{Binding Text, NotifyOnTargetUpdated=True}"
+                   AutomationProperties.AutomationId="PreviewActionsHint" AutomationProperties.LiveSetting="Polite"
+                   views:LiveRegion.AnnouncesUpdates="True" />
+    </DockPanel>
+</UserControl>

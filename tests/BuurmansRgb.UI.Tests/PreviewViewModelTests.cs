@@ -273,6 +273,44 @@ public sealed class PreviewViewModelTests
         Assert.False(preview.Devices[0].Zones[0].CountLedsCommand.CanExecute(null));
     }
 
+    // A pause greys the buttons out and says why above the cards; its end brings both back.
+    [Fact]
+    public void ShowPause_GreysTheButtonsOutAndSaysWhy()
+    {
+        var preview = new PreviewViewModel();
+        preview.ShowDevices([Strip(10), Fan]);
+
+        preview.ShowPause(PauseReasons.Locked);
+
+        Assert.False(preview.CanFlash);
+        Assert.False(preview.Devices[1].FlashCommand.CanExecute(null));
+        Assert.True(preview.ActionsHint.IsShown);
+        Assert.Equal(PauseReasons.Locked, preview.ActionsHint.Reasons);
+
+        preview.ShowPause(PauseReasons.None);
+
+        Assert.True(preview.CanFlash);
+        Assert.True(preview.Devices[1].FlashCommand.CanExecute(null));
+        Assert.False(preview.ActionsHint.IsShown);
+    }
+
+    // The line explains buttons, so it needs a device to show them: none before the first list,
+    // none with an empty list, and it stays when the devices come back during the pause.
+    [Fact]
+    public void ShowPause_WithoutDevices_SaysNothingUntilTheyCome()
+    {
+        var preview = new PreviewViewModel();
+
+        preview.ShowPause(PauseReasons.Manual);
+        Assert.False(preview.ActionsHint.IsShown);
+
+        preview.ShowDevices([Fan]);
+        Assert.True(preview.ActionsHint.IsShown);
+
+        preview.ShowDevices([]);
+        Assert.False(preview.ActionsHint.IsShown);
+    }
+
     // The counted zone shows the count instead of its length controls.
     [Fact]
     public void ShowZoneCount_GivesTheCountToItsZone()

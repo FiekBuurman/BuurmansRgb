@@ -208,6 +208,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CustomColors.ColorsChanged += (_, colors) =>
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -1744,7 +1745,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ShowPause(PauseReasons pause)
     {
         EffectsPause.Show(pause);
-        Preview.CanFlash = pause == PauseReasons.None;
+        Preview.ShowPause(pause);
     }
 
     // At each LED of a count, so at most a few times a second.
@@ -1837,7 +1838,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
         DeviceRescan.Clear();
-        Preview.CanFlash = true;
+        Preview.ShowPause(PauseReasons.None);
 
         // The engine ends the count of a connection that went.
         Preview.ForgetZoneCount();
