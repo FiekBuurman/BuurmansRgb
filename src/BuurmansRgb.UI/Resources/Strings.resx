@@ -739,14 +739,48 @@
     <comment>Gelijk houden met TrayOpenRgbUnreachable in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbUnreachableHint" xml:space="preserve">
-    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Herstart de pc of draai de installer van buurmansRgb opnieuw; buurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
+    <value>OpenRGB draait waarschijnlijk niet, of de SDK-server staat uit. Kies Herstarten; helpt dat niet, herstart dan de pc of draai de installer van buurmansRgb opnieuw. buurmansRgb verbindt vanzelf zodra OpenRGB er is.</value>
   </data>
   <data name="OpenRgbFailed" xml:space="preserve">
     <value>OpenRGB: geen goed antwoord</value>
     <comment>Gelijk houden met TrayOpenRgbFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
   <data name="OpenRgbFailedHint" xml:space="preserve">
-    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. buurmansRgb blijft het proberen.</value>
+    <value>OpenRGB is er wel, maar het verbinden of het ophalen van de apparaten mislukte. buurmansRgb blijft het proberen; Herstarten start OpenRGB opnieuw.</value>
+  </data>
+  <data name="OpenRgbTechnical" xml:space="preserve">
+    <value>{0} (SDK-server op 127.0.0.1:6742)</value>
+    <comment>De technische status achter de gewone zin: in de tooltip en bij Instellingen.</comment>
+  </data>
+  <data name="DevicesConnecting" xml:space="preserve">
+    <value>Verbinden met je apparaten…</value>
+  </data>
+  <data name="DevicesConnected" xml:space="preserve">
+    <value>{0} apparaten verbonden</value>
+  </data>
+  <data name="DevicesConnectedOne" xml:space="preserve">
+    <value>1 apparaat verbonden</value>
+  </data>
+  <data name="DevicesConnectedNone" xml:space="preserve">
+    <value>Verbonden, geen apparaten gevonden</value>
+  </data>
+  <data name="DevicesUnreachable" xml:space="preserve">
+    <value>Geen verbinding met je apparaten</value>
+  </data>
+  <data name="DevicesFailed" xml:space="preserve">
+    <value>Verbinden met je apparaten lukt niet</value>
+  </data>
+  <data name="RestartEngine" xml:space="preserve">
+    <value>Herstarten</value>
+  </data>
+  <data name="RestartEngineAccessibleName" xml:space="preserve">
+    <value>OpenRGB en buurmansRgb herstarten</value>
+  </data>
+  <data name="RestartEngineToolTip" xml:space="preserve">
+    <value>Start OpenRGB, de driver PawnIO en buurmansRgb opnieuw, net als "Herstarten" in het tray-menu. Windows vraagt één keer om toestemming; de app gaat zolang dicht en komt vanzelf terug.</value>
+  </data>
+  <data name="Restarting" xml:space="preserve">
+    <value>buurmansRgb herstart: de app gaat zo dicht en komt vanzelf terug.</value>
   </data>
   <data name="NoDirectModeWarning" xml:space="preserve">
     <value>Volgt de kleur misschien niet</value>
@@ -1011,8 +1045,8 @@
     <comment>De lege staat van Apparaten op een pc die echte apparaten had, zonder apparaten: OpenRGB geeft ze niet (meer) door. Een schermlezer leest hem voor als hij verschijnt.</comment>
   </data>
   <data name="DevicesLostRestartHint" xml:space="preserve">
-    <value>Helpt opnieuw verbinden niet, kies dan "Herstarten" in het menu van het tray-icoon: dat start OpenRGB en buurmansRgb opnieuw.</value>
-    <comment>Onder DevicesLost; "Herstarten" is het item in het tray-menu.</comment>
+    <value>Helpt opnieuw verbinden niet, kies dan "Herstarten" bij de status rechtsboven of in het menu van het tray-icoon: dat start OpenRGB en buurmansRgb opnieuw.</value>
+    <comment>Onder DevicesLost; "Herstarten" is de knop bij de status en het item in het tray-menu.</comment>
   </data>
   <data name="Reconnect" xml:space="preserve">
     <value>Opnieuw verbinden</value>

@@ -22,16 +22,23 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
-            <!-- The word mark, and how buurmansRgb gets on with OpenRGB: whether the real lamps can come. -->
+            <!-- The word mark, and whether the real devices can come, in plain words; the technical status
+                 (OpenRGB, its SDK server) and the tip sit in the tooltip, and spelled out on Instellingen.
+                 Without a connection "Herstarten" does what the item in the tray menu does. -->
             <DockPanel Margin="0,0,0,18">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Style="{StaticResource SubText}" VerticalAlignment="Center" Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}"
-                               ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
+                               ToolTip="{Binding OpenRgbStatus.ToolTip}" AutomationProperties.HelpText="{Binding OpenRgbStatus.ToolTip}"
                                AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
                                views:LiveRegion.AnnouncesUpdates="True" />
-                    <TextBlock Margin="8,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.Hint}"
+                    <TextBlock Margin="8,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.ToolTip}"
                                Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
                                AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}" />
+                    <Button Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.RestartEngine}"
+                            ToolTip="{x:Static res:Strings.RestartEngineToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RestartEngineToolTip}"
+                            AutomationProperties.Name="{x:Static res:Strings.RestartEngineAccessibleName}" AutomationProperties.AutomationId="RestartEngine"
+                            Command="{Binding OpenRgbStatus.RestartCommand}"
+                            Visibility="{Binding OpenRgbStatus.CanRestart, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
                 <ContentControl Style="{StaticResource Wordmark}" VerticalAlignment="Center" />
             </DockPanel>

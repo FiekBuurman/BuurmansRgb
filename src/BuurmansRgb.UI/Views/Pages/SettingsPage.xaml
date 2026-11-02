@@ -25,23 +25,31 @@
 
             <!-- Where the other pages put their cards, but no wider than a line of text reads well. -->
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
-                <!-- Whether the real lamps can come: the state of OpenRGB in one line, read out when it changes,
-                     with the tip in view and behind the ⓘ. -->
+                <!-- Whether the real devices can come: the state in plain words, read out when it changes, with the
+                     technical status (OpenRGB, its SDK server) and the tip spelled out under it and behind the ⓘ,
+                     and "Herstarten" as beside the status on Apparaten. -->
                 <Border Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" />
                         <DockPanel Margin="0,2,0,0">
-                            <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.Hint}"
+                            <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.ToolTip}"
                                        Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
                                        AutomationProperties.Name="{x:Static res:Strings.OpenRgbHintAccessibleName}" />
                             <TextBlock Style="{StaticResource SectionHeader}" TextWrapping="Wrap" Text="{Binding OpenRgbStatus.Text, NotifyOnTargetUpdated=True}"
-                                       ToolTip="{Binding OpenRgbStatus.Hint}" AutomationProperties.HelpText="{Binding OpenRgbStatus.Hint}"
+                                       ToolTip="{Binding OpenRgbStatus.ToolTip}" AutomationProperties.HelpText="{Binding OpenRgbStatus.ToolTip}"
                                        AutomationProperties.AutomationId="OpenRgbStatus" AutomationProperties.LiveSetting="Polite"
                                        views:LiveRegion.AnnouncesUpdates="True" />
                         </DockPanel>
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{Binding OpenRgbStatus.TechnicalText}"
+                                   AutomationProperties.AutomationId="OpenRgbTechnical" />
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{Binding OpenRgbStatus.Hint}"
                                    Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}" />
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbExplanation}" />
+                        <Button Margin="0,12,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.RestartEngine}"
+                                ToolTip="{x:Static res:Strings.RestartEngineToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RestartEngineToolTip}"
+                                AutomationProperties.Name="{x:Static res:Strings.RestartEngineAccessibleName}" AutomationProperties.AutomationId="RestartEngine"
+                                Command="{Binding OpenRgbStatus.RestartCommand}"
+                                Visibility="{Binding OpenRgbStatus.CanRestart, Converter={StaticResource BoolToVisibility}}" />
                     </StackPanel>
                 </Border>
 

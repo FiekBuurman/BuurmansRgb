@@ -35,6 +35,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string AutoStartCall = "autostart";
     private const string CustomColorsCall = "custom-colors";
     private const string ResumeCall = "resume";
+    private const string RestartCall = "restart";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
     private const string FrameDevicesCall = "frame-devices";
@@ -209,6 +210,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
+        OpenRgbStatus.RestartRequested += (_, _) => RestartEngine();
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -1515,6 +1517,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // "Herstarten" beside the OpenRGB status: the engine closes this app and starts anew, after the
+    // UAC prompt; the line at the bottom says so meanwhile.
+    private void RestartEngine()
+    {
+        if (_connection is { } connection)
+        {
+            StatusMessage = Strings.Restarting;
+            _calls.Post(RestartCall, () => connection.Api.RestartAsync());
+        }
+    }
+
     // Not in the call queue: the answer is awaited, and the search may take seconds, which the
     // changes behind it should not wait for. The engine raises DevicesChanged before it answers,
     // but the list here follows that with its own GetDevicesAsync, which runs apart from this call,
@@ -1825,7 +1838,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall))
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or RestartCall))
         {
             RequestStill();
         }
