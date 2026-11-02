@@ -86,9 +86,9 @@ public sealed class LampsPageViewTests
     }
 
     // No device on a pc that had real ones: the line says the connection is gone and is read out, the
-    // word about "Herstarten" in the tray menu is there, and "Opnieuw verbinden" runs the search of
-    // "Verversen" with the keyboard, both saying "Zoeken…" meanwhile. "Nog geen apparaten gevonden"
-    // is not there.
+    // word about "Herstarten" in the tray menu is there, Tab goes from "+ Erbij knutselen" to
+    // "Opnieuw verbinden", and that runs the search of "Verversen" with the keyboard, both saying
+    // "Zoeken…" meanwhile. "Nog geen apparaten gevonden" is not there.
     [Fact]
     public async Task DevicesLost_NoDevicesOnAPcThatHadThem_IsReadOutWithAButtonToReconnect()
     {
@@ -117,7 +117,9 @@ public sealed class LampsPageViewTests
             var button = Reconnect(page);
             Assert.Equal(Strings.Reconnect, new ButtonAutomationPeer(button).GetName());
             Assert.Equal(Strings.ReconnectToolTip, AutomationProperties.GetHelpText(button));
-            Assert.True(button.Focus());
+            Assert.True(AddLamps(page).Focus());
+            Assert.True(AddLamps(page).MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
+            Assert.True(button.IsKeyboardFocused);
 
             PageViews.Click(button);
 
