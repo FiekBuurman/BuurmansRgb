@@ -706,7 +706,8 @@
     <value>Tip bij de OpenRGB-status</value>
   </data>
   <data name="SimulatedDevicesHint" xml:space="preserve">
-    <value>Nep-apparaten om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang OpenRGB geen echte apparaten levert.</value>
+    <value>Nep-apparaten om buurmansRgb zonder RGB-hardware te proberen. Automatisch toont ze alleen zolang deze pc nog nooit een echt apparaat had; Altijd houdt ze ook naast de echte.</value>
+    <comment>Op Instellingen onder "Gesimuleerde apparaten", ook als hulptekst van de keuzelijst. Automatisch: tot hadRealDevices; Nooit spreekt voor zich.</comment>
   </data>
   <data name="SimulatedDevicesMode_Automatic" xml:space="preserve">
     <value>Automatisch</value>
