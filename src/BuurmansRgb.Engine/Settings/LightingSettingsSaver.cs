@@ -141,7 +141,8 @@ internal sealed class LightingSettingsSaver : IDisposable
     // does not know. Only what the engine holds otherwise is saved, such as a scene that went off
     // with another lighting (the file still names it in activeScene), or hadRealDevices put on
     // false by hand while a real device is in the list (the switch says true again at once, and
-    // the file must say so for the next start). Within HoldSaves this counts once action is done. lighting is the lighting the engine holds once the file is on it, as the
+    // the file must say so for the next start). Called within HoldSaves, this takes effect once
+    // the action is done. The lighting is what the engine holds once the file is on it, as the
     // apply left it (LightingController.Replace returns it), not read here: a change on another
     // thread, such as one from the settings app, may be on the engine already while its
     // LightingChanged did not come yet, and taking it as in the file would never save it.
