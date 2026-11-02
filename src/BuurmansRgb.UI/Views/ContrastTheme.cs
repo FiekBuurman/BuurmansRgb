@@ -20,7 +20,8 @@ public sealed class ContrastTheme : IDisposable
     // a button (in WPF Control and ControlText); the accent (the primary button, a ticked check box,
     // a day that is on) takes the highlight, like a switch that is on. Every hover shows in the
     // highlight: a link also gets a line under it, a switch a ring in the highlight around its
-    // track, and the primary button, already the highlight, swaps its colors and gets a ring.
+    // track, and the primary button, already the highlight, swaps its colors and gets a ring. A
+    // button that does nothing now gets GrayText, as a disabled button of Windows.
     internal static readonly IReadOnlyDictionary<string, Func<SolidColorBrush>> SystemBrushes = new Dictionary<string, Func<SolidColorBrush>>
     {
         // Text, surfaces and borders.
@@ -61,9 +62,16 @@ public sealed class ContrastTheme : IDisposable
         ["AccentHoverBrush"] = () => SystemColors.HighlightTextBrush,
         ["OnAccentHoverBrush"] = () => SystemColors.HighlightBrush,
         ["ControlTrackBrush"] = () => SystemColors.WindowBrush,
+        ["SwitchOffTrackBrush"] = () => SystemColors.WindowBrush,
         ["ControlOutlineBrush"] = () => SystemColors.WindowTextBrush,
         ["SwitchOnCoverBrush"] = () => SystemColors.HighlightBrush,
         ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
+
+        // A button that does nothing now: the face of a button with GrayText, which in a contrast
+        // theme means disabled, as the text and the border.
+        ["DisabledFaceBrush"] = () => SystemColors.ControlBrush,
+        ["DisabledTextBrush"] = () => SystemColors.GrayTextBrush,
+        ["DisabledBorderBrush"] = () => SystemColors.GrayTextBrush,
 
         // The ring of an LED that is off or black, in the text color like the outline of a switch
         // that is off: it shows where an LED is on the window, which the preview and the card of

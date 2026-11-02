@@ -13,9 +13,15 @@ namespace BuurmansRgb.UI.Tests;
 public sealed partial class TokenContrastTests
 {
     // Text and the background it is on: body text and subtext on every surface, the selected item
-    // of a list, the text of the primary button and the links.
+    // of a list, the text of the primary button, the links, and the text of a button that does
+    // nothing now (such as Knipperen during a pause), whose face shows the card or the preview
+    // through.
     public static TheoryData<string, string> TextPairs => new()
     {
+        { "DisabledTextColor", "BgColor" },
+        { "DisabledTextColor", "SurfaceColor" },
+        { "DisabledTextColor", "SurfaceRaisedColor" },
+        { "DisabledTextColor", "PreviewBgColor" },
         { "TextColor", "BgColor" },
         { "TextColor", "SurfaceColor" },
         { "TextColor", "SurfaceRaisedColor" },
@@ -39,11 +45,17 @@ public sealed partial class TokenContrastTests
     // of a field, on a card, on the window and in the preview (the hex code on Kleur), the cross
     // of the close button on its red under the mouse, and the ring of an LED that is off or black
     // wherever LEDs are: in the preview, on the window, on a card (Hele huis, a device, a scene) and
-    // on the strip board of Kleur. The track of a switch that is off is led-off, 1.4:1 on a card,
-    // so its knob tells the state: on the card and on that track. The rail of a slider is led-off
-    // too, so its knob and filled part tell the value, in the text color or in red, green or blue.
+    // on the strip board of Kleur. The track of a switch that is off, wherever switches are: on a
+    // card (Instellingen, a device), on the window (Hele huis), in the preview (Zones gelijk) and
+    // on a raised surface; its knob on that track and on a card. The rail of a slider is led-off,
+    // so its knob and filled part tell the value, in the text color or in red, green or blue.
     public static TheoryData<string, string> NonTextPairs => new()
     {
+        { "SwitchOffTrackColor", "SurfaceColor" },
+        { "SwitchOffTrackColor", "SurfaceRaisedColor" },
+        { "SwitchOffTrackColor", "BgColor" },
+        { "SwitchOffTrackColor", "PreviewBgColor" },
+        { "KnobOffColor", "SwitchOffTrackColor" },
         { "InputBorderColor", "SurfaceColor" },
         { "InputBorderColor", "BgColor" },
         { "InputBorderColor", "PreviewBgColor" },
@@ -55,7 +67,6 @@ public sealed partial class TokenContrastTests
         { "StripLedOffRingBrush", "StripBgColor" },
         { "CardLedOffRingBrush", "SurfaceColor" },
         { "KnobOffColor", "SurfaceColor" },
-        { "KnobOffColor", "LedOffColor" },
         { "TextColor", "SurfaceColor" },
         { "LedRedColor", "SurfaceColor" },
         { "LedGreenColor", "SurfaceColor" },

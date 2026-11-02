@@ -27,6 +27,20 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.ControlTextBrush, button.BorderBrush);
     });
 
+    // A button that does nothing now: the face of a button with GrayText for its text and its
+    // border, as a disabled button of Windows, and not faded.
+    [Fact]
+    public void SecondaryButton_Disabled_HasGrayText() => InContrastTheme(panel =>
+    {
+        var button = Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen", IsEnabled = false });
+        var face = Part<Border>(button, "Face");
+
+        Assert.Same(SystemColors.GrayTextBrush, button.Foreground);
+        Assert.Same(SystemColors.GrayTextBrush, face.BorderBrush);
+        Assert.Same(SystemColors.ControlBrush, face.Background);
+        Assert.Equal(1.0, button.Opacity);
+    });
+
     [Fact]
     public void PrimaryButton_HasTheHighlight() => InContrastTheme(panel =>
     {

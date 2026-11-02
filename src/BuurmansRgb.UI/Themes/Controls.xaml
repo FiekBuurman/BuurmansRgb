@@ -294,7 +294,8 @@
     </Style>
 
     <!-- § 4 Switch: 52 by 32 with a 24 px knob. On, the track takes the color in Tag (the lamp's, or text
-         for the whole house) and the knob bg; off, led-off with a knob-off knob. The track radius is
+         for the whole house) and the knob bg; off, a grey track (SwitchOffTrackBrush, lighter than the
+         led-off of the design, so the switch shows 3:1 on a card) with a knob-off knob. The track radius is
          half its height (SwitchRadius), so its ends are round; a larger one would make it an ellipse.
          In a contrast theme of Windows (ContrastTheme) the highlight covers the track when on, as in
          the switches of Windows, and a ring in the text color shows the track, in the highlight under
@@ -314,7 +315,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
                     <Grid>
-                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource ControlTrackBrush}" />
+                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOffTrackBrush}" />
                         <Border x:Name="Cover" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOnCoverBrush}" Visibility="Collapsed" />
                         <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
                         <Border x:Name="Shine" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource TextBrush}" Opacity="0" />
@@ -393,7 +394,11 @@
         </Setter>
     </Style>
 
-    <!-- A quieter button for the smaller actions: a surface with a border and the corners of ButtonRadius. -->
+    <!-- A quieter button for the smaller actions: a surface with a border and the corners of ButtonRadius.
+         One that does nothing now (IsEnabled false) keeps its shape but goes grey: its text in the
+         disabled grey (4.5:1 on a card, TokenContrastTests), on a face that shows the card through,
+         with the border of a card; not the whole button at a lower opacity, which leaves the text too
+         faint to read. The tooltip of such a button stays (ToolTipService.ShowOnDisabled). -->
     <Style x:Key="SecondaryButton" TargetType="ButtonBase">
         <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
         <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
@@ -420,7 +425,10 @@
                             <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.4" />
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource DisabledFaceBrush}" />
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                            <Setter Property="Cursor" Value="Arrow" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -456,6 +464,12 @@
                 <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+            </Trigger>
+            <!-- A day that is on but cannot be changed (no time yet): the grey text of a disabled button,
+                 not the bg text of a day that is on, which the template above would leave on the
+                 transparent face. After the trigger above, so it wins. -->
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>

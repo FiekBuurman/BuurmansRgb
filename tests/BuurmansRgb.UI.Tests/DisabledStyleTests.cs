@@ -1,0 +1,89 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Shapes;
+
+namespace BuurmansRgb.UI.Tests;
+
+// A button that does nothing now and a switch that is off (Themes/Controls.xaml), in a window off
+// screen. The button keeps its opacity and takes the disabled grey for its text (4.5:1 on a card,
+// TokenContrastTests), a face that shows the card through and the border of a card; a day that is
+// on but cannot be changed too. The track of a switch that is off is SwitchOffTrackBrush (3:1 on a
+// card), with the knob-off knob on it.
+[Collection(AppThemeCollection.Name)]
+public sealed class DisabledStyleTests
+{
+    [Theory]
+    [InlineData("SecondaryButton")]
+    [InlineData("IconButton")]
+    public void Button_Disabled_HasTheGreyTextOnAFaceThatShowsTheCard(string style) => AppTheme.Run(panel =>
+    {
+        var button = Show(panel, new Button { Style = (Style)panel.FindResource(style), Content = "Knipperen", IsEnabled = false });
+        var face = Part<Border>(button, "Face");
+
+        Assert.Equal(1.0, button.Opacity);
+        AssertColor(panel, "DisabledTextBrush", button.Foreground);
+        AssertColor(panel, "DisabledFaceBrush", face.Background);
+        AssertColor(panel, "DisabledBorderBrush", face.BorderBrush);
+        Assert.Equal(Cursors.Arrow, button.Cursor);
+    });
+
+    [Fact]
+    public void Button_Enabled_KeepsTheColorsOfAButton() => AppTheme.Run(panel =>
+    {
+        var button = Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen" });
+        var face = Part<Border>(button, "Face");
+
+        AssertColor(panel, "ButtonTextBrush", button.Foreground);
+        AssertColor(panel, "ButtonFaceBrush", face.Background);
+        AssertColor(panel, "ButtonBorderBrush", face.BorderBrush);
+        Assert.Equal(Cursors.Hand, button.Cursor);
+    });
+
+    // A day that is on takes the accent with bg text; disabled, that text would vanish on the face
+    // that shows the card through, so it takes the disabled grey too.
+    [Fact]
+    public void DayToggle_OnAndDisabled_HasTheGreyText() => AppTheme.Run(panel =>
+    {
+        var day = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
+
+        AssertColor(panel, "DisabledTextBrush", day.Foreground);
+        AssertColor(panel, "DisabledFaceBrush", Part<Border>(day, "Face").Background);
+    });
+
+    [Fact]
+    public void Switch_Off_HasTheGreyTrackWithTheKnobOffKnob() => AppTheme.Run(panel =>
+    {
+        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = false });
+
+        AssertColor(panel, "SwitchOffTrackBrush", Part<Border>(toggle, "Track").Background);
+        AssertColor(panel, "KnobOffBrush", Part<Ellipse>(toggle, "Knob").Fill);
+    });
+
+    [Fact]
+    public void Switch_On_HasTheTrackInItsColorWithTheBgKnob() => AppTheme.Run(panel =>
+    {
+        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = true });
+
+        AssertColor(panel, "TextBrush", Part<Border>(toggle, "Track").Background);
+        AssertColor(panel, "OnAccentBrush", Part<Ellipse>(toggle, "Knob").Fill);
+    });
+
+    private static T Show<T>(StackPanel panel, T control)
+        where T : UIElement
+    {
+        panel.Children.Add(control);
+        OffscreenWindow.WaitUntilIdle();
+        return control;
+    }
+
+    private static T Part<T>(DependencyObject control, string name)
+        where T : FrameworkElement =>
+        AppTheme.Descendants<T>(control).Single(element => element.Name == name);
+
+    // The theme merges the tokens more than once, so a brush is compared by its color.
+    private static void AssertColor(FrameworkElement scope, string key, object? brush) =>
+        Assert.Equal(((SolidColorBrush)scope.FindResource(key)).Color, Assert.IsType<SolidColorBrush>(brush).Color);
+}

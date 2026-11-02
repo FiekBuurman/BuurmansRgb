@@ -16,7 +16,9 @@
     <Color x:Key="TextColor">#F4F1EA</Color>
     <Color x:Key="TextMutedColor">#A9A6A0</Color>
     <Color x:Key="LedOffColor">#3A3A42</Color>
-    <Color x:Key="KnobOffColor">#8C8A85</Color>
+    <!-- The knob of a switch that is off: lighter than the knob-off of the design (#8C8A85), as the
+         track it sits on is lighter too (SwitchOffTrackColor); at least 3:1 on that track. -->
+    <Color x:Key="KnobOffColor">#DAD7D1</Color>
     <Color x:Key="PreviewBgColor">#0E0E11</Color>
     <Color x:Key="StripBgColor">#26262D</Color>
 
@@ -84,10 +86,24 @@
     <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource BgColor}" />
     <SolidColorBrush x:Key="AccentHoverBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="OnAccentHoverBrush" Color="{StaticResource BgColor}" />
-    <!-- The track of a control (§ 4): of a switch that is off, and the rail of a slider beside its
-         fill. The cover over the track of a switch that is on shows only in a contrast theme. -->
+    <!-- The rail of a slider beside its fill (§ 4): led-off, as its knob and its fill tell the value.
+         The cover over the track of a switch that is on shows only in a contrast theme. -->
     <SolidColorBrush x:Key="ControlTrackBrush" Color="{StaticResource LedOffColor}" />
     <SolidColorBrush x:Key="SwitchOnCoverBrush" Color="Transparent" />
+    <!-- The track of a switch that is off: not the led-off of the design (§ 4), which is 1.4:1 on a
+         card, so the switch itself hardly shows; at least 3:1 on bg, surface, surface-raised and
+         preview-bg (WCAG 1.4.11), with the lighter knob-off on it (TokenContrastTests). -->
+    <Color x:Key="SwitchOffTrackColor">#74727A</Color>
+    <SolidColorBrush x:Key="SwitchOffTrackBrush" Color="{StaticResource SwitchOffTrackColor}" />
+    <!-- A button that does nothing now (IsEnabled false): not the whole button at 0.4 opacity, which
+         leaves its text 3.4:1 on a card; the text in this grey, at least 4.5:1 on bg, surface,
+         surface-raised and preview-bg (WCAG 1.4.3), on a face that shows the card through, with the
+         border of a card. A contrast theme gives the text and the border GrayText, which there means
+         disabled, and the face the face of a button. -->
+    <Color x:Key="DisabledTextColor">#93918C</Color>
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
+    <SolidColorBrush x:Key="DisabledBorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="DisabledFaceBrush" Color="Transparent" />
     <!-- Outlines: lines that show only in a contrast theme, so they are transparent here. Around the
          track of a switch and the rail of a slider in the text color, and in the highlight on what
          is under the mouse: the ring of the primary button and of a switch, and the line under a
