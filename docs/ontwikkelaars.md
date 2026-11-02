@@ -42,6 +42,15 @@ dotnet run --project src/BuurmansRgb.UI       # instellingen-app los (of via het
 Zonder OpenRGB staan er twaalf gesimuleerde apparaten klaar, zie "Instellingen" in de
 [handleiding](handleiding.md#instellingen).
 
+Dezelfde twee commando's draait GitHub ook: `.github/workflows/build.yml` bouwt en test de
+solution op een Windows-runner bij elke pull request naar `main` en bij elke push naar `main`, met
+de .NET-versie uit `global.json`, zodat een pull request een groene of rode check krijgt voordat
+hij gemerged wordt. Een nieuwe push naar dezelfde pull request breekt de lopende run af. De
+testresultaten (één TRX-bestand per testproject, via `--report-xunit-trx` van xUnit; lokaal werkt
+dat ook, met `--results-directory <map>` erbij) staan op GitHub bij **Actions → de run →
+Artifacts → testresultaten**, ook als een test faalt. Deze workflow bouwt geen installer en
+publiceert niets; dat doet `release.yml` apart (zie "Een release maken").
+
 ## Projecten
 
 | Project | Wat erin zit |
