@@ -277,9 +277,10 @@ public sealed class SimulatedDevicesSwitchTests : IDisposable
     // OpenRGB can come and go while the user switches modes: whatever the order, the end state
     // follows the last device list and the last mode, without anything set afterwards. The real
     // device was in the list once before (the lighting may skip a list that is replaced at once,
-    // so that is not left to the race), so Automatic ends without the simulated ones either way.
+    // so that is not left to the race), so with Automatic the end state no longer depends on the
+    // last list: HadRealDevices is true already, and the simulated ones stay away either way. One
+    // row for it, the one without the real device at the end.
     [Theory]
-    [InlineData(SimulatedDevicesMode.Automatic, true, false)]
     [InlineData(SimulatedDevicesMode.Automatic, false, false)]
     [InlineData(SimulatedDevicesMode.Always, true, true)]
     [InlineData(SimulatedDevicesMode.Never, false, false)]
