@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
@@ -10,6 +11,13 @@ internal sealed record EngineSettings : LightingStateSettings
 {
     // When the simulated devices show; in the file as a word (SimulatedDevicesModeJsonConverter).
     public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;
+
+    // "hadRealDevices": whether a real device was ever in the list on this pc
+    // (SimulatedDevicesSwitch.HadRealDevices); with Automatic the simulated devices then stay away
+    // when OpenRGB is gone. A fact the engine records, not a choice, so it is only in the file
+    // once it is true: a pc that only ever had the simulated devices keeps its file as it was.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool HadRealDevices { get; set; }
 
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;

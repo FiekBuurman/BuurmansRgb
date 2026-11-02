@@ -203,6 +203,12 @@ public partial interface IEngineApi
     // DevicesChanged follows.
     Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
 
+    // Whether a real device was ever in the list on this pc: the engine records it and keeps it
+    // in its settings file. With "Automatisch" the simulated devices then stay away when OpenRGB
+    // is gone, so without any device the connection to the real ones is lost. OptionsChanged
+    // follows when it changes.
+    Task<bool> GetHadRealDevicesAsync(CancellationToken ct = default);
+
     // How many frames per second a moving effect gets, from 1 to 60; saved like the lighting.
     Task<int> GetFramesPerSecondAsync(CancellationToken ct = default);
 

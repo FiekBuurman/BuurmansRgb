@@ -448,9 +448,11 @@ public sealed class EngineRpcTests : IDisposable
 
         var mode = await client.Api.GetSimulatedDevicesAsync(Ct);
         await client.Api.SetSimulatedDevicesAsync(SimulatedDevicesMode.Never, Ct);
+        var hadRealDevices = await client.Api.GetHadRealDevicesAsync(Ct);
 
         Assert.Equal(SimulatedDevicesMode.Always, mode);
         Assert.Equal([SimulatedDevicesMode.Never], _api.SimulatedDevicesCalls);
+        Assert.True(hadRealDevices);
     }
 
     [Fact]
@@ -809,6 +811,8 @@ public sealed class EngineRpcTests : IDisposable
             SimulatedDevicesCalls.Add(mode);
             return Task.CompletedTask;
         }
+
+        public Task<bool> GetHadRealDevicesAsync(CancellationToken ct = default) => Task.FromResult(true);
 
         public List<string> OptionCalls { get; } = [];
 

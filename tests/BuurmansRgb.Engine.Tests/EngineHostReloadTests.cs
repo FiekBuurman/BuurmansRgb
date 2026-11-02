@@ -68,10 +68,12 @@ public sealed class EngineHostReloadTests : IDisposable
             CatchUpSceneTimes = true,
             Hotkeys = false,
             CustomColors = [new RgbColor(0, 0, 255), null],
+            HadRealDevices = true,
         });
 
-        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 7);
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 8);
         Assert.Equal(SimulatedDevicesMode.Always, _simulatedDevices.Mode);
+        Assert.True(_simulatedDevices.HadRealDevices);
         Assert.Equal(12, _lighting.FramesPerSecond);
         Assert.False(_autoPause.Enabled);
         Assert.Equal(PausedLightsMode.Dim, _lighting.PausedLights);

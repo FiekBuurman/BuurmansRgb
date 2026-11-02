@@ -57,6 +57,13 @@ internal sealed class EngineHost(
 
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
+        simulatedDevices?.HadRealDevicesChanged += OnHadRealDevicesChanged;
+        if (simulatedDevices?.HadRealDevices == true && !settings.HadRealDevices)
+        {
+            // A real device was in the first list already, before anyone listened.
+            OnHadRealDevicesChanged(this, EventArgs.Empty);
+        }
+
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
         profiles?.ActiveChanged += OnActiveSceneChanged;
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
@@ -95,6 +102,7 @@ internal sealed class EngineHost(
     {
         _reloader?.Dispose();
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
+        simulatedDevices?.HadRealDevicesChanged -= OnHadRealDevicesChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
         profiles?.ActiveChanged -= OnActiveSceneChanged;
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
@@ -146,6 +154,7 @@ internal sealed class EngineHost(
     private void ApplyOptions(EngineSettings settings)
     {
         simulatedDevices?.Mode = settings.SimulatedDevices;
+        simulatedDevices?.HadRealDevices = settings.HadRealDevices;
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
         lighting.PausedLights = settings.PausedLights;
@@ -158,6 +167,10 @@ internal sealed class EngineHost(
     // Reads the newest mode, so two changes that cross each other still save the last one.
     private void OnSimulatedDevicesModeChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { SimulatedDevices = simulatedDevices!.Mode });
+
+    // The fact that a real device was in the list, so it still counts after a restart.
+    private void OnHadRealDevicesChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings with { HadRealDevices = simulatedDevices!.HadRealDevices });
 
     // Also reads the newest lengths, for the same reason.
     private void OnZoneLengthsChanged(object? sender, EventArgs e) =>

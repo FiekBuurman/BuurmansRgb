@@ -118,6 +118,33 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Contains("\"hotkeys\": false", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    // A file from before, or without the line: this pc never had a real device.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", false)]
+    [InlineData("""{ "hadRealDevices": false }""", false)]
+    [InlineData("""{ "hadRealDevices": true }""", true)]
+    public void Load_HadRealDevices_IsOffUnlessRecorded(string json, bool expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().HadRealDevices);
+    }
+
+    // A fact the engine records, not a choice: in the file only once it is true.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Save_HadRealDevices_IsWrittenOnlyOnceTrue(bool hadRealDevices)
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(new EngineSettings { HadRealDevices = hadRealDevices });
+
+        Assert.Equal(hadRealDevices, File.ReadAllText(path).Contains("\"hadRealDevices\": true", StringComparison.Ordinal));
+        Assert.DoesNotContain("\"hadRealDevices\": false", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Save_CustomColors_AreWrittenUnderTheirNameAndReadBack()
     {

@@ -236,6 +236,82 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(12, lighting.Devices.Count);
     }
 
+    // A pc that had real devices, started while OpenRGB is not running: no simulated devices in
+    // their place.
+    [Fact]
+    public async Task StartAsync_HadRealDevices_KeepsTheSimulatedDevicesAway()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { HadRealDevices = true } };
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var lighting = new LightingController([simulatedDevices, new DynamicDeviceProvider()]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        using var host = new EngineHost(store, lighting, simulatedDevices: simulatedSwitch);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(SimulatedDevicesMode.Automatic, simulatedSwitch.Mode);
+        Assert.True(simulatedSwitch.HadRealDevices);
+        Assert.Empty(lighting.Devices);
+    }
+
+    // Once a real device shows up the fact is saved, so it still counts after a restart.
+    [Fact]
+    public async Task RealDeviceComes_HadRealDevicesIsSaved()
+    {
+        var store = new InMemorySettingsStore();
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var openRgb = new DynamicDeviceProvider();
+        var lighting = new LightingController([simulatedDevices, openRgb]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), simulatedDevices: simulatedSwitch);
+        await host.StartAsync(Ct);
+        Assert.Equal(12, lighting.Devices.Count);
+
+        openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
+        await Eventually.TrueAsync(() => lighting.Devices.Select(device => device.Id).SequenceEqual(["real"]));
+        host.Dispose();
+
+        Assert.True(store.Settings.HadRealDevices);
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    // Also when the real device is in the very first list, before the host listens.
+    [Fact]
+    public async Task StartAsync_RealDeviceInTheFirstList_SavesHadRealDevices()
+    {
+        var store = new InMemorySettingsStore();
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var openRgb = new DynamicDeviceProvider();
+        openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
+        var lighting = new LightingController([simulatedDevices, openRgb]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), simulatedDevices: simulatedSwitch);
+
+        await host.StartAsync(Ct);
+        host.Dispose();
+
+        Assert.True(store.Settings.HadRealDevices);
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    // Saved once it is true: a start with it already true saves nothing.
+    [Fact]
+    public async Task StartAsync_HadRealDevicesAlready_SavesNothing()
+    {
+        var store = new InMemorySettingsStore { Settings = new EngineSettings { HadRealDevices = true } };
+        var simulatedDevices = SwitchableDeviceProvider.For(_simulated);
+        var openRgb = new DynamicDeviceProvider();
+        openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
+        var lighting = new LightingController([simulatedDevices, openRgb]);
+        using var simulatedSwitch = new SimulatedDevicesSwitch(simulatedDevices, lighting);
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), simulatedDevices: simulatedSwitch);
+
+        await host.StartAsync(Ct);
+        host.Dispose();
+
+        Assert.Equal(0, store.SaveCount);
+    }
+
     [Fact]
     public async Task SimulatedDevicesModeChanged_IsSavedAndHidesThem()
     {

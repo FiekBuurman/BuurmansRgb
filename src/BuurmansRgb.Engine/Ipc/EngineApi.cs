@@ -70,6 +70,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _saveEvents?.Saved += OnSaved;
         _profiles.Changed += OnProfilesChanged;
         _simulatedDevices.ModeChanged += OnOptionsChanged;
+        _simulatedDevices.HadRealDevicesChanged += OnOptionsChanged;
         _lighting.FramesPerSecondChanged += OnOptionsChanged;
         _lighting.PausedLightsChanged += OnOptionsChanged;
         _autoPause?.EnabledChanged += OnOptionsChanged;
@@ -297,6 +298,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<bool> GetHadRealDevicesAsync(CancellationToken ct = default) => Task.FromResult(_simulatedDevices.HadRealDevices);
+
     public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(_lighting.FramesPerSecond);
 
     public Task SetFramesPerSecondAsync(int framesPerSecond, CancellationToken ct = default)
@@ -409,6 +412,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _saveEvents?.Saved -= OnSaved;
         _profiles.Changed -= OnProfilesChanged;
         _simulatedDevices.ModeChanged -= OnOptionsChanged;
+        _simulatedDevices.HadRealDevicesChanged -= OnOptionsChanged;
         _lighting.FramesPerSecondChanged -= OnOptionsChanged;
         _lighting.PausedLightsChanged -= OnOptionsChanged;
         _autoPause?.EnabledChanged -= OnOptionsChanged;
