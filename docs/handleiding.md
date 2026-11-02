@@ -931,7 +931,7 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 | Tray-menu | "Effecten pauzeren" aanvinken | Uitvinken, of "Hervatten" in de instellingen-app | Blijven zoals ze zijn; de engine stuurt niets tot hervatten |
 | Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan, of gedimd of uit (zie "Apparaten tijdens deze pauze") |
 | Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Als bij vergrendeld; "Uit" gaat naar de apparaten vóórdat de pc slaapt |
-| Scherm uit | Het scherm gaat uit, ook zonder dat Windows vergrendelt (bijv. na de tijd bij "Scherm uitschakelen na" van Windows) | Het scherm gaat weer aan (of ontgrendelen) | Als bij vergrendeld |
+| Scherm uit | Het scherm van je eigen sessie gaat uit, ook zonder dat Windows vergrendelt (bijv. na de tijd bij "Scherm uitschakelen na" van Windows) | Het scherm gaat weer aan (of ontgrendelen, of de sessie komt op een ander scherm) | Als bij vergrendeld |
 | Schermbeveiliging | De schermbeveiliging van Windows begint na de wachttijd die je daar instelde, ook zonder dat Windows vergrendelt | Je beweegt de muis of drukt een toets in en de schermbeveiliging verdwijnt (of ontgrendelen) | Als bij vergrendeld |
 
 - Bij elke reden stopt de animatie en kost hij geen CPU meer; standaard gaan de apparaten niet uit.
@@ -942,6 +942,13 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 - Een gedimd scherm telt niet als uit. Het gaat om de schermen die Windows zelf uitzet; een
   scherm dat je met zijn eigen aan/uit-knop uitzet, ziet Windows niet als uit, en dan lopen de
   effecten door.
+- Het gaat om het scherm van je eigen sessie, niet om de monitor aan de pc. Werk je via Extern
+  bureaublad, dan is de monitor aan de pc uit terwijl jij naar je sessie kijkt: de effecten
+  pauzeren dan niet, en Knipperen en Tellen blijven gewoon te gebruiken. Een spel in een
+  volledig scherm pauzeert ook niet. Wissel je van de pc naar Extern bureaublad of terug, dan
+  vraagt de engine de stand van het nieuwe scherm opnieuw aan Windows, zodat een pauze van het
+  vorige scherm niet blijft hangen. Elke pauze en elke hervatting staat met de reden in het
+  logbestand (zie "Logbestanden").
 - De schermbeveiliging telt alleen als Windows hem zelf start, na de wachttijd. "Voorbeeld" in
   de instellingen van de schermbeveiliging pauzeert niet, en het kleine voorbeeld in dat venster
   ook niet; in het logboek staat dan dat er een schermbeveiliging vooraan kwam die Windows niet
@@ -1216,6 +1223,11 @@ tray-menu of bij Instellingen in de app.
   `engine.restart.old.log`) en begint er een nieuw; van elk logbestand zijn er dus hooguit twee.
 - Je kunt het bestand openen terwijl de engine draait. De meldingen zijn in het Engels, zoals
   de code.
+- Elke pauze van de effecten en elke hervatting staat erin met de reden, bijv. "Effects paused
+  (screen off)." en "Pause ended (screen off); effects run again."; houden er meer redenen
+  tegelijk aan, dan staan die erbij ("also paused: locked", "still paused: locked"). De redenen
+  heten `tray menu`, `locked`, `asleep`, `screen off` en `screen saver` (zie "Pauzeren" bij
+  Effecten). Zo zie je achteraf waarom de effecten stilstonden.
 - Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
 
 ## OpenRGB en hardware
