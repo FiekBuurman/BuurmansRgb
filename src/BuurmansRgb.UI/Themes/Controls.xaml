@@ -472,10 +472,7 @@
                  disabled grey is its face (5:1 on a card, TokenContrastTests) with bg text, so it stays
                  apart from a day that is off and looks greyer than a day that is on; a contrast theme
                  gives the face GrayText with Window text. The triggers of a style win over those of
-                 its template, and a later one over an earlier one, so these come after IsChecked. -->
-            <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
-            </Trigger>
+                 its template, and a later one over an earlier one, so this comes after IsChecked. -->
             <MultiTrigger>
                 <MultiTrigger.Conditions>
                     <Condition Property="IsChecked" Value="True" />
