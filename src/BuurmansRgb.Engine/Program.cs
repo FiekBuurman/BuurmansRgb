@@ -110,7 +110,7 @@ internal static class Program
         // clock and foreground events, and the screen saver through the foreground.
         using var powerEvents = new SystemPowerEvents();
         using var sessionEvents = new SystemSessionEvents();
-        using var displayEvents = new SystemDisplayEvents();
+        using var displayEvents = new SystemDisplayEvents(sessionEvents);
         using var clockEvents = new SystemClockEvents(powerEvents);
         using var foregroundHook = new ForegroundHook();
         using var foregroundWindow = new SystemForegroundWindow(foregroundHook);
