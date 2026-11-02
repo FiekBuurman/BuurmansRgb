@@ -124,6 +124,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   regel voor zodra hij verschijnt, en de knop is met Tab te bereiken. Op een pc die nog nooit een
   echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de verwijzing naar
   Instellingen, zoals eerst.
+
+  ![De pagina Apparaten zonder apparaten: "De verbinding met je apparaten is weg." met de knop "Opnieuw verbinden"](images/apparaten-verbinding-weg.png)
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
   maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
