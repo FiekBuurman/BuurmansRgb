@@ -16,6 +16,9 @@ public sealed class SystemDisplayEventsTests
     private const string AskingAgain = "asking Windows again whether it is off";
 
     private static readonly Guid OtherSetting = new("02731015-4510-4526-99e6-e5a17ebd1aea");
+
+    // GUID_CONSOLE_DISPLAY_STATE, the screen of the console that the engine followed before.
+    private static readonly Guid ConsoleDisplayState = new("6fe69556-704a-47a0-8f24-c28d936fda47");
     private static readonly TimeSpan StateTimeout = TimeSpan.FromSeconds(3);
 
     // GUID_SESSION_DISPLAY_STATUS gives 0 for off, 1 for on and 2 for dimmed.
@@ -32,7 +35,7 @@ public sealed class SystemDisplayEventsTests
     public void ReadIsOff_AnotherSettingOrTooShort_IsNotKnown()
     {
         Assert.Null(SystemDisplayEvents.ReadIsOff(Setting(OtherSetting, 0)));
-        Assert.Null(SystemDisplayEvents.ReadIsOff(Setting(new Guid("6fe69556-704a-47a0-8f24-c28d936fda47"), 0)));
+        Assert.Null(SystemDisplayEvents.ReadIsOff(Setting(ConsoleDisplayState, 0)));
         Assert.Null(SystemDisplayEvents.ReadIsOff(Setting(SystemDisplayEvents.SessionDisplayStatus, 0)[..^1]));
         Assert.Null(SystemDisplayEvents.ReadIsOff(Setting(SystemDisplayEvents.SessionDisplayStatus, 0, dataLength: 0)));
         Assert.Null(SystemDisplayEvents.ReadIsOff([]));
@@ -40,7 +43,8 @@ public sealed class SystemDisplayEventsTests
 
     // Sent here on the own thread, the message goes straight through WndProc: Switched follows the
     // screen, dimmed counts as on, a state that stays the same is told again, and another setting
-    // changes nothing.
+    // changes nothing. The screen of the console going off, as over a remote desktop, is what the
+    // engine followed before; now it is another setting too, all the way from WndProc to Switched.
     [Fact]
     public void WndProc_PowerSettingChange_FollowsTheScreen()
     {
@@ -52,6 +56,10 @@ public sealed class SystemDisplayEventsTests
             Assert.False(display.IsOff);
             var changes = new List<bool>();
             display.Switched += (_, off) => changes.Add(off);
+
+            Send(display, ConsoleDisplayState, 0);
+            Assert.False(display.IsOff);
+            Assert.Empty(changes);
 
             Send(display, SystemDisplayEvents.SessionDisplayStatus, 0);
             Assert.True(display.IsOff);
