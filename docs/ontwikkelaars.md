@@ -653,7 +653,10 @@ toetsenbord. Een paar dingen om te proberen:
   `PreviewMotionBar` zijn weg. `OpenRgbStatusViewModel` zegt `Text` in gewone taal
   ("5 apparaten verbonden") en houdt de technische zin in `TechnicalText` (met de SDK-server) en
   `ToolTip` (met de tip); `CanRestart` en `RestartCommand` (via `RestartRequested`) horen bij
-  "Herstarten" naast de status en bij Instellingen.
+  "Herstarten" naast de status en bij Instellingen. Ook hier telt `DevicesExpected`
+  (`HadRealDevices`): zonder echte apparaten ooit is OpenRGB niet bereikbaar de gewone staat van
+  wie de app met de gesimuleerde apparaten probeert, dus zegt de status "Nog geen echte apparaten
+  gevonden" met een rustige tip, en staat "Herstarten" er niet; bij "geen goed antwoord" wel.
 - **Herstarten vanuit de app:** `IEngineApi.RestartAsync` geeft het verzoek in de engine door
   aan `TrayApplicationContext.RequestRestart`, hetzelfde als een klik op het tray-item
   (`TrayPresenter.RestartAsync`, `EngineRestarter`: UAC, OpenRGB en PawnIO herstarten, de app

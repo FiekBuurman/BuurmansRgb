@@ -40,6 +40,7 @@ public sealed class OpenRgbStatusViewModelTests
     [Fact]
     public void Unreachable_SaysNoConnectionWithTheTechnicalStatusAndTheTipBehindIt()
     {
+        _status.DevicesExpected = true;
         _status.Show(new ServerStatus(ServerState.Unreachable));
 
         Assert.Equal("Geen verbinding met je apparaten", _status.Text);
@@ -54,6 +55,32 @@ public sealed class OpenRgbStatusViewModelTests
         Assert.True(_status.RestartCommand.CanExecute(null));
     }
 
+    // Without a real device ever on this pc, OpenRGB out of reach is how someone tries the app:
+    // nothing is broken, so no "Herstarten", and the tip says the simulated devices play along.
+    [Fact]
+    public void Unreachable_WithoutRealDevicesEver_StaysCalmWithoutHerstarten()
+    {
+        var changed = new List<string?>();
+        _status.Show(new ServerStatus(ServerState.Unreachable));
+        _status.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        Assert.Equal("Nog geen echte apparaten gevonden", _status.Text);
+        Assert.Equal("OpenRGB: niet bereikbaar (SDK-server op 127.0.0.1:6742)", _status.TechnicalText);
+        Assert.Equal(Strings.OpenRgbUnreachableNoDevicesHint, _status.Hint);
+        Assert.Contains("gesimuleerde", _status.Hint);
+        Assert.True(_status.IsDisconnected);
+        Assert.False(_status.CanRestart);
+        Assert.False(_status.RestartCommand.CanExecute(null));
+
+        _status.DevicesExpected = true;
+
+        Assert.Equal("Geen verbinding met je apparaten", _status.Text);
+        Assert.True(_status.CanRestart);
+        Assert.Contains(nameof(OpenRgbStatusViewModel.Text), changed);
+        Assert.Contains(nameof(OpenRgbStatusViewModel.CanRestart), changed);
+    }
+
+    // OpenRGB that answers wrongly is trouble on any pc.
     [Fact]
     public void Failed_SaysConnectingFailsAndKeepsTrying()
     {
@@ -70,6 +97,7 @@ public sealed class OpenRgbStatusViewModelTests
     {
         var requests = 0;
         _status.RestartRequested += (_, _) => requests++;
+        _status.DevicesExpected = true;
         _status.Show(new ServerStatus(ServerState.Unreachable));
 
         _status.RestartCommand.Execute(null);
@@ -81,6 +109,7 @@ public sealed class OpenRgbStatusViewModelTests
     public void ConnectedAgain_TakesRestartAway()
     {
         var changed = new List<string?>();
+        _status.DevicesExpected = true;
         _status.Show(new ServerStatus(ServerState.Unreachable));
         _status.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
@@ -94,6 +123,7 @@ public sealed class OpenRgbStatusViewModelTests
     [Fact]
     public void Clear_ShowsNothing()
     {
+        _status.DevicesExpected = true;
         _status.Show(new ServerStatus(ServerState.Unreachable));
 
         _status.Clear();

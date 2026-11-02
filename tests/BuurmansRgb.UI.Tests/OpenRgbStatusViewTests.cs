@@ -45,6 +45,7 @@ public sealed class OpenRgbStatusViewTests
         {
             api = engine;
             engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            engine.HadRealDevices = true;
         });
 
         AppTheme.Run(panel =>
@@ -84,6 +85,7 @@ public sealed class OpenRgbStatusViewTests
         {
             api = engine;
             engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            engine.HadRealDevices = true;
         });
 
         AppTheme.Run(panel =>
@@ -97,6 +99,23 @@ public sealed class OpenRgbStatusViewTests
 
             Assert.Equal("1 apparaat verbonden", Status(page).Text);
             Assert.Contains(Status(page), capture.Announced);
+            Assert.False(Restart(page).IsVisible);
+        });
+    }
+
+    // Trying the app without OpenRGB, on a pc that never had a real device: the status says there
+    // are no real devices yet, without "Herstarten"; nothing is broken.
+    [Fact]
+    public async Task Unreachable_WithoutRealDevicesEver_StaysCalmWithoutHerstarten()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+
+            Assert.Equal("Nog geen echte apparaten gevonden", Status(page).Text);
+            Assert.EndsWith(Strings.OpenRgbUnreachableNoDevicesHint, (string)Status(page).ToolTip, StringComparison.Ordinal);
             Assert.False(Restart(page).IsVisible);
         });
     }

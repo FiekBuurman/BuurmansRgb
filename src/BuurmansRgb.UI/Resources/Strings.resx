@@ -767,6 +767,13 @@
   <data name="DevicesUnreachable" xml:space="preserve">
     <value>Geen verbinding met je apparaten</value>
   </data>
+  <data name="DevicesNoneYet" xml:space="preserve">
+    <value>Nog geen echte apparaten gevonden</value>
+    <comment>OpenRGB niet bereikbaar op een pc die nog nooit een echt apparaat had: niets is kapot.</comment>
+  </data>
+  <data name="OpenRgbUnreachableNoDevicesHint" xml:space="preserve">
+    <value>OpenRGB draait niet, of de SDK-server staat uit; zolang spelen de gesimuleerde apparaten mee. Zet OpenRGB aan (de installer van buurmansRgb regelt dat), dan verbindt buurmansRgb vanzelf en komen je echte apparaten erbij.</value>
+  </data>
   <data name="DevicesFailed" xml:space="preserve">
     <value>Verbinden met je apparaten lukt niet</value>
   </data>

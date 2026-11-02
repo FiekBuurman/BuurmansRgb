@@ -17,6 +17,14 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
     [NotifyCanExecuteChangedFor(nameof(RestartCommand))]
     public partial ServerStatus? Status { get; private set; } = ServerStatus.Connecting;
 
+    // Whether a real device was ever in the list on this pc (MainViewModel.HadRealDevices). Without,
+    // OpenRGB out of reach is the normal state of someone who tries the app with the simulated
+    // devices: nothing is broken, so the status stays calm and "Herstarten" stays away.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Text), nameof(Hint), nameof(HasHint), nameof(ToolTip), nameof(CanRestart))]
+    [NotifyCanExecuteChangedFor(nameof(RestartCommand))]
+    public partial bool DevicesExpected { get; set; }
+
     // Raised when the user asks for "Herstarten".
     public event EventHandler? RestartRequested;
 
@@ -26,7 +34,7 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
         { State: ServerState.Connected, DeviceCount: 0 } => Strings.DevicesConnectedNone,
         { State: ServerState.Connected, DeviceCount: 1 } => Strings.DevicesConnectedOne,
         { State: ServerState.Connected } status => UiText.Format(Strings.DevicesConnected, status.DeviceCount),
-        { State: ServerState.Unreachable } => Strings.DevicesUnreachable,
+        { State: ServerState.Unreachable } => DevicesExpected ? Strings.DevicesUnreachable : Strings.DevicesNoneYet,
         { State: ServerState.Failed } => Strings.DevicesFailed,
         _ => Strings.DevicesConnecting,
     };
@@ -46,7 +54,7 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
     // What to do about it, when there is something to do.
     public string? Hint => Status?.State switch
     {
-        ServerState.Unreachable => Strings.OpenRgbUnreachableHint,
+        ServerState.Unreachable => DevicesExpected ? Strings.OpenRgbUnreachableHint : Strings.OpenRgbUnreachableNoDevicesHint,
         ServerState.Failed => Strings.OpenRgbFailedHint,
         _ => null,
     };
@@ -59,9 +67,10 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
     // Nothing answered at the SDK server, or it gave no good answer: the devices are out of reach.
     public bool IsDisconnected => Status?.State is ServerState.Unreachable or ServerState.Failed;
 
-    // "Herstarten" only when the connection is the trouble; connected or connecting it would only
-    // interrupt.
-    public bool CanRestart => IsDisconnected;
+    // "Herstarten" only when the connection is the trouble: OpenRGB that answers wrongly, or out of
+    // reach on a pc that had real devices. Connected or connecting it would only interrupt, and
+    // without real devices there is nothing to bring back.
+    public bool CanRestart => Status?.State is ServerState.Failed || (Status?.State is ServerState.Unreachable && DevicesExpected);
 
     // Without the engine there is nothing known about OpenRGB, so nothing stays shown.
     public void Clear() => Status = null;

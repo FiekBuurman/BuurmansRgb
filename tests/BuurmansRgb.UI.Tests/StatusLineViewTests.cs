@@ -192,7 +192,7 @@ public sealed class StatusLineViewTests
     }
 
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
-    // status at the top right says it, with "Herstarten".
+    // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]
     public async Task OpenRgbUnreachable_WithoutRealDevices_NoLine()
     {
@@ -203,7 +203,7 @@ public sealed class StatusLineViewTests
             var page = PageViews.Show<LampsPage>(panel, viewModel);
 
             Assert.False(Card(page).IsVisible);
-            Assert.True(AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "RestartEngine").IsVisible);
+            Assert.Equal(Strings.DevicesNoneYet, AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "OpenRgbStatus").Text);
         });
     }
 

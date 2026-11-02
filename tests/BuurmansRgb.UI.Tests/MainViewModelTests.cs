@@ -603,8 +603,13 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task Connect_ShowsTheOpenRgbStatusAndFollowsIt()
     {
-        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.HadRealDevices = true;
+        });
         Assert.Equal(Strings.DevicesUnreachable, viewModel.OpenRgbStatus.Text);
+        Assert.True(viewModel.OpenRgbStatus.CanRestart);
 
         Api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 3));
 
@@ -617,7 +622,11 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task Restart_AsksTheEngineAndSaysTheAppComesBack()
     {
-        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.HadRealDevices = true;
+        });
 
         viewModel.OpenRgbStatus.RestartCommand.Execute(null);
 

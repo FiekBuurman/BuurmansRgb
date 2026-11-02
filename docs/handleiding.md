@@ -95,10 +95,13 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 
 - Bovenaan het woordmerk en rechts de status van je apparaten in gewone taal: "5 apparaten
   verbonden" (of "1 apparaat verbonden", "Verbonden, geen apparaten gevonden"), "Verbinden met je
-  apparaten…", "Geen verbinding met je apparaten" of "Verbinden met je apparaten lukt niet". De
+  apparaten…", "Geen verbinding met je apparaten" of "Verbinden met je apparaten lukt niet". Op
+  een pc die nog nooit een echt apparaat had, staat er zonder OpenRGB "Nog geen echte apparaten
+  gevonden": dan is er niets kapot, je probeert de app met de gesimuleerde apparaten. De
   technische kant (OpenRGB en de SDK-server op `127.0.0.1:6742`) en een tip staan in de tooltip
   van de status en achter de ⓘ (bij aanwijzen of met Tab), en uitgeschreven bij Instellingen.
-  Zonder verbinding staat ernaast de knop **Herstarten**: die doet wat "Herstarten" in het
+  Zonder verbinding (op een pc die echte apparaten had, of als OpenRGB geen goed antwoord geeft)
+  staat ernaast de knop **Herstarten**: die doet wat "Herstarten" in het
   tray-menu doet (zie "Tray-icoon"): OpenRGB, de driver PawnIO en buurmansRgb opnieuw starten,
   met één UAC-vraag. De app gaat zolang dicht en komt vanzelf terug; tot dan staat onderaan
   "buurmansRgb herstart: de app gaat zo dicht en komt vanzelf terug.". Een schermlezer leest een
@@ -707,6 +710,7 @@ Hoe het vanzelf aanzetten werkt:
   | 5 apparaten verbonden (of "1 apparaat verbonden") | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
   | Verbonden, geen apparaten gevonden | OpenRGB: verbonden, geen apparaten gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
   | Geen verbinding met je apparaten | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait niet of de SDK-server staat uit. Tip: kies Herstarten; helpt dat niet, herstart dan de pc of draai de installer opnieuw |
+  | Nog geen echte apparaten gevonden | OpenRGB: niet bereikbaar | Hetzelfde, op een pc die nog nooit een echt apparaat had (`hadRealDevices`, zie "Gesimuleerde apparaten"): niets is kapot, de gesimuleerde apparaten spelen mee, en Herstarten staat er niet. Tip: zet OpenRGB aan (de installer regelt dat) |
   | Verbinden met je apparaten lukt niet | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte; buurmansRgb blijft het proberen, Herstarten start OpenRGB opnieuw |
 
 - **Gesimuleerde apparaten:** bij "Gesimuleerde apparaten tonen"
