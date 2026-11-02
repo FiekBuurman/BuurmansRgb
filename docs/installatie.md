@@ -46,8 +46,10 @@ Na afloop start BuurmansRgb met een tray-icoon rechtsonder bij de klok, en staat
 **Starten met Windows** aan. Dubbelklik op het icoon opent de instellingen. Vraagt de
 installer om een herstart, dan heeft PawnIO of OpenRGB die nodig.
 
-Zodra OpenRGB echte apparaten levert, verdwijnen de gesimuleerde apparaten vanzelf. Wil je ze nooit
-zien, kies dan in de instellingen-app bij **Instellingen → Gesimuleerde apparaten** voor "Nooit".
+Zodra OpenRGB echte apparaten levert, verdwijnen de gesimuleerde apparaten vanzelf; ze komen ook
+niet terug als OpenRGB later wegvalt, zolang deze pc ooit een echt apparaat had (zie "Instellingen"
+in de [handleiding](handleiding.md#instellingen)). Wil je ze nooit zien, kies dan in de
+instellingen-app bij **Instellingen → Gesimuleerde apparaten** voor "Nooit".
 
 ## Bijwerken
 

@@ -119,7 +119,7 @@ Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
   `HKLM\Software\BuurmansRgb` of hij OpenRGB en PawnIO zelf installeerde; alleen dan vraagt
   verwijderen of ze ook weg moeten.
 - **Gesimuleerde apparaten** staan standaard op "Automatisch": ze verdwijnen zodra OpenRGB
-  echte apparaten levert (PR #21).
+  echte apparaten levert (PR #21), en komen niet terug zolang deze pc ooit een echt apparaat had.
 - **Licentie OpenRGB:** GPL-2.0, als los programma meegeleverd. De licentie en de link naar de
   broncode staan in `installer/THIRD-PARTY-NOTICES.txt`, dat naast BuurmansRgb wordt
   geïnstalleerd.
