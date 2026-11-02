@@ -23,17 +23,24 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     {
         Assert.False(_rescan.IsSearching);
         Assert.Equal("Verversen", _rescan.ButtonText);
+        Assert.Equal("Opnieuw verbinden", _rescan.ReconnectButtonText);
         Assert.False(_rescan.HasMessage);
         Assert.True(_rescan.RescanCommand.CanExecute(null));
     }
 
+    // Both buttons run the one search, so both say so.
     [Fact]
     public void Rescan_SaysZoekenAndAsksOnce()
     {
+        List<string?> changes = [];
+        _rescan.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
         _rescan.RescanCommand.Execute(null);
 
         Assert.True(_rescan.IsSearching);
         Assert.Equal("Zoeken…", _rescan.ButtonText);
+        Assert.Equal("Zoeken…", _rescan.ReconnectButtonText);
+        Assert.Contains(nameof(DeviceRescanViewModel.ReconnectButtonText), changes);
         Assert.Single(_requests);
     }
 

@@ -987,6 +987,22 @@
   </data>
   <data name="NoLamps" xml:space="preserve">
     <value>Nog geen apparaten gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde apparaten aan.</value>
+    <comment>Zonder apparaten op een pc die nog nooit een echt apparaat had; met wel een echt apparaat ooit staat er DevicesLost.</comment>
+  </data>
+  <data name="DevicesLost" xml:space="preserve">
+    <value>De verbinding met je apparaten is weg.</value>
+    <comment>De lege staat van Apparaten op een pc die echte apparaten had, zonder apparaten: OpenRGB geeft ze niet (meer) door. Een schermlezer leest hem voor als hij verschijnt.</comment>
+  </data>
+  <data name="DevicesLostRestartHint" xml:space="preserve">
+    <value>Helpt opnieuw verbinden niet, kies dan "Herstarten" in het menu van het tray-icoon: dat start OpenRGB en buurmansRgb opnieuw.</value>
+    <comment>Onder DevicesLost; "Herstarten" is het item in het tray-menu.</comment>
+  </data>
+  <data name="Reconnect" xml:space="preserve">
+    <value>Opnieuw verbinden</value>
+    <comment>Knop onder DevicesLost; doet wat Rescan doet en zegt ook RescanSearching zolang het zoeken duurt.</comment>
+  </data>
+  <data name="ReconnectToolTip" xml:space="preserve">
+    <value>Zoekt je apparaten weer op: OpenRGB zoekt opnieuw, en antwoordt het niet, dan verbindt buurmansRgb opnieuw met OpenRGB.</value>
   </data>
   <data name="PresetKlusWhite" xml:space="preserve">
     <value>Klus-wit</value>

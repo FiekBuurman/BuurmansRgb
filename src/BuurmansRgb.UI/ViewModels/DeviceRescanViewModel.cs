@@ -34,7 +34,7 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     public static TimeSpan SearchTimeout { get; } = TimeSpan.FromSeconds(15);
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ButtonText))]
+    [NotifyPropertyChangedFor(nameof(ButtonText), nameof(ReconnectButtonText))]
     public partial bool IsSearching { get; private set; }
 
     // What the last search left to say: OpenRGB could not be reached (until it is connected
@@ -46,6 +46,10 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     public bool HasMessage => Message is not null;
 
     public string ButtonText => IsSearching ? Strings.RescanSearching : Strings.Rescan;
+
+    // "Opnieuw verbinden" in the empty state of Apparaten, when the connection to the real devices
+    // is gone: the same search, so it says "Zoeken…" with "Verversen" meanwhile.
+    public string ReconnectButtonText => IsSearching ? Strings.RescanSearching : Strings.Reconnect;
 
     // The engine's answer to search number search: false when OpenRGB could not be reached. Also
     // after the timeout, so the message still follows.

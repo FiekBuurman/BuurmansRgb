@@ -85,7 +85,111 @@ public sealed class LampsPageViewTests
         });
     }
 
+    // No device on a pc that had real ones: the line says the connection is gone and is read out, the
+    // word about "Herstarten" in the tray menu is there, and "Opnieuw verbinden" runs the search of
+    // "Verversen" with the keyboard, both saying "Zoeken…" meanwhile. "Nog geen apparaten gevonden"
+    // is not there.
+    [Fact]
+    public async Task DevicesLost_NoDevicesOnAPcThatHadThem_IsReadOutWithAButtonToReconnect()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.Devices = [];
+            arranged.HadRealDevices = true;
+            arranged.RescanGate = new TaskCompletionSource().Task;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var line = DevicesLost(page);
+            Assert.True(line.IsVisible);
+            Assert.Equal(Strings.DevicesLost, line.Text);
+            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(line));
+            var tree = PageViews.AutomationTree(page);
+            Assert.Contains(tree, peer => peer.GetName() == Strings.DevicesLost);
+            Assert.Contains(tree, peer => peer.GetName() == Strings.DevicesLostRestartHint);
+            Assert.Contains("Herstarten", Strings.DevicesLostRestartHint, StringComparison.Ordinal);
+            Assert.False(NoLamps(page).IsVisible);
+
+            var button = Reconnect(page);
+            Assert.Equal(Strings.Reconnect, new ButtonAutomationPeer(button).GetName());
+            Assert.Equal(Strings.ReconnectToolTip, AutomationProperties.GetHelpText(button));
+            Assert.True(button.Focus());
+
+            PageViews.Click(button);
+
+            Assert.Equal(["rescan"], api!.Calls);
+            Assert.Equal(Strings.RescanSearching, button.Content);
+            Assert.Equal(Strings.RescanSearching, new ButtonAutomationPeer(button).GetName());
+            Assert.Equal(Strings.RescanSearching, AppTheme.Descendants<Button>(page).Single(other => AutomationProperties.GetAutomationId(other) == "RescanDevices").Content);
+            Assert.True(button.IsEnabled);
+            Assert.True(button.IsKeyboardFocused);
+        });
+    }
+
+    // The line appears while the page is open, as when OpenRGB stops: a screen reader hears it then.
+    [Fact]
+    public async Task DevicesLost_AppearsWhileThePageIsOpen_IsAnnounced()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.HadRealDevices = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var line = DevicesLost(page);
+            Assert.False(line.IsVisible);
+            using var live = LiveRegionCapture.Start();
+
+            api!.Devices = [];
+            api.RaiseDevicesChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(line.IsVisible);
+            Assert.Contains(line, live.Announced);
+        });
+    }
+
+    // With a device, or on a pc that never had a real one, the state is away; the latter has
+    // "Nog geen apparaten gevonden" without devices.
+    [Theory]
+    [InlineData(true, 1, false)]
+    [InlineData(false, 1, false)]
+    [InlineData(false, 0, true)]
+    public async Task DevicesLost_WithADeviceOrWithoutRealDevicesEver_IsAway(bool hadRealDevices, int deviceCount, bool noLamps)
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = [.. Enumerable.Range(0, deviceCount).Select(i => Simulated($"sim-{i}"))];
+            api.HadRealDevices = hadRealDevices;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Assert.False(DevicesLost(page).IsVisible);
+            Assert.False(Reconnect(page).IsVisible);
+            Assert.Equal(noLamps, NoLamps(page).IsVisible);
+        });
+    }
+
     private static DeviceInfo Simulated(string id) => TestDevices.Create(id, $"Simulated {id}", DeviceType.LedStrip, 3, DeviceSource.Simulated);
+
+    private static TextBlock DevicesLost(DependencyObject page) =>
+        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "DevicesLost");
+
+    private static Button Reconnect(DependencyObject page) =>
+        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "ReconnectDevices");
+
+    private static TextBlock NoLamps(DependencyObject page) =>
+        AppTheme.Descendants<TextBlock>(page).Single(text => Equals(text.Text, Strings.NoLamps));
 
     private static Button AddLamps(DependencyObject page) =>
         AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.AddLamps));
