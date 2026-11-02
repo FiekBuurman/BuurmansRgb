@@ -946,9 +946,9 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   bureaublad, dan is de monitor aan de pc uit terwijl jij naar je sessie kijkt: de effecten
   pauzeren dan niet, en Knipperen en Tellen blijven gewoon te gebruiken. Een spel in een
   volledig scherm pauzeert ook niet. Wissel je van de pc naar Extern bureaublad of terug, dan
-  vraagt de engine de stand van het nieuwe scherm opnieuw aan Windows, zodat een pauze van het
-  vorige scherm niet blijft hangen. Elke pauze en elke hervatting staat met de reden in het
-  logbestand (zie "Logbestanden").
+  eindigt een pauze van het vorige scherm (zoals bij ontgrendelen) en vraagt de engine Windows
+  of het nieuwe scherm aan of uit is: staat het uit, dan pauzeert hij opnieuw. Elke pauze en
+  elke hervatting staat met de reden in het logbestand (zie "Logbestanden").
 - De schermbeveiliging telt alleen als Windows hem zelf start, na de wachttijd. "Voorbeeld" in
   de instellingen van de schermbeveiliging pauzeert niet, en het kleine voorbeeld in dat venster
   ook niet; in het logboek staat dan dat er een schermbeveiliging vooraan kwam die Windows niet
