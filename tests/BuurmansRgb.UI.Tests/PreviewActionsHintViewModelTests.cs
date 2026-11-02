@@ -35,15 +35,13 @@ public sealed class PreviewActionsHintViewModelTests
         Assert.Equal(canResume, _hint.ResumeCommand.CanExecute(null));
     }
 
-    // The same order as the pause message at the top of the page (EffectsPauseViewModel).
-    [Theory]
-    [InlineData(PauseReasons.Manual | PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Manual)]
-    [InlineData(PauseReasons.Locked | PauseReasons.Asleep | PauseReasons.DisplayOff, PauseReasons.Locked)]
-    [InlineData(PauseReasons.Asleep | PauseReasons.ScreenSaver, PauseReasons.Asleep)]
-    [InlineData(PauseReasons.ScreenSaver | PauseReasons.DisplayOff, PauseReasons.ScreenSaver)]
-    public void MoreReasons_TellTheOneThatMattersMost(PauseReasons reasons, PauseReasons shown)
+    // Which reason, when there is more than one, is the choice of PauseReasonsExtensions
+    // (PauseReasonsExtensionsTests); the line tells that one.
+    [Fact]
+    public void MoreReasons_TellTheOneThatMattersMost()
     {
-        var single = new PreviewActionsHintViewModel { Reasons = shown };
+        var reasons = PauseReasons.Locked | PauseReasons.DisplayOff;
+        var single = new PreviewActionsHintViewModel { Reasons = reasons.MostTelling() };
 
         _hint.Reasons = reasons;
 

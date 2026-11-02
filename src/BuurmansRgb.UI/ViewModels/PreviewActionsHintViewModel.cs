@@ -29,15 +29,16 @@ public sealed partial class PreviewActionsHintViewModel : ObservableObject
 
     public bool CanResume => Reasons.HasFlag(PauseReasons.Manual);
 
-    // The reasons in the order of EffectsPauseViewModel.Text: the pause from the tray menu first,
-    // as that is the one the user can end, then the one that ends last.
-    public string Text =>
-        CanResume ? Strings.PreviewActionsPausedManual
-        : Reasons.HasFlag(PauseReasons.Locked) ? Strings.PreviewActionsPausedLocked
-        : Reasons.HasFlag(PauseReasons.Asleep) ? Strings.PreviewActionsPausedAsleep
-        : Reasons.HasFlag(PauseReasons.ScreenSaver) ? Strings.PreviewActionsPausedScreenSaver
-        : Reasons.HasFlag(PauseReasons.DisplayOff) ? Strings.PreviewActionsPausedDisplayOff
-        : string.Empty;
+    // The same reason as the pause message at the top of the page (PauseReasonsExtensions).
+    public string Text => Reasons.MostTelling() switch
+    {
+        PauseReasons.Manual => Strings.PreviewActionsPausedManual,
+        PauseReasons.Locked => Strings.PreviewActionsPausedLocked,
+        PauseReasons.Asleep => Strings.PreviewActionsPausedAsleep,
+        PauseReasons.ScreenSaver => Strings.PreviewActionsPausedScreenSaver,
+        PauseReasons.DisplayOff => Strings.PreviewActionsPausedDisplayOff,
+        _ => string.Empty,
+    };
 
     [RelayCommand(CanExecute = nameof(CanResume))]
     private void Resume() => ResumeRequested?.Invoke(this, EventArgs.Empty);
