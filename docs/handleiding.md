@@ -853,9 +853,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   `preview-bg`, WCAG 1.4.3) op een vlak dat de kaart laat zien, met de rand van een kaart, zodat
   de knop nog duidelijk "uit" oogt; de muisaanwijzer is er een pijl. Het ontwerp zegt niets over
   knoppen die uit staan. Dat geldt voor de gewone knoppen, de ronde knopjes en de dagen van een
-  scène; de primaire knop, een schuif, een vinkje en een keuzelijst die uit staan, worden nog
-  doorzichtiger (zie `docs/ideas.md`). In een contrastthema krijgen de tekst en de rand van zo'n
-  knop de grijze tekst van dat thema (`GrayText`), zoals een knop van Windows die uit staat.
+  scène zonder tijd; een aangevinkte dag laat daarbij zien dat hij aan staat: het vlak in dat
+  grijs (5:1 op een kaart) met de tekst in `bg`, grijzer dan een dag die aan staat en anders dan
+  een dag die uit staat. De primaire knop, een schuif, een vinkje en een keuzelijst die uit
+  staan, worden nog doorzichtiger (zie `docs/ideas.md`). In een contrastthema krijgen de tekst en
+  de rand van zo'n knop de grijze tekst van dat thema (`GrayText`), zoals een knop van Windows die
+  uit staat; een aangevinkte dag krijgt die als vlak met de tekst in de vensterkleur.
 - **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker
   blijft. In het ontwerp (§ 5.2) is het losse tekst, waaraan je niet ziet dat je erin kunt typen.
   Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".

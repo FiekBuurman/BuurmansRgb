@@ -60,6 +60,21 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.HighlightTextBrush, day.Foreground);
     });
 
+    // A day that is on but cannot be changed: GrayText, which means disabled, as its face with
+    // Window text, so it still differs from a day that is off (GrayText on the face of a button).
+    [Fact]
+    public void DayToggle_WhenOnAndDisabled_HasGrayTextAsItsFace() => InContrastTheme(panel =>
+    {
+        var on = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
+        var off = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "di", IsEnabled = false });
+
+        Assert.Same(SystemColors.GrayTextBrush, on.Background);
+        Assert.Same(SystemColors.GrayTextBrush, on.BorderBrush);
+        Assert.Same(SystemColors.WindowBrush, on.Foreground);
+        Assert.Same(SystemColors.ControlBrush, off.Background);
+        Assert.Same(SystemColors.GrayTextBrush, off.Foreground);
+    });
+
     [Fact]
     public void DayToggle_WhenOff_HasTheFaceOfAButton() => InContrastTheme(panel =>
     {

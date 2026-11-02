@@ -398,7 +398,9 @@
          One that does nothing now (IsEnabled false) keeps its shape but goes grey: its text in the
          disabled grey (4.5:1 on a card, TokenContrastTests), on a face that shows the card through,
          with the border of a card; not the whole button at a lower opacity, which leaves the text too
-         faint to read. The tooltip of such a button stays (ToolTipService.ShowOnDisabled). -->
+         faint to read. The tooltip of such a button stays (ToolTipService.ShowOnDisabled). That trigger
+         sets the colors on the button, not on its face, so a trigger of a style based on this one
+         comes before it (DayToggle keeps a day that is on visible). -->
     <Style x:Key="SecondaryButton" TargetType="ButtonBase">
         <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
         <Setter Property="MinWidth" Value="{StaticResource MinClickSize}" />
@@ -425,8 +427,8 @@
                             <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource DisabledFaceBrush}" />
-                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                            <Setter Property="Background" Value="{DynamicResource DisabledFaceBrush}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
                             <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
                             <Setter Property="Cursor" Value="Arrow" />
                         </Trigger>
@@ -465,12 +467,24 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
                 <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
             </Trigger>
-            <!-- A day that is on but cannot be changed (no time yet): the grey text of a disabled button,
-                 not the bg text of a day that is on, which the template above would leave on the
-                 transparent face. After the trigger above, so it wins. -->
+            <!-- A day that cannot be changed (no time yet) still shows whether it is on. Off, it is the
+                 disabled button above: grey text on the face that shows the card through. On, the
+                 disabled grey is its face (5:1 on a card, TokenContrastTests) with bg text, so it stays
+                 apart from a day that is off and looks greyer than a day that is on; a contrast theme
+                 gives the face GrayText with Window text. The triggers of a style win over those of
+                 its template, and a later one over an earlier one, so these come after IsChecked. -->
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
             </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsChecked" Value="True" />
+                    <Condition Property="IsEnabled" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource BgBrush}" />
+            </MultiTrigger>
         </Style.Triggers>
     </Style>
 

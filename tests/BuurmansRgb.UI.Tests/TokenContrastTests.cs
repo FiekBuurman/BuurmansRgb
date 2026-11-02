@@ -15,9 +15,10 @@ public sealed partial class TokenContrastTests
     // Text and the background it is on: body text and subtext on every surface, the selected item
     // of a list, the text of the primary button, the links, and the text of a button that does
     // nothing now (such as Knipperen during a pause), whose face shows the card or the preview
-    // through.
+    // through, and the bg text of a day that is on but cannot be changed, on that grey as its face.
     public static TheoryData<string, string> TextPairs => new()
     {
+        { "BgColor", "DisabledTextColor" },
         { "DisabledTextColor", "BgColor" },
         { "DisabledTextColor", "SurfaceColor" },
         { "DisabledTextColor", "SurfaceRaisedColor" },
