@@ -841,21 +841,24 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   onvindbaar als ze donker zijn.
   De rail van een schuif houdt `led-off`: daar tonen de knop en het gevulde deel de waarde (zie
   "Contrast" in `docs/ontwikkelaars.md`).
-- **Een schakelaar die uit staat** heeft een grijs spoor (`#74727A`, als de rand van een veld)
-  met een lichte knop (`#DAD7D1`), niet het spoor in `led-off` met de knop in `knob-off`
-  (`#8C8A85`) van § 4: `led-off` is 1,4:1 op een kaart, zodat je de schakelaar zelf nauwelijks
-  ziet. Het spoor haalt nu minstens 3:1 op `bg`, `surface`, `surface-raised` en `preview-bg` (WCAG
-  1.4.11), en de knop 3,3:1 op het spoor; aan staat de schakelaar zoals in het ontwerp, in de kleur
-  van het apparaat met de knop in `bg`. De tabel in `design/DESIGN.md` noemt de nieuwe waarden.
+- **Een schakelaar die uit staat** heeft een grijs spoor (`SwitchOffTrackColor`, `#74727A`,
+  dezelfde kleur als de rand van een veld) met een lichte knop (`KnobOffColor`, `#DAD7D1`), niet
+  het spoor in `led-off` (`#3A3A42`) met de knop in `knob-off` (`#8C8A85`) die § 4 voorschrijft:
+  `led-off` is 1,4:1 op een kaart, zodat je de schakelaar zelf nauwelijks ziet. Het spoor haalt
+  3,2–4,1:1 op `surface`, `surface-raised`, `bg` en `preview-bg` (WCAG 1.4.11), en de knop 3,3:1 op
+  het spoor; aan staat de schakelaar zoals in het ontwerp, in de kleur van het apparaat met de
+  knop in `bg`. `design/DESIGN.md` houdt zijn waarden; de nieuwe staan alleen in `Tokens.xaml`,
+  zoals de rand van een veld.
 - **Een knop die niets doet** (bijv. "Knipperen" en "Tellen" tijdens een pauze, of "Toepassen" bij
   een lengte die al staat) is niet de hele knop op 40 % doorzichtig, wat de tekst op 3,4:1 liet:
-  de tekst staat in `#93918C` (minstens 4,5:1 op `bg`, `surface`, `surface-raised` en
-  `preview-bg`, WCAG 1.4.3) op een vlak dat de kaart laat zien, met de rand van een kaart, zodat
-  de knop nog duidelijk "uit" oogt; de muisaanwijzer is er een pijl. Het ontwerp zegt niets over
-  knoppen die uit staan. Dat geldt voor de gewone knoppen, de ronde knopjes en de dagen van een
-  scène zonder tijd; een aangevinkte dag laat daarbij zien dat hij aan staat: het vlak in dat
-  grijs (5:1 op een kaart) met de tekst in `bg`, grijzer dan een dag die aan staat en anders dan
-  een dag die uit staat. De primaire knop, een schuif, een vinkje en een keuzelijst die uit
+  de tekst staat in een eigen grijs (`DisabledTextColor`, `#93918C`, dat niet in het ontwerp
+  staat: 4,9–6,1:1 op `bg`, `surface`, `surface-raised` en `preview-bg`, WCAG 1.4.3) op een vlak
+  dat de kaart laat zien, met de rand van een kaart, zodat de knop nog duidelijk "uit" oogt; de
+  muisaanwijzer is er een pijl. Het ontwerp zegt niets over knoppen die uit staan. Dat geldt voor
+  de gewone knoppen, de ronde knopjes en de dagen van een scène zonder tijd; een aangevinkte dag
+  laat daarbij zien dat hij aan staat: het vlak in dat grijs (5,1:1 op een kaart) met de tekst in
+  `bg` (5,7:1), grijzer dan een dag die aan staat en anders dan een dag die uit staat. De
+  primaire knop, een schuif, een vinkje en een keuzelijst die uit
   staan, worden nog doorzichtiger (zie `docs/ideas.md`). In een contrastthema krijgen de tekst en
   de rand van zo'n knop de grijze tekst van dat thema (`GrayText`), zoals een knop van Windows die
   uit staat; een aangevinkte dag krijgt die als vlak met de tekst in de vensterkleur.

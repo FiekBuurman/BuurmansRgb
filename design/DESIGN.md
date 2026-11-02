@@ -31,10 +31,8 @@ De `.dc.html`-bestanden zijn **ontwerpreferenties, geen draaibare code**: ze geb
 | `border-strong` | `#4A4A54` | Gestippelde rand van "+ nieuwe"-knoppen |
 | `text` | `#F4F1EA` | Hoofdtekst (warm gebroken wit) |
 | `text-muted` | `#A9A6A0` | Subtekst, labels, inactieve navigatie |
-| `led-off` | `#3A3A42` | Uit-toestand van lampjes en de rail van een schuif |
-| `track-off` | `#74727A` | Spoor van schakelaar in uit-stand (was `led-off`, 1,4:1 op een kaart; nu minstens 3:1 op `bg`, `surface`, `surface-raised` en `preview-bg`) |
-| `knob-off` | `#DAD7D1` | Knop van schakelaar in uit-stand (was `#8C8A85`; minstens 3:1 op `track-off`) |
-| `text-disabled` | `#93918C` | Tekst van een knop die uit staat, op een doorzichtig vlak met een rand in `border` (minstens 4,5:1 op `bg`, `surface`, `surface-raised` en `preview-bg`) |
+| `led-off` | `#3A3A42` | Uit-toestand van lampjes en schakelaars |
+| `knob-off` | `#8C8A85` | Knop van schakelaar in uit-stand |
 | `preview-bg` | `#0E0E11` | Achtergrond achter het ledstrip-voorbeeld |
 | `strip-bg` | `#26262D` | De "printplaat" van de ledstrip |
 
@@ -100,9 +98,7 @@ Er is geen lichte modus in richting A: de app is bewust altijd donker, zodat de 
 
 **Ledstrip-voorbeeld** – rij van 12–14 gelijkverdeelde LED-bolletjes op `strip-bg` (hoogte 22 px, radius 8) of direct op de kaart.
 
-**Schakelaar** – 52 × 32 (groot: 60 × 36), padding 4, knop 24 (28). Aan: spoor in de kleur van die lamp (of `text` voor "hele huis"), knop `bg`. Uit: spoor `track-off`, knop `knob-off`. Toegankelijk als toggle (aria-pressed / ToggleSwitch).
-
-**Knop die uit staat** – dezelfde vorm, tekst `text-disabled` op een doorzichtig vlak met een rand in `border`; niet de hele knop doorzichtiger.
+**Schakelaar** – 52 × 32 (groot: 60 × 36), padding 4, knop 24 (28). Aan: spoor in de kleur van die lamp (of `text` voor "hele huis"), knop `bg`. Uit: spoor `led-off`, knop `knob-off`. Toegankelijk als toggle (aria-pressed / ToggleSwitch).
 
 **Primaire knop** – pil, min-hoogte 52, achtergrond `text`, tekst `bg`, 17 px/800 ("Op de strip zetten").
 
