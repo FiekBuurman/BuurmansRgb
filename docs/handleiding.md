@@ -218,7 +218,8 @@ schakelaar ernaast.
   apparaat gekozen blijft. Verdwijnt het gekozen apparaat, dan toont de pagina "Hele huis" met
   zijn kleur.
 - Zijn de effecten gepauzeerd, dan staat bovenaan een melding met de reden, bij de pauze uit het
-  tray-menu met "Hervatten" (zie "Pauzeren").
+  tray-menu met "Hervatten" (zie "Pauzeren"). Boven de kaarten van het voorbeeld staat dan ook
+  één regel waarom "Knipperen" en "Tellen" grijs zijn (zie "Voorbeeld").
 
 #### Effecten
 
@@ -384,6 +385,16 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   ook geen markering. Bij **Tellen** komt er per stap één beeld: één LED
   meer, er gaat niets aan en uit. Met "Laten lopen" boven het voorbeeld beweegt het weer zoals
   altijd.
+- **Knipperen en Tellen grijs:** zolang de effecten gepauzeerd zijn, knippert en telt er niets,
+  en zijn "Knipperen" en "Tellen" op alle kaarten grijs (hun tooltip blijft). Boven de kaarten
+  staat dan één regel die zegt waarom, ook bij "Hele huis": "Knipperen en Tellen kunnen niet
+  zolang de effecten gepauzeerd zijn.", bij de pauze uit het tray-menu met de knop **Hervatten**
+  ernaast (dezelfde als in de melding bovenaan, met Tab te bereiken), en anders met de reden
+  erachter: omdat Windows vergrendeld is, de pc in de slaapstand is, de schermbeveiliging loopt
+  of het scherm uit is. Een schermlezer leest de regel als hij komt. Eindigt de pauze, dan gaat de
+  regel weg en doen de knoppen het weer.
+
+  ![Het voorbeeld op Kleur tijdens een pauze: de regel "Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn." met "Hervatten", en grijze knoppen Knipperen en Tellen](images/kleur-gepauzeerd.png)
 
 - **Zwarte LED's** (bijv. in Per LED, een stap van een eigen effect, of een apparaat dat uit
   staat) krijgen een grijze ring binnen hun rand, zodat je ziet waar ze zitten en erop kunt
@@ -828,8 +839,23 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   die stil op zwart staat. Een drempel met speling (hysterese) zou dat moment alleen verschuiven,
   en de ring alleen bij een stilstaand beeld tonen maakt de LED's van een bewegend effect juist
   onvindbaar als ze donker zijn.
-  Het spoor van een schakelaar en de rail van een schuif houden `led-off`: daar toont de knop de
-  stand (zie "Contrast" in `docs/ontwikkelaars.md`).
+  De rail van een schuif houdt `led-off`: daar tonen de knop en het gevulde deel de waarde (zie
+  "Contrast" in `docs/ontwikkelaars.md`).
+- **Een schakelaar die uit staat** heeft een grijs spoor (`#74727A`, als de rand van een veld)
+  met een lichte knop (`#DAD7D1`), niet het spoor in `led-off` met de knop in `knob-off`
+  (`#8C8A85`) van § 4: `led-off` is 1,4:1 op een kaart, zodat je de schakelaar zelf nauwelijks
+  ziet. Het spoor haalt nu minstens 3:1 op `bg`, `surface`, `surface-raised` en `preview-bg` (WCAG
+  1.4.11), en de knop 3,3:1 op het spoor; aan staat de schakelaar zoals in het ontwerp, in de kleur
+  van het apparaat met de knop in `bg`. De tabel in `design/DESIGN.md` noemt de nieuwe waarden.
+- **Een knop die niets doet** (bijv. "Knipperen" en "Tellen" tijdens een pauze, of "Toepassen" bij
+  een lengte die al staat) is niet de hele knop op 40 % doorzichtig, wat de tekst op 3,4:1 liet:
+  de tekst staat in `#93918C` (minstens 4,5:1 op `bg`, `surface`, `surface-raised` en
+  `preview-bg`, WCAG 1.4.3) op een vlak dat de kaart laat zien, met de rand van een kaart, zodat
+  de knop nog duidelijk "uit" oogt; de muisaanwijzer is er een pijl. Het ontwerp zegt niets over
+  knoppen die uit staan. Dat geldt voor de gewone knoppen, de ronde knopjes en de dagen van een
+  scène; de primaire knop, een schuif, een vinkje en een keuzelijst die uit staan, worden nog
+  doorzichtiger (zie `docs/ideas.md`). In een contrastthema krijgen de tekst en de rand van zo'n
+  knop de grijze tekst van dat thema (`GrayText`), zoals een knop van Windows die uit staat.
 - **De hex-code op Kleur** is een veld met die rand, zonder vulling, zodat het voorbeeld donker
   blijft. In het ontwerp (§ 5.2) is het losse tekst, waaraan je niet ziet dat je erin kunt typen.
   Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".
@@ -855,7 +881,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   lopen" is een kaart zoals de pauzemelding, en de markering van Knipperen een pil met een rand
   van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
 - **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
-  kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik".
+  kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De regel boven het
+  voorbeeld die zegt waarom Knipperen en Tellen grijs zijn, is subtekst in de tekstkleur zonder
+  eigen kaart, dicht bij de knoppen, met "Hervatten" als gewone knop zoals in de pauzemelding.
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
   schakelaar en de knop zoals de andere opties. "Logbestand openen" is een gewone knop, geen
   primaire: hij zet niets op een apparaat. Het versienummer staat onder de laatste kaart,
@@ -990,6 +1018,8 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 - In de instellingen-app staat bovenaan Apparaten en Kleur een melding met de reden, bij de pauze
   uit het tray-menu met de knop "Hervatten". Eindigt de pauze, dan staat er 5 seconden
   "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
+  Boven het voorbeeld op Kleur zegt een regel dat Knipperen en Tellen zolang niet kunnen, met
+  dezelfde reden en bij de pauze uit het menu ook "Hervatten" (zie "Voorbeeld" bij "Kleur").
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij
   Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`); die geldt ook voor de
   schermbeveiliging. Uitzetten tijdens zo'n pauze laat de effecten meteen weer lopen.
@@ -1319,7 +1349,8 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam in het
   voorbeeld doet het nog eens. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
   het apparaat waar je 0,3 seconde op blijft staan. Er knippert steeds één apparaat; knipperen
-  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs. Staat het
+  wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs, en een
+  regel boven de kaarten van het voorbeeld zegt waarom (zie "Voorbeeld"). Staat het
   voorbeeld stil omdat de animaties van Windows uit staan, dan knippert het voorbeeld niet mee:
   de kaart zegt dan "Knippert nu op het apparaat" (zie "Animaties uit" bij "Voorbeeld").
 - **Eén zone knipperen:** heeft een apparaat meer zones, zoals een moederbord met een paar
