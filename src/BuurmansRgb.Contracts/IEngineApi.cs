@@ -198,6 +198,13 @@ public partial interface IEngineApi
     // Windows is locked or asleep, the screen is off or the screen saver runs, stays until that ends.
     Task ResumeEffectsAsync(CancellationToken ct = default);
 
+    // "Herstarten" of the tray menu: the engine restarts the services OpenRGB and PawnIO (Windows
+    // asks for permission once), closes the settings app, starts a new engine and exits; the new
+    // engine opens the settings app again. Returns as soon as the engine took the request: the
+    // restart itself runs on, and this connection ends with the engine. Nothing happens while a
+    // restart runs already, or in an engine that cannot restart (one without its tray, as in tests).
+    Task RestartAsync(CancellationToken ct = default);
+
     Task<SimulatedDevicesMode> GetSimulatedDevicesAsync(CancellationToken ct = default);
 
     // Saved like the lighting. When the new mode shows or hides the simulated devices,

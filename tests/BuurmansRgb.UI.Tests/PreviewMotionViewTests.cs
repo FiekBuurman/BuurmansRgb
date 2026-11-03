@@ -11,9 +11,9 @@ using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The bar that says the preview stands still, on Apparaten and above the preview on Kleur, and the
-// mark of Knipperen, in a window off screen with a fake "Animatie-effecten": the setting of
-// Windows is never read or changed.
+// The message that the preview stands still, in the status line of Apparaten and Kleur, and the
+// mark of Knipperen, in a window off screen with a fake "Animatie-effecten": the setting of Windows
+// is never read or changed.
 [Collection(AppThemeCollection.Name)]
 public sealed class PreviewMotionViewTests
 {
@@ -21,7 +21,7 @@ public sealed class PreviewMotionViewTests
 
     private readonly FakeAnimationEffects _animations = new();
 
-    // With animations off, the bar says why the preview stands still; Tab reaches "Laten lopen",
+    // With animations off, the line says why the preview stands still; Tab reaches "Laten lopen",
     // which has a name and help text for a screen reader.
     [Fact]
     public async Task LampsPage_AnimationsOff_SaysSoWithAButtonTabReaches()
@@ -72,31 +72,35 @@ public sealed class PreviewMotionViewTests
         });
     }
 
-    // With animations on there is no bar; turned off while the page is open, it comes.
+    // With animations on there is no line; turned off while the page is open, it comes, read out
+    // by a screen reader, and goes again when they are turned on.
     [Fact]
-    public async Task AnimationsTurnedOff_BarComesOnTheOpenPage()
+    public async Task AnimationsTurnedOff_LineComesOnTheOpenPage()
     {
         using var viewModel = await PageViews.ConnectAsync(animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
-            var bar = AppTheme.Descendants<PreviewMotionBar>(page).Single();
-            Assert.False(bar.IsVisible);
+            var line = Line(page);
+            Assert.False(line.IsVisible);
+            using var capture = LiveRegionCapture.Start();
 
             _animations.Turn(on: false);
             OffscreenWindow.WaitUntilIdle();
-            Assert.True(bar.IsVisible);
-            Assert.Equal(Strings.PreviewStill, Line(page).Text);
+            Assert.True(line.IsVisible);
+            Assert.Equal(Strings.PreviewStill, line.Text);
+            Assert.Contains(line, capture.Announced);
 
             _animations.Turn(on: true);
             OffscreenWindow.WaitUntilIdle();
-            Assert.False(bar.IsVisible);
+            Assert.False(line.IsVisible);
         });
     }
 
-    // On Kleur the bar stands above the preview; Knipperen there shows a mark on the card instead
-    // of white on and off, which a screen reader reads, and the LEDs keep their image.
+    // On Kleur the line stands at the top of the page, not at the preview; Knipperen there shows a
+    // mark on the card instead of white on and off, which a screen reader reads, and the LEDs keep
+    // their image.
     [Fact]
     public async Task Kleur_FlashWhileStill_ShowsAMarkAndNoWhite()
     {
@@ -108,7 +112,7 @@ public sealed class PreviewMotionViewTests
         AppTheme.Run(panel =>
         {
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
-            Assert.True(Line(preview).IsVisible);
+            Assert.Empty(AppTheme.Descendants<StatusLine>(preview));
             var flash = PageViews.ButtonNamed(preview, string.Format(Strings.FlashDeviceAccessibleName, "Fan"));
             var fan = AppTheme.Descendants<LedPreviewView>(preview).Single(view => view.IsVisible && view.Colors.Count == 2);
             using var capture = LiveRegionCapture.Start();
@@ -124,10 +128,10 @@ public sealed class PreviewMotionViewTests
     }
 
     private static TextBlock Line(FrameworkElement page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "PreviewMotion");
+        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLine");
 
     private static Button Button(FrameworkElement page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "PreviewMotionButton");
+        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "StatusLineAction");
 
     // From the first stop of the page, Tab after Tab, as the keyboard would.
     private static bool ReachedWithTab(FrameworkElement page, UIElement target)

@@ -111,6 +111,9 @@ internal sealed class FakeEngineApi : IEngineApi
         RaisePause(Pause & ~PauseReasons.Manual);
     }
 
+    // Only recorded: the engine would close this app and restart; nothing of that happens here.
+    public Task RestartAsync(CancellationToken ct = default) => Record("restart");
+
     // When set, the status changes to this while GetOpenRgbStatusAsync answers with the older one,
     // as when the event overtakes the answer.
     public ServerStatus? StatusChangeWhileAnswering { get; set; }

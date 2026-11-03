@@ -85,12 +85,13 @@ public sealed class LampsPageViewTests
         });
     }
 
-    // No device on a pc that had real ones: the line says the connection is gone and is read out, the
-    // word about "Herstarten" in the tray menu is there, Tab goes from "+ Erbij knutselen" to
-    // "Opnieuw verbinden", and that runs the search of "Verversen" with the keyboard, both saying
+    // No device on a pc that had real ones: the card in the list says where the devices come back
+    // and has the word about "Herstarten", both as sub-text a screen reader finds. The one message
+    // that the connection is gone is the status line at the top, with the one "Opnieuw verbinden":
+    // the card has no button of its own, and that one runs the search of "Verversen", both saying
     // "Zoeken…" meanwhile. "Nog geen apparaten gevonden" is not there.
     [Fact]
-    public async Task DevicesLost_NoDevicesOnAPcThatHadThem_IsReadOutWithAButtonToReconnect()
+    public async Task DevicesLost_NoDevicesOnAPcThatHadThem_IsTheEmptyStateUnderTheStatusLine()
     {
         FakeEngineApi? api = null;
         using var viewModel = await PageViews.ConnectAsync(arranged =>
@@ -98,6 +99,7 @@ public sealed class LampsPageViewTests
             api = arranged;
             arranged.Devices = [];
             arranged.HadRealDevices = true;
+            arranged.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
             arranged.RescanGate = new TaskCompletionSource().Task;
         });
 
@@ -107,19 +109,19 @@ public sealed class LampsPageViewTests
             var line = DevicesLost(page);
             Assert.True(line.IsVisible);
             Assert.Equal(Strings.DevicesLost, line.Text);
-            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(line));
+            Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(line));
             var tree = PageViews.AutomationTree(page);
             Assert.Contains(tree, peer => peer.GetName() == Strings.DevicesLost);
             Assert.Contains(tree, peer => peer.GetName() == Strings.DevicesLostRestartHint);
             Assert.Contains("Herstarten", Strings.DevicesLostRestartHint, StringComparison.Ordinal);
             Assert.False(NoLamps(page).IsVisible);
 
-            var button = Reconnect(page);
+            var button = Assert.Single(AppTheme.Descendants<Button>(page), other => other.IsVisible && Equals(other.Content, Strings.Reconnect));
+            Assert.Equal("StatusLineAction", AutomationProperties.GetAutomationId(button));
+            Assert.Equal(Strings.StatusConnectionLost, StatusLineText(page).Text);
             Assert.Equal(Strings.Reconnect, new ButtonAutomationPeer(button).GetName());
             Assert.Equal(Strings.ReconnectToolTip, AutomationProperties.GetHelpText(button));
-            Assert.True(AddLamps(page).Focus());
-            Assert.True(AddLamps(page).MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
-            Assert.True(button.IsKeyboardFocused);
+            Assert.True(button.Focus());
 
             PageViews.Click(button);
 
@@ -132,9 +134,10 @@ public sealed class LampsPageViewTests
         });
     }
 
-    // The line appears while the page is open, as when OpenRGB stops: a screen reader hears it then.
+    // The card appears while the page is open, as when OpenRGB stops: the status line is read out
+    // then (StatusLineViewTests), the card is not, so a screen reader hears it once.
     [Fact]
-    public async Task DevicesLost_AppearsWhileThePageIsOpen_IsAnnounced()
+    public async Task DevicesLost_AppearsWhileThePageIsOpen_LeavesTheReadingToTheStatusLine()
     {
         FakeEngineApi? api = null;
         using var viewModel = await PageViews.ConnectAsync(arranged =>
@@ -152,10 +155,12 @@ public sealed class LampsPageViewTests
 
             api!.Devices = [];
             api.RaiseDevicesChanged();
+            api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Unreachable));
             OffscreenWindow.WaitUntilIdle();
 
             Assert.True(line.IsVisible);
-            Assert.Contains(line, live.Announced);
+            Assert.DoesNotContain(line, live.Announced);
+            Assert.Contains(StatusLineText(page), live.Announced);
         });
     }
 
@@ -177,7 +182,6 @@ public sealed class LampsPageViewTests
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
             Assert.False(DevicesLost(page).IsVisible);
-            Assert.False(Reconnect(page).IsVisible);
             Assert.Equal(noLamps, NoLamps(page).IsVisible);
         });
     }
@@ -187,8 +191,8 @@ public sealed class LampsPageViewTests
     private static TextBlock DevicesLost(DependencyObject page) =>
         AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "DevicesLost");
 
-    private static Button Reconnect(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "ReconnectDevices");
+    private static TextBlock StatusLineText(DependencyObject page) =>
+        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLine");
 
     private static TextBlock NoLamps(DependencyObject page) =>
         AppTheme.Descendants<TextBlock>(page).Single(text => Equals(text.Text, Strings.NoLamps));

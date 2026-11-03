@@ -587,6 +587,26 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal(PauseReasons.Asleep, _lighting.Pause);
     }
 
+    // The restart itself is what the tray item does (TrayPresenterTests); the api only asks for it.
+    [Fact]
+    public async Task RestartAsync_AsksForTheRestartOfTheTray()
+    {
+        var restarts = 0;
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, restart: () => restarts++);
+
+        await api.RestartAsync(Ct);
+
+        Assert.Equal(1, restarts);
+    }
+
+    [Fact]
+    public async Task RestartAsync_EngineWithoutRestart_DoesNothing()
+    {
+        using var api = CreateApi();
+
+        await api.RestartAsync(Ct);
+    }
+
     [Fact]
     public void Dispose_StopsFollowingThePause()
     {

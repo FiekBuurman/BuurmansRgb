@@ -110,6 +110,8 @@ Er is geen lichte modus in richting A: de app is bewust altijd donker, zodat de 
 
 **Iconen** – lijniconen, 2 px streep, ronde uiteinden, 22 px. Geen emoji.
 
+**Statusregel** – één kaart bovenaan een pagina (Lampen, Kleur) voor wat je nú moet weten, met hooguit één melding tegelijk. Een gewone kaart (`surface`, 1 px `border`, radius 18, padding 16 × 10), geen waarschuwingskleur: een pauze of een voorbeeld dat stilstaat is een keuze, geen fout. De melding is één zin in gewone taal (brood, 15 px, `text`); rechts ervan hooguit één actie als gewone knop ("Hervatten", "Opnieuw verbinden", "Laten lopen") en, zodra er meer meldingen gelden, de knop **Details**. Gelden er meer, dan staat de belangrijkste in de regel: *verbinding met de apparaten weg > effecten gepauzeerd > voorbeeld staat stil*. Details klapt de andere uit onder de regel (subtekst 13 px in `text`, een lijn van 1 px `border` ertussen), elk met hun eigen knop, zonder animatie; de knop blijft ingedrukt (`text`-vlak, zoals een gekozen dag) zolang het open staat. Een melding die door een belangrijkere uit de regel valt, verdwijnt nooit stil: hij staat onder Details tot hij niet meer geldt, en krijgt de regel terug zodra de belangrijkere weg is. Niets te melden: geen kaart. De status van de apparaten rechtsboven op Lampen hoort er niet bij: dat is één regel subtekst in gewone taal ("5 apparaten verbonden", "Geen verbinding met je apparaten"), met de techniek (OpenRGB, SDK-server) in de tooltip en zonder verbinding de gewone knop "Herstarten".
+
 ## 5. Schermen
 
 ### 5.1 Lampen (home) – `screens/Main.dc.html`
@@ -152,6 +154,7 @@ Nog niet ontworpen; vierde navigatie-item. Zelfde stijl, met `buren-*`-kleuren.
 - Contrast tekst ≥ 4.5:1 (de tokens hierboven halen dat op `bg` en `surface`).
 - Elke schakelaar heeft een toegankelijke naam ("<lampnaam> aan of uit"); icoonknoppen hebben een label.
 - Kleur is nooit de enige drager van betekenis: aan/uit staat ook in tekst ("3 van 4 aan", "uit" in de subregel).
+- De Statusregel is een live region: een schermlezer leest een melding voor als hij komt of verandert. De knoppen erin en Details staan in de Tab-volgorde met de focusring; Details zegt hoeveel meldingen eronder staan ("Details: nog 1 melding").
 
 ## 8. Toon
 

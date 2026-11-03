@@ -133,6 +133,10 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     // From another thread (--exit): the same as "Afsluiten" in the menu.
     public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
 
+    // From another thread (the settings app through IEngineApi.RestartAsync): the same as
+    // "Herstarten" in the menu. RestartAsync never throws, so nothing is lost by not awaiting it.
+    public void RequestRestart() => _uiContext.Post(_ => _ = RestartAsync(), state: null);
+
     void ITrayView.SetToolTip(string text) => _notifyIcon.Text = text;
 
     // "Herstarten": exits like "Afsluiten" once the new engine started, which waits for this one.

@@ -603,13 +603,35 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task Connect_ShowsTheOpenRgbStatusAndFollowsIt()
     {
-        var viewModel = await ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
-        Assert.Equal(Strings.OpenRgbUnreachable, viewModel.OpenRgbStatus.Text);
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.HadRealDevices = true;
+        });
+        Assert.Equal(Strings.DevicesUnreachable, viewModel.OpenRgbStatus.Text);
+        Assert.True(viewModel.OpenRgbStatus.CanRestart);
 
         Api.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 3));
 
-        Assert.Equal("OpenRGB: verbonden, 3 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.Equal("3 apparaten verbonden", viewModel.OpenRgbStatus.Text);
         Assert.False(viewModel.OpenRgbStatus.HasHint);
+    }
+
+    // "Herstarten" beside the status goes to the engine, which closes this app; the line at the
+    // bottom says so until then.
+    [Fact]
+    public async Task Restart_AsksTheEngineAndSaysTheAppComesBack()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+            api.HadRealDevices = true;
+        });
+
+        viewModel.OpenRgbStatus.RestartCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => Api.Calls.Contains("restart"));
+        Assert.Equal(Strings.Restarting, viewModel.StatusMessage);
     }
 
     [Fact]
@@ -621,7 +643,7 @@ public sealed class MainViewModelTests
             api.StatusChangeWhileAnswering = new ServerStatus(ServerState.Connected, 2);
         });
 
-        Assert.Equal("OpenRGB: verbonden, 2 apparaten", viewModel.OpenRgbStatus.Text);
+        Assert.Equal("2 apparaten verbonden", viewModel.OpenRgbStatus.Text);
     }
 
     [Fact]

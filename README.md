@@ -26,6 +26,9 @@
   zolang een spel draait.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand, scherm uit en schermbeveiliging en
   zet de kleuren na het ontwaken terug.
+- **Eén melding tegelijk:** bovenaan staat hooguit één statusregel met wat je nu moet weten (de
+  verbinding weg, een pauze, het voorbeeld dat stilstaat) en de knop die het oplost; de status
+  van je apparaten staat in gewone taal, met "Herstarten" als de verbinding weg is.
 - **Werkt zonder hardware:** zonder OpenRGB staan er twaalf gesimuleerde apparaten klaar om mee te
   spelen.
 

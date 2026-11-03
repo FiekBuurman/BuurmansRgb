@@ -71,12 +71,14 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 - **Minder beweging:** zet je in Windows de animaties uit (Instellingen → Toegankelijkheid →
   Visuele effecten → Animatie-effecten), dan staat het voorbeeld op Apparaten en Kleur stil: je
   ziet één beeld van wat de apparaten doen, ook bij een bewegend effect zoals Regenboog of Vuur,
-  en een nieuw beeld zodra je iets verandert. Een regel boven het voorbeeld zegt "Voorbeeld staat
-  stil omdat animaties in Windows uit staan.", met de knop **Laten lopen**: dan beweegt het
-  voorbeeld toch, tot je de app sluit; **Stilzetten** zet het weer stil. De knop bereik je met
-  Tab, en een schermlezer leest de regel voor als hij verandert. Je apparaten zelf veranderen
-  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de regel weg en beweegt het
-  voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
+  en een nieuw beeld zodra je iets verandert. De statusregel bovenaan Apparaten en Kleur zegt
+  "Voorbeeld staat stil omdat animaties in Windows uit staan.", met de knop **Laten lopen**: dan
+  beweegt het voorbeeld toch, tot je de app sluit; **Stilzetten** zet het weer stil. Geldt er
+  tegelijk een belangrijkere melding, zoals een pauze, dan staat deze onder "Details" van die
+  regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
+  schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
+  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
+  het voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
@@ -91,8 +93,37 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 
 ![De pagina Apparaten met de gesimuleerde apparaten](images/lampen.png)
 
-- Bovenaan het woordmerk en de OpenRGB-status in één regel, met een tip achter de ⓘ (bij
-  aanwijzen of met Tab). Een schermlezer leest een nieuwe status voor.
+- Bovenaan het woordmerk en rechts de status van je apparaten in gewone taal: "5 apparaten
+  verbonden" (of "1 apparaat verbonden", "Verbonden, geen apparaten gevonden"), "Verbinden met je
+  apparaten…", "Geen verbinding met je apparaten" of "Verbinden met je apparaten lukt niet". Op
+  een pc die nog nooit een echt apparaat had, staat er zonder OpenRGB "Nog geen echte apparaten
+  gevonden": dan is er niets kapot, je probeert de app met de gesimuleerde apparaten. De
+  technische kant (OpenRGB en de SDK-server op `127.0.0.1:6742`) en een tip staan in de tooltip
+  van de status en achter de ⓘ (bij aanwijzen of met Tab), en uitgeschreven bij Instellingen.
+  Zonder verbinding (op een pc die echte apparaten had, of als OpenRGB geen goed antwoord geeft)
+  staat ernaast de knop **Herstarten**: die doet wat "Herstarten" in het
+  tray-menu doet (zie "Tray-icoon"): OpenRGB, de driver PawnIO en buurmansRgb opnieuw starten,
+  met één UAC-vraag. De app gaat zolang dicht en komt vanzelf terug; tot dan staat onderaan
+  "buurmansRgb herstart: de app gaat zo dicht en komt vanzelf terug.". Een schermlezer leest een
+  nieuwe status voor.
+- **Statusregel:** daaronder staat hooguit één melding, in een gewone kaart, de belangrijkste
+  eerst: de verbinding met je apparaten is weg (alleen op een pc die echte apparaten had; met
+  **Opnieuw verbinden**, dezelfde zoektocht als Verversen, die zolang "Zoeken…" zegt) > de
+  effecten zijn gepauzeerd (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
+  "Pauzeren") > het voorbeeld staat stil (met **Laten lopen**, zie "Minder beweging"). Gelden er
+  meer meldingen tegelijk, dan staat rechts de knop **Details** (voor een schermlezer "Details:
+  nog 1 melding"): die klapt de andere meldingen uit onder de regel, elk met zijn eigen knop,
+  zonder animatie, en blijft ingedrukt zolang ze open staan. Een melding die door een
+  belangrijkere uit de regel wordt gedrukt, verdwijnt dus nooit stil: hij staat onder Details tot
+  hij niet meer geldt, en komt terug in de regel zodra de belangrijkere weg is; staat er niets
+  meer onder, dan gaat Details vanzelf dicht en weg. Is er niets te melden, dan is er geen kaart.
+  Een schermlezer leest de melding in de regel als hij komt of verandert; de knoppen en Details
+  bereik je met Tab. Verdwijnt de knop waar je op staat omdat de melding weggaat (de verbinding
+  is terug, er staat niets meer onder Details), dan springt de focus naar de knop die in de regel
+  overblijft of naar de volgende knop op de pagina, niet naar het begin van het venster.
+  Dezelfde statusregel staat bovenaan Kleur.
+
+  ![De pagina Apparaten zonder verbinding: de statusregel "Geen verbinding met je apparaten" met "Opnieuw verbinden" en Details open, daaronder de pauze met "Hervatten" en het stilstaande voorbeeld met "Laten lopen", rechtsboven de status met "Herstarten", en onder "Apparaten in huis" de kaart "Hier komen je apparaten zodra de verbinding terug is"](images/statusregel.png)
 - De kaart **Hele huis** zegt hoeveel apparaten aan zijn ("11 van 12 aan"), heeft een grote
   schakelaar voor alles en een strip van 14 bolletjes die laat zien wat de apparaten nu echt doen:
   elk bolletje is een LED uit alle apparaten achter elkaar, dus bij een regenboog loopt hij mee.
@@ -114,18 +145,20 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit": dan koos je zelf of
   de nep-apparaten er staan. Een schermlezer leest de regel mee, en de link is met Tab te bereiken
   (na "+ Erbij knutselen").
-- **De verbinding met je apparaten is weg:** heeft deze pc ooit echte apparaten gehad en staat er
-  nu geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan staat dat onder
-  "Apparaten in huis" in een kaart, zonder nep-apparaten ervoor in de plaats (zie "Gesimuleerde
-  apparaten" bij "Instellingen"). "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt
-  opnieuw, en antwoordt het niet, dan verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen
-  beide knoppen "Zoeken…". Helpt dat niet, dan zegt de kaart dat "Herstarten" in het menu van het
-  tray-icoon OpenRGB en buurmansRgb opnieuw start (zie "Tray-icoon"). Een schermlezer leest de
-  regel voor zodra hij verschijnt, en de knop is met Tab te bereiken. Op een pc die nog nooit een
-  echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de verwijzing naar
-  Instellingen, zoals eerst.
-
-  ![De pagina Apparaten zonder apparaten: "De verbinding met je apparaten is weg." met de knop "Opnieuw verbinden"](images/apparaten-verbinding-weg.png)
+- **Geen verbinding met je apparaten:** heeft deze pc ooit echte apparaten gehad en staat er nu
+  geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan zegt de statusregel
+  bovenaan dat de verbinding weg is, met **Opnieuw verbinden** (zie "Statusregel"), en komen er
+  geen nep-apparaten voor in de plaats (zie "Gesimuleerde apparaten" bij "Instellingen"). Onder
+  "Apparaten in huis" staat dan een kaart als lege staat van de lijst (zie de afbeelding bij
+  "Statusregel"): "Hier komen je apparaten zodra de verbinding terug is; opnieuw verbinden kan
+  bovenaan.", en dat "Herstarten" bij de status rechtsboven of in het menu van het tray-icoon
+  OpenRGB en buurmansRgb opnieuw start (zie "Tray-icoon") als opnieuw verbinden niet helpt. De
+  kaart heeft geen eigen knop en wordt niet apart voorgelezen: de melding bovenaan zegt het al,
+  zodat een schermlezer het één keer hoort.
+  "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt opnieuw, en antwoordt het niet, dan
+  verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen beide knoppen "Zoeken…". Op een pc die
+  nog nooit een echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de
+  verwijzing naar Instellingen, zoals eerst.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
   maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
@@ -217,9 +250,11 @@ schakelaar ernaast.
   lengte, apparaten die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang hetzelfde
   apparaat gekozen blijft. Verdwijnt het gekozen apparaat, dan toont de pagina "Hele huis" met
   zijn kleur.
-- Zijn de effecten gepauzeerd, dan staat bovenaan een melding met de reden, bij de pauze uit het
-  tray-menu met "Hervatten" (zie "Pauzeren"). Boven de kaarten van het voorbeeld staat dan ook
-  één regel waarom "Knipperen" en "Tellen" grijs zijn (zie "Voorbeeld").
+- Bovenaan staat dezelfde statusregel als op Apparaten (zie "Statusregel" daar): de verbinding
+  met je apparaten weg, een pauze met de reden (bij de pauze uit het tray-menu met "Hervatten",
+  zie "Pauzeren") of het voorbeeld dat stilstaat; de belangrijkste in de regel, de rest onder
+  "Details". Zijn de effecten gepauzeerd, dan staat boven de kaarten van het voorbeeld ook één
+  regel waarom "Knipperen" en "Tellen" grijs zijn (zie "Voorbeeld").
 
 #### Effecten
 
@@ -383,8 +418,8 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   "Knippert nu op het apparaat" (bij een zone met de naam van de zone), en het voorbeeld houdt
   zijn beeld tot het knipperen voorbij is. Tijdens een pauze knippert er niets, en dan komt er
   ook geen markering. Bij **Tellen** komt er per stap één beeld: één LED
-  meer, er gaat niets aan en uit. Met "Laten lopen" boven het voorbeeld beweegt het weer zoals
-  altijd.
+  meer, er gaat niets aan en uit. Met "Laten lopen" in de statusregel bovenaan beweegt het weer
+  zoals altijd.
 - **Knipperen en Tellen grijs:** zolang de effecten gepauzeerd zijn, knippert en telt er niets,
   en zijn "Knipperen" en "Tellen" op alle kaarten grijs (hun tooltip blijft). Boven de kaarten
   staat dan één regel die zegt waarom, ook bij "Hele huis": "Knipperen en Tellen kunnen niet
@@ -671,15 +706,19 @@ Hoe het vanzelf aanzetten werkt:
 
 ### Instellingen
 
-- **OpenRGB:** de status met de tip uitgeschreven.
+- **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
+  (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
+  tray-icoon) en de tip uitgeschreven, en zonder verbinding de knop **Herstarten** (zie
+  "Apparaten").
 
-  | Wat je ziet | Wat er aan de hand is |
-  | --- | --- |
-  | OpenRGB: verbinden… | De engine is net gestart, of de verbinding viel weg en de volgende poging komt zo |
-  | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
-  | OpenRGB: verbonden, geen apparaten gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
-  | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait niet of de SDK-server staat uit. Tip: herstart de pc of draai de installer opnieuw |
-  | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte |
+  | Wat je ziet | Technisch | Wat er aan de hand is |
+  | --- | --- | --- |
+  | Verbinden met je apparaten… | OpenRGB: verbinden… | De engine is net gestart, of de verbinding viel weg en de volgende poging komt zo |
+  | 5 apparaten verbonden (of "1 apparaat verbonden") | OpenRGB: verbonden, 5 apparaten | Verbonden; OpenRGB gaf zoveel apparaten |
+  | Verbonden, geen apparaten gevonden | OpenRGB: verbonden, geen apparaten gevonden | Verbonden, maar OpenRGB gaf geen apparaten |
+  | Geen verbinding met je apparaten | OpenRGB: niet bereikbaar | Niets nam de verbinding aan op `127.0.0.1:6742`: OpenRGB draait niet of de SDK-server staat uit. Tip: kies Herstarten; helpt dat niet, herstart dan de pc of draai de installer opnieuw |
+  | Nog geen echte apparaten gevonden | OpenRGB: niet bereikbaar | Hetzelfde, op een pc die nog nooit een echt apparaat had (`hadRealDevices`, zie "Gesimuleerde apparaten"): niets is kapot, de gesimuleerde apparaten spelen mee, en Herstarten staat er niet. Tip: zet OpenRGB aan (de installer regelt dat) |
+  | Verbinden met je apparaten lukt niet | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte; buurmansRgb blijft het proberen, Herstarten start OpenRGB opnieuw |
 
 - **Gesimuleerde apparaten:** bij "Gesimuleerde apparaten tonen"
   kies je "Automatisch" (standaard: alleen zolang er op deze pc nog nooit een echt apparaat was),
@@ -719,22 +758,22 @@ Hoe het vanzelf aanzetten werkt:
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
   met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
   geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
-  er komt geen "Opgeslagen ✓" in de statusregel. De schakelaar en het vinkje in het tray-menu
+  er komt geen "Opgeslagen ✓" onderaan. De schakelaar en het vinkje in het tray-menu
   staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
-  dan springt de schakelaar terug en staat in de statusregel "Starten met Windows kon niet
+  dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
   worden aangepast."; het logbestand zegt waarom.
 - **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
-  logbestand, of kan Windows het niet openen, dan staat in de statusregel "Het logbestand kon
+  logbestand, of kan Windows het niet openen, dan staat onderaan "Het logbestand kon
   niet worden geopend.".
 - **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0"). Een
   link naar deze handleiding staat er nog niet: die komt zodra de handleiding een plek heeft die
   iedereen kan openen.
 
-Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
-("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina. "Starten met Windows" is de
+Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder ("Opgeslagen ✓"
+met de tijd, zie "Onderaan"), zoals op elke pagina. "Starten met Windows" is de
 uitzondering (zie "Opstarten").
 
 ### Aan en uit
@@ -804,8 +843,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   een andere taal, wat een `MessageBox` van Windows niet is.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
-- **Kop van Apparaten:** rechts staat de OpenRGB-status in plaats van de ronde instellingenknop
-  (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in huis" staat naast
+- **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
+  "Herstarten" als gewone knop zodra de verbinding weg is) in plaats van de ronde
+  instellingenknop (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in
+  huis" staat naast
   "+ Erbij knutselen" de knop **Verversen**, die het ontwerp niet heeft, in dezelfde linkstijl.
   Hij blijft tijdens het zoeken bruikbaar (er staat "Zoeken…") in plaats van grijs te worden,
   zodat de toetsenbordfocus erop blijft.
@@ -813,11 +854,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
   kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
   dezelfde stijl als Verversen en "+ Erbij knutselen".
-- **"De verbinding met je apparaten is weg"** staat niet in het ontwerp (dat kent geen OpenRGB):
-  een gewone kaart onder "Apparaten in huis" met de regel in de tekststijl van de pagina, de
-  verwijzing naar "Herstarten" als subtekst en "Opnieuw verbinden" als rustige knop (de stijl van
-  "Hervatten" en "Logbestand openen"), omdat het hier de enige handeling is; een link zou tussen
-  de lege lijst wegvallen.
+- **De lege staat zonder verbinding** staat niet in het ontwerp (dat kent geen OpenRGB): een
+  gewone kaart onder "Apparaten in huis" met twee regels subtekst, waar de apparaten komen en de
+  verwijzing naar "Herstarten", zonder eigen knop en zonder voorlezen: de melding en "Opnieuw
+  verbinden" staan in de statusregel bovenaan, zodat er per pagina één melding is.
 - **Schakelaars** van een apparaat met een donkere of diepblauwe kleur krijgen een lichter spoor
   (zwart wordt grijs, `#0000FF` een lichter blauw), zodat de knop (`bg`) er minstens 3:1 op
   haalt: in dezelfde tint, en maar zo veel lichter als nodig.
@@ -883,13 +923,15 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   beweging" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
   ontwerp. Het woordmerk blijft 22 px, ook boven Apparaten.
 - **Minder beweging** noemt het ontwerp niet: daar gloeit het voorbeeld altijd mee. Met de
-  animaties van Windows uit staat het stil (zie "Minder beweging" bovenaan). De regel met "Laten
-  lopen" is een kaart zoals de pauzemelding, en de markering van Knipperen een pil met een rand
-  van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
-- **Instellingen** en de pauzemelding staan niet in het ontwerp; ze gebruiken dezelfde kaarten,
-  kleuren en lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De regel boven het
-  voorbeeld die zegt waarom Knipperen en Tellen grijs zijn, is subtekst in de tekstkleur zonder
-  eigen kaart, dicht bij de knoppen, met "Hervatten" als gewone knop zoals in de pauzemelding.
+  animaties van Windows uit staat het stil (zie "Minder beweging" bovenaan). De melding met
+  "Laten lopen" staat in de Statusregel (§ 4), en de markering van Knipperen is een pil met een
+  rand van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
+- **Instellingen** staat niet in het ontwerp; het gebruikt dezelfde kaarten, kleuren en
+  lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De Statusregel (de pauze, de
+  verbinding weg en het voorbeeld dat stilstaat, sinds `een-melding` in één kaart) staat in § 4
+  van het ontwerp. De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
+  is subtekst in de tekstkleur zonder eigen kaart, dicht bij de knoppen, met "Hervatten" als
+  gewone knop zoals in de Statusregel.
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
   schakelaar en de knop zoals de andere opties. "Logbestand openen" is een gewone knop, geen
   primaire: hij zet niets op een apparaat. Het versienummer staat onder de laatste kaart,
@@ -925,8 +967,9 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   bij `.log` hoort. Bij Instellingen in de app staat dezelfde knop.
 - **Herstarten** helpt als een apparaat of de verbinding met OpenRGB hapert: het herstart
   buurmansRgb zelf en de services OpenRGB en PawnIO (de driver voor moederbord, RAM en
-  videokaart). Services herstarten mag alleen met adminrechten, dus Windows vraagt één keer om
-  toestemming (UAC). Daarna gaat het zo:
+  videokaart). Dezelfde knop staat in de instellingen-app naast de status van je apparaten en
+  bij Instellingen, zodra die geen verbinding heeft (zie "Apparaten"). Services herstarten mag
+  alleen met adminrechten, dus Windows vraagt één keer om toestemming (UAC). Daarna gaat het zo:
   - OpenRGB stopt, PawnIO stopt, PawnIO start weer en OpenRGB start weer. Dat duurt meestal een
     paar seconden, hooguit zo'n anderhalve minuut; zolang staat er in de tooltip
     "buurmansRgb – herstarten…" en is "Herstarten" in het menu grijs.
@@ -1021,9 +1064,11 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 - Tijdens vergrendelen, slaapstand, scherm uit en de schermbeveiliging gaat een wijziging wel
   naar de apparaten, bijv. een scène op tijd of het herstellen na het ontwaken. Alleen de pauze uit
   het tray-menu houdt alles tegen. Knipperen gebeurt bij geen enkele pauze.
-- In de instellingen-app staat bovenaan Apparaten en Kleur een melding met de reden, bij de pauze
-  uit het tray-menu met de knop "Hervatten". Eindigt de pauze, dan staat er 5 seconden
-  "Effecten lopen weer.". Het vinkje in het tray-menu hoort alleen bij de pauze uit het menu.
+- In de instellingen-app staat de pauze met de reden in de statusregel bovenaan Apparaten en
+  Kleur, bij de pauze uit het tray-menu met de knop "Hervatten"; is de verbinding met je
+  apparaten weg, dan gaat die melding voor en staat de pauze onder "Details" (zie "Statusregel"
+  bij "Apparaten"). Eindigt de pauze, dan staat er 5 seconden "Effecten lopen weer.". Het vinkje
+  in het tray-menu hoort alleen bij de pauze uit het menu.
   Boven het voorbeeld op Kleur zegt een regel dat Knipperen en Tellen zolang niet kunnen, met
   dezelfde reden en bij de pauze uit het menu ook "Hervatten" (zie "Voorbeeld" bij "Kleur").
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij

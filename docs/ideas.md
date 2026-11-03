@@ -39,10 +39,18 @@ uitbreidingen in `docs/bouwplan.md`.
 - Apparaten en zones zelf een naam kunnen geven (bijv. "Voorste fans", "Strip achter"), bewaard
   per id in `settings.json`
 - OpenRGB-status: een eigen stand "verbinding verbroken" (nu staat er na het wegvallen 5
-  seconden "OpenRGB: verbinden…" tot de volgende poging), bij "niet bereikbaar" in de
-  instellingen-app een knop "Herstarten" die doet wat het tray-item al doet (de service
-  `OpenRGB` en PawnIO herstarten via UAC), in plaats van alleen de tip, en de versie van OpenRGB
-  en het SDK-protocol in de tip, handig bij "geen goed antwoord"
+  seconden "Verbinden met je apparaten…" tot de volgende poging, en pas daarna "Geen verbinding
+  met je apparaten" met de melding in de statusregel), en de versie van OpenRGB en het
+  SDK-protocol in de tooltip, handig bij "geen goed antwoord"
+- Herstarten vanuit de app (sinds `een-melding`): de app hoort alleen dat de engine het verzoek
+  aannam, niet wat ervan kwam. Mislukt de herstart, dan komt de app vers terug (de engine sluit
+  hem vóór het starten van de nieuwe engine en `TrayPresenter.RestartAsync` opent hem daarna
+  opnieuw) en meldt het tray-icoon het; maar valt het verzoek stil, omdat de herstart vanuit het
+  tray-menu al loopt (`TrayPresenter.RestartAsync` geeft dan `false` terug zonder iets te doen),
+  of omdat de herstart al vóór het sluiten van de app vastliep (de `catch` in
+  `TrayPresenter.RestartAsync` vóór `CloseIfOpen`), dan blijft onderaan "buurmansRgb herstart…"
+  staan tot de volgende wijziging of het opnieuw verbinden. Een gebeurtenis van de engine (herstart geweigerd of mislukt) zou dat opruimen en de
+  knop weer vrijgeven
 - Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
   instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
   niet stopt. De stap met adminrechten logt nu niets; de engine logt de uitkomst en alleen de
@@ -54,8 +62,9 @@ uitbreidingen in `docs/bouwplan.md`.
   link "Naar Instellingen", zoals bij de regel over de gesimuleerde apparaten (sinds
   "nep-apparaten-uitleg"); nu noemt de tekst Instellingen alleen
 - De laatst bekende apparaten grijs blijven tonen als OpenRGB weg is, met hun naam, type en plek
-  en zonder schakelaar, in plaats van alleen "De verbinding met je apparaten is weg" (sinds
-  `openrgb-weg`): dan zie je welke apparaten het waren en komt de lijst zonder sprong terug.
+  en zonder schakelaar, in plaats van alleen de lege staat "Hier komen je apparaten zodra de
+  verbinding terug is" (sinds `openrgb-weg`, de tekst sinds `een-melding`): dan zie je welke
+  apparaten het waren en komt de lijst zonder sprong terug.
   Daarvoor moet de engine de laatste lijst van OpenRGB onthouden (ook over een herstart heen, in
   `settings.json` of een eigen bestand) en als "weg" aan de app geven, en moeten Kleur en de
   scènes zo'n apparaat overslaan
@@ -313,12 +322,21 @@ uitbreidingen in `docs/bouwplan.md`.
   een contrastthema geeft doorzichtig minder contrast dan het thema belooft, waar `GrayText` (zoals
   bij de gewone knoppen nu) zegt dat hij uit staat. Een `Opacity` is geen brush, dus
   `ContrastTheme.SystemBrushes` kan het niet vervangen
-- De pauzemelding (`PauseBar`) en "Voorbeeld staat stil" (`PreviewMotionBar`) verbergen zichzelf
-  met `Visibility` op het `UserControl`; de tekst erin laadt dan pas als de melding komt, zodat
-  `LiveRegion` die eerste tekst niet als wijziging ziet en een schermlezer hem misschien niet
-  voorleest als hij verschijnt (bij "knop-reden" bleek dat in `PreviewActionsHintViewTests`; die
-  regel verbergt daarom het paneel erin). Nagaan met een test die de melding laat komen, en zo
-  nodig hetzelfde doen
+- "Wijzigingen worden automatisch opgeslagen." onderaan alleen tonen tot de eerste wijziging is
+  opgeslagen, en daarna alleen "Opgeslagen ✓" met de tijd; het panel (voorstel B) noemde de zin
+  als een van de dingen die op een fout lijken, en hij staat nu op elke pagina tot de eerste
+  wijziging. Hij bleef bij `een-melding` als subtekst staan omdat hij bij het hele venster hoort,
+  niet bij een pagina, en de statusregel anders altijd zou staan
+- Onder "Details" van de statusregel ook de technische OpenRGB-status tonen (nu alleen in de
+  tooltip rechtsboven, achter de ⓘ en bij Instellingen), zodat hij op Kleur ook zonder tooltip te lezen is
+- De statusregel ook bovenaan Scènes en Instellingen; sinds `een-melding` staat hij alleen op
+  Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
+  verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
+  op de apparaten komt
+- De balk onderaan (`SaveStatus` en wat er net gebeurde, in `MainWindow.xaml`) heette in de
+  handleiding ook "statusregel"; sinds `een-melding` is de kaart bovenaan de Statusregel en zegt
+  de handleiding voor de balk "onderaan". Eventueel de balk onderaan een eigen naam geven, ook in
+  `docs/ideas.md` ("de statusregel onderaan leegmaken")
 - Ook bij andere grijze knoppen zeggen waarom, zoals "Toepassen" bij een lengte die al staat en
   de schakelaar "Hele huis" zonder apparaten; nu zegt alleen de tooltip het, en een knop die uit
   staat krijgt geen Tab-focus, dus een toetsenbordgebruiker ziet die tooltip niet

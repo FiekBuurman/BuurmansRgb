@@ -35,6 +35,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string AutoStartCall = "autostart";
     private const string CustomColorsCall = "custom-colors";
     private const string ResumeCall = "resume";
+    private const string RestartCall = "restart";
     private const string FollowLightingCall = "follow-lighting";
     private const string FramesWantedCall = "frames-wanted";
     private const string FrameDevicesCall = "frame-devices";
@@ -133,6 +134,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         EffectsPause = new EffectsPauseViewModel(_time);
         DeviceRescan = new DeviceRescanViewModel(_time);
+        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
@@ -191,7 +193,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 OnPropertyChanged(nameof(ShowsNoLamps));
                 OnPropertyChanged(nameof(ShowsDevicesLost));
-                OnPropertyChanged(nameof(DevicesLostText));
             }
         };
         EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
@@ -209,6 +210,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
+        OpenRgbStatus.RestartRequested += (_, _) => RestartEngine();
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
@@ -316,19 +318,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Whether a real device was ever in the list on this pc, as the engine recorded it; null until
     // the engine said, so neither empty state of Apparaten flashes up before that.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsNoLamps), nameof(ShowsDevicesLost), nameof(DevicesLostText))]
+    [NotifyPropertyChangedFor(nameof(ShowsNoLamps), nameof(ShowsDevicesLost))]
     public partial bool? HadRealDevices { get; private set; }
 
     // "Nog geen apparaten gevonden": without devices on a pc that never had a real one.
     public bool ShowsNoLamps => HadRealDevices == false && !Lamps.HasLamps;
 
-    // The empty state of Apparaten on a pc that had real devices: OpenRGB does not give them (any
-    // more), and with "Automatisch" no simulated ones come in their place. With "Opnieuw verbinden"
-    // (the search of "Verversen") and a word about "Herstarten" in the tray menu.
+    // The empty state of the list on Apparaten on a pc that had real devices: OpenRGB does not give
+    // them (any more), and with "Automatisch" no simulated ones come in their place. It says where
+    // the devices come back and points to "Herstarten"; the message that the connection is gone,
+    // with "Opnieuw verbinden", is the status line (StatusLine).
     public bool ShowsDevicesLost => HadRealDevices == true && !Lamps.HasLamps;
-
-    // The text of that state, bound so a screen reader hears it when it appears; empty otherwise.
-    public string DevicesLostText => ShowsDevicesLost ? Strings.DevicesLost : string.Empty;
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
 
@@ -355,6 +355,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // "Verversen" at the heading of Apparaten.
     public DeviceRescanViewModel DeviceRescan { get; }
+
+    // The one message at the top of Apparaten and Kleur, with the others under "Details".
+    public StatusLineViewModel StatusLine { get; }
 
     // 0 to 100 percent; the engine uses 0 to 1.
     [ObservableProperty]
@@ -423,11 +426,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        StatusLine.Dispose();
         Motion.Dispose();
         Preview.Dispose();
         EffectsPause.Dispose();
         DeviceRescan.Dispose();
         DropConnection();
+    }
+
+    // A lost connection with OpenRGB is a message, and "Herstarten" an answer, only on a pc that
+    // had real devices.
+    partial void OnHadRealDevicesChanged(bool? value)
+    {
+        StatusLine.DevicesExpected = value == true;
+        OpenRgbStatus.DevicesExpected = value == true;
     }
 
     [RelayCommand]
@@ -1515,6 +1527,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // "Herstarten" beside the OpenRGB status: the engine closes this app and starts anew, after the
+    // UAC prompt; the line at the bottom says so meanwhile.
+    private void RestartEngine()
+    {
+        if (_connection is { } connection)
+        {
+            StatusMessage = Strings.Restarting;
+            _calls.Post(RestartCall, () => connection.Api.RestartAsync());
+        }
+    }
+
     // Not in the call queue: the answer is awaited, and the search may take seconds, which the
     // changes behind it should not wait for. The engine raises DevicesChanged before it answers,
     // but the list here follows that with its own GetDevicesAsync, which runs apart from this call,
@@ -1825,7 +1848,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall))
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or RestartCall))
         {
             RequestStill();
         }
