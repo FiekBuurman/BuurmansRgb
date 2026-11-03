@@ -438,6 +438,63 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // The other RGB software stops while "Uitleg" has the focus: the message and its toggle go,
+    // and the focus goes on to the page instead of dropping to the window.
+    [Fact]
+    public async Task OtherRgbSoftwareStops_FocusOnUitlegMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+        }, guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var toggle = PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle");
+            Assert.True(toggle.Focus());
+
+            api!.OtherRgbSoftware = [];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(toggle.IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, toggle) && focused.IsVisible);
+        });
+    }
+
+    // Idem with the focus on "Meer in de handleiding" under the unfolded explanation.
+    [Fact]
+    public async Task OtherRgbSoftwareStops_FocusOnTheGuideLinkMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+        }, guideAddress: "https://example.org/handleiding");
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Toggle(PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle"));
+            var link = PageViews.ById<Button>(page, "StatusLineExplanationLink");
+            Assert.True(link.IsVisible);
+            Assert.True(link.Focus());
+
+            api!.OtherRgbSoftware = [];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(link.IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, link) && focused.IsVisible);
+        });
+    }
+
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
     // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]
