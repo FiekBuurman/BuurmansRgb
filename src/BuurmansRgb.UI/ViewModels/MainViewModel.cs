@@ -436,11 +436,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // A lost connection with OpenRGB is a message, and "Herstarten" an answer, only on a pc that
     // had real devices.
-    partial void OnHadRealDevicesChanged(bool? value)
-    {
-        StatusLine.DevicesExpected = value == true;
-        OpenRgbStatus.DevicesExpected = value == true;
-    }
+    partial void OnHadRealDevicesChanged(bool? value) => OpenRgbStatus.DevicesExpected = value == true;
 
     [RelayCommand]
     private async Task ConnectAsync()

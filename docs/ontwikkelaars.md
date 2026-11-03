@@ -642,9 +642,9 @@ toetsenbord. Een paar dingen om te proberen:
   `Views/StatusLine.xaml` met de stijlen `StatusLine*` in `Themes/Controls.xaml`) verzamelt drie
   `StatusMessage`s en toont de eerste die geldt als `Current`, de rest als `Others` onder
   "Details" (`ShowsDetails`; sluit vanzelf als er niets meer onder staat). De volgorde is die van `StatusMessageKind`: de verbinding weg
-  (`OpenRgbStatusViewModel.IsDisconnected`, alleen als `DevicesExpected`, wat `MainViewModel`
-  uit `HadRealDevices` zet; de actie is `DeviceRescanViewModel.RescanCommand`, de tekst volgt
-  `ReconnectButtonText`) > de pauze (`EffectsPauseViewModel`, ook de 5 s "Effecten lopen weer.";
+  (`OpenRgbStatusViewModel.IsConnectionLost`: `IsDisconnected` zolang `DevicesExpected`, wat
+  `MainViewModel` uit `HadRealDevices` zet; de actie is `DeviceRescanViewModel.RescanCommand`,
+  de tekst volgt `ReconnectButtonText`) > de pauze (`EffectsPauseViewModel`, ook de 5 s "Effecten lopen weer.";
   "Hervatten" alleen bij `CanResume`) > het voorbeeld stil (`PreviewMotionViewModel`, "Laten
   lopen"/"Stilzetten"). De teksten en commando's blijven van die view models; de statusregel
   leest ze bij elke `PropertyChanged` opnieuw. De knop in de regel bindt aan

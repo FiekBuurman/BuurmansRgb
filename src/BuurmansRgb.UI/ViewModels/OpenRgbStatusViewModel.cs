@@ -13,7 +13,7 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
 {
     // Null while nothing is known about OpenRGB (no engine), so nothing stays shown.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Text), nameof(TechnicalText), nameof(Hint), nameof(HasHint), nameof(ToolTip), nameof(IsDisconnected), nameof(CanRestart))]
+    [NotifyPropertyChangedFor(nameof(Text), nameof(TechnicalText), nameof(Hint), nameof(HasHint), nameof(ToolTip), nameof(IsDisconnected), nameof(IsConnectionLost), nameof(CanRestart))]
     [NotifyCanExecuteChangedFor(nameof(RestartCommand))]
     public partial ServerStatus? Status { get; private set; } = ServerStatus.Connecting;
 
@@ -21,7 +21,7 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
     // OpenRGB out of reach is the normal state of someone who tries the app with the simulated
     // devices: nothing is broken, so the status stays calm and "Herstarten" stays away.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Text), nameof(Hint), nameof(HasHint), nameof(ToolTip), nameof(CanRestart))]
+    [NotifyPropertyChangedFor(nameof(Text), nameof(Hint), nameof(HasHint), nameof(ToolTip), nameof(IsConnectionLost), nameof(CanRestart))]
     [NotifyCanExecuteChangedFor(nameof(RestartCommand))]
     public partial bool DevicesExpected { get; set; }
 
@@ -66,6 +66,10 @@ public sealed partial class OpenRgbStatusViewModel : ObservableObject
 
     // Nothing answered at the SDK server, or it gave no good answer: the devices are out of reach.
     public bool IsDisconnected => Status?.State is ServerState.Unreachable or ServerState.Failed;
+
+    // The connection with the devices is lost: out of reach on a pc that had real devices. Without,
+    // the simulated devices are all there is, and the calm status at the top right says enough.
+    public bool IsConnectionLost => DevicesExpected && IsDisconnected;
 
     // "Herstarten" only when the connection is the trouble: OpenRGB that answers wrongly, or out of
     // reach on a pc that had real devices. Connected or connecting it would only interrupt, and
