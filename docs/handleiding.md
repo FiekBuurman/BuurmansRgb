@@ -1399,7 +1399,7 @@ luistert. De details, ook over bekende lekken en hoe je het controleert, staan i
 
 Twee programma's die dezelfde LED's aansturen, maken ruzie: de kleuren flikkeren of springen
 terug. Sluit daarom deze programma's af en zet ze uit bij **Taakbeheer → Opstartapps**.
-Sommige, zoals iCUE, Synapse en Armoury Crate, draaien ook als achtergrondprogramma (service);
+Sommige, zoals SignalRGB, iCUE en Synapse, draaien ook als achtergrondprogramma (service);
 zet die in `services.msc` op **Handmatig**:
 
 - SignalRGB

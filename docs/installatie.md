@@ -223,9 +223,8 @@ draaiende engine en instellingen-app zelf en laat je instellingen staan. Een Ope
 en PawnIO die er al staan, laat hij met rust. Heb je PawnIO of de service OpenRGB zelf
 weggehaald, bijvoorbeeld voor een game met anti-cheat, dan zet de update ze zonder te vragen
 terug, net als bij een eerste installatie; uitzetten kan nog niet. Haal ze daarna dan opnieuw
-weg. **Starten met Windows** blijft zoals jij het
-zette: had je het uitgezet, dan zet de update het niet weer aan. Alleen als je het nog nooit
-zelf aan- of uitzette, zet de installer het aan.
+weg. **Starten met Windows** blijft zoals jij het zette: had je het uitgezet, dan zet de update het
+niet weer aan. Alleen als je het nog nooit zelf aan- of uitzette, zet de installer het aan.
 
 ## Verwijderen
 
@@ -387,8 +386,9 @@ if (Test-Path $pawnIoKey) {
 }
 ```
 
-Exitcode 0 is gelukt, 3010 betekent gelukt maar herstart nodig. Bij OpenRGB geeft 1605 aan dat
-het product niet (meer) geïnstalleerd is.
+Exitcode 0 is gelukt. Bij OpenRGB (msiexec) betekent 3010 gelukt maar herstart nodig en geeft
+1605 aan dat het product niet (meer) geïnstalleerd is. Welke codes de PawnIO-setup naast 0
+teruggeeft, is onbekend.
 
 ## Bronnen
 
