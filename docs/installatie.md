@@ -269,7 +269,8 @@ ze toch weg, dan doet hij dat zelf, ingelogd als zichzelf:
 ## Stil installeren en verwijderen
 
 De installer is gemaakt met Inno Setup en kent de gewone parameters daarvan [32][34]. Draai het
-in een PowerShell **als administrator**; anders vraagt Windows alsnog om toestemming (UAC).
+in een **gewone PowerShell** (niet als administrator) en keur de UAC-vraag goed. De engine start
+na afloop dan als jij, zonder beheerdersrechten (zie "De engine start na afloop" hieronder).
 
 ### Installeren
 
@@ -303,8 +304,16 @@ Wat er bij deze installer bij komt kijken:
   Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de naam van het setuplog. Ook
   zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
 - **De engine start na afloop**, ook stil, met `--first-run`, als het account dat de setup
-  startte. Dat account krijgt dus de engine en **Starten met Windows**. Installeer je met een
-  ander account dan dat van de gebruiker, dan zet die het zelf aan in het tray-menu.
+  startte. Dat account krijgt dus de engine en **Starten met Windows**. Zonder beheerdersrechten
+  draait hij alleen als Setup zelf om UAC vroeg: de installer start hem als "de gebruiker van vóór
+  de UAC-vraag" (`runasoriginaluser` [47]). Start je Setup al verhoogd, vanuit een PowerShell als
+  administrator of als SYSTEM (bijv. via software-uitrol), dan kan Setup niet terug naar een
+  gewone gebruiker: de engine, en de instellingen-app die hij opent, draaien dan verhoogd of als
+  SYSTEM, tot de volgende aanmelding of herstart (dan start de autostart hem gewoon). Als SYSTEM
+  krijgt bovendien geen gebruiker **Starten met Windows**.
+- **Met een ander account installeren** (bijv. een beheerder die het voor een gebruiker doet):
+  die gebruiker heeft nog geen tray-icoon. Hij opent BuurmansRgb eerst zelf uit het menu Start,
+  en zet daarna **Starten met Windows** aan in het tray-menu.
 - **`/TASKS` en `/MERGETASKS`** doen niets: de installer heeft geen taken om aan of uit te
   vinken. **`/NOICONS`** ook niet: er is geen keuze voor een map in het menu Start, de
   snelkoppeling komt er altijd.
@@ -386,6 +395,7 @@ van een gebruiker, niet van de maker.
 - [44] [FreeFixer, Mystic_Light_Service.exe](https://www.freefixer.com/library/file/Mystic_Light_Service.exe-321067/) (niet officieel)
 - [45] [Gigabyte Control Center](https://www.gigabyte.com/WebPage/942/global/)
 - [46] [SignalRGB, Conflicting Programs](https://docs.signalrgb.com/troubleshooting/software-conflicts/conflicting-programs/)
+- [47] [Inno Setup, [Run] section](https://jrsoftware.org/ishelp/topic_runsection.htm) (de vlag `runasoriginaluser`)
 
 ## Zonder installer (voor ontwikkelaars)
 

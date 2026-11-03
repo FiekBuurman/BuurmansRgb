@@ -744,6 +744,12 @@ uitbreidingen in `docs/bouwplan.md`.
   "Nee" en staan de losse commando's in `installatie.md` (`installatie-uitleg`)
 - De Sandbox-test ook `sc qc PawnIO` laten loggen, zodat het starttype van PawnIO (nu "onbekend"
   in `installatie.md`) zonder echte pc bekend is (`installatie-uitleg`)
+- De engine niet verhoogd starten bij een verhoogde stille installatie: `runasoriginaluser` werkt
+  alleen als Setup zelf om UAC vroeg, dus vanuit een beheerdersvenster of als SYSTEM draaien de
+  engine en de instellingen-app verhoogd (of als SYSTEM) tot de volgende aanmelding. Bijv. de
+  engine dan niet starten (een `Check:` op de `[Run]`-regel die ziet dat Setup al verhoogd of als
+  SYSTEM begon), of hem via een geplande taak als de aangemelde gebruiker starten
+  (`installatie-uitleg`)
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt
