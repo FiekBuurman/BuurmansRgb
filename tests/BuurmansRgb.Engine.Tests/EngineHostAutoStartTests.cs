@@ -88,7 +88,8 @@ public sealed class EngineHostAutoStartTests : IDisposable
     }
 
     // settings.json from before autoStartChosen, after an install that turned autostart on: off
-    // means the user turned it off, so the update leaves it off and writes that down.
+    // means the user turned it off, so the update leaves it off. That is written down with the next
+    // save, not by itself.
     [Fact]
     public async Task FileFromBefore_Off_CountsAsChosen()
     {
@@ -99,7 +100,25 @@ public sealed class EngineHostAutoStartTests : IDisposable
 
         Assert.False(_registry.IsEnabled);
         Assert.Equal(0, _registry.SetEnabledCount);
-        Assert.True(_store.Settings.AutoStartChosen);
+        Assert.Null(_store.Settings.AutoStartChosen);
+        Assert.Equal(0, _store.SaveCount);
+    }
+
+    [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public async Task FileFromBefore_GoesAlongWithTheNextSave(bool enabled, bool chosen)
+    {
+        _store.Settings = new EngineSettings();
+        _registry.IsEnabled = enabled;
+        var lighting = Lighting();
+
+        var host = await StartAsync(firstRun: true, lighting);
+        lighting.FramesPerSecond = 20;
+        host.Dispose();
+
+        Assert.Equal(enabled, _registry.IsEnabled);
+        Assert.Equal(chosen, _store.Settings.AutoStartChosen);
         Assert.Equal(1, _store.SaveCount);
     }
 
@@ -113,8 +132,33 @@ public sealed class EngineHostAutoStartTests : IDisposable
         host.Dispose();
 
         Assert.True(_registry.IsEnabled);
-        Assert.False(_store.Settings.AutoStartChosen);
-        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(0, _store.SaveCount);
+    }
+
+    // settings.json locked (or out of reach) at the start: the engine runs on the defaults, and
+    // what it reads from the Run key then is no reason to write them over the user's file.
+    [Fact]
+    public async Task FileLockedAtTheStart_IsNotOverwritten()
+    {
+        using var directory = new TempDirectory();
+        var path = directory.File("settings.json");
+        const string text = """{ "framesPerSecond": 12, "color": "#FF8800" }""";
+        File.WriteAllText(path, text);
+        var host = new EngineHost(
+            new JsonSettingsStore(path),
+            Lighting(),
+            saveDelay: TimeSpan.FromMilliseconds(10),
+            autoStart: _autoStart,
+            firstRun: true);
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            await host.StartAsync(Ct);
+        }
+
+        await Task.Delay(TimeSpan.FromMilliseconds(500), Ct);
+        host.Dispose();
+
+        Assert.Equal(text, File.ReadAllText(path));
     }
 
     // Without the switch (a test, say) the file keeps what it had.

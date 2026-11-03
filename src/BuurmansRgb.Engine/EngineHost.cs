@@ -49,11 +49,12 @@ internal sealed class EngineHost(
     // changes from the settings app are. The own effects are read before the lighting is applied, so
     // a lighting that shows one keeps it. With firstRun (--first-run, after every install) autostart
     // goes on, unless the user chose it before (autoStartChosen); a file from before that option
-    // gets it from the Run key first (StartAutoStart).
+    // gets it from the Run key first (StartAutoStart). That is not saved by itself: it goes along
+    // with the next save, and until then the Run key tells the same at each start. A save of its
+    // own would write the defaults over a file that did not read (locked, say).
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
-        var autoStartChosenBefore = settings.AutoStartChosen;
         settings = StartAutoStart(settings);
         ApplyOptions(settings);
         zoneLengths?.Load(settings.ReadZoneLengths());
@@ -79,12 +80,6 @@ internal sealed class EngineHost(
         {
             // Chosen in the tray menu while the devices were fetched, before the saver was there.
             OnAutoStartChosen(this, EventArgs.Empty);
-        }
-        else if (settings.AutoStartChosen != autoStartChosenBefore)
-        {
-            // Read from the Run key for a file from before the option: written once.
-            var chosen = settings.AutoStartChosen;
-            _saver.ChangeOptions(saved => saved with { AutoStartChosen = chosen });
         }
 
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
