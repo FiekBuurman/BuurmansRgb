@@ -199,6 +199,20 @@ public sealed class LightingControllerPauseTests : IDisposable
         Assert.Equal([PauseReasons.Locked], _changes);
     }
 
+    // The pause from the tray menu and its end go to engine.log like the other reasons. Trace is
+    // shared with the tests that run at the same time, so only the own lines are looked for.
+    [Fact]
+    public void ManualPause_WritesTheStartAndTheEndInTheLog()
+    {
+        using var trace = new TraceCapture();
+
+        _controller.SetPaused(PauseReasons.Manual, true);
+        _controller.SetPaused(PauseReasons.Manual, false);
+
+        Assert.Contains("Effects paused (tray menu).", trace.Messages);
+        Assert.Contains("Pause ended (tray menu); effects run again.", trace.Messages);
+    }
+
     private async Task StartAsync(string effectId)
     {
         await _controller.DiscoverAsync(Ct);

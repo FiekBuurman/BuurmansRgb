@@ -496,9 +496,16 @@ uitbreidingen in `docs/bouwplan.md`.
   dan alleen de kleuren opnieuw
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
-- In `engine.log` een regel bij het begin en het einde van een pauze, met de reden
-  (vergrendeld, slaapstand, scherm uit, schermbeveiliging, tray-menu); nu staat er niets, zodat
-  je achteraf niet kunt zien waarom de effecten stilstonden (gebruikerstest 28-10)
+- Ook naar het scherm van de console kijken terwijl je via Extern bureaublad werkt
+  (`GUID_CONSOLE_DISPLAY_STATE` naast `GUID_SESSION_DISPLAY_STATUS`): is dat uit, dan zit er
+  niemand bij de pc en kunnen de apparaten dimmen of uit, zonder de effecten te pauzeren voor
+  wie op afstand kijkt. Nu volgt de engine alleen het scherm van zijn eigen sessie
+- De sessiewissel (`ConsoleConnect`, `RemoteConnect`) verder benutten: na het wisselen de
+  apparaten opnieuw laden zoals na het ontwaken, want een pc die intussen bij de console stond
+  kan van een andere engine kleuren hebben gekregen; nu stuurt de engine dan alleen zijn kleuren
+  opnieuw
+- De laatste pauzes met reden en tijd in de instellingen-app laten zien (uit `engine.log`),
+  zodat je niet het logbestand hoeft te openen om te zien waarom de effecten stilstonden
 
 ## Engine en prestaties
 

@@ -120,7 +120,8 @@ internal sealed class AutoPause : IAwayState, IDisposable
     // Windows wakes up without the user (PBT_APMRESUMEAUTOMATIC), and the animation must not stay
     // still for good after the user is back. The same goes for a screen that went off and a screen
     // saver: should Windows not tell the screen is on again, or no other window come to the front
-    // after the screen saver, the user who is back still sees the effects.
+    // after the screen saver, the user who is back still sees the effects. Connecting also makes
+    // SystemDisplayEvents ask Windows for the state of the new screen; is that off, it pauses again.
     private void OnSessionSwitched(object? sender, SessionSwitchReason reason)
     {
         switch (reason)

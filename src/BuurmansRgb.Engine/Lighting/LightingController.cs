@@ -649,6 +649,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             {
                 if (changed)
                 {
+                    // In the log before the listeners, so what they do follows the pause there.
+                    Trace.TraceInformation(PauseLog.Line(reason, paused, pause));
                     PauseChanged?.Invoke(this, pause);
                 }
 

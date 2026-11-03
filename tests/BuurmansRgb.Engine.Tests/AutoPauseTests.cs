@@ -673,6 +673,43 @@ public sealed class AutoPauseTests : IDisposable
         Assert.Equal([Orange, Orange, Orange], _provider.LastColors);
     }
 
+    // Over a remote desktop the screen of the console is off while the user looks at the session:
+    // the source follows the screen of the session (GUID_SESSION_DISPLAY_STATUS), which is on, so
+    // nothing pauses, also when Windows tells that state once more.
+    [Fact]
+    public async Task StartedOverARemoteDesktop_TheScreenOfTheSessionOn_DoesNotPause()
+    {
+        await StartAnimatedAsync();
+        var display = new FakeDisplayEvents { IsOff = false };
+
+        using var autoPause = new AutoPause(_power, _session, display, _screenSaver, _lighting.SetPaused);
+        display.Raise(off: false);
+
+        Assert.Equal(PauseReasons.None, _lighting.Pause);
+        Assert.True(_lighting.IsAnimating);
+    }
+
+    // Each pause and its end go to engine.log with the reason, so the log shows afterwards why
+    // the effects stood still. Trace is shared with the tests that run at the same time, so only
+    // the own lines are looked for; that nothing is written without a change follows from
+    // PauseChanged (LightingControllerPauseTests), which the line goes with.
+    [Fact]
+    public async Task DisplayOffAndOn_WriteThePauseAndItsEndInTheLog()
+    {
+        await StartAnimatedAsync();
+        using var trace = new TraceCapture();
+
+        _display.Raise(off: true);
+        _session.Raise(SessionSwitchReason.SessionLock);
+        _display.Raise(off: false);
+        _session.Raise(SessionSwitchReason.SessionUnlock);
+
+        Assert.Contains("Effects paused (screen off).", trace.Messages);
+        Assert.Contains("Effects paused (locked); also paused: screen off.", trace.Messages);
+        Assert.Contains("Pause ended (screen off); still paused: locked.", trace.Messages);
+        Assert.Contains("Pause ended (locked); effects run again.", trace.Messages);
+    }
+
     private async Task StartStaticAsync()
     {
         await _lighting.DiscoverAsync(Ct);
