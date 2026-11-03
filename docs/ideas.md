@@ -57,8 +57,9 @@ uitbreidingen in `docs/bouwplan.md`.
   link "Naar Instellingen", zoals bij de regel over de gesimuleerde apparaten (sinds
   "nep-apparaten-uitleg"); nu noemt de tekst Instellingen alleen
 - De laatst bekende apparaten grijs blijven tonen als OpenRGB weg is, met hun naam, type en plek
-  en zonder schakelaar, in plaats van alleen "De verbinding met je apparaten is weg" (sinds
-  `openrgb-weg`): dan zie je welke apparaten het waren en komt de lijst zonder sprong terug.
+  en zonder schakelaar, in plaats van alleen de lege staat "Hier komen je apparaten zodra de
+  verbinding terug is" (sinds `openrgb-weg`, de tekst sinds `een-melding`): dan zie je welke
+  apparaten het waren en komt de lijst zonder sprong terug.
   Daarvoor moet de engine de laatste lijst van OpenRGB onthouden (ook over een herstart heen, in
   `settings.json` of een eigen bestand) en als "weg" aan de app geven, en moeten Kleur en de
   scènes zo'n apparaat overslaan
@@ -316,10 +317,6 @@ uitbreidingen in `docs/bouwplan.md`.
   een contrastthema geeft doorzichtig minder contrast dan het thema belooft, waar `GrayText` (zoals
   bij de gewone knoppen nu) zegt dat hij uit staat. Een `Opacity` is geen brush, dus
   `ContrastTheme.SystemBrushes` kan het niet vervangen
-- Op Apparaten zonder apparaten zeggen de kaart "De verbinding met je apparaten is weg." bij de
-  lijst en de statusregel bovenaan allebei dat de verbinding weg is (sinds `een-melding`); de
-  kaart zou dan alleen de lege staat van de lijst en de verwijzing naar Herstarten kunnen zijn,
-  met "Opnieuw verbinden" alleen in de statusregel
 - "Wijzigingen worden automatisch opgeslagen." onderaan alleen tonen tot de eerste wijziging is
   opgeslagen, en daarna alleen "Opgeslagen ✓" met de tijd; het panel (voorstel B) noemde de zin
   als een van de dingen die op een fout lijken, en hij staat nu op elke pagina tot de eerste

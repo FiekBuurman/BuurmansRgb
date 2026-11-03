@@ -1,6 +1,5 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
-using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -266,7 +265,8 @@ public sealed class MainViewModelLampTests
     }
 
     // Without devices, Apparaten says what is going on: "nog geen apparaten gevonden" on a pc that
-    // never had a real one, and that the connection is gone on a pc that had real devices.
+    // never had a real one, and where the devices come back on a pc that had real devices (the
+    // message that the connection is gone is the status line, StatusLineViewModelTests).
     [Theory]
     [InlineData(false, 0, true, false)]
     [InlineData(true, 0, false, true)]
@@ -283,7 +283,6 @@ public sealed class MainViewModelLampTests
         Assert.Equal(hadRealDevices, viewModel.HadRealDevices);
         Assert.Equal(showsNoLamps, viewModel.ShowsNoLamps);
         Assert.Equal(showsDevicesLost, viewModel.ShowsDevicesLost);
-        Assert.Equal(showsDevicesLost ? Strings.DevicesLost : string.Empty, viewModel.DevicesLostText);
     }
 
     // OpenRGB connected with real devices, then gone: the engine records the fact (OptionsChanged)
@@ -305,16 +304,13 @@ public sealed class MainViewModelLampTests
         Api.Devices = [];
         Api.RaiseDevicesChanged();
         await Eventually.TrueAsync(() => viewModel.ShowsDevicesLost);
-        Assert.Equal(Strings.DevicesLost, viewModel.DevicesLostText);
         Assert.False(viewModel.ShowsNoLamps);
         Assert.Contains(nameof(MainViewModel.ShowsDevicesLost), changes);
-        Assert.Contains(nameof(MainViewModel.DevicesLostText), changes);
 
-        // "Opnieuw verbinden" brought them back.
+        // "Opnieuw verbinden" in the status line brought them back.
         Api.Devices = [TestDevices.Create("fan", "Fan", DeviceType.Fan, 2)];
         Api.RaiseDevicesChanged();
         await Eventually.TrueAsync(() => !viewModel.ShowsDevicesLost);
-        Assert.Equal(string.Empty, viewModel.DevicesLostText);
     }
 
     // Connecting shows the devices before the engine said whether this pc had real ones: neither

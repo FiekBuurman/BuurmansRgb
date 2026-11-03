@@ -193,7 +193,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 OnPropertyChanged(nameof(ShowsNoLamps));
                 OnPropertyChanged(nameof(ShowsDevicesLost));
-                OnPropertyChanged(nameof(DevicesLostText));
             }
         };
         EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
@@ -319,19 +318,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Whether a real device was ever in the list on this pc, as the engine recorded it; null until
     // the engine said, so neither empty state of Apparaten flashes up before that.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsNoLamps), nameof(ShowsDevicesLost), nameof(DevicesLostText))]
+    [NotifyPropertyChangedFor(nameof(ShowsNoLamps), nameof(ShowsDevicesLost))]
     public partial bool? HadRealDevices { get; private set; }
 
     // "Nog geen apparaten gevonden": without devices on a pc that never had a real one.
     public bool ShowsNoLamps => HadRealDevices == false && !Lamps.HasLamps;
 
-    // The empty state of Apparaten on a pc that had real devices: OpenRGB does not give them (any
-    // more), and with "Automatisch" no simulated ones come in their place. With "Opnieuw verbinden"
-    // (the search of "Verversen") and a word about "Herstarten" in the tray menu.
+    // The empty state of the list on Apparaten on a pc that had real devices: OpenRGB does not give
+    // them (any more), and with "Automatisch" no simulated ones come in their place. It says where
+    // the devices come back and points to "Herstarten"; the message that the connection is gone,
+    // with "Opnieuw verbinden", is the status line (StatusLine).
     public bool ShowsDevicesLost => HadRealDevices == true && !Lamps.HasLamps;
-
-    // The text of that state, bound so a screen reader hears it when it appears; empty otherwise.
-    public string DevicesLostText => ShowsDevicesLost ? Strings.DevicesLost : string.Empty;
 
     public EffectOptionsViewModel EffectOptions { get; } = new();
 

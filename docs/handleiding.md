@@ -142,18 +142,19 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit": dan koos je zelf of
   de nep-apparaten er staan. Een schermlezer leest de regel mee, en de link is met Tab te bereiken
   (na "+ Erbij knutselen").
-- **De verbinding met je apparaten is weg:** heeft deze pc ooit echte apparaten gehad en staat er
-  nu geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan staat dat onder
-  "Apparaten in huis" in een kaart, zonder nep-apparaten ervoor in de plaats (zie "Gesimuleerde
-  apparaten" bij "Instellingen"). "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt
-  opnieuw, en antwoordt het niet, dan verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen
-  beide knoppen "Zoeken…". Helpt dat niet, dan zegt de kaart dat "Herstarten" in het menu van het
-  tray-icoon OpenRGB en buurmansRgb opnieuw start (zie "Tray-icoon"). Een schermlezer leest de
-  regel voor zodra hij verschijnt, en de knop is met Tab te bereiken. Op een pc die nog nooit een
-  echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de verwijzing naar
-  Instellingen, zoals eerst.
-
-  ![De pagina Apparaten zonder apparaten: "De verbinding met je apparaten is weg." met de knop "Opnieuw verbinden"](images/apparaten-verbinding-weg.png)
+- **Geen verbinding met je apparaten:** heeft deze pc ooit echte apparaten gehad en staat er nu
+  geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan zegt de statusregel
+  bovenaan dat de verbinding weg is, met **Opnieuw verbinden** (zie "Statusregel"), en komen er
+  geen nep-apparaten voor in de plaats (zie "Gesimuleerde apparaten" bij "Instellingen"). Onder
+  "Apparaten in huis" staat dan een kaart als lege staat van de lijst: "Hier komen je apparaten
+  zodra de verbinding terug is; opnieuw verbinden kan bovenaan.", en dat "Herstarten" bij de status
+  rechtsboven of in het menu van het tray-icoon OpenRGB en buurmansRgb opnieuw start (zie
+  "Tray-icoon") als opnieuw verbinden niet helpt. De kaart heeft geen eigen knop en wordt niet
+  apart voorgelezen: de melding bovenaan zegt het al, zodat een schermlezer het één keer hoort.
+  "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt opnieuw, en antwoordt het niet, dan
+  verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen beide knoppen "Zoeken…". Op een pc die
+  nog nooit een echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de
+  verwijzing naar Instellingen, zoals eerst.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
   maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
@@ -849,11 +850,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
   kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
   dezelfde stijl als Verversen en "+ Erbij knutselen".
-- **"De verbinding met je apparaten is weg"** staat niet in het ontwerp (dat kent geen OpenRGB):
-  een gewone kaart onder "Apparaten in huis" met de regel in de tekststijl van de pagina, de
-  verwijzing naar "Herstarten" als subtekst en "Opnieuw verbinden" als rustige knop (de stijl van
-  "Hervatten" en "Logbestand openen"), omdat het hier de enige handeling is; een link zou tussen
-  de lege lijst wegvallen.
+- **De lege staat zonder verbinding** staat niet in het ontwerp (dat kent geen OpenRGB): een
+  gewone kaart onder "Apparaten in huis" met twee regels subtekst, waar de apparaten komen en de
+  verwijzing naar "Herstarten", zonder eigen knop en zonder voorlezen: de melding en "Opnieuw
+  verbinden" staan in de statusregel bovenaan, zodat er per pagina één melding is.
 - **Schakelaars** van een apparaat met een donkere of diepblauwe kleur krijgen een lichter spoor
   (zwart wordt grijs, `#0000FF` een lichter blauw), zodat de knop (`bg`) er minstens 3:1 op
   haalt: in dezelfde tint, en maar zo veel lichter als nodig.
