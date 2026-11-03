@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Extensions.Time.Testing;
+using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -208,18 +209,36 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         Assert.Equal(expected, viewModel.StatusMessage);
     }
 
-    // The engine that went, or a file gone between the dialog and the read.
+    // An engine that refused the call changed nothing.
     [Fact]
-    public async Task Restore_EngineFails_SaysNothingChanged()
+    public async Task Restore_RejectedByTheEngine_SaysNothingChanged()
     {
         using var viewModel = await ConnectAsync();
-        Api.SetException = new InvalidOperationException("weg");
+        Api.SetException = new RemoteInvocationException("no files", 0, errorData: null);
         viewModel.SettingsBackup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
         viewModel.SettingsBackup.ConfirmRestore = _ => true;
 
         await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupRestoreNotDone, viewModel.StatusMessage);
+    }
+
+    // An engine that went meanwhile, or did not answer in time, may have restored it: no promise
+    // that nothing changed, but where the copy is. Also an IOException of the pipe, which is not
+    // one of the file.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Restore_EngineGone_SaysWhereTheCopyIs(bool pipe)
+    {
+        using var viewModel = await ConnectAsync();
+        Api.SetException = pipe ? new IOException("Pipe is broken.") : new ConnectionLostException("weg");
+        viewModel.SettingsBackup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
+        viewModel.SettingsBackup.ConfirmRestore = _ => true;
+
+        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+
+        Assert.Equal(Strings.BackupRestoreUnknown, viewModel.StatusMessage);
     }
 
     [Fact]

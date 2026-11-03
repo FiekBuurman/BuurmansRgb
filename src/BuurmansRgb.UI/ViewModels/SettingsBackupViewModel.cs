@@ -108,22 +108,32 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
             }
 
             var archive = await File.ReadAllBytesAsync(path);
-            Say(MessageFor(await engine.RestoreSettingsAsync(archive)));
+            Say(await RestoreOnAsync(engine, archive));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             Trace.TraceError(exception.ToString());
             Say(Strings.BackupReadFailed);
         }
-        catch (Exception exception)
-        {
-            // The engine went meanwhile, or refused the call; it changed nothing then.
-            Trace.TraceError(exception.ToString());
-            Say(Strings.BackupRestoreNotDone);
-        }
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    // Apart from the read of the file, so an IOException of the pipe is not taken for one of the
+    // file. Only an engine that refused the call changed nothing for sure; one that went meanwhile
+    // or did not answer in time may have restored some or all of it, with a copy in backups first.
+    private static async Task<string> RestoreOnAsync(IEngineApi engine, byte[] archive)
+    {
+        try
+        {
+            return MessageFor(await engine.RestoreSettingsAsync(archive));
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+            return EngineRpc.IsRejectedByEngine(exception) ? Strings.BackupRestoreNotDone : Strings.BackupRestoreUnknown;
         }
     }
 

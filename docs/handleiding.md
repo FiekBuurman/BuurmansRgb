@@ -797,8 +797,12 @@ Hoe het vanzelf aanzetten werkt:
   bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
   bestanden, zoals een map), "Dit bestand is te groot …" (groter dan 16 MB, ook als een bestand
   pas uitgepakt zo groot wordt) of "profiles.json in dit bestand is niet te lezen." (geen
-  geldige JSON, of geen object). Beide knoppen werken alleen als de app verbonden is met de
-  engine.
+  geldige JSON, of geen object). Lukt het schrijven van een bestand niet, dan zet de engine
+  terug wat er was en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
+  verbinding met de engine weg tijdens het terugzetten, dan weet de app niet hoe ver de engine
+  kwam: er staat dan "De verbinding met de engine viel weg tijdens het terugzetten." en waar de
+  kopie staat; kijk dan of je instellingen kloppen. Beide knoppen werken alleen als de app
+  verbonden is met de engine.
 - **Logbestand en map:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen

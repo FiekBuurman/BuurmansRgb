@@ -1066,6 +1066,9 @@
   <data name="BackupRestoreNotDone" xml:space="preserve">
     <value>Terugzetten is niet gelukt. Er is niets veranderd.</value>
   </data>
+  <data name="BackupRestoreUnknown" xml:space="preserve">
+    <value>De verbinding met de engine viel weg tijdens het terugzetten. Kijk of je instellingen kloppen; was de engine al begonnen, dan staat een kopie van je vorige instellingen in de map met instellingen, in de map backups.</value>
+  </data>
   <data name="AppVersion" xml:space="preserve">
     <value>buurmansRgb {0}</value>
   </data>
