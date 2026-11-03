@@ -47,8 +47,9 @@ uitbreidingen in `docs/bouwplan.md`.
   hem vóór het starten van de nieuwe engine en `TrayPresenter.RestartAsync` opent hem daarna
   opnieuw) en meldt het tray-icoon het; maar valt het verzoek stil, omdat de herstart vanuit het
   tray-menu al loopt (`TrayPresenter.RestartAsync` geeft dan `false` terug zonder iets te doen),
-  dan blijft onderaan "buurmansRgb herstart…" staan tot de volgende wijziging of het opnieuw
-  verbinden. Een gebeurtenis van de engine (herstart geweigerd of mislukt) zou dat opruimen en de
+  of omdat de herstart al vóór het sluiten van de app vastliep (de `catch` in
+  `TrayPresenter.RestartAsync` vóór `CloseIfOpen`), dan blijft onderaan "buurmansRgb herstart…"
+  staan tot de volgende wijziging of het opnieuw verbinden. Een gebeurtenis van de engine (herstart geweigerd of mislukt) zou dat opruimen en de
   knop weer vrijgeven
 - Herstarten: alleen OpenRGB en PawnIO herstarten zonder buurmansRgb zelf (dan blijft de
   instellingen-app open), en in de melding noemen welk programma PawnIO vasthoudt als de driver
