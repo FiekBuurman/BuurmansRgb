@@ -135,7 +135,8 @@ public sealed class EngineUsageViewModelTests
         usage.IsShown = true;
 
         Assert.Single(_meter.Reads);
-        Assert.True(_meter.IsDisposed);
+        Assert.Equal(1, _meter.Releases);
+        Assert.False(_meter.IsDisposed);
     }
 
     private EngineUsageViewModel Create(int processorCount = 1) => new(_meter, _time, processorCount);

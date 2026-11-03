@@ -73,7 +73,8 @@ public sealed class MainViewModelEngineUsageTests
         viewModel.Dispose();
 
         Assert.False(viewModel.EngineUsage.IsMeasuring);
-        Assert.True(_meter.IsDisposed);
+        Assert.True(_meter.Releases > 0);
+        Assert.False(_meter.IsDisposed);
     }
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)

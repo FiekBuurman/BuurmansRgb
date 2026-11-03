@@ -67,7 +67,8 @@ public sealed partial class EngineUsageViewModel : ObservableObject, IDisposable
             _run++;
             IsMeasuring = false;
             _timer.Dispose();
-            (_meter as IDisposable)?.Dispose();
+            // The meter is the one of App, which disposes it; this only lets go of the process.
+            _meter.Release();
         }
     }
 

@@ -29,6 +29,7 @@ public partial class App : Application
     private SystemTextScale? _systemTextScale;
     private TextSizes? _textSizes;
     private SystemAnimationEffects? _animationEffects;
+    private SystemProcessMeter? _processMeter;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -58,8 +59,9 @@ public partial class App : Application
         _textSizes = TextSizes.Follow(Resources, _systemTextScale);
         // The preview stands still while "Animatie-effecten" of Windows is off.
         _animationEffects = new SystemAnimationEffects();
+        _processMeter = new SystemProcessMeter();
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: new SystemProcessMeter());
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: _processMeter);
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
         window.Show();
@@ -75,6 +77,7 @@ public partial class App : Application
         _exit?.Dispose();
         // Closes the pipe right away instead of leaving the engine to notice a dead process.
         _viewModel?.Dispose();
+        _processMeter?.Dispose();
         _contrastTheme?.Dispose();
         _highContrast?.Dispose();
         _textSizes?.Dispose();
