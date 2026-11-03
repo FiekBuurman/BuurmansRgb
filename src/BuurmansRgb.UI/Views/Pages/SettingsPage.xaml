@@ -170,12 +170,12 @@
                         <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.BackupHint}" />
                         <WrapPanel>
                             <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupSave}"
-                                    Command="{Binding SettingsBackup.SaveCommand}"
+                                    Command="{Binding Backup.SaveCommand}"
                                     ToolTip="{x:Static res:Strings.BackupSaveHint}"
                                     AutomationProperties.Name="{x:Static res:Strings.BackupSave}"
                                     AutomationProperties.HelpText="{x:Static res:Strings.BackupSaveHint}" />
                             <Button Margin="0,10,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupRestore}"
-                                    Command="{Binding SettingsBackup.RestoreCommand}"
+                                    Command="{Binding Backup.RestoreCommand}"
                                     ToolTip="{x:Static res:Strings.BackupRestoreHint}"
                                     AutomationProperties.Name="{x:Static res:Strings.BackupRestore}"
                                     AutomationProperties.HelpText="{x:Static res:Strings.BackupRestoreHint}" />

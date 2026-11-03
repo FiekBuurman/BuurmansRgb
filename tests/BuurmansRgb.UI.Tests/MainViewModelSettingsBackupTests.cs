@@ -24,20 +24,20 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = new MainViewModel(_connector);
 
-        Assert.False(viewModel.SettingsBackup.SaveCommand.CanExecute(null));
-        Assert.False(viewModel.SettingsBackup.RestoreCommand.CanExecute(null));
+        Assert.False(viewModel.Backup.SaveCommand.CanExecute(null));
+        Assert.False(viewModel.Backup.RestoreCommand.CanExecute(null));
     }
 
     [Fact]
     public async Task Buttons_GoWithTheConnection()
     {
         using var viewModel = await ConnectAsync();
-        Assert.True(viewModel.SettingsBackup.SaveCommand.CanExecute(null));
+        Assert.True(viewModel.Backup.SaveCommand.CanExecute(null));
 
         _connector.Connection.Disconnect();
 
-        Assert.False(viewModel.SettingsBackup.SaveCommand.CanExecute(null));
-        Assert.False(viewModel.SettingsBackup.RestoreCommand.CanExecute(null));
+        Assert.False(viewModel.Backup.SaveCommand.CanExecute(null));
+        Assert.False(viewModel.Backup.RestoreCommand.CanExecute(null));
     }
 
     // The zip the engine made goes into the file the user chose, with the date of today as the
@@ -50,18 +50,18 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         using var viewModel = await ConnectAsync(time);
         var path = Path.Combine(_folder, "bewaard.zip");
         string? suggested = null;
-        viewModel.SettingsBackup.ChooseSaveFile = name =>
+        viewModel.Backup.ChooseSaveFile = name =>
         {
             suggested = name;
             return path;
         };
 
-        await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+        await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal("buurmansRgb-instellingen-2026-11-03.zip", suggested);
         Assert.Equal(Api.ExportedSettings, File.ReadAllBytes(path));
         Assert.Equal(UiText.Format(Strings.BackupSaved, "bewaard.zip"), viewModel.StatusMessage);
-        Assert.True(viewModel.SettingsBackup.SaveCommand.CanExecute(null));
+        Assert.True(viewModel.Backup.SaveCommand.CanExecute(null));
     }
 
     // A file the user chose to overwrite gets the new zip as a whole, without a temporary file left.
@@ -70,9 +70,9 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("bewaard.zip", [1, 2, 3]);
-        viewModel.SettingsBackup.ChooseSaveFile = _ => path;
+        viewModel.Backup.ChooseSaveFile = _ => path;
 
-        await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+        await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal(Api.ExportedSettings, File.ReadAllBytes(path));
         Assert.False(File.Exists(path + ".tmp"));
@@ -85,11 +85,11 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("bewaard.zip", [1, 2, 3]);
-        viewModel.SettingsBackup.ChooseSaveFile = _ => path;
+        viewModel.Backup.ChooseSaveFile = _ => path;
 
         using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
         {
-            await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+            await viewModel.Backup.SaveCommand.ExecuteAsync(null);
         }
 
         Assert.Equal(Strings.BackupSaveFailed, viewModel.StatusMessage);
@@ -101,9 +101,9 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Save_Cancelled_AsksTheEngineNothing()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.SettingsBackup.ChooseSaveFile = _ => null;
+        viewModel.Backup.ChooseSaveFile = _ => null;
 
-        await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+        await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
         Assert.Empty(Api.Calls);
     }
@@ -113,12 +113,12 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Save_FileThatCannotBeWritten_SaysSo()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.SettingsBackup.ChooseSaveFile = _ => Path.Combine(_folder, "weg", "bewaard.zip");
+        viewModel.Backup.ChooseSaveFile = _ => Path.Combine(_folder, "weg", "bewaard.zip");
 
-        await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+        await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupSaveFailed, viewModel.StatusMessage);
-        Assert.False(viewModel.SettingsBackup.IsBusy);
+        Assert.False(viewModel.Backup.IsBusy);
     }
 
     // First the question with the name of the file; only Terugzetten sends the zip to the engine.
@@ -129,14 +129,14 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         var path = WriteZip("oud.zip", [7, 8, 9]);
-        viewModel.SettingsBackup.ChooseRestoreFile = () => path;
-        viewModel.SettingsBackup.ConfirmRestore = fileName =>
+        viewModel.Backup.ChooseRestoreFile = () => path;
+        viewModel.Backup.ConfirmRestore = fileName =>
         {
             _confirmed.Add(fileName);
             return confirm;
         };
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(["oud.zip"], _confirmed);
         if (confirm)
@@ -154,10 +154,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_Cancelled_AsksNothing()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.SettingsBackup.ChooseRestoreFile = () => null;
-        viewModel.SettingsBackup.ConfirmRestore = Refuse;
+        viewModel.Backup.ChooseRestoreFile = () => null;
+        viewModel.Backup.ConfirmRestore = Refuse;
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Empty(_confirmed);
         Assert.Empty(Api.Calls);
@@ -174,10 +174,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
             file.SetLength(SettingsBackup.MaxArchiveBytes + 1);
         }
 
-        viewModel.SettingsBackup.ChooseRestoreFile = () => path;
-        viewModel.SettingsBackup.ConfirmRestore = Refuse;
+        viewModel.Backup.ChooseRestoreFile = () => path;
+        viewModel.Backup.ConfirmRestore = Refuse;
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupTooLarge, viewModel.StatusMessage);
         Assert.Empty(_confirmed);
@@ -194,10 +194,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.RestoreResult = new SettingsRestoreResult(outcome, fileName);
-        viewModel.SettingsBackup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.SettingsBackup.ConfirmRestore = _ => true;
+        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
+        viewModel.Backup.ConfirmRestore = _ => true;
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         var expected = outcome switch
         {
@@ -215,10 +215,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.SetException = new RemoteInvocationException("no files", 0, errorData: null);
-        viewModel.SettingsBackup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.SettingsBackup.ConfirmRestore = _ => true;
+        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
+        viewModel.Backup.ConfirmRestore = _ => true;
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupRestoreNotDone, viewModel.StatusMessage);
     }
@@ -233,10 +233,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     {
         using var viewModel = await ConnectAsync();
         Api.SetException = pipe ? new IOException("Pipe is broken.") : new ConnectionLostException("weg");
-        viewModel.SettingsBackup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
-        viewModel.SettingsBackup.ConfirmRestore = _ => true;
+        viewModel.Backup.ChooseRestoreFile = () => WriteZip("oud.zip", [1]);
+        viewModel.Backup.ConfirmRestore = _ => true;
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupRestoreUnknown, viewModel.StatusMessage);
     }
@@ -245,9 +245,9 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.SettingsBackup.ChooseRestoreFile = () => Path.Combine(_folder, "weg.zip");
+        viewModel.Backup.ChooseRestoreFile = () => Path.Combine(_folder, "weg.zip");
 
-        await viewModel.SettingsBackup.RestoreCommand.ExecuteAsync(null);
+        await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
         Assert.Equal(Strings.BackupReadFailed, viewModel.StatusMessage);
         Assert.Empty(Api.Calls);

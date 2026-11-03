@@ -16,9 +16,9 @@ public partial class MainWindow : Window
             {
                 viewModel.Profiles.ConfirmDelete = ConfirmDeleteProfile;
                 viewModel.CustomEffectEditor.ConfirmDelete = ConfirmDeleteCustomEffect;
-                viewModel.SettingsBackup.ChooseSaveFile = ChooseBackupToSave;
-                viewModel.SettingsBackup.ChooseRestoreFile = ChooseBackupToRestore;
-                viewModel.SettingsBackup.ConfirmRestore = fileName => ConfirmDialog.ForRestore(this, fileName).Ask();
+                viewModel.Backup.ChooseSaveFile = ChooseBackupToSave;
+                viewModel.Backup.ChooseRestoreFile = ChooseBackupToRestore;
+                viewModel.Backup.ConfirmRestore = fileName => ConfirmDialog.ForRestore(this, fileName).Ask();
             }
         };
         StateChanged += (_, _) =>

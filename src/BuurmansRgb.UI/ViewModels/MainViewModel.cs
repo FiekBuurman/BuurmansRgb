@@ -126,8 +126,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
-        SettingsBackup = new SettingsBackupViewModel(() => _connection?.Api, time);
-        SettingsBackup.Message += (_, message) => StatusMessage = message;
+        Backup = new SettingsBackupViewModel(() => _connection?.Api, time);
+        Backup.Message += (_, message) => StatusMessage = message;
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
@@ -362,7 +362,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public AppInfoViewModel AppInfo { get; }
 
     // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen.
-    public SettingsBackupViewModel SettingsBackup { get; }
+    public SettingsBackupViewModel Backup { get; }
 
     // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
     public EngineUsageViewModel EngineUsage { get; }
@@ -461,7 +461,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnHadRealDevicesChanged(bool? value) => OpenRgbStatus.DevicesExpected = value == true;
 
     // Backing up and restoring go through the engine, so only while connected.
-    partial void OnConnectionStateChanged(ConnectionState value) => SettingsBackup.IsConnected = value == ConnectionState.Connected;
+    partial void OnConnectionStateChanged(ConnectionState value) => Backup.IsConnected = value == ConnectionState.Connected;
 
     [RelayCommand]
     private async Task ConnectAsync()
