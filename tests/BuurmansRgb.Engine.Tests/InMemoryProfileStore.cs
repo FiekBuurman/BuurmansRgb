@@ -32,6 +32,8 @@ internal sealed class InMemoryProfileStore : IProfileStore
         Profiles = [.. (file?.Profiles ?? []).Where(settings => ProfileNames.Normalize(settings?.Name) is not null).Select(settings => settings!.ToProfile(ProfileNames.Normalize(settings.Name)!))];
     }
 
+    public void Delete() => Profiles = [];
+
     public void Save(IReadOnlyList<Profile> profiles)
     {
         if (SaveException is not null)

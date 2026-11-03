@@ -67,4 +67,6 @@ internal sealed class JsonCustomEffectStore(string filePath) : ICustomEffectStor
         JsonFile.Write(filePath, new CustomEffectsFile { Effects = [.. effects.Select(CustomEffectSettings.From)] }, EngineSettingsJsonContext.Default.CustomEffectsFile);
 
     public void Replace(byte[] json) => JsonFile.Write(filePath, json);
+
+    public void Delete() => File.Delete(filePath);
 }

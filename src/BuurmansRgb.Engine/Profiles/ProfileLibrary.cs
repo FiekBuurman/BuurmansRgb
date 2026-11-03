@@ -228,12 +228,19 @@ internal sealed class ProfileLibrary
     // read again, so the triggers plan the new times and programs (Changed). The scene that is on
     // stays on while the backup has a scene of that name. The list in memory is only dropped once
     // the file is written, so a write that fails leaves the scenes as they were.
-    public void Replace(byte[] json)
+    public void Replace(byte[] json) => ReplaceFile(() => _store.Replace(json));
+
+    // profiles.json taken away again, when a restore that fails puts back the files of before and
+    // there was none: no scenes then, and the one that is on is off. As with Replace, a delete that
+    // fails changes nothing.
+    public void Reset() => ReplaceFile(_store.Delete);
+
+    private void ReplaceFile(Action write)
     {
         List<string> names;
         lock (_gate)
         {
-            _store.Replace(json);
+            write();
             _profiles = null;
             names = [.. ProfilesLocked().Select(profile => profile.Name)];
         }

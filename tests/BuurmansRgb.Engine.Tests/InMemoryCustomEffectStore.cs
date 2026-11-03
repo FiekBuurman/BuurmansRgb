@@ -35,6 +35,8 @@ internal sealed class InMemoryCustomEffectStore : ICustomEffectStore
         Effects = [.. (file?.Effects ?? []).Select(settings => settings?.ToCustomEffect()).OfType<CustomEffect>()];
     }
 
+    public void Delete() => Effects = [];
+
     public void Save(IReadOnlyList<CustomEffect> effects)
     {
         if (SaveException is not null)

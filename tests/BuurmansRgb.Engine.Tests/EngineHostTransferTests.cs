@@ -243,6 +243,35 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(1.0, _lighting.State.Global.Brightness);
     }
 
+    // A file that was not there before goes again when a later one cannot be written: no
+    // effects.json and no own effects in memory, as before the restore.
+    [Fact]
+    public async Task Restore_FileThatCannotBeWritten_RemovesAFileThatWasNotThere()
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        var effectsPath = PathOf(SettingsBackup.EffectsFileName);
+        Assert.False(File.Exists(effectsPath));
+        var effectsChanged = 0;
+        _customEffects.Changed += (_, _) => effectsChanged++;
+
+        SettingsRestoreResult result;
+        using (new FileStream(PathOf(SettingsBackup.SettingsFileName) + ".tmp", FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            result = host.Restore(SettingsArchiveTests.Zip(
+                (SettingsBackup.EffectsFileName, Utf8("""{ "effects": [ { "id": "custom:00000001", "name": "Blauw", "steps": [ { "colors": ["#0000FF"] } ] } ] }""")),
+                (SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [ { "name": "Nacht" } ] }""")),
+                (SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))));
+        }
+
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Failed), result);
+        Assert.False(File.Exists(effectsPath));
+        Assert.False(File.Exists(PathOf(SettingsBackup.ProfilesFileName)));
+        Assert.Empty(_profiles.Names);
+        Assert.Empty(_customEffects.Effects);
+        Assert.Equal(2, effectsChanged);
+    }
+
     // Through the api of a connection, as the settings app asks.
     [Fact]
     public async Task EngineApi_RestoresThroughTheHost()

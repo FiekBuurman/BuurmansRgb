@@ -328,6 +328,25 @@ internal sealed class EngineHost(
         }
     }
 
+    // A file that was not there before the restore goes again, through the part of the engine that
+    // keeps it. settings.json is replaced last, so a failure never has to take it away; a file
+    // without its part of the engine (in tests) is just deleted.
+    private void Remove(SettingsFiles known, string name)
+    {
+        switch (name)
+        {
+            case SettingsBackup.EffectsFileName when customEffects is not null:
+                customEffects.Reset();
+                break;
+            case SettingsBackup.ProfilesFileName when profiles is not null:
+                profiles.Reset();
+                break;
+            default:
+                File.Delete(known.PathOf(name));
+                break;
+        }
+    }
+
     // With autoStartChosen and hadRealDevices of this pc (SettingsArchive.WithThisPc): the Run key
     // stays as it is, and what the user chose about it here still counts at the next update.
     private void ReplaceSettings(byte[] json)
@@ -351,19 +370,22 @@ internal sealed class EngineHost(
         });
     }
 
-    // Best effort: a file that was not there before stays as the backup had it.
+    // Best effort: a file that was not there before goes again, so the engine is as it was; one
+    // that cannot be put back stays as the backup had it, and the copy is in the backups folder.
     private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before)
     {
         foreach (var name in replaced)
         {
-            if (!before.TryGetValue(name, out var json))
-            {
-                continue;
-            }
-
             try
             {
-                Replace(known, name, json);
+                if (before.TryGetValue(name, out var json))
+                {
+                    Replace(known, name, json);
+                }
+                else
+                {
+                    Remove(known, name);
+                }
             }
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
