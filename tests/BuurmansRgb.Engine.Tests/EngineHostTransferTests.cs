@@ -62,6 +62,29 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Contains("Blauw", Encoding.UTF8.GetString(files[SettingsBackup.EffectsFileName]), StringComparison.Ordinal);
     }
 
+    // A save that comes due while a change by hand is read waits for that read; the backup waits
+    // too, so it still has the last change.
+    [Fact]
+    public async Task Export_DuringAReload_WaitsForIt()
+    {
+        var store = new HeldStore(_store);
+        using var host = CreateHost(store);
+        await host.StartAsync(Ct);
+        await Eventually.TrueAsync(() => store.Reads > 0);
+        store.Hold();
+        _fileEvents.RaiseChanged();
+        Assert.True(store.Entered.Wait(TestTimeouts.Short, Ct));
+        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.25 });
+
+        var export = Task.Run(host.Export, Ct);
+        await Task.Delay(100, Ct);
+        Assert.False(export.IsCompleted);
+        store.Release();
+
+        var files = Unzip(await export.WaitAsync(TestTimeouts.Short, Ct));
+        Assert.Equal(0.25, JsonNode.Parse(files[SettingsBackup.SettingsFileName])!["brightness"]!.GetValue<double>());
+    }
+
     // No scenes and no own effects yet: only settings.json.
     [Fact]
     public async Task Export_LeavesOutAFileThatIsNotThere()
@@ -264,8 +287,8 @@ public sealed class EngineHostTransferTests : IDisposable
 
     private string PathOf(string name) => _files.PathOf(name);
 
-    private EngineHost CreateHost() => new(
-        _store,
+    private EngineHost CreateHost(ISettingsStore? store = null) => new(
+        store ?? _store,
         _lighting,
         saveDelay: TimeSpan.FromHours(1),
         simulatedDevices: _simulatedDevices,
@@ -275,4 +298,39 @@ public sealed class EngineHostTransferTests : IDisposable
         reloadDelay: TimeSpan.FromMilliseconds(10),
         customEffects: _customEffects,
         files: _files);
+
+    // Holds a read of a change by hand (the reloader, within HoldSaves of the saver) until Release.
+    private sealed class HeldStore(ISettingsStore store) : ISettingsStore
+    {
+        private readonly ManualResetEventSlim _released = new(initialState: true);
+        private int _reads;
+
+        public ManualResetEventSlim Entered { get; } = new();
+
+        public int Reads => Volatile.Read(ref _reads);
+
+        public void Hold()
+        {
+            Entered.Reset();
+            _released.Reset();
+        }
+
+        public void Release() => _released.Set();
+
+        public EngineSettings LoadOrCreate() => store.LoadOrCreate();
+
+        public void Save(EngineSettings settings) => store.Save(settings);
+
+        public bool SaveIfUnchanged(EngineSettings settings) => store.SaveIfUnchanged(settings);
+
+        public void Replace(byte[] json) => store.Replace(json);
+
+        public SettingsFileChange LoadIfChanged()
+        {
+            Entered.Set();
+            _released.Wait(TestTimeouts.Short);
+            Interlocked.Increment(ref _reads);
+            return store.LoadIfChanged();
+        }
+    }
 }

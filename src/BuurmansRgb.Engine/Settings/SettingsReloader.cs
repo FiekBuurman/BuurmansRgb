@@ -70,6 +70,17 @@ internal sealed class SettingsReloader : IDisposable
     // when this returns. The file event of that write that comes later finds nothing new.
     public void ReloadNow() => Reload();
 
+    // Runs action while no reload runs, such as the save of the last change before a backup: a
+    // save that comes due within a reload waits for it (LightingSettingsSaver.HoldSaves), and would
+    // then not be in the file yet.
+    public void RunBetweenReloads(Action action)
+    {
+        lock (_gate)
+        {
+            action();
+        }
+    }
+
     private void OnFileChanged(object? sender, EventArgs e)
     {
         lock (_gate)

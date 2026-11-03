@@ -228,9 +228,21 @@ internal sealed class EngineHost(
     private SettingsFiles FilesOrThrow() =>
         files ?? throw new InvalidOperationException("This engine has no settings files to back up.");
 
+    // Between reloads: a save during one waits for it, and would not be in the file yet.
     private void FlushSaves()
     {
-        _saver?.Flush();
+        if (_saver is { } saver)
+        {
+            if (_reloader is { } reloader)
+            {
+                reloader.RunBetweenReloads(saver.Flush);
+            }
+            else
+            {
+                saver.Flush();
+            }
+        }
+
         customEffects?.Flush();
     }
 
