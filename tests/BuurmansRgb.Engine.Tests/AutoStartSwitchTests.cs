@@ -132,4 +132,23 @@ public sealed class AutoStartSwitchTests
 
         Assert.False(new AutoStartSwitch(_autoStart).IsEnabled);
     }
+
+    [Theory]
+    [MemberData(nameof(AccessErrors))]
+    public void TryReadEnabled_Unreadable_IsNull(Exception error)
+    {
+        _autoStart.IsEnabledException = error;
+
+        Assert.Null(new AutoStartSwitch(_autoStart).TryReadEnabled());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryReadEnabled_Readable_IsAsWindowsHasIt(bool enabled)
+    {
+        _autoStart.IsEnabled = enabled;
+
+        Assert.Equal(enabled, new AutoStartSwitch(_autoStart).TryReadEnabled());
+    }
 }

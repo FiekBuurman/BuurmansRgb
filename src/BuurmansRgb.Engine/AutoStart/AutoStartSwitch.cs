@@ -31,6 +31,15 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         }
     }
 
+    // As IsEnabled, but null when it cannot be read, for EngineHost to tell nothing from that.
+    public bool? TryReadEnabled()
+    {
+        lock (_gate)
+        {
+            return TryReadEnabledLocked();
+        }
+    }
+
     // Also writes when it is on already, as that may be for another engine (IAutoStart.IsEnabled
     // counts only this one). Throws UnauthorizedAccessException, SecurityException or IOException
     // when Windows does not let it change, such as a Run key without write access.
@@ -93,7 +102,9 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     internal static bool IsAccessError(Exception exception) =>
         exception is UnauthorizedAccessException or SecurityException or IOException;
 
-    private bool ReadEnabled()
+    private bool ReadEnabled() => TryReadEnabledLocked() ?? false;
+
+    private bool? TryReadEnabledLocked()
     {
         try
         {
@@ -102,7 +113,7 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         catch (Exception exception) when (IsAccessError(exception))
         {
             Trace.TraceWarning($"Could not read whether autostart is on: {exception.Message}");
-            return false;
+            return null;
         }
     }
 }

@@ -136,6 +136,22 @@ public sealed class EngineHostAutoStartTests : IDisposable
         Assert.Equal(0, _store.SaveCount);
     }
 
+    // A Run key that does not read tells nothing about a choice, so the file stays without one.
+    [Fact]
+    public async Task FileFromBefore_RunKeyUnreadable_IsNoChoice()
+    {
+        _store.Settings = new EngineSettings();
+        _registry.IsEnabledException = new UnauthorizedAccessException();
+        var lighting = Lighting();
+
+        var host = await StartAsync(firstRun: false, lighting);
+        lighting.FramesPerSecond = 20;
+        host.Dispose();
+
+        Assert.Null(_store.Settings.AutoStartChosen);
+        Assert.Equal(1, _store.SaveCount);
+    }
+
     // settings.json locked (or out of reach) at the start: the engine runs on the defaults, and
     // what it reads from the Run key then is no reason to write them over the user's file.
     [Fact]

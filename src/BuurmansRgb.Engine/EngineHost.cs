@@ -188,7 +188,8 @@ internal sealed class EngineHost(
     // Before the devices are fetched, so the tray menu shows it from the start. A file without
     // autoStartChosen is from before the option, whose installer turned autostart on, so off
     // counts as the user's choice (or Windows refused, which this cannot tell). The Run key can
-    // only tell for this engine: one that starts another engine counts as off.
+    // only tell for this engine: one that starts another engine counts as off. A Run key that does
+    // not read tells nothing, so it stays without a choice (and --first-run tries to turn it on).
     private EngineSettings StartAutoStart(EngineSettings settings)
     {
         if (autoStart is null)
@@ -197,9 +198,9 @@ internal sealed class EngineHost(
         }
 
         autoStart.Chosen += OnAutoStartChosen;
-        if (settings.AutoStartChosen is null)
+        if (settings.AutoStartChosen is null && autoStart.TryReadEnabled() is { } enabled)
         {
-            settings = settings with { AutoStartChosen = !autoStart.IsEnabled };
+            settings = settings with { AutoStartChosen = !enabled };
         }
 
         if (firstRun && settings.AutoStartChosen != true)
