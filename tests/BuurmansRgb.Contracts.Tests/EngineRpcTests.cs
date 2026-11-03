@@ -451,6 +451,15 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(1, _api.RescanCalls);
     }
 
+    // The process id of the engine, for its memory and CPU on Instellingen.
+    [Fact]
+    public async Task GetProcessIdAsync_GivesTheIdOfTheEngine()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal(4242, await client.Api.GetProcessIdAsync(Ct));
+    }
+
     // A backup is bytes both ways, also every byte value and a size of some MB, and the answer to a
     // restore comes back with its outcome and file.
     [Fact]
