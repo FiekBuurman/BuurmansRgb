@@ -795,8 +795,8 @@ Hoe het vanzelf aanzetten werkt:
   (`dismissedOtherRgbSoftware`) komt wel mee.
   Is de zip niet goed, dan verandert er niets en staat onderaan waarom: "Dit bestand bevat geen
   bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
-  bestanden, zoals een map), "Dit bestand is te groot …" (groter dan 16 MB, ook als een bestand
-  pas uitgepakt zo groot wordt) of "profiles.json in dit bestand is niet te lezen." (geen
+  bestanden, zoals een map), "Dit bestand is te groot …" (een zip groter dan 4 MB, of een bestand
+  dat uitgepakt groter wordt dan 16 MB) of "profiles.json in dit bestand is niet te lezen." (geen
   geldige JSON, of geen object). Lukt het schrijven van een bestand niet, dan zet de engine
   terug wat er was en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
   verbinding met de engine weg tijdens het terugzetten, dan weet de app niet hoe ver de engine

@@ -14,10 +14,12 @@ public static class SettingsBackup
     public const string Extension = ".zip";
 
     // A zip that is bigger is not a backup of these files, which are a few hundred KB even with
-    // a color per LED in every scene: the app does not read it, the engine does not take it. The
-    // same for a file in the zip once unpacked, so a small zip that unpacks to gigabytes (a zip
-    // bomb) is refused before it fills the memory of the engine.
-    public const int MaxArchiveBytes = 16 * 1024 * 1024;
+    // a color per LED in every scene, and pack to a fraction of that: the app does not read it,
+    // the engine does not take it. Lower than a file may unpack to, so a zip with a huge list of
+    // entries is refused before the engine reads that list. The same for a file in the zip once
+    // unpacked, so a small zip that unpacks to gigabytes (a zip bomb) is refused before it fills
+    // the memory of the engine.
+    public const int MaxArchiveBytes = 4 * 1024 * 1024;
     public const int MaxFileBytes = 16 * 1024 * 1024;
 
     // In the order the engine puts them back: the own effects and the scenes before the settings,
