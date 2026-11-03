@@ -1,0 +1,48 @@
+# Builds and tests the solution on every pull request to main and every push to main, so a pull
+# request shows a green or red check before it is merged. It only keeps the test results (one TRX
+# file per test project, named after the project; see tests/Directory.Build.props) as an artifact;
+# building the installer and publishing a release is the job of release.yml. See "Bouwen, starten
+# en testen" in docs/ontwikkelaars.md.
+name: Build
+
+on:
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['main']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Bouwen
+        shell: pwsh
+        run: dotnet build BuurmansRgb.slnx -warnaserror
+
+      - name: Testen
+        shell: pwsh
+        run: dotnet test --solution BuurmansRgb.slnx -p:TrxReport=true --results-directory artifacts/test-results
+
+      # Not when the run was cancelled by a newer push; and when "Bouwen" fails there are no files,
+      # which is no reason for a warning.
+      - name: Testresultaten bewaren
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: testresultaten
+          path: artifacts/test-results
+          if-no-files-found: ignore

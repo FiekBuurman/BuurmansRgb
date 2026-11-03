@@ -11,4 +11,12 @@
     <Using Include="BuurmansRgb.Tests.TestColors" Static="true" />
   </ItemGroup>
 
+  <!-- dotnet test names a TRX file after the user, machine and time, so in one results folder you
+       cannot tell which file belongs to which test project. With -p:TrxReport=true (build.yml does
+       this) every test project writes one TRX file named after itself instead. The file name option
+       is only valid next to the report option, so both travel together here. -->
+  <PropertyGroup Condition="'$(TrxReport)' == 'true'">
+    <TestingPlatformCommandLineArguments>$(TestingPlatformCommandLineArguments) --report-xunit-trx --report-xunit-trx-filename $(MSBuildProjectName).trx</TestingPlatformCommandLineArguments>
+  </PropertyGroup>
+
 </Project>
