@@ -237,8 +237,10 @@ niet weer aan. Alleen als je het nog nooit zelf aan- of uitzette, zet de install
 
 Via **Instellingen → Apps → BuurmansRgb → Verwijderen**. Dat stopt de engine en haalt
 BuurmansRgb en de autostart weg. Daarna vraagt het of OpenRGB en PawnIO ook weg moeten (alleen
-als deze installer ze heeft geïnstalleerd), en of je instellingen weg moeten. Houd je je
-instellingen en had je **Starten met Windows** ooit zelf aan- of uitgezet, dan zet een nieuwe
+als deze installer ze heeft geïnstalleerd), en of je instellingen weg moeten. "Ja" haalt de hele
+map `%AppData%\BuurmansRgb` weg: ook je scènes, eigen effecten, de `logs` en de kopieën in
+`backups`. Wil je je instellingen meenemen, maak dan eerst een zip met **Instellingen bewaren…**
+bij Instellingen. Houd je je instellingen en had je **Starten met Windows** ooit zelf aan- of uitgezet, dan zet een nieuwe
 installatie het niet aan; zet het dan zelf aan in het tray-menu.
 
 Het verwijderen geldt voor jou, de gebruiker die het startte, ook als een andere beheerder de
@@ -247,8 +249,8 @@ UAC-vraag met zijn wachtwoord beantwoordt:
 - De engine krijgt eerst het verzoek om af te sluiten, zoals **Afsluiten** in het tray-menu, zodat
   je laatste wijziging bewaard is. Is hij na 10 seconden nog niet weg, dan stopt het verwijderen
   hem alsnog. De instellingen-app wordt gesloten.
-- Alleen jouw engine, instellingen-app, autostart en (als je "Ja" zegt) instellingen in
-  `%AppData%\BuurmansRgb`. Die van andere gebruikers op de pc blijven staan, ook van de beheerder
+- Alleen jouw engine, instellingen-app, autostart en (als je "Ja" zegt) de map
+  `%AppData%\BuurmansRgb` met instellingen, `logs` en `backups`. Die van andere gebruikers op de pc blijven staan, ook van de beheerder
   die de UAC-vraag beantwoordde.
 
 Beperkingen:
