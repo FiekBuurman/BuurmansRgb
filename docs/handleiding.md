@@ -936,6 +936,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   volgorde staat. Die melding heeft als enige twee knoppen, **Uitleg** en **Niet meer melden**;
   het voorstel noemde de eerste "Details", maar zo heet al de knop die de andere meldingen
   uitklapt, en twee knoppen met dezelfde naam en een ander doel naast elkaar zijn verwarrend.
+  Uitleg klapt de uitleg in de app zelf open, omdat de handleiding (nog) niet met de app
+  meekomt; een link naar de handleiding staat er pas onder als die er is.
   De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
   is subtekst in de tekstkleur zonder eigen kaart, dicht bij de knoppen, met "Hervatten" als
   gewone knop zoals in de Statusregel.
@@ -1439,16 +1441,24 @@ Van RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet
   daarin aan kleuren kiest, overschrijft die van buurmansRgb. Sluit het als je klaar bent, of
   kies Niet meer melden. Zonder de service (OpenRGB zelf gestart, zie "OpenRGB koppelen") is dat
   ene OpenRGB juist de server, en komt er geen melding.
-- **Uitleg** opent deze handleiding hier. Die knop staat er alleen als de app weet waar de
-  handleiding is; in deze versie nog niet.
+- **Uitleg** klapt onder de melding in het kort uit wat je kunt doen, zonder dat je deze
+  handleiding nodig hebt: sluit het programma af, zet het uit bij **Taakbeheer → Opstartapps**,
+  en zet een achtergrondprogramma (zoals van SignalRGB, iCUE en Synapse) in `services.msc` op
+  **Handmatig**. Bij een tweede OpenRGB staat er dat je het venster sluit als je klaar bent en
+  daarin Start Server niet aanzet. Klik nog een keer op Uitleg en hij gaat weer dicht. Staat de
+  melding onder Details, dan heeft hij daar zijn eigen Uitleg. Weet de app waar deze handleiding
+  staat (in deze versie nog niet), dan staat onder de uitleg ook "Meer in de handleiding", dat
+  deze handleiding hier opent.
 - **Niet meer melden** haalt de melding over dat programma weg, en hij komt niet meer terug:
   ook niet als het programma later weer draait of na een herstart. Handig als je het bewust laat
   draaien, bijvoorbeeld voor een apparaat dat OpenRGB niet kent. Wil je de melding toch weer,
   haal het programma dan weg uit `dismissedOtherRgbSoftware` in `settings.json` (zie
-  "Instellingenbestanden").
+  "Instellingenbestanden"); hoofdletters maken daar niet uit.
 - Een schermlezer leest de melding voor als hij komt. De knoppen bereik je met Tab en heten naar
-  het programma ("SignalRGB niet meer melden"); na Niet meer melden gaat de focus naar de
-  volgende knop.
+  het programma ("Uitleg over SignalRGB", "SignalRGB niet meer melden"); Uitleg zegt, net als
+  Details, of hij ingedrukt is, dus of de uitleg open staat, en de uitleg zelf volgt direct na de
+  melding. Na Niet meer melden gaat de focus naar de volgende knop. De uitleg volgt het
+  contrastthema en de tekstgrootte van Windows.
 
 ### Games met anti-cheat
 

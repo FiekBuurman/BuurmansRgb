@@ -97,13 +97,14 @@ uitbreidingen in `docs/bouwplan.md`.
 - Andere RGB-software (`conflict-melding`): een knop bij Instellingen "Meldingen over andere
   RGB-software weer tonen" die `dismissedOtherRgbSoftware` leegmaakt; nu kan dat alleen met de
   hand in `settings.json`
-- Andere RGB-software: "Uitleg" zonder handleiding op een vaste plek. Zolang
-  `AppInfoViewModel.GuideAddress` leeg is, staat de knop er niet; de uitleg (afsluiten, autostart
-  uit, service op Handmatig) zou ook in een klein venster in de app kunnen, of de installer kan
-  de handleiding meeleveren
 - Andere RGB-software: Logitech G Hub (`lghub.exe`, `lghub_agent.exe`?), NZXT CAM, SteelSeries GG
   en ASRock Polychrome in `OtherRgbSoftwareList`, en de namen van Synapse 4, Armoury Crate zelf en
   RGB Fusion op een echte installatie nagaan (`docs/hardware.md`); SignalRGB noemt ze als botsend
+- Andere RGB-software: de uitleg onder "Uitleg" voorlezen zodra hij opengaat (een live region,
+  zoals de melding zelf); nu zegt een schermlezer alleen dat de knop ingedrukt is, en staat de
+  uitleg direct na de melding in de leesvolgorde (`conflict-melding`)
+- "Uitleg" ook bij de andere meldingen van de statusregel, zoals de verbinding weg (wat je doet
+  als Opnieuw verbinden niet helpt); `StatusMessage.ShowExplanation` kan dat al
 - Andere RGB-software in de tooltip van het tray-icoon ("SignalRGB draait ook"), voor wie de app
   niet opent; nu zegt alleen de statusregel het
 - Andere RGB-software: alleen melden als het echt botst, bijv. als OpenRGB een apparaat heeft dat
