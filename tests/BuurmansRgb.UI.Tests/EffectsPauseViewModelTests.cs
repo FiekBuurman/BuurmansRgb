@@ -37,23 +37,14 @@ public sealed class EffectsPauseViewModelTests : IDisposable
         Assert.Equal(text, _pause.Text);
     }
 
-    // The pause the user can end comes first; waking up goes to the lock screen, and the screen
-    // goes on before the pc is unlocked or awake; behind a screen that is off the screen saver may
-    // still run.
-    [Theory]
-    [InlineData(PauseReasons.Manual | PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Manual)]
-    [InlineData(PauseReasons.Locked | PauseReasons.Asleep, PauseReasons.Locked)]
-    [InlineData(PauseReasons.Manual | PauseReasons.DisplayOff, PauseReasons.Manual)]
-    [InlineData(PauseReasons.Locked | PauseReasons.DisplayOff, PauseReasons.Locked)]
-    [InlineData(PauseReasons.Asleep | PauseReasons.DisplayOff, PauseReasons.Asleep)]
-    [InlineData(PauseReasons.Manual | PauseReasons.ScreenSaver, PauseReasons.Manual)]
-    [InlineData(PauseReasons.Locked | PauseReasons.ScreenSaver, PauseReasons.Locked)]
-    [InlineData(PauseReasons.Asleep | PauseReasons.ScreenSaver, PauseReasons.Asleep)]
-    [InlineData(PauseReasons.ScreenSaver | PauseReasons.DisplayOff, PauseReasons.ScreenSaver)]
-    public void Show_MoreReasons_TellsTheOneThatMattersMost(PauseReasons reasons, PauseReasons shown)
+    // Which reason, when there is more than one, is the choice of PauseReasonsExtensions
+    // (PauseReasonsExtensionsTests); the message tells that one.
+    [Fact]
+    public void Show_MoreReasons_TellsTheOneThatMattersMost()
     {
+        var reasons = PauseReasons.Locked | PauseReasons.DisplayOff;
         using var single = new EffectsPauseViewModel();
-        single.Show(shown);
+        single.Show(reasons.MostTelling());
 
         _pause.Show(reasons);
 

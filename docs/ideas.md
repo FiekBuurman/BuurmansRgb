@@ -307,9 +307,21 @@ uitbreidingen in `docs/bouwplan.md`.
   en kaarten (`border`, 1,2:1) nalopen op 3:1. Knoppen en kaarten zijn aan hun tekst te
   herkennen, dus WCAG vraagt het daar niet; de velden kregen in "contrast-invoer" wel een eigen
   rand (`InputBorderColor`)
-- Met een contrastthema van Windows een knop, schuif of veld dat niets doet in `GrayText` tonen,
-  zoals Windows dat doet, in plaats van alleen doorzichtiger (`Opacity` 0,4–0,6); dat laatste
-  geeft in een contrastthema minder contrast dan het thema belooft
+- De primaire knop, een schuif, een vinkje, een keuzelijst, "+ nieuw" en een schakelaar die
+  niets doen, net als de gewone knoppen ("knop-reden") in een eigen grijs tonen in plaats van
+  alleen doorzichtiger (`Opacity` 0,4–0,6): de tekst van de primaire knop is dan ~3,3:1, en in
+  een contrastthema geeft doorzichtig minder contrast dan het thema belooft, waar `GrayText` (zoals
+  bij de gewone knoppen nu) zegt dat hij uit staat. Een `Opacity` is geen brush, dus
+  `ContrastTheme.SystemBrushes` kan het niet vervangen
+- De pauzemelding (`PauseBar`) en "Voorbeeld staat stil" (`PreviewMotionBar`) verbergen zichzelf
+  met `Visibility` op het `UserControl`; de tekst erin laadt dan pas als de melding komt, zodat
+  `LiveRegion` die eerste tekst niet als wijziging ziet en een schermlezer hem misschien niet
+  voorleest als hij verschijnt (bij "knop-reden" bleek dat in `PreviewActionsHintViewTests`; die
+  regel verbergt daarom het paneel erin). Nagaan met een test die de melding laat komen, en zo
+  nodig hetzelfde doen
+- Ook bij andere grijze knoppen zeggen waarom, zoals "Toepassen" bij een lengte die al staat en
+  de schakelaar "Hele huis" zonder apparaten; nu zegt alleen de tooltip het, en een knop die uit
+  staat krijgt geen Tab-focus, dus een toetsenbordgebruiker ziet die tooltip niet
 - Met een licht contrastthema (bijv. "Woestijn") een lichte versie van het kleine icoon in de
   titelbalk (`AppIconSmallDark`); nu staat daar het donkere icoon op een licht vlak
 - De focusring van de actieve LED in het voorbeeld (`LedPreviewView`) leest de tekstkleur pas bij

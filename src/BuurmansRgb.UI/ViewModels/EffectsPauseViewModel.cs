@@ -39,18 +39,17 @@ public sealed partial class EffectsPauseViewModel : ObservableObject, IDisposabl
 
     public bool CanResume => Reasons.HasFlag(PauseReasons.Manual);
 
-    // The pause from the tray menu first: that is the one the user can end. While Windows is locked
-    // and asleep, it wakes up to the lock screen, so unlocking is what brings the effects back. The
-    // screen goes on before that, so a screen saver comes next and a screen that is off last: the
-    // screen may go off while the screen saver runs, and the same touch ends both.
-    public string Text =>
-        CanResume ? Strings.EffectsPausedManual
-        : Reasons.HasFlag(PauseReasons.Locked) ? Strings.EffectsPausedLocked
-        : Reasons.HasFlag(PauseReasons.Asleep) ? Strings.EffectsPausedAsleep
-        : Reasons.HasFlag(PauseReasons.ScreenSaver) ? Strings.EffectsPausedScreenSaver
-        : Reasons.HasFlag(PauseReasons.DisplayOff) ? Strings.EffectsPausedDisplayOff
-        : HasResumed ? Strings.EffectsResumed
-        : string.Empty;
+    // The reason that matters most (PauseReasonsExtensions), the same one as the line above the
+    // preview.
+    public string Text => Reasons.MostTelling() switch
+    {
+        PauseReasons.Manual => Strings.EffectsPausedManual,
+        PauseReasons.Locked => Strings.EffectsPausedLocked,
+        PauseReasons.Asleep => Strings.EffectsPausedAsleep,
+        PauseReasons.ScreenSaver => Strings.EffectsPausedScreenSaver,
+        PauseReasons.DisplayOff => Strings.EffectsPausedDisplayOff,
+        _ => HasResumed ? Strings.EffectsResumed : string.Empty,
+    };
 
     // HasResumed changes first, so the message goes straight from the pause to its end without
     // disappearing in between.

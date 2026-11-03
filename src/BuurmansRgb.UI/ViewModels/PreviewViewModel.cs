@@ -83,10 +83,21 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // zone is counted, or while the counted zone is not in view.
     public ZoneCountViewModel? Count { get; private set; }
 
-    // Set from the pause of the engine; greys out "Knipperen" of every device, and "Knipperen" and
-    // "Tellen" of every zone. A pause ends any count in the engine, and refuses a start that
-    // reaches it after the pause, so the count of this app ends here too: a start the engine
-    // refused would otherwise never be confirmed nor ended.
+    // The line above the cards that says why "Knipperen" and "Tellen" are grey, with "Hervatten"
+    // for the pause from the tray menu; MainViewModel sends that to the engine.
+    public PreviewActionsHintViewModel ActionsHint { get; } = new();
+
+    // The pause of the engine, or none: CanFlash and the line above the cards follow it.
+    public void ShowPause(PauseReasons reasons)
+    {
+        CanFlash = reasons == PauseReasons.None;
+        ActionsHint.Reasons = reasons;
+    }
+
+    // Set from the pause of the engine (ShowPause); greys out "Knipperen" of every device, and
+    // "Knipperen" and "Tellen" of every zone. A pause ends any count in the engine, and refuses a
+    // start that reaches it after the pause, so the count of this app ends here too: a start the
+    // engine refused would otherwise never be confirmed nor ended.
     public bool CanFlash
     {
         get => _canFlash;
@@ -278,6 +289,7 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
             preview.Dispose();
         }
 
+        ActionsHint.HasButtons = Devices.Count > 0;
         ShowFlashMark();
         ShowFrame(_latestFrame);
     }

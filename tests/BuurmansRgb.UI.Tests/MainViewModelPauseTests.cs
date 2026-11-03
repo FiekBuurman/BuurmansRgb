@@ -45,6 +45,23 @@ public sealed class MainViewModelPauseTests
         Assert.False(viewModel.EffectsPause.IsPaused);
     }
 
+    // The line above the preview follows the pause as the message at the top does, and
+    // "Hervatten" there resumes the same way.
+    [Fact]
+    public async Task Connect_ThePreviewSaysWhyKnipperenIsGreyAndResumesFromThere()
+    {
+        var viewModel = await ConnectAsync(api => api.Pause = PauseReasons.Manual);
+        Assert.Equal(Strings.PreviewActionsPausedManual, viewModel.Preview.ActionsHint.Text);
+        Assert.True(viewModel.Preview.ActionsHint.IsShown);
+        Assert.False(viewModel.Preview.CanFlash);
+
+        viewModel.Preview.ActionsHint.ResumeCommand.Execute(null);
+
+        Assert.Contains("resume", Api.Calls);
+        Assert.False(viewModel.Preview.ActionsHint.IsShown);
+        Assert.True(viewModel.Preview.CanFlash);
+    }
+
     [Fact]
     public async Task Resume_SendsItAfterTheWaitingChangesAndTheMessageFollowsTheEngine()
     {
@@ -67,6 +84,7 @@ public sealed class MainViewModelPauseTests
         _connector.Connection.Disconnect();
 
         Assert.False(viewModel.EffectsPause.IsPaused);
+        Assert.False(viewModel.Preview.ActionsHint.IsShown);
         Assert.False(api.HasPauseSubscribers);
     }
 

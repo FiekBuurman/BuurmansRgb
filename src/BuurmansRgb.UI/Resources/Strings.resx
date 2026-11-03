@@ -780,7 +780,23 @@
   </data>
   <data name="ResumeEffectsToolTip" xml:space="preserve">
     <value>Laat de effecten weer lopen, net als "Effecten pauzeren" uitzetten in het tray-menu.</value>
-  </data>  <data name="NavAccessibleName" xml:space="preserve">
+  </data>
+  <data name="PreviewActionsPausedManual" xml:space="preserve">
+    <value>Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn.</value>
+  </data>
+  <data name="PreviewActionsPausedLocked" xml:space="preserve">
+    <value>Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn omdat Windows vergrendeld is.</value>
+  </data>
+  <data name="PreviewActionsPausedAsleep" xml:space="preserve">
+    <value>Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn omdat de pc in de slaapstand is.</value>
+  </data>
+  <data name="PreviewActionsPausedScreenSaver" xml:space="preserve">
+    <value>Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn omdat de schermbeveiliging loopt.</value>
+  </data>
+  <data name="PreviewActionsPausedDisplayOff" xml:space="preserve">
+    <value>Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn omdat het scherm uit is.</value>
+  </data>
+  <data name="NavAccessibleName" xml:space="preserve">
     <value>Hoofdmenu</value>
   </data>
   <data name="NavLamps" xml:space="preserve">
