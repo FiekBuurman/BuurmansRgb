@@ -1380,14 +1380,15 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
 ### Wat er altijd meedraait
 
 BuurmansRgb zelf is een gewone app. Om bij je apparaten te komen, zet de installer er twee
-dingen naast die altijd aan staan, ook als je BuurmansRgb afsluit:
+dingen naast, ook als je BuurmansRgb afsluit:
 
-- **OpenRGB**, als achtergrondprogramma van Windows (een service). Het start mee met Windows en
-  praat met je apparaten. BuurmansRgb geeft het de kleuren door via een verbinding die alleen
+- **OpenRGB**, als achtergrondprogramma van Windows (een service). Het draait altijd, start mee
+  met Windows en praat met je apparaten. BuurmansRgb geeft het de kleuren door via een verbinding die alleen
   binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
 - **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij het moederbord
   en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender als gevaarlijk
-  aanmerkt.
+  aanmerkt. PawnIO staat er altijd en is waarschijnlijk vanaf het opstarten geladen, maar dat is
+  nog niet bevestigd.
 
 Goed om te weten: die verbinding heeft geen wachtwoord. Elk programma op je pc kan dus je
 verlichting veranderen. Van buiten je pc kan dat niet, zolang OpenRGB alleen binnen je pc

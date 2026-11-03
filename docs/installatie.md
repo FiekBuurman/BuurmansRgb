@@ -55,9 +55,10 @@ instellingen-app bij **Instellingen → Gesimuleerde apparaten** voor "Nooit".
 ## Wat er altijd draait
 
 BuurmansRgb zelf is een gewone app: geen service, geen driver, geen beheerdersrechten. Om bij de
-apparaten te komen zet de installer er twee dingen naast die wél altijd draaien, ook als je
-BuurmansRgb afsluit of **Starten met Windows** uit staat. De bronnen staan als [n] onder
-[Bronnen](#bronnen).
+apparaten te komen zet de installer er twee dingen naast, ook als je BuurmansRgb afsluit of
+**Starten met Windows** uit staat: de service OpenRGB, die altijd draait, en de driver PawnIO, die
+er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is nog niet bevestigd
+(zie "Starttype" hieronder). De bronnen staan als [n] onder [Bronnen](#bronnen).
 
 ### De service OpenRGB
 
