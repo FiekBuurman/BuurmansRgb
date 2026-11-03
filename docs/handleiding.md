@@ -803,7 +803,7 @@ Hoe het vanzelf aanzetten werkt:
   omdat een ander programma het openhoudt), dan staat er "Het bestand kon niet worden gelezen.
   Er is niets veranderd.". Weigert de engine het terugzetten (bijvoorbeeld een oudere engine die
   het nog niet kent), dan staat er "Terugzetten is niet gelukt. Er is niets veranderd.". Lukt
-  het schrijven van een bestand niet, dan zet de engine terug wat er was en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
+  het schrijven van een bestand niet, dan zet de engine terug wat er was, ook de verlichting en de scène die aan stond, en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
   verbinding met de engine weg tijdens het terugzetten, dan weet de app niet hoe ver de engine
   kwam: er staat dan "De verbinding met de engine viel weg tijdens het terugzetten." en waar de
   kopie staat; kijk dan of je instellingen kloppen. Beide knoppen werken alleen als de app

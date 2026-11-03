@@ -202,6 +202,10 @@ internal sealed class EngineHost(
                 return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
             }
 
+            // What the files change on the engine besides themselves: an own effect the backup has
+            // not makes a device static, and a scene it has not goes off.
+            var lightingBefore = lighting.State;
+            var activeBefore = profiles?.ActiveName;
             var replaced = new List<string>();
             try
             {
@@ -219,7 +223,7 @@ internal sealed class EngineHost(
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
                 Trace.TraceError($"Restoring a backup failed at {replaced[^1]}; putting back {string.Join(", ", replaced)}: {exception}");
-                PutBack(known, replaced, before);
+                PutBack(known, replaced, before, lightingBefore, activeBefore);
                 return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
             }
 
@@ -386,7 +390,11 @@ internal sealed class EngineHost(
 
     // Best effort: a file that was not there before goes again, so the engine is as it was; one
     // that cannot be put back stays as the backup had it, and the copy is in the backups folder.
-    private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before)
+    // Then the lighting and the scene of before go back on, as changes, so the saver keeps them:
+    // the files of before have the own effects and the scene again. One that could not be put
+    // back has not, and the lighting then shows static instead (LightingController.Apply), or no
+    // scene is on.
+    private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before, LightingState lightingBefore, string? activeBefore)
     {
         foreach (var name in replaced)
         {
@@ -405,6 +413,17 @@ internal sealed class EngineHost(
             {
                 Trace.TraceError($"Could not put {name} back; the copy is in {known.BackupsFolder}: {exception.Message}");
             }
+        }
+
+        // A new lighting ends the scene, so the scene comes after it.
+        if (!EngineSettings.SameLighting(lightingBefore, lighting.State))
+        {
+            lighting.Replace(lightingBefore);
+        }
+
+        if (profiles is not null && !string.Equals(profiles.ActiveName, activeBefore, StringComparison.Ordinal))
+        {
+            profiles.PutBackActive(activeBefore);
         }
     }
 

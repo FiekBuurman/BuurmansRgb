@@ -266,6 +266,39 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(1.0, _lighting.State.Global.Brightness);
     }
 
+    // An own effect and a scene the backup has not: the restore of effects.json makes the device
+    // static and that of profiles.json turns the scene off. When settings.json then cannot be
+    // written, both are back on, and saved so.
+    [Fact]
+    public async Task Restore_FileThatCannotBeWritten_PutsTheLightingAndTheSceneBack()
+    {
+        var host = CreateHost();
+        await host.StartAsync(Ct);
+        var red = _customEffects.Save(new CustomEffect("", "Rood", [new CustomEffectStep(new RgbColor(255, 0, 0))]));
+        var deviceId = _lighting.Devices[0].Id;
+        _lighting.SetLighting(deviceId, lighting => lighting with { EffectId = red.Id });
+        _profiles.Save("Nacht");
+        var settingsPath = PathOf(SettingsBackup.SettingsFileName);
+
+        SettingsRestoreResult result;
+        using (new FileStream(settingsPath + ".tmp", FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            result = host.Restore(SettingsArchiveTests.Zip(
+                (SettingsBackup.EffectsFileName, Utf8("""{ "effects": [] }""")),
+                (SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [ { "name": "Dag" } ] }""")),
+                (SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))));
+        }
+
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Failed), result);
+        Assert.Equal(red.Id, _lighting.GetLighting(deviceId).EffectId);
+        Assert.Equal("Nacht", _profiles.ActiveName);
+
+        host.Dispose();
+        var saved = new JsonSettingsStore(settingsPath).LoadOrCreate();
+        Assert.Equal(red.Id, saved.ToLightingState().Devices[deviceId].EffectId);
+        Assert.Equal("Nacht", saved.ActiveScene);
+    }
+
     // A file that was not there before goes again when a later one cannot be written: no
     // effects.json and no own effects in memory, as before the restore.
     [Fact]

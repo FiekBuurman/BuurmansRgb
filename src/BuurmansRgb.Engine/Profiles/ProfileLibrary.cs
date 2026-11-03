@@ -112,25 +112,37 @@ internal sealed class ProfileLibrary
     // leaves none on. Raises no ActiveChanged: nothing changed since the scene was saved.
     public void RestoreActive(string? name)
     {
-        string? restored = null;
-        if (name is not null)
-        {
-            try
-            {
-                lock (_gate)
-                {
-                    restored = ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
-                }
-            }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
-            {
-                Trace.TraceError(exception.ToString());
-            }
-        }
-
+        var restored = SavedNameOf(name);
         lock (_activeGate)
         {
             _activeName = restored;
+        }
+    }
+
+    // The scene that was on before a restore that failed (EngineHost.Restore), once the files of
+    // before are back: as RestoreActive, but as a change (ActiveChanged), so it is saved again.
+    public void PutBackActive(string? name) => SetActive(SavedNameOf(name));
+
+    // The saved spelling of a scene that still exists; null for null, an unknown name, or a file
+    // that cannot be read.
+    private string? SavedNameOf(string? name)
+    {
+        if (name is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            lock (_gate)
+            {
+                return ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
+            }
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError(exception.ToString());
+            return null;
         }
     }
 
