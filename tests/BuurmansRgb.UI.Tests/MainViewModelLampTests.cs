@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
@@ -262,6 +263,83 @@ public sealed class MainViewModelLampTests
         await connecting;
         Assert.Equal(SimulatedDevicesMode.Automatic, viewModel.SimulatedDevices.SelectedOption?.Mode);
         Assert.True(viewModel.ShowsSimulatedDevicesHint);
+    }
+
+    // Without devices, Apparaten says what is going on: "nog geen apparaten gevonden" on a pc that
+    // never had a real one, and that the connection is gone on a pc that had real devices.
+    [Theory]
+    [InlineData(false, 0, true, false)]
+    [InlineData(true, 0, false, true)]
+    [InlineData(false, 1, false, false)]
+    [InlineData(true, 1, false, false)]
+    public async Task EmptyState_FollowsHadRealDevicesOfTheEngine(bool hadRealDevices, int deviceCount, bool showsNoLamps, bool showsDevicesLost)
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Devices = [.. Enumerable.Range(0, deviceCount).Select(i => TestDevices.Create($"device-{i}", $"Device {i}", DeviceType.Fan, 2))];
+            api.HadRealDevices = hadRealDevices;
+        });
+
+        Assert.Equal(hadRealDevices, viewModel.HadRealDevices);
+        Assert.Equal(showsNoLamps, viewModel.ShowsNoLamps);
+        Assert.Equal(showsDevicesLost, viewModel.ShowsDevicesLost);
+        Assert.Equal(showsDevicesLost ? Strings.DevicesLost : string.Empty, viewModel.DevicesLostText);
+    }
+
+    // OpenRGB connected with real devices, then gone: the engine records the fact (OptionsChanged)
+    // and the list empties (DevicesChanged); the state follows both, in either order.
+    [Fact]
+    public async Task DevicesLost_ShowsWhenTheRealDevicesGoOnAPcThatHadThem()
+    {
+        var viewModel = await ConnectAsync(_ => { });
+        List<string?> changes = [];
+        viewModel.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+        Assert.False(viewModel.ShowsDevicesLost);
+
+        Api.HadRealDevices = true;
+        Api.RaiseOptionsChanged();
+        await Eventually.TrueAsync(() => viewModel.HadRealDevices == true);
+        Assert.False(viewModel.ShowsDevicesLost);
+        Assert.False(viewModel.ShowsNoLamps);
+
+        Api.Devices = [];
+        Api.RaiseDevicesChanged();
+        await Eventually.TrueAsync(() => viewModel.ShowsDevicesLost);
+        Assert.Equal(Strings.DevicesLost, viewModel.DevicesLostText);
+        Assert.False(viewModel.ShowsNoLamps);
+        Assert.Contains(nameof(MainViewModel.ShowsDevicesLost), changes);
+        Assert.Contains(nameof(MainViewModel.DevicesLostText), changes);
+
+        // "Opnieuw verbinden" brought them back.
+        Api.Devices = [TestDevices.Create("fan", "Fan", DeviceType.Fan, 2)];
+        Api.RaiseDevicesChanged();
+        await Eventually.TrueAsync(() => !viewModel.ShowsDevicesLost);
+        Assert.Equal(string.Empty, viewModel.DevicesLostText);
+    }
+
+    // Connecting shows the devices before the engine said whether this pc had real ones: neither
+    // empty state shows until it did, so the wrong one does not flash up.
+    [Fact]
+    public async Task EmptyState_WaitsForTheEngine()
+    {
+        var slowLighting = new TaskCompletionSource();
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+        {
+            api.Devices = [];
+            api.HadRealDevices = true;
+            api.LightingGate = slowLighting.Task;
+        }));
+
+        var connecting = viewModel.ConnectCommand.ExecuteAsync(null);
+        await Eventually.TrueAsync(() => viewModel.Devices.Count == 1);
+        Assert.Null(viewModel.HadRealDevices);
+        Assert.False(viewModel.ShowsNoLamps);
+        Assert.False(viewModel.ShowsDevicesLost);
+
+        slowLighting.SetResult();
+        await connecting;
+        Assert.True(viewModel.ShowsDevicesLost);
+        Assert.False(viewModel.ShowsNoLamps);
     }
 
     [Fact]

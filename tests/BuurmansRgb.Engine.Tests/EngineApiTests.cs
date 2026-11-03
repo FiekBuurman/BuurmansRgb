@@ -932,6 +932,27 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal(2, changes);
     }
 
+    // The fact of the switch, and the app hears when it changes, once for each new value.
+    [Fact]
+    public async Task HadRealDevices_IsTheFactOfTheSwitch_AndOptionsChangedFollows()
+    {
+        var api = CreateApi();
+        var changes = 0;
+        api.OptionsChanged += (_, _) => changes++;
+        Assert.False(await api.GetHadRealDevicesAsync(Ct));
+
+        _simulatedDevices.HadRealDevices = true;
+        _simulatedDevices.HadRealDevices = true;
+
+        Assert.True(await api.GetHadRealDevicesAsync(Ct));
+        Assert.Equal(1, changes);
+
+        api.Dispose();
+        _simulatedDevices.HadRealDevices = false;
+
+        Assert.Equal(1, changes);
+    }
+
     [Fact]
     public async Task Hotkeys_WithoutThem_AreOff()
     {

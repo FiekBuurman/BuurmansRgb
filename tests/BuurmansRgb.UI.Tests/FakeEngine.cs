@@ -370,6 +370,10 @@ internal sealed class FakeEngineApi : IEngineApi
         SimulatedDevices = mode;
     }
 
+    public bool HadRealDevices { get; set; }
+
+    public Task<bool> GetHadRealDevicesAsync(CancellationToken ct = default) => Task.FromResult(HadRealDevices);
+
     public int FramesPerSecond { get; set; } = 30;
 
     public Task<int> GetFramesPerSecondAsync(CancellationToken ct = default) => Task.FromResult(FramesPerSecond);

@@ -41,7 +41,8 @@ public partial interface IEngineApi
     // Raised when an option of the engine changed: the simulated devices, the frame rate, the
     // pause on lock and sleep and what the lamps do during that pause, the catch-up of scene
     // times, the hotkeys or the own colors of the toolbox, from this or another settings app; or
-    // "Starten met Windows", also from the tray menu.
+    // "Starten met Windows", also from the tray menu; or the engine saw a real device for the
+    // first time (GetHadRealDevicesAsync).
     event EventHandler OptionsChanged;
 
     // Raised with the new state when a count of LEDs (StartZoneCountAsync) starts, goes to another
@@ -202,6 +203,12 @@ public partial interface IEngineApi
     // Saved like the lighting. When the new mode shows or hides the simulated devices,
     // DevicesChanged follows.
     Task SetSimulatedDevicesAsync(SimulatedDevicesMode mode, CancellationToken ct = default);
+
+    // Whether a real device was ever in the list on this pc: the engine records it and keeps it
+    // in its settings file. With "Automatisch" the simulated devices then stay away when OpenRGB
+    // is gone, so without any device the connection to the real ones is lost. OptionsChanged
+    // follows when it changes.
+    Task<bool> GetHadRealDevicesAsync(CancellationToken ct = default);
 
     // How many frames per second a moving effect gets, from 1 to 60; saved like the lighting.
     Task<int> GetFramesPerSecondAsync(CancellationToken ct = default);

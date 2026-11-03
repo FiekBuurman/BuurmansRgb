@@ -114,6 +114,18 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit": dan koos je zelf of
   de nep-apparaten er staan. Een schermlezer leest de regel mee, en de link is met Tab te bereiken
   (na "+ Erbij knutselen").
+- **De verbinding met je apparaten is weg:** heeft deze pc ooit echte apparaten gehad en staat er
+  nu geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan staat dat onder
+  "Apparaten in huis" in een kaart, zonder nep-apparaten ervoor in de plaats (zie "Gesimuleerde
+  apparaten" bij "Instellingen"). "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt
+  opnieuw, en antwoordt het niet, dan verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen
+  beide knoppen "Zoeken…". Helpt dat niet, dan zegt de kaart dat "Herstarten" in het menu van het
+  tray-icoon OpenRGB en buurmansRgb opnieuw start (zie "Tray-icoon"). Een schermlezer leest de
+  regel voor zodra hij verschijnt, en de knop is met Tab te bereiken. Op een pc die nog nooit een
+  echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de verwijzing naar
+  Instellingen, zoals eerst.
+
+  ![De pagina Apparaten zonder apparaten: "De verbinding met je apparaten is weg." met de knop "Opnieuw verbinden"](images/apparaten-verbinding-weg.png)
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
   "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
   maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
@@ -659,10 +671,16 @@ Hoe het vanzelf aanzetten werkt:
   | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte |
 
 - **Gesimuleerde apparaten:** bij "Gesimuleerde apparaten tonen"
-  kies je "Automatisch" (standaard: alleen zolang OpenRGB geen echte apparaten levert), "Altijd"
-  of "Nooit". De engine wisselt meteen en bewaart de keuze. Bij "Automatisch" wacht de engine
-  bij het starten op de eerste verbindpoging met OpenRGB, zodat de gesimuleerde apparaten op een
-  pc met echte apparaten niet even verschijnen; zonder OpenRGB komen ze er na die poging bij.
+  kies je "Automatisch" (standaard: alleen zolang er op deze pc nog nooit een echt apparaat was),
+  "Altijd" of "Nooit". De engine wisselt meteen en bewaart de keuze. Bij "Automatisch" wacht de
+  engine bij het starten op de eerste verbindpoging met OpenRGB, zodat de gesimuleerde apparaten
+  op een pc met echte apparaten niet even verschijnen; zonder OpenRGB komen ze er na die poging
+  bij. Zodra OpenRGB één keer een echt apparaat gaf, onthoudt de engine dat (`hadRealDevices` in
+  `settings.json`), ook over een herstart heen: valt OpenRGB daarna weg of draait het bij het
+  starten nog niet, dan komen de gesimuleerde apparaten niet terug en zegt Apparaten dat de
+  verbinding met je apparaten weg is. Wil je de gesimuleerde apparaten toch weer zien, kies dan
+  "Altijd", of zet `hadRealDevices` in `settings.json` op `false` of haal de regel weg (dat geldt
+  tot OpenRGB weer een echt apparaat geeft; dan staat hij er weer).
   Gesimuleerd zijn er een strip
   (30 LED's), een fan (12), een toetsenbord (104, met de plek en naam van elke toets), een
   moederbord (7, in drie zones, met een lege ARGB-header), twee RAM-sticks (8), een videokaart
@@ -784,6 +802,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
   kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
   dezelfde stijl als Verversen en "+ Erbij knutselen".
+- **"De verbinding met je apparaten is weg"** staat niet in het ontwerp (dat kent geen OpenRGB):
+  een gewone kaart onder "Apparaten in huis" met de regel in de tekststijl van de pagina, de
+  verwijzing naar "Herstarten" als subtekst en "Opnieuw verbinden" als rustige knop (de stijl van
+  "Hervatten" en "Logbestand openen"), omdat het hier de enige handeling is; een link zou tussen
+  de lege lijst wegvallen.
 - **Schakelaars** van een apparaat met een donkere of diepblauwe kleur krijgen een lichter spoor
   (zwart wordt grijs, `#0000FF` een lichter blauw), zodat de knop (`bg`) er minstens 3:1 op
   haalt: in dezelfde tint, en maar zo veel lichter als nodig.
@@ -1029,6 +1052,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
     "simulated-fan": [12]
   },
   "simulatedDevices": "automatic",
+  "hadRealDevices": true,
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
   "pausedLights": "keep",
@@ -1056,6 +1080,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `ledColors` | Per apparaat een kleur per LED voor het effect `per-led`; `null`, of een LED voorbij het eind van de lijst, volgt de kleur van het apparaat |
 | `ledColorZoneLengths` | Per apparaat de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
+| `hadRealDevices` | `true` zodra OpenRGB op deze pc ooit een echt apparaat gaf: bij `"automatic"` komen de gesimuleerde apparaten dan niet meer in de plaats van de echte als OpenRGB weg is. De engine zet dit zelf en schrijft het alleen als het `true` is; zonder (of `false`) had de pc nog nooit een echt apparaat. Op `false` zetten of weghalen draait het terug, tot OpenRGB weer een echt apparaat geeft |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
 | `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de apparaten doen tijdens die pauze ("Apparaten tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |

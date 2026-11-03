@@ -139,8 +139,10 @@ internal sealed class LightingSettingsSaver : IDisposable
     // the file holds: what that changed came in through ChangeOptions and LightingChanged as any
     // change does, but is not written back, so the file keeps the user's words and keys the engine
     // does not know. Only what the engine holds otherwise is saved, such as a scene that went off
-    // with another lighting (the file still names it in activeScene). Within HoldSaves this counts
-    // once action is done. lighting is the lighting the engine holds once the file is on it, as the
+    // with another lighting (the file still names it in activeScene), or hadRealDevices put on
+    // false by hand while a real device is in the list (the switch says true again at once, and
+    // the file must say so for the next start). Called within HoldSaves, this takes effect once
+    // the action is done. The lighting is what the engine holds once the file is on it, as the
     // apply left it (LightingController.Replace returns it), not read here: a change on another
     // thread, such as one from the settings app, may be on the engine already while its
     // LightingChanged did not come yet, and taking it as in the file would never save it.
@@ -162,7 +164,9 @@ internal sealed class LightingSettingsSaver : IDisposable
     private void AdoptLocked(EngineSettings fromFile, LightingState lighting)
     {
         _waitsForChangeByHand = 0;
-        _inFile = _changedElsewhere ? null : (_settings.WithLighting(lighting) with { ActiveScene = fromFile.ActiveScene }).ToJson();
+        _inFile = _changedElsewhere
+            ? null
+            : (_settings.WithLighting(lighting) with { ActiveScene = fromFile.ActiveScene, HadRealDevices = fromFile.HadRealDevices }).ToJson();
         _changedElsewhere = false;
         if (_disposed)
         {

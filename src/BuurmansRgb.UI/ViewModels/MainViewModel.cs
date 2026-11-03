@@ -187,6 +187,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 OnPropertyChanged(nameof(ShowsSimulatedDevicesHint));
             }
+            else if (e.PropertyName == nameof(LampsViewModel.HasLamps))
+            {
+                OnPropertyChanged(nameof(ShowsNoLamps));
+                OnPropertyChanged(nameof(ShowsDevicesLost));
+                OnPropertyChanged(nameof(DevicesLostText));
+            }
         };
         EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
             SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
@@ -306,6 +312,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public bool ShowsSimulatedDevicesHint =>
         Lamps.HasOnlySimulatedLamps && SimulatedDevices.SelectedOption?.Mode == SimulatedDevicesMode.Automatic;
 
+    // Whether a real device was ever in the list on this pc, as the engine recorded it; null until
+    // the engine said, so neither empty state of Apparaten flashes up before that.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowsNoLamps), nameof(ShowsDevicesLost), nameof(DevicesLostText))]
+    public partial bool? HadRealDevices { get; private set; }
+
+    // "Nog geen apparaten gevonden": without devices on a pc that never had a real one.
+    public bool ShowsNoLamps => HadRealDevices == false && !Lamps.HasLamps;
+
+    // The empty state of Apparaten on a pc that had real devices: OpenRGB does not give them (any
+    // more), and with "Automatisch" no simulated ones come in their place. With "Opnieuw verbinden"
+    // (the search of "Verversen") and a word about "Herstarten" in the tray menu.
+    public bool ShowsDevicesLost => HadRealDevices == true && !Lamps.HasLamps;
+
+    // The text of that state, bound so a screen reader hears it when it appears; empty otherwise.
+    public string DevicesLostText => ShowsDevicesLost ? Strings.DevicesLost : string.Empty;
+
     public EffectOptionsViewModel EffectOptions { get; } = new();
 
     // The option of the scene times on Instellingen: whether a time that passed while the pc slept
@@ -412,6 +435,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DropConnection();
         DeviceRescan.Clear();
         ClearLedSelection();
+        HadRealDevices = null;
         ConnectionState = ConnectionState.Connecting;
         StatusMessage = Strings.StatusConnecting;
         try
@@ -1666,6 +1690,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private static async Task<OptionValues> ReadOptionsAsync(IEngineApi api) => new(
         await api.GetSimulatedDevicesAsync(),
+        await api.GetHadRealDevicesAsync(),
         await api.GetFramesPerSecondAsync(),
         await api.GetPauseOnLockAndSleepAsync(),
         await api.GetPausedLightsAsync(),
@@ -1677,6 +1702,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ShowOptions(OptionValues options)
     {
         SimulatedDevices.Show(options.SimulatedDevices);
+        HadRealDevices = options.HadRealDevices;
         EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
         SceneTimes.Show(options.CatchUpSceneTimes);
         Hotkeys.Show(options.Hotkeys);
@@ -1876,6 +1902,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // and after OptionsChanged.
     private sealed record OptionValues(
         SimulatedDevicesMode SimulatedDevices,
+        bool HadRealDevices,
         int FramesPerSecond,
         bool PauseOnLockAndSleep,
         PausedLightsMode PausedLights,

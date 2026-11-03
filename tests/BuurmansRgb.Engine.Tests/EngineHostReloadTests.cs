@@ -68,10 +68,12 @@ public sealed class EngineHostReloadTests : IDisposable
             CatchUpSceneTimes = true,
             Hotkeys = false,
             CustomColors = [new RgbColor(0, 0, 255), null],
+            HadRealDevices = true,
         });
 
-        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 7);
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 8);
         Assert.Equal(SimulatedDevicesMode.Always, _simulatedDevices.Mode);
+        Assert.True(_simulatedDevices.HadRealDevices);
         Assert.Equal(12, _lighting.FramesPerSecond);
         Assert.False(_autoPause.Enabled);
         Assert.Equal(PausedLightsMode.Dim, _lighting.PausedLights);
@@ -235,6 +237,35 @@ public sealed class EngineHostReloadTests : IDisposable
         host.Dispose();
 
         Assert.Equal(0, _store.SaveCount);
+    }
+
+    // The switch only sets hadRealDevices to true: false by hand while a real device is in the list
+    // is true again at once, and the host writes that back, so a restart without OpenRGB shows no
+    // simulated devices in place of the real ones.
+    [Fact]
+    public async Task HadRealDevicesFalseByHand_WithARealDevice_IsWrittenBackAsTrue()
+    {
+        _store.Settings = new EngineSettings { HadRealDevices = true };
+        var simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
+        var openRgb = new DynamicDeviceProvider();
+        openRgb.SetDevices(DynamicDeviceProvider.Device("real"));
+        using var lighting = new LightingController([simulated, openRgb]);
+        using var simulatedDevices = new SimulatedDevicesSwitch(simulated, lighting);
+        using var host = new EngineHost(
+            _store,
+            lighting,
+            saveDelay: TimeSpan.FromMilliseconds(50),
+            simulatedDevices: simulatedDevices,
+            settingsFileEvents: _fileEvents,
+            reloadDelay: ReloadDelay);
+        await host.StartAsync(Ct);
+        Assert.Equal(0, _store.SaveCount);
+
+        ChangeByHand(new EngineSettings { HadRealDevices = false });
+
+        await Eventually.TrueAsync(() => _store.Settings.HadRealDevices);
+        Assert.True(simulatedDevices.HadRealDevices);
+        Assert.Equal(1, _store.SaveCount);
     }
 
     // The file keeps the user's layout, and a key the engine does not know (a typo, say), until
