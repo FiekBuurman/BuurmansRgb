@@ -44,6 +44,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
     private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
+    private const string DismissOtherRgbSoftwareCall = "dismiss-other-rgb-software";
     private const string CustomEffectCall = "custom-effect";
 
     private readonly IEngineConnector _connector;
@@ -1805,7 +1806,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         if (_connection is { } connection)
         {
-            _calls.Post($"dismiss-other-rgb-software {id}", () => connection.Api.DismissOtherRgbSoftwareAsync(id));
+            _calls.Post((DismissOtherRgbSoftwareCall, id), () => connection.Api.DismissOtherRgbSoftwareAsync(id));
         }
     }
 
@@ -1892,7 +1893,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall))
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
+            and not ValueTuple<string, string> { Item1: DismissOtherRgbSoftwareCall })
         {
             RequestStill();
         }
