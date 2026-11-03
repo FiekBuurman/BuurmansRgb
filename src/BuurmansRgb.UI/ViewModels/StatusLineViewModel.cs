@@ -12,7 +12,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // without a word. In the order they matter: the connection with the devices gone
 // (OpenRgbStatus.IsConnectionLost; "Opnieuw verbinden" is the search of Verversen) > other RGB
 // software that runs, one message per program in the order of the engine (OtherRgbSoftware;
-// "Uitleg" and "Niet meer melden") > the effects
+// "Uitleg" that unfolds what to do under the message, and "Niet meer melden") > the effects
 // paused or just resumed (EffectsPause; "Hervatten" for the pause from the tray menu) > the
 // preview still because animations in Windows are off (Motion; "Laten lopen" or "Stilzetten").
 // It follows those view models and keeps their texts; they do the work.
@@ -159,16 +159,20 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         {
             if (!_otherRgbSoftwareMessages.TryGetValue(software.Id, out var message))
             {
-                message = new StatusMessage(StatusMessageKind.OtherRgbSoftware, source.OpenGuideCommand, dismissCommand: new RelayCommand(() => source.DismissCommand.Execute(software.Id)));
+                message = new StatusMessage(
+                    StatusMessageKind.OtherRgbSoftware,
+                    dismissCommand: new RelayCommand(() => source.DismissCommand.Execute(software.Id)),
+                    explanationLinkCommand: source.OpenGuideCommand);
                 _otherRgbSoftwareMessages.Add(software.Id, message);
             }
 
             var name = OtherRgbSoftwareViewModel.NameFor(software);
-            message.Show(
-                OtherRgbSoftwareViewModel.TextFor(software),
-                source.HasGuide ? Strings.OtherRgbSoftwareGuide : null,
-                UiText.Format(Strings.OtherRgbSoftwareGuideAccessibleName, name),
-                Strings.OtherRgbSoftwareGuideToolTip);
+            message.Show(OtherRgbSoftwareViewModel.TextFor(software), null, null, null);
+            message.ShowExplanation(
+                OtherRgbSoftwareViewModel.ExplanationFor(software),
+                UiText.Format(Strings.OtherRgbSoftwareExplanationAccessibleName, name),
+                source.HasGuide ? Strings.OtherRgbSoftwareGuideLink : null,
+                Strings.OtherRgbSoftwareGuideLinkAccessibleName);
             message.ShowDismiss(Strings.OtherRgbSoftwareDismiss, UiText.Format(Strings.OtherRgbSoftwareDismissAccessibleName, name), Strings.OtherRgbSoftwareDismissToolTip);
             messages.Add(message);
         }

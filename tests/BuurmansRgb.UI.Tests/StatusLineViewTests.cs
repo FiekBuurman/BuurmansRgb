@@ -360,6 +360,84 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // "Uitleg" in the line: a toggle with the name of the program, before "Niet meer melden" in
+    // the Tab order, that unfolds the explanation under the line, says it is on for a screen
+    // reader, and closes it with a second press. Without a guide there is no link under it.
+    [Fact]
+    public async Task OtherRgbSoftware_UitlegUnfoldsTheExplanationInTheLine()
+    {
+        using var viewModel = await PageViews.ConnectAsync(engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")], guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var toggle = PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle");
+            var dismiss = PageViews.ById<Button>(page, "StatusLineDismiss");
+            var explanationPanel = PageViews.ById<StackPanel>(page, "StatusLineExplanationPanel");
+            var peer = new ToggleButtonAutomationPeer(toggle);
+
+            Assert.True(toggle.IsVisible);
+            Assert.Equal(Strings.StatusExplanation, toggle.Content);
+            Assert.Equal("Uitleg over SignalRGB", peer.GetName());
+            Assert.Equal(Strings.StatusExplanationToolTip, AutomationProperties.GetHelpText(toggle));
+            Assert.Equal(ToggleState.Off, ((IToggleProvider)peer.GetPattern(PatternInterface.Toggle)).ToggleState);
+            Assert.False(explanationPanel.IsVisible);
+            Assert.False(Action(page).IsVisible);
+            Assert.True(toggle.Focus());
+            Assert.True(toggle.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
+            Assert.True(dismiss.IsKeyboardFocused);
+
+            Toggle(toggle);
+
+            Assert.True(explanationPanel.IsVisible);
+            Assert.Equal(ToggleState.On, ((IToggleProvider)peer.GetPattern(PatternInterface.Toggle)).ToggleState);
+            var explanation = PageViews.ById<TextBlock>(page, "StatusLineExplanation");
+            Assert.StartsWith("Sluit SignalRGB af", explanation.Text, StringComparison.Ordinal);
+            Assert.Contains(PageViews.AutomationTree(page), automation => automation.GetName() == explanation.Text);
+            Assert.False(PageViews.ById<Button>(page, "StatusLineExplanationLink").IsVisible);
+            Assert.Equal("SignalRGB draait ook en kan je kleuren overschrijven.", Line(page).Text);
+
+            Toggle(toggle);
+
+            Assert.False(explanationPanel.IsVisible);
+            Assert.False(viewModel.StatusLine.Current!.ShowsExplanation);
+        });
+    }
+
+    // Under "Details" each program has its own "Uitleg"; with a guide, the link under the
+    // explanation opens it at "Andere RGB-software".
+    [Fact]
+    public async Task OtherRgbSoftware_UitlegUnderDetailsWithTheLinkToTheGuide()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(
+            engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")],
+            opened: opened,
+            guideAddress: "https://example.org/handleiding");
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            Toggle(Details(page));
+            var toggle = PageViews.AllById<ToggleButton>(page, "StatusLineDetailExplanationToggle").Single(button => button.IsVisible);
+            Assert.Equal("Uitleg over Corsair iCUE", new ToggleButtonAutomationPeer(toggle).GetName());
+            Assert.False(PageViews.ById<StackPanel>(page, "StatusLineDetailExplanationPanel").IsVisible);
+
+            Toggle(toggle);
+
+            Assert.True(PageViews.ById<StackPanel>(page, "StatusLineDetailExplanationPanel").IsVisible);
+            Assert.StartsWith("Sluit Corsair iCUE af", PageViews.ById<TextBlock>(page, "StatusLineDetailExplanation").Text, StringComparison.Ordinal);
+            Assert.False(PageViews.ById<StackPanel>(page, "StatusLineExplanationPanel").IsVisible);
+            var link = PageViews.ById<Button>(page, "StatusLineDetailExplanationLink");
+            Assert.True(link.IsVisible);
+            Assert.Equal(Strings.OtherRgbSoftwareGuideLinkAccessibleName, new ButtonAutomationPeer(link).GetName());
+
+            PageViews.Click(link);
+
+            Assert.Equal(["https://example.org/handleiding#andere-rgb-software"], opened);
+        });
+    }
+
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
     // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]

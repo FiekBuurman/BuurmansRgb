@@ -7,8 +7,8 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // The other RGB software the engine found running (IEngineApi.GetOtherRgbSoftwareAsync), for the
 // status line: one message per program, such as "SignalRGB draait ook en kan je kleuren
-// overschrijven.", with "Uitleg" to the guide (only while there is a guide to open, as for
-// "Handleiding" on Instellingen) and "Niet meer melden". This only asks; MainViewModel sends a
+// overschrijven.", with "Uitleg" that unfolds what to do (and a link to the guide under it only
+// while there is a guide to open, as for "Handleiding" on Instellingen) and "Niet meer melden". This only asks; MainViewModel sends a
 // dismissal to the engine, which keeps it.
 public sealed partial class OtherRgbSoftwareViewModel : ObservableObject
 {
@@ -37,6 +37,11 @@ public sealed partial class OtherRgbSoftwareViewModel : ObservableObject
     // The sentence for one program; a second OpenRGB has its own, as OpenRGB itself is no stranger.
     public static string TextFor(OtherRgbSoftware software) =>
         software.Id == OtherRgbSoftware.OpenRgbId ? Strings.OtherOpenRgbRuns : UiText.Format(Strings.OtherRgbSoftwareRuns, software.Name);
+
+    // What "Uitleg" unfolds: how to close it and keep it from starting again, in the app itself,
+    // as the guide does not come with it (AppInfoViewModel.GuideAddress).
+    public static string ExplanationFor(OtherRgbSoftware software) =>
+        software.Id == OtherRgbSoftware.OpenRgbId ? Strings.OtherOpenRgbExplanation : UiText.Format(Strings.OtherRgbSoftwareExplanation, software.Name);
 
     // The name a screen reader gives the buttons of a program.
     public static string NameFor(OtherRgbSoftware software) =>

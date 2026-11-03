@@ -49,13 +49,15 @@ public sealed class MainViewModelOtherRgbSoftwareTests
         Assert.False(viewModel.StatusLine.IsShown);
     }
 
-    // "Uitleg" only with a guide to open (AppInfoViewModel.GuideAddress, none yet).
+    // "Uitleg" always, as it unfolds in the app; the link under it only with a guide to open
+    // (AppInfoViewModel.GuideAddress, none yet).
     [Fact]
-    public async Task Uitleg_FollowsTheGuideOfTheApp()
+    public async Task Uitleg_AlwaysAndTheLinkFollowsTheGuideOfTheApp()
     {
         var viewModel = await ConnectAsync(api => api.OtherRgbSoftware = [SignalRgb]);
 
-        Assert.Equal(!string.IsNullOrWhiteSpace(AppInfoViewModel.GuideAddress), viewModel.StatusLine.Current?.HasAction);
+        Assert.True(viewModel.StatusLine.Current?.HasExplanation);
+        Assert.Equal(!string.IsNullOrWhiteSpace(AppInfoViewModel.GuideAddress), viewModel.StatusLine.Current?.HasExplanationLink);
         Assert.Equal(Strings.OtherRgbSoftwareDismiss, viewModel.StatusLine.Current?.DismissText);
     }
 

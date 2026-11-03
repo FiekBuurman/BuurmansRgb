@@ -29,13 +29,15 @@ public sealed partial class StatusMessage : ObservableObject
     // actionEndsMessage is true for an action that takes its own button away ("Hervatten"): the
     // keyboard focus moves on before that, so it is not lost. dismissCommand is for a message the
     // user can take away for good ("Niet meer melden"), a second button after the action; that
-    // always ends the message, so the focus moves on too.
-    public StatusMessage(StatusMessageKind kind, ICommand? actionCommand = null, bool actionEndsMessage = false, ICommand? dismissCommand = null)
+    // always ends the message, so the focus moves on too. explanationLinkCommand is for the link
+    // under the explanation (ShowExplanation), such as to the guide.
+    public StatusMessage(StatusMessageKind kind, ICommand? actionCommand = null, bool actionEndsMessage = false, ICommand? dismissCommand = null, ICommand? explanationLinkCommand = null)
     {
         Kind = kind;
         ActionCommand = actionCommand;
         ActionEndsMessage = actionEndsMessage;
         DismissCommand = dismissCommand;
+        ExplanationLinkCommand = explanationLinkCommand;
     }
 
     public StatusMessageKind Kind { get; }
@@ -45,6 +47,36 @@ public sealed partial class StatusMessage : ObservableObject
     public bool ActionEndsMessage { get; }
 
     public ICommand? DismissCommand { get; }
+
+    public ICommand? ExplanationLinkCommand { get; }
+
+    // What "Uitleg" unfolds under the message: what the user can do about it, in plain words; null
+    // without an explanation, and then there is no "Uitleg".
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasExplanation))]
+    [NotifyPropertyChangedFor(nameof(HasExplanationLink))]
+    public partial string? Explanation { get; private set; }
+
+    // The name of "Uitleg" for a screen reader, such as "Uitleg over SignalRGB".
+    [ObservableProperty]
+    public partial string? ExplanationAccessibleName { get; private set; }
+
+    // The text of the link under the explanation; null without one.
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasExplanationLink))]
+    public partial string? ExplanationLinkText { get; private set; }
+
+    [ObservableProperty]
+    public partial string? ExplanationLinkAccessibleName { get; private set; }
+
+    // "Uitleg" pressed: the explanation shows under the message, in the line or under "Details",
+    // until the user presses it again or the message leaves.
+    [ObservableProperty]
+    public partial bool ShowsExplanation { get; set; }
+
+    public bool HasExplanation => Explanation is not null;
+
+    public bool HasExplanationLink => HasExplanation && ExplanationLinkText is not null && ExplanationLinkCommand is not null;
 
     // The text on the second button; null without one.
     [ObservableProperty]
@@ -95,9 +127,24 @@ public sealed partial class StatusMessage : ObservableObject
         DismissHelpText = helpText;
     }
 
-    // The message holds no more and leaves the line.
+    // What "Uitleg" unfolds, and the link under it (linkText null without one, or without an
+    // ExplanationLinkCommand).
+    public void ShowExplanation(string explanation, string accessibleName, string? linkText, string? linkAccessibleName)
+    {
+        Explanation = explanation;
+        ExplanationAccessibleName = accessibleName;
+        ExplanationLinkText = linkText;
+        ExplanationLinkAccessibleName = linkAccessibleName;
+    }
+
+    // The message holds no more and leaves the line; when it comes back, its explanation is closed.
     public void Hide()
     {
+        ShowsExplanation = false;
+        Explanation = null;
+        ExplanationAccessibleName = null;
+        ExplanationLinkText = null;
+        ExplanationLinkAccessibleName = null;
         Text = string.Empty;
         ActionText = null;
         ActionAccessibleName = null;
