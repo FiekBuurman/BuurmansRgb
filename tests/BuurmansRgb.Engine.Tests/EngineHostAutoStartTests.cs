@@ -1,3 +1,4 @@
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
@@ -161,6 +162,29 @@ public sealed class EngineHostAutoStartTests : IDisposable
         Assert.Equal(text, File.ReadAllText(path));
     }
 
+    // Chosen in the tray menu while the devices are fetched, before there is a saver: still saved,
+    // also over what the Run key told for a file from before the option.
+    [Fact]
+    public async Task ChosenWhileTheDevicesAreFetched_IsSaved()
+    {
+        _store.Settings = new EngineSettings();
+        _registry.IsEnabled = true;
+        var provider = new GatedDeviceProvider();
+        var lighting = new LightingController([provider]);
+        _disposables.Add(lighting);
+        var host = new EngineHost(_store, lighting, saveDelay: TimeSpan.FromHours(1), autoStart: _autoStart, firstRun: true);
+
+        var starting = host.StartAsync(Ct);
+        await provider.Discovering.WaitAsync(Ct);
+        Assert.True(_autoStart.TrySetEnabled(false));
+        provider.Release();
+        await starting;
+        host.Dispose();
+
+        Assert.False(_registry.IsEnabled);
+        Assert.True(_store.Settings.AutoStartChosen);
+    }
+
     // Without the switch (a test, say) the file keeps what it had.
     [Fact]
     public async Task WithoutTheSwitch_FileFromBefore_StaysAsItWas()
@@ -214,5 +238,29 @@ public sealed class EngineHostAutoStartTests : IDisposable
         var lighting = new LightingController([new SimulatedDeviceProvider()]);
         _disposables.Add(lighting);
         return lighting;
+    }
+
+    // Finds no devices, and only once the test lets it.
+    private sealed class GatedDeviceProvider : IDeviceProvider
+    {
+        private readonly TaskCompletionSource _discovering = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource _released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public string Name => "Gated";
+
+        public Task Discovering => _discovering.Task;
+
+        public void Release() => _released.TrySetResult();
+
+        public async Task<IReadOnlyList<RgbDevice>> DiscoverAsync(CancellationToken ct)
+        {
+            _discovering.TrySetResult();
+            await _released.Task.WaitAsync(ct);
+            return [];
+        }
+
+        public void SetLeds(string deviceId, ReadOnlySpan<RgbColor> colors)
+        {
+        }
     }
 }
