@@ -56,7 +56,21 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
         try
         {
             var archive = await engine.ExportSettingsAsync();
-            await File.WriteAllBytesAsync(path, archive);
+
+            // Next to it first and then moved over it, so a write that fails halfway (a full disk)
+            // never leaves a broken zip in place of a good one the user chose to overwrite.
+            var tempPath = path + ".tmp";
+            try
+            {
+                await File.WriteAllBytesAsync(tempPath, archive);
+                File.Move(tempPath, path, overwrite: true);
+            }
+            catch
+            {
+                DeleteQuietly(tempPath);
+                throw;
+            }
+
             Say(UiText.Format(Strings.BackupSaved, Path.GetFileName(path)));
         }
         catch (Exception exception)
@@ -123,4 +137,18 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
     };
 
     private void Say(string message) => Message?.Invoke(this, message);
+
+    // A temporary file that is not there (its folder is gone) or cannot go stays; the error that
+    // came first is the one to tell.
+    private static void DeleteQuietly(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            Trace.TraceWarning($"Could not delete {path}: {exception.Message}");
+        }
+    }
 }

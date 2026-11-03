@@ -63,6 +63,39 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         Assert.True(viewModel.SettingsBackup.SaveCommand.CanExecute(null));
     }
 
+    // A file the user chose to overwrite gets the new zip as a whole, without a temporary file left.
+    [Fact]
+    public async Task Save_OverAFile_ReplacesItWithoutATemporaryFile()
+    {
+        using var viewModel = await ConnectAsync();
+        var path = WriteZip("bewaard.zip", [1, 2, 3]);
+        viewModel.SettingsBackup.ChooseSaveFile = _ => path;
+
+        await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+
+        Assert.Equal(Api.ExportedSettings, File.ReadAllBytes(path));
+        Assert.False(File.Exists(path + ".tmp"));
+    }
+
+    // A file that cannot be replaced (open elsewhere) keeps what it had: the zip goes next to it
+    // first, and that temporary file goes again.
+    [Fact]
+    public async Task Save_FileThatCannotBeReplaced_KeepsIt()
+    {
+        using var viewModel = await ConnectAsync();
+        var path = WriteZip("bewaard.zip", [1, 2, 3]);
+        viewModel.SettingsBackup.ChooseSaveFile = _ => path;
+
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            await viewModel.SettingsBackup.SaveCommand.ExecuteAsync(null);
+        }
+
+        Assert.Equal(Strings.BackupSaveFailed, viewModel.StatusMessage);
+        Assert.Equal([1, 2, 3], File.ReadAllBytes(path));
+        Assert.False(File.Exists(path + ".tmp"));
+    }
+
     [Fact]
     public async Task Save_Cancelled_AsksTheEngineNothing()
     {
