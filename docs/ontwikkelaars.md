@@ -604,11 +604,12 @@ toetsenbord. Een paar dingen om te proberen:
   de zip (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app
   kiest alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
   `MainWindow`) en schrijft of leest het (schrijven eerst naar `<pad>.tmp` en dan met
-  `File.Move` eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust via de engine en niet door de bestanden zelf te
-  lezen: zo heeft de zip de wijziging van de laatste seconde (de saver en `CustomEffectLibrary`
+  `File.Move` eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust
+  via de engine en niet door de bestanden zelf te lezen: zo heeft de zip de wijziging van de laatste seconde (de saver en `CustomEffectLibrary`
   schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om: `SettingsReloader.RunBetweenReloads`),
   en schrijft geen saver van de engine bij terugzetten zijn oude stand over de zip heen. De
-  engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden zonder de stores, gedeeld
+  engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden zonder de stores
+  (`SettingsFiles.Read`), gedeeld
   voor schrijven en verwijderen: elk bestand komt er met één `File.Move` in (`JsonFile`), dus een
   lezer krijgt het oude of het nieuwe, nooit de helft. `SettingsArchive` controleert een zip
   helemaal voordat er iets verandert: alleen `settings.json`, `profiles.json` en `effects.json`
@@ -618,9 +619,9 @@ toetsenbord. Een paar dingen om te proberen:
   `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op de grootte die de zip
   zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`). Daarna zet
   `EngineHost` de bestanden van nu in
-  `backups\before-restore-<datum>-<tijd>-<ms>.zip` (in UTC, zodat de namen ook over de wintertijd
-  heen op volgorde staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
-  `BackupsKept` = 5 blijven) en vervangt
+  `backups\before-restore-<datum>-<tijd>-<ms>.zip` (`SettingsFiles.WriteBackup`; in UTC, zodat de
+  namen ook over de wintertijd heen op volgorde staan; een naam die er al is krijgt de volgende
+  milliseconde; de nieuwste `SettingsFiles.BackupsKept` = 5 blijven) en vervangt
   ze in de volgorde effecten, scènes, instellingen: `CustomEffectLibrary.Replace` en
   `ProfileLibrary.Replace` schrijven het bestand, gooien weg wat wachtte en lezen opnieuw
   (`Changed`, dus de tijden en programma's van de scènes plannen opnieuw);

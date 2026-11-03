@@ -164,17 +164,12 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Contains("Tweede", Encoding.UTF8.GetString(Unzip(File.ReadAllBytes(copies[1]))[SettingsBackup.ProfilesFileName]), StringComparison.Ordinal);
     }
 
-    // In UTC with milliseconds, so the names sort as they came.
-    [Fact]
-    public void BackupName_IsUtcWithMilliseconds() =>
-        Assert.Equal("before-restore-20261103-221500-007.zip", EngineHost.BackupName(new DateTime(2026, 11, 3, 22, 15, 0, 7, DateTimeKind.Utc)));
-
     // Only the newest copies stay.
     [Fact]
     public async Task Restore_KeepsTheNewestCopies()
     {
         Directory.CreateDirectory(_files.BackupsFolder);
-        for (var i = 0; i < EngineHost.BackupsKept + 2; i++)
+        for (var i = 0; i < SettingsFiles.BackupsKept + 2; i++)
         {
             File.WriteAllBytes(Path.Combine(_files.BackupsFolder, $"before-restore-2020010{i}-000000.zip"), []);
         }
@@ -186,7 +181,7 @@ public sealed class EngineHostTransferTests : IDisposable
         host.Restore(SettingsArchiveTests.Zip((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [] }"""))));
 
         var left = Directory.GetFiles(_files.BackupsFolder).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
-        Assert.Equal(EngineHost.BackupsKept + 1, left.Count);
+        Assert.Equal(SettingsFiles.BackupsKept + 1, left.Count);
         Assert.DoesNotContain("before-restore-20200100-000000.zip", left);
         Assert.Contains("mijn-eigen.zip", left);
     }

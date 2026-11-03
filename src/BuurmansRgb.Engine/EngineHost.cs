@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
@@ -35,12 +34,6 @@ internal sealed class EngineHost(
     OtherRgbSoftwareCheck? otherRgbSoftware = null,
     SettingsFiles? files = null) : IEngineHost, ISettingsTransfer, IDisposable
 {
-    // How many copies the engine keeps of the files a restored backup replaced.
-    internal const int BackupsKept = 5;
-
-    // How often a file that another program holds just then is read again for a backup.
-    private const int ReadAttempts = 5;
-
     // One backup or restore at a time, also from two settings apps.
     private readonly Lock _transferGate = new();
 
@@ -167,7 +160,7 @@ internal sealed class EngineHost(
         lock (_transferGate)
         {
             FlushSaves();
-            return SettingsArchive.Create(ReadFiles(known));
+            return SettingsArchive.Create(known.Read());
         }
     }
 
@@ -191,10 +184,10 @@ internal sealed class EngineHost(
         lock (_transferGate)
         {
             FlushSaves();
-            var before = ReadFiles(known);
+            var before = known.Read();
             try
             {
-                WriteBackup(known, before);
+                known.WriteBackup(before);
             }
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
@@ -252,80 +245,6 @@ internal sealed class EngineHost(
 
         customEffects?.Flush();
     }
-
-    // The files there are now, by name; one that is not there is left out.
-    private static Dictionary<string, byte[]> ReadFiles(SettingsFiles known)
-    {
-        var read = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-        foreach (var name in SettingsBackup.FileNames)
-        {
-            if (ReadFile(known.PathOf(name)) is { } json)
-            {
-                read.Add(name, json);
-            }
-        }
-
-        return read;
-    }
-
-    // Shared for writing and deleting, so a save of the engine that moves a new file over it at
-    // that moment does not fail; a moment later the read is tried again.
-    private static byte[]? ReadFile(string path)
-    {
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-                using var buffer = new MemoryStream();
-                stream.CopyTo(buffer);
-                return buffer.ToArray();
-            }
-            catch (Exception exception) when (exception is FileNotFoundException or DirectoryNotFoundException)
-            {
-                return null;
-            }
-            catch (IOException) when (attempt < ReadAttempts)
-            {
-                Thread.Sleep(50 * attempt);
-            }
-        }
-    }
-
-    // "backups\before-restore-20261103-221500-123.zip", the newest BackupsKept of them. In UTC with
-    // milliseconds, so the names sort as they came, also over the change to winter time; a name
-    // that is taken already (two restores within a millisecond) gets the next millisecond.
-    private static void WriteBackup(SettingsFiles known, Dictionary<string, byte[]> before)
-    {
-        if (before.Count == 0)
-        {
-            return;
-        }
-
-        Directory.CreateDirectory(known.BackupsFolder);
-        var time = DateTime.UtcNow;
-        string path;
-        while (File.Exists(path = Path.Combine(known.BackupsFolder, BackupName(time))))
-        {
-            time = time.AddMilliseconds(1);
-        }
-
-        JsonFile.Write(path, SettingsArchive.Create(before));
-        foreach (var old in Directory.GetFiles(known.BackupsFolder, "before-restore-*" + SettingsBackup.Extension).Order(StringComparer.Ordinal).SkipLast(BackupsKept))
-        {
-            try
-            {
-                File.Delete(old);
-            }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
-            {
-                Trace.TraceWarning($"Could not delete the old backup {old}: {exception.Message}");
-            }
-        }
-    }
-
-    internal static string BackupName(DateTime utc) =>
-        $"before-restore-{utc.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture)}{SettingsBackup.Extension}";
 
     private void Replace(SettingsFiles known, string name, byte[] json)
     {
