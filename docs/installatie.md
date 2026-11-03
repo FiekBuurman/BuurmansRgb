@@ -39,7 +39,7 @@ stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelij
 De installer zet in één keer neer:
 
 - **BuurmansRgb** in `C:\Program Files\BuurmansRgb`, met alles erin (geen losse .NET nodig);
-- de driver **PawnIO**, voor moederbord, RAM en videokaart (overgeslagen als die er al is);
+- de driver **PawnIO**, voor RAM en oudere moederborden (overgeslagen als die er al is);
 - **OpenRGB 1.1** als Windows-service, met de SDK-server op `127.0.0.1:6742` (overgeslagen
   als de service `OpenRGB` er al is).
 
@@ -112,8 +112,8 @@ er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is no
   (PIIX4) om moederbord en RAM aan te sturen [8][9]. De modules en `PawnIOLib.dll` zitten bij
   OpenRGB; de driver zelf niet. Die installeert BuurmansRgb met PawnIO 2.2.0
   (`PawnIO_setup.exe -install -silent`), en slaat hem over als PawnIO er al is. Zonder PawnIO
-  werken moederbord, RAM en vaak de videokaart niet; OpenRGB 1.0 en 1.1 hebben hem nodig voor
-  RAM en oudere moederborden [12].
+  werken RAM en oudere moederborden niet: OpenRGB 1.0 en 1.1 hebben hem daarvoor nodig [12].
+  Of een videokaart hem ook nodig heeft, is mogelijk maar niet onderzocht.
 - **Licentie:** de driver is GPL-2.0 [2], de modules LGPL-2.1 [3]; de setup is freeware (zie
   [openrgb-meeleveren.md](openrgb-meeleveren.md)).
 - **Ondertekend:** de "Official edition" is digitaal ondertekend [1]; sinds 2.1.0 (12 februari
@@ -186,8 +186,8 @@ Blokkeert een game iets, kijk dan in de melding welk bestand het is:
 
 - Gaat het om PawnIO, dan helpt het stoppen van de service OpenRGB waarschijnlijk niet, want de
   driver blijft geladen (starttype onbekend, zie hierboven). Verwijder dan PawnIO via
-  **Instellingen → Apps → PawnIO**. Moederbord, RAM en vaak de videokaart werken dan niet meer in
-  BuurmansRgb; andere apparaten (USB) wel. Andere programma's zoals FanControl kunnen PawnIO ook
+  **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
+  BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel. Andere programma's zoals FanControl kunnen PawnIO ook
   gebruiken.
 - Gaat het om OpenRGB, stop dan de service tijdens het spelen (`Stop-Service OpenRGB` als
   administrator) en start hem daarna weer, of kies **Herstarten** in het tray-menu.
