@@ -4,11 +4,12 @@ namespace BuurmansRgb.Engine.AutoStart;
 
 internal static class AutoStartExtensions
 {
-    // Only turns autostart on, never off: after the first run the tray menu decides. A failure only
-    // costs the autostart, so the engine starts anyway and the tray menu shows it as off.
-    public static void EnableOnFirstRun(this IAutoStart autoStart, EngineOptions options)
+    // Only turns autostart on, never off; whether it should (--first-run while the user did not
+    // choose yet) is for EngineHost. A failure only costs the autostart, so the engine starts
+    // anyway and the tray menu shows it as off.
+    public static void EnableOnFirstRun(this IAutoStart autoStart)
     {
-        if (!options.FirstRun || autoStart.IsEnabled)
+        if (autoStart.IsEnabled)
         {
             return;
         }

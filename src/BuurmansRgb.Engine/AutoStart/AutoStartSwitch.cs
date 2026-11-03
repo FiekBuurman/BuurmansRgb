@@ -14,6 +14,11 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     // the newest one.
     public event EventHandler? Changed;
 
+    // Raised after SetEnabled wrote it, also to the value it had: the user chose, in the tray menu
+    // or the settings app, so EngineHost keeps that in settings.json (autoStartChosen) and
+    // --first-run leaves it from then on. Not raised by EnableOnFirstRun, nor after a failure.
+    public event EventHandler? Chosen;
+
     // As Windows has it now; off when it cannot be read, which goes to the log.
     public bool IsEnabled
     {
@@ -36,6 +41,29 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         {
             changed = ReadEnabled() != enabled;
             autoStart.SetEnabled(enabled);
+        }
+
+        Chosen?.Invoke(this, EventArgs.Empty);
+        if (changed)
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // For --first-run: on when it is off, as the installer asked and not the user, so without
+    // Chosen. A failure only goes to the log (AutoStartExtensions.EnableOnFirstRun).
+    public void EnableOnFirstRun()
+    {
+        bool changed;
+        lock (_gate)
+        {
+            if (ReadEnabled())
+            {
+                return;
+            }
+
+            autoStart.EnableOnFirstRun();
+            changed = ReadEnabled();
         }
 
         if (changed)

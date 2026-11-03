@@ -73,6 +73,56 @@ public sealed class AutoStartSwitchTests
         Assert.Throws<InvalidOperationException>(() => new AutoStartSwitch(_autoStart).TrySetEnabled(true));
     }
 
+    // Each time the user set it, also to the value it had, but not when Windows refused.
+    [Fact]
+    public void SetEnabled_RaisesChosenEachTimeItWrote()
+    {
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var choices = 0;
+        autoStart.Chosen += (_, _) => choices++;
+
+        autoStart.SetEnabled(true);
+        autoStart.SetEnabled(true);
+        _autoStart.SetEnabledException = new UnauthorizedAccessException();
+        autoStart.TrySetEnabled(false);
+
+        Assert.Equal(2, choices);
+    }
+
+    // The installer asked, not the user: Changed, but no Chosen.
+    [Fact]
+    public void EnableOnFirstRun_TurnsItOnWithoutAChoice()
+    {
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var changes = 0;
+        var choices = 0;
+        autoStart.Changed += (_, _) => changes++;
+        autoStart.Chosen += (_, _) => choices++;
+
+        autoStart.EnableOnFirstRun();
+        autoStart.EnableOnFirstRun();
+
+        Assert.True(_autoStart.IsEnabled);
+        Assert.Equal(1, _autoStart.SetEnabledCount);
+        Assert.Equal(1, changes);
+        Assert.Equal(0, choices);
+    }
+
+    [Theory]
+    [MemberData(nameof(AccessErrors))]
+    public void EnableOnFirstRun_WhenWindowsRefuses_StartsAnyway(Exception error)
+    {
+        _autoStart.SetEnabledException = error;
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var changes = 0;
+        autoStart.Changed += (_, _) => changes++;
+
+        autoStart.EnableOnFirstRun();
+
+        Assert.False(autoStart.IsEnabled);
+        Assert.Equal(0, changes);
+    }
+
     [Theory]
     [MemberData(nameof(AccessErrors))]
     public void IsEnabled_Unreadable_IsOff(Exception error)

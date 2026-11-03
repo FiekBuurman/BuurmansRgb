@@ -5,28 +5,15 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class AutoStartExtensionsTests
 {
-    private static readonly EngineOptions FirstRun = new(FirstRun: true);
-    private static readonly EngineOptions NormalRun = new(FirstRun: false);
-
+    // Whether the first run turns it on (--first-run, no choice of the user yet) is in EngineHostAutoStartTests.
     [Fact]
-    public void EnableOnFirstRun_FirstRun_TurnsAutoStartOn()
+    public void EnableOnFirstRun_TurnsAutoStartOn()
     {
         var autoStart = new FakeAutoStart();
 
-        autoStart.EnableOnFirstRun(FirstRun);
+        autoStart.EnableOnFirstRun();
 
         Assert.True(autoStart.IsEnabled);
-    }
-
-    [Fact]
-    public void EnableOnFirstRun_NormalRun_LeavesAutoStartOff()
-    {
-        var autoStart = new FakeAutoStart();
-
-        autoStart.EnableOnFirstRun(NormalRun);
-
-        Assert.False(autoStart.IsEnabled);
-        Assert.Equal(0, autoStart.SetEnabledCount);
     }
 
     [Fact]
@@ -34,7 +21,7 @@ public sealed class AutoStartExtensionsTests
     {
         var autoStart = new FakeAutoStart { IsEnabled = true };
 
-        autoStart.EnableOnFirstRun(FirstRun);
+        autoStart.EnableOnFirstRun();
 
         Assert.True(autoStart.IsEnabled);
         Assert.Equal(0, autoStart.SetEnabledCount);
@@ -49,7 +36,7 @@ public sealed class AutoStartExtensionsTests
     {
         var autoStart = new FakeAutoStart { SetEnabledException = failure };
 
-        autoStart.EnableOnFirstRun(FirstRun);
+        autoStart.EnableOnFirstRun();
 
         Assert.False(autoStart.IsEnabled);
     }
@@ -59,7 +46,7 @@ public sealed class AutoStartExtensionsTests
     {
         var autoStart = new FakeAutoStart { SetEnabledException = new InvalidOperationException() };
 
-        Assert.Throws<InvalidOperationException>(() => autoStart.EnableOnFirstRun(FirstRun));
+        Assert.Throws<InvalidOperationException>(() => autoStart.EnableOnFirstRun());
     }
 
     [Fact]

@@ -1,4 +1,5 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
@@ -25,10 +26,16 @@ internal sealed class EngineHost(
     ISettingsFileEvents? settingsFileEvents = null,
     TimeSpan? reloadDelay = null,
     CustomColorList? customColors = null,
-    CustomEffectLibrary? customEffects = null) : IEngineHost, IDisposable
+    CustomEffectLibrary? customEffects = null,
+    AutoStartSwitch? autoStart = null,
+    bool firstRun = false) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
+
+    // Set once the user chose autostart (AutoStartChosen); read when the saver comes, for a
+    // choice before it.
+    private bool _autoStartChosen;
 
     // The IPC server starts once the lights are on and keeps running until ct is cancelled.
     // trimMemory then runs once, so the memory that only starting up needed goes back to Windows.
@@ -40,10 +47,14 @@ internal sealed class EngineHost(
     // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
     // With settingsFileEvents, a change of the file by hand is applied from then on as well, as
     // changes from the settings app are. The own effects are read before the lighting is applied, so
-    // a lighting that shows one keeps it.
+    // a lighting that shows one keeps it. With firstRun (--first-run, after every install) autostart
+    // goes on, unless the user chose it before (autoStartChosen); a file from before that option
+    // gets it from the Run key first (StartAutoStart).
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
+        var autoStartChosenBefore = settings.AutoStartChosen;
+        settings = StartAutoStart(settings);
         ApplyOptions(settings);
         zoneLengths?.Load(settings.ReadZoneLengths());
         await lighting.DiscoverAsync(ct);
@@ -62,6 +73,18 @@ internal sealed class EngineHost(
         {
             // A real device was in the first list already, before anyone listened.
             OnHadRealDevicesChanged(this, EventArgs.Empty);
+        }
+
+        if (Volatile.Read(ref _autoStartChosen))
+        {
+            // Chosen in the tray menu while the devices were fetched, before the saver was there.
+            OnAutoStartChosen(this, EventArgs.Empty);
+        }
+        else if (settings.AutoStartChosen != autoStartChosenBefore)
+        {
+            // Read from the Run key for a file from before the option: written once.
+            var chosen = settings.AutoStartChosen;
+            _saver.ChangeOptions(saved => saved with { AutoStartChosen = chosen });
         }
 
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
@@ -101,6 +124,7 @@ internal sealed class EngineHost(
     public void Dispose()
     {
         _reloader?.Dispose();
+        autoStart?.Chosen -= OnAutoStartChosen;
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         simulatedDevices?.HadRealDevicesChanged -= OnHadRealDevicesChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
@@ -134,6 +158,8 @@ internal sealed class EngineHost(
         var held = lighting.State;
         try
         {
+            // Nothing on the engine follows it, so it goes to the saver as the file has it.
+            _saver!.ChangeOptions(saved => saved with { AutoStartChosen = settings.AutoStartChosen });
             ApplyOptions(settings);
             zoneLengths?.Change(settings.ReadZoneLengths());
             var state = settings.ToLightingState();
@@ -162,6 +188,38 @@ internal sealed class EngineHost(
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
         customColors?.Colors = settings.ReadCustomColors();
+    }
+
+    // Before the devices are fetched, so the tray menu shows it from the start. A file without
+    // autoStartChosen is from before the option, whose installer turned autostart on, so off
+    // counts as the user's choice (or Windows refused, which this cannot tell). The Run key can
+    // only tell for this engine: one that starts another engine counts as off.
+    private EngineSettings StartAutoStart(EngineSettings settings)
+    {
+        if (autoStart is null)
+        {
+            return settings;
+        }
+
+        autoStart.Chosen += OnAutoStartChosen;
+        if (settings.AutoStartChosen is null)
+        {
+            settings = settings with { AutoStartChosen = !autoStart.IsEnabled };
+        }
+
+        if (firstRun && settings.AutoStartChosen != true)
+        {
+            autoStart.EnableOnFirstRun();
+        }
+
+        return settings;
+    }
+
+    // From the tray menu or the settings app, on any thread.
+    private void OnAutoStartChosen(object? sender, EventArgs e)
+    {
+        Volatile.Write(ref _autoStartChosen, true);
+        _saver?.ChangeOptions(settings => settings with { AutoStartChosen = true });
     }
 
     // Reads the newest mode, so two changes that cross each other still save the last one.
