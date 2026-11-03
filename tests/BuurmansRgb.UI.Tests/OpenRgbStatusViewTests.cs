@@ -140,9 +140,7 @@ public sealed class OpenRgbStatusViewTests
         });
     }
 
-    private static TextBlock Status(DependencyObject page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "OpenRgbStatus");
+    private static TextBlock Status(DependencyObject page) => PageViews.ById<TextBlock>(page, "OpenRgbStatus");
 
-    private static Button Restart(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "RestartEngine");
+    private static Button Restart(DependencyObject page) => PageViews.ById<Button>(page, "RestartEngine");
 }
