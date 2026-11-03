@@ -1290,6 +1290,18 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    `docs/hardware.md` waar LED 1 echt zit en welke kant de fan op telt (het voorbeeld neemt
    bovenaan en met de klok mee aan), want daarvan hangt af welke hoek "van boven naar beneden" is.
 6. Staat de headset niet in OpenRGB, noteer dan het model.
+7. Geef een muis of toetsenbord zonder serienummer (in OpenRGB is "Serial" bij het apparaat dan
+   leeg) een eigen kleur en een paar per-LED-kleuren, steek het in een andere USB-poort en klik zo
+   nodig op "Verversen": houdt het zijn instellingen? Het id in `settings.json`
+   (`openrgb-<naam>-<code>`) komt uit de naam, de locatie en het serienummer
+   (`OpenRgbDeviceMapper.CreateId`), en de locatie is bij een USB-apparaat het HID-pad dat OpenRGB
+   van Windows krijgt. Zonder serienummer zet Windows in dat pad een nummer dat van de hub en de
+   poort afhangt, dus in een andere poort is het waarschijnlijk een nieuw apparaat met de kleur van
+   "Hele huis", terwijl de oude instellingen onder het oude id blijven staan (zie het idee over
+   opruimen bij "Zones en zonelengtes"); met een serienummer hoort het id gelijk te blijven. Neem
+   als controle ook een apparaat mét serienummer mee en noteer beide uitkomsten in
+   `docs/hardware.md`: welke apparaten hun instellingen verliezen en welke ze houden (testpanel
+   1-11-2026, Mo).
 
 ### Knipperen en plek
 

@@ -82,6 +82,18 @@ uitbreidingen in `docs/bouwplan.md`.
   oorschelp", "Binnenring", "Scrollwiel"), uit `Strings.resx` van `Providers.Simulated`; nu zijn
   ze Engels, zoals OpenRGB ze bij echte apparaten geeft, maar bij de gesimuleerde kiezen we ze
   zelf (gebruikerstest 28-10)
+- Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
+  de kast een effect krijgt: een schakelaar per apparaat ("Volgt Hele huis niet"), bewaard als een
+  set id's in `settings.json` zoals `zonesAlike`, die `LightingController` bij een kleur, effect of
+  helderheid van "Hele huis" overslaat; nu krijgt elk apparaat dat aan staat mee wat je bij "Hele
+  huis" kiest, en moet je het daarna apart terugzetten (testpanel 1-11-2026, Mo)
+- Een kleur vóór het aanmelden: de engine draait pas in de sessie van de gebruiker, dus tot het
+  aanmelden staan de apparaten zoals de firmware of OpenRGB ze zet. De OpenRGB-service kan bij het
+  starten een profiel laden (`--profile` of "Load profile on startup" in zijn instellingen); de
+  engine zou de kleur van "Hele huis" (of een scène "Aanmelden") als OpenRGB-profiel kunnen bewaren
+  (`SaveProfile` van de SDK) en de installer die keuze in de service kunnen zetten, zodat de pc
+  meteen na het aanzetten de goede kleur heeft en de engine hem na het aanmelden overneemt
+  (testpanel 1-11-2026, Mo en Kees)
 
 ## Zones en zonelengtes
 
@@ -186,6 +198,24 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Standaardkleuren" bij "Hele huis" ook te gebruiken als alleen een apparaat eigen kleuren voor
   het effect heeft; nu telt voor de knop alleen wat "Hele huis" zelf heeft, en moet je eerst
   dat apparaat kiezen
+- Audio-reactief licht en muziek-sync: een effect dat meegaat met het geluid dat de pc afspeelt,
+  bijv. de helderheid of een balk per LED op het volume of de bas, en een flits op de beat. Het
+  geluid komt zonder stuurprogramma via WASAPI loopback (`AudioClient` op het standaardapparaat),
+  met een kleine FFT per frame; de opname loopt alleen zolang het effect op een apparaat staat,
+  zodat de engine zonder het effect niet zwaarder wordt (testpanel 1-11-2026, Jayden en Noor)
+- Schermsync: de apparaten de kleuren van het scherm laten volgen, zoals Ambilight (de strip
+  achter de monitor de rand van het beeld, de kast de gemiddelde kleur). Het scherm samplen met
+  Desktop Duplication (`IDXGIOutputDuplication`), een paar keer per seconde en sterk verkleind, en
+  per apparaat kiezen welke rand of welk deel het volgt; ook hier alleen samplen zolang het effect
+  op een apparaat staat. Beschermde video (DRM) geeft een zwart beeld (testpanel 1-11-2026, Noor)
+- Toetsen die oplichten bij indrukken (en weer uitdoven, of een kring die van de toets af loopt):
+  de engine hoort de toets via Raw Input (`WM_INPUT` op het verborgen venster), liever dan via een
+  `WH_KEYBOARD_LL`-hook (die laat elke toetsaanslag door de engine lopen en kan door anti-cheat als
+  verdacht gezien worden), en zoekt de LED op via de toetsnaam die OpenRGB geeft ("Key: W", zie
+  `OpenRgbDeviceMapper.ToLedNames`); het effect houdt per toets een tijd bij, zoals het idee voor
+  Vuur hitte per LED bijhoudt. Alleen registreren zolang het effect op een toetsenbord staat;
+  alleen welke toets, nooit wat je typt, en niets ervan in het logbestand (testpanel 1-11-2026,
+  Jayden)
 - Eigen effecten, na de eerste versie (stappen met een kleur of patroon, blijven staan en
   overlopen):
   - `effects.json` met de hand live oppikken, zoals `settings.json` met `SettingsFileWatcher`;
@@ -225,6 +255,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
+- Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één
+  schuif in kelvin in plaats van Rood, Groen en Blauw, voor wie het licht als bureaulamp gebruikt;
+  de omzetting van kelvin naar RGB is een vaste benadering (Tanner Helland). Dat het 's avonds
+  vanzelf warmer wordt, zoals Nachtlicht van Windows, is dan een scène die op tijd aangaat (zie
+  "Scènes") (testpanel 1-11-2026, Noor)
 - Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
@@ -374,6 +409,13 @@ uitbreidingen in `docs/bouwplan.md`.
   200 % niet half zo veel woorden heeft
 - Het tekenen van de app bij een grote tekstgrootte meten met een zichtbaar venster (niet
   vergrendeld); bij "tekstgrootte" is alleen het opbouwen van een pagina en een wissel gemeten
+- De app laten meekleuren met de actieve scène of de kleur van "Hele huis": de accentkleur (de
+  primaire knop, het actieve item in de navigatie, de focusring) uit die kleur, zoals Windows zijn
+  accentkleur uit de achtergrond kan halen. Daarvoor een tint die op het vlak minstens 4,5:1 haalt
+  (dus een donkere of lichte variant van de kleur), geen wissel in een contrastthema
+  (`ContrastTheme.SystemBrushes` blijft de baas) en geen animatie bij het omkleuren (minder
+  beweging); eerst een keuze in `design/DESIGN.md`, dat de accentkleuren nu vast kiest (testpanel
+  1-11-2026, Sanne)
 
 ### Voorbeeld en per-LED-editor
 
@@ -487,6 +529,21 @@ uitbreidingen in `docs/bouwplan.md`.
   maken (bijv. "Nog niet toegepast", zoals "Nog niet op het apparaat" bij Kleur) of vanzelf
   opslaan, zoals de rest van de app; nu staat 22:00 na het wisselen van pagina nog in het veld,
   terwijl de scène om de oude tijd aangaat (gebruikerstest 28-10, B13)
+- Een gamemodus: één schakelaar (tray-menu of sneltoets) die tijdens een spel de effecten stilzet,
+  op het toetsenbord alleen de speeltoetsen (WASD, de cijfers) laat branden en de rest dimt, en
+  intussen geen scène laat wisselen op een tijd of een ander programma; het liefst vanzelf aan als
+  een spel op volledig scherm vooraan komt (een venster zonder rand zo groot als de monitor, via
+  `ForegroundHook`) en weer uit als het sluit. Bouwt op "Aanzetten als dit programma start" en
+  "Alleen op de voorgrond", die nu alleen een scène kiezen (testpanel 1-11-2026, Jayden)
+- Een scène vanzelf aanzetten bij zonsondergang (en zonsopkomst) naast een vaste tijd: de tijden
+  zijn zonder internet uit te rekenen uit een plaats (de NOAA-formule, met de breedte- en
+  lengtegraad die je bij Instellingen invult of uit de locatieservice van Windows), elke dag
+  opnieuw gepland zoals de tijden van "Vanzelf aanzetten" nu (testpanel 1-11-2026, Noor)
+- Een scène vanzelf aanzetten zodra OBS live gaat (en terug als de stream stopt): OBS 28 en nieuwer
+  heeft obs-websocket ingebouwd (localhost, poort 4455, met een wachtwoord), dat
+  `StreamStateChanged` meldt; "Aanzetten als dit programma start" ziet alleen dat OBS draait, niet
+  dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
+  verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
 
 ## Tray-menu
 
@@ -608,6 +665,24 @@ uitbreidingen in `docs/bouwplan.md`.
   project voor Windows-code van engine en app; nu staan ze bij de IPC-contracten omdat beide ze
   gebruiken. Pas oppakken als er meer van zulke Windows-code bij komt
 
+## Integraties
+
+- Game-integratie via CS2 Game State Integration: de game stuurt bij elke verandering een
+  HTTP-POST met JSON (gezondheid, ronde, bom, kills) naar een lokaal adres dat in een
+  `gamestate_integration_*.cfg` in de map van de game staat; een luisteraar op `127.0.0.1` zet dat
+  om in licht (weinig gezondheid rood, bom geplant knipperen, ronde gewonnen een flits), bijv. als
+  een scène per toestand, met het `auth`-token uit de `.cfg` (CS2 stuurt dat in elke POST mee),
+  zodat niet elk lokaal programma de kleuren kan zetten. Liefst als apart proces op de pipe van de
+  engine (zoals de brug hieronder), zodat de engine geen HTTP-server krijgt en het niets kost
+  zolang het uit staat (testpanel 1-11-2026, Jayden)
+- Een brug naar Home Assistant of MQTT: een apart proces (bijv. `BuurmansRgb.Bridge`) dat zoals de
+  instellingen-app op de named pipe van de engine verbindt (`IEngineApi`: alles aan en uit, kleur,
+  helderheid, scènes) en dat als `light` aanbiedt via MQTT discovery van Home Assistant of een
+  kleine REST-koppeling. De eisen van Kees: standaard uit; wat het zelf opent, luistert alleen op
+  localhost (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en
+  `docs/handleiding.md` zegt wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt
+  geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
+
 ## Installer en uitrol
 
 - De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
@@ -619,6 +694,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - `BuurmansRgb.UI.exe` ook meenemen bij `dotnet publish` van alleen de engine; nu staan ze
   alleen na `dotnet build` van de solution (in `artifacts/app/`) of met `installer\build.ps1`
   samen
+- Een check op updates: hooguit één keer per dag de GitHub Releases-API vragen om de nieuwste
+  release (`GET /repos/<eigenaar>/BuurmansRgb/releases/latest`, de tag tegen de versie van de app)
+  en bij een nieuwere bij Instellingen "Versie 1.4 is er" tonen met de link naar de release-pagina;
+  niets downloaden of installeren, dat doet de gebruiker (of de beheerder) zelf. Een schakelaar om
+  het uit te zetten, voor een pc die centraal beheerd wordt, en zonder internet geen melding.
+  Zolang de repo privé is, geeft de API zonder token niets terug (zie het idee over de handleiding
+  meeleveren) (testpanel 1-11-2026, Kees)
 
 ## Tests en tooling
 
