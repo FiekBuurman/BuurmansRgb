@@ -80,9 +80,11 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
     // The sources change one property at a time; this reads them whole, so the line is consistent
     // after each. Others changes only when the set or the order changed, so the list under
     // "Details" is not made anew for a text that changed. The messages that hold get their texts
-    // first and the ones that left are emptied last, once the line and Others moved on: so a
-    // button hides only when its message is no longer in the line, and the keyboard focus on it
-    // can be handed on (StatusLine.OnButtonIsVisibleChanged).
+    // first. A message that leaves from under "Details" is emptied before Others lets go of its
+    // item: its button hides while it is still in the tree, so the keyboard focus on it can be
+    // handed on (StatusLine.OnButtonIsVisibleChanged). The message that leaves the line is emptied
+    // last, once the line moved on: so its button hides only when it is no longer in the line, and
+    // keeps the focus when another message takes the line with its own action.
     private void Refresh()
     {
         var lost = DevicesExpected && _openRgb.IsDisconnected;
@@ -106,6 +108,15 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         StatusMessage[] active = [.. new[] { (_connectionLost, lost), (_paused, paused), (_previewStill, still) }.Where(pair => pair.Item2).Select(pair => pair.Item1)];
         var current = active.FirstOrDefault();
         var others = active.Skip(1).ToList();
+        var previous = Current;
+        foreach (var message in new[] { _connectionLost, _paused, _previewStill }.Except(active))
+        {
+            if (!ReferenceEquals(message, previous))
+            {
+                message.Hide();
+            }
+        }
+
         if (!others.SequenceEqual(Others))
         {
             UpdateOthers(others);
@@ -119,19 +130,9 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
 
         Current = current;
 
-        if (!lost)
+        if (previous is not null && !active.Contains(previous))
         {
-            _connectionLost.Hide();
-        }
-
-        if (!paused)
-        {
-            _paused.Hide();
-        }
-
-        if (!still)
-        {
-            _previewStill.Hide();
+            previous.Hide();
         }
     }
 

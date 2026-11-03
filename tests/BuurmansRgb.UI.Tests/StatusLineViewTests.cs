@@ -199,6 +199,36 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // The focus is on "Laten lopen" under "Details" when animations in Windows go on again: the
+    // preview message leaves from under "Details", and with it the only thing under it, so
+    // "Details" goes too. The focus moves on to the next control of the page, the switch of "Hele
+    // huis", instead of falling to the window with the item that is taken out of the list.
+    [Fact]
+    public async Task MessageUnderDetailsGoes_FocusMovesOnToThePage()
+    {
+        _animations.IsOn = false;
+        using var viewModel = await PageViews.ConnectAsync(engine => engine.Pause = PauseReasons.Manual, animationEffects: _animations);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Assert.Equal(Strings.EffectsPausedManual, Line(page).Text);
+            Toggle(Details(page));
+            var latenLopen = DetailActions(page).Single(button => Equals(button.Content, "Laten lopen"));
+            Assert.True(latenLopen.Focus());
+
+            _animations.Turn(on: true);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(Strings.EffectsPausedManual, Line(page).Text);
+            Assert.False(viewModel.StatusLine.ShowsDetails);
+            Assert.False(Details(page).IsVisible);
+            Assert.Empty(DetailActions(page));
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(PageViews.Named<ToggleButton>(page, Strings.WholeHouseSwitchAccessibleName).IsKeyboardFocused);
+        });
+    }
+
     // The focus is on "Details" when the message under it takes the line, so "Details" goes: the
     // focus moves to the action that is left in the line.
     [Fact]
