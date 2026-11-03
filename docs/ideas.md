@@ -748,6 +748,9 @@ uitbreidingen in `docs/bouwplan.md`.
   terug. Bijv. een parameter (`/NOPAWNIO`) of een vinkje in de wizard, en de keuze onthouden in
   de sleutel van de installer, zodat een volgende update hem ook overslaat
   (`installatie-uitleg`)
+- De melding `PawnIoFailed` in `installer/BuurmansRgb.iss` ("Moederbord, RAM en videokaart
+  werken dan misschien niet") gelijktrekken met de documentatie: zonder PawnIO werken RAM en
+  oudere moederborden niet; een videokaart is niet onderzocht (`installatie-uitleg`)
 - De Sandbox-test ook `sc qc PawnIO` laten loggen, zodat het starttype van PawnIO (nu "onbekend"
   in `installatie.md`) zonder echte pc bekend is (`installatie-uitleg`)
 - De engine niet verhoogd starten bij een verhoogde stille installatie: `runasoriginaluser` werkt

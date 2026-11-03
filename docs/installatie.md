@@ -94,7 +94,8 @@ er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is no
   [31]. Een verbinding vanaf de pc zelf telt als lokale client en mag daardoor ook profielen
   opslaan en instellingen wijzigen [30]. Elk proces op deze pc, van elke gebruiker en zonder
   beheerdersrechten, kan dus de service aansturen, en die draait als LocalSystem. Wie al code
-  op je pc kan draaien, kan zo je verlichting en de OpenRGB-instellingen veranderen.
+  op je pc kan draaien, kan zo je verlichting en de OpenRGB-instellingen veranderen, en zolang
+  onbekend is of 1.1 op Windows dicht is, mogelijk meer (zie hieronder).
 - **Bekende lekken (2026).** Onderzoekers van openSUSE publiceerden op 25 augustus 2026 drie
   lekken in de SDK-server [31]: CVE-2026-59682 (een bestand overschrijven door een profiel op
   te slaan), CVE-2026-59683 (op Linux root worden via het wisselen van modus en het opslaan van
@@ -160,11 +161,13 @@ Controleer ze op je eigen pc (**Taakbeheer → Details**, `sc query`).
 | Gigabyte RGB Fusion / Control Center | **onbekend**; Gigabyte meldt zelf dat RGB Fusion 2.0 en GCC samen botsen | officieel, zonder namen [45] |
 | Een tweede OpenRGB | een OpenRGB met zijn eigen SDK-server (**Start Server**, `--server`) of een eigen service | zie hieronder |
 
-**Een tweede OpenRGB op poort 6742:** er kan maar één server op 6742 luisteren. Start een andere
-OpenRGB zijn server eerder, dan krijgt de service de poort niet, en BuurmansRgb verbindt met die
-andere. Kijk met `netstat -ano | findstr :6742` welk proces (PID, laatste kolom) luistert, en
-vergelijk dat met de PID van de service in `sc queryex OpenRGB`. Zijn ze verschillend, sluit dan
-die andere OpenRGB of haal zijn autostart weg. De OpenRGB-app openen naast de service mag wel:
+**Een tweede OpenRGB op poort 6742:** er kan maar één server op 6742 luisteren, dus het botst
+in beide richtingen. Heeft de service de poort al (meestal, want hij start mee met Windows), dan
+lukt **Start Server** in een eigen OpenRGB niet. Start een andere OpenRGB zijn server eerder,
+dan krijgt de service de poort niet, en BuurmansRgb verbindt met die andere. Kijk met
+`netstat -ano | findstr :6742` welk proces (PID, laatste kolom) luistert, en vergelijk dat met
+de PID van de service in `sc queryex OpenRGB`. Zijn ze verschillend, sluit dan die andere
+OpenRGB of haal zijn autostart weg. De OpenRGB-app openen naast de service mag wel:
 die verbindt als client met de service (zie [openrgb-meeleveren.md](openrgb-meeleveren.md)).
 
 ## Games met anti-cheat
@@ -174,7 +177,7 @@ drivers, dus het gaat om PawnIO, en misschien om OpenRGB. Wat er bekend is, en w
 
 | Anti-cheat | Wat bekend is |
 | --- | --- |
-| FACEIT | Blokkeerde PawnIO om de handtekening, volgens de maker zelf (19 september 2025); volgens gebruikers omdat hetzelfde certificaat ook voor cheats gebruikt was [6][20][5]. Opgelost met de nieuwe handtekening van 2.1.0 [6][5]; BuurmansRgb levert 2.2.0, maar slaat PawnIO over als die er al is, dus een oudere versie (vóór 2.1.0, bijv. van FanControl) blijft staan. Kijk bij **Instellingen → Apps → PawnIO** welke versie je hebt. Op 16 maart 2026 meldde een gebruiker toch nog een blokkade, mogelijk met een oude versie [21]. Een officiële uitspraak van FACEIT over PawnIO is niet gevonden. |
+| FACEIT | Blokkeerde PawnIO om de handtekening, volgens de maker zelf (19 september 2025); volgens gebruikers omdat hetzelfde certificaat ook voor cheats gebruikt was [6][20][5]. Opgelost met de nieuwe handtekening van 2.1.0 [6][5]; BuurmansRgb levert 2.2.0, maar slaat PawnIO over als die er al is, dus een oudere versie (vóór 2.1.0, bijv. van FanControl) blijft staan. Kijk bij **Instellingen → Apps → PawnIO** welke versie je hebt; toont Windows daar geen versie, dan in PowerShell met `Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO \| Select-Object DisplayVersion`. Op 16 maart 2026 meldde een gebruiker toch nog een blokkade, mogelijk met een oude versie [21]. Een officiële uitspraak van FACEIT over PawnIO is niet gevonden. |
 | Riot Vanguard (Valorant, League of Legends) | Blokkeert bij het opstarten drivers die ondertekend maar kwetsbaar zijn, met de melding "Vanguard has blocked something from loading" [23][24]. Bevestigd voor InpOut32 van FanControl en LibreHardwareMonitor (2023) [25]. PawnIO met Vanguard: **onbekend**, ook een vraag erover bleef onbeantwoord [20]. OpenRGB met Vanguard: **onbekend**. |
 | Easy Anti-Cheat | PawnIO, WinRing0 en OpenRGB: **onbekend**, geen bron gevonden. Volgens een niet-officiële bron markeert EAC soms `LightingService.exe` van ASUS [27]. |
 | BattlEye | PawnIO, WinRing0 en OpenRGB: **onbekend**. BattlEye meldt een blokkade als "Blocked loading of file" [28]. |

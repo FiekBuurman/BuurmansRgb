@@ -1385,8 +1385,8 @@ dingen naast, ook als je BuurmansRgb afsluit:
 - **OpenRGB**, als achtergrondprogramma van Windows (een service). Het draait altijd, start mee
   met Windows en praat met je apparaten. BuurmansRgb geeft het de kleuren door via een
   verbinding die alleen binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
-- **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij het moederbord
-  en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender als gevaarlijk
+- **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij oudere
+  moederborden en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender als gevaarlijk
   aanmerkt. PawnIO staat er altijd en is waarschijnlijk vanaf het opstarten geladen, maar dat is
   nog niet bevestigd.
 
@@ -1398,7 +1398,9 @@ luistert. De details, ook over bekende lekken en hoe je het controleert, staan i
 ### Andere RGB-software
 
 Twee programma's die dezelfde LED's aansturen, maken ruzie: de kleuren flikkeren of springen
-terug. Sluit daarom deze programma's af en zet ze uit bij **Taakbeheer → Opstartapps**:
+terug. Sluit daarom deze programma's af en zet ze uit bij **Taakbeheer → Opstartapps**.
+Sommige, zoals iCUE, Synapse en Armoury Crate, draaien ook als achtergrondprogramma (service);
+zet die in `services.msc` op **Handmatig**:
 
 - SignalRGB
 - Corsair iCUE
@@ -1418,8 +1420,9 @@ iets te bekijken mag wel. Welke processen en services erbij horen, staat in
 Sommige games hebben anti-cheat die kijkt welke drivers er op je pc staan. BuurmansRgb zelf heeft
 geen driver; PawnIO wel. Van FACEIT is bekend dat het een oudere PawnIO blokkeerde; met de
 versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Stond PawnIO er al (bijv. van
-FanControl), dan laat de installer die versie staan, ook een oudere; kijk bij
-**Instellingen → Apps → PawnIO** welke versie je hebt (2.1.0 of nieuwer). Van Vanguard
+FanControl), dan laat de installer die versie staan, ook een oudere. Je wilt 2.1.0 of nieuwer;
+de versie staat mogelijk bij **Instellingen → Apps → PawnIO**, en anders vind je in
+[installatie.md](installatie.md#games-met-anti-cheat) hoe je hem opzoekt. Van Vanguard
 (Valorant), Easy Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets
 geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
 
