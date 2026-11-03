@@ -79,25 +79,36 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
 
     // The sources change one property at a time; this reads them whole, so the line is consistent
     // after each. Others changes only when the set or the order changed, so the list under
-    // "Details" is not made anew for a text that changed.
+    // "Details" is not made anew for a text that changed. The messages that hold get their texts
+    // first and the ones that left are emptied last, once the line and Others moved on: so a
+    // button hides only when its message is no longer in the line, and the keyboard focus on it
+    // can be handed on (StatusLine.OnButtonIsVisibleChanged).
     private void Refresh()
     {
         var lost = DevicesExpected && _openRgb.IsDisconnected;
-        _connectionLost.Show(lost ? Strings.StatusConnectionLost : null, _rescan.ReconnectButtonText, _rescan.ReconnectButtonText, Strings.ReconnectToolTip);
-        _paused.Show(_pause.IsShown ? _pause.Text : null, _pause.CanResume ? Strings.ResumeEffects : null, Strings.ResumeEffectsAccessibleName, Strings.ResumeEffectsToolTip);
-        _previewStill.Show(_motion.IsShown ? _motion.Text : null, _motion.ButtonText, _motion.ButtonAccessibleName, _motion.ButtonHelpText);
+        var paused = _pause.IsShown;
+        var still = _motion.IsShown;
+        if (lost)
+        {
+            _connectionLost.Show(Strings.StatusConnectionLost, _rescan.ReconnectButtonText, _rescan.ReconnectButtonText, Strings.ReconnectToolTip);
+        }
 
-        StatusMessage[] active = [.. new[] { _connectionLost, _paused, _previewStill }.Where(message => message.IsActive)];
+        if (paused)
+        {
+            _paused.Show(_pause.Text, _pause.CanResume ? Strings.ResumeEffects : null, Strings.ResumeEffectsAccessibleName, Strings.ResumeEffectsToolTip);
+        }
+
+        if (still)
+        {
+            _previewStill.Show(_motion.Text, _motion.ButtonText, _motion.ButtonAccessibleName, _motion.ButtonHelpText);
+        }
+
+        StatusMessage[] active = [.. new[] { (_connectionLost, lost), (_paused, paused), (_previewStill, still) }.Where(pair => pair.Item2).Select(pair => pair.Item1)];
         var current = active.FirstOrDefault();
         var others = active.Skip(1).ToList();
         if (!others.SequenceEqual(Others))
         {
-            Others.Clear();
-            foreach (var message in others)
-            {
-                Others.Add(message);
-            }
-
+            UpdateOthers(others);
             OnPropertyChanged(nameof(HasDetails));
             OnPropertyChanged(nameof(DetailsAccessibleName));
             if (others.Count == 0)
@@ -107,5 +118,47 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         }
 
         Current = current;
+
+        if (!lost)
+        {
+            _connectionLost.Hide();
+        }
+
+        if (!paused)
+        {
+            _paused.Hide();
+        }
+
+        if (!still)
+        {
+            _previewStill.Hide();
+        }
+    }
+
+    // One message at a time, not Clear and Add: the list under "Details" keeps the item of a
+    // message that stays, and with it the keyboard focus on its button when another message
+    // leaves (the connection back while the focus is on "Laten lopen").
+    private void UpdateOthers(List<StatusMessage> others)
+    {
+        for (var i = Others.Count - 1; i >= 0; i--)
+        {
+            if (!others.Contains(Others[i]))
+            {
+                Others.RemoveAt(i);
+            }
+        }
+
+        for (var i = 0; i < others.Count; i++)
+        {
+            var index = Others.IndexOf(others[i]);
+            if (index < 0)
+            {
+                Others.Insert(i, others[i]);
+            }
+            else if (index != i)
+            {
+                Others.Move(index, i);
+            }
+        }
     }
 }

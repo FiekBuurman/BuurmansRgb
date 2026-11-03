@@ -158,6 +158,30 @@ public sealed class StatusLineViewModelTests : IDisposable
         Assert.True(_line.ShowsDetails);
     }
 
+    // Others changes one message at a time, so the list under "Details" keeps the items (and the
+    // keyboard focus) of the messages that stay; and the message that left is emptied only after
+    // the line moved on, so its button does not hide while it is still in the line.
+    [Fact]
+    public void ConnectionBack_RemovesItFromOthersWithoutMakingThemAnew()
+    {
+        _animations.Turn(on: false);
+        _pause.Show(PauseReasons.Manual);
+        _line.DevicesExpected = true;
+        _openRgb.Show(new ServerStatus(ServerState.Unreachable));
+        var lost = Assert.IsType<StatusMessage>(_line.Current);
+        var still = _line.Others[1];
+        List<string> trail = [];
+        _line.Others.CollectionChanged += (_, e) => trail.Add($"others {e.Action}");
+        _line.PropertyChanged += (_, e) => trail.Add(e.PropertyName == nameof(StatusLineViewModel.Current) ? "current" : string.Empty);
+        lost.PropertyChanged += (_, e) => trail.Add(e.PropertyName == nameof(StatusMessage.Text) ? "lost emptied" : string.Empty);
+
+        _openRgb.Show(new ServerStatus(ServerState.Connected, 2));
+
+        Assert.Same(still, Assert.Single(_line.Others));
+        Assert.Equal(["others Remove", "current", "lost emptied"], trail.Where(step => step.Length > 0));
+        Assert.False(lost.IsActive);
+    }
+
     // A pause that ends says so for a moment, without a button, and then goes.
     [Fact]
     public void Resumed_SaysSoWithoutActionAndThenGoes()

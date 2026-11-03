@@ -22,14 +22,16 @@
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                     <!-- The action of the message in the line: its text follows the source ("Zoeken…", "Stilzetten"), so
-                         the button keeps the keyboard focus; only "Hervatten" takes itself away (OnActionClick). -->
-                    <Button DataContext="{Binding Current}" Style="{StaticResource SecondaryButton}" Content="{Binding ActionText}"
-                            ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick"
+                         the button keeps the keyboard focus; only "Hervatten" takes itself away (OnActionClick). A button
+                         that hides with the focus in it, because the message left the line, hands the focus on first
+                         (OnButtonIsVisibleChanged). -->
+                    <Button x:Name="ActionButton" DataContext="{Binding Current}" Style="{StaticResource SecondaryButton}" Content="{Binding ActionText}"
+                            ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick" IsVisibleChanged="OnButtonIsVisibleChanged"
                             Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
                             AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
                             AutomationProperties.AutomationId="StatusLineAction" />
-                    <ToggleButton Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}" Content="{x:Static res:Strings.StatusDetails}"
-                                  IsChecked="{Binding ShowsDetails}" ToolTip="{x:Static res:Strings.StatusDetailsToolTip}"
+                    <ToggleButton x:Name="DetailsToggle" Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}" Content="{x:Static res:Strings.StatusDetails}"
+                                  IsChecked="{Binding ShowsDetails}" ToolTip="{x:Static res:Strings.StatusDetailsToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
                                   Visibility="{Binding HasDetails, Converter={StaticResource BoolToVisibility}}"
                                   AutomationProperties.Name="{Binding DetailsAccessibleName}" AutomationProperties.HelpText="{x:Static res:Strings.StatusDetailsToolTip}"
                                   AutomationProperties.AutomationId="StatusLineDetails" />
@@ -38,7 +40,8 @@
                            AutomationProperties.AutomationId="StatusLine" AutomationProperties.LiveSetting="Polite"
                            views:LiveRegion.AnnouncesUpdates="True" />
             </DockPanel>
-            <!-- The other messages that hold, in the order they matter, each with its own action. -->
+            <!-- The other messages that hold, in the order they matter, each with its own action. Others changes one
+                 message at a time, so the item of a message that stays keeps its button and the focus on it. -->
             <StackPanel Visibility="{Binding ShowsDetails, Converter={StaticResource BoolToVisibility}}" AutomationProperties.AutomationId="StatusLineDetailList">
                 <Border Margin="0,10,0,4" Height="1" Background="{DynamicResource BorderBrush}" />
                 <ItemsControl ItemsSource="{Binding Others}" Focusable="False" IsTabStop="False">
@@ -47,6 +50,7 @@
                             <DockPanel Margin="0,6,0,0">
                                 <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
                                         Content="{Binding ActionText}" ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick"
+                                        IsVisibleChanged="OnButtonIsVisibleChanged"
                                         Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
                                         AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
                                         AutomationProperties.AutomationId="StatusLineDetailAction" />

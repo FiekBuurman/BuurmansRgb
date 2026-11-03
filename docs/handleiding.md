@@ -118,7 +118,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   hij niet meer geldt, en komt terug in de regel zodra de belangrijkere weg is; staat er niets
   meer onder, dan gaat Details vanzelf dicht en weg. Is er niets te melden, dan is er geen kaart.
   Een schermlezer leest de melding in de regel als hij komt of verandert; de knoppen en Details
-  bereik je met Tab. Dezelfde statusregel staat bovenaan Kleur.
+  bereik je met Tab. Verdwijnt de knop waar je op staat omdat de melding weggaat (de verbinding
+  is terug, er staat niets meer onder Details), dan springt de focus naar de knop die in de regel
+  overblijft of naar de volgende knop op de pagina, niet naar het begin van het venster.
+  Dezelfde statusregel staat bovenaan Kleur.
 
   ![De pagina Apparaten zonder verbinding: de statusregel "Geen verbinding met je apparaten" met "Opnieuw verbinden" en Details open, daaronder de pauze met "Hervatten", en rechtsboven de status met "Herstarten"](images/statusregel.png)
 - De kaart **Hele huis** zegt hoeveel apparaten aan zijn ("11 van 12 aan"), heeft een grote

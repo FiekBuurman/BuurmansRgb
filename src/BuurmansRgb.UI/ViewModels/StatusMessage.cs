@@ -56,13 +56,22 @@ public sealed partial class StatusMessage : ObservableObject
 
     public bool HasAction => ActionText is not null && ActionCommand is not null;
 
-    // What the message says now; no text means it holds no more and leaves the line.
-    public void Show(string? text, string? actionText, string? actionAccessibleName, string? actionHelpText)
+    // What the message says now, and what its action says; actionText null while there is none.
+    public void Show(string text, string? actionText, string? actionAccessibleName, string? actionHelpText)
     {
-        Text = text ?? string.Empty;
-        ActionText = text is null ? null : actionText;
+        Text = text;
+        ActionText = actionText;
         ActionAccessibleName = actionAccessibleName;
         ActionHelpText = actionHelpText;
+    }
+
+    // The message holds no more and leaves the line.
+    public void Hide()
+    {
+        Text = string.Empty;
+        ActionText = null;
+        ActionAccessibleName = null;
+        ActionHelpText = null;
     }
 
     // UI Automation names an item of the list under "Details" after this (docs/ontwikkelaars.md,

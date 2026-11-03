@@ -164,6 +164,105 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // The focus is on "Laten lopen" under "Details" when the connection comes back: the pause takes
+    // the line and leaves "Details", and the preview message keeps its item, its button and the
+    // focus, instead of the list being made anew under the user's hands.
+    [Fact]
+    public async Task ConnectionBack_KeepsTheFocusOnLatenLopenUnderDetails()
+    {
+        _animations.IsOn = false;
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.Pause = PauseReasons.Manual;
+            engine.HadRealDevices = true;
+            engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+        }, animationEffects: _animations);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Assert.Equal(Strings.StatusConnectionLost, Line(page).Text);
+            Toggle(Details(page));
+            var latenLopen = DetailActions(page).Single(button => Equals(button.Content, "Laten lopen"));
+            Assert.True(latenLopen.Focus());
+
+            api!.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 2));
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(Strings.EffectsPausedManual, Line(page).Text);
+            Assert.True(viewModel.StatusLine.ShowsDetails);
+            Assert.True(latenLopen.IsVisible);
+            Assert.True(latenLopen.IsKeyboardFocused);
+            Assert.Same(latenLopen, Assert.Single(DetailActions(page)));
+        });
+    }
+
+    // The focus is on "Details" when the message under it takes the line, so "Details" goes: the
+    // focus moves to the action that is left in the line.
+    [Fact]
+    public async Task DetailsGo_FocusMovesToTheActionInTheLine()
+    {
+        _animations.IsOn = false;
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.HadRealDevices = true;
+            engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+        }, animationEffects: _animations);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var details = Details(page);
+            Assert.True(details.IsVisible);
+            Assert.True(details.Focus());
+
+            api!.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 2));
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(details.IsVisible);
+            Assert.Equal(Strings.PreviewStill, Line(page).Text);
+            Assert.Equal("Laten lopen", Action(page).Content);
+            Assert.True(Action(page).IsKeyboardFocused);
+        });
+    }
+
+    // The focus is on "Opnieuw verbinden" when the connection comes back and what is left has no
+    // action (a pause from Windows), or nothing is left and the card goes: the focus moves on to
+    // the next control of the page, the switch of "Hele huis", instead of falling to the window.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ActionGoes_FocusMovesOnToThePage(bool pausedByWindows)
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.Pause = pausedByWindows ? PauseReasons.Locked : PauseReasons.None;
+            engine.HadRealDevices = true;
+            engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var action = Action(page);
+            Assert.Equal("Opnieuw verbinden", action.Content);
+            Assert.True(action.Focus());
+
+            api!.RaiseOpenRgbStatus(new ServerStatus(ServerState.Connected, 2));
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(action.IsVisible);
+            Assert.Equal(pausedByWindows, Card(page).IsVisible);
+            Assert.True(PageViews.Named<ToggleButton>(page, Strings.WholeHouseSwitchAccessibleName).IsKeyboardFocused);
+        });
+    }
+
     // Nothing to say: no card. A pause that comes while Kleur is open brings the line, read out
     // by a screen reader; a pause from Windows has no button and no "Details".
     [Fact]
@@ -225,8 +324,10 @@ public sealed class StatusLineViewTests
     private static TextBlock Detail(FrameworkElement page) =>
         AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLineDetail");
 
-    private static Button DetailAction(FrameworkElement page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "StatusLineDetailAction");
+    private static Button DetailAction(FrameworkElement page) => DetailActions(page).Single();
+
+    private static IEnumerable<Button> DetailActions(FrameworkElement page) =>
+        AppTheme.Descendants<Button>(page).Where(button => AutomationProperties.GetAutomationId(button) == "StatusLineDetailAction");
 
     // As a screen reader would: the toggle pattern of the button.
     private static void Toggle(ToggleButton button)
