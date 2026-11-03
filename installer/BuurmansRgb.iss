@@ -41,6 +41,8 @@ WizardStyle=modern
 CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
+; From Instellingen -> Apps a log in the TEMP of whoever answered UAC, with who started it.
+UninstallLogging=yes
 
 [Languages]
 Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
