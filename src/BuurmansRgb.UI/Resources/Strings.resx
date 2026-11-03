@@ -1444,7 +1444,7 @@
     <comment>Naam voor een schermlezer van StatusExplanation bij OtherRgbSoftwareRuns. {0} = de naam van het programma.</comment>
   </data>
   <data name="OtherRgbSoftwareExplanation" xml:space="preserve">
-    <value>Sluit {0} af en zet het uit bij Taakbeheer → Opstartapps, zodat het niet weer meestart met Windows. Draait het ook als achtergrondprogramma (service), zoals SignalRGB, iCUE en Synapse doen, zet die service dan in services.msc op Handmatig. Laat je {0} bewust draaien, kies dan Niet meer melden.</value>
+    <value>Sluit {0} af en zet het uit bij Taakbeheer → Opstartapps, zodat het niet weer meestart met Windows. Draait het ook als achtergrondprogramma (service), zet die service dan in services.msc op Handmatig. Laat je {0} bewust draaien, kies dan Niet meer melden.</value>
     <comment>Wat StatusExplanation uitklapt bij OtherRgbSoftwareRuns; hetzelfde als "Andere RGB-software" in docs/handleiding.md. {0} = de naam van het programma.</comment>
   </data>
   <data name="OtherOpenRgbExplanation" xml:space="preserve">
