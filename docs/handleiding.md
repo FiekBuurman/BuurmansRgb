@@ -787,7 +787,7 @@ Hoe het vanzelf aanzetten werkt:
   (Annuleren of **Terugzetten**; Escape is Annuleren). Daarna gelden ze meteen, zonder herstart,
   ook in een tweede instellingen-app, en staat onderaan "Instellingen teruggezet.". Een bestand
   dat de zip niet heeft, blijft zoals het was. Wat er nu is, zet de engine eerst in een kopie in
-  de map met instellingen, in `backups\before-restore-<datum>-<tijd>.zip` (de tijd in UTC, dus
+  de map met instellingen, in `backups\before-restore-<datum>-<tijd>-<ms>.zip` (de tijd tot op de milliseconde en in UTC, dus
   in de winter een uur vroeger dan op de klok en in de zomer twee; de laatste vijf blijven);
   daarmee zet je het zo nodig weer terug. Twee dingen horen bij deze pc en komen niet uit de zip:
   "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos (`autoStartChosen`), zodat een update het laat zoals jij het zette; en of deze pc ooit echte
