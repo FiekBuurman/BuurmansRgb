@@ -94,15 +94,24 @@ Beperkingen:
   verwijderen hem meteen. Een wijziging van de laatste seconde kan dan verloren gaan. Wil je dat
   niet, sluit de engine dan eerst zelf af via **Afsluiten** in het tray-menu.
 - Draait een andere gebruiker op de pc BuurmansRgb nog (na wisselen van gebruiker), dan sluit het
-  verwijderen die engine niet; Windows haalt de programmabestanden dan weg bij de volgende
-  herstart.
-- Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Setup Log <datum> #001.txt` in
-  `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt het alleen
+  verwijderen die engine niet. De programmabestanden die de engine gebruikt, blijven dan staan in
+  `C:\Program Files\BuurmansRgb` (het verwijderen meldt "Enkele elementen konden niet verwijderd
+  worden"), en de autostart van die gebruiker start BuurmansRgb bij zijn volgende aanmelding
+  gewoon weer. Meld die gebruiker daarom eerst af (**Taakbeheer → Gebruikers**, rechtermuisknop
+  op de gebruiker → **Afmelden**), of laat hem de engine afsluiten via **Afsluiten** in het
+  tray-menu, en verwijder daarna. Bleven er al bestanden staan, meld die gebruiker dan alsnog
+  af en haal de map `C:\Program Files\BuurmansRgb` zelf weg (Verkenner vraagt om
+  beheerdersrechten); staat BuurmansRgb nog bij **Apps**, dan kun je ook opnieuw verwijderen.
+- Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Uninstall Log
+  <datum> #001.txt` in `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel
+  `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt het alleen
   de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
   sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
 
-**Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Dat kan geen kwaad: de
-autostart wijst naar een programma dat er niet meer is en doet niets. Wil een andere gebruiker
+**Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Zijn de
+programmabestanden weg, dan kan dat geen kwaad: de autostart wijst naar een programma dat er niet
+meer is en doet niets. Bleven ze staan omdat die gebruiker BuurmansRgb nog open had (zie
+hierboven), dan start zijn autostart het bij zijn volgende aanmelding weer. Wil een andere gebruiker
 ze toch weg, dan doet hij dat zelf, ingelogd als zichzelf:
 
 1. Verwijder de map `%AppData%\BuurmansRgb` (plak `%AppData%` in de adresbalk van Verkenner).

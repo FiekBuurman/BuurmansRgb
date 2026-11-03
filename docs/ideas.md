@@ -718,6 +718,12 @@ uitbreidingen in `docs/bouwplan.md`.
   staat, dus de engine wordt meteen gestopt. Bijv. de engine zijn signaal ook voor
   Administrators laten openen, of `--exit` via een taak met `/IT` als de gebruiker starten
   (`verwijderen-netjes`)
+- Programmabestanden die een engine van een andere gebruiker nog open heeft, bij de volgende
+  herstart laten weghalen (`uninsrestartdelete` op de `[Files]`-regel van de app). Nu blijven ze
+  staan en start de autostart van die gebruiker BuurmansRgb weer; `installatie.md` zegt dat je die
+  gebruiker eerst afmeldt. Niet zomaar aanzetten: met `/VERYSILENT` herstart de uninstaller de pc
+  dan zonder te vragen (`/NORESTART` meegeven of `NeedRestart` beperken), en de autostart van die
+  gebruiker moet ook weg of naar niets wijzen (`verwijderen-netjes`)
 - Bij verwijderen een beheerder laten kiezen om de instellingen en autostart van álle gebruikers
   weg te halen (nu alleen van wie het verwijderen startte; de rest staat in `installatie.md`)
   (`verwijderen-netjes`)
