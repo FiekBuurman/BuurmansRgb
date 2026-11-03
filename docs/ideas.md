@@ -730,6 +730,20 @@ uitbreidingen in `docs/bouwplan.md`.
 - De Sandbox-test ook het verwijderen als gewone gebruiker met het wachtwoord van een andere
   beheerder laten doen; nu een handmatige test in `ontwikkelaars.md`, omdat de UAC-vraag met een
   wachtwoord niet te automatiseren is (`verwijderen-netjes`)
+- De service `OpenRGB` expliciet aan `127.0.0.1` binden: nu krijgt hij geen argumenten en volgt
+  hij de standaard van OpenRGB 1.1 (`--server-host 127.0.0.1` volgens de help-tekst), dus een
+  andere versie of instelling kan op `0.0.0.0` luisteren. Bijv. na de MSI het `ImagePath` van de
+  service aanvullen met `--server-host 127.0.0.1 --server-port 6742`; eerst testen of OpenRGB die
+  argumenten als service leest, en of een reparatie of update van de MSI ze weer weghaalt
+  (`installatie-uitleg`)
+- Bij een service `OpenRGB` die er al stond (die slaat de installer over) controleren of hij op
+  `0.0.0.0:6742` luistert of een versie van vóór de hotfix 1.0rc3.1 is, en dat melden; zie
+  "De SDK-server" in `installatie.md` (`installatie-uitleg`)
+- Een parameter voor stil verwijderen die OpenRGB en PawnIO ook weghaalt (bijv. `/REMOVEDEPS`,
+  te lezen met `{param:...}` of `GetCmdTail`); nu beantwoordt `/SUPPRESSMSGBOXES` die vragen met
+  "Nee" en staan de losse commando's in `installatie.md` (`installatie-uitleg`)
+- De Sandbox-test ook `sc qc PawnIO` laten loggen, zodat het starttype van PawnIO (nu "onbekend"
+  in `installatie.md`) zonder echte pc bekend is (`installatie-uitleg`)
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt
