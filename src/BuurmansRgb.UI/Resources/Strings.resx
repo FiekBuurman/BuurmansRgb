@@ -1388,11 +1388,11 @@
   </data>
   <data name="PreviewStill" xml:space="preserve">
     <value>Voorbeeld staat stil omdat animaties in Windows uit staan.</value>
-    <comment>In een balk op Apparaten en bij het voorbeeld op Kleur, als "Animatie-effecten" van Windows uit staat. Een schermlezer leest hem voor als hij verandert.</comment>
+    <comment>In de statusregel bovenaan Apparaten en Kleur (met PreviewRun), als "Animatie-effecten" van Windows uit staat; onder "Details" als er een belangrijkere melding is. Een schermlezer leest de regel voor als hij verandert.</comment>
   </data>
   <data name="PreviewRunsAnyway" xml:space="preserve">
     <value>Voorbeeld loopt, ook al staan animaties in Windows uit.</value>
-    <comment>Dezelfde balk nadat de gebruiker "Laten lopen" koos; geldt tot de app sluit.</comment>
+    <comment>Dezelfde melding nadat de gebruiker "Laten lopen" koos (dan met PreviewStop); geldt tot de app sluit.</comment>
   </data>
   <data name="PreviewRun" xml:space="preserve">
     <value>Laten lopen</value>
