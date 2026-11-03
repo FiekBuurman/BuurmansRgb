@@ -327,6 +327,14 @@ uitbreidingen in `docs/bouwplan.md`.
   niet bij een pagina, en de statusregel anders altijd zou staan
 - Onder "Details" van de statusregel ook de technische OpenRGB-status tonen (nu alleen in de
   tooltip rechtsboven, achter de ⓘ en bij Instellingen), zodat hij op Kleur ook zonder tooltip te lezen is
+- De statusregel ook bovenaan Scènes en Instellingen; sinds `een-melding` staat hij alleen op
+  Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
+  verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
+  op de apparaten komt
+- De balk onderaan (`SaveStatus` en wat er net gebeurde, in `MainWindow.xaml`) heette in de
+  handleiding ook "statusregel"; sinds `een-melding` is de kaart bovenaan de Statusregel en zegt
+  de handleiding voor de balk "onderaan". Eventueel de balk onderaan een eigen naam geven, ook in
+  `docs/ideas.md` ("de statusregel onderaan leegmaken")
 - Ook bij andere grijze knoppen zeggen waarom, zoals "Toepassen" bij een lengte die al staat en
   de schakelaar "Hele huis" zonder apparaten; nu zegt alleen de tooltip het, en een knop die uit
   staat krijgt geen Tab-focus, dus een toetsenbordgebruiker ziet die tooltip niet

@@ -1024,6 +1024,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Refactor na de review van 28-10 (#93): `AutoStartSwitch.IsAccessError` ook voor de `catch` van `AutoStartExtensions`, en een ongebruikte `using` weg uit `TrayApplicationContext`; Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB en zonder scènes, app dicht; vijf rondes van 60 s om en om met de basis (`instellingen-aanvullen`, #92), in een reeks van drie en een van twee, de volgorde per ronde omgedraaid (na 15 s opwarmen). Er verandert niets per frame: de foutafhandeling van "Starten met Windows" draait alleen bij het starten en bij een klik | 0,26–0,34 % van één kern, met één uitschieter van 0,78, basis 0,31–0,44 %: geen verschil buiten de ruis | 26,8–29,6 MB working set, 11,0–12,0 MB private (basis: 26,9–29,8 en 11,1–12,8 MB) |
 | Engine | Scherm van de eigen sessie (`scherm-uit-sessie`, #104): `GUID_SESSION_DISPLAY_STATUS` in plaats van de console-GUID, opnieuw registreren bij een sessiewissel en een logregel bij het begin en einde van elke pauze; Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB en zonder scènes, app dicht, sessie losgekoppeld (Extern bureaublad verbroken, dus geen sessiewissel tijdens de meting); drie rondes van 60 s om en om met de basis (`ci-pull-requests`, f36dd00, bovenop main), de volgorde per ronde omgedraaid (na 15 s opwarmen). Er verandert niets per frame, er komt geen timer of polling bij; een pauze kost één logregel. In het log van de branch staat bij het starten "Effects paused (locked)." en 150 ms later "Pause ended (locked)": de losgekoppelde sessie telt als vergrendeld tot `pauseOnLockAndSleep` uit `settings.json` is toegepast, zoals de basis dat zonder regel ook deed; geen pauze voor het scherm | 0,23–0,55 % van één kern, basis 0,39–0,47 %: geen verschil buiten de ruis | 26,4–29,0 MB working set, 11,1–12,3 MB private (basis: 26,2–28,9 en 10,9–12,8 MB) |
 | Engine | OpenRGB weg na echte apparaten (`openrgb-weg`, #105): `HadRealDevices` in `SimulatedDevicesSwitch` (één bool die bij elke `DevicesChanged` meegaat in de beslissing die er al was), `hadRealDevices` in `settings.json` en `GetHadRealDevicesAsync`; Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB (dus de twaalf gesimuleerde apparaten, `hadRealDevices` niet gezet) en zonder scènes, app dicht, sessie losgekoppeld; drie rondes van 60 s om en om met de basis (`scherm-uit-sessie`, ad3d69c), de volgorde per ronde omgedraaid (na 15 s opwarmen). Er verandert niets per frame, er komt geen timer of polling bij; het feit wordt hooguit één keer geschreven. In ronde 3 van de branch kwam de sessie halverwege weer op een scherm (`RemoteConnect` in het log), vandaar de uitschieter in die ronde | 0,39–0,44 % van één kern (ronde 3 met de sessiewissel 0,73 %), basis 0,23–0,57 %: geen verschil buiten de ruis | 26,3–29,4 MB working set (ronde 3 tot 31,2 MB), 11,0–12,9 MB private (basis: 26,2–29,0 en 10,9–11,9 MB) |
+| Engine | Eén statusregel en Herstarten vanuit de app (`een-melding`, #?): in de engine alleen `IEngineApi.RestartAsync`, dat het verzoek doorgeeft aan `TrayApplicationContext.RequestRestart`; de rest zit in de instellingen-app. Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB en zonder scènes, app dicht, sessie actief op de console (niet losgekoppeld; in de logs alleen het starten en "OpenRGB is not reachable"); drie rondes van 60 s om en om met de basis (`knop-reden`, 1016a0b), de volgorde per ronde omgedraaid (na 15 s opwarmen). Er verandert niets per frame, er komt geen timer of polling bij: `RestartAsync` is één IPC-aanroep die alleen werk doet als je op Herstarten klikt, en tijdens de meting klikte niemand | 0,23–0,49 % van één kern, basis 0,23–0,44 %: geen verschil buiten de ruis | 26,9–28,0 MB working set, 11,0–12,8 MB private (basis: 26,8–28,0 en 11,0–13,0 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -1175,17 +1176,23 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 ### OpenRGB-status en gesimuleerde apparaten
 
 1. Start de engine en de app met de OpenRGB-service uit, met een `settings.json` zonder
-   `hadRealDevices`: "niet bereikbaar" met de tip, en de gesimuleerde apparaten staan er. Start
-   de service: binnen 5 seconden staat er "verbonden" met het aantal apparaten, verschijnen de
-   echte en verdwijnen de gesimuleerde, en staat er `"hadRealDevices": true` in `settings.json`.
-   Stop de service: de gesimuleerde komen niet terug, Apparaten zegt "De verbinding met je
-   apparaten is weg." met "Opnieuw verbinden" en de verwijzing naar Herstarten. Klik op "Opnieuw
-   verbinden" terwijl de service uit is: beide knoppen zeggen "Zoeken…" en daarna staat de
-   melding dat OpenRGB niet bereikbaar is; start de service: de echte apparaten komen terug en de
-   kaart is weg. Herstart de engine terwijl de service uit is: geen gesimuleerde apparaten en
-   dezelfde kaart. Zet `hadRealDevices` in `settings.json` met de hand op `false`: binnen een
-   seconde staan de gesimuleerde apparaten er weer. Kijk of de tooltip van het tray-icoon steeds
-   hetzelfde zegt als de status in de app.
+   `hadRealDevices`: rechtsboven staat "Nog geen echte apparaten gevonden" (de technische status
+   "OpenRGB: niet bereikbaar" met de tip in de tooltip en bij Instellingen), zonder "Herstarten"
+   en zonder statusregel, en de gesimuleerde apparaten staan er. Start de service: binnen 5
+   seconden staat er "5 apparaten verbonden" (het aantal), verschijnen de echte en verdwijnen de
+   gesimuleerde, en staat er `"hadRealDevices": true` in `settings.json`. Stop de service: de
+   gesimuleerde komen niet terug, rechtsboven staat "Geen verbinding met je apparaten" met
+   "Herstarten", de statusregel bovenaan Apparaten en Kleur zegt dat de verbinding weg is, met
+   "Opnieuw verbinden", en in de lijst zegt Apparaten "De verbinding met je apparaten is weg."
+   met "Opnieuw verbinden" en de verwijzing naar Herstarten. Pauzeer via het tray-menu: de pauze
+   staat onder "Details" van de statusregel, met "Hervatten". Klik op "Opnieuw verbinden" terwijl
+   de service uit is: alle drie de knoppen zeggen "Zoeken…" en daarna staat de melding dat
+   OpenRGB niet bereikbaar is; start de service: de echte apparaten komen terug, de kaart en de
+   statusregel zijn weg. Herstart de engine terwijl de service uit is: geen gesimuleerde
+   apparaten en dezelfde kaart. Zet `hadRealDevices` in `settings.json` met de hand op `false`:
+   binnen een seconde staan de gesimuleerde apparaten er weer. Kijk of de tooltip van het
+   tray-icoon steeds hetzelfde zegt als de technische status in de tooltip van de app en bij
+   Instellingen.
 2. Kies "Altijd" en "Nooit" en kijk of de apparaten meteen meeveranderen; herstart de engine en
    kijk of de keuze bewaard is.
 3. Heeft een apparaat geen "Direct"-modus, kijk dan of het de waarschuwing krijgt, en noteer
@@ -1363,6 +1370,12 @@ Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
 5. Start FanControl of LibreHardwareMonitor (die PawnIO gebruiken) en kies "Herstarten": PawnIO
    wordt overgeslagen met een melding, OpenRGB herstart wel. Noteer in `docs/hardware.md` wat er
    gebeurde, ook of PawnIO daarna nog werkt als je dat programma sluit.
+6. Stop de OpenRGB-service en klik in de instellingen-app op "Herstarten" naast de status
+   rechtsboven op Apparaten (en een keer bij Instellingen): onderaan staat "buurmansRgb herstart:
+   de app gaat zo dicht en komt vanzelf terug.", Windows vraagt om toestemming (UAC), de app
+   gaat dicht en komt terug bij de nieuwe engine, de apparaten komen terug met hun kleur en de
+   knop is weg. Weiger de UAC-vraag een keer: alleen buurmansRgb herstart, de app komt terug,
+   OpenRGB staat nog uit en "Herstarten" staat er weer.
 
 Zonder OpenRGB en PawnIO (zoals op een ontwikkel-pc) vraagt "Herstarten" geen UAC en herstart
 het alleen buurmansRgb, met "OpenRGB staat niet als service op deze pc." en "PawnIO is niet
