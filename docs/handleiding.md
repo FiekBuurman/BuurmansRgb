@@ -123,7 +123,7 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   overblijft of naar de volgende knop op de pagina, niet naar het begin van het venster.
   Dezelfde statusregel staat bovenaan Kleur.
 
-  ![De pagina Apparaten zonder verbinding: de statusregel "Geen verbinding met je apparaten" met "Opnieuw verbinden" en Details open, daaronder de pauze met "Hervatten", en rechtsboven de status met "Herstarten"](images/statusregel.png)
+  ![De pagina Apparaten zonder verbinding: de statusregel "Geen verbinding met je apparaten" met "Opnieuw verbinden" en Details open, daaronder de pauze met "Hervatten" en het stilstaande voorbeeld met "Laten lopen", rechtsboven de status met "Herstarten", en onder "Apparaten in huis" de kaart "Hier komen je apparaten zodra de verbinding terug is"](images/statusregel.png)
 - De kaart **Hele huis** zegt hoeveel apparaten aan zijn ("11 van 12 aan"), heeft een grote
   schakelaar voor alles en een strip van 14 bolletjes die laat zien wat de apparaten nu echt doen:
   elk bolletje is een LED uit alle apparaten achter elkaar, dus bij een regenboog loopt hij mee.
@@ -149,11 +149,12 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan zegt de statusregel
   bovenaan dat de verbinding weg is, met **Opnieuw verbinden** (zie "Statusregel"), en komen er
   geen nep-apparaten voor in de plaats (zie "Gesimuleerde apparaten" bij "Instellingen"). Onder
-  "Apparaten in huis" staat dan een kaart als lege staat van de lijst: "Hier komen je apparaten
-  zodra de verbinding terug is; opnieuw verbinden kan bovenaan.", en dat "Herstarten" bij de status
-  rechtsboven of in het menu van het tray-icoon OpenRGB en buurmansRgb opnieuw start (zie
-  "Tray-icoon") als opnieuw verbinden niet helpt. De kaart heeft geen eigen knop en wordt niet
-  apart voorgelezen: de melding bovenaan zegt het al, zodat een schermlezer het één keer hoort.
+  "Apparaten in huis" staat dan een kaart als lege staat van de lijst (zie de afbeelding bij
+  "Statusregel"): "Hier komen je apparaten zodra de verbinding terug is; opnieuw verbinden kan
+  bovenaan.", en dat "Herstarten" bij de status rechtsboven of in het menu van het tray-icoon
+  OpenRGB en buurmansRgb opnieuw start (zie "Tray-icoon") als opnieuw verbinden niet helpt. De
+  kaart heeft geen eigen knop en wordt niet apart voorgelezen: de melding bovenaan zegt het al,
+  zodat een schermlezer het één keer hoort.
   "Opnieuw verbinden" doet wat Verversen doet: OpenRGB zoekt opnieuw, en antwoordt het niet, dan
   verbindt buurmansRgb opnieuw; zolang dat duurt, zeggen beide knoppen "Zoeken…". Op een pc die
   nog nooit een echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de
