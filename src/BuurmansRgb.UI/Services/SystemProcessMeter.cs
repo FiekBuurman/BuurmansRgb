@@ -4,7 +4,7 @@ using Microsoft.Win32.SafeHandles;
 namespace BuurmansRgb.UI.Services;
 
 // Reads a process of this user with GetProcessTimes and GetProcessMemoryInfo on a handle it opens
-// once (until another process is asked or this is disposed). Not Process.WorkingSet64: that takes a
+// once (until another process is asked, the readings stop or this is disposed). Not Process.WorkingSet64: that takes a
 // snapshot of every process on the pc at each reading, which cost the app ~0.3 % of one core every
 // 2 s. Not thread-safe: EngineUsageViewModel calls it under its lock.
 public sealed partial class SystemProcessMeter : IProcessMeter, IDisposable
@@ -20,7 +20,7 @@ public sealed partial class SystemProcessMeter : IProcessMeter, IDisposable
     {
         if (_handle is null || _processId != processId)
         {
-            Dispose();
+            Release();
             var handle = OpenProcess(QueryLimitedInformation | VmRead, inheritHandle: false, (uint)processId);
             if (handle.IsInvalid)
             {
@@ -38,19 +38,21 @@ public sealed partial class SystemProcessMeter : IProcessMeter, IDisposable
             || !GetProcessMemoryInfo(_handle, ref counters, counters.Size))
         {
             // Gone: an engine that restarted gets a new id from the next connection.
-            Dispose();
+            Release();
             return null;
         }
 
         return new ProcessReading(TimeSpan.FromTicks(kernel + user), (long)counters.WorkingSetSize);
     }
 
-    public void Dispose()
+    public void Release()
     {
         _handle?.Dispose();
         _handle = null;
         _processId = 0;
     }
+
+    public void Dispose() => Release();
 
     [LibraryImport("kernel32.dll", SetLastError = true)]
     private static partial SafeProcessHandle OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);

@@ -92,6 +92,11 @@ public sealed partial class EngineUsageViewModel : ObservableObject, IDisposable
             IsMeasuring = measure;
             var period = measure ? Interval : Timeout.InfiniteTimeSpan;
             _timer.Change(period, period);
+            if (!measure)
+            {
+                // No handle of the engine held open while nothing is read.
+                _meter.Release();
+            }
         }
 
         if (measure)

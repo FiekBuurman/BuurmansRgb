@@ -26,4 +26,16 @@ public sealed class SystemProcessMeterTests
 
         Assert.Null(meter.Read(int.MaxValue - 1));
     }
+
+    // After Release the handle is closed; the next Read opens it again.
+    [Fact]
+    public void Read_AfterRelease_ReadsAgain()
+    {
+        using var meter = new SystemProcessMeter();
+        Assert.NotNull(meter.Read(Environment.ProcessId));
+
+        meter.Release();
+
+        Assert.NotNull(meter.Read(Environment.ProcessId));
+    }
 }

@@ -73,6 +73,7 @@ public sealed class EngineUsageViewModelTests
         Assert.False(usage.IsMeasuring);
         Assert.Single(_meter.Reads);
         Assert.Equal(Strings.UsageUnknown, usage.Text);
+        Assert.Equal(1, _meter.Releases);
     }
 
     [Fact]
@@ -87,6 +88,7 @@ public sealed class EngineUsageViewModelTests
 
         Assert.False(usage.IsMeasuring);
         Assert.Single(_meter.Reads);
+        Assert.Equal(1, _meter.Releases);
     }
 
     // Back on the page the CPU starts over: no share over the time the page was away.
@@ -151,6 +153,10 @@ public sealed class EngineUsageViewModelTests
             Reads.Add(processId);
             return Next;
         }
+
+        public int Releases { get; private set; }
+
+        public void Release() => Releases++;
 
         public void Dispose() => IsDisposed = true;
     }

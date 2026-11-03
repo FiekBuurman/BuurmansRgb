@@ -100,6 +100,10 @@ public sealed class MainViewModelEngineUsageTests
             return new ProcessReading(TimeSpan.Zero, 1024 * 1024);
         }
 
+        public int Releases { get; private set; }
+
+        public void Release() => Releases++;
+
         public void Dispose() => IsDisposed = true;
     }
 }

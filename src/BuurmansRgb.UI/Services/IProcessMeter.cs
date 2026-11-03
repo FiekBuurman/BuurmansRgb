@@ -6,6 +6,10 @@ public interface IProcessMeter
 {
     // Null when the process is not there (any more) or cannot be read.
     ProcessReading? Read(int processId);
+
+    // Closes what Read keeps open (the handle of the process) when the readings stop; the next
+    // Read opens it again.
+    void Release();
 }
 
 // The CPU time the process used since it started, on all cores together, and its working set.
@@ -21,4 +25,8 @@ public sealed class NoProcessMeter : IProcessMeter
     }
 
     public ProcessReading? Read(int processId) => null;
+
+    public void Release()
+    {
+    }
 }
