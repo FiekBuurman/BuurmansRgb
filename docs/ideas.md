@@ -209,15 +209,13 @@ uitbreidingen in `docs/bouwplan.md`.
   per apparaat kiezen welke rand of welk deel het volgt; ook hier alleen samplen zolang het effect
   op een apparaat staat. Beschermde video (DRM) geeft een zwart beeld (testpanel 1-11-2026, Sanne)
 - Toetsen die oplichten bij indrukken (en weer uitdoven, of een kring die van de toets af loopt):
-  de engine hoort de toets via Raw Input (`WM_INPUT` op het verborgen venster) of een
-  `WH_KEYBOARD_LL`-hook en zoekt de LED op via de toetsnaam die OpenRGB geeft ("Key: W", zie
+  de engine hoort de toets via Raw Input (`WM_INPUT` op het verborgen venster), liever dan via een
+  `WH_KEYBOARD_LL`-hook (die laat elke toetsaanslag door de engine lopen en kan door anti-cheat als
+  verdacht gezien worden), en zoekt de LED op via de toetsnaam die OpenRGB geeft ("Key: W", zie
   `OpenRgbDeviceMapper.ToLedNames`); het effect houdt per toets een tijd bij, zoals het idee voor
-  Vuur hitte per LED bijhoudt. Alleen welke toets, nooit wat je typt, en niets ervan in het
-  logbestand (testpanel 1-11-2026, Sanne)
-- Kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één schuif, in plaats van
-  wit mengen met Rood, Groen en Blauw, voor wie het licht als bureaulamp gebruikt; de omzetting van
-  kelvin naar RGB is een vaste benadering (Tanner Helland), en zou 's avonds vanzelf warmer kunnen
-  worden, zoals Nachtlicht van Windows (testpanel 1-11-2026, Henk)
+  Vuur hitte per LED bijhoudt. Alleen registreren zolang het effect op een toetsenbord staat;
+  alleen welke toets, nooit wat je typt, en niets ervan in het logbestand (testpanel 1-11-2026,
+  Sanne)
 - Eigen effecten, na de eerste versie (stappen met een kleur of patroon, blijven staan en
   overlopen):
   - `effects.json` met de hand live oppikken, zoals `settings.json` met `SettingsFileWatcher`;
@@ -257,6 +255,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
+- Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één
+  schuif in kelvin in plaats van Rood, Groen en Blauw, voor wie het licht als bureaulamp gebruikt;
+  de omzetting van kelvin naar RGB is een vaste benadering (Tanner Helland). Dat het 's avonds
+  vanzelf warmer wordt, zoals Nachtlicht van Windows, is dan een scène die op tijd aangaat (zie
+  "Scènes") (testpanel 1-11-2026, Henk)
 - Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
@@ -668,16 +671,17 @@ uitbreidingen in `docs/bouwplan.md`.
   HTTP-POST met JSON (gezondheid, ronde, bom, kills) naar een lokaal adres dat in een
   `gamestate_integration_*.cfg` in de map van de game staat; een luisteraar op `127.0.0.1` zet dat
   om in licht (weinig gezondheid rood, bom geplant knipperen, ronde gewonnen een flits), bijv. als
-  een scène per toestand. Liefst als apart proces op de pipe van de engine (zoals de brug
-  hieronder), zodat de engine geen HTTP-server krijgt en het niets kost zolang het uit staat
-  (testpanel 1-11-2026, Jayden)
+  een scène per toestand, met het `auth`-token uit de `.cfg` (CS2 stuurt dat in elke POST mee),
+  zodat niet elk lokaal programma de kleuren kan zetten. Liefst als apart proces op de pipe van de
+  engine (zoals de brug hieronder), zodat de engine geen HTTP-server krijgt en het niets kost
+  zolang het uit staat (testpanel 1-11-2026, Jayden)
 - Een brug naar Home Assistant of MQTT: een apart proces (bijv. `BuurmansRgb.Bridge`) dat zoals de
   instellingen-app op de named pipe van de engine verbindt (`IEngineApi`: alles aan en uit, kleur,
   helderheid, scènes) en dat als `light` aanbiedt via MQTT discovery van Home Assistant of een
-  kleine REST-koppeling. Standaard uit; wat het zelf opent, luistert alleen op localhost
-  (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en `docs/handleiding.md` zegt
-  wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt geen netwerkcode (testpanel
-  1-11-2026, Noor; de eisen van Kees)
+  kleine REST-koppeling. De eisen van Kees: standaard uit; wat het zelf opent, luistert alleen op
+  localhost (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en
+  `docs/handleiding.md` zegt wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt
+  geen netwerkcode (testpanel 1-11-2026, Noor en Kees)
 
 ## Installer en uitrol
 

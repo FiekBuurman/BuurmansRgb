@@ -1298,8 +1298,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
    van Windows krijgt. Zonder serienummer zet Windows in dat pad een nummer dat van de hub en de
    poort afhangt, dus in een andere poort is het waarschijnlijk een nieuw apparaat met de kleur van
    "Hele huis", terwijl de oude instellingen onder het oude id blijven staan (zie het idee over
-   opruimen bij "Zones en zonelengtes"); met een serienummer blijft het id gelijk. Noteer in
-   `docs/hardware.md` welke apparaten hun instellingen verliezen (testpanel 1-11-2026, Mo).
+   opruimen bij "Zones en zonelengtes"); met een serienummer hoort het id gelijk te blijven. Neem
+   als controle ook een apparaat mét serienummer mee en noteer beide uitkomsten in
+   `docs/hardware.md`: welke apparaten hun instellingen verliezen en welke ze houden (testpanel
+   1-11-2026, Mo).
 
 ### Knipperen en plek
 
