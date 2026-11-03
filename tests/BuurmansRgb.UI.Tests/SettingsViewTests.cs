@@ -116,6 +116,8 @@ public sealed class SettingsViewTests
             Assert.Equal(Strings.BackupRestoreHint, AutomationProperties.GetHelpText(restore));
             Assert.True(save.IsEnabled);
             Assert.True(restore.IsEnabled);
+            Assert.Same(viewModel.Backup.SaveCommand, save.Command);
+            Assert.Same(viewModel.Backup.RestoreCommand, restore.Command);
             Assert.Contains(Strings.BackupHeader, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
         });
     }
