@@ -451,6 +451,23 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(1, _api.RescanCalls);
     }
 
+    // The other RGB software comes over the pipe with its ids and names, and a dismissed id goes back.
+    [Fact]
+    public async Task OtherRgbSoftware_CrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.OtherRgbSoftwareChanged += (_, _) => changed.TrySetResult();
+
+        var found = await client.Api.GetOtherRgbSoftwareAsync(Ct);
+        await client.Api.DismissOtherRgbSoftwareAsync("signalrgb", Ct);
+        _api.RaiseOtherRgbSoftwareChanged();
+
+        Assert.Equal([new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("openrgb", "OpenRGB")], found);
+        Assert.Equal(["signalrgb"], _api.DismissedOtherRgbSoftware);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
     [Fact]
     public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
     {
@@ -889,6 +906,21 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             OptionCalls.Add($"custom colors {string.Join(" ", colors.Select(color => color.ToHex()))}");
+            return Task.CompletedTask;
+        }
+
+        public event EventHandler? OtherRgbSoftwareChanged;
+
+        public void RaiseOtherRgbSoftwareChanged() => OtherRgbSoftwareChanged?.Invoke(this, EventArgs.Empty);
+
+        public Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<OtherRgbSoftware>>([new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware(OtherRgbSoftware.OpenRgbId, "OpenRGB")]);
+
+        public List<string> DismissedOtherRgbSoftware { get; } = [];
+
+        public Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default)
+        {
+            DismissedOtherRgbSoftware.Add(id);
             return Task.CompletedTask;
         }
 

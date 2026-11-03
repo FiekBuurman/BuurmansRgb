@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Ipc;
@@ -27,6 +28,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly CustomEffectLibrary? _customEffects;
     private readonly AutoStartSwitch? _autoStart;
     private readonly Action? _restart;
+    private readonly OtherRgbSoftwareCheck? _otherRgbSoftware;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -47,9 +49,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         ZoneCounter? zoneCounter = null,
         CustomEffectLibrary? customEffects = null,
         AutoStartSwitch? autoStart = null,
-        Action? restart = null)
+        Action? restart = null,
+        OtherRgbSoftwareCheck? otherRgbSoftware = null)
     {
         _restart = restart;
+        _otherRgbSoftware = otherRgbSoftware;
         _zoneCounter = zoneCounter;
         _customEffects = customEffects;
         _autoStart = autoStart;
@@ -83,6 +87,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.CountChanged += OnCountChanged;
         _customEffects?.Changed += OnCustomEffectsChanged;
         _autoStart?.Changed += OnOptionsChanged;
+        _otherRgbSoftware?.Changed += OnOtherRgbSoftwareChanged;
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -104,6 +109,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public event EventHandler<ZoneCountInfo>? ZoneCountChanged;
 
     public event EventHandler? CustomEffectsChanged;
+
+    public event EventHandler? OtherRgbSoftwareChanged;
 
     // Zones alike is read after the devices; when it changes in between, DevicesChanged follows.
     public Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default)
@@ -277,10 +284,23 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     // A count stops first and gives its zone its length back, so the new list has the zone as the
     // user knows it.
+    // "Verversen" also looks for other RGB software again, as that may be why a device does not
+    // show its color; a few milliseconds before the search, which takes far longer.
     public Task<bool> RescanDevicesAsync(CancellationToken ct = default)
     {
         _zoneCounter?.StopAll();
+        _otherRgbSoftware?.Check();
         return _lighting.RescanDevicesAsync(ct);
+    }
+
+    // Without the check (in tests) there is none.
+    public Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default) =>
+        Task.FromResult(_otherRgbSoftware?.Shown ?? []);
+
+    public Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default)
+    {
+        (_otherRgbSoftware ?? throw new InvalidOperationException("This engine does not look for other RGB software.")).Dismiss(id);
+        return Task.CompletedTask;
     }
 
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
@@ -433,6 +453,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _lighting.CountChanged -= OnCountChanged;
         _customEffects?.Changed -= OnCustomEffectsChanged;
         _autoStart?.Changed -= OnOptionsChanged;
+        _otherRgbSoftware?.Changed -= OnOtherRgbSoftwareChanged;
         _frames.Dispose();
 
         // The settings app that counted went, so nobody can stop the count any more.
@@ -472,6 +493,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private void OnOptionsChanged(object? sender, EventArgs e) => OptionsChanged?.Invoke(this, EventArgs.Empty);
 
     private void OnCustomEffectsChanged(object? sender, EventArgs e) => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);
+
+    private void OnOtherRgbSoftwareChanged(object? sender, EventArgs e) => OtherRgbSoftwareChanged?.Invoke(this, EventArgs.Empty);
 
     private CustomEffectLibrary CustomEffectsOrThrow() =>
         _customEffects ?? throw new InvalidOperationException("This engine keeps no own effects.");

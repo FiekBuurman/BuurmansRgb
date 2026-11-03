@@ -486,6 +486,44 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(expected is null ? [] : [expected], settings.ReadZonesAlike());
     }
 
+    [Fact]
+    public void Save_DismissedOtherRgbSoftware_RoundTrips()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware(["signalrgb", "openrgb"]));
+
+        Assert.Contains("\"dismissedOtherRgbSoftware\"", File.ReadAllText(path));
+        Assert.Equal(["signalrgb", "openrgb"], store.LoadOrCreate().ReadDismissedOtherRgbSoftware());
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesDismissedOtherRgbSoftwareOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware([]));
+
+        Assert.DoesNotContain("dismissedOtherRgbSoftware", File.ReadAllText(path));
+    }
+
+    // Only what is no id is left out, or the list when it is no list; the rest of the file counts.
+    [Theory]
+    [InlineData("""["signalrgb", 5, null, "", "signalrgb", "icue"]""", "signalrgb icue")]
+    [InlineData("\"signalrgb\"", "")]
+    public void Load_DismissedOtherRgbSoftwareWrittenByHand_LeavesOutWhatIsNoId(string dismissed, string expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#FF0000", "dismissedOtherRgbSoftware": {{dismissed}} }""");
+        using var trace = new TraceCapture();
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Red, settings.Color);
+        Assert.Equal(expected, string.Join(" ", settings.ReadDismissedOtherRgbSoftware()));
+    }
+
     // Counts that add up past what an int can hold would make the colors land at a negative index.
     [Theory]
     [InlineData("[2000000000, 2000000000, 5]")]

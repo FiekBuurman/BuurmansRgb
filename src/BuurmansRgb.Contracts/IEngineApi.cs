@@ -55,6 +55,10 @@ public partial interface IEngineApi
     // GetCustomEffectsAsync then gives the new list.
     event EventHandler CustomEffectsChanged;
 
+    // Raised when the other RGB software the engine found changed, or the user dismissed one.
+    // GetOtherRgbSoftwareAsync then gives the new list.
+    event EventHandler OtherRgbSoftwareChanged;
+
     Task<IReadOnlyList<DeviceInfo>> GetDevicesAsync(CancellationToken ct = default);
 
     // The effects of the engine itself; the own effects of the user come from GetCustomEffectsAsync.
@@ -187,7 +191,20 @@ public partial interface IEngineApi
     // later follow through DevicesChanged. That can take some seconds, as the engine connects to
     // OpenRGB anew when OpenRGB does not answer the request in time. A device that came back gets
     // its own lighting. False when OpenRGB could not be reached.
+    // Also looks again for other RGB software (GetOtherRgbSoftwareAsync).
     Task<bool> RescanDevicesAsync(CancellationToken ct = default);
+
+    // Other RGB software that runs and may overwrite the colors, such as SignalRGB or iCUE, as the
+    // engine found it the last time it looked: at its start, after waking up and at
+    // RescanDevicesAsync, not in between. Without the programs the user dismissed. In a fixed
+    // order, empty when there is none.
+    Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default);
+
+    // The message about this program (OtherRgbSoftware.Id) does not come back, also not when it
+    // runs again later or after a restart: the engine keeps the id in settings.json
+    // ("dismissedOtherRgbSoftware"), and only taking it out there shows it again.
+    // OtherRgbSoftwareChanged follows. Throws for an id the engine does not know.
+    Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default);
 
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
 

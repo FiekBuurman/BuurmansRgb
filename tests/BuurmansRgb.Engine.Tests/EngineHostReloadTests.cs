@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -28,6 +29,8 @@ public sealed class EngineHostReloadTests : IDisposable
     private readonly CustomColorList _customColors = new();
     private readonly FakeSettingsFileEvents _fileEvents = new();
     private readonly InMemorySettingsStore _store = new();
+    private readonly FakeProcessSnapshot _processes = new();
+    private readonly OtherRgbSoftwareCheck _otherRgbSoftware;
 
     public EngineHostReloadTests()
     {
@@ -37,10 +40,12 @@ public sealed class EngineHostReloadTests : IDisposable
         _profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, _lighting);
         _autoPause = AutoPauses.WithFakes(_lighting.SetPaused);
         _profileTimer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
+        _otherRgbSoftware = new OtherRgbSoftwareCheck(_processes);
     }
 
     public void Dispose()
     {
+        _otherRgbSoftware.Dispose();
         _profileTimer.Dispose();
         _autoPause.Dispose();
         _zoneLengths.Dispose();
@@ -80,6 +85,28 @@ public sealed class EngineHostReloadTests : IDisposable
         Assert.True(_profileTimer.CatchUp);
         Assert.False(_hotkeys.Enabled);
         Assert.Equal([new RgbColor(0, 0, 255)], _customColors.Colors);
+    }
+
+    // Taking a program out of dismissedOtherRgbSoftware by hand shows its message again, and the
+    // file keeps the words of the user.
+    [Fact]
+    public async Task DismissedOtherRgbSoftwareChangedByHand_ShowsTheMessageAgain()
+    {
+        _processes.Run("SignalRgb");
+        _store.Settings = EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware(["signalrgb"]);
+        var host = CreateHost();
+        await host.StartAsync(Ct);
+        Assert.Empty(_otherRgbSoftware.Shown);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), otherRgbSoftware: _otherRgbSoftware);
+        var changes = 0;
+        api.OtherRgbSoftwareChanged += (_, _) => Interlocked.Increment(ref changes);
+
+        ChangeByHand(_store.Settings with { DismissedOtherRgbSoftware = null });
+
+        await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 1);
+        Assert.Equal(["signalrgb"], (await api.GetOtherRgbSoftwareAsync(Ct)).Select(software => software.Id));
+        host.Dispose();
+        Assert.Equal(0, _store.SaveCount);
     }
 
     // As at the start: kept within its range.
@@ -396,7 +423,8 @@ public sealed class EngineHostReloadTests : IDisposable
         hotkeys: _hotkeys,
         settingsFileEvents: _fileEvents,
         reloadDelay: ReloadDelay,
-        customColors: _customColors);
+        customColors: _customColors,
+        otherRgbSoftware: _otherRgbSoftware);
 
     // The engine may be moving its own save over the file just then.
     private static bool FileContains(string path, string text)

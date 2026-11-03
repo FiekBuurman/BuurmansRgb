@@ -458,6 +458,25 @@ internal sealed class FakeEngineApi : IEngineApi
         CustomColors = [.. colors];
     }
 
+    public event EventHandler? OtherRgbSoftwareChanged;
+
+    public bool HasOtherRgbSoftwareSubscribers => OtherRgbSoftwareChanged is not null;
+
+    // What the engine found and shows; like the engine, a dismissed one leaves the list.
+    public List<OtherRgbSoftware> OtherRgbSoftware { get; set; } = [];
+
+    public void RaiseOtherRgbSoftwareChanged() => OtherRgbSoftwareChanged?.Invoke(this, EventArgs.Empty);
+
+    public Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<OtherRgbSoftware>>([.. OtherRgbSoftware]);
+
+    public async Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default)
+    {
+        await Record($"dismiss {id}");
+        OtherRgbSoftware.RemoveAll(software => software.Id == id);
+        RaiseOtherRgbSoftwareChanged();
+    }
+
     public event EventHandler? CustomEffectsChanged;
 
     public void RaiseCustomEffectsChanged() => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);

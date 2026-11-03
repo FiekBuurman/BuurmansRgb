@@ -127,6 +127,8 @@ internal static class Program
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
         // The host disposes them, before it saves for the last time.
         var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
+        // Looks for other RGB software at the start, after waking up and at "Verversen" only.
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new SystemProcessSnapshot(), resumeRestorer);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
         // "Herstarten" asked by the settings app: what a click on the tray item does, which the tray
         // context knows; that is made after the host, so the api gets it through this variable.
@@ -136,7 +138,7 @@ internal static class Program
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke()),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke(), otherRgbSoftware: otherRgbSoftware),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -151,7 +153,8 @@ internal static class Program
             customColors: customColors,
             customEffects: customEffects,
             autoStart: autoStart,
-            firstRun: options.FirstRun);
+            firstRun: options.FirstRun,
+            otherRgbSoftware: otherRgbSoftware);
 
         using var context = new TrayApplicationContext(
             host,
