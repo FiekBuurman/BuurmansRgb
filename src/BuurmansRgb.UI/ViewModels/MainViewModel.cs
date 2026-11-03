@@ -43,6 +43,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ProfilesReloadCall = "profiles-reload";
     private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
+    private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
     private const string CustomEffectCall = "custom-effect";
 
     private readonly IEngineConnector _connector;
@@ -79,6 +80,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // The same for the pause of the effects.
     private int _pauseChanges;
+
+    // Counts OtherRgbSoftwareChanged, so the list read while connecting does not replace a newer one.
+    private int _otherRgbSoftwareChanges;
 
     // While a flash runs in the engine, a preview that stands still gets no new image until then,
     // so it never shows the white of the flash (RequestStill, OnFlashStarted).
@@ -134,7 +138,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         EffectsPause = new EffectsPauseViewModel(_time);
         DeviceRescan = new DeviceRescanViewModel(_time);
-        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan);
+        OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
+        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
@@ -209,6 +214,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CustomColors.ColorsChanged += (_, colors) =>
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        OtherRgbSoftware.DismissRequested += (_, id) => DismissOtherRgbSoftware(id);
         Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
         OpenRgbStatus.RestartRequested += (_, _) => RestartEngine();
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
@@ -353,6 +359,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public EffectsPauseViewModel EffectsPause { get; }
 
+    // Other RGB software that runs, for the status line.
+    public OtherRgbSoftwareViewModel OtherRgbSoftware { get; }
+
     // "Verversen" at the heading of Apparaten.
     public DeviceRescanViewModel DeviceRescan { get; }
 
@@ -464,6 +473,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.OptionsChanged += OnOptionsChanged;
             connection.Api.ZoneCountChanged += OnZoneCountChanged;
             connection.Api.CustomEffectsChanged += OnCustomEffectsChanged;
+            connection.Api.OtherRgbSoftwareChanged += OnOtherRgbSoftwareChanged;
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
@@ -1036,6 +1046,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (pauseChanges == _pauseChanges)
         {
             ShowPause(pause);
+        }
+
+        var otherRgbSoftwareChanges = _otherRgbSoftwareChanges;
+        var otherRgbSoftware = await api.GetOtherRgbSoftwareAsync();
+        if (otherRgbSoftwareChanges == _otherRgbSoftwareChanges)
+        {
+            OtherRgbSoftware.Show(otherRgbSoftware);
         }
 
         // A count that runs already, such as one another settings app paused, shows here too; a
@@ -1761,6 +1778,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RequestStill();
     });
 
+    // Read anew, as the event carries no list; the newest read wins in the call queue.
+    private void OnOtherRgbSoftwareChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        _otherRgbSoftwareChanges++;
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(OtherRgbSoftwareReloadCall, async () =>
+        {
+            var programs = await connection.Api.GetOtherRgbSoftwareAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    OtherRgbSoftware.Show(programs);
+                }
+            });
+        });
+    });
+
+    // "Niet meer melden": the engine keeps it in settings.json, and tells with its new list.
+    private void DismissOtherRgbSoftware(string id)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post($"dismiss-other-rgb-software {id}", () => connection.Api.DismissOtherRgbSoftwareAsync(id));
+        }
+    }
+
     private void ShowPause(PauseReasons pause)
     {
         EffectsPause.Show(pause);
@@ -1844,7 +1892,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or RestartCall))
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall))
         {
             RequestStill();
         }
@@ -1856,6 +1904,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusMessage = message;
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
+        OtherRgbSoftware.Clear();
         DeviceRescan.Clear();
         Preview.ShowPause(PauseReasons.None);
 
@@ -1883,6 +1932,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.OptionsChanged -= OnOptionsChanged;
         connection.Api.ZoneCountChanged -= OnZoneCountChanged;
         connection.Api.CustomEffectsChanged -= OnCustomEffectsChanged;
+        connection.Api.OtherRgbSoftwareChanged -= OnOtherRgbSoftwareChanged;
         connection.Dispose();
     }
 

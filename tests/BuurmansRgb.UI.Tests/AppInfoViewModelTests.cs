@@ -79,6 +79,31 @@ public sealed class AppInfoViewModelTests
         Assert.Equal([GuideAddress], _opened);
     }
 
+    // A message that points to its explanation opens the guide at that heading; only a web
+    // address can take it.
+    [Theory]
+    [InlineData("https://example.org/handleiding", "https://example.org/handleiding#andere-rgb-software")]
+    [InlineData("https://example.org/handleiding#top", "https://example.org/handleiding#andere-rgb-software")]
+    [InlineData(GuideAddress, GuideAddress)]
+    public void OpenGuideAt_OpensTheGuideAtTheHeading(string address, string opened)
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0", address);
+
+        appInfo.OpenGuideAt("andere-rgb-software");
+
+        Assert.Equal([opened], _opened);
+    }
+
+    [Fact]
+    public void OpenGuideAt_WithoutAGuide_OpensNothing()
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0");
+
+        appInfo.OpenGuideAt("andere-rgb-software");
+
+        Assert.Empty(_opened);
+    }
+
     // No browser, or Windows refuses: a message instead of a crash.
     [Theory]
     [MemberData(nameof(OpenErrors))]

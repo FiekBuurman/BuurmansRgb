@@ -1420,4 +1420,38 @@
     <value>{0} knippert nu op het apparaat</value>
     <comment>Hetzelfde voor één zone. {0} = de naam van de zone.</comment>
   </data>
+  <data name="OtherRgbSoftwareRuns" xml:space="preserve">
+    <value>{0} draait ook en kan je kleuren overschrijven.</value>
+    <comment>In de statusregel bovenaan Apparaten en Kleur, één per programma dat de engine vond. {0} = de naam van het programma, zoals de maker hem schrijft ("SignalRGB", "Corsair iCUE").</comment>
+  </data>
+  <data name="OtherOpenRgbRuns" xml:space="preserve">
+    <value>Er draait nog een OpenRGB naast de service en die kan je kleuren overschrijven.</value>
+    <comment>Hetzelfde voor een tweede OpenRGB: een OpenRGB.exe in de sessie van een gebruiker terwijl de service OpenRGB ook draait.</comment>
+  </data>
+  <data name="OtherOpenRgbName" xml:space="preserve">
+    <value>de tweede OpenRGB</value>
+    <comment>De naam van een tweede OpenRGB in OtherRgbSoftwareGuideAccessibleName en OtherRgbSoftwareDismissAccessibleName.</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuide" xml:space="preserve">
+    <value>Uitleg</value>
+    <comment>Knop bij OtherRgbSoftwareRuns: opent de handleiding bij "Andere RGB-software". Niet "Details": zo heet de knop van de statusregel die de andere meldingen uitklapt. Alleen zichtbaar als er een handleiding is om te openen.</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideAccessibleName" xml:space="preserve">
+    <value>Uitleg over {0} in de handleiding</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareGuide. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideToolTip" xml:space="preserve">
+    <value>Opent de handleiding bij hoe je andere RGB-software afsluit.</value>
+  </data>
+  <data name="OtherRgbSoftwareDismiss" xml:space="preserve">
+    <value>Niet meer melden</value>
+    <comment>Tweede knop bij OtherRgbSoftwareRuns: de melding over dit programma komt niet meer terug, ook niet als het later weer draait.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissAccessibleName" xml:space="preserve">
+    <value>{0} niet meer melden</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareDismiss. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissToolTip" xml:space="preserve">
+    <value>Meldt dit programma niet meer, ook niet als het later weer draait. Terugzetten kan in settings.json (zie de handleiding).</value>
+  </data>
 </root>

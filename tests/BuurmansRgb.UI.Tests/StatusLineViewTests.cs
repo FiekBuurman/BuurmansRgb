@@ -320,6 +320,46 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // Other RGB software: the line names it and is read out, "Niet meer melden" has the name of
+    // the program for a screen reader, asks the engine to keep it and moves the focus on; the
+    // pause under "Details" then takes the line.
+    [Fact]
+    public async Task OtherRgbSoftware_InTheLineAndNietMeerMeldenMovesTheFocusOn()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.Pause = PauseReasons.Manual;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            using var capture = LiveRegionCapture.Start();
+
+            api!.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("SignalRGB draait ook en kan je kleuren overschrijven.", Line(page).Text);
+            Assert.Contains(Line(page), capture.Announced);
+            var dismiss = PageViews.ById<Button>(page, "StatusLineDismiss");
+            Assert.True(dismiss.IsVisible);
+            Assert.Equal(Strings.OtherRgbSoftwareDismiss, dismiss.Content);
+            Assert.Equal("SignalRGB niet meer melden", AutomationProperties.GetName(dismiss));
+            Assert.True(Details(page).IsVisible);
+            Assert.True(dismiss.Focus());
+
+            PageViews.Click(dismiss);
+
+            Assert.Contains("dismiss signalrgb", api.Calls);
+            Assert.Equal(Strings.EffectsPausedManual, Line(page).Text);
+            Assert.False(dismiss.IsVisible);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, dismiss) && focused.IsVisible);
+        });
+    }
+
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
     // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]

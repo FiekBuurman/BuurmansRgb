@@ -30,6 +30,13 @@
                             Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
                             AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
                             AutomationProperties.AutomationId="StatusLineAction" />
+                    <!-- "Niet meer melden" of a message the user can take away for good (other RGB software): it ends the
+                         message, so the focus moves on first (OnDismissClick). -->
+                    <Button x:Name="DismissButton" DataContext="{Binding Current}" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding DismissText}"
+                            ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick" IsVisibleChanged="OnButtonIsVisibleChanged"
+                            Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
+                            AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
+                            AutomationProperties.AutomationId="StatusLineDismiss" />
                     <ToggleButton x:Name="DetailsToggle" Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}" Content="{x:Static res:Strings.StatusDetails}"
                                   IsChecked="{Binding ShowsDetails}" ToolTip="{x:Static res:Strings.StatusDetailsToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
                                   Visibility="{Binding HasDetails, Converter={StaticResource BoolToVisibility}}"
@@ -48,12 +55,21 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:StatusMessage}">
                             <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
-                                        Content="{Binding ActionText}" ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick"
-                                        IsVisibleChanged="OnButtonIsVisibleChanged"
-                                        Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
-                                        AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
-                                        AutomationProperties.AutomationId="StatusLineDetailAction" />
+                                <!-- The action first and then "Niet meer melden", in reading and Tab order. -->
+                                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                                    <Button Style="{StaticResource SecondaryButton}"
+                                            Content="{Binding ActionText}" ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick"
+                                            IsVisibleChanged="OnButtonIsVisibleChanged"
+                                            Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
+                                            AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
+                                            AutomationProperties.AutomationId="StatusLineDetailAction" />
+                                    <Button Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                                            Content="{Binding DismissText}" ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick"
+                                            IsVisibleChanged="OnButtonIsVisibleChanged"
+                                            Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
+                                            AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
+                                            AutomationProperties.AutomationId="StatusLineDetailDismiss" />
+                                </StackPanel>
                                 <TextBlock Style="{StaticResource StatusLineDetailText}" Text="{Binding Text}"
                                            AutomationProperties.AutomationId="StatusLineDetail" />
                             </DockPanel>
