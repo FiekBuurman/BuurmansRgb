@@ -713,6 +713,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - `ProcessImageName` en `ShellLauncher` uit `BuurmansRgb.Contracts` naar een eigen gedeeld
   project voor Windows-code van engine en app; nu staan ze bij de IPC-contracten omdat beide ze
   gebruiken. Pas oppakken als er meer van zulke Windows-code bij komt
+- De regie van terugzetten (`Restore`, `Replace`, `Remove`, `ReplaceSettings`, `PutBack` en
+  `FlushSaves`) uit `EngineHost` naar een eigen klasse, zoals het lezen en de kopieën in
+  `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
+  `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
+  (refactor na testpanel 3-11-2026)
 
 ## Integraties
 
@@ -809,6 +814,9 @@ uitbreidingen in `docs/bouwplan.md`.
   het uit te zetten, voor een pc die centraal beheerd wordt, en zonder internet geen melding.
   Zolang de repo privé is, geeft de API zonder token niets terug (zie het idee over de handleiding
   meeleveren) (testpanel 1-11-2026, Kees)
+- De vraag bij verwijderen (`RemoveSettings` in `BuurmansRgb.iss`, "instellingen (kleuren en
+  effecten)") ook de scènes en de kopieën in `backups` laten noemen: "Ja" haalt de hele map
+  `%AppData%\BuurmansRgb` weg (refactor na testpanel 3-11-2026)
 
 ## Tests en tooling
 
