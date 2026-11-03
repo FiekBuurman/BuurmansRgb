@@ -1067,7 +1067,7 @@ Windows vergrendeld tekent WPF niets, dus die oudere meting mist het tekenen zel
 gloed). Met een zichtbaar venster zit de app boven het budget van 150 MB working set; minder
 beelden scheelt CPU, maar geen geheugen. Over Extern bureaublad tekent WPF zonder videokaart en
 staan de animaties van Windows uit, zodat het voorbeeld stilstaat tot je "Laten lopen" kiest
-(knop `PreviewMotionButton` voor UI Automation); kijk tijdens een meting ook of de sessie
+(knop `StatusLineAction` in de statusregel, voor UI Automation); kijk tijdens een meting ook of de sessie
 verbonden blijft (`query user`), want losgekoppeld tekent WPF niets meer. Private bytes tellen
 de gecompileerde code van .NET niet mee: die staat sinds W^X twee keer in gedeeld geheugen, dus
 vergelijk de working set. Waar die uit bestaat (DLL's, die code, privé), zie je per pagina met
