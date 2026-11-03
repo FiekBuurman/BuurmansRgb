@@ -384,6 +384,11 @@ uitbreidingen in `docs/bouwplan.md`.
   Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
   verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
   op de apparaten komt
+- De knoppen van een melding (actie, Uitleg, Niet meer melden) en de uitgeklapte uitleg met de
+  link staan in `StatusLine.xaml` twee keer: voor de melding in de regel en in de lijst onder
+  Details. Eén gedeelde `DataTemplate` of `UserControl` voor beide, zodat een wijziging niet op
+  twee plekken hoeft; bleef bij de review van `conflict-melding` staan, omdat de knoppen in de
+  regel namen hebben die de code-behind gebruikt (`ActionButton`, `DetailsToggle`)
 - De balk onderaan (`SaveStatus` en wat er net gebeurde, in `MainWindow.xaml`) heette in de
   handleiding ook "statusregel"; sinds `een-melding` is de kaart bovenaan de Statusregel en zegt
   de handleiding voor de balk "onderaan". Eventueel de balk onderaan een eigen naam geven, ook in
