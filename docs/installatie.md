@@ -195,8 +195,8 @@ Blokkeert een game iets, kijk dan in de melding welk bestand het is:
   naar drivers die er staan maar niet geladen zijn. Na het spelen start **Herstarten** in het
   tray-menu ze weer. Helpt het niet, verwijder dan PawnIO via
   **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
-  BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel. Andere programma's zoals FanControl kunnen PawnIO ook
-  gebruiken.
+  BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel.
+  Andere programma's zoals FanControl kunnen PawnIO ook gebruiken.
 - Gaat het om OpenRGB, stop dan de service tijdens het spelen (`Stop-Service OpenRGB` als
   administrator) en start hem daarna weer, of kies **Herstarten** in het tray-menu.
 
@@ -256,8 +256,8 @@ Beperkingen:
   beheerdersrechten); staat BuurmansRgb nog bij **Apps**, dan kun je ook opnieuw verwijderen.
 - Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Uninstall Log
   <datum> #001.txt` in `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel
-  `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt het alleen
-  de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
+  `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt
+  het alleen de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
   sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
 
 **Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Zijn de
@@ -313,8 +313,8 @@ Wat er bij deze installer bij komt kijken:
   gaat Setup door; BuurmansRgb staat er dan wel, met alleen gesimuleerde apparaten of zonder
   RAM en oudere moederborden. **De exitcode van Setup blijft dan 0** (of de waarde van
   `/RESTARTEXITCODE`): de installer meldt de fout alleen in dat venster en in het log. Controleer
-  na een stille installatie dus altijd het log: zoek naar `PawnIO setup returned` en `OpenRGB msiexec returned`.
-  Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de naam van het setuplog. Ook
+  na een stille installatie dus altijd het log: zoek naar `PawnIO setup returned` en
+  `OpenRGB msiexec returned`. Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de naam van het setuplog. Ook
   zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
 - **De engine start na afloop**, ook stil, met `--first-run`, als het account dat de setup
   startte. Dat account krijgt dus de engine en **Starten met Windows**. Zonder beheerdersrechten
