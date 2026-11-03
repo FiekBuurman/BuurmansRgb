@@ -22,8 +22,9 @@ internal sealed record EngineSettings : LightingStateSettings
     // "autoStartChosen": whether the user set "Starten met Windows" in the tray menu or the
     // settings app (AutoStartSwitch.Chosen); --first-run, which the installer gives after every
     // install, then leaves it as it is. New settings say false, so the file shows it. Null is a
-    // file from before this option, which EngineHost reads once from the Run key (off counts as
-    // chosen, as such a pc had it on after its first install) and writes back.
+    // file from before this option, or one that did not read; EngineHost then reads the Run key at
+    // each start (off counts as chosen, as such a pc had it on after its first install) and the
+    // value goes along with the next save.
     public bool? AutoStartChosen { get; set; }
 
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.

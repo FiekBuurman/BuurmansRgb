@@ -136,18 +136,22 @@ public sealed class EngineHostAutoStartTests : IDisposable
         Assert.Equal(0, _store.SaveCount);
     }
 
-    // A Run key that does not read tells nothing about a choice, so the file stays without one.
-    [Fact]
-    public async Task FileFromBefore_RunKeyUnreadable_IsNoChoice()
+    // A Run key that does not read tells nothing about a choice, so the file stays without one;
+    // --first-run still tries to turn it on.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FileFromBefore_RunKeyUnreadable_IsNoChoice(bool firstRun)
     {
         _store.Settings = new EngineSettings();
         _registry.IsEnabledException = new UnauthorizedAccessException();
         var lighting = Lighting();
 
-        var host = await StartAsync(firstRun: false, lighting);
+        var host = await StartAsync(firstRun, lighting);
         lighting.FramesPerSecond = 20;
         host.Dispose();
 
+        Assert.Equal(firstRun ? 1 : 0, _registry.SetEnabledCount);
         Assert.Null(_store.Settings.AutoStartChosen);
         Assert.Equal(1, _store.SaveCount);
     }
