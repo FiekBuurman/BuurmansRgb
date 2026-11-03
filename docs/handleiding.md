@@ -119,6 +119,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   meer onder, dan gaat Details vanzelf dicht en weg. Is er niets te melden, dan is er geen kaart.
   Een schermlezer leest de melding in de regel als hij komt of verandert; de knoppen en Details
   bereik je met Tab. Dezelfde statusregel staat bovenaan Kleur.
+
+  ![De pagina Apparaten zonder verbinding: de statusregel "Geen verbinding met je apparaten" met "Opnieuw verbinden" en Details open, daaronder de pauze met "Hervatten", en rechtsboven de status met "Herstarten"](images/statusregel.png)
 - De kaart **Hele huis** zegt hoeveel apparaten aan zijn ("11 van 12 aan"), heeft een grote
   schakelaar voor alles en een strip van 14 bolletjes die laat zien wat de apparaten nu echt doen:
   elk bolletje is een LED uit alle apparaten achter elkaar, dus bij een regenboog loopt hij mee.
@@ -751,22 +753,22 @@ Hoe het vanzelf aanzetten werkt:
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
   met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
   geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
-  er komt geen "Opgeslagen ✓" in de statusregel. De schakelaar en het vinkje in het tray-menu
+  er komt geen "Opgeslagen ✓" onderaan. De schakelaar en het vinkje in het tray-menu
   staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
-  dan springt de schakelaar terug en staat in de statusregel "Starten met Windows kon niet
+  dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
   worden aangepast."; het logbestand zegt waarom.
 - **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
-  logbestand, of kan Windows het niet openen, dan staat in de statusregel "Het logbestand kon
+  logbestand, of kan Windows het niet openen, dan staat onderaan "Het logbestand kon
   niet worden geopend.".
 - **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0"). Een
   link naar deze handleiding staat er nog niet: die komt zodra de handleiding een plek heeft die
   iedereen kan openen.
 
-Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder in de statusregel
-("Opgeslagen ✓" met de tijd, zie "Onderaan"), zoals op elke pagina. "Starten met Windows" is de
+Wijzigingen worden automatisch opgeslagen; of dat gelukt is, staat rechtsonder ("Opgeslagen ✓"
+met de tijd, zie "Onderaan"), zoals op elke pagina. "Starten met Windows" is de
 uitzondering (zie "Opstarten").
 
 ### Aan en uit
