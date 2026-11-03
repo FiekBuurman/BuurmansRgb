@@ -1172,8 +1172,8 @@ instellingen weg moeten; die van andere gebruikers blijven staan. Hoe die ze zel
 bij "Verwijderen" in [installatie.md](installatie.md#verwijderen). "Ja" haalt de hele map weg, ook
 `logs` en de kopieën in `backups`; wil je je instellingen meenemen, maak dan eerst een zip met
 **Instellingen bewaren…** bij Instellingen. Heeft een andere gebruiker BuurmansRgb nog open, meld
-die dan eerst af: zijn engine sluit het verwijderen niet, en dan blijven de
-programmabestanden staan.
+die dan eerst af: zijn engine sluit het verwijderen niet, en dan blijven de programmabestanden
+staan.
 
 ### settings.json
 
