@@ -194,8 +194,63 @@ public sealed class LightingSettingsSaverTests
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
         _time.Advance(Delay);
+        Assert.Empty(saves);
+
+        // Tried again five times, then the app hears it failed, once.
+        for (var i = 0; i < 10; i++)
+        {
+            _time.Advance(Delay);
+        }
 
         Assert.Equal([false], saves);
+    }
+
+    // A file held a moment by another program, such as a virus scanner: the save is tried again
+    // and goes through once it lets go, and only that counts as a save for the app.
+    [Fact]
+    public async Task SaveFails_IsTriedAgainAndSavedOnceItWorks()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var saves = new List<bool>();
+        _saveEvents.Saved += (_, succeeded) => saves.Add(succeeded);
+        _store.SaveException = new IOException("The file is used by another process.");
+        using var saver = CreateSaver();
+
+        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _time.Advance(Delay);
+        _time.Advance(Delay);
+        Assert.Equal(0, _store.SaveCount);
+
+        _store.SaveException = null;
+        _time.Advance(Delay);
+
+        Assert.Equal(1, _store.SaveCount);
+        Assert.Equal(Orange, _store.Settings.Color);
+        Assert.Equal([true], saves);
+    }
+
+    // The same with the real file: another program reads settings.json just when the engine moves
+    // its save over it, which Windows refuses.
+    [Fact]
+    public async Task WithTheRealFile_SaveWhileAnotherProgramHoldsTheFile_IsWrittenOnceItLetsGo()
+    {
+        using var directory = new TempDirectory();
+        var path = directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        await _lighting.DiscoverAsync(Ct);
+        using var saver = new LightingSettingsSaver(store, _lighting, store.LoadOrCreate(), Delay, _time, _saveEvents);
+
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+            _time.Advance(Delay);
+        }
+
+        Assert.DoesNotContain("#FF8800", File.ReadAllText(path), StringComparison.Ordinal);
+
+        _time.Advance(Delay);
+
+        Assert.Contains("#FF8800", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
     [Fact]
