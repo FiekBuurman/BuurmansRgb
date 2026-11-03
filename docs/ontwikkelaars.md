@@ -1161,15 +1161,18 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
     standaard-DACL van de gebruiker, dus een proces van een ander account opent ze niet), meteen
     `taskkill` met de filter; autostart uit `HKU\<SID>\...\Run`, instellingen uit `AppData` van
     `HKU\<SID>\...\User Shell Folders` (`%USERPROFILE%` uit `ProfileList`) of anders `Shell
-    Folders`.
+    Folders`, maar alleen als die map onder `ProfileImagePath` uit `HKLM\...\ProfileList` ligt
+    (de gebruiker kan zijn eigen `Shell Folders` overal heen laten wijzen, ook naar de `AppData`
+    van de beheerder); anders blijven de instellingen staan met een regel in het log.
   - Niet vast te stellen: toch `--exit` (het bereikt alleen de engine van wie de uninstaller
     draait), een vaste 3 s wachten (zonder SID valt er niets te volgen), dan `taskkill` alleen
     voor `{username}`; autostart en instellingen van niemand weg.
   - Wat er gebeurde staat in het verwijderlog (`Uninstall started by`, `The engine exited after
     --exit`, `Removed ...`). `InstallerScriptTests` (Engine.Tests) controleert de tekst van het
     script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`
-    vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, en geen `DelTree` op
-    `{userappdata}`.
+    vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, geen `DelTree` op
+    `{userappdata}`, en `AppData` van een andere gebruiker alleen binnen zijn
+    `ProfileImagePath`.
 - **Verwijderen als gewone gebruiker met het wachtwoord van een andere beheerder** (met de hand
   in Windows Sandbox, nadat de `.wsb` hieronder klaar is of in een eigen Sandbox met
   `artifacts\installer\out` gekoppeld; nooit op je eigen pc):

@@ -93,6 +93,9 @@ Beperkingen:
   engine niet (Windows laat het signaal van jouw engine alleen voor jou open) en stopt het
   verwijderen hem meteen. Een wijziging van de laatste seconde kan dan verloren gaan. Wil je dat
   niet, sluit de engine dan eerst zelf af via **Afsluiten** in het tray-menu.
+- Beantwoordt een **andere beheerder** de UAC-vraag en staat je `AppData`-map niet in je
+  profielmap (`C:\Users\<naam>`), bijvoorbeeld omdat hij naar een andere schijf is omgeleid, dan
+  laat het verwijderen je instellingen staan. Haal ze dan weg zoals hieronder.
 - Draait een andere gebruiker op de pc BuurmansRgb nog (na wisselen van gebruiker), dan sluit het
   verwijderen die engine niet. De programmabestanden die de engine gebruikt, blijven dan staan in
   `C:\Program Files\BuurmansRgb` (het verwijderen meldt "Enkele elementen konden niet verwijderd

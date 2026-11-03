@@ -394,6 +394,16 @@ begin
     RemoveAutoStartFrom(HKU, OriginalUserSid + '\' + RunKey);
 end;
 
+// Whether Dir lies inside Folder, after resolving "..", "." and "/" in Dir.
+function IsInsideFolder(const Dir, Folder: String): Boolean;
+var
+  Inside, Outside: String;
+begin
+  Inside := Lowercase(AddBackslash(ExpandFileName(Dir)));
+  Outside := Lowercase(AddBackslash(Folder));
+  Result := (Folder <> '') and (Length(Inside) > Length(Outside)) and (Pos(Outside, Inside) = 1);
+end;
+
 // %AppData% of the user who started the uninstall, also when another admin runs this copy.
 function OriginalUserAppData(var Dir: String): Boolean;
 var
@@ -410,17 +420,31 @@ begin
     Exit;
   end;
 
+  // The user can point his Shell Folders keys anywhere, also at the AppData of the admin who
+  // runs this copy elevated; only admins can change ProfileList, so that is what we trust.
+  if not RegQueryStringValue(HKLM64, ProfileListKey + '\' + OriginalUserSid, 'ProfileImagePath', Profile) or
+     (Profile = '') or (Pos('%', Profile) > 0) then
+  begin
+    Log('Settings left alone: the profile folder of ' + OriginalUserName + ' is not known');
+    Exit;
+  end;
+
   // Normally "%USERPROFILE%\AppData\Roaming"; an absolute path when it is redirected.
   if RegQueryStringValue(HKU, OriginalUserSid + '\' + UserShellFoldersKey, 'AppData', Dir) then
   begin
-    if (Pos('%USERPROFILE%', Uppercase(Dir)) = 1) and
-       RegQueryStringValue(HKLM64, ProfileListKey + '\' + OriginalUserSid, 'ProfileImagePath', Profile) then
+    if Pos('%USERPROFILE%', Uppercase(Dir)) = 1 then
       Dir := Profile + Copy(Dir, Length('%USERPROFILE%') + 1, Length(Dir));
     Result := (Dir <> '') and (Pos('%', Dir) = 0);
   end;
 
   if not Result then
     Result := RegQueryStringValue(HKU, OriginalUserSid + '\' + ShellFoldersKey, 'AppData', Dir) and (Dir <> '');
+
+  if Result and not IsInsideFolder(Dir, Profile) then
+  begin
+    Log('Settings left alone: the AppData folder of ' + OriginalUserName + ' (' + Dir + ') is outside ' + Profile);
+    Result := False;
+  end;
 end;
 
 // Only the settings of the user who started the uninstall; other users keep theirs.

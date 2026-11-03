@@ -66,6 +66,28 @@ public sealed class InstallerScriptTests
         Assert.All(deletes, line => Assert.DoesNotContain("{userappdata}", line, StringComparison.OrdinalIgnoreCase));
     }
 
+    [Fact]
+    public void Uninstall_TrustsTheAppDataOfAnotherUserOnlyInsideHisProfile()
+    {
+        // The user can set his Shell Folders keys himself; ProfileList only an admin.
+        var function = FunctionCode("function OriginalUserAppData(");
+        var profile = function.FindIndex(line => line.Contains("'ProfileImagePath'", StringComparison.Ordinal));
+        var shellFolders = function.FindIndex(line => line.Contains("RegQueryStringValue(HKU,", StringComparison.Ordinal));
+        var check = function.FindIndex(line => line.Contains("not IsInsideFolder(Dir, Profile)", StringComparison.Ordinal));
+
+        Assert.InRange(profile, 0, shellFolders - 1);
+        Assert.True(check > shellFolders, "OriginalUserAppData does not check that AppData lies inside the profile.");
+    }
+
+    // From the line that starts with header to the next "end;" at the start of a line.
+    private static List<string> FunctionCode(string header)
+    {
+        var start = Array.FindIndex(Lines, line => line.StartsWith(header, StringComparison.Ordinal));
+        Assert.True(start >= 0, $"{header} not found in the installer script.");
+        var end = Array.FindIndex(Lines, start, line => line == "end;");
+        return Lines[start..(end + 1)].ToList();
+    }
+
     // From InitializeUninstall to the end: the code that only Uninstall runs.
     private static List<string> UninstallCode()
     {
