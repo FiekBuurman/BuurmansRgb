@@ -60,7 +60,8 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     }
 
     // For --first-run: on when it is off, as the installer asked and not the user, so without
-    // Chosen. A failure only goes to the log (AutoStartExtensions.EnableOnFirstRun).
+    // Chosen. A failure only costs the autostart and goes to the log, so the engine starts anyway
+    // and the tray menu shows it as off.
     public void EnableOnFirstRun()
     {
         bool changed;
@@ -71,7 +72,15 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
                 return;
             }
 
-            autoStart.EnableOnFirstRun();
+            try
+            {
+                autoStart.SetEnabled(true);
+            }
+            catch (Exception exception) when (IsAccessError(exception))
+            {
+                Trace.TraceWarning($"Could not turn on autostart on the first run: {exception.Message}");
+            }
+
             changed = ReadEnabled();
         }
 

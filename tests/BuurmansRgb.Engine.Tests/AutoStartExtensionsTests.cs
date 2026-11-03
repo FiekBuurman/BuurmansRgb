@@ -5,50 +5,8 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class AutoStartExtensionsTests
 {
-    // Whether the first run turns it on (--first-run, no choice of the user yet) is in EngineHostAutoStartTests.
-    [Fact]
-    public void EnableOnFirstRun_TurnsAutoStartOn()
-    {
-        var autoStart = new FakeAutoStart();
-
-        autoStart.EnableOnFirstRun();
-
-        Assert.True(autoStart.IsEnabled);
-    }
-
-    [Fact]
-    public void EnableOnFirstRun_AlreadyOn_DoesNotWriteAgain()
-    {
-        var autoStart = new FakeAutoStart { IsEnabled = true };
-
-        autoStart.EnableOnFirstRun();
-
-        Assert.True(autoStart.IsEnabled);
-        Assert.Equal(0, autoStart.SetEnabledCount);
-    }
-
-    public static TheoryData<Exception> RegistryFailures =>
-        [new UnauthorizedAccessException(), new SecurityException(), new IOException()];
-
-    [Theory]
-    [MemberData(nameof(RegistryFailures))]
-    public void EnableOnFirstRun_RegistryFails_StartsAnyway(Exception failure)
-    {
-        var autoStart = new FakeAutoStart { SetEnabledException = failure };
-
-        autoStart.EnableOnFirstRun();
-
-        Assert.False(autoStart.IsEnabled);
-    }
-
-    [Fact]
-    public void EnableOnFirstRun_UnexpectedFailure_IsNotSwallowed()
-    {
-        var autoStart = new FakeAutoStart { SetEnabledException = new InvalidOperationException() };
-
-        Assert.Throws<InvalidOperationException>(() => autoStart.EnableOnFirstRun());
-    }
-
+    // Turning it on at the first run is in AutoStartSwitchTests (EnableOnFirstRun) and
+    // EngineHostAutoStartTests (whether it should).
     [Fact]
     public void FollowMoveOnStart_Moved_IsLogged()
     {

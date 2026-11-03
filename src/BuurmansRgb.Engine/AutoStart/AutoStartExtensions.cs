@@ -4,26 +4,6 @@ namespace BuurmansRgb.Engine.AutoStart;
 
 internal static class AutoStartExtensions
 {
-    // Only turns autostart on, never off; whether it should (--first-run while the user did not
-    // choose yet) is for EngineHost. A failure only costs the autostart, so the engine starts
-    // anyway and the tray menu shows it as off.
-    public static void EnableOnFirstRun(this IAutoStart autoStart)
-    {
-        if (autoStart.IsEnabled)
-        {
-            return;
-        }
-
-        try
-        {
-            autoStart.SetEnabled(true);
-        }
-        catch (Exception exception) when (AutoStartSwitch.IsAccessError(exception))
-        {
-            Trace.TraceWarning($"Could not turn on autostart on the first run: {exception.Message}");
-        }
-    }
-
     // At every start, so autostart keeps working after the engine moved. A failure only leaves
     // the menu showing it as off, as before.
     public static void FollowMoveOnStart(this IAutoStart autoStart)

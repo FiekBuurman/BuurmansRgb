@@ -123,6 +123,25 @@ public sealed class AutoStartSwitchTests
         Assert.Equal(0, changes);
     }
 
+    [Fact]
+    public void EnableOnFirstRun_AlreadyOn_DoesNotWriteAgain()
+    {
+        _autoStart.IsEnabled = true;
+
+        new AutoStartSwitch(_autoStart).EnableOnFirstRun();
+
+        Assert.Equal(0, _autoStart.SetEnabledCount);
+    }
+
+    // Another failure is a bug, not something Windows refused, so it is not hidden.
+    [Fact]
+    public void EnableOnFirstRun_AnotherError_IsThrown()
+    {
+        _autoStart.SetEnabledException = new InvalidOperationException("bug");
+
+        Assert.Throws<InvalidOperationException>(() => new AutoStartSwitch(_autoStart).EnableOnFirstRun());
+    }
+
     [Theory]
     [MemberData(nameof(AccessErrors))]
     public void IsEnabled_Unreadable_IsOff(Exception error)
