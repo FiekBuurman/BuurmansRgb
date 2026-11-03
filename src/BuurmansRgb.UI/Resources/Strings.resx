@@ -1445,7 +1445,7 @@
   </data>
   <data name="OtherRgbSoftwareExplanation" xml:space="preserve">
     <value>Sluit {0} af en zet het uit bij Taakbeheer → Opstartapps, zodat het niet weer meestart met Windows. Draait het ook als achtergrondprogramma (service), zet die service dan in services.msc op Handmatig. Laat je {0} bewust draaien, kies dan Niet meer melden.</value>
-    <comment>Wat StatusExplanation uitklapt bij OtherRgbSoftwareRuns; hetzelfde als "Andere RGB-software" in docs/handleiding.md. {0} = de naam van het programma.</comment>
+    <comment>Wat StatusExplanation uitklapt bij OtherRgbSoftwareRuns; in het kort wat "Andere RGB-software" in docs/handleiding.md uitlegt. {0} = de naam van het programma.</comment>
   </data>
   <data name="OtherOpenRgbExplanation" xml:space="preserve">
     <value>Sluit het venster van die tweede OpenRGB als je klaar bent: wat je daarin kiest, overschrijft je kleuren. Zet daarin ook Start Server niet aan, want de service geeft je kleuren al door. Start hij mee met Windows, zet hem dan uit bij Taakbeheer → Opstartapps.</value>

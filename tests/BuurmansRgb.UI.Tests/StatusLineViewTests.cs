@@ -495,6 +495,38 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // Idem with the focus on "Uitleg" under "Details" when that program stops: its message goes
+    // from under "Details", and with it "Details", while the other program stays in the line.
+    [Fact]
+    public async Task OtherRgbSoftwareUnderDetailsStops_FocusOnUitlegMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")];
+        }, guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Toggle(Details(page));
+            var toggle = PageViews.AllById<ToggleButton>(page, "StatusLineDetailExplanationToggle").Single(button => button.IsVisible);
+            Assert.Equal("Uitleg over Corsair iCUE", new ToggleButtonAutomationPeer(toggle).GetName());
+            Assert.True(toggle.Focus());
+
+            api!.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(toggle.IsVisible);
+            Assert.False(Details(page).IsVisible);
+            Assert.True(PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle").IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, toggle) && focused.IsVisible);
+        });
+    }
+
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
     // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]
