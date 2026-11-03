@@ -511,6 +511,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     // Only what is no id is left out, or the list when it is no list; the rest of the file counts.
     [Theory]
     [InlineData("""["signalrgb", 5, null, "", "signalrgb", "icue"]""", "signalrgb icue")]
+    [InlineData("""["SignalRGB", "signalrgb"]""", "SignalRGB")]
     [InlineData("\"signalrgb\"", "")]
     public void Load_DismissedOtherRgbSoftwareWrittenByHand_LeavesOutWhatIsNoId(string dismissed, string expected)
     {

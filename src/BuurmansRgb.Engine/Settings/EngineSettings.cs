@@ -74,7 +74,7 @@ internal sealed record EngineSettings : LightingStateSettings
     public static EngineSettings CreateDefault() => new() { AutoStartChosen = false };
 
     public IReadOnlyList<string> ReadDismissedOtherRgbSoftware() =>
-        [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.Ordinal)];
+        [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.OrdinalIgnoreCase)];
 
     public EngineSettings WithDismissedOtherRgbSoftware(IReadOnlyList<string> ids) => this with
     {

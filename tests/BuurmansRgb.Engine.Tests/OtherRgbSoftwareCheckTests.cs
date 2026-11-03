@@ -158,7 +158,7 @@ public sealed class OtherRgbSoftwareCheckTests : IDisposable
     [Fact]
     public void Dismiss_AnUnknownId_Throws()
     {
-        Assert.Throws<ArgumentException>(() => _check.Dismiss("SignalRGB"));
+        Assert.Throws<ArgumentException>(() => _check.Dismiss("signal-rgb"));
 
         Assert.Empty(_check.Dismissed);
         Assert.Equal(0, _dismissedChanges);
@@ -179,6 +179,23 @@ public sealed class OtherRgbSoftwareCheckTests : IDisposable
         Assert.Equal([SignalRgb], _check.Shown);
         Assert.Equal(["future"], _check.Dismissed);
         Assert.Equal(2, _dismissedChanges);
+    }
+
+    // An id written by hand in another case still hides its program, and the app's own id for it
+    // is then no second one.
+    [Fact]
+    public void Dismissed_InAnotherCase_HidesItAndIsNotAddedTwice()
+    {
+        _processes.Run("SignalRgb");
+        _check.Dismissed = ["SignalRGB"];
+        _check.Check();
+        var dismissedChanges = _dismissedChanges;
+
+        _check.Dismiss("signalrgb");
+
+        Assert.Empty(_check.Shown);
+        Assert.Equal(["SignalRGB"], _check.Dismissed);
+        Assert.Equal(dismissedChanges, _dismissedChanges);
     }
 
     [Fact]

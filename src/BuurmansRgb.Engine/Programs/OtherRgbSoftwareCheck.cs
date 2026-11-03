@@ -19,7 +19,7 @@ internal sealed class OtherRgbSoftwareCheck : IDisposable
     // One check at a time, so an older list never replaces a newer one.
     private readonly Lock _checkGate = new();
     private IReadOnlyList<OtherRgbSoftware> _found = [];
-    private HashSet<string> _dismissed = new(StringComparer.Ordinal);
+    private HashSet<string> _dismissed = new(StringComparer.OrdinalIgnoreCase);
 
     // resume is null in tests that do not wake up.
     public OtherRgbSoftwareCheck(IProcessSnapshot processes, IResumeEvents? resume = null)
@@ -63,7 +63,8 @@ internal sealed class OtherRgbSoftwareCheck : IDisposable
 
     // The ids the user dismissed, in order; also ids this engine does not know, such as from a
     // newer version, so the file keeps them. Set from settings.json at the start and after a
-    // change by hand; another set raises DismissedChanged and Changed.
+    // change by hand; another set raises DismissedChanged and Changed. In any case, as a hand may
+    // write "SignalRGB" for "signalrgb"; the id stays as it was written.
     public IReadOnlyList<string> Dismissed
     {
         get
@@ -79,7 +80,7 @@ internal sealed class OtherRgbSoftwareCheck : IDisposable
             bool changed;
             lock (_gate)
             {
-                var dismissed = new HashSet<string>(value.Where(id => !string.IsNullOrEmpty(id)), StringComparer.Ordinal);
+                var dismissed = new HashSet<string>(value.Where(id => !string.IsNullOrEmpty(id)), StringComparer.OrdinalIgnoreCase);
                 changed = !dismissed.SetEquals(_dismissed);
                 _dismissed = dismissed;
             }
