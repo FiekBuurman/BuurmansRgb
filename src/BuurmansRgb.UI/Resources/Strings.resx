@@ -1437,7 +1437,7 @@
     <comment>Knop bij een melding van de statusregel, zoals OtherRgbSoftwareRuns: klapt onder de melding uit wat je eraan kunt doen, en met nog een klik weer dicht. Niet "Details": zo heet de knop van de statusregel die de andere meldingen uitklapt.</comment>
   </data>
   <data name="StatusExplanationToolTip" xml:space="preserve">
-    <value>Toont onder de melding wat je eraan kunt doen. Klik nog een keer om het te sluiten.</value>
+    <value>Toont onder de melding wat je eraan kunt doen.</value>
   </data>
   <data name="OtherRgbSoftwareExplanationAccessibleName" xml:space="preserve">
     <value>Uitleg over {0}</value>

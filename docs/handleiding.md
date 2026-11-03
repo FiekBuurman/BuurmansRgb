@@ -1445,7 +1445,7 @@ Van RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet
   handleiding nodig hebt: sluit het programma af, zet het uit bij **Taakbeheer → Opstartapps**,
   en zet een achtergrondprogramma (zoals van SignalRGB, iCUE en Synapse) in `services.msc` op
   **Handmatig**. Bij een tweede OpenRGB staat er dat je het venster sluit als je klaar bent en
-  daarin Start Server niet aanzet. Klik nog een keer op Uitleg en hij gaat weer dicht. Staat de
+  daarin Start Server niet aanzet. Kies nog een keer Uitleg en hij gaat weer dicht. Staat de
   melding onder Details, dan heeft hij daar zijn eigen Uitleg. Weet de app waar deze handleiding
   staat (in deze versie nog niet), dan staat onder de uitleg ook "Meer in de handleiding", dat
   deze handleiding hier opent.
