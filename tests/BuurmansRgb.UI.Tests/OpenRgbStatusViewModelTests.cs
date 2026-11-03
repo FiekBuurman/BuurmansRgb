@@ -122,6 +122,7 @@ public sealed class OpenRgbStatusViewModelTests
 
         Assert.False(_status.CanRestart);
         Assert.False(_status.RestartCommand.CanExecute(null));
+        Assert.Contains(nameof(OpenRgbStatusViewModel.IsConnectionLost), changed);
         Assert.Contains(nameof(OpenRgbStatusViewModel.CanRestart), changed);
     }
 
