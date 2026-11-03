@@ -174,7 +174,7 @@ drivers, dus het gaat om PawnIO, en misschien om OpenRGB. Wat er bekend is, en w
 
 | Anti-cheat | Wat bekend is |
 | --- | --- |
-| FACEIT | Blokkeerde PawnIO om de handtekening, volgens de maker zelf (19 september 2025); volgens gebruikers omdat hetzelfde certificaat ook voor cheats gebruikt was [6][20][5]. Opgelost met de nieuwe handtekening van 2.1.0 [6][5]; BuurmansRgb levert 2.2.0. Op 16 maart 2026 meldde een gebruiker toch nog een blokkade, mogelijk met een oude versie [21]. Een officiële uitspraak van FACEIT over PawnIO is niet gevonden. |
+| FACEIT | Blokkeerde PawnIO om de handtekening, volgens de maker zelf (19 september 2025); volgens gebruikers omdat hetzelfde certificaat ook voor cheats gebruikt was [6][20][5]. Opgelost met de nieuwe handtekening van 2.1.0 [6][5]; BuurmansRgb levert 2.2.0, maar slaat PawnIO over als die er al is, dus een oudere versie (vóór 2.1.0, bijv. van FanControl) blijft staan. Kijk bij **Instellingen → Apps → PawnIO** welke versie je hebt. Op 16 maart 2026 meldde een gebruiker toch nog een blokkade, mogelijk met een oude versie [21]. Een officiële uitspraak van FACEIT over PawnIO is niet gevonden. |
 | Riot Vanguard (Valorant, League of Legends) | Blokkeert bij het opstarten drivers die ondertekend maar kwetsbaar zijn, met de melding "Vanguard has blocked something from loading" [23][24]. Bevestigd voor InpOut32 van FanControl en LibreHardwareMonitor (2023) [25]. PawnIO met Vanguard: **onbekend**, ook een vraag erover bleef onbeantwoord [20]. OpenRGB met Vanguard: **onbekend**. |
 | Easy Anti-Cheat | PawnIO, WinRing0 en OpenRGB: **onbekend**, geen bron gevonden. Volgens een niet-officiële bron markeert EAC soms `LightingService.exe` van ASUS [27]. |
 | BattlEye | PawnIO, WinRing0 en OpenRGB: **onbekend**. BattlEye meldt een blokkade als "Blocked loading of file" [28]. |
@@ -186,8 +186,14 @@ zonder namen of bewijs [29]; een bevestigde ban is in deze bronnen niet gevonden
 
 Blokkeert een game iets, kijk dan in de melding welk bestand het is:
 
-- Gaat het om PawnIO, dan helpt het stoppen van de service OpenRGB waarschijnlijk niet, want de
-  driver blijft geladen (starttype onbekend, zie hierboven). Verwijder dan PawnIO via
+- Gaat het om PawnIO, dan helpt het stoppen van alleen de service OpenRGB waarschijnlijk niet,
+  want de driver blijft geladen (starttype onbekend, zie hierboven). Probeer eerst de minder
+  ingrijpende stap: stop OpenRGB en daarna PawnIO, in een PowerShell als administrator
+  `Stop-Service OpenRGB` en `sc.exe stop PawnIO` (de naam van de driver is nog een vermoeden, zie
+  "Herstarten" in [ontwikkelaars.md](ontwikkelaars.md); dezelfde volgorde als **Herstarten** in
+  het tray-menu). Of de anti-cheat daarna nog klaagt, is **onbekend**: misschien kijkt hij ook
+  naar drivers die er staan maar niet geladen zijn. Na het spelen start **Herstarten** in het
+  tray-menu ze weer. Helpt het niet, verwijder dan PawnIO via
   **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
   BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel. Andere programma's zoals FanControl kunnen PawnIO ook
   gebruiken.

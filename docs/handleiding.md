@@ -1417,7 +1417,9 @@ iets te bekijken mag wel. Welke processen en services erbij horen, staat in
 
 Sommige games hebben anti-cheat die kijkt welke drivers er op je pc staan. BuurmansRgb zelf heeft
 geen driver; PawnIO wel. Van FACEIT is bekend dat het een oudere PawnIO blokkeerde; met de
-versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Van Vanguard (Valorant), Easy
+versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Stond PawnIO er al (bijv. van
+FanControl), dan laat de installer die versie staan, ook een oudere; kijk bij
+**Instellingen → Apps → PawnIO** welke versie je hebt (2.1.0 of nieuwer). Van Vanguard (Valorant), Easy
 Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets geblokkeerd is, kijk dan in
 [installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
 
