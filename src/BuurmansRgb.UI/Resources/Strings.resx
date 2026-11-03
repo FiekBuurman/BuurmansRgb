@@ -1456,7 +1456,7 @@
     <comment>Link onder OtherRgbSoftwareExplanation: opent de handleiding bij "Andere RGB-software". Alleen zichtbaar als er een handleiding is om te openen (AppInfoViewModel.GuideAddress).</comment>
   </data>
   <data name="OtherRgbSoftwareGuideLinkAccessibleName" xml:space="preserve">
-    <value>Meer over andere RGB-software in de handleiding</value>
+    <value>Meer in de handleiding over andere RGB-software</value>
     <comment>Naam voor een schermlezer van OtherRgbSoftwareGuideLink.</comment>
   </data>
   <data name="OtherRgbSoftwareDismiss" xml:space="preserve">
