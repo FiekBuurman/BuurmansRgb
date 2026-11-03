@@ -348,7 +348,8 @@ internal sealed class EngineHost(
 
     // A file that was not there before the restore goes again, through the part of the engine that
     // keeps it; a file without its part of the engine (settings.json, or any in tests) is just
-    // deleted.
+    // deleted. For settings.json only the file goes, the engine keeps its settings; hardly ever
+    // reached, as LoadOrCreate writes it at the start and it is restored last.
     private void Remove(SettingsFiles known, string name)
     {
         switch (name)
@@ -374,6 +375,7 @@ internal sealed class EngineHost(
         settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true));
         if (_reloader is not null)
         {
+            // Normally applied when this returns; a file that cannot be read yet only later.
             _reloader.ReloadNow();
             return;
         }

@@ -66,8 +66,10 @@ internal sealed class SettingsReloader : IDisposable
     }
 
     // Reads the file now, on this thread, as a change by someone else is read a moment after it:
-    // for a file the engine replaced itself (a backup it restores), so the change is on the engine
-    // when this returns. The file event of that write that comes later finds nothing new.
+    // for a file the engine replaced itself (a backup it restores), so the change is normally on
+    // the engine when this returns. Not always: a file that cannot be read yet is only tried again
+    // a moment later, and a failure while applying it is logged, not thrown. The file event of
+    // that write that comes later finds nothing new.
     public void ReloadNow() => Reload();
 
     // Runs action while no reload runs, such as the save of the last change before a backup: a
