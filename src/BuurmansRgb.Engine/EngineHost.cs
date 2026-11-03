@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
@@ -285,7 +286,9 @@ internal sealed class EngineHost(
         }
     }
 
-    // "backups\before-restore-20261103-231500.zip", the newest BackupsKept of them.
+    // "backups\before-restore-20261103-221500-123.zip", the newest BackupsKept of them. In UTC with
+    // milliseconds, so the names sort as they came, also over the change to winter time; a name
+    // that is taken already (two restores within a millisecond) gets the next millisecond.
     private static void WriteBackup(SettingsFiles known, Dictionary<string, byte[]> before)
     {
         if (before.Count == 0)
@@ -294,7 +297,13 @@ internal sealed class EngineHost(
         }
 
         Directory.CreateDirectory(known.BackupsFolder);
-        var path = Path.Combine(known.BackupsFolder, $"before-restore-{DateTime.Now:yyyyMMdd-HHmmss}{SettingsBackup.Extension}");
+        var time = DateTime.UtcNow;
+        string path;
+        while (File.Exists(path = Path.Combine(known.BackupsFolder, BackupName(time))))
+        {
+            time = time.AddMilliseconds(1);
+        }
+
         JsonFile.Write(path, SettingsArchive.Create(before));
         foreach (var old in Directory.GetFiles(known.BackupsFolder, "before-restore-*" + SettingsBackup.Extension).Order(StringComparer.Ordinal).SkipLast(BackupsKept))
         {
@@ -308,6 +317,9 @@ internal sealed class EngineHost(
             }
         }
     }
+
+    internal static string BackupName(DateTime utc) =>
+        $"before-restore-{utc.ToString("yyyyMMdd-HHmmss-fff", CultureInfo.InvariantCulture)}{SettingsBackup.Extension}";
 
     private void Replace(SettingsFiles known, string name, byte[] json)
     {

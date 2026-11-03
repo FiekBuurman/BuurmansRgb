@@ -146,6 +146,27 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Empty(_profiles.Names);
     }
 
+    // Two restores right after each other keep both copies, the newest last by name.
+    [Fact]
+    public async Task Restore_TwiceInARow_KeepsBothCopies()
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        _profiles.Save("Eerste");
+        host.Restore(SettingsArchiveTests.Zip((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [ { "name": "Tweede" } ] }"""))));
+        host.Restore(SettingsArchiveTests.Zip((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [] }"""))));
+
+        var copies = Directory.GetFiles(_files.BackupsFolder, "before-restore-*.zip").Order(StringComparer.Ordinal).ToList();
+        Assert.Equal(2, copies.Count);
+        Assert.Contains("Eerste", Encoding.UTF8.GetString(Unzip(File.ReadAllBytes(copies[0]))[SettingsBackup.ProfilesFileName]), StringComparison.Ordinal);
+        Assert.Contains("Tweede", Encoding.UTF8.GetString(Unzip(File.ReadAllBytes(copies[1]))[SettingsBackup.ProfilesFileName]), StringComparison.Ordinal);
+    }
+
+    // In UTC with milliseconds, so the names sort as they came.
+    [Fact]
+    public void BackupName_IsUtcWithMilliseconds() =>
+        Assert.Equal("before-restore-20261103-221500-007.zip", EngineHost.BackupName(new DateTime(2026, 11, 3, 22, 15, 0, 7, DateTimeKind.Utc)));
+
     // Only the newest copies stay.
     [Fact]
     public async Task Restore_KeepsTheNewestCopies()
