@@ -30,7 +30,8 @@ public sealed partial class StatusMessage : ObservableObject
     // keyboard focus moves on before that, so it is not lost. dismissCommand is for a message the
     // user can take away for good ("Niet meer melden"), a second button after the action; that
     // always ends the message, so the focus moves on too. explanationLinkCommand is for the link
-    // under the explanation (ShowExplanation), such as to the guide.
+    // under the explanation, such as to the guide: as with the action and "Niet meer melden", the
+    // command comes here and its text later (ShowExplanation), and the link only shows with both.
     public StatusMessage(StatusMessageKind kind, ICommand? actionCommand = null, bool actionEndsMessage = false, ICommand? dismissCommand = null, ICommand? explanationLinkCommand = null)
     {
         Kind = kind;
