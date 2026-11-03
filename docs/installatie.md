@@ -257,8 +257,8 @@ Beperkingen:
 - Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Uninstall Log
   <datum> #001.txt` in `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel
   `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt
-  het alleen de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
-  sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
+  het alleen de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek
+  om af te sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
 
 **Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Zijn de
 programmabestanden weg, dan kan dat geen kwaad: de autostart wijst naar een programma dat er niet
@@ -314,8 +314,8 @@ Wat er bij deze installer bij komt kijken:
   RAM en oudere moederborden. **De exitcode van Setup blijft dan 0** (of de waarde van
   `/RESTARTEXITCODE`): de installer meldt de fout alleen in dat venster en in het log. Controleer
   na een stille installatie dus altijd het log: zoek naar `PawnIO setup returned` en
-  `OpenRGB msiexec returned`. Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de naam van het setuplog. Ook
-  zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
+  `OpenRGB msiexec returned`. Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de
+  naam van het setuplog. Ook zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
 - **De engine start na afloop**, ook stil, met `--first-run`, als het account dat de setup
   startte. Dat account krijgt dus de engine en **Starten met Windows**. Zonder beheerdersrechten
   draait hij alleen als Setup zelf om UAC vroeg: de installer start hem als "de gebruiker van vóór
