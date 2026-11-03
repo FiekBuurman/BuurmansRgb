@@ -367,7 +367,8 @@ var
 begin
   if not RegQueryStringValue(RootKey, SubKey, '{#AppName}', Command) then
   begin
-    // For another admin also when the hive of the user is not loaded.
+    // No Run value: the user has no autostart, or turned it off (RemoveAutoStart already checked
+    // that the hive of another user is loaded).
     Log('No autostart of ' + OriginalUserName + ' found to remove');
     Exit;
   end;
