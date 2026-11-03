@@ -285,18 +285,21 @@ na afloop dan als jij, zonder beheerdersrechten (zie "De engine start na afloop"
 ```powershell
 $setup = Start-Process .\BuurmansRgb-setup.exe -Wait -PassThru -ArgumentList `
     '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/RESTARTEXITCODE=3010',
-    "/LOG=$env:TEMP\BuurmansRgb-setup.log"
+    "/LOG=`"$env:TEMP\BuurmansRgb-setup.log`""
 $setup.ExitCode
 ```
 
-`Start-Process -Wait` is nodig omdat PowerShell anders niet op de setup wacht.
+`Start-Process -Wait` is nodig omdat PowerShell anders niet op de setup wacht. De aanhalingstekens
+om het pad van `/LOG` (met een backtick ervoor) zijn nodig als `%TEMP%` een spatie bevat:
+`Start-Process` plakt de argumenten met spaties aan elkaar, en Setup leest dan alleen het stuk tot
+de spatie.
 
 | Parameter | Wat het doet |
 | --- | --- |
 | `/SILENT` | Geen wizard, wel een venster met de voortgang. |
 | `/VERYSILENT` | Ook geen voortgang. **Let op:** is een herstart nodig, dan herstart de pc zonder te vragen, tenzij je `/NORESTART` meegeeft. |
 | `/NORESTART` | Nooit herstarten. Geef dit altijd mee bij `/VERYSILENT` en herstart later zelf; bij `/SILENT` vraagt Setup anders "Nu herstarten?". |
-| `/RESTARTEXITCODE=n` | De exitcode als een herstart nodig is (standaard 0, dus niet te zien); bijv. `3010`. |
+| `/RESTARTEXITCODE=n` | De exitcode als een herstart nodig is (standaard 0, dus niet te zien); bijv. `3010`. Alleen nuttig samen met `/NORESTART`: zonder herstart `/VERYSILENT` de pc meteen en zie je de code niet. De help noemt het "typically used along with /NORESTART" [32]. |
 | `/SUPPRESSMSGBOXES` | Elk berichtvenster krijgt het standaardantwoord. Werkt alleen samen met `/SILENT` of `/VERYSILENT`. |
 | `/LOG="pad"` | Het log naar een vaste plek (overschrijft; kan het bestand niet gemaakt worden, dan stopt Setup). `/LOG` zonder pad geeft een unieke naam in `%TEMP%`. |
 | `/DIR="pad"` | Een andere installatiemap dan `C:\Program Files\BuurmansRgb`. |
@@ -308,7 +311,9 @@ Wat er bij deze installer bij komt kijken:
   (code 3010 of 1641). Dan herstart `/VERYSILENT` zonder `/NORESTART` de pc meteen.
 - **Foutmeldingen:** mislukt PawnIO of OpenRGB, dan klikt `/SUPPRESSMSGBOXES` de melding weg en
   gaat Setup door; BuurmansRgb staat er dan wel, met alleen gesimuleerde apparaten of zonder
-  moederbord en RAM. Kijk in het log naar `PawnIO setup returned` en `OpenRGB msiexec returned`.
+  RAM en oudere moederborden. **De exitcode van Setup blijft dan 0** (of de waarde van
+  `/RESTARTEXITCODE`): de installer meldt de fout alleen in dat venster en in het log. Controleer
+  na een stille installatie dus altijd het log: zoek naar `PawnIO setup returned` en `OpenRGB msiexec returned`.
   Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de naam van het setuplog. Ook
   zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
 - **De engine start na afloop**, ook stil, met `--first-run`, als het account dat de setup
@@ -336,7 +341,7 @@ Wat er bij deze installer bij komt kijken:
 
 ```powershell
 Start-Process 'C:\Program Files\BuurmansRgb\unins000.exe' -Wait -ArgumentList `
-    '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$env:TEMP\BuurmansRgb-uninstall.log"
+    '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=`"$env:TEMP\BuurmansRgb-uninstall.log`""
 ```
 
 De uninstaller kent `/SILENT` (geen vraag vooraf en geen melding na afloop, wel de voortgang),
