@@ -1142,10 +1142,53 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
 - **Engine stoppen** in een script: `BuurmansRgb.Engine.exe --exit` (een tweede start geeft het
   signaal `Local\BuurmansRgb.Engine.Exit` en stopt meteen; de engine zelf is binnen een paar
   tienden van een seconde weg, wacht daarop met `Wait-Process BuurmansRgb.Engine`). De installer
-  gebruikt nog `taskkill /F`, omdat een engine van 1.0.0 `--exit` niet kent.
+  gebruikt bij een update nog `taskkill /F`, omdat een engine van 1.0.0 `--exit` niet kent; de
+  uninstaller hoort bij de geïnstalleerde engine en gebruikt het wel.
 - **Verwijderen** stopt de engine, haalt de autostart weg en vraagt dan of OpenRGB en PawnIO
   ook weg moeten (alleen als deze installer ze heeft geïnstalleerd), en of je instellingen weg
   moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee".
+  Alles geldt alleen voor de gebruiker die het verwijderen startte (`verwijderen-netjes`):
+  - Inno Setup draait de uninstaller twee keer: de eerste kopie als de gebruiker, die een
+    verhoogde tweede start en daarop wacht. Beantwoordt een andere beheerder de UAC-vraag, dan
+    draait de tweede als die beheerder, met diens `HKCU`, `{userappdata}` en `{username}`.
+    `ExecAsOriginalUser` werkt niet in Uninstall. `InitializeUninstall` leest daarom via WMI
+    (`Win32_Process`, `GetOwnerSid` en `GetOwner`) de eigenaar van zijn ouderproces, de eerste
+    kopie; een ouder die later startte dan hijzelf is een ander proces met hetzelfde id.
+  - Dezelfde gebruiker: `BuurmansRgb.Engine.exe --exit`, tot 10 s wachten tot zijn engine weg is
+    (WMI, per SID), dan `taskkill /F /FI "USERNAME eq DOMEIN\naam"` voor engine en
+    instellingen-app als vangnet; autostart uit `HKCU`, instellingen uit `{userappdata}`.
+  - Een andere beheerder: geen `--exit` (de signalen `Local\BuurmansRgb.Engine*` hebben de
+    standaard-DACL van de gebruiker, dus een proces van een ander account opent ze niet), meteen
+    `taskkill` met de filter; autostart uit `HKU\<SID>\...\Run`, instellingen uit `AppData` van
+    `HKU\<SID>\...\User Shell Folders` (`%USERPROFILE%` uit `ProfileList`) of anders `Shell
+    Folders`.
+  - Niet vast te stellen: geen `--exit`, `taskkill` alleen voor `{username}`, autostart en
+    instellingen van niemand weg.
+  - Wat er gebeurde staat in het verwijderlog (`Uninstall started by`, `The engine exited after
+    --exit`, `Removed ...`). `InstallerScriptTests` (Engine.Tests) controleert de tekst van het
+    script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`
+    vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, en geen `DelTree` op
+    `{userappdata}`.
+- **Verwijderen als gewone gebruiker met het wachtwoord van een andere beheerder** (met de hand
+  in Windows Sandbox, nadat de `.wsb` hieronder klaar is of in een eigen Sandbox met
+  `artifacts\installer\out` gekoppeld; nooit op je eigen pc):
+  1. Installeer stil als de beheerder van de Sandbox en sluit diens engine af met
+     `& "C:\Program Files\BuurmansRgb\BuurmansRgb.Engine.exe" --exit` (één engine per sessie).
+  2. Maak twee accounts: `net user Gewoon Test123! /add` en `net user Beheer Test123! /add`,
+     `net localgroup Administrators Beheer /add`.
+  3. Start als Gewoon de engine, zodat Gewoon een autostart en `%AppData%\BuurmansRgb` krijgt:
+     `runas /user:Gewoon "\"C:\Program Files\BuurmansRgb\BuurmansRgb.Engine.exe\" --first-run"`.
+  4. Start als Gewoon het verwijderen:
+     `runas /user:Gewoon "\"C:\Program Files\BuurmansRgb\unins000.exe\" /LOG=C:\Users\Public\uninstall.log"`,
+     en beantwoord de UAC-vraag
+     met Beheer en zijn wachtwoord; zeg "Ja" op de vraag over de instellingen.
+  5. Controleer: de engine van Gewoon is weg (`Get-Process BuurmansRgb.Engine -IncludeUserName`),
+     de `BuurmansRgb`-waarde onder `HKU\<SID van Gewoon>\Software\Microsoft\Windows\CurrentVersion\Run`
+     is weg (SID met `(New-Object Security.Principal.NTAccount Gewoon).Translate([Security.Principal.SecurityIdentifier])`),
+     `C:\Users\Gewoon\AppData\Roaming\BuurmansRgb` is weg, en de autostart en
+     `%AppData%\BuurmansRgb` van de beheerder van de Sandbox (`WDAGUtilityAccount`) en van Beheer
+     staan er nog. `C:\Users\Public\uninstall.log` zegt
+     `Uninstall started by ...\Gewoon (...), elevated as Beheer` en `Engine --exit skipped`.
 - **Testen in Windows Sandbox**, zonder iets op je eigen pc te installeren:
   1. Zet eenmalig Windows Sandbox aan (Windows-onderdelen → "Windows Sandbox", vraagt een
      herstart).
