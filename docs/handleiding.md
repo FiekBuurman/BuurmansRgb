@@ -1383,8 +1383,8 @@ BuurmansRgb zelf is een gewone app. Om bij je apparaten te komen, zet de install
 dingen naast, ook als je BuurmansRgb afsluit:
 
 - **OpenRGB**, als achtergrondprogramma van Windows (een service). Het draait altijd, start mee
-  met Windows en praat met je apparaten. BuurmansRgb geeft het de kleuren door via een verbinding die alleen
-  binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
+  met Windows en praat met je apparaten. BuurmansRgb geeft het de kleuren door via een
+  verbinding die alleen binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
 - **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij het moederbord
   en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender als gevaarlijk
   aanmerkt. PawnIO staat er altijd en is waarschijnlijk vanaf het opstarten geladen, maar dat is
@@ -1419,9 +1419,9 @@ Sommige games hebben anti-cheat die kijkt welke drivers er op je pc staan. Buurm
 geen driver; PawnIO wel. Van FACEIT is bekend dat het een oudere PawnIO blokkeerde; met de
 versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Stond PawnIO er al (bijv. van
 FanControl), dan laat de installer die versie staan, ook een oudere; kijk bij
-**Instellingen → Apps → PawnIO** welke versie je hebt (2.1.0 of nieuwer). Van Vanguard (Valorant), Easy
-Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets geblokkeerd is, kijk dan in
-[installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
+**Instellingen → Apps → PawnIO** welke versie je hebt (2.1.0 of nieuwer). Van Vanguard
+(Valorant), Easy Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets
+geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
 
 ### Per apparaattype
 

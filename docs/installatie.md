@@ -315,7 +315,8 @@ Wat er bij deze installer bij komt kijken:
   `/RESTARTEXITCODE`): de installer meldt de fout alleen in dat venster en in het log. Controleer
   na een stille installatie dus altijd het log: zoek naar `PawnIO setup returned` en
   `OpenRGB msiexec returned`. Het log van `msiexec` staat ernaast, met `.openrgb.txt` achter de
-  naam van het setuplog. Ook zonder `/LOG` schrijft Setup een log in `%TEMP%` (`Setup Log <datum> #001.txt`).
+  naam van het setuplog. Ook zonder `/LOG` schrijft Setup een log in `%TEMP%`
+  (`Setup Log <datum> #001.txt`).
 - **De engine start na afloop**, ook stil, met `--first-run`, als het account dat de setup
   startte. Dat account krijgt dus de engine en **Starten met Windows**. Zonder beheerdersrechten
   draait hij alleen als Setup zelf om UAC vroeg: de installer start hem als "de gebruiker van vóór
