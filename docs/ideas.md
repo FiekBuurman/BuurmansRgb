@@ -742,6 +742,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een parameter voor stil verwijderen die OpenRGB en PawnIO ook weghaalt (bijv. `/REMOVEDEPS`,
   te lezen met `{param:...}` of `GetCmdTail`); nu beantwoordt `/SUPPRESSMSGBOXES` die vragen met
   "Nee" en staan de losse commando's in `installatie.md` (`installatie-uitleg`)
+- PawnIO (en de service OpenRGB) bij een update of herinstallatie niet terugzetten als de
+  gebruiker ze zelf weghaalde, bijv. voor een game met anti-cheat. Nu slaat `InstallPawnIo`
+  PawnIO alleen over als `HKLM\...\Uninstall\PawnIO` bestaat, dus na verwijderen komt hij stil
+  terug. Bijv. een parameter (`/NOPAWNIO`) of een vinkje in de wizard, en de keuze onthouden in
+  de sleutel van de installer, zodat een volgende update hem ook overslaat
+  (`installatie-uitleg`)
 - De Sandbox-test ook `sc qc PawnIO` laten loggen, zodat het starttype van PawnIO (nu "onbekend"
   in `installatie.md`) zonder echte pc bekend is (`installatie-uitleg`)
 - De engine niet verhoogd starten bij een verhoogde stille installatie: `runasoriginaluser` werkt

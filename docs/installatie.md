@@ -196,7 +196,10 @@ Blokkeert een game iets, kijk dan in de melding welk bestand het is:
   tray-menu ze weer. Helpt het niet, verwijder dan PawnIO via
   **Instellingen → Apps → PawnIO**. RAM en oudere moederborden werken dan niet meer in
   BuurmansRgb [12], mogelijk ook een videokaart (niet onderzocht); andere apparaten (USB) wel.
-  Andere programma's zoals FanControl kunnen PawnIO ook gebruiken.
+  Andere programma's zoals FanControl kunnen PawnIO ook gebruiken. **Let op:** de volgende
+  update of herinstallatie van BuurmansRgb zet PawnIO zonder te vragen terug, want de installer
+  slaat PawnIO alleen over als die er al staat (zie [Bijwerken](#bijwerken)). Verwijder hem
+  daarna dan opnieuw.
 - Gaat het om OpenRGB, stop dan de service tijdens het spelen (`Stop-Service OpenRGB` als
   administrator) en start hem daarna weer, of kies **Herstarten** in het tray-menu.
 
@@ -214,7 +217,10 @@ git pull
 
 Daarna `artifacts\installer\out\BuurmansRgb-setup.exe` draaien. De installer stopt de
 draaiende engine en instellingen-app zelf en laat je instellingen staan. Een OpenRGB-service
-en PawnIO die er al staan, laat hij met rust. **Starten met Windows** blijft zoals jij het
+en PawnIO die er al staan, laat hij met rust. Heb je PawnIO of de service OpenRGB zelf
+weggehaald, bijvoorbeeld voor een game met anti-cheat, dan zet de update ze zonder te vragen
+terug, net als bij een eerste installatie; uitzetten kan nog niet. Haal ze daarna dan opnieuw
+weg. **Starten met Windows** blijft zoals jij het
 zette: had je het uitgezet, dan zet de update het niet weer aan. Alleen als je het nog nooit
 zelf aan- of uitzette, zet de installer het aan.
 
