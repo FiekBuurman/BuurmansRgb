@@ -14,6 +14,16 @@ public sealed class SettingsFilesTests
         Assert.Equal(SettingsFiles.Default.PathOf(SettingsBackup.EffectsFileName), JsonCustomEffectStore.DefaultFilePath);
     }
 
+    // Spelled out, so a renamed constant shows up here and not only on the user's disk.
+    [Fact]
+    public void DefaultFilePaths_AreInAppDataBuurmansRgb()
+    {
+        var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "BuurmansRgb");
+        Assert.Equal(Path.Combine(folder, "settings.json"), JsonSettingsStore.DefaultFilePath);
+        Assert.Equal(Path.Combine(folder, "profiles.json"), JsonProfileStore.DefaultFilePath);
+        Assert.Equal(Path.Combine(folder, "effects.json"), JsonCustomEffectStore.DefaultFilePath);
+    }
+
     // In UTC with milliseconds, so the names sort as they came.
     [Fact]
     public void BackupName_IsUtcWithMilliseconds() =>
