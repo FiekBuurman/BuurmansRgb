@@ -305,7 +305,7 @@ de spatie.
 | `/SILENT` | Geen wizard, wel een venster met de voortgang. |
 | `/VERYSILENT` | Ook geen voortgang. **Let op:** is een herstart nodig, dan herstart de pc zonder te vragen, tenzij je `/NORESTART` meegeeft. |
 | `/NORESTART` | Nooit herstarten. Geef dit altijd mee bij `/VERYSILENT` en herstart later zelf; bij `/SILENT` vraagt Setup anders "Nu herstarten?". |
-| `/RESTARTEXITCODE=n` | De exitcode als een herstart nodig is (standaard 0, dus niet te zien); bijv. `3010`. Alleen nuttig samen met `/NORESTART`: zonder herstart `/VERYSILENT` de pc meteen en zie je de code niet. De help noemt het "typically used along with /NORESTART" [32]. |
+| `/RESTARTEXITCODE=n` | De exitcode als een herstart nodig is (standaard 0, dus niet te zien); bijv. `3010`. Alleen nuttig samen met `/NORESTART`: zonder `/NORESTART` herstart `/VERYSILENT` de pc meteen en zie je de code niet. De help noemt het "typically used along with /NORESTART" [32]. |
 | `/SUPPRESSMSGBOXES` | Elk berichtvenster krijgt het standaardantwoord. Werkt alleen samen met `/SILENT` of `/VERYSILENT`. |
 | `/LOG="pad"` | Het log naar een vaste plek (overschrijft; kan het bestand niet gemaakt worden, dan stopt Setup). `/LOG` zonder pad geeft een unieke naam in `%TEMP%`. |
 | `/DIR="pad"` | Een andere installatiemap dan `C:\Program Files\BuurmansRgb`. |
@@ -360,15 +360,32 @@ Met `/SUPPRESSMSGBOXES` beantwoordt het verwijderen elke vraag met "Nee": OpenRG
 instellingen blijven staan. Wat het verwijderen verder doet, en voor welke gebruiker, staat bij
 [Verwijderen](#verwijderen) hierboven en in [ontwikkelaars.md](ontwikkelaars.md) onder
 "Installer bouwen en testen". Moeten OpenRGB en PawnIO toch weg, en gebruikt niets anders ze
-(PawnIO bijv. FanControl), dan kan dat daarna apart (niet getest):
+(PawnIO bijv. FanControl), dan kan dat daarna apart (niet getest). Doe dit, anders dan het
+installeren hierboven, in een **PowerShell als administrator**: `msiexec /qn` vraagt zelf niet
+om UAC en mislukt zonder beheerdersrechten.
 
 ```powershell
 $uninstall = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall'
 $openRgb = Get-ChildItem $uninstall | Get-ItemProperty | Where-Object DisplayName -eq 'OpenRGB'
-Start-Process msiexec.exe -Wait -ArgumentList '/x', $openRgb.PSChildName, '/qn', '/norestart'
-$pawnIo = (Get-ItemProperty "$uninstall\PawnIO").UninstallString.Trim('"')
-Start-Process $pawnIo -Wait -ArgumentList '-uninstall', '-silent'
+if ($openRgb) {
+    $msi = Start-Process msiexec.exe -Wait -PassThru -ArgumentList `
+        '/x', $openRgb.PSChildName, '/qn', '/norestart'
+    "OpenRGB: $($msi.ExitCode)"
+} else {
+    'OpenRGB niet gevonden'
+}
+$pawnIoKey = "$uninstall\PawnIO"
+if (Test-Path $pawnIoKey) {
+    $pawnIo = (Get-ItemProperty $pawnIoKey).UninstallString.Trim('"')
+    $setup = Start-Process $pawnIo -Wait -PassThru -ArgumentList '-uninstall', '-silent'
+    "PawnIO: $($setup.ExitCode)"
+} else {
+    'PawnIO niet gevonden'
+}
 ```
+
+Exitcode 0 is gelukt, 3010 betekent gelukt maar herstart nodig. Bij OpenRGB geeft 1605 aan dat
+het product niet (meer) geïnstalleerd is.
 
 ## Bronnen
 
