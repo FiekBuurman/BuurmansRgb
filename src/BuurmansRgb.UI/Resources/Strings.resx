@@ -983,6 +983,22 @@
   <data name="DataFolderOpenFailed" xml:space="preserve">
     <value>De map met instellingen en logs kon niet worden geopend.</value>
   </data>
+  <data name="UsageHeader" xml:space="preserve">
+    <value>Licht op de achtergrond</value>
+  </data>
+  <data name="UsageHint" xml:space="preserve">
+    <value>Wat buurmansRgb nu gebruikt om je verlichting op de achtergrond aan te sturen: het geheugen, en de CPU als deel van de hele pc, zoals Taakbeheer het toont. Elke 2 seconden bijgewerkt, alleen zolang deze pagina open is.</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Geheugen {0:0} MB · CPU {1:0.0} %</value>
+    <comment>{0} is het werkgeheugen van de engine in MB, {1} het CPU-gebruik in procent van de hele pc.</comment>
+  </data>
+  <data name="UsageMemoryOnly" xml:space="preserve">
+    <value>Geheugen {0:0} MB · CPU meten…</value>
+  </data>
+  <data name="UsageUnknown" xml:space="preserve">
+    <value>Nu niet te meten.</value>
+  </data>
   <data name="BackupHeader" xml:space="preserve">
     <value>Bewaren en terugzetten</value>
   </data>

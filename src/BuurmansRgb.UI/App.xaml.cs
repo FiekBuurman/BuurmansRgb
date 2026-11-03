@@ -59,7 +59,7 @@ public partial class App : Application
         // The preview stands still while "Animatie-effecten" of Windows is off.
         _animationEffects = new SystemAnimationEffects();
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects);
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: new SystemProcessMeter());
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
         window.Show();

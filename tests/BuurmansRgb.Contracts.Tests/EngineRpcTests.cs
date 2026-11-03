@@ -946,6 +946,8 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<byte[]> RestoredArchives { get; } = [];
 
+        public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(4242);
+
         public Task<byte[]> ExportSettingsAsync(CancellationToken ct = default) => Task.FromResult(ExportedSettings);
 
         public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)

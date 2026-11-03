@@ -220,6 +220,10 @@ public partial interface IEngineApi
     // of now go into a zip in the backups folder next to them; anything wrong replaces nothing.
     Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default);
 
+    // The process id of the engine, so the settings app can show its memory and CPU on Instellingen:
+    // the app measures them itself while that page is open, and the engine does nothing for it.
+    Task<int> GetProcessIdAsync(CancellationToken ct = default);
+
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
 
     // Why the effects are paused; PauseReasons.None while they run.

@@ -477,6 +477,11 @@ internal sealed class FakeEngineApi : IEngineApi
         RaiseOtherRgbSoftwareChanged();
     }
 
+    // The process id the engine gives for its memory and CPU on Instellingen.
+    public int ProcessId { get; set; } = 4242;
+
+    public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(ProcessId);
+
     // What "Instellingen bewaren…" gets, and what "terugzetten…" answers; the archives it got.
     public byte[] ExportedSettings { get; set; } = [1, 2, 3];
 

@@ -120,6 +120,26 @@ public sealed class SettingsViewTests
         });
     }
 
+    // The memory and CPU of the engine: a line with its text as its name and the explanation as
+    // its help, but no live region, so a screen reader does not read it out at every reading.
+    [Fact]
+    public async Task EngineUsage_HasANameButIsNoLiveRegion()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var usage = PageViews.ById<TextBlock>(page, "EngineUsage");
+            var peer = new TextBlockAutomationPeer(usage);
+
+            Assert.Equal(viewModel.EngineUsage.Text, peer.GetName());
+            Assert.Equal(Strings.UsageHint, AutomationProperties.GetHelpText(usage));
+            Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(usage));
+            Assert.Contains(Strings.UsageHeader, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
+        });
+    }
+
     // At the very bottom, after the last card: the version, and no link to the guide while there
     // is no guide every user can open (AppInfoViewModel.GuideAddress).
     [Fact]

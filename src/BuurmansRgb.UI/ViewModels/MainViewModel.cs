@@ -119,14 +119,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Instellingen, which the composition root (App) makes with ShellLauncher.Open; without it
     // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
     // animationEffects is "Animatie-effecten" of Windows (SystemAnimationEffects in App); without
-    // it the animations are on, so the preview moves.
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null)
+    // it the animations are on, so the preview moves. processMeter reads the memory and CPU of the
+    // engine for Instellingen (SystemProcessMeter in App); without it nothing is read.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null)
     {
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
         SettingsBackup = new SettingsBackupViewModel(() => _connection?.Api, time);
         SettingsBackup.Message += (_, message) => StatusMessage = message;
+        EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
@@ -230,6 +232,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SendFramesWanted();
                 SendFrameDevices();
                 RequestStill();
+                ShowEngineUsage();
 
                 // The count shows only on Kleur; elsewhere there is nothing to stop it with. Only
                 // a count this app started stops so.
@@ -361,6 +364,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen.
     public SettingsBackupViewModel SettingsBackup { get; }
 
+    // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
+    public EngineUsageViewModel EngineUsage { get; }
+
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
     public EffectsPauseViewModel EffectsPause { get; }
@@ -441,6 +447,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        EngineUsage.Dispose();
         StatusLine.Dispose();
         Motion.Dispose();
         Preview.Dispose();
@@ -489,6 +496,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _frameDevice = null;
             SendFrameDevices();
             await LoadAsync(connection.Api);
+            await ShowEngineProcessAsync(connection);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
         }
@@ -588,6 +596,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         SendFramesWanted();
         RequestStill();
+        ShowEngineUsage();
+    }
+
+    // The memory and CPU of the engine are read only while Instellingen shows.
+    private void ShowEngineUsage() =>
+        EngineUsage.IsShown = !IsWindowMinimized && Navigation.CurrentPage == AppPage.Settings;
+
+    // The engine of this connection, whose memory and CPU Instellingen shows. Without an answer
+    // the rest of the app works the same; the line says it cannot measure.
+    private async Task ShowEngineProcessAsync(IEngineConnection connection)
+    {
+        try
+        {
+            var processId = await connection.Api.GetProcessIdAsync();
+            if (ReferenceEquals(connection, _connection))
+            {
+                EngineUsage.ProcessId = processId;
+            }
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+        }
     }
 
     // Only when it differs from what this connection told the engine last. Coming back sends the
@@ -1931,6 +1962,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _connection = null;
+        EngineUsage.ProcessId = null;
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;

@@ -313,6 +313,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default) =>
         Task.FromResult(SettingsTransferOrThrow().Restore(archive ?? throw new ArgumentNullException(nameof(archive))));
 
+    public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(Environment.ProcessId);
+
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
 
     public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Pause);
