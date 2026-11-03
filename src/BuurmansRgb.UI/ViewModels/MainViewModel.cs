@@ -125,6 +125,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
+        SettingsBackup = new SettingsBackupViewModel(() => _connection?.Api, time);
+        SettingsBackup.Message += (_, message) => StatusMessage = message;
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
@@ -356,6 +358,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Logbestand openen", the version and the guide at the bottom of Instellingen.
     public AppInfoViewModel AppInfo { get; }
 
+    // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen.
+    public SettingsBackupViewModel SettingsBackup { get; }
+
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
     public EffectsPauseViewModel EffectsPause { get; }
@@ -447,6 +452,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // A lost connection with OpenRGB is a message, and "Herstarten" an answer, only on a pc that
     // had real devices.
     partial void OnHadRealDevicesChanged(bool? value) => OpenRgbStatus.DevicesExpected = value == true;
+
+    // Backing up and restoring go through the engine, so only while connected.
+    partial void OnConnectionStateChanged(ConnectionState value) => SettingsBackup.IsConnected = value == ConnectionState.Connected;
 
     [RelayCommand]
     private async Task ConnectAsync()

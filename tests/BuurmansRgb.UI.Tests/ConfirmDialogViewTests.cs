@@ -76,6 +76,28 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
+    // Before a backup replaces everything: what goes, with the name of the file, and the answer
+    // says what happens ("Terugzetten"), with the focus still on Annuleren.
+    [Fact]
+    public void ForRestore_AsksWithTheFileAndAnswersTerugzetten()
+    {
+        Make(owner => ConfirmDialog.ForRestore(owner, "oud.zip"), (owner, dialog) =>
+        {
+            Assert.Same(owner, dialog.Owner);
+            Assert.Equal(Strings.BackupRestoreConfirm, dialog.Title);
+            Assert.Equal(UiText.Format(Strings.BackupRestoreConfirmDetail, "oud.zip"), AutomationProperties.GetHelpText(dialog));
+            Assert.Equal(Strings.BackupRestoreConfirmButton, dialog.ConfirmButton.Content);
+            Assert.Equal(Strings.Cancel, dialog.CancelButton.Content);
+        });
+    }
+
+    // The other questions keep "Verwijderen".
+    [Fact]
+    public void ForScene_AnswersVerwijderen()
+    {
+        Make(owner => ConfirmDialog.ForScene(owner, "Avond"), (_, dialog) => Assert.Equal(Strings.ConfirmDelete, dialog.ConfirmButton.Content));
+    }
+
     // SizeToContent measures with the frame of Windows, which the title bar of our own then
     // takes away; the window is as large as what is in it plus its border, without empty space
     // on the right and at the bottom.

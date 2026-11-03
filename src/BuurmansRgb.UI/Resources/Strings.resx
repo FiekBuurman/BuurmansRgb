@@ -983,6 +983,73 @@
   <data name="DataFolderOpenFailed" xml:space="preserve">
     <value>De map met instellingen en logs kon niet worden geopend.</value>
   </data>
+  <data name="BackupHeader" xml:space="preserve">
+    <value>Bewaren en terugzetten</value>
+  </data>
+  <data name="BackupHint" xml:space="preserve">
+    <value>Bewaar je instellingen, scènes en eigen effecten in één zip-bestand, bijvoorbeeld voor een nieuwe pc of voordat je iets uitprobeert. Terugzetten vervangt wat je nu hebt; Starten met Windows blijft zoals het op deze pc staat.</value>
+  </data>
+  <data name="BackupSave" xml:space="preserve">
+    <value>Instellingen bewaren…</value>
+  </data>
+  <data name="BackupSaveHint" xml:space="preserve">
+    <value>Bewaart settings.json, profiles.json en effects.json samen in een zip-bestand dat je zelf kiest.</value>
+  </data>
+  <data name="BackupRestore" xml:space="preserve">
+    <value>Instellingen terugzetten…</value>
+  </data>
+  <data name="BackupRestoreHint" xml:space="preserve">
+    <value>Zet de instellingen, scènes en eigen effecten uit een bewaard zip-bestand terug. Eerst vraagt buurmansRgb het nog een keer.</value>
+  </data>
+  <data name="BackupSaveTitle" xml:space="preserve">
+    <value>Instellingen bewaren</value>
+  </data>
+  <data name="BackupRestoreTitle" xml:space="preserve">
+    <value>Instellingen terugzetten</value>
+  </data>
+  <data name="BackupFilter" xml:space="preserve">
+    <value>Zip-bestand (*.zip)|*.zip</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>buurmansRgb-instellingen-{0:yyyy-MM-dd}</value>
+    <comment>De naam die "Instellingen bewaren…" voorstelt, zonder .zip; {0} is de datum van vandaag.</comment>
+  </data>
+  <data name="BackupRestoreConfirm" xml:space="preserve">
+    <value>Instellingen terugzetten?</value>
+  </data>
+  <data name="BackupRestoreConfirmDetail" xml:space="preserve">
+    <value>Je huidige instellingen, scènes en eigen effecten worden vervangen door die uit {0}. Een kopie van wat je nu hebt komt eerst in de map met instellingen, in de map backups.</value>
+  </data>
+  <data name="BackupRestoreConfirmButton" xml:space="preserve">
+    <value>Terugzetten</value>
+  </data>
+  <data name="BackupSaved" xml:space="preserve">
+    <value>Instellingen bewaard in {0}.</value>
+  </data>
+  <data name="BackupSaveFailed" xml:space="preserve">
+    <value>De instellingen konden niet worden bewaard.</value>
+  </data>
+  <data name="BackupRestored" xml:space="preserve">
+    <value>Instellingen teruggezet.</value>
+  </data>
+  <data name="BackupNotABackup" xml:space="preserve">
+    <value>Dit bestand bevat geen bewaarde instellingen van buurmansRgb. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupTooLarge" xml:space="preserve">
+    <value>Dit bestand is te groot voor bewaarde instellingen van buurmansRgb. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupUnreadable" xml:space="preserve">
+    <value>{0} in dit bestand is niet te lezen. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupReadFailed" xml:space="preserve">
+    <value>Het bestand kon niet worden gelezen. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupRestoreFailed" xml:space="preserve">
+    <value>Terugzetten is niet gelukt. Een kopie van je vorige instellingen staat in de map met instellingen, in de map backups.</value>
+  </data>
+  <data name="BackupRestoreNotDone" xml:space="preserve">
+    <value>Terugzetten is niet gelukt. Er is niets veranderd.</value>
+  </data>
   <data name="AppVersion" xml:space="preserve">
     <value>buurmansRgb {0}</value>
   </data>

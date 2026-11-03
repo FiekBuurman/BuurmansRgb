@@ -1,6 +1,7 @@
 <!-- Instellingen: how buurmansRgb gets on with OpenRGB, when the simulated lamps show, the effects,
-     the scene times, the hotkeys and "Starten met Windows", the log of the engine and the folder with
-     the settings, and at the bottom the version and the guide. Whether saving worked is in the status line of MainWindow. -->
+     the scene times, the hotkeys and "Starten met Windows", saving and restoring the settings, the log
+     of the engine and the folder with the settings, and at the bottom the version and the guide.
+     Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -145,6 +146,27 @@
                                 <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.AutoStartHint}" />
                             </StackPanel>
                         </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- The settings, scenes and own effects in one zip, and back: through the engine, so only while
+                     the app is connected (SettingsBackupViewModel). Restoring asks first (ConfirmDialog). -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BackupHeader}" />
+                        <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.BackupHint}" />
+                        <WrapPanel>
+                            <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupSave}"
+                                    Command="{Binding SettingsBackup.SaveCommand}"
+                                    ToolTip="{x:Static res:Strings.BackupSaveHint}"
+                                    AutomationProperties.Name="{x:Static res:Strings.BackupSave}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.BackupSaveHint}" />
+                            <Button Margin="0,10,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupRestore}"
+                                    Command="{Binding SettingsBackup.RestoreCommand}"
+                                    ToolTip="{x:Static res:Strings.BackupRestoreHint}"
+                                    AutomationProperties.Name="{x:Static res:Strings.BackupRestore}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.BackupRestoreHint}" />
+                        </WrapPanel>
                     </StackPanel>
                 </Border>
 

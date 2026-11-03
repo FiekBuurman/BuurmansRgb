@@ -99,6 +99,27 @@ public sealed class SettingsViewTests
         });
     }
 
+    // Saving and restoring: two buttons with their names and explanations for a screen reader, that
+    // work once the app is connected.
+    [Fact]
+    public async Task Backup_HasItsTwoButtons()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var save = PageViews.ButtonNamed(page, Strings.BackupSave);
+            var restore = PageViews.ButtonNamed(page, Strings.BackupRestore);
+
+            Assert.Equal(Strings.BackupSaveHint, AutomationProperties.GetHelpText(save));
+            Assert.Equal(Strings.BackupRestoreHint, AutomationProperties.GetHelpText(restore));
+            Assert.True(save.IsEnabled);
+            Assert.True(restore.IsEnabled);
+            Assert.Contains(Strings.BackupHeader, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
+        });
+    }
+
     // At the very bottom, after the last card: the version, and no link to the guide while there
     // is no guide every user can open (AppInfoViewModel.GuideAddress).
     [Fact]
