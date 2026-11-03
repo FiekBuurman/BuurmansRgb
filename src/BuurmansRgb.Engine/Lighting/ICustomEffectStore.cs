@@ -8,4 +8,7 @@ internal interface ICustomEffectStore
     IReadOnlyList<CustomEffect> Load();
 
     void Save(IReadOnlyList<CustomEffect> effects);
+
+    // Writes json, a file that reads (SettingsArchive), as the file; the next Load reads it.
+    void Replace(byte[] json);
 }

@@ -477,6 +477,26 @@ internal sealed class FakeEngineApi : IEngineApi
         RaiseOtherRgbSoftwareChanged();
     }
 
+    // What "Instellingen bewaren…" gets, and what "terugzetten…" answers; the archives it got.
+    public byte[] ExportedSettings { get; set; } = [1, 2, 3];
+
+    public SettingsRestoreResult RestoreResult { get; set; } = new(SettingsRestoreOutcome.Restored);
+
+    public List<byte[]> RestoredArchives { get; } = [];
+
+    public async Task<byte[]> ExportSettingsAsync(CancellationToken ct = default)
+    {
+        await Record("export settings");
+        return ExportedSettings;
+    }
+
+    public async Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
+    {
+        await Record("restore settings");
+        RestoredArchives.Add(archive);
+        return RestoreResult;
+    }
+
     public event EventHandler? CustomEffectsChanged;
 
     public void RaiseCustomEffectsChanged() => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);

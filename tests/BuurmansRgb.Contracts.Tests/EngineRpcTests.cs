@@ -451,6 +451,24 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(1, _api.RescanCalls);
     }
 
+    // A backup is bytes both ways, also every byte value and a size of some MB, and the answer to a
+    // restore comes back with its outcome and file.
+    [Fact]
+    public async Task SettingsBackup_CrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+        var archive = new byte[3 * 1024 * 1024];
+        new Random(42).NextBytes(archive);
+        _api.ExportedSettings = archive;
+
+        var exported = await client.Api.ExportSettingsAsync(Ct);
+        var result = await client.Api.RestoreSettingsAsync(archive, Ct);
+
+        Assert.Equal(archive, exported);
+        Assert.Equal(archive, Assert.Single(_api.RestoredArchives));
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.ProfilesFileName), result);
+    }
+
     // The other RGB software comes over the pipe with its ids and names, and a dismissed id goes back.
     [Fact]
     public async Task OtherRgbSoftware_CrossesThePipeBothWays()
@@ -922,6 +940,18 @@ public sealed class EngineRpcTests : IDisposable
         {
             DismissedOtherRgbSoftware.Add(id);
             return Task.CompletedTask;
+        }
+
+        public byte[] ExportedSettings { get; set; } = [];
+
+        public List<byte[]> RestoredArchives { get; } = [];
+
+        public Task<byte[]> ExportSettingsAsync(CancellationToken ct = default) => Task.FromResult(ExportedSettings);
+
+        public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
+        {
+            RestoredArchives.Add(archive);
+            return Task.FromResult(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.ProfilesFileName));
         }
 
         public event EventHandler? CustomEffectsChanged;

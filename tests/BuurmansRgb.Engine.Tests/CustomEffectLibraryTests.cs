@@ -451,5 +451,33 @@ public sealed class CustomEffectLibraryTests : IDisposable
         }
     }
 
+    // A backup replaces the list, also a change that still waited: that is not written over it.
+    [Fact]
+    public void Replace_TakesTheFileAndDropsWhatWaited()
+    {
+        _library.Save(Effect("", "Disco"));
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        _library.Replace(System.Text.Encoding.UTF8.GetBytes("""{ "effects": [ { "id": "custom:00000001", "name": "Blauw", "steps": [ { "colors": ["#0000FF"] } ] } ] }"""));
+        _time.Advance(Delay);
+
+        Assert.Equal(["Blauw"], _library.Effects.Select(effect => effect.Name));
+        Assert.Equal(["Blauw"], _store.Effects.Select(effect => effect.Name));
+        Assert.Equal(0, _store.SaveCount);
+        Assert.Equal(1, changes);
+    }
+
+    // Before a backup: the change that waits is written at once.
+    [Fact]
+    public void Flush_WritesWhatWaits()
+    {
+        var saved = _library.Save(Effect("", "Disco"));
+
+        _library.Flush();
+
+        Assert.Equal([saved], _store.Effects);
+    }
+
     private static CustomEffect Effect(string id, string name) => new(id, name, [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
 }

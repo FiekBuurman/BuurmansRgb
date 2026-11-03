@@ -57,6 +57,17 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
     }
 
+    // Not as the store's own save: what it knows stays, so the file differs from it, as after a
+    // change in an editor. The file reads (SettingsArchive), so a save must not move it aside.
+    public void Replace(byte[] json)
+    {
+        lock (_gate)
+        {
+            JsonFile.Write(filePath, json);
+            _unreadable = false;
+        }
+    }
+
     // A file that does not read is left where it is, unlike at the start: it may be half written
     // still, and the engine keeps running on what it has. Only a save moves it aside.
     public SettingsFileChange LoadIfChanged()

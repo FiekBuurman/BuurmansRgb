@@ -65,6 +65,11 @@ internal sealed class SettingsReloader : IDisposable
         _timer.Dispose();
     }
 
+    // Reads the file now, on this thread, as a change by someone else is read a moment after it:
+    // for a file the engine replaced itself (a backup it restores), so the change is on the engine
+    // when this returns. The file event of that write that comes later finds nothing new.
+    public void ReloadNow() => Reload();
+
     private void OnFileChanged(object? sender, EventArgs e)
     {
         lock (_gate)

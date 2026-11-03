@@ -224,6 +224,34 @@ internal sealed class ProfileLibrary
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    // profiles.json from a backup (EngineHost.Restore), a file that reads: written as the file and
+    // read again, so the triggers plan the new times and programs (Changed). The scene that is on
+    // stays on while the backup has a scene of that name. The list in memory is only dropped once
+    // the file is written, so a write that fails leaves the scenes as they were.
+    public void Replace(byte[] json)
+    {
+        List<string> names;
+        lock (_gate)
+        {
+            _store.Replace(json);
+            _profiles = null;
+            names = [.. ProfilesLocked().Select(profile => profile.Name)];
+        }
+
+        bool activeGone;
+        lock (_activeGate)
+        {
+            activeGone = _activeName is { } active && !names.Exists(name => Matches(name, active)) && SetActiveLocked(null);
+        }
+
+        if (activeGone)
+        {
+            ActiveChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
     private static bool Matches(Profile profile, string name) => Matches(profile.Name, name);
 
     private static bool Matches(string left, string right) => ProfileNames.Comparer.Equals(left, right);

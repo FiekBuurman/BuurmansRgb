@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -25,6 +26,13 @@ internal sealed class InMemoryCustomEffectStore : ICustomEffectStore
         }
 
         return Effects;
+    }
+
+    // As JsonCustomEffectStore reads it: an effect that does not read is left out.
+    public void Replace(byte[] json)
+    {
+        var file = LenientJson.Deserialize(json, EngineSettingsJsonContext.Default.CustomEffectsFile);
+        Effects = [.. (file?.Effects ?? []).Select(settings => settings?.ToCustomEffect()).OfType<CustomEffect>()];
     }
 
     public void Save(IReadOnlyList<CustomEffect> effects)
