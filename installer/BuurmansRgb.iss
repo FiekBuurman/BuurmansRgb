@@ -365,12 +365,20 @@ procedure RemoveAutoStartFrom(const RootKey: HKEY; const SubKey: String);
 var
   Command: String;
 begin
-  if RegQueryStringValue(RootKey, SubKey, '{#AppName}', Command) and
-     (Pos(Lowercase(ExpandConstant('{app}')), Lowercase(Command)) > 0) then
+  if not RegQueryStringValue(RootKey, SubKey, '{#AppName}', Command) then
+  begin
+    // For another admin also when the hive of the user is not loaded.
+    Log('No autostart of ' + OriginalUserName + ' found to remove');
+    Exit;
+  end;
+
+  if Pos(Lowercase(ExpandConstant('{app}')), Lowercase(Command)) > 0 then
   begin
     RegDeleteValue(RootKey, SubKey, '{#AppName}');
     Log('Removed the autostart of ' + OriginalUserName);
-  end;
+  end
+  else
+    Log('Autostart of ' + OriginalUserName + ' left alone: it points to another install');
 end;
 
 procedure RemoveAutoStart();
@@ -379,8 +387,10 @@ begin
     Log('Autostart left alone: who started the uninstall is not known')
   else if OriginalUserIsCurrent then
     RemoveAutoStartFrom(HKCU, RunKey)
+  else if not RegKeyExists(HKU, OriginalUserSid) then
+    // Normally loaded, as the user is logged on to start the uninstall.
+    Log('Autostart left alone: the registry of ' + OriginalUserName + ' is not loaded')
   else
-    // The hive of the user is loaded, as the user is logged on to start the uninstall.
     RemoveAutoStartFrom(HKU, OriginalUserSid + '\' + RunKey);
 end;
 
