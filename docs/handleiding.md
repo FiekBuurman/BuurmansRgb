@@ -781,7 +781,9 @@ Hoe het vanzelf aanzetten werkt:
   naam die de app voorstelt is `buurmansRgb-instellingen-<datum>.zip`. Een bestand dat er nog
   niet is (nog geen scènes of eigen effecten), zit er niet in. De engine maakt de zip, met je
   laatste wijziging erin, ook als die nog niet bewaard was. Zo neem je alles mee naar een
-  nieuwe pc, of bewaar je het voordat je iets uitprobeert.
+  nieuwe pc, of bewaar je het voordat je iets uitprobeert. Lukt bewaren niet (een map waar je
+  niet mag schrijven, een volle schijf, of de verbinding met de engine viel weg), dan staat
+  onderaan "De instellingen konden niet worden bewaard.".
   "Instellingen terugzetten…" kiest zo'n zip en vraagt eerst "Instellingen terugzetten?" met de
   naam van het bestand: je huidige instellingen, scènes en eigen effecten worden vervangen
   (Annuleren of **Terugzetten**; Escape is Annuleren). Daarna gelden ze meteen, zonder herstart,
@@ -797,8 +799,11 @@ Hoe het vanzelf aanzetten werkt:
   bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
   bestanden, zoals een map), "Dit bestand is te groot …" (een zip groter dan 4 MB, of een bestand
   dat uitgepakt groter wordt dan 16 MB) of "profiles.json in dit bestand is niet te lezen." (geen
-  geldige JSON, of geen object). Lukt het schrijven van een bestand niet, dan zet de engine
-  terug wat er was en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
+  geldige JSON, of geen object). Kan de app het gekozen bestand zelf niet lezen (bijvoorbeeld
+  omdat een ander programma het openhoudt), dan staat er "Het bestand kon niet worden gelezen.
+  Er is niets veranderd.". Weigert de engine het terugzetten (bijvoorbeeld een oudere engine die
+  het nog niet kent), dan staat er "Terugzetten is niet gelukt. Er is niets veranderd.". Lukt
+  het schrijven van een bestand niet, dan zet de engine terug wat er was en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
   verbinding met de engine weg tijdens het terugzetten, dan weet de app niet hoe ver de engine
   kwam: er staat dan "De verbinding met de engine viel weg tijdens het terugzetten." en waar de
   kopie staat; kijk dan of je instellingen kloppen. Beide knoppen werken alleen als de app
