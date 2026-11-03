@@ -974,6 +974,15 @@
     <value>Het logbestand kon niet worden geopend.</value>
     <comment>Gelijk houden met LogOpenFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
+  <data name="OpenDataFolder" xml:space="preserve">
+    <value>Map met instellingen en logs openen</value>
+  </data>
+  <data name="DataFolderHint" xml:space="preserve">
+    <value>De map waarin buurmansRgb settings.json, profiles.json, effects.json en de logbestanden bewaart, in Verkenner.</value>
+  </data>
+  <data name="DataFolderOpenFailed" xml:space="preserve">
+    <value>De map met instellingen en logs kon niet worden geopend.</value>
+  </data>
   <data name="AppVersion" xml:space="preserve">
     <value>buurmansRgb {0}</value>
   </data>

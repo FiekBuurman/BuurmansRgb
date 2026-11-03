@@ -8,7 +8,8 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The bottom of Instellingen: "Logbestand openen", as in the tray menu, and the version of
+// The bottom of Instellingen: "Logbestand openen", as in the tray menu, "Map met instellingen en
+// logs openen" (dataFolder, where the engine keeps its files: DataFolder.Path), and the version of
 // buurmansRgb, with a link to the guide once there is one. The app opens the log of the engine
 // itself, where the engine writes it (FileLog.PathOf), instead of asking the engine: so it also
 // works when the engine does not run or does not answer, which is when the log is needed most,
@@ -16,7 +17,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // as Verkenner does (ShellLauncher.Open); tests pass a fake. version is the informational version
 // of the app, such as "1.2.0+f2a4d2c…". guideAddress is where "Handleiding" opens the guide; without
 // one the link is hidden.
-public sealed partial class AppInfoViewModel(Action<string> open, string engineLogPath, string? version, string? guideAddress = null)
+public sealed partial class AppInfoViewModel(Action<string> open, string engineLogPath, string? version, string? guideAddress = null, string? dataFolder = null)
 {
     // Where the guide is for every user of this app: none yet, so only the version shows. The
     // repository on GitHub is private, so a link to it would give a login page or a 404. An
@@ -30,7 +31,8 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
             open,
             FileLog.PathOf(FileLog.EngineName),
             typeof(AppInfoViewModel).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
-            guideAddress);
+            guideAddress,
+            DataFolder.Path);
 
     // Raised with the message for the status line when something could not be opened.
     public event EventHandler<string>? Failed;
@@ -46,6 +48,17 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
 
     [RelayCommand]
     private void OpenLog() => Open(engineLogPath, Strings.LogOpenFailed);
+
+    // The folder in Verkenner, as a double click there would open it; a folder that is not there
+    // (the engine never ran) gives a message. Without a folder (in tests) nothing opens.
+    [RelayCommand]
+    private void OpenDataFolder()
+    {
+        if (dataFolder is not null)
+        {
+            Open(dataFolder, Strings.DataFolderOpenFailed);
+        }
+    }
 
     [RelayCommand(CanExecute = nameof(HasGuide))]
     private void OpenGuide()

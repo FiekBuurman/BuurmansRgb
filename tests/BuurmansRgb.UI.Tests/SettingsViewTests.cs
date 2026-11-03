@@ -80,6 +80,25 @@ public sealed class SettingsViewTests
         });
     }
 
+    // Beside it, the folder with the settings and the logs, in Verkenner (here into opened).
+    [Fact]
+    public async Task OpenDataFolder_OpensTheFolderOfTheEngine()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var button = PageViews.ButtonNamed(page, Strings.OpenDataFolder);
+            Assert.Equal(Strings.DataFolderHint, AutomationProperties.GetHelpText(button));
+
+            PageViews.Click(button);
+
+            Assert.Equal([DataFolder.Path], opened);
+        });
+    }
+
     // At the very bottom, after the last card: the version, and no link to the guide while there
     // is no guide every user can open (AppInfoViewModel.GuideAddress).
     [Fact]
