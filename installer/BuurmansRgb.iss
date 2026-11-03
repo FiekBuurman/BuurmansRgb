@@ -87,7 +87,8 @@ const
   // few seconds (at most 2 s waiting for OpenRGB); after that taskkill stops it.
   EngineExitTimeoutMs = 10000;
   EngineExitPollMs = 250;
-  // When who started the uninstall is not known there is no SID to look for: a fixed short wait.
+  // When who started the uninstall is not known: a fixed short wait. The SID of the current user
+  // could be followed too, but this rare case does not need that; taskkill follows anyway.
   EngineExitFixedWaitMs = 3000;
 
 var
