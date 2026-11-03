@@ -758,7 +758,8 @@ Hoe het vanzelf aanzetten werkt:
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
   met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
   geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
-  er komt geen "Opgeslagen ✓" onderaan. De schakelaar en het vinkje in het tray-menu
+  er komt geen "Opgeslagen ✓" onderaan (dat je koos, onthoudt de engine wel, zodat een update het
+  laat zoals jij het zette). De schakelaar en het vinkje in het tray-menu
   staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
   dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
@@ -1008,7 +1009,11 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   engine bij het starten zijn eigen pad erin; een andere engine die er nog wel staat, houdt hem.
   Bij Instellingen in de app staat dezelfde schakelaar ("Opstarten"); het vinkje en de schakelaar
   lopen gelijk, en lukt het niet, dan meldt het icoon (of de app) "Starten met Windows kon niet
-  worden aangepast.".
+  worden aangepast.". Zet je het hier of bij Instellingen aan of uit, dan onthoudt de engine dat
+  je gekozen hebt (`autoStartChosen` in `settings.json`), en laat een update het zoals jij het
+  zette. Alleen een eerste installatie, of een update zolang je nog nooit gekozen hebt, zet het
+  aan. Kwam je van 1.5.0 of eerder (nog zonder dat veld) en stond het uit, dan telt dat ook als
+  je keuze: die installer had het aangezet, dus jij hebt het uitgezet.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
@@ -1134,6 +1139,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   },
   "simulatedDevices": "automatic",
   "hadRealDevices": true,
+  "autoStartChosen": true,
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
   "pausedLights": "keep",
@@ -1162,6 +1168,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `ledColorZoneLengths` | Per apparaat de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `hadRealDevices` | `true` zodra OpenRGB op deze pc ooit een echt apparaat gaf: bij `"automatic"` komen de gesimuleerde apparaten dan niet meer in de plaats van de echte als OpenRGB weg is. De engine zet dit zelf en schrijft het alleen als het `true` is; zonder (of `false`) had de pc nog nooit een echt apparaat. Op `false` zetten of weghalen draait het terug, tot OpenRGB weer een echt apparaat geeft |
+| `autoStartChosen` | `true` zodra je "Starten met Windows" zelf aan- of uitzette (in het tray-menu of bij Instellingen): de installer zet het dan bij een update niet meer aan. Een nieuw bestand zegt `false`. Zonder het veld (een bestand van 1.5.0 of eerder, of weggehaald) kijkt de engine bij het starten één keer of "Starten met Windows" aan staat: uit telt als je keuze (`true`), aan niet (`false`), en dat schrijft hij erbij. Op `false` zetten laat de volgende installatie het weer aanzetten. "Starten met Windows" zelf staat niet in dit bestand maar in Windows |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
 | `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de apparaten doen tijdens die pauze ("Apparaten tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |

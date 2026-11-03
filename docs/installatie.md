@@ -65,13 +65,17 @@ git pull
 
 Daarna `artifacts\installer\out\BuurmansRgb-setup.exe` draaien. De installer stopt de
 draaiende engine en instellingen-app zelf en laat je instellingen staan. Een OpenRGB-service
-en PawnIO die er al staan, laat hij met rust.
+en PawnIO die er al staan, laat hij met rust. **Starten met Windows** blijft zoals jij het
+zette: had je het uitgezet, dan zet de update het niet weer aan. Alleen als je het nog nooit
+zelf aan- of uitzette, zet de installer het aan.
 
 ## Verwijderen
 
 Via **Instellingen → Apps → BuurmansRgb → Verwijderen**. Dat stopt de engine en haalt
 BuurmansRgb en de autostart weg. Daarna vraagt het of OpenRGB en PawnIO ook weg moeten (alleen
-als deze installer ze heeft geïnstalleerd), en of je instellingen weg moeten.
+als deze installer ze heeft geïnstalleerd), en of je instellingen weg moeten. Houd je je
+instellingen en had je **Starten met Windows** ooit zelf aan- of uitgezet, dan zet een nieuwe
+installatie het niet aan; zet het dan zelf aan in het tray-menu.
 
 ## Zonder installer (voor ontwikkelaars)
 
