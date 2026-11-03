@@ -202,12 +202,12 @@ uitbreidingen in `docs/bouwplan.md`.
   bijv. de helderheid of een balk per LED op het volume of de bas, en een flits op de beat. Het
   geluid komt zonder stuurprogramma via WASAPI loopback (`AudioClient` op het standaardapparaat),
   met een kleine FFT per frame; de opname loopt alleen zolang het effect op een apparaat staat,
-  zodat de engine zonder het effect niet zwaarder wordt (testpanel 1-11-2026, Sanne en Noor)
+  zodat de engine zonder het effect niet zwaarder wordt (testpanel 1-11-2026, Jayden en Noor)
 - Schermsync: de apparaten de kleuren van het scherm laten volgen, zoals Ambilight (de strip
   achter de monitor de rand van het beeld, de kast de gemiddelde kleur). Het scherm samplen met
   Desktop Duplication (`IDXGIOutputDuplication`), een paar keer per seconde en sterk verkleind, en
   per apparaat kiezen welke rand of welk deel het volgt; ook hier alleen samplen zolang het effect
-  op een apparaat staat. Beschermde video (DRM) geeft een zwart beeld (testpanel 1-11-2026, Sanne)
+  op een apparaat staat. Beschermde video (DRM) geeft een zwart beeld (testpanel 1-11-2026, Noor)
 - Toetsen die oplichten bij indrukken (en weer uitdoven, of een kring die van de toets af loopt):
   de engine hoort de toets via Raw Input (`WM_INPUT` op het verborgen venster), liever dan via een
   `WH_KEYBOARD_LL`-hook (die laat elke toetsaanslag door de engine lopen en kan door anti-cheat als
@@ -215,7 +215,7 @@ uitbreidingen in `docs/bouwplan.md`.
   `OpenRgbDeviceMapper.ToLedNames`); het effect houdt per toets een tijd bij, zoals het idee voor
   Vuur hitte per LED bijhoudt. Alleen registreren zolang het effect op een toetsenbord staat;
   alleen welke toets, nooit wat je typt, en niets ervan in het logbestand (testpanel 1-11-2026,
-  Sanne)
+  Jayden)
 - Eigen effecten, na de eerste versie (stappen met een kleur of patroon, blijven staan en
   overlopen):
   - `effects.json` met de hand live oppikken, zoals `settings.json` met `SettingsFileWatcher`;
@@ -259,7 +259,7 @@ uitbreidingen in `docs/bouwplan.md`.
   schuif in kelvin in plaats van Rood, Groen en Blauw, voor wie het licht als bureaulamp gebruikt;
   de omzetting van kelvin naar RGB is een vaste benadering (Tanner Helland). Dat het 's avonds
   vanzelf warmer wordt, zoals Nachtlicht van Windows, is dan een scène die op tijd aangaat (zie
-  "Scènes") (testpanel 1-11-2026, Henk)
+  "Scènes") (testpanel 1-11-2026, Noor)
 - Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
@@ -421,7 +421,7 @@ uitbreidingen in `docs/bouwplan.md`.
   (dus een donkere of lichte variant van de kleur), geen wissel in een contrastthema
   (`ContrastTheme.SystemBrushes` blijft de baas) en geen animatie bij het omkleuren (minder
   beweging); eerst een keuze in `design/DESIGN.md`, dat de accentkleuren nu vast kiest (testpanel
-  1-11-2026, Lotte)
+  1-11-2026, Sanne)
 
 ### Voorbeeld en per-LED-editor
 
@@ -690,7 +690,7 @@ uitbreidingen in `docs/bouwplan.md`.
   kleine REST-koppeling. De eisen van Kees: standaard uit; wat het zelf opent, luistert alleen op
   localhost (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en
   `docs/handleiding.md` zegt wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt
-  geen netwerkcode (testpanel 1-11-2026, Noor en Kees)
+  geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
 
 ## Installer en uitrol
 
@@ -709,7 +709,7 @@ uitbreidingen in `docs/bouwplan.md`.
   niets downloaden of installeren, dat doet de gebruiker (of de beheerder) zelf. Een schakelaar om
   het uit te zetten, voor een pc die centraal beheerd wordt, en zonder internet geen melding.
   Zolang de repo privé is, geeft de API zonder token niets terug (zie het idee over de handleiding
-  meeleveren) (testpanel 1-11-2026, Kees en Henk)
+  meeleveren) (testpanel 1-11-2026, Kees)
 
 ## Tests en tooling
 
