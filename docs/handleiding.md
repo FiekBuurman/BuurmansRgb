@@ -108,8 +108,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   nieuwe status voor.
 - **Statusregel:** daaronder staat hooguit één melding, in een gewone kaart, de belangrijkste
   eerst: de verbinding met je apparaten is weg (alleen op een pc die echte apparaten had; met
-  **Opnieuw verbinden**, dezelfde zoektocht als Verversen, die zolang "Zoeken…" zegt) > de
-  effecten zijn gepauzeerd (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
+  **Opnieuw verbinden**, dezelfde zoektocht als Verversen, die zolang "Zoeken…" zegt) > andere
+  RGB-software draait mee ("SignalRGB draait ook en kan je kleuren overschrijven.", één melding
+  per programma, zie [Andere RGB-software](#andere-rgb-software)) > de effecten zijn gepauzeerd
+  (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
   "Pauzeren") > het voorbeeld staat stil (met **Laten lopen**, zie "Minder beweging"). Gelden er
   meer meldingen tegelijk, dan staat rechts de knop **Details** (voor een schermlezer "Details:
   nog 1 melding"): die klapt de andere meldingen uit onder de regel, elk met zijn eigen knop,
@@ -930,7 +932,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Instellingen** staat niet in het ontwerp; het gebruikt dezelfde kaarten, kleuren en
   lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De Statusregel (de pauze, de
   verbinding weg en het voorbeeld dat stilstaat, sinds `een-melding` in één kaart) staat in § 4
-  van het ontwerp. De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
+  van het ontwerp, ook de melding over andere RGB-software (`conflict-melding`) en waar die in de
+  volgorde staat. Die melding heeft als enige twee knoppen, **Uitleg** en **Niet meer melden**;
+  het voorstel noemde de eerste "Details", maar zo heet al de knop die de andere meldingen
+  uitklapt, en twee knoppen met dezelfde naam en een ander doel naast elkaar zijn verwarrend.
+  De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
   is subtekst in de tekstkleur zonder eigen kaart, dicht bij de knoppen, met "Hervatten" als
   gewone knop zoals in de Statusregel.
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
@@ -1156,7 +1162,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
     "simulated-argb": { "ARGB 2": 15 }
   },
   "zonesAlike": ["simulated-headset", "simulated-mouse"],
-  "customColors": ["#FF0000", "#40C0FF"]
+  "customColors": ["#FF0000", "#40C0FF"],
+  "dismissedOtherRgbSoftware": ["signalrgb"]
 }
 ```
 
@@ -1185,6 +1192,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `zonesAlike` | De apparaten (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elk apparaat uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 | `customColors` | De eigen kleuren van de gereedschapskist op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
+| `dismissedOtherRgbSoftware` | De andere RGB-software waarvoor je **Niet meer melden** koos, op id: `signalrgb`, `icue`, `razer`, `armourycrate`, `mysticlight`, `rgbfusion` of `openrgb` (een tweede OpenRGB). Zonder krijg je bij elk programma een melding. Haal een id weg (of de hele regel) en de melding komt weer zodra de engine het programma ziet; dat geldt meteen, de engine leest het bestand opnieuw. Een id die geen tekst is, slaat de engine over |
 
 - Een apparaat van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
   plus een code uit de locatie en het serienummer, zodat die na een herstart dezelfde blijft.
@@ -1414,6 +1422,33 @@ Heb je OpenRGB al eens zelf geïnstalleerd, zet daarin dan **Start Server** niet
 één OpenRGB de verbinding aanbieden, en dat doet de service. Het OpenRGB-venster openen om
 iets te bekijken mag wel. Welke processen en services erbij horen, staat in
 [installatie.md](installatie.md#andere-rgb-software-afsluiten).
+
+**De melding in de app.** buurmansRgb kijkt zelf of een van deze programma's draait: als de
+engine start, als de pc uit de slaapstand komt en als je **Verversen** kiest (of **Opnieuw
+verbinden**). Daartussen kijkt hij niet, dus een programma dat je net startte of afsloot, zie je
+pas bij de volgende keer; kies Verversen om meteen opnieuw te kijken. Vindt hij er een, dan staat
+in de statusregel bovenaan Apparaten en Kleur bijvoorbeeld "SignalRGB draait ook en kan je
+kleuren overschrijven.", één melding per programma. Hij herkent SignalRGB, Corsair iCUE, Razer
+Synapse, ASUS Armoury Crate, MSI Mystic Light en Gigabyte RGB Fusion, ook als alleen hun
+achtergrondprogramma draait. Logitech G Hub, NZXT CAM en SteelSeries GG herkent hij (nog) niet.
+Van RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet werkt.
+
+- **Een tweede OpenRGB:** draait er een OpenRGB in je eigen Windows-sessie terwijl de service
+  OpenRGB ook draait, dan zegt de app "Er draait nog een OpenRGB naast de service en die kan je
+  kleuren overschrijven.". Dat is ook zo als je alleen het OpenRGB-venster open hebt: wat je
+  daarin aan kleuren kiest, overschrijft die van buurmansRgb. Sluit het als je klaar bent, of
+  kies Niet meer melden. Zonder de service (OpenRGB zelf gestart, zie "OpenRGB koppelen") is dat
+  ene OpenRGB juist de server, en komt er geen melding.
+- **Uitleg** opent deze handleiding hier. Die knop staat er alleen als de app weet waar de
+  handleiding is; in deze versie nog niet.
+- **Niet meer melden** haalt de melding over dat programma weg, en hij komt niet meer terug:
+  ook niet als het programma later weer draait of na een herstart. Handig als je het bewust laat
+  draaien, bijvoorbeeld voor een apparaat dat OpenRGB niet kent. Wil je de melding toch weer,
+  haal het programma dan weg uit `dismissedOtherRgbSoftware` in `settings.json` (zie
+  "Instellingenbestanden").
+- Een schermlezer leest de melding voor als hij komt. De knoppen bereik je met Tab en heten naar
+  het programma ("SignalRGB niet meer melden"); na Niet meer melden gaat de focus naar de
+  volgende knop.
 
 ### Games met anti-cheat
 
