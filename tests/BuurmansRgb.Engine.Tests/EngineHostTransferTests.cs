@@ -22,6 +22,7 @@ public sealed class EngineHostTransferTests : IDisposable
     private readonly ZoneLengthKeeper _zoneLengths;
     private readonly JsonSettingsStore _store;
     private readonly ProfileLibrary _profiles;
+    private readonly FlakyCustomEffectStore _effectStore;
     private readonly CustomEffectLibrary _customEffects;
     private readonly FakeSettingsFileEvents _fileEvents = new();
 
@@ -32,7 +33,8 @@ public sealed class EngineHostTransferTests : IDisposable
         _zoneLengths = new ZoneLengthKeeper(_lighting);
         _store = new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName));
         _profiles = new ProfileLibrary(new JsonProfileStore(PathOf(SettingsBackup.ProfilesFileName)), _lighting);
-        _customEffects = new CustomEffectLibrary(new JsonCustomEffectStore(PathOf(SettingsBackup.EffectsFileName)), _lighting, saveDelay: TimeSpan.FromHours(1));
+        _effectStore = new FlakyCustomEffectStore(new JsonCustomEffectStore(PathOf(SettingsBackup.EffectsFileName)));
+        _customEffects = new CustomEffectLibrary(_effectStore, _lighting, saveDelay: TimeSpan.FromHours(1));
     }
 
     public void Dispose()
@@ -293,6 +295,28 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(2, effectsChanged);
     }
 
+    // A file that was written but could not be read again (held for a moment) is put back too, so
+    // the file and the effects in memory are both as before the restore.
+    [Fact]
+    public async Task Restore_FileThatCannotBeReadAgain_PutsItBack()
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        _customEffects.Save(new CustomEffect("", "Rood", [new CustomEffectStep(new RgbColor(255, 0, 0))]));
+        _customEffects.Flush();
+        var effectsPath = PathOf(SettingsBackup.EffectsFileName);
+        var effectsBefore = File.ReadAllBytes(effectsPath);
+        _effectStore.FailNextLoadAfterReplace = true;
+
+        var result = host.Restore(SettingsArchiveTests.Zip(
+            (SettingsBackup.EffectsFileName, Utf8("""{ "effects": [ { "id": "custom:00000001", "name": "Blauw", "steps": [ { "colors": ["#0000FF"] } ] } ] }"""))));
+
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Failed), result);
+        Assert.False(_effectStore.FailNextLoadAfterReplace);
+        Assert.Equal(effectsBefore, File.ReadAllBytes(effectsPath));
+        Assert.Equal(["Rood"], _customEffects.Effects.Select(effect => effect.Name));
+    }
+
     // Through the api of a connection, as the settings app asks.
     [Fact]
     public async Task EngineApi_RestoresThroughTheHost()
@@ -382,5 +406,34 @@ public sealed class EngineHostTransferTests : IDisposable
             Interlocked.Increment(ref _reads);
             return store.LoadIfChanged();
         }
+    }
+
+    // A store whose first Load after a Replace throws, as when the file is held for a moment.
+    private sealed class FlakyCustomEffectStore(ICustomEffectStore store) : ICustomEffectStore
+    {
+        private bool _replaced;
+
+        public bool FailNextLoadAfterReplace { get; set; }
+
+        public IReadOnlyList<CustomEffect> Load()
+        {
+            if (FailNextLoadAfterReplace && _replaced)
+            {
+                FailNextLoadAfterReplace = false;
+                throw new IOException("The file is in use.");
+            }
+
+            return store.Load();
+        }
+
+        public void Save(IReadOnlyList<CustomEffect> effects) => store.Save(effects);
+
+        public void Replace(byte[] json)
+        {
+            store.Replace(json);
+            _replaced = true;
+        }
+
+        public void Delete() => store.Delete();
     }
 }

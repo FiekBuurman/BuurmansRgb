@@ -177,7 +177,7 @@ internal sealed class EngineHost(
     // the engine that keeps it, so no save of what the engine held before comes over them: the
     // libraries drop what waited, and settings.json goes in as a change by hand, which the
     // reloader applies at once (ReloadNow), as an edit in an editor, while the saver waits for
-    // it. A file that cannot be written puts back the ones replaced before it.
+    // it. A file that cannot be written, or not read again, is put back with the ones before it.
     public SettingsRestoreResult Restore(byte[] archive)
     {
         var known = FilesOrThrow();
@@ -207,16 +207,18 @@ internal sealed class EngineHost(
             {
                 foreach (var name in SettingsBackup.FileNames)
                 {
+                    // Added before Replace: a file that was written but could not be read again
+                    // goes back too, and putting back one that was not written yet changes nothing.
                     if (content.Files.TryGetValue(name, out var json))
                     {
-                        Replace(known, name, json);
                         replaced.Add(name);
+                        Replace(known, name, json);
                     }
                 }
             }
             catch (Exception exception) when (JsonFile.IsAccessError(exception))
             {
-                Trace.TraceError($"Restoring a backup failed after {string.Join(", ", replaced.DefaultIfEmpty("no file"))}; putting those back: {exception}");
+                Trace.TraceError($"Restoring a backup failed at {replaced[^1]}; putting back {string.Join(", ", replaced)}: {exception}");
                 PutBack(known, replaced, before);
                 return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
             }
@@ -341,8 +343,8 @@ internal sealed class EngineHost(
     }
 
     // A file that was not there before the restore goes again, through the part of the engine that
-    // keeps it. settings.json is replaced last, so a failure never has to take it away; a file
-    // without its part of the engine (in tests) is just deleted.
+    // keeps it; a file without its part of the engine (settings.json, or any in tests) is just
+    // deleted.
     private void Remove(SettingsFiles known, string name)
     {
         switch (name)
