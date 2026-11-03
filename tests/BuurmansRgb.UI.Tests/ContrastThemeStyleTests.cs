@@ -20,7 +20,7 @@ public sealed class ContrastThemeStyleTests
     [InlineData("CardButton")]
     public void Button_HasTheFaceAndTextOfAButton(string style) => InContrastTheme(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource(style), Content = "Kort" });
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource(style), Content = "Kort" });
 
         Assert.Same(SystemColors.ControlBrush, button.Background);
         Assert.Same(SystemColors.ControlTextBrush, button.Foreground);
@@ -32,8 +32,8 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void SecondaryButton_Disabled_HasGrayText() => InContrastTheme(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen", IsEnabled = false });
-        var face = Part<Border>(button, "Face");
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen", IsEnabled = false });
+        var face = AppTheme.Part<Border>(button, "Face");
 
         Assert.Same(SystemColors.GrayTextBrush, button.Foreground);
         Assert.Same(SystemColors.GrayTextBrush, face.BorderBrush);
@@ -44,7 +44,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void PrimaryButton_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource("PrimaryButton"), Content = "Toepassen" });
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("PrimaryButton"), Content = "Toepassen" });
 
         Assert.Same(SystemColors.HighlightBrush, button.Background);
         Assert.Same(SystemColors.HighlightTextBrush, button.Foreground);
@@ -53,7 +53,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void DayToggle_WhenOn_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var day = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true });
+        var day = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true });
 
         Assert.Same(SystemColors.HighlightBrush, day.Background);
         Assert.Same(SystemColors.HighlightBrush, day.BorderBrush);
@@ -65,8 +65,8 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void DayToggle_WhenOnAndDisabled_HasGrayTextAsItsFace() => InContrastTheme(panel =>
     {
-        var on = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
-        var off = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "di", IsEnabled = false });
+        var on = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
+        var off = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "di", IsEnabled = false });
 
         Assert.Same(SystemColors.GrayTextBrush, on.Background);
         Assert.Same(SystemColors.GrayTextBrush, on.BorderBrush);
@@ -78,7 +78,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void DayToggle_WhenOff_HasTheFaceOfAButton() => InContrastTheme(panel =>
     {
-        var day = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma" });
+        var day = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma" });
 
         Assert.Same(SystemColors.ControlBrush, day.Background);
         Assert.Same(SystemColors.ControlTextBrush, day.Foreground);
@@ -87,12 +87,12 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void CheckBox_WhenTicked_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var checkBox = Show(panel, new CheckBox { Content = "Kort", IsChecked = true });
-        var box = Part<Border>(checkBox, "Box");
+        var checkBox = AppTheme.Show(panel, new CheckBox { Content = "Kort", IsChecked = true });
+        var box = AppTheme.Part<Border>(checkBox, "Box");
 
         Assert.Same(SystemColors.HighlightBrush, box.Background);
         Assert.Same(SystemColors.HighlightBrush, box.BorderBrush);
-        Assert.Same(SystemColors.HighlightTextBrush, Part<System.Windows.Shapes.Path>(checkBox, "Check").Stroke);
+        Assert.Same(SystemColors.HighlightTextBrush, AppTheme.Part<System.Windows.Shapes.Path>(checkBox, "Check").Stroke);
     });
 
     // Under the mouse the primary button, already the highlight, swaps its colors and gets a ring in
@@ -100,13 +100,13 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void PrimaryButton_OnHover_SwapsItsColorsAndGetsARing() => InContrastTheme(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource("PrimaryButton"), Content = "Toepassen" });
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("PrimaryButton"), Content = "Toepassen" });
         var hover = HoverSetters(button.Template.Triggers);
 
         Assert.Same(SystemColors.HighlightTextBrush, panel.FindResource(hover[("Face", Border.BackgroundProperty)]));
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[(null, Control.ForegroundProperty)]));
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[("HoverRing", Border.BorderBrushProperty)]));
-        Assert.NotNull(Part<Border>(button, "HoverRing"));
+        Assert.NotNull(AppTheme.Part<Border>(button, "HoverRing"));
     });
 
     // A link takes the highlight under the mouse instead of the HotTrack it has at rest, with a
@@ -114,12 +114,12 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void LinkButton_OnHover_HasTheHighlightAndALineUnderIt() => InContrastTheme(panel =>
     {
-        var link = Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "+ Erbij knutselen" });
+        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "+ Erbij knutselen" });
 
         Assert.Same(SystemColors.HotTrackBrush, link.Foreground);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Style.Triggers)[(null, Control.ForegroundProperty)]));
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Template.Triggers)[("Underline", Border.BackgroundProperty)]));
-        Assert.Equal(Colors.Transparent, Assert.IsType<SolidColorBrush>(Part<Border>(link, "Underline").Background).Color);
+        Assert.Equal(Colors.Transparent, Assert.IsType<SolidColorBrush>(AppTheme.Part<Border>(link, "Underline").Background).Color);
     });
 
     // The dashed border of "+ new" and the thumb of a scroll bar: the text color at rest, the
@@ -127,18 +127,18 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void NewButton_OnHover_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource("NewButton"), Content = "+ Nieuw" });
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("NewButton"), Content = "+ Nieuw" });
 
-        Assert.Same(SystemColors.WindowTextBrush, Part<System.Windows.Shapes.Rectangle>(button, "Dashes").Stroke);
+        Assert.Same(SystemColors.WindowTextBrush, AppTheme.Part<System.Windows.Shapes.Rectangle>(button, "Dashes").Stroke);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(button.Template.Triggers)[("Dashes", System.Windows.Shapes.Shape.StrokeProperty)]));
     });
 
     [Fact]
     public void ScrollBarThumb_OnHover_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var thumb = Show(panel, new Thumb { Style = (Style)panel.FindResource("ScrollBarThumb"), Width = 10, Height = 40 });
+        var thumb = AppTheme.Show(panel, new Thumb { Style = (Style)panel.FindResource("ScrollBarThumb"), Width = 10, Height = 40 });
 
-        Assert.Same(SystemColors.WindowTextBrush, Part<Border>(thumb, "Bar").Background);
+        Assert.Same(SystemColors.WindowTextBrush, AppTheme.Part<Border>(thumb, "Bar").Background);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(thumb.Template.Triggers)[("Bar", Border.BackgroundProperty)]));
     });
 
@@ -149,9 +149,9 @@ public sealed class ContrastThemeStyleTests
     [InlineData(true)]
     public void Switch_OnHover_HasARingInTheHighlight(bool isChecked) => InContrastTheme(panel =>
     {
-        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = isChecked });
+        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = isChecked });
 
-        Assert.Same(SystemColors.WindowTextBrush, Part<Border>(toggle, "Outline").BorderBrush);
+        Assert.Same(SystemColors.WindowTextBrush, AppTheme.Part<Border>(toggle, "Outline").BorderBrush);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(toggle.Template.Triggers)[("Outline", Border.BorderBrushProperty)]));
     });
 
@@ -160,7 +160,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void CloseCaptionButton_OnHover_HasTheHighlight() => InContrastTheme(panel =>
     {
-        var close = Show(panel, new Button { Style = (Style)panel.FindResource("CloseCaptionButton") });
+        var close = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("CloseCaptionButton") });
         var hover = HoverSetters(close.Style.Triggers);
 
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(hover[(null, Control.BackgroundProperty)]));
@@ -182,16 +182,4 @@ public sealed class ContrastThemeStyleTests
         using var theme = ContrastTheme.Follow(Window.GetWindow(panel).Resources, new FakeHighContrast { IsOn = true });
         test(panel);
     });
-
-    private static T Show<T>(StackPanel panel, T control)
-        where T : UIElement
-    {
-        panel.Children.Add(control);
-        OffscreenWindow.WaitUntilIdle();
-        return control;
-    }
-
-    private static T Part<T>(DependencyObject control, string name)
-        where T : FrameworkElement =>
-        AppTheme.Descendants<T>(control).Single(element => element.Name == name);
 }

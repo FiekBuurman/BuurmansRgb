@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace BuurmansRgb.UI.Tests;
@@ -27,25 +26,25 @@ public sealed class DisabledStyleTests
         button.Style = (Style)panel.FindResource(style);
         button.Content = "Knipperen";
         button.IsEnabled = false;
-        Show(panel, button);
-        var face = Part<Border>(button, "Face");
+        AppTheme.Show(panel, button);
+        var face = AppTheme.Part<Border>(button, "Face");
 
         Assert.Equal(1.0, button.Opacity);
-        AssertColor(panel, "DisabledTextBrush", button.Foreground);
-        AssertColor(panel, "DisabledFaceBrush", face.Background);
-        AssertColor(panel, "DisabledBorderBrush", face.BorderBrush);
+        AppTheme.AssertColor(panel, "DisabledTextBrush", button.Foreground);
+        AppTheme.AssertColor(panel, "DisabledFaceBrush", face.Background);
+        AppTheme.AssertColor(panel, "DisabledBorderBrush", face.BorderBrush);
         Assert.Equal(Cursors.Arrow, button.Cursor);
     });
 
     [Fact]
     public void Button_Enabled_KeepsTheColorsOfAButton() => AppTheme.Run(panel =>
     {
-        var button = Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen" });
-        var face = Part<Border>(button, "Face");
+        var button = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("SecondaryButton"), Content = "Knipperen" });
+        var face = AppTheme.Part<Border>(button, "Face");
 
-        AssertColor(panel, "ButtonTextBrush", button.Foreground);
-        AssertColor(panel, "ButtonFaceBrush", face.Background);
-        AssertColor(panel, "ButtonBorderBrush", face.BorderBrush);
+        AppTheme.AssertColor(panel, "ButtonTextBrush", button.Foreground);
+        AppTheme.AssertColor(panel, "ButtonFaceBrush", face.Background);
+        AppTheme.AssertColor(panel, "ButtonBorderBrush", face.BorderBrush);
         Assert.Equal(Cursors.Hand, button.Cursor);
     });
 
@@ -56,54 +55,36 @@ public sealed class DisabledStyleTests
     [Fact]
     public void DayToggle_Disabled_ShowsWhetherItIsOn() => AppTheme.Run(panel =>
     {
-        var on = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
-        var off = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "di", IsChecked = false, IsEnabled = false });
-        var onFace = Part<Border>(on, "Face");
-        var offFace = Part<Border>(off, "Face");
+        var on = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "ma", IsChecked = true, IsEnabled = false });
+        var off = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("DayToggle"), Content = "di", IsChecked = false, IsEnabled = false });
+        var onFace = AppTheme.Part<Border>(on, "Face");
+        var offFace = AppTheme.Part<Border>(off, "Face");
 
-        AssertColor(panel, "DisabledTextBrush", onFace.Background);
-        AssertColor(panel, "DisabledTextBrush", onFace.BorderBrush);
-        AssertColor(panel, "BgBrush", on.Foreground);
-        AssertColor(panel, "DisabledFaceBrush", offFace.Background);
-        AssertColor(panel, "DisabledBorderBrush", offFace.BorderBrush);
-        AssertColor(panel, "DisabledTextBrush", off.Foreground);
-        Assert.NotEqual(ColorOf(onFace.Background), ColorOf(offFace.Background));
-        Assert.NotEqual(ColorOf(on.Foreground), ColorOf(off.Foreground));
+        AppTheme.AssertColor(panel, "DisabledTextBrush", onFace.Background);
+        AppTheme.AssertColor(panel, "DisabledTextBrush", onFace.BorderBrush);
+        AppTheme.AssertColor(panel, "BgBrush", on.Foreground);
+        AppTheme.AssertColor(panel, "DisabledFaceBrush", offFace.Background);
+        AppTheme.AssertColor(panel, "DisabledBorderBrush", offFace.BorderBrush);
+        AppTheme.AssertColor(panel, "DisabledTextBrush", off.Foreground);
+        Assert.NotEqual(AppTheme.ColorOf(onFace.Background), AppTheme.ColorOf(offFace.Background));
+        Assert.NotEqual(AppTheme.ColorOf(on.Foreground), AppTheme.ColorOf(off.Foreground));
     });
 
     [Fact]
     public void Switch_Off_HasTheGreyTrackWithTheKnobOffKnob() => AppTheme.Run(panel =>
     {
-        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = false });
+        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = false });
 
-        AssertColor(panel, "SwitchOffTrackBrush", Part<Border>(toggle, "Track").Background);
-        AssertColor(panel, "KnobOffBrush", Part<Ellipse>(toggle, "Knob").Fill);
+        AppTheme.AssertColor(panel, "SwitchOffTrackBrush", AppTheme.Part<Border>(toggle, "Track").Background);
+        AppTheme.AssertColor(panel, "KnobOffBrush", AppTheme.Part<Ellipse>(toggle, "Knob").Fill);
     });
 
     [Fact]
     public void Switch_On_HasTheTrackInItsColorWithTheBgKnob() => AppTheme.Run(panel =>
     {
-        var toggle = Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = true });
+        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = true });
 
-        AssertColor(panel, "TextBrush", Part<Border>(toggle, "Track").Background);
-        AssertColor(panel, "OnAccentBrush", Part<Ellipse>(toggle, "Knob").Fill);
+        AppTheme.AssertColor(panel, "TextBrush", AppTheme.Part<Border>(toggle, "Track").Background);
+        AppTheme.AssertColor(panel, "OnAccentBrush", AppTheme.Part<Ellipse>(toggle, "Knob").Fill);
     });
-
-    private static T Show<T>(StackPanel panel, T control)
-        where T : UIElement
-    {
-        panel.Children.Add(control);
-        OffscreenWindow.WaitUntilIdle();
-        return control;
-    }
-
-    private static T Part<T>(DependencyObject control, string name)
-        where T : FrameworkElement =>
-        AppTheme.Descendants<T>(control).Single(element => element.Name == name);
-
-    // The theme merges the tokens more than once, so a brush is compared by its color.
-    private static void AssertColor(FrameworkElement scope, string key, object? brush) =>
-        Assert.Equal(((SolidColorBrush)scope.FindResource(key)).Color, ColorOf(brush));
-
-    private static Color ColorOf(object? brush) => Assert.IsType<SolidColorBrush>(brush).Color;
 }

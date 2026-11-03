@@ -63,4 +63,24 @@ internal static class AppTheme
             }
         }
     }
+
+    // A control in the panel of Run, laid out with the theme, so its template parts are there.
+    public static T Show<T>(StackPanel panel, T control)
+        where T : UIElement
+    {
+        panel.Children.Add(control);
+        OffscreenWindow.WaitUntilIdle();
+        return control;
+    }
+
+    // The one part of a template with that name, such as the "Face" of a button.
+    public static T Part<T>(DependencyObject control, string name)
+        where T : FrameworkElement =>
+        Descendants<T>(control).Single(element => element.Name == name);
+
+    public static Color ColorOf(object? brush) => Assert.IsType<SolidColorBrush>(brush).Color;
+
+    // The theme merges the tokens more than once, so a brush is compared by its color.
+    public static void AssertColor(FrameworkElement scope, string key, object? brush) =>
+        Assert.Equal(((SolidColorBrush)scope.FindResource(key)).Color, ColorOf(brush));
 }

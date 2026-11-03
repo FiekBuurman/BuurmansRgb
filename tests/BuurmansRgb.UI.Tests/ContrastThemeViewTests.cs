@@ -31,21 +31,21 @@ public sealed class ContrastThemeViewTests
             var card = AppTheme.Descendants<Border>(page).First(border => border.Style == page.FindResource("LargeCard"));
             var autoStart = PageViews.Named<ToggleButton>(page, Strings.AutoStartLabel);
             Assert.True(autoStart.IsChecked);
-            var cover = Part<Border>(autoStart, "Cover");
-            var outline = Part<Border>(autoStart, "Outline");
-            var knob = Part<System.Windows.Shapes.Ellipse>(autoStart, "Knob");
+            var cover = AppTheme.Part<Border>(autoStart, "Cover");
+            var outline = AppTheme.Part<Border>(autoStart, "Outline");
+            var knob = AppTheme.Part<System.Windows.Shapes.Ellipse>(autoStart, "Knob");
 
             AssertDesign();
 
             highContrast.Turn(on: true);
             OffscreenWindow.WaitUntilIdle();
 
-            Assert.Equal(SystemColors.WindowTextColor, ColorOf(subText.Foreground));
-            Assert.Equal(SystemColors.WindowColor, ColorOf(card.Background));
-            Assert.Equal(SystemColors.WindowTextColor, ColorOf(card.BorderBrush));
-            Assert.Equal(SystemColors.HighlightColor, ColorOf(cover.Background));
-            Assert.Equal(SystemColors.WindowTextColor, ColorOf(outline.BorderBrush));
-            Assert.Equal(SystemColors.HighlightTextColor, ColorOf(knob.Fill));
+            Assert.Equal(SystemColors.WindowTextColor, AppTheme.ColorOf(subText.Foreground));
+            Assert.Equal(SystemColors.WindowColor, AppTheme.ColorOf(card.Background));
+            Assert.Equal(SystemColors.WindowTextColor, AppTheme.ColorOf(card.BorderBrush));
+            Assert.Equal(SystemColors.HighlightColor, AppTheme.ColorOf(cover.Background));
+            Assert.Equal(SystemColors.WindowTextColor, AppTheme.ColorOf(outline.BorderBrush));
+            Assert.Equal(SystemColors.HighlightTextColor, AppTheme.ColorOf(knob.Fill));
 
             highContrast.Turn(on: false);
             OffscreenWindow.WaitUntilIdle();
@@ -54,22 +54,16 @@ public sealed class ContrastThemeViewTests
 
             void AssertDesign()
             {
-                Assert.Equal(Parse("#A9A6A0"), ColorOf(subText.Foreground));
-                Assert.Equal(Parse("#212128"), ColorOf(card.Background));
-                Assert.Equal(Parse("#2E2E36"), ColorOf(card.BorderBrush));
+                Assert.Equal(Parse("#A9A6A0"), AppTheme.ColorOf(subText.Foreground));
+                Assert.Equal(Parse("#212128"), AppTheme.ColorOf(card.Background));
+                Assert.Equal(Parse("#2E2E36"), AppTheme.ColorOf(card.BorderBrush));
                 Assert.Equal(Visibility.Visible, cover.Visibility);
-                Assert.Equal(Colors.Transparent, ColorOf(cover.Background));
-                Assert.Equal(Colors.Transparent, ColorOf(outline.BorderBrush));
-                Assert.Equal(Parse("#16161A"), ColorOf(knob.Fill));
+                Assert.Equal(Colors.Transparent, AppTheme.ColorOf(cover.Background));
+                Assert.Equal(Colors.Transparent, AppTheme.ColorOf(outline.BorderBrush));
+                Assert.Equal(Parse("#16161A"), AppTheme.ColorOf(knob.Fill));
             }
         });
     }
-
-    private static T Part<T>(DependencyObject control, string name)
-        where T : FrameworkElement =>
-        AppTheme.Descendants<T>(control).Single(element => element.Name == name);
-
-    private static Color ColorOf(Brush? brush) => Assert.IsType<SolidColorBrush>(brush).Color;
 
     private static Color Parse(string hex) => (Color)ColorConverter.ConvertFromString(hex);
 }
