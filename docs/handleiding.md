@@ -1358,8 +1358,8 @@ tray-menu of bij Instellingen in de app.
 
 De installer regelt dit (OpenRGB als service). Zonder installer:
 
-1. Sluit fabrikantsoftware af die dezelfde LED's aanstuurt (iCUE, Armoury Crate, MSI Center,
-   RGB Fusion, ...).
+1. Sluit andere RGB-software af die dezelfde LED's aanstuurt (zie
+   [Andere RGB-software](#andere-rgb-software)).
 2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
    OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
    Voor moederbord, RAM en videokaart moet OpenRGB de eerste keer als administrator draaien
@@ -1376,6 +1376,49 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt.
 - Details over verbinden, protocolversie en fouten staan in het logbestand van de engine (zie
   "Logbestanden").
+
+### Wat er altijd meedraait
+
+BuurmansRgb zelf is een gewone app. Om bij je apparaten te komen, zet de installer er twee
+dingen naast die altijd aan staan, ook als je BuurmansRgb afsluit:
+
+- **OpenRGB**, als achtergrondprogramma van Windows (een service). Het start mee met Windows en
+  praat met je apparaten. BuurmansRgb geeft het de kleuren door via een verbinding die alleen
+  binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
+- **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij het moederbord
+  en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender als gevaarlijk
+  aanmerkt.
+
+Goed om te weten: die verbinding heeft geen wachtwoord. Elk programma op je pc kan dus je
+verlichting veranderen. Van buiten je pc kan dat niet, zolang OpenRGB alleen binnen je pc
+luistert. De details, ook over bekende lekken en hoe je het controleert, staan in
+[installatie.md](installatie.md#wat-er-altijd-draait).
+
+### Andere RGB-software
+
+Twee programma's die dezelfde LED's aansturen, maken ruzie: de kleuren flikkeren of springen
+terug. Sluit daarom deze programma's af en zet ze uit bij **Taakbeheer → Opstartapps**:
+
+- SignalRGB
+- Corsair iCUE
+- Razer Synapse
+- ASUS Armoury Crate
+- MSI Mystic Light (in MSI Center)
+- Gigabyte RGB Fusion (of Gigabyte Control Center)
+- en ook Logitech G Hub, NZXT CAM en SteelSeries GG als die je verlichting regelen
+
+Heb je OpenRGB al eens zelf geïnstalleerd, zet daarin dan **Start Server** niet aan: er kan maar
+één OpenRGB de verbinding aanbieden, en dat doet de service. Het OpenRGB-venster openen om
+iets te bekijken mag wel. Welke processen en services erbij horen, staat in
+[installatie.md](installatie.md#andere-rgb-software-afsluiten).
+
+### Games met anti-cheat
+
+Sommige games hebben anti-cheat die kijkt welke drivers er op je pc staan. BuurmansRgb zelf heeft
+geen driver; PawnIO wel. Van FACEIT is bekend dat het een oudere PawnIO blokkeerde; met de
+versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Van Vanguard (Valorant), Easy
+Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets geblokkeerd is, kijk dan in
+[installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
 
 ### Per apparaattype
 
