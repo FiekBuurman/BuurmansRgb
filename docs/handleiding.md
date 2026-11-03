@@ -81,7 +81,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   het voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
-  de laatste wijziging. "Opslaan mislukt" betekent: de verlichting werkt, maar na een herstart is
+  de laatste wijziging. Houdt een ander programma `settings.json` net even open, zoals een
+  editor, een virusscanner of OneDrive, dan probeert de engine het een paar seconden opnieuw.
+  "Opslaan mislukt" betekent: ook dat lukte niet. De verlichting werkt, maar na een herstart is
   de wijziging weg. "De engine kon de wijziging niet verwerken." verdwijnt bij de volgende
   wijziging die wel lukt. Bestaat een scène die je aanzet, verwijdert of een tijd geeft niet
   meer (bijv. verwijderd in een tweede venster), dan staat er "Scène '…' bestaat niet meer." en
