@@ -125,7 +125,8 @@ er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is no
   bronnen; NVD zelf is niet geraadpleegd. Defender meldt WinRing0 sinds ongeveer maart 2025 als
   `HackTool:Win32/Winring0` [10] en zet hem in quarantaine als `VulnerableDriver:WinNT/Winring0`
   [14]. PawnIO laat alleen ondertekende modules met vaste bewerkingen toe [8]. OpenRGB stapte in
-  juni 2025 over [9], net als FanControl [10] en LibreHardwareMonitor [11].
+  juni 2025 over [9], net als FanControl [10] en, volgens een ander project, LibreHardwareMonitor
+  [11].
 - **Wie erbij mag:** standaard alleen beheerders, dus hier de service OpenRGB. Sinds 2.2.0 kun
   je PawnIO ook voor gewone gebruikers openzetten, maar de maker raadt dat af: toegang tot PawnIO
   staat gelijk aan beheerdersrechten [7][17]. De installer laat dat op de standaard.
@@ -135,7 +136,7 @@ er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is no
   met `sc qc PawnIO` (de naam `PawnIO` is zelf ook nog een vermoeden; anders
   `sc query type= driver | findstr /i pawn`, zie "Herstarten" in
   [ontwikkelaars.md](ontwikkelaars.md)).
-- **Bekende problemen**, alle drie opgelost in februari-maart 2026: een blauw scherm
+- **Bekende problemen**, alle drie gesloten in februari-maart 2026: een blauw scherm
   (`SYSTEM_THREAD_EXCEPTION_NOT_HANDLED`) na het installeren van 2.1.0, en PawnIO dat niet te
   stoppen of te verwijderen was [18].
 
@@ -177,7 +178,8 @@ drivers, dus het gaat om PawnIO, en misschien om OpenRGB. Wat er bekend is, en w
 | Riot Vanguard (Valorant, League of Legends) | Blokkeert bij het opstarten drivers die ondertekend maar kwetsbaar zijn, met de melding "Vanguard has blocked something from loading" [23][24]. Bevestigd voor InpOut32 van FanControl en LibreHardwareMonitor (2023) [25]. PawnIO met Vanguard: **onbekend**, ook een vraag erover bleef onbeantwoord [20]. OpenRGB met Vanguard: **onbekend**. |
 | Easy Anti-Cheat | PawnIO, WinRing0 en OpenRGB: **onbekend**, geen bron gevonden. Volgens een niet-officiële bron markeert EAC soms `LightingService.exe` van ASUS [27]. |
 | BattlEye | PawnIO, WinRing0 en OpenRGB: **onbekend**. BattlEye meldt een blokkade als "Blocked loading of file" [28]. |
-| ESEA, EA Javelin | **Onbekend**, niets gevonden [20]. |
+| ESEA | **Onbekend**, niets gevonden. |
+| EA Javelin | **Onbekend**: ernaar gevraagd, geen antwoord [20]. |
 
 Eén forumbericht (februari 2026) beweert dat sommige anti-cheats bannen als PawnIO aanwezig is,
 zonder namen of bewijs [29]; een bevestigde ban is in deze bronnen niet gevonden.
@@ -352,8 +354,9 @@ Start-Process $pawnIo -Wait -ArgumentList '-uninstall', '-silent'
 
 ## Bronnen
 
-Gelezen op 3 november 2026. De nummers liggen vast, dus er ontbreken er een paar. "Niet officieel" betekent een site met procesinformatie of een melding
-van een gebruiker, niet van de maker.
+Gelezen op 3 november 2026. De nummers liggen vast, dus er ontbreken er een paar.
+"Niet officieel" betekent een site met procesinformatie, een melding van een gebruiker of een
+ander project, niet van de maker.
 
 - [1] [pawnio.eu](https://pawnio.eu/)
 - [2] [namazso/PawnIO (licentie)](https://github.com/namazso/PawnIO)
@@ -364,7 +367,7 @@ van een gebruiker, niet van de maker.
 - [8] [OpenRGB, MR !2833](https://gitlab.com/CalcProgrammer1/OpenRGB/-/merge_requests/2833) (mei 2025)
 - [9] [OpenRGB, MR !2885](https://gitlab.com/CalcProgrammer1/OpenRGB/-/merge_requests/2885) (juni 2025)
 - [10] [FanControl, discussie #3017](https://github.com/Rem0o/FanControl.Releases/discussions/3017) (maart 2025 tot januari 2026)
-- [11] [TrafficMonitor-PawnIO, releases](https://github.com/EmiliayC/TrafficMonitor-PawnIO/releases)
+- [11] [TrafficMonitor-PawnIO, releases](https://github.com/EmiliayC/TrafficMonitor-PawnIO/releases) (niet officieel)
 - [12] [OpenRGB, releases op Codeberg](https://codeberg.org/OpenRGB/OpenRGB/releases)
 - [13] [Gridinsoft over WinRing0x64.sys](https://blog.gridinsoft.com/winring0x64-sys-process/) (niet officieel)
 - [14] [IT-Connect over OpenRGB 1.0](https://www.it-connect.tech/openrgb-1-0-the-open-source-tool-that-controls-rgb-devices-on-windows-linux-and-macos/) (september 2026)
