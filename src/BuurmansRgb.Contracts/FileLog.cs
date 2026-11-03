@@ -32,10 +32,7 @@ public sealed class FileLog : TraceListener
         _writer = Open();
     }
 
-    public static string DefaultDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "BuurmansRgb",
-        "logs");
+    public static string DefaultDirectory { get; } = Path.Combine(DataFolder.Path, "logs");
 
     public string FilePath => _path;
 

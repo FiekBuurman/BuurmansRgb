@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.Engine.Settings;
 
@@ -16,10 +17,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // Whether the file did not read when it last changed: the next save moves it aside first.
     private bool _unreadable;
 
-    public static string DefaultFilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "BuurmansRgb",
-        "settings.json");
+    public static string DefaultFilePath { get; } = Path.Combine(DataFolder.Path, "settings.json");
 
     // Where a file that does not read goes, so the next save does not overwrite the user's settings.
     public string BrokenFilePath => filePath + ".broken";
