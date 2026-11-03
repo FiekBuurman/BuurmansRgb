@@ -722,6 +722,16 @@ Hoe het vanzelf aanzetten werkt:
   | Nog geen echte apparaten gevonden | OpenRGB: niet bereikbaar | Hetzelfde, op een pc die nog nooit een echt apparaat had (`hadRealDevices`, zie "Gesimuleerde apparaten"): niets is kapot, de gesimuleerde apparaten spelen mee, en Herstarten staat er niet. Tip: zet OpenRGB aan (de installer regelt dat) |
   | Verbinden met je apparaten lukt niet | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte; buurmansRgb blijft het proberen, Herstarten start OpenRGB opnieuw |
 
+- **Licht op de achtergrond:** wat de engine nu gebruikt, bijv. "Geheugen 26 MB · CPU 0,3 %".
+  Het geheugen is het werkgeheugen van de engine (working set, de maat van het budget in het
+  bouwplan; Taakbeheer toont bij Details een kleiner getal, alleen het privé-deel). De CPU is een
+  deel van de hele pc, zoals Taakbeheer het toont: de tijd die de engine rekende in de laatste 2
+  seconden, gedeeld door het aantal kernen. Bij het openen van de pagina staat er eerst alleen
+  het geheugen ("CPU meten…"); 2 seconden later ook de CPU. De app meet het zelf, elke 2 seconden
+  en alleen zolang Instellingen open is en het venster niet geminimaliseerd: op een andere pagina,
+  geminimaliseerd of met de app dicht meet niemand iets, en de engine doet er nooit iets voor.
+  Zonder verbinding met de engine staat er "Nu niet te meten.". Een schermlezer leest de regel
+  als je erop komt, niet bij elke meting.
 - **Gesimuleerde apparaten:** bij "Gesimuleerde apparaten tonen"
   kies je "Automatisch" (standaard: alleen zolang er op deze pc nog nooit een echt apparaat was),
   "Altijd" of "Nooit". De engine wisselt meteen en bewaart de keuze. Bij "Automatisch" wacht de
@@ -766,11 +776,37 @@ Hoe het vanzelf aanzetten werkt:
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
   dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
   worden aangepast."; het logbestand zegt waarom.
-- **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
+- **Bewaren en terugzetten:** "Instellingen bewaren…" zet `settings.json`, `profiles.json` en
+  `effects.json` (zie "Instellingenbestanden") samen in één zip-bestand dat je zelf kiest; de
+  naam die de app voorstelt is `buurmansRgb-instellingen-<datum>.zip`. Een bestand dat er nog
+  niet is (nog geen scènes of eigen effecten), zit er niet in. De engine maakt de zip, met je
+  laatste wijziging erin, ook als die nog niet bewaard was. Zo neem je alles mee naar een
+  nieuwe pc, of bewaar je het voordat je iets uitprobeert.
+  "Instellingen terugzetten…" kiest zo'n zip en vraagt eerst "Instellingen terugzetten?" met de
+  naam van het bestand: je huidige instellingen, scènes en eigen effecten worden vervangen
+  (Annuleren of **Terugzetten**; Escape is Annuleren). Daarna gelden ze meteen, zonder herstart,
+  ook in een tweede instellingen-app, en staat onderaan "Instellingen teruggezet.". Een bestand
+  dat de zip niet heeft, blijft zoals het was. Wat er nu is, zet de engine eerst in een kopie in
+  de map met instellingen, in `backups\before-restore-<datum>-<tijd>.zip` (de laatste vijf
+  blijven); daarmee zet je het zo nodig weer terug. Twee dingen horen bij deze pc en komen niet
+  uit de zip: "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos
+  (`autoStartChosen`), zodat een update het laat zoals jij het zette; en of deze pc ooit echte
+  apparaten had (`hadRealDevices`). Welke meldingen over andere RGB-software je wegklikte
+  (`dismissedOtherRgbSoftware`) komt wel mee.
+  Is de zip niet goed, dan verandert er niets en staat onderaan waarom: "Dit bestand bevat geen
+  bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
+  bestanden, zoals een map), "Dit bestand is te groot …" (groter dan 16 MB, ook als een bestand
+  pas uitgepakt zo groot wordt) of "profiles.json in dit bestand is niet te lezen." (geen
+  geldige JSON, of geen object). Beide knoppen werken alleen als de app verbonden is met de
+  engine.
+- **Logbestand en map:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
   logbestand, of kan Windows het niet openen, dan staat onderaan "Het logbestand kon
-  niet worden geopend.".
+  niet worden geopend.". "Map met instellingen en logs openen" opent `%AppData%\BuurmansRgb` in
+  Verkenner, met de instellingenbestanden, `logs` en `backups`. Is die map er nog niet (de
+  engine draaide nooit), dan staat onderaan "De map met instellingen en logs kon niet worden
+  geopend.".
 - **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0"). Een
   link naar deze handleiding staat er nog niet: die komt zodra de handleiding een plek heeft die
   iedereen kan openen.
@@ -843,7 +879,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   hoofdvenster, in `bg` met een rand in `border`, de vraag als sectiekop en de uitleg als
   subtekst. "Verwijderen" is de primaire knop, maar 44 px hoog en in de tekstgrootte van
   "Annuleren" ernaast, die een gewone knop is. Zo zijn de knoppen Nederlands, ook op een Windows in
-  een andere taal, wat een `MessageBox` van Windows niet is.
+  een andere taal, wat een `MessageBox` van Windows niet is. Dezelfde vraag staat voor
+  "Instellingen terugzetten…", met **Terugzetten** als primaire knop: de knop zegt wat er gebeurt.
+  Het kiezen van een bestand gaat wel met de dialogen van Windows (Opslaan als en Openen), in de
+  taal van Windows.
+- **Instellingen** staat niet in het ontwerp; de pagina volgt de kaarten van de andere pagina's,
+  met sectiekoppen en gewone knoppen. De kop "Licht op de achtergrond" is een knipoog zoals de
+  koppen van het ontwerp; de getallen erin staan in de lettersoort van de tekst en niet in IBM
+  Plex Mono, omdat het één zin is.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
@@ -1109,7 +1152,10 @@ standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scèn
 `effects.json` bij het eerste eigen effect. Wijzigingen uit de app, ook aan eigen effecten, slaat
 de engine een seconde na de laatste wijziging op, en bij afsluiten; scènes meteen. Met de hand
 aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder), `profiles.json` en
-`effects.json` terwijl hij niet draait.
+`effects.json` terwijl hij niet draait. Alle drie samen bewaren en terugzetten, ook terwijl de
+engine draait, doe je bij Instellingen ("Bewaren en terugzetten"); de map open je daar met "Map
+met instellingen en logs openen". In `backups` staan de kopieën die de engine maakt voordat hij
+een bewaarde zip terugzet.
 
 Elke gebruiker op de pc heeft zijn eigen map. BuurmansRgb verwijderen stopt eerst je engine zoals
 **Afsluiten** in het tray-menu, zodat je laatste wijziging bewaard is, en vraagt dan of jouw

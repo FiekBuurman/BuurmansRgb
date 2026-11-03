@@ -515,6 +515,18 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het CPU-gebruik van de app met een stilstaand voorbeeld meten (zichtbaar venster, regenboog):
   vergrendeld tekent WPF niets en de instelling van Windows hoort niet omgezet te worden, dus dat
   vraagt een Windows Sandbox of een schakelaar om de instelling na te bootsen ("minder-beweging")
+- Een knop "Vorige instellingen terugzetten" bij Instellingen die de nieuwste kopie uit
+  `backups` terugzet, zodat je een terugzetting met één klik ongedaan maakt; nu kies je die zip
+  zelf met "Instellingen terugzetten…" ("instellingen-beheer")
+- Bij terugzetten ook de scène die in de zip aan stond (`activeScene`) weer als aan tonen; nu
+  telt een teruggezette verlichting als een gewone wijziging, en staat er daarna geen scène aan
+  ("instellingen-beheer")
+- Bij "Licht op de achtergrond" ook het geheugen en de CPU van de instellingen-app zelf tonen, of
+  een klein verloop van de laatste minuut; nu alleen de engine, en alleen het getal van nu
+  ("instellingen-beheer")
+- Bewaarde instellingen van een andere pc met andere apparaten: de verlichting per apparaat en
+  de zonelengtes horen bij apparaat-id's die daar misschien niet zijn. Ze blijven bewaard tot
+  zo'n apparaat komt, maar eventueel vragen welk apparaat welk is ("instellingen-beheer")
 
 ## Scènes
 
