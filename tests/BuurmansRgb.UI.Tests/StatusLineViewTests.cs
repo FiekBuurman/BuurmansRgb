@@ -332,32 +332,25 @@ public sealed class StatusLineViewTests
             var page = PageViews.Show<LampsPage>(panel, viewModel);
 
             Assert.False(Card(page).IsVisible);
-            Assert.Equal(Strings.DevicesNoneYet, AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "OpenRgbStatus").Text);
+            Assert.Equal(Strings.DevicesNoneYet, PageViews.ById<TextBlock>(page, "OpenRgbStatus").Text);
         });
     }
 
-    private static Border Card(FrameworkElement page) =>
-        AppTheme.Descendants<Border>(page).Single(border => AutomationProperties.GetAutomationId(border) == "StatusLineCard");
+    private static Border Card(FrameworkElement page) => PageViews.ById<Border>(page, "StatusLineCard");
 
-    private static TextBlock Line(FrameworkElement page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLine");
+    private static TextBlock Line(FrameworkElement page) => PageViews.ById<TextBlock>(page, "StatusLine");
 
-    private static Button Action(FrameworkElement page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "StatusLineAction");
+    private static Button Action(FrameworkElement page) => PageViews.ById<Button>(page, "StatusLineAction");
 
-    private static ToggleButton Details(FrameworkElement page) =>
-        AppTheme.Descendants<ToggleButton>(page).Single(button => AutomationProperties.GetAutomationId(button) == "StatusLineDetails");
+    private static ToggleButton Details(FrameworkElement page) => PageViews.ById<ToggleButton>(page, "StatusLineDetails");
 
-    private static FrameworkElement DetailList(FrameworkElement page) =>
-        AppTheme.Descendants<StackPanel>(page).Single(panel => AutomationProperties.GetAutomationId(panel) == "StatusLineDetailList");
+    private static FrameworkElement DetailList(FrameworkElement page) => PageViews.ById<StackPanel>(page, "StatusLineDetailList");
 
-    private static TextBlock Detail(FrameworkElement page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLineDetail");
+    private static TextBlock Detail(FrameworkElement page) => PageViews.ById<TextBlock>(page, "StatusLineDetail");
 
     private static Button DetailAction(FrameworkElement page) => DetailActions(page).Single();
 
-    private static IEnumerable<Button> DetailActions(FrameworkElement page) =>
-        AppTheme.Descendants<Button>(page).Where(button => AutomationProperties.GetAutomationId(button) == "StatusLineDetailAction");
+    private static IEnumerable<Button> DetailActions(FrameworkElement page) => PageViews.AllById<Button>(page, "StatusLineDetailAction");
 
     // As a screen reader would: the toggle pattern of the button.
     private static void Toggle(ToggleButton button)

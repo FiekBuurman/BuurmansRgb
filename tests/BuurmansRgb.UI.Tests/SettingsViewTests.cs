@@ -90,8 +90,8 @@ public sealed class SettingsViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<SettingsPage>(panel, viewModel);
-            var texts = AppTheme.Descendants<TextBlock>(page).Where(text => text.IsVisible).ToList();
-            var version = texts.Single(text => AutomationProperties.GetAutomationId(text) == "AppVersion");
+            var version = PageViews.ById<TextBlock>(page, "AppVersion");
+            Assert.True(version.IsVisible);
             Assert.Equal(viewModel.AppInfo.VersionText, version.Text);
             Assert.False(PageViews.ButtonNamed(page, Strings.GuideLink).IsVisible);
 

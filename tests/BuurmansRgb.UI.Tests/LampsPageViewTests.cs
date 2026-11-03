@@ -128,7 +128,7 @@ public sealed class LampsPageViewTests
             Assert.Equal(["rescan"], api!.Calls);
             Assert.Equal(Strings.RescanSearching, button.Content);
             Assert.Equal(Strings.RescanSearching, new ButtonAutomationPeer(button).GetName());
-            Assert.Equal(Strings.RescanSearching, AppTheme.Descendants<Button>(page).Single(other => AutomationProperties.GetAutomationId(other) == "RescanDevices").Content);
+            Assert.Equal(Strings.RescanSearching, PageViews.ById<Button>(page, "RescanDevices").Content);
             Assert.True(button.IsEnabled);
             Assert.True(button.IsKeyboardFocused);
         });
@@ -188,11 +188,9 @@ public sealed class LampsPageViewTests
 
     private static DeviceInfo Simulated(string id) => TestDevices.Create(id, $"Simulated {id}", DeviceType.LedStrip, 3, DeviceSource.Simulated);
 
-    private static TextBlock DevicesLost(DependencyObject page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "DevicesLost");
+    private static TextBlock DevicesLost(DependencyObject page) => PageViews.ById<TextBlock>(page, "DevicesLost");
 
-    private static TextBlock StatusLineText(DependencyObject page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLine");
+    private static TextBlock StatusLineText(DependencyObject page) => PageViews.ById<TextBlock>(page, "StatusLine");
 
     private static TextBlock NoLamps(DependencyObject page) =>
         AppTheme.Descendants<TextBlock>(page).Single(text => Equals(text.Text, Strings.NoLamps));
@@ -200,9 +198,7 @@ public sealed class LampsPageViewTests
     private static Button AddLamps(DependencyObject page) =>
         AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.AddLamps));
 
-    private static TextBlock Hint(DependencyObject page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "SimulatedDevicesHint");
+    private static TextBlock Hint(DependencyObject page) => PageViews.ById<TextBlock>(page, "SimulatedDevicesHint");
 
-    private static Button HintLink(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "SimulatedDevicesHintLink");
+    private static Button HintLink(DependencyObject page) => PageViews.ById<Button>(page, "SimulatedDevicesHintLink");
 }

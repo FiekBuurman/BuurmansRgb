@@ -96,7 +96,7 @@ public sealed class StatusLineViewModelTests : IDisposable
     {
         _animations.Turn(on: false);
         _pause.Show(PauseReasons.Manual);
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
 
         _openRgb.Show(new ServerStatus(ServerState.Unreachable));
 
@@ -119,7 +119,7 @@ public sealed class StatusLineViewModelTests : IDisposable
     [InlineData(ServerState.Connected, false)]
     public void OpenRgbState_OnlyOutOfReachIsALostConnection(ServerState state, bool lost)
     {
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
 
         _openRgb.Show(new ServerStatus(state, 2));
 
@@ -134,10 +134,10 @@ public sealed class StatusLineViewModelTests : IDisposable
         _openRgb.Show(new ServerStatus(ServerState.Unreachable));
         Assert.False(_line.IsShown);
 
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
         Assert.Equal(StatusMessageKind.ConnectionLost, _line.Current?.Kind);
 
-        _line.DevicesExpected = false;
+        _openRgb.DevicesExpected = false;
         Assert.False(_line.IsShown);
     }
 
@@ -147,7 +147,7 @@ public sealed class StatusLineViewModelTests : IDisposable
     {
         _animations.Turn(on: false);
         _pause.Show(PauseReasons.Manual);
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
         _openRgb.Show(new ServerStatus(ServerState.Unreachable));
         _line.ShowsDetails = true;
 
@@ -166,7 +166,7 @@ public sealed class StatusLineViewModelTests : IDisposable
     {
         _animations.Turn(on: false);
         _pause.Show(PauseReasons.Manual);
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
         _openRgb.Show(new ServerStatus(ServerState.Unreachable));
         var lost = Assert.IsType<StatusMessage>(_line.Current);
         var still = _line.Others[1];
@@ -212,7 +212,7 @@ public sealed class StatusLineViewModelTests : IDisposable
         Assert.Equal(Strings.PreviewStopAccessibleName, still.ActionAccessibleName);
         Assert.Equal(Strings.PreviewStopHelp, still.ActionHelpText);
 
-        _line.DevicesExpected = true;
+        _openRgb.DevicesExpected = true;
         _openRgb.Show(new ServerStatus(ServerState.Unreachable));
         var lost = Assert.IsType<StatusMessage>(_line.Current);
         lost.ActionCommand!.Execute(null);

@@ -8,11 +8,11 @@ namespace BuurmansRgb.UI.ViewModels;
 // The status line at the top of Apparaten and Kleur (Statusregel, design/DESIGN.md § 4): at most
 // one message in view, the one that matters most, with its action, and "Details" that unfolds the
 // others that hold, each with its own action, so a message that is pushed aside never goes
-// without a word. In the order they matter: the connection with the devices gone (OpenRgbStatus
-// out of reach, once this pc had real devices (DevicesExpected); "Opnieuw verbinden" is the search
-// of Verversen) > the effects paused or just resumed (EffectsPause; "Hervatten" for the pause from
-// the tray menu) > the preview still because animations in Windows are off (Motion; "Laten lopen"
-// or "Stilzetten"). It follows those view models and keeps their texts; they do the work.
+// without a word. In the order they matter: the connection with the devices gone
+// (OpenRgbStatus.IsConnectionLost; "Opnieuw verbinden" is the search of Verversen) > the effects
+// paused or just resumed (EffectsPause; "Hervatten" for the pause from the tray menu) > the
+// preview still because animations in Windows are off (Motion; "Laten lopen" or "Stilzetten").
+// It follows those view models and keeps their texts; they do the work.
 public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
 {
     private readonly OpenRgbStatusViewModel _openRgb;
@@ -51,12 +51,6 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial bool ShowsDetails { get; set; }
 
-    // Whether a real device was ever in the list on this pc (MainViewModel.HadRealDevices): only
-    // then is OpenRGB out of reach a lost connection; without, the simulated devices are all there
-    // is, and the status at the top right says enough.
-    [ObservableProperty]
-    public partial bool DevicesExpected { get; set; }
-
     public bool IsShown => Current is not null;
 
     public bool HasDetails => Others.Count > 0;
@@ -73,8 +67,6 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         _rescan.PropertyChanged -= OnSourceChanged;
     }
 
-    partial void OnDevicesExpectedChanged(bool value) => Refresh();
-
     private void OnSourceChanged(object? sender, PropertyChangedEventArgs e) => Refresh();
 
     // The sources change one property at a time; this reads them whole, so the line is consistent
@@ -87,7 +79,7 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
     // keeps the focus when another message takes the line with its own action.
     private void Refresh()
     {
-        var lost = DevicesExpected && _openRgb.IsDisconnected;
+        var lost = _openRgb.IsConnectionLost;
         var paused = _pause.IsShown;
         var still = _motion.IsShown;
         if (lost)

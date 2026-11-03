@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
-using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -42,7 +41,7 @@ public sealed class PreviewMotionViewTests
             Assert.Equal("Laten lopen", button.Content);
             Assert.Equal(Strings.PreviewRunAccessibleName, new ButtonAutomationPeer(button).GetName());
             Assert.Equal(Strings.PreviewRunHelp, AutomationProperties.GetHelpText(button));
-            Assert.True(ReachedWithTab(page, button));
+            Assert.True(PageViews.ReachedWithTab(page, button));
         });
     }
 
@@ -127,24 +126,7 @@ public sealed class PreviewMotionViewTests
         });
     }
 
-    private static TextBlock Line(FrameworkElement page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "StatusLine");
+    private static TextBlock Line(FrameworkElement page) => PageViews.ById<TextBlock>(page, "StatusLine");
 
-    private static Button Button(FrameworkElement page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "StatusLineAction");
-
-    // From the first stop of the page, Tab after Tab, as the keyboard would.
-    private static bool ReachedWithTab(FrameworkElement page, UIElement target)
-    {
-        Assert.True(page.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
-        for (var step = 0; step < 40 && !target.IsKeyboardFocused; step++)
-        {
-            if (Keyboard.FocusedElement is not UIElement focused || !focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)))
-            {
-                return false;
-            }
-        }
-
-        return target.IsKeyboardFocused;
-    }
+    private static Button Button(FrameworkElement page) => PageViews.ById<Button>(page, "StatusLineAction");
 }

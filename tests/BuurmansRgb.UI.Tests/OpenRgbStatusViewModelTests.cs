@@ -33,6 +33,7 @@ public sealed class OpenRgbStatusViewModelTests
         Assert.Equal($"{technical} (SDK-server op 127.0.0.1:6742)", _status.TechnicalText);
         Assert.Null(_status.Hint);
         Assert.False(_status.IsDisconnected);
+        Assert.False(_status.IsConnectionLost);
         Assert.False(_status.CanRestart);
     }
 
@@ -51,6 +52,7 @@ public sealed class OpenRgbStatusViewModelTests
         Assert.Contains("SDK-server", _status.Hint);
         Assert.Contains("Herstarten", _status.Hint);
         Assert.True(_status.IsDisconnected);
+        Assert.True(_status.IsConnectionLost);
         Assert.True(_status.CanRestart);
         Assert.True(_status.RestartCommand.CanExecute(null));
     }
@@ -69,14 +71,17 @@ public sealed class OpenRgbStatusViewModelTests
         Assert.Equal(Strings.OpenRgbUnreachableNoDevicesHint, _status.Hint);
         Assert.Contains("gesimuleerde", _status.Hint);
         Assert.True(_status.IsDisconnected);
+        Assert.False(_status.IsConnectionLost);
         Assert.False(_status.CanRestart);
         Assert.False(_status.RestartCommand.CanExecute(null));
 
         _status.DevicesExpected = true;
 
         Assert.Equal("Geen verbinding met je apparaten", _status.Text);
+        Assert.True(_status.IsConnectionLost);
         Assert.True(_status.CanRestart);
         Assert.Contains(nameof(OpenRgbStatusViewModel.Text), changed);
+        Assert.Contains(nameof(OpenRgbStatusViewModel.IsConnectionLost), changed);
         Assert.Contains(nameof(OpenRgbStatusViewModel.CanRestart), changed);
     }
 
@@ -117,6 +122,7 @@ public sealed class OpenRgbStatusViewModelTests
 
         Assert.False(_status.CanRestart);
         Assert.False(_status.RestartCommand.CanExecute(null));
+        Assert.Contains(nameof(OpenRgbStatusViewModel.IsConnectionLost), changed);
         Assert.Contains(nameof(OpenRgbStatusViewModel.CanRestart), changed);
     }
 

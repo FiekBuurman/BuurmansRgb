@@ -380,6 +380,12 @@ uitbreidingen in `docs/bouwplan.md`.
 - De focusring van de actieve LED in het voorbeeld (`LedPreviewView`) leest de tekstkleur pas bij
   het volgende beeld; bij een statisch effect krijgt hij de kleur van een contrastthema dat net
   aanging pas als de focus of de LED's veranderen
+- De focus doorgeven als "Hervatten" boven het voorbeeld verdwijnt zonder klik: eindigt de pauze
+  via het tray-menu terwijl de focus op die knop staat, dan valt hij naar het venster, want
+  `PreviewActionsHint` heeft alleen `OnResumeClick`; de statusregel doet het wel
+  (`StatusLine.OnButtonIsVisibleChanged`). Een gedeelde attached behavior in `Views/` (zoals
+  `LiveRegion.AnnouncesUpdates`) voor "knop verbergt zich met de focus erin: focus naar de
+  volgende" zou beide bedienen (refactorreview 2-11-2026)
 - Een gewone knop die je indrukt in een contrastthema `Highlight` met `HighlightText` geven, zoals
   Windows; nu wordt hij `Window` (`SurfaceRaisedBrush`), wat op `ButtonFace` weinig of niets
   verandert
@@ -647,7 +653,10 @@ uitbreidingen in `docs/bouwplan.md`.
   de JSON-converter, `EngineHost` bij laden en opslaan, `IEngineApi` met get, set en
   `OptionsChanged`, `EngineApi`, de RPC, `MainViewModel` met lezen, tonen en sturen, het
   viewmodel en de XAML van Instellingen). Een gedeelde beschrijving met naam, standaard en
-  geldige waarden zou de meeste daarvan uit één bron halen
+  geldige waarden zou de meeste daarvan uit één bron halen. `hadRealDevices` (`openrgb-weg`)
+  raakte opnieuw negen plekken: `EngineSettings`, `EngineHost` tweemaal,
+  `LightingSettingsSaver.AdoptLocked`, `IEngineApi`, `EngineApi`, `MainViewModel` driemaal en
+  beide fakes in de tests
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
   terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen

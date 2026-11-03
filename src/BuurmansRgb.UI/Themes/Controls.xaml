@@ -496,9 +496,6 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius,
-         or the Corners.Radius of a style based on it. A dashed line needs a Rectangle, which has one
-         radius: the top left one. -->
     <!-- The status line (Statusregel, DESIGN.md § 4): a card with one message, its action and "Details" that
          unfolds the other messages; Views/StatusLine.xaml puts it together. -->
     <Style x:Key="StatusLineCard" TargetType="Border" BasedOn="{StaticResource Card}">
@@ -527,6 +524,9 @@
         </Style.Triggers>
     </Style>
 
+    <!-- § 4 "+ new" button: transparent with a dashed border-strong border and the corners of ButtonRadius,
+         or the Corners.Radius of a style based on it. A dashed line needs a Rectangle, which has one
+         radius: the top left one. -->
     <Style x:Key="NewButton" TargetType="Button">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="24,0" />

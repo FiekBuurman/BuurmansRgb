@@ -54,9 +54,7 @@ public sealed class RescanViewTests
         });
     }
 
-    private static Button RescanButton(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => AutomationProperties.GetAutomationId(button) == "RescanDevices");
+    private static Button RescanButton(DependencyObject page) => PageViews.ById<Button>(page, "RescanDevices");
 
-    private static TextBlock Message(DependencyObject page) =>
-        AppTheme.Descendants<TextBlock>(page).Single(text => AutomationProperties.GetAutomationId(text) == "RescanMessage");
+    private static TextBlock Message(DependencyObject page) => PageViews.ById<TextBlock>(page, "RescanMessage");
 }

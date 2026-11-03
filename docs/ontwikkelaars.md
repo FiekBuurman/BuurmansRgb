@@ -642,9 +642,9 @@ toetsenbord. Een paar dingen om te proberen:
   `Views/StatusLine.xaml` met de stijlen `StatusLine*` in `Themes/Controls.xaml`) verzamelt drie
   `StatusMessage`s en toont de eerste die geldt als `Current`, de rest als `Others` onder
   "Details" (`ShowsDetails`; sluit vanzelf als er niets meer onder staat). De volgorde is die van `StatusMessageKind`: de verbinding weg
-  (`OpenRgbStatusViewModel.IsDisconnected`, alleen als `DevicesExpected`, wat `MainViewModel`
-  uit `HadRealDevices` zet; de actie is `DeviceRescanViewModel.RescanCommand`, de tekst volgt
-  `ReconnectButtonText`) > de pauze (`EffectsPauseViewModel`, ook de 5 s "Effecten lopen weer.";
+  (`OpenRgbStatusViewModel.IsConnectionLost`: `IsDisconnected` zolang `DevicesExpected`, wat
+  `MainViewModel` uit `HadRealDevices` zet; de actie is `DeviceRescanViewModel.RescanCommand`,
+  de tekst volgt `ReconnectButtonText`) > de pauze (`EffectsPauseViewModel`, ook de 5 s "Effecten lopen weer.";
   "Hervatten" alleen bij `CanResume`) > het voorbeeld stil (`PreviewMotionViewModel`, "Laten
   lopen"/"Stilzetten"). De teksten en commando's blijven van die view models; de statusregel
   leest ze bij elke `PropertyChanged` opnieuw. De knop in de regel bindt aan
@@ -1067,7 +1067,7 @@ Windows vergrendeld tekent WPF niets, dus die oudere meting mist het tekenen zel
 gloed). Met een zichtbaar venster zit de app boven het budget van 150 MB working set; minder
 beelden scheelt CPU, maar geen geheugen. Over Extern bureaublad tekent WPF zonder videokaart en
 staan de animaties van Windows uit, zodat het voorbeeld stilstaat tot je "Laten lopen" kiest
-(knop `PreviewMotionButton` voor UI Automation); kijk tijdens een meting ook of de sessie
+(knop `StatusLineAction` in de statusregel, voor UI Automation); kijk tijdens een meting ook of de sessie
 verbonden blijft (`query user`), want losgekoppeld tekent WPF niets meer. Private bytes tellen
 de gecompileerde code van .NET niet mee: die staat sinds W^X twee keer in gedeeld geheugen, dus
 vergelijk de working set. Waar die uit bestaat (DLL's, die code, privé), zie je per pagina met

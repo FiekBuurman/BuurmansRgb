@@ -68,6 +68,31 @@ internal static class PageViews
         where T : DependencyObject =>
         AppTheme.Descendants<T>(parent).Single(element => AutomationProperties.GetName(element) == name);
 
+    // The one T with this AutomationId, as UI Automation finds it.
+    internal static T ById<T>(DependencyObject parent, string automationId)
+        where T : DependencyObject =>
+        AllById<T>(parent, automationId).Single();
+
+    // Every T with this AutomationId, such as the action of each message under "Details".
+    internal static IEnumerable<T> AllById<T>(DependencyObject parent, string automationId)
+        where T : DependencyObject =>
+        AppTheme.Descendants<T>(parent).Where(element => AutomationProperties.GetAutomationId(element) == automationId);
+
+    // From the first stop of the page, Tab after Tab, as the keyboard would.
+    internal static bool ReachedWithTab(FrameworkElement scope, UIElement target)
+    {
+        Assert.True(scope.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
+        for (var step = 0; step < 40 && !target.IsKeyboardFocused; step++)
+        {
+            if (Keyboard.FocusedElement is not UIElement focused || !focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)))
+            {
+                return false;
+            }
+        }
+
+        return target.IsKeyboardFocused;
+    }
+
     private static IEnumerable<AutomationPeer> Descendants(AutomationPeer peer)
     {
         yield return peer;

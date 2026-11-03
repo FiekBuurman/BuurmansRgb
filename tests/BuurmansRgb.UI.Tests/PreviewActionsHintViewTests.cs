@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
-using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Views;
@@ -36,7 +35,7 @@ public sealed class PreviewActionsHintViewTests
             Assert.False(line.Focusable);
             Assert.True(resume.IsVisible);
             Assert.Equal(Strings.ResumeEffectsAccessibleName, new ButtonAutomationPeer(resume).GetName());
-            Assert.True(ReachedWithTab(preview, resume));
+            Assert.True(PageViews.ReachedWithTab(preview, resume));
             Assert.Equal(2, flashes.Count);
             Assert.All(flashes, flash => Assert.False(flash.IsEnabled));
             Assert.All(flashes, flash => Assert.True(ToolTipService.GetShowOnDisabled(flash)));
@@ -116,24 +115,7 @@ public sealed class PreviewActionsHintViewTests
         });
     }
 
-    private static TextBlock Line(FrameworkElement preview) =>
-        AppTheme.Descendants<TextBlock>(preview).Single(text => AutomationProperties.GetAutomationId(text) == "PreviewActionsHint");
+    private static TextBlock Line(FrameworkElement preview) => PageViews.ById<TextBlock>(preview, "PreviewActionsHint");
 
-    private static Button ResumeButton(FrameworkElement preview) =>
-        AppTheme.Descendants<Button>(preview).Single(button => AutomationProperties.GetAutomationId(button) == "PreviewActionsResume");
-
-    // From the first stop of the panel, Tab after Tab, as the keyboard would.
-    private static bool ReachedWithTab(FrameworkElement preview, UIElement target)
-    {
-        Assert.True(preview.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
-        for (var step = 0; step < 40 && !target.IsKeyboardFocused; step++)
-        {
-            if (Keyboard.FocusedElement is not UIElement focused || !focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)))
-            {
-                return false;
-            }
-        }
-
-        return target.IsKeyboardFocused;
-    }
+    private static Button ResumeButton(FrameworkElement preview) => PageViews.ById<Button>(preview, "PreviewActionsResume");
 }
