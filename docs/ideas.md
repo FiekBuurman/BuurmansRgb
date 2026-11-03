@@ -717,7 +717,7 @@ uitbreidingen in `docs/bouwplan.md`.
   `FlushSaves`) uit `EngineHost` naar een eigen klasse, zoals het lezen en de kopieën in
   `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
   `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
-  (refactor na testpanel 3-11-2026)
+  (refactorreview 3-11-2026)
 
 ## Integraties
 
@@ -816,7 +816,7 @@ uitbreidingen in `docs/bouwplan.md`.
   meeleveren) (testpanel 1-11-2026, Kees)
 - De vraag bij verwijderen (`RemoveSettings` in `BuurmansRgb.iss`, "instellingen (kleuren en
   effecten)") ook de scènes en de kopieën in `backups` laten noemen: "Ja" haalt de hele map
-  `%AppData%\BuurmansRgb` weg (refactor na testpanel 3-11-2026)
+  `%AppData%\BuurmansRgb` weg (refactorreview 3-11-2026)
 
 ## Tests en tooling
 
