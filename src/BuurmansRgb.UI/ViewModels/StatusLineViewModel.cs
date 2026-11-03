@@ -89,11 +89,6 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
 
         StatusMessage[] active = [.. new[] { _connectionLost, _paused, _previewStill }.Where(message => message.IsActive)];
         var current = active.FirstOrDefault();
-        foreach (var message in active)
-        {
-            message.IsDisplaced = !ReferenceEquals(message, current);
-        }
-
         var others = active.Skip(1).ToList();
         if (!others.SequenceEqual(Others))
         {

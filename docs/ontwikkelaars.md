@@ -641,8 +641,7 @@ toetsenbord. Een paar dingen om te proberen:
 - **Statusregel (`een-melding`):** `StatusLineViewModel` (`MainViewModel.StatusLine`, de view
   `Views/StatusLine.xaml` met de stijlen `StatusLine*` in `Themes/Controls.xaml`) verzamelt drie
   `StatusMessage`s en toont de eerste die geldt als `Current`, de rest als `Others` onder
-  "Details" (`ShowsDetails`, met `IsDisplaced` op de melding; sluit vanzelf als er niets meer
-  onder staat). De volgorde is die van `StatusMessageKind`: de verbinding weg
+  "Details" (`ShowsDetails`; sluit vanzelf als er niets meer onder staat). De volgorde is die van `StatusMessageKind`: de verbinding weg
   (`OpenRgbStatusViewModel.IsDisconnected`, alleen als `DevicesExpected`, wat `MainViewModel`
   uit `HadRealDevices` zet; de actie is `DeviceRescanViewModel.RescanCommand`, de tekst volgt
   `ReconnectButtonText`) > de pauze (`EffectsPauseViewModel`, ook de 5 s "Effecten lopen weer.";

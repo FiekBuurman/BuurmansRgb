@@ -58,7 +58,6 @@ public sealed class StatusLineViewModelTests : IDisposable
         Assert.Equal(Strings.ResumeEffectsToolTip, current.ActionHelpText);
         Assert.True(current.HasAction);
         Assert.True(current.ActionEndsMessage);
-        Assert.False(current.IsDisplaced);
         Assert.False(_line.HasDetails);
     }
 
@@ -86,7 +85,6 @@ public sealed class StatusLineViewModelTests : IDisposable
         Assert.Equal(Strings.PreviewStill, other.Text);
         Assert.Equal(Strings.PreviewRun, other.ActionText);
         Assert.Equal(Strings.PreviewRunAccessibleName, other.ActionAccessibleName);
-        Assert.True(other.IsDisplaced);
         Assert.True(_line.HasDetails);
         Assert.Equal("Details: nog 1 melding", _line.DetailsAccessibleName);
         Assert.Equal(Strings.PreviewStill, other.ToString());
@@ -110,7 +108,6 @@ public sealed class StatusLineViewModelTests : IDisposable
         Assert.Equal(Strings.ReconnectToolTip, current.ActionHelpText);
         Assert.Same(_rescan.RescanCommand, current.ActionCommand);
         Assert.Equal([StatusMessageKind.Paused, StatusMessageKind.PreviewStill], _line.Others.Select(message => message.Kind));
-        Assert.All(_line.Others, message => Assert.True(message.IsDisplaced));
         Assert.Equal(Strings.ResumeEffects, _line.Others[0].ActionText);
         Assert.Equal("Details: nog 2 meldingen", _line.DetailsAccessibleName);
     }
@@ -157,7 +154,6 @@ public sealed class StatusLineViewModelTests : IDisposable
         _openRgb.Show(new ServerStatus(ServerState.Connected, 2));
 
         Assert.Equal(StatusMessageKind.Paused, _line.Current?.Kind);
-        Assert.False(_line.Current?.IsDisplaced);
         Assert.Equal([StatusMessageKind.PreviewStill], _line.Others.Select(message => message.Kind));
         Assert.True(_line.ShowsDetails);
     }

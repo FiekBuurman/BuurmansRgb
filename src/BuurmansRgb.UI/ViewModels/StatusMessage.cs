@@ -16,10 +16,10 @@ public enum StatusMessageKind
     PreviewStill,
 }
 
-// One message of the status line: a sentence in plain words, an action when the user can do
+// One message of the status line: a sentence in plain words, and an action when the user can do
 // something about it (with the text, name and help text the source gives it now, such as
-// "Zoeken…" while a search runs), and whether a message that matters more pushed it under
-// "Details". Empty (no text), it says nothing and is not shown.
+// "Zoeken…" while a search runs). Empty (no text), it says nothing and is not shown. Whether it
+// stands in the line or under "Details" is the status line's to know (Current and Others).
 public sealed partial class StatusMessage : ObservableObject
 {
     // actionEndsMessage is true for an action that takes its own button away ("Hervatten"): the
@@ -51,10 +51,6 @@ public sealed partial class StatusMessage : ObservableObject
 
     [ObservableProperty]
     public partial string? ActionHelpText { get; private set; }
-
-    // Set by the status line: another message stands in the line, this one is under "Details".
-    [ObservableProperty]
-    public partial bool IsDisplaced { get; set; }
 
     public bool IsActive => Text.Length > 0;
 
