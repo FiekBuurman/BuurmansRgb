@@ -1278,7 +1278,10 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
     script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`
     vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, geen `DelTree` op
     `{userappdata}`, en `AppData` van een andere gebruiker alleen binnen zijn
-    `ProfileImagePath`.
+    `ProfileImagePath`. Ook dat de namen bij de engine passen: `AppName` gelijk aan
+    `DataFolder.Name` (de map in `%AppData%` en, via `RegistryAutoStart.ValueName`, de waarde in de
+    Run-sleutel die de uninstaller weghaalt) en `FirstRunArgument` gelijk aan
+    `EngineOptions.FirstRunArgument` en gebruikt op de `[Run]`-regel.
 - **Verwijderen als gewone gebruiker met het wachtwoord van een andere beheerder** (met de hand
   in Windows Sandbox, nadat de `.wsb` hieronder klaar is of in een eigen Sandbox met
   `artifacts\installer\out` gekoppeld; nooit op je eigen pc):

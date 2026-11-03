@@ -6,10 +6,13 @@ internal sealed class RegistryAutoStart(string keyPath, string valueName, string
 {
     public const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
 
+    // The value in the Run key; the installer removes it by its AppName.
+    internal const string ValueName = "BuurmansRgb";
+
     public static RegistryAutoStart ForCurrentProcess()
     {
         var executable = Environment.ProcessPath ?? throw new InvalidOperationException("The engine executable path is unknown.");
-        return new(RunKeyPath, "BuurmansRgb", $"\"{executable}\"");
+        return new(RunKeyPath, ValueName, $"\"{executable}\"");
     }
 
     // Only counts as enabled when it starts this executable; FollowMove takes over a moved install.
