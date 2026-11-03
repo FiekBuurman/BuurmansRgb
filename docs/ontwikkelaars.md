@@ -1162,8 +1162,9 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
     `taskkill` met de filter; autostart uit `HKU\<SID>\...\Run`, instellingen uit `AppData` van
     `HKU\<SID>\...\User Shell Folders` (`%USERPROFILE%` uit `ProfileList`) of anders `Shell
     Folders`.
-  - Niet vast te stellen: geen `--exit`, `taskkill` alleen voor `{username}`, autostart en
-    instellingen van niemand weg.
+  - Niet vast te stellen: toch `--exit` (het bereikt alleen de engine van wie de uninstaller
+    draait), een vaste 3 s wachten (zonder SID valt er niets te volgen), dan `taskkill` alleen
+    voor `{username}`; autostart en instellingen van niemand weg.
   - Wat er gebeurde staat in het verwijderlog (`Uninstall started by`, `The engine exited after
     --exit`, `Removed ...`). `InstallerScriptTests` (Engine.Tests) controleert de tekst van het
     script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`

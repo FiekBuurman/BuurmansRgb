@@ -98,7 +98,8 @@ Beperkingen:
   herstart.
 - Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Setup Log <datum> #001.txt` in
   `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt het alleen
-  de apps van wie de UAC-vraag beantwoordde. Haal ze dan weg zoals hieronder.
+  de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
+  sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
 
 **Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Dat kan geen kwaad: de
 autostart wijst naar een programma dat er niet meer is en doet niets. Wil een andere gebruiker

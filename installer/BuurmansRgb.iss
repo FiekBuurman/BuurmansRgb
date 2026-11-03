@@ -87,6 +87,8 @@ const
   // few seconds (at most 2 s waiting for OpenRGB); after that taskkill stops it.
   EngineExitTimeoutMs = 10000;
   EngineExitPollMs = 250;
+  // When who started the uninstall is not known there is no SID to look for: a fixed short wait.
+  EngineExitFixedWaitMs = 3000;
 
 var
   RestartNeeded: Boolean;
@@ -322,8 +324,9 @@ end;
 // Only the engine and settings app of the user who started the uninstall, never those of
 // another user on this pc (in another session, after switching users). The engine first gets
 // --exit, as "Afsluiten" in the tray menu, so it saves the last change; taskkill afterwards is
-// the safety net. --exit only reaches the engine of the same user: a process of another admin
-// cannot open the signal of the user's engine, so then taskkill stops it at once.
+// the safety net. --exit only reaches the engine of the user who runs this uninstaller: the
+// signal has the default DACL of its owner, so a process of another admin cannot open it and
+// taskkill stops the engine of the user who started the uninstall at once.
 procedure StopApps();
 var
   UserName: String;
@@ -336,17 +339,22 @@ begin
     Log('Stopping only the apps of ' + UserName + ', who runs this uninstaller');
   end
   else
-  begin
     UserName := OriginalUserName;
-    if OriginalUserIsCurrent then
+
+  if (OriginalUserSid = '') or OriginalUserIsCurrent then
+  begin
+    ResultCode := RunHidden(ExpandConstant('{app}\{#EngineExe}'), '{#ExitArgument}');
+    Log(Format('Engine {#ExitArgument} returned %d', [ResultCode]));
+    if OriginalUserSid = '' then
     begin
-      ResultCode := RunHidden(ExpandConstant('{app}\{#EngineExe}'), '{#ExitArgument}');
-      Log(Format('Engine {#ExitArgument} returned %d', [ResultCode]));
-      WaitForEngineExit();
+      Sleep(EngineExitFixedWaitMs);
+      Log(Format('Waited %d ms after {#ExitArgument}; taskkill stops the engine if it still runs', [EngineExitFixedWaitMs]));
     end
     else
-      Log('Engine {#ExitArgument} skipped: it cannot reach the engine of another user');
-  end;
+      WaitForEngineExit();
+  end
+  else
+    Log('Engine {#ExitArgument} skipped: it cannot reach the engine of another user');
 
   RunHidden(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "USERNAME eq ' + UserName + '" /IM {#EngineExe}');
   RunHidden(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "USERNAME eq ' + UserName + '" /IM {#SettingsExe}');

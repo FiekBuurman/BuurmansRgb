@@ -44,6 +44,18 @@ public sealed class InstallerScriptTests
     }
 
     [Fact]
+    public void Uninstall_AsksTheEngineToExitAlsoWhenTheUserIsNotKnown()
+    {
+        // The signal only opens for its owner, so --exit is as safe without the SID as with it.
+        var uninstall = UninstallCode();
+        var exit = uninstall.FindIndex(line => line.Contains("'{#ExitArgument}'", StringComparison.Ordinal));
+        var condition = uninstall.FindLastIndex(exit, line => line.TrimStart().StartsWith("if ", StringComparison.Ordinal));
+
+        Assert.InRange(condition, 0, exit - 1);
+        Assert.Contains("(OriginalUserSid = '') or OriginalUserIsCurrent", uninstall[condition], StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Uninstall_RemovesNoSettingsThroughTheElevatedProfile()
     {
         // {userappdata} is that of whoever answered UAC; OriginalUserAppData uses it only for the
