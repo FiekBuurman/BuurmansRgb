@@ -198,7 +198,7 @@ schakelaar ernaast.
   kleur met de hex-code erachter ("Warm wit · #FFF4E5"; je kunt ook een code typen) en de
   R · G · B-waarden. De naam loopt mee terwijl je schuift; een vaste kleur heet zoals onder
   "Kleuren", een andere kleur krijgt een benaderende naam (zie "Kleurnamen"). Is het venster
-  smal of de tekst groot, dan staat de hex-code onder de naam; rechts de schuiven Rood, Groen en Blauw
+  smal of de tekst groot, dan staat de hex-code met de punt ervoor onder de naam; rechts de schuiven Rood, Groen en Blauw
   (0–255, ook met de pijltjes), "Kleuren" met veertien vaste kleuren (Warm wit,
   Rood, Oranje, Groen, Blauw, Paars, Fel rood, Fel groen en Fel blauw, en Roze, Lichtroze,
   Lila, Mint en Babyblauw) met daaronder je
