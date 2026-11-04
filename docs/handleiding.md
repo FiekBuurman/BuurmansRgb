@@ -211,9 +211,10 @@ schakelaar ernaast.
   staat de code van de kleur er weer en zegt een melding eronder bijv. "'zzz' is geen kleurcode
   (zes tekens, zoals #FF9A3D); de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
   een andere kleur of een ander apparaat haalt de melding weg. Een leeg veld krijgt de code
-  terug zonder melding. Zolang je in het veld typt, blijft je tekst staan, ook als de kleur intussen
-  verandert (bijv. een scène uit het systeemvak); verlaat je het veld, dan staat de code van die
-  kleur erin.
+  terug zonder melding. Verandert de kleur terwijl je in het veld een halve code typt (bijv. een
+  scène uit het systeemvak), dan blijft je tekst staan tot je het veld verlaat; een hele code
+  wordt meteen de code van de nieuwe kleur, ook als je op een LED klikt terwijl de cursor in het
+  veld staat.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
   mengt, kun je bij je eigen kleuren bewaren voor een ander effect.": de regenboog heeft zijn

@@ -37,7 +37,7 @@ public partial class ColorPage : UserControl
         }
     }
 
-    // While the hex field has the keyboard focus, a color shown from the engine leaves what is typed.
+    // While the hex field has the keyboard focus, a color shown leaves a code that is no color yet.
     private void OnHexKeyboardFocusChanged(object sender, KeyboardFocusChangedEventArgs e)
     {
         if (DataContext is MainViewModel viewModel)

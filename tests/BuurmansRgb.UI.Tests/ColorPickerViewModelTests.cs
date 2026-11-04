@@ -105,18 +105,20 @@ public sealed class ColorPickerViewModelTests
         Assert.Empty(_picked);
     }
 
-    // A whole code that was typed and is no longer the color shown makes way once the focus goes.
+    // A whole code that was typed follows another color shown, also while the field has the focus,
+    // as a click on a LED leaves the focus there; a code that gives the same color stays as typed.
     [Fact]
-    public void Show_WhileTheFieldHasTheFocus_PutsItsCodeInOnceTheFocusGoes()
+    public void Show_WhileTheFieldHasTheFocus_PutsInTheCodeOfAnotherColor()
     {
         _picker.IsHexFocused = true;
         _picker.HexColor = "#00ff00";
 
         _picker.Show(new RgbColor(0, 0, 255));
 
-        Assert.Equal("#00ff00", _picker.HexColor);
-        _picker.IsHexFocused = false;
         Assert.Equal("#0000FF", _picker.HexColor);
+        _picker.HexColor = "0000ff";
+        _picker.Show(new RgbColor(0, 0, 255));
+        Assert.Equal("0000ff", _picker.HexColor);
         Assert.Equal([new RgbColor(0, 255, 0)], _picked);
     }
 
