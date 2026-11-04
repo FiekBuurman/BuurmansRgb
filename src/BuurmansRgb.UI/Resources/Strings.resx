@@ -1312,7 +1312,7 @@
   </data>
   <data name="SceneDotsOn" xml:space="preserve">
     <value>Aan: {0}</value>
-    <comment>De bolletjes van een scènekaart voor een schermlezer. {0} = elk van hun kleuren één keer, als hex-codes met een komma ertussen.</comment>
+    <comment>De bolletjes van een scènekaart voor een schermlezer. {0} = de namen van hun kleuren (ColorName_… of een vaste kleur met een kleine beginletter), elke naam één keer, met een komma ertussen.</comment>
   </data>
   <data name="SceneDotsOff" xml:space="preserve">
     <value>Uit</value>

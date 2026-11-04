@@ -21,8 +21,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
   ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
   een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
-  afbeelding ("Aan: #FF8800" of "Uit"), en zolang de app nog niet weet hoe de scène eruitziet
-  slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
+  afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
+  "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
   want de tekst ernaast zegt al wat ze tonen.
 - **Kleurnamen:** een vakje van de kleurenloop, van de kleuren van een effect en van je eigen
   kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
@@ -35,7 +35,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
   donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
   heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B") blijft de hex-code
-  tonen, want daar zie je de kleur.
+  tonen, want daar zie je de kleur. Dezelfde namen staan, met een hoofdletter, bij "Huidige kleur"
+  op Kleur en op de apparaatkaarten ("Warm wit", "Lichtblauw"), en een schermlezer hoort ze bij
+  elke LED van het voorbeeld ("LED 5, rood") en bij de bolletjes van een scènekaart.
 - **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
   Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
   over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je

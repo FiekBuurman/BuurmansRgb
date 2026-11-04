@@ -165,7 +165,7 @@ public sealed class AccessibleNamesViewTests
             Assert.Equal(["Avond"], ItemNames<SceneCard>(tree));
             Assert.Empty(ItemNames<SceneDot>(tree));
             var dots = Assert.Single(tree, peer => peer.GetClassName() == nameof(DecorativeItemsControl) && peer.IsControlElement());
-            Assert.Equal(($"Aan: {Orange.ToHex()}", AutomationControlType.Image), (dots.GetName(), dots.GetAutomationControlType()));
+            Assert.Equal(("Aan: oranje", AutomationControlType.Image), (dots.GetName(), dots.GetAutomationControlType()));
             Assert.Equal(["Tijd 1", "Tijd 2"], ItemNames<LoadTimeRow>(tree));
         });
     }

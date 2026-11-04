@@ -342,9 +342,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Op de schuif Snelheid 100 % als middenmarkering, of een streepje bij 100 %: nu staat de normale
   snelheid op een derde van de schuif (10–300 %), dus zie je niet dat 100 % normaal is en je tot
   300 % kunt (gebruikerstest 28-10)
-- De bolletjes van een scènekaart voor een schermlezer ook met kleurnamen (`ColorNames`), bijv.
-  "Aan: oranje, blauw" in plaats van "Aan: #FF8800, #2F6BFF"; dan noemen ze dezelfde naam maar één
-  keer. Nu noemen alleen de vakjes van de kleuren en de stappen van een eigen effect een kleurnaam
 - Gedempte kleuren een eigen naam geven in `ColorNames`, zoals "grijsblauw" (`#708090`),
   "grijsrood" of "oudroze" (`#BC8F8F`) en "kaki" (`#BDB76B`): nu krijgt een middelhelle kleur met
   weinig tint (met een verzadiging net boven de 20 %, de grens van grijs) de volle tintnaam,
