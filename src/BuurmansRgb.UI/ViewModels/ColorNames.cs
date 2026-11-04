@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // A color as a screen reader says it: a rough name with the hex code after it, "geel, #FFFF00",
 // for the tiles of a list of colors, the own colors and the steps of an own effect. A color of the
-// toolbox keeps its own name, with a small letter in the middle of a sentence ("klus-wit, #FFF4E5").
+// toolbox keeps its own name, with a small letter in the middle of a sentence ("warm wit, #FFF4E5").
 // The words are in Strings.resx, as "ColorName_<tone>".
 public static class ColorNames
 {

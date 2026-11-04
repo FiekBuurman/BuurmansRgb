@@ -19,6 +19,7 @@ public sealed class PlainWordsTests
         "Echt rood",
         "Echt groen",
         "Echt blauw",
+        "Klus-wit",
     ];
 
     // Where the texts are: the app's own Strings, and the Strings.resx of the engine and of

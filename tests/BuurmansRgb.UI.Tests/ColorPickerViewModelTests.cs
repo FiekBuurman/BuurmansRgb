@@ -14,7 +14,7 @@ public sealed class ColorPickerViewModelTests
     public void Presets_AreTheToolboxOfTheDesignAndTheRealColorsWithDutchNames()
     {
         Assert.Equal(
-            ["Klus-wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw"],
+            ["Warm wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw"],
             ColorPickerViewModel.Presets.Select(preset => preset.Name));
         Assert.Equal(new RgbColor(255, 154, 61), ColorPickerViewModel.Presets[2].Color);
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], ColorPickerViewModel.Presets.Skip(6).Select(preset => preset.Color));

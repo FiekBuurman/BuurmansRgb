@@ -24,7 +24,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     // full strength, which the tinted ones of the design are not.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
-        new(new(255, 244, 229), Strings.PresetKlusWhite),
+        new(new(255, 244, 229), Strings.PresetWarmWhite),
         new(new(255, 59, 59), Strings.PresetRed),
         new(new(255, 154, 61), Strings.PresetOrange),
         new(new(31, 196, 106), Strings.PresetGreen),

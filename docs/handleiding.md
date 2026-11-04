@@ -19,7 +19,7 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   actieve LED (zie "Per-LED-editor").
 - **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
-  ("Klus-wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
+  ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
   een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
   afbeelding ("Aan: #FF8800" of "Uit"), en zolang de app nog niet weet hoe de scène eruitziet
   slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
@@ -30,7 +30,7 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
   vaste kleur onder "Kleuren" houdt zijn eigen naam, ook in een vakje of een stap, met een
   kleine beginletter omdat hij midden in de zin staat ("Kleur 2: fel groen, #00FF00", "Eigen
-  kleur: klus-wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
+  kleur: warm wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
   zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
   oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
   donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
@@ -190,7 +190,7 @@ schakelaar ernaast.
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
-  (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Klus-wit,
+  (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Warm wit,
   Rood, Oranje, Groen, Blauw, Paars, en Fel rood, Fel groen en Fel blauw) met daaronder je
   eigen kleuren (zie "Eigen kleuren"). De kleur gaat meteen op het apparaat (bij "Hele huis" op
   alle apparaten) terwijl je schuift, een hex-code typt of een vaste of eigen kleur kiest; een
@@ -894,7 +894,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   houden ("Alles achter de schermen van de werkplaats"). Zo heet "Uit de gereedschapskist" nu
   "Kleuren", wordt "+ Nieuwe scène in elkaar zetten" "+ Nieuwe scène", en werd "+ Erbij
   knutselen" "Hoe komt een apparaat erbij?" (zie "Kop van Apparaten"). Echt rood, groen en
-  blauw heten Fel rood, Fel groen en Fel blauw. In de code heten de vaste kleuren nog de toolbox
+  blauw heten Fel rood, Fel groen en Fel blauw, en Klus-wit heet Warm wit (dezelfde kleur,
+  `#FFF4E5`): een kleurnaam hoort geen knipoog te zijn. In de code heten de vaste kleuren nog de toolbox
   (`ToolboxHeader`).
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt

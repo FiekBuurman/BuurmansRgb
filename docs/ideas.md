@@ -81,8 +81,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Hoe komt een apparaat erbij?" op Apparaten de handleiding laten openen bij de uitleg over
   apparaten, zodra `AppInfoViewModel.GuideAddress` een adres heeft; nu gaat de link naar
   Instellingen, waar bij OpenRGB de uitleg staat (`gewone-taal`)
-- De vaste kleur "Klus-wit" een gewone naam geven ("Warm wit"): het is de laatste knipoog naar
-  klussen buiten een kop (`gewone-taal` liet hem staan, omdat het een kleurnaam is en geen actie)
 - Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
   de kast een effect krijgt: een schakelaar per apparaat ("Volgt Hele huis niet"), bewaard als een
   set id's in `settings.json` zoals `zonesAlike`, die `LightingController` bij een kleur, effect of

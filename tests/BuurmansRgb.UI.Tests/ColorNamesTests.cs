@@ -141,7 +141,7 @@ public sealed class ColorNamesTests
             Assert.Equal(preset.Name[1..], name[1..]);
             Assert.Equal(UiText.Format(Strings.ColorNameWithHex, name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color));
         });
-        Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+        Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
         Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         Assert.Equal("fel groen", ColorNames.NameOf(new(0, 255, 0)));
     }
@@ -158,7 +158,7 @@ public sealed class ColorNamesTests
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
 
             Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
-            Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+            Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
             Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         }
         finally
