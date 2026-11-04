@@ -156,13 +156,15 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         }
     }
 
+    // A code in the field that already gives the color stays as it was typed, such as "ff00ff":
+    // the color coming back from the engine does not rewrite the field under the cursor.
     private void ShowColor(RgbColor color, bool updateHex = true)
     {
         Color = color;
         Red = color.R;
         Green = color.G;
         Blue = color.B;
-        if (updateHex)
+        if (updateHex && !(RgbColor.TryParseHex(HexColor.Trim(), out var typed) && typed == color))
         {
             HexColor = color.ToHex();
         }

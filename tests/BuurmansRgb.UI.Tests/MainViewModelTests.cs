@@ -135,6 +135,35 @@ public sealed class MainViewModelTests
         Assert.Equal((0.0, 0.0, 255.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
     }
 
+    // The engine reports the typed color back: the field keeps the code as typed, so the cursor
+    // does not jump while the user is still in it.
+    [Fact]
+    public async Task HexColor_Typed_StaysAsTypedWhenTheLightingComesBack()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "ff00ff";
+
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => Api.Calls.Contains("color all #FF00FF"));
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
+        Assert.Equal("ff00ff", viewModel.ColorPicker.HexColor);
+    }
+
+    // Another color from outside the app does replace the code in the field.
+    [Fact]
+    public async Task HexColor_Typed_FollowsAnotherColorFromTheEngine()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "ff00ff";
+
+        Api.Lighting[""] = Api.Lighting[""] with { Color = new RgbColor(0, 255, 0) };
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => viewModel.ColorPicker.Color == new RgbColor(0, 255, 0));
+        Assert.Equal("#00FF00", viewModel.ColorPicker.HexColor);
+    }
+
     [Theory]
     [InlineData("#00")]
     [InlineData("blue")]
