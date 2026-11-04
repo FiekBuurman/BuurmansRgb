@@ -247,16 +247,18 @@ schakelaar ernaast.
   instellingen-app die tegelijk open is, ziet ze meteen. Ze zijn iets anders dan de kleuren van
   een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
-  scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
-  het effect, de snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de
-  nieuwe verlichting. Een kleur die je aan het mengen bent en nog niet op het apparaat hebt gezet,
-  blijft staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop,
-  Fonkelen, Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan: die
-  verandert meteen mee, dus de kleur die je voor het apparaat mengde vervalt.
-  De gemengde kleur blijft ook staan als de apparaten opnieuw binnenkomen (een zone met een nieuwe
-  lengte, apparaten die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang hetzelfde
-  apparaat gekozen blijft. Verdwijnt het gekozen apparaat, dan toont de pagina "Hele huis" met
-  zijn kleur.
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven, het effect, de
+  snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de nieuwe verlichting.
+  Een kleur die je net koos, staat al op het apparaat, en een schuif die je net verschoof,
+  springt niet terug, ook niet als je nog sleept terwijl de nieuwe verlichting binnenkomt. Een
+  getypte code blijft staan zoals je hem typte ("ff00ff"). Komt er zo de kleurenloop, Fonkelen,
+  Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan. Alleen bij een
+  effect dat geen kleur van het apparaat gebruikt, zoals Regenboog, kan het mengpaneel een kleur
+  tonen die niet op het apparaat staat: die blijft staan zolang het effect geen kleur gebruikt,
+  ook als de apparaten opnieuw binnenkomen (een zone met een nieuwe lengte, apparaten die OpenRGB
+  opnieuw meldt, de schakelaar **Zones gelijk**) en hetzelfde apparaat gekozen blijft; komt er
+  een effect met een kleur op, dan toont het mengpaneel de kleur van het apparaat. Verdwijnt het
+  gekozen apparaat, dan toont de pagina "Hele huis" met zijn kleur.
 - Bovenaan staat dezelfde statusregel als op Apparaten (zie "Statusregel" daar): de verbinding
   met je apparaten weg, een pauze met de reden (bij de pauze uit het tray-menu met "Hervatten",
   zie "Pauzeren") of het voorbeeld dat stilstaat; de belangrijkste in de regel, de rest onder
