@@ -246,7 +246,8 @@
     <value>Selecteert alle LED's van dit apparaat, zodat je ze samen een kleur geeft.</value>
   </data>
   <data name="SelectAllAccessibleName" xml:space="preserve">
-    <value>Alle LED's van {0} selecteren</value>
+    <value>Alles selecteren, alle LED's van {0}</value>
+    <comment>Naam voor een schermlezer van SelectAll. Begint met het zichtbare SelectAll, zodat wie met spraak bedient het met de zichtbare tekst noemt (WCAG 2.5.3). {0} = de naam van het apparaat.</comment>
   </data>
   <data name="SwitchOn" xml:space="preserve">
     <value>Aan</value>
