@@ -12,6 +12,7 @@
 #define AppName "BuurmansRgb"
 #define EngineExe "BuurmansRgb.Engine.exe"
 #define SettingsExe "BuurmansRgb.UI.exe"
+#define ExitArgument "--exit"
 #define OpenRgbMsi "OpenRGB_1.1_Windows_64_8e16de2.msi"
 #define OpenRgbService "OpenRGB"
 #define PawnIoSetup "PawnIO_setup.exe"
@@ -40,6 +41,8 @@ WizardStyle=modern
 CloseApplications=force
 RestartApplications=no
 SetupLogging=yes
+; From Instellingen -> Apps a log in the TEMP of whoever answered UAC, with who started it.
+UninstallLogging=yes
 
 [Languages]
 Name: "dutch"; MessagesFile: "compiler:Languages\Dutch.isl"
@@ -68,19 +71,37 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#EngineExe}"
 ; and --first-run writes autostart into that user's HKCU.
 Filename: "{app}\{#EngineExe}"; Parameters: "--first-run"; Description: "{cm:StartEngine}"; Flags: nowait postinstall runasoriginaluser
 
-[UninstallRun]
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM {#EngineExe}"; Flags: runhidden; RunOnceId: "StopEngine"
-Filename: "{sys}\taskkill.exe"; Parameters: "/F /IM {#SettingsExe}"; Flags: runhidden; RunOnceId: "StopSettingsApp"
+; The uninstaller stops the engine and settings app itself, in StopApps: only those of the user
+; who started the uninstall, and the engine first with --exit.
 
 [Code]
 const
   RunKey = 'Software\Microsoft\Windows\CurrentVersion\Run';
   UninstallKey = 'Software\Microsoft\Windows\CurrentVersion\Uninstall';
+  UserShellFoldersKey = 'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders';
+  ShellFoldersKey = 'Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders';
+  ProfileListKey = 'Software\Microsoft\Windows NT\CurrentVersion\ProfileList';
   ErrorSuccessRebootRequired = 3010;
   ErrorSuccessRebootInitiated = 1641;
+  // How long the uninstaller waits for the engine after --exit. It saves and is gone within a
+  // few seconds (at most 2 s waiting for OpenRGB); after that taskkill stops it.
+  EngineExitTimeoutMs = 10000;
+  EngineExitPollMs = 250;
+  // When who started the uninstall is not known: a fixed short wait. The SID of the current user
+  // could be followed too, but this rare case does not need that; taskkill follows anyway.
+  EngineExitFixedWaitMs = 3000;
 
 var
   RestartNeeded: Boolean;
+  // Who started the uninstall (see InitializeUninstall); empty when that is not known.
+  OriginalUserSid: String;
+  OriginalUserName: String;
+  OriginalUserIsCurrent: Boolean;
+  Wmi: Variant;
+  HaveWmi: Boolean;
+
+function GetCurrentProcessId(): Cardinal;
+  external 'GetCurrentProcessId@kernel32.dll stdcall uninstallonly';
 
 function Succeeded(ResultCode: Integer): Boolean;
 begin
@@ -188,14 +209,266 @@ begin
   Result := RegQueryDWordValue(HKLM64, '{#StateKey}', Name, Value) and (Value = 1);
 end;
 
+// The uninstaller runs twice: the first copy runs as the user who started it (from Instellingen
+// -> Apps), starts this second copy elevated and waits for it. When another admin answered the
+// UAC prompt with a password, this copy runs as that admin, so HKCU, {userappdata} and
+// {username} are the admin's, not those of the user who wanted BuurmansRgb gone. The owner of
+// the first copy, the parent of this one, is that user. ExecAsOriginalUser does not work in
+// Uninstall, so it is read here through WMI. When it cannot be read, OriginalUserSid stays empty
+// and the uninstall leaves the autostart and settings of every user alone.
+function InitializeUninstall(): Boolean;
+var
+  Locator, Current, Parent, Owner, OwnerSid, CurrentSid: Variant;
+  ParentId, OwnerResult, OwnerSidResult, CurrentSidResult: Integer;
+  ParentStarted, CurrentStarted, Domain, User, Sid: String;
+begin
+  Result := True;
+  try
+    Locator := CreateOleObject('WbemScripting.SWbemLocator');
+    Wmi := Locator.ConnectServer('.', 'root\CIMV2');
+    HaveWmi := True;
+
+    Current := Wmi.Get('Win32_Process.Handle="' + IntToStr(GetCurrentProcessId()) + '"');
+    ParentId := Current.ParentProcessId;
+    Parent := Wmi.Get('Win32_Process.Handle="' + IntToStr(ParentId) + '"');
+
+    // A parent that started after this copy is another process that got the same id.
+    ParentStarted := Parent.CreationDate;
+    CurrentStarted := Current.CreationDate;
+    if CompareStr(ParentStarted, CurrentStarted) > 0 then
+    begin
+      Log('The process that started the uninstall is gone; leaving autostart and settings alone');
+      Exit;
+    end;
+
+    OwnerSid := Parent.ExecMethod_('GetOwnerSid');
+    Owner := Parent.ExecMethod_('GetOwner');
+    CurrentSid := Current.ExecMethod_('GetOwnerSid');
+    OwnerSidResult := OwnerSid.ReturnValue;
+    OwnerResult := Owner.ReturnValue;
+    CurrentSidResult := CurrentSid.ReturnValue;
+    if (OwnerSidResult <> 0) or (OwnerResult <> 0) or (CurrentSidResult <> 0) then
+    begin
+      Log(Format('The owner of the uninstall could not be read (%d, %d, %d); leaving autostart and settings alone', [OwnerSidResult, OwnerResult, CurrentSidResult]));
+      Exit;
+    end;
+
+    Sid := OwnerSid.Sid;
+    Domain := Owner.Domain;
+    User := Owner.User;
+    OriginalUserSid := Sid;
+    OriginalUserName := Domain + '\' + User;
+    Sid := CurrentSid.Sid;
+    OriginalUserIsCurrent := CompareText(OriginalUserSid, Sid) = 0;
+    if OriginalUserIsCurrent then
+      Log('Uninstall started by ' + OriginalUserName + ', the same user as this uninstaller')
+    else
+      Log('Uninstall started by ' + OriginalUserName + ' (' + OriginalUserSid + '), elevated as ' + ExpandConstant('{username}'));
+  except
+    OriginalUserSid := '';
+    Log('Who started the uninstall could not be read: ' + GetExceptionMessage());
+  end;
+end;
+
+// Whether an engine of the user with this SID still runs, in any session.
+function EngineRunsFor(const Sid: String): Boolean;
+var
+  Processes, Process, Owner: Variant;
+  I, Count, OwnerResult: Integer;
+  OwnerSid: String;
+begin
+  Result := False;
+  if not HaveWmi then
+    Exit;
+
+  try
+    Processes := Wmi.ExecQuery('SELECT * FROM Win32_Process WHERE Name = ''{#EngineExe}''');
+    Count := Processes.Count;
+    for I := 0 to Count - 1 do
+    begin
+      Process := Processes.ItemIndex(I);
+      Owner := Process.ExecMethod_('GetOwnerSid');
+      OwnerResult := Owner.ReturnValue;
+      if OwnerResult = 0 then
+      begin
+        OwnerSid := Owner.Sid;
+        if CompareText(OwnerSid, Sid) = 0 then
+        begin
+          Result := True;
+          Exit;
+        end;
+      end;
+    end;
+  except
+    // A process that exits between the query and its owner: look again on the next round.
+    Result := True;
+  end;
+end;
+
+procedure WaitForEngineExit();
+var
+  Waited: Integer;
+begin
+  Waited := 0;
+  while EngineRunsFor(OriginalUserSid) and (Waited < EngineExitTimeoutMs) do
+  begin
+    Sleep(EngineExitPollMs);
+    Waited := Waited + EngineExitPollMs;
+  end;
+
+  if EngineRunsFor(OriginalUserSid) then
+    Log(Format('The engine still runs %d ms after --exit; taskkill stops it', [Waited]))
+  else
+    Log(Format('The engine exited after --exit (%d ms)', [Waited]));
+end;
+
+// Only the engine and settings app of the user who started the uninstall, never those of
+// another user on this pc (in another session, after switching users). The engine first gets
+// --exit, as "Afsluiten" in the tray menu, so it saves the last change; taskkill afterwards is
+// the safety net. --exit only reaches the engine of the user who runs this uninstaller: the
+// signal has the default DACL of its owner, so a process of another admin cannot open it and
+// taskkill stops the engine of the user who started the uninstall at once.
+procedure StopApps();
+var
+  UserName: String;
+  ResultCode: Integer;
+begin
+  if OriginalUserSid = '' then
+  begin
+    // Most likely the same user; the smallest step that never touches another user.
+    UserName := ExpandConstant('{username}');
+    Log('Stopping only the apps of ' + UserName + ', who runs this uninstaller');
+  end
+  else
+    UserName := OriginalUserName;
+
+  if (OriginalUserSid = '') or OriginalUserIsCurrent then
+  begin
+    ResultCode := RunHidden(ExpandConstant('{app}\{#EngineExe}'), '{#ExitArgument}');
+    Log(Format('Engine {#ExitArgument} returned %d', [ResultCode]));
+    if OriginalUserSid = '' then
+    begin
+      Sleep(EngineExitFixedWaitMs);
+      Log(Format('Waited %d ms after {#ExitArgument}; taskkill stops the engine if it still runs', [EngineExitFixedWaitMs]));
+    end
+    else
+      WaitForEngineExit();
+  end
+  else
+    Log('Engine {#ExitArgument} skipped: it cannot reach the engine of another user');
+
+  RunHidden(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "USERNAME eq ' + UserName + '" /IM {#EngineExe}');
+  RunHidden(ExpandConstant('{sys}\taskkill.exe'), '/F /FI "USERNAME eq ' + UserName + '" /IM {#SettingsExe}');
+end;
+
 // Only the value the engine wrote for this install; an engine elsewhere keeps its autostart.
-procedure RemoveAutoStart();
+procedure RemoveAutoStartFrom(const RootKey: HKEY; const SubKey: String);
 var
   Command: String;
 begin
-  if RegQueryStringValue(HKCU, RunKey, '{#AppName}', Command) and
-     (Pos(Lowercase(ExpandConstant('{app}')), Lowercase(Command)) > 0) then
-    RegDeleteValue(HKCU, RunKey, '{#AppName}');
+  if not RegQueryStringValue(RootKey, SubKey, '{#AppName}', Command) then
+  begin
+    // No Run value: the user has no autostart, or turned it off (RemoveAutoStart already checked
+    // that the hive of another user is loaded).
+    Log('No autostart of ' + OriginalUserName + ' found to remove');
+    Exit;
+  end;
+
+  if Pos(Lowercase(ExpandConstant('{app}')), Lowercase(Command)) > 0 then
+  begin
+    RegDeleteValue(RootKey, SubKey, '{#AppName}');
+    Log('Removed the autostart of ' + OriginalUserName);
+  end
+  else
+    Log('Autostart of ' + OriginalUserName + ' left alone: it points to another install');
+end;
+
+procedure RemoveAutoStart();
+begin
+  if OriginalUserSid = '' then
+    Log('Autostart left alone: who started the uninstall is not known')
+  else if OriginalUserIsCurrent then
+    RemoveAutoStartFrom(HKCU, RunKey)
+  else if not RegKeyExists(HKU, OriginalUserSid) then
+    // Normally loaded, as the user is logged on to start the uninstall.
+    Log('Autostart left alone: the registry of ' + OriginalUserName + ' is not loaded')
+  else
+    RemoveAutoStartFrom(HKU, OriginalUserSid + '\' + RunKey);
+end;
+
+// Whether Dir lies inside Folder, after resolving "..", "." and "/" in Dir.
+function IsInsideFolder(const Dir, Folder: String): Boolean;
+var
+  Inside, Outside: String;
+begin
+  Inside := Lowercase(AddBackslash(ExpandFileName(Dir)));
+  Outside := Lowercase(AddBackslash(Folder));
+  Result := (Folder <> '') and (Length(Inside) > Length(Outside)) and (Pos(Outside, Inside) = 1);
+end;
+
+// %AppData% of the user who started the uninstall, also when another admin runs this copy.
+function OriginalUserAppData(var Dir: String): Boolean;
+var
+  Profile: String;
+begin
+  Result := False;
+  if OriginalUserSid = '' then
+    Exit;
+
+  if OriginalUserIsCurrent then
+  begin
+    Dir := ExpandConstant('{userappdata}');
+    Result := True;
+    Exit;
+  end;
+
+  // The user can point his Shell Folders keys anywhere, also at the AppData of the admin who
+  // runs this copy elevated; only admins can change ProfileList, so that is what we trust.
+  if not RegQueryStringValue(HKLM64, ProfileListKey + '\' + OriginalUserSid, 'ProfileImagePath', Profile) or
+     (Profile = '') or (Pos('%', Profile) > 0) then
+  begin
+    Log('Settings left alone: the profile folder of ' + OriginalUserName + ' is not known');
+    Exit;
+  end;
+
+  // Normally "%USERPROFILE%\AppData\Roaming"; an absolute path when it is redirected.
+  if RegQueryStringValue(HKU, OriginalUserSid + '\' + UserShellFoldersKey, 'AppData', Dir) then
+  begin
+    if Pos('%USERPROFILE%', Uppercase(Dir)) = 1 then
+      Dir := Profile + Copy(Dir, Length('%USERPROFILE%') + 1, Length(Dir));
+    Result := (Dir <> '') and (Pos('%', Dir) = 0);
+  end;
+
+  if not Result then
+    Result := RegQueryStringValue(HKU, OriginalUserSid + '\' + ShellFoldersKey, 'AppData', Dir) and (Dir <> '');
+
+  if Result and not IsInsideFolder(Dir, Profile) then
+  begin
+    Log('Settings left alone: the AppData folder of ' + OriginalUserName + ' (' + Dir + ') is outside ' + Profile);
+    Result := False;
+  end;
+end;
+
+// Only the settings of the user who started the uninstall; other users keep theirs.
+procedure RemoveSettings();
+var
+  AppData, Dir: String;
+begin
+  if not OriginalUserAppData(AppData) then
+  begin
+    Log('Settings left alone: the AppData folder of who started the uninstall is not known');
+    Exit;
+  end;
+
+  Dir := AddBackslash(AppData) + '{#AppName}';
+  if not DirExists(Dir) then
+    Exit;
+
+  if SuppressibleMsgBox(CustomMessage('RemoveSettings'), mbConfirmation, MB_YESNO, IDNO) = IDYES then
+  begin
+    DelTree(Dir, True, True, True);
+    Log('Removed ' + Dir);
+  end;
 end;
 
 procedure UninstallOpenRgb();
@@ -222,14 +495,16 @@ end;
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
   if CurUninstallStep = usUninstall then
+  begin
+    StopApps();
     RemoveAutoStart();
+  end;
 
   if CurUninstallStep = usPostUninstall then
   begin
     UninstallOpenRgb();
     UninstallPawnIo();
     RegDeleteKeyIncludingSubkeys(HKLM64, '{#StateKey}');
-    if SuppressibleMsgBox(CustomMessage('RemoveSettings'), mbConfirmation, MB_YESNO, IDNO) = IDYES then
-      DelTree(ExpandConstant('{userappdata}\{#AppName}'), True, True, True);
+    RemoveSettings();
   end;
 end;

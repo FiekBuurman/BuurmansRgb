@@ -77,6 +77,54 @@ als deze installer ze heeft geïnstalleerd), en of je instellingen weg moeten. H
 instellingen en had je **Starten met Windows** ooit zelf aan- of uitgezet, dan zet een nieuwe
 installatie het niet aan; zet het dan zelf aan in het tray-menu.
 
+Het verwijderen geldt voor jou, de gebruiker die het startte, ook als een andere beheerder de
+UAC-vraag met zijn wachtwoord beantwoordt:
+
+- De engine krijgt eerst het verzoek om af te sluiten, zoals **Afsluiten** in het tray-menu, zodat
+  je laatste wijziging bewaard is. Is hij na 10 seconden nog niet weg, dan stopt het verwijderen
+  hem alsnog. De instellingen-app wordt gesloten.
+- Alleen jouw engine, instellingen-app, autostart en (als je "Ja" zegt) instellingen in
+  `%AppData%\BuurmansRgb`. Die van andere gebruikers op de pc blijven staan, ook van de beheerder
+  die de UAC-vraag beantwoordde.
+
+Beperkingen:
+
+- Beantwoordt een **andere beheerder** de UAC-vraag, dan bereikt het verzoek om af te sluiten je
+  engine niet (Windows laat het signaal van jouw engine alleen voor jou open) en stopt het
+  verwijderen hem meteen. Een wijziging van de laatste seconde kan dan verloren gaan. Wil je dat
+  niet, sluit de engine dan eerst zelf af via **Afsluiten** in het tray-menu.
+- Beantwoordt een **andere beheerder** de UAC-vraag en staat je `AppData`-map niet in je
+  profielmap (`C:\Users\<naam>`), bijvoorbeeld omdat hij naar een andere schijf is omgeleid, dan
+  laat het verwijderen je instellingen staan. Haal ze dan weg zoals hieronder.
+- Draait een andere gebruiker op de pc BuurmansRgb nog (na wisselen van gebruiker), dan sluit het
+  verwijderen die engine niet. De programmabestanden die de engine gebruikt, blijven dan staan in
+  `C:\Program Files\BuurmansRgb` (het verwijderen meldt "Enkele elementen konden niet verwijderd
+  worden"), en de autostart van die gebruiker start BuurmansRgb bij zijn volgende aanmelding
+  gewoon weer. Meld die gebruiker daarom eerst af (**Taakbeheer → Gebruikers**, rechtermuisknop
+  op de gebruiker → **Afmelden**), of laat hem de engine afsluiten via **Afsluiten** in het
+  tray-menu, en verwijder daarna. Bleven er al bestanden staan, meld die gebruiker dan alsnog
+  af en haal de map `C:\Program Files\BuurmansRgb` zelf weg (Verkenner vraagt om
+  beheerdersrechten); staat BuurmansRgb nog bij **Apps**, dan kun je ook opnieuw verwijderen.
+- Kan het verwijderen niet vaststellen wie het startte (in het verwijderlog, `Uninstall Log
+  <datum> #001.txt` in `%TEMP%` van wie de UAC-vraag beantwoordde, staat dan geen regel
+  `Uninstall started by`), dan laat het de autostart en instellingen van iedereen staan en stopt het alleen
+  de apps van wie de UAC-vraag beantwoordde (de engine ook dan eerst met het verzoek om af te
+  sluiten, en na 3 seconden alsnog). Haal ze dan weg zoals hieronder.
+
+**Andere gebruikers** op de pc houden hun eigen instellingen en autostart. Zijn de
+programmabestanden weg, dan kan dat geen kwaad: de autostart wijst naar een programma dat er niet
+meer is en doet niets. Bleven ze staan omdat die gebruiker BuurmansRgb nog open had (zie
+hierboven), dan start zijn autostart het bij zijn volgende aanmelding weer. Wil een andere gebruiker
+ze toch weg, dan doet hij dat zelf, ingelogd als zichzelf:
+
+1. Verwijder de map `%AppData%\BuurmansRgb` (plak `%AppData%` in de adresbalk van Verkenner).
+2. Haal de autostart weg in **Taakbeheer → Opstartapps** (BuurmansRgb, rechtermuisknop →
+   Uitschakelen), of in PowerShell:
+
+   ```powershell
+   Remove-ItemProperty HKCU:\Software\Microsoft\Windows\CurrentVersion\Run -Name BuurmansRgb
+   ```
+
 ## Zonder installer (voor ontwikkelaars)
 
 Zonder adminrechten, met OpenRGB zelf geïnstalleerd en de SDK-server aan (tabblad

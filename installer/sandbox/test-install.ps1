@@ -66,7 +66,10 @@ $uninstaller = Join-Path $app 'unins000.exe'
 Start-Process $uninstaller -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', "/LOG=$results\uninstall.log" -Wait | Out-Null
 Test-Step 'Verwijderen: bestanden weg' { Wait-Until { -not (Test-Path (Join-Path $app "$engineName.exe")) } 60 }
 Test-Step 'Verwijderen: engine gestopt' { -not (Get-Process $engineName -ErrorAction SilentlyContinue) }
+Test-Step 'Verwijderen: gestart door dezelfde gebruiker herkend' { Select-String "$results\uninstall.log" -Pattern 'Uninstall started by .*, the same user as this uninstaller' -Quiet }
+Test-Step 'Verwijderen: engine netjes gestopt met --exit' { Select-String "$results\uninstall.log" -Pattern 'The engine exited after --exit' -SimpleMatch -Quiet }
 Test-Step 'Verwijderen: autostart weg' { -not (Get-AutoStart) }
+Test-Step 'Verwijderen: instellingen blijven (standaard Nee)' { Test-Path (Join-Path $env:APPDATA 'BuurmansRgb') }
 Test-Step 'Verwijderen: OpenRGB blijft (standaard Nee)' { Get-Service OpenRGB -ErrorAction SilentlyContinue }
 
 $failed = @($checks.GetEnumerator() | Where-Object { -not $_.Value }).Count

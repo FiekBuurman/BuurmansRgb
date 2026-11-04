@@ -707,9 +707,29 @@ uitbreidingen in `docs/bouwplan.md`.
   stil draaien en controleren dat het uit blijft; nu staat dat als handmatige test in
   `ontwikkelaars.md` (`update-autostart`)
 
-- De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
-  icoon in de tray blijft hangen. Dat kan pas als geen installatie meer een engine van 1.0.0
-  heeft: die kent `--exit` niet en opent dan de instellingen-app
+- De installer bij een update de engine laten stoppen met `--exit` in plaats van `taskkill /F`,
+  zodat er geen icoon in de tray blijft hangen, en net als het verwijderen alleen de apps van de
+  gebruiker die installeert (`PrepareToInstall` stopt nu die van alle gebruikers). `--exit` kan pas
+  als geen installatie meer een engine van 1.0.0 heeft: die kent `--exit` niet en opent dan de
+  instellingen-app; het verwijderen doet het al, want de uninstaller hoort bij de geïnstalleerde
+  engine (`verwijderen-netjes`)
+- Verwijderen met het wachtwoord van een andere beheerder ook netjes laten stoppen: `--exit`
+  bereikt de engine van de gebruiker dan niet, omdat het signaal alleen voor die gebruiker open
+  staat, dus de engine wordt meteen gestopt. Bijv. de engine zijn signaal ook voor
+  Administrators laten openen, of `--exit` via een taak met `/IT` als de gebruiker starten
+  (`verwijderen-netjes`)
+- Programmabestanden die een engine van een andere gebruiker nog open heeft, bij de volgende
+  herstart laten weghalen (`uninsrestartdelete` op de `[Files]`-regel van de app). Nu blijven ze
+  staan en start de autostart van die gebruiker BuurmansRgb weer; `installatie.md` zegt dat je die
+  gebruiker eerst afmeldt. Niet zomaar aanzetten: met `/VERYSILENT` herstart de uninstaller de pc
+  dan zonder te vragen (`/NORESTART` meegeven of `NeedRestart` beperken), en de autostart van die
+  gebruiker moet ook weg of naar niets wijzen (`verwijderen-netjes`)
+- Bij verwijderen een beheerder laten kiezen om de instellingen en autostart van álle gebruikers
+  weg te halen (nu alleen van wie het verwijderen startte; de rest staat in `installatie.md`)
+  (`verwijderen-netjes`)
+- De Sandbox-test ook het verwijderen als gewone gebruiker met het wachtwoord van een andere
+  beheerder laten doen; nu een handmatige test in `ontwikkelaars.md`, omdat de UAC-vraag met een
+  wachtwoord niet te automatiseren is (`verwijderen-netjes`)
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt

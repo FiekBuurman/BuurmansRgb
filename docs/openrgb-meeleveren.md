@@ -125,6 +125,10 @@ Het voorstel hierboven is gevolgd, met deze verschillen en aanvullingen:
   geïnstalleerd.
 - **De OpenRGB-GUI naast de service:** de GUI start als client en verbindt met de service.
   Twee servers op 6742 kan niet, dus de installer maakt geen eigen autostart voor de GUI aan.
+- **Verwijderen voor wie het startte** (`verwijderen-netjes`): de verhoogde uninstaller kan
+  draaien als een andere beheerder, en dan zijn `HKCU` en `{userappdata}` van die beheerder.
+  Daarom zoekt hij de eigenaar van de eerste, niet-verhoogde kopie van de uninstaller op en
+  ruimt alleen diens engine, autostart en instellingen op; zie `docs/installatie.md`.
 
 ## Open punten en risico's
 
