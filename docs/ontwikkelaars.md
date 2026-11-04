@@ -142,16 +142,16 @@ toetsenbord. Een paar dingen om te proberen:
   Vuur heeft elk apparaat zijn eigen toeval: geen twee apparaten fonkelen of flakkeren gelijk, ook
   niet het begin van de strip en de ventilator. Zet bij Instellingen "Zuinig" en bij Kleur de
   snelheid op 300 %: de punten springen dan verder, maar zijn nog te volgen.
-- Kies bij Kleur "Gesimuleerde ARGB-controller" en klik bij "ARGB 2" een paar keer op + of
-  sleep de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "ARGB 2" heeft
+- Kies bij Kleur "Gesimuleerde ARGB-controller" en klik bij "Kanaal 2" een paar keer op + of
+  sleep de schuif. Sluit de engine af (tray, "Afsluiten") en start hem opnieuw: "Kanaal 2" heeft
   nog steeds die lengte.
-- Klik bij "Gesimuleerde ARGB-controller" naast "ARGB 1" op "Knipperen": in het voorbeeld
-  knippert alleen die zone. "ARGB 2" heeft pas een knop als het LED's heeft.
-- Klik bij "Gesimuleerde ARGB-controller" naast "ARGB 1" op "Tellen": de zone springt naar 60
+- Klik bij "Gesimuleerde ARGB-controller" naast "Kanaal 1" op "Knipperen": in het voorbeeld
+  knippert alleen die zone. "Kanaal 2" heeft pas een knop als het LED's heeft.
+- Klik bij "Gesimuleerde ARGB-controller" naast "Kanaal 1" op "Tellen": de zone springt naar 60
   LED's en in het voorbeeld gaat elke seconde één LED meer aan, de nieuwste groen. Kies Pauze,
-  ga met − terug naar LED 20 en kies "Dit is de laatste": ARGB 1 houdt 20 LED's. Tel nog eens en
-  kies "Stoppen", kies een ander apparaat of ga naar Scènes: ARGB 1 krijgt zijn lengte terug. Sluit
-  je de app tijdens het tellen, dan zet de engine de lengte ook terug. "ARGB 2" (0 LED's) telt ook.
+  ga met − terug naar LED 20 en kies "Dit is de laatste": Kanaal 1 houdt 20 LED's. Tel nog eens en
+  kies "Stoppen", kies een ander apparaat of ga naar Scènes: Kanaal 1 krijgt zijn lengte terug. Sluit
+  je de app tijdens het tellen, dan zet de engine de lengte ook terug. "Kanaal 2" (0 LED's) telt ook.
 - Kies bij Kleur "Gesimuleerd toetsenbord" en "Regenboog", en sleep "Richting" naar 45°: in het
   voorbeeld loopt de regenboog schuin over de toetsen, van linksboven naar rechtsonder, en het
   pijltje wijst die kant op. Kies de ventilator en zet 90°: de kleuren lopen van boven naar
@@ -164,7 +164,7 @@ toetsenbord. Een paar dingen om te proberen:
   twee ringen lopen de ringen gelijk op. Bij Komeet en Scanner pulseren de oorschelpen dan
   tegelijk, en Vuur flakkert als een kaars. Herstart de engine: de schakelaar staat nog aan.
   Kies "Per LED": elke LED houdt zijn eigen kleur.
-- Kies "Gesimuleerde ventilator met twee ringen" en klik op "Outer ring"; kies "Gesimuleerd
+- Kies "Gesimuleerde ventilator met twee ringen" en klik op "Buitenring"; kies "Gesimuleerd
   toetsenbord", wijs een toets aan voor zijn naam en klik op het brede deel van de spatiebalk.
   Klik net naast een LED, een paar px erboven of tussen twee toetsen: de dichtstbijzijnde wordt
   gekozen en de tooltip noemt hem al; een klik in het midden van een ring kiest niets.
