@@ -57,7 +57,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // The heading of the settings of the chosen scene, such as "Klusmodus aanpassen".
     public string? EditTitle => SelectedName is { } name ? UiText.Format(Strings.SceneEditAccessibleName, name) : null;
 
-    // The name field for a new scene shows, after "+ Nieuwe scène in elkaar zetten".
+    // The name field for a new scene shows, after "+ Nieuwe scène".
     [ObservableProperty]
     public partial bool IsNaming { get; private set; }
 

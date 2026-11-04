@@ -522,7 +522,7 @@
     <comment>De knop in de vraag of iets weg mag, naast Annuleren.</comment>
   </data>
   <data name="ProfileSaved" xml:space="preserve">
-    <value>Scène '{0}' in elkaar gezet.</value>
+    <value>Scène '{0}' opgeslagen.</value>
   </data>
   <data name="ProfileLoaded" xml:space="preserve">
     <value>Scène '{0}' staat aan.</value>
@@ -1231,7 +1231,7 @@
     <value>Licht en beweging</value>
   </data>
   <data name="NewScene" xml:space="preserve">
-    <value>+ Nieuwe scène in elkaar zetten</value>
+    <value>+ Nieuwe scène</value>
   </data>
   <data name="NewSceneHint" xml:space="preserve">
     <value>Bewaart de verlichting van alle apparaten zoals die nu is, onder een naam die je kiest.</value>
@@ -1240,7 +1240,7 @@
     <value>Annuleren</value>
   </data>
   <data name="NoScenes" xml:space="preserve">
-    <value>Nog geen scènes. Zet de apparaten zoals je ze wilt en zet er hieronder een in elkaar.</value>
+    <value>Nog geen scènes. Zet de apparaten zoals je ze wilt en kies hieronder Nieuwe scène.</value>
   </data>
   <data name="SceneLoadAccessibleName" xml:space="preserve">
     <value>{0} aanzetten</value>
