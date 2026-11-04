@@ -126,6 +126,41 @@ public sealed class AccessibleNamesViewTests
         });
     }
 
+    // The colors, the own colors and the preview are lists with a name, so a screen reader says which
+    // list it enters, as are the colors of a loop or an effect and the steps of an own effect; no list
+    // on the page is without one.
+    [Theory]
+    [InlineData(EffectIds.Static, null)]
+    [InlineData(EffectIds.ColorLoop, "Kleuren van de loop")]
+    [InlineData(EffectIds.Comet, "Kleuren van het effect")]
+    [InlineData("custom:disco", "Stappen")]
+    public async Task ColorPage_NamesEveryList(string effectId, string? listOfTheEffect)
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = [Board];
+            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)])];
+            api.CustomColors = [Red];
+            api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var lists = PageViews.AutomationTree(page).Where(peer => peer.GetAutomationControlType() == AutomationControlType.List).ToList();
+
+            Assert.Contains(lists, list => list.GetName() == Strings.ToolboxHeader && list.GetChildren().Count == ColorPickerViewModel.Presets.Count);
+            Assert.Contains(lists, list => list.GetName() == Strings.CustomColorsHeader && list.GetChildren().Count == 1);
+            Assert.Contains(lists, list => list.GetName() == Strings.PreviewHeader && list.GetChildren().Count == 1);
+            Assert.DoesNotContain(lists, list => list.IsControlElement() && string.IsNullOrEmpty(list.GetName()));
+            if (listOfTheEffect is not null)
+            {
+                Assert.Contains(lists, list => list.GetName() == listOfTheEffect && list.GetChildren()?.Count > 0);
+            }
+        });
+    }
+
     [Fact]
     public async Task ColorPage_Counting_NamesThePaces()
     {
