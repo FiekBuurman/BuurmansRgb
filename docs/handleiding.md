@@ -24,6 +24,21 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
   "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
   want de tekst ernaast zegt al wat ze tonen.
+- **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
+  naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
+  (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Kleuren",
+  "Licht en beweging", "Voorbeeld", een scènekaart en elk blok op Instellingen) en een
+  apparaatkaart niveau 3, op Apparaten en in het voorbeeld op Kleur. De lijsten hebben een naam,
+  zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Voorbeeld", "Apparaten in
+  huis", "Kleuren van de loop", "Kleuren van het effect" en "Stappen".
+- **Schakelaars** zeggen voor een schermlezer "aan" of "uit" (bijv. "Sneltoetsen, schakelaar,
+  aan") in plaats van "ingedrukt", en naast elke schakelaar staat ook in woorden **Aan** of
+  **Uit**. Dat woord groeit mee met de tekstgrootte van Windows, neemt de kleuren van een
+  contrastthema over en wordt niet nog eens voorgelezen. Een klik op het woord zet de schakelaar
+  ook om.
+- **"Alles selecteren"** bij een apparaat met één zone heet voor een schermlezer "Alles
+  selecteren, alle LED's van …": het begint met wat je ziet, zodat je het met Spraaktoegang van
+  Windows ook bij die woorden noemt.
 - **Kleurnamen:** een vakje van de kleurenloop, van de kleuren van een effect en van je eigen
   kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
   benaderende kleurnaam met de hex-code erachter: "Kleur 1: geel, #FFFF00", "Eigen kleur:
@@ -986,7 +1001,12 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   verbinden" staan in de statusregel bovenaan, zodat er per pagina één melding is.
 - **Schakelaars** van een apparaat met een donkere of diepblauwe kleur krijgen een lichter spoor
   (zwart wordt grijs, `#0000FF` een lichter blauw), zodat de knop (`bg`) er minstens 3:1 op
-  haalt: in dezelfde tint, en maar zo veel lichter als nodig.
+  haalt: in dezelfde tint, en maar zo veel lichter als nodig. Naast het spoor staat "Aan" of
+  "Uit" in de tekstkleur en de grootte van gewone tekst, wat het ontwerp (§ 4, "Switch") niet
+  heeft: of een schakelaar aan staat, zie je zo ook zonder op de kleur of de plek van de knop te
+  letten (testpanel, Truus). Het woord houdt de breedte van het langste, zodat de schakelaar niet
+  verspringt als je hem omzet, en de focusring gaat om de schakelaar en het woord samen, zoals
+  bij de schakelaars van Windows. Een apparaatkaart houdt rechts ruimte vrij voor beide.
 - **Velden** (een tekstvak, een keuzelijst en een vinkje) hebben een lichtere rand dan het ontwerp:
   `#74727A` in plaats van `border` (`#2E2E36`, 1,2:1 op een kaart) of `border-strong` (`#4A4A54`,
   1,8:1), zodat je een veld ook zonder focus herkent: minstens 3:1 op `surface`, `bg` en

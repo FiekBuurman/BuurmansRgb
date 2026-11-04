@@ -88,7 +88,7 @@
                  larger text size of Windows needs the room. -->
             <views:HeaderPanel Margin="0,0,0,18" MinHeadingWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource HeadingWidth}}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" />
+                    <TextBlock Style="{StaticResource SmallScreenTitle}" Text="{x:Static res:Strings.ColorPageTitle}" AutomationProperties.HeadingLevel="Level1" />
                     <TextBlock Style="{StaticResource SubText}">
                         <Run Text="{Binding SelectedDevice.DisplayName, Mode=OneWay}" /> · <Run Text="{Binding SelectedDevice.Details, Mode=OneWay}" />
                     </TextBlock>
@@ -156,11 +156,11 @@
                         </ComboBox.GroupStyle>
                     </ComboBox>
                     <!-- The chosen lamp on or off, or the whole house. -->
-                    <ToggleButton Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding SelectedLamp.IsOn}"
+                    <views:ToggleSwitch Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding SelectedLamp.IsOn}"
                                   Tag="{Binding SelectedLamp.Color, Converter={StaticResource SwitchTrackBrush}}"
                                   AutomationProperties.Name="{Binding SelectedLamp.SwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToCollapsed}}" />
-                    <ToggleButton Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding Lamps.IsAnyOn}" IsEnabled="{Binding Lamps.HasLamps}"
+                    <views:ToggleSwitch Grid.Column="1" Margin="14,0,0,0" Style="{StaticResource Switch}" IsChecked="{Binding Lamps.IsAnyOn}" IsEnabled="{Binding Lamps.HasLamps}"
                                   AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                   Visibility="{Binding SelectedLamp, Converter={StaticResource NullToVisible}}" />
                 </Grid>
@@ -247,9 +247,9 @@
                     <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}"
                             Visibility="{Binding IsColorLoop, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.ColorLoopHeader}" />
+                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.ColorLoopHeader}" AutomationProperties.HeadingLevel="Level2" />
                             <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.ColorLoopHint}" />
-                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding ColorLoopEditor}" />
+                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding ColorLoopEditor}" ListName="{x:Static res:Strings.ColorLoopHeader}" />
                             <CheckBox Margin="0,4,0,0" IsChecked="{Binding ColorLoopEditor.Spread}" Content="{x:Static res:Strings.ColorLoopSpread}" />
                         </StackPanel>
                     </Border>
@@ -258,9 +258,9 @@
                     <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}"
                             Visibility="{Binding HasEffectColors, Converter={StaticResource BoolToVisibility}}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.EffectColorsHeader}" />
+                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.EffectColorsHeader}" AutomationProperties.HeadingLevel="Level2" />
                             <TextBlock Style="{StaticResource SubText}" Text="{Binding EffectColorsHint}" />
-                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding EffectColorsEditor}" />
+                            <views:ColorListEditor Margin="0,12,0,0" DataContext="{Binding EffectColorsEditor}" ListName="{x:Static res:Strings.EffectColorsHeader}" />
                             <!-- Back to the lamp color, or the warm colors of the fire; only with a list of its own. -->
                             <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}"
                                     Content="{x:Static res:Strings.EffectColorsDefault}" ToolTip="{x:Static res:Strings.EffectColorsDefaultToolTip}"
@@ -278,7 +278,8 @@
                                 <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.CustomEffectDelete}"
                                         ToolTip="{x:Static res:Strings.CustomEffectDeleteToolTip}" Command="{Binding DeleteCommand}"
                                         AutomationProperties.Name="{x:Static res:Strings.CustomEffectDeleteAccessibleName}" />
-                                <TextBlock VerticalAlignment="Center" Style="{StaticResource Body}" Text="{x:Static res:Strings.CustomEffectHeader}" />
+                                <TextBlock VerticalAlignment="Center" Style="{StaticResource Body}" Text="{x:Static res:Strings.CustomEffectHeader}"
+                                           AutomationProperties.HeadingLevel="Level2" />
                             </DockPanel>
                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
 
@@ -296,7 +297,8 @@
                             <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectStepsLabel}" />
                             <!-- Rows of at most six tiles, as the color lists; a pattern shows as a gradient. -->
                             <WrapPanel>
-                                <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}">
+                                <ItemsControl x:Name="StepTiles" Style="{StaticResource ColorTileList}" ItemsSource="{Binding Steps}"
+                                              AutomationProperties.Name="{x:Static res:Strings.CustomEffectStepsLabel}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate DataType="{x:Type vm:CustomEffectStepItem}">
                                             <Button Style="{StaticResource ColorListTile}" Background="{Binding Colors, Converter={StaticResource ColorsToBrush}}"
@@ -363,10 +365,11 @@
                     <Slider Minimum="0" Maximum="255" Value="{Binding ColorPicker.Blue}" SmallChange="1" LargeChange="16" IsSnapToTickEnabled="True" TickFrequency="1"
                             Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
 
-                    <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" />
+                    <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
                          the full colors fit one row in a wide window, and the rest wraps under them. -->
-                    <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False">
+                    <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False"
+                                  AutomationProperties.Name="{x:Static res:Strings.ToolboxHeader}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel />
@@ -381,13 +384,14 @@
 
                     <!-- The own colors, kept by the engine: "+" first, so the tiles after it wrap within the
                          column; a click mixes one, Delete or its context menu takes it away. -->
-                    <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" />
+                    <TextBlock Margin="0,10,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.CustomColorsHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <DockPanel>
                         <Button x:Name="AddCustomColor" DockPanel.Dock="Left" Margin="0,0,8,8" VerticalAlignment="Top" Style="{StaticResource AddTile}" Content="+"
                                 ToolTip="{x:Static res:Strings.CustomColorsAddToolTip}" ToolTipService.ShowOnDisabled="True"
                                 AutomationProperties.Name="{x:Static res:Strings.CustomColorsAdd}"
                                 Command="{Binding CustomColors.AddCommand}" Click="OnAddCustomColorClick" />
-                        <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False">
+                        <ItemsControl x:Name="CustomColorTiles" ItemsSource="{Binding CustomColors.Colors}" Focusable="False" IsTabStop="False"
+                                      AutomationProperties.Name="{x:Static res:Strings.CustomColorsHeader}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <WrapPanel />
@@ -413,7 +417,7 @@
             <!-- How the lamp shines: brightness, effect, speed and direction. -->
             <Border Margin="0,24,0,0" Style="{StaticResource LargeCard}">
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LightingHeader}" />
+                    <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LightingHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <!-- Four columns, or fewer when the text of a larger text size of Windows needs the room. -->
                     <views:CardGrid MaxColumns="4" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource LightingColumnWidth}}">
                         <StackPanel>

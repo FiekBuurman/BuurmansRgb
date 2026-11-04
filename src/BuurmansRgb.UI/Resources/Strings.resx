@@ -246,7 +246,20 @@
     <value>Selecteert alle LED's van dit apparaat, zodat je ze samen een kleur geeft.</value>
   </data>
   <data name="SelectAllAccessibleName" xml:space="preserve">
-    <value>Alle LED's van {0} selecteren</value>
+    <value>Alles selecteren, alle LED's van {0}</value>
+    <comment>Naam voor een schermlezer van SelectAll. Begint met het zichtbare SelectAll, zodat wie met spraak bedient het met de zichtbare tekst noemt (WCAG 2.5.3). {0} = de naam van het apparaat.</comment>
+  </data>
+  <data name="SwitchOn" xml:space="preserve">
+    <value>Aan</value>
+    <comment>Naast een schakelaar die aan staat. Een schermlezer leest het niet voor: de schakelaar zegt zelf of hij aan of uit staat.</comment>
+  </data>
+  <data name="SwitchOff" xml:space="preserve">
+    <value>Uit</value>
+    <comment>Naast een schakelaar die uit staat. Een schermlezer leest het niet voor: de schakelaar zegt zelf of hij aan of uit staat.</comment>
+  </data>
+  <data name="SwitchControlType" xml:space="preserve">
+    <value>schakelaar</value>
+    <comment>Het soort element dat een schermlezer bij een schakelaar noemt, na zijn naam (UI Automation: LocalizedControlType).</comment>
   </data>
   <data name="SelectZoneToolTip" xml:space="preserve">
     <value>Selecteert alle LED's van deze zone, zodat je ze samen een kleur geeft.</value>

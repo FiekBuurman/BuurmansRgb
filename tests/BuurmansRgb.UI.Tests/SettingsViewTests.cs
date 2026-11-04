@@ -179,7 +179,7 @@ public sealed class SettingsViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<SettingsPage>(panel, viewModel);
-            var bullets = AppTheme.Descendants<DecorativeText>(page).ToList();
+            var bullets = Bullets(page);
             var tree = PageViews.AutomationTree(page);
 
             Assert.Equal(3, bullets.Count);
@@ -374,5 +374,9 @@ public sealed class SettingsViewTests
 
     // The lines of the list of "Na een herstart", in order, without their bullets.
     private static List<TextBlock> AfterRestartLines(DependencyObject page) =>
-        [.. AppTheme.Descendants<DecorativeText>(page).Select(bullet => ((Panel)bullet.Parent).Children.OfType<TextBlock>().Single(text => text is not DecorativeText))];
+        [.. Bullets(page).Select(bullet => ((Panel)bullet.Parent).Children.OfType<TextBlock>().Single(text => text is not DecorativeText))];
+
+    // The bullets of that list; the switches have decorative text too, their "Aan" and "Uit".
+    private static List<DecorativeText> Bullets(DependencyObject page) =>
+        [.. AppTheme.Descendants<DecorativeText>(page).Where(text => text.Text == "•")];
 }

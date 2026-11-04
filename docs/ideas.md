@@ -268,10 +268,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Instellingen-app en ontwerp
 
-- De koppen van alle blokken een kopniveau voor de schermlezer geven
-  (`AutomationProperties.HeadingLevel`), zodat je met H van kop naar kop springt; nu heeft alleen
-  "Als de pc slaapt of vergrendeld is" op Instellingen er een (`slaapstand-vooraan`). Niet in de
-  stijl `SectionHeader`: die zit ook op de status van OpenRGB, die geen kop is
+- De kopjes "Echte apparaten (OpenRGB)" en "Gesimuleerde apparaten" op Apparaten ook een kop voor
+  de schermlezer maken (niveau 3, de apparaatkaarten dan niveau 4), met een eigen
+  `GroupItemAutomationPeer` die het kopje als tekst toont: nu toont UI Automation het alleen als
+  de naam van de groep, en zijn de kaarten niveau 3 zoals in het voorbeeld op Kleur
+  (`schermlezer-structuur`)
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één

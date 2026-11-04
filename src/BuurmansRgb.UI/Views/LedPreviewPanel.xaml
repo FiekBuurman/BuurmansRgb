@@ -20,11 +20,11 @@
     </UserControl.Resources>
 
     <StackPanel>
-        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" />
+        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.PreviewHeader}" AutomationProperties.HeadingLevel="Level2" />
         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PreviewHint}" />
         <!-- Why Knipperen and Tellen are grey: once, above the cards, also with more devices. -->
         <views:PreviewActionsHint DataContext="{Binding Preview.ActionsHint}" />
-        <ItemsControl ItemsSource="{Binding Preview.Devices}" Focusable="False">
+        <ItemsControl ItemsSource="{Binding Preview.Devices}" Focusable="False" AutomationProperties.Name="{x:Static res:Strings.PreviewHeader}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:DevicePreviewViewModel}">
                     <Border Margin="0,0,0,12" Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}">
@@ -35,7 +35,7 @@
                                         Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
                                         ToolTipService.ShowOnDisabled="True" />
                                 <Path Style="{StaticResource DeviceIcon}" Margin="0,0,10,0" VerticalAlignment="Center" />
-                                <TextBlock Style="{StaticResource CardTitle}" VerticalAlignment="Center" Text="{Binding Name}" />
+                                <TextBlock Style="{StaticResource CardTitle}" VerticalAlignment="Center" Text="{Binding Name}" AutomationProperties.HeadingLevel="Level3" />
                             </DockPanel>
                             <!-- While the preview stands still, a flash of the device or a zone is this mark instead of
                                  white on and off; a screen reader reads it when it comes. -->
@@ -52,7 +52,7 @@
                                  again after a change of it. -->
                             <DockPanel Margin="0,0,0,10" ToolTip="{x:Static res:Strings.ZonesAlikeHint}"
                                        Visibility="{Binding ShowsZonesAlike, Converter={StaticResource BoolToVisibility}}">
-                                <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                               IsChecked="{Binding ZonesAlike}"
                                               AutomationProperties.Name="{Binding ZonesAlikeAccessibleName}"
                                               AutomationProperties.HelpText="{x:Static res:Strings.ZonesAlikeHint}"

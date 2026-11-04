@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
+using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -72,7 +73,7 @@ internal static class TextFit
 
             foreach (var (text, block, ink) in texts)
             {
-                if (!IsInside(block, control) && Overlap(bounds, ink))
+                if (!IsInside(block, control) && !LiesOn(block, control) && Overlap(bounds, ink))
                 {
                     problems.Add($"'{text}' lies over {control.GetType().Name} '{AutomationProperties.GetName(control)}'");
                 }
@@ -191,6 +192,27 @@ internal static class TextFit
         }
 
         return false;
+    }
+
+    // Only the switch lies over another control on purpose: with "Aan" or "Uit" it lies on a card of
+    // Apparaten after it, in the same panel. That word may lie on the card, but not on a text of it,
+    // which the check of text over text finds. Any other text over a control still counts.
+    private static bool LiesOn(TextBlock text, Control control)
+    {
+        if (text is not DecorativeText)
+        {
+            return false;
+        }
+
+        DependencyObject? owner = text;
+        while (owner is not null and not ToggleSwitch)
+        {
+            owner = VisualTreeHelper.GetParent(owner);
+        }
+
+        return owner is ToggleSwitch toggle && toggle != control
+            && VisualTreeHelper.GetParent(toggle) is Panel panel && VisualTreeHelper.GetParent(control) == panel
+            && panel.Children.IndexOf(toggle) > panel.Children.IndexOf(control);
     }
 
     private static string Invariant(FormattableString text) => text.ToString(CultureInfo.InvariantCulture);

@@ -19,6 +19,29 @@ public sealed class LedPreviewPanelViewTests
     private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
         [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
 
+    // The name of "Alles selecteren" for a screen reader starts with the words it shows, so whoever
+    // says what they see, as with Spraaktoegang of Windows, finds it (WCAG 2.5.3); the device follows.
+    [Fact]
+    public async Task SelectAllLink_NameStartsWithItsVisibleText()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 30)]);
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var link = AppTheme.Descendants<TextBlock>(preview)
+                .Where(text => text.IsVisible)
+                .Select(text => text.Inlines.FirstInline)
+                .OfType<Hyperlink>()
+                .Single(link => link.Inlines.FirstInline is Run { Text: var text } && text == Strings.SelectAll);
+            var peer = ContentElementAutomationPeer.CreatePeerForElement(link);
+
+            Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
+            Assert.StartsWith(Strings.SelectAll, peer.GetName(), StringComparison.Ordinal);
+            Assert.Equal("Alles selecteren, alle LED's van LED strip", peer.GetName());
+        });
+    }
+
     // The button of the device and those of its zones all say "Knipperen"; their names for a
     // screen reader tell them apart.
     [Fact]

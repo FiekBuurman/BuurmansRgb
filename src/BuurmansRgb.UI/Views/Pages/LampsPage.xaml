@@ -18,6 +18,9 @@
                 <PropertyGroupDescription PropertyName="Device.Group" />
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
+        <!-- The padding of a card, with room on the right for its switch with "Aan" or "Uit": the 16 px
+             between the switch and the edge, and 14 px between the text and the switch. -->
+        <views:RightPaddingConverter x:Key="RoomForSwitch" Padding="16,14,30,14" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -40,7 +43,7 @@
                             Command="{Binding OpenRgbStatus.RestartCommand}"
                             Visibility="{Binding OpenRgbStatus.CanRestart, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
-                <ContentControl Style="{StaticResource Wordmark}" VerticalAlignment="Center" />
+                <ContentControl Style="{StaticResource PageWordmark}" VerticalAlignment="Center" />
             </DockPanel>
 
             <!-- One message at most (the connection gone, a pause, the preview still), the rest under Details. -->
@@ -50,12 +53,12 @@
             <Border Style="{StaticResource LargeCard}">
                 <StackPanel>
                     <DockPanel>
-                        <ToggleButton DockPanel.Dock="Right" Style="{StaticResource LargeSwitch}" IsChecked="{Binding Lamps.IsAnyOn}"
+                        <views:ToggleSwitch DockPanel.Dock="Right" Style="{StaticResource LargeSwitch}" IsChecked="{Binding Lamps.IsAnyOn}"
                                       IsEnabled="{Binding Lamps.HasLamps}"
                                       AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                       AutomationProperties.HelpText="{Binding Lamps.Summary}" />
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.WholeHouse}" />
+                            <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.WholeHouse}" AutomationProperties.HeadingLevel="Level2" />
                             <TextBlock Style="{StaticResource BigValue}" Text="{Binding Lamps.Summary}" AutomationProperties.AutomationId="WholeHouseSummary" />
                         </StackPanel>
                     </DockPanel>
@@ -90,7 +93,8 @@
                             AutomationProperties.AutomationId="HowDevicesCome"
                             Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
                 </StackPanel>
-                <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}" />
+                <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}"
+                           AutomationProperties.HeadingLevel="Level2" />
             </DockPanel>
 
             <!-- Only while every device is a simulated one, with "Automatisch" (ShowsSimulatedDevicesHint): what
@@ -123,7 +127,8 @@
                 </StackPanel>
             </Border>
 
-            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedLamps}}" Focusable="False" IsTabStop="False">
+            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedLamps}}" Focusable="False" IsTabStop="False"
+                          AutomationProperties.Name="{x:Static res:Strings.LampsHeader}">
                 <ItemsControl.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.ContainerStyle>
@@ -167,12 +172,13 @@
                                     CommandParameter="{Binding}"
                                     AutomationProperties.Name="{Binding OpenAccessibleName}"
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
-                                <Border Background="Transparent" Padding="16,14,82,14" ToolTip="{Binding Device.CardToolTip}">
+                                <Border Background="Transparent" ToolTip="{Binding Device.CardToolTip}"
+                                        Padding="{Binding ActualWidth, ElementName=CardSwitch, Converter={StaticResource RoomForSwitch}}">
                                     <DockPanel VerticalAlignment="Center">
                                         <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
                                                        IsLit="{Binding IsOn}" Color="{Binding Color}" />
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
+                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" AutomationProperties.HeadingLevel="Level3" />
                                             <!-- "LED-strip · Warm wit · 100%": it follows the color, so it is no live region. -->
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
@@ -185,7 +191,7 @@
                                     </DockPanel>
                                 </Border>
                             </Button>
-                            <ToggleButton Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
+                            <views:ToggleSwitch x:Name="CardSwitch" Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
                                           Tag="{Binding Color, Converter={StaticResource SwitchTrackBrush}}"
                                           AutomationProperties.Name="{Binding SwitchAccessibleName}"
                                           AutomationProperties.HelpText="{Binding Details}" />

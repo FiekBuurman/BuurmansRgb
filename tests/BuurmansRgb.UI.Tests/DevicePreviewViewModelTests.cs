@@ -518,7 +518,7 @@ public sealed class DevicePreviewViewModelTests
         var zone = Assert.Single(new DevicePreviewViewModel(strip, actions).Zones);
 
         Assert.True(zone.ShowsSelectAllLink);
-        Assert.Equal("Alle LED's van LED strip selecteren", zone.SelectAllAccessibleName);
+        Assert.Equal("Alles selecteren, alle LED's van LED strip", zone.SelectAllAccessibleName);
         zone.SelectZoneCommand.Execute(null);
 
         Assert.Equal([new LedSelection("strip", "LED strip", 0, 29)], actions.Requests);

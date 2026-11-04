@@ -13,7 +13,9 @@
     <!-- Rows of at most six tiles (44 wide and 8 apart), as the toolbox above: twelve colors are two
          even rows, and + and − stand to the right of the first row, or under the tiles in a narrow window. -->
     <WrapPanel>
-        <ItemsControl Style="{StaticResource ColorTileList}" ItemsSource="{Binding Swatches}">
+        <!-- The list takes the name the page gives the editor (ListName), such as "Kleuren van de loop". -->
+        <ItemsControl Style="{StaticResource ColorTileList}" ItemsSource="{Binding Swatches}"
+                      AutomationProperties.Name="{Binding ListName, RelativeSource={RelativeSource AncestorType=UserControl}}">
             <ItemsControl.ItemTemplate>
                 <DataTemplate DataType="{x:Type vm:ColorSwatch}">
                     <Button Style="{StaticResource ColorListTile}" Background="{Binding Color, Converter={StaticResource ColorToBrush}}"
