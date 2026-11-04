@@ -88,10 +88,10 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
         var registryAutoStart = RegistryAutoStart.ForCurrentProcess();
-        registryAutoStart.EnableOnFirstRun(options);
         registryAutoStart.FollowMoveOnStart();
 
-        // Shared by the tray menu and the settings apps, so each shows what the other set.
+        // Shared by the tray menu and the settings apps, so each shows what the other set. The host
+        // turns it on for --first-run, once it read whether the user chose it (autoStartChosen).
         var autoStart = new AutoStartSwitch(registryAutoStart);
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
@@ -149,7 +149,9 @@ internal static class Program
             hotkeys: hotkeys,
             settingsFileEvents: settingsFile,
             customColors: customColors,
-            customEffects: customEffects);
+            customEffects: customEffects,
+            autoStart: autoStart,
+            firstRun: options.FirstRun);
 
         using var context = new TrayApplicationContext(
             host,

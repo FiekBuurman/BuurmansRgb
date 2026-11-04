@@ -73,6 +73,75 @@ public sealed class AutoStartSwitchTests
         Assert.Throws<InvalidOperationException>(() => new AutoStartSwitch(_autoStart).TrySetEnabled(true));
     }
 
+    // Each time the user set it, also to the value it had, but not when Windows refused.
+    [Fact]
+    public void SetEnabled_RaisesChosenEachTimeItWrote()
+    {
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var choices = 0;
+        autoStart.Chosen += (_, _) => choices++;
+
+        autoStart.SetEnabled(true);
+        autoStart.SetEnabled(true);
+        _autoStart.SetEnabledException = new UnauthorizedAccessException();
+        autoStart.TrySetEnabled(false);
+
+        Assert.Equal(2, choices);
+    }
+
+    // The installer asked, not the user: Changed, but no Chosen.
+    [Fact]
+    public void EnableOnFirstRun_TurnsItOnWithoutAChoice()
+    {
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var changes = 0;
+        var choices = 0;
+        autoStart.Changed += (_, _) => changes++;
+        autoStart.Chosen += (_, _) => choices++;
+
+        autoStart.EnableOnFirstRun();
+        autoStart.EnableOnFirstRun();
+
+        Assert.True(_autoStart.IsEnabled);
+        Assert.Equal(1, _autoStart.SetEnabledCount);
+        Assert.Equal(1, changes);
+        Assert.Equal(0, choices);
+    }
+
+    [Theory]
+    [MemberData(nameof(AccessErrors))]
+    public void EnableOnFirstRun_WhenWindowsRefuses_StartsAnyway(Exception error)
+    {
+        _autoStart.SetEnabledException = error;
+        var autoStart = new AutoStartSwitch(_autoStart);
+        var changes = 0;
+        autoStart.Changed += (_, _) => changes++;
+
+        autoStart.EnableOnFirstRun();
+
+        Assert.False(autoStart.IsEnabled);
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
+    public void EnableOnFirstRun_AlreadyOn_DoesNotWriteAgain()
+    {
+        _autoStart.IsEnabled = true;
+
+        new AutoStartSwitch(_autoStart).EnableOnFirstRun();
+
+        Assert.Equal(0, _autoStart.SetEnabledCount);
+    }
+
+    // Another failure is a bug, not something Windows refused, so it is not hidden.
+    [Fact]
+    public void EnableOnFirstRun_AnotherError_IsThrown()
+    {
+        _autoStart.SetEnabledException = new InvalidOperationException("bug");
+
+        Assert.Throws<InvalidOperationException>(() => new AutoStartSwitch(_autoStart).EnableOnFirstRun());
+    }
+
     [Theory]
     [MemberData(nameof(AccessErrors))]
     public void IsEnabled_Unreadable_IsOff(Exception error)
@@ -81,5 +150,24 @@ public sealed class AutoStartSwitchTests
         _autoStart.IsEnabledException = error;
 
         Assert.False(new AutoStartSwitch(_autoStart).IsEnabled);
+    }
+
+    [Theory]
+    [MemberData(nameof(AccessErrors))]
+    public void TryReadEnabled_Unreadable_IsNull(Exception error)
+    {
+        _autoStart.IsEnabledException = error;
+
+        Assert.Null(new AutoStartSwitch(_autoStart).TryReadEnabled());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void TryReadEnabled_Readable_IsAsWindowsHasIt(bool enabled)
+    {
+        _autoStart.IsEnabled = enabled;
+
+        Assert.Equal(enabled, new AutoStartSwitch(_autoStart).TryReadEnabled());
     }
 }

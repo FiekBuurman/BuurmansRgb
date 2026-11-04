@@ -135,14 +135,19 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             // file goes aside first, where the user can fix a typo and put it back.
             Trace.TraceError(exception.ToString());
             TryMoveAside();
-            return EngineSettings.CreateDefault();
+            return UnknownChoices();
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             // Out of reach for now; keep the user's file untouched and run on defaults meanwhile.
-            return EngineSettings.CreateDefault();
+            return UnknownChoices();
         }
     }
+
+    // The defaults for a file that is there but does not read: whether the user chose autostart
+    // is not known then, so EngineHost reads it from the Run key, as for a file from before
+    // autoStartChosen, and --first-run does not overrule a choice it cannot read.
+    private static EngineSettings UnknownChoices() => EngineSettings.CreateDefault() with { AutoStartChosen = null };
 
     // Writing the defaults is a convenience for the user; the lights must start without it.
     private void TrySaveLocked(EngineSettings settings)

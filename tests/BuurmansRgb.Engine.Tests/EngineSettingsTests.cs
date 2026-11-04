@@ -221,6 +221,7 @@ public sealed class EngineSettingsTests
     private static object OtherValue(Type type, object? current) => type switch
     {
         _ when type == typeof(bool) => !(bool)current!,
+        _ when type == typeof(bool?) => current is not true,
         _ when type == typeof(int) => (int)current! + 1,
         _ when type == typeof(string) => current + "-changed",
         _ when type == typeof(Dictionary<string, Dictionary<string, int>?>) => new Dictionary<string, Dictionary<string, int>?> { ["device"] = new() { ["zone"] = 30 } },

@@ -656,7 +656,10 @@ uitbreidingen in `docs/bouwplan.md`.
   geldige waarden zou de meeste daarvan uit één bron halen. `hadRealDevices` (`openrgb-weg`)
   raakte opnieuw negen plekken: `EngineSettings`, `EngineHost` tweemaal,
   `LightingSettingsSaver.AdoptLocked`, `IEngineApi`, `EngineApi`, `MainViewModel` driemaal en
-  beide fakes in de tests
+  beide fakes in de tests. `autoStartChosen` (`update-autostart`) ging zonder IPC (tray en app
+  lopen al via `AutoStartSwitch`) en raakte vier plekken: `EngineSettings`, `JsonSettingsStore`
+  (een bestand dat niet leest), `EngineHost` bij starten, kiezen en een wijziging met de hand, en
+  `AutoStartSwitch.Chosen`
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
   terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen
@@ -693,6 +696,16 @@ uitbreidingen in `docs/bouwplan.md`.
   geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
 
 ## Installer en uitrol
+
+- Opnieuw installeren na verwijderen met behoud van de instellingen: verwijderen haalt de
+  autostart weg, maar `autoStartChosen: true` blijft in `settings.json`, dus de nieuwe installatie
+  zet "Starten met Windows" niet aan, ook als je het aan had (`update-autostart`). Oplossing:
+  de keuze zelf bewaren (aan of uit) en die bij `--first-run` terugzetten, of het verwijderen het
+  veld laten weghalen als de instellingen blijven
+- De Windows Sandbox-test ook een update laten doen: installeren, "Starten met Windows" uitzetten
+  zoals het tray-item (Run-waarde weg en `autoStartChosen: true`), dezelfde setup nog een keer
+  stil draaien en controleren dat het uit blijft; nu staat dat als handmatige test in
+  `ontwikkelaars.md` (`update-autostart`)
 
 - De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
   icoon in de tray blijft hangen. Dat kan pas als geen installatie meer een engine van 1.0.0

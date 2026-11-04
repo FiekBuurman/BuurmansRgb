@@ -19,6 +19,14 @@ internal sealed record EngineSettings : LightingStateSettings
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool HadRealDevices { get; set; }
 
+    // "autoStartChosen": whether the user set "Starten met Windows" in the tray menu or the
+    // settings app (AutoStartSwitch.Chosen); --first-run, which the installer gives after every
+    // install, then leaves it as it is. New settings say false, so the file shows it. Null is a
+    // file from before this option, or one that did not read; EngineHost then reads the Run key at
+    // each start (off counts as chosen, as such a pc had it on after its first install) and the
+    // value goes along with the next save.
+    public bool? AutoStartChosen { get; set; }
+
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;
 
@@ -57,7 +65,7 @@ internal sealed record EngineSettings : LightingStateSettings
     // after the first CustomColors.MaxColors (ReadCustomColors).
     public RgbColor?[]? CustomColors { get; set; }
 
-    public static EngineSettings CreateDefault() => new();
+    public static EngineSettings CreateDefault() => new() { AutoStartChosen = false };
 
     public IReadOnlyList<RgbColor> ReadCustomColors() =>
         Contracts.CustomColors.Normalize((CustomColors ?? []).OfType<RgbColor>());
