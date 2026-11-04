@@ -363,6 +363,18 @@ public sealed class LampsViewModelTests
         Assert.Equal("Ventilator · Feest · 50%", other.Details);
     }
 
+    // Names that come after the lamps reach their cards too.
+    [Fact]
+    public async Task EffectName_SetLater_NamesTheEffectOnTheCardsThereAre()
+    {
+        await _lamps.RefreshAsync(All(_ => new LightingInfo(Red, 1.0, "custom:disco")));
+        Assert.Equal("LED-strip · Eigen effect · 100%", _lamps.Lamps[0].Details);
+
+        _lamps.EffectName = id => id == "custom:disco" ? "Disco" : null;
+
+        Assert.Equal("LED-strip · Disco · 100%", _lamps.Lamps[0].Details);
+    }
+
     // A new color, such as each step of a drag on Kleur, changes the card; the same lighting again
     // or a frame changes nothing, so the card does not flicker with an effect that moves.
     [Fact]

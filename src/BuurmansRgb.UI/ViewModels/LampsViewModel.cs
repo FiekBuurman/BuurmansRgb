@@ -17,6 +17,7 @@ public sealed partial class LampsViewModel : ObservableObject
 
     private bool _refreshing;
     private bool _refreshAgain;
+    private Func<string, string?>? _effectName;
 
     // The way to ask the lighting that the last RefreshAsync gave, such as of a new connection.
     private Func<Task<IReadOnlyList<DeviceLightingInfo>>>? _getLighting;
@@ -37,8 +38,22 @@ public sealed partial class LampsViewModel : ObservableObject
     public IReadOnlyList<StripLed> Strip { get; }
 
     // Names an effect by its id for the cards ("LED-strip · Regenboog · 100%"), such as an own
-    // effect under its own name; MainViewModel gives the names of its effect choice.
-    public Func<string, string?>? EffectName { get; set; }
+    // effect under its own name; MainViewModel gives the names of its effect choice. The lamps there
+    // already are get it too, and their cards say the names it gives.
+    public Func<string, string?>? EffectName
+    {
+        get => _effectName;
+        set
+        {
+            _effectName = value;
+            foreach (var lamp in Lamps)
+            {
+                lamp.EffectName = value;
+            }
+
+            ShowEffectNames();
+        }
+    }
 
     // The names of the effects changed, such as an own effect that got another name: the cards
     // say the new one.
