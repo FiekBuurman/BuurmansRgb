@@ -643,7 +643,7 @@
         <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
     </Style>
 
-    <!-- A text link as a button, such as "+ Erbij knutselen". One that does nothing now, such as
+    <!-- A text link as a button, such as "Hoe komt een apparaat erbij?". One that does nothing now, such as
          "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey, so it no longer looks like a
          link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
          gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF

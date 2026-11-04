@@ -114,7 +114,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void LinkButton_OnHover_HasTheHighlightAndALineUnderIt() => InContrastTheme(panel =>
     {
-        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "+ Erbij knutselen" });
+        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "Hoe komt een apparaat erbij?" });
 
         Assert.Same(SystemColors.HotTrackBrush, link.Foreground);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Style.Triggers)[(null, Control.ForegroundProperty)]));

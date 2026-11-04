@@ -83,25 +83,21 @@
                             ToolTip="{x:Static res:Strings.RescanToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RescanToolTip}"
                             AutomationProperties.Name="{Binding DeviceRescan.ButtonText}" AutomationProperties.AutomationId="RescanDevices"
                             Command="{Binding DeviceRescan.RescanCommand}" />
-                    <Button Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.AddLamps}"
-                            ToolTip="{x:Static res:Strings.AddLampsToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.AddLampsToolTip}"
+                    <!-- "Hoe komt een apparaat erbij?" goes to Instellingen, where the explanation is at the top: OpenRGB
+                         adds the devices, not buurmansRgb. The one link to Instellingen on this page. -->
+                    <Button Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.HowDevicesCome}"
+                            ToolTip="{x:Static res:Strings.HowDevicesComeToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.HowDevicesComeToolTip}"
+                            AutomationProperties.AutomationId="HowDevicesCome"
                             Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
                 </StackPanel>
                 <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}" />
             </DockPanel>
 
             <!-- Only while every device is a simulated one, with "Automatisch" (ShowsSimulatedDevicesHint): what
-                 they are, and that the real ones come by themselves. Not in the design (see docs/handleiding.md);
-                 the link is in the style of Verversen. -->
-            <DockPanel Visibility="{Binding ShowsSimulatedDevicesHint, Converter={StaticResource BoolToVisibility}}">
-                <Button DockPanel.Dock="Right" Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource LinkButton}"
-                        Content="{x:Static res:Strings.SimulatedDevicesOnlyLink}"
-                        ToolTip="{x:Static res:Strings.SimulatedDevicesOnlyLinkToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.SimulatedDevicesOnlyLinkToolTip}"
-                        AutomationProperties.AutomationId="SimulatedDevicesHintLink"
-                        Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
-                <TextBlock VerticalAlignment="Center" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.SimulatedDevicesOnlyHint}"
-                           AutomationProperties.AutomationId="SimulatedDevicesHint" />
-            </DockPanel>
+                 they are, and that the real ones come by themselves. Not in the design (see docs/handleiding.md). -->
+            <TextBlock Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.SimulatedDevicesOnlyHint}"
+                       Visibility="{Binding ShowsSimulatedDevicesHint, Converter={StaticResource BoolToVisibility}}"
+                       AutomationProperties.AutomationId="SimulatedDevicesHint" />
 
             <!-- What the last search left to say, read out by a screen reader when it appears. -->
             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap"

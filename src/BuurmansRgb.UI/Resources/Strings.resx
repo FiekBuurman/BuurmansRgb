@@ -880,7 +880,8 @@
     <value>OpenRGB</value>
   </data>
   <data name="OpenRgbExplanation" xml:space="preserve">
-    <value>Via OpenRGB praat buurmansRgb met de echte apparaten in je pc.</value>
+    <value>Via OpenRGB praat buurmansRgb met de echte apparaten in je pc. Zodra OpenRGB een apparaat ziet, komt het vanzelf bij Apparaten; zelf toevoegen hoeft niet. Mist er een, kies dan Verversen bij Apparaten: OpenRGB zoekt dan opnieuw.</value>
+    <comment>De uitleg waar "Hoe komt een apparaat erbij?" op Apparaten naartoe gaat.</comment>
   </data>
   <data name="SimulatedDevicesHeader" xml:space="preserve">
     <value>Gesimuleerde apparaten</value>
@@ -1093,23 +1094,17 @@
   <data name="LampsHeader" xml:space="preserve">
     <value>Apparaten in huis</value>
   </data>
-  <data name="AddLamps" xml:space="preserve">
-    <value>+ Erbij knutselen</value>
+  <data name="HowDevicesCome" xml:space="preserve">
+    <value>Hoe komt een apparaat erbij?</value>
+    <comment>Link naast "Apparaten in huis" naar Instellingen, waar bovenaan de uitleg staat (OpenRgbExplanation): apparaten toevoegen kan niet in buurmansRgb, dat doet OpenRGB.</comment>
   </data>
-  <data name="AddLampsToolTip" xml:space="preserve">
-    <value>Apparaten toevoegen doet OpenRGB: zodra het een apparaat ziet, komt dat er hier vanzelf bij, en Verversen laat het opnieuw zoeken. Bij Instellingen vind je de gesimuleerde apparaten en de koppeling met OpenRGB.</value>
-    <comment>Tooltip en hulptekst voor een schermlezer van "+ Erbij knutselen", dat naar Instellingen gaat: apparaten toevoegen kan niet in buurmansRgb.</comment>
+  <data name="HowDevicesComeToolTip" xml:space="preserve">
+    <value>Gaat naar Instellingen, waar bovenaan staat hoe het met OpenRGB gaat. In het kort: apparaten toevoegen doet OpenRGB. Zodra het een apparaat ziet, komt dat er hier vanzelf bij, en Verversen laat het opnieuw zoeken.</value>
+    <comment>Tooltip en hulptekst voor een schermlezer van HowDevicesCome.</comment>
   </data>
   <data name="SimulatedDevicesOnlyHint" xml:space="preserve">
     <value>Dit zijn nep-apparaten om buurmansRgb te proberen. Zodra OpenRGB je echte apparaten ziet, komen die er vanzelf voor in de plaats.</value>
     <comment>Onder "Apparaten in huis", alleen zolang er bij "Automatisch" alleen gesimuleerde apparaten zijn.</comment>
-  </data>
-  <data name="SimulatedDevicesOnlyLink" xml:space="preserve">
-    <value>Naar Instellingen</value>
-    <comment>Link naast SimulatedDevicesOnlyHint.</comment>
-  </data>
-  <data name="SimulatedDevicesOnlyLinkToolTip" xml:space="preserve">
-    <value>Bij Instellingen kies je of de gesimuleerde apparaten er staan, en zie je hoe het met OpenRGB gaat.</value>
   </data>
   <data name="Rescan" xml:space="preserve">
     <value>Verversen</value>

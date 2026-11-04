@@ -45,7 +45,7 @@
                                    AutomationProperties.AutomationId="OpenRgbTechnical" />
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{Binding OpenRgbStatus.Hint}"
                                    Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}" />
-                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbExplanation}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.OpenRgbExplanation}" />
                         <Button Margin="0,12,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.RestartEngine}"
                                 ToolTip="{x:Static res:Strings.RestartEngineToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RestartEngineToolTip}"
                                 AutomationProperties.Name="{x:Static res:Strings.RestartEngineAccessibleName}" AutomationProperties.AutomationId="RestartEngine"
