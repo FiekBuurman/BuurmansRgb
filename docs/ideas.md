@@ -300,10 +300,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Ongedaan maken voor een kleur die je meteen meekleurde (van het apparaat, de kleurenloop, de
   kleuren van een effect of LED's), nu er geen knop meer tussen mengen en het apparaat zit; ook
   "de kleur van daarnet" na een scène die door een nieuwe kleur niet meer aan staat
-- Bij Kleur de verlichting na een nieuwe lijst apparaten (`ShowSelectionAsync`) via de wachtrij
-  vragen, zoals `FollowLighting`: komt die lijst terwijl je een schuif sleept, dan kan het antwoord
-  ouder zijn dan de kleuren die nog wachten, zodat de kiezer even terugspringt
-  (`wat-blijft-bewaard`)
 - "Na een herstart" bij Instellingen ook de scènes, eigen kleuren en eigen effecten noemen, met een
   verwijzing naar "Instellingen bewaren…" voor een andere pc; nu noemt het blok alleen de
   verlichting, de helderheid, de slaapstand en "Starten met Windows" (`wat-blijft-bewaard`)

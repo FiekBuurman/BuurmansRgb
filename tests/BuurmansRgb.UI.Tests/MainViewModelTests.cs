@@ -307,6 +307,22 @@ public sealed class MainViewModelTests
         Assert.True(viewModel.ColorPicker.HasUnappliedChange);
     }
 
+    // With Statisch the mixed color is on the device, and stays in the picker as well.
+    [Fact]
+    public async Task ZonesAlikeInThePreview_WithStaticAfterMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+        var before = viewModel.Preview.Devices.Single();
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+
+        before.ZonesAlike = true;
+
+        await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
     // Another settings app, or settings.json by hand: the engine reports the devices again.
     [Fact]
     public async Task ZonesAlikeElsewhere_ShowsInThePreview()
@@ -524,6 +540,50 @@ public sealed class MainViewModelTests
         Assert.Equal(4, viewModel.Devices.Count);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
         Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    // With Statisch the mixed color went on at once, and the new list keeps it in the picker.
+    [Fact]
+    public async Task DevicesChanged_WithStaticAfterMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(4, viewModel.Devices.Count);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+    }
+
+    // A new list while the colors of a drag still wait for a busy engine: the lighting comes behind
+    // them, so the sliders do not jump back to the color the engine had before the drag.
+    [Fact]
+    public async Task DevicesChanged_WhileDraggingWithStatic_DoesNotJumpBack()
+    {
+        var viewModel = await ConnectAsync();
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+        for (var green = 1; green <= 100; green++)
+        {
+            viewModel.ColorPicker.Green = green;
+        }
+
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(4, viewModel.Devices.Count);
+        Assert.Equal(new RgbColor(255, 100, 0), viewModel.ColorPicker.Color);
+        Assert.Equal(100, viewModel.ColorPicker.Green);
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Contains("color all #FF6400"));
+        Assert.Equal(new RgbColor(255, 100, 0), viewModel.ColorPicker.Color);
+        Assert.Equal(100, viewModel.ColorPicker.Green);
+        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
     }
 
     [Fact]

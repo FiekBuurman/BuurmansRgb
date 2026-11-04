@@ -222,8 +222,14 @@ internal sealed class FakeEngineApi : IEngineApi
         return Task.CompletedTask;
     }
 
-    public Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default) =>
-        Record($"color {deviceId ?? "all"} {color.ToHex()}");
+    // Like the engine, the lighting asked for afterwards has the color once the call counts; "all"
+    // only changes the lighting of all devices, so a device with its own keeps that.
+    public async Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
+    {
+        await Record($"color {deviceId ?? "all"} {color.ToHex()}");
+        var key = deviceId ?? "";
+        Lighting[key] = Lighting.GetValueOrDefault(key, Lighting[""]) with { Color = color };
+    }
 
     public Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default) =>
         Record(string.Create(CultureInfo.InvariantCulture, $"brightness {deviceId ?? "all"} {brightness:0.00}"));

@@ -1132,9 +1132,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Devices came or went in the engine, for example because OpenRGB started or stopped, or one
-    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. A
-    // color the user is mixing for the lamp that stays selected stays in the picker, as in
-    // FollowLighting.
+    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. For
+    // the device that stays selected the lighting comes as in FollowLighting: in the queue, behind
+    // the colors of a drag that still wait there, so the picker does not jump back to an older
+    // color, and a color the user is mixing with the rainbow stays.
     private async Task ReloadDevicesAsync()
     {
         if (_connection is not { } connection)
@@ -1147,12 +1148,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var selectedId = SelectedDevice?.DeviceId;
             ShowDevices(devices);
-            await ShowSelectionAsync(keepMixedColor: SelectedDevice?.DeviceId == selectedId);
+            if (SelectedDevice?.DeviceId == selectedId)
+            {
+                RebuildPreview();
+                FollowLighting();
+            }
+            else
+            {
+                await ShowSelectionAsync();
+            }
         }
     }
 
-    // With keepMixedColor, a color the user is mixing when the lighting comes stays (ShowLighting).
-    private async Task ShowSelectionAsync(bool keepMixedColor = false)
+    private async Task ShowSelectionAsync()
     {
         RebuildPreview();
         if (_connection is not { } connection)
@@ -1170,7 +1178,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        ShowLighting(lighting, keepMixedColor: keepMixedColor && ColorPicker.HasUnappliedChange);
+        ShowLighting(lighting, keepMixedColor: false);
     }
 
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
