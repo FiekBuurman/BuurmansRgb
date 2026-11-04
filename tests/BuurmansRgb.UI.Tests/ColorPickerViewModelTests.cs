@@ -85,6 +85,52 @@ public sealed class ColorPickerViewModelTests
         Assert.Empty(_picked);
     }
 
+    // A late answer while the code is being typed leaves the field alone; leaving it says the code
+    // was no color, as always, and shows the code of the color that came.
+    [Fact]
+    public void Show_WhileTypingAHalfCode_LeavesTheFieldUntilItLosesTheFocus()
+    {
+        _picker.Show(new RgbColor(255, 0, 255));
+        _picker.IsHexFocused = true;
+        _picker.HexColor = "#FF00F";
+
+        _picker.Show(new RgbColor(0, 255, 0));
+
+        Assert.Equal("#FF00F", _picker.HexColor);
+        Assert.Equal(new RgbColor(0, 255, 0), _picker.Color);
+        _picker.IsHexFocused = false;
+        _picker.EndHexEdit();
+        Assert.Equal("#00FF00", _picker.HexColor);
+        Assert.NotNull(_picker.HexError);
+        Assert.Empty(_picked);
+    }
+
+    // A whole code that was typed and is no longer the color shown makes way once the focus goes.
+    [Fact]
+    public void Show_WhileTheFieldHasTheFocus_PutsItsCodeInOnceTheFocusGoes()
+    {
+        _picker.IsHexFocused = true;
+        _picker.HexColor = "#00ff00";
+
+        _picker.Show(new RgbColor(0, 0, 255));
+
+        Assert.Equal("#00ff00", _picker.HexColor);
+        _picker.IsHexFocused = false;
+        Assert.Equal("#0000FF", _picker.HexColor);
+        Assert.Equal([new RgbColor(0, 255, 0)], _picked);
+    }
+
+    // Without the focus a late answer rewrites the field, as before.
+    [Fact]
+    public void Show_WithoutTheFocus_RewritesAHalfCode()
+    {
+        _picker.HexColor = "#FF00F";
+
+        _picker.Show(new RgbColor(0, 255, 0));
+
+        Assert.Equal("#00FF00", _picker.HexColor);
+    }
+
     // "00ff00" without "#" is a color too; leaving the field keeps the text and says nothing.
     [Fact]
     public void EndHexEdit_CodeWithoutHash_KeepsItWithoutAMessage()

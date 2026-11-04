@@ -37,6 +37,15 @@ public partial class ColorPage : UserControl
         }
     }
 
+    // While the hex field has the keyboard focus, a color shown from the engine leaves what is typed.
+    private void OnHexKeyboardFocusChanged(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (DataContext is MainViewModel viewModel)
+        {
+            viewModel.ColorPicker.IsHexFocused = e.RoutedEvent == Keyboard.GotKeyboardFocusEvent;
+        }
+    }
+
     // Delete on an own color of the toolbox takes it away.
     private void OnCustomColorKeyDown(object sender, KeyEventArgs e)
     {

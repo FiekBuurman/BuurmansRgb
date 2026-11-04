@@ -73,10 +73,26 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsUnused { get; set; }
 
+    // The hex field has the keyboard focus (the view says so). Meanwhile Show leaves the field alone,
+    // so a late answer does not rewrite a code that is being typed, such as "#FF00F" after Backspace;
+    // once the focus goes, a code that is a color but no longer the shown one makes way for it.
+    public bool IsHexFocused
+    {
+        get;
+        set
+        {
+            field = value;
+            if (!value && RgbColor.TryParseHex(HexColor.Trim(), out var typed) && typed != Color)
+            {
+                _showing.Run(() => HexColor = Color.ToHex());
+            }
+        }
+    }
+
     public void Show(RgbColor color) => _showing.Run(() =>
     {
         _applied = color;
-        ShowColor(color);
+        ShowColor(color, updateHex: !IsHexFocused);
         HexError = null;
         OnPropertyChanged(nameof(HasColorNotOnDevice));
     });

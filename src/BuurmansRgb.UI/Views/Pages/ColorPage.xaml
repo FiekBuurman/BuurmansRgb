@@ -214,6 +214,7 @@
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
                                     <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
+                                             GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
                                              LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
                                 </StackPanel>
                             </DockPanel>
