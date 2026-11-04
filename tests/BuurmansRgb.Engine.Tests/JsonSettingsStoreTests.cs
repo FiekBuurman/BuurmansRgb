@@ -103,6 +103,68 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, new JsonSettingsStore(path).LoadOrCreate());
     }
 
+    // Held open without leave to delete, as by an editor: it reads, but cannot go aside. The
+    // user's file stays as it is, without defaults written over it.
+    [Fact]
+    public void LoadOrCreate_FileThatDoesNotReadAndCannotMove_LeavesItAndWritesNothing()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+
+        EngineSettings settings;
+        using (HoldWithoutDelete(path))
+        {
+            settings = store.LoadOrCreate();
+        }
+
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, settings);
+        Assert.Equal("{ not json", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    // A later save tries to move it aside again rather than write over it; while that fails it
+    // throws, so the saver tries again later.
+    [Fact]
+    public void Save_FileThatDoesNotReadAndCannotMove_ThrowsAndLeavesIt()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+        var changed = EngineSettings.CreateDefault() with { Color = new RgbColor(0, 255, 0) };
+
+        using (HoldWithoutDelete(path))
+        {
+            store.LoadOrCreate();
+
+            Assert.ThrowsAny<IOException>(() => store.SaveIfUnchanged(changed));
+            Assert.ThrowsAny<IOException>(() => store.Save(changed));
+        }
+
+        Assert.Equal("{ not json", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    // Once the file is let go, the next save moves it aside after all and writes its own.
+    [Fact]
+    public void SaveIfUnchanged_FileThatCouldNotMoveAndIsLetGo_MovesItAsideAndWrites()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+        var changed = EngineSettings.CreateDefault() with { Color = new RgbColor(0, 255, 0) };
+        using (HoldWithoutDelete(path))
+        {
+            store.LoadOrCreate();
+            Assert.ThrowsAny<IOException>(() => store.SaveIfUnchanged(changed));
+        }
+
+        Assert.True(store.SaveIfUnchanged(changed));
+
+        Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
+        Assert.Equal(new RgbColor(0, 255, 0), new JsonSettingsStore(path).LoadOrCreate().Color);
+    }
+
     [Fact]
     public void Save_ThenLoad_RoundTripsSettings()
     {
@@ -1090,6 +1152,10 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
     // ["#FF0000", "#FF8000", ...] for a list of colors in a JSON file.
     private static string HexList(IEnumerable<RgbColor> colors) => $"[{string.Join(", ", colors.Select(color => $"\"{color.ToHex()}\""))}]";
+
+    // Others may read the file, but not move or delete it.
+    private static FileStream HoldWithoutDelete(string path) =>
+        new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
     private static void DenyReadForCurrentUser(string path)
     {

@@ -150,6 +150,12 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             {
                 TrySaveLocked(unknown);
             }
+            else
+            {
+                // Held by an editor without leave to move it, say: the file stays as it is, and the
+                // next save tries to move it aside again rather than write over it.
+                _unreadable = true;
+            }
 
             return unknown;
         }
@@ -180,14 +186,17 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     private bool HoldsKnownLocked() =>
         _known is not null && File.ReadAllBytes(filePath).AsSpan().SequenceEqual(_known);
 
-    // A file that did not read when it last changed goes aside first, as at the start.
+    // A file that did not read when it last changed goes aside first, as at the start. If it cannot
+    // go aside, nothing is written: the move throws, the file of the user stays, and the saver
+    // tries again a few times (and logs it) before it gives up on this change.
     private void SaveLocked(byte[] json)
     {
-        if (_unreadable)
+        if (_unreadable && File.Exists(filePath))
         {
-            TryMoveAside();
-            _unreadable = false;
+            File.Move(filePath, BrokenFilePath, overwrite: true);
         }
+
+        _unreadable = false;
 
         JsonFile.Write(filePath, json);
         _known = json;

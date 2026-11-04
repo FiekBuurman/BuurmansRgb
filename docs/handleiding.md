@@ -1323,6 +1323,12 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   het nieuwe bestand heen). Dat kan ook terwijl de engine draait: die neemt het dan
   meteen over, net als een andere wijziging met de hand. Kan de engine het bestand niet lezen
   (bijv. omdat een ander programma het open heeft), dan laat hij het ongemoeid.
+- Kan de engine het bestand niet opzij zetten (bijv. omdat een editor het open heeft en het
+  niet laat verplaatsen), dan laat hij het ook staan en schrijft hij er niets overheen: hij
+  draait op de standaardwaarden en probeert het bij de volgende keer opslaan opnieuw opzij te
+  zetten. Lukt dat dan nog niet, dan probeert hij het binnen een paar seconden een paar keer
+  en geeft hij die wijziging daarna op (het logbestand noemt het); je bestand blijft dan
+  zoals het was. Sluit je de editor, dan gaat het bij de volgende wijziging alsnog opzij.
 - Sla je terwijl de engine draait een bestand op dat zo niet te lezen is (of nog half
   geschreven), dan verandert er niets: de engine houdt wat hij had, noemt het in het
   logbestand en leest het bij de volgende keer opslaan opnieuw. Verbeter de fout en sla weer op.
