@@ -1099,7 +1099,7 @@
     <comment>Link naast "Apparaten in huis" naar Instellingen, waar bovenaan de uitleg staat (OpenRgbExplanation): apparaten toevoegen kan niet in buurmansRgb, dat doet OpenRGB.</comment>
   </data>
   <data name="HowDevicesComeToolTip" xml:space="preserve">
-    <value>Gaat naar Instellingen, waar bovenaan staat hoe het met OpenRGB gaat. In het kort: apparaten toevoegen doet OpenRGB. Zodra het een apparaat ziet, komt dat er hier vanzelf bij, en Verversen laat het opnieuw zoeken.</value>
+    <value>Gaat naar Instellingen, waar bovenaan staat hoe het met OpenRGB gaat en waar je ook de gesimuleerde apparaten aan of uit zet. In het kort: apparaten toevoegen doet OpenRGB. Zodra het een apparaat ziet, komt dat er hier vanzelf bij, en Verversen laat het opnieuw zoeken.</value>
     <comment>Tooltip en hulptekst voor een schermlezer van HowDevicesCome.</comment>
   </data>
   <data name="SimulatedDevicesOnlyHint" xml:space="preserve">

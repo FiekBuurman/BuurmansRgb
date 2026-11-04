@@ -166,7 +166,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 - **Hoe komt een apparaat erbij?** naast de kop "Apparaten in huis" gaat naar Instellingen, waar
   bovenaan bij OpenRGB de uitleg staat. Een apparaat toevoegen doe je niet in BuurmansRgb maar in
   OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat het
-  opnieuw zoeken. Dat zegt ook de tooltip van de link. Het is de enige link naar Instellingen op
+  opnieuw zoeken. Dat zegt ook de tooltip van de link, met erbij dat je op Instellingen ook de
+  gesimuleerde apparaten aan of uit zet. Het is de enige link naar Instellingen op
   deze pagina; de regel over de gesimuleerde apparaten heeft geen eigen link meer.
 - **Verversen** (naast "Hoe komt een apparaat erbij?") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
   het als een apparaat niet terugkomt, bijvoorbeeld een koptelefoon die je uit en weer aan zette.
