@@ -52,6 +52,17 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
         }
     }
 
+    // Every LED says the color of now the next time its name is asked for: once when the focus comes
+    // into the view, so an LED that never had the focus does not keep the color of before the first
+    // frame, and when the number of LEDs changes.
+    public void RenameLeds()
+    {
+        foreach (var item in _leds)
+        {
+            item.Rename();
+        }
+    }
+
     public override object? GetPattern(PatternInterface patternInterface) =>
         patternInterface == PatternInterface.Selection ? this : base.GetPattern(patternInterface);
 

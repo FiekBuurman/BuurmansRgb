@@ -380,13 +380,16 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     // The focus comes with Tab, or when the active LED moves here from another zone. WPF tells a
-    // screen reader that the view has the focus; the active LED follows after that.
+    // screen reader that the view has the focus; the active LED follows after that. The names of
+    // all LEDs take the colors of now, one name change each, so the LEDs a screen reader reads next
+    // do not say the colors of when it first read them.
     protected override void OnIsKeyboardFocusedChanged(DependencyPropertyChangedEventArgs e)
     {
         base.OnIsKeyboardFocusedChanged(e);
         InvalidateVisual();
         if (IsKeyboardFocused)
         {
+            (UIElementAutomationPeer.FromElement(this) as LedPreviewAutomationPeer)?.RenameLeds();
             Dispatcher.BeginInvoke(DispatcherPriority.Input, ShowActiveLed);
         }
         else
@@ -511,12 +514,14 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     // A new frame comes many times a second, but only another number of LEDs changes the items
-    // UI Automation sees. Without a peer, nobody asked for them yet, so there is nothing to tell.
+    // UI Automation sees, and the items it keeps then say the colors of now. Without a peer, nobody
+    // asked for them yet, so there is nothing to tell.
     private static void OnColorsChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
     {
         if (((IReadOnlyList<RgbColor>)e.OldValue).Count != ((IReadOnlyList<RgbColor>)e.NewValue).Count
             && UIElementAutomationPeer.FromElement((LedPreviewView)element) is LedPreviewAutomationPeer peer)
         {
+            peer.RenameLeds();
             peer.ResetChildrenCache();
         }
     }

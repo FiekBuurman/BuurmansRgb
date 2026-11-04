@@ -119,6 +119,21 @@ public sealed class LedPreviewViewTests
         Assert.Equal(first.Take(2), peer.GetChildren());
     });
 
+    // Another number of LEDs gives the items it keeps the colors of now.
+    [Fact]
+    public void AutomationPeer_AnotherNumberOfLeds_NamesTheColorsOfNow() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], LedLabels = Labels });
+        var peer = UIElementAutomationPeer.CreatePeerForElement(view);
+        var leds = peer.GetChildren();
+        _ = leds.Select(led => led.GetName()).ToList();
+
+        view.Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 255, 0)];
+
+        Assert.Equal(leds.Take(2), peer.GetChildren());
+        Assert.Equal(["Escape (LED 1), fel rood", "LED 2, geel"], peer.GetChildren().Select(led => led.GetName()));
+    });
+
     // Frames and selections come all the time; without a screen reader or other client, the view
     // makes no automation peer for them.
     [Fact]

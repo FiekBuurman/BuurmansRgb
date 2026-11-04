@@ -490,7 +490,9 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   daarna staan tot de LED opnieuw de focus krijgt, ook als de kleur intussen verandert: zo begint
   de schermlezer niet uit zichzelf te praten bij elk beeld van het effect. Loop je met de
   schermlezer langs LED's die de focus niet hebben gehad, dan hoor je de kleur van het moment dat
-  hij ze voor het eerst opvroeg.
+  de focus het laatst in het voorbeeld kwam (of dat de schermlezer ze voor het eerst opvroeg, als
+  de focus er nog niet is geweest). Ook als het aantal LED's verandert, krijgen ze allemaal de
+  kleur van dat moment.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.

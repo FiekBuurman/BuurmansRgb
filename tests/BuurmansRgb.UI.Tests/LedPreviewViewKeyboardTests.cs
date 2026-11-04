@@ -255,6 +255,29 @@ public sealed class LedPreviewViewKeyboardTests
         Assert.Equal([("LED 1, zwart", AutomationEvents.AutomationFocusChanged), ("LED 3, fel rood", AutomationEvents.AutomationFocusChanged)], events);
     });
 
+    // A screen reader that read the LEDs before the first frame hears the colors of now once the
+    // focus comes into the view, also for the LEDs that never had the focus; the frames after that
+    // leave the names as they are.
+    [Fact]
+    public void Focus_IntoTheView_NamesTheColorsOfNowOnce() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], LedLabels = ["LED 1", "LED 2", "LED 3"], ActiveLed = 0 });
+        OffscreenWindow.WaitUntilIdle();
+        var peer = Assert.IsType<LedPreviewAutomationPeer>(UIElementAutomationPeer.CreatePeerForElement(view));
+        peer.RaiseLedEvent = static (_, _) => { };
+        var leds = peer.GetChildren();
+        Assert.Equal(["LED 1, zwart", "LED 2, zwart", "LED 3, zwart"], leds.Select(led => led.GetName()));
+
+        view.Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 255, 0), new RgbColor(0, 0, 128)];
+        Assert.True(view.Focus());
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(["LED 1, fel rood", "LED 2, geel", "LED 3, donkerblauw"], leds.Select(led => led.GetName()));
+
+        view.Colors = [new RgbColor(0, 128, 0), new RgbColor(255, 255, 255), new RgbColor(0, 0, 0)];
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(["LED 1, fel rood", "LED 2, geel", "LED 3, donkerblauw"], leds.Select(led => led.GetName()));
+    });
+
     // With the focus the tooltip names the active LED; it follows the mouse and comes back to the
     // active LED when the mouse leaves. Without the focus it goes away with the mouse.
     [Fact]

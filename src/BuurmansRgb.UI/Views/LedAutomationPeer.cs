@@ -36,7 +36,8 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
     // when a screen reader first asked for it. While a screen reader listens, WPF compares the
     // name after every layout pass, and each frame of a moving effect makes one: a name that
     // followed the frames would raise a name change per LED per frame. So it stays until the LED
-    // gets the focus again (Rename) or another label, such as after a new zone length.
+    // gets the focus again (Rename), the focus comes into the view or the number of LEDs changes
+    // (both LedPreviewAutomationPeer.RenameLeds), or it gets another label.
     protected override string GetNameCore()
     {
         if (view.LabelOf(led) is not { } label)
@@ -53,7 +54,7 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
         return _name;
     }
 
-    // The LED gets the focus: the next time its name is asked for, it says the color of now.
+    // The next time its name is asked for, it says the color of now.
     internal void Rename() => _name = null;
 
     protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.ListItem;
