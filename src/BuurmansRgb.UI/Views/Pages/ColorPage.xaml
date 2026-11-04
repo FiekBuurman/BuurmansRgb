@@ -214,16 +214,20 @@
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
                                     <!-- The name of the color before its hex code, "Warm wit · #FFF4E5"; the code goes
-                                         under the name when the text of a larger text size of Windows needs the room.
+                                         under the name when the text of a larger text size of Windows needs the room,
+                                         with the dot before it, so no dot stays behind the name.
                                          The name follows the color while you drag, so it is no live region. -->
                                     <WrapPanel>
                                         <TextBlock Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
-                                                   AutomationProperties.Name="{Binding ColorPicker.ColorName}" AutomationProperties.AutomationId="CurrentColorName">
-                                            <Run Text="{Binding ColorPicker.ColorName, Mode=OneWay}" /> <Run Text="·" Foreground="{DynamicResource TextMutedBrush}" />
-                                        </TextBlock>
-                                        <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
-                                                 GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
-                                                 LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                                                   Text="{Binding ColorPicker.ColorName}"
+                                                   AutomationProperties.Name="{Binding ColorPicker.ColorName}" AutomationProperties.AutomationId="CurrentColorName" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <views:DecorativeText Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
+                                                                  Foreground="{DynamicResource TextMutedBrush}" Text="·" />
+                                            <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
+                                                     GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
+                                                     LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                                        </StackPanel>
                                     </WrapPanel>
                                 </StackPanel>
                             </DockPanel>

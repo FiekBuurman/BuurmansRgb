@@ -2,11 +2,11 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 using System.Windows.Media;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -65,11 +65,22 @@ public sealed class HexCodeViewTests
             var name = AppTheme.Descendants<TextBlock>(page).Single(block => AutomationProperties.GetAutomationId(block) == "CurrentColorName");
             PageViews.Click(ToolboxViewTests.PresetTiles(page)[0]);
 
-            Assert.Equal("Warm wit ·", new TextRange(name.ContentStart, name.ContentEnd).Text);
+            var dot = AppTheme.Descendants<DecorativeText>(page).Single(block => block.Text == "·");
+            Assert.Equal("Warm wit", name.Text);
             Assert.Equal("Warm wit", AutomationProperties.GetName(name));
             Assert.Equal("#FFF4E5", box.Text);
-            Assert.True(name.TranslatePoint(new Point(name.ActualWidth, 0), page).X <= box.TranslatePoint(default, page).X);
+            Assert.True(name.TranslatePoint(new Point(name.ActualWidth, 0), page).X <= dot.TranslatePoint(default, page).X);
+            Assert.True(dot.TranslatePoint(new Point(dot.ActualWidth, 0), page).X <= box.TranslatePoint(default, page).X);
             Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(name));
+
+            // Without room for the code beside the name, the dot goes along to the next line.
+            var line = (FrameworkElement)VisualTreeHelper.GetParent(name);
+            line.Width = name.ActualWidth + name.Margin.Right + 1;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.True(dot.TranslatePoint(default, page).Y > name.TranslatePoint(new Point(0, name.ActualHeight), page).Y - 1);
+            Assert.True(dot.TranslatePoint(default, page).X < box.TranslatePoint(default, page).X);
+            line.ClearValue(FrameworkElement.WidthProperty);
+            OffscreenWindow.WaitUntilIdle();
 
             var red = PageViews.Named<Slider>(page, Strings.ChannelRed);
             PageViews.Named<Slider>(page, Strings.ChannelGreen).Value = 0;
