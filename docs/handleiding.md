@@ -1180,7 +1180,8 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   Had je buurmansRgb al, dan blijft het zoals het was: een `settings.json` met `pausedLights`
   houdt die keuze, en een `settings.json` zonder (van een versie van vóór deze keuze) houdt
   "Laten branden", wat de apparaten toen deden. Ook een `settings.json` die niet te lezen is,
-  telt als bestaand. Haal je `settings.json` zelf weg, dan begint de engine bij de volgende start
+  telt als bestaand: de engine zet hem opzij als `settings.json.broken` en schrijft meteen een
+  nieuwe met "Laten branden", dus ook na een herstart blijft het zo. Haal je `settings.json` zelf weg, dan begint de engine bij de volgende start
   als een nieuwe installatie, dus met "Uitzetten". Eindigt de laatste
   van die redenen, dan komen de echte kleuren en effecten terug; is de pc wakker maar nog
   vergrendeld, dan blijven de apparaten gedimd of uit tot het ontgrendelen. Een scène op tijd
@@ -1316,8 +1317,9 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   logbestand noemt elke overgeslagen waarde.
 - Is het bestand geen geldige JSON (bijv. een komma te veel), geen `{ … }`, of staat een naam
   twee keer in hetzelfde `{ … }` terwijl er ook een waarde niet klopt, dan zet de engine
-  het opzij als `settings.json.broken` en draait hij op de standaardwaarden. Verbeter de fout en
-  zet het terug als `settings.json`. Dat kan ook terwijl de engine draait: die neemt het dan
+  het opzij als `settings.json.broken`, draait hij op de standaardwaarden en schrijft hij die
+  meteen als nieuwe `settings.json`. Verbeter de fout en zet het terug als `settings.json` (over
+  het nieuwe bestand heen). Dat kan ook terwijl de engine draait: die neemt het dan
   meteen over, net als een andere wijziging met de hand. Kan de engine het bestand niet lezen
   (bijv. omdat een ander programma het open heeft), dan laat hij het ongemoeid.
 - Sla je terwijl de engine draait een bestand op dat zo niet te lezen is (of nog half
