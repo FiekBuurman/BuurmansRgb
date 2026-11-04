@@ -62,11 +62,15 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public partial string? HexError { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasColorNotOnDevice))]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(ColorName), nameof(HasColorNotOnDevice))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
     // "255 · 154 · 61", as the preview of the design shows it.
     public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
+
+    // "Warm wit" or "Oranje", beside the hex code; it goes along with every color mixed, also while
+    // a slider is dragged.
+    public string ColorName => ColorNames.StandaloneNameOf(Color);
 
     // The picker shows a color that is not on the device. Outside IsUnused every mixed color goes
     // on at once (Mix), so this only stays true for a color mixed while IsUnused, as with the

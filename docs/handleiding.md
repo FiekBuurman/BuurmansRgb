@@ -188,8 +188,11 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 Bovenaan kies je een apparaat of "Hele huis" (een schermlezer noemt de keuze "Welk apparaat?"), met de
 schakelaar ernaast.
 
-- **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
-  (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
+- **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de naam van de
+  kleur met de hex-code erachter ("Warm wit · #FFF4E5"; je kunt ook een code typen) en de
+  R · G · B-waarden. De naam loopt mee terwijl je schuift; een vaste kleur heet zoals onder
+  "Kleuren", een andere kleur krijgt een benaderende naam (zie "Kleurnamen"). Is het venster
+  smal of de tekst groot, dan staat de hex-code onder de naam; rechts de schuiven Rood, Groen en Blauw
   (0–255, ook met de pijltjes), "Kleuren" met veertien vaste kleuren (Warm wit,
   Rood, Oranje, Groen, Blauw, Paars, Fel rood, Fel groen en Fel blauw, en Roze, Lichtroze,
   Lila, Mint en Babyblauw) met daaronder je

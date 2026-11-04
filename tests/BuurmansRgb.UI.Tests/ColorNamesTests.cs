@@ -146,6 +146,30 @@ public sealed class ColorNamesTests
         Assert.Equal("fel groen", ColorNames.NameOf(new(0, 255, 0)));
     }
 
+    // On its own a name starts with a capital: a color of the toolbox as it is, a tone with its word
+    // made big; under tr-TR too, so "ı" does not come in.
+    [Theory]
+    [InlineData("#FFF4E5", "Warm wit")]
+    [InlineData("#00FF00", "Fel groen")]
+    [InlineData("#89CFF0", "Babyblauw")]
+    [InlineData("#AFEEEE", "Lichtturquoise")]
+    [InlineData("#800000", "Donkerrood")]
+    [InlineData("#000000", "Zwart")]
+    public void StandaloneNameOf_StartsWithACapital(string hex, string expected)
+    {
+        var regionFormat = CultureInfo.CurrentCulture;
+        try
+        {
+            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = regionFormat;
+        }
+    }
+
     // Pink and the pastels have their own name, from Strings.resx, and not the word of their tone.
     [Theory]
     [InlineData("#FF69B4", "roze, #FF69B4")]

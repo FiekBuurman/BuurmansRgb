@@ -60,6 +60,28 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(255, 0, 128)], _picked);
     }
 
+    // The name beside the hex code goes along with each step of a drag, a code typed and a color
+    // shown, and says so to the view.
+    [Fact]
+    public void ColorName_FollowsEveryColor()
+    {
+        List<string> names = [];
+        _picker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ColorPickerViewModel.ColorName))
+            {
+                names.Add(_picker.ColorName);
+            }
+        };
+        _picker.Show(RgbColor.Black);
+
+        _picker.Red = 128;
+        _picker.Red = 255;
+        _picker.HexColor = "#FFF4E5";
+
+        Assert.Equal(["Zwart", "Donkerrood", "Fel rood", "Warm wit"], names);
+    }
+
     [Fact]
     public void SelectPreset_PutsItsColorOnTheDevice()
     {

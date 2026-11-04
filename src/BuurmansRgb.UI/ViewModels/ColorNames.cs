@@ -7,7 +7,8 @@ namespace BuurmansRgb.UI.ViewModels;
 // A color as a screen reader says it: a rough name with the hex code after it, "geel, #FFFF00",
 // for the tiles of a list of colors, the own colors and the steps of an own effect. A color of the
 // toolbox keeps its own name, with a small letter in the middle of a sentence ("warm wit, #FFF4E5").
-// The words are in Strings.resx, as "ColorName_<tone>".
+// On its own, beside the current color and on a device card, the name starts with a capital
+// (StandaloneNameOf). The words are in Strings.resx, as "ColorName_<tone>".
 public static class ColorNames
 {
     // "geel, #FFFF00", or "fel blauw, #0000FF" for a color of the toolbox.
@@ -20,7 +21,17 @@ public static class ColorNames
             ? InSentence(preset.Name)
             : UiText.Lookup(TonePrefix, ToneOf(color)) ?? color.ToHex();
 
+    // The name of a color on its own, as a line or a card shows it ("Warm wit", "Lichtblauw"): the
+    // name of a color of the toolbox as it is, or else the word of its tone with a capital letter.
+    public static string StandaloneNameOf(RgbColor color) =>
+        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color) is { } preset
+            ? preset.Name
+            : UiText.Lookup(TonePrefix, ToneOf(color)) is { } word ? Capitalized(word) : color.ToHex();
+
     internal const string TonePrefix = "ColorName";
+
+    private static string Capitalized(string word) =>
+        word.Length == 0 ? word : string.Concat(word[..1].ToUpper(TextCulture), word[1..]);
 
     // "Fel groen" with a small first letter, "fel groen"; the rest of the name stays as it is. The
     // letter is made small in the culture the text is in, not that of the region format (under tr-TR

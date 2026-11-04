@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -46,6 +47,40 @@ public sealed class HexCodeViewTests
             OffscreenWindow.WaitUntilIdle();
             Assert.False(error.IsVisible);
             Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        });
+    }
+
+    // The name of the color stands before its code ("Warm wit · #FFF4E5") and goes along with a
+    // slider while it moves; a screen reader reads it as text, not as news on every step.
+    [Fact]
+    public async Task ColorName_StandsBeforeTheCodeAndFollowsTheSliders()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            Window.GetWindow(panel)!.Width = 1240;
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = PageViews.Named<TextBox>(page, Strings.HexLabel);
+            var name = AppTheme.Descendants<TextBlock>(page).Single(block => AutomationProperties.GetAutomationId(block) == "CurrentColorName");
+            PageViews.Click(ToolboxViewTests.PresetTiles(page)[0]);
+
+            Assert.Equal("Warm wit ·", new TextRange(name.ContentStart, name.ContentEnd).Text);
+            Assert.Equal("Warm wit", AutomationProperties.GetName(name));
+            Assert.Equal("#FFF4E5", box.Text);
+            Assert.True(name.TranslatePoint(new Point(name.ActualWidth, 0), page).X <= box.TranslatePoint(default, page).X);
+            Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(name));
+
+            var red = PageViews.Named<Slider>(page, Strings.ChannelRed);
+            PageViews.Named<Slider>(page, Strings.ChannelGreen).Value = 0;
+            PageViews.Named<Slider>(page, Strings.ChannelBlue).Value = 0;
+            red.Value = 128;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.Equal("Donkerrood", AutomationProperties.GetName(name));
+
+            red.Value = 255;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.Equal("Fel rood", AutomationProperties.GetName(name));
         });
     }
 
