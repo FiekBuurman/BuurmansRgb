@@ -263,6 +263,10 @@
   <data name="LedLabel" xml:space="preserve">
     <value>LED {0}</value>
   </data>
+  <data name="LedNameWithColor" xml:space="preserve">
+    <value>{0}, {1}</value>
+    <comment>Een LED van het voorbeeld voor een schermlezer: {0} = LedLabel of LedLabelWithName (bijv. LED 5), {1} = de naam van zijn kleur met een kleine beginletter (bijv. rood of warm wit).</comment>
+  </data>
   <data name="LedLabelWithName" xml:space="preserve">
     <value>{0} (LED {1})</value>
   </data>

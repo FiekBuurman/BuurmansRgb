@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -27,7 +29,13 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
     public override object? GetPattern(PatternInterface patternInterface) =>
         patternInterface == PatternInterface.SelectionItem ? this : null;
 
-    protected override string GetNameCore() => view.LabelOf(led) ?? string.Empty;
+    // "LED 5, rood": its label with the name of the color it shows now. Made when a screen reader
+    // asks, not on every frame, and no event says the color changed, so a moving effect does not
+    // make it talk.
+    protected override string GetNameCore() =>
+        view.LabelOf(led) is not { } label ? string.Empty
+        : led < view.Colors.Count ? UiText.Format(Strings.LedNameWithColor, label, ColorNames.NameOf(view.Colors[led]))
+        : label;
 
     protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.ListItem;
 

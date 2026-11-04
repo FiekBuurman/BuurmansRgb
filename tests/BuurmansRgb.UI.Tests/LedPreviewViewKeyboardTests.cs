@@ -226,7 +226,7 @@ public sealed class LedPreviewViewKeyboardTests
 
         Assert.True(view.IsKeyboardFocused);
         Assert.Equal([false, true, false], leds.Select(led => led.HasKeyboardFocus()));
-        Assert.Equal("LED 2", leds[1].GetName());
+        Assert.Equal("LED 2, zwart", leds[1].GetName());
         Assert.Throws<InvalidOperationException>(() => leds[0].SetFocus());
     });
 
@@ -249,7 +249,7 @@ public sealed class LedPreviewViewKeyboardTests
         OffscreenWindow.WaitUntilIdle();
         view.ActiveLed = 2;
 
-        Assert.Equal([("LED 1", AutomationEvents.AutomationFocusChanged), ("LED 3", AutomationEvents.AutomationFocusChanged)], events);
+        Assert.Equal([("LED 1, zwart", AutomationEvents.AutomationFocusChanged), ("LED 3, zwart", AutomationEvents.AutomationFocusChanged)], events);
     });
 
     // With the focus the tooltip names the active LED; it follows the mouse and comes back to the

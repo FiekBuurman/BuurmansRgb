@@ -25,11 +25,27 @@ public sealed class LedPreviewViewTests
         var leds = peer.GetChildren();
 
         Assert.Equal(AutomationControlType.List, peer.GetAutomationControlType());
-        Assert.Equal(Labels, leds.Select(led => led.GetName()));
+        Assert.Equal(Labels.Select(label => $"{label}, zwart"), leds.Select(led => led.GetName()));
         Assert.All(leds, led => Assert.Equal(AutomationControlType.ListItem, led.GetAutomationControlType()));
         Assert.Equal(["Led0", "Led1", "Led2"], leds.Select(led => led.GetAutomationId()));
         Assert.Equal([false, true, false], leds.Select(led => SelectionItem(led).IsSelected));
         Assert.Single(((ISelectionProvider)peer.GetPattern(PatternInterface.Selection)).GetSelection());
+    });
+
+    // Each LED item says its color after its label ("LED 2, warm wit"), as the view shows it when a
+    // screen reader asks: the same item with the next frame says the new color, without an event.
+    [Fact]
+    public void AutomationPeer_NamesTheColorOfEachLed() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 244, 229), new RgbColor(0, 0, 128)], LedLabels = Labels });
+        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+
+        Assert.Equal(["Escape (LED 1), fel rood", "LED 2, warm wit", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
+
+        view.Colors = [new RgbColor(255, 136, 0), new RgbColor(137, 207, 240), new RgbColor(0, 0, 0)];
+
+        Assert.Same(leds[1], UIElementAutomationPeer.CreatePeerForElement(view).GetChildren()[1]);
+        Assert.Equal(["Escape (LED 1), oranje", "LED 2, babyblauw", "F1 (LED 3), zwart"], leds.Select(led => led.GetName()));
     });
 
     // Selecting an LED item does what a click does, adding it what Shift+click does.

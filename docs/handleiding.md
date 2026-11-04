@@ -481,8 +481,11 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   een rij eronder. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, Shift, Ctrl, Backspace,
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
-  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik; de
-  apparaten en zones in het voorbeeld noemt hij bij hun naam.
+  zonder naam. Een schermlezer noemt de LED's zo ook, met de kleur die de LED op dat moment toont
+  erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen"), en kan ze selecteren
+  zoals een klik; de apparaten en zones in het voorbeeld noemt hij bij hun naam. Bij een effect dat
+  beweegt hoor je de kleur van het moment dat je bij de LED komt; de schermlezer begint niet uit
+  zichzelf te praten als de kleur verandert.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
@@ -563,7 +566,7 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 
   Daarna ga je met Shift+Tab terug naar boven, naar de schuiven en de vaste kleuren: elke
   stap kleurt de gekozen LED's meteen.
-  Een schermlezer noemt de actieve LED bij zijn naam en zegt of hij gekozen is.
+  Een schermlezer noemt de actieve LED bij zijn naam en kleur en zegt of hij gekozen is.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
 - **Selectie opheffen**, een ander apparaat kiezen of een ander effect dan Per LED kiezen, geeft
