@@ -600,41 +600,39 @@ toetsenbord. Een paar dingen om te proberen:
   geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets, zodat een test nooit
   echt Kladblok of de browser opent. `ShellLauncher` staat in `BuurmansRgb.Contracts`, want het
   item in het tray-menu gebruikt hem ook.
-- **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om
-  de zip (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app
-  kiest alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
-  `MainWindow`) en schrijft of leest het (schrijven eerst naar `<pad>.tmp` en dan met
-  `File.Move` eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust via de engine en niet door de bestanden zelf te
-  lezen: zo heeft de zip de wijziging van de laatste seconde (de saver en `CustomEffectLibrary`
-  schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om: `SettingsReloader.RunBetweenReloads`),
-  en schrijft geen saver van de engine bij terugzetten zijn oude stand over de zip heen. De
-  engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden zonder de stores, gedeeld
-  voor schrijven en verwijderen: elk bestand komt er met één `File.Move` in (`JsonFile`), dus een
-  lezer krijgt het oude of het nieuwe, nooit de helft. `SettingsArchive` controleert een zip
-  helemaal voordat er iets verandert: alleen `settings.json`, `profiles.json` en `effects.json`
-  bovenaan (geen map, geen pad, dus niets buiten de map), elk één keer, de zip hooguit
-  `SettingsBackup.MaxArchiveBytes` (4 MB, lager dan een bestand uitgepakt mag zijn, zodat een
-  zip met een enorme lijst entries niet eerst gelezen wordt) en elk bestand uitgepakt hooguit
-  `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op de grootte die de zip
-  zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`). Daarna zet
-  `EngineHost` de bestanden van nu in
-  `backups\before-restore-<datum>-<tijd>-<ms>.zip` (in UTC, zodat de namen ook over de wintertijd
-  heen op volgorde staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
-  `BackupsKept` = 5 blijven) en vervangt
-  ze in de volgorde effecten, scènes, instellingen: `CustomEffectLibrary.Replace` en
-  `ProfileLibrary.Replace` schrijven het bestand, gooien weg wat wachtte en lezen opnieuw
-  (`Changed`, dus de tijden en programma's van de scènes plannen opnieuw);
-  `JsonSettingsStore.Replace` schrijft `settings.json` als een wijziging met de hand, die
-  `SettingsReloader.ReloadNow` meteen toepast zoals een bewerking in een editor (de saver wacht
-  erop), zodat de app via de gewone events meeloopt. Een bestand dat niet te schrijven is, zet
+- **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
+  (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest
+  alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
+  `MainWindow`) en schrijft of leest het (schrijven eerst naar `<pad>.tmp` en dan met `File.Move`
+  eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust via de engine en
+  niet door de bestanden zelf te lezen: zo heeft de zip de wijziging van de laatste seconde (de
+  saver en `CustomEffectLibrary` schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om:
+  `SettingsReloader.RunBetweenReloads`), en schrijft geen saver van de engine bij terugzetten zijn
+  oude stand over de zip heen. De engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden
+  zonder de stores (`SettingsFiles.Read`), gedeeld voor schrijven en verwijderen: elk bestand komt
+  er met één `File.Move` in (`JsonFile`), dus een lezer krijgt het oude of het nieuwe, nooit de
+  helft. `SettingsArchive` controleert een zip helemaal voordat er iets verandert: alleen
+  `settings.json`, `profiles.json` en `effects.json` bovenaan (geen map, geen pad, dus niets buiten
+  de map), elk één keer, de zip hooguit `SettingsBackup.MaxArchiveBytes` (4 MB, lager dan een
+  bestand uitgepakt mag zijn, zodat een zip met een enorme lijst entries niet eerst gelezen wordt)
+  en elk bestand uitgepakt hooguit `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op
+  de grootte die de zip zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`).
+  Daarna zet `EngineHost` de bestanden van nu in `backups\before-restore-<datum>-<tijd>-<ms>.zip`
+  (`SettingsFiles.WriteBackup`; in UTC, zodat de namen ook over de wintertijd heen op volgorde
+  staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
+  `SettingsFiles.BackupsKept` = 5 blijven) en vervangt ze in de volgorde effecten, scènes,
+  instellingen: `CustomEffectLibrary.Replace` en `ProfileLibrary.Replace` schrijven het bestand,
+  gooien weg wat wachtte en lezen opnieuw (`Changed`, dus de tijden en programma's van de scènes
+  plannen opnieuw); `JsonSettingsStore.Replace` schrijft `settings.json` als een wijziging met de
+  hand, die `SettingsReloader.ReloadNow` meteen toepast zoals een bewerking in een editor (de saver
+  wacht erop), zodat de app via de gewone events meeloopt. Een bestand dat niet te schrijven is, zet
   de eerdere terug, en een bestand dat er vóór het terugzetten niet was gaat weer weg
   (`CustomEffectLibrary.Reset` en `ProfileLibrary.Reset`: het bestand weg, de lijst leeg,
-  `Changed`), zodat bij een fout niets verandert. `autoStartChosen` en `hadRealDevices` komen
-  van deze pc
-  (`SettingsArchive.WithThisPc`): de Run-sleutel blijft zoals hij is, en zou een zip van een
+  `Changed`), zodat bij een fout niets verandert. `autoStartChosen` en `hadRealDevices` komen van
+  deze pc (`SettingsArchive.WithThisPc`): de Run-sleutel blijft zoals hij is, en zou een zip van een
   andere pc `autoStartChosen` op `false` zetten, dan zette de volgende update met `--first-run`
-  autostart weer aan. Het `dismissedOtherRgbSoftware` uit de zip geldt wel. "Map met instellingen
-  en logs openen" opent `DataFolder.Path` (`%AppData%\BuurmansRgb`, gedeeld door engine en app in
+  autostart weer aan. Het `dismissedOtherRgbSoftware` uit de zip geldt wel. "Map met instellingen en
+  logs openen" opent `DataFolder.Path` (`%AppData%\BuurmansRgb`, gedeeld door engine en app in
   `BuurmansRgb.Contracts`) met `ShellLauncher.Open`, net als het logbestand.
 - **Het gebruik van de engine bij Instellingen:** `EngineUsageViewModel` meet in de app, niet in
   de engine: de engine geeft alleen zijn proces-id (`GetProcessIdAsync`, één keer na het
@@ -1139,6 +1137,7 @@ Gemeten op de ontwikkel-pc; "één kern" is het percentage van één CPU-kern.
 | Engine | Autostart na een update (`update-autostart`): `autoStartChosen` in `settings.json`, bij het starten één keer gelezen (en voor een bestand zonder het veld één keer de Run-sleutel); verder alleen een event bij een klik op "Starten met Windows". Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, `simulatedDevices` "always", zonder OpenRGB en zonder scènes, app dicht, zonder `--first-run` (dat zou de echte Run-sleutel schrijven); om en om met de basis (`refactor-na-panel-2026-11-02`, d34889a), de volgorde per ronde omgedraaid (na 15 s opwarmen). Eerst drie rondes van 60 s met een `settings.json` zonder het veld (zoals van 1.5.0), daarna twee met `"autoStartChosen": true`. Na de review nog drie rondes zonder het veld: de engine slaat de afgeleide keuze dan niet meer apart op, dus het bestand bleef ongewijzigd. Er verandert niets per frame, er komt geen timer of polling bij | Zonder het veld 0,21–0,31 % van één kern, basis 0,23–0,36 %; met het veld 0,23–0,29 %, basis 0,21–0,26 %; na de review zonder het veld 0,08–0,44 %, basis 0,18–0,31 %: geen verschil buiten de ruis | Zonder het veld 27,9–32,0 MB working set, 11,3–13,5 MB private (basis: 26,0–28,9 en 11,2–13,3 MB): ~1,5–2 MB working set meer door het éne keer opslaan (de code om JSON te schrijven). Na de review, zonder dat opslaan, 26,0–29,1 en 11,2–12,1 MB (basis: 26,0–27,2 en 11,3–13,2 MB; alleen de eerste ronde 28,1–29,1, daarna 26,0–27,2). Met het veld 25,9–27,2 en 11,2–12,1 MB (basis: 25,9–27,2 en 11,1–12,1 MB) |
 | Engine | Andere RGB-software (`conflict-melding`): één `Process.GetProcesses()` bij het starten, na het ontwaken en bij "Verversen", geen timer of polling. Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, `simulatedDevices` "always", zonder OpenRGB en zonder scènes, app dicht, sessie losgekoppeld; drie rondes van 60 s om en om met de basis (`installatie-uitleg`, 284d4e2), de volgorde per ronde omgedraaid (na 15 s opwarmen). De kosten van één check uit `engine.log` ("Other RGB software checked in … ms"), met ~410 processen op de pc: bij het starten (de eerste keer, met het compileren van `GetProcesses`) en bij "Verversen" (vijf keer via UI Automation, in de Debug-build met een nep-`SignalRgb.exe`, een kopie van `PING.EXE`) | 0,21–0,42 % van één kern, basis 0,18–0,39 %: geen verschil buiten de ruis. Eén check: bij het starten 7,5–10,0 ms (Release) en 8,1 ms (Debug), bij "Verversen" 4,6–6,2 ms; daartussen kost hij niets | 25,9–29,1 MB working set, 11,1–12,2 MB private (basis: 25,8–28,8 en 11,0–12,5 MB): gelijk. De lijst van processen is na de check weer weg |
 | Engine | Instellingen beheren (`instellingen-beheer`): bewaren en terugzetten alleen bij een klik (de zip in het geheugen, `System.IO.Compression` pas dan geladen), het proces-id één keer na het verbinden; geen timer of polling in de engine. Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, `simulatedDevices` "always", zonder OpenRGB en zonder scènes, sessie losgekoppeld; om en om met de basis (`conflict-melding`, d96ee84), de volgorde per ronde omgedraaid, na 15 s opwarmen. Eerst drie rondes van 60 s met de app dicht; daarna met de app (Release, venster buiten beeld) op Instellingen, waar hij elke 2 s het geheugen en de CPU van de engine leest: twee rondes, drie rondes en nog twee met daarbij de app op Scènes als maat voor de ruis | App dicht: 0,31–0,44 % van één kern, basis 0,34–0,39 %: geen verschil buiten de ruis. App op Instellingen: 0,26–0,39 % van één kern, basis 0,18–0,39 % (dezelfde branch op Scènes 0,18–0,57 %): ook binnen de ruis. Het lezen gebeurt in de app: met `Process.WorkingSet64` (een momentopname van alle processen) kostte dat de app 0,29 % van één kern, met `GetProcessMemoryInfo` en `GetProcessTimes` op één handle 0,00–0,10 % (basis 0,00 %) | App dicht: 25,8–29,0 MB working set, 11,0–12,3 MB private (basis 25,8–29,2 en 11,1–12,2 MB). App op Instellingen: 42,5–44,4 en 13,8–16,3 MB (basis 42,5–43,7 en 13,9–16,5 MB): gelijk. De app 105,2–105,7 MB working set (basis 105,1–109,7) |
+| Engine | Opslaan opnieuw proberen (`reloadtest-stabiel`, #110): een opslag die faalt omdat een ander programma `settings.json` openhoudt, probeert `LightingSettingsSaver` tot vijf keer opnieuw op de timer die er al is; die code draait alleen als een opslag faalt, er komt geen timer of polling bij. Regenboog op 30 fps in Release, `pauseOnLockAndSleep` uit, zonder OpenRGB en zonder scènes, app dicht, sessie actief via Extern bureaublad; drie rondes van 60 s om en om met de basis (`main`, d34889a), de volgorde per ronde omgedraaid (na 15 s opwarmen) | 0,23–0,52 % van één kern, basis 0,29–0,62 %: geen verschil buiten de ruis | 27,2–30,1 MB working set, 11,1–12,7 MB private (basis: 27,3–30,2 en 11,2–12,6 MB) |
 | App (Release, zichtbaar) | Op Lampen, regenboog | ~5,0 % van één kern (was 10,2 % vóór de begrenzing van het voorbeeld) | 166 MB working set, 83 MB private |
 | App (Release, zichtbaar) | Op Kleur met "Hele huis", regenboog | ~3,2 % van één kern (was 3,8 %) | 179 MB working set, 88 MB private |
 | App (Release, zichtbaar) | Op Scènes, of geminimaliseerd, regenboog | 0,0–0,2 % (was 1,7 en 0,6 %): geen beelden | 182–191 MB working set, 89–97 MB private |
@@ -1277,7 +1276,10 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
     script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`
     vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, geen `DelTree` op
     `{userappdata}`, en `AppData` van een andere gebruiker alleen binnen zijn
-    `ProfileImagePath`.
+    `ProfileImagePath`. Ook dat de namen bij de engine passen: `AppName` gelijk aan
+    `DataFolder.Name` (de map in `%AppData%` en, via `RegistryAutoStart.ValueName`, de waarde in de
+    Run-sleutel die de uninstaller weghaalt) en `FirstRunArgument` gelijk aan
+    `EngineOptions.FirstRunArgument` en gebruikt op de `[Run]`-regel.
 - **Verwijderen als gewone gebruiker met het wachtwoord van een andere beheerder** (met de hand
   in Windows Sandbox, nadat de `.wsb` hieronder klaar is of in een eigen Sandbox met
   `artifacts\installer\out` gekoppeld; nooit op je eigen pc):
