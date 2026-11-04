@@ -39,10 +39,14 @@ public sealed partial class SceneCard(string name) : ObservableObject
     [ObservableProperty]
     public partial bool IsActive { get; set; }
 
+    // Whether the scene has a time to come on at (Scènes op tijd).
+    public bool HasTimes { get; private set; }
+
     public void Show(LightingInfo lighting, ProfileAutomation automation)
     {
         Dots = SceneLook.DotsOf(lighting);
         Description = SceneLook.Describe(lighting, automation);
+        HasTimes = automation.Times.Count > 0;
         IsShown = true;
     }
 

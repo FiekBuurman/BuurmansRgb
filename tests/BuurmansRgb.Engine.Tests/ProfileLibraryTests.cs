@@ -232,6 +232,19 @@ public sealed class ProfileLibraryTests
         Assert.Null(_library.ActiveName);
     }
 
+    // The Kleur page puts the color of a device on as it is mixed, which ends the scene too.
+    [Fact]
+    public async Task ActiveName_AfterAColorOfOneDevice_IsNull()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red)))];
+        _library.Load("Nacht");
+
+        _lighting.SetLighting(RecordingDeviceProvider.DeviceId, lighting => lighting with { Color = Green });
+
+        Assert.Null(_library.ActiveName);
+    }
+
     [Fact]
     public async Task Load_AnotherScene_MakesThatOneActive()
     {

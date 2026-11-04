@@ -4,15 +4,11 @@ namespace BuurmansRgb.UI.Tests;
 
 internal static class ColorPickerTestExtensions
 {
-    // Mixes a color with its hex code and puts it on the lamp with "Op het apparaat zetten", which
-    // only the color of the whole lamp has.
+    // Mixes a color with its hex code, which puts it on at once: on the device, the chosen color of
+    // the loop or of a list, a step or the chosen LEDs.
     public static void Pick(this ColorPickerViewModel picker, string hexColor)
     {
+        Assert.False(picker.IsUnused, "The effect uses no color of the device, so the color goes nowhere.");
         picker.HexColor = hexColor;
-        Assert.True(picker.ApplyCommand.CanExecute(null), "The picker applies at once; use Mix.");
-        picker.ApplyCommand.Execute(null);
     }
-
-    // Mixes a color with its hex code only, which a color of the loop or of chosen LEDs takes at once.
-    public static void Mix(this ColorPickerViewModel picker, string hexColor) => picker.HexColor = hexColor;
 }

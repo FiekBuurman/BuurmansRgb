@@ -68,7 +68,7 @@ public sealed class MainViewModelTests
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
         Assert.Equal("#FF0000", viewModel.ColorPicker.HexColor);
         Assert.Equal((255.0, 0.0, 0.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(80.0, viewModel.Brightness);
         Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         Assert.Equal("Statisch", viewModel.SelectedEffect?.DisplayName);
@@ -113,24 +113,19 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task Green_Changed_MixesTheColorButSendsItOnlyWhenApplied()
+    public async Task Green_Changed_PutsTheMixedColorOnAtOnce()
     {
         var viewModel = await ConnectAsync();
 
         viewModel.ColorPicker.Green = 255;
 
-        Assert.Empty(Api.Calls);
-        Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
-
-        viewModel.ColorPicker.ApplyCommand.Execute(null);
-
         Assert.Equal(["color all #FFFF00"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
-    public async Task HexColor_ValidAndApplied_SendsAndUpdatesSliders()
+    public async Task HexColor_Valid_SendsAndUpdatesSliders()
     {
         var viewModel = await ConnectAsync();
 
@@ -138,6 +133,35 @@ public sealed class MainViewModelTests
 
         Assert.Equal(["color all #0000FF"], Api.Calls);
         Assert.Equal((0.0, 0.0, 255.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
+    }
+
+    // The engine reports the typed color back: the field keeps the code as typed, so the cursor
+    // does not jump while the user is still in it.
+    [Fact]
+    public async Task HexColor_Typed_StaysAsTypedWhenTheLightingComesBack()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "ff00ff";
+
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => Api.Calls.Contains("color all #FF00FF"));
+        Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
+        Assert.Equal("ff00ff", viewModel.ColorPicker.HexColor);
+    }
+
+    // Another color from outside the app does replace the code in the field.
+    [Fact]
+    public async Task HexColor_Typed_FollowsAnotherColorFromTheEngine()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "ff00ff";
+
+        Api.Lighting[""] = Api.Lighting[""] with { Color = new RgbColor(0, 255, 0) };
+        Api.RaiseLightingChanged();
+
+        await Eventually.TrueAsync(() => viewModel.ColorPicker.Color == new RgbColor(0, 255, 0));
+        Assert.Equal("#00FF00", viewModel.ColorPicker.HexColor);
     }
 
     [Theory]
@@ -155,17 +179,14 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task SelectPreset_ShowsTheColorAndApplySendsIt()
+    public async Task SelectPreset_PutsItsColorOnAtOnce()
     {
         var viewModel = await ConnectAsync();
 
         viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 154, 61));
-        Assert.Empty(Api.Calls);
-        Assert.Equal("#FF9A3D", viewModel.ColorPicker.HexColor);
-
-        viewModel.ColorPicker.ApplyCommand.Execute(null);
 
         Assert.Equal(["color all #FF9A3D"], Api.Calls);
+        Assert.Equal("#FF9A3D", viewModel.ColorPicker.HexColor);
     }
 
     [Fact]
@@ -294,10 +315,30 @@ public sealed class MainViewModelTests
         await Eventually.TrueAsync(() => !viewModel.Preview.Devices.Single().ZonesAlike);
     }
 
-    // The switch is on the Kleur page: a color the user is mixing there stays in the picker when
-    // the engine reports the device again with the choice.
+    // The switch is on the Kleur page: a color the user is mixing there with the rainbow, which goes
+    // nowhere, stays in the picker when the engine reports the device again with the choice.
     [Fact]
     public async Task ZonesAlikeInThePreview_WhileMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Devices = [Board];
+            UseRainbow(api);
+        });
+        var before = viewModel.Preview.Devices.Single();
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+
+        before.ZonesAlike = true;
+
+        await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
+    }
+
+    // With Statisch the mixed color is on the device, and stays in the picker as well.
+    [Fact]
+    public async Task ZonesAlikeInThePreview_WithStaticAfterMixingAColor_KeepsTheMixedColor()
     {
         var viewModel = await ConnectAsync(api => api.Devices = [Board]);
         var before = viewModel.Preview.Devices.Single();
@@ -308,7 +349,7 @@ public sealed class MainViewModelTests
 
         await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // Another settings app, or settings.json by hand: the engine reports the devices again.
@@ -511,12 +552,28 @@ public sealed class MainViewModelTests
 
         Assert.Null(viewModel.SelectedDevice?.DeviceId);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // Not only the Zones gelijk switch: any new list keeps the color mixed for the same lamp.
     [Fact]
     public async Task DevicesChanged_WhileMixingAColor_KeepsTheMixedColor()
+    {
+        var viewModel = await ConnectAsync(UseRainbow);
+        viewModel.ColorPicker.Green = 255;
+        var mixed = viewModel.ColorPicker.Color;
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(4, viewModel.Devices.Count);
+        Assert.Equal(mixed, viewModel.ColorPicker.Color);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
+    }
+
+    // With Statisch the mixed color went on at once, and the new list keeps it in the picker.
+    [Fact]
+    public async Task DevicesChanged_WithStaticAfterMixingAColor_KeepsTheMixedColor()
     {
         var viewModel = await ConnectAsync();
         viewModel.ColorPicker.Green = 255;
@@ -527,7 +584,35 @@ public sealed class MainViewModelTests
 
         Assert.Equal(4, viewModel.Devices.Count);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
+    }
+
+    // A new list while the colors of a drag still wait for a busy engine: the lighting comes behind
+    // them, so the sliders do not jump back to the color the engine had before the drag.
+    [Fact]
+    public async Task DevicesChanged_WhileDraggingWithStatic_DoesNotJumpBack()
+    {
+        var viewModel = await ConnectAsync();
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+        for (var green = 1; green <= 100; green++)
+        {
+            viewModel.ColorPicker.Green = green;
+        }
+
+        Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
+        Api.RaiseDevicesChanged();
+
+        Assert.Equal(4, viewModel.Devices.Count);
+        Assert.Equal(new RgbColor(255, 100, 0), viewModel.ColorPicker.Color);
+        Assert.Equal(100, viewModel.ColorPicker.Green);
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Contains("color all #FF6400"));
+        Assert.Equal(new RgbColor(255, 100, 0), viewModel.ColorPicker.Color);
+        Assert.Equal(100, viewModel.ColorPicker.Green);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -597,7 +682,7 @@ public sealed class MainViewModelTests
         viewModel.ColorPicker.HexColor = "#00FF00";
         viewModel.CustomColors.AddCommand.Execute(null);
 
-        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "custom colors #00FF00"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "color all #00FF00", "custom colors #00FF00"], Api.Calls);
     }
 
     [Fact]
@@ -756,6 +841,13 @@ public sealed class MainViewModelTests
 
     private static LightingFrame Frame(long sequence, RgbColor color) =>
         new(sequence, [DeviceFrame.FromColors("strip", [color, color, color]), DeviceFrame.FromColors("fan", [color, color])]);
+
+    // An effect that uses no color of the device, so a mixed color is not put on.
+    private static void UseRainbow(FakeEngineApi api)
+    {
+        api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+        api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
+    }
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {

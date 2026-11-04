@@ -1,6 +1,6 @@
-<!-- Instellingen: what the devices do while the pc sleeps or is locked, how buurmansRgb gets on with
-     OpenRGB, what the engine uses, when the simulated devices show, the effects, the scene times,
-     the hotkeys and "Starten met Windows", saving and restoring the settings, the log of the engine
+<!-- Instellingen: what the devices do while the pc sleeps or is locked, what comes back after a restart,
+     how buurmansRgb gets on with OpenRGB, what the engine uses, when the simulated devices show, the effects,
+     the scene times, the hotkeys and "Starten met Windows", saving and restoring the settings, the log of the engine
      and the folder with the settings, and at the bottom the version and the guide. Whether saving
      worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
@@ -18,6 +18,14 @@
              size of Windows, so the longest option still fits. -->
         <views:EmConverter x:Key="NarrowChoiceWidth" Ems="16" />
         <views:EmConverter x:Key="ChoiceWidth" Ems="20" />
+        <!-- A line of a list with a bullet before it, which a screen reader skips (DecorativeText); a line
+             that wraps stays clear of the bullet. -->
+        <DataTemplate x:Key="BulletLine">
+            <DockPanel Margin="0,4,0,0">
+                <views:DecorativeText DockPanel.Dock="Left" Margin="0,0,8,0" Style="{StaticResource Body}" Text="•" />
+                <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding}" />
+            </DockPanel>
+        </DataTemplate>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -56,6 +64,34 @@
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.PausedLightsNeedsPause}"
                                    AutomationProperties.AutomationId="PausedLightsNeedsPause"
                                    Visibility="{Binding EffectOptions.PauseOnLockAndSleep, Converter={StaticResource InverseBoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+                <!-- What comes back after a restart (AfterRestartViewModel): what the engine keeps in settings.json and puts
+                     back when it starts, following the scene that is on, the choice above and "Starten met Windows" as they
+                     change. Not a live region: a screen reader reads it when it gets there. Without "Starten met Windows" it
+                     says the lighting does not come back by itself, with a button that does what the switch under "Opstarten"
+                     does; when the button goes, the focus goes to that switch, which then says it is on. A heading for a
+                     screen reader. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AfterRestartHeader}"
+                                   AutomationProperties.HeadingLevel="Level2" />
+                        <TextBlock Margin="0,8,0,2" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartIntro}" />
+                        <ContentPresenter Content="{Binding AfterRestart.LightingText}" ContentTemplate="{StaticResource BulletLine}" />
+                        <ContentPresenter Content="{x:Static res:Strings.AfterRestartBrightness}" ContentTemplate="{StaticResource BulletLine}" />
+                        <ContentPresenter Content="{Binding AfterRestart.SleepText}" ContentTemplate="{StaticResource BulletLine}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartSceneTimes}"
+                                   AutomationProperties.AutomationId="AfterRestartSceneTimes"
+                                   Visibility="{Binding AfterRestart.CatchesUpSceneTimes, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Margin="0,12,0,0" Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding AfterRestart.AutoStartText}"
+                                   AutomationProperties.AutomationId="AfterRestartAutoStart" />
+                        <Button Margin="0,10,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.AfterRestartTurnOnAutoStart}"
+                                Command="{Binding AfterRestart.TurnOnAutoStartCommand}"
+                                AutomationProperties.Name="{x:Static res:Strings.AfterRestartTurnOnAutoStart}"
+                                AutomationProperties.HelpText="{Binding AfterRestart.AutoStartText}"
+                                AutomationProperties.AutomationId="AfterRestartTurnOnAutoStart"
+                                Visibility="{Binding AfterRestart.StartsWithWindows, Converter={StaticResource InverseBoolToVisibility}}"
+                                views:FocusFallback.Target="{Binding ElementName=AutoStartSwitch}" />
                     </StackPanel>
                 </Border>
 
@@ -163,7 +199,7 @@
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" />
                         <DockPanel Margin="0,12,0,0">
-                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                            <ToggleButton x:Name="AutoStartSwitch" DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding AutoStart.IsOn}"
                                           AutomationProperties.Name="{x:Static res:Strings.AutoStartLabel}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.AutoStartHint}"

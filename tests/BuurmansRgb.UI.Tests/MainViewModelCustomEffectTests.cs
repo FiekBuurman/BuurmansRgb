@@ -133,10 +133,10 @@ public sealed class MainViewModelCustomEffectTests
         Assert.True(viewModel.IsCustomEffect);
         Assert.Equal("Disco", viewModel.CustomEffectEditor.Name);
         Assert.Equal(Red, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
     }
 
-    // Without "Op het apparaat zetten": the step changes with the mixed color, and the engine gets it.
+    // The step changes with the mixed color, and the engine gets it.
     [Fact]
     public async Task MixColor_WithAnOwnEffect_PaintsTheSelectedStep()
     {

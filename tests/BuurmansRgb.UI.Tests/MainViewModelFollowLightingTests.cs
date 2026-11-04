@@ -22,7 +22,7 @@ public sealed class MainViewModelFollowLightingTests
         Api.RaiseLightingChanged();
 
         Assert.Equal(Green, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(30.0, viewModel.Brightness);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
         Assert.Equal(150.0, viewModel.Speed);
@@ -67,17 +67,22 @@ public sealed class MainViewModelFollowLightingTests
         Assert.Empty(Api.Calls);
     }
 
+    // A color mixed with the rainbow went nowhere, so it stays while the rainbow does.
     [Fact]
     public async Task LightingChanged_WhileMixingAColor_KeepsTheMixedColor()
     {
-        var viewModel = await ConnectAsync();
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
+        });
         viewModel.ColorPicker.Green = 255;
 
-        Api.Lighting[""] = new(Blue, 0.3, EffectIds.Static);
+        Api.Lighting[""] = new(Blue, 0.3, EffectIds.Rainbow);
         Api.RaiseLightingChanged();
 
         Assert.Equal(new RgbColor(255, 255, 0), viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(30.0, viewModel.Brightness);
     }
 
@@ -92,11 +97,11 @@ public sealed class MainViewModelFollowLightingTests
         Api.Lighting[""] = new(Blue, 0.3, EffectIds.ColorLoop) { Loop = new ColorLoop([Orange, Blue]) };
         Api.RaiseLightingChanged();
 
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(Orange, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         viewModel.ColorPicker.Blue = 255;
-        Assert.Equal(["loop all #FF88FF,#0000FF spread"], Api.Calls);
+        Assert.Equal(["color all #FFFF00", "loop all #FF88FF,#0000FF spread"], Api.Calls);
         Assert.Equal(new RgbColor(255, 136, 255), viewModel.ColorLoopEditor.Swatches[0].Color);
     }
 
@@ -113,9 +118,8 @@ public sealed class MainViewModelFollowLightingTests
         Api.Lighting[""] = new(Green, 0.3, EffectIds.Static);
         Api.RaiseLightingChanged();
 
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
         Assert.Equal(Green, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(["loop all #FF88FF,#0000FF spread"], Api.Calls);
     }
 

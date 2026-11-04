@@ -142,6 +142,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RequestStill();
         };
         EffectsPause = new EffectsPauseViewModel(_time);
+        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes);
         DeviceRescan = new DeviceRescanViewModel(_time);
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
@@ -269,14 +270,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial string? StatusMessage { get; private set; } = Strings.StatusConnecting;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SelectedLamp), nameof(ApplyColorText))]
+    [NotifyPropertyChangedFor(nameof(SelectedLamp))]
     [NotifyCanExecuteChangedFor(nameof(TakeLedPatternCommand))]
     public partial DeviceItem? SelectedDevice { get; set; }
-
-    // The button that puts the mixed color on: "Op het apparaat zetten", or with Hele huis "Op alle
-    // apparaten zetten". The design says "Op de strip zetten", which does not fit a keyboard or the
-    // whole house (see docs/handleiding.md).
-    public string ApplyColorText => SelectedDevice?.DeviceId is null ? Strings.ApplyColorAll : Strings.ApplyColor;
 
     // The lamp of the selected device, to switch it on the Kleur page; null for all devices.
     public LampItem? SelectedLamp => Lamps.Lamps.FirstOrDefault(lamp => lamp.DeviceId == SelectedDevice?.DeviceId);
@@ -357,6 +353,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
     // Off until the engine said.
     public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
+
+    // "Na een herstart" on Instellingen: what comes back after a restart, and whether by itself.
+    public AfterRestartViewModel AfterRestart { get; }
 
     // "Logbestand openen", the version and the guide at the bottom of Instellingen.
     public AppInfoViewModel AppInfo { get; }
@@ -1133,9 +1132,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Devices came or went in the engine, for example because OpenRGB started or stopped, or one
-    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. A
-    // color the user is mixing for the lamp that stays selected stays in the picker, as in
-    // FollowLighting.
+    // came again with another choice, such as "Zones gelijk" in the preview on the Kleur page. For
+    // the device that stays selected the lighting comes as in FollowLighting: in the queue, behind
+    // the colors of a drag that still wait there, so the picker does not jump back to an older
+    // color, and a color the user is mixing with the rainbow stays.
     private async Task ReloadDevicesAsync()
     {
         if (_connection is not { } connection)
@@ -1148,12 +1148,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var selectedId = SelectedDevice?.DeviceId;
             ShowDevices(devices);
-            await ShowSelectionAsync(keepMixedColor: SelectedDevice?.DeviceId == selectedId);
+            if (SelectedDevice?.DeviceId == selectedId)
+            {
+                RebuildPreview();
+                FollowLighting();
+            }
+            else
+            {
+                await ShowSelectionAsync();
+            }
         }
     }
 
-    // With keepMixedColor, a color the user is mixing when the lighting comes stays (ShowLighting).
-    private async Task ShowSelectionAsync(bool keepMixedColor = false)
+    private async Task ShowSelectionAsync()
     {
         RebuildPreview();
         if (_connection is not { } connection)
@@ -1171,14 +1178,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        ShowLighting(lighting, keepMixedColor: keepMixedColor && ColorPicker.HasUnappliedChange);
+        ShowLighting(lighting, keepMixedColor: false);
     }
 
     // The lighting changed in the engine, possibly from outside the app: a scene from the tray menu
     // or one that came on by itself. In the queue, behind the changes of the user that are still on
-    // their way, so the answer already holds them; a change sent meanwhile wins. A color the user is
-    // mixing for the whole lamp and has not put on it yet stays in the picker (see ShowLighting for
-    // when it does not).
+    // their way, so the answer already holds them; a change sent meanwhile wins. A color the user
+    // mixed with an effect that uses no color of the device stays in the picker (see ShowLighting
+    // for when it does not).
     private void FollowLighting()
     {
         if (_connection is not { } connection)
@@ -1195,7 +1202,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 if (ReferenceEquals(connection, _connection) && SelectedDevice?.DeviceId == deviceId && sentChanges == _sentChanges)
                 {
-                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasUnappliedChange);
+                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasColorNotOnDevice);
                 }
             });
         });
@@ -1203,7 +1210,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ShowLighting(LightingInfo lighting, bool keepMixedColor)
     {
-        var wasUnused = ColorPicker.IsUnused;
         _syncing.Run(() =>
         {
             _deviceColor = lighting.Color;
@@ -1217,12 +1223,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // Also when the effect stayed the same, as its colors may not have.
             ShowEffectColors(selectFirst: false);
         });
-        // A mixed color stays, but not once the picker colors the loop or the LEDs at once, as after
-        // a scene with the color loop: its next step would put the color mixed for the lamp there.
-        // Nor a color mixed with the rainbow once the effect uses the color, as after a scene with
-        // Statisch: it was not mixed for the device, so the picker shows the device, as when the
-        // user picks Statisch.
-        if (!keepMixedColor || ColorPicker.AppliesAtOnce || (wasUnused && !ColorPicker.IsUnused))
+        // A mixed color is only there while the effect uses no color of the device, such as the
+        // rainbow, and stays while it still uses none. Not once the effect uses the color, as after a
+        // scene with Statisch or the color loop: it was not mixed for the device, so the picker shows
+        // the device, as when the user picks Statisch.
+        if (!keepMixedColor || !ColorPicker.IsUnused)
         {
             ShowPickerColor();
         }
@@ -1241,10 +1246,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // The picker colors, in this order: the selected LEDs, the selected color of the loop or of the
-    // list of the effect, the selected step of an own effect,
-    // or the device. The LEDs, the lists and the steps take every mixed color at once
-    // (SetPickerMode); the call queue lets a newer one replace the one that waits, so a
-    // dragged slider sends few. A lamp that is off goes on with the first one, as in most lamp apps.
+    // list of the effect, the selected step of an own effect, or the device (with "Hele huis" every
+    // device). Each takes every mixed color at once; the call queue lets a newer one replace the one
+    // that waits, so a dragged slider sends few. A device that is off goes on with the first one, as
+    // in most lamp apps. A color of the device ends the scene that is on, as any change by hand.
     private void OnColorPicked(RgbColor color)
     {
         if (LedEditor.HasSelection)
@@ -1314,18 +1319,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
-    // What the picker does with a mixed color, one of three:
-    // - at once (AppliesAtOnce): a color of the loop, of the list of an effect, of a step or of chosen
-    //   LEDs changes with the picker, as the tile or the LEDs show it;
-    // - nothing (IsUnused): an effect that uses no color of the device, such as the rainbow, leaves
-    //   the mixed color nowhere to go; the page says so, without "Op het apparaat zetten";
-    // - with the button: the color of the whole lamp waits for "Op het apparaat zetten", so it can be
-    //   mixed first.
-    private void SetPickerMode()
-    {
-        ColorPicker.AppliesAtOnce = LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect;
-        ColorPicker.IsUnused = !ColorPicker.AppliesAtOnce && IsDeviceColorUnused;
-    }
+    // What the picker does with a mixed color: it goes on at once (OnColorPicked), unless the picker
+    // colors the device and its effect uses no color of the device, such as the rainbow (IsUnused):
+    // the mixed color then goes nowhere, and the page says so.
+    private void SetPickerMode() =>
+        ColorPicker.IsUnused = !(LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect) && IsDeviceColorUnused;
 
     // The list of the selected effect, or its default: the lamp color, or the warm colors of the
     // fire. selectFirst for another effect, whose list has nothing to do with the selection before.

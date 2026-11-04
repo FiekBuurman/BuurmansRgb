@@ -176,60 +176,70 @@ public sealed class ToolboxViewTests
     internal static List<Button> PresetTiles(DependencyObject page) =>
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is ColorPreset)];
 
-    // The button says where the color goes, also for a keyboard or the whole house: "Op alle
-    // apparaten zetten" with Hele huis, "Op het apparaat zetten" with one device.
+    // No button puts the color on: a tile, also of the own colors, puts its color on every device
+    // with Hele huis, and on the device that is chosen.
     [Fact]
-    public async Task ApplyButton_SaysAllDevicesOrTheDevice()
+    public async Task Tiles_PutTheirColorOnAtOnce_WithoutAButton()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(fake =>
+        {
+            api = fake;
+            fake.CustomColors = [new RgbColor(1, 2, 3)];
+        });
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var apply = AppTheme.Descendants<Button>(page).Single(button => button.Command == viewModel.ColorPicker.ApplyCommand);
+            api!.Calls.Clear();
 
-            Assert.Equal("Op alle apparaten zetten", apply.Content);
+            PageViews.Click(PresetTiles(page)[1]);
+            Assert.Equal(["color all #FF3B3B"], api.Calls);
 
             viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
             OffscreenWindow.WaitUntilIdle();
+            api.Calls.Clear();
+            PageViews.Click(Assert.Single(CustomTiles(page)));
 
-            Assert.Equal("Op het apparaat zetten", apply.Content);
-            Assert.True(apply.IsVisible);
+            Assert.Equal(["color strip #010203"], api.Calls);
+            Assert.DoesNotContain(AppTheme.Descendants<Button>(page), button => button.Content is "Op alle apparaten zetten" or "Op het apparaat zetten");
         });
     }
 
-    // With the rainbow, which uses no color of the device, "Op alle apparaten zetten" is gone and the
-    // preview says why, under "Nog niet op het apparaat", which it does not say then; the toolbox
-    // and "+" stay. With Statisch the button is back, without the message.
+    // With the rainbow, which uses no color of the device, the preview says why a tile changes
+    // nothing on the device; the toolbox and "+" stay. With Statisch the message goes and a tile
+    // puts its color on again.
     [Fact]
-    public async Task ApplyButton_Rainbow_IsGoneAndThePreviewSaysWhy()
+    public async Task Rainbow_ThePreviewSaysWhyATileChangesNothing()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(fake =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
-            api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
+            api = fake;
+            fake.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            fake.Lighting[""] = fake.Lighting[""] with { EffectId = EffectIds.Rainbow };
         });
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var apply = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.ApplyColorAll));
             var message = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == viewModel.DeviceColorUnusedText);
-            var notApplied = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == Strings.ColorNotApplied);
+            api!.Calls.Clear();
 
             PageViews.Click(PresetTiles(page)[1]);
 
-            Assert.False(apply.IsVisible);
             Assert.True(message.IsVisible);
             Assert.StartsWith("Regenboog", message.Text, StringComparison.Ordinal);
-            Assert.False(notApplied.IsVisible);
+            Assert.Empty(api.Calls);
             Assert.True(AddButton(page).IsEnabled);
 
             viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
             OffscreenWindow.WaitUntilIdle();
+            api.Calls.Clear();
+            PageViews.Click(PresetTiles(page)[2]);
 
-            Assert.True(apply.IsVisible);
             Assert.False(message.IsVisible);
+            Assert.Equal(["color all #FF9A3D"], api.Calls);
         });
     }
 

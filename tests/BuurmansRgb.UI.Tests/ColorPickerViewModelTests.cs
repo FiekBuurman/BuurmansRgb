@@ -37,12 +37,13 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal("#0080FF", _picker.HexColor);
         Assert.Equal((0.0, 128.0, 255.0), (_picker.Red, _picker.Green, _picker.Blue));
         Assert.Equal("0 · 128 · 255", _picker.RgbText);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
         Assert.Empty(_picked);
     }
 
+    // Every step of a drag goes on; the call queue of MainViewModel lets the last one win.
     [Fact]
-    public void Sliders_MixTheColorWithoutPuttingItOnTheLamp()
+    public void Sliders_PutEachMixedColorOnTheDevice()
     {
         _picker.Show(RgbColor.Black);
 
@@ -51,19 +52,17 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal(new RgbColor(255, 0, 128), _picker.Color);
         Assert.Equal("#FF0080", _picker.HexColor);
-        Assert.True(_picker.HasUnappliedChange);
-        Assert.Empty(_picked);
+        Assert.False(_picker.HasColorNotOnDevice);
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(255, 0, 128)], _picked);
     }
 
     [Fact]
-    public void Apply_PutsTheMixedColorOnTheLamp()
+    public void SelectPreset_PutsItsColorOnTheDevice()
     {
         _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[5].Color);
 
-        _picker.ApplyCommand.Execute(null);
-
         Assert.Equal([new RgbColor(169, 123, 255)], _picked);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -73,7 +72,65 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal((255.0, 154.0, 61.0), (_picker.Red, _picker.Green, _picker.Blue));
         Assert.Equal("#ff9a3d ", _picker.HexColor);
+        Assert.Equal([new RgbColor(255, 154, 61)], _picked);
+    }
+
+    // "#12" may become "#123456": only a whole code goes on.
+    [Fact]
+    public void HexColor_HalfTyped_PutsNothingOn()
+    {
+        _picker.HexColor = "#12";
+        _picker.HexColor = "#1234";
+
         Assert.Empty(_picked);
+    }
+
+    // A late answer while the code is being typed leaves the field alone; leaving it says the code
+    // was no color, as always, and shows the code of the color that came.
+    [Fact]
+    public void Show_WhileTypingAHalfCode_LeavesTheFieldUntilItLosesTheFocus()
+    {
+        _picker.Show(new RgbColor(255, 0, 255));
+        _picker.IsHexFocused = true;
+        _picker.HexColor = "#FF00F";
+
+        _picker.Show(new RgbColor(0, 255, 0));
+
+        Assert.Equal("#FF00F", _picker.HexColor);
+        Assert.Equal(new RgbColor(0, 255, 0), _picker.Color);
+        _picker.IsHexFocused = false;
+        _picker.EndHexEdit();
+        Assert.Equal("#00FF00", _picker.HexColor);
+        Assert.NotNull(_picker.HexError);
+        Assert.Empty(_picked);
+    }
+
+    // A whole code that was typed follows another color shown, also while the field has the focus,
+    // as a click on a LED leaves the focus there; a code that gives the same color stays as typed.
+    [Fact]
+    public void Show_WhileTheFieldHasTheFocus_PutsInTheCodeOfAnotherColor()
+    {
+        _picker.IsHexFocused = true;
+        _picker.HexColor = "#00ff00";
+
+        _picker.Show(new RgbColor(0, 0, 255));
+
+        Assert.Equal("#0000FF", _picker.HexColor);
+        _picker.HexColor = "0000ff";
+        _picker.Show(new RgbColor(0, 0, 255));
+        Assert.Equal("0000ff", _picker.HexColor);
+        Assert.Equal([new RgbColor(0, 255, 0)], _picked);
+    }
+
+    // Without the focus a late answer rewrites the field, as before.
+    [Fact]
+    public void Show_WithoutTheFocus_RewritesAHalfCode()
+    {
+        _picker.HexColor = "#FF00F";
+
+        _picker.Show(new RgbColor(0, 255, 0));
+
+        Assert.Equal("#00FF00", _picker.HexColor);
     }
 
     // "00ff00" without "#" is a color too; leaving the field keeps the text and says nothing.
@@ -106,15 +163,16 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal("#FF9A3D", _picker.HexColor);
         Assert.Equal(new RgbColor(255, 154, 61), _picker.Color);
         Assert.Equal($"'{text}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF9A3D.", _picker.HexError);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
         Assert.Empty(_picked);
     }
 
-    // A mixed color that is not on the lamp yet stays, and so does its code.
+    // A mixed color that is not on the device, as with the rainbow, stays, and so does its code.
     [Fact]
     public void EndHexEdit_CodeThatIsNoColor_KeepsTheMixedColor()
     {
         _picker.Show(RgbColor.Black);
+        _picker.IsUnused = true;
         _picker.Red = 255;
 
         _picker.HexColor = "rood";
@@ -122,7 +180,7 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal("#FF0000", _picker.HexColor);
         Assert.Equal("'rood' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF0000.", _picker.HexError);
-        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.HasColorNotOnDevice);
     }
 
     // An empty field gets the code back; nothing was typed, so there is no message.
@@ -183,26 +241,23 @@ public sealed class ColorPickerViewModelTests
     }
 
     [Fact]
-    public void AppliesAtOnce_SlidersHexAndPresetsPutEachMixedColorOnTheLamp()
+    public void SlidersHexAndPresets_PutEachMixedColorOnTheDevice()
     {
         _picker.Show(RgbColor.Black);
-        _picker.AppliesAtOnce = true;
 
         _picker.Red = 255;
         _picker.HexColor = "#00ff00";
         _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[4].Color);
 
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(47, 107, 255)], _picked);
-        Assert.False(_picker.HasUnappliedChange);
-        Assert.False(_picker.ApplyCommand.CanExecute(null));
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
-    // A slider step that rounds to the same color, or showing the color of the lamp, sends nothing.
+    // A slider step that rounds to the same color, or showing the color of the device, sends nothing.
     [Fact]
-    public void AppliesAtOnce_SameColorOrShow_PutsNothingOnTheLamp()
+    public void SameColorOrShow_PutsNothingOnTheDevice()
     {
         _picker.Show(RgbColor.Black);
-        _picker.AppliesAtOnce = true;
 
         _picker.Red = 0.4;
         _picker.Show(new RgbColor(1, 2, 3));
@@ -210,10 +265,10 @@ public sealed class ColorPickerViewModelTests
         Assert.Empty(_picked);
     }
 
-    // The effect uses no color of the lamp: a mixed color only shows, without the button or "Nog
-    // niet op het apparaat"; it is still a mixed color, so following the lamp keeps it.
+    // The effect uses no color of the device: a mixed color only shows; it is still a mixed color, so
+    // following the device keeps it. Ending that puts nothing on, but the next mixed color goes on.
     [Fact]
-    public void IsUnused_MixesWithoutTheButton()
+    public void IsUnused_MixesWithoutPuttingItOn()
     {
         _picker.Show(RgbColor.Black);
         _picker.IsUnused = true;
@@ -221,39 +276,25 @@ public sealed class ColorPickerViewModelTests
         _picker.Red = 255;
 
         Assert.Empty(_picked);
-        Assert.True(_picker.HasUnappliedChange);
-        Assert.False(_picker.ShowsUnappliedChange);
-        Assert.False(_picker.ShowsApply);
-        Assert.False(_picker.ApplyCommand.CanExecute(null));
+        Assert.True(_picker.HasColorNotOnDevice);
 
         _picker.IsUnused = false;
-
-        Assert.True(_picker.ShowsUnappliedChange);
-        Assert.True(_picker.ShowsApply);
-        Assert.True(_picker.ApplyCommand.CanExecute(null));
-    }
-
-    [Fact]
-    public void AppliesAtOnce_Ended_MixesAgainWithoutPuttingItOnTheLamp()
-    {
-        _picker.AppliesAtOnce = true;
-        _picker.AppliesAtOnce = false;
-
-        _picker.Green = 0;
-
         Assert.Empty(_picked);
-        Assert.True(_picker.HasUnappliedChange);
-        Assert.True(_picker.ApplyCommand.CanExecute(null));
+
+        _picker.Green = 255;
+        Assert.Equal([new RgbColor(255, 255, 0)], _picked);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
     [Fact]
-    public void Show_SameColorAsMixed_HasNothingLeftToApply()
+    public void Show_SameColorAsMixed_HasNothingLeftThatIsNotOn()
     {
+        _picker.IsUnused = true;
         _picker.Green = 0;
-        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.HasColorNotOnDevice);
 
         _picker.Show(new RgbColor(255, 0, 255));
 
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 }

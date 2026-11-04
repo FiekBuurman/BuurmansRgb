@@ -34,7 +34,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "strip", 0);
         Click(viewModel, "strip", 1, extend: true);
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00"], Api.Calls);
     }
@@ -52,37 +52,52 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 59, 59));
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00", "leds strip 0 #00FFFF,#00FFFF", "leds strip 0 #FF3B3B,#FF3B3B"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
-    public async Task ChooseAndClearLeds_ThePickerAppliesAtOnceOnlyWhileLedsAreChosen()
+    public async Task ChooseAndClearLeds_ThePickerColorsTheDeviceAgain()
     {
         var viewModel = await ConnectAsync();
 
         Click(viewModel, "strip", 0);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
         viewModel.ColorPicker.HexColor = "#00FF00";
-        Assert.Empty(Api.Calls);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
-    // The color mixed for the whole lamp does not go to the LEDs: the picker shows their color.
+    // The color put on the whole lamp does not go to LEDs with a stored color: the picker shows theirs.
     [Fact]
-    public async Task ChooseLeds_WhileMixingForTheLamp_ShowsTheirColorAndSendsNothing()
+    public async Task ChooseLeds_AfterColoringTheLamp_ShowsTheirColor()
+    {
+        var viewModel = await ConnectAsync();
+        Api.LedColors["fan"] = [new RgbColor(0, 0, 255), new RgbColor(0, 0, 255)];
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Click(viewModel, "fan", 0);
+
+        Assert.False(viewModel.ColorPicker.IsUnused);
+        Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+    }
+
+    // LEDs without a stored color have the color put on the whole house: the picker shows it.
+    [Fact]
+    public async Task ChooseLeds_WithoutStoredColors_AfterColoringTheHouse_ShowsTheNewColor()
     {
         var viewModel = await ConnectAsync();
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Click(viewModel, "fan", 0);
 
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
-        Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
-        Assert.Empty(Api.Calls);
+        Assert.False(viewModel.ColorPicker.IsUnused);
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
+        Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
     // Showing the stored color of the LED that was clicked sends nothing.
@@ -146,7 +161,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // The engine reports the LEDs the last step gave it: nothing goes back, nothing changes.
@@ -167,7 +182,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -180,7 +195,7 @@ public sealed class MainViewModelLedEditorTests
 
         Click(viewModel, "board", 1);
         Click(viewModel, "board", 2, extend: true);
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
         var board = Assert.Single(viewModel.Preview.Devices);
@@ -196,7 +211,7 @@ public sealed class MainViewModelLedEditorTests
         Api.RaiseDevicesChanged();
 
         Assert.Single(viewModel.Preview.Devices).Zones[1].SelectZoneCommand.Execute(null);
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("fan", "Fan", 2, 4), viewModel.LedEditor.Selection);
         Assert.Equal((2, 4), viewModel.Preview.Devices[0].ShownSelection());
@@ -313,7 +328,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Click(viewModel, "fan", 0);
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
         Assert.Equal(["flash fan", "leds fan 0 #00FF00"], Api.Calls);
@@ -331,7 +346,6 @@ public sealed class MainViewModelLedEditorTests
 
         Assert.Null(viewModel.LedEditor.Selection);
         Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
         viewModel.ColorPicker.Pick("#00FF00");
         Assert.Equal(EffectIds.Wave, viewModel.SelectedEffect?.Id);
@@ -346,7 +360,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.ColorLoop);
-        viewModel.ColorPicker.Mix("#FF00FF");
+        viewModel.ColorPicker.Pick("#FF00FF");
 
         Assert.Null(viewModel.LedEditor.Selection);
         Assert.Equal(EffectIds.ColorLoop, viewModel.SelectedEffect?.Id);
@@ -362,10 +376,10 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Scanner);
-        viewModel.ColorPicker.Mix("#FF00FF");
+        viewModel.ColorPicker.Pick("#FF00FF");
 
         Assert.Null(viewModel.LedEditor.Selection);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(["effect all scanner", "effect-colors all scanner #FF00FF"], Api.Calls);
     }
 
@@ -376,7 +390,7 @@ public sealed class MainViewModelLedEditorTests
         Click(viewModel, "fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.PerLed);
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("fan", "Fan", 0, 0), viewModel.LedEditor.Selection);
         Assert.Equal(["effect all per-led", "leds fan 0 #00FF00"], Api.Calls);
@@ -420,7 +434,7 @@ public sealed class MainViewModelLedEditorTests
 
         strip.PressKey(LedKey.Next);
         strip.PressKey(LedKey.Next, extend: true);
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("strip", "LED strip", 1, 2), viewModel.LedEditor.Selection);
         Assert.Equal(["leds strip 1 #00FF00,#00FF00"], Api.Calls);

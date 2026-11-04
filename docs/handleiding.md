@@ -43,10 +43,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   gekozen item van een keuzelijst en een knop in de titelbalk onder de muis (ook het kruisje,
   dat zonder contrastthema rood wordt) krijgen de markeerkleur van het thema, net als wat aan
   staat of de hoofdactie is: een aangevinkt vakje, een dag die aan staat, de grote knop (bijv.
-  "Op het apparaat zetten") en een schakelaar die aan staat, in plaats van de kleur van het
-  apparaat. Een schakelaar die uit staat is een rand in de tekstkleur met de knop in de
-  tekstkleur, en het spoor van een schuif een rand in de tekstkleur. Onder de muis krijgt alles
-  de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
+  "Terugzetten" in de vraag of je instellingen terug mogen) en een schakelaar die aan staat, in
+  plaats van de kleur van het apparaat. Een schakelaar die uit staat is een rand in de
+  tekstkleur met de knop in de tekstkleur, en het spoor van een schuif een rand in de
+  tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
   rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
   grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
   je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
@@ -192,16 +192,18 @@ schakelaar ernaast.
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
   (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Klus-wit,
   Rood, Oranje, Groen, Blauw, Paars, en Fel rood, Fel groen en Fel blauw) met daaronder je
-  eigen kleuren (zie "Eigen kleuren"), en de knop **Op het apparaat zetten** (bij "Hele huis"
-  **Op alle apparaten zetten**). Schuiven, hex-code en
-  vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op het apparaat"); pas de
-  knop zet hem op het apparaat. Dat geldt voor de kleur van het hele apparaat. Heb je een kleur van de
-  kleurenloop, een kleur van Fonkelen, Komeet, Scanner of Vuur, een stap van een eigen effect of
-  LED's in het voorbeeld gekozen, dan is er geen knop: die kleur of LED's veranderen meteen mee
-  terwijl je schuift, typt of een vaste kleur kiest (zie "Kleurenloop", "Kleuren van een effect",
-  "Eigen effecten" en "Per-LED-editor"). Wat de kiezer kleurt, gaat in deze volgorde: gekozen
-  LED's, dan de kleur van de loop of van het effect, dan de gekozen stap van een eigen effect, en
-  anders het apparaat.
+  eigen kleuren (zie "Eigen kleuren"). De kleur gaat meteen op het apparaat (bij "Hele huis" op
+  alle apparaten) terwijl je schuift, een hex-code typt of een vaste of eigen kleur kiest; een
+  knop is er niet. Een seconde na je laatste wijziging staat rechtsonder "Opgeslagen ✓" (zie
+  "Onderaan"). Sleep je een schuif,
+  dan stuurt de app alleen de laatste kleur die nog wacht, zodat de engine niet achterloopt; met
+  de pijltjes gaat elke stap meteen op het apparaat. Heb je een kleur van de kleurenloop, een
+  kleur van Fonkelen, Komeet, Scanner of Vuur, een stap van een eigen effect of LED's in het
+  voorbeeld gekozen, dan verandert die kleur of die LED's op dezelfde manier mee (zie
+  "Kleurenloop", "Kleuren van een effect", "Eigen effecten" en "Per-LED-editor"). Wat de kiezer
+  kleurt, gaat in deze volgorde: gekozen LED's, dan de kleur van de loop of van het effect, dan de
+  gekozen stap van een eigen effect, en anders het apparaat. Staat er een scène aan, dan staat hij
+  na een nieuwe kleur niet meer aan, zoals na elke andere wijziging met de hand (zie "Scènes").
 - **Hex-code typen:** de code onder "Huidige kleur" staat in een veld met een rand, zoals de andere
   velden; klik erin of ga er met Tab heen. Zes tekens, met of zonder `#` (`#00FF00` of
   `00ff00`); de kleur verandert zodra de code klopt. Een code die geen kleur is (`zzz`, `#12`) doet niets terwijl je typt,
@@ -209,21 +211,24 @@ schakelaar ernaast.
   staat de code van de kleur er weer en zegt een melding eronder bijv. "'zzz' is geen kleurcode
   (zes tekens, zoals #FF9A3D); de kleur blijft #FFFFFF."; een schermlezer leest hem voor. Een kleur die klopt,
   een andere kleur of een ander apparaat haalt de melding weg. Een leeg veld krijgt de code
-  terug zonder melding.
+  terug zonder melding. Verandert de kleur terwijl je in het veld een halve code typt (bijv. een
+  scène uit het systeemvak), dan blijft je tekst staan tot je het veld verlaat; een hele code
+  wordt meteen de code van de nieuwe kleur, ook als je op een LED klikt terwijl de cursor in het
+  veld staat. Ga je naar een ander venster (bijv. met Alt+Tab), dan is je tekst niet meer
+  beschermd: verandert de kleur intussen, dan staat bij terugkomst de code van die kleur erin.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
-  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op het
-  apparaat zetten** weg: de regenboog heeft zijn eigen tinten, dus een kleur zou niets veranderen. De
-  schuiven, de hex-code en de vaste kleuren werken wel, en met **+** zet je de gemengde kleur
-  bij je eigen kleuren. Kies je daarna bijv. Statisch, of zet een scène (bijv. uit het tray-menu)
-  Statisch aan, dan is de knop terug en staat de kleur van het apparaat weer in de kiezer; de kleur
-  die je bij Regenboog mengde, klik je dan aan bij je eigen kleuren.
-- **Een apparaat dat uit staat, gaat aan** als je er met de knop een kleur op zet, zoals bij de
-  meeste lamp-apps: het komt meteen in de nieuwe kleur aan en de schakelaar (hier en op Apparaten)
-  gaat mee. Dat geldt ook voor een kleur van de kleurenloop, van een effect of van een stap van
-  een eigen effect en voor de per-LED-editor: daar gaat het apparaat aan bij de eerste kleur die
-  je mengt, één keer. Alleen mengen voor het hele apparaat (zonder de knop), of + en − bij de
-  kleuren, laat het uit. Bij "Hele huis"
+  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.": de regenboog heeft zijn
+  eigen tinten, dus de kleur die je mengt gaat niet naar het apparaat. De schuiven, de hex-code
+  en de vaste kleuren werken wel, en met **+** zet je de gemengde kleur bij je eigen kleuren.
+  Kies je daarna bijv. Statisch, of zet een scène (bijv. uit het tray-menu) Statisch aan, dan
+  staat de kleur van het apparaat weer in de kiezer en gaat een nieuwe kleur weer meteen op het
+  apparaat; de kleur die je bij Regenboog mengde, klik je dan aan bij je eigen kleuren.
+- **Een apparaat dat uit staat, gaat aan** bij de eerste kleur die je mengt, één keer, zoals bij
+  de meeste lamp-apps: het komt meteen in de nieuwe kleur aan en de schakelaar (hier en op
+  Apparaten) gaat mee. Dat geldt ook voor een kleur van de kleurenloop, van een effect of van een
+  stap van een eigen effect en voor de per-LED-editor. Alleen mengen bij Regenboog, of + en − bij
+  de kleuren, laat het uit. Bij "Hele huis"
   gaan alle apparaten aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één
   apparaat, dan blijven de andere apparaten zoals ze zijn.
 - **Licht en beweging:** de helderheid (0–100 %), het effect, de snelheid en bij Regenboog, Golf
@@ -246,16 +251,18 @@ schakelaar ernaast.
   instellingen-app die tegelijk open is, ziet ze meteen. Ze zijn iets anders dan de kleuren van
   een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
-  scène die op tijd of bij een programma aangaat), dan tonen de schuiven,
-  het effect, de snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de
-  nieuwe verlichting. Een kleur die je aan het mengen bent en nog niet op het apparaat hebt gezet,
-  blijft staan, en een schuif die je net verschoof, springt niet terug. Komt er zo de kleurenloop,
-  Fonkelen, Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan: die
-  verandert meteen mee, dus de kleur die je voor het apparaat mengde vervalt.
-  De gemengde kleur blijft ook staan als de apparaten opnieuw binnenkomen (een zone met een nieuwe
-  lengte, apparaten die OpenRGB opnieuw meldt, de schakelaar **Zones gelijk**), zolang hetzelfde
-  apparaat gekozen blijft. Verdwijnt het gekozen apparaat, dan toont de pagina "Hele huis" met
-  zijn kleur.
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven, het effect, de
+  snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de nieuwe verlichting.
+  Een kleur die je net koos, staat al op het apparaat, en een schuif die je net verschoof,
+  springt niet terug, ook niet als je nog sleept terwijl de nieuwe verlichting binnenkomt. Een
+  getypte code blijft staan zoals je hem typte ("ff00ff"). Komt er zo de kleurenloop, Fonkelen,
+  Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan. Alleen bij een
+  effect dat geen kleur van het apparaat gebruikt, zoals Regenboog, kan het mengpaneel een kleur
+  tonen die niet op het apparaat staat: die blijft staan zolang het effect geen kleur gebruikt,
+  ook als de apparaten opnieuw binnenkomen (een zone met een nieuwe lengte, apparaten die OpenRGB
+  opnieuw meldt, de schakelaar **Zones gelijk**) en hetzelfde apparaat gekozen blijft; komt er
+  een effect met een kleur op, dan toont het mengpaneel de kleur van het apparaat. Verdwijnt het
+  gekozen apparaat, dan toont de pagina "Hele huis" met zijn kleur.
 - Bovenaan staat dezelfde statusregel als op Apparaten (zie "Statusregel" daar): de verbinding
   met je apparaten weg, een pauze met de reden (bij de pauze uit het tray-menu met "Hervatten",
   zie "Pauzeren") of het voorbeeld dat stilstaat; de belangrijkste in de regel, de rest onder
@@ -333,8 +340,8 @@ Onder de effectkeuze staat van elk effect een korte zin; hier staat precies wat 
   effect ziet er dus hetzelfde uit als vóór er kleuren per effect waren, en Vuur zonder eigen
   kleuren brandt warm, zoals altijd: donkerrood, rood, oranje en geel. Pas je de kleuren aan, dan
   doet de kleur van het apparaat bij dat effect niet meer mee; hij blijft bewaard voor de
-  effecten met één kleur. "Op het apparaat zetten" is er bij deze effecten niet, want de schuiven
-  kleuren het gekozen vakje. Golf en Ademen hebben nog één kleur.
+  effecten met één kleur. De schuiven kleuren bij deze effecten het gekozen vakje. Golf en Ademen
+  hebben nog één kleur.
 
   **Standaardkleuren** onder de vakjes haalt de eigen kleuren van het gekozen effect weg: Komeet,
   Scanner en Fonkelen volgen weer de kleur van het apparaat (ook als je die later verandert), Vuur
@@ -516,10 +523,9 @@ Klik in het voorbeeld op een LED om hem te kiezen; Shift+klik kiest een reeks va
 klik, en een klik op de naam van een zone kiest die hele zone (bijv. één ring van een fan).
 Een apparaat met maar één zone heeft daar "Alles selecteren", dat al zijn LED's kiest. Zolang er
 LED's gekozen zijn, staat boven het mengpaneel welke dat zijn en gaat de kleur alleen naar die
-LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest;
-de knop "Op het apparaat zetten" is dan weg. Staat het apparaat uit, dan gaat het aan bij de eerste
-kleur, ook bij "Verloop vullen". Kies je een andere LED, dan toont het mengpaneel diens kleur;
-de LED's ervoor houden wat je mengde.
+LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest. Staat het apparaat
+uit, dan gaat het aan bij de eerste kleur, ook bij "Verloop vullen". Kies je een andere LED, dan
+toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 
 - **Naast een LED klikken mag:** een klik tot 12 px van het midden van een LED kiest die LED,
   ook als het bolletje kleiner is, ook net boven of naast het voorbeeld en ook met Shift. Zo is
@@ -722,6 +728,21 @@ Hoe het vanzelf aanzetten werkt:
   Voor een schermlezer is de titel van het blok een kop en de naam van de keuze, en hoort hij die
   reden ook bij de keuze zelf. Beide gelden meteen, zonder herstart, de engine bewaart ze, en een
   tweede instellingen-app toont de wijziging meteen.
+- **Na een herstart:** het tweede blok zegt wat buurmansRgb bewaart en terugzet zodra het weer
+  start: de kleur en het effect van elk apparaat en of het aan of uit staat (staat er een scène
+  aan, dan "de scène 'Gamen', die nu aan staat"), de helderheid, en wat de apparaten doen als de
+  pc slaapt of vergrendeld is (de keuze van het blok erboven). Staat "Gemiste tijden inhalen" aan
+  en heeft een scène een tijd, dan staat eronder dat bij het starten de scène aankomt waarvan de
+  tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos (zie
+  "Gemiste tijden inhalen" bij Scènes). Daaronder staat of dat vanzelf gebeurt: "Starten met
+  Windows" staat aan, of staat uit, en dan komt je verlichting na een herstart van de pc niet
+  vanzelf terug, pas als je buurmansRgb zelf opent. Dan staat er ook de knop **Starten met Windows
+  aanzetten**, die hetzelfde doet als de schakelaar bij "Opstarten" (en dus ook telt als je eigen
+  keuze, zie `autoStartChosen` bij "Instellingenbestanden"). Daarna verdwijnt de knop en staat de
+  toetsenbordfocus op die schakelaar, zodat een schermlezer zegt dat hij aan staat. Het blok loopt
+  mee als je iets verandert: een scène aan of uit, een andere keuze bij slaapstand, "Gemiste
+  tijden inhalen" of een tijd bij een scène, of "Starten met Windows" hier of in het tray-menu. Een
+  schermlezer leest het als hij er komt; de titel is een kop.
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
   (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
   tray-icoon) en de tip uitgeschreven, de uitleg hoe een apparaat erbij komt ("Zodra OpenRGB een
@@ -793,7 +814,8 @@ Hoe het vanzelf aanzetten werkt:
   staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
   dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
-  worden aangepast."; het logbestand zegt waarom.
+  worden aangepast."; het logbestand zegt waarom. Wat het betekent voor een herstart, staat bij
+  "Na een herstart" bovenaan.
 - **Bewaren en terugzetten:** "Instellingen bewaren…" zet `settings.json`, `profiles.json` en
   `effects.json` (zie "Instellingenbestanden") samen in één zip-bestand dat je zelf kiest; de
   naam die de app voorstelt is `buurmansRgb-instellingen-<datum>.zip`. Een bestand dat er nog
@@ -880,16 +902,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Buren** zit er niet in: de pagina (§ 5.4), de buren-kaart op Apparaten en "Samen aan de slag"
   op Scènes zijn weggelaten, omdat samen met de buren je apparaten kleuren geen doel van de app is.
   Daarmee vervallen ook de `buren-*`-kleuren.
-- **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B en zet de kleur pas met een knop op
-  het apparaat. Die knop heet niet "Op de strip zetten" (§ 4 en § 5.2) maar "Op het apparaat
-  zetten", en bij "Hele huis" "Op alle apparaten zetten": net als bij "Apparaten in plaats van
-  Lampen" is het lang niet altijd een strip, maar ook een toetsenbord, een muis of het hele huis.
-  Extra ten opzichte van het ontwerp: "Licht en beweging"
-  (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Een kleur
-  van de kleurenloop of van een effect (Fonkelen, Komeet, Scanner, Vuur), een stap van een eigen
-  effect en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
-  dus een knop voegde daar niets toe. Bij Regenboog, dat geen kleur van het apparaat gebruikt, is
-  de knop er ook niet, met een regel onder de hex-code die zegt waarom: daar zou hij niets doen.
+- **Kleur** heeft, zoals het ontwerp, de schuiven R, G en B, maar zonder de knop "Op de strip
+  zetten" (§ 4 en § 5.2): de kleur gaat meteen op het apparaat terwijl je schuift, typt of een
+  kleur kiest, zoals al bij de kleurenloop en gekozen LED's. De app slaat elke wijziging meteen
+  op, dus een knop die de kleur pas op het apparaat zet, sprak "Wijzigingen worden automatisch
+  opgeslagen" tegen (testpanel, Henk). Extra ten opzichte van het ontwerp: "Licht en beweging"
+  (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Bij
+  Regenboog, dat geen kleur van het apparaat gebruikt, zegt een regel onder de hex-code dat de
+  kleur die je mengt nergens heen gaat.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
   van het ontwerp (§ 4, "Preset tile"), zodat de negen vaste kleuren op één rij passen en de
   eigen kleuren eronder ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de

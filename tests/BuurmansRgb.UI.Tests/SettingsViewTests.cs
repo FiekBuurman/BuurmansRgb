@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
@@ -5,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -87,6 +89,136 @@ public sealed class SettingsViewTests
             Assert.StartsWith(Strings.PausedLightsNeedsPause, AutomationProperties.GetHelpText(choice), StringComparison.Ordinal);
             Assert.True(pause.IsVisible);
             Assert.True(pause.TranslatePoint(default, page).Y < choice.TranslatePoint(default, page).Y);
+        });
+    }
+
+    // "Na een herstart" comes right under the sleep block, under a heading, and says what comes back:
+    // the scene that is on, the brightness and the sleep choice. "Starten met Windows" is off, so it
+    // says the lighting does not come back by itself; the button switches it on as the switch does,
+    // and goes, and the focus goes to that switch.
+    [Fact]
+    public async Task AfterRestartBlock_SaysWhatComesBackAndTurnsOnAutoStart()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            engine = api;
+            api.Profiles.Add("Gamen");
+            api.ActiveProfile = "Gamen";
+            api.PausedLights = PausedLightsMode.Dim;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var header = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.AfterRestartHeader);
+            var sleep = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.SleepHeader);
+            var openRgb = PageViews.ById<TextBlock>(page, "OpenRgbStatus");
+            var lines = AfterRestartLines(page);
+            var autoStartText = PageViews.ById<TextBlock>(page, "AfterRestartAutoStart");
+            var button = PageViews.ById<Button>(page, "AfterRestartTurnOnAutoStart");
+            var autoStart = PageViews.Named<ToggleButton>(page, Strings.AutoStartLabel);
+
+            Assert.Equal(AutomationHeadingLevel.Level2, AutomationProperties.GetHeadingLevel(header));
+            Assert.True(sleep.TranslatePoint(default, page).Y < header.TranslatePoint(default, page).Y);
+            Assert.True(header.TranslatePoint(default, page).Y < openRgb.TranslatePoint(default, page).Y);
+            Assert.Equal(
+                ["de scène 'Gamen', die nu aan staat", Strings.AfterRestartBrightness, "wat de apparaten doen als de pc slaapt of vergrendeld is: \"Dimmen\""],
+                lines.Select(line => line.Text));
+            Assert.Equal(Strings.AfterRestartAutoStartOff, autoStartText.Text);
+            Assert.True(button.IsVisible);
+            Assert.Equal(Strings.AfterRestartTurnOnAutoStart, AutomationProperties.GetName(button));
+
+            Assert.True(button.Focus());
+            PageViews.Click(button);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(["autostart True"], engine!.Calls);
+            Assert.True(autoStart.IsChecked);
+            Assert.False(button.IsVisible);
+            Assert.True(autoStart.IsKeyboardFocused);
+            Assert.Equal(Strings.AfterRestartAutoStartOn, autoStartText.Text);
+        });
+    }
+
+    // A color of the Kleur page ends the scene: the block says the lighting of every device again.
+    [Fact]
+    public async Task AfterRestartBlock_FollowsTheSceneThatEnds()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            engine = api;
+            api.Profiles.Add("Gamen");
+            api.ActiveProfile = "Gamen";
+            api.AutoStart = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var lighting = AfterRestartLines(page)[0];
+            Assert.False(PageViews.ById<Button>(page, "AfterRestartTurnOnAutoStart").IsVisible);
+
+            engine!.ActiveProfile = null;
+            engine.RaiseLightingChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(Strings.AfterRestartLighting, lighting.Text);
+            Assert.False(PageViews.ById<TextBlock>(page, "AfterRestartSceneTimes").IsVisible);
+        });
+    }
+
+    // Each line of the list has a bullet that a screen reader skips: UI Automation only shows it in
+    // the raw view, and the line itself as text.
+    [Fact]
+    public async Task AfterRestartBlock_ScreenReaderSkipsTheBullets()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var bullets = AppTheme.Descendants<DecorativeText>(page).ToList();
+            var tree = PageViews.AutomationTree(page);
+
+            Assert.Equal(3, bullets.Count);
+            Assert.All(bullets, bullet =>
+            {
+                var peer = UIElementAutomationPeer.CreatePeerForElement(bullet);
+                Assert.False(peer.IsControlElement());
+                Assert.False(peer.IsContentElement());
+            });
+            Assert.DoesNotContain(tree, peer => peer.GetName() == "•" && (peer.IsControlElement() || peer.IsContentElement()));
+            Assert.All(AfterRestartLines(page), line => Assert.True(UIElementAutomationPeer.CreatePeerForElement(line).IsControlElement()));
+        });
+    }
+
+    // With "Gemiste tijden inhalen" and a scene with a time, the block says that scene comes on at
+    // the start; switching the catch-up off takes the line away.
+    [Fact]
+    public async Task AfterRestartBlock_SaysASceneTimeComesOnWithCatchUp()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Profiles.Add("Nacht");
+            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.CatchUpSceneTimes = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var sceneTimes = PageViews.ById<TextBlock>(page, "AfterRestartSceneTimes");
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(sceneTimes.IsVisible);
+            Assert.Equal(Strings.AfterRestartSceneTimes, sceneTimes.Text);
+
+            viewModel.SceneTimes.IsOn = false;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(sceneTimes.IsVisible);
         });
     }
 
@@ -239,4 +371,8 @@ public sealed class SettingsViewTests
             Assert.Equal([guideAddress], opened);
         });
     }
+
+    // The lines of the list of "Na een herstart", in order, without their bullets.
+    private static List<TextBlock> AfterRestartLines(DependencyObject page) =>
+        [.. AppTheme.Descendants<DecorativeText>(page).Select(bullet => ((Panel)bullet.Parent).Children.OfType<TextBlock>().Single(text => text is not DecorativeText))];
 }

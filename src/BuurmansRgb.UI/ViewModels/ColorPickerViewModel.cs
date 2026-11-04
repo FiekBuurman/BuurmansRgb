@@ -5,17 +5,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code and the
-// presets change Color at once, so the preview shows it, but the color only goes to the lamp with
-// Apply ("Op het apparaat zetten"), which raises ColorPicked. With AppliesAtOnce, as for a color of the
-// loop or chosen LEDs, every mixed color raises ColorPicked by itself and Apply has nothing to do.
-// With IsUnused, as for the rainbow, the effect uses no color of the lamp: a mixed color only shows,
-// for the own colors, and Apply is off. Show shows the color the lamp has and raises nothing.
+// Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code, the
+// presets and the own colors change Color, and every mixed color goes on at once by raising
+// ColorPicked, for the whole device as for a color of the loop or of chosen LEDs; the call queue of
+// MainViewModel lets the last one of a drag win. With IsUnused, as for the rainbow, the effect uses
+// no color of the device: a mixed color only shows, for the own colors, and raises nothing. Show
+// shows the color the device has and raises nothing.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
 
-    // The color last shown or applied: what the lamp has.
+    // The color last shown or put on: what the device has.
     private RgbColor _applied = RgbColor.White;
 
     public event EventHandler<RgbColor>? ColorPicked;
@@ -57,40 +57,35 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public partial string? HexError { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange), nameof(ShowsUnappliedChange))]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasColorNotOnDevice))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
     // "255 · 154 · 61", as the preview of the design shows it.
     public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
 
-    // The mixed color is not on the lamp yet.
-    public bool HasUnappliedChange => Color != _applied;
+    // The picker shows a color that is not on the device. Outside IsUnused every mixed color goes
+    // on at once (Mix), so this only stays true for a color mixed while IsUnused, as with the
+    // rainbow, until Show shows the device again.
+    public bool HasColorNotOnDevice => Color != _applied;
 
-    // Every mixed color goes on at once, without Apply.
+    // The effect of the device uses no color of its own, so a mixed color goes nowhere. Ending it
+    // puts nothing on: MainViewModel shows the color of the device again.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsApply))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
-    public partial bool AppliesAtOnce { get; set; }
-
-    // The effect of the lamp uses no color of its own, so a mixed color goes nowhere.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsApply), nameof(ShowsUnappliedChange))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial bool IsUnused { get; set; }
 
-    // "Op het apparaat zetten" is there only when it has something to do.
-    public bool ShowsApply => !AppliesAtOnce && !IsUnused;
-
-    // "Nog niet op het apparaat", unless the color would not go on it.
-    public bool ShowsUnappliedChange => HasUnappliedChange && !IsUnused;
+    // The hex field has the keyboard focus (the view says so); another window, such as after
+    // Alt+Tab, takes the keyboard focus away too. Meanwhile Show leaves a code that is
+    // no color yet alone, so a late answer does not rewrite a code that is being typed, such as
+    // "#FF00F" after Backspace; EndHexEdit handles it once the focus goes. A whole code follows the
+    // color shown as without the focus, for a click on a LED leaves the focus in the field.
+    public bool IsHexFocused { get; set; }
 
     public void Show(RgbColor color) => _showing.Run(() =>
     {
         _applied = color;
-        ShowColor(color);
+        ShowColor(color, updateHex: !IsHexFocused || RgbColor.TryParseHex(HexColor.Trim(), out _));
         HexError = null;
-        OnPropertyChanged(nameof(HasUnappliedChange));
-        OnPropertyChanged(nameof(ShowsUnappliedChange));
+        OnPropertyChanged(nameof(HasColorNotOnDevice));
     });
 
     // The hex field lost the focus. A code that is no color, such as "zzz" or "#12", makes way for
@@ -111,17 +106,6 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
         _showing.Run(() => HexColor = Color.ToHex());
     }
-
-    [RelayCommand(CanExecute = nameof(CanApply))]
-    private void Apply()
-    {
-        _applied = Color;
-        OnPropertyChanged(nameof(HasUnappliedChange));
-        OnPropertyChanged(nameof(ShowsUnappliedChange));
-        ColorPicked?.Invoke(this, Color);
-    }
-
-    private bool CanApply() => ShowsApply;
 
     [RelayCommand]
     private void SelectPreset(RgbColor color) => Mix(() => ShowColor(color));
@@ -173,19 +157,23 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     private void Mix(Action mix)
     {
         _showing.Run(mix);
-        if (AppliesAtOnce && HasUnappliedChange)
+        if (!IsUnused && HasColorNotOnDevice)
         {
-            Apply();
+            _applied = Color;
+            OnPropertyChanged(nameof(HasColorNotOnDevice));
+            ColorPicked?.Invoke(this, Color);
         }
     }
 
+    // A code in the field that already gives the color stays as it was typed, such as "ff00ff":
+    // the color coming back from the engine does not rewrite the field under the cursor.
     private void ShowColor(RgbColor color, bool updateHex = true)
     {
         Color = color;
         Red = color.R;
         Green = color.G;
         Blue = color.B;
-        if (updateHex)
+        if (updateHex && !(RgbColor.TryParseHex(HexColor.Trim(), out var typed) && typed == color))
         {
             HexColor = color.ToHex();
         }

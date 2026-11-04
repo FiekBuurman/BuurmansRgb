@@ -37,7 +37,7 @@ public sealed class MainViewModelColorLoopTests
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop });
         viewModel.ColorLoopEditor.SelectCommand.Execute(1);
 
-        viewModel.ColorPicker.Mix("#FF00FF");
+        viewModel.ColorPicker.Pick("#FF00FF");
 
         Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
     }
@@ -54,7 +54,7 @@ public sealed class MainViewModelColorLoopTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorLoopEditor.Swatches[1].Color);
         Assert.True(viewModel.ColorLoopEditor.Swatches[1].IsSelected);
         Assert.Equal(["loop all #FFFF00,#FF00FF,#0000FF spread"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -68,20 +68,6 @@ public sealed class MainViewModelColorLoopTests
 
         Assert.Equal(["loop all #FFFF00,#00FF00,#FF00FF spread", "loop all #FFFF00,#00FF00,#FF9A3D spread"], Api.Calls);
         Assert.Equal(new RgbColor(255, 154, 61), viewModel.ColorLoopEditor.Swatches[2].Color);
-    }
-
-    // "Op het apparaat zetten" is only for the color of the whole lamp.
-    [Fact]
-    public async Task SwitchEffect_ThePickerAppliesAtOnceOnlyForTheColorLoop()
-    {
-        var viewModel = await ConnectAsync();
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
-
-        viewModel.SelectedEffect = EffectOption.Create(EffectIds.ColorLoop);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
-
-        viewModel.SelectedEffect = EffectOption.Create(EffectIds.Static);
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
     }
 
     // Another tile keeps the color that was mixed for the one before.
@@ -146,8 +132,7 @@ public sealed class MainViewModelColorLoopTests
         await Eventually.TrueAsync(() => Api.Calls.Contains("loop all #FFFFC8,#00FF00,#0000FF spread"));
         Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorLoopEditor.Swatches[0].Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // The engine reports the loop the last step gave it: nothing goes back, nothing changes.
@@ -164,7 +149,7 @@ public sealed class MainViewModelColorLoopTests
         Assert.Empty(Api.Calls);
         Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 255, 200), viewModel.ColorLoopEditor.Swatches[0].Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // Back from the LEDs, the picker colors the selected loop color at once again.
@@ -176,13 +161,12 @@ public sealed class MainViewModelColorLoopTests
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
 
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
         Assert.Equal(new RgbColor(255, 255, 0), viewModel.ColorPicker.Color);
         viewModel.ColorPicker.Blue = 255;
         Assert.Equal(["loop all #FFFFFF,#00FF00,#0000FF spread"], Api.Calls);
     }
 
-    // The other lamp has no color loop: its color waits for "Op het apparaat zetten" again.
+    // The other lamp has no color loop: the picker shows its color, and colors that lamp.
     [Fact]
     public async Task SelectAnotherLamp_AfterMixingALoopColor_ShowsTheColorOfThatLamp()
     {
@@ -192,9 +176,9 @@ public sealed class MainViewModelColorLoopTests
 
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
 
-        await Eventually.TrueAsync(() => !viewModel.ColorPicker.AppliesAtOnce);
+        await Eventually.TrueAsync(() => viewModel.ColorPicker.Color == new RgbColor(0, 0, 255));
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.DoesNotContain(Api.Calls, call => call.StartsWith("loop", StringComparison.Ordinal) || call.StartsWith("color", StringComparison.Ordinal));
     }
 
@@ -238,7 +222,7 @@ public sealed class MainViewModelColorLoopTests
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Api.Calls.Clear();
 
-        viewModel.ColorPicker.Mix("#FF00FF");
+        viewModel.ColorPicker.Pick("#FF00FF");
 
         Assert.Equal(["loop fan #FF00FF,#00FF00,#0000FF spread", "on fan on"], Api.Calls);
         Assert.True(viewModel.SelectedLamp?.IsOn);

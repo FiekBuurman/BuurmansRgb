@@ -292,18 +292,17 @@ uitbreidingen in `docs/bouwplan.md`.
 - "+" van de eigen kleuren achter het laatste vakje zetten in plaats van ervoor, met een paneel
   dat de vakjes en + samen laat omlopen; nu staat + vooraan, zodat de vakjes binnen de kolom
   omlopen
-- Een gekozen kleur bij Kleur die nog niet op het apparaat staat, gaat verloren als je een ander apparaat
-  kiest of de pagina wisselt; eventueel vragen of hem bewaren per apparaat. Geldt alleen nog voor de
-  kleur van het hele apparaat: een kleur van de kleurenloop, van de kleuren van een effect en van
-  gekozen LED's gaat meteen naar het apparaat (sinds "kleur-kiezen" en "effect-kleuren")
 - Een kleur die je bij Regenboog mengt, meenemen als je daarna een effect met één kleur kiest
-  (Statisch, Ademen, Golf), met "Nog niet op het apparaat" en de knop; nu toont de kiezer dan de
-  kleur van het apparaat, ook als een scène zo'n effect aanzet, en bewaar je de gemengde kleur
-  alleen met + bij je eigen kleuren
+  (Statisch, Ademen, Golf); nu toont de kiezer dan de kleur van het apparaat, ook als een scène
+  zo'n effect aanzet, en bewaar je de gemengde kleur alleen met + bij je eigen kleuren
 - Bij Regenboog de strip in het kleurvoorbeeld een regenboog laten tonen, zoals de apparaten; nu
   toont hij de gemengde kleur, met eronder dat Regenboog geen kleur van het apparaat gebruikt
-- Ongedaan maken voor een kleur van de kleurenloop, van de kleuren van een effect of van LED's
-  die je meteen meekleurde, nu er geen knop meer tussen mengen en het apparaat zit
+- Ongedaan maken voor een kleur die je meteen meekleurde (van het apparaat, de kleurenloop, de
+  kleuren van een effect of LED's), nu er geen knop meer tussen mengen en het apparaat zit; ook
+  "de kleur van daarnet" na een scène die door een nieuwe kleur niet meer aan staat
+- "Na een herstart" bij Instellingen ook de scènes, eigen kleuren en eigen effecten noemen, met een
+  verwijzing naar "Instellingen bewaren…" voor een andere pc; nu noemt het blok alleen de
+  verlichting, de helderheid, de slaapstand en "Starten met Windows" (`wat-blijft-bewaard`)
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
@@ -497,8 +496,6 @@ uitbreidingen in `docs/bouwplan.md`.
   de titelbalk (gebruikerstest 28-10, B4), zoals Kleur, Scènes en Instellingen een eigen kop
   hebben; dat vraagt eerst een keuze in het ontwerp, want § 5.1 zet het woordmerk bovenaan de
   pagina Lampen en § 6 ook in de titelbalk
-- Bij "Hele huis" "Nog niet op de apparaten" zeggen in plaats van "Nog niet op het apparaat",
-  zoals de knop daar "Op alle apparaten zetten" heet
 - In het voorbeeld bij "Hele huis" de kaarten van de apparaten in- en uitklappen, of met één
   klik naar een apparaat springen; nu staan alle apparaten met hun LED's, knoppen en
   LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10)
@@ -570,7 +567,7 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Overschrijven met wat nu brandt" ook eerst laten vragen, met dezelfde vraag als Verwijderen;
   nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug
 - Een tijd of programma bij "Vanzelf aanzetten" dat je wel typte maar niet toepaste, zichtbaar
-  maken (bijv. "Nog niet toegepast", zoals "Nog niet op het apparaat" bij Kleur) of vanzelf
+  maken (bijv. "Nog niet toegepast") of vanzelf
   opslaan, zoals de rest van de app; nu staat 22:00 na het wisselen van pagina nog in het veld,
   terwijl de scène om de oude tijd aangaat (gebruikerstest 28-10, B13)
 - Een gamemodus: één schakelaar (tray-menu of sneltoets) die tijdens een spel de effecten stilzet,
