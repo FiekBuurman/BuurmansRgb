@@ -268,6 +268,11 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Instellingen-app en ontwerp
 
+- De kopjes "Echte apparaten (OpenRGB)" en "Gesimuleerde apparaten" op Apparaten ook een kop voor
+  de schermlezer maken (niveau 3, de apparaatkaarten dan niveau 4), met een eigen
+  `GroupItemAutomationPeer` die het kopje als tekst toont: nu toont UI Automation het alleen als
+  de naam van de groep, en zijn de kaarten niveau 3 zoals in het voorbeeld op Kleur
+  (`schermlezer-structuur`)
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één
