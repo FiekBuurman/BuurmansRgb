@@ -716,10 +716,11 @@ Hoe het vanzelf aanzetten werkt:
   zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt:
   "Uitzetten", "Dimmen" (op een vijfde van hun helderheid) of "Laten branden" (het laatste
   beeld blijft staan). Een nieuwe installatie begint met "Uitzetten"; had je buurmansRgb al, dan
-  blijft je keuze zoals hij was (zie "Apparaten tijdens deze pauze" bij "Pauzeren"). Daaronder
-  staat de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit": alleen als die aan
-  staat, telt de keuze. Staat hij uit, dan is de keuze grijs en zegt een regel eronder waarom.
-  Voor een schermlezer is de titel van het blok een kop en de naam van de keuze. Beide gelden
+  blijft je keuze zoals hij was (zie "Apparaten tijdens deze pauze" bij "Pauzeren"). Boven de
+  keuze staat de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit": alleen als die
+  aan staat, telt de keuze. Staat hij uit, dan is de keuze grijs en zegt een regel eronder waarom.
+  Voor een schermlezer is de titel van het blok een kop en de naam van de keuze, en hoort hij die
+  reden ook bij de keuze zelf. Beide gelden
   meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
   wijziging meteen.
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status

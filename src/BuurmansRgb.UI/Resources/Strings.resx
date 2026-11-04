@@ -922,7 +922,7 @@
     <value>Wat de apparaten doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Dimmen laat ze op een vijfde van hun helderheid branden. Daarna komen je kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
   </data>
   <data name="PausedLightsNeedsPause" xml:space="preserve">
-    <value>Dit kan alleen als "Pauzeren bij vergrendelen, slaapstand en scherm uit" hieronder aan staat; nu blijven de apparaten zoals ze zijn.</value>
+    <value>Dit kan alleen als "Pauzeren bij vergrendelen, slaapstand en scherm uit" hierboven aan staat; nu blijven de apparaten zoals ze zijn.</value>
   </data>
   <data name="PausedLightsMode_Keep" xml:space="preserve">
     <value>Laten branden</value>

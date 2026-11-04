@@ -55,6 +55,21 @@ public sealed class EffectOptionsViewModelTests
         Assert.Equal(mode, _options.SelectedPausedLights?.Mode);
     }
 
+    // A screen reader hears why the choice does nothing while the pause is off, before the explanation.
+    [Fact]
+    public void PausedLightsHelpText_WithoutThePause_StartsWithWhy()
+    {
+        var changed = new List<string?>();
+        _options.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        Assert.Equal(Strings.PausedLightsHint, _options.PausedLightsHelpText);
+
+        _options.PauseOnLockAndSleep = false;
+
+        Assert.Equal($"{Strings.PausedLightsNeedsPause} {Strings.PausedLightsHint}", _options.PausedLightsHelpText);
+        Assert.Contains(nameof(EffectOptionsViewModel.PausedLightsHelpText), changed);
+    }
+
     [Fact]
     public void Show_RaisesNothing()
     {

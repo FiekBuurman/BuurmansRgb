@@ -41,11 +41,18 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     public partial FrameRateOption? SelectedFrameRate { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PausedLightsHelpText))]
     public partial bool PauseOnLockAndSleep { get; set; } = true;
 
     // Only counts while PauseOnLockAndSleep is on; the page greys it out otherwise.
     [ObservableProperty]
     public partial EnumOption<PausedLightsMode>? SelectedPausedLights { get; set; } = PausedLightsOptions[0];
+
+    // The explanation of that choice for a screen reader; while the pause is off, first why it
+    // does nothing, as the line on the page says.
+    public string PausedLightsHelpText => PauseOnLockAndSleep
+        ? Strings.PausedLightsHint
+        : $"{Strings.PausedLightsNeedsPause} {Strings.PausedLightsHint}";
 
     // Shows the options of the engine, without sending them back.
     public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>

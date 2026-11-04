@@ -27,24 +27,15 @@
             <!-- Where the other pages put their cards, but no wider than a line of text reads well. -->
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
                 <!-- What the devices do while the pc sleeps or is locked (pausedLights), first, as it is what most
-                     people look for here; with the pause it only counts under, which also rests the effects. The
-                     choice is grey while that pause is off, and a line under it says why. A heading for a
-                     screen reader. -->
+                     people look for here. The pause it only counts under, which also rests the effects, comes
+                     first in the block, as the switch the choice depends on. The choice is grey while that pause
+                     is off, and a line under it, also in its help text for a screen reader, says why. A heading
+                     for a screen reader. -->
                 <Border Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SleepHeader}"
                                    AutomationProperties.HeadingLevel="Level2" />
-                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PausedLightsHint}" />
-                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource NarrowChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
-                                  SelectedItem="{Binding EffectOptions.SelectedPausedLights}"
-                                  IsEnabled="{Binding EffectOptions.PauseOnLockAndSleep}"
-                                  AutomationProperties.Name="{x:Static res:Strings.SleepHeader}"
-                                  AutomationProperties.HelpText="{x:Static res:Strings.PausedLightsHint}"
-                                  AutomationProperties.AutomationId="PausedLights" />
-                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.PausedLightsNeedsPause}"
-                                   AutomationProperties.AutomationId="PausedLightsNeedsPause"
-                                   Visibility="{Binding EffectOptions.PauseOnLockAndSleep, Converter={StaticResource InverseBoolToVisibility}}" />
-                        <DockPanel Margin="0,18,0,0">
+                        <DockPanel Margin="0,12,0,0">
                             <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding EffectOptions.PauseOnLockAndSleep}"
                                           AutomationProperties.Name="{x:Static res:Strings.PauseOnLockLabel}"
@@ -54,6 +45,16 @@
                                 <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PauseOnLockHint}" />
                             </StackPanel>
                         </DockPanel>
+                        <TextBlock Margin="0,18,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PausedLightsHint}" />
+                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource NarrowChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding EffectOptions.SelectedPausedLights}"
+                                  IsEnabled="{Binding EffectOptions.PauseOnLockAndSleep}"
+                                  AutomationProperties.Name="{x:Static res:Strings.SleepHeader}"
+                                  AutomationProperties.HelpText="{Binding EffectOptions.PausedLightsHelpText}"
+                                  AutomationProperties.AutomationId="PausedLights" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.PausedLightsNeedsPause}"
+                                   AutomationProperties.AutomationId="PausedLightsNeedsPause"
+                                   Visibility="{Binding EffectOptions.PauseOnLockAndSleep, Converter={StaticResource InverseBoolToVisibility}}" />
                     </StackPanel>
                 </Border>
 

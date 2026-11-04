@@ -59,6 +59,8 @@ public sealed class SettingsViewTests
             Assert.False(PageViews.ById<TextBlock>(page, "PausedLightsNeedsPause").IsVisible);
             var openRgb = PageViews.ById<TextBlock>(page, "OpenRgbStatus");
             Assert.True(choice.TranslatePoint(default, page).Y < openRgb.TranslatePoint(default, page).Y);
+            var pause = PageViews.Named<ToggleButton>(page, Strings.PauseOnLockLabel);
+            Assert.True(pause.TranslatePoint(default, page).Y < choice.TranslatePoint(default, page).Y);
 
             choice.SelectedIndex = 0;
             OffscreenWindow.WaitUntilIdle();
@@ -67,7 +69,8 @@ public sealed class SettingsViewTests
         });
     }
 
-    // Without the pause the choice does nothing: grey, with a line that says why.
+    // Without the pause the choice does nothing: grey, with a line that says why, which a screen
+    // reader also hears on the choice; the switch it needs is above it.
     [Fact]
     public async Task SleepBlock_WithoutThePause_GreysTheChoiceAndSaysWhy()
     {
@@ -76,10 +79,14 @@ public sealed class SettingsViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var choice = PageViews.ById<ComboBox>(page, "PausedLights");
+            var pause = PageViews.Named<ToggleButton>(page, Strings.PauseOnLockLabel);
 
-            Assert.False(PageViews.ById<ComboBox>(page, "PausedLights").IsEnabled);
+            Assert.False(choice.IsEnabled);
             Assert.True(PageViews.ById<TextBlock>(page, "PausedLightsNeedsPause").IsVisible);
-            Assert.True(PageViews.Named<ToggleButton>(page, Strings.PauseOnLockLabel).IsVisible);
+            Assert.StartsWith(Strings.PausedLightsNeedsPause, AutomationProperties.GetHelpText(choice), StringComparison.Ordinal);
+            Assert.True(pause.IsVisible);
+            Assert.True(pause.TranslatePoint(default, page).Y < choice.TranslatePoint(default, page).Y);
         });
     }
 
