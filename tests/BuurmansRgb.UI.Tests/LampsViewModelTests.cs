@@ -38,7 +38,7 @@ public sealed class LampsViewModelTests
         Assert.Equal(2, _lamps.OnCount);
         Assert.Equal("2 van 3 aan", _lamps.Summary);
         Assert.True(_lamps.IsAnyOn);
-        Assert.Equal("LED-strip · 80%", _lamps.Lamps[0].Details);
+        Assert.Equal("LED-strip · Fel rood · 80%", _lamps.Lamps[0].Details);
         Assert.Equal("Ventilator · uit", _lamps.Lamps[1].Details);
         Assert.Equal(["LED strip", "Fan", "Simulated"], _lamps.Lamps.Select(lamp => lamp.ToString()));
         Assert.Empty(_switches);
@@ -175,7 +175,7 @@ public sealed class LampsViewModelTests
 
         Assert.Equal(before, _lamps.Lamps);
         Assert.Empty(changes);
-        Assert.Equal("LED-strip · 40%", _lamps.Lamps[0].Details);
+        Assert.Equal("LED-strip · Fel rood · 40%", _lamps.Lamps[0].Details);
     }
 
     [Fact]
@@ -314,6 +314,76 @@ public sealed class LampsViewModelTests
         _lamps.Reset();
         _lamps.ShowFrame(new LightingFrame(1, [DeviceFrame.FromColors("fan", [Red, Red])]));
         Assert.Equal(Red, _lamps.Lamps[1].Color);
+    }
+
+    // The card says the name of the one color the lamp shows, or the name of an effect without one
+    // color, such as the rainbow or comet with two colors.
+    [Theory]
+    [InlineData(EffectIds.Static, null, "LED-strip · Warm wit · 100%")]
+    [InlineData(EffectIds.Breathing, null, "LED-strip · Warm wit · 100%")]
+    [InlineData(EffectIds.Wave, null, "LED-strip · Warm wit · 100%")]
+    [InlineData(EffectIds.Comet, null, "LED-strip · Warm wit · 100%")]
+    [InlineData(EffectIds.Comet, "#89CFF0", "LED-strip · Babyblauw · 100%")]
+    [InlineData(EffectIds.Comet, "#89CFF0,#FF0000", "LED-strip · Komeet · 100%")]
+    [InlineData(EffectIds.Fire, null, "LED-strip · Vuur · 100%")]
+    [InlineData(EffectIds.Fire, "#FF8800", "LED-strip · Oranje · 100%")]
+    [InlineData(EffectIds.Rainbow, null, "LED-strip · Regenboog · 100%")]
+    [InlineData(EffectIds.ColorLoop, null, "LED-strip · Kleurenloop · 100%")]
+    [InlineData(EffectIds.PerLed, null, "LED-strip · Per LED · 100%")]
+    [InlineData("custom:disco", null, "LED-strip · Eigen effect · 100%")]
+    public async Task Details_SayTheColorOrTheEffect(string effectId, string? ownColors, string expected)
+    {
+        var effectColors = ownColors is null ? null
+            : EffectColors.None.With(effectId, [.. ownColors.Split(',').Select(hex => RgbColor.TryParseHex(hex, out var color) ? color : throw new ArgumentException(hex))]);
+
+        await _lamps.RefreshAsync(All(_ => new LightingInfo(new RgbColor(255, 244, 229), 1.0, effectId, EffectColors: effectColors)));
+
+        Assert.Equal(expected, _lamps.Lamps[0].Details);
+    }
+
+    // An own effect under its own name, also after it got another one; off says only "uit".
+    [Fact]
+    public async Task Details_NameAnOwnEffectAndSayOffWithoutAColor()
+    {
+        var name = "Disco";
+        _lamps.EffectName = id => id == "custom:disco" ? name : null;
+        _lamps.ShowDevices([DeviceItem.For(TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 3)), DeviceItem.For(TestDevices.Create("other", "Other", DeviceType.Fan, 3))]);
+        await _lamps.RefreshAsync(() => Task.FromResult<IReadOnlyList<DeviceLightingInfo>>(
+        [
+            new("other", new LightingInfo(Red, 0.5, "custom:disco")),
+            new("strip", new LightingInfo(Red, 1.0, EffectIds.Static, On: false)),
+        ]));
+        var other = _lamps.Lamps.Single(lamp => lamp.DeviceId == "other");
+        Assert.Equal("Ventilator · Disco · 50%", other.Details);
+        Assert.Equal("LED-strip · uit", _lamps.Lamps[0].Details);
+
+        name = "Feest";
+        _lamps.ShowEffectNames();
+
+        Assert.Equal("Ventilator · Feest · 50%", other.Details);
+    }
+
+    // A new color, such as each step of a drag on Kleur, changes the card; the same lighting again
+    // or a frame changes nothing, so the card does not flicker with an effect that moves.
+    [Fact]
+    public async Task Details_ChangeWithTheColorNotWithTheFrames()
+    {
+        var lamp = _lamps.Lamps[0];
+        await _lamps.RefreshAsync(All(_ => Lighting(on: true)));
+        List<string> details = [];
+        lamp.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(LampItem.Details))
+            {
+                details.Add(lamp.Details);
+            }
+        };
+
+        await _lamps.RefreshAsync(All(_ => Lighting(on: true)));
+        _lamps.ShowFrame(new LightingFrame(1, [DeviceFrame.FromColors("strip", [Blue, Blue, Blue])]));
+        await _lamps.RefreshAsync(All(_ => Lighting(on: true) with { Color = new RgbColor(128, 0, 0) }));
+
+        Assert.Equal(["LED-strip · Donkerrood · 100%"], details);
     }
 
     [Fact]

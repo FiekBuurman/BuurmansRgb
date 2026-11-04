@@ -226,6 +226,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
         Lamps.SwitchRequested += (_, lamp) => _lampSync.Switch(lamp);
         Lamps.OpenRequested += (_, deviceId) => OpenLamp(deviceId);
+        Lamps.EffectName = id => Effects.FirstOrDefault(effect => effect.Id == id)?.DisplayName;
         Navigation.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(NavigationViewModel.CurrentPage))
@@ -838,6 +839,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         });
 
+        Lamps.ShowEffectNames();
         ShowCustomEffectEditor();
         NewCustomEffectCommand.NotifyCanExecuteChanged();
     }

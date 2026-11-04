@@ -1191,6 +1191,10 @@
   <data name="LampBrightness" xml:space="preserve">
     <value>{0:0}%</value>
   </data>
+  <data name="LampLookAndBrightness" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>Op een apparaatkaart na het soort apparaat: {0} = de naam van de kleur (bijv. Warm wit) of, bij een effect zonder één kleur, de naam van het effect (bijv. Regenboog); {1} = de helderheid (LampBrightness).</comment>
+  </data>
   <data name="LampOff" xml:space="preserve">
     <value>uit</value>
   </data>

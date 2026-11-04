@@ -136,11 +136,15 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   op zijn kaart, en een scène met de apparaten uit (of in het zwart) op zijn scènekaart.
 - **Apparaten in huis:** elk apparaat als kaart, de echte onder "Echte apparaten
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde apparaten", twee of drie naast elkaar. Op de
-  kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
-  "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
+  kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de kleur en de
+  helderheid ("LED-strip · Warm wit · 100%") of "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
   "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een
   donkere of diepblauwe kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat
-  je de knop blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
+  je de knop blijft zien. De kleur heet zoals bij "Huidige kleur" op Kleur (zie "Kleurnamen") en
+  loopt mee als je hem verandert, ook terwijl je schuift. Toont het apparaat niet één kleur, dan
+  staat er de naam van het effect: Regenboog, Kleurenloop, Vuur, Per LED, een eigen effect onder
+  zijn naam, of Komeet, Scanner of Fonkelen met meer dan één eigen kleur ("Muis · Regenboog ·
+  80%"). Komeet, Scanner, Fonkelen en Vuur met één eigen kleur noemen die kleur. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
   kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - **Alleen gesimuleerde apparaten:** zolang er bij "Gesimuleerde apparaten tonen" "Automatisch"
   staat (zie "Instellingen") en OpenRGB geen echte apparaten geeft, staat onder "Apparaten in huis"
@@ -953,8 +957,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   met sectiekoppen en gewone knoppen. De kop "Licht op de achtergrond" is een knipoog zoals de
   koppen van het ontwerp; de getallen erin staan in de lettersoort van de tekst en niet in IBM
   Plex Mono, omdat het één zin is.
-- **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
-  ruimte kent BuurmansRgb niet.
+- **Apparaatkaarten** tonen het type met de kleur en de helderheid in plaats van "Ruimte ·
+  helderheid": een ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
   "Herstarten" als gewone knop zodra de verbinding weg is) in plaats van de ronde
   instellingenknop (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in

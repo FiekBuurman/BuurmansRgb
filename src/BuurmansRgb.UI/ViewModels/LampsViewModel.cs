@@ -36,6 +36,20 @@ public sealed partial class LampsViewModel : ObservableObject
 
     public IReadOnlyList<StripLed> Strip { get; }
 
+    // Names an effect by its id for the cards ("LED-strip · Regenboog · 100%"), such as an own
+    // effect under its own name; MainViewModel gives the names of its effect choice.
+    public Func<string, string?>? EffectName { get; set; }
+
+    // The names of the effects changed, such as an own effect that got another name: the cards
+    // say the new one.
+    public void ShowEffectNames()
+    {
+        foreach (var lamp in Lamps)
+        {
+            lamp.ShowEffectNames();
+        }
+    }
+
     public int OnCount => Lamps.Count(lamp => lamp.IsOn);
 
     // "3 van 4 aan".
@@ -92,7 +106,7 @@ public sealed partial class LampsViewModel : ObservableObject
                 continue;
             }
 
-            var lamp = new LampItem(device);
+            var lamp = new LampItem(device) { EffectName = EffectName };
             if (previous is not null)
             {
                 lamp.ShowAs(previous);
