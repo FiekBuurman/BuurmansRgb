@@ -21,8 +21,67 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = store.LoadOrCreate();
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateNew(), settings);
         Assert.True(File.Exists(path));
+    }
+
+    // A new installation turns the devices off while the pc sleeps or is locked, and writes it, so
+    // the next start reads it as an existing file with that choice.
+    [Fact]
+    public void LoadOrCreate_NoFile_TurnsTheDevicesOffDuringThePauseAndWritesIt()
+    {
+        var path = _directory.File("settings.json");
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(PausedLightsMode.Off, settings.PausedLights);
+        Assert.Contains("\"pausedLights\": \"off\"", File.ReadAllText(path));
+        Assert.Equal(PausedLightsMode.Off, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // Only the new file differs from the defaults of a file: the rest is the same.
+    [Fact]
+    public void CreateNew_IsTheDefaultsWithTheDevicesOffDuringThePause() =>
+        Assert.Equal(EngineSettings.CreateDefault() with { PausedLights = PausedLightsMode.Off }, EngineSettings.CreateNew());
+
+    // An existing file keeps its choice, also the last frame of the default before "Uitzetten".
+    [Theory]
+    [InlineData("keep", PausedLightsMode.Keep)]
+    [InlineData("dim", PausedLightsMode.Dim)]
+    [InlineData("off", PausedLightsMode.Off)]
+    public void LoadOrCreate_ExistingFileWithPausedLights_KeepsItsChoice(string word, PausedLightsMode expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#00FF00", "pausedLights": "{{word}}" }""");
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // The engine always writes pausedLights, so a file without it is from before the choice (or
+    // written by hand): those devices kept the last frame, and still do. Not "Uitzetten" of a new
+    // installation.
+    [Fact]
+    public void LoadOrCreate_ExistingFileWithoutPausedLights_KeepsTheLastFrame()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "color": "#00FF00", "framesPerSecond": 15 }""");
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(PausedLightsMode.Keep, settings.PausedLights);
+        Assert.Equal(15, settings.FramesPerSecond);
+    }
+
+    // A file that is there but does not read, or is null: that pc had settings, so not the new default.
+    [Theory]
+    [InlineData("{ not json")]
+    [InlineData("null")]
+    public void LoadOrCreate_ExistingFileThatDoesNotRead_KeepsTheLastFrame(string json)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(PausedLightsMode.Keep, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
     }
 
     [Fact]
@@ -994,7 +1053,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(Path.Combine(blocker, "settings.json")).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateNew(), settings);
     }
 
     [Fact]

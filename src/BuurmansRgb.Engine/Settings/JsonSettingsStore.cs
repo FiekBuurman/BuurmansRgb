@@ -125,7 +125,8 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         if (!File.Exists(filePath))
         {
-            var defaults = EngineSettings.CreateDefault();
+            // A new installation; written at once, so from the next start it is an existing file.
+            var defaults = EngineSettings.CreateNew();
             TrySaveLocked(defaults);
             return defaults;
         }
