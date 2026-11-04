@@ -157,6 +157,22 @@
         </Setter>
     </Style>
 
+    <!-- The word mark as the title of Apparaten: a heading of level 1 for a screen reader, as the titles
+         of the other pages. A text of a control template only shows in the raw view of UI Automation,
+         so a screen reader would not find it as a heading; the text of a data template does show, so
+         this word mark is one, with the same runs as the one of the title bar. -->
+    <DataTemplate x:Key="PageWordmarkText">
+        <TextBlock FontFamily="{StaticResource TextFont}" FontSize="{StaticResource WordmarkSize}" FontWeight="ExtraBold"
+                   Foreground="{DynamicResource TextBrush}" AutomationProperties.Name="buurmansRgb" AutomationProperties.HeadingLevel="Level1">
+            <Run Text="buurmans" /><Run Text="R" Foreground="{StaticResource LedRedBrush}" /><Run Text="g" Foreground="{StaticResource LedGreenBrush}" /><Run Text="b" Foreground="{StaticResource LedBlueBrush}" />
+        </TextBlock>
+    </DataTemplate>
+    <Style x:Key="PageWordmark" TargetType="ContentControl">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="ContentTemplate" Value="{StaticResource PageWordmarkText}" />
+    </Style>
+
     <!-- The app icon and the word mark at the left of the title bar of our own (§ 6), in the main
          window and in the question before deleting. -->
     <Style x:Key="TitleBarLogo" TargetType="ContentControl">

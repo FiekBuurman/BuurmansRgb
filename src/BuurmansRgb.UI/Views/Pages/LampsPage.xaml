@@ -43,7 +43,7 @@
                             Command="{Binding OpenRgbStatus.RestartCommand}"
                             Visibility="{Binding OpenRgbStatus.CanRestart, Converter={StaticResource BoolToVisibility}}" />
                 </StackPanel>
-                <ContentControl Style="{StaticResource Wordmark}" VerticalAlignment="Center" />
+                <ContentControl Style="{StaticResource PageWordmark}" VerticalAlignment="Center" />
             </DockPanel>
 
             <!-- One message at most (the connection gone, a pause, the preview still), the rest under Details. -->
@@ -58,7 +58,7 @@
                                       AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                       AutomationProperties.HelpText="{Binding Lamps.Summary}" />
                         <StackPanel>
-                            <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.WholeHouse}" />
+                            <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.WholeHouse}" AutomationProperties.HeadingLevel="Level2" />
                             <TextBlock Style="{StaticResource BigValue}" Text="{Binding Lamps.Summary}" AutomationProperties.AutomationId="WholeHouseSummary" />
                         </StackPanel>
                     </DockPanel>
@@ -93,7 +93,8 @@
                             AutomationProperties.AutomationId="HowDevicesCome"
                             Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />
                 </StackPanel>
-                <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}" />
+                <TextBlock Style="{StaticResource SectionHeader}" VerticalAlignment="Center" Text="{x:Static res:Strings.LampsHeader}"
+                           AutomationProperties.HeadingLevel="Level2" />
             </DockPanel>
 
             <!-- Only while every device is a simulated one, with "Automatisch" (ShowsSimulatedDevicesHint): what
@@ -126,7 +127,8 @@
                 </StackPanel>
             </Border>
 
-            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedLamps}}" Focusable="False" IsTabStop="False">
+            <ItemsControl ItemsSource="{Binding Source={StaticResource GroupedLamps}}" Focusable="False" IsTabStop="False"
+                          AutomationProperties.Name="{x:Static res:Strings.LampsHeader}">
                 <ItemsControl.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.ContainerStyle>
@@ -176,7 +178,7 @@
                                         <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
                                                        IsLit="{Binding IsOn}" Color="{Binding Color}" />
                                         <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
+                                            <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" AutomationProperties.HeadingLevel="Level3" />
                                             <!-- "LED-strip · Warm wit · 100%": it follows the color, so it is no live region. -->
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"

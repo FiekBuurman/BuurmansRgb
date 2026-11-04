@@ -24,7 +24,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
-            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" />
+            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.ProfilesHeader}" AutomationProperties.HeadingLevel="Level1" />
             <TextBlock Margin="0,2,0,20" FontSize="{DynamicResource SmallBodySize}" Foreground="{DynamicResource TextMutedBrush}" Text="{x:Static res:Strings.ProfilesHint}" />
 
             <TextBlock Margin="0,0,0,14" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NoScenes}"
@@ -62,7 +62,8 @@
                                         </views:DecorativeItemsControl.ItemTemplate>
                                     </views:DecorativeItemsControl>
                                     <!-- The top of the name is beside the wrench, so it ends before it. -->
-                                    <TextBlock Margin="0,16,36,0" Style="{StaticResource CardTitle}" FontSize="{DynamicResource SceneCardTitleSize}" Text="{Binding Name}" />
+                                    <TextBlock Margin="0,16,36,0" Style="{StaticResource CardTitle}" FontSize="{DynamicResource SceneCardTitleSize}" Text="{Binding Name}"
+                                               AutomationProperties.HeadingLevel="Level2" />
                                     <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{Binding Description}" />
                                 </StackPanel>
                             </Button>
@@ -121,7 +122,7 @@
             <!-- The chosen scene: put it on, overwrite it, delete it, or let it go on by itself. -->
             <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
-                    <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.EditTitle}" />
+                    <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.EditTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <WrapPanel Margin="0,12,0,0">
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
                                 ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
@@ -131,7 +132,7 @@
                                 Command="{Binding Profiles.DeleteCommand}" />
                     </WrapPanel>
 
-                    <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" />
+                    <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" AutomationProperties.HeadingLevel="Level3" />
                     <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">
                         <!-- The times, each with its days; the days are grey without a time, as they only
                              count with one. "−" takes a time away, "+ Nog een tijd" adds one. -->

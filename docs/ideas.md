@@ -268,10 +268,6 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Instellingen-app en ontwerp
 
-- De koppen van alle blokken een kopniveau voor de schermlezer geven
-  (`AutomationProperties.HeadingLevel`), zodat je met H van kop naar kop springt; nu heeft alleen
-  "Als de pc slaapt of vergrendeld is" op Instellingen er een (`slaapstand-vooraan`). Niet in de
-  stijl `SectionHeader`: die zit ook op de status van OpenRGB, die geen kop is
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één

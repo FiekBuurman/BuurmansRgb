@@ -30,7 +30,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
         <StackPanel Margin="{StaticResource PageMargin}" MaxWidth="{StaticResource PageMaxWidth}">
-            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.SettingsTitle}" />
+            <TextBlock Style="{StaticResource ScreenTitle}" Text="{x:Static res:Strings.SettingsTitle}" AutomationProperties.HeadingLevel="Level1" />
             <TextBlock Margin="0,2,0,22" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SettingsSubtitle}" />
 
             <!-- Where the other pages put their cards, but no wider than a line of text reads well. -->
@@ -100,7 +100,7 @@
                      and "Herstarten" as beside the status on Apparaten. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" />
+                        <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <DockPanel Margin="0,2,0,0">
                             <TextBlock DockPanel.Dock="Right" Margin="10,0,0,0" Style="{StaticResource InfoMark}" Tag="{Binding OpenRgbStatus.ToolTip}"
                                        Visibility="{Binding OpenRgbStatus.HasHint, Converter={StaticResource BoolToVisibility}}"
@@ -128,7 +128,7 @@
                      there, not at every reading. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.UsageHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.UsageHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding EngineUsage.Text}"
                                    AutomationProperties.HelpText="{x:Static res:Strings.UsageHint}"
                                    AutomationProperties.AutomationId="EngineUsage" />
@@ -138,7 +138,7 @@
 
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SimulatedDevicesHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SimulatedDevicesHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SimulatedDevicesHint}" />
                         <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource NarrowChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:SimulatedDevicesViewModel.Options}" DisplayMemberPath="DisplayName"
                                   SelectedItem="{Binding SimulatedDevices.SelectedOption}"
@@ -150,7 +150,7 @@
                 <!-- How smooth the effects move. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,12,0,0" Style="{StaticResource Body}" Text="{x:Static res:Strings.FrameRateLabel}" />
                         <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" Text="{x:Static res:Strings.FrameRateHint}" />
                         <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{Binding EffectOptions.FrameRates}" DisplayMemberPath="DisplayName"
@@ -163,7 +163,7 @@
                 <!-- Whether a scene time that passed while the pc slept or the engine did not run comes on after all. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SceneTimesHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SceneTimesHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <DockPanel Margin="0,12,0,0">
                             <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding SceneTimes.IsOn}"
@@ -180,7 +180,7 @@
                 <!-- Whether the fixed keys of "Alles aan" and "Alles uit" in the tray menu work anywhere in Windows. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.HotkeysHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.HotkeysHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <DockPanel Margin="0,12,0,0">
                             <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding Hotkeys.IsOn}"
@@ -197,7 +197,7 @@
                 <!-- "Starten met Windows", the same as in the tray menu; the engine keeps it, so both show the same. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <DockPanel Margin="0,12,0,0">
                             <views:ToggleSwitch x:Name="AutoStartSwitch" DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding AutoStart.IsOn}"
@@ -216,7 +216,7 @@
                      the app is connected (SettingsBackupViewModel). Restoring asks first (ConfirmDialog). -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BackupHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BackupHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.BackupHint}" />
                         <WrapPanel>
                             <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupSave}"
@@ -238,7 +238,7 @@
                      when the text size of Windows makes them too wide. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
-                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LogHeader}" />
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LogHeader}" AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.LogHint}" />
                         <WrapPanel>
                             <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenLog}"
