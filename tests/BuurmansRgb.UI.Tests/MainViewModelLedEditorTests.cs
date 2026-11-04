@@ -85,6 +85,21 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
+    // LEDs without a stored color have the color put on the whole house: the picker shows it.
+    [Fact]
+    public async Task ChooseLeds_WithoutStoredColors_AfterColoringTheHouse_ShowsTheNewColor()
+    {
+        var viewModel = await ConnectAsync();
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        Click(viewModel, "fan", 0);
+
+        Assert.False(viewModel.ColorPicker.IsUnused);
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+    }
+
     // Showing the stored color of the LED that was clicked sends nothing.
     [Fact]
     public async Task ClickAnotherLed_AfterMixing_SendsNothingMore()
