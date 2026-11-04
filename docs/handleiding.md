@@ -9,93 +9,14 @@ instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken. Insta
 
 De app volgt het ontwerp "Werkplaats bij nacht" uit [design/DESIGN.md](../design/DESIGN.md):
 altijd donker, zodat de kleuren van de apparaten gloeien (behalve met een contrastthema van
-Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met **Apparaten**,
+Windows, zie "Toegankelijkheid"), met een eigen titelbalk en links een navigatiebalk met **Apparaten**,
 **Kleur**, **Scènes** en onderaan **Instellingen**.
+
+Hoe de app werkt met het toetsenbord, een schermlezer, een contrastthema, grotere tekst of minder
+beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
 
 - **Venster:** donkere titelbalk met het kleine icoon en het woordmerk. Slepen, dubbelklikken
   om te maximaliseren, Aero Snap en Alt+Spatie werken zoals altijd. Minimaal 960 × 640.
-- **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
-  knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
-  actieve LED (zie "Per-LED-editor").
-- **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
-  van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
-  ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
-  een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
-  afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
-  "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
-  want de tekst ernaast zegt al wat ze tonen.
-- **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
-  naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
-  (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Kleuren",
-  "Licht en beweging", "Voorbeeld", een scènekaart en elk blok op Instellingen) en een
-  apparaatkaart niveau 3, op Apparaten en in het voorbeeld op Kleur. De lijsten hebben een naam,
-  zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Voorbeeld", "Apparaten in
-  huis", "Kleuren van de loop", "Kleuren van het effect" en "Stappen".
-- **Schakelaars** zeggen voor een schermlezer "aan" of "uit" (bijv. "Sneltoetsen, schakelaar,
-  aan") in plaats van "ingedrukt", en naast elke schakelaar staat ook in woorden **Aan** of
-  **Uit**. Dat woord groeit mee met de tekstgrootte van Windows, neemt de kleuren van een
-  contrastthema over en wordt niet nog eens voorgelezen. Een klik op het woord zet de schakelaar
-  ook om.
-- **"Alles selecteren"** bij een apparaat met één zone heet voor een schermlezer "Alles
-  selecteren, alle LED's van …": het begint met wat je ziet, zodat je het met Spraaktoegang van
-  Windows ook bij die woorden noemt.
-- **Kleurnamen:** een vakje van de kleurenloop, van de kleuren van een effect en van je eigen
-  kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
-  benaderende kleurnaam met de hex-code erachter: "Kleur 1: geel, #FFFF00", "Eigen kleur:
-  oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
-  vaste kleur onder "Kleuren" houdt zijn eigen naam, ook in een vakje of een stap, met een
-  kleine beginletter omdat hij midden in de zin staat ("Kleur 2: fel groen, #00FF00", "Eigen
-  kleur: warm wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
-  zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
-  oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
-  donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
-  heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B") blijft de hex-code
-  tonen, want daar zie je de kleur. Dezelfde namen staan, met een hoofdletter, bij "Huidige kleur"
-  op Kleur en op de apparaatkaarten ("Warm wit", "Lichtblauw"), en een schermlezer hoort ze bij
-  elke LED van het voorbeeld ("LED 5, rood") en bij de bolletjes van een scènekaart.
-- **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
-  Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
-  over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je
-  klikt, krijgen de knopkleuren van het thema. De pagina die je open hebt in de navigatiebalk, het
-  gekozen item van een keuzelijst en een knop in de titelbalk onder de muis (ook het kruisje,
-  dat zonder contrastthema rood wordt) krijgen de markeerkleur van het thema, net als wat aan
-  staat of de hoofdactie is: een aangevinkt vakje, een dag die aan staat, de grote knop (bijv.
-  "Terugzetten" in de vraag of je instellingen terug mogen) en een schakelaar die aan staat, in
-  plaats van de kleur van het apparaat. Een schakelaar die uit staat is een rand in de
-  tekstkleur met de knop in de tekstkleur, en het spoor van een schuif een rand in de
-  tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
-  rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
-  grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
-  je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
-  bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
-  houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
-  uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
-  van Kleur, die donker blijft, blijft hij grijs.
-- **Tekstgrootte:** maak je in Windows de tekst groter (Instellingen → Toegankelijkheid →
-  Tekstgrootte, tot 225 %), dan groeit de tekst van de app mee, ook terwijl hij open is: zodra je
-  op "Toepassen" klikt. Zodat alles blijft passen, wordt de navigatiebalk breder als de namen
-  van de pagina's dat nodig hebben, loopt tekst om naar een volgende regel in plaats van
-  afgekapt te worden, worden velden en keuzelijsten breder (het veld van de hex-code past altijd
-  een hele code) en gaan kolommen onder elkaar als ze naast elkaar niet meer passen: op Kleur
-  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, en bij "Licht en
-  beweging" twee of drie in plaats van vier naast elkaar. De dagen bij een scènetijd worden
-  pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
-  klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
-  een titelbalk die even hoog blijft. Een lange naam van een apparaat of scène op een kaart eindigt
-  met "…", zoals bij 100 %, en ook een naam die niet meer in de keuze op Kleur past. Bij een
-  lange naam van een apparaat staat die keuze ook bij 100 % onder de titel, zodat de titel
-  leesbaar blijft.
-- **Minder beweging:** zet je in Windows de animaties uit (Instellingen → Toegankelijkheid →
-  Visuele effecten → Animatie-effecten), dan staat het voorbeeld op Apparaten en Kleur stil: je
-  ziet één beeld van wat de apparaten doen, ook bij een bewegend effect zoals Regenboog of Vuur,
-  en een nieuw beeld zodra je iets verandert. De statusregel bovenaan Apparaten en Kleur zegt
-  "Voorbeeld staat stil omdat animaties in Windows uit staan.", met de knop **Laten lopen**: dan
-  beweegt het voorbeeld toch, tot je de app sluit; **Stilzetten** zet het weer stil. Geldt er
-  tegelijk een belangrijkere melding, zoals een pauze, dan staat deze onder "Details" van die
-  regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
-  schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
-  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
-  het voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
 - **Onderaan** staat wat er net gebeurde (bijv. "Scène 'Nacht' staat aan.") en rechts
   "Opgeslagen ✓" met de tijd zodra de engine je wijziging heeft weggeschreven, een seconde na
   de laatste wijziging. Houdt een ander programma `settings.json` net even open, zoals een
@@ -131,7 +52,7 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   RGB-software draait mee ("SignalRGB draait ook en kan je kleuren overschrijven.", één melding
   per programma, zie [Andere RGB-software](#andere-rgb-software)) > de effecten zijn gepauzeerd
   (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
-  "Pauzeren") > het voorbeeld staat stil (met **Laten lopen**, zie "Minder beweging"). Gelden er
+  "Pauzeren") > het voorbeeld staat stil (met **Laten lopen**, zie "Minder beweging" bij "Toegankelijkheid"). Gelden er
   meer meldingen tegelijk, dan staat rechts de knop **Details** (voor een schermlezer "Details:
   nog 1 melding"): die klapt de andere meldingen uit onder de regel, elk met zijn eigen knop,
   zonder animatie, en blijft ingedrukt zolang ze open staan. Een melding die door een
@@ -449,7 +370,7 @@ ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een 
 voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
 geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
 
-- **Animaties uit:** staan in Windows de animaties uit (zie "Minder beweging" bovenaan), dan
+- **Animaties uit:** staan in Windows de animaties uit (zie "Minder beweging" bij "Toegankelijkheid"), dan
   staat het voorbeeld stil en stuurt de engine geen beelden. Na elke wijziging, van jou of van
   een scène, een pauze of een andere pagina komt er één nieuw beeld. **Knipperen** flitst dan
   niet wit aan en uit in het voorbeeld: de kaart van het apparaat krijgt zolang de markering
@@ -910,6 +831,94 @@ effect een regenboog is. "Knipperen" naast de naam van een apparaat werkt ook al
 staat; daarna is het weer zwart.
 Een kleur op een apparaat zetten bij Kleur zet het ook aan (zie "Kleur").
 
+### Toegankelijkheid
+
+Wat de app doet voor wie met het toetsenbord, een schermlezer, een contrastthema, grotere tekst
+of minder beweging werkt.
+
+- **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
+  knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
+  actieve LED (zie "Per-LED-editor").
+- **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
+  van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
+  ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
+  een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
+  afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
+  "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
+  want de tekst ernaast zegt al wat ze tonen.
+- **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
+  naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
+  (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Kleuren",
+  "Licht en beweging", "Voorbeeld", een scènekaart en elk blok op Instellingen) en een
+  apparaatkaart niveau 3, op Apparaten en in het voorbeeld op Kleur. De lijsten hebben een naam,
+  zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Voorbeeld", "Apparaten in
+  huis", "Kleuren van de loop", "Kleuren van het effect" en "Stappen".
+- **Schakelaars** zeggen voor een schermlezer "aan" of "uit" (bijv. "Sneltoetsen, schakelaar,
+  aan") in plaats van "ingedrukt", en naast elke schakelaar staat ook in woorden **Aan** of
+  **Uit**. Dat woord groeit mee met de tekstgrootte van Windows, neemt de kleuren van een
+  contrastthema over en wordt niet nog eens voorgelezen. Een klik op het woord zet de schakelaar
+  ook om.
+- **"Alles selecteren"** bij een apparaat met één zone heet voor een schermlezer "Alles
+  selecteren, alle LED's van …": het begint met wat je ziet, zodat je het met Spraaktoegang van
+  Windows ook bij die woorden noemt.
+- **Kleurnamen:** een vakje van de kleurenloop, van de kleuren van een effect en van je eigen
+  kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
+  benaderende kleurnaam met de hex-code erachter: "Kleur 1: geel, #FFFF00", "Eigen kleur:
+  oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
+  vaste kleur onder "Kleuren" houdt zijn eigen naam, ook in een vakje of een stap, met een
+  kleine beginletter omdat hij midden in de zin staat ("Kleur 2: fel groen, #00FF00", "Eigen
+  kleur: warm wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
+  zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
+  oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
+  donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
+  heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B") blijft de hex-code
+  tonen, want daar zie je de kleur. Dezelfde namen staan, met een hoofdletter, bij "Huidige kleur"
+  op Kleur en op de apparaatkaarten ("Warm wit", "Lichtblauw"), en een schermlezer hoort ze bij
+  elke LED van het voorbeeld ("LED 5, rood") en bij de bolletjes van een scènekaart.
+- **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
+  Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
+  over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je
+  klikt, krijgen de knopkleuren van het thema. De pagina die je open hebt in de navigatiebalk, het
+  gekozen item van een keuzelijst en een knop in de titelbalk onder de muis (ook het kruisje,
+  dat zonder contrastthema rood wordt) krijgen de markeerkleur van het thema, net als wat aan
+  staat of de hoofdactie is: een aangevinkt vakje, een dag die aan staat, de grote knop (bijv.
+  "Terugzetten" in de vraag of je instellingen terug mogen) en een schakelaar die aan staat, in
+  plaats van de kleur van het apparaat. Een schakelaar die uit staat is een rand in de
+  tekstkleur met de knop in de tekstkleur, en het spoor van een schuif een rand in de
+  tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
+  rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
+  grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
+  je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
+  bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
+  houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
+  uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
+  van Kleur, die donker blijft, blijft hij grijs.
+- **Tekstgrootte:** maak je in Windows de tekst groter (Instellingen → Toegankelijkheid →
+  Tekstgrootte, tot 225 %), dan groeit de tekst van de app mee, ook terwijl hij open is: zodra je
+  op "Toepassen" klikt. Zodat alles blijft passen, wordt de navigatiebalk breder als de namen
+  van de pagina's dat nodig hebben, loopt tekst om naar een volgende regel in plaats van
+  afgekapt te worden, worden velden en keuzelijsten breder (het veld van de hex-code past altijd
+  een hele code) en gaan kolommen onder elkaar als ze naast elkaar niet meer passen: op Kleur
+  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, en bij "Licht en
+  beweging" twee of drie in plaats van vier naast elkaar. De dagen bij een scènetijd worden
+  pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
+  klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
+  een titelbalk die even hoog blijft. Een lange naam van een apparaat of scène op een kaart eindigt
+  met "…", zoals bij 100 %, en ook een naam die niet meer in de keuze op Kleur past. Bij een
+  lange naam van een apparaat staat die keuze ook bij 100 % onder de titel, zodat de titel
+  leesbaar blijft.
+- **Minder beweging:** zet je in Windows de animaties uit (Instellingen → Toegankelijkheid →
+  Visuele effecten → Animatie-effecten), dan staat het voorbeeld op Apparaten en Kleur stil: je
+  ziet één beeld van wat de apparaten doen, ook bij een bewegend effect zoals Regenboog of Vuur,
+  en een nieuw beeld zodra je iets verandert. De statusregel bovenaan Apparaten en Kleur zegt
+  "Voorbeeld staat stil omdat animaties in Windows uit staan.", met de knop **Laten lopen**: dan
+  beweegt het voorbeeld toch, tot je de app sluit; **Stilzetten** zet het weer stil. Geldt er
+  tegelijk een belangrijkere melding, zoals een pauze, dan staat deze onder "Details" van die
+  regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
+  schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
+  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
+  het voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
+
 ### Ontwerp en bewuste afwijkingen
 
 De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
@@ -1053,7 +1062,7 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   Het veld is net breed genoeg voor een code en staat 4 px onder "Huidige kleur".
 - **Contrastthema's van Windows** noemt het ontwerp niet: daar is de app altijd donker. Met een
   contrastthema aan volgen tekst, vlakken, randen, links, focus en selectie de kleuren van Windows
-  (zie "Contrastthema" bovenaan). Gedempte tekst (`text-muted`) wordt dan gewone tekst, want de
+  (zie "Contrastthema" bij "Toegankelijkheid"). Gedempte tekst (`text-muted`) wordt dan gewone tekst, want de
   grijze tekst van een contrastthema betekent "uitgeschakeld". De kaart van het voorbeeld
   (`preview-bg`) krijgt de achtergrond van het venster, omdat er tekst en knoppen op staan; de strip
   onder de bolletjes blijft donker, zodat de LED's erop gloeien. Een schakelaar die aan staat,
@@ -1063,13 +1072,13 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   contrastthema een streep eronder, waar de kleur alleen niet genoeg zegt; de links van het
   ontwerp hebben geen streep, en zonder contrastthema blijft dat zo.
 - **De tekstgrootte van Windows** noemt het ontwerp niet: daar hebben de letters vaste maten (§ 2).
-  De app vermenigvuldigt ze met de tekstgrootte (zie "Tekstgrootte" bovenaan), en maakt dan plaats:
+  De app vermenigvuldigt ze met de tekstgrootte (zie "Tekstgrootte" bij "Toegankelijkheid"), en maakt dan plaats:
   de navigatiebalk is minstens 88 px en breder als de labels dat vragen (het ontwerp zegt
   ~72–88 px), en op Kleur gaan het voorbeeld en de schuiven en de vier kolommen van "Licht en
   beweging" onder elkaar zodra ze naast elkaar niet passen. Bij 100 % ziet alles eruit als in het
   ontwerp. Het woordmerk blijft 22 px, ook boven Apparaten.
 - **Minder beweging** noemt het ontwerp niet: daar gloeit het voorbeeld altijd mee. Met de
-  animaties van Windows uit staat het stil (zie "Minder beweging" bovenaan). De melding met
+  animaties van Windows uit staat het stil (zie "Minder beweging" bij "Toegankelijkheid"). De melding met
   "Laten lopen" staat in de Statusregel (§ 4), en de markering van Knipperen is een pil met een
   rand van 2 px in de tekstkleur (een contrastthema geeft hem de kleur van dat thema).
 - **Instellingen** staat niet in het ontwerp; het gebruikt dezelfde kaarten, kleuren en
