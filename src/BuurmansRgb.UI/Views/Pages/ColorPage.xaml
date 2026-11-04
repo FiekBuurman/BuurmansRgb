@@ -351,7 +351,8 @@
                             Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
 
                     <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" />
-                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine fit one row. -->
+                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
+                         the full colors fit one row in a wide window, and the rest wraps under them. -->
                     <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>

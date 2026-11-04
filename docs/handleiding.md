@@ -190,8 +190,9 @@ schakelaar ernaast.
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
-  (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Warm wit,
-  Rood, Oranje, Groen, Blauw, Paars, en Fel rood, Fel groen en Fel blauw) met daaronder je
+  (0–255, ook met de pijltjes), "Kleuren" met veertien vaste kleuren (Warm wit,
+  Rood, Oranje, Groen, Blauw, Paars, Fel rood, Fel groen en Fel blauw, en Roze, Lichtroze,
+  Lila, Mint en Babyblauw) met daaronder je
   eigen kleuren (zie "Eigen kleuren"). De kleur gaat meteen op het apparaat (bij "Hele huis" op
   alle apparaten) terwijl je schuift, een hex-code typt of een vaste of eigen kleur kiest; een
   knop is er niet. Een seconde na je laatste wijziging staat rechtsonder "Opgeslagen ✓" (zie
@@ -912,11 +913,13 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   Regenboog, dat geen kleur van het apparaat gebruikt, zegt een regel onder de hex-code dat de
   kleur die je mengt nergens heen gaat.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
-  van het ontwerp (§ 4, "Preset tile"), zodat de negen vaste kleuren op één rij passen en de
-  eigen kleuren eronder ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de
+  van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
+  eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de
   focusring en hebben hun naam voor een schermlezer. Naast de zes kleuren van het ontwerp staan
   Fel rood, Fel groen en Fel blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van
-  het ontwerp zijn getint. De vakjes van de kleurenloop en de kleuren van een effect blijven
+  het ontwerp zijn getint. Daarna komen Roze, Lichtroze, Lila, Mint en Babyblauw
+  (255,105,180 · 255,182,193 · 204,153,255 · 152,255,204 · 137,207,240): het ontwerp heeft geen
+  roze of pastel, en de gebruiker wilde die bij de hand hebben. De vakjes van de kleurenloop en de kleuren van een effect blijven
   44 px.
 - **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
   van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes

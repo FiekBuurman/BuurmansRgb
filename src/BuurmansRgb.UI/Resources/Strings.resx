@@ -324,6 +324,26 @@
     <value>Fel blauw</value>
     <comment>0, 0, 255: naast het getinte Blauw van het ontwerp.</comment>
   </data>
+  <data name="PresetPink" xml:space="preserve">
+    <value>Roze</value>
+    <comment>255, 105, 180: roze en de pastelkleuren hierna staan niet in het ontwerp; de gebruiker vroeg erom.</comment>
+  </data>
+  <data name="PresetLightPink" xml:space="preserve">
+    <value>Lichtroze</value>
+    <comment>255, 182, 193.</comment>
+  </data>
+  <data name="PresetLilac" xml:space="preserve">
+    <value>Lila</value>
+    <comment>204, 153, 255.</comment>
+  </data>
+  <data name="PresetMint" xml:space="preserve">
+    <value>Mint</value>
+    <comment>152, 255, 204.</comment>
+  </data>
+  <data name="PresetBabyBlue" xml:space="preserve">
+    <value>Babyblauw</value>
+    <comment>137, 207, 240.</comment>
+  </data>
   <data name="SpeedHeader" xml:space="preserve">
     <value>Snelheid</value>
   </data>

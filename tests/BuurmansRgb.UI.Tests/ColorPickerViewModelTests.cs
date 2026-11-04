@@ -10,14 +10,18 @@ public sealed class ColorPickerViewModelTests
 
     public ColorPickerViewModelTests() => _picker.ColorPicked += (_, color) => _picked.Add(color);
 
+    // The six of the design, the full red, green and blue, and then pink and the pastels.
     [Fact]
-    public void Presets_AreTheToolboxOfTheDesignAndTheRealColorsWithDutchNames()
+    public void Presets_AreTheToolboxOfTheDesignTheRealColorsAndThePastelsWithDutchNames()
     {
         Assert.Equal(
-            ["Warm wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw"],
+            ["Warm wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw", "Roze", "Lichtroze", "Lila", "Mint", "Babyblauw"],
             ColorPickerViewModel.Presets.Select(preset => preset.Name));
         Assert.Equal(new RgbColor(255, 154, 61), ColorPickerViewModel.Presets[2].Color);
-        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], ColorPickerViewModel.Presets.Skip(6).Select(preset => preset.Color));
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], ColorPickerViewModel.Presets.Skip(6).Take(3).Select(preset => preset.Color));
+        Assert.Equal(
+            [new RgbColor(255, 105, 180), new RgbColor(255, 182, 193), new RgbColor(204, 153, 255), new RgbColor(152, 255, 204), new RgbColor(137, 207, 240)],
+            ColorPickerViewModel.Presets.Skip(9).Select(preset => preset.Color));
     }
 
     // Each its own color, also the real ones next to the tinted ones of the design.

@@ -146,6 +146,16 @@ public sealed class ColorNamesTests
         Assert.Equal("fel groen", ColorNames.NameOf(new(0, 255, 0)));
     }
 
+    // Pink and the pastels have their own name, from Strings.resx, and not the word of their tone.
+    [Theory]
+    [InlineData("#FF69B4", "roze, #FF69B4")]
+    [InlineData("#FFB6C1", "lichtroze, #FFB6C1")]
+    [InlineData("#CC99FF", "lila, #CC99FF")]
+    [InlineData("#98FFCC", "mint, #98FFCC")]
+    [InlineData("#89CFF0", "babyblauw, #89CFF0")]
+    public void WithHex_PinkAndThePastels_HaveTheirOwnName(string hex, string expected) =>
+        Assert.Equal(expected, ColorNames.WithHex(Parse(hex)));
+
     // The small letter follows the culture of the text, not the region format: under tr-TR the names
     // are the same.
     [Fact]

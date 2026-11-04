@@ -20,8 +20,8 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
     public event EventHandler<RgbColor>? ColorPicked;
 
-    // "Kleuren": the colors of the design, and after them red, green and blue at
-    // full strength, which the tinted ones of the design are not.
+    // "Kleuren": the colors of the design, after them red, green and blue at full strength, which
+    // the tinted ones of the design are not, and then pink and the pastels the user asked for.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
         new(new(255, 244, 229), Strings.PresetWarmWhite),
@@ -33,6 +33,11 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         new(new(255, 0, 0), Strings.PresetPureRed),
         new(new(0, 255, 0), Strings.PresetPureGreen),
         new(new(0, 0, 255), Strings.PresetPureBlue),
+        new(new(255, 105, 180), Strings.PresetPink),
+        new(new(255, 182, 193), Strings.PresetLightPink),
+        new(new(204, 153, 255), Strings.PresetLilac),
+        new(new(152, 255, 204), Strings.PresetMint),
+        new(new(137, 207, 240), Strings.PresetBabyBlue),
     ];
 
     // 0 to 255 each.
