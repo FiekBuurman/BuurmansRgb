@@ -163,6 +163,35 @@ public sealed class SettingsViewTests
             OffscreenWindow.WaitUntilIdle();
 
             Assert.Equal(Strings.AfterRestartLighting, lighting.Text);
+            Assert.False(PageViews.ById<TextBlock>(page, "AfterRestartSceneTimes").IsVisible);
+        });
+    }
+
+    // With "Gemiste tijden inhalen" and a scene with a time, the block says that scene comes on at
+    // the start; switching the catch-up off takes the line away.
+    [Fact]
+    public async Task AfterRestartBlock_SaysASceneTimeComesOnWithCatchUp()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Profiles.Add("Nacht");
+            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.CatchUpSceneTimes = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var sceneTimes = PageViews.ById<TextBlock>(page, "AfterRestartSceneTimes");
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.True(sceneTimes.IsVisible);
+            Assert.Equal(Strings.AfterRestartSceneTimes, sceneTimes.Text);
+
+            viewModel.SceneTimes.IsOn = false;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(sceneTimes.IsVisible);
         });
     }
 

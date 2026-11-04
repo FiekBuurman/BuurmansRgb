@@ -38,6 +38,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     public bool HasScenes => Names.Count > 0;
 
+    // Whether a scene has a time to come on at, as far as the engine told it on the cards (ShowCard).
+    public bool HasSceneTimes => Cards.Any(card => card.HasTimes);
+
     // The scene that is on (ShowActive); null when none is.
     [ObservableProperty]
     public partial string? ActiveName { get; private set; }
@@ -93,12 +96,16 @@ public sealed partial class ProfilesViewModel : ObservableObject
         });
         OnPropertyChanged(nameof(SaveLabel));
         OnPropertyChanged(nameof(HasScenes));
+        OnPropertyChanged(nameof(HasSceneTimes));
         RequestAutomation();
     }
 
     // What the engine says the scene looks like and when it loads by itself.
-    public void ShowCard(string name, LightingInfo lighting, ProfileAutomation automation) =>
+    public void ShowCard(string name, LightingInfo lighting, ProfileAutomation automation)
+    {
         Cards.FirstOrDefault(card => card.Name == name)?.Show(lighting, automation);
+        OnPropertyChanged(nameof(HasSceneTimes));
+    }
 
     // The scene that is on, as the engine says; null when none is. Its card gets the border of the
     // design.

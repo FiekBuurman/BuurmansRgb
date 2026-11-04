@@ -956,6 +956,10 @@
   <data name="AfterRestartSleepNoPause" xml:space="preserve">
     <value>dat de apparaten blijven zoals ze zijn als de pc slaapt of vergrendeld is, omdat pauzeren uit staat</value>
   </data>
+  <data name="AfterRestartSceneTimes" xml:space="preserve">
+    <value>"Gemiste tijden inhalen" staat aan, dus bij het starten komt de scène aan waarvan de tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos.</value>
+    <comment>Onder de opsomming, alleen als Gemiste tijden inhalen aan staat en een scène een tijd heeft.</comment>
+  </data>
   <data name="AfterRestartAutoStartOn" xml:space="preserve">
     <value>"Starten met Windows" staat aan, dus na een herstart van de pc komt je verlichting vanzelf terug.</value>
   </data>

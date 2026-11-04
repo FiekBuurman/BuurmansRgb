@@ -725,15 +725,18 @@ Hoe het vanzelf aanzetten werkt:
 - **Na een herstart:** het tweede blok zegt wat buurmansRgb bewaart en terugzet zodra het weer
   start: de kleur en het effect van elk apparaat en of het aan of uit staat (staat er een scène
   aan, dan "de scène 'Gamen', die nu aan staat"), de helderheid, en wat de apparaten doen als de
-  pc slaapt of vergrendeld is (de keuze van het blok erboven). Daaronder staat of dat vanzelf
-  gebeurt: "Starten met Windows" staat aan, of staat uit, en dan komt je verlichting na een
-  herstart van de pc niet vanzelf terug, pas als je buurmansRgb zelf opent. Dan staat er ook de
-  knop **Starten met Windows aanzetten**, die hetzelfde doet als de schakelaar bij "Opstarten"
-  (en dus ook telt als je eigen keuze, zie `autoStartChosen` bij "Instellingenbestanden"). Daarna
-  verdwijnt de knop en staat de toetsenbordfocus op die schakelaar, zodat een schermlezer
-  zegt dat hij aan staat. Het blok loopt mee als je iets verandert: een scène aan of uit, een
-  andere keuze bij slaapstand, of "Starten met Windows" hier of in het tray-menu. Een schermlezer
-  leest het als hij er komt; de titel is een kop.
+  pc slaapt of vergrendeld is (de keuze van het blok erboven). Staat "Gemiste tijden inhalen" aan
+  en heeft een scène een tijd, dan staat eronder dat bij het starten de scène aankomt waarvan de
+  tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos (zie
+  "Gemiste tijden inhalen" bij Scènes). Daaronder staat of dat vanzelf gebeurt: "Starten met
+  Windows" staat aan, of staat uit, en dan komt je verlichting na een herstart van de pc niet
+  vanzelf terug, pas als je buurmansRgb zelf opent. Dan staat er ook de knop **Starten met Windows
+  aanzetten**, die hetzelfde doet als de schakelaar bij "Opstarten" (en dus ook telt als je eigen
+  keuze, zie `autoStartChosen` bij "Instellingenbestanden"). Daarna verdwijnt de knop en staat de
+  toetsenbordfocus op die schakelaar, zodat een schermlezer zegt dat hij aan staat. Het blok loopt
+  mee als je iets verandert: een scène aan of uit, een andere keuze bij slaapstand, "Gemiste
+  tijden inhalen" of een tijd bij een scène, of "Starten met Windows" hier of in het tray-menu. Een
+  schermlezer leest het als hij er komt; de titel is een kop.
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
   (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
   tray-icoon) en de tip uitgeschreven, de uitleg hoe een apparaat erbij komt ("Zodra OpenRGB een

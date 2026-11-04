@@ -1,22 +1,24 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
-// "Na een herstart" on Instellingen follows the scene that is on, the sleep choice and "Starten met
-// Windows" as they change.
+// "Na een herstart" on Instellingen follows the scene that is on, the scene times, the sleep choice
+// and "Starten met Windows" as they change.
 public sealed class AfterRestartViewModelTests
 {
     private readonly ProfilesViewModel _profiles = new();
     private readonly EffectOptionsViewModel _effectOptions = new();
     private readonly SwitchOptionViewModel _autoStart = new(isOn: false);
+    private readonly SwitchOptionViewModel _sceneTimes = new(isOn: false);
     private readonly List<string?> _changed = [];
     private readonly AfterRestartViewModel _afterRestart;
 
     public AfterRestartViewModelTests()
     {
-        _afterRestart = new(_profiles, _effectOptions, _autoStart);
+        _afterRestart = new(_profiles, _effectOptions, _autoStart, _sceneTimes);
         _afterRestart.PropertyChanged += (_, e) => _changed.Add(e.PropertyName);
     }
 
@@ -87,4 +89,40 @@ public sealed class AfterRestartViewModelTests
         Assert.True(_afterRestart.StartsWithWindows);
         Assert.Empty(switched);
     }
+
+    // "Gemiste tijden inhalen" with a scene that has a time: the engine puts that scene on at the
+    // start, so the block says so; not without a time, and not with the switch off.
+    [Fact]
+    public void CatchUpWithASceneTime_SaysTheSceneComesOn()
+    {
+        _profiles.Show(["Nacht", "Gamen"]);
+        _profiles.ShowCard("Gamen", Lighting, ProfileAutomation.None);
+        _sceneTimes.Show(true);
+        Assert.False(_afterRestart.CatchesUpSceneTimes);
+
+        _profiles.ShowCard("Nacht", Lighting, new ProfileAutomation(new TimeOnly(23, 0)));
+        Assert.True(_afterRestart.CatchesUpSceneTimes);
+        Assert.Contains(nameof(AfterRestartViewModel.CatchesUpSceneTimes), _changed);
+
+        _changed.Clear();
+        _sceneTimes.IsOn = false;
+        Assert.False(_afterRestart.CatchesUpSceneTimes);
+        Assert.Contains(nameof(AfterRestartViewModel.CatchesUpSceneTimes), _changed);
+    }
+
+    // The scene with the time is deleted: nothing comes on by itself any more.
+    [Fact]
+    public void SceneWithATimeGone_SaysNothingAboutIt()
+    {
+        _sceneTimes.Show(true);
+        _profiles.Show(["Nacht"]);
+        _profiles.ShowCard("Nacht", Lighting, new ProfileAutomation(new TimeOnly(23, 0)));
+        Assert.True(_afterRestart.CatchesUpSceneTimes);
+
+        _profiles.Show([]);
+
+        Assert.False(_afterRestart.CatchesUpSceneTimes);
+    }
+
+    private static LightingInfo Lighting => new(RgbColor.White, 1.0, EffectIds.Static);
 }
