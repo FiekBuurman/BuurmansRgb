@@ -171,7 +171,9 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // autoStartChosen, and --first-run does not overrule a choice it cannot read.
     private static EngineSettings UnknownChoices() => EngineSettings.CreateDefault() with { AutoStartChosen = null };
 
-    // Writing the defaults is a convenience for the user; the lights must start without it.
+    // Writing the defaults is a convenience for the user; the lights must start without it. Without
+    // a file, a file that did not read and went aside looks like a new installation at the next
+    // start, unless the engine saves before then; the log tells why.
     private void TrySaveLocked(EngineSettings settings)
     {
         try
@@ -180,6 +182,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
+            Trace.TraceWarning($"Could not write the settings file {filePath} at the start; the next save writes it: {exception.Message}");
         }
     }
 
