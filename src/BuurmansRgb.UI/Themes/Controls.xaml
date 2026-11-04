@@ -299,13 +299,18 @@
          half its height (SwitchRadius), so its ends are round; a larger one would make it an ellipse.
          In a contrast theme of Windows (ContrastTheme) the highlight covers the track when on, as in
          the switches of Windows, and a ring in the text color shows the track, in the highlight under
-         the mouse (HoverOutlineBrush); otherwise the cover and the ring are transparent. -->
-    <Style x:Key="Switch" TargetType="ToggleButton">
+         the mouse (HoverOutlineBrush); otherwise the cover and the ring are transparent.
+         Beside the track "Aan" or "Uit" says the same in words, in the text color and the size of body
+         text, so it grows with the text size of Windows. It is decorative text, as a screen reader hears
+         the state from the switch itself (ToggleSwitch). Both words keep their room, so the track does
+         not move when the word changes; the focus ring goes around the track and the word, as with
+         the switches of Windows. -->
+    <Style x:Key="Switch" TargetType="views:ToggleSwitch">
         <Style.Resources>
             <CornerRadius x:Key="SwitchRadius">16</CornerRadius>
+            <sys:Double x:Key="SwitchWidth">52</sys:Double>
+            <sys:Double x:Key="SwitchHeight">32</sys:Double>
         </Style.Resources>
-        <Setter Property="Width" Value="52" />
-        <Setter Property="Height" Value="32" />
         <Setter Property="Padding" Value="4" />
         <Setter Property="Tag" Value="{DynamicResource TextBrush}" />
         <Setter Property="Cursor" Value="Hand" />
@@ -313,16 +318,25 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingSwitch}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="ToggleButton">
-                    <Grid>
-                        <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOffTrackBrush}" />
-                        <Border x:Name="Cover" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOnCoverBrush}" Visibility="Collapsed" />
-                        <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
-                        <Border x:Name="Shine" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource TextBrush}" Opacity="0" />
-                        <Border x:Name="Outline" CornerRadius="{DynamicResource SwitchRadius}" BorderThickness="1" BorderBrush="{DynamicResource ControlOutlineBrush}" />
-                        <Ellipse x:Name="Knob" Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" Fill="{DynamicResource KnobOffBrush}"
-                                 Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" />
-                    </Grid>
+                <ControlTemplate TargetType="views:ToggleSwitch">
+                    <!-- Transparent, so a click on the word or between it and the track works too. -->
+                    <StackPanel Orientation="Horizontal" Background="Transparent">
+                        <Grid Width="{DynamicResource SwitchWidth}" Height="{DynamicResource SwitchHeight}" VerticalAlignment="Center">
+                            <Border x:Name="Track" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOffTrackBrush}" />
+                            <Border x:Name="Cover" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource SwitchOnCoverBrush}" Visibility="Collapsed" />
+                            <!-- Hover (§ 6): the track a little lighter, whatever its color. -->
+                            <Border x:Name="Shine" CornerRadius="{DynamicResource SwitchRadius}" Background="{DynamicResource TextBrush}" Opacity="0" />
+                            <Border x:Name="Outline" CornerRadius="{DynamicResource SwitchRadius}" BorderThickness="1" BorderBrush="{DynamicResource ControlOutlineBrush}" />
+                            <Ellipse x:Name="Knob" Margin="{TemplateBinding Padding}" HorizontalAlignment="Left" Fill="{DynamicResource KnobOffBrush}"
+                                     Width="{Binding ActualHeight, RelativeSource={RelativeSource Self}}" />
+                        </Grid>
+                        <Grid Margin="8,0,0,0" VerticalAlignment="Center">
+                            <views:DecorativeText x:Name="OnText" FontSize="{DynamicResource BodySize}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
+                                                  Text="{x:Static res:Strings.SwitchOn}" Visibility="Hidden" />
+                            <views:DecorativeText x:Name="OffText" FontSize="{DynamicResource BodySize}" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"
+                                                  Text="{x:Static res:Strings.SwitchOff}" />
+                        </Grid>
+                    </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Shine" Property="Opacity" Value="0.15" />
@@ -333,6 +347,8 @@
                             <Setter TargetName="Cover" Property="Visibility" Value="Visible" />
                             <Setter TargetName="Knob" Property="Fill" Value="{DynamicResource OnAccentBrush}" />
                             <Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="OnText" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="OffText" Property="Visibility" Value="Hidden" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.5" />
@@ -342,12 +358,12 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <Style x:Key="LargeSwitch" TargetType="ToggleButton" BasedOn="{StaticResource Switch}">
+    <Style x:Key="LargeSwitch" TargetType="views:ToggleSwitch" BasedOn="{StaticResource Switch}">
         <Style.Resources>
             <CornerRadius x:Key="SwitchRadius">18</CornerRadius>
+            <sys:Double x:Key="SwitchWidth">60</sys:Double>
+            <sys:Double x:Key="SwitchHeight">36</sys:Double>
         </Style.Resources>
-        <Setter Property="Width" Value="60" />
-        <Setter Property="Height" Value="36" />
     </Style>
 
     <!-- § 4 Primary button: text-colored, with the corners of ButtonRadius; in a contrast theme the

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Shapes;
+using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -73,7 +74,7 @@ public sealed class DisabledStyleTests
     [Fact]
     public void Switch_Off_HasTheGreyTrackWithTheKnobOffKnob() => AppTheme.Run(panel =>
     {
-        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = false });
+        var toggle = AppTheme.Show(panel, new ToggleSwitch { Style = (Style)panel.FindResource("Switch"), IsChecked = false });
 
         AppTheme.AssertColor(panel, "SwitchOffTrackBrush", AppTheme.Part<Border>(toggle, "Track").Background);
         AppTheme.AssertColor(panel, "KnobOffBrush", AppTheme.Part<Ellipse>(toggle, "Knob").Fill);
@@ -82,7 +83,7 @@ public sealed class DisabledStyleTests
     [Fact]
     public void Switch_On_HasTheTrackInItsColorWithTheBgKnob() => AppTheme.Run(panel =>
     {
-        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = true });
+        var toggle = AppTheme.Show(panel, new ToggleSwitch { Style = (Style)panel.FindResource("Switch"), IsChecked = true });
 
         AppTheme.AssertColor(panel, "TextBrush", AppTheme.Part<Border>(toggle, "Track").Background);
         AppTheme.AssertColor(panel, "OnAccentBrush", AppTheme.Part<Ellipse>(toggle, "Knob").Fill);

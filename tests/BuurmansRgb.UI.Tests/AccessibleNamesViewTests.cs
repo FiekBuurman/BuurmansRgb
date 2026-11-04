@@ -77,7 +77,8 @@ public sealed class AccessibleNamesViewTests
         });
     }
 
-    // The tooltip fills the whole card, so its edge, inside the padding, shows it too.
+    // The tooltip fills the whole card, so its edge, inside the padding, shows it too. In the
+    // smallest window, so a card is as wide as in the app, with room for the switch beside its text.
     [Fact]
     public async Task LampsPage_CardToolTip_FillsTheCardUpToItsEdge()
     {
@@ -85,6 +86,7 @@ public sealed class AccessibleNamesViewTests
 
         AppTheme.Run(panel =>
         {
+            Window.GetWindow(panel)!.Width = PageViews.PageWidth(960);
             var page = PageViews.Show<LampsPage>(panel, viewModel);
             var card = PageViews.ButtonNamed(page, string.Format(Strings.LampOpenAccessibleName, "LED strip"));
             var content = Assert.IsAssignableFrom<FrameworkElement>(card.Content);

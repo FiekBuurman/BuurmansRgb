@@ -149,7 +149,7 @@ public sealed class ContrastThemeStyleTests
     [InlineData(true)]
     public void Switch_OnHover_HasARingInTheHighlight(bool isChecked) => InContrastTheme(panel =>
     {
-        var toggle = AppTheme.Show(panel, new ToggleButton { Style = (Style)panel.FindResource("Switch"), IsChecked = isChecked });
+        var toggle = AppTheme.Show(panel, new ToggleSwitch { Style = (Style)panel.FindResource("Switch"), IsChecked = isChecked });
 
         Assert.Same(SystemColors.WindowTextBrush, AppTheme.Part<Border>(toggle, "Outline").BorderBrush);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(toggle.Template.Triggers)[("Outline", Border.BorderBrushProperty)]));

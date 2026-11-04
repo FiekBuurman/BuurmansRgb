@@ -45,7 +45,7 @@
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SleepHeader}"
                                    AutomationProperties.HeadingLevel="Level2" />
                         <DockPanel Margin="0,12,0,0">
-                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                            <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding EffectOptions.PauseOnLockAndSleep}"
                                           AutomationProperties.Name="{x:Static res:Strings.PauseOnLockLabel}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.PauseOnLockHint}" />
@@ -165,7 +165,7 @@
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SceneTimesHeader}" />
                         <DockPanel Margin="0,12,0,0">
-                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                            <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding SceneTimes.IsOn}"
                                           AutomationProperties.Name="{x:Static res:Strings.CatchUpLabel}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.CatchUpHint}" />
@@ -182,7 +182,7 @@
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.HotkeysHeader}" />
                         <DockPanel Margin="0,12,0,0">
-                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                            <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding Hotkeys.IsOn}"
                                           AutomationProperties.Name="{x:Static res:Strings.HotkeysLabel}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.HotkeysHint}" />
@@ -199,7 +199,7 @@
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AutoStartHeader}" />
                         <DockPanel Margin="0,12,0,0">
-                            <ToggleButton x:Name="AutoStartSwitch" DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                            <views:ToggleSwitch x:Name="AutoStartSwitch" DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                           IsChecked="{Binding AutoStart.IsOn}"
                                           AutomationProperties.Name="{x:Static res:Strings.AutoStartLabel}"
                                           AutomationProperties.HelpText="{x:Static res:Strings.AutoStartHint}"

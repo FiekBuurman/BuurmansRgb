@@ -52,7 +52,7 @@
                                  again after a change of it. -->
                             <DockPanel Margin="0,0,0,10" ToolTip="{x:Static res:Strings.ZonesAlikeHint}"
                                        Visibility="{Binding ShowsZonesAlike, Converter={StaticResource BoolToVisibility}}">
-                                <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                <views:ToggleSwitch DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
                                               IsChecked="{Binding ZonesAlike}"
                                               AutomationProperties.Name="{Binding ZonesAlikeAccessibleName}"
                                               AutomationProperties.HelpText="{x:Static res:Strings.ZonesAlikeHint}"

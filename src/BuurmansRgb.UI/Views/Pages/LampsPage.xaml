@@ -18,6 +18,9 @@
                 <PropertyGroupDescription PropertyName="Device.Group" />
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
+        <!-- The padding of a card, with room on the right for its switch with "Aan" or "Uit": the 16 px
+             between the switch and the edge, and 14 px between the text and the switch. -->
+        <views:RightPaddingConverter x:Key="RoomForSwitch" Padding="16,14,30,14" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -50,7 +53,7 @@
             <Border Style="{StaticResource LargeCard}">
                 <StackPanel>
                     <DockPanel>
-                        <ToggleButton DockPanel.Dock="Right" Style="{StaticResource LargeSwitch}" IsChecked="{Binding Lamps.IsAnyOn}"
+                        <views:ToggleSwitch DockPanel.Dock="Right" Style="{StaticResource LargeSwitch}" IsChecked="{Binding Lamps.IsAnyOn}"
                                       IsEnabled="{Binding Lamps.HasLamps}"
                                       AutomationProperties.Name="{x:Static res:Strings.WholeHouseSwitchAccessibleName}"
                                       AutomationProperties.HelpText="{Binding Lamps.Summary}" />
@@ -167,7 +170,8 @@
                                     CommandParameter="{Binding}"
                                     AutomationProperties.Name="{Binding OpenAccessibleName}"
                                     AutomationProperties.HelpText="{Binding Device.AccessibleHelpText}">
-                                <Border Background="Transparent" Padding="16,14,82,14" ToolTip="{Binding Device.CardToolTip}">
+                                <Border Background="Transparent" ToolTip="{Binding Device.CardToolTip}"
+                                        Padding="{Binding ActualWidth, ElementName=CardSwitch, Converter={StaticResource RoomForSwitch}}">
                                     <DockPanel VerticalAlignment="Center">
                                         <views:LedBulb DockPanel.Dock="Left" Margin="0,0,14,0" VerticalAlignment="Center" Diameter="38" GlowBlur="16" GlowSpread="2"
                                                        IsLit="{Binding IsOn}" Color="{Binding Color}" />
@@ -185,7 +189,7 @@
                                     </DockPanel>
                                 </Border>
                             </Button>
-                            <ToggleButton Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
+                            <views:ToggleSwitch x:Name="CardSwitch" Margin="0,0,16,0" HorizontalAlignment="Right" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
                                           Tag="{Binding Color, Converter={StaticResource SwitchTrackBrush}}"
                                           AutomationProperties.Name="{Binding SwitchAccessibleName}"
                                           AutomationProperties.HelpText="{Binding Details}" />

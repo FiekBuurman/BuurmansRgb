@@ -72,7 +72,7 @@ internal static class TextFit
 
             foreach (var (text, block, ink) in texts)
             {
-                if (!IsInside(block, control) && Overlap(bounds, ink))
+                if (!IsInside(block, control) && !LiesOn(block, control) && Overlap(bounds, ink))
                 {
                     problems.Add($"'{text}' lies over {control.GetType().Name} '{AutomationProperties.GetName(control)}'");
                 }
@@ -191,6 +191,22 @@ internal static class TextFit
         }
 
         return false;
+    }
+
+    // A text of a control that lies over another one on purpose, as the switch with "Aan" or "Uit"
+    // lies on a card of Apparaten after it, in the same panel: the word may lie on the card, but not
+    // on a text of it, which the check of text over text finds.
+    private static bool LiesOn(TextBlock text, Control control)
+    {
+        DependencyObject? owner = text;
+        while (owner is not null and not ButtonBase)
+        {
+            owner = VisualTreeHelper.GetParent(owner);
+        }
+
+        return owner is ButtonBase button && button != control
+            && VisualTreeHelper.GetParent(button) is Panel panel && VisualTreeHelper.GetParent(control) == panel
+            && panel.Children.IndexOf(button) > panel.Children.IndexOf(control);
     }
 
     private static string Invariant(FormattableString text) => text.ToString(CultureInfo.InvariantCulture);
