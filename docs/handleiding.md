@@ -214,7 +214,8 @@ schakelaar ernaast.
   terug zonder melding. Verandert de kleur terwijl je in het veld een halve code typt (bijv. een
   scène uit het systeemvak), dan blijft je tekst staan tot je het veld verlaat; een hele code
   wordt meteen de code van de nieuwe kleur, ook als je op een LED klikt terwijl de cursor in het
-  veld staat.
+  veld staat. Ga je naar een ander venster (bijv. met Alt+Tab), dan is je tekst niet meer
+  beschermd: verandert de kleur intussen, dan staat bij terugkomst de code van die kleur erin.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
   mengt, kun je bij je eigen kleuren bewaren voor een ander effect.": de regenboog heeft zijn

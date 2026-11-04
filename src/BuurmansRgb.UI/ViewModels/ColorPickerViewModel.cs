@@ -73,7 +73,8 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsUnused { get; set; }
 
-    // The hex field has the keyboard focus (the view says so). Meanwhile Show leaves a code that is
+    // The hex field has the keyboard focus (the view says so); another window, such as after
+    // Alt+Tab, takes the keyboard focus away too. Meanwhile Show leaves a code that is
     // no color yet alone, so a late answer does not rewrite a code that is being typed, such as
     // "#FF00F" after Backspace; EndHexEdit handles it once the focus goes. A whole code follows the
     // color shown as without the focus, for a click on a LED leaves the focus in the field.

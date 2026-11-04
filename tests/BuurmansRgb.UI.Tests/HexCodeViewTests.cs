@@ -49,6 +49,28 @@ public sealed class HexCodeViewTests
         });
     }
 
+    // The page tells the picker when the field has the keyboard focus, so a code being typed stays.
+    [Fact]
+    public async Task HexBox_TellsThePickerWhenItHasTheFocus()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = PageViews.Named<TextBox>(page, Strings.HexLabel);
+            Assert.False(viewModel.ColorPicker.IsHexFocused);
+
+            Assert.True(box.Focus());
+            OffscreenWindow.WaitUntilIdle();
+            Assert.True(viewModel.ColorPicker.IsHexFocused);
+
+            Assert.True(PageViews.Named<Slider>(page, Strings.ChannelRed).Focus());
+            OffscreenWindow.WaitUntilIdle();
+            Assert.False(viewModel.ColorPicker.IsHexFocused);
+        });
+    }
+
     // The code is a field like the others, so you see you can type in it: their border, which stands
     // out on the preview (TokenContrastTests), and their ring with the focus. A whole code fits in it,
     // also with the ring, so nothing scrolls away; in the smallest window too.
