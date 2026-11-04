@@ -1146,7 +1146,8 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
   uninstaller hoort bij de geïnstalleerde engine en gebruikt het wel.
 - **Verwijderen** stopt de engine, haalt de autostart weg en vraagt dan of OpenRGB en PawnIO
   ook weg moeten (alleen als deze installer ze heeft geïnstalleerd), en of je instellingen weg
-  moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee".
+  moeten. Stil verwijderen (`/VERYSILENT /SUPPRESSMSGBOXES`) beantwoordt alles met "Nee"; alle
+  parameters voor stil installeren en verwijderen staan in `installatie.md`.
   Alles geldt alleen voor de gebruiker die het verwijderen startte (`verwijderen-netjes`):
   - Inno Setup draait de uninstaller twee keer: de eerste kopie als de gebruiker, die een
     verhoogde tweede start en daarop wacht. Beantwoordt een andere beheerder de UAC-vraag, dan
@@ -1442,7 +1443,10 @@ Op een pc met OpenRGB als service en PawnIO (zoals de installer ze zet):
 1. Kijk welke naam de driver van PawnIO heeft: `sc query type= driver | findstr /i pawn` in een
    opdrachtprompt. Zet de naam in `docs/hardware.md` en bij "Naam van de driver" in
    `docs/openrgb-meeleveren.md`; is het niet `PawnIO`, pas dan
-   `ServiceRestarter.PawnIoService` en deze tekst aan.
+   `ServiceRestarter.PawnIoService` en deze tekst aan. Kijk met `sc qc <naam>` ook naar het
+   starttype (`START_TYPE`) en zet het bij "De driver PawnIO" in `docs/installatie.md`, waar het
+   nu "onbekend" heet; `sc qc OpenRGB` en `netstat -ano | findstr :6742` bevestigen daar ook
+   automatisch starten, LocalSystem en `127.0.0.1:6742`.
 2. Kies "Herstarten" in het tray-menu en keur de UAC-vraag goed. De tooltip zegt
    "buurmansRgb – herstarten…", het icoon verdwijnt even en komt terug, en de melding zegt
    "buurmansRgb is herstart.", "OpenRGB is herstart." en "PawnIO is herstart.". Controleer met
