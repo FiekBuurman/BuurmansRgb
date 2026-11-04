@@ -113,24 +113,19 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task Green_Changed_MixesTheColorButSendsItOnlyWhenApplied()
+    public async Task Green_Changed_PutsTheMixedColorOnAtOnce()
     {
         var viewModel = await ConnectAsync();
 
         viewModel.ColorPicker.Green = 255;
 
-        Assert.Empty(Api.Calls);
-        Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
-
-        viewModel.ColorPicker.ApplyCommand.Execute(null);
-
         Assert.Equal(["color all #FFFF00"], Api.Calls);
+        Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
         Assert.False(viewModel.ColorPicker.HasUnappliedChange);
     }
 
     [Fact]
-    public async Task HexColor_ValidAndApplied_SendsAndUpdatesSliders()
+    public async Task HexColor_Valid_SendsAndUpdatesSliders()
     {
         var viewModel = await ConnectAsync();
 
@@ -155,17 +150,14 @@ public sealed class MainViewModelTests
     }
 
     [Fact]
-    public async Task SelectPreset_ShowsTheColorAndApplySendsIt()
+    public async Task SelectPreset_PutsItsColorOnAtOnce()
     {
         var viewModel = await ConnectAsync();
 
         viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 154, 61));
-        Assert.Empty(Api.Calls);
-        Assert.Equal("#FF9A3D", viewModel.ColorPicker.HexColor);
-
-        viewModel.ColorPicker.ApplyCommand.Execute(null);
 
         Assert.Equal(["color all #FF9A3D"], Api.Calls);
+        Assert.Equal("#FF9A3D", viewModel.ColorPicker.HexColor);
     }
 
     [Fact]
@@ -294,12 +286,16 @@ public sealed class MainViewModelTests
         await Eventually.TrueAsync(() => !viewModel.Preview.Devices.Single().ZonesAlike);
     }
 
-    // The switch is on the Kleur page: a color the user is mixing there stays in the picker when
-    // the engine reports the device again with the choice.
+    // The switch is on the Kleur page: a color the user is mixing there with the rainbow, which goes
+    // nowhere, stays in the picker when the engine reports the device again with the choice.
     [Fact]
     public async Task ZonesAlikeInThePreview_WhileMixingAColor_KeepsTheMixedColor()
     {
-        var viewModel = await ConnectAsync(api => api.Devices = [Board]);
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Devices = [Board];
+            UseRainbow(api);
+        });
         var before = viewModel.Preview.Devices.Single();
         viewModel.ColorPicker.Green = 255;
         var mixed = viewModel.ColorPicker.Color;
@@ -518,7 +514,7 @@ public sealed class MainViewModelTests
     [Fact]
     public async Task DevicesChanged_WhileMixingAColor_KeepsTheMixedColor()
     {
-        var viewModel = await ConnectAsync();
+        var viewModel = await ConnectAsync(UseRainbow);
         viewModel.ColorPicker.Green = 255;
         var mixed = viewModel.ColorPicker.Color;
         Api.Devices = [.. Api.Devices, TestDevices.Create("openrgb-gpu", "GPU", DeviceType.Gpu, 4)];
@@ -597,7 +593,7 @@ public sealed class MainViewModelTests
         viewModel.ColorPicker.HexColor = "#00FF00";
         viewModel.CustomColors.AddCommand.Execute(null);
 
-        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "custom colors #00FF00"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "color all #00FF00", "custom colors #00FF00"], Api.Calls);
     }
 
     [Fact]
@@ -756,6 +752,13 @@ public sealed class MainViewModelTests
 
     private static LightingFrame Frame(long sequence, RgbColor color) =>
         new(sequence, [DeviceFrame.FromColors("strip", [color, color, color]), DeviceFrame.FromColors("fan", [color, color])]);
+
+    // An effect that uses no color of the device, so a mixed color is not put on.
+    private static void UseRainbow(FakeEngineApi api)
+    {
+        api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+        api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
+    }
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {

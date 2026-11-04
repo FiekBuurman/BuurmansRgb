@@ -89,18 +89,47 @@ public sealed class MainViewModelLampTests
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
+    // A slider dragged while the engine is busy: the colors in between are replaced in the queue,
+    // the last one wins, and the lamp goes on once, after the first color.
     [Fact]
-    public async Task MixColor_WithoutPuttingItOnTheLamp_LeavesTheLampOff()
+    public async Task DragSlider_ForALampThatIsOff_SendsFewCallsAndSwitchesItOnOnce()
     {
         var viewModel = await ConnectAsync(SwitchOff("fan"));
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
         Api.Calls.Clear();
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
 
-        viewModel.ColorPicker.HexColor = "#00FF00";
-        viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 59, 59));
+        for (var green = 1; green <= 255; green++)
+        {
+            viewModel.ColorPicker.Green = green;
+        }
 
-        Assert.Empty(Api.Calls);
-        Assert.False(viewModel.SelectedLamp?.IsOn);
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 3);
+        Assert.Equal(["color fan #0001FF", "on fan on", "color fan #00FFFF"], Api.Calls);
+        Assert.True(viewModel.SelectedLamp?.IsOn);
+    }
+
+    // With "Hele huis" a drag colors every device, and the devices that are off go on once.
+    [Fact]
+    public async Task DragSlider_ForTheWholeHouseWithALampOff_SwitchesEveryLampOnOnce()
+    {
+        var viewModel = await ConnectAsync(SwitchOff("fan"));
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        for (var green = 1; green <= 255; green++)
+        {
+            viewModel.ColorPicker.Green = green;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 3);
+        Assert.Equal(["color all #FF0100", "on all on", "color all #FFFF00"], Api.Calls);
+        Assert.Equal("2 van 2 aan", viewModel.Lamps.Summary);
     }
 
     [Fact]
@@ -109,7 +138,7 @@ public sealed class MainViewModelLampTests
         var viewModel = await ConnectAsync(SwitchOff("strip", "fan"));
         viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan").ClickLed(0);
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(["leds fan 0 #00FF00", "on fan on"], Api.Calls);
         Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));

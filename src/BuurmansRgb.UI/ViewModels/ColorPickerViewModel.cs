@@ -5,17 +5,17 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code and the
-// presets change Color at once, so the preview shows it, but the color only goes to the lamp with
-// Apply ("Op het apparaat zetten"), which raises ColorPicked. With AppliesAtOnce, as for a color of the
-// loop or chosen LEDs, every mixed color raises ColorPicked by itself and Apply has nothing to do.
-// With IsUnused, as for the rainbow, the effect uses no color of the lamp: a mixed color only shows,
-// for the own colors, and Apply is off. Show shows the color the lamp has and raises nothing.
+// Mixes one color (design/DESIGN.md § 5.2): the Rood, Groen and Blauw sliders, the hex code, the
+// presets and the own colors change Color, and every mixed color goes on at once by raising
+// ColorPicked, for the whole device as for a color of the loop or of chosen LEDs; the call queue of
+// MainViewModel lets the last one of a drag win. With IsUnused, as for the rainbow, the effect uses
+// no color of the device: a mixed color only shows, for the own colors, and raises nothing. Show
+// shows the color the device has and raises nothing.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
 
-    // The color last shown or applied: what the lamp has.
+    // The color last shown or put on: what the device has.
     private RgbColor _applied = RgbColor.White;
 
     public event EventHandler<RgbColor>? ColorPicked;
@@ -57,32 +57,19 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public partial string? HexError { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange), nameof(ShowsUnappliedChange))]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
     // "255 · 154 · 61", as the preview of the design shows it.
     public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
 
-    // The mixed color is not on the lamp yet.
+    // The mixed color is not on the device: it was mixed while IsUnused.
     public bool HasUnappliedChange => Color != _applied;
 
-    // Every mixed color goes on at once, without Apply.
+    // The effect of the device uses no color of its own, so a mixed color goes nowhere. Ending it
+    // puts nothing on: MainViewModel shows the color of the device again.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsApply))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
-    public partial bool AppliesAtOnce { get; set; }
-
-    // The effect of the lamp uses no color of its own, so a mixed color goes nowhere.
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowsApply), nameof(ShowsUnappliedChange))]
-    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial bool IsUnused { get; set; }
-
-    // "Op het apparaat zetten" is there only when it has something to do.
-    public bool ShowsApply => !AppliesAtOnce && !IsUnused;
-
-    // "Nog niet op het apparaat", unless the color would not go on it.
-    public bool ShowsUnappliedChange => HasUnappliedChange && !IsUnused;
 
     public void Show(RgbColor color) => _showing.Run(() =>
     {
@@ -90,7 +77,6 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         ShowColor(color);
         HexError = null;
         OnPropertyChanged(nameof(HasUnappliedChange));
-        OnPropertyChanged(nameof(ShowsUnappliedChange));
     });
 
     // The hex field lost the focus. A code that is no color, such as "zzz" or "#12", makes way for
@@ -111,17 +97,6 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
         _showing.Run(() => HexColor = Color.ToHex());
     }
-
-    [RelayCommand(CanExecute = nameof(CanApply))]
-    private void Apply()
-    {
-        _applied = Color;
-        OnPropertyChanged(nameof(HasUnappliedChange));
-        OnPropertyChanged(nameof(ShowsUnappliedChange));
-        ColorPicked?.Invoke(this, Color);
-    }
-
-    private bool CanApply() => ShowsApply;
 
     [RelayCommand]
     private void SelectPreset(RgbColor color) => Mix(() => ShowColor(color));
@@ -173,9 +148,11 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     private void Mix(Action mix)
     {
         _showing.Run(mix);
-        if (AppliesAtOnce && HasUnappliedChange)
+        if (!IsUnused && HasUnappliedChange)
         {
-            Apply();
+            _applied = Color;
+            OnPropertyChanged(nameof(HasUnappliedChange));
+            ColorPicked?.Invoke(this, Color);
         }
     }
 

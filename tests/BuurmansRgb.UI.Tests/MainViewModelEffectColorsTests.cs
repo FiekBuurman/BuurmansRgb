@@ -27,7 +27,7 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Equal([Red, Blue], viewModel.EffectColorsEditor.Swatches.Select(swatch => swatch.Color));
         Assert.True(viewModel.EffectColorsEditor.Swatches[0].IsSelected);
         Assert.Equal(Red, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Empty(Api.Calls);
     }
 
@@ -46,7 +46,7 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Equal(EffectColors.Default(effectId, LampColor)[0], viewModel.ColorPicker.Color);
     }
 
-    // Without "Op het apparaat zetten": the tile changes with the mixed color and the engine gets the list.
+    // The tile changes with the mixed color and the engine gets the list.
     [Fact]
     public async Task MixColor_WithComet_PaintsTheSelectedColorAtOnce()
     {
@@ -102,7 +102,8 @@ public sealed class MainViewModelEffectColorsTests
         Assert.False(viewModel.EffectColorsEditor.AddColorCommand.CanExecute(null));
     }
 
-    // "Op het apparaat zetten" is only for the color of the whole lamp.
+    // Only a list takes the color for the list; every color goes on at once, but with the rainbow,
+    // which has no list, it goes nowhere.
     [Theory]
     [InlineData(EffectIds.Static, false)]
     [InlineData(EffectIds.Rainbow, false)]
@@ -110,14 +111,14 @@ public sealed class MainViewModelEffectColorsTests
     [InlineData(EffectIds.Comet, true)]
     [InlineData(EffectIds.Scanner, true)]
     [InlineData(EffectIds.Fire, true)]
-    public async Task SwitchEffect_ThePickerAppliesAtOnceOnlyForAList(string effectId, bool atOnce)
+    public async Task SwitchEffect_ThePickerColorsTheListOnlyForAList(string effectId, bool atOnce)
     {
         var viewModel = await ConnectAsync();
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == effectId);
 
         Assert.Equal(atOnce, viewModel.HasEffectColors);
-        Assert.Equal(atOnce, viewModel.ColorPicker.AppliesAtOnce);
+        Assert.Equal(effectId == EffectIds.Rainbow, viewModel.ColorPicker.IsUnused);
     }
 
     // Each effect has its own list: the comet keeps what was mixed for it while the fire got
@@ -128,12 +129,12 @@ public sealed class MainViewModelEffectColorsTests
     {
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Comet, EffectColors = RedBlueComet });
         viewModel.EffectColorsEditor.SelectCommand.Execute(1);
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Fire);
         Assert.Equal(EffectColors.DefaultFire, viewModel.EffectColorsEditor.Colors);
         Assert.Equal(EffectColors.DefaultFire[0], viewModel.ColorPicker.Color);
-        viewModel.ColorPicker.Mix("#0000FF");
+        viewModel.ColorPicker.Pick("#0000FF");
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Comet);
 
@@ -150,12 +151,11 @@ public sealed class MainViewModelEffectColorsTests
     public async Task SwitchEffectAwayFromAList_PickerShowsTheLampColorAgain()
     {
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Comet });
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
 
         Assert.Equal(LampColor, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.AppliesAtOnce);
         Assert.Equal(["effect-colors all comet #00FF00", "effect all static"], Api.Calls);
     }
 
@@ -167,9 +167,9 @@ public sealed class MainViewModelEffectColorsTests
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Fire);
-        viewModel.ColorPicker.Mix("#0000FF");
+        viewModel.ColorPicker.Pick("#0000FF");
         Api.SetGate = null;
         busy.SetResult();
 
@@ -226,7 +226,7 @@ public sealed class MainViewModelEffectColorsTests
         viewModel.Preview.Devices.Single(preview => preview.DeviceId == "fan").ClickLed(0);
         await Eventually.TrueAsync(() => viewModel.LedEditor.HasSelection);
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(["leds fan 0 #00FF00"], Api.Calls);
         Assert.Equal([Blue], viewModel.EffectColorsEditor.Colors);
@@ -241,7 +241,7 @@ public sealed class MainViewModelEffectColorsTests
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
 
-        Assert.True(viewModel.ColorPicker.AppliesAtOnce);
+        Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(Red, viewModel.ColorPicker.Color);
         viewModel.ColorPicker.Blue = 255;
         Assert.Equal(["effect-colors all comet #FF00FF,#0000FF"], Api.Calls);
@@ -290,7 +290,7 @@ public sealed class MainViewModelEffectColorsTests
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Scanner });
         Assert.False(viewModel.ResetEffectColorsCommand.CanExecute(null));
 
-        viewModel.ColorPicker.Mix("#00FF00");
+        viewModel.ColorPicker.Pick("#00FF00");
         Assert.True(viewModel.ResetEffectColorsCommand.CanExecute(null));
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
@@ -308,8 +308,8 @@ public sealed class MainViewModelEffectColorsTests
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Twinkle });
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
-        viewModel.ColorPicker.Mix("#00FF00");
-        viewModel.ColorPicker.Mix("#0000FF");
+        viewModel.ColorPicker.Pick("#00FF00");
+        viewModel.ColorPicker.Pick("#0000FF");
 
         viewModel.ResetEffectColorsCommand.Execute(null);
         Api.SetGate = null;
