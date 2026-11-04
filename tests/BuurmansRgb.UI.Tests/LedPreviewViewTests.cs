@@ -65,6 +65,20 @@ public sealed class LedPreviewViewTests
         Assert.Equal(["Escape (LED 1), fel rood", "LED 2, geel", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
     });
 
+    // Another label, such as after a new zone length, gives the LED a new name with the color of now.
+    [Fact]
+    public void AutomationPeer_AnotherLabel_NamesTheColorOfNow() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 244, 229), new RgbColor(0, 0, 128)], LedLabels = Labels });
+        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+        _ = leds.Select(led => led.GetName()).ToList();
+
+        view.Colors = [new RgbColor(0, 128, 0), new RgbColor(255, 255, 0), new RgbColor(255, 255, 255)];
+        view.LedLabels = ["Escape (LED 1)", "Tab (LED 2)", "F1 (LED 3)"];
+
+        Assert.Equal(["Escape (LED 1), fel rood", "Tab (LED 2), geel", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
+    });
+
     // Selecting an LED item does what a click does, adding it what Shift+click does.
     [Fact]
     public void AutomationPeer_SelectingAnItem_ClicksTheLed() => Sta.Run(() =>
