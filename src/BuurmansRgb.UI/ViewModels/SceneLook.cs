@@ -35,6 +35,20 @@ internal static class SceneLook
         }, true))];
     }
 
+    // The one color a lighting shows, as with Statisch, Ademen, Golf, or Komeet, Scanner, Fonkelen
+    // and Vuur with one color; null for Regenboog, Kleurenloop, Per LED, an own effect, or an effect
+    // with more colors. The colors are those of DotsOf.
+    public static RgbColor? OneColorOf(LightingInfo lighting)
+    {
+        if (lighting.EffectId is EffectIds.Rainbow or EffectIds.ColorLoop or EffectIds.PerLed || CustomEffects.IsCustom(lighting.EffectId))
+        {
+            return null;
+        }
+
+        var colors = (lighting.EffectColors ?? EffectColors.None).For(lighting.EffectId, lighting.Color);
+        return colors.Count == 1 ? colors[0] : null;
+    }
+
     // The bulbs of a fire glow up to its hottest color and back, as the flames do. Of three or more
     // colors the first, the coldest, is left out: that is the dark glow under the flames, such as
     // the dark red of the warm colors, whose bulbs glow red, orange, yellow, orange and red.
