@@ -8,7 +8,8 @@ namespace BuurmansRgb.Engine.Lighting;
 // start with their first length again. A device that was there already and reports another length
 // that the engine did not ask for got it from elsewhere, such as the app of OpenRGB itself: that
 // length is remembered from then on, except 0, which looks more like a length that was forgotten.
-// Zones are known by name, not by index: the name stays the same when a provider lists the zones in
+// Zones are known by name (RgbZone.Key: the id of a zone that has one, such as a simulated one whose
+// name is Dutch now), not by index: the name stays the same when a provider lists the zones in
 // another order, and a zone whose name is gone (or that two zones of the device share) is left
 // alone instead of getting the length of another zone. The engine asks a device for a length only
 // when the device shows up (or settings.json changed by hand), and waits until the device reported
@@ -171,7 +172,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
     private bool ResizeLocked(string deviceId, int zoneIndex, int ledCount, Remember remember)
     {
         var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
-        var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Name) == zoneIndex
+        var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Key) == zoneIndex
             ? device.Zones[zoneIndex]
             : null;
         if (zone is null)
@@ -180,20 +181,20 @@ internal sealed class ZoneLengthKeeper : IDisposable
             return false;
         }
 
-        var key = (deviceId, zone.Name);
+        var key = (deviceId, zone.Key);
         var before = _lengths.TryGetValue(deviceId, out var zones) ? new Dictionary<string, int>(zones) : null;
         var wasAsked = _asked.TryGetValue(key, out var asked);
         var remembered = false;
         if (remember == Remember.Length)
         {
-            RememberLocked(deviceId, zone.Name, ledCount);
+            RememberLocked(deviceId, zone.Key, ledCount);
             remembered = true;
         }
-        else if (remember == Remember.CurrentWhenNone && zone.LedCount > 0 && zones?.ContainsKey(zone.Name) != true)
+        else if (remember == Remember.CurrentWhenNone && zone.LedCount > 0 && zones?.ContainsKey(zone.Key) != true)
         {
             // Not 0, as from elsewhere (FollowLocked): that looks like a length that was never set,
             // and a zone that had it gets it back from the counter all the same.
-            remembered = RememberLocked(deviceId, zone.Name, zone.LedCount);
+            remembered = RememberLocked(deviceId, zone.Key, zone.LedCount);
         }
 
         // A length the zone has already brings no new device list to wait for, unless another
@@ -256,7 +257,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
         var index = -1;
         for (var candidate = 0; candidate < device.Zones.Count; candidate++)
         {
-            if (device.Zones[candidate].Name == zone)
+            if (device.Zones[candidate].Key == zone)
             {
                 if (index >= 0)
                 {
@@ -300,7 +301,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
                     AskLocked(device, resizes);
                 }
 
-                _reported[device.Id] = ResizableZonesOf(device).ToDictionary(zone => zone.Zone.Name, zone => zone.Zone.LedCount);
+                _reported[device.Id] = ResizableZonesOf(device).ToDictionary(zone => zone.Zone.Key, zone => zone.Zone.LedCount);
             }
 
             ResizeLocked(resizes);
@@ -337,7 +338,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
     // The resizable zones of the device that have a name of their own, with their index.
     private static IEnumerable<(RgbZone Zone, int Index)> ResizableZonesOf(RgbDevice device) =>
         device.Zones.Select((zone, index) => (Zone: zone, Index: index))
-            .Where(zone => zone.Zone.Resizable && IndexOf(device, zone.Zone.Name) == zone.Index);
+            .Where(zone => zone.Zone.Resizable && IndexOf(device, zone.Zone.Key) == zone.Index);
 
     // A device that shows up gets the lengths it does not have.
     private void AskLocked(RgbDevice device, List<(string, int, int)> resizes)
@@ -376,7 +377,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
         var changed = false;
         foreach (var (zone, _) in ResizableZonesOf(device))
         {
-            var key = (device.Id, zone.Name);
+            var key = (device.Id, zone.Key);
             if (_asked.TryGetValue(key, out var asked))
             {
                 if (zone.LedCount == asked)
@@ -387,12 +388,12 @@ internal sealed class ZoneLengthKeeper : IDisposable
                 continue;
             }
 
-            if (zone.LedCount == 0 || !before.TryGetValue(zone.Name, out var reported) || zone.LedCount == reported)
+            if (zone.LedCount == 0 || !before.TryGetValue(zone.Key, out var reported) || zone.LedCount == reported)
             {
                 continue;
             }
 
-            changed |= RememberLocked(device.Id, zone.Name, zone.LedCount);
+            changed |= RememberLocked(device.Id, zone.Key, zone.LedCount);
         }
 
         return changed;

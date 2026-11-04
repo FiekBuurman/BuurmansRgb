@@ -18,6 +18,17 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<string>? LedNames { get; init; }
 
+    // What the engine knows the zone by in settings.json, apart from Name, which is what the user
+    // reads and may be translated: null when the name is all there is, as with the zones OpenRGB
+    // gives. The simulated devices keep the English names their zones had before they got Dutch
+    // ones, so the lengths saved under those names still fit. Left out of the JSON when null.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; init; }
+
+    // Id, or Name for a zone without one.
+    [JsonIgnore]
+    public string Key => Id ?? Name;
+
     public bool Resizable => MinLedCount < MaxLedCount;
 
     // A zone whose length cannot change.
@@ -68,11 +79,12 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
     public bool Equals(RgbZone? other) =>
         other is not null
         && Name == other.Name
+        && Id == other.Id
         && LedCount == other.LedCount
         && MinLedCount == other.MinLedCount
         && MaxLedCount == other.MaxLedCount
         && Equals(Matrix, other.Matrix)
         && (LedNames is null ? other.LedNames is null : other.LedNames is not null && LedNames.SequenceEqual(other.LedNames));
 
-    public override int GetHashCode() => HashCode.Combine(Name, LedCount, MinLedCount, MaxLedCount, Matrix, LedNames?.Count);
+    public override int GetHashCode() => HashCode.Combine(Name, Id, LedCount, MinLedCount, MaxLedCount, Matrix, LedNames?.Count);
 }

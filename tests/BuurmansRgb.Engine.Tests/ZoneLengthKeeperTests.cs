@@ -100,6 +100,35 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Equal([("board", 0, 30)], _provider.Resizes);
     }
 
+    // A zone with an id, such as a simulated one with a Dutch name: its length is known by the id,
+    // so a length saved before the name changed still fits.
+    [Fact]
+    public async Task ZoneWithAnId_GetsTheLengthSavedUnderItsId()
+    {
+        _keeper.Load(Lengths(("board", "ARGB header", 30)));
+        _provider.SetDevices(ResizableDeviceProvider.Board(
+            RgbZone.Fixed("Moederbord", 2), new RgbZone("ARGB-aansluiting", 0, 0, 120) { Id = "ARGB header" }));
+
+        await _lighting.DiscoverAsync(Ct);
+
+        await ZoneLengthsAsync([2, 30]);
+        Assert.Equal([("board", 1, 30)], _provider.Resizes);
+    }
+
+    [Fact]
+    public async Task ZoneWithAnId_RemembersTheLengthUnderItsId()
+    {
+        _provider.SetDevices(ResizableDeviceProvider.Board(
+            RgbZone.Fixed("Moederbord", 2), new RgbZone("ARGB-aansluiting", 0, 0, 120) { Id = "ARGB header" }));
+        await _lighting.DiscoverAsync(Ct);
+        await SettledAsync();
+
+        _keeper.ResizeZone("board", 1, 24);
+
+        Assert.Equal(24, _keeper.Lengths["board"]["ARGB header"]);
+        Assert.False(_keeper.Lengths["board"].ContainsKey("ARGB-aansluiting"));
+    }
+
     [Fact]
     public async Task LengthTheZoneCannotHoldNow_IsKeptButNotAskedFor()
     {
