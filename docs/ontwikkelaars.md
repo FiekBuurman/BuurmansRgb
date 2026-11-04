@@ -1120,6 +1120,11 @@ toetsenbord. Een paar dingen om te proberen:
   Automation één item. Een rij bolletjes die alleen sier is, is een `DecorativeItemsControl`:
   zonder `AutomationProperties.Name` slaat UI Automation hem over, met een naam is hij één
   afbeelding (de bolletjes van een scènekaart). `AccessibleNamesViewTests` bewaakt dat per pagina.
+  Decoratieve tekst (een opsommingsteken, de punt bij de hex-code, "Aan" of "Uit" naast een
+  schakelaar) is een `views:DecorativeText`: hij groeit mee met de tekstgrootte en volgt het
+  contrastthema, maar UI Automation ziet hem alleen in de ruwe weergave. Maak er geen eigen
+  variant van. `SettingsViewTests.AfterRestartBlock_ScreenReaderSkipsTheBullets` en
+  `ToggleSwitchTests.Switch_Word_IsNotReadOut` bewaken dat.
   Een tooltip als tekst op een knop zonder `AutomationProperties.HelpText` leest WPF voor als
   hulptekst, zodat een tooltip met de naam die naam twee keer laat zeggen; de kaart op Apparaten
   heeft zijn tooltip daarom op de inhoud van de knop.
@@ -1137,9 +1142,9 @@ toetsenbord. Een paar dingen om te proberen:
   - **Schakelaars:** gebruik `views:ToggleSwitch` met de stijl `Switch` of `LargeSwitch` (de
     stijlen hebben dat type als doel), geen `ToggleButton`: zijn `AutomationPeer` geeft de
     klassenaam `ToggleSwitch` en "schakelaar" als soort, zodat Verteller "aan" of "uit" zegt. Het
-    woord "Aan" of "Uit" in het template is `DecorativeText`. Ligt een schakelaar over een kaart,
-    zoals op Apparaten, houd dan met `RightPaddingConverter` ruimte vrij voor zijn breedte;
-    `TextFit` laat het woord over de kaart toe, niet over een tekst ervan. `ToggleSwitchTests`.
+    woord "Aan" of "Uit" in het template is `DecorativeText` (zie hierboven). Ligt een schakelaar
+    over een kaart, zoals op Apparaten, houd dan met `RightPaddingConverter` ruimte vrij voor zijn
+    breedte; `TextFit` laat het woord over de kaart toe, niet over een tekst ervan. `ToggleSwitchTests`.
   - **Zelf testen met Verteller** (Ctrl+Win+Enter): H en Shift+H lopen langs de koppen van een
     pagina met hun niveau; een schakelaar zegt bij Tab "…, schakelaar, aan" of "uit", en na
     Spatie de nieuwe stand; in een lijst van kleuren noemt hij de naam van de lijst.
