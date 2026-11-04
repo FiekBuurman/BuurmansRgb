@@ -72,7 +72,9 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(15, settings.FramesPerSecond);
     }
 
-    // A file that is there but does not read, or is null: that pc had settings, so not the new default.
+    // A file that is there but does not read, or is null: that pc had settings, so not the new
+    // default. Also at the next start, when the engine stopped before anything changed: the file
+    // that did not read went aside, and the defaults in its place must not look like a new one.
     [Theory]
     [InlineData("{ not json")]
     [InlineData("null")]
@@ -82,6 +84,23 @@ public sealed class JsonSettingsStoreTests : IDisposable
         File.WriteAllText(path, json);
 
         Assert.Equal(PausedLightsMode.Keep, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+        Assert.Equal(PausedLightsMode.Keep, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // The defaults written in place of a file that did not read leave autoStartChosen out, so the
+    // next start still reads the choice from the Run key; the user's file stays aside.
+    [Fact]
+    public void LoadOrCreate_FileThatDoesNotRead_WritesTheDefaultsWithoutAnAutostartChoice()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+
+        store.LoadOrCreate();
+
+        Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
+        Assert.DoesNotContain("autoStartChosen", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, new JsonSettingsStore(path).LoadOrCreate());
     }
 
     [Fact]

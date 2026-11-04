@@ -140,12 +140,18 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
         catch (JsonException exception)
         {
-            // Run on the defaults meanwhile. The engine saves them a moment after the next change,
-            // possibly without the user doing anything (a profile that loads by itself), so the
-            // file goes aside first, where the user can fix a typo and put it back.
+            // Run on the defaults meanwhile. The file goes aside first, where the user can fix a
+            // typo and put it back, and the defaults are written at once: an engine that stops
+            // before the next change must not find no file at the next start and take it for a
+            // new installation (with its own defaults, such as "Uitzetten" during the pause).
             Trace.TraceError(exception.ToString());
-            TryMoveAside();
-            return UnknownChoices();
+            var unknown = UnknownChoices();
+            if (TryMoveAside())
+            {
+                TrySaveLocked(unknown);
+            }
+
+            return unknown;
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
@@ -187,15 +193,17 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         _known = json;
     }
 
-    private void TryMoveAside()
+    private bool TryMoveAside()
     {
         try
         {
             File.Move(filePath, BrokenFilePath, overwrite: true);
+            return true;
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
+            return false;
         }
     }
 }
