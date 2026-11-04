@@ -92,13 +92,15 @@ public sealed class SettingsViewTests
         });
     }
 
-    // Some texts quote the label of another switch or heading on this page; renaming that label must
-    // not leave the quote behind.
+    // Some texts quote the label of a switch or heading on this page, here or on Scènes (the hint at
+    // "Aanzetten om" names "Gemiste tijden inhalen"); renaming that label must not leave the
+    // quote behind.
     [Fact]
     public void Texts_QuoteTheLabelsTheyNameAsTheyAre()
     {
         Assert.Contains(Strings.PauseOnLockLabel, Strings.PausedLightsNeedsPause, StringComparison.Ordinal);
         Assert.Contains(Strings.CatchUpLabel, Strings.AfterRestartSceneTimes, StringComparison.Ordinal);
+        Assert.Contains(Strings.CatchUpLabel, Strings.ProfileLoadAtHint, StringComparison.Ordinal);
         Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOn, StringComparison.Ordinal);
         Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOff, StringComparison.Ordinal);
         Assert.StartsWith(Strings.AutoStartLabel, Strings.AfterRestartTurnOnAutoStart, StringComparison.Ordinal);
