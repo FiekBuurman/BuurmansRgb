@@ -33,12 +33,15 @@ public sealed class EffectOptionsViewModelTests
     }
 
     [Fact]
-    public void PausedLightsOptions_AreTheThreeModesInDutch_WithTheLastFrameFirst()
+    public void PausedLightsOptions_AreTheThreeModesInPlainDutch_WithOffFirst()
     {
         Assert.Equal(
-            [Strings.PausedLightsMode_Keep, Strings.PausedLightsMode_Dim, Strings.PausedLightsMode_Off],
+            ["Uitzetten", "Dimmen", "Laten branden"],
             EffectOptionsViewModel.PausedLightsOptions.Select(option => option.DisplayName));
-        Assert.Equal(PausedLightsMode.Keep, _options.SelectedPausedLights?.Mode);
+        Assert.Equal(
+            [PausedLightsMode.Off, PausedLightsMode.Dim, PausedLightsMode.Keep],
+            EffectOptionsViewModel.PausedLightsOptions.Select(option => option.Mode));
+        Assert.Equal(PausedLightsMode.Off, _options.SelectedPausedLights?.Mode);
     }
 
     [Theory]
@@ -78,7 +81,7 @@ public sealed class EffectOptionsViewModelTests
 
         _options.SelectedFrameRate = _options.FrameRates[^1];
         _options.PauseOnLockAndSleep = false;
-        _options.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions[^1];
+        _options.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions[0];
 
         Assert.Equal([60], framesPerSecond);
         Assert.Equal([false], pauses);

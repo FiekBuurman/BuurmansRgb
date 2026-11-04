@@ -1,5 +1,5 @@
-<!-- Instellingen: how buurmansRgb gets on with OpenRGB, what the engine uses, when the simulated
-     lamps show, the effects, the scene times, the hotkeys and "Starten met Windows", saving and
+<!-- Instellingen: what the devices do while the pc sleeps or is locked, how buurmansRgb gets on with
+     OpenRGB, what the engine uses, when the simulated devices show, the effects, the scene times, the hotkeys and "Starten met Windows", saving and
      restoring the settings, the log of the engine and the folder with the settings, and at the bottom
      the version and the guide. Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
@@ -26,10 +26,41 @@
 
             <!-- Where the other pages put their cards, but no wider than a line of text reads well. -->
             <StackPanel MaxWidth="760" HorizontalAlignment="Left">
+                <!-- What the devices do while the pc sleeps or is locked (pausedLights), first, as it is what most
+                     people look for here; with the pause it only counts under, which also rests the effects. The
+                     choice is grey while that pause is off, and a line under it says why. A heading for a
+                     screen reader. -->
+                <Border Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.SleepHeader}"
+                                   AutomationProperties.HeadingLevel="Level2" />
+                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PausedLightsHint}" />
+                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource NarrowChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding EffectOptions.SelectedPausedLights}"
+                                  IsEnabled="{Binding EffectOptions.PauseOnLockAndSleep}"
+                                  AutomationProperties.Name="{x:Static res:Strings.SleepHeader}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.PausedLightsHint}"
+                                  AutomationProperties.AutomationId="PausedLights" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.PausedLightsNeedsPause}"
+                                   AutomationProperties.AutomationId="PausedLightsNeedsPause"
+                                   Visibility="{Binding EffectOptions.PauseOnLockAndSleep, Converter={StaticResource InverseBoolToVisibility}}" />
+                        <DockPanel Margin="0,18,0,0">
+                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
+                                          IsChecked="{Binding EffectOptions.PauseOnLockAndSleep}"
+                                          AutomationProperties.Name="{x:Static res:Strings.PauseOnLockLabel}"
+                                          AutomationProperties.HelpText="{x:Static res:Strings.PauseOnLockHint}" />
+                            <StackPanel>
+                                <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.PauseOnLockLabel}" />
+                                <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PauseOnLockHint}" />
+                            </StackPanel>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Whether the real devices can come: the state in plain words, read out when it changes, with the
                      technical status (OpenRGB, its SDK server) and the tip spelled out under it and behind the ⓘ,
                      and "Herstarten" as beside the status on Apparaten. -->
-                <Border Style="{StaticResource LargeCard}">
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.OpenRgbHeader}" />
                         <DockPanel Margin="0,2,0,0">
@@ -78,7 +109,7 @@
                     </StackPanel>
                 </Border>
 
-                <!-- How smooth the effects move, and whether they rest while nobody sees them. -->
+                <!-- How smooth the effects move. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" />
@@ -88,25 +119,6 @@
                                   SelectedItem="{Binding EffectOptions.SelectedFrameRate}"
                                   AutomationProperties.Name="{x:Static res:Strings.FrameRateLabel}"
                                   AutomationProperties.HelpText="{x:Static res:Strings.FrameRateHint}" />
-                        <DockPanel Margin="0,18,0,0">
-                            <ToggleButton DockPanel.Dock="Right" Margin="14,0,0,0" VerticalAlignment="Top" Style="{StaticResource Switch}"
-                                          IsChecked="{Binding EffectOptions.PauseOnLockAndSleep}"
-                                          AutomationProperties.Name="{x:Static res:Strings.PauseOnLockLabel}"
-                                          AutomationProperties.HelpText="{x:Static res:Strings.PauseOnLockHint}" />
-                            <StackPanel>
-                                <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.PauseOnLockLabel}" />
-                                <TextBlock Margin="0,2,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PauseOnLockHint}" />
-                            </StackPanel>
-                        </DockPanel>
-                        <!-- What the lamps show during that pause; grey while the pause is off, as it only counts then. -->
-                        <StackPanel Margin="0,18,0,0" IsEnabled="{Binding EffectOptions.PauseOnLockAndSleep}">
-                            <TextBlock Style="{StaticResource Body}" Text="{x:Static res:Strings.PausedLightsLabel}" />
-                            <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" Text="{x:Static res:Strings.PausedLightsHint}" />
-                            <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{x:Static vm:EffectOptionsViewModel.PausedLightsOptions}" DisplayMemberPath="DisplayName"
-                                      SelectedItem="{Binding EffectOptions.SelectedPausedLights}"
-                                      AutomationProperties.Name="{x:Static res:Strings.PausedLightsLabel}"
-                                      AutomationProperties.HelpText="{x:Static res:Strings.PausedLightsHint}" />
-                        </StackPanel>
                     </StackPanel>
                 </Border>
 

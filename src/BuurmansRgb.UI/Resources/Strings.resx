@@ -914,20 +914,24 @@
   <data name="PauseOnLockHint" xml:space="preserve">
     <value>Een bewegend effect staat stil zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt, zodat het dan geen CPU kost.</value>
   </data>
-  <data name="PausedLightsLabel" xml:space="preserve">
-    <value>Apparaten tijdens deze pauze</value>
+  <data name="SleepHeader" xml:space="preserve">
+    <value>Als de pc slaapt of vergrendeld is</value>
+    <comment>Kop van het blok bovenaan Instellingen, en de naam van de keuze voor de schermlezer.</comment>
   </data>
   <data name="PausedLightsHint" xml:space="preserve">
-    <value>Wat de apparaten doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Daarna komen de echte kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
+    <value>Wat de apparaten doen zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt. Dimmen laat ze op een vijfde van hun helderheid branden. Daarna komen je kleuren en effecten terug. Bij "Effecten pauzeren" in het tray-menu blijven ze zoals ze zijn.</value>
+  </data>
+  <data name="PausedLightsNeedsPause" xml:space="preserve">
+    <value>Dit kan alleen als "Pauzeren bij vergrendelen, slaapstand en scherm uit" hieronder aan staat; nu blijven de apparaten zoals ze zijn.</value>
   </data>
   <data name="PausedLightsMode_Keep" xml:space="preserve">
-    <value>Laatste beeld laten staan</value>
+    <value>Laten branden</value>
   </data>
   <data name="PausedLightsMode_Dim" xml:space="preserve">
-    <value>Dimmen (20 %)</value>
+    <value>Dimmen</value>
   </data>
   <data name="PausedLightsMode_Off" xml:space="preserve">
-    <value>Uit</value>
+    <value>Uitzetten</value>
   </data>
   <data name="SceneTimesHeader" xml:space="preserve">
     <value>Scènes op tijd</value>
