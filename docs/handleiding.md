@@ -164,7 +164,7 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   verwijzing naar Instellingen, zoals eerst.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
 - **Hoe komt een apparaat erbij?** naast de kop "Apparaten in huis" gaat naar Instellingen, waar
-  bovenaan bij OpenRGB de uitleg staat. Een apparaat toevoegen doe je niet in BuurmansRgb maar in
+  bij OpenRGB de uitleg staat. Een apparaat toevoegen doe je niet in BuurmansRgb maar in
   OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat het
   opnieuw zoeken. Dat zegt ook de tooltip van de link, met erbij dat je op Instellingen ook de
   gesimuleerde apparaten aan of uit zet. Het is de enige link naar Instellingen op
@@ -712,6 +712,16 @@ Hoe het vanzelf aanzetten werkt:
 
 ### Instellingen
 
+- **Als de pc slaapt of vergrendeld is:** het eerste blok. Hier kies je wat de apparaten doen
+  zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt:
+  "Uitzetten", "Dimmen" (op een vijfde van hun helderheid) of "Laten branden" (het laatste
+  beeld blijft staan). Een nieuwe installatie begint met "Uitzetten"; had je buurmansRgb al, dan
+  blijft je keuze zoals hij was (zie "Apparaten tijdens deze pauze" bij "Pauzeren"). Daaronder
+  staat de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit": alleen als die aan
+  staat, telt de keuze. Staat hij uit, dan is de keuze grijs en zegt een regel eronder waarom.
+  Voor een schermlezer is de titel van het blok een kop en de naam van de keuze. Beide gelden
+  meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
+  wijziging meteen.
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
   (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
   tray-icoon) en de tip uitgeschreven, de uitleg hoe een apparaat erbij komt ("Zodra OpenRGB een
@@ -763,12 +773,10 @@ Hoe het vanzelf aanzetten werkt:
 - **Effecten:** bij "Vloeiendheid" kies je hoe vaak per seconde een bewegend effect de apparaten
   bijwerkt: "Zuinig" (15), "Normaal" (30, standaard) of "Vloeiend" (60). Het effect loopt even
   snel, alleen minder of meer vloeiend; zuinig kost de minste CPU. Staat er in `settings.json`
-  een ander getal, dan staat dat er als vierde keuze bij. Met "Pauzeren bij vergrendelen,
-  slaapstand en scherm uit" zet je het pauzeren van "Pauzeren" aan of uit (ook bij de
-  schermbeveiliging), en bij "Apparaten tijdens deze pauze" kies je of de apparaten dan het laatste
-  beeld houden, dimmen of uitgaan (grijs zolang het pauzeren uit staat). Alle drie gelden
-  meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
-  wijziging meteen.
+  een ander getal, dan staat dat er als vierde keuze bij. Het geldt meteen, zonder herstart, de
+  engine bewaart het, en een tweede instellingen-app toont de wijziging meteen. Het pauzeren
+  van "Pauzeren" (bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging) staat in het
+  eerste blok, "Als de pc slaapt of vergrendeld is".
 - **Scènes op tijd:** "Gemiste tijden inhalen" (standaard uit), zie "Gemiste tijden inhalen" bij
   Scènes. Het geldt zonder herstart, de engine bewaart het, en een tweede instellingen-app toont
   de wijziging meteen.
@@ -804,7 +812,10 @@ Hoe het vanzelf aanzetten werkt:
   daarmee zet je het zo nodig weer terug. Twee dingen horen bij deze pc en komen niet uit de zip:
   "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos (`autoStartChosen`), zodat een update het laat zoals jij het zette; en of deze pc ooit echte
   apparaten had (`hadRealDevices`). Welke meldingen over andere RGB-software je wegklikte
-  (`dismissedOtherRgbSoftware`) komt wel mee.
+  (`dismissedOtherRgbSoftware`) komt wel mee, net als wat de apparaten doen als de pc slaapt of
+  vergrendeld is (`pausedLights`): een zip zonder die regel, van een versie van vóór die keuze,
+  zet "Laten branden" terug, wat die pc toen deed, ook op een nieuwe installatie die met
+  "Uitzetten" begon.
   Is de zip niet goed, dan verandert er niets en staat onderaan waarom: "Dit bestand bevat geen
   bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
   bestanden, zoals een map), "Dit bestand is te groot …" (een zip groter dan 4 MB, of een bestand
@@ -1113,12 +1124,13 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 | Reden | Begint | Eindigt | Wat de apparaten doen |
 | --- | --- | --- | --- |
 | Tray-menu | "Effecten pauzeren" aanvinken | Uitvinken, of "Hervatten" in de instellingen-app | Blijven zoals ze zijn; de engine stuurt niets tot hervatten |
-| Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Het laatste frame blijft staan, of gedimd of uit (zie "Apparaten tijdens deze pauze") |
-| Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Als bij vergrendeld; "Uit" gaat naar de apparaten vóórdat de pc slaapt |
+| Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Uit, gedimd, of het laatste frame blijft staan (zie "Apparaten tijdens deze pauze") |
+| Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Als bij vergrendeld; "Uitzetten" gaat naar de apparaten vóórdat de pc slaapt |
 | Scherm uit | Het scherm van je eigen sessie gaat uit, ook zonder dat Windows vergrendelt (bijv. na de tijd bij "Scherm uitschakelen na" van Windows) | Het scherm gaat weer aan (of ontgrendelen, of de sessie komt op een ander scherm) | Als bij vergrendeld |
 | Schermbeveiliging | De schermbeveiliging van Windows begint na de wachttijd die je daar instelde, ook zonder dat Windows vergrendelt | Je beweegt de muis of drukt een toets in en de schermbeveiliging verdwijnt (of ontgrendelen) | Als bij vergrendeld |
 
-- Bij elke reden stopt de animatie en kost hij geen CPU meer; standaard gaan de apparaten niet uit.
+- Bij elke reden stopt de animatie en kost hij geen CPU meer; bij een nieuwe installatie gaan de
+  apparaten standaard uit (zie "Apparaten tijdens deze pauze").
   Scènes op tijd en het verbinden met OpenRGB lopen gewoon door. Naar programma's kijkt de
   engine tijdens vergrendelen en slaapstand niet (zie "Bij een programma" bij Scènes); als
   alleen het scherm uit is of de schermbeveiliging loopt wel, want misschien zit je er nog, bijv.
@@ -1155,21 +1167,28 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   in het tray-menu hoort alleen bij de pauze uit het menu.
   Boven het voorbeeld op Kleur zegt een regel dat Knipperen en Tellen zolang niet kunnen, met
   dezelfde reden en bij de pauze uit het menu ook "Hervatten" (zie "Voorbeeld" bij "Kleur").
-- Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bij
-  Instellingen (of `"pauseOnLockAndSleep": false` in `settings.json`); die geldt ook voor de
-  schermbeveiliging. Uitzetten tijdens zo'n pauze laat de effecten meteen weer lopen.
-- **Apparaten tijdens deze pauze:** daaronder bij Instellingen (of `pausedLights` in
-  `settings.json`) kies je wat de apparaten doen bij vergrendelen, slaapstand, scherm uit en de
-  schermbeveiliging:
-  "Laatste beeld laten staan" (standaard), "Dimmen (20 %)" (het laatste beeld op een vijfde van
-  zijn helderheid) of "Uit" (zwart); bij de slaapstand al vóór de pc slaapt. Eindigt de laatste
+- Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bovenaan
+  Instellingen, bij "Als de pc slaapt of vergrendeld is" (of `"pauseOnLockAndSleep": false` in
+  `settings.json`); die geldt ook voor de schermbeveiliging. Uitzetten tijdens zo'n pauze laat
+  de effecten meteen weer lopen.
+- **Apparaten tijdens deze pauze:** bovenaan Instellingen, bij "Als de pc slaapt of vergrendeld
+  is" (of `pausedLights` in `settings.json`), kies je wat de apparaten doen bij vergrendelen,
+  slaapstand, scherm uit en de schermbeveiliging: "Uitzetten" (zwart), "Dimmen" (het laatste
+  beeld op een vijfde van zijn helderheid) of "Laten branden" (het laatste beeld blijft staan);
+  bij de slaapstand al vóór de pc slaapt.
+  **Standaard:** een nieuwe installatie, een pc zonder `settings.json`, begint met "Uitzetten".
+  Had je buurmansRgb al, dan blijft het zoals het was: een `settings.json` met `pausedLights`
+  houdt die keuze, en een `settings.json` zonder (van een versie van vóór deze keuze) houdt
+  "Laten branden", wat de apparaten toen deden. Ook een `settings.json` die niet te lezen is,
+  telt als bestaand. Haal je `settings.json` zelf weg, dan begint de engine bij de volgende start
+  als een nieuwe installatie, dus met "Uitzetten". Eindigt de laatste
   van die redenen, dan komen de echte kleuren en effecten terug; is de pc wakker maar nog
   vergrendeld, dan blijven de apparaten gedimd of uit tot het ontgrendelen. Een scène op tijd
   tijdens de pauze gaat ook gedimd of uit naar de apparaten; na het ontgrendelen zie je hem echt.
   De pauze uit het tray-menu doet hier niet aan mee: dan blijven de apparaten zoals ze zijn, ook als
   je daarna vergrendelt. Het voorbeeld in de instellingen-app toont de echte kleuren. Wijzigen
   tijdens zo'n pauze geldt meteen.
-- **Van gebruiker wisselen met "Dimmen" of "Uit":** de engine van de eerste gebruiker dimt of
+- **Van gebruiker wisselen met "Dimmen" of "Uitzetten":** de engine van de eerste gebruiker dimt of
   zet de apparaten uit op het moment van wisselen; de engine van de tweede gebruiker stuurt daarna
   zijn eigen kleuren.
 
@@ -1233,7 +1252,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "autoStartChosen": true,
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
-  "pausedLights": "keep",
+  "pausedLights": "off",
   "catchUpSceneTimes": false,
   "hotkeys": true,
   "zoneLengths": {
@@ -1263,7 +1282,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `autoStartChosen` | `true` zodra je "Starten met Windows" zelf aan- of uitzette (in het tray-menu of bij Instellingen): de installer zet het dan bij een update niet meer aan. Een nieuw bestand zegt `false`. Zonder het veld (een bestand van 1.5.0 of eerder, of weggehaald) kijkt de engine bij het starten of "Starten met Windows" aan staat: uit telt als je keuze (`true`), aan niet (`false`), en dat schrijft hij erbij zodra hij iets anders opslaat (tot dan kijkt hij bij elk starten opnieuw). Kan hij dat niet lezen, dan telt het niet als keuze. Op `false` zetten laat de volgende installatie het weer aanzetten. "Starten met Windows" zelf staat niet in dit bestand maar in Windows |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
-| `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de apparaten doen tijdens die pauze ("Apparaten tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |
+| `pausedLights` | `"off"`, `"dim"` of `"keep"`: wat de apparaten doen tijdens die pauze ("Uitzetten", "Dimmen" of "Laten branden" bij "Als de pc slaapt of vergrendeld is" op Instellingen). Een nieuw bestand zegt `"off"`; zonder het veld (een bestand van vóór deze keuze) of met iets anders leest het als `"keep"`, wat de apparaten toen deden |
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
 | `zoneLengths` | Per apparaat de lengte die je een instelbare zone gaf, op de naam van de zone (bij de gesimuleerde apparaten de Engelse naam die de zone eerder had, bijv. "ARGB 2" voor "Kanaal 2") |

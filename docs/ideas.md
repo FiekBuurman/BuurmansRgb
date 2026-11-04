@@ -80,7 +80,7 @@ uitbreidingen in `docs/bouwplan.md`.
   `gewone-taal` Nederlands, de toetsen nog Engels, zoals OpenRGB ze bij echte toetsenborden geeft
 - "Hoe komt een apparaat erbij?" op Apparaten de handleiding laten openen bij de uitleg over
   apparaten, zodra `AppInfoViewModel.GuideAddress` een adres heeft; nu gaat de link naar
-  Instellingen, waar bovenaan bij OpenRGB de uitleg staat (`gewone-taal`)
+  Instellingen, waar bij OpenRGB de uitleg staat (`gewone-taal`)
 - De vaste kleur "Klus-wit" een gewone naam geven ("Warm wit"): het is de laatste knipoog naar
   klussen buiten een kop (`gewone-taal` liet hem staan, omdat het een kleurnaam is en geen actie)
 - Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
@@ -270,6 +270,10 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Instellingen-app en ontwerp
 
+- De koppen van alle blokken een kopniveau voor de schermlezer geven
+  (`AutomationProperties.HeadingLevel`), zodat je met H van kop naar kop springt; nu heeft alleen
+  "Als de pc slaapt of vergrendeld is" op Instellingen er een (`slaapstand-vooraan`). Niet in de
+  stijl `SectionHeader`: die zit ook op de status van OpenRGB, die geen kop is
 - Een kleurvlak of -wiel naast de schuiven Rood, Groen en Blauw, voor wie liever op tint en
   verzadiging kiest
 - Een kiezer voor kleurtemperatuur: wit kiezen als warm tot koud (bijv. 2700–6500 K) met één
@@ -597,14 +601,14 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Pauzeren, slaapstand en wisselen van gebruiker
 
-- De helderheid van "Dimmen" bij "Apparaten tijdens deze pauze" instelbaar maken; nu vast 20 %
-- Met "Dimmen" of "Uit" ook dimmen of uitgaan als de pauze uit het tray-menu al liep toen
+- De helderheid van "Dimmen" bij "Als de pc slaapt of vergrendeld is" instelbaar maken; nu vast 20 %
+- Met "Dimmen" of "Uitzetten" ook dimmen of uitgaan als de pauze uit het tray-menu al liep toen
   Windows vergrendelde of ging slapen; nu laat die pauze de apparaten zoals ze zijn. Daarvoor moet
   de engine onthouden wat de apparaten bij het begin van die pauze lieten zien
 - Het voorbeeld in de instellingen-app laten zien dat de apparaten gedimd of uit zijn; nu toont het
   tijdens zo'n pauze de echte kleuren
-- "Apparaten tijdens deze pauze" per reden kunnen kiezen, bijv. alleen bij de slaapstand uit en bij
-  vergrendelen het laatste beeld
+- De keuze bij "Als de pc slaapt of vergrendeld is" per reden kunnen maken, bijv. alleen bij de
+  slaapstand uit en bij vergrendelen het laatste beeld
 - Een eigen schakelaar voor pauzeren als het scherm uitgaat of de schermbeveiliging loopt, los
   van vergrendelen en slaapstand; nu valt het onder dezelfde `pauseOnLockAndSleep`. De naam van
   die schakelaar ("Pauzeren bij vergrendelen, slaapstand en scherm uit") noemt de
@@ -621,12 +625,17 @@ uitbreidingen in `docs/bouwplan.md`.
 - Na van gebruiker wisselen kan de engine van de eerste gebruiker nog kleuren sturen (een scène
   op tijd, herstellen na het ontwaken) terwijl de engine van de tweede gebruiker dezelfde apparaten
   aanstuurt; eventueel niets meer sturen zolang de eigen sessie op geen scherm staat. Met
-  "Dimmen" of "Uit" bij "Apparaten tijdens deze pauze" stuurt hij bij het wisselen ook nog het
-  gedimde beeld of zwart
+  "Dimmen" of "Uitzetten" bij "Als de pc slaapt of vergrendeld is" stuurt hij bij het wisselen
+  ook nog het gedimde beeld of zwart
 - Herstellen na het ontwaken ook bij Modern Standby (S0) controleren: of `PowerModeChanged`
   dan `Resume` meldt, verschilt per pc. Eventueel ook herstellen (de apparaten opnieuw laden)
   bij het aangaan van het scherm (`IDisplayEvents`) of bij ontgrendelen; nu stuurt de engine
   dan alleen de kleuren opnieuw
+- Een bestaande installatie na de update één keer laten weten dat "Uitzetten" nu bovenaan
+  Instellingen te kiezen is; nu houdt zo'n pc stil zijn "Laten branden" (`slaapstand-vooraan`)
+- "Uitzetten" en "Dimmen" ook laten werken met het pauzeren uit, zodat je kunt kiezen voor
+  doorlopende effecten tijdens het werken en toch donkere apparaten als de pc slaapt; nu hangt de
+  keuze aan `pauseOnLockAndSleep` en is hij grijs als die uit staat
 - De wachttijden na het ontwaken (nu vast 2 en 10 seconden) instelbaar maken, of herstellen
   zodra OpenRGB de apparaten weer meldt
 - Ook naar het scherm van de console kijken terwijl je via Extern bureaublad werkt
