@@ -720,9 +720,8 @@ Hoe het vanzelf aanzetten werkt:
   keuze staat de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit": alleen als die
   aan staat, telt de keuze. Staat hij uit, dan is de keuze grijs en zegt een regel eronder waarom.
   Voor een schermlezer is de titel van het blok een kop en de naam van de keuze, en hoort hij die
-  reden ook bij de keuze zelf. Beide gelden
-  meteen, zonder herstart, de engine bewaart ze, en een tweede instellingen-app toont de
-  wijziging meteen.
+  reden ook bij de keuze zelf. Beide gelden meteen, zonder herstart, de engine bewaart ze, en een
+  tweede instellingen-app toont de wijziging meteen.
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
   (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
   tray-icoon) en de tip uitgeschreven, de uitleg hoe een apparaat erbij komt ("Zodra OpenRGB een
@@ -1182,13 +1181,13 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   houdt die keuze, en een `settings.json` zonder (van een versie van vóór deze keuze) houdt
   "Laten branden", wat de apparaten toen deden. Ook een `settings.json` die niet te lezen is,
   telt als bestaand: de engine zet hem opzij als `settings.json.broken` en schrijft meteen een
-  nieuwe met "Laten branden", dus ook na een herstart blijft het zo. Haal je `settings.json` zelf weg, dan begint de engine bij de volgende start
-  als een nieuwe installatie, dus met "Uitzetten". Eindigt de laatste
-  van die redenen, dan komen de echte kleuren en effecten terug; is de pc wakker maar nog
-  vergrendeld, dan blijven de apparaten gedimd of uit tot het ontgrendelen. Een scène op tijd
-  tijdens de pauze gaat ook gedimd of uit naar de apparaten; na het ontgrendelen zie je hem echt.
-  De pauze uit het tray-menu doet hier niet aan mee: dan blijven de apparaten zoals ze zijn, ook als
-  je daarna vergrendelt. Het voorbeeld in de instellingen-app toont de echte kleuren. Wijzigen
+  nieuwe met "Laten branden", dus ook na een herstart blijft het zo. Haal je `settings.json` zelf
+  weg, dan begint de engine bij de volgende start als een nieuwe installatie, dus met
+  "Uitzetten". Eindigt de laatste van die redenen, dan komen de echte kleuren en effecten
+  terug; is de pc wakker maar nog vergrendeld, dan blijven de apparaten gedimd of uit tot het
+  ontgrendelen. Een scène op tijd tijdens de pauze gaat ook gedimd of uit naar de apparaten; na
+  het ontgrendelen zie je hem echt. De pauze uit het tray-menu doet hier niet aan mee: dan
+  blijven de apparaten zoals ze zijn, ook als je daarna vergrendelt. Het voorbeeld in de instellingen-app toont de echte kleuren. Wijzigen
   tijdens zo'n pauze geldt meteen.
 - **Van gebruiker wisselen met "Dimmen" of "Uitzetten":** de engine van de eerste gebruiker dimt of
   zet de apparaten uit op het moment van wisselen; de engine van de tweede gebruiker stuurt daarna
