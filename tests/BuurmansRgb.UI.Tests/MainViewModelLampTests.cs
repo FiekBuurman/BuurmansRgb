@@ -67,6 +67,21 @@ public sealed class MainViewModelLampTests
         Assert.Equal([false, true], viewModel.Lamps.Lamps.Select(lamp => lamp.IsOn));
     }
 
+    // Like the engine, a color for "Hele huis" also goes on a device with its own lighting (the fan).
+    [Fact]
+    public async Task MixColor_ForTheWholeHouse_ThenADeviceWithItsOwnLighting_ShowsTheNewColor()
+    {
+        var viewModel = await ConnectAsync(_ => { });
+        viewModel.ColorPicker.HexColor = "#00FF00";
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
+
+        await Eventually.TrueAsync(() => viewModel.Brightness == 50.0);
+        Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
+        Assert.Equal(["color all #00FF00"], Api.Calls.Where(call => call.StartsWith("color", StringComparison.Ordinal)));
+    }
+
     [Fact]
     public async Task PickColor_ForTheWholeHouseWithALampOff_SwitchesEveryLampOnAfterTheColor()
     {

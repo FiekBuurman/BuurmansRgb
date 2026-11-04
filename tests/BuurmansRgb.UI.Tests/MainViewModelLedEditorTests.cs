@@ -69,11 +69,12 @@ public sealed class MainViewModelLedEditorTests
         Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
-    // The color put on the whole lamp does not go to the LEDs: the picker shows their color.
+    // The color put on the whole lamp does not go to LEDs with a stored color: the picker shows theirs.
     [Fact]
     public async Task ChooseLeds_AfterColoringTheLamp_ShowsTheirColor()
     {
         var viewModel = await ConnectAsync();
+        Api.LedColors["fan"] = [new RgbColor(0, 0, 255), new RgbColor(0, 0, 255)];
         viewModel.ColorPicker.HexColor = "#00FF00";
 
         Click(viewModel, "fan", 0);

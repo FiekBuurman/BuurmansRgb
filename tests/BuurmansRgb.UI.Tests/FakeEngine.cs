@@ -223,12 +223,20 @@ internal sealed class FakeEngineApi : IEngineApi
     }
 
     // Like the engine, the lighting asked for afterwards has the color once the call counts; "all"
-    // only changes the lighting of all devices, so a device with its own keeps that.
+    // also puts the color on every device with its own lighting, which keeps the rest of its own.
     public async Task SetColorAsync(string? deviceId, RgbColor color, CancellationToken ct = default)
     {
         await Record($"color {deviceId ?? "all"} {color.ToHex()}");
-        var key = deviceId ?? "";
-        Lighting[key] = Lighting.GetValueOrDefault(key, Lighting[""]) with { Color = color };
+        if (deviceId is not null)
+        {
+            Lighting[deviceId] = Lighting.GetValueOrDefault(deviceId, Lighting[""]) with { Color = color };
+            return;
+        }
+
+        foreach (var key in Lighting.Keys.ToList())
+        {
+            Lighting[key] = Lighting[key] with { Color = color };
+        }
     }
 
     public Task SetBrightnessAsync(string? deviceId, double brightness, CancellationToken ct = default) =>
