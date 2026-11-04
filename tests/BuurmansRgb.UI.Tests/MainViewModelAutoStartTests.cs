@@ -70,6 +70,48 @@ public sealed class MainViewModelAutoStartTests
         Assert.Empty(Api.Calls);
     }
 
+    // "Starten met Windows aanzetten" in "Na een herstart" goes the same way as the switch, so the
+    // engine keeps it as a choice of the user (autoStartChosen).
+    [Fact]
+    public async Task TurnOnInAfterRestart_SendsItAsTheSwitchDoes()
+    {
+        using var viewModel = await ConnectAsync();
+        Assert.False(viewModel.AfterRestart.StartsWithWindows);
+
+        viewModel.AfterRestart.TurnOnAutoStartCommand.Execute(null);
+
+        Assert.Equal(["autostart True"], Api.Calls);
+        Assert.True(Api.AutoStart);
+        Assert.True(viewModel.AutoStart.IsOn);
+        Assert.True(viewModel.AfterRestart.StartsWithWindows);
+    }
+
+    // Windows did not let it change: the block says again that the lighting does not come back.
+    [Fact]
+    public async Task TurnOnInAfterRestart_WhenWindowsRefuses_StaysOff()
+    {
+        using var viewModel = await ConnectAsync(api => api.AutoStartChangeable = false);
+
+        viewModel.AfterRestart.TurnOnAutoStartCommand.Execute(null);
+
+        Assert.False(viewModel.AfterRestart.StartsWithWindows);
+        Assert.Equal(Strings.AfterRestartAutoStartOff, viewModel.AfterRestart.AutoStartText);
+        Assert.Equal(Strings.AutoStartFailed, viewModel.StatusMessage);
+    }
+
+    // The tray menu switched it on: the block follows.
+    [Fact]
+    public async Task ChangedInTheTrayMenu_TheAfterRestartBlockFollows()
+    {
+        using var viewModel = await ConnectAsync();
+
+        Api.AutoStart = true;
+        Api.RaiseOptionsChanged();
+
+        Assert.True(viewModel.AfterRestart.StartsWithWindows);
+        Assert.Equal(Strings.AfterRestartAutoStartOn, viewModel.AfterRestart.AutoStartText);
+    }
+
     [Fact]
     public async Task Switched_WithoutConnection_SendsNothing()
     {

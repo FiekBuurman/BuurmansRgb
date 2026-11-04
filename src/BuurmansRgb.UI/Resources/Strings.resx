@@ -933,6 +933,39 @@
   <data name="PausedLightsMode_Off" xml:space="preserve">
     <value>Uitzetten</value>
   </data>
+  <data name="AfterRestartHeader" xml:space="preserve">
+    <value>Na een herstart</value>
+  </data>
+  <data name="AfterRestartIntro" xml:space="preserve">
+    <value>buurmansRgb bewaart elke wijziging meteen en zet dit terug zodra het weer start:</value>
+  </data>
+  <data name="AfterRestartLighting" xml:space="preserve">
+    <value>de kleur en het effect van elk apparaat, en of het aan of uit staat</value>
+  </data>
+  <data name="AfterRestartScene" xml:space="preserve">
+    <value>de scène '{0}', die nu aan staat</value>
+    <comment>{0} is de naam van de scène. In plaats van AfterRestartLighting zolang een scène aan staat.</comment>
+  </data>
+  <data name="AfterRestartBrightness" xml:space="preserve">
+    <value>de helderheid</value>
+  </data>
+  <data name="AfterRestartSleep" xml:space="preserve">
+    <value>wat de apparaten doen als de pc slaapt of vergrendeld is: "{0}"</value>
+    <comment>{0} is de keuze in het blok erboven: Uitzetten, Dimmen of Laten branden.</comment>
+  </data>
+  <data name="AfterRestartSleepNoPause" xml:space="preserve">
+    <value>dat de apparaten blijven zoals ze zijn als de pc slaapt of vergrendeld is, omdat pauzeren uit staat</value>
+  </data>
+  <data name="AfterRestartAutoStartOn" xml:space="preserve">
+    <value>"Starten met Windows" staat aan, dus na een herstart van de pc komt je verlichting vanzelf terug.</value>
+  </data>
+  <data name="AfterRestartAutoStartOff" xml:space="preserve">
+    <value>"Starten met Windows" staat uit, dus na een herstart van de pc komt je verlichting niet vanzelf terug, pas als je buurmansRgb zelf opent.</value>
+  </data>
+  <data name="AfterRestartTurnOnAutoStart" xml:space="preserve">
+    <value>Starten met Windows aanzetten</value>
+    <comment>Knop onder AfterRestartAutoStartOff; doet hetzelfde als de schakelaar Starten met Windows.</comment>
+  </data>
   <data name="SceneTimesHeader" xml:space="preserve">
     <value>Scènes op tijd</value>
   </data>

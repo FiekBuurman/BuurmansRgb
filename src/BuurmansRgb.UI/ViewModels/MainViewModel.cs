@@ -142,6 +142,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RequestStill();
         };
         EffectsPause = new EffectsPauseViewModel(_time);
+        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart);
         DeviceRescan = new DeviceRescanViewModel(_time);
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
@@ -352,6 +353,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // keeps it in the registry, and tells through OptionsChanged when the tray menu changes it.
     // Off until the engine said.
     public SwitchOptionViewModel AutoStart { get; } = new(isOn: false);
+
+    // "Na een herstart" on Instellingen: what comes back after a restart, and whether by itself.
+    public AfterRestartViewModel AfterRestart { get; }
 
     // "Logbestand openen", the version and the guide at the bottom of Instellingen.
     public AppInfoViewModel AppInfo { get; }

@@ -90,6 +90,82 @@ public sealed class SettingsViewTests
         });
     }
 
+    // "Na een herstart" comes right under the sleep block, under a heading, and says what comes back:
+    // the scene that is on, the brightness and the sleep choice. "Starten met Windows" is off, so it
+    // says the lighting does not come back by itself; the button switches it on as the switch does,
+    // and goes, and the focus goes to that switch.
+    [Fact]
+    public async Task AfterRestartBlock_SaysWhatComesBackAndTurnsOnAutoStart()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            engine = api;
+            api.Profiles.Add("Gamen");
+            api.ActiveProfile = "Gamen";
+            api.PausedLights = PausedLightsMode.Dim;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var header = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.AfterRestartHeader);
+            var sleep = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.SleepHeader);
+            var openRgb = PageViews.ById<TextBlock>(page, "OpenRgbStatus");
+            var lighting = PageViews.ById<TextBlock>(page, "AfterRestartLighting");
+            var autoStartText = PageViews.ById<TextBlock>(page, "AfterRestartAutoStart");
+            var button = PageViews.ById<Button>(page, "AfterRestartTurnOnAutoStart");
+            var autoStart = PageViews.Named<ToggleButton>(page, Strings.AutoStartLabel);
+
+            Assert.Equal(AutomationHeadingLevel.Level2, AutomationProperties.GetHeadingLevel(header));
+            Assert.True(sleep.TranslatePoint(default, page).Y < header.TranslatePoint(default, page).Y);
+            Assert.True(header.TranslatePoint(default, page).Y < openRgb.TranslatePoint(default, page).Y);
+            Assert.Equal("de scène 'Gamen', die nu aan staat", lighting.Text);
+            Assert.EndsWith("\"Dimmen\"", PageViews.ById<TextBlock>(page, "AfterRestartSleep").Text, StringComparison.Ordinal);
+            Assert.Contains(Strings.AfterRestartBrightness, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
+            Assert.Equal(Strings.AfterRestartAutoStartOff, autoStartText.Text);
+            Assert.True(button.IsVisible);
+            Assert.Equal(Strings.AfterRestartTurnOnAutoStart, AutomationProperties.GetName(button));
+
+            Assert.True(button.Focus());
+            PageViews.Click(button);
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(["autostart True"], engine!.Calls);
+            Assert.True(autoStart.IsChecked);
+            Assert.False(button.IsVisible);
+            Assert.True(autoStart.IsKeyboardFocused);
+            Assert.Equal(Strings.AfterRestartAutoStartOn, autoStartText.Text);
+        });
+    }
+
+    // A color of the Kleur page ends the scene: the block says the lighting of every device again.
+    [Fact]
+    public async Task AfterRestartBlock_FollowsTheSceneThatEnds()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            engine = api;
+            api.Profiles.Add("Gamen");
+            api.ActiveProfile = "Gamen";
+            api.AutoStart = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var lighting = PageViews.ById<TextBlock>(page, "AfterRestartLighting");
+            Assert.False(PageViews.ById<Button>(page, "AfterRestartTurnOnAutoStart").IsVisible);
+
+            engine!.ActiveProfile = null;
+            engine.RaiseLightingChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(Strings.AfterRestartLighting, lighting.Text);
+        });
+    }
+
     // "Starten met Windows" is a switch with its name and explanation for a screen reader, that
     // shows what the engine has and sends a toggle to it (the fake one: never the registry).
     [Fact]

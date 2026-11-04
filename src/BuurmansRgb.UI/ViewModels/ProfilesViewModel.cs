@@ -39,7 +39,8 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public bool HasScenes => Names.Count > 0;
 
     // The scene that is on (ShowActive); null when none is.
-    public string? ActiveName { get; private set; }
+    [ObservableProperty]
+    public partial string? ActiveName { get; private set; }
 
     // Picking a profile in the list fills in its name, so saving then updates that profile.
     [ObservableProperty]
