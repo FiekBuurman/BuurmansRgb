@@ -1,17 +1,12 @@
 # Handleiding
 
-Alles over het gebruik van BuurmansRgb: de instellingen-app, het tray-icoon, pauzeren, de
-instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken. Installeren staat in
-[installatie.md](installatie.md); bouwen, testen en hoe het van binnen werkt in
-[ontwikkelaars.md](ontwikkelaars.md).
+Hier lees je hoe je met buurmansRgb de verlichting in je pc regelt.
 
 ## Snel aan de slag
 
-Wat je het vaakst doet, in het kort.
-
 ### De app openen
 
-BuurmansRgb draait altijd op de achtergrond. Je ziet het als een klein icoontje rechtsonder, bij
+buurmansRgb draait altijd op de achtergrond. Je ziet het als een klein icoontje rechtsonder, bij
 de klok. Zie je het niet, klik dan op het pijltje ^ ernaast. Dubbelklik op het icoontje om de
 app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en **Instellingen**.
 
@@ -20,7 +15,7 @@ app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en 
 - Op **Apparaten** staat bovenaan de kaart **Hele huis**. Met de grote schakelaar daarop zet je
   alles tegelijk aan of uit.
 - Elk apparaat heeft op zijn eigen kaart ook een schakelaar.
-- Naast elke schakelaar staat **Aan** of **Uit**, zodat je ziet hoe hij staat.
+- Naast elke schakelaar staat of hij **Aan** of **Uit** staat.
 - Het kan ook zonder de app: klik met de rechtermuisknop op het icoontje bij de klok en kies
   **Alles aan** of **Alles uit**.
 
@@ -29,16 +24,18 @@ Een apparaat dat uit staat, onthoudt zijn kleur voor als het weer aan gaat.
 ### Een kleur kiezen
 
 1. Ga naar **Kleur**.
-2. Kies bovenaan **Hele huis** voor alles, of één apparaat.
+2. Klik rechtsboven op de lijst met apparaten en kies **Hele huis** voor alles, of één
+   apparaat.
 3. Klik onder **Kleuren** op een kleur, bijvoorbeeld **Warm wit** of **Fel rood**.
 
-De kleur gaat meteen naar je apparaten. Een knop om te bevestigen is er niet. Een apparaat dat
-uit stond, gaat vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet.
+De kleur gaat meteen naar je apparaten; bevestigen hoeft niet. Een apparaat dat uit stond, gaat
+vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet. Zie je geen verschil, kies dan bij
+**Effect** eerst **Statisch**.
 
 ### Hoe fel
 
-Ga naar **Kleur**. In het blok **Licht en beweging** staat de schuif **Helderheid**. Naar links
-is zachter, naar rechts feller. Ook dit zie je meteen.
+Op **Kleur** staat in het blok **Licht en beweging** de schuif **Helderheid**. Naar links is
+zachter, naar rechts feller. Net als de kleur geldt dit meteen voor wat je rechtsboven koos.
 
 ### Opslaan hoeft niet
 
@@ -46,8 +43,8 @@ Alles wordt vanzelf bewaard. Rechtsonder in de app staat daarna **Opgeslagen ✓
 
 ### Uit bij slaapstand
 
-Ga naar **Instellingen**. Het eerste blok heet **Als de pc slaapt of vergrendeld is**. Kies daar
-wat je apparaten dan doen:
+Ga naar **Instellingen**. Kies in het eerste blok, **Als de pc slaapt of vergrendeld is**, wat
+je apparaten dan doen:
 
 - **Uitzetten**: ze gaan uit.
 - **Dimmen**: ze branden zacht.
@@ -58,8 +55,9 @@ erboven aan. Gebruik je de pc weer, dan komen je kleuren vanzelf terug.
 
 ### Na een herstart
 
-BuurmansRgb onthoudt je kleuren, welke apparaten aan of uit staan, hoe fel ze zijn en je keuze
-bij slaapstand. Het blok **Na een herstart** op **Instellingen** zegt precies wat er terugkomt.
+buurmansRgb onthoudt je kleuren en effecten (of de scène die aan staat), welke apparaten aan of
+uit staan, hoe fel ze zijn en je keuze bij slaapstand. Het blok **Na een herstart** op
+**Instellingen** zegt precies wat er terugkomt.
 
 Dat gaat alleen vanzelf als **Starten met Windows** aan staat. Staat het uit, dan zie je in dat
 blok de knop **Starten met Windows aanzetten**.
@@ -67,16 +65,22 @@ blok de knop **Starten met Windows aanzetten**.
 ### Hulp nodig?
 
 - **Mist er een apparaat?** Klik op **Apparaten** op **Hoe komt een apparaat erbij?**. Of klik
-  op **Verversen** ernaast: dan wordt opnieuw gezocht.
+  ernaast op **Verversen** om opnieuw te zoeken.
 - **Doen je apparaten niets meer?** Staat er bovenaan een melding, klik dan op de knop die
   erbij staat, zoals **Opnieuw verbinden** of **Herstarten**. Vraagt Windows of het mag, kies
   dan **Ja**.
-- **Lukt het nog steeds niet?** Vraag het aan wie BuurmansRgb voor je heeft geïnstalleerd. Klik
-  op **Instellingen** op **Logbestand openen**: daarin staat wat BuurmansRgb deed. Stuur dat mee
+- **Lukt het nog steeds niet?** Vraag het aan wie buurmansRgb voor je heeft geïnstalleerd. Klik
+  op **Instellingen** op **Logbestand openen**: daarin staat wat buurmansRgb deed. Stuur dat mee
   als je om hulp vraagt.
-- **Meer weten?** Lees verder in deze handleiding. Elke pagina van de app heeft hieronder een
-  eigen kop. Hulp bij het toetsenbord, een schermlezer of grotere tekst staat bij
-  [Toegankelijkheid](#toegankelijkheid).
+- **Meer weten?** Elke pagina van de app heeft hieronder een eigen kop. Hulp bij het
+  toetsenbord, een schermlezer of grotere tekst staat bij [Toegankelijkheid](#toegankelijkheid).
+
+## Over deze handleiding
+
+Hieronder staat alles over het gebruik van BuurmansRgb: de instellingen-app, het tray-icoon,
+pauzeren, de instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken.
+Installeren staat in [installatie.md](installatie.md); bouwen, testen en hoe het van binnen werkt
+in [ontwikkelaars.md](ontwikkelaars.md).
 
 ## De instellingen-app
 
@@ -151,7 +155,7 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   helderheid ("LED-strip · Warm wit · 100%") of "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
   "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een
   donkere of diepblauwe kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat
-  je de knop blijft zien. De kleur heet zoals bij "Huidige kleur" op Kleur (zie "Kleurnamen") en
+  je de knop blijft zien. De kleur heet zoals bij "Huidige kleur" op Kleur (zie "Kleurnamen" bij "Toegankelijkheid") en
   loopt mee als je hem verandert, ook terwijl je schuift. Toont het apparaat niet één kleur, dan
   staat er de naam van het effect: Regenboog, Kleurenloop, Vuur, Per LED, een eigen effect onder
   zijn naam, of Komeet, Scanner of Fonkelen met meer dan één eigen kleur ("Muis · Regenboog ·
@@ -206,7 +210,7 @@ schakelaar ernaast.
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de naam van de
   kleur met de hex-code erachter ("Warm wit · #FFF4E5"; je kunt ook een code typen) en de
   R · G · B-waarden. De naam loopt mee terwijl je schuift; een vaste kleur heet zoals onder
-  "Kleuren", een andere kleur krijgt een benaderende naam (zie "Kleurnamen"). Is het venster
+  "Kleuren", een andere kleur krijgt een benaderende naam (zie "Kleurnamen" bij "Toegankelijkheid"). Is het venster
   smal of de tekst groot, dan staat de hex-code met de punt ervoor onder de naam; rechts de schuiven Rood, Groen en Blauw
   (0–255, ook met de pijltjes), "Kleuren" met veertien vaste kleuren (Warm wit,
   Rood, Oranje, Groen, Blauw, Paars, Fel rood, Fel groen en Fel blauw, en Roze, Lichtroze,
@@ -493,7 +497,7 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
   zonder naam. Een schermlezer noemt de LED's zo ook, met de kleur die de LED op dat moment toont
-  erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen"), en kan ze selecteren
+  erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen" bij "Toegankelijkheid"), en kan ze selecteren
   zoals een klik; de apparaten en zones in het voorbeeld noemt hij bij hun naam. Bij een effect dat
   beweegt hoor je de kleur van het moment dat je met de pijltjes bij de LED komt. Die naam blijft
   daarna staan tot de LED opnieuw de focus krijgt, ook als de kleur intussen verandert: zo begint
@@ -842,7 +846,7 @@ Hoe het vanzelf aanzetten werkt:
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
   dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
   worden aangepast."; het logbestand zegt waarom. Wat het betekent voor een herstart, staat bij
-  "Na een herstart" bovenaan.
+  het blok "Na een herstart" bovenaan Instellingen.
 - **Bewaren en terugzetten:** "Instellingen bewaren…" zet `settings.json`, `profiles.json` en
   `effects.json` (zie "Instellingenbestanden") samen in één zip-bestand dat je zelf kiest; de
   naam die de app voorstelt is `buurmansRgb-instellingen-<datum>.zip`. Een bestand dat er nog
