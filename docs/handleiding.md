@@ -19,10 +19,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   actieve LED (zie "Per-LED-editor").
 - **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
-  ("Klus-wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
+  ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
   een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
-  afbeelding ("Aan: #FF8800" of "Uit"), en zolang de app nog niet weet hoe de scène eruitziet
-  slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
+  afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
+  "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
   want de tekst ernaast zegt al wat ze tonen.
 - **Kleurnamen:** een vakje van de kleurenloop, van de kleuren van een effect en van je eigen
   kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
@@ -30,12 +30,14 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
   vaste kleur onder "Kleuren" houdt zijn eigen naam, ook in een vakje of een stap, met een
   kleine beginletter omdat hij midden in de zin staat ("Kleur 2: fel groen, #00FF00", "Eigen
-  kleur: klus-wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
+  kleur: warm wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
   zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
   oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
   donker- ervoor; de hex-code zegt precies welke kleur het is. Een kleur met maar een vleugje tint
   heet grijs of wit. De regel onder de stappen ("Stap 1 van 3 · #FF3B3B") blijft de hex-code
-  tonen, want daar zie je de kleur.
+  tonen, want daar zie je de kleur. Dezelfde namen staan, met een hoofdletter, bij "Huidige kleur"
+  op Kleur en op de apparaatkaarten ("Warm wit", "Lichtblauw"), en een schermlezer hoort ze bij
+  elke LED van het voorbeeld ("LED 5, rood") en bij de bolletjes van een scènekaart.
 - **Contrastthema:** zet je in Windows een contrastthema aan (Instellingen → Toegankelijkheid →
   Contrastthema's, bijv. "Woestijn" of "Nachthemel"), dan neemt de app de kleuren van dat thema
   over: tekst, achtergrond, kaarten, randen, links en de focusring. Knoppen en kaarten waarop je
@@ -136,11 +138,15 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   op zijn kaart, en een scène met de apparaten uit (of in het zwart) op zijn scènekaart.
 - **Apparaten in huis:** elk apparaat als kaart, de echte onder "Echte apparaten
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde apparaten", twee of drie naast elkaar. Op de
-  kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de helderheid of
-  "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
+  kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de kleur en de
+  helderheid ("LED-strip · Warm wit · 100%") of "uit", zo nodig de plek (bijv. "Adres 0x52", zie "Welk apparaat is wat?") en
   "⚠ Volgt de kleur misschien niet", en een schakelaar in de kleur van het apparaat. Bij een
   donkere of diepblauwe kleur is het spoor van de schakelaar lichter (zwart wordt grijs), zodat
-  je de knop blijft zien. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
+  je de knop blijft zien. De kleur heet zoals bij "Huidige kleur" op Kleur (zie "Kleurnamen") en
+  loopt mee als je hem verandert, ook terwijl je schuift. Toont het apparaat niet één kleur, dan
+  staat er de naam van het effect: Regenboog, Kleurenloop, Vuur, Per LED, een eigen effect onder
+  zijn naam, of Komeet, Scanner of Fonkelen met meer dan één eigen kleur ("Muis · Regenboog ·
+  80%"). Komeet, Scanner, Fonkelen en Vuur met één eigen kleur noemen die kleur. Past een lange naam niet op de kaart, dan eindigt hij op "…"; de tooltip van de
   kaart heeft de hele naam, met daaronder de hele locatie als OpenRGB die geeft.
 - **Alleen gesimuleerde apparaten:** zolang er bij "Gesimuleerde apparaten tonen" "Automatisch"
   staat (zie "Instellingen") en OpenRGB geen echte apparaten geeft, staat onder "Apparaten in huis"
@@ -188,10 +194,14 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 Bovenaan kies je een apparaat of "Hele huis" (een schermlezer noemt de keuze "Welk apparaat?"), met de
 schakelaar ernaast.
 
-- **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
-  (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
-  (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Klus-wit,
-  Rood, Oranje, Groen, Blauw, Paars, en Fel rood, Fel groen en Fel blauw) met daaronder je
+- **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de naam van de
+  kleur met de hex-code erachter ("Warm wit · #FFF4E5"; je kunt ook een code typen) en de
+  R · G · B-waarden. De naam loopt mee terwijl je schuift; een vaste kleur heet zoals onder
+  "Kleuren", een andere kleur krijgt een benaderende naam (zie "Kleurnamen"). Is het venster
+  smal of de tekst groot, dan staat de hex-code met de punt ervoor onder de naam; rechts de schuiven Rood, Groen en Blauw
+  (0–255, ook met de pijltjes), "Kleuren" met veertien vaste kleuren (Warm wit,
+  Rood, Oranje, Groen, Blauw, Paars, Fel rood, Fel groen en Fel blauw, en Roze, Lichtroze,
+  Lila, Mint en Babyblauw) met daaronder je
   eigen kleuren (zie "Eigen kleuren"). De kleur gaat meteen op het apparaat (bij "Hele huis" op
   alle apparaten) terwijl je schuift, een hex-code typt of een vaste of eigen kleur kiest; een
   knop is er niet. Een seconde na je laatste wijziging staat rechtsonder "Opgeslagen ✓" (zie
@@ -473,8 +483,16 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   een rij eronder. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, Shift, Ctrl, Backspace,
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
-  zonder naam. Een schermlezer noemt de LED's zo ook, en kan ze selecteren zoals een klik; de
-  apparaten en zones in het voorbeeld noemt hij bij hun naam.
+  zonder naam. Een schermlezer noemt de LED's zo ook, met de kleur die de LED op dat moment toont
+  erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen"), en kan ze selecteren
+  zoals een klik; de apparaten en zones in het voorbeeld noemt hij bij hun naam. Bij een effect dat
+  beweegt hoor je de kleur van het moment dat je met de pijltjes bij de LED komt. Die naam blijft
+  daarna staan tot de LED opnieuw de focus krijgt, ook als de kleur intussen verandert: zo begint
+  de schermlezer niet uit zichzelf te praten bij elk beeld van het effect. Loop je met de
+  schermlezer langs LED's die de focus niet hebben gehad, dan hoor je de kleur van het moment dat
+  de focus het laatst in het voorbeeld kwam (of dat de schermlezer ze voor het eerst opvroeg, als
+  de focus er nog niet is geweest). Ook als het aantal LED's verandert, krijgen ze allemaal de
+  kleur van dat moment.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
@@ -555,7 +573,7 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 
   Daarna ga je met Shift+Tab terug naar boven, naar de schuiven en de vaste kleuren: elke
   stap kleurt de gekozen LED's meteen.
-  Een schermlezer noemt de actieve LED bij zijn naam en zegt of hij gekozen is.
+  Een schermlezer noemt de actieve LED bij zijn naam en kleur en zegt of hij gekozen is.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
   laatste LED (geef die dus eerst een kleur).
 - **Selectie opheffen**, een ander apparaat kiezen of een ander effect dan Per LED kiezen, geeft
@@ -894,7 +912,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   houden ("Alles achter de schermen van de werkplaats"). Zo heet "Uit de gereedschapskist" nu
   "Kleuren", wordt "+ Nieuwe scène in elkaar zetten" "+ Nieuwe scène", en werd "+ Erbij
   knutselen" "Hoe komt een apparaat erbij?" (zie "Kop van Apparaten"). Echt rood, groen en
-  blauw heten Fel rood, Fel groen en Fel blauw. In de code heten de vaste kleuren nog de toolbox
+  blauw heten Fel rood, Fel groen en Fel blauw, en Klus-wit heet Warm wit (dezelfde kleur,
+  `#FFF4E5`): een kleurnaam hoort geen knipoog te zijn. In de code heten de vaste kleuren nog de toolbox
   (`ToolboxHeader`).
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
@@ -911,11 +930,13 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   Regenboog, dat geen kleur van het apparaat gebruikt, zegt een regel onder de hex-code dat de
   kleur die je mengt nergens heen gaat.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
-  van het ontwerp (§ 4, "Preset tile"), zodat de negen vaste kleuren op één rij passen en de
-  eigen kleuren eronder ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de
+  van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
+  eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de
   focusring en hebben hun naam voor een schermlezer. Naast de zes kleuren van het ontwerp staan
   Fel rood, Fel groen en Fel blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van
-  het ontwerp zijn getint. De vakjes van de kleurenloop en de kleuren van een effect blijven
+  het ontwerp zijn getint. Daarna komen Roze, Lichtroze, Lila, Mint en Babyblauw
+  (255,105,180 · 255,182,193 · 204,153,255 · 152,255,204 · 137,207,240): het ontwerp heeft geen
+  roze of pastel, en de gebruiker wilde die bij de hand hebben. De vakjes van de kleurenloop en de kleuren van een effect blijven
   44 px.
 - **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
   van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes
@@ -946,8 +967,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   met sectiekoppen en gewone knoppen. De kop "Licht op de achtergrond" is een knipoog zoals de
   koppen van het ontwerp; de getallen erin staan in de lettersoort van de tekst en niet in IBM
   Plex Mono, omdat het één zin is.
-- **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
-  ruimte kent BuurmansRgb niet.
+- **Apparaatkaarten** tonen het type met de kleur en de helderheid in plaats van "Ruimte ·
+  helderheid": een ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
   "Herstarten" als gewone knop zodra de verbinding weg is) in plaats van de ronde
   instellingenknop (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in

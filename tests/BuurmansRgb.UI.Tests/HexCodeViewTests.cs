@@ -6,6 +6,7 @@ using System.Windows.Media;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -46,6 +47,51 @@ public sealed class HexCodeViewTests
             OffscreenWindow.WaitUntilIdle();
             Assert.False(error.IsVisible);
             Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
+        });
+    }
+
+    // The name of the color stands before its code ("Warm wit · #FFF4E5") and goes along with a
+    // slider while it moves; a screen reader reads it as text, not as news on every step.
+    [Fact]
+    public async Task ColorName_StandsBeforeTheCodeAndFollowsTheSliders()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            Window.GetWindow(panel)!.Width = 1240;
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var box = PageViews.Named<TextBox>(page, Strings.HexLabel);
+            var name = AppTheme.Descendants<TextBlock>(page).Single(block => AutomationProperties.GetAutomationId(block) == "CurrentColorName");
+            PageViews.Click(ToolboxViewTests.PresetTiles(page)[0]);
+
+            var dot = AppTheme.Descendants<DecorativeText>(page).Single(block => block.Text == "·");
+            Assert.Equal("Warm wit", name.Text);
+            Assert.Equal("Warm wit", AutomationProperties.GetName(name));
+            Assert.Equal("#FFF4E5", box.Text);
+            Assert.True(name.TranslatePoint(new Point(name.ActualWidth, 0), page).X <= dot.TranslatePoint(default, page).X);
+            Assert.True(dot.TranslatePoint(new Point(dot.ActualWidth, 0), page).X <= box.TranslatePoint(default, page).X);
+            Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(name));
+
+            // Without room for the code beside the name, the dot goes along to the next line.
+            var line = (FrameworkElement)VisualTreeHelper.GetParent(name);
+            line.Width = name.ActualWidth + name.Margin.Right + 1;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.True(dot.TranslatePoint(default, page).Y > name.TranslatePoint(new Point(0, name.ActualHeight), page).Y - 1);
+            Assert.True(dot.TranslatePoint(default, page).X < box.TranslatePoint(default, page).X);
+            line.ClearValue(FrameworkElement.WidthProperty);
+            OffscreenWindow.WaitUntilIdle();
+
+            var red = PageViews.Named<Slider>(page, Strings.ChannelRed);
+            PageViews.Named<Slider>(page, Strings.ChannelGreen).Value = 0;
+            PageViews.Named<Slider>(page, Strings.ChannelBlue).Value = 0;
+            red.Value = 128;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.Equal("Donkerrood", AutomationProperties.GetName(name));
+
+            red.Value = 255;
+            OffscreenWindow.WaitUntilIdle();
+            Assert.Equal("Fel rood", AutomationProperties.GetName(name));
         });
     }
 

@@ -28,10 +28,17 @@ public sealed class SceneCardTests
         Assert.Equal(string.Empty, _card.DotsAccessibleName);
 
         _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
-        Assert.Equal($"Aan: {Orange.ToHex()}", _card.DotsAccessibleName);
+        Assert.Equal("Aan: oranje", _card.DotsAccessibleName);
 
         _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green, Blue])), ProfileAutomation.None);
-        Assert.Equal($"Aan: {Green.ToHex()}, {Blue.ToHex()}", _card.DotsAccessibleName);
+        Assert.Equal("Aan: fel groen, fel blauw", _card.DotsAccessibleName);
+
+        // Two bulbs of the rainbow with the same name say it once.
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Rainbow), ProfileAutomation.None);
+        Assert.Equal("Aan: fel rood, groen, blauw, paars", _card.DotsAccessibleName);
+
+        _card.Show(new LightingInfo(new RgbColor(255, 244, 229), 0.8, EffectIds.Static), ProfileAutomation.None);
+        Assert.Equal("Aan: warm wit", _card.DotsAccessibleName);
 
         _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static, On: false), ProfileAutomation.None);
         Assert.Equal("Uit", _card.DotsAccessibleName);

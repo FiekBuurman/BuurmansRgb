@@ -23,7 +23,8 @@ public sealed class TextScaleViewTests
         [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 6, 0, 60)]) { Source = DeviceSource.Hardware };
 
     // On each of the four pages, also with the panels that come and go (counting the LEDs of a zone,
-    // the message under the hex code and the settings of a scene among them), no text is cut off or lies
+    // the message under the hex code, a long name of a color beside it and the settings of a scene
+    // among them), no text is cut off or lies
     // over another text or a control, in the rail, the page and the status bar; a name in a card
     // may end in "…", as at 100 %. From the 100 % of Windows up to its largest, 225 %.
     [Theory]
@@ -49,6 +50,7 @@ public sealed class TextScaleViewTests
 
             Check(AppPage.Lamps, "");
             Check(AppPage.Color, "alle apparaten");
+            Check(AppPage.Color, "lange kleurnaam", () => viewModel.ColorPicker.HexColor = "#AFEEEE");
             Check(AppPage.Color, "melding onder de hex-code", () =>
             {
                 var box = PageViews.Named<TextBox>(window, Strings.HexLabel);

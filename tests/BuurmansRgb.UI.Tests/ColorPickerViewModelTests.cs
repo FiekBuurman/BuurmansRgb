@@ -10,14 +10,18 @@ public sealed class ColorPickerViewModelTests
 
     public ColorPickerViewModelTests() => _picker.ColorPicked += (_, color) => _picked.Add(color);
 
+    // The six of the design, the full red, green and blue, and then pink and the pastels.
     [Fact]
-    public void Presets_AreTheToolboxOfTheDesignAndTheRealColorsWithDutchNames()
+    public void Presets_AreTheToolboxOfTheDesignTheRealColorsAndThePastelsWithDutchNames()
     {
         Assert.Equal(
-            ["Klus-wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw"],
+            ["Warm wit", "Rood", "Oranje", "Groen", "Blauw", "Paars", "Fel rood", "Fel groen", "Fel blauw", "Roze", "Lichtroze", "Lila", "Mint", "Babyblauw"],
             ColorPickerViewModel.Presets.Select(preset => preset.Name));
         Assert.Equal(new RgbColor(255, 154, 61), ColorPickerViewModel.Presets[2].Color);
-        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], ColorPickerViewModel.Presets.Skip(6).Select(preset => preset.Color));
+        Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(0, 0, 255)], ColorPickerViewModel.Presets.Skip(6).Take(3).Select(preset => preset.Color));
+        Assert.Equal(
+            [new RgbColor(255, 105, 180), new RgbColor(255, 182, 193), new RgbColor(204, 153, 255), new RgbColor(152, 255, 204), new RgbColor(137, 207, 240)],
+            ColorPickerViewModel.Presets.Skip(9).Select(preset => preset.Color));
     }
 
     // Each its own color, also the real ones next to the tinted ones of the design.
@@ -54,6 +58,28 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal("#FF0080", _picker.HexColor);
         Assert.False(_picker.HasColorNotOnDevice);
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(255, 0, 128)], _picked);
+    }
+
+    // The name beside the hex code goes along with each step of a drag, a code typed and a color
+    // shown, and says so to the view.
+    [Fact]
+    public void ColorName_FollowsEveryColor()
+    {
+        List<string> names = [];
+        _picker.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(ColorPickerViewModel.ColorName))
+            {
+                names.Add(_picker.ColorName);
+            }
+        };
+        _picker.Show(RgbColor.Black);
+
+        _picker.Red = 128;
+        _picker.Red = 255;
+        _picker.HexColor = "#FFF4E5";
+
+        Assert.Equal(["Zwart", "Donkerrood", "Fel rood", "Warm wit"], names);
     }
 
     [Fact]

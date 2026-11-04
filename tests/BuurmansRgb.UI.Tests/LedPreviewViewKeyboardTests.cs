@@ -226,12 +226,13 @@ public sealed class LedPreviewViewKeyboardTests
 
         Assert.True(view.IsKeyboardFocused);
         Assert.Equal([false, true, false], leds.Select(led => led.HasKeyboardFocus()));
-        Assert.Equal("LED 2", leds[1].GetName());
+        Assert.Equal("LED 2, zwart", leds[1].GetName());
         Assert.Throws<InvalidOperationException>(() => leds[0].SetFocus());
     });
 
     // The item of the active LED tells a screen reader that it has the focus, when the view gets
-    // the focus and on every move after that; without the focus it says nothing.
+    // the focus and on every move after that, with the color the LED shows then; without the
+    // focus it says nothing.
     [Fact]
     public void ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed() => OffscreenWindow.Run(panel =>
     {
@@ -247,9 +248,34 @@ public sealed class LedPreviewViewKeyboardTests
 
         Assert.True(view.Focus());
         OffscreenWindow.WaitUntilIdle();
+        Assert.Equal("LED 3, zwart", peer.GetChildren()[2].GetName());
+        view.Colors = [default, default, new RgbColor(255, 0, 0)];
         view.ActiveLed = 2;
 
-        Assert.Equal([("LED 1", AutomationEvents.AutomationFocusChanged), ("LED 3", AutomationEvents.AutomationFocusChanged)], events);
+        Assert.Equal([("LED 1, zwart", AutomationEvents.AutomationFocusChanged), ("LED 3, fel rood", AutomationEvents.AutomationFocusChanged)], events);
+    });
+
+    // A screen reader that read the LEDs before the first frame hears the colors of now once the
+    // focus comes into the view, also for the LEDs that never had the focus; the frames after that
+    // leave the names as they are.
+    [Fact]
+    public void Focus_IntoTheView_NamesTheColorsOfNowOnce() => OffscreenWindow.Run(panel =>
+    {
+        var view = Added(panel, new LedPreviewView { Colors = new RgbColor[3], LedLabels = ["LED 1", "LED 2", "LED 3"], ActiveLed = 0 });
+        OffscreenWindow.WaitUntilIdle();
+        var peer = Assert.IsType<LedPreviewAutomationPeer>(UIElementAutomationPeer.CreatePeerForElement(view));
+        peer.RaiseLedEvent = static (_, _) => { };
+        var leds = peer.GetChildren();
+        Assert.Equal(["LED 1, zwart", "LED 2, zwart", "LED 3, zwart"], leds.Select(led => led.GetName()));
+
+        view.Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 255, 0), new RgbColor(0, 0, 128)];
+        Assert.True(view.Focus());
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(["LED 1, fel rood", "LED 2, geel", "LED 3, donkerblauw"], leds.Select(led => led.GetName()));
+
+        view.Colors = [new RgbColor(0, 128, 0), new RgbColor(255, 255, 255), new RgbColor(0, 0, 0)];
+        OffscreenWindow.WaitUntilIdle();
+        Assert.Equal(["LED 1, fel rood", "LED 2, geel", "LED 3, donkerblauw"], leds.Select(led => led.GetName()));
     });
 
     // With the focus the tooltip names the active LED; it follows the mouse and comes back to the

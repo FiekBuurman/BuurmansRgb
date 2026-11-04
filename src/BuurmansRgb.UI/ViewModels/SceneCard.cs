@@ -23,13 +23,14 @@ public sealed partial class SceneCard(string name) : ObservableObject
     [NotifyPropertyChangedFor(nameof(DotsAccessibleName))]
     public partial bool IsShown { get; private set; }
 
-    // The bulbs in one go for a screen reader, each color once: "Aan: #FF0000, #FFFF00", or "Uit".
+    // The bulbs in one go for a screen reader, by the names of their colors (ColorNames), each name
+    // once: "Aan: oranje, fel blauw", or "Uit".
     // No name while the engine has not told what the scene looks like (or could not), so a screen
     // reader skips the dark bulbs instead of calling the scene off.
     public string DotsAccessibleName =>
         !IsShown ? string.Empty
         : Dots.Any(dot => dot.IsLit)
-            ? UiText.Format(Strings.SceneDotsOn, string.Join(", ", Dots.Where(dot => dot.IsLit).Select(dot => dot.Color.ToHex()).Distinct()))
+            ? UiText.Format(Strings.SceneDotsOn, string.Join(", ", Dots.Where(dot => dot.IsLit).Select(dot => ColorNames.NameOf(dot.Color)).Distinct()))
             : Strings.SceneDotsOff;
 
     [ObservableProperty]

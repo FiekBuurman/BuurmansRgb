@@ -41,13 +41,25 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
         }
     }
 
-    // The item of the active LED now has the focus, so a screen reader says its name and whether
-    // it is selected.
+    // The item of the active LED now has the focus, so a screen reader says its name, with the
+    // color the LED shows now, and whether it is selected.
     public void RaiseLedFocused(int led)
     {
         if (GetChildren()?.ElementAtOrDefault(led) is LedAutomationPeer item)
         {
+            item.Rename();
             RaiseLedEvent(item, AutomationEvents.AutomationFocusChanged);
+        }
+    }
+
+    // Every LED says the color of now the next time its name is asked for: once when the focus comes
+    // into the view, so an LED that never had the focus does not keep the color of before the first
+    // frame, and when the number of LEDs changes.
+    public void RenameLeds()
+    {
+        foreach (var item in _leds)
+        {
+            item.Rename();
         }
     }
 

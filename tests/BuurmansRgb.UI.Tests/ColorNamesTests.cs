@@ -141,10 +141,44 @@ public sealed class ColorNamesTests
             Assert.Equal(preset.Name[1..], name[1..]);
             Assert.Equal(UiText.Format(Strings.ColorNameWithHex, name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color));
         });
-        Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+        Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
         Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         Assert.Equal("fel groen", ColorNames.NameOf(new(0, 255, 0)));
     }
+
+    // On its own a name starts with a capital: a color of the toolbox as it is, a tone with its word
+    // made big; under tr-TR too, so "ı" does not come in.
+    [Theory]
+    [InlineData("#FFF4E5", "Warm wit")]
+    [InlineData("#00FF00", "Fel groen")]
+    [InlineData("#89CFF0", "Babyblauw")]
+    [InlineData("#AFEEEE", "Lichtturquoise")]
+    [InlineData("#800000", "Donkerrood")]
+    [InlineData("#000000", "Zwart")]
+    public void StandaloneNameOf_StartsWithACapital(string hex, string expected)
+    {
+        var regionFormat = CultureInfo.CurrentCulture;
+        try
+        {
+            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+            Assert.Equal(expected, ColorNames.StandaloneNameOf(Parse(hex)));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = regionFormat;
+        }
+    }
+
+    // Pink and the pastels have their own name, from Strings.resx, and not the word of their tone.
+    [Theory]
+    [InlineData("#FF69B4", "roze, #FF69B4")]
+    [InlineData("#FFB6C1", "lichtroze, #FFB6C1")]
+    [InlineData("#CC99FF", "lila, #CC99FF")]
+    [InlineData("#98FFCC", "mint, #98FFCC")]
+    [InlineData("#89CFF0", "babyblauw, #89CFF0")]
+    public void WithHex_PinkAndThePastels_HaveTheirOwnName(string hex, string expected) =>
+        Assert.Equal(expected, ColorNames.WithHex(Parse(hex)));
 
     // The small letter follows the culture of the text, not the region format: under tr-TR the names
     // are the same.
@@ -158,7 +192,7 @@ public sealed class ColorNamesTests
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
 
             Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
-            Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
+            Assert.Equal("warm wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
             Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         }
         finally

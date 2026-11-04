@@ -2,6 +2,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
+using BuurmansRgb.UI.Resources;
+using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
 
@@ -11,6 +13,9 @@ namespace BuurmansRgb.UI.Views;
 // its own, so it asks the view for all of that.
 internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPreviewView view, int led) : AutomationPeer, ISelectionItemProvider
 {
+    private string? _label;
+    private string? _name;
+
     public int Index => led;
 
     public bool IsSelected => view.IsSelected(led);
@@ -27,7 +32,30 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
     public override object? GetPattern(PatternInterface patternInterface) =>
         patternInterface == PatternInterface.SelectionItem ? this : null;
 
-    protected override string GetNameCore() => view.LabelOf(led) ?? string.Empty;
+    // "LED 5, rood": its label with the name of the color it showed when it last got the focus, or
+    // when a screen reader first asked for it. While a screen reader listens, WPF compares the
+    // name after every layout pass, and each frame of a moving effect makes one: a name that
+    // followed the frames would raise a name change per LED per frame. So it stays until the LED
+    // gets the focus again (Rename), the focus comes into the view or the number of LEDs changes
+    // (both LedPreviewAutomationPeer.RenameLeds), or it gets another label.
+    protected override string GetNameCore()
+    {
+        if (view.LabelOf(led) is not { } label)
+        {
+            return string.Empty;
+        }
+
+        if (_name is null || label != _label)
+        {
+            _label = label;
+            _name = led < view.Colors.Count ? UiText.Format(Strings.LedNameWithColor, label, ColorNames.NameOf(view.Colors[led])) : label;
+        }
+
+        return _name;
+    }
+
+    // The next time its name is asked for, it says the color of now.
+    internal void Rename() => _name = null;
 
     protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.ListItem;
 

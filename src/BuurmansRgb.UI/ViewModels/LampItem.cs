@@ -35,21 +35,45 @@ public sealed partial class LampItem(DeviceItem device) : ObservableObject
     [ObservableProperty]
     public partial RgbColor Color { get; private set; }
 
-    // "type · brightness", or "type · uit": on and off are also said in words (§ 7).
+    // The lighting the engine gave last, for what the lamp shows in Details; null until it did.
+    private LightingInfo? _lighting;
+
+    // "type · look · brightness", such as "LED-strip · Warm wit · 100%", or "type · uit": on and off
+    // are also said in words (§ 7). Until the engine told the lighting there is no look.
     public string Details
     {
         get
         {
-            var state = IsOn ? UiText.Format(Strings.LampBrightness, Brightness * 100.0) : Strings.LampOff;
+            var state = !IsOn ? Strings.LampOff
+                : Look is { } look ? UiText.Format(Strings.LampLookAndBrightness, look, UiText.Format(Strings.LampBrightness, Brightness * 100.0))
+                : UiText.Format(Strings.LampBrightness, Brightness * 100.0);
             return Device.TypeName is { } type ? UiText.Format(Strings.DeviceDetailsWithType, type, state) : state;
         }
     }
+
+    // Names the effects of the engine and the own effects by their id, such as "Disco"; without it,
+    // or for an id it does not know, an own effect is "Eigen effect" (EffectOption.Create).
+    internal Func<string, string?>? EffectName { get; set; }
+
+    // The name of the one color the lamp shows ("Warm wit"), as with Statisch, Ademen, Golf, or
+    // Komeet, Scanner, Fonkelen and Vuur with one color (SceneLook.OneColorOf); else the name of the
+    // effect, as with Regenboog, Kleurenloop, Vuur, Per LED, an own effect, or Komeet with more
+    // colors. From the lighting the engine has, not from the frames, so it changes with the color
+    // and not with every frame.
+    private string? Look =>
+        _lighting is not { } lighting ? null
+        : SceneLook.OneColorOf(lighting) is { } color ? ColorNames.StandaloneNameOf(color)
+        : EffectName?.Invoke(lighting.EffectId) ?? EffectOption.Create(lighting.EffectId).DisplayName;
 
     public void Show(LightingInfo lighting) => _showing.Run(() =>
     {
         IsOn = lighting.On;
         Brightness = lighting.Brightness;
+        ShowLook(lighting);
     });
+
+    // The names of the effects changed, such as an own effect that got another name.
+    internal void ShowEffectNames() => OnPropertyChanged(nameof(Details));
 
     // WPF names the list item, the card, after it for screen readers: the name the device list has.
     public override string ToString() => Device.DisplayName;
@@ -63,7 +87,18 @@ public sealed partial class LampItem(DeviceItem device) : ObservableObject
         IsOn = previous.IsOn;
         Brightness = previous.Brightness;
         Color = previous.Color;
+        ShowLook(previous._lighting);
     });
+
+    // Details changes only when the lighting does, such as each color of a drag on Kleur.
+    private void ShowLook(LightingInfo? lighting)
+    {
+        if (lighting != _lighting)
+        {
+            _lighting = lighting;
+            OnPropertyChanged(nameof(Details));
+        }
+    }
 
     // Leds holds three bytes per LED, as a DeviceFrame has them.
     internal void ShowLeds(byte[] leds)

@@ -14,22 +14,30 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class ToolboxViewTests
 {
-    // Squares of 32 px instead of the 44 of the design, all nine in one row in a wide window; the
-    // tiles of a list of colors keep their 44.
-    [Fact]
-    public async Task Presets_AreSmallSquaresInOneRow()
+    // Squares of 32 px instead of the 44 of the design, in rows from left to right: in a wide window
+    // the nine of the first row, and the rest under them as far as the column needs; the tiles of a
+    // list of colors keep their 44.
+    [Theory]
+    [InlineData(1400)]
+    [InlineData(960)]
+    public async Task Presets_AreSmallSquaresInRows(double width)
     {
         using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
-            Window.GetWindow(panel)!.Width = 1400;
+            Window.GetWindow(panel)!.Width = width;
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             var tiles = PresetTiles(page);
+            var places = tiles.Select(tile => tile.TranslatePoint(default, page)).ToList();
 
             Assert.Equal(ColorPickerViewModel.Presets.Count, tiles.Count);
             Assert.All(tiles, tile => Assert.Equal((32.0, 32.0), (tile.ActualWidth, tile.ActualHeight)));
-            Assert.Single(tiles.Select(tile => tile.TranslatePoint(default, page).Y).Distinct());
+            Assert.Equal(places, places.OrderBy(place => place.Y).ThenBy(place => place.X));
+            if (width >= 1400)
+            {
+                Assert.Single(places.Take(9).Select(place => place.Y).Distinct());
+            }
         });
     }
 

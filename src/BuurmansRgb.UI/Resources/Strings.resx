@@ -263,6 +263,10 @@
   <data name="LedLabel" xml:space="preserve">
     <value>LED {0}</value>
   </data>
+  <data name="LedNameWithColor" xml:space="preserve">
+    <value>{0}, {1}</value>
+    <comment>Een LED van het voorbeeld voor een schermlezer: {0} = LedLabel of LedLabelWithName (bijv. LED 5), {1} = de naam van zijn kleur met een kleine beginletter (bijv. rood of warm wit).</comment>
+  </data>
   <data name="LedLabelWithName" xml:space="preserve">
     <value>{0} (LED {1})</value>
   </data>
@@ -323,6 +327,26 @@
   <data name="PresetPureBlue" xml:space="preserve">
     <value>Fel blauw</value>
     <comment>0, 0, 255: naast het getinte Blauw van het ontwerp.</comment>
+  </data>
+  <data name="PresetPink" xml:space="preserve">
+    <value>Roze</value>
+    <comment>255, 105, 180: roze en de pastelkleuren hierna staan niet in het ontwerp; de gebruiker vroeg erom.</comment>
+  </data>
+  <data name="PresetLightPink" xml:space="preserve">
+    <value>Lichtroze</value>
+    <comment>255, 182, 193.</comment>
+  </data>
+  <data name="PresetLilac" xml:space="preserve">
+    <value>Lila</value>
+    <comment>204, 153, 255.</comment>
+  </data>
+  <data name="PresetMint" xml:space="preserve">
+    <value>Mint</value>
+    <comment>152, 255, 204.</comment>
+  </data>
+  <data name="PresetBabyBlue" xml:space="preserve">
+    <value>Babyblauw</value>
+    <comment>137, 207, 240.</comment>
   </data>
   <data name="SpeedHeader" xml:space="preserve">
     <value>Snelheid</value>
@@ -397,7 +421,7 @@
   </data>
   <data name="ColorNameWithHex" xml:space="preserve">
     <value>{0}, {1}</value>
-    <comment>Een kleur voor een schermlezer. {0} = de naam van een vaste kleur met een kleine beginletter (bijv. klus-wit) of anders een benaderende kleurnaam (ColorName_…), {1} = de hex-code, bijv. #FFFF00.</comment>
+    <comment>Een kleur voor een schermlezer. {0} = de naam van een vaste kleur met een kleine beginletter (bijv. warm wit) of anders een benaderende kleurnaam (ColorName_…), {1} = de hex-code, bijv. #FFFF00.</comment>
   </data>
   <data name="ColorName_Black" xml:space="preserve">
     <value>zwart</value>
@@ -1171,6 +1195,10 @@
   <data name="LampBrightness" xml:space="preserve">
     <value>{0:0}%</value>
   </data>
+  <data name="LampLookAndBrightness" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>Op een apparaatkaart na het soort apparaat: {0} = de naam van de kleur (bijv. Warm wit) of, bij een effect zonder één kleur, de naam van het effect (bijv. Regenboog); {1} = de helderheid (LampBrightness).</comment>
+  </data>
   <data name="LampOff" xml:space="preserve">
     <value>uit</value>
   </data>
@@ -1209,9 +1237,9 @@
   <data name="ReconnectToolTip" xml:space="preserve">
     <value>Zoekt je apparaten weer op: OpenRGB zoekt opnieuw, en antwoordt het niet, dan verbindt buurmansRgb opnieuw met OpenRGB.</value>
   </data>
-  <data name="PresetKlusWhite" xml:space="preserve">
-    <value>Klus-wit</value>
-    <comment>Een vaste kleur, met een gewoon woord vooraan zoals bij PresetRed: ColorNames maakt de eerste letter klein ("klus-wit, #FFF4E5").</comment>
+  <data name="PresetWarmWhite" xml:space="preserve">
+    <value>Warm wit</value>
+    <comment>Een vaste kleur, met een gewoon woord vooraan zoals bij PresetRed: ColorNames maakt de eerste letter klein ("warm wit, #FFF4E5").</comment>
   </data>
   <data name="RgbText" xml:space="preserve">
     <value>{0} · {1} · {2}</value>
@@ -1284,7 +1312,7 @@
   </data>
   <data name="SceneDotsOn" xml:space="preserve">
     <value>Aan: {0}</value>
-    <comment>De bolletjes van een scènekaart voor een schermlezer. {0} = elk van hun kleuren één keer, als hex-codes met een komma ertussen.</comment>
+    <comment>De bolletjes van een scènekaart voor een schermlezer. {0} = de namen van hun kleuren (ColorName_… of een vaste kleur met een kleine beginletter), elke naam één keer, met een komma ertussen.</comment>
   </data>
   <data name="SceneDotsOff" xml:space="preserve">
     <value>Uit</value>

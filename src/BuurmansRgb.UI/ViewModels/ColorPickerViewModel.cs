@@ -20,11 +20,11 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
     public event EventHandler<RgbColor>? ColorPicked;
 
-    // "Kleuren": the colors of the design, and after them red, green and blue at
-    // full strength, which the tinted ones of the design are not.
+    // "Kleuren": the colors of the design, after them red, green and blue at full strength, which
+    // the tinted ones of the design are not, and then pink and the pastels the user asked for.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
-        new(new(255, 244, 229), Strings.PresetKlusWhite),
+        new(new(255, 244, 229), Strings.PresetWarmWhite),
         new(new(255, 59, 59), Strings.PresetRed),
         new(new(255, 154, 61), Strings.PresetOrange),
         new(new(31, 196, 106), Strings.PresetGreen),
@@ -33,6 +33,11 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         new(new(255, 0, 0), Strings.PresetPureRed),
         new(new(0, 255, 0), Strings.PresetPureGreen),
         new(new(0, 0, 255), Strings.PresetPureBlue),
+        new(new(255, 105, 180), Strings.PresetPink),
+        new(new(255, 182, 193), Strings.PresetLightPink),
+        new(new(204, 153, 255), Strings.PresetLilac),
+        new(new(152, 255, 204), Strings.PresetMint),
+        new(new(137, 207, 240), Strings.PresetBabyBlue),
     ];
 
     // 0 to 255 each.
@@ -57,11 +62,15 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public partial string? HexError { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasColorNotOnDevice))]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(ColorName), nameof(HasColorNotOnDevice))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
     // "255 · 154 · 61", as the preview of the design shows it.
     public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
+
+    // "Warm wit" or "Oranje", beside the hex code; it goes along with every color mixed, also while
+    // a slider is dragged.
+    public string ColorName => ColorNames.StandaloneNameOf(Color);
 
     // The picker shows a color that is not on the device. Outside IsUnused every mixed color goes
     // on at once (Mix), so this only stays true for a color mixed while IsUnused, as with the

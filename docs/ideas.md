@@ -81,8 +81,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Hoe komt een apparaat erbij?" op Apparaten de handleiding laten openen bij de uitleg over
   apparaten, zodra `AppInfoViewModel.GuideAddress` een adres heeft; nu gaat de link naar
   Instellingen, waar bij OpenRGB de uitleg staat (`gewone-taal`)
-- De vaste kleur "Klus-wit" een gewone naam geven ("Warm wit"): het is de laatste knipoog naar
-  klussen buiten een kop (`gewone-taal` liet hem staan, omdat het een kleurnaam is en geen actie)
 - Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
   de kast een effect krijgt: een schakelaar per apparaat ("Volgt Hele huis niet"), bewaard als een
   set id's in `settings.json` zoals `zonesAlike`, die `LightingController` bij een kleur, effect of
@@ -344,9 +342,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Op de schuif Snelheid 100 % als middenmarkering, of een streepje bij 100 %: nu staat de normale
   snelheid op een derde van de schuif (10–300 %), dus zie je niet dat 100 % normaal is en je tot
   300 % kunt (gebruikerstest 28-10)
-- De bolletjes van een scènekaart voor een schermlezer ook met kleurnamen (`ColorNames`), bijv.
-  "Aan: oranje, blauw" in plaats van "Aan: #FF8800, #2F6BFF"; dan noemen ze dezelfde naam maar één
-  keer. Nu noemen alleen de vakjes van de kleuren en de stappen van een eigen effect een kleurnaam
 - Gedempte kleuren een eigen naam geven in `ColorNames`, zoals "grijsblauw" (`#708090`),
   "grijsrood" of "oudroze" (`#BC8F8F`) en "kaki" (`#BDB76B`): nu krijgt een middelhelle kleur met
   weinig tint (met een verzadiging net boven de 20 %, de grens van grijs) de volle tintnaam,

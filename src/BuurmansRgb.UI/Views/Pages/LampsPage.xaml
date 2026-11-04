@@ -173,6 +173,7 @@
                                                        IsLit="{Binding IsOn}" Color="{Binding Color}" />
                                         <StackPanel VerticalAlignment="Center">
                                             <TextBlock Style="{StaticResource CardTitle}" Text="{Binding Device.Name}" />
+                                            <!-- "LED-strip · Warm wit · 100%": it follows the color, so it is no live region. -->
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Details}" />
                                             <TextBlock Style="{StaticResource SubText}" Text="{Binding Device.LocationLabel}"
                                                        Visibility="{Binding Device.ShowsLocationLabel, Converter={StaticResource BoolToVisibility}}" />

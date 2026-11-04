@@ -213,9 +213,22 @@
                                            Text="{Binding ColorPicker.RgbText}" />
                                 <StackPanel>
                                     <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.CurrentColorLabel}" />
-                                    <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
-                                             GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
-                                             LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                                    <!-- The name of the color before its hex code, "Warm wit · #FFF4E5"; the code goes
+                                         under the name when the text of a larger text size of Windows needs the room,
+                                         with the dot before it, so no dot stays behind the name.
+                                         The name follows the color while you drag, so it is no live region. -->
+                                    <WrapPanel>
+                                        <TextBlock Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
+                                                   Text="{Binding ColorPicker.ColorName}"
+                                                   AutomationProperties.Name="{Binding ColorPicker.ColorName}" AutomationProperties.AutomationId="CurrentColorName" />
+                                        <StackPanel Orientation="Horizontal">
+                                            <views:DecorativeText Margin="0,4,10,0" VerticalAlignment="Center" FontSize="{DynamicResource SectionHeaderSize}" FontWeight="SemiBold"
+                                                                  Foreground="{DynamicResource TextMutedBrush}" Text="·" />
+                                            <TextBox Style="{StaticResource HexBox}" Text="{Binding ColorPicker.HexColor, UpdateSourceTrigger=PropertyChanged}"
+                                                     GotKeyboardFocus="OnHexKeyboardFocusChanged" LostKeyboardFocus="OnHexKeyboardFocusChanged"
+                                                     LostFocus="OnHexLostFocus" AutomationProperties.Name="{x:Static res:Strings.HexLabel}" />
+                                        </StackPanel>
+                                    </WrapPanel>
                                 </StackPanel>
                             </DockPanel>
                             <!-- A code that is no color makes way for that of the color when the field loses the focus; this says so. -->
@@ -351,7 +364,8 @@
                             Foreground="{StaticResource LedBlueBrush}" AutomationProperties.Name="{x:Static res:Strings.ChannelBlue}" />
 
                     <TextBlock Margin="0,18,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.ToolboxHeader}" />
-                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine fit one row. -->
+                    <!-- Squares of 32 px, 8 apart, instead of the 44 px of the design: the nine of the design and
+                         the full colors fit one row in a wide window, and the rest wraps under them. -->
                     <ItemsControl ItemsSource="{x:Static vm:ColorPickerViewModel.Presets}" Focusable="False" IsTabStop="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
