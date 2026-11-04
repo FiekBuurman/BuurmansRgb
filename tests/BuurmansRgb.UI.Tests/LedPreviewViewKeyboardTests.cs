@@ -231,7 +231,8 @@ public sealed class LedPreviewViewKeyboardTests
     });
 
     // The item of the active LED tells a screen reader that it has the focus, when the view gets
-    // the focus and on every move after that; without the focus it says nothing.
+    // the focus and on every move after that, with the color the LED shows then; without the
+    // focus it says nothing.
     [Fact]
     public void ShowActiveLed_RaisesFocusChangedForTheItemOfTheActiveLed() => OffscreenWindow.Run(panel =>
     {
@@ -247,9 +248,11 @@ public sealed class LedPreviewViewKeyboardTests
 
         Assert.True(view.Focus());
         OffscreenWindow.WaitUntilIdle();
+        Assert.Equal("LED 3, zwart", peer.GetChildren()[2].GetName());
+        view.Colors = [default, default, new RgbColor(255, 0, 0)];
         view.ActiveLed = 2;
 
-        Assert.Equal([("LED 1, zwart", AutomationEvents.AutomationFocusChanged), ("LED 3, zwart", AutomationEvents.AutomationFocusChanged)], events);
+        Assert.Equal([("LED 1, zwart", AutomationEvents.AutomationFocusChanged), ("LED 3, fel rood", AutomationEvents.AutomationFocusChanged)], events);
     });
 
     // With the focus the tooltip names the active LED; it follows the mouse and comes back to the

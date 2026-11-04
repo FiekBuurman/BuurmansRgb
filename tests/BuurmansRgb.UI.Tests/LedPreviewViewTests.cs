@@ -32,8 +32,8 @@ public sealed class LedPreviewViewTests
         Assert.Single(((ISelectionProvider)peer.GetPattern(PatternInterface.Selection)).GetSelection());
     });
 
-    // Each LED item says its color after its label ("LED 2, warm wit"), as the view shows it when a
-    // screen reader asks: the same item with the next frame says the new color, without an event.
+    // Each LED item says its color after its label ("LED 2, warm wit"), as the view showed it when a
+    // screen reader first asked.
     [Fact]
     public void AutomationPeer_NamesTheColorOfEachLed() => Sta.Run(() =>
     {
@@ -41,11 +41,28 @@ public sealed class LedPreviewViewTests
         var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
 
         Assert.Equal(["Escape (LED 1), fel rood", "LED 2, warm wit", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
+    });
+
+    // WPF compares the names after every layout pass while a screen reader listens, so new frames
+    // leave the names as they are; only the LED that gets the focus takes the color of now.
+    [Fact]
+    public void AutomationPeer_NewFrames_KeepTheNamesUntilTheLedGetsTheFocus() => Sta.Run(() =>
+    {
+        var view = Arranged(new LedPreviewView { Colors = [new RgbColor(255, 0, 0), new RgbColor(255, 244, 229), new RgbColor(0, 0, 128)], LedLabels = Labels });
+        var peer = Assert.IsType<LedPreviewAutomationPeer>(UIElementAutomationPeer.CreatePeerForElement(view));
+        peer.RaiseLedEvent = static (_, _) => { };
+        var leds = peer.GetChildren();
+        string[] before = [.. leds.Select(led => led.GetName())];
 
         view.Colors = [new RgbColor(255, 136, 0), new RgbColor(137, 207, 240), new RgbColor(0, 0, 0)];
+        view.Colors = [new RgbColor(0, 128, 0), new RgbColor(255, 255, 0), new RgbColor(255, 255, 255)];
 
-        Assert.Same(leds[1], UIElementAutomationPeer.CreatePeerForElement(view).GetChildren()[1]);
-        Assert.Equal(["Escape (LED 1), oranje", "LED 2, babyblauw", "F1 (LED 3), zwart"], leds.Select(led => led.GetName()));
+        Assert.Same(leds[1], peer.GetChildren()[1]);
+        Assert.Equal(before, leds.Select(led => led.GetName()));
+
+        peer.RaiseLedFocused(1);
+
+        Assert.Equal(["Escape (LED 1), fel rood", "LED 2, geel", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
     });
 
     // Selecting an LED item does what a click does, adding it what Shift+click does.

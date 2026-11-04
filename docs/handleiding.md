@@ -486,8 +486,11 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   zonder naam. Een schermlezer noemt de LED's zo ook, met de kleur die de LED op dat moment toont
   erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen"), en kan ze selecteren
   zoals een klik; de apparaten en zones in het voorbeeld noemt hij bij hun naam. Bij een effect dat
-  beweegt hoor je de kleur van het moment dat je bij de LED komt; de schermlezer begint niet uit
-  zichzelf te praten als de kleur verandert.
+  beweegt hoor je de kleur van het moment dat je met de pijltjes bij de LED komt. Die naam blijft
+  daarna staan tot de LED opnieuw de focus krijgt, ook als de kleur intussen verandert: zo begint
+  de schermlezer niet uit zichzelf te praten bij elk beeld van het effect. Loop je met de
+  schermlezer langs LED's die de focus niet hebben gehad, dan hoor je de kleur van het moment dat
+  hij ze voor het eerst opvroeg.
 - **Lengte van een zone:** bij een zone die OpenRGB in lengte laat instellen (een ARGB-header
   of -kanaal) staat "Aantal LED's (0–120):" met het bereik, en −, +, een schuif, een vak en
   "Toepassen". − en + doen één LED per klik en blijven herhalen zolang je ze ingedrukt houdt.
