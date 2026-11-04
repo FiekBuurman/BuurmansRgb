@@ -10,7 +10,7 @@ using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// "Uit de gereedschapskist" on the real ColorPage, in a window off screen.
+// "Kleuren" on the real ColorPage, in a window off screen.
 [Collection(AppThemeCollection.Name)]
 public sealed class ToolboxViewTests
 {

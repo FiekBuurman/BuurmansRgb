@@ -298,7 +298,7 @@
   </data>
   <data name="PresetRed" xml:space="preserve">
     <value>Rood</value>
-    <comment>De naam van een vaste kleur in de gereedschapskist, zoals alle Preset-teksten. Begin hem met een gewoon woord: ColorNames maakt de eerste letter klein als de naam midden in een zin staat ("Kleur 2: echt groen, #00FF00").</comment>
+    <comment>De naam van een vaste kleur onder "Kleuren" op Kleur, zoals alle Preset-teksten. Begin hem met een gewoon woord: ColorNames maakt de eerste letter klein als de naam midden in een zin staat ("Kleur 2: fel groen, #00FF00").</comment>
   </data>
   <data name="PresetOrange" xml:space="preserve">
     <value>Oranje</value>
@@ -313,15 +313,15 @@
     <value>Paars</value>
   </data>
   <data name="PresetPureRed" xml:space="preserve">
-    <value>Echt rood</value>
+    <value>Fel rood</value>
     <comment>255, 0, 0: naast het getinte Rood van het ontwerp.</comment>
   </data>
   <data name="PresetPureGreen" xml:space="preserve">
-    <value>Echt groen</value>
+    <value>Fel groen</value>
     <comment>0, 255, 0: naast het getinte Groen van het ontwerp.</comment>
   </data>
   <data name="PresetPureBlue" xml:space="preserve">
-    <value>Echt blauw</value>
+    <value>Fel blauw</value>
     <comment>0, 0, 255: naast het getinte Blauw van het ontwerp.</comment>
   </data>
   <data name="SpeedHeader" xml:space="preserve">
@@ -1196,7 +1196,7 @@
     <value>Voorbeeld van de kleur</value>
   </data>
   <data name="ToolboxHeader" xml:space="preserve">
-    <value>Uit de gereedschapskist</value>
+    <value>Kleuren</value>
   </data>
   <data name="CustomColorsHeader" xml:space="preserve">
     <value>Eigen kleuren</value>
