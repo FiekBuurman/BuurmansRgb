@@ -45,7 +45,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
     // of them.
     public event EventHandler? LengthsChanged;
 
-    // A copy, by device id and zone name.
+    // A copy, by device id and zone key (RgbZone.Key).
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, int>> Lengths
     {
         get
@@ -57,12 +57,13 @@ internal sealed class ZoneLengthKeeper : IDisposable
         }
     }
 
-    // The length remembered for the zone with that name; null when there is none.
-    public int? LengthOf(string deviceId, string zone)
+    // The length remembered for the zone with that key (RgbZone.Key: its id, or its name for a zone
+    // without one, not the name shown); null when there is none.
+    public int? LengthOf(string deviceId, string zoneKey)
     {
         lock (_gate)
         {
-            return _lengths.TryGetValue(deviceId, out var zones) && zones.TryGetValue(zone, out var ledCount) ? ledCount : null;
+            return _lengths.TryGetValue(deviceId, out var zones) && zones.TryGetValue(zoneKey, out var ledCount) ? ledCount : null;
         }
     }
 
