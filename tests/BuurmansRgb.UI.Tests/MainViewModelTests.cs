@@ -68,7 +68,7 @@ public sealed class MainViewModelTests
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
         Assert.Equal("#FF0000", viewModel.ColorPicker.HexColor);
         Assert.Equal((255.0, 0.0, 0.0), (viewModel.ColorPicker.Red, viewModel.ColorPicker.Green, viewModel.ColorPicker.Blue));
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(80.0, viewModel.Brightness);
         Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         Assert.Equal("Statisch", viewModel.SelectedEffect?.DisplayName);
@@ -121,7 +121,7 @@ public sealed class MainViewModelTests
 
         Assert.Equal(["color all #FFFF00"], Api.Calls);
         Assert.Equal("#FFFF00", viewModel.ColorPicker.HexColor);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -333,7 +333,7 @@ public sealed class MainViewModelTests
 
         await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // With Statisch the mixed color is on the device, and stays in the picker as well.
@@ -349,7 +349,7 @@ public sealed class MainViewModelTests
 
         await Eventually.TrueAsync(() => viewModel.Preview.Devices.Single() is { ZonesAlike: true } shown && shown != before);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // Another settings app, or settings.json by hand: the engine reports the devices again.
@@ -552,7 +552,7 @@ public sealed class MainViewModelTests
 
         Assert.Null(viewModel.SelectedDevice?.DeviceId);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // Not only the Zones gelijk switch: any new list keeps the color mixed for the same lamp.
@@ -568,7 +568,7 @@ public sealed class MainViewModelTests
 
         Assert.Equal(4, viewModel.Devices.Count);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // With Statisch the mixed color went on at once, and the new list keeps it in the picker.
@@ -584,7 +584,7 @@ public sealed class MainViewModelTests
 
         Assert.Equal(4, viewModel.Devices.Count);
         Assert.Equal(mixed, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // A new list while the colors of a drag still wait for a busy engine: the lighting comes behind
@@ -612,7 +612,7 @@ public sealed class MainViewModelTests
         await Eventually.TrueAsync(() => Api.Calls.Contains("color all #FF6400"));
         Assert.Equal(new RgbColor(255, 100, 0), viewModel.ColorPicker.Color);
         Assert.Equal(100, viewModel.ColorPicker.Green);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]

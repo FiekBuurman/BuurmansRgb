@@ -57,14 +57,16 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public partial string? HexError { get; private set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasUnappliedChange))]
+    [NotifyPropertyChangedFor(nameof(RgbText), nameof(HasColorNotOnDevice))]
     public partial RgbColor Color { get; private set; } = RgbColor.White;
 
     // "255 · 154 · 61", as the preview of the design shows it.
     public string RgbText => UiText.Format(Strings.RgbText, Color.R, Color.G, Color.B);
 
-    // The mixed color is not on the device: it was mixed while IsUnused.
-    public bool HasUnappliedChange => Color != _applied;
+    // The picker shows a color that is not on the device. Outside IsUnused every mixed color goes
+    // on at once (Mix), so this only stays true for a color mixed while IsUnused, as with the
+    // rainbow, until Show shows the device again.
+    public bool HasColorNotOnDevice => Color != _applied;
 
     // The effect of the device uses no color of its own, so a mixed color goes nowhere. Ending it
     // puts nothing on: MainViewModel shows the color of the device again.
@@ -76,7 +78,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
         _applied = color;
         ShowColor(color);
         HexError = null;
-        OnPropertyChanged(nameof(HasUnappliedChange));
+        OnPropertyChanged(nameof(HasColorNotOnDevice));
     });
 
     // The hex field lost the focus. A code that is no color, such as "zzz" or "#12", makes way for
@@ -148,10 +150,10 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     private void Mix(Action mix)
     {
         _showing.Run(mix);
-        if (!IsUnused && HasUnappliedChange)
+        if (!IsUnused && HasColorNotOnDevice)
         {
             _applied = Color;
-            OnPropertyChanged(nameof(HasUnappliedChange));
+            OnPropertyChanged(nameof(HasColorNotOnDevice));
             ColorPicked?.Invoke(this, Color);
         }
     }

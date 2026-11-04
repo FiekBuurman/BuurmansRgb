@@ -1202,7 +1202,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 if (ReferenceEquals(connection, _connection) && SelectedDevice?.DeviceId == deviceId && sentChanges == _sentChanges)
                 {
-                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasUnappliedChange);
+                    ShowLighting(lighting, keepMixedColor: ColorPicker.HasColorNotOnDevice);
                 }
             });
         });

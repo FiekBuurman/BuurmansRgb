@@ -52,7 +52,7 @@ public sealed class MainViewModelLedEditorTests
         viewModel.ColorPicker.SelectPresetCommand.Execute(new RgbColor(255, 59, 59));
 
         Assert.Equal(["leds strip 0 #00FF00,#00FF00", "leds strip 0 #00FFFF,#00FFFF", "leds strip 0 #FF3B3B,#FF3B3B"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class MainViewModelLedEditorTests
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
         viewModel.ColorPicker.HexColor = "#00FF00";
         Assert.Equal(["color all #00FF00"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // The color put on the whole lamp does not go to the LEDs: the picker shows their color.
@@ -80,7 +80,7 @@ public sealed class MainViewModelLedEditorTests
 
         Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(["color all #00FF00"], Api.Calls);
     }
 
@@ -145,7 +145,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     // The engine reports the LEDs the last step gave it: nothing goes back, nothing changes.
@@ -166,7 +166,7 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.ColorPicker.Color);
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.LedEditor.AnchorColor);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]

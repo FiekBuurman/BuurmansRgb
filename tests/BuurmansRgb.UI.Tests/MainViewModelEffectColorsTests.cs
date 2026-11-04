@@ -58,7 +58,7 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Equal(new RgbColor(255, 0, 255), viewModel.EffectColorsEditor.Swatches[1].Color);
         Assert.True(viewModel.EffectColorsEditor.Swatches[1].IsSelected);
         Assert.Equal(["effect-colors all comet #FF0000,#FF00FF"], Api.Calls);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     [Fact]

@@ -37,7 +37,7 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal("#0080FF", _picker.HexColor);
         Assert.Equal((0.0, 128.0, 255.0), (_picker.Red, _picker.Green, _picker.Blue));
         Assert.Equal("0 · 128 · 255", _picker.RgbText);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
         Assert.Empty(_picked);
     }
 
@@ -52,7 +52,7 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal(new RgbColor(255, 0, 128), _picker.Color);
         Assert.Equal("#FF0080", _picker.HexColor);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(255, 0, 128)], _picked);
     }
 
@@ -62,7 +62,7 @@ public sealed class ColorPickerViewModelTests
         _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[5].Color);
 
         Assert.Equal([new RgbColor(169, 123, 255)], _picked);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public sealed class ColorPickerViewModelTests
         Assert.Equal("#FF9A3D", _picker.HexColor);
         Assert.Equal(new RgbColor(255, 154, 61), _picker.Color);
         Assert.Equal($"'{text}' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF9A3D.", _picker.HexError);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
         Assert.Empty(_picked);
     }
 
@@ -132,7 +132,7 @@ public sealed class ColorPickerViewModelTests
 
         Assert.Equal("#FF0000", _picker.HexColor);
         Assert.Equal("'rood' is geen kleurcode (zes tekens, zoals #FF9A3D); de kleur blijft #FF0000.", _picker.HexError);
-        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.HasColorNotOnDevice);
     }
 
     // An empty field gets the code back; nothing was typed, so there is no message.
@@ -202,7 +202,7 @@ public sealed class ColorPickerViewModelTests
         _picker.SelectPresetCommand.Execute(ColorPickerViewModel.Presets[4].Color);
 
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0), new RgbColor(47, 107, 255)], _picked);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
     // A slider step that rounds to the same color, or showing the color of the device, sends nothing.
@@ -228,14 +228,14 @@ public sealed class ColorPickerViewModelTests
         _picker.Red = 255;
 
         Assert.Empty(_picked);
-        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.HasColorNotOnDevice);
 
         _picker.IsUnused = false;
         Assert.Empty(_picked);
 
         _picker.Green = 255;
         Assert.Equal([new RgbColor(255, 255, 0)], _picked);
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 
     [Fact]
@@ -243,10 +243,10 @@ public sealed class ColorPickerViewModelTests
     {
         _picker.IsUnused = true;
         _picker.Green = 0;
-        Assert.True(_picker.HasUnappliedChange);
+        Assert.True(_picker.HasColorNotOnDevice);
 
         _picker.Show(new RgbColor(255, 0, 255));
 
-        Assert.False(_picker.HasUnappliedChange);
+        Assert.False(_picker.HasColorNotOnDevice);
     }
 }

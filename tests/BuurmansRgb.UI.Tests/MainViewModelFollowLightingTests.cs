@@ -22,7 +22,7 @@ public sealed class MainViewModelFollowLightingTests
         Api.RaiseLightingChanged();
 
         Assert.Equal(Green, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(30.0, viewModel.Brightness);
         Assert.Equal(EffectIds.PerLed, viewModel.SelectedEffect?.Id);
         Assert.Equal(150.0, viewModel.Speed);
@@ -82,7 +82,7 @@ public sealed class MainViewModelFollowLightingTests
         Api.RaiseLightingChanged();
 
         Assert.Equal(new RgbColor(255, 255, 0), viewModel.ColorPicker.Color);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(30.0, viewModel.Brightness);
     }
 
@@ -99,7 +99,7 @@ public sealed class MainViewModelFollowLightingTests
 
         Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(Orange, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         viewModel.ColorPicker.Blue = 255;
         Assert.Equal(["color all #FFFF00", "loop all #FF88FF,#0000FF spread"], Api.Calls);
         Assert.Equal(new RgbColor(255, 136, 255), viewModel.ColorLoopEditor.Swatches[0].Color);
@@ -119,7 +119,7 @@ public sealed class MainViewModelFollowLightingTests
         Api.RaiseLightingChanged();
 
         Assert.Equal(Green, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Equal(["loop all #FF88FF,#0000FF spread"], Api.Calls);
     }
 

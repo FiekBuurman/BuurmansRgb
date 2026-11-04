@@ -78,7 +78,7 @@ public sealed class MainViewModelDeviceColorTests
 
         viewModel.ColorPicker.HexColor = "#00FF00";
 
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.Empty(Api.Calls);
         Assert.True(viewModel.CustomColors.AddCommand.CanExecute(null));
         viewModel.CustomColors.AddCommand.Execute(null);
@@ -138,7 +138,7 @@ public sealed class MainViewModelDeviceColorTests
 
         await Eventually.TrueAsync(() => viewModel.SelectedEffect?.Id == EffectIds.Static);
         Assert.Equal(Blue, viewModel.ColorPicker.Color);
-        Assert.False(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.False(viewModel.ColorPicker.HasColorNotOnDevice);
         Assert.DoesNotContain(Api.Calls, call => call.StartsWith("color", StringComparison.Ordinal));
     }
 
@@ -155,7 +155,7 @@ public sealed class MainViewModelDeviceColorTests
         await Eventually.TrueAsync(() => viewModel.Brightness == 30.0);
         Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
         Assert.True(viewModel.ColorPicker.IsUnused);
-        Assert.True(viewModel.ColorPicker.HasUnappliedChange);
+        Assert.True(viewModel.ColorPicker.HasColorNotOnDevice);
     }
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
