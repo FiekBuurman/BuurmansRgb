@@ -600,41 +600,39 @@ toetsenbord. Een paar dingen om te proberen:
   geven een nep-`open`, en zonder `appInfo` opent `MainViewModel` niets, zodat een test nooit
   echt Kladblok of de browser opent. `ShellLauncher` staat in `BuurmansRgb.Contracts`, want het
   item in het tray-menu gebruikt hem ook.
-- **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om
-  de zip (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app
-  kiest alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
-  `MainWindow`) en schrijft of leest het (schrijven eerst naar `<pad>.tmp` en dan met
-  `File.Move` eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust via de engine en niet door de bestanden zelf te
-  lezen: zo heeft de zip de wijziging van de laatste seconde (de saver en `CustomEffectLibrary`
-  schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om: `SettingsReloader.RunBetweenReloads`),
-  en schrijft geen saver van de engine bij terugzetten zijn oude stand over de zip heen. De
-  engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden zonder de stores, gedeeld
-  voor schrijven en verwijderen: elk bestand komt er met één `File.Move` in (`JsonFile`), dus een
-  lezer krijgt het oude of het nieuwe, nooit de helft. `SettingsArchive` controleert een zip
-  helemaal voordat er iets verandert: alleen `settings.json`, `profiles.json` en `effects.json`
-  bovenaan (geen map, geen pad, dus niets buiten de map), elk één keer, de zip hooguit
-  `SettingsBackup.MaxArchiveBytes` (4 MB, lager dan een bestand uitgepakt mag zijn, zodat een
-  zip met een enorme lijst entries niet eerst gelezen wordt) en elk bestand uitgepakt hooguit
-  `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op de grootte die de zip
-  zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`). Daarna zet
-  `EngineHost` de bestanden van nu in
-  `backups\before-restore-<datum>-<tijd>-<ms>.zip` (in UTC, zodat de namen ook over de wintertijd
-  heen op volgorde staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
-  `BackupsKept` = 5 blijven) en vervangt
-  ze in de volgorde effecten, scènes, instellingen: `CustomEffectLibrary.Replace` en
-  `ProfileLibrary.Replace` schrijven het bestand, gooien weg wat wachtte en lezen opnieuw
-  (`Changed`, dus de tijden en programma's van de scènes plannen opnieuw);
-  `JsonSettingsStore.Replace` schrijft `settings.json` als een wijziging met de hand, die
-  `SettingsReloader.ReloadNow` meteen toepast zoals een bewerking in een editor (de saver wacht
-  erop), zodat de app via de gewone events meeloopt. Een bestand dat niet te schrijven is, zet
+- **Bewaren en terugzetten:** `SettingsBackupViewModel` bij Instellingen vraagt de engine om de zip
+  (`IEngineApi.ExportSettingsAsync`) en geeft hem terug (`RestoreSettingsAsync`); de app kiest
+  alleen het bestand (`SaveFileDialog`, `OpenFileDialog` en `ConfirmDialog.ForRestore` in
+  `MainWindow`) en schrijft of leest het (schrijven eerst naar `<pad>.tmp` en dan met `File.Move`
+  eroverheen, zodat een schijf die vol raakt geen kapotte zip achterlaat). Bewust via de engine en
+  niet door de bestanden zelf te lezen: zo heeft de zip de wijziging van de laatste seconde (de
+  saver en `CustomEffectLibrary` schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om:
+  `SettingsReloader.RunBetweenReloads`), en schrijft geen saver van de engine bij terugzetten zijn
+  oude stand over de zip heen. De engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden
+  zonder de stores (`SettingsFiles.Read`), gedeeld voor schrijven en verwijderen: elk bestand komt
+  er met één `File.Move` in (`JsonFile`), dus een lezer krijgt het oude of het nieuwe, nooit de
+  helft. `SettingsArchive` controleert een zip helemaal voordat er iets verandert: alleen
+  `settings.json`, `profiles.json` en `effects.json` bovenaan (geen map, geen pad, dus niets buiten
+  de map), elk één keer, de zip hooguit `SettingsBackup.MaxArchiveBytes` (4 MB, lager dan een
+  bestand uitgepakt mag zijn, zodat een zip met een enorme lijst entries niet eerst gelezen wordt)
+  en elk bestand uitgepakt hooguit `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op
+  de grootte die de zip zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`).
+  Daarna zet `EngineHost` de bestanden van nu in `backups\before-restore-<datum>-<tijd>-<ms>.zip`
+  (`SettingsFiles.WriteBackup`; in UTC, zodat de namen ook over de wintertijd heen op volgorde
+  staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
+  `SettingsFiles.BackupsKept` = 5 blijven) en vervangt ze in de volgorde effecten, scènes,
+  instellingen: `CustomEffectLibrary.Replace` en `ProfileLibrary.Replace` schrijven het bestand,
+  gooien weg wat wachtte en lezen opnieuw (`Changed`, dus de tijden en programma's van de scènes
+  plannen opnieuw); `JsonSettingsStore.Replace` schrijft `settings.json` als een wijziging met de
+  hand, die `SettingsReloader.ReloadNow` meteen toepast zoals een bewerking in een editor (de saver
+  wacht erop), zodat de app via de gewone events meeloopt. Een bestand dat niet te schrijven is, zet
   de eerdere terug, en een bestand dat er vóór het terugzetten niet was gaat weer weg
   (`CustomEffectLibrary.Reset` en `ProfileLibrary.Reset`: het bestand weg, de lijst leeg,
-  `Changed`), zodat bij een fout niets verandert. `autoStartChosen` en `hadRealDevices` komen
-  van deze pc
-  (`SettingsArchive.WithThisPc`): de Run-sleutel blijft zoals hij is, en zou een zip van een
+  `Changed`), zodat bij een fout niets verandert. `autoStartChosen` en `hadRealDevices` komen van
+  deze pc (`SettingsArchive.WithThisPc`): de Run-sleutel blijft zoals hij is, en zou een zip van een
   andere pc `autoStartChosen` op `false` zetten, dan zette de volgende update met `--first-run`
-  autostart weer aan. Het `dismissedOtherRgbSoftware` uit de zip geldt wel. "Map met instellingen
-  en logs openen" opent `DataFolder.Path` (`%AppData%\BuurmansRgb`, gedeeld door engine en app in
+  autostart weer aan. Het `dismissedOtherRgbSoftware` uit de zip geldt wel. "Map met instellingen en
+  logs openen" opent `DataFolder.Path` (`%AppData%\BuurmansRgb`, gedeeld door engine en app in
   `BuurmansRgb.Contracts`) met `ShellLauncher.Open`, net als het logbestand.
 - **Het gebruik van de engine bij Instellingen:** `EngineUsageViewModel` meet in de app, niet in
   de engine: de engine geeft alleen zijn proces-id (`GetProcessIdAsync`, één keer na het
@@ -1277,7 +1275,10 @@ ReadyToRun; de app is dan 0,2–0,7 s later bruikbaar (niet getest).
     script: geen `[UninstallRun]`, elke `taskkill` na `InitializeUninstall` met de filter, `--exit`
     vóór de eerste `taskkill` en gelijk aan `EngineOptions.ExitArgument`, geen `DelTree` op
     `{userappdata}`, en `AppData` van een andere gebruiker alleen binnen zijn
-    `ProfileImagePath`.
+    `ProfileImagePath`. Ook dat de namen bij de engine passen: `AppName` gelijk aan
+    `DataFolder.Name` (de map in `%AppData%` en, via `RegistryAutoStart.ValueName`, de waarde in de
+    Run-sleutel die de uninstaller weghaalt) en `FirstRunArgument` gelijk aan
+    `EngineOptions.FirstRunArgument` en gebruikt op de `[Run]`-regel.
 - **Verwijderen als gewone gebruiker met het wachtwoord van een andere beheerder** (met de hand
   in Windows Sandbox, nadat de `.wsb` hieronder klaar is of in een eigen Sandbox met
   `artifacts\installer\out` gekoppeld; nooit op je eigen pc):

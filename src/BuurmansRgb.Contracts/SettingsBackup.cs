@@ -6,6 +6,7 @@ namespace BuurmansRgb.Contracts;
 // RestoreSettingsAsync), so the settings app does not touch the files the engine writes.
 public static class SettingsBackup
 {
+    // Also the names the stores of the engine give their files in the data folder.
     public const string SettingsFileName = "settings.json";
     public const string ProfilesFileName = "profiles.json";
     public const string EffectsFileName = "effects.json";

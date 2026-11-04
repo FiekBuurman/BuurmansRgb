@@ -1,3 +1,6 @@
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.AutoStart;
+
 namespace BuurmansRgb.Engine.Tests;
 
 // Checks on the text of installer\BuurmansRgb.iss, which has no tests of its own: the uninstall
@@ -14,6 +17,28 @@ public sealed class InstallerScriptTests
     public void ExitArgument_IsTheOneOfTheEngine()
     {
         Assert.Contains($"#define ExitArgument \"{EngineOptions.ExitArgument}\"", Lines);
+    }
+
+    // The installer removes %AppData%\<AppName> and the Run value <AppName> of the engine.
+    [Fact]
+    public void AppName_IsTheNameOfTheDataFolder()
+    {
+        Assert.Contains($"#define AppName \"{DataFolder.Name}\"", Lines);
+    }
+
+    [Fact]
+    public void DataFolderName_IsTheNameOfTheAutoStart()
+    {
+        Assert.Equal(DataFolder.Name, RegistryAutoStart.ValueName);
+    }
+
+    [Fact]
+    public void FirstRunArgument_IsTheOneOfTheEngine()
+    {
+        Assert.Contains($"#define FirstRunArgument \"{EngineOptions.FirstRunArgument}\"", Lines);
+        var run = Array.FindIndex(Lines, line => line.Trim().Equals("[Run]", StringComparison.OrdinalIgnoreCase));
+        Assert.True(run >= 0, "[Run] not found in the installer script.");
+        Assert.Contains(Lines.Skip(run + 1).TakeWhile(line => !line.TrimStart().StartsWith('[')), line => line.Contains("Parameters: \"{#FirstRunArgument}\"", StringComparison.Ordinal));
     }
 
     [Fact]

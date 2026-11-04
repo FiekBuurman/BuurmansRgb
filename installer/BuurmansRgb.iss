@@ -13,6 +13,7 @@
 #define EngineExe "BuurmansRgb.Engine.exe"
 #define SettingsExe "BuurmansRgb.UI.exe"
 #define ExitArgument "--exit"
+#define FirstRunArgument "--first-run"
 #define OpenRgbMsi "OpenRGB_1.1_Windows_64_8e16de2.msi"
 #define OpenRgbService "OpenRGB"
 #define PawnIoSetup "PawnIO_setup.exe"
@@ -69,7 +70,7 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#EngineExe}"
 [Run]
 ; As the user who started setup, not as the elevated installer: the engine is a normal user app
 ; and --first-run writes autostart into that user's HKCU.
-Filename: "{app}\{#EngineExe}"; Parameters: "--first-run"; Description: "{cm:StartEngine}"; Flags: nowait postinstall runasoriginaluser
+Filename: "{app}\{#EngineExe}"; Parameters: "{#FirstRunArgument}"; Description: "{cm:StartEngine}"; Flags: nowait postinstall runasoriginaluser
 
 ; The uninstaller stops the engine and settings app itself, in StopApps: only those of the user
 ; who started the uninstall, and the engine first with --exit.

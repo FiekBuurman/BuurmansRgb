@@ -9,9 +9,7 @@ namespace BuurmansRgb.Engine.Settings;
 // saving never overwrites effects that are only out of reach for a moment.
 internal sealed class JsonCustomEffectStore(string filePath) : ICustomEffectStore
 {
-    public static string DefaultFilePath { get; } = Path.Combine(
-        Path.GetDirectoryName(JsonSettingsStore.DefaultFilePath)!,
-        "effects.json");
+    public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.EffectsFileName);
 
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => filePath + ".broken";

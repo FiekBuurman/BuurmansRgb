@@ -1169,9 +1169,11 @@ een bewaarde zip terugzet.
 Elke gebruiker op de pc heeft zijn eigen map. BuurmansRgb verwijderen stopt eerst je engine zoals
 **Afsluiten** in het tray-menu, zodat je laatste wijziging bewaard is, en vraagt dan of jouw
 instellingen weg moeten; die van andere gebruikers blijven staan. Hoe die ze zelf weghalen, staat
-bij "Verwijderen" in [installatie.md](installatie.md#verwijderen). Heeft een andere gebruiker
-BuurmansRgb nog open, meld die dan eerst af: zijn engine sluit het verwijderen niet, en dan
-blijven de programmabestanden staan.
+bij "Verwijderen" in [installatie.md](installatie.md#verwijderen). "Ja" haalt de hele map weg, ook
+`logs` en de kopieën in `backups`; wil je je instellingen meenemen, maak dan eerst een zip met
+**Instellingen bewaren…** bij Instellingen. Heeft een andere gebruiker BuurmansRgb nog open, meld
+die dan eerst af: zijn engine sluit het verwijderen niet, en dan blijven de programmabestanden
+staan.
 
 ### settings.json
 
