@@ -716,7 +716,7 @@ Hoe het vanzelf aanzetten werkt:
   zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt:
   "Uitzetten", "Dimmen" (op een vijfde van hun helderheid) of "Laten branden" (het laatste
   beeld blijft staan). Een nieuwe installatie begint met "Uitzetten"; had je buurmansRgb al, dan
-  blijft je keuze zoals hij was (zie "Apparaten tijdens deze pauze" bij "Pauzeren"). Boven de
+  blijft je keuze zoals hij was (zie "Als de pc slaapt of vergrendeld is" bij "Pauzeren"). Boven de
   keuze staat de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit": alleen als die
   aan staat, telt de keuze. Staat hij uit, dan is de keuze grijs en zegt een regel eronder waarom.
   Voor een schermlezer is de titel van het blok een kop en de naam van de keuze, en hoort hij die
@@ -1125,13 +1125,13 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
 | Reden | Begint | Eindigt | Wat de apparaten doen |
 | --- | --- | --- | --- |
 | Tray-menu | "Effecten pauzeren" aanvinken | Uitvinken, of "Hervatten" in de instellingen-app | Blijven zoals ze zijn; de engine stuurt niets tot hervatten |
-| Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Uit, gedimd, of het laatste frame blijft staan (zie "Apparaten tijdens deze pauze") |
+| Vergrendeld | Windows vergrendelen (Windows-toets+L), van gebruiker wisselen, of een verbroken extern bureaublad | Ontgrendelen, of de sessie is weer op een scherm | Uit, gedimd, of het laatste frame blijft staan (zie "Als de pc slaapt of vergrendeld is" hieronder) |
 | Slaapstand | De pc gaat slapen of in sluimerstand | Wakker worden (of ontgrendelen) | Als bij vergrendeld; "Uitzetten" gaat naar de apparaten vóórdat de pc slaapt |
 | Scherm uit | Het scherm van je eigen sessie gaat uit, ook zonder dat Windows vergrendelt (bijv. na de tijd bij "Scherm uitschakelen na" van Windows) | Het scherm gaat weer aan (of ontgrendelen, of de sessie komt op een ander scherm) | Als bij vergrendeld |
 | Schermbeveiliging | De schermbeveiliging van Windows begint na de wachttijd die je daar instelde, ook zonder dat Windows vergrendelt | Je beweegt de muis of drukt een toets in en de schermbeveiliging verdwijnt (of ontgrendelen) | Als bij vergrendeld |
 
 - Bij elke reden stopt de animatie en kost hij geen CPU meer; bij een nieuwe installatie gaan de
-  apparaten standaard uit (zie "Apparaten tijdens deze pauze").
+  apparaten standaard uit (zie "Als de pc slaapt of vergrendeld is" hieronder).
   Scènes op tijd en het verbinden met OpenRGB lopen gewoon door. Naar programma's kijkt de
   engine tijdens vergrendelen en slaapstand niet (zie "Bij een programma" bij Scènes); als
   alleen het scherm uit is of de schermbeveiliging loopt wel, want misschien zit je er nog, bijv.
@@ -1172,8 +1172,8 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   Instellingen, bij "Als de pc slaapt of vergrendeld is" (of `"pauseOnLockAndSleep": false` in
   `settings.json`); die geldt ook voor de schermbeveiliging. Uitzetten tijdens zo'n pauze laat
   de effecten meteen weer lopen.
-- **Apparaten tijdens deze pauze:** bovenaan Instellingen, bij "Als de pc slaapt of vergrendeld
-  is" (of `pausedLights` in `settings.json`), kies je wat de apparaten doen bij vergrendelen,
+- **Als de pc slaapt of vergrendeld is:** in dat blok bovenaan Instellingen (of met
+  `pausedLights` in `settings.json`) kies je wat de apparaten doen bij vergrendelen,
   slaapstand, scherm uit en de schermbeveiliging: "Uitzetten" (zwart), "Dimmen" (het laatste
   beeld op een vijfde van zijn helderheid) of "Laten branden" (het laatste beeld blijft staan);
   bij de slaapstand al vóór de pc slaapt.
