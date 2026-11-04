@@ -92,6 +92,20 @@ public sealed class SettingsViewTests
         });
     }
 
+    // Some texts quote the label of another switch or heading on this page; renaming that label must
+    // not leave the quote behind.
+    [Fact]
+    public void Texts_QuoteTheLabelsTheyNameAsTheyAre()
+    {
+        Assert.Contains(Strings.PauseOnLockLabel, Strings.PausedLightsNeedsPause, StringComparison.Ordinal);
+        Assert.Contains(Strings.CatchUpLabel, Strings.AfterRestartSceneTimes, StringComparison.Ordinal);
+        Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOn, StringComparison.Ordinal);
+        Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOff, StringComparison.Ordinal);
+        Assert.StartsWith(Strings.AutoStartLabel, Strings.AfterRestartTurnOnAutoStart, StringComparison.Ordinal);
+        Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleep, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleepNoPause, StringComparison.OrdinalIgnoreCase);
+    }
+
     // "Na een herstart" comes right under the sleep block, under a heading, and says what comes back:
     // the scene that is on, the brightness and the sleep choice. "Starten met Windows" is off, so it
     // says the lighting does not come back by itself; the button switches it on as the switch does,
