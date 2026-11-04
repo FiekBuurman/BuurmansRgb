@@ -10,7 +10,8 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class AppInfoViewModelTests
 {
     private const string LogPath = @"C:\Users\buurman\AppData\Roaming\BuurmansRgb\logs\engine.log";
-    private const string GuideAddress = @"C:\Program Files\BuurmansRgb\handleiding.html";
+    private const string DataFolderPath = @"C:\Users\buurman\AppData\Roaming\BuurmansRgb";
+    private const string GuideAddress =@"C:\Program Files\BuurmansRgb\handleiding.html";
 
     private readonly List<string> _opened = [];
 
@@ -41,6 +42,42 @@ public sealed class AppInfoViewModelTests
         appInfo.OpenLogCommand.Execute(null);
 
         Assert.Equal([Strings.LogOpenFailed], failures);
+    }
+
+    [Fact]
+    public void OpenDataFolder_OpensTheFolderOfTheEngine()
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0", dataFolder: DataFolderPath);
+
+        appInfo.OpenDataFolderCommand.Execute(null);
+
+        Assert.Equal([DataFolderPath], _opened);
+    }
+
+    // A folder that is not there (the engine never ran): a message, as for the log.
+    [Theory]
+    [MemberData(nameof(OpenErrors))]
+    public void OpenDataFolder_WhenWindowsCannotOpenIt_SaysSo(Exception error)
+    {
+        var appInfo = new AppInfoViewModel(_ => throw error, LogPath, "1.2.0", dataFolder: DataFolderPath);
+        var failures = new List<string>();
+        appInfo.Failed += (_, message) => failures.Add(message);
+
+        appInfo.OpenDataFolderCommand.Execute(null);
+
+        Assert.Equal([Strings.DataFolderOpenFailed], failures);
+    }
+
+    // The folder of the settings, with the logs in it: where the engine writes them.
+    [Fact]
+    public void ForThisApp_OpensTheFolderWithTheSettingsAndTheLogs()
+    {
+        var appInfo = AppInfoViewModel.ForThisApp(_opened.Add);
+
+        appInfo.OpenDataFolderCommand.Execute(null);
+
+        Assert.Equal([DataFolder.Path], _opened);
+        Assert.Equal(DataFolder.Path, Path.GetDirectoryName(FileLog.DefaultDirectory));
     }
 
     // Until there is a guide every user can open, there is no link and nothing to open.
@@ -77,6 +114,31 @@ public sealed class AppInfoViewModelTests
         appInfo.OpenGuideCommand.Execute(null);
 
         Assert.Equal([GuideAddress], _opened);
+    }
+
+    // A message that points to its explanation opens the guide at that heading; only a web
+    // address can take it.
+    [Theory]
+    [InlineData("https://example.org/handleiding", "https://example.org/handleiding#andere-rgb-software")]
+    [InlineData("https://example.org/handleiding#top", "https://example.org/handleiding#andere-rgb-software")]
+    [InlineData(GuideAddress, GuideAddress)]
+    public void OpenGuideAt_OpensTheGuideAtTheHeading(string address, string opened)
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0", address);
+
+        appInfo.OpenGuideAt("andere-rgb-software");
+
+        Assert.Equal([opened], _opened);
+    }
+
+    [Fact]
+    public void OpenGuideAt_WithoutAGuide_OpensNothing()
+    {
+        var appInfo = new AppInfoViewModel(_opened.Add, LogPath, "1.2.0");
+
+        appInfo.OpenGuideAt("andere-rgb-software");
+
+        Assert.Empty(_opened);
     }
 
     // No browser, or Windows refuses: a message instead of a crash.

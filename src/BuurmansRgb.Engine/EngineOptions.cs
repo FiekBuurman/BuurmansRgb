@@ -2,8 +2,10 @@ using BuurmansRgb.Engine.Restart;
 
 namespace BuurmansRgb.Engine;
 
-// The command line of the engine. The installer starts it once with --first-run, as the user
-// who installed it, so that user gets "Starten met Windows" without opening the tray menu.
+// The command line of the engine. The installer starts it with --first-run after every install,
+// also an update, as the user who installed it, so that user gets "Starten met Windows" without
+// opening the tray menu; once the user chose it in the tray menu or the settings app, the engine
+// leaves it as it is (EngineHost, autoStartChosen).
 // --exit asks the engine that runs to exit as "Afsluiten" in the tray menu does, so a script
 // need not kill it (which leaves its icon in the tray until the mouse passes over it); without
 // a running engine it starts none.

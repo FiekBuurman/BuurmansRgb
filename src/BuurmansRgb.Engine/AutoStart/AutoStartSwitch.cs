@@ -14,6 +14,11 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     // the newest one.
     public event EventHandler? Changed;
 
+    // Raised after SetEnabled wrote it, also to the value it had: the user chose, in the tray menu
+    // or the settings app, so EngineHost keeps that in settings.json (autoStartChosen) and
+    // --first-run leaves it from then on. Not raised by EnableOnFirstRun, nor after a failure.
+    public event EventHandler? Chosen;
+
     // As Windows has it now; off when it cannot be read, which goes to the log.
     public bool IsEnabled
     {
@@ -23,6 +28,15 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
             {
                 return ReadEnabled();
             }
+        }
+    }
+
+    // As IsEnabled, but null when it cannot be read, for EngineHost to tell nothing from that.
+    public bool? TryReadEnabled()
+    {
+        lock (_gate)
+        {
+            return TryReadEnabledLocked();
         }
     }
 
@@ -36,6 +50,38 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         {
             changed = ReadEnabled() != enabled;
             autoStart.SetEnabled(enabled);
+        }
+
+        Chosen?.Invoke(this, EventArgs.Empty);
+        if (changed)
+        {
+            Changed?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    // For --first-run: on when it is off, as the installer asked and not the user, so without
+    // Chosen. A failure only costs the autostart and goes to the log, so the engine starts anyway
+    // and the tray menu shows it as off.
+    public void EnableOnFirstRun()
+    {
+        bool changed;
+        lock (_gate)
+        {
+            if (ReadEnabled())
+            {
+                return;
+            }
+
+            try
+            {
+                autoStart.SetEnabled(true);
+            }
+            catch (Exception exception) when (IsAccessError(exception))
+            {
+                Trace.TraceWarning($"Could not turn on autostart on the first run: {exception.Message}");
+            }
+
+            changed = ReadEnabled();
         }
 
         if (changed)
@@ -65,7 +111,9 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
     internal static bool IsAccessError(Exception exception) =>
         exception is UnauthorizedAccessException or SecurityException or IOException;
 
-    private bool ReadEnabled()
+    private bool ReadEnabled() => TryReadEnabledLocked() ?? false;
+
+    private bool? TryReadEnabledLocked()
     {
         try
         {
@@ -74,7 +122,7 @@ internal sealed class AutoStartSwitch(IAutoStart autoStart)
         catch (Exception exception) when (IsAccessError(exception))
         {
             Trace.TraceWarning($"Could not read whether autostart is on: {exception.Message}");
-            return false;
+            return null;
         }
     }
 }

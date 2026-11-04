@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 using Microsoft.Extensions.Time.Testing;
@@ -1017,6 +1018,63 @@ public sealed class EngineApiTests : IDisposable
         api.Dispose();
         _profiles.Save("Nacht");
         _lighting.FramesPerSecond = 12;
+
+        Assert.Equal(0, changes);
+    }
+
+    // "Verversen" looks for other RGB software again.
+    [Fact]
+    public async Task RescanDevicesAsync_LooksForOtherRgbSoftwareAgain()
+    {
+        var processes = new FakeProcessSnapshot();
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(processes);
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, otherRgbSoftware: otherRgbSoftware);
+        var changes = 0;
+        api.OtherRgbSoftwareChanged += (_, _) => changes++;
+        processes.Run("LightingService", RunningProcess.ServiceSessionId);
+
+        await api.RescanDevicesAsync(Ct);
+
+        Assert.Equal(1, processes.TakeCount);
+        Assert.Equal([new OtherRgbSoftware("armourycrate", "ASUS Armoury Crate")], await api.GetOtherRgbSoftwareAsync(Ct));
+        Assert.Equal(1, changes);
+    }
+
+    [Fact]
+    public async Task DismissOtherRgbSoftwareAsync_TakesItOutOfTheList()
+    {
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new FakeProcessSnapshot().Run("SignalRgb").Run("iCUE"));
+        otherRgbSoftware.Check();
+        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, otherRgbSoftware: otherRgbSoftware);
+        var changes = 0;
+        api.OtherRgbSoftwareChanged += (_, _) => changes++;
+
+        await api.DismissOtherRgbSoftwareAsync("signalrgb", Ct);
+
+        Assert.Equal(["icue"], (await api.GetOtherRgbSoftwareAsync(Ct)).Select(software => software.Id));
+        Assert.Equal(1, changes);
+        await Assert.ThrowsAsync<ArgumentException>(() => api.DismissOtherRgbSoftwareAsync("nope", Ct));
+    }
+
+    [Fact]
+    public async Task OtherRgbSoftware_WithoutTheCheck_IsNone()
+    {
+        using var api = CreateApi();
+
+        Assert.Empty(await api.GetOtherRgbSoftwareAsync(Ct));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => api.DismissOtherRgbSoftwareAsync("signalrgb", Ct));
+    }
+
+    [Fact]
+    public void Dispose_StopsListeningToTheCheck()
+    {
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new FakeProcessSnapshot().Run("SignalRgb"));
+        var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, _openRgb, otherRgbSoftware: otherRgbSoftware);
+        var changes = 0;
+        api.OtherRgbSoftwareChanged += (_, _) => changes++;
+
+        api.Dispose();
+        otherRgbSoftware.Check();
 
         Assert.Equal(0, changes);
     }

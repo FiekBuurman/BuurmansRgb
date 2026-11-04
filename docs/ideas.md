@@ -94,6 +94,22 @@ uitbreidingen in `docs/bouwplan.md`.
   (`SaveProfile` van de SDK) en de installer die keuze in de service kunnen zetten, zodat de pc
   meteen na het aanzetten de goede kleur heeft en de engine hem na het aanmelden overneemt
   (testpanel 1-11-2026, Mo en Kees)
+- Andere RGB-software (`conflict-melding`): een knop bij Instellingen "Meldingen over andere
+  RGB-software weer tonen" die `dismissedOtherRgbSoftware` leegmaakt; nu kan dat alleen met de
+  hand in `settings.json`
+- Andere RGB-software: Logitech G Hub (`lghub.exe`, `lghub_agent.exe`?), NZXT CAM, SteelSeries GG
+  en ASRock Polychrome in `OtherRgbSoftwareList`, en de namen van Synapse 4, Armoury Crate zelf en
+  RGB Fusion op een echte installatie nagaan (`docs/hardware.md`); SignalRGB noemt ze als botsend
+- Andere RGB-software: de uitleg onder "Uitleg" voorlezen zodra hij opengaat (een live region,
+  zoals de melding zelf); nu zegt een schermlezer alleen dat de knop ingedrukt is, en staat de
+  uitleg direct na de melding in de leesvolgorde (`conflict-melding`)
+- "Uitleg" ook bij de andere meldingen van de statusregel, zoals de verbinding weg (wat je doet
+  als Opnieuw verbinden niet helpt); `StatusMessage.ShowExplanation` kan dat al
+- Andere RGB-software in de tooltip van het tray-icoon ("SignalRGB draait ook"), voor wie de app
+  niet opent; nu zegt alleen de statusregel het
+- Andere RGB-software: alleen melden als het echt botst, bijv. als OpenRGB een apparaat heeft dat
+  het andere programma ook aanstuurt (iCUE en een Corsair-apparaat); nu meldt de engine elk
+  programma uit de lijst, ook als het een ander apparaat regelt
 
 ## Zones en zonelengtes
 
@@ -368,6 +384,11 @@ uitbreidingen in `docs/bouwplan.md`.
   Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
   verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
   op de apparaten komt
+- De knoppen van een melding (actie, Uitleg, Niet meer melden) en de uitgeklapte uitleg met de
+  link staan in `StatusLine.xaml` twee keer: voor de melding in de regel en in de lijst onder
+  Details. Eén gedeelde `DataTemplate` of `UserControl` voor beide, zodat een wijziging niet op
+  twee plekken hoeft; bleef bij de review van `conflict-melding` staan, omdat de knoppen in de
+  regel namen hebben die de code-behind gebruikt (`ActionButton`, `DetailsToggle`)
 - De balk onderaan (`SaveStatus` en wat er net gebeurde, in `MainWindow.xaml`) heette in de
   handleiding ook "statusregel"; sinds `een-melding` is de kaart bovenaan de Statusregel en zegt
   de handleiding voor de balk "onderaan". Eventueel de balk onderaan een eigen naam geven, ook in
@@ -494,6 +515,18 @@ uitbreidingen in `docs/bouwplan.md`.
 - Het CPU-gebruik van de app met een stilstaand voorbeeld meten (zichtbaar venster, regenboog):
   vergrendeld tekent WPF niets en de instelling van Windows hoort niet omgezet te worden, dus dat
   vraagt een Windows Sandbox of een schakelaar om de instelling na te bootsen ("minder-beweging")
+- Een knop "Vorige instellingen terugzetten" bij Instellingen die de nieuwste kopie uit
+  `backups` terugzet, zodat je een terugzetting met één klik ongedaan maakt; nu kies je die zip
+  zelf met "Instellingen terugzetten…" ("instellingen-beheer")
+- Bij terugzetten ook de scène die in de zip aan stond (`activeScene`) weer als aan tonen; nu
+  telt een teruggezette verlichting als een gewone wijziging, en staat er daarna geen scène aan
+  ("instellingen-beheer")
+- Bij "Licht op de achtergrond" ook het geheugen en de CPU van de instellingen-app zelf tonen, of
+  een klein verloop van de laatste minuut; nu alleen de engine, en alleen het getal van nu
+  ("instellingen-beheer")
+- Bewaarde instellingen van een andere pc met andere apparaten: de verlichting per apparaat en
+  de zonelengtes horen bij apparaat-id's die daar misschien niet zijn. Ze blijven bewaard tot
+  zo'n apparaat komt, maar eventueel vragen welk apparaat welk is ("instellingen-beheer")
 
 ## Scènes
 
@@ -656,6 +689,13 @@ uitbreidingen in `docs/bouwplan.md`.
   geldige waarden zou de meeste daarvan uit één bron halen. `hadRealDevices` (`openrgb-weg`)
   raakte opnieuw negen plekken: `EngineSettings`, `EngineHost` tweemaal,
   `LightingSettingsSaver.AdoptLocked`, `IEngineApi`, `EngineApi`, `MainViewModel` driemaal en
+  beide fakes in de tests. `autoStartChosen` (`update-autostart`) ging zonder IPC (tray en app
+  lopen al via `AutoStartSwitch`) en raakte vier plekken: `EngineSettings`, `JsonSettingsStore`
+  (een bestand dat niet leest), `EngineHost` bij starten, kiezen en een wijziging met de hand, en
+  `AutoStartSwitch.Chosen`. `dismissedOtherRgbSoftware` (`conflict-melding`) raakte er acht:
+  `EngineSettings` (veld, lezen en schrijven), `EngineHost` bij `ApplyOptions` en bij opslaan,
+  `OtherRgbSoftwareCheck.Dismissed` met `DismissedChanged`, `IEngineApi` (event, lijst en
+  wegklikken), `EngineApi`, `MainViewModel` (lezen bij verbinden, het event en wegklikken) en
   beide fakes in de tests
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
@@ -673,6 +713,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - `ProcessImageName` en `ShellLauncher` uit `BuurmansRgb.Contracts` naar een eigen gedeeld
   project voor Windows-code van engine en app; nu staan ze bij de IPC-contracten omdat beide ze
   gebruiken. Pas oppakken als er meer van zulke Windows-code bij komt
+- De regie van terugzetten (`Restore`, `Replace`, `Remove`, `ReplaceSettings`, `PutBack` en
+  `FlushSaves`) uit `EngineHost` naar een eigen klasse, zoals het lezen en de kopieën in
+  `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
+  `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
+  (refactorreview 3-11-2026)
 
 ## Integraties
 
@@ -694,9 +739,68 @@ uitbreidingen in `docs/bouwplan.md`.
 
 ## Installer en uitrol
 
-- De installer de engine laten stoppen met `--exit` in plaats van `taskkill /F`, zodat er geen
-  icoon in de tray blijft hangen. Dat kan pas als geen installatie meer een engine van 1.0.0
-  heeft: die kent `--exit` niet en opent dan de instellingen-app
+- Opnieuw installeren na verwijderen met behoud van de instellingen: verwijderen haalt de
+  autostart weg, maar `autoStartChosen: true` blijft in `settings.json`, dus de nieuwe installatie
+  zet "Starten met Windows" niet aan, ook als je het aan had (`update-autostart`). Oplossing:
+  de keuze zelf bewaren (aan of uit) en die bij `--first-run` terugzetten, of het verwijderen het
+  veld laten weghalen als de instellingen blijven
+- De Windows Sandbox-test ook een update laten doen: installeren, "Starten met Windows" uitzetten
+  zoals het tray-item (Run-waarde weg en `autoStartChosen: true`), dezelfde setup nog een keer
+  stil draaien en controleren dat het uit blijft; nu staat dat als handmatige test in
+  `ontwikkelaars.md` (`update-autostart`)
+
+- De installer bij een update de engine laten stoppen met `--exit` in plaats van `taskkill /F`,
+  zodat er geen icoon in de tray blijft hangen, en net als het verwijderen alleen de apps van de
+  gebruiker die installeert (`PrepareToInstall` stopt nu die van alle gebruikers). `--exit` kan pas
+  als geen installatie meer een engine van 1.0.0 heeft: die kent `--exit` niet en opent dan de
+  instellingen-app; het verwijderen doet het al, want de uninstaller hoort bij de geïnstalleerde
+  engine (`verwijderen-netjes`)
+- Verwijderen met het wachtwoord van een andere beheerder ook netjes laten stoppen: `--exit`
+  bereikt de engine van de gebruiker dan niet, omdat het signaal alleen voor die gebruiker open
+  staat, dus de engine wordt meteen gestopt. Bijv. de engine zijn signaal ook voor
+  Administrators laten openen, of `--exit` via een taak met `/IT` als de gebruiker starten
+  (`verwijderen-netjes`)
+- Programmabestanden die een engine van een andere gebruiker nog open heeft, bij de volgende
+  herstart laten weghalen (`uninsrestartdelete` op de `[Files]`-regel van de app). Nu blijven ze
+  staan en start de autostart van die gebruiker BuurmansRgb weer; `installatie.md` zegt dat je die
+  gebruiker eerst afmeldt. Niet zomaar aanzetten: met `/VERYSILENT` herstart de uninstaller de pc
+  dan zonder te vragen (`/NORESTART` meegeven of `NeedRestart` beperken), en de autostart van die
+  gebruiker moet ook weg of naar niets wijzen (`verwijderen-netjes`)
+- Bij verwijderen een beheerder laten kiezen om de instellingen en autostart van álle gebruikers
+  weg te halen (nu alleen van wie het verwijderen startte; de rest staat in `installatie.md`)
+  (`verwijderen-netjes`)
+- De Sandbox-test ook het verwijderen als gewone gebruiker met het wachtwoord van een andere
+  beheerder laten doen; nu een handmatige test in `ontwikkelaars.md`, omdat de UAC-vraag met een
+  wachtwoord niet te automatiseren is (`verwijderen-netjes`)
+- De service `OpenRGB` expliciet aan `127.0.0.1` binden: nu krijgt hij geen argumenten en volgt
+  hij de standaard van OpenRGB 1.1 (`--server-host 127.0.0.1` volgens de help-tekst), dus een
+  andere versie of instelling kan op `0.0.0.0` luisteren. Bijv. na de MSI het `ImagePath` van de
+  service aanvullen met `--server-host 127.0.0.1 --server-port 6742`; eerst testen of OpenRGB die
+  argumenten als service leest, en of een reparatie of update van de MSI ze weer weghaalt
+  (`installatie-uitleg`)
+- Bij een service `OpenRGB` die er al stond (die slaat de installer over) controleren of hij op
+  `0.0.0.0:6742` luistert of een versie van vóór de hotfix 1.0rc3.1 is, en dat melden; zie
+  "De SDK-server" in `installatie.md` (`installatie-uitleg`)
+- Een parameter voor stil verwijderen die OpenRGB en PawnIO ook weghaalt (bijv. `/REMOVEDEPS`,
+  te lezen met `{param:...}` of `GetCmdTail`); nu beantwoordt `/SUPPRESSMSGBOXES` die vragen met
+  "Nee" en staan de losse commando's in `installatie.md` (`installatie-uitleg`)
+- PawnIO (en de service OpenRGB) bij een update of herinstallatie niet terugzetten als de
+  gebruiker ze zelf weghaalde, bijv. voor een game met anti-cheat. Nu slaat `InstallPawnIo`
+  PawnIO alleen over als `HKLM\...\Uninstall\PawnIO` bestaat, dus na verwijderen komt hij stil
+  terug. Bijv. een parameter (`/NOPAWNIO`) of een vinkje in de wizard, en de keuze onthouden in
+  de sleutel van de installer, zodat een volgende update hem ook overslaat
+  (`installatie-uitleg`)
+- De melding `PawnIoFailed` in `installer/BuurmansRgb.iss` ("Moederbord, RAM en videokaart
+  werken dan misschien niet") gelijktrekken met de documentatie: zonder PawnIO werken RAM en
+  oudere moederborden niet; een videokaart is niet onderzocht (`installatie-uitleg`)
+- De Sandbox-test ook `sc qc PawnIO` laten loggen, zodat het starttype van PawnIO (nu "onbekend"
+  in `installatie.md`) zonder echte pc bekend is (`installatie-uitleg`)
+- De engine niet verhoogd starten bij een verhoogde stille installatie: `runasoriginaluser` werkt
+  alleen als Setup zelf om UAC vroeg, dus vanuit een beheerdersvenster of als SYSTEM draaien de
+  engine en de instellingen-app verhoogd (of als SYSTEM) tot de volgende aanmelding. Bijv. de
+  engine dan niet starten (een `Check:` op de `[Run]`-regel die ziet dat Setup al verhoogd of als
+  SYSTEM begon), of hem via een geplande taak als de aangemelde gebruiker starten
+  (`installatie-uitleg`)
 - Installer en OpenRGB ondertekenen (code-signing), zodat SmartScreen niet waarschuwt
 - Na een release de Windows Sandbox-test automatisch draaien met de gedownloade setup, en de
   release pas zichtbaar maken (nu meteen) als die slaagt
@@ -710,6 +814,9 @@ uitbreidingen in `docs/bouwplan.md`.
   het uit te zetten, voor een pc die centraal beheerd wordt, en zonder internet geen melding.
   Zolang de repo privé is, geeft de API zonder token niets terug (zie het idee over de handleiding
   meeleveren) (testpanel 1-11-2026, Kees)
+- De vraag bij verwijderen (`RemoveSettings` in `BuurmansRgb.iss`, "instellingen (kleuren en
+  effecten)") ook de scènes en de kopieën in `backups` laten noemen: "Ja" haalt de hele map
+  `%AppData%\BuurmansRgb` weg (refactorreview 3-11-2026)
 
 ## Tests en tooling
 

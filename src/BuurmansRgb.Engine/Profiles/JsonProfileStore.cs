@@ -9,9 +9,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // overwrites profiles that are only out of reach for a moment.
 internal sealed class JsonProfileStore(string filePath) : IProfileStore
 {
-    public static string DefaultFilePath { get; } = Path.Combine(
-        Path.GetDirectoryName(JsonSettingsStore.DefaultFilePath)!,
-        "profiles.json");
+    public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.ProfilesFileName);
 
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => filePath + ".broken";
@@ -50,4 +48,8 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
 
     public void Save(IReadOnlyList<Profile> profiles) =>
         JsonFile.Write(filePath, new ProfilesFile { Profiles = [.. profiles.Select(ProfileSettings.From)] }, EngineSettingsJsonContext.Default.ProfilesFile);
+
+    public void Replace(byte[] json) => JsonFile.Write(filePath, json);
+
+    public void Delete() => File.Delete(filePath);
 }

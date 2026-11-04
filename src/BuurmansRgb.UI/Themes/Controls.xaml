@@ -512,8 +512,9 @@
         <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    <!-- "Details": a secondary button that shows it is on while the other messages are unfolded, like a
-         day of a scene; its state is what a screen reader reads. Nothing moves when they unfold. -->
+    <!-- "Details" and "Uitleg": a secondary button that shows it is on while the other messages or the
+         explanation are unfolded, like a day of a scene; its state is what a screen reader reads. Nothing
+         moves when they unfold. -->
     <Style x:Key="StatusLineDetailsToggle" TargetType="ToggleButton" BasedOn="{StaticResource SecondaryButton}">
         <Style.Triggers>
             <Trigger Property="IsChecked" Value="True">

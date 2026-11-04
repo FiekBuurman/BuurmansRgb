@@ -1,9 +1,12 @@
+using System.Diagnostics;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine;
@@ -25,10 +28,21 @@ internal sealed class EngineHost(
     ISettingsFileEvents? settingsFileEvents = null,
     TimeSpan? reloadDelay = null,
     CustomColorList? customColors = null,
-    CustomEffectLibrary? customEffects = null) : IEngineHost, IDisposable
+    CustomEffectLibrary? customEffects = null,
+    AutoStartSwitch? autoStart = null,
+    bool firstRun = false,
+    OtherRgbSoftwareCheck? otherRgbSoftware = null,
+    SettingsFiles? files = null) : IEngineHost, ISettingsTransfer, IDisposable
 {
+    // One backup or restore at a time, also from two settings apps.
+    private readonly Lock _transferGate = new();
+
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
+
+    // Set once the user chose autostart (AutoStartChosen); read when the saver comes, for a
+    // choice before it.
+    private bool _autoStartChosen;
 
     // The IPC server starts once the lights are on and keeps running until ct is cancelled.
     // trimMemory then runs once, so the memory that only starting up needed goes back to Windows.
@@ -40,10 +54,15 @@ internal sealed class EngineHost(
     // all triggers run, the profile timer (also one of them) may catch up on the scene of the time.
     // With settingsFileEvents, a change of the file by hand is applied from then on as well, as
     // changes from the settings app are. The own effects are read before the lighting is applied, so
-    // a lighting that shows one keeps it.
+    // a lighting that shows one keeps it. With firstRun (--first-run, after every install) autostart
+    // goes on, unless the user chose it before (autoStartChosen); a file from before that option
+    // gets it from the Run key first (StartAutoStart). That is not saved by itself: it goes along
+    // with the next save, and until then the Run key tells the same at each start. A save of its
+    // own would write the defaults over a file that did not read (locked, say).
     public async Task StartAsync(CancellationToken ct)
     {
         var settings = settingsStore.LoadOrCreate();
+        settings = StartAutoStart(settings);
         ApplyOptions(settings);
         zoneLengths?.Load(settings.ReadZoneLengths());
         await lighting.DiscoverAsync(ct);
@@ -64,6 +83,12 @@ internal sealed class EngineHost(
             OnHadRealDevicesChanged(this, EventArgs.Empty);
         }
 
+        if (Volatile.Read(ref _autoStartChosen))
+        {
+            // Chosen in the tray menu while the devices were fetched, before the saver was there.
+            OnAutoStartChosen(this, EventArgs.Empty);
+        }
+
         zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
         profiles?.ActiveChanged += OnActiveSceneChanged;
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
@@ -73,6 +98,7 @@ internal sealed class EngineHost(
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
         customColors?.Changed += OnCustomColorsChanged;
+        otherRgbSoftware?.DismissedChanged += OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -84,6 +110,9 @@ internal sealed class EngineHost(
             _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay, holdSaves: _saver.HoldSaves);
         }
 
+        // Once, before the settings app can ask; after waking up and at "Verversen" the check
+        // itself and EngineApi look again.
+        otherRgbSoftware?.Check();
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }
@@ -101,6 +130,7 @@ internal sealed class EngineHost(
     public void Dispose()
     {
         _reloader?.Dispose();
+        autoStart?.Chosen -= OnAutoStartChosen;
         simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
         simulatedDevices?.HadRealDevicesChanged -= OnHadRealDevicesChanged;
         zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
@@ -112,12 +142,210 @@ internal sealed class EngineHost(
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
         customColors?.Changed -= OnCustomColorsChanged;
+        otherRgbSoftware?.DismissedChanged -= OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
         }
 
         _saver?.Dispose();
+    }
+
+    // "Instellingen bewaren…": the changes that still wait are written first, so the zip has what
+    // the engine has now. The files are read as they are, without the stores: each is written as a
+    // whole by a move (JsonFile), so a read gets the old or the new one, never half of one.
+    public byte[] Export()
+    {
+        var known = FilesOrThrow();
+        lock (_transferGate)
+        {
+            FlushSaves();
+            return SettingsArchive.Create(known.Read());
+        }
+    }
+
+    // "Instellingen terugzetten…": nothing changes until the archive passed every check
+    // (SettingsArchive.Read) and the files of now are in a zip in the backups folder. Then the own
+    // effects, the scenes and the settings are replaced in that order, each through the part of
+    // the engine that keeps it, so no save of what the engine held before comes over them: the
+    // libraries drop what waited, and settings.json goes in as a change by hand, which the
+    // reloader applies at once (ReloadNow), as an edit in an editor, while the saver waits for
+    // it. A file that cannot be written, or not read again, is put back with the ones before it.
+    public SettingsRestoreResult Restore(byte[] archive)
+    {
+        var known = FilesOrThrow();
+        var content = SettingsArchive.Read(archive);
+        if (content.Error is { } refused)
+        {
+            Trace.TraceWarning($"A backup was not restored: {refused.Outcome}{(refused.FileName is null ? "" : $" ({refused.FileName})")}.");
+            return refused;
+        }
+
+        lock (_transferGate)
+        {
+            FlushSaves();
+            var before = known.Read();
+            try
+            {
+                known.WriteBackup(before);
+            }
+            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            {
+                Trace.TraceError($"A backup was not restored: the files of now could not be copied first: {exception}");
+                return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
+            }
+
+            // What the files change on the engine besides themselves: an own effect the backup has
+            // not makes a device static, and a scene it has not goes off.
+            var lightingBefore = lighting.State;
+            var activeBefore = profiles?.ActiveName;
+            var replaced = new List<string>();
+            try
+            {
+                foreach (var name in SettingsBackup.FileNames)
+                {
+                    // Added before Replace: a file that was written but could not be read again
+                    // goes back too, and putting back one that was not written yet changes nothing.
+                    if (content.Files.TryGetValue(name, out var json))
+                    {
+                        replaced.Add(name);
+                        Replace(known, name, json);
+                    }
+                }
+            }
+            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            {
+                Trace.TraceError($"Restoring a backup failed at {replaced[^1]}; putting back {string.Join(", ", replaced)}: {exception}");
+                PutBack(known, replaced, before, lightingBefore, activeBefore);
+                return new SettingsRestoreResult(SettingsRestoreOutcome.Failed);
+            }
+
+            Trace.TraceInformation($"Restored a backup: {string.Join(", ", replaced)}.");
+            return new SettingsRestoreResult(SettingsRestoreOutcome.Restored);
+        }
+    }
+
+    private SettingsFiles FilesOrThrow() =>
+        files ?? throw new InvalidOperationException("This engine has no settings files to back up.");
+
+    // Between reloads: a save during one waits for it, and would not be in the file yet.
+    private void FlushSaves()
+    {
+        if (_saver is { } saver)
+        {
+            if (_reloader is { } reloader)
+            {
+                reloader.RunBetweenReloads(saver.Flush);
+            }
+            else
+            {
+                saver.Flush();
+            }
+        }
+
+        customEffects?.Flush();
+    }
+
+    private void Replace(SettingsFiles known, string name, byte[] json)
+    {
+        switch (name)
+        {
+            case SettingsBackup.EffectsFileName when customEffects is not null:
+                customEffects.Replace(json);
+                break;
+            case SettingsBackup.ProfilesFileName when profiles is not null:
+                profiles.Replace(json);
+                break;
+            case SettingsBackup.SettingsFileName:
+                ReplaceSettings(json);
+                break;
+            default:
+                JsonFile.Write(known.PathOf(name), json);
+                break;
+        }
+    }
+
+    // A file that was not there before the restore goes again, through the part of the engine that
+    // keeps it; a file without its part of the engine (settings.json, or any in tests) is just
+    // deleted. For settings.json only the file goes, the engine keeps its settings; hardly ever
+    // reached, as LoadOrCreate writes it at the start and it is restored last.
+    private void Remove(SettingsFiles known, string name)
+    {
+        switch (name)
+        {
+            case SettingsBackup.EffectsFileName when customEffects is not null:
+                customEffects.Reset();
+                break;
+            case SettingsBackup.ProfilesFileName when profiles is not null:
+                profiles.Reset();
+                break;
+            default:
+                File.Delete(known.PathOf(name));
+                break;
+        }
+    }
+
+    // With autoStartChosen and hadRealDevices of this pc (SettingsArchive.WithThisPc): the Run key
+    // stays as it is, and what the user chose about it here still counts at the next update.
+    private void ReplaceSettings(byte[] json)
+    {
+        var saver = _saver ?? throw new InvalidOperationException("The engine has not started yet.");
+        var options = saver.Options;
+        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true));
+        if (_reloader is not null)
+        {
+            // Normally applied when this returns; a file that cannot be read yet only later.
+            _reloader.ReloadNow();
+            return;
+        }
+
+        // Without a watcher (in tests) there is no reloader, and so nobody else in HoldSaves.
+        saver.HoldSaves(() =>
+        {
+            if (settingsStore.LoadIfChanged().Settings is { } settings)
+            {
+                ApplyChangedByHand(settings);
+            }
+        });
+    }
+
+    // Best effort: a file that was not there before goes again, so the engine is as it was; one
+    // that cannot be put back stays as the backup had it, and the copy is in the backups folder.
+    // Then the lighting and the scene of before go back on, as changes, so the saver keeps them:
+    // the files of before have the own effects and the scene again. One that could not be put
+    // back has not, and the lighting then shows static instead (LightingController.Apply), or no
+    // scene is on.
+    private void PutBack(SettingsFiles known, List<string> replaced, Dictionary<string, byte[]> before, LightingState lightingBefore, string? activeBefore)
+    {
+        foreach (var name in replaced)
+        {
+            try
+            {
+                if (before.TryGetValue(name, out var json))
+                {
+                    Replace(known, name, json);
+                }
+                else
+                {
+                    Remove(known, name);
+                }
+            }
+            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            {
+                Trace.TraceError($"Could not put {name} back; the copy is in {known.BackupsFolder}: {exception.Message}");
+            }
+        }
+
+        // A new lighting ends the scene, so the scene comes after it.
+        if (!EngineSettings.SameLighting(lightingBefore, lighting.State))
+        {
+            lighting.Replace(lightingBefore);
+        }
+
+        if (profiles is not null && !string.Equals(profiles.ActiveName, activeBefore, StringComparison.Ordinal))
+        {
+            profiles.PutBackActive(activeBefore);
+        }
     }
 
     // settings.json changed by hand: applied as the settings app would, through the same
@@ -134,6 +362,8 @@ internal sealed class EngineHost(
         var held = lighting.State;
         try
         {
+            // Nothing on the engine follows it, so it goes to the saver as the file has it.
+            _saver!.ChangeOptions(saved => saved with { AutoStartChosen = settings.AutoStartChosen });
             ApplyOptions(settings);
             zoneLengths?.Change(settings.ReadZoneLengths());
             var state = settings.ToLightingState();
@@ -162,6 +392,40 @@ internal sealed class EngineHost(
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
         customColors?.Colors = settings.ReadCustomColors();
+        otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware();
+    }
+
+    // Before the devices are fetched, so the tray menu shows it from the start. A file without
+    // autoStartChosen is from before the option, whose installer turned autostart on, so off
+    // counts as the user's choice (or Windows refused, which this cannot tell). The Run key can
+    // only tell for this engine: one that starts another engine counts as off. A Run key that does
+    // not read tells nothing, so it stays without a choice (and --first-run tries to turn it on).
+    private EngineSettings StartAutoStart(EngineSettings settings)
+    {
+        if (autoStart is null)
+        {
+            return settings;
+        }
+
+        autoStart.Chosen += OnAutoStartChosen;
+        if (settings.AutoStartChosen is null && autoStart.TryReadEnabled() is { } enabled)
+        {
+            settings = settings with { AutoStartChosen = !enabled };
+        }
+
+        if (firstRun && settings.AutoStartChosen != true)
+        {
+            autoStart.EnableOnFirstRun();
+        }
+
+        return settings;
+    }
+
+    // From the tray menu or the settings app, on any thread.
+    private void OnAutoStartChosen(object? sender, EventArgs e)
+    {
+        Volatile.Write(ref _autoStartChosen, true);
+        _saver?.ChangeOptions(settings => settings with { AutoStartChosen = true });
     }
 
     // Reads the newest mode, so two changes that cross each other still save the last one.
@@ -201,4 +465,8 @@ internal sealed class EngineHost(
 
     private void OnCustomColorsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings.WithCustomColors(customColors!.Colors));
+
+    // A program the user dismissed in the app, so its message stays away after a restart.
+    private void OnOtherRgbSoftwareDismissed(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed));
 }

@@ -320,6 +320,213 @@ public sealed class StatusLineViewTests
         });
     }
 
+    // Other RGB software: the line names it and is read out, "Niet meer melden" has the name of
+    // the program for a screen reader, asks the engine to keep it and moves the focus on; the
+    // pause under "Details" then takes the line.
+    [Fact]
+    public async Task OtherRgbSoftware_InTheLineAndNietMeerMeldenMovesTheFocusOn()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.Pause = PauseReasons.Manual;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            using var capture = LiveRegionCapture.Start();
+
+            api!.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("SignalRGB draait ook en kan je kleuren overschrijven.", Line(page).Text);
+            Assert.Contains(Line(page), capture.Announced);
+            var dismiss = PageViews.ById<Button>(page, "StatusLineDismiss");
+            Assert.True(dismiss.IsVisible);
+            Assert.Equal(Strings.OtherRgbSoftwareDismiss, dismiss.Content);
+            Assert.Equal("SignalRGB niet meer melden", AutomationProperties.GetName(dismiss));
+            Assert.True(Details(page).IsVisible);
+            Assert.True(dismiss.Focus());
+
+            PageViews.Click(dismiss);
+
+            Assert.Contains("dismiss signalrgb", api.Calls);
+            Assert.Equal(Strings.EffectsPausedManual, Line(page).Text);
+            Assert.False(dismiss.IsVisible);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, dismiss) && focused.IsVisible);
+        });
+    }
+
+    // "Uitleg" in the line: a toggle with the name of the program, before "Niet meer melden" in
+    // the Tab order, that unfolds the explanation under the line, says it is on for a screen
+    // reader, and closes it with a second press. Without a guide there is no link under it.
+    [Fact]
+    public async Task OtherRgbSoftware_UitlegUnfoldsTheExplanationInTheLine()
+    {
+        using var viewModel = await PageViews.ConnectAsync(engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")], guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var toggle = PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle");
+            var dismiss = PageViews.ById<Button>(page, "StatusLineDismiss");
+            var explanationPanel = PageViews.ById<StackPanel>(page, "StatusLineExplanationPanel");
+            var peer = new ToggleButtonAutomationPeer(toggle);
+
+            Assert.True(toggle.IsVisible);
+            Assert.Equal(Strings.StatusExplanation, toggle.Content);
+            Assert.Equal("Uitleg over SignalRGB", peer.GetName());
+            Assert.Equal(Strings.StatusExplanationToolTip, AutomationProperties.GetHelpText(toggle));
+            Assert.Equal(ToggleState.Off, ((IToggleProvider)peer.GetPattern(PatternInterface.Toggle)).ToggleState);
+            Assert.False(explanationPanel.IsVisible);
+            Assert.False(Action(page).IsVisible);
+            Assert.True(toggle.Focus());
+            Assert.True(toggle.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
+            Assert.True(dismiss.IsKeyboardFocused);
+
+            Toggle(toggle);
+
+            Assert.True(explanationPanel.IsVisible);
+            Assert.Equal(ToggleState.On, ((IToggleProvider)peer.GetPattern(PatternInterface.Toggle)).ToggleState);
+            var explanation = PageViews.ById<TextBlock>(page, "StatusLineExplanation");
+            Assert.StartsWith("Sluit SignalRGB af", explanation.Text, StringComparison.Ordinal);
+            Assert.Contains(PageViews.AutomationTree(page), automation => automation.GetName() == explanation.Text);
+            Assert.False(PageViews.ById<Button>(page, "StatusLineExplanationLink").IsVisible);
+            Assert.Equal("SignalRGB draait ook en kan je kleuren overschrijven.", Line(page).Text);
+
+            Toggle(toggle);
+
+            Assert.False(explanationPanel.IsVisible);
+            Assert.False(viewModel.StatusLine.Current!.ShowsExplanation);
+        });
+    }
+
+    // Under "Details" each program has its own "Uitleg"; with a guide, the link under the
+    // explanation opens it at "Andere RGB-software".
+    [Fact]
+    public async Task OtherRgbSoftware_UitlegUnderDetailsWithTheLinkToTheGuide()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(
+            engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")],
+            opened: opened,
+            guideAddress: "https://example.org/handleiding");
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            Toggle(Details(page));
+            var toggle = PageViews.AllById<ToggleButton>(page, "StatusLineDetailExplanationToggle").Single(button => button.IsVisible);
+            Assert.Equal("Uitleg over Corsair iCUE", new ToggleButtonAutomationPeer(toggle).GetName());
+            Assert.False(PageViews.ById<StackPanel>(page, "StatusLineDetailExplanationPanel").IsVisible);
+
+            Toggle(toggle);
+
+            Assert.True(PageViews.ById<StackPanel>(page, "StatusLineDetailExplanationPanel").IsVisible);
+            Assert.StartsWith("Sluit Corsair iCUE af", PageViews.ById<TextBlock>(page, "StatusLineDetailExplanation").Text, StringComparison.Ordinal);
+            Assert.False(PageViews.ById<StackPanel>(page, "StatusLineExplanationPanel").IsVisible);
+            var link = PageViews.ById<Button>(page, "StatusLineDetailExplanationLink");
+            Assert.True(link.IsVisible);
+            Assert.Equal(Strings.OtherRgbSoftwareGuideLinkAccessibleName, new ButtonAutomationPeer(link).GetName());
+
+            PageViews.Click(link);
+
+            Assert.Equal(["https://example.org/handleiding#andere-rgb-software"], opened);
+        });
+    }
+
+    // The other RGB software stops while "Uitleg" has the focus: the message and its toggle go,
+    // and the focus goes on to the page instead of dropping to the window.
+    [Fact]
+    public async Task OtherRgbSoftwareStops_FocusOnUitlegMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+        }, guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            var toggle = PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle");
+            Assert.True(toggle.Focus());
+
+            api!.OtherRgbSoftware = [];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(toggle.IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, toggle) && focused.IsVisible);
+        });
+    }
+
+    // Idem with the focus on "Meer in de handleiding" under the unfolded explanation.
+    [Fact]
+    public async Task OtherRgbSoftwareStops_FocusOnTheGuideLinkMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+        }, guideAddress: "https://example.org/handleiding");
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Toggle(PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle"));
+            var link = PageViews.ById<Button>(page, "StatusLineExplanationLink");
+            Assert.True(link.IsVisible);
+            Assert.True(link.Focus());
+
+            api!.OtherRgbSoftware = [];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(link.IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, link) && focused.IsVisible);
+        });
+    }
+
+    // Idem with the focus on "Uitleg" under "Details" when that program stops: its message goes
+    // from under "Details", and with it "Details", while the other program stays in the line.
+    [Fact]
+    public async Task OtherRgbSoftwareUnderDetailsStops_FocusOnUitlegMovesOnToThePage()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+        {
+            api = engine;
+            engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")];
+        }, guideAddress: null);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+            Toggle(Details(page));
+            var toggle = PageViews.AllById<ToggleButton>(page, "StatusLineDetailExplanationToggle").Single(button => button.IsVisible);
+            Assert.Equal("Uitleg over Corsair iCUE", new ToggleButtonAutomationPeer(toggle).GetName());
+            Assert.True(toggle.Focus());
+
+            api!.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+            api.RaiseOtherRgbSoftwareChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(toggle.IsVisible);
+            Assert.False(Details(page).IsVisible);
+            Assert.True(PageViews.ById<ToggleButton>(page, "StatusLineExplanationToggle").IsVisible);
+            Assert.True(page.IsKeyboardFocusWithin);
+            Assert.True(Keyboard.FocusedElement is UIElement focused && !ReferenceEquals(focused, toggle) && focused.IsVisible);
+        });
+    }
+
     // Without a real device ever on this pc, OpenRGB out of reach is no message in the line: the
     // status at the top right says there are no real devices yet (OpenRgbStatusViewTests).
     [Fact]

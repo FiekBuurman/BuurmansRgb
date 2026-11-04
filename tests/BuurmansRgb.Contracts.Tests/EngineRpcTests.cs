@@ -451,6 +451,50 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(1, _api.RescanCalls);
     }
 
+    // The process id of the engine, for its memory and CPU on Instellingen.
+    [Fact]
+    public async Task GetProcessIdAsync_GivesTheIdOfTheEngine()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal(4242, await client.Api.GetProcessIdAsync(Ct));
+    }
+
+    // A backup is bytes both ways, also every byte value and a size of some MB, and the answer to a
+    // restore comes back with its outcome and file.
+    [Fact]
+    public async Task SettingsBackup_CrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+        var archive = new byte[3 * 1024 * 1024];
+        new Random(42).NextBytes(archive);
+        _api.ExportedSettings = archive;
+
+        var exported = await client.Api.ExportSettingsAsync(Ct);
+        var result = await client.Api.RestoreSettingsAsync(archive, Ct);
+
+        Assert.Equal(archive, exported);
+        Assert.Equal(archive, Assert.Single(_api.RestoredArchives));
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.ProfilesFileName), result);
+    }
+
+    // The other RGB software comes over the pipe with its ids and names, and a dismissed id goes back.
+    [Fact]
+    public async Task OtherRgbSoftware_CrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.Api.OtherRgbSoftwareChanged += (_, _) => changed.TrySetResult();
+
+        var found = await client.Api.GetOtherRgbSoftwareAsync(Ct);
+        await client.Api.DismissOtherRgbSoftwareAsync("signalrgb", Ct);
+        _api.RaiseOtherRgbSoftwareChanged();
+
+        Assert.Equal([new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("openrgb", "OpenRGB")], found);
+        Assert.Equal(["signalrgb"], _api.DismissedOtherRgbSoftware);
+        await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
+    }
+
     [Fact]
     public async Task SimulatedDevices_ModeCrossesThePipeBothWays()
     {
@@ -890,6 +934,35 @@ public sealed class EngineRpcTests : IDisposable
         {
             OptionCalls.Add($"custom colors {string.Join(" ", colors.Select(color => color.ToHex()))}");
             return Task.CompletedTask;
+        }
+
+        public event EventHandler? OtherRgbSoftwareChanged;
+
+        public void RaiseOtherRgbSoftwareChanged() => OtherRgbSoftwareChanged?.Invoke(this, EventArgs.Empty);
+
+        public Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<OtherRgbSoftware>>([new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware(OtherRgbSoftware.OpenRgbId, "OpenRGB")]);
+
+        public List<string> DismissedOtherRgbSoftware { get; } = [];
+
+        public Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default)
+        {
+            DismissedOtherRgbSoftware.Add(id);
+            return Task.CompletedTask;
+        }
+
+        public byte[] ExportedSettings { get; set; } = [];
+
+        public List<byte[]> RestoredArchives { get; } = [];
+
+        public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(4242);
+
+        public Task<byte[]> ExportSettingsAsync(CancellationToken ct = default) => Task.FromResult(ExportedSettings);
+
+        public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
+        {
+            RestoredArchives.Add(archive);
+            return Task.FromResult(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.ProfilesFileName));
         }
 
         public event EventHandler? CustomEffectsChanged;

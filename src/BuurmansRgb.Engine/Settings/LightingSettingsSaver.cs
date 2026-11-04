@@ -92,6 +92,22 @@ internal sealed class LightingSettingsSaver : IDisposable
         SavePending();
     }
 
+    // The options besides the lighting as the next save writes them.
+    public EngineSettings Options
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _settings;
+            }
+        }
+    }
+
+    // Writes a change that waits right away, such as before the file goes into a backup. A file
+    // changed by hand that the reloader did not apply yet still goes first, as on the timer.
+    public void Flush() => SavePending();
+
     // Changes an option besides the lighting, such as the simulated devices, and saves it the same
     // way as a change of the lighting.
     public void ChangeOptions(Func<EngineSettings, EngineSettings> change)

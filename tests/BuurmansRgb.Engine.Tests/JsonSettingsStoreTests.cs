@@ -145,6 +145,40 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.DoesNotContain("\"hadRealDevices\": false", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    // A file from before the option reads as null, so EngineHost asks the Run key; a new file says
+    // false, as nobody chose yet.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", null)]
+    [InlineData("""{ "autoStartChosen": false }""", false)]
+    [InlineData("""{ "autoStartChosen": true }""", true)]
+    [InlineData("""{ "autoStartChosen": "ja" }""", null)]
+    public void Load_AutoStartChosen_IsNullForAFileFromBefore(string json, bool? expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().AutoStartChosen);
+    }
+
+    [Fact]
+    public void LoadOrCreate_NoFile_WritesAutoStartChosenFalse()
+    {
+        var path = _directory.File("settings.json");
+
+        Assert.False(new JsonSettingsStore(path).LoadOrCreate().AutoStartChosen);
+        Assert.Contains("\"autoStartChosen\": false", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
+    // A file that is there but does not read may hold a choice, which --first-run must not overrule.
+    [Fact]
+    public void LoadOrCreate_BrokenFile_DoesNotKnowTheChoice()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, "{ not json");
+
+        Assert.Null(new JsonSettingsStore(path).LoadOrCreate().AutoStartChosen);
+    }
+
     [Fact]
     public void Save_CustomColors_AreWrittenUnderTheirNameAndReadBack()
     {
@@ -452,6 +486,45 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.Equal(expected is null ? [] : [expected], settings.ReadZonesAlike());
     }
 
+    [Fact]
+    public void Save_DismissedOtherRgbSoftware_RoundTrips()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.Save(EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware(["signalrgb", "openrgb"]));
+
+        Assert.Contains("\"dismissedOtherRgbSoftware\"", File.ReadAllText(path));
+        Assert.Equal(["signalrgb", "openrgb"], store.LoadOrCreate().ReadDismissedOtherRgbSoftware());
+    }
+
+    [Fact]
+    public void Save_Defaults_LeavesDismissedOtherRgbSoftwareOutOfTheFile()
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware([]));
+
+        Assert.DoesNotContain("dismissedOtherRgbSoftware", File.ReadAllText(path));
+    }
+
+    // Only what is no id is left out, or the list when it is no list; the rest of the file counts.
+    [Theory]
+    [InlineData("""["signalrgb", 5, null, "", "signalrgb", "icue"]""", "signalrgb icue")]
+    [InlineData("""["SignalRGB", "signalrgb"]""", "SignalRGB")]
+    [InlineData("\"signalrgb\"", "")]
+    public void Load_DismissedOtherRgbSoftwareWrittenByHand_LeavesOutWhatIsNoId(string dismissed, string expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#FF0000", "dismissedOtherRgbSoftware": {{dismissed}} }""");
+        using var trace = new TraceCapture();
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(Red, settings.Color);
+        Assert.Equal(expected, string.Join(" ", settings.ReadDismissedOtherRgbSoftware()));
+    }
+
     // Counts that add up past what an int can hold would make the colors land at a negative index.
     [Theory]
     [InlineData("[2000000000, 2000000000, 5]")]
@@ -696,7 +769,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var settings = store.LoadOrCreate();
         store.Save(settings);
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, settings);
         Assert.Equal(content, File.ReadAllText(store.BrokenFilePath));
     }
 
@@ -933,7 +1006,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(path).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, settings);
         Assert.True(File.Exists(path));
     }
 

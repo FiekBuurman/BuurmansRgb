@@ -110,8 +110,10 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   nieuwe status voor.
 - **Statusregel:** daaronder staat hooguit één melding, in een gewone kaart, de belangrijkste
   eerst: de verbinding met je apparaten is weg (alleen op een pc die echte apparaten had; met
-  **Opnieuw verbinden**, dezelfde zoektocht als Verversen, die zolang "Zoeken…" zegt) > de
-  effecten zijn gepauzeerd (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
+  **Opnieuw verbinden**, dezelfde zoektocht als Verversen, die zolang "Zoeken…" zegt) > andere
+  RGB-software draait mee ("SignalRGB draait ook en kan je kleuren overschrijven.", één melding
+  per programma, zie [Andere RGB-software](#andere-rgb-software)) > de effecten zijn gepauzeerd
+  (met de reden, en **Hervatten** bij de pauze uit het tray-menu, zie
   "Pauzeren") > het voorbeeld staat stil (met **Laten lopen**, zie "Minder beweging"). Gelden er
   meer meldingen tegelijk, dan staat rechts de knop **Details** (voor een schermlezer "Details:
   nog 1 melding"): die klapt de andere meldingen uit onder de regel, elk met zijn eigen knop,
@@ -722,6 +724,16 @@ Hoe het vanzelf aanzetten werkt:
   | Nog geen echte apparaten gevonden | OpenRGB: niet bereikbaar | Hetzelfde, op een pc die nog nooit een echt apparaat had (`hadRealDevices`, zie "Gesimuleerde apparaten"): niets is kapot, de gesimuleerde apparaten spelen mee, en Herstarten staat er niet. Tip: zet OpenRGB aan (de installer regelt dat) |
   | Verbinden met je apparaten lukt niet | OpenRGB: geen goed antwoord | Er antwoordde wel iets, maar verbinden of de apparaten ophalen mislukte; buurmansRgb blijft het proberen, Herstarten start OpenRGB opnieuw |
 
+- **Licht op de achtergrond:** wat de engine nu gebruikt, bijv. "Geheugen 26 MB · CPU 0,3 %".
+  Het geheugen is het werkgeheugen van de engine (working set, de maat van het budget in het
+  bouwplan; Taakbeheer toont bij Details een kleiner getal, alleen het privé-deel). De CPU is een
+  deel van de hele pc, zoals Taakbeheer het toont: de tijd die de engine rekende in de laatste 2
+  seconden, gedeeld door het aantal kernen. Bij het openen van de pagina staat er eerst alleen
+  het geheugen ("CPU meten…"); 2 seconden later ook de CPU. De app meet het zelf, elke 2 seconden
+  en alleen zolang Instellingen open is en het venster niet geminimaliseerd: op een andere pagina,
+  geminimaliseerd of met de app dicht meet niemand iets, en de engine doet er nooit iets voor.
+  Zonder verbinding met de engine staat er "Nu niet te meten.". Een schermlezer leest de regel
+  als je erop komt, niet bij elke meting.
 - **Gesimuleerde apparaten:** bij "Gesimuleerde apparaten tonen"
   kies je "Automatisch" (standaard: alleen zolang er op deze pc nog nooit een echt apparaat was),
   "Altijd" of "Nooit". De engine wisselt meteen en bewaart de keuze. Bij "Automatisch" wacht de
@@ -760,16 +772,52 @@ Hoe het vanzelf aanzetten werkt:
 - **Opstarten:** "Starten met Windows" doet hetzelfde als het item in het tray-menu (zie "Starten
   met Windows" bij het tray-icoon): aan start buurmansRgb als je je aanmeldt bij Windows. Het
   geldt meteen; het staat in Windows zelf en niet bij de instellingen die de engine bewaart, dus
-  er komt geen "Opgeslagen ✓" onderaan. De schakelaar en het vinkje in het tray-menu
+  er komt geen "Opgeslagen ✓" onderaan (dat je koos, onthoudt de engine wel, zodat een update het
+  laat zoals jij het zette). De schakelaar en het vinkje in het tray-menu
   staan altijd hetzelfde: zet je het in het menu om, dan gaat de schakelaar meteen mee, en het
   menu toont wat je hier koos. Laat Windows het niet toe (het register is niet te schrijven),
   dan springt de schakelaar terug en staat onderaan "Starten met Windows kon niet
   worden aangepast."; het logbestand zegt waarom.
-- **Logbestand:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
+- **Bewaren en terugzetten:** "Instellingen bewaren…" zet `settings.json`, `profiles.json` en
+  `effects.json` (zie "Instellingenbestanden") samen in één zip-bestand dat je zelf kiest; de
+  naam die de app voorstelt is `buurmansRgb-instellingen-<datum>.zip`. Een bestand dat er nog
+  niet is (nog geen scènes of eigen effecten), zit er niet in. De engine maakt de zip, met je
+  laatste wijziging erin, ook als die nog niet bewaard was. Zo neem je alles mee naar een
+  nieuwe pc, of bewaar je het voordat je iets uitprobeert. Lukt bewaren niet (een map waar je
+  niet mag schrijven, een volle schijf, of de verbinding met de engine viel weg), dan staat
+  onderaan "De instellingen konden niet worden bewaard.".
+  "Instellingen terugzetten…" kiest zo'n zip en vraagt eerst "Instellingen terugzetten?" met de
+  naam van het bestand: je huidige instellingen, scènes en eigen effecten worden vervangen
+  (Annuleren of **Terugzetten**; Escape is Annuleren). Daarna gelden ze meteen, zonder herstart,
+  ook in een tweede instellingen-app, en staat onderaan "Instellingen teruggezet.". Een bestand
+  dat de zip niet heeft, blijft zoals het was. Wat er nu is, zet de engine eerst in een kopie in
+  de map met instellingen, in `backups\before-restore-<datum>-<tijd>-<ms>.zip` (de tijd tot op de milliseconde en in UTC, dus
+  in de winter een uur vroeger dan op de klok en in de zomer twee; de laatste vijf blijven);
+  daarmee zet je het zo nodig weer terug. Twee dingen horen bij deze pc en komen niet uit de zip:
+  "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos (`autoStartChosen`), zodat een update het laat zoals jij het zette; en of deze pc ooit echte
+  apparaten had (`hadRealDevices`). Welke meldingen over andere RGB-software je wegklikte
+  (`dismissedOtherRgbSoftware`) komt wel mee.
+  Is de zip niet goed, dan verandert er niets en staat onderaan waarom: "Dit bestand bevat geen
+  bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
+  bestanden, zoals een map), "Dit bestand is te groot …" (een zip groter dan 4 MB, of een bestand
+  dat uitgepakt groter wordt dan 16 MB) of "profiles.json in dit bestand is niet te lezen." (geen
+  geldige JSON, of geen object). Kan de app het gekozen bestand zelf niet lezen (bijvoorbeeld
+  omdat een ander programma het openhoudt), dan staat er "Het bestand kon niet worden gelezen.
+  Er is niets veranderd.". Weigert de engine het terugzetten (bijvoorbeeld een oudere engine die
+  het nog niet kent), dan staat er "Terugzetten is niet gelukt. Er is niets veranderd.". Lukt
+  het schrijven van een bestand niet, dan zet de engine terug wat er was, ook de verlichting en de scène die aan stond, en staat er "Terugzetten is niet gelukt." met waar de kopie staat. Valt de
+  verbinding met de engine weg tijdens het terugzetten, dan weet de app niet hoe ver de engine
+  kwam: er staat dan "De verbinding met de engine viel weg tijdens het terugzetten." en waar de
+  kopie staat; kijk dan of je instellingen kloppen. Beide knoppen werken alleen als de app
+  verbonden is met de engine.
+- **Logbestand en map:** "Logbestand openen" opent `engine.log` (zie "Logbestanden") in Kladblok of het
   programma dat bij `.log` hoort, net als het item in het tray-menu. Dat werkt ook als de engine
   niet draait of de app hem niet bereikt; je ziet dan het log van de laatste keer. Is er nog geen
   logbestand, of kan Windows het niet openen, dan staat onderaan "Het logbestand kon
-  niet worden geopend.".
+  niet worden geopend.". "Map met instellingen en logs openen" opent `%AppData%\BuurmansRgb` in
+  Verkenner, met de instellingenbestanden, `logs` en `backups`. Is die map er nog niet (de
+  engine draaide nooit), dan staat onderaan "De map met instellingen en logs kon niet worden
+  geopend.".
 - **Versie:** onderaan staat het versienummer van buurmansRgb (bijv. "buurmansRgb 1.2.0"). Een
   link naar deze handleiding staat er nog niet: die komt zodra de handleiding een plek heeft die
   iedereen kan openen.
@@ -842,7 +890,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   hoofdvenster, in `bg` met een rand in `border`, de vraag als sectiekop en de uitleg als
   subtekst. "Verwijderen" is de primaire knop, maar 44 px hoog en in de tekstgrootte van
   "Annuleren" ernaast, die een gewone knop is. Zo zijn de knoppen Nederlands, ook op een Windows in
-  een andere taal, wat een `MessageBox` van Windows niet is.
+  een andere taal, wat een `MessageBox` van Windows niet is. Dezelfde vraag staat voor
+  "Instellingen terugzetten…", met **Terugzetten** als primaire knop: de knop zegt wat er gebeurt.
+  Het kiezen van een bestand gaat wel met de dialogen van Windows (Opslaan als en Openen), in de
+  taal van Windows.
+- **Instellingen** staat niet in het ontwerp; de pagina volgt de kaarten van de andere pagina's,
+  met sectiekoppen en gewone knoppen. De kop "Licht op de achtergrond" is een knipoog zoals de
+  koppen van het ontwerp; de getallen erin staan in de lettersoort van de tekst en niet in IBM
+  Plex Mono, omdat het één zin is.
 - **Apparaatkaarten** tonen het type met de helderheid in plaats van "Ruimte · helderheid": een
   ruimte kent BuurmansRgb niet.
 - **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
@@ -931,7 +986,13 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Instellingen** staat niet in het ontwerp; het gebruikt dezelfde kaarten, kleuren en
   lettertypes. Scènes zegt "Eén klik" in plaats van "Eén tik". De Statusregel (de pauze, de
   verbinding weg en het voorbeeld dat stilstaat, sinds `een-melding` in één kaart) staat in § 4
-  van het ontwerp. De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
+  van het ontwerp, ook de melding over andere RGB-software (`conflict-melding`) en waar die in de
+  volgorde staat. Die melding heeft als enige twee knoppen, **Uitleg** en **Niet meer melden**;
+  het voorstel noemde de eerste "Details", maar zo heet al de knop die de andere meldingen
+  uitklapt, en twee knoppen met dezelfde naam en een ander doel naast elkaar zijn verwarrend.
+  Uitleg klapt de uitleg in de app zelf open, omdat de handleiding (nog) niet met de app
+  meekomt; een link naar de handleiding staat er pas onder als die er is.
+  De regel boven het voorbeeld die zegt waarom Knipperen en Tellen grijs zijn,
   is subtekst in de tekstkleur zonder eigen kaart, dicht bij de knoppen, met "Hervatten" als
   gewone knop zoals in de Statusregel.
 - **Onderaan Instellingen** staan "Opstarten" en "Logbestand" als gewone kaarten, met de
@@ -1010,7 +1071,11 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
   engine bij het starten zijn eigen pad erin; een andere engine die er nog wel staat, houdt hem.
   Bij Instellingen in de app staat dezelfde schakelaar ("Opstarten"); het vinkje en de schakelaar
   lopen gelijk, en lukt het niet, dan meldt het icoon (of de app) "Starten met Windows kon niet
-  worden aangepast.".
+  worden aangepast.". Zet je het hier of bij Instellingen aan of uit, dan onthoudt de engine dat
+  je gekozen hebt (`autoStartChosen` in `settings.json`), en laat een update het zoals jij het
+  zette. Alleen een eerste installatie, of een update zolang je nog nooit gekozen hebt, zet het
+  aan. Kwam je van 1.5.0 of eerder (nog zonder dat veld) en stond het uit, dan telt dat ook als
+  je keuze: die installer had het aangezet, dus jij hebt het uitgezet.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
@@ -1098,7 +1163,19 @@ standaardwaarden in `settings.json`; `profiles.json` komt er bij de eerste scèn
 `effects.json` bij het eerste eigen effect. Wijzigingen uit de app, ook aan eigen effecten, slaat
 de engine een seconde na de laatste wijziging op, en bij afsluiten; scènes meteen. Met de hand
 aanpassen kan ook: `settings.json` terwijl de engine draait (zie hieronder), `profiles.json` en
-`effects.json` terwijl hij niet draait.
+`effects.json` terwijl hij niet draait. Alle drie samen bewaren en terugzetten, ook terwijl de
+engine draait, doe je bij Instellingen ("Bewaren en terugzetten"); de map open je daar met "Map
+met instellingen en logs openen". In `backups` staan de kopieën die de engine maakt voordat hij
+een bewaarde zip terugzet.
+
+Elke gebruiker op de pc heeft zijn eigen map. BuurmansRgb verwijderen stopt eerst je engine zoals
+**Afsluiten** in het tray-menu, zodat je laatste wijziging bewaard is, en vraagt dan of jouw
+instellingen weg moeten; die van andere gebruikers blijven staan. Hoe die ze zelf weghalen, staat
+bij "Verwijderen" in [installatie.md](installatie.md#verwijderen). "Ja" haalt de hele map weg, ook
+`logs` en de kopieën in `backups`; wil je je instellingen meenemen, maak dan eerst een zip met
+**Instellingen bewaren…** bij Instellingen. Heeft een andere gebruiker BuurmansRgb nog open, meld
+die dan eerst af: zijn engine sluit het verwijderen niet, en dan blijven de programmabestanden
+staan.
 
 ### settings.json
 
@@ -1136,6 +1213,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   },
   "simulatedDevices": "automatic",
   "hadRealDevices": true,
+  "autoStartChosen": true,
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
   "pausedLights": "keep",
@@ -1145,7 +1223,8 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
     "simulated-argb": { "ARGB 2": 15 }
   },
   "zonesAlike": ["simulated-headset", "simulated-mouse"],
-  "customColors": ["#FF0000", "#40C0FF"]
+  "customColors": ["#FF0000", "#40C0FF"],
+  "dismissedOtherRgbSoftware": ["signalrgb"]
 }
 ```
 
@@ -1164,6 +1243,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `ledColorZoneLengths` | Per apparaat de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `hadRealDevices` | `true` zodra OpenRGB op deze pc ooit een echt apparaat gaf: bij `"automatic"` komen de gesimuleerde apparaten dan niet meer in de plaats van de echte als OpenRGB weg is. De engine zet dit zelf en schrijft het alleen als het `true` is; zonder (of `false`) had de pc nog nooit een echt apparaat. Op `false` zetten of weghalen draait het terug, tot OpenRGB weer een echt apparaat geeft |
+| `autoStartChosen` | `true` zodra je "Starten met Windows" zelf aan- of uitzette (in het tray-menu of bij Instellingen): de installer zet het dan bij een update niet meer aan. Een nieuw bestand zegt `false`. Zonder het veld (een bestand van 1.5.0 of eerder, of weggehaald) kijkt de engine bij het starten of "Starten met Windows" aan staat: uit telt als je keuze (`true`), aan niet (`false`), en dat schrijft hij erbij zodra hij iets anders opslaat (tot dan kijkt hij bij elk starten opnieuw). Kan hij dat niet lezen, dan telt het niet als keuze. Op `false` zetten laat de volgende installatie het weer aanzetten. "Starten met Windows" zelf staat niet in dit bestand maar in Windows |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
 | `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de apparaten doen tijdens die pauze ("Apparaten tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |
@@ -1173,6 +1253,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `zonesAlike` | De apparaten (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elk apparaat uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 | `customColors` | De eigen kleuren van de gereedschapskist op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
+| `dismissedOtherRgbSoftware` | De andere RGB-software waarvoor je **Niet meer melden** koos, op id: `signalrgb`, `icue`, `razer`, `armourycrate`, `mysticlight`, `rgbfusion` of `openrgb` (een tweede OpenRGB). Zonder krijg je bij elk programma een melding. Haal een id weg (of de hele regel) en de melding komt weer zodra de engine het programma ziet; dat geldt meteen, de engine leest het bestand opnieuw. Een id die geen tekst is, slaat de engine over |
 
 - Een apparaat van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
   plus een code uit de locatie en het serienummer, zodat die na een herstart dezelfde blijft.
@@ -1336,7 +1417,9 @@ tray-menu of bij Instellingen in de app.
   tegelijk aan, dan staan die erbij ("also paused: locked", "still paused: locked"). De redenen
   heten `tray menu`, `locked`, `asleep`, `screen off` en `screen saver` (zie "Pauzeren" bij
   Effecten). Zo zie je achteraf waarom de effecten stilstonden.
-- Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg.
+- Verwijderen van BuurmansRgb met "instellingen ook weg" haalt ook de logbestanden weg, alleen
+  die van jou: andere gebruikers op de pc houden hun `%AppData%\BuurmansRgb` (zie "Verwijderen"
+  in [installatie.md](installatie.md#verwijderen)).
 
 ## OpenRGB en hardware
 
@@ -1344,8 +1427,8 @@ tray-menu of bij Instellingen in de app.
 
 De installer regelt dit (OpenRGB als service). Zonder installer:
 
-1. Sluit fabrikantsoftware af die dezelfde LED's aanstuurt (iCUE, Armoury Crate, MSI Center,
-   RGB Fusion, ...).
+1. Sluit andere RGB-software af die dezelfde LED's aanstuurt (zie
+   [Andere RGB-software](#andere-rgb-software)).
 2. Start OpenRGB en zet de SDK-server aan: tabblad **SDK Server** → **Start Server**, of start
    OpenRGB met `--server`. BuurmansRgb verbindt met `127.0.0.1:6742`, de standaardpoort.
    Voor moederbord, RAM en videokaart moet OpenRGB de eerste keer als administrator draaien
@@ -1362,6 +1445,90 @@ De installer regelt dit (OpenRGB als service). Zonder installer:
   `BuurmansRgb watcher` merkt op wanneer OpenRGB stopt of opnieuw zoekt.
 - Details over verbinden, protocolversie en fouten staan in het logbestand van de engine (zie
   "Logbestanden").
+
+### Wat er altijd meedraait
+
+BuurmansRgb zelf is een gewone app. Om bij je apparaten te komen, zet de installer er twee
+dingen naast, ook als je BuurmansRgb afsluit:
+
+- **OpenRGB**, als achtergrondprogramma van Windows (een service). Het draait altijd, start mee
+  met Windows en praat met je apparaten. BuurmansRgb geeft het de kleuren door via een
+  verbinding die alleen binnen je eigen pc loopt (`127.0.0.1`, poort 6742).
+- **PawnIO**, een driver: een stukje software diep in Windows waarmee OpenRGB bij oudere
+  moederborden en het geheugen (RAM) kan. Het vervangt een oudere driver die Windows Defender
+  als gevaarlijk aanmerkt. PawnIO staat er altijd en is waarschijnlijk vanaf het opstarten
+  geladen, maar dat is nog niet bevestigd.
+
+Goed om te weten: die verbinding heeft geen wachtwoord. Elk programma op je pc kan dus je
+verlichting veranderen. Van buiten je pc kan dat niet, zolang OpenRGB alleen binnen je pc
+luistert. De details, ook over bekende lekken en hoe je het controleert, staan in
+[installatie.md](installatie.md#wat-er-altijd-draait).
+
+### Andere RGB-software
+
+Twee programma's die dezelfde LED's aansturen, maken ruzie: de kleuren flikkeren of springen
+terug. Sluit daarom deze programma's af en zet ze uit bij **Taakbeheer → Opstartapps**.
+Sommige, zoals SignalRGB, iCUE en Synapse, draaien ook als achtergrondprogramma (service);
+zet die in `services.msc` op **Handmatig**:
+
+- SignalRGB
+- Corsair iCUE
+- Razer Synapse
+- ASUS Armoury Crate
+- MSI Mystic Light (in MSI Center)
+- Gigabyte RGB Fusion (of Gigabyte Control Center)
+- en ook Logitech G Hub, NZXT CAM en SteelSeries GG als die je verlichting regelen
+
+Heb je OpenRGB al eens zelf geïnstalleerd, zet daarin dan **Start Server** niet aan: er kan maar
+één OpenRGB de verbinding aanbieden, en dat doet de service. Het OpenRGB-venster openen om
+iets te bekijken mag wel. Welke processen en services erbij horen, staat in
+[installatie.md](installatie.md#andere-rgb-software-afsluiten).
+
+**De melding in de app.** buurmansRgb kijkt zelf of een van deze programma's draait: als de
+engine start, als de pc uit de slaapstand komt en als je **Verversen** kiest (of **Opnieuw
+verbinden**). Daartussen kijkt hij niet, dus een programma dat je net startte of afsloot, zie je
+pas bij de volgende keer; kies Verversen om meteen opnieuw te kijken. Vindt hij er een, dan staat
+in de statusregel bovenaan Apparaten en Kleur bijvoorbeeld "SignalRGB draait ook en kan je
+kleuren overschrijven.", één melding per programma. Hij herkent SignalRGB, Corsair iCUE, Razer
+Synapse, ASUS Armoury Crate, MSI Mystic Light en Gigabyte RGB Fusion, ook als alleen hun
+achtergrondprogramma draait. Logitech G Hub, NZXT CAM en SteelSeries GG herkent hij (nog) niet.
+Van RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet werkt.
+
+- **Een tweede OpenRGB:** draait er een OpenRGB in je eigen Windows-sessie terwijl de service
+  OpenRGB ook draait, dan zegt de app "Er draait nog een OpenRGB naast de service en die kan je
+  kleuren overschrijven.". Dat is ook zo als je alleen het OpenRGB-venster open hebt: wat je
+  daarin aan kleuren kiest, overschrijft die van buurmansRgb. Sluit het als je klaar bent, of
+  kies Niet meer melden. Zonder de service (OpenRGB zelf gestart, zie "OpenRGB koppelen") is dat
+  ene OpenRGB juist de server, en komt er geen melding.
+- **Uitleg** klapt onder de melding in het kort uit wat je kunt doen, zonder dat je deze
+  handleiding nodig hebt: sluit het programma af, zet het uit bij **Taakbeheer → Opstartapps**,
+  en zet een achtergrondprogramma (zoals van SignalRGB, iCUE en Synapse) in `services.msc` op
+  **Handmatig**. Bij een tweede OpenRGB staat er dat je het venster sluit als je klaar bent en
+  daarin Start Server niet aanzet. Kies nog een keer Uitleg en hij gaat weer dicht. Staat de
+  melding onder Details, dan heeft hij daar zijn eigen Uitleg. Weet de app waar deze handleiding
+  staat (in deze versie nog niet), dan staat onder de uitleg ook "Meer in de handleiding", dat
+  deze handleiding hier opent.
+- **Niet meer melden** haalt de melding over dat programma weg, en hij komt niet meer terug:
+  ook niet als het programma later weer draait of na een herstart. Handig als je het bewust laat
+  draaien, bijvoorbeeld voor een apparaat dat OpenRGB niet kent. Wil je de melding toch weer,
+  haal het programma dan weg uit `dismissedOtherRgbSoftware` in `settings.json` (zie
+  "Instellingenbestanden"); hoofdletters maken daar niet uit.
+- Een schermlezer leest de melding voor als hij komt. De knoppen bereik je met Tab en heten naar
+  het programma ("Uitleg over SignalRGB", "SignalRGB niet meer melden"); Uitleg zegt, net als
+  Details, of hij ingedrukt is, dus of de uitleg open staat, en de uitleg zelf volgt direct na de
+  melding. Na Niet meer melden gaat de focus naar de volgende knop. De uitleg volgt het
+  contrastthema en de tekstgrootte van Windows.
+
+### Games met anti-cheat
+
+Sommige games hebben anti-cheat die kijkt welke drivers er op je pc staan. BuurmansRgb zelf heeft
+geen driver; PawnIO wel. Van FACEIT is bekend dat het een oudere PawnIO blokkeerde; met de
+versie die BuurmansRgb meelevert hoort dat opgelost te zijn. Stond PawnIO er al (bijv. van
+FanControl), dan laat de installer die versie staan, ook een oudere. Je wilt 2.1.0 of nieuwer;
+de versie staat mogelijk bij **Instellingen → Apps → PawnIO**, en anders vind je in
+[installatie.md](installatie.md#games-met-anti-cheat) hoe je hem opzoekt. Van Vanguard
+(Valorant), Easy Anti-Cheat en BattlEye weten we het niet. Zegt een game dat er iets
+geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat) wat je kunt doen.
 
 ### Per apparaattype
 

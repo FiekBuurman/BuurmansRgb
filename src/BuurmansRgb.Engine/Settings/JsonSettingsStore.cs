@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.Engine.Settings;
 
@@ -16,10 +17,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // Whether the file did not read when it last changed: the next save moves it aside first.
     private bool _unreadable;
 
-    public static string DefaultFilePath { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "BuurmansRgb",
-        "settings.json");
+    public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.SettingsFileName);
 
     // Where a file that does not read goes, so the next save does not overwrite the user's settings.
     public string BrokenFilePath => filePath + ".broken";
@@ -56,6 +54,17 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
             SaveLocked(json);
             return true;
+        }
+    }
+
+    // Not as the store's own save: what it knows stays, so the file differs from it, as after a
+    // change in an editor. The file reads (SettingsArchive), so a save must not move it aside.
+    public void Replace(byte[] json)
+    {
+        lock (_gate)
+        {
+            JsonFile.Write(filePath, json);
+            _unreadable = false;
         }
     }
 
@@ -135,14 +144,19 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             // file goes aside first, where the user can fix a typo and put it back.
             Trace.TraceError(exception.ToString());
             TryMoveAside();
-            return EngineSettings.CreateDefault();
+            return UnknownChoices();
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             // Out of reach for now; keep the user's file untouched and run on defaults meanwhile.
-            return EngineSettings.CreateDefault();
+            return UnknownChoices();
         }
     }
+
+    // The defaults for a file that is there but does not read: whether the user chose autostart
+    // is not known then, so EngineHost reads it from the Run key, as for a file from before
+    // autoStartChosen, and --first-run does not overrule a choice it cannot read.
+    private static EngineSettings UnknownChoices() => EngineSettings.CreateDefault() with { AutoStartChosen = null };
 
     // Writing the defaults is a convenience for the user; the lights must start without it.
     private void TrySaveLocked(EngineSettings settings)

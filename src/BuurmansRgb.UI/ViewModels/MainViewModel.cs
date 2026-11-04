@@ -43,6 +43,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ProfilesReloadCall = "profiles-reload";
     private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
+    private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
+    private const string DismissOtherRgbSoftwareCall = "dismiss-other-rgb-software";
     private const string CustomEffectCall = "custom-effect";
 
     private readonly IEngineConnector _connector;
@@ -80,6 +82,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // The same for the pause of the effects.
     private int _pauseChanges;
 
+    // Counts OtherRgbSoftwareChanged, so the list read while connecting does not replace a newer one.
+    private int _otherRgbSoftwareChanges;
+
     // While a flash runs in the engine, a preview that stands still gets no new image until then,
     // so it never shows the white of the flash (RequestStill, OnFlashStarted).
     private DateTimeOffset _stillsHeldUntil = DateTimeOffset.MinValue;
@@ -114,12 +119,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Instellingen, which the composition root (App) makes with ShellLauncher.Open; without it
     // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
     // animationEffects is "Animatie-effecten" of Windows (SystemAnimationEffects in App); without
-    // it the animations are on, so the preview moves.
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null)
+    // it the animations are on, so the preview moves. processMeter reads the memory and CPU of the
+    // engine for Instellingen (SystemProcessMeter in App); without it nothing is read.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null)
     {
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
+        Backup = new SettingsBackupViewModel(() => _connection?.Api, time);
+        Backup.Message += (_, message) => StatusMessage = message;
+        EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
         _uiContext = SynchronizationContext.Current;
@@ -134,7 +143,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         };
         EffectsPause = new EffectsPauseViewModel(_time);
         DeviceRescan = new DeviceRescanViewModel(_time);
-        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan);
+        OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
+        StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
         _calls = new CoalescingCallQueue(exception => RunOnUi(() => OnCallFailed(exception)), key => RunOnUi(() => OnCallSucceeded(key)));
         _lampSync = new LampSync(Lamps, _calls, () => _connection, OnCallFailed);
         _sceneCards = new SceneCardLoader(Profiles, () => _connection);
@@ -209,6 +219,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         CustomColors.ColorsChanged += (_, colors) =>
             SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
+        OtherRgbSoftware.DismissRequested += (_, id) => DismissOtherRgbSoftware(id);
         Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
         OpenRgbStatus.RestartRequested += (_, _) => RestartEngine();
         DeviceRescan.Requested += (_, search) => _ = RescanDevicesAsync(search);
@@ -221,6 +232,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 SendFramesWanted();
                 SendFrameDevices();
                 RequestStill();
+                ShowEngineUsage();
 
                 // The count shows only on Kleur; elsewhere there is nothing to stop it with. Only
                 // a count this app started stops so.
@@ -349,9 +361,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Logbestand openen", the version and the guide at the bottom of Instellingen.
     public AppInfoViewModel AppInfo { get; }
 
+    // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen.
+    public SettingsBackupViewModel Backup { get; }
+
+    // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
+    public EngineUsageViewModel EngineUsage { get; }
+
     public OpenRgbStatusViewModel OpenRgbStatus { get; } = new();
 
     public EffectsPauseViewModel EffectsPause { get; }
+
+    // Other RGB software that runs, for the status line.
+    public OtherRgbSoftwareViewModel OtherRgbSoftware { get; }
 
     // "Verversen" at the heading of Apparaten.
     public DeviceRescanViewModel DeviceRescan { get; }
@@ -426,6 +447,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        EngineUsage.Dispose();
         StatusLine.Dispose();
         Motion.Dispose();
         Preview.Dispose();
@@ -437,6 +459,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // A lost connection with OpenRGB is a message, and "Herstarten" an answer, only on a pc that
     // had real devices.
     partial void OnHadRealDevicesChanged(bool? value) => OpenRgbStatus.DevicesExpected = value == true;
+
+    // Backing up and restoring go through the engine, so only while connected.
+    partial void OnConnectionStateChanged(ConnectionState value) => Backup.IsConnected = value == ConnectionState.Connected;
 
     [RelayCommand]
     private async Task ConnectAsync()
@@ -464,12 +489,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             connection.Api.OptionsChanged += OnOptionsChanged;
             connection.Api.ZoneCountChanged += OnZoneCountChanged;
             connection.Api.CustomEffectsChanged += OnCustomEffectsChanged;
+            connection.Api.OtherRgbSoftwareChanged += OnOtherRgbSoftwareChanged;
             // A new connection gets frames until it says otherwise.
             _framesWanted = true;
             SendFramesWanted();
             _frameDevice = null;
             SendFrameDevices();
             await LoadAsync(connection.Api);
+            await ShowEngineProcessAsync(connection);
             ConnectionState = ConnectionState.Connected;
             StatusMessage = null;
         }
@@ -569,6 +596,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         SendFramesWanted();
         RequestStill();
+        ShowEngineUsage();
+    }
+
+    // The memory and CPU of the engine are read only while Instellingen shows.
+    private void ShowEngineUsage() =>
+        EngineUsage.IsShown = !IsWindowMinimized && Navigation.CurrentPage == AppPage.Settings;
+
+    // The engine of this connection, whose memory and CPU Instellingen shows. Without an answer
+    // the rest of the app works the same; the line says it cannot measure.
+    private async Task ShowEngineProcessAsync(IEngineConnection connection)
+    {
+        try
+        {
+            var processId = await connection.Api.GetProcessIdAsync();
+            if (ReferenceEquals(connection, _connection))
+            {
+                EngineUsage.ProcessId = processId;
+            }
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError(exception.ToString());
+        }
     }
 
     // Only when it differs from what this connection told the engine last. Coming back sends the
@@ -1036,6 +1086,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (pauseChanges == _pauseChanges)
         {
             ShowPause(pause);
+        }
+
+        var otherRgbSoftwareChanges = _otherRgbSoftwareChanges;
+        var otherRgbSoftware = await api.GetOtherRgbSoftwareAsync();
+        if (otherRgbSoftwareChanges == _otherRgbSoftwareChanges)
+        {
+            OtherRgbSoftware.Show(otherRgbSoftware);
         }
 
         // A count that runs already, such as one another settings app paused, shows here too; a
@@ -1761,6 +1818,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         RequestStill();
     });
 
+    // Read anew, as the event carries no list; the newest read wins in the call queue.
+    private void OnOtherRgbSoftwareChanged(object? sender, EventArgs e) => RunOnUi(() =>
+    {
+        _otherRgbSoftwareChanges++;
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(OtherRgbSoftwareReloadCall, async () =>
+        {
+            var programs = await connection.Api.GetOtherRgbSoftwareAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    OtherRgbSoftware.Show(programs);
+                }
+            });
+        });
+    });
+
+    // "Niet meer melden": the engine keeps it in settings.json, and tells with its new list.
+    private void DismissOtherRgbSoftware(string id)
+    {
+        if (_connection is { } connection)
+        {
+            _calls.Post((DismissOtherRgbSoftwareCall, id), () => connection.Api.DismissOtherRgbSoftwareAsync(id));
+        }
+    }
+
     private void ShowPause(PauseReasons pause)
     {
         EffectsPause.Show(pause);
@@ -1844,7 +1932,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             OnFlashStarted(flash);
         }
 
-        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or RestartCall))
+        if (key is not (FramesWantedCall or FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
+            and not ValueTuple<string, string> { Item1: DismissOtherRgbSoftwareCall })
         {
             RequestStill();
         }
@@ -1856,6 +1945,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         StatusMessage = message;
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
+        OtherRgbSoftware.Clear();
         DeviceRescan.Clear();
         Preview.ShowPause(PauseReasons.None);
 
@@ -1872,6 +1962,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
 
         _connection = null;
+        EngineUsage.ProcessId = null;
         connection.Disconnected -= OnDisconnected;
         connection.Api.FrameRendered -= OnFrameRendered;
         connection.Api.DevicesChanged -= OnDevicesChanged;
@@ -1883,6 +1974,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         connection.Api.OptionsChanged -= OnOptionsChanged;
         connection.Api.ZoneCountChanged -= OnZoneCountChanged;
         connection.Api.CustomEffectsChanged -= OnCustomEffectsChanged;
+        connection.Api.OtherRgbSoftwareChanged -= OnOtherRgbSoftwareChanged;
         connection.Dispose();
     }
 

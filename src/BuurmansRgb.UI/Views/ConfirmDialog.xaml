@@ -35,7 +35,7 @@
                 <Button x:Name="CancelButton" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.Cancel}" Click="OnCancelClick" />
                 <Button x:Name="ConfirmButton" Margin="10,0,0,0" Style="{StaticResource PrimaryButton}"
                         MinHeight="{StaticResource MinClickSize}" Padding="20,0" FontSize="{DynamicResource BodySize}"
-                        Content="{x:Static res:Strings.ConfirmDelete}" Click="OnConfirmClick" />
+                        Click="OnConfirmClick" />
             </StackPanel>
         </StackPanel>
     </StackPanel>

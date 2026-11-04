@@ -19,6 +19,14 @@ internal sealed record EngineSettings : LightingStateSettings
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool HadRealDevices { get; set; }
 
+    // "autoStartChosen": whether the user set "Starten met Windows" in the tray menu or the
+    // settings app (AutoStartSwitch.Chosen); --first-run, which the installer gives after every
+    // install, then leaves it as it is. New settings say false, so the file shows it. Null is a
+    // file from before this option, or one that did not read; EngineHost then reads the Run key at
+    // each start (off counts as chosen, as such a pc had it on after its first install) and the
+    // value goes along with the next save.
+    public bool? AutoStartChosen { get; set; }
+
     // Frames per second of animated effects, kept between 1 and LightingController.MaxFramesPerSecond.
     public int FramesPerSecond { get; set; } = LightingController.DefaultFramesPerSecond;
 
@@ -57,7 +65,21 @@ internal sealed record EngineSettings : LightingStateSettings
     // after the first CustomColors.MaxColors (ReadCustomColors).
     public RgbColor?[]? CustomColors { get; set; }
 
-    public static EngineSettings CreateDefault() => new();
+    // "dismissedOtherRgbSoftware": the ids of the other RGB software whose message the user
+    // dismissed (OtherRgbSoftwareCheck.Dismissed, such as "signalrgb"), for good: taking an id out
+    // by hand shows its message again. Null instead of empty, so the default settings stay out of
+    // the file; an id that is not text reads as null (LenientJson) and is left out.
+    public List<string?>? DismissedOtherRgbSoftware { get; set; }
+
+    public static EngineSettings CreateDefault() => new() { AutoStartChosen = false };
+
+    public IReadOnlyList<string> ReadDismissedOtherRgbSoftware() =>
+        [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.OrdinalIgnoreCase)];
+
+    public EngineSettings WithDismissedOtherRgbSoftware(IReadOnlyList<string> ids) => this with
+    {
+        DismissedOtherRgbSoftware = ids.Count > 0 ? [.. ids] : null,
+    };
 
     public IReadOnlyList<RgbColor> ReadCustomColors() =>
         Contracts.CustomColors.Normalize((CustomColors ?? []).OfType<RgbColor>());

@@ -16,4 +16,8 @@ internal interface ISettingsStore
     // (its own save, say), is gone, or does not read; the next change is read again. ReadLater when
     // the file could not be read now.
     SettingsFileChange LoadIfChanged();
+
+    // Writes json as the file, as a change by someone else: LoadIfChanged reads it, and until then
+    // SaveIfUnchanged writes nothing over it. For a backup the engine restores (EngineHost).
+    void Replace(byte[] json);
 }

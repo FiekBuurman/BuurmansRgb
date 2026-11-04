@@ -1,4 +1,6 @@
 using System.Windows;
+using BuurmansRgb.Contracts;
+using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Views;
@@ -14,6 +16,9 @@ public partial class MainWindow : Window
             {
                 viewModel.Profiles.ConfirmDelete = ConfirmDeleteProfile;
                 viewModel.CustomEffectEditor.ConfirmDelete = ConfirmDeleteCustomEffect;
+                viewModel.Backup.ChooseSaveFile = ChooseBackupToSave;
+                viewModel.Backup.ChooseRestoreFile = ChooseBackupToRestore;
+                viewModel.Backup.ConfirmRestore = fileName => ConfirmDialog.ForRestore(this, fileName).Ask();
             }
         };
         StateChanged += (_, _) =>
@@ -59,4 +64,25 @@ public partial class MainWindow : Window
     private bool ConfirmDeleteProfile(string name) => ConfirmDialog.ForScene(this, name).Ask();
 
     private bool ConfirmDeleteCustomEffect(string name) => ConfirmDialog.ForCustomEffect(this, name).Ask();
+
+    // The dialogs of Windows for "Instellingen bewaren…" and "terugzetten…"; null when cancelled.
+    private string? ChooseBackupToSave(string suggestedName)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = Strings.BackupSaveTitle,
+            Filter = Strings.BackupFilter,
+            FileName = suggestedName,
+            DefaultExt = SettingsBackup.Extension,
+            AddExtension = true,
+            OverwritePrompt = true,
+        };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    private string? ChooseBackupToRestore()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Title = Strings.BackupRestoreTitle, Filter = Strings.BackupFilter, CheckFileExists = true };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
 }

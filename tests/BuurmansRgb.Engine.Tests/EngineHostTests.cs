@@ -4,6 +4,7 @@ using BuurmansRgb.Engine.Hotkeys;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -586,6 +587,56 @@ public sealed class EngineHostTests : IDisposable
 
         Assert.False(store.Settings.Hotkeys);
         Assert.Equal(1, store.SaveCount);
+    }
+
+    // Once at the start, before the settings app can ask, without the programs dismissed before.
+    [Fact]
+    public async Task StartAsync_LooksForOtherRgbSoftwareOnce()
+    {
+        var store = new InMemorySettingsStore { Settings = EngineSettings.CreateDefault().WithDismissedOtherRgbSoftware(["icue"]) };
+        using var lighting = new LightingController([_simulated]);
+        var processes = new FakeProcessSnapshot().Run("SignalRgb").Run("iCUE");
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(processes);
+        using var host = new EngineHost(store, lighting, otherRgbSoftware: otherRgbSoftware);
+
+        await host.StartAsync(Ct);
+
+        Assert.Equal(1, processes.TakeCount);
+        Assert.Equal(["signalrgb"], otherRgbSoftware.Shown.Select(software => software.Id));
+        Assert.Equal(["icue"], otherRgbSoftware.Dismissed);
+    }
+
+    // A dismissed program stays dismissed after a restart.
+    [Fact]
+    public async Task Dispose_AfterAProgramWasDismissed_SavesIt()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new FakeProcessSnapshot().Run("SignalRgb"));
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), otherRgbSoftware: otherRgbSoftware);
+        await host.StartAsync(Ct);
+
+        otherRgbSoftware.Dismiss("signalrgb");
+        host.Dispose();
+
+        Assert.Equal(["signalrgb"], store.Settings.ReadDismissedOtherRgbSoftware());
+        Assert.Equal(1, store.SaveCount);
+    }
+
+    // Nothing found and nothing dismissed: nothing to save.
+    [Fact]
+    public async Task StartAsync_NoOtherRgbSoftware_SavesNothing()
+    {
+        var store = new InMemorySettingsStore();
+        var lighting = new LightingController([_simulated]);
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new FakeProcessSnapshot().Run("explorer"));
+        var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), otherRgbSoftware: otherRgbSoftware);
+
+        await host.StartAsync(Ct);
+        host.Dispose();
+
+        Assert.Empty(otherRgbSoftware.Shown);
+        Assert.Equal(0, store.SaveCount);
     }
 
     [Fact]

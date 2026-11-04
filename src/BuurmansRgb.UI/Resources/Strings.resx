@@ -974,6 +974,101 @@
     <value>Het logbestand kon niet worden geopend.</value>
     <comment>Gelijk houden met LogOpenFailed in src/BuurmansRgb.Engine/Resources/Strings.resx.</comment>
   </data>
+  <data name="OpenDataFolder" xml:space="preserve">
+    <value>Map met instellingen en logs openen</value>
+  </data>
+  <data name="DataFolderHint" xml:space="preserve">
+    <value>De map waarin buurmansRgb settings.json, profiles.json, effects.json en de logbestanden bewaart, in Verkenner.</value>
+  </data>
+  <data name="DataFolderOpenFailed" xml:space="preserve">
+    <value>De map met instellingen en logs kon niet worden geopend.</value>
+  </data>
+  <data name="UsageHeader" xml:space="preserve">
+    <value>Licht op de achtergrond</value>
+  </data>
+  <data name="UsageHint" xml:space="preserve">
+    <value>Wat buurmansRgb nu gebruikt om je verlichting op de achtergrond aan te sturen: het geheugen, en de CPU als deel van de hele pc, zoals Taakbeheer het toont. Elke 2 seconden bijgewerkt, alleen zolang deze pagina open is.</value>
+  </data>
+  <data name="Usage" xml:space="preserve">
+    <value>Geheugen {0:0} MB · CPU {1:0.0} %</value>
+    <comment>{0} is het werkgeheugen van de engine in MB, {1} het CPU-gebruik in procent van de hele pc.</comment>
+  </data>
+  <data name="UsageMemoryOnly" xml:space="preserve">
+    <value>Geheugen {0:0} MB · CPU meten…</value>
+  </data>
+  <data name="UsageUnknown" xml:space="preserve">
+    <value>Nu niet te meten.</value>
+  </data>
+  <data name="BackupHeader" xml:space="preserve">
+    <value>Bewaren en terugzetten</value>
+  </data>
+  <data name="BackupHint" xml:space="preserve">
+    <value>Bewaar je instellingen, scènes en eigen effecten in één zip-bestand, bijvoorbeeld voor een nieuwe pc of voordat je iets uitprobeert. Terugzetten vervangt wat je nu hebt; Starten met Windows blijft zoals het op deze pc staat.</value>
+  </data>
+  <data name="BackupSave" xml:space="preserve">
+    <value>Instellingen bewaren…</value>
+  </data>
+  <data name="BackupSaveHint" xml:space="preserve">
+    <value>Bewaart settings.json, profiles.json en effects.json samen in een zip-bestand dat je zelf kiest.</value>
+  </data>
+  <data name="BackupRestore" xml:space="preserve">
+    <value>Instellingen terugzetten…</value>
+  </data>
+  <data name="BackupRestoreHint" xml:space="preserve">
+    <value>Zet de instellingen, scènes en eigen effecten uit een bewaard zip-bestand terug. Eerst vraagt buurmansRgb het nog een keer.</value>
+  </data>
+  <data name="BackupSaveTitle" xml:space="preserve">
+    <value>Instellingen bewaren</value>
+  </data>
+  <data name="BackupRestoreTitle" xml:space="preserve">
+    <value>Instellingen terugzetten</value>
+  </data>
+  <data name="BackupFilter" xml:space="preserve">
+    <value>Zip-bestand (*.zip)|*.zip</value>
+  </data>
+  <data name="BackupFileName" xml:space="preserve">
+    <value>buurmansRgb-instellingen-{0:yyyy-MM-dd}</value>
+    <comment>De naam die "Instellingen bewaren…" voorstelt, zonder .zip; {0} is de datum van vandaag.</comment>
+  </data>
+  <data name="BackupRestoreConfirm" xml:space="preserve">
+    <value>Instellingen terugzetten?</value>
+  </data>
+  <data name="BackupRestoreConfirmDetail" xml:space="preserve">
+    <value>Je huidige instellingen, scènes en eigen effecten worden vervangen door die uit {0}. Een kopie van wat je nu hebt komt eerst in de map met instellingen, in de map backups.</value>
+  </data>
+  <data name="BackupRestoreConfirmButton" xml:space="preserve">
+    <value>Terugzetten</value>
+  </data>
+  <data name="BackupSaved" xml:space="preserve">
+    <value>Instellingen bewaard in {0}.</value>
+  </data>
+  <data name="BackupSaveFailed" xml:space="preserve">
+    <value>De instellingen konden niet worden bewaard.</value>
+  </data>
+  <data name="BackupRestored" xml:space="preserve">
+    <value>Instellingen teruggezet.</value>
+  </data>
+  <data name="BackupNotABackup" xml:space="preserve">
+    <value>Dit bestand bevat geen bewaarde instellingen van buurmansRgb. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupTooLarge" xml:space="preserve">
+    <value>Dit bestand is te groot voor bewaarde instellingen van buurmansRgb. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupUnreadable" xml:space="preserve">
+    <value>{0} in dit bestand is niet te lezen. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupReadFailed" xml:space="preserve">
+    <value>Het bestand kon niet worden gelezen. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupRestoreFailed" xml:space="preserve">
+    <value>Terugzetten is niet gelukt. Een kopie van je vorige instellingen staat in de map met instellingen, in de map backups.</value>
+  </data>
+  <data name="BackupRestoreNotDone" xml:space="preserve">
+    <value>Terugzetten is niet gelukt. Er is niets veranderd.</value>
+  </data>
+  <data name="BackupRestoreUnknown" xml:space="preserve">
+    <value>De verbinding met de engine viel weg tijdens het terugzetten. Kijk of je instellingen kloppen; was de engine al begonnen, dan staat een kopie van je vorige instellingen in de map met instellingen, in de map backups.</value>
+  </data>
   <data name="AppVersion" xml:space="preserve">
     <value>buurmansRgb {0}</value>
   </data>
@@ -1419,5 +1514,55 @@
   <data name="FlashMarkZone" xml:space="preserve">
     <value>{0} knippert nu op het apparaat</value>
     <comment>Hetzelfde voor één zone. {0} = de naam van de zone.</comment>
+  </data>
+  <data name="OtherRgbSoftwareRuns" xml:space="preserve">
+    <value>{0} draait ook en kan je kleuren overschrijven.</value>
+    <comment>In de statusregel bovenaan Apparaten en Kleur, één per programma dat de engine vond. {0} = de naam van het programma, zoals de maker hem schrijft ("SignalRGB", "Corsair iCUE").</comment>
+  </data>
+  <data name="OtherOpenRgbRuns" xml:space="preserve">
+    <value>Er draait nog een OpenRGB naast de service en die kan je kleuren overschrijven.</value>
+    <comment>Hetzelfde voor een tweede OpenRGB: een OpenRGB.exe in de sessie van een gebruiker terwijl de service OpenRGB ook draait.</comment>
+  </data>
+  <data name="OtherOpenRgbName" xml:space="preserve">
+    <value>de tweede OpenRGB</value>
+    <comment>De naam van een tweede OpenRGB in OtherRgbSoftwareExplanationAccessibleName en OtherRgbSoftwareDismissAccessibleName.</comment>
+  </data>
+  <data name="StatusExplanation" xml:space="preserve">
+    <value>Uitleg</value>
+    <comment>Knop bij een melding van de statusregel, zoals OtherRgbSoftwareRuns: klapt onder de melding uit wat je eraan kunt doen, en met nog een klik weer dicht. Niet "Details": zo heet de knop van de statusregel die de andere meldingen uitklapt.</comment>
+  </data>
+  <data name="StatusExplanationToolTip" xml:space="preserve">
+    <value>Toont onder de melding wat je eraan kunt doen.</value>
+  </data>
+  <data name="OtherRgbSoftwareExplanationAccessibleName" xml:space="preserve">
+    <value>Uitleg over {0}</value>
+    <comment>Naam voor een schermlezer van StatusExplanation bij OtherRgbSoftwareRuns. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareExplanation" xml:space="preserve">
+    <value>Sluit {0} af en zet het uit bij Taakbeheer → Opstartapps, zodat het niet weer meestart met Windows. Draait het ook als achtergrondprogramma (service), zet die service dan in services.msc op Handmatig. Laat je {0} bewust draaien, kies dan Niet meer melden.</value>
+    <comment>Wat StatusExplanation uitklapt bij OtherRgbSoftwareRuns; in het kort wat "Andere RGB-software" in docs/handleiding.md uitlegt. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherOpenRgbExplanation" xml:space="preserve">
+    <value>Sluit het venster van die tweede OpenRGB als je klaar bent: wat je daarin kiest, overschrijft je kleuren. Zet daarin ook Start Server niet aan, want de service geeft je kleuren al door. Start hij mee met Windows, zet hem dan uit bij Taakbeheer → Opstartapps.</value>
+    <comment>Hetzelfde voor een tweede OpenRGB (OtherOpenRgbRuns).</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideLink" xml:space="preserve">
+    <value>Meer in de handleiding</value>
+    <comment>Link onder OtherRgbSoftwareExplanation: opent de handleiding bij "Andere RGB-software". Alleen zichtbaar als er een handleiding is om te openen (AppInfoViewModel.GuideAddress).</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideLinkAccessibleName" xml:space="preserve">
+    <value>Meer in de handleiding over andere RGB-software</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareGuideLink.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismiss" xml:space="preserve">
+    <value>Niet meer melden</value>
+    <comment>Tweede knop bij OtherRgbSoftwareRuns: de melding over dit programma komt niet meer terug, ook niet als het later weer draait.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissAccessibleName" xml:space="preserve">
+    <value>{0} niet meer melden</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareDismiss. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissToolTip" xml:space="preserve">
+    <value>Meldt dit programma niet meer, ook niet als het later weer draait. Terugzetten kan in settings.json.</value>
   </data>
 </root>

@@ -1,5 +1,6 @@
-<!-- Instellingen: how buurmansRgb gets on with OpenRGB, when the simulated lamps show, the effects,
-     the scene times, the hotkeys and "Starten met Windows", the log of the engine, and at the bottom
+<!-- Instellingen: how buurmansRgb gets on with OpenRGB, what the engine uses, when the simulated
+     lamps show, the effects, the scene times, the hotkeys and "Starten met Windows", saving and
+     restoring the settings, the log of the engine and the folder with the settings, and at the bottom
      the version and the guide. Whether saving worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -50,6 +51,19 @@
                                 AutomationProperties.Name="{x:Static res:Strings.RestartEngineAccessibleName}" AutomationProperties.AutomationId="RestartEngine"
                                 Command="{Binding OpenRgbStatus.RestartCommand}"
                                 Visibility="{Binding OpenRgbStatus.CanRestart, Converter={StaticResource BoolToVisibility}}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- What the engine uses now, read by the app every 2 s only while this page shows
+                     (EngineUsageViewModel). Not a live region: a screen reader reads it when it gets
+                     there, not at every reading. -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.UsageHeader}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding EngineUsage.Text}"
+                                   AutomationProperties.HelpText="{x:Static res:Strings.UsageHint}"
+                                   AutomationProperties.AutomationId="EngineUsage" />
+                        <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.UsageHint}" />
                     </StackPanel>
                 </Border>
 
@@ -148,15 +162,45 @@
                     </StackPanel>
                 </Border>
 
-                <!-- "Logbestand openen", as in the tray menu: engine.log in the app that opens .log files. -->
+                <!-- The settings, scenes and own effects in one zip, and back: through the engine, so only while
+                     the app is connected (SettingsBackupViewModel). Restoring asks first (ConfirmDialog). -->
+                <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BackupHeader}" />
+                        <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.BackupHint}" />
+                        <WrapPanel>
+                            <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupSave}"
+                                    Command="{Binding Backup.SaveCommand}"
+                                    ToolTip="{x:Static res:Strings.BackupSaveHint}"
+                                    AutomationProperties.Name="{x:Static res:Strings.BackupSave}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.BackupSaveHint}" />
+                            <Button Margin="0,10,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.BackupRestore}"
+                                    Command="{Binding Backup.RestoreCommand}"
+                                    ToolTip="{x:Static res:Strings.BackupRestoreHint}"
+                                    AutomationProperties.Name="{x:Static res:Strings.BackupRestore}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.BackupRestoreHint}" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- "Logbestand openen", as in the tray menu: engine.log in the app that opens .log files; and
+                     the folder with it and the settings files in Verkenner. Side by side, under each other
+                     when the text size of Windows makes them too wide. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LogHeader}" />
-                        <TextBlock Margin="0,4,0,12" Style="{StaticResource SubText}" Text="{x:Static res:Strings.LogHint}" />
-                        <Button HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenLog}"
-                                Command="{Binding AppInfo.OpenLogCommand}"
-                                AutomationProperties.Name="{x:Static res:Strings.OpenLog}"
-                                AutomationProperties.HelpText="{x:Static res:Strings.LogHint}" />
+                        <TextBlock Margin="0,4,0,2" Style="{StaticResource SubText}" Text="{x:Static res:Strings.LogHint}" />
+                        <WrapPanel>
+                            <Button Margin="0,10,10,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenLog}"
+                                    Command="{Binding AppInfo.OpenLogCommand}"
+                                    AutomationProperties.Name="{x:Static res:Strings.OpenLog}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.LogHint}" />
+                            <Button Margin="0,10,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.OpenDataFolder}"
+                                    Command="{Binding AppInfo.OpenDataFolderCommand}"
+                                    ToolTip="{x:Static res:Strings.DataFolderHint}"
+                                    AutomationProperties.Name="{x:Static res:Strings.OpenDataFolder}"
+                                    AutomationProperties.HelpText="{x:Static res:Strings.DataFolderHint}" />
+                        </WrapPanel>
                     </StackPanel>
                 </Border>
 

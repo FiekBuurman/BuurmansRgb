@@ -458,6 +458,50 @@ internal sealed class FakeEngineApi : IEngineApi
         CustomColors = [.. colors];
     }
 
+    public event EventHandler? OtherRgbSoftwareChanged;
+
+    public bool HasOtherRgbSoftwareSubscribers => OtherRgbSoftwareChanged is not null;
+
+    // What the engine found and shows; like the engine, a dismissed one leaves the list.
+    public List<OtherRgbSoftware> OtherRgbSoftware { get; set; } = [];
+
+    public void RaiseOtherRgbSoftwareChanged() => OtherRgbSoftwareChanged?.Invoke(this, EventArgs.Empty);
+
+    public Task<IReadOnlyList<OtherRgbSoftware>> GetOtherRgbSoftwareAsync(CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<OtherRgbSoftware>>([.. OtherRgbSoftware]);
+
+    public async Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default)
+    {
+        await Record($"dismiss {id}");
+        OtherRgbSoftware.RemoveAll(software => software.Id == id);
+        RaiseOtherRgbSoftwareChanged();
+    }
+
+    // The process id the engine gives for its memory and CPU on Instellingen.
+    public int ProcessId { get; set; } = 4242;
+
+    public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(ProcessId);
+
+    // What "Instellingen bewaren…" gets, and what "terugzetten…" answers; the archives it got.
+    public byte[] ExportedSettings { get; set; } = [1, 2, 3];
+
+    public SettingsRestoreResult RestoreResult { get; set; } = new(SettingsRestoreOutcome.Restored);
+
+    public List<byte[]> RestoredArchives { get; } = [];
+
+    public async Task<byte[]> ExportSettingsAsync(CancellationToken ct = default)
+    {
+        await Record("export settings");
+        return ExportedSettings;
+    }
+
+    public async Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
+    {
+        await Record("restore settings");
+        RestoredArchives.Add(archive);
+        return RestoreResult;
+    }
+
     public event EventHandler? CustomEffectsChanged;
 
     public void RaiseCustomEffectsChanged() => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);

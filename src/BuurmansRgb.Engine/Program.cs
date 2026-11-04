@@ -88,10 +88,10 @@ internal static class Program
         ApplicationConfiguration.Initialize();
 
         var registryAutoStart = RegistryAutoStart.ForCurrentProcess();
-        registryAutoStart.EnableOnFirstRun(options);
         registryAutoStart.FollowMoveOnStart();
 
-        // Shared by the tray menu and the settings apps, so each shows what the other set.
+        // Shared by the tray menu and the settings apps, so each shows what the other set. The host
+        // turns it on for --first-run, once it read whether the user chose it (autoStartChosen).
         var autoStart = new AutoStartSwitch(registryAutoStart);
 
         var simulatedDevices = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
@@ -127,16 +127,21 @@ internal static class Program
         using var settingsFile = new SettingsFileWatcher(JsonSettingsStore.DefaultFilePath);
         // The host disposes them, before it saves for the last time.
         var programWatcher = new ProgramWatcher(profiles, lighting, new ProcessList(), autoPause, foregroundWindow, TimeProvider.System);
+        // Looks for other RGB software at the start, after waking up and at "Verversen" only.
+        using var otherRgbSoftware = new OtherRgbSoftwareCheck(new SystemProcessSnapshot(), resumeRestorer);
         var profileTimer = new ProfileTimer(profiles, clockEvents, TimeProvider.System, programWatcher.HoldUntilProgramsStop, resumeRestorer);
         // "Herstarten" asked by the settings app: what a click on the tray item does, which the tray
         // context knows; that is made after the host, so the api gets it through this variable.
         Action? requestRestart = null;
+        // "Instellingen bewaren…" and "terugzetten…" asked by the settings app, which the host does; the
+        // api of a connection is made once the host is there.
+        ISettingsTransfer? settingsTransfer = null;
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke()),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke(), otherRgbSoftware: otherRgbSoftware, settingsTransfer: settingsTransfer),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -149,7 +154,12 @@ internal static class Program
             hotkeys: hotkeys,
             settingsFileEvents: settingsFile,
             customColors: customColors,
-            customEffects: customEffects);
+            customEffects: customEffects,
+            autoStart: autoStart,
+            firstRun: options.FirstRun,
+            otherRgbSoftware: otherRgbSoftware,
+            files: SettingsFiles.Default);
+        settingsTransfer = host;
 
         using var context = new TrayApplicationContext(
             host,
