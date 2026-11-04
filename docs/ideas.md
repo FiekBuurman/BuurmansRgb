@@ -361,6 +361,11 @@ uitbreidingen in `docs/bouwplan.md`.
   (`AppInfoViewModel.GuideAddress` is `null`), want de repo op GitHub is privé en geeft een
   gewone gebruiker een inlogscherm of een 404; het pad van de meegeleverde handleiding in
   `GuideAddress` zet hem weer aan (gebruikerstest 28-10)
+- "Snel aan de slag" (bovenaan `docs/handleiding.md`) ook bij de installer of de eerste start
+  laten zien, bijv. als één pagina die de app opent; met de handleiding zelf als hij meekomt (zie
+  hierboven). Daarbij een plek voor hulpvragen die een gewone gebruiker kan bereiken: de issues
+  op GitHub zijn er niet voor zolang de repo privé is, dus "Hulp nodig?" verwijst nu naar wie
+  BuurmansRgb installeerde, met het logbestand (snel-aan-de-slag 4-11)
 - Bij Instellingen ook de versie van de engine tonen als die een andere is dan die van de app
   (bijv. na een update waarbij de oude engine bleef draaien); nu toont hij alleen die van de app
 - De rand van de open lijst van een keuzelijst (`border-strong`, 1,8:1) en de randen van knoppen
