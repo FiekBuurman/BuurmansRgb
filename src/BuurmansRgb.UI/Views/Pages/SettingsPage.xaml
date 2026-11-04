@@ -18,6 +18,14 @@
              size of Windows, so the longest option still fits. -->
         <views:EmConverter x:Key="NarrowChoiceWidth" Ems="16" />
         <views:EmConverter x:Key="ChoiceWidth" Ems="20" />
+        <!-- A line of a list with a bullet before it, which a screen reader skips (DecorativeText); a line
+             that wraps stays clear of the bullet. -->
+        <DataTemplate x:Key="BulletLine">
+            <DockPanel Margin="0,4,0,0">
+                <views:DecorativeText DockPanel.Dock="Left" Margin="0,0,8,0" Style="{StaticResource Body}" Text="•" />
+                <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding}" />
+            </DockPanel>
+        </DataTemplate>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -69,18 +77,9 @@
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.AfterRestartHeader}"
                                    AutomationProperties.HeadingLevel="Level2" />
                         <TextBlock Margin="0,8,0,2" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartIntro}" />
-                        <DockPanel Margin="0,4,0,0">
-                            <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" Style="{StaticResource Body}" Text="•" />
-                            <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding AfterRestart.LightingText}" AutomationProperties.AutomationId="AfterRestartLighting" />
-                        </DockPanel>
-                        <DockPanel Margin="0,4,0,0">
-                            <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" Style="{StaticResource Body}" Text="•" />
-                            <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartBrightness}" />
-                        </DockPanel>
-                        <DockPanel Margin="0,4,0,0">
-                            <TextBlock DockPanel.Dock="Left" Margin="0,0,8,0" Style="{StaticResource Body}" Text="•" />
-                            <TextBlock Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding AfterRestart.SleepText}" AutomationProperties.AutomationId="AfterRestartSleep" />
-                        </DockPanel>
+                        <ContentPresenter Content="{Binding AfterRestart.LightingText}" ContentTemplate="{StaticResource BulletLine}" />
+                        <ContentPresenter Content="{x:Static res:Strings.AfterRestartBrightness}" ContentTemplate="{StaticResource BulletLine}" />
+                        <ContentPresenter Content="{Binding AfterRestart.SleepText}" ContentTemplate="{StaticResource BulletLine}" />
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartSceneTimes}"
                                    AutomationProperties.AutomationId="AfterRestartSceneTimes"
                                    Visibility="{Binding AfterRestart.CatchesUpSceneTimes, Converter={StaticResource BoolToVisibility}}" />
