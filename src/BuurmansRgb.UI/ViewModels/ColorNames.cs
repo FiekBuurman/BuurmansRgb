@@ -17,18 +17,19 @@ public static class ColorNames
     // The name of a color of the toolbox as it stands in the middle of a sentence ("fel groen"),
     // or else the word of its tone.
     public static string NameOf(RgbColor color) =>
-        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color) is { } preset
-            ? InSentence(preset.Name)
-            : UiText.Lookup(TonePrefix, ToneOf(color)) ?? color.ToHex();
+        PresetNameOf(color) is { } name ? InSentence(name) : ToneWordOf(color) ?? color.ToHex();
 
     // The name of a color on its own, as a line or a card shows it ("Warm wit", "Lichtblauw"): the
     // name of a color of the toolbox as it is, or else the word of its tone with a capital letter.
     public static string StandaloneNameOf(RgbColor color) =>
-        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color) is { } preset
-            ? preset.Name
-            : UiText.Lookup(TonePrefix, ToneOf(color)) is { } word ? Capitalized(word) : color.ToHex();
+        PresetNameOf(color) ?? (ToneWordOf(color) is { } word ? Capitalized(word) : color.ToHex());
 
     internal const string TonePrefix = "ColorName";
+
+    private static string? PresetNameOf(RgbColor color) =>
+        ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color)?.Name;
+
+    private static string? ToneWordOf(RgbColor color) => UiText.Lookup(TonePrefix, ToneOf(color));
 
     private static string Capitalized(string word) =>
         word.Length == 0 ? word : string.Concat(word[..1].ToUpper(TextCulture), word[1..]);
