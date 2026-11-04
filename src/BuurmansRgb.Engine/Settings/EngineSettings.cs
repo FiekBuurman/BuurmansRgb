@@ -36,7 +36,9 @@ internal sealed record EngineSettings : LightingStateSettings
     public bool PauseOnLockAndSleep { get; set; } = true;
 
     // What the lights show during that pause (LightingController.PausedLights); in the file as a
-    // word (PausedLightsModeJsonConverter).
+    // word (PausedLightsModeJsonConverter). Keep here, as a file without it is one from before the
+    // choice (the engine always writes it), whose devices kept the last frame; only a new file
+    // starts with Off (CreateNew).
     public PausedLightsMode PausedLights { get; set; } = PausedLightsMode.Keep;
 
     // Whether the scene of the last time that passed comes on after waking up and at the start
@@ -73,6 +75,11 @@ internal sealed record EngineSettings : LightingStateSettings
     public List<string?>? DismissedOtherRgbSoftware { get; set; }
 
     public static EngineSettings CreateDefault() => new() { AutoStartChosen = false };
+
+    // The settings of a new installation, for a pc without settings.json: the devices go off while
+    // the pc sleeps or is locked. Not for a file that is there but does not read, or reads as null:
+    // that pc had settings, and keeps the last frame as before.
+    public static EngineSettings CreateNew() => CreateDefault() with { PausedLights = PausedLightsMode.Off };
 
     public IReadOnlyList<string> ReadDismissedOtherRgbSoftware() =>
         [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.OrdinalIgnoreCase)];

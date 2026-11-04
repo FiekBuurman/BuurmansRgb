@@ -33,12 +33,15 @@ public sealed class EffectOptionsViewModelTests
     }
 
     [Fact]
-    public void PausedLightsOptions_AreTheThreeModesInDutch_WithTheLastFrameFirst()
+    public void PausedLightsOptions_AreTheThreeModesInPlainDutch_WithOffFirst()
     {
         Assert.Equal(
-            [Strings.PausedLightsMode_Keep, Strings.PausedLightsMode_Dim, Strings.PausedLightsMode_Off],
+            ["Uitzetten", "Dimmen", "Laten branden"],
             EffectOptionsViewModel.PausedLightsOptions.Select(option => option.DisplayName));
-        Assert.Equal(PausedLightsMode.Keep, _options.SelectedPausedLights?.Mode);
+        Assert.Equal(
+            [PausedLightsMode.Off, PausedLightsMode.Dim, PausedLightsMode.Keep],
+            EffectOptionsViewModel.PausedLightsOptions.Select(option => option.Mode));
+        Assert.Equal(PausedLightsMode.Off, _options.SelectedPausedLights?.Mode);
     }
 
     [Theory]
@@ -50,6 +53,21 @@ public sealed class EffectOptionsViewModelTests
         _options.Show(30, pauseOnLockAndSleep: true, mode);
 
         Assert.Equal(mode, _options.SelectedPausedLights?.Mode);
+    }
+
+    // A screen reader hears why the choice does nothing while the pause is off, before the explanation.
+    [Fact]
+    public void PausedLightsHelpText_WithoutThePause_StartsWithWhy()
+    {
+        var changed = new List<string?>();
+        _options.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+
+        Assert.Equal(Strings.PausedLightsHint, _options.PausedLightsHelpText);
+
+        _options.PauseOnLockAndSleep = false;
+
+        Assert.Equal($"{Strings.PausedLightsNeedsPause} {Strings.PausedLightsHint}", _options.PausedLightsHelpText);
+        Assert.Contains(nameof(EffectOptionsViewModel.PausedLightsHelpText), changed);
     }
 
     [Fact]
@@ -78,7 +96,7 @@ public sealed class EffectOptionsViewModelTests
 
         _options.SelectedFrameRate = _options.FrameRates[^1];
         _options.PauseOnLockAndSleep = false;
-        _options.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions[^1];
+        _options.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions[0];
 
         Assert.Equal([60], framesPerSecond);
         Assert.Equal([false], pauses);

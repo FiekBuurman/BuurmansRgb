@@ -21,8 +21,148 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = store.LoadOrCreate();
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateNew(), settings);
         Assert.True(File.Exists(path));
+    }
+
+    // A new installation turns the devices off while the pc sleeps or is locked, and writes it, so
+    // the next start reads it as an existing file with that choice.
+    [Fact]
+    public void LoadOrCreate_NoFile_TurnsTheDevicesOffDuringThePauseAndWritesIt()
+    {
+        var path = _directory.File("settings.json");
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(PausedLightsMode.Off, settings.PausedLights);
+        Assert.Contains("\"pausedLights\": \"off\"", File.ReadAllText(path));
+        Assert.Equal(PausedLightsMode.Off, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // Only the new file differs from the defaults of a file: the rest is the same.
+    [Fact]
+    public void CreateNew_IsTheDefaultsWithTheDevicesOffDuringThePause() =>
+        Assert.Equal(EngineSettings.CreateDefault() with { PausedLights = PausedLightsMode.Off }, EngineSettings.CreateNew());
+
+    // An existing file keeps its choice, also the last frame of the default before "Uitzetten".
+    [Theory]
+    [InlineData("keep", PausedLightsMode.Keep)]
+    [InlineData("dim", PausedLightsMode.Dim)]
+    [InlineData("off", PausedLightsMode.Off)]
+    public void LoadOrCreate_ExistingFileWithPausedLights_KeepsItsChoice(string word, PausedLightsMode expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, $$"""{ "color": "#00FF00", "pausedLights": "{{word}}" }""");
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // The engine always writes pausedLights, so a file without it is from before the choice (or
+    // written by hand): those devices kept the last frame, and still do. Not "Uitzetten" of a new
+    // installation.
+    [Fact]
+    public void LoadOrCreate_ExistingFileWithoutPausedLights_KeepsTheLastFrame()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """{ "color": "#00FF00", "framesPerSecond": 15 }""");
+
+        var settings = new JsonSettingsStore(path).LoadOrCreate();
+
+        Assert.Equal(PausedLightsMode.Keep, settings.PausedLights);
+        Assert.Equal(15, settings.FramesPerSecond);
+    }
+
+    // A file that is there but does not read, or is null: that pc had settings, so not the new
+    // default. Also at the next start, when the engine stopped before anything changed: the file
+    // that did not read went aside, and the defaults in its place must not look like a new one.
+    [Theory]
+    [InlineData("{ not json")]
+    [InlineData("null")]
+    public void LoadOrCreate_ExistingFileThatDoesNotRead_KeepsTheLastFrame(string json)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(PausedLightsMode.Keep, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+        Assert.Equal(PausedLightsMode.Keep, new JsonSettingsStore(path).LoadOrCreate().PausedLights);
+    }
+
+    // The defaults written in place of a file that did not read leave autoStartChosen out, so the
+    // next start still reads the choice from the Run key; the user's file stays aside.
+    [Fact]
+    public void LoadOrCreate_FileThatDoesNotRead_WritesTheDefaultsWithoutAnAutostartChoice()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+
+        store.LoadOrCreate();
+
+        Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
+        Assert.DoesNotContain("autoStartChosen", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, new JsonSettingsStore(path).LoadOrCreate());
+    }
+
+    // Held open without leave to delete, as by an editor: it reads, but cannot go aside. The
+    // user's file stays as it is, without defaults written over it.
+    [Fact]
+    public void LoadOrCreate_FileThatDoesNotReadAndCannotMove_LeavesItAndWritesNothing()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+
+        EngineSettings settings;
+        using (HoldWithoutDelete(path))
+        {
+            settings = store.LoadOrCreate();
+        }
+
+        Assert.Equal(EngineSettings.CreateDefault() with { AutoStartChosen = null }, settings);
+        Assert.Equal("{ not json", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    // A later save tries to move it aside again rather than write over it; while that fails it
+    // throws, so the saver tries again later.
+    [Fact]
+    public void Save_FileThatDoesNotReadAndCannotMove_ThrowsAndLeavesIt()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+        var changed = EngineSettings.CreateDefault() with { Color = new RgbColor(0, 255, 0) };
+
+        using (HoldWithoutDelete(path))
+        {
+            store.LoadOrCreate();
+
+            Assert.ThrowsAny<IOException>(() => store.SaveIfUnchanged(changed));
+            Assert.ThrowsAny<IOException>(() => store.Save(changed));
+        }
+
+        Assert.Equal("{ not json", File.ReadAllText(path));
+        Assert.False(File.Exists(store.BrokenFilePath));
+    }
+
+    // Once the file is let go, the next save moves it aside after all and writes its own.
+    [Fact]
+    public void SaveIfUnchanged_FileThatCouldNotMoveAndIsLetGo_MovesItAsideAndWrites()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        File.WriteAllText(path, "{ not json");
+        var changed = EngineSettings.CreateDefault() with { Color = new RgbColor(0, 255, 0) };
+        using (HoldWithoutDelete(path))
+        {
+            store.LoadOrCreate();
+            Assert.ThrowsAny<IOException>(() => store.SaveIfUnchanged(changed));
+        }
+
+        Assert.True(store.SaveIfUnchanged(changed));
+
+        Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
+        Assert.Equal(new RgbColor(0, 255, 0), new JsonSettingsStore(path).LoadOrCreate().Color);
     }
 
     [Fact]
@@ -994,7 +1134,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         var settings = new JsonSettingsStore(Path.Combine(blocker, "settings.json")).LoadOrCreate();
 
-        Assert.Equal(EngineSettings.CreateDefault(), settings);
+        Assert.Equal(EngineSettings.CreateNew(), settings);
     }
 
     [Fact]
@@ -1012,6 +1152,10 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
     // ["#FF0000", "#FF8000", ...] for a list of colors in a JSON file.
     private static string HexList(IEnumerable<RgbColor> colors) => $"[{string.Join(", ", colors.Select(color => $"\"{color.ToHex()}\""))}]";
+
+    // Others may read the file, but not move or delete it.
+    private static FileStream HoldWithoutDelete(string path) =>
+        new(path, FileMode.Open, FileAccess.Read, FileShare.Read);
 
     private static void DenyReadForCurrentUser(string path)
     {

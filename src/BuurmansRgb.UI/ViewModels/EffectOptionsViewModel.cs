@@ -6,8 +6,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 namespace BuurmansRgb.UI.ViewModels;
 
 // The options of the effects on Instellingen: how smooth they move, whether they pause while
-// Windows is locked or asleep, the screen is off or the screen saver runs, and what the lamps show
-// then. This only asks; MainViewModel sends a change to the engine, which saves it.
+// Windows is locked or asleep, the screen is off or the screen saver runs, and what the devices do
+// then (the block "Als de pc slaapt of vergrendeld is" at the top). This only asks; MainViewModel
+// sends a change to the engine, which saves it.
 public sealed partial class EffectOptionsViewModel : ObservableObject
 {
     private static readonly IReadOnlyList<FrameRateOption> Standard =
@@ -25,11 +26,12 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     // Raised when the user switches the pause on lock and sleep.
     public event EventHandler<bool>? PauseOnLockAndSleepChanged;
 
-    // Raised when the user picks what the lamps show during that pause.
+    // Raised when the user picks what the devices do during that pause.
     public event EventHandler<PausedLightsMode>? PausedLightsChanged;
 
+    // "Uitzetten" first, the choice of a new installation, then from dark to light.
     public static IReadOnlyList<EnumOption<PausedLightsMode>> PausedLightsOptions { get; } =
-        [.. Enum.GetValues<PausedLightsMode>().Select(EnumOption<PausedLightsMode>.Create)];
+        [.. new[] { PausedLightsMode.Off, PausedLightsMode.Dim, PausedLightsMode.Keep }.Select(EnumOption<PausedLightsMode>.Create)];
 
     // The three standard rates, plus the one from settings.json when that is another.
     [ObservableProperty]
@@ -39,11 +41,18 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     public partial FrameRateOption? SelectedFrameRate { get; set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PausedLightsHelpText))]
     public partial bool PauseOnLockAndSleep { get; set; } = true;
 
     // Only counts while PauseOnLockAndSleep is on; the page greys it out otherwise.
     [ObservableProperty]
     public partial EnumOption<PausedLightsMode>? SelectedPausedLights { get; set; } = PausedLightsOptions[0];
+
+    // The explanation of that choice for a screen reader; while the pause is off, first why it
+    // does nothing, as the line on the page says.
+    public string PausedLightsHelpText => PauseOnLockAndSleep
+        ? Strings.PausedLightsHint
+        : $"{Strings.PausedLightsNeedsPause} {Strings.PausedLightsHint}";
 
     // Shows the options of the engine, without sending them back.
     public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>

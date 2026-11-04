@@ -32,6 +32,64 @@ public sealed class SettingsViewTests
         });
     }
 
+    // What the devices do while the pc sleeps or is locked is the first block, under a heading, with
+    // the choice in plain words and the heading as its name; picking one sends it to the engine.
+    [Fact]
+    public async Task SleepBlock_IsFirst_WithTheChoiceInPlainWords()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            engine = api;
+            api.PausedLights = PausedLightsMode.Dim;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var choice = PageViews.ById<ComboBox>(page, "PausedLights");
+            var header = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.SleepHeader);
+
+            Assert.Equal(AutomationHeadingLevel.Level2, AutomationProperties.GetHeadingLevel(header));
+            Assert.Equal(Strings.SleepHeader, AutomationProperties.GetName(choice));
+            Assert.Equal(Strings.PausedLightsHint, AutomationProperties.GetHelpText(choice));
+            Assert.Equal(["Uitzetten", "Dimmen", "Laten branden"], choice.Items.Cast<object>().Select(item => item.ToString()));
+            Assert.Equal(Strings.PausedLightsMode_Dim, choice.Text);
+            Assert.True(choice.IsEnabled);
+            Assert.False(PageViews.ById<TextBlock>(page, "PausedLightsNeedsPause").IsVisible);
+            var openRgb = PageViews.ById<TextBlock>(page, "OpenRgbStatus");
+            Assert.True(choice.TranslatePoint(default, page).Y < openRgb.TranslatePoint(default, page).Y);
+            var pause = PageViews.Named<ToggleButton>(page, Strings.PauseOnLockLabel);
+            Assert.True(pause.TranslatePoint(default, page).Y < choice.TranslatePoint(default, page).Y);
+
+            choice.SelectedIndex = 0;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal(["paused lights Off"], engine!.Calls);
+        });
+    }
+
+    // Without the pause the choice does nothing: grey, with a line that says why, which a screen
+    // reader also hears on the choice; the switch it needs is above it.
+    [Fact]
+    public async Task SleepBlock_WithoutThePause_GreysTheChoiceAndSaysWhy()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.PauseOnLockAndSleep = false);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var choice = PageViews.ById<ComboBox>(page, "PausedLights");
+            var pause = PageViews.Named<ToggleButton>(page, Strings.PauseOnLockLabel);
+
+            Assert.False(choice.IsEnabled);
+            Assert.True(PageViews.ById<TextBlock>(page, "PausedLightsNeedsPause").IsVisible);
+            Assert.StartsWith(Strings.PausedLightsNeedsPause, AutomationProperties.GetHelpText(choice), StringComparison.Ordinal);
+            Assert.True(pause.IsVisible);
+            Assert.True(pause.TranslatePoint(default, page).Y < choice.TranslatePoint(default, page).Y);
+        });
+    }
+
     // "Starten met Windows" is a switch with its name and explanation for a screen reader, that
     // shows what the engine has and sends a toggle to it (the fake one: never the registry).
     [Fact]

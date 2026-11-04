@@ -125,7 +125,8 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         if (!File.Exists(filePath))
         {
-            var defaults = EngineSettings.CreateDefault();
+            // A new installation; written at once, so from the next start it is an existing file.
+            var defaults = EngineSettings.CreateNew();
             TrySaveLocked(defaults);
             return defaults;
         }
@@ -139,12 +140,24 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
         catch (JsonException exception)
         {
-            // Run on the defaults meanwhile. The engine saves them a moment after the next change,
-            // possibly without the user doing anything (a profile that loads by itself), so the
-            // file goes aside first, where the user can fix a typo and put it back.
+            // Run on the defaults meanwhile. The file goes aside first, where the user can fix a
+            // typo and put it back, and the defaults are written at once: an engine that stops
+            // before the next change must not find no file at the next start and take it for a
+            // new installation (with its own defaults, such as "Uitzetten" during the pause).
             Trace.TraceError(exception.ToString());
-            TryMoveAside();
-            return UnknownChoices();
+            var unknown = UnknownChoices();
+            if (TryMoveAside())
+            {
+                TrySaveLocked(unknown);
+            }
+            else
+            {
+                // Held by an editor without leave to move it, say: the file stays as it is, and the
+                // next save tries to move it aside again rather than write over it.
+                _unreadable = true;
+            }
+
+            return unknown;
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
@@ -158,7 +171,9 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // autoStartChosen, and --first-run does not overrule a choice it cannot read.
     private static EngineSettings UnknownChoices() => EngineSettings.CreateDefault() with { AutoStartChosen = null };
 
-    // Writing the defaults is a convenience for the user; the lights must start without it.
+    // Writing the defaults is a convenience for the user; the lights must start without it. Without
+    // a file, a file that did not read and went aside looks like a new installation at the next
+    // start, unless the engine saves before then; the log tells why.
     private void TrySaveLocked(EngineSettings settings)
     {
         try
@@ -167,34 +182,40 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
+            Trace.TraceWarning($"Could not write the settings file {filePath} at the start; the next save writes it: {exception.Message}");
         }
     }
 
     private bool HoldsKnownLocked() =>
         _known is not null && File.ReadAllBytes(filePath).AsSpan().SequenceEqual(_known);
 
-    // A file that did not read when it last changed goes aside first, as at the start.
+    // A file that did not read when it last changed goes aside first, as at the start. If it cannot
+    // go aside, nothing is written: the move throws, the file of the user stays, and the saver
+    // tries again a few times (and logs it) before it gives up on this change.
     private void SaveLocked(byte[] json)
     {
-        if (_unreadable)
+        if (_unreadable && File.Exists(filePath))
         {
-            TryMoveAside();
-            _unreadable = false;
+            File.Move(filePath, BrokenFilePath, overwrite: true);
         }
+
+        _unreadable = false;
 
         JsonFile.Write(filePath, json);
         _known = json;
     }
 
-    private void TryMoveAside()
+    private bool TryMoveAside()
     {
         try
         {
             File.Move(filePath, BrokenFilePath, overwrite: true);
+            return true;
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             Trace.TraceError(exception.ToString());
+            return false;
         }
     }
 }

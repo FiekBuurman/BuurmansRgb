@@ -200,6 +200,25 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(0.5, _lighting.State.Global.Brightness);
     }
 
+    // A new installation turns the devices off during the pause; a backup brings what the pc it came
+    // from did, also one from before the choice, which kept the last frame.
+    [Theory]
+    [InlineData("""{ "brightness": 0.5 }""", PausedLightsMode.Keep)]
+    [InlineData("""{ "brightness": 0.5, "pausedLights": "dim" }""", PausedLightsMode.Dim)]
+    [InlineData("""{ "brightness": 0.5, "pausedLights": "off" }""", PausedLightsMode.Off)]
+    public async Task Restore_OnANewInstallation_BringsWhatTheBackupHadDuringThePause(string json, PausedLightsMode expected)
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        Assert.Equal(PausedLightsMode.Off, _lighting.PausedLights);
+
+        host.Restore(SettingsArchiveTests.Zip((SettingsBackup.SettingsFileName, Utf8(json))));
+
+        Assert.Equal(expected, _lighting.PausedLights);
+        host.Dispose();
+        Assert.Equal(expected, new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName)).LoadOrCreate().PausedLights);
+    }
+
     // autoStartChosen and hadRealDevices belong to this pc: the Run key is not touched, and the next
     // update still does what the user chose here.
     [Fact]
