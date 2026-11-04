@@ -5,6 +5,79 @@ instellingenbestanden en hoe OpenRGB en de verschillende apparaten werken. Insta
 [installatie.md](installatie.md); bouwen, testen en hoe het van binnen werkt in
 [ontwikkelaars.md](ontwikkelaars.md).
 
+## Snel aan de slag
+
+Wat je het vaakst doet, in het kort.
+
+### De app openen
+
+BuurmansRgb draait altijd op de achtergrond. Je ziet het als een klein icoontje rechtsonder, bij
+de klok. Zie je het niet, klik dan op het pijltje ^ ernaast. Dubbelklik op het icoontje om de
+app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en **Instellingen**.
+
+### Alles aan en uit
+
+- Op **Apparaten** staat bovenaan de kaart **Hele huis**. Met de grote schakelaar daarop zet je
+  alles tegelijk aan of uit.
+- Elk apparaat heeft op zijn eigen kaart ook een schakelaar.
+- Naast elke schakelaar staat **Aan** of **Uit**, zodat je ziet hoe hij staat.
+- Het kan ook zonder de app: klik met de rechtermuisknop op het icoontje bij de klok en kies
+  **Alles aan** of **Alles uit**.
+
+Een apparaat dat uit staat, onthoudt zijn kleur voor als het weer aan gaat.
+
+### Een kleur kiezen
+
+1. Ga naar **Kleur**.
+2. Kies bovenaan **Hele huis** voor alles, of één apparaat.
+3. Klik onder **Kleuren** op een kleur, bijvoorbeeld **Warm wit** of **Fel rood**.
+
+De kleur gaat meteen naar je apparaten. Een knop om te bevestigen is er niet. Een apparaat dat
+uit stond, gaat vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet.
+
+### Hoe fel
+
+Ga naar **Kleur**. In het blok **Licht en beweging** staat de schuif **Helderheid**. Naar links
+is zachter, naar rechts feller. Ook dit zie je meteen.
+
+### Opslaan hoeft niet
+
+Alles wordt vanzelf bewaard. Rechtsonder in de app staat daarna **Opgeslagen ✓** met de tijd.
+
+### Uit bij slaapstand
+
+Ga naar **Instellingen**. Het eerste blok heet **Als de pc slaapt of vergrendeld is**. Kies daar
+wat je apparaten dan doen:
+
+- **Uitzetten**: ze gaan uit.
+- **Dimmen**: ze branden zacht.
+- **Laten branden**: ze blijven aan.
+
+Is de keuze grijs? Zet dan de schakelaar **Pauzeren bij vergrendelen, slaapstand en scherm uit**
+erboven aan. Gebruik je de pc weer, dan komen je kleuren vanzelf terug.
+
+### Na een herstart
+
+BuurmansRgb onthoudt je kleuren, welke apparaten aan of uit staan, hoe fel ze zijn en je keuze
+bij slaapstand. Het blok **Na een herstart** op **Instellingen** zegt precies wat er terugkomt.
+
+Dat gaat alleen vanzelf als **Starten met Windows** aan staat. Staat het uit, dan zie je in dat
+blok de knop **Starten met Windows aanzetten**.
+
+### Hulp nodig?
+
+- **Mist er een apparaat?** Klik op **Apparaten** op **Hoe komt een apparaat erbij?**. Of klik
+  op **Verversen** ernaast: dan wordt opnieuw gezocht.
+- **Doen je apparaten niets meer?** Staat er bovenaan een melding, klik dan op de knop die
+  erbij staat, zoals **Opnieuw verbinden** of **Herstarten**. Vraagt Windows of het mag, kies
+  dan **Ja**.
+- **Lukt het nog steeds niet?** Vraag het aan wie BuurmansRgb voor je heeft geïnstalleerd. Klik
+  op **Instellingen** op **Logbestand openen**: daarin staat wat BuurmansRgb deed. Stuur dat mee
+  als je om hulp vraagt.
+- **Meer weten?** Lees verder in deze handleiding. Elke pagina van de app heeft hieronder een
+  eigen kop. Hulp bij het toetsenbord, een schermlezer of grotere tekst staat bij
+  [Toegankelijkheid](#toegankelijkheid).
+
 ## De instellingen-app
 
 De app volgt het ontwerp "Werkplaats bij nacht" uit [design/DESIGN.md](../design/DESIGN.md):

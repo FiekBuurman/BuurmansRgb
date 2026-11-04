@@ -1801,7 +1801,8 @@ Instellingen); een nieuwe installatie begint met "Uitzetten", kies dus eerst "La
 - `design/` – het ontwerppakket van de instellingen-app (`DESIGN.md`, icoon, referentieschermen)
 - `docs/images/` – de schermafbeeldingen in `README.md`, gemaakt met de gesimuleerde apparaten
 - [installatie.md](installatie.md) – installeren, bijwerken en verwijderen in het kort
-- [handleiding.md](handleiding.md) – de instellingen-app, het tray-icoon, de
+- [handleiding.md](handleiding.md) – "Snel aan de slag" voor gewone gebruikers, de
+  instellingen-app (met toegankelijkheid), het tray-icoon, de
   instellingenbestanden en per apparaattype
 - [bouwplan.md](bouwplan.md) – architectuur, fasering, taken en uitbreidingen
 - [openrgb-meeleveren.md](openrgb-meeleveren.md) – waarom de installer OpenRGB en PawnIO zo

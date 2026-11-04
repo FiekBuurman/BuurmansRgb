@@ -67,7 +67,7 @@ apparaattype op echte hardware staat nog open.
 
 | Document | Waarover |
 | --- | --- |
-| [Handleiding](docs/handleiding.md) | De instellingen-app, het tray-icoon, pauzeren, de instellingenbestanden en per apparaattype |
+| [Handleiding](docs/handleiding.md) | Begint met [Snel aan de slag](docs/handleiding.md#snel-aan-de-slag); daarna de instellingen-app, het tray-icoon, pauzeren, de instellingenbestanden en per apparaattype |
 | [Installatie](docs/installatie.md) | Installeren, bijwerken en verwijderen |
 | [Voor ontwikkelaars](docs/ontwikkelaars.md) | Bouwen, testen, de installer, hoe de engine werkt en metingen |
 | [Bouwplan](docs/bouwplan.md) | Architectuur, taken en de stand per taak |
