@@ -1,7 +1,8 @@
 <!-- Instellingen: what the devices do while the pc sleeps or is locked, how buurmansRgb gets on with
-     OpenRGB, what the engine uses, when the simulated devices show, the effects, the scene times, the hotkeys and "Starten met Windows", saving and
-     restoring the settings, the log of the engine and the folder with the settings, and at the bottom
-     the version and the guide. Whether saving worked is in the status line of MainWindow. -->
+     OpenRGB, what the engine uses, when the simulated devices show, the effects, the scene times,
+     the hotkeys and "Starten met Windows", saving and restoring the settings, the log of the engine
+     and the folder with the settings, and at the bottom the version and the guide. Whether saving
+     worked is in the status line of MainWindow. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
