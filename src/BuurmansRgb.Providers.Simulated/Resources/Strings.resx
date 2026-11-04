@@ -48,4 +48,62 @@
   <data name="HeadsetName" xml:space="preserve">
     <value>Gesimuleerde headset</value>
   </data>
+  <data name="ZoneStrip" xml:space="preserve">
+    <value>Strip</value>
+    <comment>De zones van de gesimuleerde apparaten, zoals ze in het voorbeeld en bij Knipperen en Tellen staan. settings.json kent ze bij hun vroegere Engelse naam (de Id van de zone), dus een andere naam hier is veilig.</comment>
+  </data>
+  <data name="ZoneRing" xml:space="preserve">
+    <value>Ring</value>
+  </data>
+  <data name="ZoneKeys" xml:space="preserve">
+    <value>Toetsen</value>
+  </data>
+  <data name="ZoneMainboard" xml:space="preserve">
+    <value>Moederbord</value>
+  </data>
+  <data name="ZoneRgbHeader" xml:space="preserve">
+    <value>RGB-aansluiting</value>
+  </data>
+  <data name="ZoneArgbHeader" xml:space="preserve">
+    <value>ARGB-aansluiting</value>
+  </data>
+  <data name="ZoneDram" xml:space="preserve">
+    <value>Geheugen</value>
+  </data>
+  <data name="ZoneLightBar" xml:space="preserve">
+    <value>Lichtbalk</value>
+  </data>
+  <data name="ZoneLogo" xml:space="preserve">
+    <value>Logo</value>
+  </data>
+  <data name="ZoneInnerRing" xml:space="preserve">
+    <value>Binnenring</value>
+  </data>
+  <data name="ZoneOuterRing" xml:space="preserve">
+    <value>Buitenring</value>
+  </data>
+  <data name="ZoneArgb1" xml:space="preserve">
+    <value>Kanaal 1</value>
+  </data>
+  <data name="ZoneArgb2" xml:space="preserve">
+    <value>Kanaal 2</value>
+  </data>
+  <data name="ZoneFrontPanel" xml:space="preserve">
+    <value>Voorpaneel</value>
+  </data>
+  <data name="ZoneScrollWheel" xml:space="preserve">
+    <value>Scrollwiel</value>
+  </data>
+  <data name="ZoneLeftSide" xml:space="preserve">
+    <value>Linkerkant</value>
+  </data>
+  <data name="ZoneRightSide" xml:space="preserve">
+    <value>Rechterkant</value>
+  </data>
+  <data name="ZoneLeftEarCup" xml:space="preserve">
+    <value>Linkeroorschelp</value>
+  </data>
+  <data name="ZoneRightEarCup" xml:space="preserve">
+    <value>Rechteroorschelp</value>
+  </data>
 </root>
