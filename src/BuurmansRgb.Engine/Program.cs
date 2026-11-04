@@ -133,12 +133,15 @@ internal static class Program
         // "Herstarten" asked by the settings app: what a click on the tray item does, which the tray
         // context knows; that is made after the host, so the api gets it through this variable.
         Action? requestRestart = null;
+        // "Instellingen bewaren…" and "terugzetten…" asked by the settings app, which the host does; the
+        // api of a connection is made once the host is there.
+        ISettingsTransfer? settingsTransfer = null;
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke(), otherRgbSoftware: otherRgbSoftware),
+                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke(), otherRgbSoftware: otherRgbSoftware, settingsTransfer: settingsTransfer),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -154,7 +157,9 @@ internal static class Program
             customEffects: customEffects,
             autoStart: autoStart,
             firstRun: options.FirstRun,
-            otherRgbSoftware: otherRgbSoftware);
+            otherRgbSoftware: otherRgbSoftware,
+            files: SettingsFiles.Default);
+        settingsTransfer = host;
 
         using var context = new TrayApplicationContext(
             host,

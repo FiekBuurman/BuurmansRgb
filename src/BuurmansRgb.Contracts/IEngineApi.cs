@@ -206,6 +206,24 @@ public partial interface IEngineApi
     // OtherRgbSoftwareChanged follows. Throws for an id the engine does not know.
     Task DismissOtherRgbSoftwareAsync(string id, CancellationToken ct = default);
 
+    // "Instellingen bewaren…": a zip with settings.json, profiles.json and effects.json as the
+    // engine has them now (SettingsBackup), a change of the last moment that still waited written
+    // first. A file that is not there yet (no scenes, no own effects) is left out.
+    Task<byte[]> ExportSettingsAsync(CancellationToken ct = default);
+
+    // "Instellingen terugzetten…": the files in archive, a zip as ExportSettingsAsync gives, replace
+    // those of the engine, which puts them on at once as after a change by hand, and the events
+    // follow (LightingChanged, OptionsChanged, ProfilesChanged, CustomEffectsChanged and so on). A
+    // file the zip does not have stays as it is. Whether autostart was chosen and whether this pc
+    // had real devices stay as this pc has them. Before anything is replaced the archive is checked
+    // (only the files of SettingsBackup, no paths, not too large, each one readable) and the files
+    // of now go into a zip in the backups folder next to them; anything wrong replaces nothing.
+    Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default);
+
+    // The process id of the engine, so the settings app can show its memory and CPU on Instellingen:
+    // the app measures them itself while that page is open, and the engine does nothing for it.
+    Task<int> GetProcessIdAsync(CancellationToken ct = default);
+
     Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default);
 
     // Why the effects are paused; PauseReasons.None while they run.

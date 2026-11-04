@@ -50,4 +50,8 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
 
     public void Save(IReadOnlyList<Profile> profiles) =>
         JsonFile.Write(filePath, new ProfilesFile { Profiles = [.. profiles.Select(ProfileSettings.From)] }, EngineSettingsJsonContext.Default.ProfilesFile);
+
+    public void Replace(byte[] json) => JsonFile.Write(filePath, json);
+
+    public void Delete() => File.Delete(filePath);
 }

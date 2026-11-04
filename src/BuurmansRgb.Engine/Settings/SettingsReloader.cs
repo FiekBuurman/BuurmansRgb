@@ -65,6 +65,24 @@ internal sealed class SettingsReloader : IDisposable
         _timer.Dispose();
     }
 
+    // Reads the file now, on this thread, as a change by someone else is read a moment after it:
+    // for a file the engine replaced itself (a backup it restores), so the change is normally on
+    // the engine when this returns. Not always: a file that cannot be read yet is only tried again
+    // a moment later, and a failure while applying it is logged, not thrown. The file event of
+    // that write that comes later finds nothing new.
+    public void ReloadNow() => Reload();
+
+    // Runs action while no reload runs, such as the save of the last change before a backup: a
+    // save that comes due within a reload waits for it (LightingSettingsSaver.HoldSaves), and would
+    // then not be in the file yet.
+    public void RunBetweenReloads(Action action)
+    {
+        lock (_gate)
+        {
+            action();
+        }
+    }
+
     private void OnFileChanged(object? sender, EventArgs e)
     {
         lock (_gate)

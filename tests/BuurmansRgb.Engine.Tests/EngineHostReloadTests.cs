@@ -467,6 +467,8 @@ public sealed class EngineHostReloadTests : IDisposable
 
         public bool SaveIfUnchanged(EngineSettings settings) => store.SaveIfUnchanged(settings);
 
+        public void Replace(byte[] json) => store.Replace(json);
+
         public SettingsFileChange LoadIfChanged()
         {
             var change = store.LoadIfChanged();

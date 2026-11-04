@@ -192,6 +192,40 @@ internal sealed class CustomEffectLibrary : IDisposable
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    // Writes a change that waits right away, such as before the files go into a backup; the timer
+    // that would write it has nothing left to do then.
+    public void Flush() => SavePending();
+
+    // effects.json from a backup (EngineHost.Restore), a file that reads: written as the file, read
+    // again and given to the lighting, as at the start (a device with an own effect the backup does
+    // not have gets static). A change that still waited is dropped, as the backup replaces it; the
+    // list in memory only goes once the file is written, so a write that fails changes nothing.
+    public void Replace(byte[] json) => ReplaceFile(() => _store.Replace(json));
+
+    // effects.json taken away again, when a restore that fails puts back the files of before and
+    // there was none: no own effects then, in the file and in memory, and a device with one gets
+    // static. As with Replace, a delete that fails changes nothing.
+    public void Reset() => ReplaceFile(_store.Delete);
+
+    private void ReplaceFile(Action write)
+    {
+        lock (_gate)
+        {
+            write();
+            _pending = false;
+            _effects = null;
+            if (!_disposed)
+            {
+                _timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            }
+
+            EffectsLocked();
+            TakeLoadedAfterFailure();
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
     // Reading the file throws when it is out of reach; the list stays unread, so a change is never
     // written over effects that were not read.
     private List<CustomEffect> EffectsLocked()

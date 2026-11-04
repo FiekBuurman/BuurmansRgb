@@ -80,6 +80,68 @@ public sealed class SettingsViewTests
         });
     }
 
+    // Beside it, the folder with the settings and the logs, in Verkenner (here into opened).
+    [Fact]
+    public async Task OpenDataFolder_OpensTheFolderOfTheEngine()
+    {
+        var opened = new List<string>();
+        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var button = PageViews.ButtonNamed(page, Strings.OpenDataFolder);
+            Assert.Equal(Strings.DataFolderHint, AutomationProperties.GetHelpText(button));
+
+            PageViews.Click(button);
+
+            Assert.Equal([DataFolder.Path], opened);
+        });
+    }
+
+    // Saving and restoring: two buttons with their names and explanations for a screen reader, that
+    // work once the app is connected.
+    [Fact]
+    public async Task Backup_HasItsTwoButtons()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var save = PageViews.ButtonNamed(page, Strings.BackupSave);
+            var restore = PageViews.ButtonNamed(page, Strings.BackupRestore);
+
+            Assert.Equal(Strings.BackupSaveHint, AutomationProperties.GetHelpText(save));
+            Assert.Equal(Strings.BackupRestoreHint, AutomationProperties.GetHelpText(restore));
+            Assert.True(save.IsEnabled);
+            Assert.True(restore.IsEnabled);
+            Assert.Same(viewModel.Backup.SaveCommand, save.Command);
+            Assert.Same(viewModel.Backup.RestoreCommand, restore.Command);
+            Assert.Contains(Strings.BackupHeader, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
+        });
+    }
+
+    // The memory and CPU of the engine: a line with its text as its name and the explanation as
+    // its help, but no live region, so a screen reader does not read it out at every reading.
+    [Fact]
+    public async Task EngineUsage_HasANameButIsNoLiveRegion()
+    {
+        using var viewModel = await PageViews.ConnectAsync();
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var usage = PageViews.ById<TextBlock>(page, "EngineUsage");
+            var peer = new TextBlockAutomationPeer(usage);
+
+            Assert.Equal(viewModel.EngineUsage.Text, peer.GetName());
+            Assert.Equal(Strings.UsageHint, AutomationProperties.GetHelpText(usage));
+            Assert.Equal(AutomationLiveSetting.Off, AutomationProperties.GetLiveSetting(usage));
+            Assert.Contains(Strings.UsageHeader, AppTheme.Descendants<TextBlock>(page).Select(text => text.Text));
+        });
+    }
+
     // At the very bottom, after the last card: the version, and no link to the guide while there
     // is no guide every user can open (AppInfoViewModel.GuideAddress).
     [Fact]

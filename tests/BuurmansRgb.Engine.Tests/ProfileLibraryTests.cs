@@ -336,4 +336,24 @@ public sealed class ProfileLibraryTests
         _library.Show(Uniform(StaticLighting(Green)), scene: null);
         Assert.Null(_library.ActiveName);
     }
+
+    // A backup with the scene that is on keeps it on; without it, none is on.
+    [Theory]
+    [InlineData("""{ "profiles": [ { "name": "gamen" } ] }""", "Gamen")]
+    [InlineData("""{ "profiles": [ { "name": "Werk" } ] }""", null)]
+    public void Replace_KeepsTheSceneOnOnlyWhenItIsThere(string json, string? active)
+    {
+        _library.Save("Gamen");
+        var changes = 0;
+        var activeChanges = 0;
+        _library.Changed += (_, _) => changes++;
+        _library.ActiveChanged += (_, _) => activeChanges++;
+
+        _library.Replace(System.Text.Encoding.UTF8.GetBytes(json));
+
+        Assert.Equal(active, _library.ActiveName);
+        Assert.Equal(active is null ? 1 : 0, activeChanges);
+        Assert.Equal(1, changes);
+        Assert.Single(_library.Names);
+    }
 }

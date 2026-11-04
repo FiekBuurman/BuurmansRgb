@@ -112,25 +112,37 @@ internal sealed class ProfileLibrary
     // leaves none on. Raises no ActiveChanged: nothing changed since the scene was saved.
     public void RestoreActive(string? name)
     {
-        string? restored = null;
-        if (name is not null)
-        {
-            try
-            {
-                lock (_gate)
-                {
-                    restored = ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
-                }
-            }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
-            {
-                Trace.TraceError(exception.ToString());
-            }
-        }
-
+        var restored = SavedNameOf(name);
         lock (_activeGate)
         {
             _activeName = restored;
+        }
+    }
+
+    // The scene that was on before a restore that failed (EngineHost.Restore), once the files of
+    // before are back: as RestoreActive, but as a change (ActiveChanged), so it is saved again.
+    public void PutBackActive(string? name) => SetActive(SavedNameOf(name));
+
+    // The saved spelling of a scene that still exists; null for null, an unknown name, or a file
+    // that cannot be read.
+    private string? SavedNameOf(string? name)
+    {
+        if (name is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            lock (_gate)
+            {
+                return ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
+            }
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError(exception.ToString());
+            return null;
         }
     }
 
@@ -219,6 +231,41 @@ internal sealed class ProfileLibrary
         {
             var profile = FindLocked(name);
             Store([.. ProfilesLocked().Select(other => ReferenceEquals(other, profile) ? other with { Automation = normalized } : other)]);
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    // profiles.json from a backup (EngineHost.Restore), a file that reads: written as the file and
+    // read again, so the triggers plan the new times and programs (Changed). The scene that is on
+    // stays on while the backup has a scene of that name. The list in memory is only dropped once
+    // the file is written, so a write that fails leaves the scenes as they were.
+    public void Replace(byte[] json) => ReplaceFile(() => _store.Replace(json));
+
+    // profiles.json taken away again, when a restore that fails puts back the files of before and
+    // there was none: no scenes then, and the one that is on is off. As with Replace, a delete that
+    // fails changes nothing.
+    public void Reset() => ReplaceFile(_store.Delete);
+
+    private void ReplaceFile(Action write)
+    {
+        List<string> names;
+        lock (_gate)
+        {
+            write();
+            _profiles = null;
+            names = [.. ProfilesLocked().Select(profile => profile.Name)];
+        }
+
+        bool activeGone;
+        lock (_activeGate)
+        {
+            activeGone = _activeName is { } active && !names.Exists(name => Matches(name, active)) && SetActiveLocked(null);
+        }
+
+        if (activeGone)
+        {
+            ActiveChanged?.Invoke(this, EventArgs.Empty);
         }
 
         Changed?.Invoke(this, EventArgs.Empty);

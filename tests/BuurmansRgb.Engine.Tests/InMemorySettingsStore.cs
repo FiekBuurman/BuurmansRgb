@@ -104,6 +104,10 @@ internal sealed class InMemorySettingsStore : ISettingsStore
         }
     }
 
+    // As JsonSettingsStore: the file as a change by hand.
+    public void Replace(byte[] json) =>
+        ChangeByHand(LenientJson.Deserialize(json, EngineSettingsJsonContext.Default.EngineSettings) ?? EngineSettings.CreateDefault());
+
     public SettingsFileChange LoadIfChanged()
     {
         lock (_gate)

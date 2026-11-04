@@ -29,6 +29,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly AutoStartSwitch? _autoStart;
     private readonly Action? _restart;
     private readonly OtherRgbSoftwareCheck? _otherRgbSoftware;
+    private readonly ISettingsTransfer? _settingsTransfer;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -50,8 +51,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         CustomEffectLibrary? customEffects = null,
         AutoStartSwitch? autoStart = null,
         Action? restart = null,
-        OtherRgbSoftwareCheck? otherRgbSoftware = null)
+        OtherRgbSoftwareCheck? otherRgbSoftware = null,
+        ISettingsTransfer? settingsTransfer = null)
     {
+        _settingsTransfer = settingsTransfer;
         _restart = restart;
         _otherRgbSoftware = otherRgbSoftware;
         _zoneCounter = zoneCounter;
@@ -303,6 +306,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    // On the IPC thread of this call: the events of what the restore changes go out before the answer.
+    public Task<byte[]> ExportSettingsAsync(CancellationToken ct = default) =>
+        Task.FromResult(SettingsTransferOrThrow().Export());
+
+    public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default) =>
+        Task.FromResult(SettingsTransferOrThrow().Restore(archive ?? throw new ArgumentNullException(nameof(archive))));
+
+    public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(Environment.ProcessId);
+
     public Task<ServerStatus> GetOpenRgbStatusAsync(CancellationToken ct = default) => Task.FromResult(_openRgb.Status);
 
     public Task<PauseReasons> GetPauseAsync(CancellationToken ct = default) => Task.FromResult(_lighting.Pause);
@@ -498,6 +510,9 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     private CustomEffectLibrary CustomEffectsOrThrow() =>
         _customEffects ?? throw new InvalidOperationException("This engine keeps no own effects.");
+
+    private ISettingsTransfer SettingsTransferOrThrow() =>
+        _settingsTransfer ?? throw new InvalidOperationException("This engine cannot back up its settings.");
 
     // On the render thread at each step of a count, and on an IPC thread at a change; the state is
     // only read for a listener. Two threads can send their states in another order than the
