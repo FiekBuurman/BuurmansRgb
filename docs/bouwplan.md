@@ -65,8 +65,8 @@ Naast wat in de tekening staat, heeft de engine inmiddels ook: scènes (`Profile
 slaapstand, scherm uit en schermbeveiliging en herstellen na het ontwaken (`Power`), sneltoetsen
 voor alles aan en uit (`Hotkeys`), `settings.json` live oppikken (`SettingsFileWatcher`), het
 bewaren en terugzetten van zonelengtes (`ZoneLengthKeeper`) en het wisselen tussen gesimuleerde
-en echte apparaten (`SimulatedDevicesSwitch`). Ook bewaart hij de eigen kleuren van de
-gereedschapskist voor de instellingen-app (`CustomColorList`), die zelf niets bewaart, en de eigen
+en echte apparaten (`SimulatedDevicesSwitch`). Ook bewaart hij de eigen kleuren onder
+Kleuren voor de instellingen-app (`CustomColorList`), die zelf niets bewaart, en de eigen
 effecten van stappen in `effects.json` (`CustomEffectLibrary`).
 
 Kern-interfaces in `Core`. Zo zijn ze nu; taak 0 begon met een kleinere versie (`RgbZone` met

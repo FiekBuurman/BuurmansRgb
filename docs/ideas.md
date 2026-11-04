@@ -277,7 +277,7 @@ uitbreidingen in `docs/bouwplan.md`.
   de omzetting van kelvin naar RGB is een vaste benadering (Tanner Helland). Dat het 's avonds
   vanzelf warmer wordt, zoals Nachtlicht van Windows, is dan een scène die op tijd aangaat (zie
   "Scènes") (testpanel 1-11-2026, Noor)
-- Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
+- Eigen kleuren onder Kleuren een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
   verlaten van het veld de melding dat het geen kleurcode is (sinds "invoer-uitleg")
