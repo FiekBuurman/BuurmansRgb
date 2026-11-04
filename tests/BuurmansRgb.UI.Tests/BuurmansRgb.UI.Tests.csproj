@@ -19,4 +19,11 @@
     <ProjectReference Include="..\..\src\BuurmansRgb.UI\BuurmansRgb.UI.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The texts of the engine and the simulated devices, for PlainWordsTests; the app does not
+         reference those projects. -->
+    <None Include="..\..\src\BuurmansRgb.Engine\Resources\Strings.resx" Link="OtherStrings\Engine.resx" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\BuurmansRgb.Providers.Simulated\Resources\Strings.resx" Link="OtherStrings\Simulated.resx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

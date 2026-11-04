@@ -367,7 +367,8 @@ public sealed class EngineApiTests : IDisposable
         var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
         Assert.Equal(DeviceType.Motherboard, motherboard.Type);
         Assert.Equal(7, motherboard.LedCount);
-        Assert.Equal(["Mainboard", "RGB header", "ARGB header"], motherboard.Zones.Select(zone => zone.Name));
+        Assert.Equal(["Moederbord", "RGB-aansluiting", "ARGB-aansluiting"], motherboard.Zones.Select(zone => zone.Name));
+        Assert.Equal(["Mainboard", "RGB header", "ARGB header"], motherboard.Zones.Select(zone => zone.Id));
     }
 
     [Fact]
@@ -407,7 +408,7 @@ public sealed class EngineApiTests : IDisposable
         var devices = await api.GetDevicesAsync(Ct);
         var strip = devices.Single(device => device.Id == "simulated-strip");
         Assert.Equal(45, strip.LedCount);
-        Assert.Equal(new RgbZone("Strip", 45, 1, 60), Assert.Single(strip.Zones));
+        Assert.Equal(new RgbZone("Strip", 45, 1, 60) { Id = "Strip" }, Assert.Single(strip.Zones));
         Assert.Equal(45, _zoneLengths.Lengths["simulated-strip"]["Strip"]);
     }
 

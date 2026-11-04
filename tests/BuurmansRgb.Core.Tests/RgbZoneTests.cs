@@ -63,6 +63,45 @@ public sealed class RgbZoneTests
         Assert.NotEqual(zone, zone with { MaxLedCount = 61 });
     }
 
+    [Fact]
+    public void Key_WithoutId_IsTheName()
+    {
+        var zone = RgbZone.Fixed("Ring", 12);
+
+        Assert.Null(zone.Id);
+        Assert.Equal("Ring", zone.Key);
+    }
+
+    [Fact]
+    public void Key_WithId_IsTheIdWhateverTheName()
+    {
+        var zone = RgbZone.Fixed("Binnenring", 8) with { Id = "Inner ring" };
+
+        Assert.Equal("Inner ring", zone.Key);
+        Assert.NotEqual(zone, zone with { Id = null });
+        Assert.NotEqual(zone with { Id = null }, zone);
+    }
+
+    [Fact]
+    public void Json_WithoutId_LeavesItAndTheKeyOut()
+    {
+        var json = JsonSerializer.Serialize(RgbZone.Fixed("Ring", 12));
+
+        Assert.DoesNotContain(nameof(RgbZone.Id), json);
+        Assert.DoesNotContain(nameof(RgbZone.Key), json);
+    }
+
+    [Fact]
+    public void Json_WithId_RoundTrips()
+    {
+        var zone = RgbZone.Fixed("Binnenring", 8) with { Id = "Inner ring" };
+
+        var copy = JsonSerializer.Deserialize<RgbZone>(JsonSerializer.Serialize(zone));
+
+        Assert.Equal(zone, copy);
+        Assert.Equal("Inner ring", copy!.Key);
+    }
+
     // Most zones have no names; they should not cost bytes on the pipe.
     [Fact]
     public void Json_WithoutLedNames_LeavesThemOut()

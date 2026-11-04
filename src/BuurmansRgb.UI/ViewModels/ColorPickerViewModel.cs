@@ -20,7 +20,7 @@ public sealed partial class ColorPickerViewModel : ObservableObject
 
     public event EventHandler<RgbColor>? ColorPicked;
 
-    // "Uit de gereedschapskist": the colors of the design, and after them red, green and blue at
+    // "Kleuren": the colors of the design, and after them red, green and blue at
     // full strength, which the tinted ones of the design are not.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [

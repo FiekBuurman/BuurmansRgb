@@ -1,6 +1,6 @@
 <!-- Scènes (§ 5.3 and § 6): the saved profiles as cards in three or four columns. A click on a card puts
      the scene on; its wrench chooses it to overwrite, delete or put on by itself, below the cards.
-     "+ Nieuwe scène in elkaar zetten" saves the lighting as it is now under a new name. -->
+     "+ Nieuwe scène" saves the lighting as it is now under a new name. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ScenesPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"

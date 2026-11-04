@@ -31,7 +31,7 @@ public sealed class MainViewModelProfileTests
         Assert.Equal(["brightness all 0.40", "profile save Gamen"], Api.Calls);
         Assert.Equal(["Gamen", "Werk"], viewModel.Profiles.Names);
         Assert.Equal("Gamen", viewModel.Profiles.SelectedName);
-        Assert.Equal("Scène 'Gamen' in elkaar gezet.", viewModel.StatusMessage);
+        Assert.Equal("Scène 'Gamen' opgeslagen.", viewModel.StatusMessage);
     }
 
     [Fact]

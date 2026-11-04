@@ -28,8 +28,8 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   kleuren, en een stap van een eigen effect noemt een schermlezer (en de tooltip) naar een
   benaderende kleurnaam met de hex-code erachter: "Kleur 1: geel, #FFFF00", "Eigen kleur:
   oranje, #FF8800", "Stap 2: donkerblauw, #000080, 1,0 s blijven staan, 0,5 s overlopen". Een
-  vaste kleur uit de gereedschapskist houdt zijn eigen naam, ook in een vakje of een stap, met een
-  kleine beginletter omdat hij midden in de zin staat ("Kleur 2: echt groen, #00FF00", "Eigen
+  vaste kleur onder "Kleuren" houdt zijn eigen naam, ook in een vakje of een stap, met een
+  kleine beginletter omdat hij midden in de zin staat ("Kleur 2: fel groen, #00FF00", "Eigen
   kleur: klus-wit, #FFF4E5"). De naam is een ruwe benadering op tint, verzadiging en helderheid:
   zwart (wat zo goed als uit is), donkergrijs, grijs, lichtgrijs, wit, en verder rood, roze,
   oranje, bruin, geel, olijfgroen, groen, turquoise, blauw en paars, zo nodig met licht- of
@@ -145,10 +145,9 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
 - **Alleen gesimuleerde apparaten:** zolang er bij "Gesimuleerde apparaten tonen" "Automatisch"
   staat (zie "Instellingen") en OpenRGB geen echte apparaten geeft, staat onder "Apparaten in huis"
   dat dit nep-apparaten zijn om BuurmansRgb te proberen, en dat je echte apparaten er vanzelf voor
-  in de plaats komen zodra OpenRGB ze ziet. "Naar Instellingen" ernaast gaat naar Instellingen.
-  De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit": dan koos je zelf of
-  de nep-apparaten er staan. Een schermlezer leest de regel mee, en de link is met Tab te bereiken
-  (na "+ Erbij knutselen").
+  in de plaats komen zodra OpenRGB ze ziet. Hoe dat gaat, lees je via **Hoe komt een apparaat
+  erbij?** naast de kop. De regel is weg zodra er een echt apparaat is, en bij "Altijd" en "Nooit":
+  dan koos je zelf of de nep-apparaten er staan. Een schermlezer leest de regel mee.
 - **Geen verbinding met je apparaten:** heeft deze pc ooit echte apparaten gehad en staat er nu
   geen enkel apparaat (OpenRGB is gestopt of geeft niets meer door), dan zegt de statusregel
   bovenaan dat de verbinding weg is, met **Opnieuw verbinden** (zie "Statusregel"), en komen er
@@ -164,10 +163,13 @@ Windows, zie hieronder), met een eigen titelbalk en links een navigatiebalk met 
   nog nooit een echt apparaat had, staat er zonder apparaten "Nog geen apparaten gevonden" met de
   verwijzing naar Instellingen, zoals eerst.
 - Een klik op een kaart opent het apparaat bij Kleur en laat het op de hardware knipperen.
-  "+ Erbij knutselen" gaat naar Instellingen. Een apparaat toevoegen doe je niet in BuurmansRgb
-  maar in OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat
-  het opnieuw zoeken. Dat zegt ook de tooltip van "+ Erbij knutselen".
-- **Verversen** (naast "+ Erbij knutselen") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
+- **Hoe komt een apparaat erbij?** naast de kop "Apparaten in huis" gaat naar Instellingen, waar
+  bovenaan bij OpenRGB de uitleg staat. Een apparaat toevoegen doe je niet in BuurmansRgb maar in
+  OpenRGB: ziet OpenRGB een nieuw apparaat, dan komt het er vanzelf bij, en Verversen laat het
+  opnieuw zoeken. Dat zegt ook de tooltip van de link, met erbij dat je op Instellingen ook de
+  gesimuleerde apparaten aan of uit zet. Het is de enige link naar Instellingen op
+  deze pagina; de regel over de gesimuleerde apparaten heeft geen eigen link meer.
+- **Verversen** (naast "Hoe komt een apparaat erbij?") laat OpenRGB opnieuw naar apparaten zoeken. Gebruik
   het als een apparaat niet terugkomt, bijvoorbeeld een koptelefoon die je uit en weer aan zette.
   Zolang er gezocht wordt, staat er "Zoeken…"; nog een klik doet dan niets. Een apparaat dat
   terugkomt, krijgt zijn eigen kleur en effect weer. De lijst kan zich in stappen vullen: OpenRGB
@@ -188,8 +190,8 @@ schakelaar ernaast.
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de hex-code
   (je kunt er ook een typen) en de R · G · B-waarden; rechts de schuiven Rood, Groen en Blauw
-  (0–255, ook met de pijltjes), "Uit de gereedschapskist" met negen vaste kleuren (Klus-wit,
-  Rood, Oranje, Groen, Blauw, Paars, en Echt rood, Echt groen en Echt blauw) met daaronder je
+  (0–255, ook met de pijltjes), "Kleuren" met negen vaste kleuren (Klus-wit,
+  Rood, Oranje, Groen, Blauw, Paars, en Fel rood, Fel groen en Fel blauw) met daaronder je
   eigen kleuren (zie "Eigen kleuren"), en de knop **Op het apparaat zetten** (bij "Hele huis"
   **Op alle apparaten zetten**). Schuiven, hex-code en
   vaste kleuren laten de kleur meteen in het voorbeeld zien ("Nog niet op het apparaat"); pas de
@@ -212,7 +214,7 @@ schakelaar ernaast.
   staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
   mengt, kun je bij je eigen kleuren bewaren voor een ander effect.", en is de knop **Op het
   apparaat zetten** weg: de regenboog heeft zijn eigen tinten, dus een kleur zou niets veranderen. De
-  schuiven, de hex-code en de gereedschapskist werken wel, en met **+** zet je de gemengde kleur
+  schuiven, de hex-code en de vaste kleuren werken wel, en met **+** zet je de gemengde kleur
   bij je eigen kleuren. Kies je daarna bijv. Statisch, of zet een scène (bijv. uit het tray-menu)
   Statisch aan, dan is de knop terug en staat de kleur van het apparaat weer in de kiezer; de kleur
   die je bij Regenboog mengde, klik je dan aan bij je eigen kleuren.
@@ -234,7 +236,7 @@ schakelaar ernaast.
   alleen voor wat je wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die
   kleur. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat weer
   gelijk aan "Hele huis", dan volgt het "Hele huis" weer.
-- **Eigen kleuren:** onder de vaste kleuren van de gereedschapskist. Het vakje **+** zet de
+- **Eigen kleuren:** onder de vaste kleuren bij "Kleuren". Het vakje **+** zet de
   huidige kleur van de kiezer erbij, achteraan de rij; hooguit 12, en elke kleur één keer (staat
   de kleur er al, of zijn het er 12, dan is + grijs). Een klik op een eigen kleur mengt hem, net
   als een vaste kleur. Weghalen doe je met rechts klikken en **Weghalen**, of met de toets
@@ -375,7 +377,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
     een ingebouwd effect, dan heet het nu bijv. "Regenboog (eigen)".
   - **Stappen:** de vakjes, in rijen van hooguit zes; een patroon staat als verloop in het vakje.
     Klik op een stap (hij krijgt een dikke witte rand) en meng een kleur met de schuiven, de
-    hex-code of de gereedschapskist: de stap verandert meteen mee. Een patroon wordt dan één
+    hex-code of de vaste kleuren: de stap verandert meteen mee. Een patroon wordt dan één
     kleur. **+** voegt een stap toe na de gekozen, als kopie ervan; **−** haalt de gekozen weg
     (een effect houdt minstens één stap, en heeft er hooguit 32); **←** en **→** zetten de stap
     een plek naar voren of naar achteren. Met de toets **Delete** op een stap haal je hem ook
@@ -573,7 +575,7 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hi
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
   richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
   van de scène, en ook de opgeslagen verlichting.
-- **"+ Nieuwe scène in elkaar zetten"** vraagt een naam en bewaart de verlichting zoals die nu
+- **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu
   is.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
@@ -712,8 +714,10 @@ Hoe het vanzelf aanzetten werkt:
 
 - **OpenRGB:** de status van je apparaten in gewone taal, met daaronder de technische status
   (OpenRGB en de SDK-server op `127.0.0.1:6742`, dezelfde zin als in de tooltip van het
-  tray-icoon) en de tip uitgeschreven, en zonder verbinding de knop **Herstarten** (zie
-  "Apparaten").
+  tray-icoon) en de tip uitgeschreven, de uitleg hoe een apparaat erbij komt ("Zodra OpenRGB een
+  apparaat ziet, komt het vanzelf bij Apparaten; zelf toevoegen hoeft niet. Mist er een, kies dan
+  Verversen bij Apparaten", waar **Hoe komt een apparaat erbij?** op Apparaten naartoe gaat), en
+  zonder verbinding de knop **Herstarten** (zie "Apparaten").
 
   | Wat je ziet | Technisch | Wat er aan de hand is |
   | --- | --- | --- |
@@ -750,8 +754,12 @@ Hoe het vanzelf aanzetten werkt:
   moederbord (7, in drie zones, met een lege ARGB-header), twee RAM-sticks (8), een videokaart
   (13, in twee zones), een fan met twee ringen (20), een ARGB-controller (20, in twee
   kanalen), verlichting in de behuizing (10), een muis (12, in vier zones) en een headset (2,
-  in twee zones). Ze heten "Gesimuleerde ledstrip", "Gesimuleerde ventilator" enzovoort; de
-  namen van hun zones en toetsen zijn Engels, zoals OpenRGB ze bij echte apparaten geeft.
+  in twee zones). Ze heten "Gesimuleerde ledstrip", "Gesimuleerde ventilator" enzovoort, en hun
+  zones hebben Nederlandse namen, zoals "Binnenring", "ARGB-aansluiting" en "Linkeroorschelp". De
+  namen van de toetsen zijn Engels, zoals OpenRGB ze bij echte toetsenborden geeft. Ook de zones
+  van echte apparaten heten zoals OpenRGB ze noemt. In `settings.json` (`zoneLengths`) staat de
+  lengte van een gesimuleerde zone onder de Engelse naam die de zone eerder had ("ARGB header",
+  "ARGB 2"), zodat een bestand van vóór de Nederlandse namen blijft werken.
 - **Effecten:** bij "Vloeiendheid" kies je hoe vaak per seconde een bewegend effect de apparaten
   bijwerkt: "Zuinig" (15), "Normaal" (30, standaard) of "Vloeiend" (60). Het effect loopt even
   snel, alleen minder of meer vloeiend; zuinig kost de minste CPU. Staat er in `settings.json`
@@ -847,6 +855,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Hele huis:** de strip toont de echte kleuren van de apparaten, niet de vaste regenboog van het
   ontwerp; zo zegt hij iets over het huis.
 - **Knoppen** hebben ronde hoeken (12 px) in plaats van pilvormen.
+- **Gewone woorden op knoppen:** het ontwerp (§ 8) kiest overal een knipoog naar klussen ("Erbij
+  knutselen", "Uit de gereedschapskist", "In elkaar zetten"). Het testpanel vond dat onduidelijk,
+  dus een knop of link zegt in gewone woorden wat hij doet, en alleen een kop mag de knipoog
+  houden ("Alles achter de schermen van de werkplaats"). Zo heet "Uit de gereedschapskist" nu
+  "Kleuren", wordt "+ Nieuwe scène in elkaar zetten" "+ Nieuwe scène", en werd "+ Erbij
+  knutselen" "Hoe komt een apparaat erbij?" (zie "Kop van Apparaten"). Echt rood, groen en
+  blauw heten Fel rood, Fel groen en Fel blauw. In de code heten de vaste kleuren nog de toolbox
+  (`ToolboxHeader`).
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
   dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
@@ -863,12 +879,13 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   effect en gekozen LED's veranderen wel meteen mee met de schuiven, zonder knop: het vakje of de LED laat de kleur al zien,
   dus een knop voegde daar niets toe. Bij Regenboog, dat geen kleur van het apparaat gebruikt, is
   de knop er ook niet, met een regel onder de hex-code die zegt waarom: daar zou hij niets doen.
-- **Gereedschapskist:** de vakjes zijn 32 px in plaats van de 44 px van het ontwerp (§ 4,
-  "Preset tile"), zodat de negen vaste kleuren op één rij passen en de eigen kleuren eronder
-  ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de focusring en hebben hun naam
-  voor een schermlezer. Naast de zes kleuren van het ontwerp staan Echt rood, Echt groen en Echt
-  blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van het ontwerp zijn getint. De
-  vakjes van de kleurenloop en de kleuren van een effect blijven 44 px.
+- **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
+  van het ontwerp (§ 4, "Preset tile"), zodat de negen vaste kleuren op één rij passen en de
+  eigen kleuren eronder ruimte hebben. Ze zijn met de Tab-toets te bereiken, krijgen de
+  focusring en hebben hun naam voor een schermlezer. Naast de zes kleuren van het ontwerp staan
+  Fel rood, Fel groen en Fel blauw (255,0,0 · 0,255,0 · 0,0,255): de rood, groen en blauw van
+  het ontwerp zijn getint. De vakjes van de kleurenloop en de kleuren van een effect blijven
+  44 px.
 - **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
   van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes
   zoals de dagen bij een scène, en de teller staat in het monolettertype.
@@ -903,14 +920,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Kop van Apparaten:** rechts staat de status van je apparaten (in gewone taal, met
   "Herstarten" als gewone knop zodra de verbinding weg is) in plaats van de ronde
   instellingenknop (§ 5.1); Instellingen staat onderaan in de navigatiebalk. Bij "Apparaten in
-  huis" staat naast
-  "+ Erbij knutselen" de knop **Verversen**, die het ontwerp niet heeft, in dezelfde linkstijl.
-  Hij blijft tijdens het zoeken bruikbaar (er staat "Zoeken…") in plaats van grijs te worden,
+  huis" staat de link "Hoe komt een apparaat erbij?" in plaats van "+ Erbij knutselen" (§ 5.1),
+  en ernaast de knop **Verversen**, die het ontwerp niet heeft, in dezelfde linkstijl. Hij blijft
+  tijdens het zoeken bruikbaar (er staat "Zoeken…") in plaats van grijs te worden,
   zodat de toetsenbordfocus erop blijft.
 - **Uitleg bij de gesimuleerde apparaten** staat niet in het ontwerp (dat kent geen nep-apparaten):
   de regel onder "Apparaten in huis" is subtekst, zoals de melding van Verversen, zonder eigen
-  kaart, zodat hij niet op een apparaat lijkt. "Naar Instellingen" rechts ernaast is een link in
-  dezelfde stijl als Verversen en "+ Erbij knutselen".
+  kaart, zodat hij niet op een apparaat lijkt, en zonder eigen link: "Hoe komt een apparaat
+  erbij?" bij de kop gaat al naar Instellingen.
 - **De lege staat zonder verbinding** staat niet in het ontwerp (dat kent geen OpenRGB): een
   gewone kaart onder "Apparaten in huis" met twee regels subtekst, waar de apparaten komen en de
   verwijzing naar "Herstarten", zonder eigen knop en zonder voorlezen: de melding en "Opnieuw
@@ -1059,7 +1076,7 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
     icoon dat.
 - **Scène aanzetten** toont de opgeslagen scènes, met een vinkje bij de scène die aan staat;
   klik er een aan. Zonder scènes staat er
-  "Nog geen scènes – zet ze in elkaar in de instellingen". De lijst is altijd actueel. Kan
+  "Nog geen scènes – maak ze in de instellingen". De lijst is altijd actueel. Kan
   `profiles.json` niet gelezen worden, dan is het grijs en meldt het icoon dat; ook de eerste
   seconden na het starten is het grijs, tot de engine de opgeslagen verlichting heeft gezet.
 - **Tooltip:** "buurmansRgb" (of "buurmansRgb – effecten gepauzeerd", of tijdens Herstarten
@@ -1249,10 +1266,10 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `pausedLights` | `"keep"` (standaard), `"dim"` of `"off"`: wat de apparaten doen tijdens die pauze ("Apparaten tijdens deze pauze" bij Instellingen). Iets anders leest als `"keep"` |
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
-| `zoneLengths` | Per apparaat de lengte die je een instelbare zone gaf, op de naam van de zone |
+| `zoneLengths` | Per apparaat de lengte die je een instelbare zone gaf, op de naam van de zone (bij de gesimuleerde apparaten de Engelse naam die de zone eerder had, bijv. "ARGB 2" voor "Kanaal 2") |
 | `zonesAlike` | De apparaten (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elk apparaat uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
-| `customColors` | De eigen kleuren van de gereedschapskist op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
+| `customColors` | De eigen kleuren onder "Kleuren" op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
 | `dismissedOtherRgbSoftware` | De andere RGB-software waarvoor je **Niet meer melden** koos, op id: `signalrgb`, `icue`, `razer`, `armourycrate`, `mysticlight`, `rgbfusion` of `openrgb` (een tweede OpenRGB). Zonder krijg je bij elk programma een melding. Haal een id weg (of de hele regel) en de melding komt weer zodra de engine het programma ziet; dat geldt meteen, de engine leest het bestand opnieuw. Een id die geen tekst is, slaat de engine over |
 
 - Een apparaat van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam

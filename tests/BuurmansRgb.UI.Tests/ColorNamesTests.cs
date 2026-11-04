@@ -142,8 +142,8 @@ public sealed class ColorNamesTests
             Assert.Equal(UiText.Format(Strings.ColorNameWithHex, name, preset.Color.ToHex()), ColorNames.WithHex(preset.Color));
         });
         Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
-        Assert.Equal("echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
-        Assert.Equal("echt groen", ColorNames.NameOf(new(0, 255, 0)));
+        Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
+        Assert.Equal("fel groen", ColorNames.NameOf(new(0, 255, 0)));
     }
 
     // The small letter follows the culture of the text, not the region format: under tr-TR the names
@@ -159,7 +159,7 @@ public sealed class ColorNamesTests
 
             Assert.Equal(expected, ColorPickerViewModel.Presets.Select(preset => ColorNames.WithHex(preset.Color)));
             Assert.Equal("klus-wit, #FFF4E5", ColorNames.WithHex(new(255, 244, 229)));
-            Assert.Equal("echt blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
+            Assert.Equal("fel blauw, #0000FF", ColorNames.WithHex(new(0, 0, 255)));
         }
         finally
         {

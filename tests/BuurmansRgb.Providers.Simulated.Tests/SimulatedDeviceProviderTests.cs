@@ -116,9 +116,9 @@ public sealed class SimulatedDeviceProviderTests
 
         var devices = await provider.DiscoverAsync(Ct);
 
-        Assert.Equal(["Logo", "Scroll wheel", "Left side", "Right side"],
+        Assert.Equal(["Logo", "Scrollwiel", "Linkerkant", "Rechterkant"],
             devices.Single(device => device.Type == DeviceType.Mouse).Zones.Select(zone => zone.Name));
-        Assert.Equal(["Left ear cup", "Right ear cup"],
+        Assert.Equal(["Linkeroorschelp", "Rechteroorschelp"],
             devices.Single(device => device.Type == DeviceType.Headset).Zones.Select(zone => zone.Name));
     }
 
@@ -130,7 +130,7 @@ public sealed class SimulatedDeviceProviderTests
         var devices = await provider.DiscoverAsync(Ct);
 
         var fan = devices.Single(device => device.Id == "simulated-fan-dual");
-        Assert.Equal([RgbZone.Fixed("Inner ring", 8), RgbZone.Fixed("Outer ring", 12)], fan.Zones);
+        Assert.Equal([Fixed("Inner ring", "Binnenring", 8), Fixed("Outer ring", "Buitenring", 12)], fan.Zones);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class SimulatedDeviceProviderTests
         var devices = await provider.DiscoverAsync(Ct);
 
         var controller = devices.Single(device => device.Id == "simulated-argb");
-        Assert.Equal([new RgbZone("ARGB 1", 20, 0, 60), new RgbZone("ARGB 2", 0, 0, 60)], controller.Zones);
+        Assert.Equal([Resizable("ARGB 1", "Kanaal 1", 20, 0, 60), Resizable("ARGB 2", "Kanaal 2", 0, 0, 60)], controller.Zones);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public sealed class SimulatedDeviceProviderTests
         var devices = await provider.DiscoverAsync(Ct);
 
         var gpu = devices.Single(device => device.Type == DeviceType.Gpu);
-        Assert.Equal([RgbZone.Fixed("Light bar", 12), RgbZone.Fixed("Logo", 1)], gpu.Zones);
+        Assert.Equal([Fixed("Light bar", "Lichtbalk", 12), Fixed("Logo", "Logo", 1)], gpu.Zones);
     }
 
     [Fact]
@@ -164,7 +164,7 @@ public sealed class SimulatedDeviceProviderTests
 
         var motherboard = devices.Single(device => device.Type == DeviceType.Motherboard);
         Assert.Equal(
-            [RgbZone.Fixed("Mainboard", 6), RgbZone.Fixed("RGB header", 1), new RgbZone("ARGB header", 0, 0, 120)],
+            [Fixed("Mainboard", "Moederbord", 6), Fixed("RGB header", "RGB-aansluiting", 1), Resizable("ARGB header", "ARGB-aansluiting", 0, 0, 120)],
             motherboard.Zones);
     }
 
@@ -213,7 +213,7 @@ public sealed class SimulatedDeviceProviderTests
         var devices = await provider.DiscoverAsync(Ct);
         var motherboard = devices.Single(device => device.Id == "simulated-motherboard");
         Assert.Equal(1, changed);
-        Assert.Equal(new RgbZone("ARGB header", 20, 0, 120), motherboard.Zones[2]);
+        Assert.Equal(Resizable("ARGB header", "ARGB-aansluiting", 20, 0, 120), motherboard.Zones[2]);
         Assert.Equal(27, motherboard.LedCount);
         Assert.Equal(DeviceSource.Simulated, motherboard.Source);
         Assert.Equal(27, provider.GetLeds("simulated-motherboard").Length);
@@ -253,6 +253,45 @@ public sealed class SimulatedDeviceProviderTests
 
         Assert.Throws<ArgumentOutOfRangeException>(() => provider.ResizeZone(deviceId, zoneIndex, ledCount));
     }
+
+    // settings.json keeps the length of a zone under the English name the zone had before it got a
+    // Dutch one (zoneLengths), so every zone keeps that name as its id.
+    [Fact]
+    public async Task DiscoverAsync_EveryZoneHasADutchNameAndItsEnglishNameAsId()
+    {
+        var devices = await new SimulatedDeviceProvider().DiscoverAsync(Ct);
+
+        Assert.Equal(
+            [
+                ("simulated-strip", "Strip", "Strip"),
+                ("simulated-fan", "Ring", "Ring"),
+                ("simulated-keyboard", "Keys", "Toetsen"),
+                ("simulated-motherboard", "Mainboard", "Moederbord"),
+                ("simulated-motherboard", "RGB header", "RGB-aansluiting"),
+                ("simulated-motherboard", "ARGB header", "ARGB-aansluiting"),
+                ("simulated-ram-1", "DRAM", "Geheugen"),
+                ("simulated-ram-2", "DRAM", "Geheugen"),
+                ("simulated-gpu", "Light bar", "Lichtbalk"),
+                ("simulated-gpu", "Logo", "Logo"),
+                ("simulated-fan-dual", "Inner ring", "Binnenring"),
+                ("simulated-fan-dual", "Outer ring", "Buitenring"),
+                ("simulated-argb", "ARGB 1", "Kanaal 1"),
+                ("simulated-argb", "ARGB 2", "Kanaal 2"),
+                ("simulated-case", "Front panel", "Voorpaneel"),
+                ("simulated-mouse", "Logo", "Logo"),
+                ("simulated-mouse", "Scroll wheel", "Scrollwiel"),
+                ("simulated-mouse", "Left side", "Linkerkant"),
+                ("simulated-mouse", "Right side", "Rechterkant"),
+                ("simulated-headset", "Left ear cup", "Linkeroorschelp"),
+                ("simulated-headset", "Right ear cup", "Rechteroorschelp"),
+            ],
+            devices.SelectMany(device => device.Zones.Select(zone => (device.Id, zone.Key, zone.Name))));
+    }
+
+    private static RgbZone Fixed(string id, string name, int ledCount) => RgbZone.Fixed(name, ledCount) with { Id = id };
+
+    private static RgbZone Resizable(string id, string name, int ledCount, int minLedCount, int maxLedCount) =>
+        new(name, ledCount, minLedCount, maxLedCount) { Id = id };
 
     private static void AssertDevice(RgbDevice device, DeviceType type, int ledCount)
     {

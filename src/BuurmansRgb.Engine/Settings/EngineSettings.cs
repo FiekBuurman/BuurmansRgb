@@ -46,7 +46,8 @@ internal sealed record EngineSettings : LightingStateSettings
     // Whether Ctrl+Alt+Shift+A and Ctrl+Alt+Shift+U switch everything on and off (AllOnOffHotkeys).
     public bool Hotkeys { get; set; } = true;
 
-    // "zoneLengths": by device id, the LED count the user gave each resizable zone, by zone name.
+    // "zoneLengths": by device id, the LED count the user gave each resizable zone, by zone name
+    // (RgbZone.Key: the id of a zone that has one, such as the English name of a simulated zone).
     // Null instead of empty, so the default settings stay out of the file.
     public Dictionary<string, Dictionary<string, int>?>? ZoneLengths { get; set; }
 

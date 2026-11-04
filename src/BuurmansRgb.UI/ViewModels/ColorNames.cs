@@ -10,10 +10,10 @@ namespace BuurmansRgb.UI.ViewModels;
 // The words are in Strings.resx, as "ColorName_<tone>".
 public static class ColorNames
 {
-    // "geel, #FFFF00", or "echt blauw, #0000FF" for a color of the toolbox.
+    // "geel, #FFFF00", or "fel blauw, #0000FF" for a color of the toolbox.
     public static string WithHex(RgbColor color) => UiText.Format(Strings.ColorNameWithHex, NameOf(color), color.ToHex());
 
-    // The name of a color of the toolbox as it stands in the middle of a sentence ("echt groen"),
+    // The name of a color of the toolbox as it stands in the middle of a sentence ("fel groen"),
     // or else the word of its tone.
     public static string NameOf(RgbColor color) =>
         ColorPickerViewModel.Presets.FirstOrDefault(preset => preset.Color == color) is { } preset
@@ -22,7 +22,7 @@ public static class ColorNames
 
     internal const string TonePrefix = "ColorName";
 
-    // "Echt groen" with a small first letter, "echt groen"; the rest of the name stays as it is. The
+    // "Fel groen" with a small first letter, "fel groen"; the rest of the name stays as it is. The
     // letter is made small in the culture the text is in, not that of the region format (under tr-TR
     // an "I" would become a dotless "ı"), and the Preset texts in Strings.resx start with a common
     // word for it.

@@ -134,6 +134,30 @@ public sealed class ZoneCounterTests : IDisposable
         await HeaderAsync(25);
     }
 
+    // A zone whose name shown differs from its id (a simulated "Kanaal 1" that is "ARGB 1"): the
+    // keeper remembers the length under the id, and the zone gets that length back, not the one the
+    // list had.
+    [Fact]
+    public async Task Stop_ZoneWithAnIdOtherThanItsName_GetsTheLengthTheUserSetLast()
+    {
+        _provider.SetDevices(ResizableDeviceProvider.Board(
+            RgbZone.Fixed("Moederbord", 2),
+            new RgbZone("Kanaal 1", 30, 0, Longest) { Id = "ARGB 1" }));
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(Orange, 1.0, EffectIds.Static)));
+        _provider.RefusesLengths = true;
+        _keeper.ResizeZone(Board, Header, 25);
+        await SettledAsync();
+        _provider.RefusesLengths = false;
+        _counter.Start(Board, Header, 1);
+        await HeaderAsync(Longest);
+
+        _counter.Stop(Board, Header);
+
+        await HeaderAsync(25);
+        Assert.Equal(25, _keeper.Lengths[Board]["ARGB 1"]);
+    }
+
     [Fact]
     public async Task Stop_AnotherZone_LeavesTheCount()
     {

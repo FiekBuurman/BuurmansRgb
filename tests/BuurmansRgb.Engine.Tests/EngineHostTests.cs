@@ -405,6 +405,52 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(35, restarted.GetLeds("simulated-argb").Length);
     }
 
+    // A settings.json from before the zones of the simulated devices got Dutch names, with the
+    // English names in zoneLengths: every zone gets its length, the rest of the file still counts,
+    // and a new length is saved under the English name next to the others.
+    [Fact]
+    public async Task ZoneLengthsUnderTheEnglishNames_StillFitTheDutchZones()
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, """
+            {
+              "devices": { "simulated-fan": { "color": "#0000FF", "effect": "per-led" } },
+              "ledColors": { "simulated-fan": ["#FF0000", "#00FF00"] },
+              "ledColorZoneLengths": { "simulated-fan": [12] },
+              "zoneLengths": {
+                "simulated-strip": { "Strip": 40 },
+                "simulated-motherboard": { "ARGB header": 24 },
+                "simulated-argb": { "ARGB 1": 30, "ARGB 2": 15 }
+              },
+              "zonesAlike": ["simulated-mouse"]
+            }
+            """);
+        var store = new JsonSettingsStore(path);
+        using (var lighting = new LightingController([_simulated]))
+        using (var zoneLengths = new ZoneLengthKeeper(lighting))
+        using (var host = new EngineHost(store, lighting, saveDelay: TimeSpan.FromHours(1), zoneLengths: zoneLengths))
+        {
+            await host.StartAsync(Ct);
+
+            await Eventually.TrueAsync(() => ZoneOf(lighting, "simulated-strip", "Strip").LedCount == 40
+                && ZoneOf(lighting, "simulated-motherboard", "ARGB-aansluiting").LedCount == 24
+                && ZoneOf(lighting, "simulated-argb", "Kanaal 1").LedCount == 30
+                && ZoneOf(lighting, "simulated-argb", "Kanaal 2").LedCount == 15);
+            Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 255, 0)], _simulated.GetLeds("simulated-fan")[..2]);
+            Assert.Contains("simulated-mouse", lighting.ZonesAlike);
+
+            zoneLengths.ResizeZone("simulated-argb", 1, 20);
+        }
+
+        var saved = store.LoadOrCreate().ReadZoneLengths();
+        Assert.Equal(new Dictionary<string, int> { ["ARGB 1"] = 30, ["ARGB 2"] = 20 }, saved["simulated-argb"]);
+        Assert.Equal(new Dictionary<string, int> { ["ARGB header"] = 24 }, saved["simulated-motherboard"]);
+        Assert.Equal(new Dictionary<string, int> { ["Strip"] = 40 }, saved["simulated-strip"]);
+    }
+
+    private static RgbZone ZoneOf(LightingController lighting, string deviceId, string zoneName) =>
+        lighting.Devices.Single(device => device.Id == deviceId).Zones.Single(zone => zone.Name == zoneName);
+
     // The simulated headset has two zones of one LED; with zones alike they show one color of the
     // rainbow, also after a restart.
     [Fact]

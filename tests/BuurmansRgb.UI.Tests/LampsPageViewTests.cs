@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
-using System.Windows.Input;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
@@ -15,31 +14,39 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class LampsPageViewTests
 {
-    // "+ Erbij knutselen" goes to Instellingen, and says that OpenRGB adds the devices.
+    // "Hoe komt een apparaat erbij?" goes to Instellingen, where the explanation is at the top, and
+    // says that OpenRGB adds the devices.
     [Fact]
-    public async Task AddLamps_SaysThatOpenRgbAddsTheDevicesAndGoesToSettings()
+    public async Task HowDevicesCome_SaysThatOpenRgbAddsTheDevicesAndGoesToTheExplanation()
     {
         using var viewModel = await PageViews.ConnectAsync();
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
-            var button = AddLamps(page);
-            Assert.Equal(Strings.AddLampsToolTip, button.ToolTip);
-            Assert.Equal(Strings.AddLampsToolTip, AutomationProperties.GetHelpText(button));
-            Assert.Contains("OpenRGB", Strings.AddLampsToolTip, StringComparison.Ordinal);
-            Assert.Contains(Strings.Rescan, Strings.AddLampsToolTip, StringComparison.Ordinal);
+            var button = HowDevicesCome(page);
+            Assert.Equal(Strings.HowDevicesCome, button.Content);
+            Assert.Equal(Strings.HowDevicesCome, new ButtonAutomationPeer(button).GetName());
+            Assert.Equal(Strings.HowDevicesComeToolTip, button.ToolTip);
+            Assert.Equal(Strings.HowDevicesComeToolTip, AutomationProperties.GetHelpText(button));
+            Assert.Contains("OpenRGB", Strings.HowDevicesComeToolTip, StringComparison.Ordinal);
+            Assert.Contains(Strings.Rescan, Strings.HowDevicesComeToolTip, StringComparison.Ordinal);
 
             PageViews.Click(button);
 
             Assert.Equal(AppPage.Settings, viewModel.Navigation.CurrentPage);
+            var settings = PageViews.Show<SettingsPage>(panel, viewModel);
+            var explanation = AppTheme.Descendants<TextBlock>(settings).Single(text => Equals(text.Text, Strings.OpenRgbExplanation));
+            Assert.True(explanation.IsVisible);
+            Assert.Contains(Strings.Rescan, Strings.OpenRgbExplanation, StringComparison.Ordinal);
         });
     }
 
     // With only simulated devices on "Automatisch", a line under the heading says what they are; a
-    // screen reader finds it, and Tab goes from "+ Erbij knutselen" to its link to Instellingen.
+    // screen reader finds it. It has no link of its own: "Hoe komt een apparaat erbij?" is the one
+    // link to Instellingen on the page.
     [Fact]
-    public async Task SimulatedDevicesHint_OnlySimulatedDevices_IsReadOutWithALinkToSettings()
+    public async Task SimulatedDevicesHint_OnlySimulatedDevices_IsReadOutWithoutASecondLink()
     {
         using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Simulated("sim-strip"), Simulated("sim-fan")]);
 
@@ -51,16 +58,8 @@ public sealed class LampsPageViewTests
             Assert.Equal(Strings.SimulatedDevicesOnlyHint, hint.Text);
             Assert.Contains(PageViews.AutomationTree(page), peer => peer.GetName() == Strings.SimulatedDevicesOnlyHint);
 
-            var link = HintLink(page);
-            Assert.Equal(Strings.SimulatedDevicesOnlyLink, new ButtonAutomationPeer(link).GetName());
-            Assert.Equal(Strings.SimulatedDevicesOnlyLinkToolTip, AutomationProperties.GetHelpText(link));
-            Assert.True(AddLamps(page).Focus());
-            Assert.True(AddLamps(page).MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
-            Assert.True(link.IsKeyboardFocused);
-
-            PageViews.Click(link);
-
-            Assert.Equal(AppPage.Settings, viewModel.Navigation.CurrentPage);
+            var toSettings = AppTheme.Descendants<Button>(page).Where(button => button.IsVisible && Equals(button.CommandParameter, AppPage.Settings));
+            Assert.Equal([HowDevicesCome(page)], toSettings);
         });
     }
 
@@ -81,7 +80,6 @@ public sealed class LampsPageViewTests
         {
             var page = PageViews.Show<LampsPage>(panel, viewModel);
             Assert.False(Hint(page).IsVisible);
-            Assert.False(HintLink(page).IsVisible);
         });
     }
 
@@ -195,10 +193,7 @@ public sealed class LampsPageViewTests
     private static TextBlock NoLamps(DependencyObject page) =>
         AppTheme.Descendants<TextBlock>(page).Single(text => Equals(text.Text, Strings.NoLamps));
 
-    private static Button AddLamps(DependencyObject page) =>
-        AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.AddLamps));
+    private static Button HowDevicesCome(DependencyObject page) => PageViews.ById<Button>(page, "HowDevicesCome");
 
     private static TextBlock Hint(DependencyObject page) => PageViews.ById<TextBlock>(page, "SimulatedDevicesHint");
-
-    private static Button HintLink(DependencyObject page) => PageViews.ById<Button>(page, "SimulatedDevicesHintLink");
 }

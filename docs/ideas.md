@@ -58,9 +58,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Herstarten: de PID van de oude engine meegeven aan de nieuwe (bijv. `--restarted <code>
   <pid>`), zodat die een oude engine die na de wachttijd nog hangt kan beëindigen in plaats van
   zelf te stoppen
-- Bij "Nog geen apparaten gevonden" op Apparaten (bijv. met "Nooit" en zonder OpenRGB) ook een
-  link "Naar Instellingen", zoals bij de regel over de gesimuleerde apparaten (sinds
-  "nep-apparaten-uitleg"); nu noemt de tekst Instellingen alleen
 - De laatst bekende apparaten grijs blijven tonen als OpenRGB weg is, met hun naam, type en plek
   en zonder schakelaar, in plaats van alleen de lege staat "Hier komen je apparaten zodra de
   verbinding terug is" (sinds `openrgb-weg`, de tekst sinds `een-melding`): dan zie je welke
@@ -78,10 +75,14 @@ uitbreidingen in `docs/bouwplan.md`.
   protocolversie 5 of hoger heeft afgesproken, laat de watcher dan eerst zelf
   `REQUEST_PROTOCOL_VERSION` sturen; nu valt "Verversen" dan na 5 seconden terug op opnieuw
   verbinden, wat ook werkt maar trager is
-- Nederlandse namen voor de zones en toetsen van de gesimuleerde apparaten ("Lichtbalk", "Linker
-  oorschelp", "Binnenring", "Scrollwiel"), uit `Strings.resx` van `Providers.Simulated`; nu zijn
-  ze Engels, zoals OpenRGB ze bij echte apparaten geeft, maar bij de gesimuleerde kiezen we ze
-  zelf (gebruikerstest 28-10)
+- Nederlandse namen voor de toetsen van het gesimuleerde toetsenbord ("Linker Shift", "Pijl
+  omhoog", "Num 7"), uit `Strings.resx` van `Providers.Simulated`; de zones heten sinds
+  `gewone-taal` Nederlands, de toetsen nog Engels, zoals OpenRGB ze bij echte toetsenborden geeft
+- "Hoe komt een apparaat erbij?" op Apparaten de handleiding laten openen bij de uitleg over
+  apparaten, zodra `AppInfoViewModel.GuideAddress` een adres heeft; nu gaat de link naar
+  Instellingen, waar bovenaan bij OpenRGB de uitleg staat (`gewone-taal`)
+- De vaste kleur "Klus-wit" een gewone naam geven ("Warm wit"): het is de laatste knipoog naar
+  klussen buiten een kop (`gewone-taal` liet hem staan, omdat het een kleurnaam is en geen actie)
 - Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
   de kast een effect krijgt: een schakelaar per apparaat ("Volgt Hele huis niet"), bewaard als een
   set id's in `settings.json` zoals `zonesAlike`, die `LightingController` bij een kleur, effect of
@@ -276,7 +277,7 @@ uitbreidingen in `docs/bouwplan.md`.
   de omzetting van kelvin naar RGB is een vaste benadering (Tanner Helland). Dat het 's avonds
   vanzelf warmer wordt, zoals Nachtlicht van Windows, is dan een scène die op tijd aangaat (zie
   "Scènes") (testpanel 1-11-2026, Noor)
-- Eigen kleuren in de gereedschapskist een naam geven en ze door slepen (of met Ctrl+← en →)
+- Eigen kleuren onder Kleuren een naam geven en ze door slepen (of met Ctrl+← en →)
   in een andere volgorde zetten; nu krijgen ze hun hex-code als naam en komt een nieuwe achteraan
 - Een hex-code van drie tekens (`#F80`) lezen als `#FF8800`, zoals in CSS; nu krijgt die bij het
   verlaten van het veld de melding dat het geen kleurcode is (sinds "invoer-uitleg")

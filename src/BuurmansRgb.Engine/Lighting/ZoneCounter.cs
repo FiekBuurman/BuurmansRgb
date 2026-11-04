@@ -75,7 +75,7 @@ internal sealed class ZoneCounter : IDisposable
                 return;
             }
 
-            _counting = new Counting(owner, deviceId, zoneIndex, zone.Name, zone.LedCount, zone.MaxLedCount);
+            _counting = new Counting(owner, deviceId, zoneIndex, zone.Key, zone.Name, zone.LedCount, zone.MaxLedCount);
             try
             {
                 _lengths.ResizeForAWhile(deviceId, zoneIndex, zone.MaxLedCount);
@@ -195,7 +195,7 @@ internal sealed class ZoneCounter : IDisposable
     private void Restore(Counting counting)
     {
         var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == counting.DeviceId);
-        if (device is null || counting.ZoneIndex >= device.Zones.Count || device.Zones[counting.ZoneIndex].Name != counting.ZoneName)
+        if (device is null || counting.ZoneIndex >= device.Zones.Count || device.Zones[counting.ZoneIndex].Key != counting.ZoneKey)
         {
             return;
         }
@@ -204,7 +204,7 @@ internal sealed class ZoneCounter : IDisposable
         {
             // The length the keeper remembers is the newest: a length the user set just before the
             // count may not have been in the device list yet when it started.
-            var length = _lengths.LengthOf(counting.DeviceId, counting.ZoneName) ?? counting.OldLength;
+            var length = _lengths.LengthOf(counting.DeviceId, counting.ZoneKey) ?? counting.OldLength;
             _lengths.GiveLengthBack(counting.DeviceId, counting.ZoneIndex, length);
         }
         catch (ArgumentException exception)
@@ -224,7 +224,7 @@ internal sealed class ZoneCounter : IDisposable
 
             var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == counting.DeviceId);
             var zone = device is not null && counting.ZoneIndex < device.Zones.Count ? device.Zones[counting.ZoneIndex] : null;
-            if (zone is not null && zone.Name == counting.ZoneName && zone.MaxLedCount == counting.LedCount)
+            if (zone is not null && zone.Key == counting.ZoneKey && zone.MaxLedCount == counting.LedCount)
             {
                 // At its longest, or any length while the longest is on its way: a list may still
                 // bring a length that was asked for just before the count started.
@@ -252,8 +252,9 @@ internal sealed class ZoneCounter : IDisposable
         }
     }
 
-    // The zone that is counted, with the length it had before and the longest one.
-    private sealed record Counting(object? Owner, string DeviceId, int ZoneIndex, string ZoneName, int OldLength, int LedCount)
+    // The zone that is counted, with the length it had before and the longest one. ZoneKey is the
+    // RgbZone.Key the keeper remembers its length under; ZoneName is the name shown, for the log.
+    private sealed record Counting(object? Owner, string DeviceId, int ZoneIndex, string ZoneKey, string ZoneName, int OldLength, int LedCount)
     {
         // Whether a device list brought the longest length; an old length after that came from
         // elsewhere.
