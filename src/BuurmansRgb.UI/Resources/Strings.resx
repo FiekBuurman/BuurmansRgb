@@ -1420,4 +1420,54 @@
     <value>{0} knippert nu op het apparaat</value>
     <comment>Hetzelfde voor één zone. {0} = de naam van de zone.</comment>
   </data>
+  <data name="OtherRgbSoftwareRuns" xml:space="preserve">
+    <value>{0} draait ook en kan je kleuren overschrijven.</value>
+    <comment>In de statusregel bovenaan Apparaten en Kleur, één per programma dat de engine vond. {0} = de naam van het programma, zoals de maker hem schrijft ("SignalRGB", "Corsair iCUE").</comment>
+  </data>
+  <data name="OtherOpenRgbRuns" xml:space="preserve">
+    <value>Er draait nog een OpenRGB naast de service en die kan je kleuren overschrijven.</value>
+    <comment>Hetzelfde voor een tweede OpenRGB: een OpenRGB.exe in de sessie van een gebruiker terwijl de service OpenRGB ook draait.</comment>
+  </data>
+  <data name="OtherOpenRgbName" xml:space="preserve">
+    <value>de tweede OpenRGB</value>
+    <comment>De naam van een tweede OpenRGB in OtherRgbSoftwareExplanationAccessibleName en OtherRgbSoftwareDismissAccessibleName.</comment>
+  </data>
+  <data name="StatusExplanation" xml:space="preserve">
+    <value>Uitleg</value>
+    <comment>Knop bij een melding van de statusregel, zoals OtherRgbSoftwareRuns: klapt onder de melding uit wat je eraan kunt doen, en met nog een klik weer dicht. Niet "Details": zo heet de knop van de statusregel die de andere meldingen uitklapt.</comment>
+  </data>
+  <data name="StatusExplanationToolTip" xml:space="preserve">
+    <value>Toont onder de melding wat je eraan kunt doen.</value>
+  </data>
+  <data name="OtherRgbSoftwareExplanationAccessibleName" xml:space="preserve">
+    <value>Uitleg over {0}</value>
+    <comment>Naam voor een schermlezer van StatusExplanation bij OtherRgbSoftwareRuns. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareExplanation" xml:space="preserve">
+    <value>Sluit {0} af en zet het uit bij Taakbeheer → Opstartapps, zodat het niet weer meestart met Windows. Draait het ook als achtergrondprogramma (service), zet die service dan in services.msc op Handmatig. Laat je {0} bewust draaien, kies dan Niet meer melden.</value>
+    <comment>Wat StatusExplanation uitklapt bij OtherRgbSoftwareRuns; in het kort wat "Andere RGB-software" in docs/handleiding.md uitlegt. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherOpenRgbExplanation" xml:space="preserve">
+    <value>Sluit het venster van die tweede OpenRGB als je klaar bent: wat je daarin kiest, overschrijft je kleuren. Zet daarin ook Start Server niet aan, want de service geeft je kleuren al door. Start hij mee met Windows, zet hem dan uit bij Taakbeheer → Opstartapps.</value>
+    <comment>Hetzelfde voor een tweede OpenRGB (OtherOpenRgbRuns).</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideLink" xml:space="preserve">
+    <value>Meer in de handleiding</value>
+    <comment>Link onder OtherRgbSoftwareExplanation: opent de handleiding bij "Andere RGB-software". Alleen zichtbaar als er een handleiding is om te openen (AppInfoViewModel.GuideAddress).</comment>
+  </data>
+  <data name="OtherRgbSoftwareGuideLinkAccessibleName" xml:space="preserve">
+    <value>Meer in de handleiding over andere RGB-software</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareGuideLink.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismiss" xml:space="preserve">
+    <value>Niet meer melden</value>
+    <comment>Tweede knop bij OtherRgbSoftwareRuns: de melding over dit programma komt niet meer terug, ook niet als het later weer draait.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissAccessibleName" xml:space="preserve">
+    <value>{0} niet meer melden</value>
+    <comment>Naam voor een schermlezer van OtherRgbSoftwareDismiss. {0} = de naam van het programma.</comment>
+  </data>
+  <data name="OtherRgbSoftwareDismissToolTip" xml:space="preserve">
+    <value>Meldt dit programma niet meer, ook niet als het later weer draait. Terugzetten kan in settings.json.</value>
+  </data>
 </root>

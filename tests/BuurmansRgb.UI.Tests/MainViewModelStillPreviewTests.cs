@@ -361,6 +361,22 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal([Blue, Blue], FanColors(viewModel));
     }
 
+    // "Niet meer melden" changes nothing the devices show, so it fetches no image.
+    [Fact]
+    public async Task NietMeerMelden_FetchesNoImage()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red));
+        Api.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
+        Api.RaiseOtherRgbSoftwareChanged();
+        var before = Api.FrameCalls;
+
+        viewModel.StatusLine.Current!.DismissCommand!.Execute(null);
+
+        Assert.Contains("dismiss signalrgb", Api.Calls);
+        Assert.Equal(before, Api.FrameCalls);
+    }
+
     // With animations on, a flash shows as the engine renders it: no mark, frames as always.
     [Fact]
     public async Task Flash_WithAnimationsOn_HasNoMark()

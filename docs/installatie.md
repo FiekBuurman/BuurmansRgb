@@ -151,6 +151,13 @@ meer programma's die botsen, zoals NZXT CAM, SteelSeries GG en Windows Dynamic L
 De meeste namen hieronder komen van sites met procesinformatie, niet van de makers.
 Controleer ze op je eigen pc (**Taakbeheer → Details**, `sc query`).
 
+BuurmansRgb kijkt bij het starten, na de slaapstand en bij **Verversen** zelf of een van deze
+programma's draait, en zegt het dan in de app (zie "Andere RGB-software" in de
+[handleiding](handleiding.md#andere-rgb-software)). Het zoekt op de exe-namen uit deze tabel,
+plus `iCUE.exe` (de app van iCUE), voor SignalRGB `SignalRgbService.exe`, `SignalRgb.exe` en
+`VortxEngine.exe` (aangenomen, niet bevestigd) en voor RGB Fusion de gok `RGBFusion.exe`. De
+lijst staat in de code op één plek, `OtherRgbSoftwareList`.
+
 | Software | Processen en services | Bron |
 | --- | --- | --- |
 | SignalRGB | service `SignalRgbService` ("SignalRGB" of "VortxEngine" in `services.msc`); proces van de app **onbekend** | officieel [35] |

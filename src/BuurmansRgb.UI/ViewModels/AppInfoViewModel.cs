@@ -56,6 +56,22 @@ public sealed partial class AppInfoViewModel(Action<string> open, string engineL
         }
     }
 
+    // The guide at one of its headings, such as "andere-rgb-software" (the anchor GitHub and
+    // Markdown give "Andere RGB-software"), for a message that points to its explanation. Only a
+    // web address can take the anchor; a guide on disk opens at its top. Nothing without a guide.
+    public void OpenGuideAt(string section)
+    {
+        if (HasGuide && guideAddress is { } address)
+        {
+            Open(GuideAddressAt(address, section), Strings.GuideOpenFailed);
+        }
+    }
+
+    internal static string GuideAddressAt(string address, string section) =>
+        Uri.TryCreate(address, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttps || uri.Scheme == Uri.UriSchemeHttp)
+            ? new UriBuilder(uri) { Fragment = section }.Uri.AbsoluteUri
+            : address;
+
     // As the tray menu, a log that is not there (yet), or no app for it or no browser, gives a
     // message; the details go to the log of this app.
     private void Open(string target, string failure)

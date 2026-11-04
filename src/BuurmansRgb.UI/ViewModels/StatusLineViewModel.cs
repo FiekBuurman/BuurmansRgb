@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
@@ -9,7 +10,9 @@ namespace BuurmansRgb.UI.ViewModels;
 // one message in view, the one that matters most, with its action, and "Details" that unfolds the
 // others that hold, each with its own action, so a message that is pushed aside never goes
 // without a word. In the order they matter: the connection with the devices gone
-// (OpenRgbStatus.IsConnectionLost; "Opnieuw verbinden" is the search of Verversen) > the effects
+// (OpenRgbStatus.IsConnectionLost; "Opnieuw verbinden" is the search of Verversen) > other RGB
+// software that runs, one message per program in the order of the engine (OtherRgbSoftware;
+// "Uitleg" that unfolds what to do under the message, and "Niet meer melden") > the effects
 // paused or just resumed (EffectsPause; "Hervatten" for the pause from the tray menu) > the
 // preview still because animations in Windows are off (Motion; "Laten lopen" or "Stilzetten").
 // It follows those view models and keeps their texts; they do the work.
@@ -22,13 +25,20 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
     private readonly StatusMessage _connectionLost;
     private readonly StatusMessage _paused;
     private readonly StatusMessage _previewStill;
+    private readonly OtherRgbSoftwareViewModel? _otherRgbSoftware;
 
-    public StatusLineViewModel(OpenRgbStatusViewModel openRgb, EffectsPauseViewModel pause, PreviewMotionViewModel motion, DeviceRescanViewModel rescan)
+    // One message per program, made when it first shows and kept, so its item under "Details"
+    // stays the same when the list changes around it.
+    private readonly Dictionary<string, StatusMessage> _otherRgbSoftwareMessages = new(StringComparer.Ordinal);
+
+    // otherRgbSoftware is null in tests that leave it out.
+    public StatusLineViewModel(OpenRgbStatusViewModel openRgb, EffectsPauseViewModel pause, PreviewMotionViewModel motion, DeviceRescanViewModel rescan, OtherRgbSoftwareViewModel? otherRgbSoftware = null)
     {
         _openRgb = openRgb;
         _pause = pause;
         _motion = motion;
         _rescan = rescan;
+        _otherRgbSoftware = otherRgbSoftware;
         _connectionLost = new StatusMessage(StatusMessageKind.ConnectionLost, rescan.RescanCommand);
         _paused = new StatusMessage(StatusMessageKind.Paused, pause.ResumeCommand, actionEndsMessage: true);
         _previewStill = new StatusMessage(StatusMessageKind.PreviewStill, motion.ToggleCommand);
@@ -36,6 +46,7 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         _pause.PropertyChanged += OnSourceChanged;
         _motion.PropertyChanged += OnSourceChanged;
         _rescan.PropertyChanged += OnSourceChanged;
+        _otherRgbSoftware?.PropertyChanged += OnSourceChanged;
         Refresh();
     }
 
@@ -65,6 +76,7 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         _pause.PropertyChanged -= OnSourceChanged;
         _motion.PropertyChanged -= OnSourceChanged;
         _rescan.PropertyChanged -= OnSourceChanged;
+        _otherRgbSoftware?.PropertyChanged -= OnSourceChanged;
     }
 
     private void OnSourceChanged(object? sender, PropertyChangedEventArgs e) => Refresh();
@@ -97,11 +109,17 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
             _previewStill.Show(_motion.Text, _motion.ButtonText, _motion.ButtonAccessibleName, _motion.ButtonHelpText);
         }
 
-        StatusMessage[] active = [.. new[] { (_connectionLost, lost), (_paused, paused), (_previewStill, still) }.Where(pair => pair.Item2).Select(pair => pair.Item1)];
+        var otherRgbSoftware = ShowOtherRgbSoftware();
+        StatusMessage[] active =
+        [
+            .. new[] { (_connectionLost, lost) }.Where(pair => pair.Item2).Select(pair => pair.Item1),
+            .. otherRgbSoftware,
+            .. new[] { (_paused, paused), (_previewStill, still) }.Where(pair => pair.Item2).Select(pair => pair.Item1),
+        ];
         var current = active.FirstOrDefault();
         var others = active.Skip(1).ToList();
         var previous = Current;
-        foreach (var message in new[] { _connectionLost, _paused, _previewStill }.Except(active))
+        foreach (var message in new[] { _connectionLost, _paused, _previewStill }.Concat(_otherRgbSoftwareMessages.Values).Except(active))
         {
             if (!ReferenceEquals(message, previous))
             {
@@ -126,6 +144,40 @@ public sealed partial class StatusLineViewModel : ObservableObject, IDisposable
         {
             previous.Hide();
         }
+    }
+
+    // The messages of the other RGB software that runs, with their texts, in the engine's order.
+    private List<StatusMessage> ShowOtherRgbSoftware()
+    {
+        var messages = new List<StatusMessage>();
+        if (_otherRgbSoftware is not { } source)
+        {
+            return messages;
+        }
+
+        foreach (var software in source.Programs)
+        {
+            if (!_otherRgbSoftwareMessages.TryGetValue(software.Id, out var message))
+            {
+                message = new StatusMessage(
+                    StatusMessageKind.OtherRgbSoftware,
+                    dismissCommand: new RelayCommand(() => source.DismissCommand.Execute(software.Id)),
+                    explanationLinkCommand: source.OpenGuideCommand);
+                _otherRgbSoftwareMessages.Add(software.Id, message);
+            }
+
+            var name = OtherRgbSoftwareViewModel.NameFor(software);
+            message.Show(OtherRgbSoftwareViewModel.TextFor(software), null, null, null);
+            message.ShowExplanation(
+                OtherRgbSoftwareViewModel.ExplanationFor(software),
+                UiText.Format(Strings.OtherRgbSoftwareExplanationAccessibleName, name),
+                source.HasGuide ? Strings.OtherRgbSoftwareGuideLink : null,
+                Strings.OtherRgbSoftwareGuideLinkAccessibleName);
+            message.ShowDismiss(Strings.OtherRgbSoftwareDismiss, UiText.Format(Strings.OtherRgbSoftwareDismissAccessibleName, name), Strings.OtherRgbSoftwareDismissToolTip);
+            messages.Add(message);
+        }
+
+        return messages;
     }
 
     // One message at a time, not Clear and Add: the list under "Details" keeps the item of a

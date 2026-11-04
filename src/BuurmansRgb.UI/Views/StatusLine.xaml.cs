@@ -21,6 +21,15 @@ public partial class StatusLine : UserControl
         }
     }
 
+    // "Niet meer melden" takes its message away at once, so the focus goes on as after "Hervatten".
+    private void OnDismissClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement button)
+        {
+            button.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+        }
+    }
+
     // A button that hides while it has the keyboard focus, because its message left the line
     // without the user's doing (the connection came back, nothing is left under "Details"): WPF
     // would drop the focus to the window. "Details" hands it to the action that stays in the line;

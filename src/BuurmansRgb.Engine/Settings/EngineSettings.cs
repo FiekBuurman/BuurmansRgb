@@ -65,7 +65,21 @@ internal sealed record EngineSettings : LightingStateSettings
     // after the first CustomColors.MaxColors (ReadCustomColors).
     public RgbColor?[]? CustomColors { get; set; }
 
+    // "dismissedOtherRgbSoftware": the ids of the other RGB software whose message the user
+    // dismissed (OtherRgbSoftwareCheck.Dismissed, such as "signalrgb"), for good: taking an id out
+    // by hand shows its message again. Null instead of empty, so the default settings stay out of
+    // the file; an id that is not text reads as null (LenientJson) and is left out.
+    public List<string?>? DismissedOtherRgbSoftware { get; set; }
+
     public static EngineSettings CreateDefault() => new() { AutoStartChosen = false };
+
+    public IReadOnlyList<string> ReadDismissedOtherRgbSoftware() =>
+        [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.OrdinalIgnoreCase)];
+
+    public EngineSettings WithDismissedOtherRgbSoftware(IReadOnlyList<string> ids) => this with
+    {
+        DismissedOtherRgbSoftware = ids.Count > 0 ? [.. ids] : null,
+    };
 
     public IReadOnlyList<RgbColor> ReadCustomColors() =>
         Contracts.CustomColors.Normalize((CustomColors ?? []).OfType<RgbColor>());

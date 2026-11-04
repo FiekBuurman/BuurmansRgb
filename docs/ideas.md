@@ -94,6 +94,22 @@ uitbreidingen in `docs/bouwplan.md`.
   (`SaveProfile` van de SDK) en de installer die keuze in de service kunnen zetten, zodat de pc
   meteen na het aanzetten de goede kleur heeft en de engine hem na het aanmelden overneemt
   (testpanel 1-11-2026, Mo en Kees)
+- Andere RGB-software (`conflict-melding`): een knop bij Instellingen "Meldingen over andere
+  RGB-software weer tonen" die `dismissedOtherRgbSoftware` leegmaakt; nu kan dat alleen met de
+  hand in `settings.json`
+- Andere RGB-software: Logitech G Hub (`lghub.exe`, `lghub_agent.exe`?), NZXT CAM, SteelSeries GG
+  en ASRock Polychrome in `OtherRgbSoftwareList`, en de namen van Synapse 4, Armoury Crate zelf en
+  RGB Fusion op een echte installatie nagaan (`docs/hardware.md`); SignalRGB noemt ze als botsend
+- Andere RGB-software: de uitleg onder "Uitleg" voorlezen zodra hij opengaat (een live region,
+  zoals de melding zelf); nu zegt een schermlezer alleen dat de knop ingedrukt is, en staat de
+  uitleg direct na de melding in de leesvolgorde (`conflict-melding`)
+- "Uitleg" ook bij de andere meldingen van de statusregel, zoals de verbinding weg (wat je doet
+  als Opnieuw verbinden niet helpt); `StatusMessage.ShowExplanation` kan dat al
+- Andere RGB-software in de tooltip van het tray-icoon ("SignalRGB draait ook"), voor wie de app
+  niet opent; nu zegt alleen de statusregel het
+- Andere RGB-software: alleen melden als het echt botst, bijv. als OpenRGB een apparaat heeft dat
+  het andere programma ook aanstuurt (iCUE en een Corsair-apparaat); nu meldt de engine elk
+  programma uit de lijst, ook als het een ander apparaat regelt
 
 ## Zones en zonelengtes
 
@@ -368,6 +384,11 @@ uitbreidingen in `docs/bouwplan.md`.
   Apparaten en Kleur, zoals het ontwerp (§ 4) hem noemt, dus op Scènes zie je een pauze of de
   verbinding die weg is alleen aan het tray-icoon, terwijl een scène die je daar aanzet dan niet
   op de apparaten komt
+- De knoppen van een melding (actie, Uitleg, Niet meer melden) en de uitgeklapte uitleg met de
+  link staan in `StatusLine.xaml` twee keer: voor de melding in de regel en in de lijst onder
+  Details. Eén gedeelde `DataTemplate` of `UserControl` voor beide, zodat een wijziging niet op
+  twee plekken hoeft; bleef bij de review van `conflict-melding` staan, omdat de knoppen in de
+  regel namen hebben die de code-behind gebruikt (`ActionButton`, `DetailsToggle`)
 - De balk onderaan (`SaveStatus` en wat er net gebeurde, in `MainWindow.xaml`) heette in de
   handleiding ook "statusregel"; sinds `een-melding` is de kaart bovenaan de Statusregel en zegt
   de handleiding voor de balk "onderaan". Eventueel de balk onderaan een eigen naam geven, ook in
@@ -659,7 +680,11 @@ uitbreidingen in `docs/bouwplan.md`.
   beide fakes in de tests. `autoStartChosen` (`update-autostart`) ging zonder IPC (tray en app
   lopen al via `AutoStartSwitch`) en raakte vier plekken: `EngineSettings`, `JsonSettingsStore`
   (een bestand dat niet leest), `EngineHost` bij starten, kiezen en een wijziging met de hand, en
-  `AutoStartSwitch.Chosen`
+  `AutoStartSwitch.Chosen`. `dismissedOtherRgbSoftware` (`conflict-melding`) raakte er acht:
+  `EngineSettings` (veld, lezen en schrijven), `EngineHost` bij `ApplyOptions` en bij opslaan,
+  `OtherRgbSoftwareCheck.Dismissed` met `DismissedChanged`, `IEngineApi` (event, lijst en
+  wegklikken), `EngineApi`, `MainViewModel` (lezen bij verbinden, het event en wegklikken) en
+  beide fakes in de tests
 - Een onbekende enumwaarde via IPC gelijk behandelen: `SetSimulatedDevicesAsync` gooit bij een
   waarde die niet bestaat, `SetPausedLightsAsync` valt terug op "keep". Eén lijn kiezen (liefst
   terugvallen, zoals `settings.json` dat ook doet) en voor alle enum-opties gelijk testen

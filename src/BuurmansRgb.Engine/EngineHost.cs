@@ -5,6 +5,7 @@ using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
 
 namespace BuurmansRgb.Engine;
@@ -28,7 +29,8 @@ internal sealed class EngineHost(
     CustomColorList? customColors = null,
     CustomEffectLibrary? customEffects = null,
     AutoStartSwitch? autoStart = null,
-    bool firstRun = false) : IEngineHost, IDisposable
+    bool firstRun = false,
+    OtherRgbSoftwareCheck? otherRgbSoftware = null) : IEngineHost, IDisposable
 {
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
@@ -91,6 +93,7 @@ internal sealed class EngineHost(
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
         customColors?.Changed += OnCustomColorsChanged;
+        otherRgbSoftware?.DismissedChanged += OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -102,6 +105,9 @@ internal sealed class EngineHost(
             _reloader = new SettingsReloader(settingsFileEvents, settingsStore, ApplyChangedByHand, reloadDelay ?? SettingsReloader.DefaultDelay, holdSaves: _saver.HoldSaves);
         }
 
+        // Once, before the settings app can ask; after waking up and at "Verversen" the check
+        // itself and EngineApi look again.
+        otherRgbSoftware?.Check();
         _ = ipcServer?.RunAsync(ct);
         trimMemory?.Invoke();
     }
@@ -131,6 +137,7 @@ internal sealed class EngineHost(
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
         customColors?.Changed -= OnCustomColorsChanged;
+        otherRgbSoftware?.DismissedChanged -= OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -183,6 +190,7 @@ internal sealed class EngineHost(
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
         customColors?.Colors = settings.ReadCustomColors();
+        otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware();
     }
 
     // Before the devices are fetched, so the tray menu shows it from the start. A file without
@@ -255,4 +263,8 @@ internal sealed class EngineHost(
 
     private void OnCustomColorsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings.WithCustomColors(customColors!.Colors));
+
+    // A program the user dismissed in the app, so its message stays away after a restart.
+    private void OnOtherRgbSoftwareDismissed(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed));
 }
