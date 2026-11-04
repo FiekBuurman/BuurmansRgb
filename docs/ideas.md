@@ -80,7 +80,9 @@ uitbreidingen in `docs/bouwplan.md`.
   `gewone-taal` Nederlands, de toetsen nog Engels, zoals OpenRGB ze bij echte toetsenborden geeft
 - "Hoe komt een apparaat erbij?" op Apparaten de handleiding laten openen bij de uitleg over
   apparaten, zodra `AppInfoViewModel.GuideAddress` een adres heeft; nu gaat de link naar
-  Instellingen, waar bij OpenRGB de uitleg staat (`gewone-taal`)
+  Instellingen, waar bij OpenRGB de uitleg staat (`gewone-taal`). Tot dan de link op Instellingen
+  direct naar het blok van OpenRGB laten scrollen: nu opent de pagina bovenaan, en sinds het
+  slaapblok en "Na een herstart" is de uitleg het derde blok (refactorreview 4-11-2026)
 - Een apparaat buiten "Hele huis" houden, bijv. een toetsenbord dat zijn eigen kleur houdt terwijl
   de kast een effect krijgt: een schakelaar per apparaat ("Volgt Hele huis niet"), bewaard als een
   set id's in `settings.json` zoals `zonesAlike`, die `LightingController` bij een kleur, effect of
@@ -248,7 +250,8 @@ uitbreidingen in `docs/bouwplan.md`.
   - In het voorbeeld de gekozen stap laten zien in plaats van het lopende effect, zodat je een
     lange stap niet hoeft af te wachten
   - Op de scènekaart de naam van het eigen effect en de kleuren van zijn stappen als bolletjes;
-    nu staat er "Eigen effect" met de kleur van het apparaat
+    nu staat er "Eigen effect" met de kleur van het apparaat (hoort bij het idee hieronder om de
+    regel onder de naam van een scènekaart gelijk te trekken met die van een apparaatkaart)
   - Een scène die een kopie van het effect bewaart in plaats van een verwijzing, zodat hij er
     hetzelfde uit blijft zien als je het effect later aanpast of verwijdert
   - Een eigen pagina met alle eigen effecten naast elkaar, met een klein voorbeeld per effect
@@ -302,6 +305,10 @@ uitbreidingen in `docs/bouwplan.md`.
 - "Na een herstart" bij Instellingen ook de scènes, eigen kleuren en eigen effecten noemen, met een
   verwijzing naar "Instellingen bewaren…" voor een andere pc; nu noemt het blok alleen de
   verlichting, de helderheid, de slaapstand en "Starten met Windows" (`wat-blijft-bewaard`)
+- Eén gedeeld template voor een rij met een schakelaar op Instellingen: de vier schakelaars daar
+  (en "Zones gelijk" in het voorbeeld op Kleur) volgen hetzelfde patroon, nu elk met de hand in de XAML. Meer dan
+  verplaatsen, omdat de rijen een `x:Name` hebben waar `FocusFallback` naar wijst en de boom voor
+  UI Automation gelijk moet blijven (refactorreview 4-11-2026)
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
@@ -561,6 +568,11 @@ uitbreidingen in `docs/bouwplan.md`.
   `settings.json` kan hij alleen inhalen als de tijd daarna viel, zoals na het ontwaken
 - Op de kaart van een scène met meer tijden ze allemaal kunnen zien, bijv. in een tooltip; nu
   noemt hij de eerste en "en nog 1"
+- De regel onder de naam van een scènekaart gelijktrekken met die van een apparaatkaart: een
+  scène zegt "Statisch · 80%" (en bij een eigen effect alleen "Eigen effect"), een apparaat
+  "LED-strip · Warm wit · 100%". Verandert zichtbare tekst, dus niet in een refactor
+  (refactorreview 4-11-2026). Hoort bij het idee hierboven om de naam van het eigen effect op de
+  scènekaart te zetten
 - Een nieuwe tijd bij "Vanzelf aanzetten" laten beginnen op de dagen die nog geen tijd hebben
   (na 07:00 op werkdagen dus za en zo); nu begint hij op elke dag
 - Ook inhalen als de klok van Windows over een tijd heen springt (nu alleen na het ontwaken en

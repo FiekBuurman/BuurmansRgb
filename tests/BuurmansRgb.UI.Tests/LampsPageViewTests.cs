@@ -14,7 +14,7 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class LampsPageViewTests
 {
-    // "Hoe komt een apparaat erbij?" goes to Instellingen, where the explanation is at the top, and
+    // "Hoe komt een apparaat erbij?" goes to Instellingen, where the OpenRGB block explains it, and
     // says that OpenRGB adds the devices.
     [Fact]
     public async Task HowDevicesCome_SaysThatOpenRgbAddsTheDevicesAndGoesToTheExplanation()

@@ -86,7 +86,7 @@
                             ToolTip="{x:Static res:Strings.RescanToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RescanToolTip}"
                             AutomationProperties.Name="{Binding DeviceRescan.ButtonText}" AutomationProperties.AutomationId="RescanDevices"
                             Command="{Binding DeviceRescan.RescanCommand}" />
-                    <!-- "Hoe komt een apparaat erbij?" goes to Instellingen, where the explanation is at the top: OpenRGB
+                    <!-- "Hoe komt een apparaat erbij?" goes to Instellingen, where the OpenRGB block explains it: OpenRGB
                          adds the devices, not buurmansRgb. The one link to Instellingen on this page. -->
                     <Button Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.HowDevicesCome}"
                             ToolTip="{x:Static res:Strings.HowDevicesComeToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.HowDevicesComeToolTip}"
