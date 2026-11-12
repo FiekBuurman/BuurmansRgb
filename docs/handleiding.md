@@ -21,6 +21,18 @@ app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en 
 
 Een apparaat dat uit staat, onthoudt zijn kleur voor als het weer aan gaat.
 
+### Elke avond vanzelf uit
+
+1. Ga naar **Apparaten**. In de kaart **Hele huis** staat onderaan **Uit en aan op tijd**.
+2. Zet de schakelaar achter **Uit om** aan. Er staat 23:00, elke dag.
+3. Wil je een andere tijd? Klik op de tijd, typ bijvoorbeeld 22:30 en druk op Enter.
+4. Niet elke dag? Klik de dagen weg die niet hoeven, bijvoorbeeld **za** en **zo**.
+5. Wil je dat ze 's ochtends weer aangaan? Zet dan ook **Aan om** aan (07:00).
+
+Het geldt meteen; opslaan hoeft niet. Bij **Aan om** komen je kleuren van de avond ervoor terug.
+Staat de pc om die tijd uit of in slaapstand, dan gebeurt er niets, tenzij **Gemiste tijden
+inhalen** op **Instellingen** aan staat.
+
 ### Een kleur kiezen
 
 1. Ga naar **Kleur**.
@@ -155,6 +167,37 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   Een LED die uit staat of zwart is, is een donker bolletje met een grijze ring en zonder gloed:
   zo zie je waar hij zit, en dat hij geen licht geeft. Zo staat een apparaat dat uit staat ook
   op zijn kaart, en een scène met de apparaten uit (of in het zwart) op zijn scènekaart.
+- **Uit en aan op tijd** (onderaan de kaart Hele huis): elke avond alles uit, en desgewenst 's
+  ochtends weer aan, zonder eerst een scène te maken. Twee regels, **Uit om** en **Aan om**, elk
+  met een tijd, de dagen (**ma** t/m **zo**) en rechts een schakelaar. Zet je de schakelaar aan,
+  dan staat er 23:00 (Uit om) of 07:00 (Aan om) op elke dag, en dat geldt meteen. Een dag aan of
+  uit klikken geldt ook meteen; een andere tijd geldt zodra je met Tab verder gaat of op Enter
+  drukt. Zolang de schakelaar uit staat, zijn de tijd en de dagen grijs. Een tijd die niet te
+  lezen is of geen enkele dag geeft een melding onder het blok ("Vul bij Uit om een tijd in
+  zoals 23:00.") en verandert niets.
+  - **Uit om** zet de startscène **Alles uit** aan: het zijn de tijden van die scène, dus bij
+    Scènes zie je bij "Alles uit" dezelfde tijd, en verander je hem daar, dan verandert hij hier
+    ook. Onder de regels staat dat ("Uit om zet de scène 'Alles uit' aan."). buurmansRgb herkent
+    die scène niet aan zijn naam maar aan een vaste markering, dus ook na het hernoemen (met de
+    hand in `profiles.json`) hoort hij erbij. Heeft de scène bij Scènes meer tijden gekregen,
+    dan toont deze regel de eerste en zegt hij hoeveel er nog zijn; de rest blijft staan. Is
+    "Alles uit" er niet (verwijderd, of je installatie is van vóór de startscènes), dan bewaart
+    buurmansRgb de tijd apart, buiten je scènes: dan gaan om die tijd alle apparaten uit met hun
+    eigen kleur, zoals **Alles uit** in het tray-menu. Verwijder je "Alles uit" terwijl hij een
+    tijd heeft, dan blijft Uit om gewoon staan.
+  - **Aan om** doet alleen iets als dan alles uit staat. Ging alles uit door **Uit om** (of door
+    de scène "Alles uit"), dan komen de kleuren en effecten van daarvóór terug, met alle apparaten
+    aan. Zette je ze op een andere manier uit, zoals met de grote schakelaar of het tray-menu, dan
+    gaat alles aan met de kleur die het had, zoals **Alles aan**. Brandt er al iets, dan blijft
+    alles zoals het is: wat je zelf aanzette, gaat voor.
+  - Staat de pc om die tijd uit of in slaapstand, dan slaat buurmansRgb die keer over, net als bij
+    een scène met een tijd. Met **Gemiste tijden inhalen** (bij Instellingen) gebeurt het bij het
+    starten of na het ontwaken alsnog. Draait er een programma met een eigen scène (een spel), dan
+    wacht Uit om tot het programma stopt.
+  - Voor een schermlezer heeft het blok een kop, is elke schakelaar een schakelaar met de naam
+    "Uit om" of "Aan om" die zegt of hij aan of uit staat, heten de tijdvelden "Tijd voor Uit om"
+    en "Tijd voor Aan om", en zijn de dagen knoppen met de hele naam ("maandag") die zeggen of ze
+    ingedrukt zijn. Alles is met Tab te bereiken. Een melding wordt voorgelezen als hij komt.
 - **Apparaten in huis:** elk apparaat als kaart, de echte onder "Echte apparaten
   (OpenRGB)" en de gesimuleerde onder "Gesimuleerde apparaten", twee of drie naast elkaar. Op de
   kaart: een bolletje in de kleur van zijn felste LED, de naam, het type met de kleur en de
@@ -620,7 +663,7 @@ apparaat dat er later bij komt:
 
 | Scène | Wat hij doet |
 |---|---|
-| Alles uit | Alle apparaten uit, en hun kleur en effect worden die van Rustig wit: met "Alles aan" daarna branden ze rustig wit, je eigen kleur komt niet terug. Wil je alleen uit en daarna je eigen kleur terug, gebruik dan "Alles uit" in het tray-menu (of `--all-off`). |
+| Alles uit | Alle apparaten uit, en hun kleur en effect worden die van Rustig wit: met "Alles aan" daarna branden ze rustig wit, je eigen kleur komt niet terug. Wil je alleen uit en daarna je eigen kleur terug, gebruik dan "Alles uit" in het tray-menu (of `--all-off`), of "Aan om" bij Hele huis. Zijn tijden zijn "Uit om" bij Hele huis op Apparaten (zie "Uit en aan op tijd"). |
 | Rustig wit | Warm wit, statisch, op 40 %. |
 | Regenboog | Het effect Regenboog. |
 | Pastel | Een kleurenloop van Lichtroze, Lila, Mint en Babyblauw. |
@@ -787,10 +830,13 @@ Hoe het vanzelf aanzetten werkt:
 - **Na een herstart:** het tweede blok zegt wat buurmansRgb bewaart en terugzet zodra het weer
   start: de kleur en het effect van elk apparaat en of het aan of uit staat (staat er een scène
   aan, dan "de scène 'Gamen', die nu aan staat"), de helderheid, en wat de apparaten doen als de
-  pc slaapt of vergrendeld is (de keuze van het blok erboven). Staat "Gemiste tijden inhalen" aan
+  pc slaapt of vergrendeld is (de keuze van het blok erboven). Staat "Uit om" of "Aan om" bij Hele
+  huis aan, dan noemt een regel ook die tijden ("de tijden van Hele huis op Apparaten: uit om 23:00
+  (elke dag) en aan om 07:00 (werkdagen)"). Staat "Gemiste tijden inhalen" aan
   en heeft een scène een tijd, dan staat eronder dat bij het starten de scène aankomt waarvan de
   tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos (zie
-  "Gemiste tijden inhalen" bij Scènes). Daaronder staat of dat vanzelf gebeurt: "Starten met
+  "Gemiste tijden inhalen" bij Scènes); met Uit om of Aan om staat er dat buurmansRgb die bij het
+  starten alsnog doet als ze voorbij gingen terwijl de pc uit stond. Daaronder staat of dat vanzelf gebeurt: "Starten met
   Windows" staat aan, of staat uit, en dan komt je verlichting na een herstart van de pc niet
   vanzelf terug, pas als je buurmansRgb zelf opent. Dan staat er ook de knop **Starten met Windows
   aanzetten**, die hetzelfde doet als de schakelaar bij "Opstarten" (en dus ook telt als je eigen
@@ -1049,6 +1095,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
   De lege staat van Scènes zegt wat een scène is en noemt "Nieuwe scène".
+- **Uit en aan op tijd:** de kaart Hele huis heeft in het ontwerp alleen de telling, de grote
+  schakelaar en de strip. Onderaan staat nu ook "Uit om" en "Aan om" (testpanel, Truus en Henk:
+  "elke avond om … uit" zonder eerst een scène te bouwen), in de stijl van de rest: een
+  schakelaar rechts zoals op de apparaatkaarten, en dezelfde tijd en dagknoppen als bij "Vanzelf
+  aanzetten" op Scènes.
 - **Buren** zit er niet in: de pagina (§ 5.4), de buren-kaart op Apparaten en "Samen aan de slag"
   op Scènes zijn weggelaten, omdat samen met de buren je apparaten kleuren geen doel van de app is.
   Daarmee vervallen ook de `buren-*`-kleuren.
@@ -1686,6 +1737,28 @@ die niet te lezen was en naar `profiles.json.broken` ging, telt ook als een best
 Is `settings.json` er wel maar bij het starten niet te lezen (een virusscanner of OneDrive houdt
 hem even vast, of hij is geen geldige JSON), dan beslist de engine nog niets over de startscènes
 en schrijft hij ook niets over je instellingen; de volgende start die hem kan lezen beslist.
+
+De startscène "Alles uit" heeft `"role": "allOff"`: daaraan herkent de engine de scène van
+**Uit om** bij Hele huis, ook als je hem hier hernoemt. Een bestand zonder `role` (van vóór de
+startscènes, of een scène die je zelf maakte) werkt zoals altijd. Wat buurmansRgb voor Uit om
+en Aan om bewaart zonder scène, staat apart in `internal`, met een `role` maar zonder naam, zodat
+het niet bij Scènes, in het tray-menu of bij `--scene` staat:
+
+```json
+{
+  "profiles": [
+    { "name": "Alles uit", "role": "allOff", "color": "#FFF4E5", "brightness": 0.4, "on": false, "loadAt": "23:00" }
+  ],
+  "internal": [
+    { "role": "backOn", "color": "#FF8800", "effect": "rainbow", "loadAt": "07:00", "loadOn": "mon,tue,wed,thu,fri" }
+  ]
+}
+```
+
+`backOn` is **Aan om**: zijn tijden, en de verlichting van vlak voordat "Alles uit" de laatste
+keer aanging. `allOff` in `internal` is **Uit om** zonder de scène "Alles uit". Zonder tijden
+haalt de engine ze weg. Een oudere versie van buurmansRgb leest `role` en `internal` niet en laat
+ze bij het opslaan weg; Uit om en Aan om moet je dan opnieuw aanzetten.
 
 ### effects.json
 
