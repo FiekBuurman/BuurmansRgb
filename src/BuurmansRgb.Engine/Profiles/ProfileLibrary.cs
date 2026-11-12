@@ -535,7 +535,8 @@ internal sealed class ProfileLibrary
     // "Aan om" puts back the lighting that burned before "Alles uit" came on, from before. Only the
     // lighting is kept, in its internal profile, not the scene that was on (before.Scene only tells
     // whether that was "Alles uit" itself); only while there is one, and not when "Alles uit" was on
-    // already, as then that is what burned. Not a change of the scenes, so no Changed. A file that cannot be written keeps what it had, and "Alles uit" still comes on.
+    // already, as then that is what burned. Not a change of the scenes, so no Changed. A file that
+    // cannot be written keeps what it had, and "Alles uit" still comes on.
     private void RememberBeforeOffLocked(Profile scene, HeldLighting before)
     {
         if (InternalLocked(ProfileRole.BackOn) is not { } backOn || (before.Scene is { } active && Matches(scene.Name, active)))
