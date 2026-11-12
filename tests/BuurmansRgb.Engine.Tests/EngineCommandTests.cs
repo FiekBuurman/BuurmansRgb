@@ -107,6 +107,37 @@ public sealed class EngineCommandTests
         Assert.Equal(exitCode, result);
     }
 
+    // What anyone in the session can send ends in engine.log: short, and on one line.
+    [Theory]
+    [InlineData("Gamen", "Gamen")]
+    [InlineData("Film\r\nkijken\t", "Film??kijken?")]
+    [InlineData("", "")]
+    public void ForLog_ReplacesControlCharacters(string text, string shown)
+    {
+        Assert.Equal(shown, EngineCommand.ForLog(text));
+    }
+
+    [Fact]
+    public void ForLog_LongText_IsCutAt80Characters()
+    {
+        Assert.Equal(new string('a', 80), EngineCommand.ForLog(new string('a', 80)));
+        Assert.Equal(new string('b', 80) + "…", EngineCommand.ForLog(new string('b', 81)));
+    }
+
+    [Fact]
+    public void Answer_UnknownMessage_LogsItShortAndOnOneLine()
+    {
+        using var trace = new TraceCapture();
+        var marker = Guid.NewGuid().ToString("N");
+
+        EngineCommand.Answer($"{marker}\nfake line{new string('x', 200)}", _ => { }, _ => EngineCommandResult.Done, TestTimeouts.Short, Ct);
+
+        var line = Assert.Single(trace.Messages, message => message.Contains(marker, StringComparison.Ordinal));
+        Assert.DoesNotContain('\n', line);
+        Assert.Contains($"{marker}?fake line", line, StringComparison.Ordinal);
+        Assert.DoesNotContain(new string('x', 100), line, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Answer_KnownMessage_RunsItThroughPost_AndGivesTheResult()
     {

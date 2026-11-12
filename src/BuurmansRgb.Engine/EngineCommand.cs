@@ -25,6 +25,8 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
     private const string AllOnMessage = "all-on";
     private const string AllOffMessage = "all-off";
 
+    private const int MaxLogLength = 80;
+
     // Whether the command of Answer still waits for the tray thread, runs there, or came too late.
     private const int AnswerWaiting = 0;
     private const int AnswerRunning = 1;
@@ -90,7 +92,7 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
     {
         if (FromMessage(message) is not { } command)
         {
-            Trace.TraceWarning($"Command line: unknown command '{message}'.");
+            Trace.TraceWarning($"Command line: unknown command '{ForLog(message)}'.");
             return EngineCommandResult.Failed;
         }
 
@@ -152,19 +154,38 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
             return EngineCommandResult.Done;
         }
 
-        Trace.TraceWarning($"Command line: there is no scene '{Scene}'; the engine does not start.");
+        Trace.TraceWarning($"Command line: there is no scene '{ForLog(Scene)}'; the engine does not start.");
         return EngineCommandResult.UnknownScene;
     }
 
     // As the tray menu and the settings app: without regard to case or surrounding spaces.
     public bool Matches(string sceneName) => ProfileNames.Comparer.Equals(sceneName, Scene.Trim());
 
+    // For engine.log; the scene as ForLog shows it.
     public override string ToString() => Kind switch
     {
-        EngineCommandKind.Scene => $"{SceneArgument} '{Scene}'",
+        EngineCommandKind.Scene => $"{SceneArgument} '{ForLog(Scene)}'",
         EngineCommandKind.AllOn => AllOnArgument,
         _ => AllOffArgument,
     };
+
+    // A name or message from the command line or a second start, for a line in engine.log: at most
+    // MaxLogLength characters, and a control character (such as a line break, which would fake a
+    // line of its own) as '?'. A scene name is at most 40 characters, so a real one stays whole.
+    public static string ForLog(string text)
+    {
+        var shown = text.Length > MaxLogLength ? text[..MaxLogLength] : text;
+        var chars = shown.ToCharArray();
+        for (var i = 0; i < chars.Length; i++)
+        {
+            if (char.IsControl(chars[i]))
+            {
+                chars[i] = '?';
+            }
+        }
+
+        return text.Length > MaxLogLength ? new string(chars) + "…" : new string(chars);
+    }
 
     private static bool IsArgument(string arg, string name) => string.Equals(arg, name, StringComparison.OrdinalIgnoreCase);
 }

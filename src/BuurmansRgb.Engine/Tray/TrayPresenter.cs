@@ -355,7 +355,7 @@ internal sealed class TrayPresenter(
 
         if (name is null)
         {
-            Trace.TraceWarning($"Command line: there is no scene '{command.Scene}'.");
+            Trace.TraceWarning($"Command line: there is no scene '{EngineCommand.ForLog(command.Scene)}'.");
             return EngineCommandResult.UnknownScene;
         }
 
