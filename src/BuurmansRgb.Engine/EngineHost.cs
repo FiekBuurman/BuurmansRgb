@@ -71,7 +71,7 @@ internal sealed class EngineHost(
         var startScenes = StartScenesOutcome.FileThere;
         if (profiles is not null)
         {
-            (settings, startScenes) = StartScenesOnce(settings, profiles);
+            (settings, startScenes) = StartScenesOnce(settings, profiles, settingsStore.LoadDidNotRead);
             profiles.RestoreActive(settings.ActiveScene);
             settings = settings with { ActiveScene = profiles.ActiveName };
         }
@@ -434,16 +434,24 @@ internal sealed class EngineHost(
     // profiles.json, so a pc from before this option that has one, also with all its scenes
     // deleted, gets none. Once the scenes are written, StartAsync has the saver write
     // startScenesCreated right after the start, not with whatever change comes next: the user may
-    // delete the scenes, which does not save settings.json, and then profiles.json too. The saver
-    // writes nothing over a settings.json that did not read or was changed by hand (SaveIfUnchanged).
+    // delete the scenes, which does not save settings.json, and then profiles.json too. A
+    // settings.json that was there but did not read (settingsDidNotRead: locked by a virus scanner
+    // or OneDrive, say) decides nothing: its startScenesCreated is not known, and a save of its own
+    // would, after the saver's waits for a change by hand, write the defaults over the user's file.
+    // So no scenes and no save then; a next start that reads it decides.
     // A file that was there already settles it as well, but goes along with the next save, as
     // autoStartChosen does, so a start without changes still writes nothing; until then that
     // profiles.json tells the same.
-    private static (EngineSettings Settings, StartScenesOutcome Outcome) StartScenesOnce(EngineSettings settings, ProfileLibrary library)
+    private static (EngineSettings Settings, StartScenesOutcome Outcome) StartScenesOnce(EngineSettings settings, ProfileLibrary library, bool settingsDidNotRead)
     {
         if (settings.StartScenesCreated)
         {
             return (settings, StartScenesOutcome.FileThere);
+        }
+
+        if (settingsDidNotRead)
+        {
+            return (settings, StartScenesOutcome.NotWritten);
         }
 
         var outcome = library.AddStartScenes(StartScenes.Create());

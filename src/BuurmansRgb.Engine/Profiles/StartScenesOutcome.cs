@@ -10,6 +10,7 @@ internal enum StartScenesOutcome
     // a pc that had scenes, so it gets none.
     FileThere,
 
-    // profiles.json could not be written now; a next start tries again.
+    // profiles.json could not be written now, or EngineHost did not try as settings.json did not
+    // read; a next start tries again.
     NotWritten,
 }

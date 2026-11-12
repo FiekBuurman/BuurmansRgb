@@ -300,6 +300,31 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.False(new JsonSettingsStore(_directory.File("new.json")).LoadOrCreate().StartScenesCreated);
     }
 
+    // Only a file that is there and does not read: then the engine decides nothing on what it got.
+    [Fact]
+    public void LoadDidNotRead_OnlyForAFileThatIsThereButDoesNotRead()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.LoadOrCreate();
+        Assert.False(store.LoadDidNotRead);
+
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            store.LoadOrCreate();
+        }
+
+        Assert.True(store.LoadDidNotRead);
+
+        store.LoadOrCreate();
+        Assert.False(store.LoadDidNotRead);
+
+        File.WriteAllText(path, "{ not json");
+        store.LoadOrCreate();
+        Assert.True(store.LoadDidNotRead);
+    }
+
     // Also a fact the engine records: in the file only once it is true.
     [Theory]
     [InlineData(false)]

@@ -91,6 +91,9 @@ internal sealed class InMemorySettingsStore : ISettingsStore
         }
     }
 
+    // As a settings.json that was there but did not read at the start (locked, say).
+    public bool LoadDidNotRead { get; set; }
+
     public EngineSettings LoadOrCreate() => Settings;
 
     // Settings changed "by hand": the next LoadIfChanged returns them, once. Until then

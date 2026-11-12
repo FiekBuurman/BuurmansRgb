@@ -482,6 +482,8 @@ public sealed class EngineHostTransferTests : IDisposable
 
         public void Release() => _released.Set();
 
+        public bool LoadDidNotRead => store.LoadDidNotRead;
+
         public EngineSettings LoadOrCreate() => store.LoadOrCreate();
 
         public void Save(EngineSettings settings) => store.Save(settings);

@@ -1683,6 +1683,9 @@ vijf startscènes (zie "Scènes"), alle vijf zonder `devices`, dus voor alle app
 gebeurt één keer per pc (`startScenesCreated` in `settings.json`): een `profiles.json` met een
 lege lijst, of geen `profiles.json` meer nadat je hem weghaalde, blijft zo. Een `profiles.json`
 die niet te lezen was en naar `profiles.json.broken` ging, telt ook als een bestand dat er was.
+Is `settings.json` er wel maar bij het starten niet te lezen (een virusscanner of OneDrive houdt
+hem even vast, of hij is geen geldige JSON), dan beslist de engine nog niets over de startscènes
+en schrijft hij ook niets over je instellingen; de volgende start die hem kan lezen beslist.
 
 ### effects.json
 
