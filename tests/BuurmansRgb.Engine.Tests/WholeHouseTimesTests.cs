@@ -374,6 +374,43 @@ public sealed class WholeHouseTimesTests : IDisposable
         Assert.True(_lighting.State.IsAnyOn);
     }
 
+    // A program whose own scene has every device off still holds Uit om: the evening lighting it
+    // goes back to goes off.
+    [Fact]
+    public void UitOm_Internal_WhileAProgramShowsEverythingOff_IsHeldWithEverythingOff()
+    {
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
+        var game = new FakeProgramHold();
+        _timer = new ProfileTimer(_profiles, _clock, _time, game.Hold);
+        _timer.Start();
+        game.Start(Uniform(StaticLighting(Red)), "Avond");
+        _lighting.SetLighting(null, lighting => lighting with { On = false });
+
+        _time.Advance(UntilElevenPm);
+
+        Assert.False(game.Held.Lighting.IsAnyOn);
+        Assert.Equal(Red, game.Held.Lighting.Global.Color);
+        Assert.Null(game.Held.Scene);
+    }
+
+    // Held over lighting that is off already, Uit om keeps it as it is, scene and all.
+    [Fact]
+    public void UitOm_Internal_WhileAProgramRuns_OverLightingThatIsOff_KeepsIt()
+    {
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
+        var game = new FakeProgramHold();
+        _timer = new ProfileTimer(_profiles, _clock, _time, game.Hold);
+        _timer.Start();
+        var off = StartScenes.AllOff;
+        game.Start(off, "Alles uit");
+
+        _time.Advance(UntilElevenPm);
+
+        Assert.Same(off, game.Held.Lighting);
+        Assert.Equal("Alles uit", game.Held.Scene);
+        Assert.True(_lighting.State.IsAnyOn);
+    }
+
     // Uit om 23:00 waits for the game; Aan om at 07:00 comes during the game; the game stops at
     // 07:30: the lighting of the evening comes back on, not every device off.
     [Fact]

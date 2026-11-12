@@ -244,10 +244,11 @@ internal sealed class ProfileLibrary
             return;
         }
 
-        var lightingNow = _lighting.State;
         if (timed.Role == ProfileRole.AllOff)
         {
-            if (lightingNow.IsAnyOn && hold?.Invoke(held => new HeldLighting(held.Lighting.WithOn(false), null)) != true)
+            // Asked first, so a program whose own scene has every device off still gets the lighting
+            // from before it off; only without a program it looks at the lighting now.
+            if (hold?.Invoke(held => held.Lighting.IsAnyOn ? new HeldLighting(held.Lighting.WithOn(false), null) : held) != true && _lighting.State.IsAnyOn)
             {
                 Trace.TraceInformation("Uit om: every device goes off.");
                 _lighting.SetLighting(null, lighting => lighting with { On = false });
@@ -262,7 +263,7 @@ internal sealed class ProfileLibrary
             return;
         }
 
-        if (BackOnOver(new HeldLighting(lightingNow, ActiveName)) is not { } backOn)
+        if (BackOnOver(new HeldLighting(_lighting.State, ActiveName)) is not { } backOn)
         {
             Trace.TraceInformation("Aan om: a device is on already, so the lighting stays as it is.");
             return;
