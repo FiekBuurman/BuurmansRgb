@@ -1632,4 +1632,65 @@
   <data name="OtherRgbSoftwareDismissToolTip" xml:space="preserve">
     <value>Meldt dit programma niet meer, ook niet als het later weer draait. Terugzetten kan in settings.json.</value>
   </data>
+  <data name="WholeHouseTimesHeader" xml:space="preserve">
+    <value>Uit en aan op tijd</value>
+    <comment>Kop in de kaart Hele huis op Apparaten, boven "Uit om" en "Aan om".</comment>
+  </data>
+  <data name="WholeHouseOff" xml:space="preserve">
+    <value>Uit om</value>
+    <comment>Naast de schakelaar, het tijdveld en de dagen; ook de naam van de schakelaar voor een schermlezer.</comment>
+  </data>
+  <data name="WholeHouseOn" xml:space="preserve">
+    <value>Aan om</value>
+  </data>
+  <data name="WholeHouseOffHint" xml:space="preserve">
+    <value>Om deze tijd gaan al je apparaten uit, op de dagen die je kiest. Staat de pc dan uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
+  </data>
+  <data name="WholeHouseOnHint" xml:space="preserve">
+    <value>Om deze tijd gaan je apparaten weer aan, met de kleuren van voor "Uit om". Brandt er dan al iets, dan blijft alles zoals het is.</value>
+  </data>
+  <data name="WholeHouseTimeAccessibleName" xml:space="preserve">
+    <value>Tijd voor {0}</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseDaysAccessibleName" xml:space="preserve">
+    <value>Dagen voor {0}</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseTimeInvalid" xml:space="preserve">
+    <value>Vul bij {0} een tijd in zoals 23:00.</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseDaysNone" xml:space="preserve">
+    <value>Kies bij {0} minstens één dag.</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseSceneNote" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Op Scènes zie je dezelfde tijd bij die scène.</value>
+    <comment>{0} = de naam van de startscène "Alles uit", ook als de gebruiker hem met de hand hernoemde.</comment>
+  </data>
+  <data name="WholeHouseSceneMoreTimes" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Die heeft nog {1} andere tijd(en); die verander je op Scènes.</value>
+    <comment>{0} = de naam van de scène, {1} = hoeveel tijden er naast de eerste zijn.</comment>
+  </data>
+  <data name="WholeHouseTimesSaved" xml:space="preserve">
+    <value>Uit en aan op tijd opgeslagen.</value>
+  </data>
+  <data name="WholeHouseSummaryTime" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>{0} = de tijd, {1} = de dagen, zoals "elke dag" of "ma, wo, vr".</comment>
+  </data>
+  <data name="WholeHouseSummaryOff" xml:space="preserve">
+    <value>uit om {0}</value>
+  </data>
+  <data name="WholeHouseSummaryOn" xml:space="preserve">
+    <value>aan om {0}</value>
+  </data>
+  <data name="WholeHouseSummaryBoth" xml:space="preserve">
+    <value>{0} en {1}</value>
+  </data>
+  <data name="AfterRestartWholeHouse" xml:space="preserve">
+    <value>de tijden van Hele huis op Apparaten: {0}</value>
+    <comment>Een regel in "Na een herstart". {0} = bijv. "uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)".</comment>
+  </data>
 </root>

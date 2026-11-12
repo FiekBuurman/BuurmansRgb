@@ -21,6 +21,41 @@
         <!-- The padding of a card, with room on the right for its switch with "Aan" or "Uit": the 16 px
              between the switch and the edge, and 14 px between the text and the switch. -->
         <views:RightPaddingConverter x:Key="RoomForSwitch" Padding="16,14,30,14" />
+
+        <!-- A time of five characters, as on Scènes: 110 px at 100 %, wider with a larger text size of Windows. -->
+        <views:EmConverter x:Key="TimeBoxWidth" Ems="3" Extra="65" />
+
+        <!-- "Uit om" or "Aan om" (WholeHouseTimeRow): the label, the time and the days, and the switch on the right as
+             on the cards. The time and the days are grey while the switch is off, as they only count with it. The
+             field sends its time when it loses the focus or with Enter (OnWholeHouseTimeKeyDown). -->
+        <DataTemplate x:Key="WholeHouseTimeRowTemplate" DataType="{x:Type vm:WholeHouseTimeRow}">
+            <DockPanel Margin="0,10,0,0" ToolTip="{Binding Hint}">
+                <views:ToggleSwitch DockPanel.Dock="Right" Margin="12,0,0,6" VerticalAlignment="Top" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
+                                    AutomationProperties.Name="{Binding Label}" AutomationProperties.HelpText="{Binding Hint}" />
+                <WrapPanel>
+                    <TextBlock MinWidth="64" Margin="0,0,12,6" VerticalAlignment="Center" Style="{StaticResource Body}" Text="{Binding Label}" />
+                    <TextBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource TimeBoxWidth}}" Margin="0,0,12,6" VerticalAlignment="Center"
+                             MaxLength="5" FontFamily="{StaticResource MonoFont}" IsEnabled="{Binding IsOn}" Text="{Binding Text}"
+                             KeyDown="OnWholeHouseTimeKeyDown"
+                             AutomationProperties.Name="{Binding TimeAccessibleName}" AutomationProperties.HelpText="{Binding Hint}" />
+                    <ItemsControl ItemsSource="{Binding Days}" Focusable="False" IsEnabled="{Binding IsOn}"
+                                  AutomationProperties.Name="{Binding DaysAccessibleName}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:DayOption}">
+                                <ToggleButton Margin="0,0,6,6" Style="{StaticResource DayToggle}" Content="{Binding ShortName}"
+                                              IsChecked="{Binding IsChecked}" ToolTip="{Binding Name}"
+                                              AutomationProperties.Name="{Binding Name}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </WrapPanel>
+            </DockPanel>
+        </DataTemplate>
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Focusable="False">
@@ -75,6 +110,29 @@
                             </DataTemplate>
                         </views:DecorativeItemsControl.ItemTemplate>
                     </views:DecorativeItemsControl>
+
+                    <!-- "Uit om" and "Aan om" (WholeHouseTimesViewModel): every evening off without a scene to make first.
+                         Not in the design (see docs/handleiding.md). Grey until the engine said what it has. -->
+                    <Border Margin="0,14,0,0" Padding="0,12,0,0" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource BorderBrush}"
+                            IsEnabled="{Binding WholeHouseTimes.IsAvailable}">
+                        <StackPanel>
+                            <TextBlock Style="{StaticResource Body}" FontWeight="SemiBold" Text="{x:Static res:Strings.WholeHouseTimesHeader}"
+                                       AutomationProperties.HeadingLevel="Level3" />
+                            <ContentControl Focusable="False" IsTabStop="False" Content="{Binding WholeHouseTimes.Off}" ContentTemplate="{StaticResource WholeHouseTimeRowTemplate}"
+                                            AutomationProperties.AutomationId="WholeHouseOff" />
+                            <ContentControl Focusable="False" IsTabStop="False" Content="{Binding WholeHouseTimes.On}" ContentTemplate="{StaticResource WholeHouseTimeRowTemplate}"
+                                            AutomationProperties.AutomationId="WholeHouseOn" />
+                            <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{Binding WholeHouseTimes.SceneNote}"
+                                       Visibility="{Binding WholeHouseTimes.HasSceneNote, Converter={StaticResource BoolToVisibility}}"
+                                       AutomationProperties.AutomationId="WholeHouseSceneNote" />
+                            <DockPanel Margin="0,6,0,0" Visibility="{Binding WholeHouseTimes.HasError, Converter={StaticResource BoolToVisibility}}">
+                                <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                                <TextBlock TextWrapping="Wrap" Text="{Binding WholeHouseTimes.Error, NotifyOnTargetUpdated=True}"
+                                           AutomationProperties.AutomationId="WholeHouseTimesError" AutomationProperties.LiveSetting="Polite"
+                                           views:LiveRegion.AnnouncesUpdates="True" />
+                            </DockPanel>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </Border>
 

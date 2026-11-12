@@ -30,6 +30,7 @@ public sealed class HeadingStructureViewTests
                 [
                     "1 buurmansRgb",
                     "2 Hele huis",
+                    "3 Uit en aan op tijd",
                     "2 Apparaten in huis",
                     "3 LED strip",
                     "3 Fan",
