@@ -143,7 +143,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RequestStill();
         };
         EffectsPause = new EffectsPauseViewModel(_time);
-        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes);
+        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes, WholeHouseTimes);
         DeviceRescan = new DeviceRescanViewModel(_time);
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
