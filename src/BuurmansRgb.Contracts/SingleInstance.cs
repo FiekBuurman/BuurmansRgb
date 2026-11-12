@@ -13,12 +13,13 @@ public sealed class SingleInstance : IDisposable
     public const int MaxCommandBytes = 1024;
 
     // The command and its answer go through a small block of shared memory of the session, which
-    // only exists while a command is on its way: the id of the command, the id the answer is for,
-    // the answer, the length of the command in UTF-8 bytes and the command.
+    // only exists while a command is on its way: the id of the command, the length of the command
+    // in UTF-8 bytes, the answer with the id it is for, and the command. The answer and its id are
+    // one aligned long, written and read in one go, so a sender never sees the answer to one
+    // command with the id of another.
     private const int IdOffset = 0;
-    private const int AnsweredIdOffset = 4;
+    private const int LengthOffset = 4;
     private const int AnswerOffset = 8;
-    private const int LengthOffset = 12;
     private const int CommandOffset = 16;
     private const int MailboxSize = CommandOffset + MaxCommandBytes;
 
@@ -163,9 +164,10 @@ public sealed class SingleInstance : IDisposable
                         return null;
                     }
 
-                    if (view.ReadInt32(AnsweredIdOffset) == id)
+                    var (answeredId, answer) = SplitAnswer(view.ReadInt64(AnswerOffset));
+                    if (answeredId == id)
                     {
-                        return view.ReadInt32(AnswerOffset);
+                        return answer;
                     }
                 }
             }
@@ -230,6 +232,10 @@ public sealed class SingleInstance : IDisposable
         }
     }
 
+    private static long JoinAnswer(int id, int answer) => ((long)answer << 32) | (uint)id;
+
+    private static (int Id, int Answer) SplitAnswer(long joined) => ((int)joined, (int)(joined >> 32));
+
     private static bool WaitForTurn(Mutex turn, TimeSpan timeout)
     {
         try
@@ -283,7 +289,7 @@ public sealed class SingleInstance : IDisposable
             // No id yet (the sender is still writing) or one that got its answer already (a signal
             // that was left over): nothing to do.
             var id = view.ReadInt32(IdOffset);
-            if (id == 0 || id == view.ReadInt32(AnsweredIdOffset))
+            if (id == 0 || id == SplitAnswer(view.ReadInt64(AnswerOffset)).Id)
             {
                 return;
             }
@@ -297,9 +303,17 @@ public sealed class SingleInstance : IDisposable
 
             var bytes = new byte[length];
             view.ReadArray(CommandOffset, bytes, 0, length);
-            view.Write(AnswerOffset, onCommand(Encoding.UTF8.GetString(bytes)));
+            var answer = onCommand(Encoding.UTF8.GetString(bytes));
+
+            // Callbacks run side by side: one that took longer than its sender waited does not
+            // overwrite the answer to the command after it.
             Interlocked.MemoryBarrier();
-            view.Write(AnsweredIdOffset, id);
+            if (view.ReadInt32(IdOffset) != id)
+            {
+                return;
+            }
+
+            view.Write(AnswerOffset, JoinAnswer(id, answer));
         }
 
         if (EventWaitHandle.TryOpenExisting(AnsweredName(_name), out var answered))

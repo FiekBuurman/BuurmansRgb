@@ -305,6 +305,39 @@ public sealed class SingleInstanceTests
         Assert.Equal(2, await next);
     }
 
+    // Callbacks run side by side: the slow one finishes while the next is being answered, and
+    // leaves the answer alone (the block is new, so still empty), so it cannot mix with the next.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public async Task SendCommand_LateAnswer_DoesNotOverwriteTheNext()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var mailbox = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen($@"Local\{_name}.CommandMailbox", 16 + SingleInstance.MaxCommandBytes);
+        using var view = mailbox.CreateViewAccessor();
+        using var releaseSlow = new ManualResetEventSlim();
+        long answerSlotAfterSlow = -1;
+        using var listening = primary.ListenForCommand(command =>
+        {
+            if (command == "slow")
+            {
+                releaseSlow.Wait(TestTimeouts.Short);
+                return 41;
+            }
+
+            releaseSlow.Set();
+            Thread.Sleep(TimeSpan.FromMilliseconds(300)); // the slow one writes, or would, meanwhile
+            Volatile.Write(ref answerSlotAfterSlow, view.ReadInt64(8));
+            return 2;
+        });
+
+        var slow = await Task.Run(() => SingleInstance.SendCommand(_name, "slow", TimeSpan.FromMilliseconds(100)), Ct);
+        var next = await Task.Run(() => SingleInstance.SendCommand(_name, "fast", TestTimeouts.Short), Ct);
+
+        Assert.Null(slow);
+        Assert.Equal(2, next);
+        Assert.Equal(0, Volatile.Read(ref answerSlotAfterSlow)); // nothing answered yet in this block
+    }
+
     // On a thread of the pool, where an exception would end the process (and this test run).
     [Fact]
     public async Task SendCommand_CallbackThrows_IsNull_AndTheListenerKeepsAnswering()
