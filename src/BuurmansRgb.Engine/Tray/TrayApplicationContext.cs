@@ -141,7 +141,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         message,
         action => _uiContext.Post(_ => action(), state: null),
         _presenter.Run,
-        EngineCommand.AnswerTimeout,
+        EngineCommand.RunTimeout,
         _shutdown.Token);
 
     // From another thread (the settings app through IEngineApi.RestartAsync): the same as

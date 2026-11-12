@@ -627,7 +627,7 @@ toetsenbord. Een paar dingen om te proberen:
   gedeelde geheugen of in de engine) logt `SingleInstance` met `Trace.TraceError`; de tweede
   start krijgt dan na de 10 s een 4. `EngineCommand.Answer` vertaalt het bericht (een onbekend
   bericht geeft 1 met een regel in het log), zet de opdracht via `TrayApplicationContext.RunCommand`
-  op de thread van het tray-icoon en geeft 4 bij afsluiten of als die thread langer dan 10 s
+  op de thread van het tray-icoon en geeft 4 bij afsluiten of als die thread langer dan 8 s (korter dan de 10 s van de tweede start, zodat die de 4 nog als antwoord krijgt)
   vastzit; een opdracht die daarna pas aan de beurt komt, slaat hij over (een die al liep, maakt
   hij af). `TrayPresenter.Run` doet wat "Scène aanzetten", "Alles aan" en
   "Alles uit" in het menu doen (een scène hoofdletterongevoelig via `ProfileNames.Comparer`),

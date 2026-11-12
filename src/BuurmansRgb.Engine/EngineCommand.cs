@@ -21,6 +21,11 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
     // takes a few milliseconds; more means the engine hangs.
     public static readonly TimeSpan AnswerTimeout = TimeSpan.FromSeconds(10);
 
+    // How long the engine waits for its tray thread to do a command. Shorter than AnswerTimeout,
+    // so the second start still hears that it did not get through (NoAnswer, logged) rather than
+    // giving up on its own at the same moment.
+    public static readonly TimeSpan RunTimeout = TimeSpan.FromSeconds(8);
+
     private const string ScenePrefix = "scene:";
     private const string AllOnMessage = "all-on";
     private const string AllOffMessage = "all-off";

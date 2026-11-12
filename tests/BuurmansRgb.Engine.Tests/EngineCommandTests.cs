@@ -21,6 +21,13 @@ public sealed class EngineCommandTests
         Assert.Equal(command, EngineOptions.Parse(args).Command?.ToString());
     }
 
+    // The engine gives up first, so a second start still gets NoAnswer from it in time.
+    [Fact]
+    public void RunTimeout_IsShorterThanTheWaitOfTheSecondStart()
+    {
+        Assert.True(EngineCommand.RunTimeout < EngineCommand.AnswerTimeout);
+    }
+
     [Theory]
     [InlineData((int)EngineCommandKind.Scene, "Café: 's avonds")]
     [InlineData((int)EngineCommandKind.Scene, "")]
