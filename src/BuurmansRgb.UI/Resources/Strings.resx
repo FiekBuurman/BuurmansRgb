@@ -1665,6 +1665,10 @@
     <value>Kies bij {0} minstens één dag.</value>
     <comment>{0} = "Uit om" of "Aan om".</comment>
   </data>
+  <data name="WholeHouseTimesClash" xml:space="preserve">
+    <value>Uit om en Aan om vallen samen. Kies een andere tijd of andere dagen.</value>
+    <comment>Melding onder Hele huis als Uit om en Aan om dezelfde tijd op een gedeelde dag hebben; dan zou alleen Uit om gebeuren.</comment>
+  </data>
   <data name="WholeHouseSceneNote" xml:space="preserve">
     <value>Uit om zet de scène '{0}' aan. Op Scènes zie je dezelfde tijd bij die scène.</value>
     <comment>{0} = de naam van de startscène "Alles uit", ook als de gebruiker hem met de hand hernoemde.</comment>

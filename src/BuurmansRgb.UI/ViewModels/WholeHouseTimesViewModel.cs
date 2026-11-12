@@ -48,8 +48,8 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
 
     public bool HasSceneNote => SceneNote is not null;
 
-    // What is wrong with a row that is on, or null. Only raised when it really changes, so a screen
-    // reader hears it once.
+    // What is wrong with a row that is on, or that Uit om and Aan om fall together; null when
+    // nothing is. Only raised when it really changes, so a screen reader hears it once.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
     public partial string? Error { get; private set; }
@@ -77,7 +77,7 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
         Off.Show(times.Off.FirstOrDefault());
         On.Show(times.On.FirstOrDefault());
         IsAvailable = true;
-        Error = null;
+        Error = FindClash(times);
         OnPropertyChanged(nameof(OffScene));
         OnPropertyChanged(nameof(SceneNote));
         OnPropertyChanged(nameof(HasSceneNote));
@@ -102,18 +102,25 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
             return;
         }
 
-        Error = FindError(Off) ?? FindError(On);
-        if (Error is not null || !Off.TryRead(out var off) || !On.TryRead(out var on))
+        var error = FindError(Off) ?? FindError(On);
+        WholeHouseTimes? times = null;
+        if (error is null && Off.TryRead(out var off) && On.TryRead(out var on))
         {
-            return;
+            times = new WholeHouseTimes(Replace(_saved.Off, off), Replace(_saved.On, on), _saved.OffScene);
+            error = FindClash(times);
         }
 
-        var times = new WholeHouseTimes(Replace(_saved.Off, off), Replace(_saved.On, on), _saved.OffScene);
-        if (times != _saved)
+        Error = error;
+        if (error is null && times is not null && times != _saved)
         {
             ApplyRequested?.Invoke(this, times);
         }
     }
+
+    // Uit om and Aan om at the same time on a day: the engine would only switch off then, so say so
+    // instead of sending it.
+    private static string? FindClash(WholeHouseTimes times) =>
+        times.On.Any(on => times.Off.Any(off => off.At == on.At && (off.Days & on.Days) != WeekDays.None)) ? Strings.WholeHouseTimesClash : null;
 
     // The first time is the one of the row; off, there is none, also not the rest.
     private static IReadOnlyList<LoadTime> Replace(IReadOnlyList<LoadTime> saved, LoadTime? first) =>

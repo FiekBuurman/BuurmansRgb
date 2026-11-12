@@ -174,7 +174,8 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   uit klikken geldt ook meteen; een andere tijd geldt zodra je met Tab verder gaat of op Enter
   drukt. Zolang de schakelaar uit staat, zijn de tijd en de dagen grijs. Een tijd die niet te
   lezen is of geen enkele dag geeft een melding onder het blok ("Vul bij Uit om een tijd in
-  zoals 23:00.") en verandert niets.
+  zoals 23:00.") en verandert niets. Dat geldt ook voor Uit om en Aan om op dezelfde tijd op een
+  dag van allebei ("Uit om en Aan om vallen samen."): dan zou alleen Uit om gebeuren.
   - **Uit om** zet de startscène **Alles uit** aan: het zijn de tijden van die scène, dus bij
     Scènes zie je bij "Alles uit" dezelfde tijd, en verander je hem daar, dan verandert hij hier
     ook. Onder de regels staat dat ("Uit om zet de scène 'Alles uit' aan."). buurmansRgb herkent

@@ -299,6 +299,34 @@ public sealed class WholeHouseTimesTests : IDisposable
         Assert.Equal(Red, _lighting.State.Global.Color);
     }
 
+    // Started at 23:45: a scene at 23:30 came after Uit om at 23:00, so the scene comes on.
+    [Fact]
+    public void CatchUp_AtTheStart_ASceneAfterUitOm_PutsOnTheScene()
+    {
+        _time = new ClockTimeProvider(Start + UntilElevenPm + TimeSpan.FromMinutes(45), DailyTimeTests.Amsterdam);
+        _store.Profiles = [AllOffScene("Alles uit"), new Profile("Nacht", Uniform(StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(23, 30)) }];
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
+
+        StartTimer(catchUp: true);
+
+        Assert.True(_lighting.State.Global.On);
+        Assert.Equal(Blue, _lighting.State.Global.Color);
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    // Started at 23:45: Uit om at 23:00 came after a scene at 22:30, so everything is off.
+    [Fact]
+    public void CatchUp_AtTheStart_UitOmAfterAScene_SwitchesEverythingOff()
+    {
+        _time = new ClockTimeProvider(Start + UntilElevenPm + TimeSpan.FromMinutes(45), DailyTimeTests.Amsterdam);
+        _store.Profiles = [new Profile("Avond", Uniform(StaticLighting(Blue))) { Automation = new ProfileAutomation(new TimeOnly(22, 30)) }];
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
+
+        StartTimer(catchUp: true);
+
+        Assert.False(_lighting.State.IsAnyOn);
+    }
+
     [Fact]
     public void WithoutCatchUp_AtTheStart_NothingIsCaughtUp()
     {

@@ -84,6 +84,34 @@ public sealed class WholeHouseTimesViewModelTests
         Assert.All(_sent, times => Assert.NotEqual(WeekDays.None, times.Off[0].Days));
     }
 
+    // Aan om at the time of Uit om on a day of both would never happen: said, not sent.
+    [Fact]
+    public void UitOmAndAanOmTogether_SaysSo_AndSendsNothing()
+    {
+        _times.Show(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0), WeekDays.Workdays)], [SevenAm]));
+
+        _times.On.Text = "23:00";
+        Assert.Equal("Uit om en Aan om vallen samen. Kies een andere tijd of andere dagen.", _times.Error);
+        Assert.Empty(_sent);
+
+        foreach (var day in _times.On.Days.Take(5))
+        {
+            day.IsChecked = false;
+        }
+
+        Assert.Null(_times.Error);
+        Assert.Equal(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0), WeekDays.Workdays)], [new LoadTime(new TimeOnly(23, 0), WeekDays.Weekend)]), Assert.Single(_sent));
+    }
+
+    // Saved like that, for example through Scènes: the note is there at once.
+    [Fact]
+    public void Show_UitOmAndAanOmTogether_SaysSo()
+    {
+        _times.Show(new WholeHouseTimes([ElevenPm], [ElevenPm]));
+
+        Assert.True(_times.HasError);
+    }
+
     // Switched on with a time that does not read, the field gets the usual time.
     [Fact]
     public void SwitchOn_WithAWrongTimeInTheField_TakesTheUsualTime()
