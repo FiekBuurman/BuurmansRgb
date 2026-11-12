@@ -4,6 +4,10 @@ internal interface ISettingsStore
 {
     EngineSettings LoadOrCreate();
 
+    // Whether the last LoadOrCreate found the file there but could not read it (locked, or no
+    // JSON): it returned defaults, not what the user chose, so the engine decides nothing on them.
+    bool LoadDidNotRead { get; }
+
     void Save(EngineSettings settings);
 
     // Saves settings unless someone else changed the file since this store last read or wrote it:

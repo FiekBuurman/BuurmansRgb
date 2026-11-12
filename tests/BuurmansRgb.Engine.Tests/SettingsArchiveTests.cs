@@ -164,7 +164,7 @@ public sealed class SettingsArchiveTests
     {
         var json = Encoding.UTF8.GetBytes("""{ "brightness": 0.5, "autoStartChosen": false, "HadRealDevices": true, "future": [1] }""");
 
-        var root = JsonNode.Parse(SettingsArchive.WithThisPc(json, autoStartChosen: true, hadRealDevices: false))!.AsObject();
+        var root = JsonNode.Parse(SettingsArchive.WithThisPc(json, autoStartChosen: true, hadRealDevices: false, startScenesCreated: false))!.AsObject();
 
         Assert.Equal(0.5, root["brightness"]!.GetValue<double>());
         Assert.True(root["autoStartChosen"]!.GetValue<bool>());
@@ -178,7 +178,7 @@ public sealed class SettingsArchiveTests
     {
         var json = Encoding.UTF8.GetBytes("""{ "autoStartChosen": true }""");
 
-        var root = JsonNode.Parse(SettingsArchive.WithThisPc(json, autoStartChosen: null, hadRealDevices: true))!.AsObject();
+        var root = JsonNode.Parse(SettingsArchive.WithThisPc(json, autoStartChosen: null, hadRealDevices: true, startScenesCreated: false))!.AsObject();
 
         Assert.False(root.ContainsKey("autoStartChosen"));
         Assert.True(root["hadRealDevices"]!.GetValue<bool>());

@@ -1,6 +1,7 @@
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
 using BuurmansRgb.Engine.Lighting;
+using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -180,6 +181,39 @@ public sealed class EngineHostAutoStartTests : IDisposable
         host.Dispose();
 
         Assert.Equal(text, File.ReadAllText(path));
+    }
+
+    // The same on a pc without profiles.json, as on the first start after an update via autostart:
+    // whether the start scenes came before is not known, so none are written and nothing is saved
+    // for them, which after the saver's waits would write the defaults over the user's file.
+    [Fact]
+    public async Task FileLockedAtTheStart_WithoutProfilesJson_NoStartScenesAndNotOverwritten()
+    {
+        using var directory = new TempDirectory();
+        var path = directory.File("settings.json");
+        var profilesPath = directory.File("profiles.json");
+        const string text = """{ "framesPerSecond": 12, "color": "#FF8800" }""";
+        File.WriteAllText(path, text);
+        var lighting = Lighting();
+        var library = new ProfileLibrary(new JsonProfileStore(profilesPath), lighting);
+        var host = new EngineHost(
+            new JsonSettingsStore(path),
+            lighting,
+            saveDelay: TimeSpan.FromMilliseconds(10),
+            autoStart: _autoStart,
+            firstRun: true,
+            profiles: library);
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            await host.StartAsync(Ct);
+        }
+
+        await Task.Delay(TimeSpan.FromMilliseconds(500), Ct);
+        host.Dispose();
+
+        Assert.Equal(text, File.ReadAllText(path));
+        Assert.Empty(library.Names);
+        Assert.False(File.Exists(profilesPath));
     }
 
     // Chosen in the tray menu while the devices are fetched, before there is a saver: still saved,

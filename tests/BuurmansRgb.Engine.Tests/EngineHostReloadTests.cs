@@ -461,6 +461,8 @@ public sealed class EngineHostReloadTests : IDisposable
 
         public int Changes => Volatile.Read(ref _changes);
 
+        public bool LoadDidNotRead => store.LoadDidNotRead;
+
         public EngineSettings LoadOrCreate() => store.LoadOrCreate();
 
         public void Save(EngineSettings settings) => store.Save(settings);

@@ -1,3 +1,4 @@
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -21,23 +22,24 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public event EventHandler<RgbColor>? ColorPicked;
 
     // "Kleuren": the colors of the design, after them red, green and blue at full strength, which
-    // the tinted ones of the design are not, and then pink and the pastels the user asked for.
+    // the tinted ones of the design are not, and then pink and the pastels the user asked for. The
+    // colors are in Contracts (ToolboxColors), so the start scenes of the engine use the same ones.
     public static IReadOnlyList<ColorPreset> Presets { get; } =
     [
-        new(new(255, 244, 229), Strings.PresetWarmWhite),
-        new(new(255, 59, 59), Strings.PresetRed),
-        new(new(255, 154, 61), Strings.PresetOrange),
-        new(new(31, 196, 106), Strings.PresetGreen),
-        new(new(47, 107, 255), Strings.PresetBlue),
-        new(new(169, 123, 255), Strings.PresetPurple),
-        new(new(255, 0, 0), Strings.PresetPureRed),
-        new(new(0, 255, 0), Strings.PresetPureGreen),
-        new(new(0, 0, 255), Strings.PresetPureBlue),
-        new(new(255, 105, 180), Strings.PresetPink),
-        new(new(255, 182, 193), Strings.PresetLightPink),
-        new(new(204, 153, 255), Strings.PresetLilac),
-        new(new(152, 255, 204), Strings.PresetMint),
-        new(new(137, 207, 240), Strings.PresetBabyBlue),
+        new(ToolboxColors.WarmWhite, Strings.PresetWarmWhite),
+        new(ToolboxColors.Red, Strings.PresetRed),
+        new(ToolboxColors.Orange, Strings.PresetOrange),
+        new(ToolboxColors.Green, Strings.PresetGreen),
+        new(ToolboxColors.Blue, Strings.PresetBlue),
+        new(ToolboxColors.Purple, Strings.PresetPurple),
+        new(ToolboxColors.PureRed, Strings.PresetPureRed),
+        new(ToolboxColors.PureGreen, Strings.PresetPureGreen),
+        new(ToolboxColors.PureBlue, Strings.PresetPureBlue),
+        new(ToolboxColors.Pink, Strings.PresetPink),
+        new(ToolboxColors.LightPink, Strings.PresetLightPink),
+        new(ToolboxColors.Lilac, Strings.PresetLilac),
+        new(ToolboxColors.Mint, Strings.PresetMint),
+        new(ToolboxColors.BabyBlue, Strings.PresetBabyBlue),
     ];
 
     // 0 to 255 each.
