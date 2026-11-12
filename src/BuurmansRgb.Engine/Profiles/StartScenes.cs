@@ -8,7 +8,8 @@ namespace BuurmansRgb.Engine.Profiles;
 // tray menu have something to try at once. Each is one lighting for all devices (Global, no device
 // of its own), so it also takes a device that comes later. Built from the effects there are: a
 // loop of four pastels is the color loop with its own colors. The names are in the language of
-// Strings.resx when they are made; after that they are saved names like any other.
+// Strings.resx when they are made; after that they are saved names like any other. "Alles uit" has
+// the role AllOff, so "Uit om" on Apparaten finds it by that, also when renamed by hand.
 internal static class StartScenes
 {
     // As "Rustig wit", but off: "Alles aan" after it gives that calm light, not full white.
@@ -39,7 +40,7 @@ internal static class StartScenes
     // In the order of the panel; the library sorts them by name.
     public static IReadOnlyList<Profile> Create() =>
     [
-        new(Strings.StartSceneAllOff, AllOff),
+        new(Strings.StartSceneAllOff, AllOff) { Role = ProfileRole.AllOff },
         new(Strings.StartSceneCalmWhite, CalmWhite),
         new(Strings.StartSceneRainbow, Rainbow),
         new(Strings.StartScenePastel, Pastel),

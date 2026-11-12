@@ -83,6 +83,15 @@ public sealed class EngineCommandTests
         Assert.Contains(trace.Messages, message => message.Contains("there is no scene 'Gamen2'", StringComparison.Ordinal));
     }
 
+    // An internal profile of "Uit om" or "Aan om" is no scene, also not by the name of its role.
+    [Fact]
+    public void CheckBeforeStart_TheNameOfAnInternalProfile_IsUnknownScene()
+    {
+        var store = new InMemoryProfileStore { Profiles = [Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Red)), ProfileAutomation.None)] };
+
+        Assert.Equal(EngineCommandResult.UnknownScene, new EngineCommand(EngineCommandKind.Scene, "backOn").CheckBeforeStart(store));
+    }
+
     // The engine starts and reports it, as without a command.
     [Fact]
     public void CheckBeforeStart_FileUnreadable_LeavesItToTheEngine()

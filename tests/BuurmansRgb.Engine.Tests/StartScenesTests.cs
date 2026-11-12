@@ -87,6 +87,18 @@ public sealed class StartScenesTests : IDisposable
         var read = store.Load();
         Assert.Equal(scenes.Select(scene => scene.Name), read.Select(scene => scene.Name));
         Assert.All(scenes.Zip(read), pair => Assert.True(EngineSettings.SameLighting(pair.First.Lighting, pair.Second.Lighting), pair.First.Name));
+        Assert.Equal(scenes.Select(scene => scene.Role), read.Select(scene => scene.Role));
+    }
+
+    // "Uit om" on Apparaten finds it by its role, not by its name.
+    [Fact]
+    public void AllOff_HasTheRoleAllOff_AndTheOthersNone()
+    {
+        var scenes = StartScenes.Create();
+
+        Assert.Equal(ProfileRole.AllOff, scenes[0].Role);
+        Assert.All(scenes.Skip(1), scene => Assert.Equal(ProfileRole.None, scene.Role));
+        Assert.All(scenes, scene => Assert.False(scene.IsInternal));
     }
 
     [Fact]

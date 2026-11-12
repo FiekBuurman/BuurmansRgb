@@ -10,7 +10,9 @@ namespace BuurmansRgb.Engine.Profiles;
 // app asks, and right at the start when the file exists, because the profile triggers need the
 // times and programs then. Written on every change. Called from the tray thread, IPC threads and
 // the timers of the triggers; the lock guards the list. An invalid or unknown name throws
-// ArgumentException, which reaches the UI as an RPC error.
+// ArgumentException, which reaches the UI as an RPC error. The internal profiles of "Uit om" and
+// "Aan om" (Profile.IsInternal) are in the same file, but no scenes: no name, no load, save or
+// delete by name finds them.
 //
 // It also knows which scene is on (ActiveName): the one loaded or saved last, until the lighting
 // changes in any other way. The engine keeps it over a restart in settings.json (RestoreActive).
@@ -52,7 +54,7 @@ internal sealed class ProfileLibrary
         {
             lock (_gate)
             {
-                return [.. ProfilesLocked().Select(profile => profile.Name)];
+                return [.. ScenesLocked().Select(profile => profile.Name)];
             }
         }
     }
@@ -77,7 +79,7 @@ internal sealed class ProfileLibrary
         {
             lock (_gate)
             {
-                return [.. ProfilesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
+                return [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
             }
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
@@ -125,8 +127,8 @@ internal sealed class ProfileLibrary
         var lightingNow = _lighting.State;
         lock (_gate)
         {
-            var old = ProfilesLocked().Find(other => Matches(other, normalized));
-            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None };
+            var old = ScenesLocked().FirstOrDefault(other => Matches(other, normalized));
+            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None, Role = old?.Role ?? ProfileRole.None };
             List<Profile> profiles = [.. ProfilesLocked().Where(other => !ReferenceEquals(other, old)), profile];
             profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
             Store(profiles);
@@ -165,7 +167,7 @@ internal sealed class ProfileLibrary
         {
             lock (_gate)
             {
-                return ProfilesLocked().Find(profile => Matches(profile, name.Trim()))?.Name;
+                return ScenesLocked().FirstOrDefault(profile => Matches(profile, name.Trim()))?.Name;
             }
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
@@ -283,7 +285,7 @@ internal sealed class ProfileLibrary
         {
             write();
             _profiles = null;
-            names = [.. ProfilesLocked().Select(profile => profile.Name)];
+            names = [.. ScenesLocked().Select(profile => profile.Name)];
         }
 
         bool activeGone;
@@ -340,10 +342,14 @@ internal sealed class ProfileLibrary
         return changed;
     }
 
+    // All of them, the internal ones too (Profile.IsInternal).
     private List<Profile> ProfilesLocked() => _profiles ??= [.. _store.Load().OrderBy(profile => profile.Name, ProfileNames.Comparer)];
 
+    // The scenes of the user: the profiles with a name, in alphabetical order.
+    private IEnumerable<Profile> ScenesLocked() => ProfilesLocked().Where(profile => !profile.IsInternal);
+
     private Profile FindLocked(string name) =>
-        ProfilesLocked().Find(profile => Matches(profile, name?.Trim() ?? string.Empty))
+        ScenesLocked().FirstOrDefault(profile => Matches(profile, name?.Trim() ?? string.Empty))
         ?? throw new ArgumentException($"There is no profile '{name}'.", nameof(name));
 
     private void Store(List<Profile> profiles)
