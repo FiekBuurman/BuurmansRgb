@@ -620,7 +620,7 @@ apparaat dat er later bij komt:
 
 | Scène | Wat hij doet |
 |---|---|
-| Alles uit | Alle apparaten uit. Met "Alles aan" daarna branden ze als bij Rustig wit. |
+| Alles uit | Alle apparaten uit, en hun kleur en effect worden die van Rustig wit: met "Alles aan" daarna branden ze rustig wit, je eigen kleur komt niet terug. Wil je alleen uit en daarna je eigen kleur terug, gebruik dan "Alles uit" in het tray-menu (of `--all-off`). |
 | Rustig wit | Warm wit, statisch, op 40 %. |
 | Regenboog | Het effect Regenboog. |
 | Pastel | Een kleurenloop van Lichtroze, Lila, Mint en Babyblauw. |
