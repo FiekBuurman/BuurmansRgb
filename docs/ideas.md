@@ -622,6 +622,9 @@ uitbreidingen in `docs/bouwplan.md`.
   om" aan terwijl "Alles uit" al aan staat, dan komt 's ochtends Rustig wit terug (de
   verlichting van het moment dat je Aan om aanzette). Kost een schrijfactie van `profiles.json`
   per "Alles uit" en een intern profiel zonder tijden (`uit-om`)
+- Bij "Alles uit" ook de naam van de scène van daarvoor bewaren voor "Aan om", zodat die scène
+  's ochtends weer als aan telt (haar kaart bij Scènes actief); nu bewaart buurmansRgb alleen de
+  verlichting, dus komen de kleuren terug maar staat er geen scène aan (`uit-om`)
 - "Vanavond niet": één keer "Uit om" overslaan zonder de schakelaar uit te zetten, bijv. vanuit
   het tray-menu (`uit-om`)
 - Een oudere versie van buurmansRgb laat `role` en `internal` in `profiles.json` bij het opslaan

@@ -289,10 +289,11 @@ internal sealed class ProfileLibrary
         }
     }
 
-    // What "Aan om" puts on over off, the lighting with the scene that is on with it: after "Alles
+    // What "Aan om" puts on over off (the lighting with the scene that is on with it): after "Alles
     // uit" the lighting from before it as it was, so a device that was off then (a fan) stays off;
-    // else, or when nothing was on before it either, that lighting with every device on. Null while
-    // a device is on.
+    // else, or when nothing was on before it either, that lighting with every device on. Without a
+    // scene, as only the lighting from before is kept (RememberBeforeOffLocked). Null while a device
+    // is on.
     private HeldLighting? BackOnOver(HeldLighting off)
     {
         if (off.Lighting.IsAnyOn)
@@ -531,10 +532,10 @@ internal sealed class ProfileLibrary
 
     private Profile? InternalLocked(ProfileRole role) => ProfilesLocked().Find(profile => profile.IsInternal && profile.Role == role);
 
-    // "Aan om" puts back what burned before "Alles uit" came on, before: the lighting then with the
-    // scene that was on. That is kept in its internal profile; only while there is one, and not when
-    // "Alles uit" was on already, as then that is what burned. Not a change of the scenes, so no
-    // Changed. A file that cannot be written keeps what it had, and "Alles uit" still comes on.
+    // "Aan om" puts back the lighting that burned before "Alles uit" came on, from before. Only the
+    // lighting is kept, in its internal profile, not the scene that was on (before.Scene only tells
+    // whether that was "Alles uit" itself); only while there is one, and not when "Alles uit" was on
+    // already, as then that is what burned. Not a change of the scenes, so no Changed. A file that cannot be written keeps what it had, and "Alles uit" still comes on.
     private void RememberBeforeOffLocked(Profile scene, HeldLighting before)
     {
         if (InternalLocked(ProfileRole.BackOn) is not { } backOn || (before.Scene is { } active && Matches(scene.Name, active)))
