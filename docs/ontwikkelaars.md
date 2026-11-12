@@ -619,7 +619,8 @@ toetsenbord. Een paar dingen om te proberen:
   `Load(name)`, `Save`, `Delete`, `TryGetAutomated` en `EngineCommand.CheckBeforeStart` zien ze
   niet. Een programma met een eigen scène houdt een Uit om en een Aan om vast via
   `ProgramWatcher.HoldUntilProgramsStop(next)` (`ProgramHold`): `next` krijgt wat terugkomt als
-  het programma stopt (`HeldLighting`, verlichting met scène) en geeft wat er dan terugkomt. Uit
+  het programma stopt (`HeldLighting`, verlichting met scène) en geeft wat er dan terugkomt;
+  `next` loopt onder het slot van de watcher, dus houd hem kort en laat hem geen verlichting tonen. Uit
   om zet dat uit (bij de scène "Alles uit" bewaart hij het eerst voor Aan om), Aan om zet het aan
   zoals hierboven als daarin alles uit staat. De app vraagt en zet ze met
   `GetWholeHouseTimesAsync` en `SetWholeHouseTimesAsync`; een wijziging geeft `ProfilesChanged`.

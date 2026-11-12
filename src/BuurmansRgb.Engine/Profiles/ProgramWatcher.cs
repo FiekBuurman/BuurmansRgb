@@ -415,15 +415,15 @@ internal sealed class ProgramWatcher : IProfileTrigger
         }
     }
 
-    // While a program shows its profile untouched, the profile scene (such as one whose time came)
-    // becomes what comes back once the programs stop, instead of showing now: 23:00 in the middle
-    // of a game. False when no program shows its own profile; then the caller shows it. A profile
-    // that is gone throws ArgumentException, as loading it would. While resting it looks once
-    // first, so a game that stopped on the lock screen does not hold the time until unlocking.
-    public bool HoldUntilProgramsStop(string scene) => HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
-
-    // The same with the lighting and scene as next gives them from what would come back, such as
-    // every device off for "Uit om", or the lighting from before "Alles uit" for "Aan om" (ProgramHold).
+    // While a program shows its profile untouched, what next makes of the lighting that would come
+    // back (with the scene that is on with it) becomes what comes back once the programs stop,
+    // instead of showing now: a scene whose time came, every device off for "Uit om", or the lighting
+    // from before "Alles uit" for "Aan om" (ProgramHold); 23:00 in the middle of a game. False when no
+    // program shows its own profile; then the caller does it now. What next throws, such as the
+    // ArgumentException for a profile that is gone, comes through and keeps what would come back.
+    // While resting it looks once first, so a game that stopped on the lock screen does not hold the
+    // time until unlocking. next runs under the lock of the watcher, so it must be short and must not
+    // call back into the watcher or show lighting; reading and saving profiles is fine.
     public bool HoldUntilProgramsStop(Func<HeldLighting, HeldLighting> next)
     {
         lock (_gate)

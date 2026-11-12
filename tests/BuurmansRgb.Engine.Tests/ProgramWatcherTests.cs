@@ -127,7 +127,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Remove(EldenRing);
         var looks = _programs.FindCount;
 
-        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.False(HoldScene("Nacht"));
 
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Green, ShownColor());
@@ -142,7 +142,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
 
-        Assert.True(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.True(HoldScene("Nacht"));
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Red, ShownColor());
 
@@ -158,13 +158,13 @@ public sealed class ProgramWatcherTests : IDisposable
         StartWatcher();
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
-        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.False(HoldScene("Nacht"));
         Assert.Equal(looks, _programs.FindCount);
 
         _session.Raise(SessionSwitchReason.SessionUnlock);
         StartProgram(EldenRing);
         looks = _programs.FindCount;
-        Assert.True(_watcher.HoldUntilProgramsStop("Nacht"));
+        Assert.True(HoldScene("Nacht"));
         Assert.Equal(looks, _programs.FindCount);
     }
 
@@ -638,6 +638,9 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Remove(program);
         _time.Advance(Interval);
     }
+
+    // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.
+    private bool HoldScene(string scene) => _watcher!.HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
 
     private RgbColor ShownColor() => _lighting.GetLighting(null).Color;
 
