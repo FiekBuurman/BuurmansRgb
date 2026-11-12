@@ -40,9 +40,10 @@ public sealed class SingleInstance : IDisposable
         IsPrimary = isPrimary;
 
         // Made at once, not when the first one listens, so a command that comes while this
-        // instance starts (a Stream Deck right after signing in) waits for the listener instead of
-        // getting lost: the signal stays set until then. Only the first makes it, so a sender finds
-        // it only while an instance runs that knows commands.
+        // instance starts (a Stream Deck right after signing in) gets an answer (NotStarted until
+        // the saved lighting is on) instead of none: the signal stays set until the listener
+        // comes. Only the first makes it, so a sender finds it only while an instance runs that
+        // knows commands.
         if (isPrimary)
         {
             _command = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, CommandName(name));
