@@ -619,7 +619,7 @@ toetsenbord. Een paar dingen om te proberen:
   overgebleven signaal een opdracht niet twee keer uitvoert. De engine luistert met
   `ListenForCommand`, een geregistreerde
   wait zoals bij activeren en `--exit`: geen thread, timer of polling zolang niemand iets
-  stuurt. Het event maakt de eerste instantie al in `SingleInstance.Acquire` (auto-reset), dus
+  stuurt. Het event maakt de eerste instantie al in `SingleInstance.Acquire(name, acceptsCommands: true)` (auto-reset; alleen de engine vraagt dat, de instellingen-app niet, dus een opdracht met de naam van de app krijgt meteen `null`), dus
   een opdracht die komt terwijl de engine nog opstart, blijft staan tot `ListenForCommand`
   luistert en krijgt dan 3 of het resultaat (binnen de 10 s). Een oudere engine (v1.5.0) maakt
   het event niet: daar vindt `SendCommand` niets en eindigt de tweede start meteen met 4, in

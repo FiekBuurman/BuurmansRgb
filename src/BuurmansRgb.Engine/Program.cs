@@ -48,7 +48,7 @@ internal static class Program
 
         IReadOnlyList<string> restartWarnings = [];
         using var instance = options.Restarted is null
-            ? SingleInstance.Acquire(EngineRpc.EngineName)
+            ? SingleInstance.Acquire(EngineRpc.EngineName, acceptsCommands: true)
             : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, out restartWarnings);
         if (!instance.IsPrimary)
         {

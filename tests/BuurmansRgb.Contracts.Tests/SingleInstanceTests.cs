@@ -196,7 +196,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_PrimaryListens_GetsTheCommandAndGivesItsAnswer()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         var received = new List<string>();
         using var listening = primary.ListenForCommand(command =>
         {
@@ -217,7 +217,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_OneAfterTheOther_EachGetsItsOwnAnswer()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         using var listening = primary.ListenForCommand(command => command.Length);
 
         var answers = await Task.Run(() => new[] { "a", "bb", "ccc" }.Select(command => SingleInstance.SendCommand(_name, command, TestTimeouts.Short)).ToList(), Ct);
@@ -228,7 +228,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_AtTheSameTime_EachGetsItsOwnAnswer()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         using var listening = primary.ListenForCommand(command => int.Parse(command, System.Globalization.CultureInfo.InvariantCulture));
 
         var answers = await Task.WhenAll(Enumerable.Range(1, 5).Select(number => Task.Run(() => SingleInstance.SendCommand(_name, number.ToString(System.Globalization.CultureInfo.InvariantCulture), TestTimeouts.Short), Ct)));
@@ -240,7 +240,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_BeforePrimaryListens_GetsTheAnswerOnceItListens()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
 
         var answer = Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short), Ct);
         await Task.Delay(TimeSpan.FromMilliseconds(200), Ct);
@@ -253,7 +253,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_PrimaryNeverListens_IsNullAfterTheTimeout()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
 
         var answer = await Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TimeSpan.FromMilliseconds(200)), Ct);
 
@@ -270,20 +270,40 @@ public sealed class SingleInstanceTests
         Assert.Null(SingleInstance.SendCommand($"{_name}.Other", "all-on", TestTimeouts.Short));
     }
 
+    // The settings app: the first one, but not one that takes commands.
+    [Fact]
+    public void SendCommand_InstanceThatTakesNoCommands_IsNullAtOnce()
+    {
+        using var settingsApp = SingleInstance.Acquire(_name);
+        var waited = System.Diagnostics.Stopwatch.StartNew();
+
+        Assert.Null(SingleInstance.SendCommand(_name, "all-on", TimeSpan.FromSeconds(5)));
+        Assert.True(waited.Elapsed < TimeSpan.FromSeconds(2), $"Waited {waited.Elapsed}.");
+    }
+
+    [Fact]
+    public void ListenForCommand_InstanceThatTakesNoCommands_Throws()
+    {
+        using var settingsApp = SingleInstance.Acquire(_name);
+
+        Assert.True(settingsApp.IsPrimary);
+        Assert.Throws<InvalidOperationException>(() => settingsApp.ListenForCommand(_ => 0));
+    }
+
     // It only looks, as SignalExitIfRunning: an instance that starts right after it is the first.
     [Fact]
     public void SendCommand_NoneRunning_CreatesNothing()
     {
         Assert.Null(SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short));
 
-        using var next = SingleInstance.Acquire(_name);
+        using var next = SingleInstance.Acquire(_name, acceptsCommands: true);
         Assert.True(next.IsPrimary);
     }
 
     [Fact]
     public async Task SendCommand_NoAnswerInTime_IsNull_AndTheNextGetsItsOwnAnswer()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         using var release = new ManualResetEventSlim();
         using var listening = primary.ListenForCommand(command =>
         {
@@ -311,7 +331,7 @@ public sealed class SingleInstanceTests
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public async Task SendCommand_LateAnswer_DoesNotOverwriteTheNext()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         using var mailbox = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen($@"Local\{_name}.CommandMailbox", 16 + SingleInstance.MaxCommandBytes);
         using var view = mailbox.CreateViewAccessor();
         using var releaseSlow = new ManualResetEventSlim();
@@ -342,7 +362,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task SendCommand_CallbackThrows_IsNull_AndTheListenerKeepsAnswering()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         using var listening = primary.ListenForCommand(command => command == "bad" ? throw new IOException("Kapot") : 5);
 
         var bad = await Task.Run(() => SingleInstance.SendCommand(_name, "bad", TimeSpan.FromMilliseconds(300)), Ct);
@@ -358,7 +378,7 @@ public sealed class SingleInstanceTests
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public async Task SendCommand_LeftOverSignal_DoesNotRunTheCommandTwice()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         var calls = 0;
         using var listening = primary.ListenForCommand(command =>
         {
@@ -388,7 +408,7 @@ public sealed class SingleInstanceTests
     [Fact]
     public async Task ListenForCommand_AfterListenerIsDisposed_NoAnswer()
     {
-        using var primary = SingleInstance.Acquire(_name);
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
         primary.ListenForCommand(_ => 0).Dispose();
 
         var answer = await Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TimeSpan.FromMilliseconds(200)), Ct);
@@ -399,8 +419,8 @@ public sealed class SingleInstanceTests
     [Fact]
     public void ListenForCommand_OnSecondaryInstance_Throws()
     {
-        using var first = SingleInstance.Acquire(_name);
-        using var second = SingleInstance.Acquire(_name);
+        using var first = SingleInstance.Acquire(_name, acceptsCommands: true);
+        using var second = SingleInstance.Acquire(_name, acceptsCommands: true);
 
         Assert.Throws<InvalidOperationException>(() => second.ListenForCommand(_ => 0));
     }

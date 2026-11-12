@@ -32,7 +32,7 @@ public sealed class SingleInstance : IDisposable
     private SignalListener? _exitListener;
     private SignalListener? _commandListener;
 
-    private SingleInstance(string name, Mutex mutex, EventWaitHandle activation, EventWaitHandle exit, bool isPrimary)
+    private SingleInstance(string name, Mutex mutex, EventWaitHandle activation, EventWaitHandle exit, bool isPrimary, bool acceptsCommands)
     {
         _name = name;
         _mutex = mutex;
@@ -43,9 +43,9 @@ public sealed class SingleInstance : IDisposable
         // Made at once, not when the first one listens, so a command that comes while this
         // instance starts (a Stream Deck right after signing in) gets an answer (NotStarted until
         // the saved lighting is on) instead of none: the signal stays set until the listener
-        // comes. Only the first makes it, so a sender finds it only while an instance runs that
-        // knows commands.
-        if (isPrimary)
+        // comes. Only the first makes it, and only one that takes commands (the engine, not the
+        // settings app), so a sender finds it only while an instance runs that knows commands.
+        if (isPrimary && acceptsCommands)
         {
             _command = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, CommandName(name));
         }
@@ -53,12 +53,13 @@ public sealed class SingleInstance : IDisposable
 
     public bool IsPrimary { get; }
 
-    public static SingleInstance Acquire(string name)
+    // acceptsCommands: whether the first one takes commands of SendCommand (ListenForCommand).
+    public static SingleInstance Acquire(string name, bool acceptsCommands = false)
     {
         var mutex = new Mutex(initiallyOwned: false, MutexName(name), out var createdNew);
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
         var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ExitName(name));
-        return new(name, mutex, activation, exit, createdNew);
+        return new(name, mutex, activation, exit, createdNew, acceptsCommands);
     }
 
     // Asks a running instance to exit, from outside (the engine's "Herstarten" closing the
@@ -91,12 +92,12 @@ public sealed class SingleInstance : IDisposable
     // "Herstarten"): tries again until the other one is gone, at most for timeout. Not primary
     // when the other one is still there then. The mutex is gone once no process holds it, so a
     // second start meanwhile (or a --exit) only makes this wait a moment longer.
-    public static SingleInstance AcquireWhenFree(string name, TimeSpan timeout, TimeSpan pollInterval)
+    public static SingleInstance AcquireWhenFree(string name, TimeSpan timeout, TimeSpan pollInterval, bool acceptsCommands = false)
     {
         var waited = Stopwatch.StartNew();
         while (true)
         {
-            var instance = Acquire(name);
+            var instance = Acquire(name, acceptsCommands);
             if (instance.IsPrimary || waited.Elapsed >= timeout)
             {
                 return instance;
@@ -190,10 +191,16 @@ public sealed class SingleInstance : IDisposable
     public IDisposable ListenForExit(Action onExit) => Listen(_exit, ref _exitListener, onExit);
 
     // The same for a command of SendCommand: onCommand gets it, on a thread of the pool, and gives
-    // the answer. A command that came before this gets its answer as soon as it listens.
+    // the answer. A command that came before this gets its answer as soon as it listens. Only for
+    // an instance acquired with acceptsCommands.
     public IDisposable ListenForCommand(Func<string, int> onCommand)
     {
         ArgumentNullException.ThrowIfNull(onCommand);
+        if (IsPrimary && _command is null)
+        {
+            throw new InvalidOperationException("This instance was not acquired to accept commands.");
+        }
+
         return Listen(_command!, ref _commandListener, () => Answer(onCommand));
     }
 

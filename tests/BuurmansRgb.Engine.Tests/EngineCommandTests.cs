@@ -250,7 +250,7 @@ public sealed class EngineCommandTests
     public async Task Send_EngineAnswers_GivesItsAnswer()
     {
         var name = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
-        using var engine = SingleInstance.Acquire(name);
+        using var engine = SingleInstance.Acquire(name, acceptsCommands: true);
         string? received = null;
         using var listening = engine.ListenForCommand(message =>
         {
