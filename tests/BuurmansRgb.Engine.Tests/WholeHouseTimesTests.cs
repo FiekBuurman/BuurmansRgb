@@ -312,10 +312,10 @@ public sealed class WholeHouseTimesTests : IDisposable
     public void UitOm_Internal_WhileAProgramRuns_IsHeldWithEverythingOff()
     {
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
-        var held = new List<(LightingState Lighting, string? Scene)>();
-        _timer = new ProfileTimer(_profiles, _clock, _time, (lighting, scene) =>
+        var held = new List<HeldLighting>();
+        _timer = new ProfileTimer(_profiles, _clock, _time, next =>
         {
-            held.Add((lighting(Uniform(StaticLighting(Red))), scene));
+            held.Add(next(new HeldLighting(Uniform(StaticLighting(Red)), "Gamen")));
             return true;
         });
         _timer.Start();
@@ -329,7 +329,79 @@ public sealed class WholeHouseTimesTests : IDisposable
         Assert.True(_lighting.State.IsAnyOn);
     }
 
+    // Uit om 23:00 waits for the game; Aan om at 07:00 comes during the game; the game stops at
+    // 07:30: the lighting of the evening comes back on, not every device off.
+    [Fact]
+    public void AanOm_WhileAProgramHoldsUitOm_PutsTheDevicesOnOnceItStops()
+    {
+        _store.Profiles = [AllOffScene("Alles uit"), new Profile("Gamen", Uniform(StaticLighting(Green)))];
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm], [SevenAm]));
+        _lighting.SetLighting(null, lighting => lighting with { Color = Red });
+        var game = new FakeProgramHold();
+        _timer = new ProfileTimer(_profiles, _clock, _time, game.Hold);
+        _timer.Start();
+        game.Start(_lighting.State, _profiles.ActiveName);
+        _profiles.Load("Gamen");
+
+        _time.Advance(UntilElevenPm);
+        Assert.Equal(Green, _lighting.State.Global.Color);
+        Assert.Equal("Alles uit", game.Held.Scene);
+        Assert.False(game.Held.Lighting.IsAnyOn);
+
+        _time.Advance(UntilSevenAm - UntilElevenPm);
+        Assert.Equal(Green, _lighting.State.Global.Color);
+
+        _time.Advance(TimeSpan.FromMinutes(30));
+        _profiles.Show(game.Held.Lighting, game.Held.Scene);
+
+        Assert.True(_lighting.State.Global.On);
+        Assert.Equal(Red, _lighting.State.Global.Color);
+        Assert.Null(_profiles.ActiveName);
+    }
+
+    // Started during a game and stopped with something on: Aan om keeps that.
+    [Fact]
+    public void AanOm_WhileAProgramRuns_OverLightingThatIsOn_KeepsIt()
+    {
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes(On: [SevenAm]));
+        var game = new FakeProgramHold();
+        _timer = new ProfileTimer(_profiles, _clock, _time, game.Hold);
+        _timer.Start();
+        var evening = Uniform(StaticLighting(Red));
+        game.Start(evening, "Avond");
+
+        _time.Advance(UntilSevenAm);
+
+        Assert.Same(evening, game.Held.Lighting);
+        Assert.Equal("Avond", game.Held.Scene);
+    }
+
     private static Profile AllOffScene(string name) => new(name, StartScenes.AllOff) { Role = ProfileRole.AllOff };
+
+    // A program that shows its scene from Start on, as ProgramWatcher.HoldUntilProgramsStop: a time
+    // changes what comes back once it stops (Held).
+    private sealed class FakeProgramHold
+    {
+        private bool _running;
+
+        public HeldLighting Held { get; private set; }
+
+        public void Start(LightingState before, string? scene)
+        {
+            _running = true;
+            Held = new HeldLighting(before, scene);
+        }
+
+        public bool Hold(Func<HeldLighting, HeldLighting> next)
+        {
+            if (_running)
+            {
+                Held = next(Held);
+            }
+
+            return _running;
+        }
+    }
 
     // With the restorer of the engine, so a wake-up restores the lights before the timer catches up.
     private void StartTimer(bool catchUp = false)

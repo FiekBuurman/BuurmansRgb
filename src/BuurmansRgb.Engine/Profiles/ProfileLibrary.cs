@@ -188,7 +188,7 @@ internal sealed class ProfileLibrary
             profile = FindLocked(name);
             if (profile.Role == ProfileRole.AllOff)
             {
-                RememberBeforeOffLocked(profile, lightingNow);
+                RememberBeforeOffLocked(profile, new HeldLighting(lightingNow, ActiveName));
             }
         }
 
@@ -229,13 +229,14 @@ internal sealed class ProfileLibrary
     // - "Aan om" only does something while every device is off, so a choice made since stays. After
     //   "Alles uit" the lighting from before it comes back, with every device on; after another way
     //   off, such as "Alles uit" in the tray menu, every device goes on with its own lighting, as
-    //   "Alles aan". Not held: while a program shows its scene, a device is on.
+    //   "Alles aan". While a program shows its scene, that goes for what comes back once it stops:
+    //   after "Uit om" held during a game, the devices go on when the game stops in the morning.
     // A scene that is gone throws ArgumentException.
     public void LoadTimed(TimedProfile timed, ProgramHold? hold = null)
     {
         if (!timed.IsInternal)
         {
-            if (hold?.Invoke(_ => GetLighting(timed.Name), timed.Name) != true)
+            if (hold?.Invoke(held => HeldScene(timed.Name, held)) != true)
             {
                 Load(timed.Name);
             }
@@ -246,7 +247,7 @@ internal sealed class ProfileLibrary
         var lightingNow = _lighting.State;
         if (timed.Role == ProfileRole.AllOff)
         {
-            if (lightingNow.IsAnyOn && hold?.Invoke(before => before.WithOn(false), null) != true)
+            if (lightingNow.IsAnyOn && hold?.Invoke(held => new HeldLighting(held.Lighting.WithOn(false), null)) != true)
             {
                 Trace.TraceInformation("Uit om: every device goes off.");
                 _lighting.SetLighting(null, lighting => lighting with { On = false });
@@ -255,29 +256,56 @@ internal sealed class ProfileLibrary
             return;
         }
 
-        if (lightingNow.IsAnyOn)
+        if (hold?.Invoke(held => BackOnOver(held) ?? held) == true)
+        {
+            Trace.TraceInformation("Aan om: a program shows its scene, so it counts for what comes back once it stops.");
+            return;
+        }
+
+        if (BackOnOver(new HeldLighting(lightingNow, ActiveName)) is not { } backOn)
         {
             Trace.TraceInformation("Aan om: a device is on already, so the lighting stays as it is.");
             return;
         }
 
+        Trace.TraceInformation("Aan om: the devices go on.");
+        Show(backOn.Lighting, backOn.Scene);
+    }
+
+    // The scene of a time while a program holds it (ProgramHold). For "Alles uit" what would come
+    // back is kept first, as when it loads.
+    private HeldLighting HeldScene(string name, HeldLighting held)
+    {
+        lock (_gate)
+        {
+            var profile = FindLocked(name);
+            if (profile.Role == ProfileRole.AllOff)
+            {
+                RememberBeforeOffLocked(profile, held);
+            }
+
+            return new HeldLighting(profile.Lighting, profile.Name);
+        }
+    }
+
+    // What "Aan om" puts on over off, the lighting with the scene that is on with it: after "Alles
+    // uit" the lighting from before it, else that of off; every device on. Null while a device is on.
+    private HeldLighting? BackOnOver(HeldLighting off)
+    {
+        if (off.Lighting.IsAnyOn)
+        {
+            return null;
+        }
+
         LightingState? before;
         lock (_gate)
         {
-            before = AllOffSceneLocked() is { } scene && ActiveName is { } active && Matches(scene.Name, active)
+            before = AllOffSceneLocked() is { } scene && off.Scene is { } active && Matches(scene.Name, active)
                 ? InternalLocked(ProfileRole.BackOn)?.Lighting
                 : null;
         }
 
-        Trace.TraceInformation(before is null ? "Aan om: every device goes on." : "Aan om: the lighting from before Alles uit comes back.");
-        if (before is null)
-        {
-            _lighting.SetLighting(null, lighting => lighting with { On = true });
-        }
-        else
-        {
-            Show(before.WithOn(true), scene: null);
-        }
+        return new HeldLighting((before ?? off.Lighting).WithOn(true), Scene: null);
     }
 
     // "Uit om" and "Aan om" as they are saved.
@@ -500,20 +528,20 @@ internal sealed class ProfileLibrary
 
     private Profile? InternalLocked(ProfileRole role) => ProfilesLocked().Find(profile => profile.IsInternal && profile.Role == role);
 
-    // "Aan om" puts back what burned before "Alles uit" came on, so that is kept in its internal
-    // profile; only while there is one, and not when "Alles uit" is on already, as then that is what
-    // burns. Not a change of the scenes, so no Changed. A file that cannot be written keeps what it
-    // had, and "Alles uit" still comes on.
-    private void RememberBeforeOffLocked(Profile scene, LightingState lightingNow)
+    // "Aan om" puts back what burned before "Alles uit" came on, before: the lighting then with the
+    // scene that was on. That is kept in its internal profile; only while there is one, and not when
+    // "Alles uit" was on already, as then that is what burned. Not a change of the scenes, so no
+    // Changed. A file that cannot be written keeps what it had, and "Alles uit" still comes on.
+    private void RememberBeforeOffLocked(Profile scene, HeldLighting before)
     {
-        if (InternalLocked(ProfileRole.BackOn) is not { } backOn || (ActiveName is { } active && Matches(scene.Name, active)))
+        if (InternalLocked(ProfileRole.BackOn) is not { } backOn || (before.Scene is { } active && Matches(scene.Name, active)))
         {
             return;
         }
 
         try
         {
-            Store([.. ProfilesLocked().Select(profile => ReferenceEquals(profile, backOn) ? profile with { Lighting = lightingNow } : profile)]);
+            Store([.. ProfilesLocked().Select(profile => ReferenceEquals(profile, backOn) ? profile with { Lighting = before.Lighting } : profile)]);
         }
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {

@@ -420,11 +420,11 @@ internal sealed class ProgramWatcher : IProfileTrigger
     // of a game. False when no program shows its own profile; then the caller shows it. A profile
     // that is gone throws ArgumentException, as loading it would. While resting it looks once
     // first, so a game that stopped on the lock screen does not hold the time until unlocking.
-    public bool HoldUntilProgramsStop(string scene) => HoldUntilProgramsStop(_ => _profiles.GetLighting(scene), scene);
+    public bool HoldUntilProgramsStop(string scene) => HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
 
-    // The same with the lighting as lighting gives it from the lighting that would come back, such
-    // as every device off for "Uit om", with scene as the scene that is on then, or null (ProgramHold).
-    public bool HoldUntilProgramsStop(Func<LightingState, LightingState> lighting, string? scene)
+    // The same with the lighting and scene as next gives them from what would come back, such as
+    // every device off for "Uit om", or the lighting from before "Alles uit" for "Aan om" (ProgramHold).
+    public bool HoldUntilProgramsStop(Func<HeldLighting, HeldLighting> next)
     {
         lock (_gate)
         {
@@ -443,8 +443,10 @@ internal sealed class ProgramWatcher : IProfileTrigger
                 return false;
             }
 
-            _activations[index].Before = lighting(_activations[index].Before);
-            _activations[index].BeforeScene = scene;
+            var activation = _activations[index];
+            var held = next(new HeldLighting(activation.Before, activation.BeforeScene));
+            activation.Before = held.Lighting;
+            activation.BeforeScene = held.Scene;
             return true;
         }
     }
