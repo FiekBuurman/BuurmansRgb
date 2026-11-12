@@ -168,6 +168,31 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(looks, _programs.FindCount);
     }
 
+    // next gets the lighting from before the game with the scene that was on then, and what it
+    // gives is what comes back once the game stops.
+    [Fact]
+    public void Hold_NextGetsTheLightingFromBefore_AndWhatItGivesComesBack()
+    {
+        _profiles.Load("Nacht");
+        StartWatcher();
+        StartProgram(EldenRing);
+        HeldLighting? given = null;
+
+        Assert.True(_watcher!.HoldUntilProgramsStop(held =>
+        {
+            given = held;
+            return new HeldLighting(_profiles.GetLighting("Race"), "Race");
+        }));
+
+        Assert.Equal(Orange, given?.Lighting.Global.Color);
+        Assert.Equal("Nacht", given?.Scene);
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(EldenRing);
+        Assert.Equal(Blue, ShownColor());
+        Assert.Equal("Race", _profiles.ActiveName);
+    }
+
     // An engine that starts late after sign-in may start on the lock screen.
     [Theory]
     [InlineData(true)]
