@@ -79,7 +79,9 @@ internal sealed class EngineHost(
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
         if (startScenes == StartScenesOutcome.Written)
         {
-            // Saved as any option, so it is in settings.json also when nothing else changes.
+            // The saver has startScenesCreated already (StartScenesOnce put it in settings); this
+            // only schedules a save, as any option gets, so it is in settings.json also when
+            // nothing else changes. Setting it again changes nothing, but says what the save is for.
             _saver.ChangeOptions(saved => saved with { StartScenesCreated = true });
         }
 
