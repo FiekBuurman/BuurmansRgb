@@ -598,6 +598,19 @@ uitbreidingen in `docs/bouwplan.md`.
   `StreamStateChanged` meldt; "Aanzetten als dit programma start" ziet alleen dat OBS draait, niet
   dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
   verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
+- De lege staat van Scènes laten verwijzen naar "Bewaar als scène" op Kleur zodra die knop er is;
+  nu noemt hij alleen "Nieuwe scène" eronder, omdat de knop op Kleur nog niet bestaat
+  (`startscenes`)
+- De startscènes terug kunnen halen, bijv. met "Startscènes terugzetten" bij Instellingen, voor wie
+  ze verwijderde en ze toch weer wil; een scène met dezelfde naam laten staan. Nu komen ze nooit
+  terug (`startScenesCreated`) (`startscenes`)
+- `--scene "Gamen"` op een nieuwe pc vóór de eerste start van de engine: de opdracht kijkt in
+  `profiles.json` voordat de engine de startscènes schrijft, dus dan is het exitcode 2. Na de
+  installer (die de engine met `--first-run` start) speelt het niet; eventueel de startscènes al
+  meetellen als er nog geen `profiles.json` en geen `startScenesCreated` is (`startscenes`)
+- Bij de eerste keer openen van de instellingen-app kiezen welke startscènes je wilt, in plaats
+  van alle vijf; met "Minder beweging" van Windows aan eventueel zonder de bewegende
+  (`startscenes`)
 
 ## Tray-menu
 

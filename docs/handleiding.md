@@ -37,6 +37,12 @@ vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet. Zie je geen verschil
 Op **Kleur** staat in het blok **Licht en beweging** de schuif **Helderheid**. Naar links is
 zachter, naar rechts feller. Net als de kleur geldt dit meteen voor wat je rechtsboven koos.
 
+### Scènes uitproberen
+
+Op **Scènes** staan al vijf scènes klaar: **Alles uit**, **Rustig wit**, **Regenboog**,
+**Pastel** en **Gamen**. Klik op een kaart en al je apparaten doen mee. Heb je liever je eigen
+scènes, verwijder ze dan gerust: ze komen niet terug.
+
 ### Opslaan hoeft niet
 
 Alles wordt vanzelf bewaard. Rechtsonder in de app staat daarna **Opgeslagen ✓** met de tijd.
@@ -609,6 +615,25 @@ kleuren zie je de eerste vijf), de naam en wanneer
 hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien
 ("Regenboog · 80%", "Alles uit").
 
+Een nieuwe installatie begint met vijf **startscènes**, die op alle apparaten slaan, ook op een
+apparaat dat er later bij komt:
+
+| Scène | Wat hij doet |
+|---|---|
+| Alles uit | Alle apparaten uit. Met "Alles aan" daarna branden ze als bij Rustig wit. |
+| Rustig wit | Warm wit, statisch, op 40 %. |
+| Regenboog | Het effect Regenboog. |
+| Pastel | Een kleurenloop van Lichtroze, Lila, Mint en Babyblauw. |
+| Gamen | Komeet, de ene ronde fel rood en de volgende fel blauw. |
+
+Het zijn gewone scènes: je kunt ze aanzetten, overschrijven, vanzelf laten aanzetten en
+verwijderen. Een verwijderde
+startscène komt niet terug, ook niet als je ze allemaal verwijdert of `profiles.json` weghaalt.
+Alleen een pc zonder `profiles.json` krijgt ze, bij de eerste start van de engine; wie al
+scènes had (of ze allemaal verwijderde) vóór er startscènes waren, krijgt ze niet ongevraagd. De
+namen zijn Nederlands, zoals de rest van de app. Zijn er geen scènes, dan zegt de pagina wat een
+scène is en dat je er een maakt met "Nieuwe scène" eronder.
+
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
   richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
   van de scène, en ook de opgeslagen verlichting.
@@ -862,9 +887,10 @@ Hoe het vanzelf aanzetten werkt:
   dat de zip niet heeft, blijft zoals het was. Wat er nu is, zet de engine eerst in een kopie in
   de map met instellingen, in `backups\before-restore-<datum>-<tijd>-<ms>.zip` (de tijd tot op de milliseconde en in UTC, dus
   in de winter een uur vroeger dan op de klok en in de zomer twee; de laatste vijf blijven);
-  daarmee zet je het zo nodig weer terug. Twee dingen horen bij deze pc en komen niet uit de zip:
-  "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos (`autoStartChosen`), zodat een update het laat zoals jij het zette; en of deze pc ooit echte
-  apparaten had (`hadRealDevices`). Welke meldingen over andere RGB-software je wegklikte
+  daarmee zet je het zo nodig weer terug. Drie dingen horen bij deze pc en komen niet uit de zip:
+  "Starten met Windows" blijft zoals het hier staat, en ook of je dat zelf koos (`autoStartChosen`), zodat een update het laat zoals jij het zette; of deze pc ooit echte
+  apparaten had (`hadRealDevices`); en of hij zijn startscènes al kreeg (`startScenesCreated`),
+  zodat een zip van vóór de startscènes ze niet nog eens oplevert. Welke meldingen over andere RGB-software je wegklikte
   (`dismissedOtherRgbSoftware`) komt wel mee, net als wat de apparaten doen als de pc slaapt of
   vergrendeld is (`pausedLights`): een zip zonder die regel, van een versie van vóór die keuze,
   zet "Laten branden" terug, wat die pc toen deed, ook op een nieuwe installatie die met
@@ -1019,6 +1045,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
   dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
+- **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
+  bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
+  keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
+  De lege staat van Scènes zegt wat een scène is en noemt "Nieuwe scène".
 - **Buren** zit er niet in: de pagina (§ 5.4), de buren-kaart op Apparaten en "Samen aan de slag"
   op Scènes zijn weggelaten, omdat samen met de buren je apparaten kleuren geen doel van de app is.
   Daarmee vervallen ook de `buren-*`-kleuren.
@@ -1515,6 +1545,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   },
   "simulatedDevices": "automatic",
   "hadRealDevices": true,
+  "startScenesCreated": true,
   "autoStartChosen": true,
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
@@ -1545,6 +1576,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `ledColorZoneLengths` | Per apparaat de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `hadRealDevices` | `true` zodra OpenRGB op deze pc ooit een echt apparaat gaf: bij `"automatic"` komen de gesimuleerde apparaten dan niet meer in de plaats van de echte als OpenRGB weg is. De engine zet dit zelf en schrijft het alleen als het `true` is; zonder (of `false`) had de pc nog nooit een echt apparaat. Op `false` zetten of weghalen draait het terug, tot OpenRGB weer een echt apparaat geeft |
+| `startScenesCreated` | `true` zodra de engine op deze pc over de startscènes besliste: hij maakte ze (er was geen `profiles.json`), of er was al een `profiles.json`, ook met een lege lijst. Daarna maakt hij ze nooit meer, ook niet zonder `profiles.json`. De engine zet dit zelf bij de eerste start en schrijft het mee met de eerstvolgende wijziging, alleen als het `true` is. Een teruggezette zip houdt de waarde van deze pc |
 | `autoStartChosen` | `true` zodra je "Starten met Windows" zelf aan- of uitzette (in het tray-menu of bij Instellingen): de installer zet het dan bij een update niet meer aan. Een nieuw bestand zegt `false`. Zonder het veld (een bestand van 1.5.0 of eerder, of weggehaald) kijkt de engine bij het starten of "Starten met Windows" aan staat: uit telt als je keuze (`true`), aan niet (`false`), en dat schrijft hij erbij zodra hij iets anders opslaat (tot dan kijkt hij bij elk starten opnieuw). Kan hij dat niet lezen, dan telt het niet als keuze. Op `false` zetten laat de volgende installatie het weer aanzetten. "Starten met Windows" zelf staat niet in dit bestand maar in Windows |
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
@@ -1645,6 +1677,11 @@ ook weg. Voor een kleur of een waarde van het verkeerde soort geldt hetzelfde al
 bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken` en begint
 hij met een lege lijst. Een scène zonder naam, met een naam van meer dan 40 tekens, of met
 dezelfde naam als een eerdere (hoofdletters tellen niet), slaat de engine over.
+
+Is er bij de eerste start van de engine nog geen `profiles.json`, dan schrijft hij er een met de
+vijf startscènes (zie "Scènes"), alle vijf zonder `devices`, dus voor alle apparaten. Dat
+gebeurt één keer per pc (`startScenesCreated` in `settings.json`): een `profiles.json` met een
+lege lijst, of geen `profiles.json` meer nadat je hem weghaalde, blijft zo.
 
 ### effects.json
 
