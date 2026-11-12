@@ -228,8 +228,7 @@ internal sealed class TrayPresenter(
         }
 
         var state = lighting.State;
-        IEnumerable<DeviceLighting> all = [state.Global, .. state.Devices.Values];
-        view.ShowAllOnOff(canSwitchOn: all.Any(device => !device.On), canSwitchOff: all.Any(device => device.On));
+        view.ShowAllOnOff(canSwitchOn: !state.Global.On || state.Devices.Values.Any(device => !device.On), canSwitchOff: state.IsAnyOn);
     }
 
     // Like a click on "Alles aan of uit" in the settings app. Reported like a profile that fails.
