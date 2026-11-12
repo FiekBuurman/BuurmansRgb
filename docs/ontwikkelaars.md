@@ -610,15 +610,22 @@ toetsenbord. Een paar dingen om te proberen:
   geeft zijn eigen handle meteen terug (zodat een engine die intussen start de eerste is) en
   roept `SingleInstance.SendCommand` aan: om de beurt via de mutex `Local\BuurmansRgb.Engine.CommandTurn`
   schrijft hij de opdracht (`scene:<naam>`, `all-on`, `all-off`, UTF-8, hooguit 1 KB) met een
-  volgnummer in een named shared memory-blok `Local\BuurmansRgb.Engine.CommandMailbox`, zet het
+  willekeurig id (nooit 0, nooit het vorige; als laatste geschreven) in een named shared
+  memory-blok `Local\BuurmansRgb.Engine.CommandMailbox`, zet het
   event `Local\BuurmansRgb.Engine.Command` en wacht hooguit 10 s op
-  `Local\BuurmansRgb.Engine.CommandAnswered`; het antwoord bij zijn eigen volgnummer wordt zijn
+  `Local\BuurmansRgb.Engine.CommandAnswered`; het antwoord bij zijn eigen id wordt zijn
   exitcode (`EngineCommandResult`: 0 gelukt, 1 mislukt, 2 onbekende scène, 3 engine nog niet
-  gestart, 4 geen antwoord). De engine luistert met `ListenForCommand`, een geregistreerde
+  gestart, 4 geen antwoord). De engine slaat een id over dat al beantwoord is, zodat een
+  overgebleven signaal een opdracht niet twee keer uitvoert. De engine luistert met
+  `ListenForCommand`, een geregistreerde
   wait zoals bij activeren en `--exit`: geen thread, timer of polling zolang niemand iets
-  stuurt. Het event maakt pas de engine die luistert, dus bij een oudere engine (of een die nog
-  niet luistert) vindt `SendCommand` niets en eindigt de tweede start meteen met 4, in plaats
-  van de instellingen-app te openen. `TrayApplicationContext.RunCommand` zet de opdracht op de
+  stuurt. Het event maakt de eerste instantie al in `SingleInstance.Acquire` (auto-reset), dus
+  een opdracht die komt terwijl de engine nog opstart, blijft staan tot `ListenForCommand`
+  luistert en krijgt dan 3 of het resultaat (binnen de 10 s). Een oudere engine (v1.5.0) maakt
+  het event niet: daar vindt `SendCommand` niets en eindigt de tweede start meteen met 4, in
+  plaats van de instellingen-app te openen. Een fout tijdens het beantwoorden (in het
+  gedeelde geheugen of in de engine) logt `SingleInstance` met `Trace.TraceError`; de tweede
+  start krijgt dan na de 10 s een 4. `TrayApplicationContext.RunCommand` zet de opdracht op de
   thread van het tray-icoon en `TrayPresenter.Run` doet wat "Scène aanzetten", "Alles aan" en
   "Alles uit" in het menu doen (een scène hoofdletterongevoelig via `ProfileNames.Comparer`),
   met een regel in `engine.log`. Draait er geen engine, dan wordt deze start de engine: een

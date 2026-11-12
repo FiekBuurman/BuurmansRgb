@@ -1302,7 +1302,7 @@ Een script kan aan de **exitcode** zien hoe het ging:
 | 1 | Mislukt: een apparaat of `profiles.json` gaf een fout (zie `engine.log`) |
 | 2 | Deze scène bestaat niet |
 | 3 | buurmansRgb is net gestart en heeft de opgeslagen verlichting nog niet gezet |
-| 4 | Geen antwoord van buurmansRgb: een oudere versie die deze opdrachten niet kent, of een die hangt |
+| 4 | Geen antwoord van buurmansRgb: een oudere versie die deze opdrachten niet kent (dan meteen), of een die binnen 10 seconden niet antwoordt omdat hij hangt of net stopt |
 
 In PowerShell wacht je zo op de exitcode (buurmansRgb heeft geen consolevenster, dus zonder
 `| Out-Null` wacht PowerShell niet):

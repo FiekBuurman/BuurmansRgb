@@ -26,7 +26,7 @@ public sealed class SingleInstance : IDisposable
     private readonly Mutex _mutex;
     private readonly EventWaitHandle _activation;
     private readonly EventWaitHandle _exit;
-    private EventWaitHandle? _command;
+    private readonly EventWaitHandle? _command;
     private SignalListener? _activationListener;
     private SignalListener? _exitListener;
     private SignalListener? _commandListener;
@@ -38,6 +38,15 @@ public sealed class SingleInstance : IDisposable
         _activation = activation;
         _exit = exit;
         IsPrimary = isPrimary;
+
+        // Made at once, not when the first one listens, so a command that comes while this
+        // instance starts (a Stream Deck right after signing in) waits for the listener instead of
+        // getting lost: the signal stays set until then. Only the first makes it, so a sender finds
+        // it only while an instance runs that knows commands.
+        if (isPrimary)
+        {
+            _command = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, CommandName(name));
+        }
     }
 
     public bool IsPrimary { get; }
@@ -97,8 +106,9 @@ public sealed class SingleInstance : IDisposable
     }
 
     // Hands the running instance a command and waits at most timeout for its answer, which the
-    // callback of ListenForCommand gives. Null when no instance listens for commands (none runs,
-    // or an older one that does not know them) or none answered in time. One command at a time
+    // callback of ListenForCommand gives. Null at once when no instance runs that knows commands
+    // (none runs, or an older one), and null after the timeout when none answered in time (one
+    // that does not listen yet, or one that hangs). One command at a time
     // per session; the next waits its turn within its own timeout. Like SignalExitIfRunning it
     // never creates the mutex, so an instance that starts meanwhile is still the first.
     public static int? SendCommand(string name, string command, TimeSpan timeout)
@@ -177,16 +187,10 @@ public sealed class SingleInstance : IDisposable
     public IDisposable ListenForExit(Action onExit) => Listen(_exit, ref _exitListener, onExit);
 
     // The same for a command of SendCommand: onCommand gets it, on a thread of the pool, and gives
-    // the answer. The signal for commands is only made here, so before this a sender finds no
-    // listener and gets null at once instead of waiting for an answer that never comes.
+    // the answer. A command that came before this gets its answer as soon as it listens.
     public IDisposable ListenForCommand(Func<string, int> onCommand)
     {
         ArgumentNullException.ThrowIfNull(onCommand);
-        if (IsPrimary)
-        {
-            _command ??= new EventWaitHandle(initialState: false, EventResetMode.AutoReset, CommandName(_name));
-        }
-
         return Listen(_command!, ref _commandListener, () => Answer(onCommand));
     }
 

@@ -236,12 +236,35 @@ public sealed class SingleInstanceTests
         Assert.Equal([1, 2, 3, 4, 5], answers);
     }
 
-    // No engine, or one of before this command that only listens for activation and exit.
+    // An engine that is still starting: the command waits for it, and is not lost.
     [Fact]
-    public void SendCommand_NoneListens_IsNullAtOnce()
+    public async Task SendCommand_BeforePrimaryListens_GetsTheAnswerOnceItListens()
     {
         using var primary = SingleInstance.Acquire(_name);
-        using var activation = primary.ListenForActivation(() => { });
+
+        var answer = Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short), Ct);
+        await Task.Delay(TimeSpan.FromMilliseconds(200), Ct);
+        Assert.False(answer.IsCompleted);
+        using var listening = primary.ListenForCommand(command => command == "all-on" ? 3 : 0);
+
+        Assert.Equal(3, await answer);
+    }
+
+    [Fact]
+    public async Task SendCommand_PrimaryNeverListens_IsNullAfterTheTimeout()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+
+        var answer = await Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TimeSpan.FromMilliseconds(200)), Ct);
+
+        Assert.Null(answer);
+    }
+
+    // An instance of before commands holds the name, but made no signal for them.
+    [Fact]
+    public void SendCommand_OlderInstanceRuns_IsNullAtOnce()
+    {
+        using var older = new Mutex(initiallyOwned: false, $@"Local\{_name}");
 
         Assert.Null(SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short));
         Assert.Null(SingleInstance.SendCommand($"{_name}.Other", "all-on", TestTimeouts.Short));
@@ -330,7 +353,7 @@ public sealed class SingleInstanceTests
     }
 
     [Fact]
-    public async Task ListenForCommand_AfterListenerIsDisposed_NoneListens()
+    public async Task ListenForCommand_AfterListenerIsDisposed_NoAnswer()
     {
         using var primary = SingleInstance.Acquire(_name);
         primary.ListenForCommand(_ => 0).Dispose();
