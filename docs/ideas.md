@@ -712,6 +712,13 @@ uitbreidingen in `docs/bouwplan.md`.
   lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
 - `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
   engine dat veld bij een wijziging met de hand niet over
+- Na een start met een `settings.json` die er wel was maar niet las (vergrendeld door een
+  virusscanner of OneDrive, of geen JSON) werkt de engine met standaardwaarden. Een gewone
+  wijziging van de gebruiker kan die dan alsnog over het bestand schrijven: na vijf wachtbeurten
+  (`MaxWaitsForChangeByHand`) slaat `LightingSettingsSaver.SavePending` op met `Save`. De
+  startscènes slaan daarom niets op (`ISettingsStore.LoadDidNotRead`), maar de saver kijkt daar
+  niet naar. Beter: bij `LoadDidNotRead` niet schrijven, of eerst het bestand opnieuw lezen en de
+  wijziging daarop toepassen (review startscènes, 12-11-2026)
 - `ProgramWatcher` opsplitsen: de logica van de voorgrond (`foregroundOnly`, het volgen van
   `IForegroundWindow`, wisselen tussen voorgrond-scènes) naar een eigen klasse. Bij de refactor
   na de review bleef het staan; pas oppakken als het werk aan programma's en LED's groeit
