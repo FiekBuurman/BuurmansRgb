@@ -68,14 +68,21 @@ internal sealed class EngineHost(
         await lighting.DiscoverAsync(ct);
         customEffects?.Load();
         lighting.Apply(settings.ToLightingState());
+        var startScenes = StartScenesOutcome.FileThere;
         if (profiles is not null)
         {
-            settings = StartScenesOnce(settings, profiles);
+            (settings, startScenes) = StartScenesOnce(settings, profiles);
             profiles.RestoreActive(settings.ActiveScene);
             settings = settings with { ActiveScene = profiles.ActiveName };
         }
 
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
+        if (startScenes == StartScenesOutcome.Written)
+        {
+            // Saved as any option, so it is in settings.json also when nothing else changes.
+            _saver.ChangeOptions(saved => saved with { StartScenesCreated = true });
+        }
+
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         simulatedDevices?.HadRealDevicesChanged += OnHadRealDevicesChanged;
         if (simulatedDevices?.HadRealDevices == true && !settings.HadRealDevices)
@@ -425,13 +432,23 @@ internal sealed class EngineHost(
 
     // A new installation gets the start scenes, once (startScenesCreated): only without a
     // profiles.json, so a pc from before this option that has one, also with all its scenes
-    // deleted, gets none. That is settled at the first start and goes along with the next save,
-    // as autoStartChosen does; until then the profiles.json that is there now tells the same. A
-    // save of its own would write the defaults over a settings.json that did not read.
-    private static EngineSettings StartScenesOnce(EngineSettings settings, ProfileLibrary library) =>
-        !settings.StartScenesCreated && library.AddStartScenes(StartScenes.Create())
-            ? settings with { StartScenesCreated = true }
-            : settings;
+    // deleted, gets none. Once the scenes are written, StartAsync has the saver write
+    // startScenesCreated right after the start, not with whatever change comes next: the user may
+    // delete the scenes, which does not save settings.json, and then profiles.json too. The saver
+    // writes nothing over a settings.json that did not read or was changed by hand (SaveIfUnchanged).
+    // A file that was there already settles it as well, but goes along with the next save, as
+    // autoStartChosen does, so a start without changes still writes nothing; until then that
+    // profiles.json tells the same.
+    private static (EngineSettings Settings, StartScenesOutcome Outcome) StartScenesOnce(EngineSettings settings, ProfileLibrary library)
+    {
+        if (settings.StartScenesCreated)
+        {
+            return (settings, StartScenesOutcome.FileThere);
+        }
+
+        var outcome = library.AddStartScenes(StartScenes.Create());
+        return (outcome == StartScenesOutcome.NotWritten ? settings : settings with { StartScenesCreated = true }, outcome);
+    }
 
     // From the tray menu or the settings app, on any thread.
     private void OnAutoStartChosen(object? sender, EventArgs e)

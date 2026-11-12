@@ -97,7 +97,7 @@ public sealed class StartScenesTests : IDisposable
         var changed = 0;
         library.Changed += (_, _) => changed++;
 
-        Assert.True(library.AddStartScenes(StartScenes.Create()));
+        Assert.Equal(StartScenesOutcome.Written, library.AddStartScenes(StartScenes.Create()));
 
         Assert.Equal(StartScenes.Create().Select(scene => scene.Name).Order(ProfileNames.Comparer), library.Names);
         Assert.Equal(library.Names, store.Profiles.Select(profile => profile.Name));
@@ -115,7 +115,7 @@ public sealed class StartScenesTests : IDisposable
         var changed = 0;
         library.Changed += (_, _) => changed++;
 
-        Assert.True(library.AddStartScenes(StartScenes.Create()));
+        Assert.Equal(StartScenesOutcome.FileThere, library.AddStartScenes(StartScenes.Create()));
 
         Assert.Empty(library.Names);
         Assert.Equal(0, store.SaveCount);
@@ -128,13 +128,13 @@ public sealed class StartScenesTests : IDisposable
         var store = new InMemoryProfileStore { Exists = false, SaveException = new IOException("in use") };
         var library = new ProfileLibrary(store, _lighting);
 
-        Assert.False(library.AddStartScenes(StartScenes.Create()));
+        Assert.Equal(StartScenesOutcome.NotWritten, library.AddStartScenes(StartScenes.Create()));
 
         Assert.Empty(library.Names);
     }
 
     // A new installation: the scenes come at the first start, none of them is on, and the flag
-    // goes along with the next save instead of a save of its own.
+    // is saved right after the start, also when nothing else changes.
     [Fact]
     public async Task StartAsync_NewInstallation_MakesTheStartScenesOnce()
     {
@@ -148,8 +148,8 @@ public sealed class StartScenesTests : IDisposable
         Assert.Equal(5, library.Names.Count);
         Assert.Null(library.ActiveName);
         Assert.Equal(0, store.SaveCount);
-        _lighting.SetLighting(null, current => current with { Brightness = 0.3 });
         host.Dispose();
+        Assert.Equal(1, store.SaveCount);
         Assert.True(store.Settings.StartScenesCreated);
     }
 
@@ -160,16 +160,19 @@ public sealed class StartScenesTests : IDisposable
         var store = new InMemorySettingsStore { Settings = EngineSettings.CreateNew() with { StartScenesCreated = true } };
         var profileStore = new InMemoryProfileStore { Exists = false };
         var library = new ProfileLibrary(profileStore, _lighting);
-        using var host = new EngineHost(store, _lighting, saveDelay: TimeSpan.FromHours(1), profiles: library);
+        var host = new EngineHost(store, _lighting, saveDelay: TimeSpan.FromHours(1), profiles: library);
 
         await host.StartAsync(Ct);
 
         Assert.Empty(library.Names);
         Assert.Equal(0, profileStore.SaveCount);
+        host.Dispose();
+        Assert.Equal(0, store.SaveCount);
     }
 
     // A pc from before the start scenes with a profiles.json, also one without scenes, is no new
-    // installation: no scenes, and that is settled with the next save.
+    // installation: no scenes. That is settled, but no reason for a save of its own: it goes along
+    // with the next save, as a start without changes writes nothing.
     [Fact]
     public async Task StartAsync_ExistingInstallationWithProfilesJson_GetsNone()
     {
@@ -184,6 +187,7 @@ public sealed class StartScenesTests : IDisposable
         Assert.Equal(0, profileStore.SaveCount);
         _lighting.SetLighting(null, current => current with { Brightness = 0.3 });
         host.Dispose();
+        Assert.Equal(1, store.SaveCount);
         Assert.True(store.Settings.StartScenesCreated);
     }
 
@@ -200,8 +204,11 @@ public sealed class StartScenesTests : IDisposable
         await host.StartAsync(Ct);
 
         Assert.Empty(library.Names);
+
+        // Not with a later save either.
         _lighting.SetLighting(null, current => current with { Brightness = 0.3 });
         host.Dispose();
+        Assert.Equal(1, store.SaveCount);
         Assert.False(store.Settings.StartScenesCreated);
     }
 
@@ -222,7 +229,26 @@ public sealed class StartScenesTests : IDisposable
         Assert.Contains("\"startScenesCreated\": true", File.ReadAllText(_directory.File("settings.json")), StringComparison.Ordinal);
     }
 
-    // The names right after the start, then change runs and the engine stops.
+    // A new pc whose user deletes them all and changes nothing else: the flag is in settings.json
+    // all the same, so they do not come back once profiles.json is gone.
+    [Fact]
+    public async Task StartAsync_WithTheFiles_AllDeletedThenNoProfilesJson_TheyStayAway()
+    {
+        Assert.Equal(5, (await StartWithTheFilesAsync(library =>
+        {
+            foreach (var name in library.Names)
+            {
+                library.Delete(name);
+            }
+        })).Count);
+        File.Delete(_directory.File("profiles.json"));
+
+        Assert.Empty(await StartWithTheFilesAsync(_ => { }));
+        Assert.False(File.Exists(_directory.File("profiles.json")));
+    }
+
+    // The names right after the start, then change runs and the engine stops. Nothing else
+    // changes, so what is saved is what the engine saves of itself.
     private async Task<IReadOnlyList<string>> StartWithTheFilesAsync(Action<ProfileLibrary> change)
     {
         var library = new ProfileLibrary(new JsonProfileStore(_directory.File("profiles.json")), _lighting);
@@ -232,7 +258,6 @@ public sealed class StartScenesTests : IDisposable
             await host.StartAsync(Ct);
             names = library.Names;
             change(library);
-            _lighting.SetLighting(null, current => current with { Brightness = 0.3 + (0.1 * names.Count / 5) });
         }
 
         return names;
