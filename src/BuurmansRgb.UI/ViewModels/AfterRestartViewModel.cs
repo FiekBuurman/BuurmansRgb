@@ -22,13 +22,13 @@ public sealed partial class AfterRestartViewModel : ObservableObject
     private readonly SwitchOptionViewModel _sceneTimes;
     private readonly WholeHouseTimesViewModel _wholeHouse;
 
-    public AfterRestartViewModel(ProfilesViewModel profiles, EffectOptionsViewModel effectOptions, SwitchOptionViewModel autoStart, SwitchOptionViewModel sceneTimes, WholeHouseTimesViewModel? wholeHouse = null)
+    public AfterRestartViewModel(ProfilesViewModel profiles, EffectOptionsViewModel effectOptions, SwitchOptionViewModel autoStart, SwitchOptionViewModel sceneTimes, WholeHouseTimesViewModel wholeHouse)
     {
         _profiles = profiles;
         _effectOptions = effectOptions;
         _autoStart = autoStart;
         _sceneTimes = sceneTimes;
-        _wholeHouse = wholeHouse ?? new();
+        _wholeHouse = wholeHouse;
         _profiles.PropertyChanged += OnProfilesChanged;
         _effectOptions.PropertyChanged += OnEffectOptionsChanged;
         _autoStart.PropertyChanged += OnAutoStartChanged;
