@@ -178,7 +178,8 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   dag van allebei ("Uit om en Aan om vallen samen."): dan zou alleen Uit om gebeuren.
   - **Uit om** zet de startscène **Alles uit** aan: het zijn de tijden van die scène, dus bij
     Scènes zie je bij "Alles uit" dezelfde tijd, en verander je hem daar, dan verandert hij hier
-    ook. Onder de regels staat dat ("Uit om zet de scène 'Alles uit' aan."). buurmansRgb herkent
+    ook. Zolang Uit om aan staat, staat dat onder de regels ("Uit om zet de scène 'Alles uit'
+    aan."). buurmansRgb herkent
     die scène niet aan zijn naam maar aan een vaste markering, dus ook na het hernoemen (met de
     hand in `profiles.json`) hoort hij erbij. Heeft de scène bij Scènes meer tijden gekregen,
     dan toont deze regel de eerste, is hij grijs en zegt de melding eronder hoeveel er nog zijn

@@ -41,8 +41,8 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     public string? OffScene => _saved.OffScene;
 
     // That "Uit om" puts on that scene, and so shows on Scènes too; with more times than the first,
-    // how many more, and that they change there.
-    public string? SceneNote => _saved.OffScene is not { } scene ? null
+    // how many more, and that they change there. Only while "Uit om" has a time.
+    public string? SceneNote => _saved.OffScene is not { } scene || _saved.Off.Count == 0 ? null
         : _saved.Off.Count == 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimesOne, scene)
         : _saved.Off.Count > 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimes, scene, _saved.Off.Count - 1)
         : UiText.Format(Strings.WholeHouseSceneNote, scene);

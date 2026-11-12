@@ -168,6 +168,15 @@ public sealed class WholeHouseTimesViewModelTests
         Assert.False(_times.HasSceneNote);
     }
 
+    // With Uit om off, there is nothing to say about the scene.
+    [Fact]
+    public void SceneNote_OnlyWhileUitOmHasATime()
+    {
+        _times.Show(new WholeHouseTimes(On: [SevenAm], OffScene: "Alles uit"));
+
+        Assert.False(_times.HasSceneNote);
+    }
+
     [Fact]
     public void Summary_SaysTheTimesThatAreOn()
     {
