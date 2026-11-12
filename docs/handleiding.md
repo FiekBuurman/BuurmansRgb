@@ -1349,14 +1349,33 @@ jouw sessie draait:
 
    De waarschuwing dat de begintijd al voorbij is, mag je negeren: de taak hoeft nooit vanzelf
    te starten.
+
+   Zet ook **"Starten met Windows"** aan (tray-menu of Instellingen), zodat buurmansRgb al draait
+   als de taak komt: de taak geeft de opdracht dan alleen door en is meteen klaar. Draait
+   buurmansRgb nog niet, dan wordt de taak zelf buurmansRgb, en een geplande taak krijgt van
+   Windows standaard beperkingen mee: hij stopt na 72 uur, start niet als een laptop op de accu
+   werkt en draait met een lage voorrang. Wil je dat toch, haal die beperkingen dan weg in
+   **Taakplanner** (zoek in Start op "Taakplanner"): dubbelklik op de taak, zet op het tabblad
+   **Voorwaarden** het vinkje bij starten alleen op netstroom uit, en op het tabblad
+   **Instellingen** het vinkje bij stoppen als de taak langer loopt dan 3 dagen.
 3. Zet in `configuration.yaml` van Home Assistant:
 
    ```yaml
    shell_command:
-     pc_gamen: ssh -i /config/.ssh/id_ed25519 jij@mijn-pc 'schtasks /run /tn "buurmansRgb Gamen"'
+     pc_gamen: >-
+       ssh -i /config/.ssh/id_ed25519
+       -o UserKnownHostsFile=/config/.ssh/known_hosts
+       -o StrictHostKeyChecking=accept-new
+       jij@mijn-pc 'schtasks /run /tn "buurmansRgb Gamen"'
    ```
 
    en roep `shell_command.pc_gamen` aan vanuit een automatisering, script of knop.
+
+   De twee regels met `-o` zijn nodig omdat Home Assistant geen venster heeft waarin `ssh` kan
+   vragen of je de pc vertrouwt, en de lijst met bekende pc's anders bij een herstart kwijtraakt.
+   Zonder die regels mislukt de eerste aanroep met "Host key verification failed". Nu onthoudt
+   `ssh` de pc bij de eerste aanroep in `/config/.ssh/known_hosts`, en weigert hij daarna als een
+   ander apparaat zich als jouw pc voordoet.
 
 Home Assistant krijgt zo de exitcode van `schtasks` (of de taak startte), niet die van
 buurmansRgb; of de scène bestond, staat in `engine.log`. Draait Home Assistant op dezelfde pc
