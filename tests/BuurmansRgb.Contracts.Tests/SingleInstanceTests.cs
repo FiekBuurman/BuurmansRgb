@@ -296,6 +296,33 @@ public sealed class SingleInstanceTests
         Assert.Equal(5, good);
     }
 
+    // A signal that is left over, while the shared block stays (here held open by the test, as a
+    // sender that is just starting would), does not run the last command again.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public async Task SendCommand_LeftOverSignal_DoesNotRunTheCommandTwice()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        var calls = 0;
+        using var listening = primary.ListenForCommand(command =>
+        {
+            Interlocked.Increment(ref calls);
+            return command.Length;
+        });
+        using var mailbox = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen($@"Local\{_name}.CommandMailbox", 16 + SingleInstance.MaxCommandBytes);
+
+        Assert.Equal(1, await Task.Run(() => SingleInstance.SendCommand(_name, "a", TestTimeouts.Short), Ct));
+        using (var signal = EventWaitHandle.OpenExisting($@"Local\{_name}.Command"))
+        {
+            signal.Set();
+        }
+
+        await Task.Delay(TimeSpan.FromMilliseconds(200), Ct);
+        Assert.Equal(1, Volatile.Read(ref calls));
+        Assert.Equal(2, await Task.Run(() => SingleInstance.SendCommand(_name, "bb", TestTimeouts.Short), Ct));
+        Assert.Equal(2, Volatile.Read(ref calls));
+    }
+
     [Fact]
     public void SendCommand_TooLong_Throws()
     {

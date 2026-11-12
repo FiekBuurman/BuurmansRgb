@@ -132,12 +132,16 @@ public sealed class SingleInstance : IDisposable
                 using var mailbox = MemoryMappedFile.CreateOrOpen(MailboxName(name), MailboxSize);
                 using var view = mailbox.CreateViewAccessor();
 
-                // Another id than the one before, so a late answer to a command that gave up is
-                // not taken for this one.
-                var id = unchecked(view.ReadInt32(IdOffset) + 1);
-                view.Write(IdOffset, id);
+                // A random id, never 0 (a new block) and another than the one before, so a late
+                // answer to a command that gave up is not taken for this one, and a signal that
+                // is left over does not run a command twice: the listener skips an id it answered.
+                // A new block starts at 0 each time, so counting on from there would not do. The id
+                // goes last, so a listener that sees it also sees the command.
+                var id = NewCommandId(view.ReadInt32(IdOffset));
                 view.Write(LengthOffset, bytes.Length);
                 view.WriteArray(CommandOffset, bytes, 0, bytes.Length);
+                Interlocked.MemoryBarrier();
+                view.Write(IdOffset, id);
                 signal.Set();
 
                 while (true)
@@ -209,6 +213,18 @@ public sealed class SingleInstance : IDisposable
 
     private static string MailboxName(string name) => $@"Local\{name}.CommandMailbox";
 
+    private static int NewCommandId(int previous)
+    {
+        while (true)
+        {
+            var id = Random.Shared.Next(1, int.MaxValue);
+            if (id != previous)
+            {
+                return id;
+            }
+        }
+    }
+
     private static bool WaitForTurn(Mutex turn, TimeSpan timeout)
     {
         try
@@ -259,7 +275,15 @@ public sealed class SingleInstance : IDisposable
         using (mailbox)
         using (var view = mailbox.CreateViewAccessor())
         {
+            // No id yet (the sender is still writing) or one that got its answer already (a signal
+            // that was left over): nothing to do.
             var id = view.ReadInt32(IdOffset);
+            if (id == 0 || id == view.ReadInt32(AnsweredIdOffset))
+            {
+                return;
+            }
+
+            Interlocked.MemoryBarrier();
             var length = view.ReadInt32(LengthOffset);
             if (length is < 0 or > MaxCommandBytes)
             {
@@ -269,6 +293,7 @@ public sealed class SingleInstance : IDisposable
             var bytes = new byte[length];
             view.ReadArray(CommandOffset, bytes, 0, length);
             view.Write(AnswerOffset, onCommand(Encoding.UTF8.GetString(bytes)));
+            Interlocked.MemoryBarrier();
             view.Write(AnsweredIdOffset, id);
         }
 
