@@ -186,9 +186,10 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
     eigen kleur, zoals **Alles uit** in het tray-menu. Verwijder je "Alles uit" terwijl hij een
     tijd heeft, dan blijft Uit om gewoon staan.
   - **Aan om** doet alleen iets als dan alles uit staat. Ging alles uit door **Uit om** (of door
-    de scène "Alles uit"), dan komen de kleuren en effecten van daarvóór terug, met alle apparaten
-    aan. Zette je ze op een andere manier uit, zoals met de grote schakelaar of het tray-menu, dan
-    gaat alles aan met de kleur die het had, zoals **Alles aan**. Brandt er al iets, dan blijft
+    de scène "Alles uit"), dan komen de kleuren en effecten van daarvóór terug, precies zoals ze
+    waren: een apparaat dat je toen bewust uit had (een ventilator), blijft uit. Stond er toen
+    ook niets aan, dan gaat alles aan. Zette je ze op een andere manier uit, zoals met de grote
+    schakelaar of het tray-menu, dan gaat alles aan met de kleur die het had, zoals **Alles aan**. Brandt er al iets, dan blijft
     alles zoals het is: wat je zelf aanzette, gaat voor.
   - Staat de pc om die tijd uit of in slaapstand, dan slaat buurmansRgb die keer over, net als bij
     een scène met een tijd. Met **Gemiste tijden inhalen** (bij Instellingen) gebeurt het bij het

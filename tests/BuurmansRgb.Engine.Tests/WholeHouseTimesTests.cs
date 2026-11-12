@@ -200,6 +200,23 @@ public sealed class WholeHouseTimesTests : IDisposable
         Assert.Equal(Red, Assert.Single(_store.Profiles, profile => profile.Role == ProfileRole.BackOn).Lighting.Global.Color);
     }
 
+    // The fan that was off in the evening stays off in the morning.
+    [Fact]
+    public void AanOm_AfterAllesUit_LeavesADeviceThatWasOffOff()
+    {
+        _store.Profiles = [AllOffScene("Alles uit")];
+        _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm], [SevenAm]));
+        var evening = Uniform(StaticLighting(Red));
+        _profiles.Show(evening with { Devices = new Dictionary<string, DeviceLighting> { ["fan"] = evening.Global with { On = false } } }, scene: null);
+        StartTimer();
+
+        _time.Advance(UntilElevenPm);
+        _time.Advance(UntilSevenAm - UntilElevenPm);
+
+        Assert.True(_lighting.State.Global.On);
+        Assert.False(_lighting.State.Devices["fan"].On);
+    }
+
     // Henk switched everything off in the tray menu: in the morning it all goes on with its own lighting.
     [Fact]
     public void AanOm_AfterAnotherWayOff_SwitchesEverythingOn()

@@ -615,7 +615,7 @@ toetsenbord. Een paar dingen om te proberen:
   `ProfileRole.AllOff`, de startscène "Alles uit", bewaart `Load` eerst de verlichting van
   daarvoor in het interne `BackOn`-profiel), een intern `AllOff` alles uit met de eigen kleur, en
   `BackOn` alleen als alles uit staat: met "Alles uit" als `ActiveName` de bewaarde verlichting
-  met alles aan, anders alles aan. Interne profielen hebben geen naam van de gebruiker: `Names`,
+  ongewijzigd (alles aan alleen als daarin niets aan stond), anders alles aan. Interne profielen hebben geen naam van de gebruiker: `Names`,
   `Load(name)`, `Save`, `Delete`, `TryGetAutomated` en `EngineCommand.CheckBeforeStart` zien ze
   niet. Een programma met een eigen scène houdt een Uit om vast via
   `ProgramWatcher.HoldUntilProgramsStop(lighting, scene)` (`ProgramHold`), dat de verlichting van

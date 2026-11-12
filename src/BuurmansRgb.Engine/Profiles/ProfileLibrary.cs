@@ -227,7 +227,7 @@ internal sealed class ProfileLibrary
     // - the internal "Uit om" switches every device off and keeps its lighting, as "Alles uit" in
     //   the tray menu; nothing while every device is off already;
     // - "Aan om" only does something while every device is off, so a choice made since stays. After
-    //   "Alles uit" the lighting from before it comes back, with every device on; after another way
+    //   "Alles uit" the lighting from before it comes back as it was (BackOnOver); after another way
     //   off, such as "Alles uit" in the tray menu, every device goes on with its own lighting, as
     //   "Alles aan". While a program shows its scene, that goes for what comes back once it stops:
     //   after "Uit om" held during a game, the devices go on when the game stops in the morning.
@@ -289,7 +289,9 @@ internal sealed class ProfileLibrary
     }
 
     // What "Aan om" puts on over off, the lighting with the scene that is on with it: after "Alles
-    // uit" the lighting from before it, else that of off; every device on. Null while a device is on.
+    // uit" the lighting from before it as it was, so a device that was off then (a fan) stays off;
+    // else, or when nothing was on before it either, that lighting with every device on. Null while
+    // a device is on.
     private HeldLighting? BackOnOver(HeldLighting off)
     {
         if (off.Lighting.IsAnyOn)
@@ -305,7 +307,7 @@ internal sealed class ProfileLibrary
                 : null;
         }
 
-        return new HeldLighting((before ?? off.Lighting).WithOn(true), Scene: null);
+        return new HeldLighting(before is { IsAnyOn: true } ? before : (before ?? off.Lighting).WithOn(true), Scene: null);
     }
 
     // "Uit om" and "Aan om" as they are saved.
