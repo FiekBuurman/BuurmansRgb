@@ -35,9 +35,9 @@ internal sealed class ProfileTimer : IProfileTrigger
     private bool _started;
     private bool _disposed;
 
-    // holdWhileProgramsRun gets the lighting of a profile whose time came, and returns true when it
-    // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop). resumeEvents tells
-    // when the lights are back after waking up, for CatchUp.
+    // holdWhileProgramsRun keeps what a time does for when the programs stop (ProgramHold) and
+    // returns true when it did (ProgramWatcher.HoldUntilProgramsStop). resumeEvents tells when the
+    // lights are back after waking up, for CatchUp.
     public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, ProgramHold? holdWhileProgramsRun = null, IResumeEvents? resumeEvents = null)
     {
         _holdWhileProgramsRun = holdWhileProgramsRun;
