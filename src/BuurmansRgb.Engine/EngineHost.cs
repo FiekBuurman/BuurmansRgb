@@ -68,7 +68,7 @@ internal sealed class EngineHost(
         await lighting.DiscoverAsync(ct);
         customEffects?.Load();
         lighting.Apply(settings.ToLightingState());
-        var startScenes = StartScenesOutcome.FileThere;
+        var startScenes = StartScenesOutcome.AlreadySettled;
         if (profiles is not null)
         {
             (settings, startScenes) = StartScenesOnce(settings, profiles, settingsStore.LoadDidNotRead);
@@ -446,7 +446,7 @@ internal sealed class EngineHost(
     {
         if (settings.StartScenesCreated)
         {
-            return (settings, StartScenesOutcome.FileThere);
+            return (settings, StartScenesOutcome.AlreadySettled);
         }
 
         if (settingsDidNotRead)
