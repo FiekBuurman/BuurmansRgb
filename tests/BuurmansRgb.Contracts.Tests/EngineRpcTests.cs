@@ -161,6 +161,20 @@ public sealed class EngineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task WholeHouseTimes_CrossThePipe()
+    {
+        var client = await ConnectAsync();
+        var off = new WholeHouseTimes([new LoadTime(new TimeOnly(22, 30), WeekDays.Weekend)]);
+
+        var times = await client.Api.GetWholeHouseTimesAsync(Ct);
+        await client.Api.SetWholeHouseTimesAsync(off, Ct);
+
+        Assert.Equal(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)], "Alles uit"), times);
+        Assert.Equal([off], _api.WholeHouseCalls);
+        Assert.Empty(Assert.Single(_api.WholeHouseCalls).On);
+    }
+
+    [Fact]
     public async Task FrameRendered_OnServer_ReachesClient()
     {
         var client = await ConnectAsync();
@@ -1015,6 +1029,17 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
         {
             AutomationCalls.Add((name, automation));
+            return Task.CompletedTask;
+        }
+
+        public List<WholeHouseTimes> WholeHouseCalls { get; } = [];
+
+        public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) =>
+            Task.FromResult(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)], "Alles uit"));
+
+        public Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default)
+        {
+            WholeHouseCalls.Add(times);
             return Task.CompletedTask;
         }
 

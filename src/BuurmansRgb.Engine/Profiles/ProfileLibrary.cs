@@ -177,16 +177,152 @@ internal sealed class ProfileLibrary
         }
     }
 
-    // Shows the lighting of the profile and saves it as the current lighting.
+    // Shows the lighting of the profile and saves it as the current lighting. For "Alles uit" (the
+    // role AllOff) the lighting it replaces is kept first, for "Aan om".
     public void Load(string name)
     {
+        var lightingNow = _lighting.State;
         Profile profile;
         lock (_gate)
         {
             profile = FindLocked(name);
+            if (profile.Role == ProfileRole.AllOff)
+            {
+                RememberBeforeOffLocked(profile, lightingNow);
+            }
         }
 
         Show(profile.Lighting, profile.Name);
+    }
+
+    // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
+    // ProfileTimer; the internal one of "Uit om" only while there is no scene "Alles uit", whose
+    // times count instead. None when profiles.json cannot be read, as TryGetAutomated.
+    public IReadOnlyList<TimedProfile> TryGetTimed()
+    {
+        try
+        {
+            lock (_gate)
+            {
+                var hasAllOffScene = AllOffSceneLocked() is not null;
+                return
+                [
+                    .. ScenesLocked().Where(profile => profile.Automation.Times.Count > 0).Select(profile => new TimedProfile(profile.Name, profile.Role, IsInternal: false, profile.Automation.Times)),
+                    .. ProfilesLocked()
+                        .Where(profile => profile.IsInternal && profile.Automation.Times.Count > 0 && !(profile.Role == ProfileRole.AllOff && hasAllOffScene))
+                        .OrderBy(profile => profile.Role)
+                        .Select(profile => new TimedProfile(profile.Name, profile.Role, IsInternal: true, profile.Automation.Times)),
+                ];
+            }
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError(exception.ToString());
+            return [];
+        }
+    }
+
+    // What a time of timed does, unless hold keeps it for when the programs stop (ProgramHold):
+    // - a scene comes on, as Load;
+    // - the internal "Uit om" switches every device off and keeps its lighting, as "Alles uit" in
+    //   the tray menu; nothing while every device is off already;
+    // - "Aan om" only does something while every device is off, so a choice made since stays. After
+    //   "Alles uit" the lighting from before it comes back, with every device on; after another way
+    //   off, such as "Alles uit" in the tray menu, every device goes on with its own lighting, as
+    //   "Alles aan". Not held: while a program shows its scene, a device is on.
+    // A scene that is gone throws ArgumentException.
+    public void LoadTimed(TimedProfile timed, ProgramHold? hold = null)
+    {
+        if (!timed.IsInternal)
+        {
+            if (hold?.Invoke(_ => GetLighting(timed.Name), timed.Name) != true)
+            {
+                Load(timed.Name);
+            }
+
+            return;
+        }
+
+        var lightingNow = _lighting.State;
+        if (timed.Role == ProfileRole.AllOff)
+        {
+            if (lightingNow.IsAnyOn && hold?.Invoke(before => before.WithOn(false), null) != true)
+            {
+                Trace.TraceInformation("Uit om: every device goes off.");
+                _lighting.SetLighting(null, lighting => lighting with { On = false });
+            }
+
+            return;
+        }
+
+        if (lightingNow.IsAnyOn)
+        {
+            Trace.TraceInformation("Aan om: a device is on already, so the lighting stays as it is.");
+            return;
+        }
+
+        LightingState? before;
+        lock (_gate)
+        {
+            before = AllOffSceneLocked() is { } scene && ActiveName is { } active && Matches(scene.Name, active)
+                ? InternalLocked(ProfileRole.BackOn)?.Lighting
+                : null;
+        }
+
+        Trace.TraceInformation(before is null ? "Aan om: every device goes on." : "Aan om: the lighting from before Alles uit comes back.");
+        if (before is null)
+        {
+            _lighting.SetLighting(null, lighting => lighting with { On = true });
+        }
+        else
+        {
+            Show(before.WithOn(true), scene: null);
+        }
+    }
+
+    // "Uit om" and "Aan om" as they are saved.
+    public WholeHouseTimes GetWholeHouseTimes()
+    {
+        lock (_gate)
+        {
+            var scene = AllOffSceneLocked();
+            return new WholeHouseTimes((scene ?? InternalLocked(ProfileRole.AllOff))?.Automation.Times, InternalLocked(ProfileRole.BackOn)?.Automation.Times, scene?.Name);
+        }
+    }
+
+    // "Uit om" goes on the scene "Alles uit" while there is one, which keeps its program, and else on
+    // an internal profile; "Aan om" on an internal one, which starts with the lighting as it is now
+    // until "Alles uit" comes on. Without times an internal profile goes from the file. Throws
+    // ArgumentException for more than ProfileAutomation.MaxTimes times.
+    public void SetWholeHouseTimes(WholeHouseTimes times)
+    {
+        ArgumentNullException.ThrowIfNull(times);
+        var off = new ProfileAutomation(times.Off).Normalize();
+        var on = new ProfileAutomation(times.On).Normalize();
+        var lightingNow = _lighting.State;
+        lock (_gate)
+        {
+            var scene = AllOffSceneLocked();
+            var backOn = InternalLocked(ProfileRole.BackOn);
+            List<Profile> profiles =
+            [
+                .. ScenesLocked().Select(profile => ReferenceEquals(profile, scene) ? profile with { Automation = profile.Automation with { Times = off.Times } } : profile),
+            ];
+            if (scene is null && off.Times.Count > 0)
+            {
+                profiles.Add(Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, off));
+            }
+
+            if (on.Times.Count > 0)
+            {
+                profiles.Add(Profile.Internal(ProfileRole.BackOn, backOn?.Lighting ?? lightingNow, on));
+            }
+
+            profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+            Store(profiles);
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     // Shows lighting and saves it as the current lighting, with scene as the scene that is on, or
@@ -222,13 +358,23 @@ internal sealed class ProfileLibrary
         }
     }
 
+    // Deleting "Alles uit" keeps "Uit om": its times go to an internal profile, which switches every
+    // device off from then on.
     public void Delete(string name)
     {
         string deleted;
         lock (_gate)
         {
             var profile = FindLocked(name);
-            Store([.. ProfilesLocked().Where(other => !ReferenceEquals(other, profile))]);
+            List<Profile> profiles = [.. ProfilesLocked().Where(other => !ReferenceEquals(other, profile))];
+            if (profile.Role == ProfileRole.AllOff && profile.Automation.Times.Count > 0 && !profiles.Exists(other => !other.IsInternal && other.Role == ProfileRole.AllOff))
+            {
+                profiles.RemoveAll(other => other.IsInternal && other.Role == ProfileRole.AllOff);
+                profiles.Add(Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, new ProfileAutomation(profile.Automation.Times)));
+                profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+            }
+
+            Store(profiles);
             deleted = profile.Name;
         }
 
@@ -347,6 +493,33 @@ internal sealed class ProfileLibrary
 
     // The scenes of the user: the profiles with a name, in alphabetical order.
     private IEnumerable<Profile> ScenesLocked() => ProfilesLocked().Where(profile => !profile.IsInternal);
+
+    // The scene "Alles uit", whose times are "Uit om"; the first in alphabetical order should a file
+    // edited by hand have more.
+    private Profile? AllOffSceneLocked() => ScenesLocked().FirstOrDefault(profile => profile.Role == ProfileRole.AllOff);
+
+    private Profile? InternalLocked(ProfileRole role) => ProfilesLocked().Find(profile => profile.IsInternal && profile.Role == role);
+
+    // "Aan om" puts back what burned before "Alles uit" came on, so that is kept in its internal
+    // profile; only while there is one, and not when "Alles uit" is on already, as then that is what
+    // burns. Not a change of the scenes, so no Changed. A file that cannot be written keeps what it
+    // had, and "Alles uit" still comes on.
+    private void RememberBeforeOffLocked(Profile scene, LightingState lightingNow)
+    {
+        if (InternalLocked(ProfileRole.BackOn) is not { } backOn || (ActiveName is { } active && Matches(scene.Name, active)))
+        {
+            return;
+        }
+
+        try
+        {
+            Store([.. ProfilesLocked().Select(profile => ReferenceEquals(profile, backOn) ? profile with { Lighting = lightingNow } : profile)]);
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError($"Could not keep the lighting from before Alles uit for Aan om: {exception}");
+        }
+    }
 
     private Profile FindLocked(string name) =>
         ScenesLocked().FirstOrDefault(profile => Matches(profile, name?.Trim() ?? string.Empty))

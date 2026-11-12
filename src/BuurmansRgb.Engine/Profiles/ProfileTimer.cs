@@ -14,6 +14,8 @@ namespace BuurmansRgb.Engine.Profiles;
 // the one whose time passed last. It does so at the start, and after waking up once the lights are
 // back (IResumeEvents.Restored) when that time passed while the pc slept. While a program shows
 // its profile, holdWhileProgramsRun can keep the profile of the time for when the program stops.
+// "Uit om" and "Aan om" of Hele huis are times like these, on the same timer
+// (ProfileLibrary.TryGetTimed and LoadTimed).
 // Called from the tray thread, IPC threads and the timers; the lock guards the timer.
 internal sealed class ProfileTimer : IProfileTrigger
 {
@@ -24,19 +26,19 @@ internal sealed class ProfileTimer : IProfileTrigger
     private readonly ProfileLibrary _profiles;
     private readonly IClockEvents _clock;
     private readonly TimeProvider _time;
-    private readonly Func<string, bool>? _holdWhileProgramsRun;
+    private readonly ProgramHold? _holdWhileProgramsRun;
     private readonly IResumeEvents? _resumeEvents;
     private readonly ITimer _timer;
     private readonly Lock _gate = new();
-    private (DateTimeOffset At, string Name)? _next;
+    private (DateTimeOffset At, TimedProfile Profile)? _next;
     private bool _catchUp;
     private bool _started;
     private bool _disposed;
 
-    // holdWhileProgramsRun gets the name of a profile whose time came, and returns true when it
+    // holdWhileProgramsRun gets the lighting of a profile whose time came, and returns true when it
     // keeps that for later instead (ProgramWatcher.HoldUntilProgramsStop). resumeEvents tells
     // when the lights are back after waking up, for CatchUp.
-    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, Func<string, bool>? holdWhileProgramsRun = null, IResumeEvents? resumeEvents = null)
+    public ProfileTimer(ProfileLibrary profiles, IClockEvents clock, TimeProvider time, ProgramHold? holdWhileProgramsRun = null, IResumeEvents? resumeEvents = null)
     {
         _holdWhileProgramsRun = holdWhileProgramsRun;
         _resumeEvents = resumeEvents;
@@ -154,14 +156,14 @@ internal sealed class ProfileTimer : IProfileTrigger
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
             _next = null;
-            foreach (var (name, automation) in _profiles.TryGetAutomated())
+            foreach (var profile in _profiles.TryGetTimed())
             {
-                foreach (var time in automation.Times)
+                foreach (var time in profile.Times)
                 {
                     var at = DailyTime.Next(time.At, now, zone, time.Days);
                     if (_next is null || at < _next.Value.At)
                     {
-                        _next = (at, name);
+                        _next = (at, profile);
                     }
                 }
             }
@@ -172,7 +174,7 @@ internal sealed class ProfileTimer : IProfileTrigger
 
     private void OnTimer()
     {
-        string? due;
+        TimedProfile? due;
         lock (_gate)
         {
             if (_disposed || _next is not { } next)
@@ -188,24 +190,25 @@ internal sealed class ProfileTimer : IProfileTrigger
                 return;
             }
 
-            due = now - next.At <= LateLimit ? next.Name : null;
+            due = now - next.At <= LateLimit ? next.Profile : null;
         }
 
         // Outside the lock: loading takes the locks of the library and the lighting.
-        if (due is not null)
+        if (due is { } profile)
         {
-            Load(due);
+            Load(profile);
         }
 
         Schedule();
     }
 
-    // The scene with the time that passed last, of all times of all scenes, when that is after
-    // since and not the scene that is on. Two at the same time: the first in alphabetical order, as
-    // in Schedule.
+    // The scene with the time that passed last, of all times of all scenes and of "Uit om" and "Aan
+    // om", when that is after since and not the scene that is on. Two at the same time: the first in
+    // alphabetical order, as in Schedule. "Uit om" and "Aan om" leave alone what needs no change
+    // themselves (ProfileLibrary.LoadTimed).
     private void LoadLatest(DateTimeOffset? since)
     {
-        (DateTimeOffset At, string Name)? latest = null;
+        (DateTimeOffset At, TimedProfile Profile)? latest = null;
         lock (_gate)
         {
             if (_disposed)
@@ -215,33 +218,31 @@ internal sealed class ProfileTimer : IProfileTrigger
 
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
-            foreach (var (name, automation) in _profiles.TryGetAutomated())
+            foreach (var profile in _profiles.TryGetTimed())
             {
-                foreach (var time in automation.Times)
+                foreach (var time in profile.Times)
                 {
                     var at = DailyTime.Previous(time.At, now, zone, time.Days);
                     if (latest is null || at > latest.Value.At)
                     {
-                        latest = (at, name);
+                        latest = (at, profile);
                     }
                 }
             }
         }
 
-        if (latest is { } scene && (since is null || scene.At > since) && !ProfileNames.Comparer.Equals(scene.Name, _profiles.ActiveName))
+        if (latest is { } last && (since is null || last.At > since)
+            && (last.Profile.IsInternal || !ProfileNames.Comparer.Equals(last.Profile.Name, _profiles.ActiveName)))
         {
-            Load(scene.Name);
+            Load(last.Profile);
         }
     }
 
-    private void Load(string name)
+    private void Load(TimedProfile profile)
     {
         try
         {
-            if (_holdWhileProgramsRun?.Invoke(name) != true)
-            {
-                _profiles.Load(name);
-            }
+            _profiles.LoadTimed(profile, _holdWhileProgramsRun);
         }
         catch (Exception exception)
         {

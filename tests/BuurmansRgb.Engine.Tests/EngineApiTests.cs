@@ -743,6 +743,21 @@ public sealed class EngineApiTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => api.GetProfileAutomationAsync("Gamen", Ct));
     }
 
+    // "Uit om" and "Aan om" are no scenes, and a second settings app hears of them as of a scene time.
+    [Fact]
+    public async Task SetWholeHouseTimesAsync_ThenGet_ReturnsThemAsSaved_WithProfilesChanged()
+    {
+        using var api = CreateApi();
+        var changes = 0;
+        api.ProfilesChanged += (_, _) => changes++;
+
+        await api.SetWholeHouseTimesAsync(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0, 15))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]), Ct);
+
+        Assert.Equal(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]), await api.GetWholeHouseTimesAsync(Ct));
+        Assert.Empty(await api.GetProfilesAsync(Ct));
+        Assert.Equal(1, changes);
+    }
+
     // So a second settings app sees what the first one changed.
     [Fact]
     public async Task ProfilesChanged_FollowsSaveAndDelete()

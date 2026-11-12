@@ -312,9 +312,9 @@ public sealed class ProfileTimerTests : IDisposable
     {
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         var held = new List<RgbColor>();
-        _timer = new ProfileTimer(_profiles, _clock, _time, name =>
+        _timer = new ProfileTimer(_profiles, _clock, _time, (_, name) =>
         {
-            held.Add(_profiles.GetLighting(name).Global.Color);
+            held.Add(_profiles.GetLighting(name!).Global.Color);
             return true;
         });
         _timer.Start();
@@ -795,7 +795,7 @@ public sealed class ProfileTimerTests : IDisposable
     private void StartTimer(bool catchUp = false, Func<string, bool>? hold = null)
     {
         _restorer = new ResumeRestorer(_power, _lighting.RestoreDevices, _time, ResumeRestorer.DefaultDelays);
-        _timer = new ProfileTimer(_profiles, _clock, _time, hold, _restorer) { CatchUp = catchUp };
+        _timer = new ProfileTimer(_profiles, _clock, _time, hold is null ? null : (_, scene) => hold(scene!), _restorer) { CatchUp = catchUp };
         _timer.Start();
         _timer.CatchUpAtStart();
     }

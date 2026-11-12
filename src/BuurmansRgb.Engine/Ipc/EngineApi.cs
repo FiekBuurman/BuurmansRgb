@@ -444,6 +444,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) => Task.FromResult(_profiles.GetWholeHouseTimes());
+
+    public Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default)
+    {
+        _profiles.SetWholeHouseTimes(times);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         _lighting.Rendered -= OnRendered;
