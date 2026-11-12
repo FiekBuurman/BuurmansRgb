@@ -3,7 +3,7 @@ namespace BuurmansRgb.Engine.Profiles;
 internal interface IProfileStore
 {
     // Whether there is a file, also one without profiles: that is a pc that had scenes, or whose
-    // user deleted them all (ProfileLibrary.AddStartScenes).
+    // user deleted them all, or one that did not read and went aside (ProfileLibrary.AddStartScenes).
     bool Exists { get; }
 
     // The saved profiles, or none when there is no file yet.

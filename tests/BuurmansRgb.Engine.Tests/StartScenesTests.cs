@@ -122,6 +122,25 @@ public sealed class StartScenesTests : IDisposable
         Assert.Equal(0, changed);
     }
 
+    // A profiles.json that does not read, which the tray menu read before the start got here: it
+    // went aside as profiles.json.broken, and that pc had scenes all the same.
+    [Fact]
+    public void AddStartScenes_AfterABrokenFileWentAside_ChangesNothing()
+    {
+        var path = _directory.File("profiles.json");
+        File.WriteAllText(path, "{ not json");
+        var store = new JsonProfileStore(path);
+        var library = new ProfileLibrary(store, _lighting);
+        Assert.Empty(library.Names);
+        Assert.False(File.Exists(path));
+
+        Assert.Equal(StartScenesOutcome.FileThere, library.AddStartScenes(StartScenes.Create()));
+
+        Assert.Empty(library.Names);
+        Assert.False(File.Exists(path));
+        Assert.Equal("{ not json", File.ReadAllText(store.BrokenFilePath));
+    }
+
     [Fact]
     public void AddStartScenes_ThatCannotBeWritten_IsNotSettled()
     {

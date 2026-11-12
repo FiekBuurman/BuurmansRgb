@@ -1681,7 +1681,8 @@ dezelfde naam als een eerdere (hoofdletters tellen niet), slaat de engine over.
 Is er bij de eerste start van de engine nog geen `profiles.json`, dan schrijft hij er een met de
 vijf startscènes (zie "Scènes"), alle vijf zonder `devices`, dus voor alle apparaten. Dat
 gebeurt één keer per pc (`startScenesCreated` in `settings.json`): een `profiles.json` met een
-lege lijst, of geen `profiles.json` meer nadat je hem weghaalde, blijft zo.
+lege lijst, of geen `profiles.json` meer nadat je hem weghaalde, blijft zo. Een `profiles.json`
+die niet te lezen was en naar `profiles.json.broken` ging, telt ook als een bestand dat er was.
 
 ### effects.json
 
