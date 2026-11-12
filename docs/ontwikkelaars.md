@@ -625,8 +625,11 @@ toetsenbord. Een paar dingen om te proberen:
   het event niet: daar vindt `SendCommand` niets en eindigt de tweede start meteen met 4, in
   plaats van de instellingen-app te openen. Een fout tijdens het beantwoorden (in het
   gedeelde geheugen of in de engine) logt `SingleInstance` met `Trace.TraceError`; de tweede
-  start krijgt dan na de 10 s een 4. `TrayApplicationContext.RunCommand` zet de opdracht op de
-  thread van het tray-icoon en `TrayPresenter.Run` doet wat "Scène aanzetten", "Alles aan" en
+  start krijgt dan na de 10 s een 4. `EngineCommand.Answer` vertaalt het bericht (een onbekend
+  bericht geeft 1 met een regel in het log), zet de opdracht via `TrayApplicationContext.RunCommand`
+  op de thread van het tray-icoon en geeft 4 bij afsluiten of als die thread langer dan 10 s
+  vastzit; een opdracht die daarna pas aan de beurt komt, slaat hij over (een die al liep, maakt
+  hij af). `TrayPresenter.Run` doet wat "Scène aanzetten", "Alles aan" en
   "Alles uit" in het menu doen (een scène hoofdletterongevoelig via `ProfileNames.Comparer`),
   met een regel in `engine.log`. Draait er geen engine, dan wordt deze start de engine: een
   onbekende scène stopt hem vóór er iets start (`EngineCommand.CheckBeforeStart`, met de regel

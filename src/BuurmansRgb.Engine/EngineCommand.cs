@@ -25,6 +25,11 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
     private const string AllOnMessage = "all-on";
     private const string AllOffMessage = "all-off";
 
+    // Whether the command of Answer still waits for the tray thread, runs there, or came too late.
+    private const int AnswerWaiting = 0;
+    private const int AnswerRunning = 1;
+    private const int AnswerGivenUp = 2;
+
     public static EngineCommand AllOn { get; } = new(EngineCommandKind.AllOn);
 
     public static EngineCommand AllOff { get; } = new(EngineCommandKind.AllOff);
@@ -71,6 +76,52 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
             _ when message.StartsWith(ScenePrefix, StringComparison.Ordinal) => new(EngineCommandKind.Scene, message[ScenePrefix.Length..]),
             _ => null,
         };
+
+    // In the engine that runs, on a thread of the pool: the answer to a message of a second start.
+    // post puts an action on the tray thread, where run does the command as the menu does. Gives up
+    // on the way out (shutdown, or post throws because the thread is gone) and when the tray thread
+    // is stuck longer than timeout; the command does not run anymore then, unless it already began.
+    public static EngineCommandResult Answer(
+        string message,
+        Action<Action> post,
+        Func<EngineCommand, EngineCommandResult> run,
+        TimeSpan timeout,
+        CancellationToken shutdown)
+    {
+        if (FromMessage(message) is not { } command)
+        {
+            Trace.TraceWarning($"Command line: unknown command '{message}'.");
+            return EngineCommandResult.Failed;
+        }
+
+        var done = new TaskCompletionSource<EngineCommandResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var state = AnswerWaiting;
+        try
+        {
+            shutdown.ThrowIfCancellationRequested();
+            post(() =>
+            {
+                if (Interlocked.CompareExchange(ref state, AnswerRunning, AnswerWaiting) != AnswerWaiting)
+                {
+                    Trace.TraceWarning($"Command line: {command} came too late; nothing changed.");
+                    return;
+                }
+
+                done.TrySetResult(run(command));
+            });
+            if (done.Task.Wait(timeout, shutdown))
+            {
+                return done.Task.Result;
+            }
+        }
+        catch (Exception exception) when (exception is OperationCanceledException or InvalidOperationException)
+        {
+            // On the way out; the message loop of the tray thread may be gone already.
+        }
+
+        Interlocked.CompareExchange(ref state, AnswerGivenUp, AnswerWaiting);
+        return EngineCommandResult.NoAnswer;
+    }
 
     // Hands the command to the engine that runs; its answer, or NoAnswer.
     public EngineCommandResult Send(string engineName) =>

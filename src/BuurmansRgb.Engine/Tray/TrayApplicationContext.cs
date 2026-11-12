@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
@@ -137,29 +136,13 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
     public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
 
     // From another thread (--scene, --all-on or --all-off of a second start): runs the command on
-    // this thread, as the menu does, and gives what came of it as the exit code of that start. Gives
-    // up on the way out, or when this thread is stuck longer than the second start waits anyway.
-    public int RunCommand(string message)
-    {
-        if (EngineCommand.FromMessage(message) is not { } command)
-        {
-            Trace.TraceWarning($"Command line: unknown command '{message}'.");
-            return (int)EngineCommandResult.Failed;
-        }
-
-        var done = new TaskCompletionSource<EngineCommandResult>(TaskCreationOptions.RunContinuationsAsynchronously);
-        try
-        {
-            _shutdown.Token.ThrowIfCancellationRequested();
-            _uiContext.Post(_ => done.TrySetResult(_presenter.Run(command)), state: null);
-            return done.Task.Wait(EngineCommand.AnswerTimeout, _shutdown.Token) ? (int)done.Task.Result : (int)EngineCommandResult.NoAnswer;
-        }
-        catch (Exception exception) when (exception is OperationCanceledException or InvalidOperationException)
-        {
-            // On the way out; the message loop of this thread may be gone already.
-            return (int)EngineCommandResult.NoAnswer;
-        }
-    }
+    // this thread, as the menu does, and gives what came of it as the exit code of that start.
+    public int RunCommand(string message) => (int)EngineCommand.Answer(
+        message,
+        action => _uiContext.Post(_ => action(), state: null),
+        _presenter.Run,
+        EngineCommand.AnswerTimeout,
+        _shutdown.Token);
 
     // From another thread (the settings app through IEngineApi.RestartAsync): the same as
     // "Herstarten" in the menu. RestartAsync never throws, so nothing is lost by not awaiting it.

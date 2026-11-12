@@ -107,6 +107,105 @@ public sealed class EngineCommandTests
         Assert.Equal(exitCode, result);
     }
 
+    [Fact]
+    public void Answer_KnownMessage_RunsItThroughPost_AndGivesTheResult()
+    {
+        var posted = 0;
+        EngineCommand? ran = null;
+
+        var result = EngineCommand.Answer(
+            "scene:Nacht",
+            action =>
+            {
+                posted++;
+                action();
+            },
+            command =>
+            {
+                ran = command;
+                return EngineCommandResult.UnknownScene;
+            },
+            TestTimeouts.Short,
+            Ct);
+
+        Assert.Equal(EngineCommandResult.UnknownScene, result);
+        Assert.Equal(1, posted);
+        Assert.Equal(new EngineCommand(EngineCommandKind.Scene, "Nacht"), ran);
+    }
+
+    // From a newer version: nothing runs, a line in the log and "mislukt".
+    [Fact]
+    public void Answer_UnknownMessage_IsFailed_WithALineInTheLog_AndPostsNothing()
+    {
+        using var trace = new TraceCapture();
+        var posted = false;
+        var message = $"pause-{Guid.NewGuid():N}";
+
+        var result = EngineCommand.Answer(message, _ => posted = true, _ => EngineCommandResult.Done, TestTimeouts.Short, Ct);
+
+        Assert.Equal(EngineCommandResult.Failed, result);
+        Assert.False(posted);
+        Assert.Contains(trace.Messages, line => line.Contains($"unknown command '{message}'", StringComparison.Ordinal));
+    }
+
+    // The tray thread is stuck: the second start gets "geen antwoord", and the command that
+    // comes through afterwards no longer runs, as that start reported it did not.
+    [Fact]
+    public void Answer_TrayThreadStuck_IsNoAnswer_AndTheCommandDoesNotRunLater()
+    {
+        Action? queued = null;
+        var runs = 0;
+
+        var result = EngineCommand.Answer(
+            "all-on",
+            action => queued = action,
+            _ =>
+            {
+                runs++;
+                return EngineCommandResult.Done;
+            },
+            TimeSpan.FromMilliseconds(50),
+            Ct);
+        queued!();
+
+        Assert.Equal(EngineCommandResult.NoAnswer, result);
+        Assert.Equal(0, runs);
+    }
+
+    [Fact]
+    public void Answer_ShuttingDown_IsNoAnswer_AndPostsNothing()
+    {
+        using var shutdown = new CancellationTokenSource();
+        shutdown.Cancel();
+        var posted = false;
+
+        var result = EngineCommand.Answer("all-off", _ => posted = true, _ => EngineCommandResult.Done, TestTimeouts.Short, shutdown.Token);
+
+        Assert.Equal(EngineCommandResult.NoAnswer, result);
+        Assert.False(posted);
+    }
+
+    // The message loop of the tray thread is gone.
+    [Fact]
+    public void Answer_PostThrows_IsNoAnswer()
+    {
+        var result = EngineCommand.Answer("all-off", _ => throw new InvalidOperationException(), _ => EngineCommandResult.Done, TestTimeouts.Short, Ct);
+
+        Assert.Equal(EngineCommandResult.NoAnswer, result);
+    }
+
+    [Fact]
+    public async Task Answer_ShutdownWhileWaiting_IsNoAnswer()
+    {
+        using var shutdown = new CancellationTokenSource();
+
+        var answer = Task.Run(() => EngineCommand.Answer("all-on", _ => { }, _ => EngineCommandResult.Done, TestTimeouts.Short, shutdown.Token), Ct);
+        await Task.Delay(TimeSpan.FromMilliseconds(50), Ct);
+        await shutdown.CancelAsync();
+
+        Assert.Equal(EngineCommandResult.NoAnswer, await answer.WaitAsync(TestTimeouts.Short, Ct));
+    }
+
     // Through the same signal as in Program, with a name of its own, so no engine that runs on
     // this pc hears it.
     [Fact]
