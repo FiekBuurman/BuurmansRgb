@@ -192,6 +192,23 @@ public sealed class WholeHouseTimesViewModelTests
         Assert.True(_times.HasTimes);
     }
 
+    // A scene "Alles uit" with more times: the first, and how many more.
+    [Fact]
+    public void Summary_WithMoreTimes_SaysHowManyMore()
+    {
+        var midnight = new LoadTime(new TimeOnly(0, 30));
+        var oneAm = new LoadTime(new TimeOnly(1, 0));
+
+        _times.Show(new WholeHouseTimes([ElevenPm, midnight], OffScene: "Alles uit"));
+        Assert.Equal("uit om 23:00 (elke dag) en nog 1 tijd", _times.Summary);
+
+        _times.Show(new WholeHouseTimes([ElevenPm, midnight, oneAm], OffScene: "Alles uit"));
+        Assert.Equal("uit om 23:00 (elke dag) en nog 2 tijden", _times.Summary);
+
+        _times.Show(new WholeHouseTimes([ElevenPm, midnight], [SevenAm], "Alles uit"));
+        Assert.Equal("uit om 23:00 (elke dag) en nog 1 tijd, en aan om 07:00 (elke dag)", _times.Summary);
+    }
+
     [Fact]
     public void Rows_HaveNamesForAScreenReader()
     {

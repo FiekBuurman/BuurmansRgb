@@ -60,14 +60,17 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     // Whether a time is on, for "Na een herstart".
     public bool HasTimes => _saved.Off.Count > 0 || _saved.On.Count > 0;
 
-    // "Uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)", or one of them; null without times.
+    // "Uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)", or one of them; null without times. With
+    // more times than the first (a scene "Alles uit" with more), how many more: "uit om 23:00 (elke
+    // dag) en nog 1 tijd, en aan om 07:00 (werkdagen)".
     public string? Summary
     {
         get
         {
-            var off = _saved.Off.Count > 0 ? UiText.Format(Strings.WholeHouseSummaryOff, Describe(_saved.Off[0])) : null;
-            var on = _saved.On.Count > 0 ? UiText.Format(Strings.WholeHouseSummaryOn, Describe(_saved.On[0])) : null;
-            return off is not null && on is not null ? UiText.Format(Strings.WholeHouseSummaryBoth, off, on) : off ?? on;
+            var off = Summarize(Strings.WholeHouseSummaryOff, _saved.Off);
+            var on = Summarize(Strings.WholeHouseSummaryOn, _saved.On);
+            var both = _saved.Off.Count > 1 || _saved.On.Count > 1 ? Strings.WholeHouseSummaryBothMoreTimes : Strings.WholeHouseSummaryBoth;
+            return off is not null && on is not null ? UiText.Format(both, off, on) : off ?? on;
         }
     }
 
@@ -91,6 +94,23 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     {
         IsAvailable = false;
         Error = null;
+    }
+
+    // The first time in format, with how many more there are; null without times.
+    private static string? Summarize(string format, IReadOnlyList<LoadTime> times)
+    {
+        if (times.Count == 0)
+        {
+            return null;
+        }
+
+        var first = UiText.Format(format, Describe(times[0]));
+        return times.Count switch
+        {
+            1 => first,
+            2 => UiText.Format(Strings.WholeHouseSummaryMoreTimesOne, first),
+            _ => UiText.Format(Strings.WholeHouseSummaryMoreTimes, first, times.Count - 1),
+        };
     }
 
     private static string Describe(LoadTime time) =>

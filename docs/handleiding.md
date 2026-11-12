@@ -839,7 +839,8 @@ Hoe het vanzelf aanzetten werkt:
   aan, dan "de scène 'Gamen', die nu aan staat"), de helderheid, en wat de apparaten doen als de
   pc slaapt of vergrendeld is (de keuze van het blok erboven). Staat "Uit om" of "Aan om" bij Hele
   huis aan, dan noemt een regel ook die tijden ("de tijden van Hele huis op Apparaten: uit om 23:00
-  (elke dag) en aan om 07:00 (werkdagen)"). Staat "Gemiste tijden inhalen" aan
+  (elke dag) en aan om 07:00 (werkdagen)"; heeft "Alles uit" meer tijden, dan de eerste en hoeveel
+  er nog zijn: "uit om 23:00 (elke dag) en nog 1 tijd"). Staat "Gemiste tijden inhalen" aan
   en heeft een scène een tijd, dan staat eronder dat bij het starten de scène aankomt waarvan de
   tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos (zie
   "Gemiste tijden inhalen" bij Scènes); met Uit om of Aan om staat er dat buurmansRgb die alsnog
