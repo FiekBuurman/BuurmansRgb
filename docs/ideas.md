@@ -756,6 +756,24 @@ uitbreidingen in `docs/bouwplan.md`.
   localhost (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en
   `docs/handleiding.md` zegt wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt
   geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
+- Meer opdrachten naast `--scene`, `--all-on` en `--all-off` (`scene-commandline`): bijv.
+  `--pause` en `--resume` voor "Effecten pauzeren", of `--toggle` voor één Stream Deck-knop die
+  alles aan of uit zet. Gaan over hetzelfde kanaal (`SingleInstance.SendCommand`), met een eigen
+  bericht in `EngineCommand`
+- Een opdracht die in de eerste seconden na het starten van de engine komt (exitcode 3), laten
+  wachten tot de opgeslagen verlichting staat in plaats van hem te weigeren, zoals een opdracht
+  bij een engine die door die opdracht zelf start. Handig voor Home Assistant vlak na het
+  aanmelden; let op dat de tweede start dan langer dan 10 s kan wachten
+- Een Stream Deck-plugin die de scènes zelf opsomt (via de pipe van de engine, zoals de
+  instellingen-app) en op de knop toont welke aan staat; nu maak je per scène met de hand een
+  knop met `--scene`
+- Een `--scene` voor een scène die niet bestaat ook bij het icoon melden; nu staat het alleen in
+  `engine.log` en de exitcode, wat een Stream Deck-knop niet toont
+- Een `.cmd`-bestand of uitleg om een opdracht via `ssh` in de sessie van de gebruiker te laten
+  lopen zonder per scène een geplande taak (bijv. één taak die een scène uit een bestand leest);
+  de signalen `Local\BuurmansRgb.Engine*` hangen aan de Windows-sessie, dus een opdracht die via
+  `ssh` binnenkomt, vindt de engine niet en start een eigen. De tweede start zou in een sessie
+  zonder bureaublad ook kunnen weigeren een engine te worden
 
 ## Installer en uitrol
 

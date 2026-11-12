@@ -23,7 +23,7 @@
 - **Eigen effecten** van stappen: elke stap een kleur of een patroon over de LED's, met hoe lang
   hij blijft staan en overloopt naar de volgende.
 - **Scènes** zoals "Gamen" of "Nacht": met één klik, uit het tray-menu, op vaste tijden of
-  zolang een spel draait.
+  zolang een spel draait, of van buitenaf met een Stream Deck of Home Assistant.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand, scherm uit en schermbeveiliging en
   zet de kleuren na het ontwaken terug.
 - **Eén melding tegelijk:** bovenaan staat hooguit één statusregel met wat je nu moet weten (de
