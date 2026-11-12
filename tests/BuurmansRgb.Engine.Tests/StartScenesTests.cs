@@ -231,6 +231,25 @@ public sealed class StartScenesTests : IDisposable
         Assert.False(store.Settings.StartScenesCreated);
     }
 
+    // settings.json was there but did not read at the start: whether the scenes were made is
+    // unknown, so none come and nothing is saved over the file of the user.
+    [Fact]
+    public async Task StartAsync_SettingsThatDidNotRead_MakesNoneAndSavesNothing()
+    {
+        var store = new InMemorySettingsStore { Settings = EngineSettings.CreateNew(), LoadDidNotRead = true };
+        var profileStore = new InMemoryProfileStore { Exists = false };
+        var library = new ProfileLibrary(profileStore, _lighting);
+        var host = new EngineHost(store, _lighting, saveDelay: TimeSpan.FromHours(1), profiles: library);
+
+        await host.StartAsync(Ct);
+
+        Assert.Empty(library.Names);
+        Assert.Equal(0, profileStore.SaveCount);
+        host.Dispose();
+        Assert.Equal(0, store.SaveCount);
+        Assert.False(store.Settings.StartScenesCreated);
+    }
+
     // With the real files, as on a new pc: the first start writes profiles.json; scenes the user
     // deletes stay away after a restart, also when they were all deleted.
     [Fact]
