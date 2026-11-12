@@ -192,6 +192,122 @@ public sealed class SingleInstanceTests
         Assert.False(activated);
     }
 
+    // The engine's --scene, --all-on and --all-off: the answer becomes the exit code.
+    [Fact]
+    public async Task SendCommand_PrimaryListens_GetsTheCommandAndGivesItsAnswer()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        var received = new List<string>();
+        using var listening = primary.ListenForCommand(command =>
+        {
+            lock (received)
+            {
+                received.Add(command);
+            }
+
+            return command == "scène:Café" ? 7 : 0;
+        });
+
+        var answer = await Task.Run(() => SingleInstance.SendCommand(_name, "scène:Café", TestTimeouts.Short), Ct);
+
+        Assert.Equal(7, answer);
+        Assert.Equal(["scène:Café"], received);
+    }
+
+    [Fact]
+    public async Task SendCommand_OneAfterTheOther_EachGetsItsOwnAnswer()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var listening = primary.ListenForCommand(command => command.Length);
+
+        var answers = await Task.Run(() => new[] { "a", "bb", "ccc" }.Select(command => SingleInstance.SendCommand(_name, command, TestTimeouts.Short)).ToList(), Ct);
+
+        Assert.Equal([1, 2, 3], answers);
+    }
+
+    [Fact]
+    public async Task SendCommand_AtTheSameTime_EachGetsItsOwnAnswer()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var listening = primary.ListenForCommand(command => int.Parse(command, System.Globalization.CultureInfo.InvariantCulture));
+
+        var answers = await Task.WhenAll(Enumerable.Range(1, 5).Select(number => Task.Run(() => SingleInstance.SendCommand(_name, number.ToString(System.Globalization.CultureInfo.InvariantCulture), TestTimeouts.Short), Ct)));
+
+        Assert.Equal([1, 2, 3, 4, 5], answers);
+    }
+
+    // No engine, or one of before this command that only listens for activation and exit.
+    [Fact]
+    public void SendCommand_NoneListens_IsNullAtOnce()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var activation = primary.ListenForActivation(() => { });
+
+        Assert.Null(SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short));
+        Assert.Null(SingleInstance.SendCommand($"{_name}.Other", "all-on", TestTimeouts.Short));
+    }
+
+    // It only looks, as SignalExitIfRunning: an instance that starts right after it is the first.
+    [Fact]
+    public void SendCommand_NoneRunning_CreatesNothing()
+    {
+        Assert.Null(SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short));
+
+        using var next = SingleInstance.Acquire(_name);
+        Assert.True(next.IsPrimary);
+    }
+
+    [Fact]
+    public async Task SendCommand_NoAnswerInTime_IsNull_AndTheNextGetsItsOwnAnswer()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var release = new ManualResetEventSlim();
+        using var listening = primary.ListenForCommand(command =>
+        {
+            if (command == "slow")
+            {
+                release.Wait(TestTimeouts.Short);
+                return 1;
+            }
+
+            return 2;
+        });
+
+        var slow = await Task.Run(() => SingleInstance.SendCommand(_name, "slow", TimeSpan.FromMilliseconds(100)), Ct);
+        var next = Task.Run(() => SingleInstance.SendCommand(_name, "fast", TestTimeouts.Short), Ct);
+        await Task.Delay(TimeSpan.FromMilliseconds(100), Ct);
+        release.Set();
+
+        Assert.Null(slow);
+        Assert.Equal(2, await next);
+    }
+
+    [Fact]
+    public void SendCommand_TooLong_Throws()
+    {
+        Assert.Throws<ArgumentException>(() => SingleInstance.SendCommand(_name, new string('x', SingleInstance.MaxCommandBytes + 1), TestTimeouts.Short));
+    }
+
+    [Fact]
+    public async Task ListenForCommand_AfterListenerIsDisposed_NoneListens()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        primary.ListenForCommand(_ => 0).Dispose();
+
+        var answer = await Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TimeSpan.FromMilliseconds(200)), Ct);
+
+        Assert.Null(answer);
+    }
+
+    [Fact]
+    public void ListenForCommand_OnSecondaryInstance_Throws()
+    {
+        using var first = SingleInstance.Acquire(_name);
+        using var second = SingleInstance.Acquire(_name);
+
+        Assert.Throws<InvalidOperationException>(() => second.ListenForCommand(_ => 0));
+    }
+
     [Fact]
     public void ListenForExit_OnSecondaryInstance_Throws()
     {

@@ -1,20 +1,39 @@
 using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
+using System.Text;
 
 namespace BuurmansRgb.Contracts;
 
 // One instance per Windows session, for the engine and for the settings app: a second start finds
 // the first by name, signals it and stops. The signal asks the first one to come to the front, or
-// to exit (the engine's --exit).
+// to exit (the engine's --exit). A start can also hand the first a command and wait for its answer
+// (the engine's --scene, --all-on and --all-off, see SendCommand).
 public sealed class SingleInstance : IDisposable
 {
+    public const int MaxCommandBytes = 1024;
+
+    // The command and its answer go through a small block of shared memory of the session, which
+    // only exists while a command is on its way: the id of the command, the id the answer is for,
+    // the answer, the length of the command in UTF-8 bytes and the command.
+    private const int IdOffset = 0;
+    private const int AnsweredIdOffset = 4;
+    private const int AnswerOffset = 8;
+    private const int LengthOffset = 12;
+    private const int CommandOffset = 16;
+    private const int MailboxSize = CommandOffset + MaxCommandBytes;
+
+    private readonly string _name;
     private readonly Mutex _mutex;
     private readonly EventWaitHandle _activation;
     private readonly EventWaitHandle _exit;
+    private EventWaitHandle? _command;
     private SignalListener? _activationListener;
     private SignalListener? _exitListener;
+    private SignalListener? _commandListener;
 
-    private SingleInstance(Mutex mutex, EventWaitHandle activation, EventWaitHandle exit, bool isPrimary)
+    private SingleInstance(string name, Mutex mutex, EventWaitHandle activation, EventWaitHandle exit, bool isPrimary)
     {
+        _name = name;
         _mutex = mutex;
         _activation = activation;
         _exit = exit;
@@ -28,7 +47,7 @@ public sealed class SingleInstance : IDisposable
         var mutex = new Mutex(initiallyOwned: false, MutexName(name), out var createdNew);
         var activation = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{name}.Activate");
         var exit = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, ExitName(name));
-        return new(mutex, activation, exit, createdNew);
+        return new(name, mutex, activation, exit, createdNew);
     }
 
     // Asks a running instance to exit, from outside (the engine's "Herstarten" closing the
@@ -77,6 +96,71 @@ public sealed class SingleInstance : IDisposable
         }
     }
 
+    // Hands the running instance a command and waits at most timeout for its answer, which the
+    // callback of ListenForCommand gives. Null when no instance listens for commands (none runs,
+    // or an older one that does not know them) or none answered in time. One command at a time
+    // per session; the next waits its turn within its own timeout. Like SignalExitIfRunning it
+    // never creates the mutex, so an instance that starts meanwhile is still the first.
+    public static int? SendCommand(string name, string command, TimeSpan timeout)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        var bytes = Encoding.UTF8.GetBytes(command);
+        if (bytes.Length > MaxCommandBytes)
+        {
+            throw new ArgumentException($"A command is at most {MaxCommandBytes} bytes.", nameof(command));
+        }
+
+        // Named events and shared memory are Windows only, as the apps are.
+        if (!OperatingSystem.IsWindows() || !EventWaitHandle.TryOpenExisting(CommandName(name), out var signal))
+        {
+            return null;
+        }
+
+        var waited = Stopwatch.StartNew();
+        using (signal)
+        using (var turn = new Mutex(initiallyOwned: false, TurnName(name)))
+        {
+            if (!WaitForTurn(turn, timeout))
+            {
+                return null;
+            }
+
+            try
+            {
+                using var answered = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, AnsweredName(name));
+                answered.Reset();
+                using var mailbox = MemoryMappedFile.CreateOrOpen(MailboxName(name), MailboxSize);
+                using var view = mailbox.CreateViewAccessor();
+
+                // Another id than the one before, so a late answer to a command that gave up is
+                // not taken for this one.
+                var id = unchecked(view.ReadInt32(IdOffset) + 1);
+                view.Write(IdOffset, id);
+                view.Write(LengthOffset, bytes.Length);
+                view.WriteArray(CommandOffset, bytes, 0, bytes.Length);
+                signal.Set();
+
+                while (true)
+                {
+                    var left = timeout - waited.Elapsed;
+                    if (left <= TimeSpan.Zero || !answered.WaitOne(left))
+                    {
+                        return null;
+                    }
+
+                    if (view.ReadInt32(AnsweredIdOffset) == id)
+                    {
+                        return view.ReadInt32(AnswerOffset);
+                    }
+                }
+            }
+            finally
+            {
+                turn.ReleaseMutex();
+            }
+        }
+    }
+
     public void SignalPrimary() => _activation.Set();
 
     public void SignalPrimaryToExit() => _exit.Set();
@@ -88,18 +172,99 @@ public sealed class SingleInstance : IDisposable
     // The same for the request to exit.
     public IDisposable ListenForExit(Action onExit) => Listen(_exit, ref _exitListener, onExit);
 
+    // The same for a command of SendCommand: onCommand gets it, on a thread of the pool, and gives
+    // the answer. The signal for commands is only made here, so before this a sender finds no
+    // listener and gets null at once instead of waiting for an answer that never comes.
+    public IDisposable ListenForCommand(Func<string, int> onCommand)
+    {
+        ArgumentNullException.ThrowIfNull(onCommand);
+        if (IsPrimary)
+        {
+            _command ??= new EventWaitHandle(initialState: false, EventResetMode.AutoReset, CommandName(_name));
+        }
+
+        return Listen(_command!, ref _commandListener, () => Answer(onCommand));
+    }
+
     public void Dispose()
     {
         _activationListener?.Dispose();
         _exitListener?.Dispose();
+        _commandListener?.Dispose();
         _activation.Dispose();
         _exit.Dispose();
+        _command?.Dispose();
         _mutex.Dispose();
     }
 
     private static string MutexName(string name) => $@"Local\{name}";
 
     private static string ExitName(string name) => $@"Local\{name}.Exit";
+
+    private static string CommandName(string name) => $@"Local\{name}.Command";
+
+    private static string TurnName(string name) => $@"Local\{name}.CommandTurn";
+
+    private static string AnsweredName(string name) => $@"Local\{name}.CommandAnswered";
+
+    private static string MailboxName(string name) => $@"Local\{name}.CommandMailbox";
+
+    private static bool WaitForTurn(Mutex turn, TimeSpan timeout)
+    {
+        try
+        {
+            return turn.WaitOne(timeout);
+        }
+        catch (AbandonedMutexException)
+        {
+            // A sender that stopped halfway left it; the turn is ours now.
+            return true;
+        }
+    }
+
+    // Reads the command, lets onCommand answer it and tells the sender. The mailbox is gone when
+    // the sender gave up already: nobody waits for an answer then.
+    private void Answer(Func<string, int> onCommand)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        MemoryMappedFile mailbox;
+        try
+        {
+            mailbox = MemoryMappedFile.OpenExisting(MailboxName(_name));
+        }
+        catch (FileNotFoundException)
+        {
+            return;
+        }
+
+        using (mailbox)
+        using (var view = mailbox.CreateViewAccessor())
+        {
+            var id = view.ReadInt32(IdOffset);
+            var length = view.ReadInt32(LengthOffset);
+            if (length is < 0 or > MaxCommandBytes)
+            {
+                return;
+            }
+
+            var bytes = new byte[length];
+            view.ReadArray(CommandOffset, bytes, 0, length);
+            view.Write(AnswerOffset, onCommand(Encoding.UTF8.GetString(bytes)));
+            view.Write(AnsweredIdOffset, id);
+        }
+
+        if (EventWaitHandle.TryOpenExisting(AnsweredName(_name), out var answered))
+        {
+            using (answered)
+            {
+                answered.Set();
+            }
+        }
+    }
 
     private SignalListener Listen(EventWaitHandle signal, ref SignalListener? listener, Action onSignal)
     {
