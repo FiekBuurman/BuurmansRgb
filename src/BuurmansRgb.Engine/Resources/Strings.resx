@@ -188,4 +188,24 @@
     <value>{0} (eigen)</value>
     <comment>De nieuwe naam van een eigen effect uit effects.json dat heet als een ingebouwd effect, bijv. "Regenboog (eigen)".</comment>
   </data>
+  <data name="StartSceneAllOff" xml:space="preserve">
+    <value>Alles uit</value>
+    <comment>Een scène die een nieuwe installatie meekrijgt (StartScenes): alle apparaten uit. Daarna een gewone opgeslagen naam; hooguit 40 tekens.</comment>
+  </data>
+  <data name="StartSceneCalmWhite" xml:space="preserve">
+    <value>Rustig wit</value>
+    <comment>Een scène die een nieuwe installatie meekrijgt: Warm wit op 40 %.</comment>
+  </data>
+  <data name="StartSceneRainbow" xml:space="preserve">
+    <value>Regenboog</value>
+    <comment>Een scène die een nieuwe installatie meekrijgt: het effect Regenboog.</comment>
+  </data>
+  <data name="StartScenePastel" xml:space="preserve">
+    <value>Pastel</value>
+    <comment>Een scène die een nieuwe installatie meekrijgt: een kleurenloop van Lichtroze, Lila, Mint en Babyblauw.</comment>
+  </data>
+  <data name="StartSceneGaming" xml:space="preserve">
+    <value>Gamen</value>
+    <comment>Een scène die een nieuwe installatie meekrijgt: Komeet in fel rood en fel blauw.</comment>
+  </data>
 </root>

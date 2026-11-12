@@ -48,7 +48,7 @@ internal static class Program
 
         IReadOnlyList<string> restartWarnings = [];
         using var instance = options.Restarted is null
-            ? SingleInstance.Acquire(EngineRpc.EngineName)
+            ? SingleInstance.Acquire(EngineRpc.EngineName, acceptsCommands: true)
             : PreviousEngine.AcquireAfterRestart(EngineRpc.EngineName, PreviousEngineTimeout, PreviousEnginePollInterval, out restartWarnings);
         if (!instance.IsPrimary)
         {
@@ -63,6 +63,13 @@ internal static class Program
             if (options.Exit)
             {
                 instance.SignalPrimaryToExit();
+            }
+            else if (options.Command is { } command)
+            {
+                // Without holding the name while it waits for the answer, so an engine that starts
+                // meanwhile is the first. The engine that runs writes the line in the log.
+                instance.Dispose();
+                return (int)command.Send(EngineRpc.EngineName);
             }
             else
             {
@@ -83,6 +90,13 @@ internal static class Program
         foreach (var warning in restartWarnings)
         {
             Trace.TraceWarning(warning);
+        }
+
+        // No engine runs, so this one starts and does the command once it runs; a scene that is not
+        // there stops it here.
+        if (options.Command?.CheckBeforeStart(new JsonProfileStore(JsonProfileStore.DefaultFilePath)) is { } check and not EngineCommandResult.Done)
+        {
+            return (int)check;
         }
 
         ApplicationConfiguration.Initialize();
@@ -173,10 +187,12 @@ internal static class Program
             MemoryTrimmer.Trim,
             EngineRestarter.ForCurrentProcess(),
             options.Restarted,
-            options.OpenSettings);
+            options.OpenSettings,
+            options.Command);
         requestRestart = context.RequestRestart;
         using (instance.ListenForActivation(context.RequestOpenSettings))
         using (instance.ListenForExit(context.RequestExit))
+        using (instance.ListenForCommand(context.RunCommand))
         {
             Application.Run(context);
         }

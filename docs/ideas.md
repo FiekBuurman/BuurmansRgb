@@ -598,6 +598,38 @@ uitbreidingen in `docs/bouwplan.md`.
   `StreamStateChanged` meldt; "Aanzetten als dit programma start" ziet alleen dat OBS draait, niet
   dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
   verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
+- De lege staat van Scènes laten verwijzen naar "Bewaar als scène" op Kleur zodra die knop er is;
+  nu noemt hij alleen "Nieuwe scène" eronder, omdat de knop op Kleur nog niet bestaat
+  (`startscenes`)
+- De startscènes terug kunnen halen, bijv. met "Startscènes terugzetten" bij Instellingen, voor wie
+  ze verwijderde en ze toch weer wil; een scène met dezelfde naam laten staan. Nu komen ze nooit
+  terug (`startScenesCreated`) (`startscenes`)
+- `--scene "Gamen"` op een nieuwe pc vóór de eerste start van de engine: de opdracht kijkt in
+  `profiles.json` voordat de engine de startscènes schrijft, dus dan is het exitcode 2. Na de
+  installer (die de engine met `--first-run` start) speelt het niet; eventueel de startscènes al
+  meetellen als er nog geen `profiles.json` en geen `startScenesCreated` is (`startscenes`)
+- Bij de eerste keer openen van de instellingen-app kiezen welke startscènes je wilt, in plaats
+  van alle vijf; met "Minder beweging" van Windows aan eventueel zonder de bewegende
+  (`startscenes`)
+- Bij "Uit om" en "Aan om" op Apparaten alle tijden van "Alles uit" kunnen zien en bewerken; nu
+  is de regel grijs zodra de scène meer dan één tijd heeft, en zegt hij hoeveel er nog bij
+  Scènes staan (`uit-om`)
+- "Aan om" laten kiezen wat er aangaat: nu komt na "Alles uit" de verlichting van daarvoor terug
+  en anders gaat alles aan zoals "Alles aan"; een keuze voor een scène ("Rustig wit om 07:00")
+  kan ook al met een tijd bij die scène (`uit-om`)
+- De verlichting van vóór "Alles uit" bij elke keer "Alles uit" bewaren, ook als "Aan om" nog
+  uit staat; nu bewaart buurmansRgb hem alleen als "Aan om" al een tijd heeft, dus zet je "Aan
+  om" aan terwijl "Alles uit" al aan staat, dan komt 's ochtends Rustig wit terug (de
+  verlichting van het moment dat je Aan om aanzette). Kost een schrijfactie van `profiles.json`
+  per "Alles uit" en een intern profiel zonder tijden (`uit-om`)
+- Bij "Alles uit" ook de naam van de scène van daarvoor bewaren voor "Aan om", zodat die scène
+  's ochtends weer als aan telt (haar kaart bij Scènes actief); nu bewaart buurmansRgb alleen de
+  verlichting, dus komen de kleuren terug maar staat er geen scène aan (`uit-om`)
+- "Vanavond niet": één keer "Uit om" overslaan zonder de schakelaar uit te zetten, bijv. vanuit
+  het tray-menu (`uit-om`)
+- Een oudere versie van buurmansRgb laat `role` en `internal` in `profiles.json` bij het opslaan
+  weg, dus na teruggaan naar een oudere versie en weer terug moet je "Uit om" en "Aan om" opnieuw
+  aanzetten; eventueel bij het terugzetten van een backup (#115) melden (`uit-om`)
 
 ## Tray-menu
 
@@ -699,6 +731,13 @@ uitbreidingen in `docs/bouwplan.md`.
   lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
 - `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
   engine dat veld bij een wijziging met de hand niet over
+- Na een start met een `settings.json` die er wel was maar niet las (vergrendeld door een
+  virusscanner of OneDrive, of geen JSON) werkt de engine met standaardwaarden. Een gewone
+  wijziging van de gebruiker kan die dan alsnog over het bestand schrijven: na vijf wachtbeurten
+  (`MaxWaitsForChangeByHand`) slaat `LightingSettingsSaver.SavePending` op met `Save`. De
+  startscènes slaan daarom niets op (`ISettingsStore.LoadDidNotRead`), maar de saver kijkt daar
+  niet naar. Beter: bij `LoadDidNotRead` niet schrijven, of eerst het bestand opnieuw lezen en de
+  wijziging daarop toepassen (review startscènes, 12-11-2026)
 - `ProgramWatcher` opsplitsen: de logica van de voorgrond (`foregroundOnly`, het volgen van
   `IForegroundWindow`, wisselen tussen voorgrond-scènes) naar een eigen klasse. Bij de refactor
   na de review bleef het staan; pas oppakken als het werk aan programma's en LED's groeit
@@ -756,6 +795,24 @@ uitbreidingen in `docs/bouwplan.md`.
   localhost (`127.0.0.1`); elk verzoek draagt een token uit de instellingen; en
   `docs/handleiding.md` zegt wat er naar buiten gaat en hoe je het aanzet. De engine zelf krijgt
   geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
+- Meer opdrachten naast `--scene`, `--all-on` en `--all-off` (`scene-commandline`): bijv.
+  `--pause` en `--resume` voor "Effecten pauzeren", of `--toggle` voor één Stream Deck-knop die
+  alles aan of uit zet. Gaan over hetzelfde kanaal (`SingleInstance.SendCommand`), met een eigen
+  bericht in `EngineCommand`
+- Een opdracht die in de eerste seconden na het starten van de engine komt (exitcode 3), laten
+  wachten tot de opgeslagen verlichting staat in plaats van hem te weigeren, zoals een opdracht
+  bij een engine die door die opdracht zelf start. Handig voor Home Assistant vlak na het
+  aanmelden; let op dat de tweede start dan langer dan 10 s kan wachten
+- Een Stream Deck-plugin die de scènes zelf opsomt (via de pipe van de engine, zoals de
+  instellingen-app) en op de knop toont welke aan staat; nu maak je per scène met de hand een
+  knop met `--scene`
+- Een `--scene` voor een scène die niet bestaat ook bij het icoon melden; nu staat het alleen in
+  `engine.log` en de exitcode, wat een Stream Deck-knop niet toont
+- Een `.cmd`-bestand of uitleg om een opdracht via `ssh` in de sessie van de gebruiker te laten
+  lopen zonder per scène een geplande taak (bijv. één taak die een scène uit een bestand leest);
+  de signalen `Local\BuurmansRgb.Engine*` hangen aan de Windows-sessie, dus een opdracht die via
+  `ssh` binnenkomt, vindt de engine niet en start een eigen. De tweede start zou in een sessie
+  zonder bureaublad ook kunnen weigeren een engine te worden
 
 ## Installer en uitrol
 

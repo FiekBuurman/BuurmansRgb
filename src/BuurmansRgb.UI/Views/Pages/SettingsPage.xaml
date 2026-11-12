@@ -80,9 +80,17 @@
                         <ContentPresenter Content="{Binding AfterRestart.LightingText}" ContentTemplate="{StaticResource BulletLine}" />
                         <ContentPresenter Content="{x:Static res:Strings.AfterRestartBrightness}" ContentTemplate="{StaticResource BulletLine}" />
                         <ContentPresenter Content="{Binding AfterRestart.SleepText}" ContentTemplate="{StaticResource BulletLine}" />
+                        <!-- In a border, as a ContentPresenter binds its own properties to its content. -->
+                        <Border AutomationProperties.AutomationId="AfterRestartWholeHouse"
+                                Visibility="{Binding AfterRestart.HasWholeHouseTimes, Converter={StaticResource BoolToVisibility}}">
+                            <ContentPresenter Content="{Binding AfterRestart.WholeHouseText}" ContentTemplate="{StaticResource BulletLine}" />
+                        </Border>
                         <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartSceneTimes}"
                                    AutomationProperties.AutomationId="AfterRestartSceneTimes"
                                    Visibility="{Binding AfterRestart.CatchesUpSceneTimes, Converter={StaticResource BoolToVisibility}}" />
+                        <TextBlock Margin="0,8,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.AfterRestartWholeHouseCatchUp}"
+                                   AutomationProperties.AutomationId="AfterRestartWholeHouseCatchUp"
+                                   Visibility="{Binding AfterRestart.CatchesUpWholeHouseTimes, Converter={StaticResource BoolToVisibility}}" />
                         <TextBlock Margin="0,12,0,0" Style="{StaticResource Body}" TextWrapping="Wrap" Text="{Binding AfterRestart.AutoStartText}"
                                    AutomationProperties.AutomationId="AfterRestartAutoStart" />
                         <Button Margin="0,10,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.AfterRestartTurnOnAutoStart}"

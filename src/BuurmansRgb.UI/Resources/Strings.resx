@@ -1311,7 +1311,8 @@
     <value>Annuleren</value>
   </data>
   <data name="NoScenes" xml:space="preserve">
-    <value>Nog geen scènes. Zet de apparaten zoals je ze wilt en kies hieronder Nieuwe scène.</value>
+    <value>Nog geen scènes. Een scène bewaart hoe al je apparaten staan, zodat je dat later met één klik terugzet. Zet de apparaten zoals je ze wilt en kies hieronder Nieuwe scène.</value>
+    <comment>De lege staat van Scènes: een nieuwe installatie heeft startscènes, dus dit ziet wie ze allemaal verwijderde of een installatie van vóór de startscènes. Noemt "Nieuwe scène" (NewScene zonder "+ ") letterlijk; komt er een knop "Bewaar als scène" op Kleur, noem die dan hier ook.</comment>
   </data>
   <data name="SceneLoadAccessibleName" xml:space="preserve">
     <value>{0} aanzetten</value>
@@ -1630,5 +1631,89 @@
   </data>
   <data name="OtherRgbSoftwareDismissToolTip" xml:space="preserve">
     <value>Meldt dit programma niet meer, ook niet als het later weer draait. Terugzetten kan in settings.json.</value>
+  </data>
+  <data name="WholeHouseTimesHeader" xml:space="preserve">
+    <value>Uit en aan op tijd</value>
+    <comment>Kop in de kaart Hele huis op Apparaten, boven "Uit om" en "Aan om".</comment>
+  </data>
+  <data name="WholeHouseOff" xml:space="preserve">
+    <value>Uit om</value>
+    <comment>Naast de schakelaar, het tijdveld en de dagen; ook de naam van de schakelaar voor een schermlezer.</comment>
+  </data>
+  <data name="WholeHouseOn" xml:space="preserve">
+    <value>Aan om</value>
+  </data>
+  <data name="WholeHouseOffHint" xml:space="preserve">
+    <value>Om deze tijd gaan al je apparaten uit, op de dagen die je kiest. Staat de pc dan uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
+  </data>
+  <data name="WholeHouseOnHint" xml:space="preserve">
+    <value>Om deze tijd gaan je apparaten weer aan, met de kleuren van voor "Uit om". Brandt er dan al iets, dan blijft alles zoals het is.</value>
+  </data>
+  <data name="WholeHouseTimeAccessibleName" xml:space="preserve">
+    <value>Tijd voor {0}</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseDaysAccessibleName" xml:space="preserve">
+    <value>Dagen voor {0}</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseTimeInvalid" xml:space="preserve">
+    <value>Vul bij {0} een tijd in zoals 23:00.</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseDaysNone" xml:space="preserve">
+    <value>Kies bij {0} minstens één dag.</value>
+    <comment>{0} = "Uit om" of "Aan om".</comment>
+  </data>
+  <data name="WholeHouseTimesClash" xml:space="preserve">
+    <value>Uit om en Aan om vallen samen. Kies een andere tijd of andere dagen.</value>
+    <comment>Melding onder Hele huis als Uit om en Aan om dezelfde tijd op een gedeelde dag hebben; dan zou alleen Uit om gebeuren.</comment>
+  </data>
+  <data name="WholeHouseSceneNote" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Op Scènes zie je dezelfde tijd bij die scène.</value>
+    <comment>{0} = de naam van de startscène "Alles uit", ook als de gebruiker hem met de hand hernoemde.</comment>
+  </data>
+  <data name="WholeHouseSceneMoreTimes" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Die heeft nog {1} andere tijden, dus Uit om verander je op Scènes.</value>
+    <comment>{0} = de naam van de scène, {1} = hoeveel tijden er naast de eerste zijn (2 of meer; bij 1 WholeHouseSceneMoreTimesOne). De regel Uit om is dan grijs.</comment>
+  </data>
+  <data name="WholeHouseSceneMoreTimesOne" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Die heeft nog 1 andere tijd, dus Uit om verander je op Scènes.</value>
+    <comment>{0} = de naam van de scène. De regel Uit om is dan grijs.</comment>
+  </data>
+  <data name="WholeHouseTimesSaved" xml:space="preserve">
+    <value>Uit en aan op tijd opgeslagen.</value>
+  </data>
+  <data name="WholeHouseSummaryTime" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>{0} = de tijd, {1} = de dagen, zoals "elke dag" of "ma, wo, vr".</comment>
+  </data>
+  <data name="WholeHouseSummaryOff" xml:space="preserve">
+    <value>uit om {0}</value>
+  </data>
+  <data name="WholeHouseSummaryOn" xml:space="preserve">
+    <value>aan om {0}</value>
+  </data>
+  <data name="WholeHouseSummaryBoth" xml:space="preserve">
+    <value>{0} en {1}</value>
+  </data>
+  <data name="WholeHouseSummaryBothMoreTimes" xml:space="preserve">
+    <value>{0}, en {1}</value>
+    <comment>Als WholeHouseSummaryBoth, wanneer Uit om of Aan om meer tijden heeft: de komma houdt "en nog 1 tijd" los van "aan om".</comment>
+  </data>
+  <data name="WholeHouseSummaryMoreTimesOne" xml:space="preserve">
+    <value>{0} en nog 1 tijd</value>
+    <comment>{0} = bijv. "uit om 23:00 (elke dag)", als de scène "Alles uit" nog 1 tijd naast de eerste heeft.</comment>
+  </data>
+  <data name="WholeHouseSummaryMoreTimes" xml:space="preserve">
+    <value>{0} en nog {1} tijden</value>
+    <comment>{0} = bijv. "uit om 23:00 (elke dag)", {1} = hoeveel tijden er naast de eerste zijn (2 of meer; bij 1 WholeHouseSummaryMoreTimesOne).</comment>
+  </data>
+  <data name="AfterRestartWholeHouse" xml:space="preserve">
+    <value>de tijden van Hele huis op Apparaten: {0}</value>
+    <comment>Een regel in "Na een herstart". {0} = bijv. "uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)".</comment>
+  </data>
+  <data name="AfterRestartWholeHouseCatchUp" xml:space="preserve">
+    <value>"Gemiste tijden inhalen" staat aan: ging Uit om of Aan om voorbij terwijl de pc uit stond of sliep, dan doet buurmansRgb dat alsnog.</value>
   </data>
 </root>

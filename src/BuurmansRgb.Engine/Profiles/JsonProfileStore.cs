@@ -14,7 +14,12 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => filePath + ".broken";
 
-    // A profile without a valid name, or with the name of an earlier one, is skipped.
+    // Also a file that is not valid JSON, also once Load moved it aside: that is from a pc that
+    // had a profiles.json, even when the library read it before AddStartScenes.
+    public bool Exists => File.Exists(filePath) || File.Exists(BrokenFilePath);
+
+    // A profile without a valid name, or with the name of an earlier one, is skipped; so is an
+    // internal one without a known role, or with the role of an earlier one.
     public IReadOnlyList<Profile> Load()
     {
         if (!File.Exists(filePath))
@@ -43,11 +48,27 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
             }
         }
 
+        foreach (var settings in file?.Internal ?? [])
+        {
+            if (settings?.ToInternalProfile() is { } profile && !profiles.Exists(other => other.IsInternal && other.Role == profile.Role))
+            {
+                profiles.Add(profile);
+            }
+        }
+
         return profiles;
     }
 
+    // Without internal profiles there is no "internal", as in a file from before.
     public void Save(IReadOnlyList<Profile> profiles) =>
-        JsonFile.Write(filePath, new ProfilesFile { Profiles = [.. profiles.Select(ProfileSettings.From)] }, EngineSettingsJsonContext.Default.ProfilesFile);
+        JsonFile.Write(
+            filePath,
+            new ProfilesFile
+            {
+                Profiles = [.. profiles.Where(profile => !profile.IsInternal).Select(ProfileSettings.From)],
+                Internal = profiles.Any(profile => profile.IsInternal) ? [.. profiles.Where(profile => profile.IsInternal).Select(ProfileSettings.From)] : null,
+            },
+            EngineSettingsJsonContext.Default.ProfilesFile);
 
     public void Replace(byte[] json) => JsonFile.Write(filePath, json);
 

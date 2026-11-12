@@ -106,6 +106,8 @@ public sealed class SettingsViewTests
         Assert.StartsWith(Strings.AutoStartLabel, Strings.AfterRestartTurnOnAutoStart, StringComparison.Ordinal);
         Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleep, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleepNoPause, StringComparison.OrdinalIgnoreCase);
+        // The empty state of Scènes names the button under it.
+        Assert.Contains(Strings.NewScene.TrimStart('+', ' '), Strings.NoScenes, StringComparison.Ordinal);
     }
 
     // "Na een herstart" comes right under the sleep block, under a heading, and says what comes back:
@@ -235,6 +237,37 @@ public sealed class SettingsViewTests
             OffscreenWindow.WaitUntilIdle();
 
             Assert.False(sceneTimes.IsVisible);
+        });
+    }
+
+    // "Uit om" and "Aan om" of Hele huis: a line of the list while one is on, and with "Gemiste tijden
+    // inhalen" that one that passed comes at the start.
+    [Fact]
+    public async Task AfterRestartBlock_NamesTheTimesOfHeleHuis()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))]);
+            api.CatchUpSceneTimes = true;
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<SettingsPage>(panel, viewModel);
+            var catchUp = PageViews.ById<TextBlock>(page, "AfterRestartWholeHouseCatchUp");
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Contains(AfterRestartLines(page), line => line.IsVisible && line.Text == "de tijden van Hele huis op Apparaten: uit om 23:00 (elke dag)");
+            Assert.True(catchUp.IsVisible);
+            Assert.False(PageViews.ById<TextBlock>(page, "AfterRestartSceneTimes").IsVisible);
+
+            viewModel.WholeHouseTimes.Off.IsOn = false;
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.False(viewModel.WholeHouseTimes.Off.IsOn);
+            Assert.False(viewModel.AfterRestart.HasWholeHouseTimes);
+            Assert.False(PageViews.ById<Border>(page, "AfterRestartWholeHouse").IsVisible);
+            Assert.False(catchUp.IsVisible);
         });
     }
 

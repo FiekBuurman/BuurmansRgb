@@ -504,4 +504,89 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         Assert.Throws<IOException>(() => _store.Load());
     }
+
+    [Fact]
+    public void Save_ThenLoad_RoundTripsTheRoleAndTheInternalProfiles()
+    {
+        var off = new LoadTime(new TimeOnly(23, 0));
+        var on = new LoadTime(new TimeOnly(7, 0), WeekDays.Monday | WeekDays.Friday);
+        _store.Save(
+        [
+            new Profile("Bedtijd", Uniform(StaticLighting(Red) with { On = false })) { Role = ProfileRole.AllOff, Automation = new ProfileAutomation([off]) },
+            new Profile("Gamen", Uniform(StaticLighting(Green))),
+            Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Orange)), new ProfileAutomation([on])),
+        ]);
+
+        var loaded = _store.Load();
+
+        Assert.Equal(["Bedtijd", "Gamen", "backOn"], loaded.Select(profile => profile.Name));
+        Assert.Equal([ProfileRole.AllOff, ProfileRole.None, ProfileRole.BackOn], loaded.Select(profile => profile.Role));
+        Assert.Equal([false, false, true], loaded.Select(profile => profile.IsInternal));
+        Assert.Equal([on], loaded[2].Automation.Times);
+        Assert.Equal(Orange, loaded[2].Lighting.Global.Color);
+    }
+
+    // An older engine reads "profiles" only, so the internal ones show no scene there.
+    [Fact]
+    public void Save_PutsTheInternalProfilesApart_WithoutAName()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Green))), Profile.Internal(ProfileRole.AllOff, Uniform(StaticLighting(Red)), ProfileAutomation.None)]);
+
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+
+        Assert.Contains("\"internal\"", json, StringComparison.Ordinal);
+        var file = System.Text.Json.Nodes.JsonNode.Parse(json)!;
+        Assert.Single(file["profiles"]!.AsArray());
+        var hidden = Assert.Single(file["internal"]!.AsArray())!;
+        Assert.Null(hidden["name"]);
+        Assert.Equal("allOff", (string?)hidden["role"]);
+    }
+
+    [Fact]
+    public void Save_WithoutInternalProfilesOrRoles_WritesNeither()
+    {
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Green)))]);
+
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+
+        Assert.DoesNotContain("\"internal\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"role\"", json, StringComparison.Ordinal);
+    }
+
+    // A file from before has no roles; a role that does not read, or backOn on a scene of the user,
+    // leaves the scene as a scene without one.
+    [Fact]
+    public void Load_RoleThatDoesNotCountForAScene_LeavesTheScene()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "A", "role": "ALLOFF" }, { "name": "B", "role": "backOn" }, { "name": "C", "role": 3 }, { "name": "D" } ] }
+            """);
+
+        var loaded = _store.Load();
+
+        Assert.Equal([ProfileRole.AllOff, ProfileRole.None, ProfileRole.None, ProfileRole.None], loaded.Select(profile => profile.Role));
+        Assert.All(loaded, profile => Assert.False(profile.IsInternal));
+    }
+
+    // An internal one without a known role, or with the role of an earlier one, is left out; it never
+    // takes a program.
+    [Fact]
+    public void Load_InternalProfiles_OnePerRole()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "backOn" } ],
+              "internal": [ { "role": "nope", "loadAt": "06:00" }, { "role": "backOn", "loadAt": "07:00", "program": "game.exe" },
+                            { "role": "backOn", "loadAt": "08:00" }, null ] }
+            """);
+
+        var loaded = _store.Load();
+
+        Assert.Equal(2, loaded.Count);
+        Assert.False(loaded[0].IsInternal);
+        var backOn = loaded[1];
+        Assert.True(backOn.IsInternal);
+        Assert.Equal(ProfileRole.BackOn, backOn.Role);
+        Assert.Equal([new LoadTime(new TimeOnly(7, 0))], backOn.Automation.Times);
+        Assert.Null(backOn.Automation.Program);
+    }
 }

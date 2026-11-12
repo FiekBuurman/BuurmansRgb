@@ -46,6 +46,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
     private const string DismissOtherRgbSoftwareCall = "dismiss-other-rgb-software";
     private const string CustomEffectCall = "custom-effect";
+    private const string WholeHouseTimesCall = "whole-house-times";
 
     private readonly IEngineConnector _connector;
     private readonly TimeProvider _time;
@@ -142,7 +143,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             RequestStill();
         };
         EffectsPause = new EffectsPauseViewModel(_time);
-        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes);
+        AfterRestart = new AfterRestartViewModel(Profiles, EffectOptions, AutoStart, SceneTimes, WholeHouseTimes);
         DeviceRescan = new DeviceRescanViewModel(_time);
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
@@ -186,6 +187,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
+        WholeHouseTimes.ApplyRequested += (_, times) => SendWholeHouseTimes(times);
         SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
         SimulatedDevices.PropertyChanged += (_, e) =>
         {
@@ -314,6 +316,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
 
     public ProfilesViewModel Profiles { get; }
+
+    // "Uit om" and "Aan om" in the block Hele huis on Apparaten.
+    public WholeHouseTimesViewModel WholeHouseTimes { get; } = new();
 
     public SimulatedDevicesViewModel SimulatedDevices { get; } = new();
 
@@ -1072,6 +1077,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
+        WholeHouseTimes.Show(await api.GetWholeHouseTimesAsync());
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         ShowOptions(await ReadOptionsAsync(api));
@@ -1729,6 +1735,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _calls.Post(ProfilesReloadCall, async () =>
         {
             var names = await connection.Api.GetProfilesAsync();
+            var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
@@ -1736,10 +1743,47 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     Profiles.Show(names);
                     _ = _sceneCards.ShowAsync();
                     _ = _sceneCards.ShowActiveAsync();
+                    ShowWholeHouseTimes(wholeHouse);
                 }
             });
         });
     });
+
+    // "Uit om" and "Aan om" as the engine saved them. They are the times of "Alles uit": when that
+    // scene is open on Scènes, its times there follow a change here.
+    private void ShowWholeHouseTimes(WholeHouseTimes times)
+    {
+        var before = WholeHouseTimes.Saved.Off;
+        WholeHouseTimes.Show(times);
+        if (times.OffScene is { } scene && Profiles.SelectedName is { } selected && ProfileNames.Comparer.Equals(scene, selected) && !before.SequenceEqual(times.Off))
+        {
+            _ = ShowProfileAutomationAsync(selected);
+        }
+    }
+
+    // In the queue behind the changes that still wait; the newest times win. The engine answers
+    // with ProfilesChanged too, which shows them again.
+    private void SendWholeHouseTimes(WholeHouseTimes times)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(WholeHouseTimesCall, async () =>
+        {
+            await connection.Api.SetWholeHouseTimesAsync(times);
+            var saved = await connection.Api.GetWholeHouseTimesAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    ShowWholeHouseTimes(saved);
+                    StatusMessage = Strings.WholeHouseTimesSaved;
+                }
+            });
+        });
+    }
 
     // The same for the options on Instellingen, such as the simulated lamps of another app.
     private void OnOptionsChanged(object? sender, EventArgs e) => RunOnUi(() =>
@@ -1946,6 +1990,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OpenRgbStatus.Clear();
         EffectsPause.Clear();
         OtherRgbSoftware.Clear();
+        WholeHouseTimes.Clear();
         DeviceRescan.Clear();
         Preview.ShowPause(PauseReasons.None);
 

@@ -23,7 +23,7 @@ internal static class PreviousEngine
     // called between the two waits, so a test can let the old one exit right then.
     public static SingleInstance AcquireAfterRestart(string name, TimeSpan timeout, TimeSpan pollInterval, out IReadOnlyList<string> warnings, Action? onStillRunning = null)
     {
-        var instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval);
+        var instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval, acceptsCommands: true);
         if (instance.IsPrimary)
         {
             warnings = [];
@@ -37,7 +37,7 @@ internal static class PreviousEngine
         instance.Dispose();
         onStillRunning?.Invoke();
 
-        instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval);
+        instance = SingleInstance.AcquireWhenFree(name, timeout, pollInterval, acceptsCommands: true);
         if (!instance.IsPrimary)
         {
             lines.Add($"Restarted: the previous engine still runs after another {timeout.TotalSeconds:0} s; this engine stops.");

@@ -94,14 +94,17 @@ internal static class SettingsArchive
     // settings.json from a backup with what belongs to this pc instead of the pc it came from:
     // whether the user chose autostart here (autoStartChosen, which the Run key of this pc goes
     // with, and which --first-run of the next update reads) and whether this pc had real devices
-    // (hadRealDevices). The rest stays as the backup has it, also keys this engine does not know.
+    // (hadRealDevices) and got its start scenes (startScenesCreated). The rest stays as the backup
+    // has it, also keys this engine does not know.
     // Only for a file Read accepted.
-    public static byte[] WithThisPc(byte[] settingsJson, bool? autoStartChosen, bool hadRealDevices)
+    public static byte[] WithThisPc(byte[] settingsJson, bool? autoStartChosen, bool hadRealDevices, bool startScenesCreated)
     {
         var root = JsonNode.Parse(WithoutByteOrderMark(settingsJson))!.AsObject();
         Set(root, "autoStartChosen", autoStartChosen is { } chosen ? JsonValue.Create(chosen) : null);
         // Only in the file once it is true, as the engine writes it (EngineSettings.HadRealDevices).
         Set(root, "hadRealDevices", hadRealDevices ? JsonValue.Create(true) : null);
+        // The same way: a backup from before the start scenes does not make them come again here.
+        Set(root, "startScenesCreated", startScenesCreated ? JsonValue.Create(true) : null);
         using var buffer = new MemoryStream();
         using (var writer = new Utf8JsonWriter(buffer, new JsonWriterOptions { Indented = true }))
         {
@@ -158,7 +161,7 @@ internal static class SettingsArchive
             // in one object, which the stores take the last of, is refused there.
             if (name == SettingsBackup.SettingsFileName)
             {
-                WithThisPc(json, autoStartChosen: null, hadRealDevices: false);
+                WithThisPc(json, autoStartChosen: null, hadRealDevices: false, startScenesCreated: false);
             }
 
             return true;
