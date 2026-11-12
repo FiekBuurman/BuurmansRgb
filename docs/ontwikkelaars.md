@@ -617,9 +617,11 @@ toetsenbord. Een paar dingen om te proberen:
   `BackOn` alleen als alles uit staat: met "Alles uit" als `ActiveName` de bewaarde verlichting
   ongewijzigd (alles aan alleen als daarin niets aan stond), anders alles aan. Interne profielen hebben geen naam van de gebruiker: `Names`,
   `Load(name)`, `Save`, `Delete`, `TryGetAutomated` en `EngineCommand.CheckBeforeStart` zien ze
-  niet. Een programma met een eigen scène houdt een Uit om vast via
-  `ProgramWatcher.HoldUntilProgramsStop(lighting, scene)` (`ProgramHold`), dat de verlichting van
-  daarvoor laat uitzetten in plaats van vervangen. De app vraagt en zet ze met
+  niet. Een programma met een eigen scène houdt een Uit om en een Aan om vast via
+  `ProgramWatcher.HoldUntilProgramsStop(next)` (`ProgramHold`): `next` krijgt wat terugkomt als
+  het programma stopt (`HeldLighting`, verlichting met scène) en geeft wat er dan terugkomt. Uit
+  om zet dat uit (bij de scène "Alles uit" bewaart hij het eerst voor Aan om), Aan om zet het aan
+  zoals hierboven als daarin alles uit staat. De app vraagt en zet ze met
   `GetWholeHouseTimesAsync` en `SetWholeHouseTimesAsync`; een wijziging geeft `ProfilesChanged`.
 - **Sneltoetsen:** `WindowsGlobalHotkeys` registreert Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U
   (`AllOnOffHotkeys`, met `MOD_NOREPEAT`) met `RegisterHotKey` op een verborgen message-only

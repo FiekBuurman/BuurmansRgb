@@ -194,7 +194,9 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   - Staat de pc om die tijd uit of in slaapstand, dan slaat buurmansRgb die keer over, net als bij
     een scène met een tijd. Met **Gemiste tijden inhalen** (bij Instellingen) gebeurt het bij het
     starten of na het ontwaken alsnog. Draait er een programma met een eigen scène (een spel), dan
-    wacht Uit om tot het programma stopt.
+    wacht Uit om tot het programma stopt. Komt Aan om terwijl dat spel nog draait, dan telt hij
+    voor wat er terugkomt als het stopt: speel je door tot na 07:00, dan gaan bij het stoppen de
+    kleuren van de avond ervoor weer aan, in plaats van dat alles uit blijft.
   - Voor een schermlezer heeft het blok een kop, is elke schakelaar een schakelaar met de naam
     "Uit om" of "Aan om" die zegt of hij aan of uit staat, heten de tijdvelden "Tijd voor Uit om"
     en "Tijd voor Aan om", en zijn de dagen knoppen met de hele naam ("maandag") die zeggen of ze

@@ -618,9 +618,6 @@ uitbreidingen in `docs/bouwplan.md`.
   kan ook al met een tijd bij die scène (`uit-om`)
 - "Vanavond niet": één keer "Uit om" overslaan zonder de schakelaar uit te zetten, bijv. vanuit
   het tray-menu (`uit-om`)
-- Als "Uit om" tijdens een spel wacht tot het spel stopt, ook dan de verlichting van vóór het
-  spel bewaren voor "Aan om"; nu komt 's ochtends de verlichting van de vorige keer dat "Alles
-  uit" aanging terug (`uit-om`)
 - Een oudere versie van buurmansRgb laat `role` en `internal` in `profiles.json` bij het opslaan
   weg, dus na teruggaan naar een oudere versie en weer terug moet je "Uit om" en "Aan om" opnieuw
   aanzetten; eventueel bij het terugzetten van een backup (#115) melden (`uit-om`)
