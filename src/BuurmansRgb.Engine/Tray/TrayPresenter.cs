@@ -17,6 +17,8 @@ namespace BuurmansRgb.Engine.Tray;
 // The tray menu logic without WinForms types, so it can be tested with fakes. Call it on the tray
 // thread only. restartedWith is set when "Herstarten" started this engine: once it runs, a
 // notification tells what restarted, and with openSettingsAfterStart the settings app opens again.
+// commandAfterStart is the --scene, --all-on or --all-off this engine was started with, done once
+// it runs.
 internal sealed class TrayPresenter(
     IEngineHost host,
     AutoStartSwitch autoStart,
@@ -29,7 +31,8 @@ internal sealed class TrayPresenter(
     ITrayView view,
     EngineRestarter? restarter = null,
     ServicesRestartReport? restartedWith = null,
-    bool openSettingsAfterStart = false)
+    bool openSettingsAfterStart = false,
+    EngineCommand? commandAfterStart = null)
 {
     private PauseReasons _pause;
     private ServerStatus _openRgbStatus = ServerStatus.Connecting;
@@ -49,6 +52,10 @@ internal sealed class TrayPresenter(
             await host.StartAsync(ct);
             _started = true;
             ApplyHotkeys();
+            if (commandAfterStart is not null)
+            {
+                Run(commandAfterStart);
+            }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
@@ -226,21 +233,50 @@ internal sealed class TrayPresenter(
     }
 
     // Like a click on "Alles aan of uit" in the settings app. Reported like a profile that fails.
-    public void SetAllOn(bool on)
+    // False when it failed or the engine has not started yet.
+    public bool SetAllOn(bool on)
     {
         if (!_started)
         {
-            return;
+            return false;
         }
 
         try
         {
             lighting.SetLighting(null, current => current with { On = on });
+            return true;
         }
         catch (Exception exception)
         {
             ReportFailure(exception, on ? Strings.AllOnFailed : Strings.AllOffFailed, TrayNotificationKind.Warning);
+            return false;
         }
+    }
+
+    // --scene, --all-on or --all-off from the command line: what "Scène aanzetten" and "Alles aan"
+    // or "Alles uit" in the menu do, with a line in the log. A scene that is not there only gets
+    // the line, as a script asked for it and reads the exit code; a device that fails also gets the
+    // notification of the menu. Before the engine started it does nothing, as the menu items.
+    public EngineCommandResult Run(EngineCommand command)
+    {
+        if (!_started)
+        {
+            Trace.TraceWarning($"Command line: {command} came before the engine started; nothing changed.");
+            return EngineCommandResult.NotStarted;
+        }
+
+        var result = command.Kind switch
+        {
+            EngineCommandKind.Scene => RunScene(command),
+            EngineCommandKind.AllOn => SetAllOn(true) ? EngineCommandResult.Done : EngineCommandResult.Failed,
+            _ => SetAllOn(false) ? EngineCommandResult.Done : EngineCommandResult.Failed,
+        };
+        if (result == EngineCommandResult.Done)
+        {
+            Trace.TraceInformation($"Command line: {command} done.");
+        }
+
+        return result;
     }
 
     // Registers the hotkeys of "Alles aan" and "Alles uit" while they are on, from the start of the
@@ -301,6 +337,37 @@ internal sealed class TrayPresenter(
         if (!globalHotkeys.IsRegistered(key) && !globalHotkeys.Register(key, () => SetAllOn(on)))
         {
             taken.Add(AllOnOffHotkeys.DisplayText(key));
+        }
+    }
+
+    private EngineCommandResult RunScene(EngineCommand command)
+    {
+        string? name;
+        try
+        {
+            name = profiles.Names.FirstOrDefault(command.Matches);
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
+            return EngineCommandResult.Failed;
+        }
+
+        if (name is null)
+        {
+            Trace.TraceWarning($"Command line: there is no scene '{command.Scene}'.");
+            return EngineCommandResult.UnknownScene;
+        }
+
+        try
+        {
+            profiles.Load(name);
+            return EngineCommandResult.Done;
+        }
+        catch (Exception exception)
+        {
+            ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.ProfileLoadFailed, name), TrayNotificationKind.Warning);
+            return EngineCommandResult.Failed;
         }
     }
 

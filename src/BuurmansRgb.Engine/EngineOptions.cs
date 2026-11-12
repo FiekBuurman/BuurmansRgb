@@ -13,6 +13,8 @@ namespace BuurmansRgb.Engine;
 // rights, which restarts OpenRGB and PawnIO and ends with what it did as its exit code;
 // --restarted <code> starts the new engine, which waits for the old one to exit and then tells
 // what restarted; --open-settings opens the settings app once it runs, as it was open before.
+// --scene "<name>", --all-on and --all-off put on a scene or switch everything on or off in the
+// engine that runs, or start one that does it (EngineCommand).
 internal sealed record EngineOptions(bool FirstRun, bool Exit = false)
 {
     public const string FirstRunArgument = "--first-run";
@@ -32,6 +34,8 @@ internal sealed record EngineOptions(bool FirstRun, bool Exit = false)
 
     public bool OpenSettings { get; init; }
 
+    public EngineCommand? Command { get; init; }
+
     public static EngineOptions Parse(IEnumerable<string> args)
     {
         var list = args.ToList();
@@ -47,6 +51,7 @@ internal sealed record EngineOptions(bool FirstRun, bool Exit = false)
                 ? null
                 : ServicesRestartReport.ParseArgument(restartedAt + 1 < list.Count ? list[restartedAt + 1] : null) ?? ServicesRestartReport.Failed,
             OpenSettings = list.Contains(OpenSettingsArgument, StringComparer.OrdinalIgnoreCase),
+            Command = EngineCommand.Parse(list),
         };
     }
 }

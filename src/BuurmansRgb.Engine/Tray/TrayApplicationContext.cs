@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.AutoStart;
@@ -42,7 +43,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         Action? trimMemory = null,
         EngineRestarter? restarter = null,
         ServicesRestartReport? restartedWith = null,
-        bool openSettingsAfterStart = false)
+        bool openSettingsAfterStart = false,
+        EngineCommand? commandAfterStart = null)
     {
         _presenter = new TrayPresenter(
             host,
@@ -56,7 +58,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             this,
             restarter,
             restartedWith,
-            openSettingsAfterStart);
+            openSettingsAfterStart,
+            commandAfterStart);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
         _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
         _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
@@ -132,6 +135,31 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     // From another thread (--exit): the same as "Afsluiten" in the menu.
     public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
+
+    // From another thread (--scene, --all-on or --all-off of a second start): runs the command on
+    // this thread, as the menu does, and gives what came of it as the exit code of that start. Gives
+    // up on the way out, or when this thread is stuck longer than the second start waits anyway.
+    public int RunCommand(string message)
+    {
+        if (EngineCommand.FromMessage(message) is not { } command)
+        {
+            Trace.TraceWarning($"Command line: unknown command '{message}'.");
+            return (int)EngineCommandResult.Failed;
+        }
+
+        var done = new TaskCompletionSource<EngineCommandResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            _shutdown.Token.ThrowIfCancellationRequested();
+            _uiContext.Post(_ => done.TrySetResult(_presenter.Run(command)), state: null);
+            return done.Task.Wait(EngineCommand.AnswerTimeout, _shutdown.Token) ? (int)done.Task.Result : (int)EngineCommandResult.NoAnswer;
+        }
+        catch (Exception exception) when (exception is OperationCanceledException or InvalidOperationException)
+        {
+            // On the way out; the message loop of this thread may be gone already.
+            return (int)EngineCommandResult.NoAnswer;
+        }
+    }
 
     // From another thread (the settings app through IEngineApi.RestartAsync): the same as
     // "Herstarten" in the menu. RestartAsync never throws, so nothing is lost by not awaiting it.
