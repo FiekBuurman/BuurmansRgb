@@ -26,10 +26,11 @@
         <views:EmConverter x:Key="TimeBoxWidth" Ems="3" Extra="65" />
 
         <!-- "Uit om" or "Aan om" (WholeHouseTimeRow): the label, the time and the days, and the switch on the right as
-             on the cards. The time and the days are grey while the switch is off, as they only count with it. The
+             on the cards. The time and the days are grey while the switch is off, as they only count with it; all of it
+             is grey while the row cannot be changed (IsEditable: a scene "Alles uit" with more times). The
              field sends its time when it loses the focus or with Enter (OnWholeHouseTimeKeyDown). -->
         <DataTemplate x:Key="WholeHouseTimeRowTemplate" DataType="{x:Type vm:WholeHouseTimeRow}">
-            <DockPanel Margin="0,10,0,0" ToolTip="{Binding Hint}">
+            <DockPanel Margin="0,10,0,0" ToolTip="{Binding Hint}" ToolTipService.ShowOnDisabled="True" IsEnabled="{Binding IsEditable}">
                 <views:ToggleSwitch DockPanel.Dock="Right" Margin="12,0,0,6" VerticalAlignment="Top" Style="{StaticResource Switch}" IsChecked="{Binding IsOn}"
                                     AutomationProperties.Name="{Binding Label}" AutomationProperties.HelpText="{Binding Hint}" />
                 <WrapPanel>

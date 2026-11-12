@@ -9,6 +9,7 @@ public sealed class WholeHouseTimesViewModelTests
 {
     private static readonly LoadTime ElevenPm = new(new TimeOnly(23, 0));
     private static readonly LoadTime SevenAm = new(new TimeOnly(7, 0));
+    private static readonly LoadTime HalfPastSixAm = new(new TimeOnly(6, 30));
 
     private readonly WholeHouseTimesViewModel _times = new();
     private readonly List<WholeHouseTimes> _sent = [];
@@ -125,22 +126,35 @@ public sealed class WholeHouseTimesViewModelTests
         Assert.Equal(new WholeHouseTimes(On: [SevenAm]), _sent[^1]);
     }
 
-    // Alles uit with more times on Scènes: the row is the first, the rest stays; off takes them all.
+    // Alles uit with more times on Scènes: the row shows the first and cannot be changed, so no time
+    // jumps or goes; Aan om still can, and keeps all of them.
     [Fact]
-    public void SceneWithMoreTimes_TheRowIsTheFirst_AndTheRestStays()
+    public void SceneWithMoreTimes_TheRowShowsTheFirst_AndCannotBeChanged()
     {
-        _times.Show(new WholeHouseTimes([SevenAm, ElevenPm], OffScene: "Alles uit"));
+        _times.Show(new WholeHouseTimes([HalfPastSixAm, ElevenPm], OffScene: "Alles uit"));
 
-        _times.Off.Text = "06:30";
+        Assert.False(_times.Off.IsEditable);
+        Assert.Equal("06:30", _times.Off.Text);
+        Assert.True(_times.On.IsEditable);
+        Assert.Equal("Uit om zet de scène 'Alles uit' aan. Die heeft nog 1 andere tijd, dus Uit om verander je op Scènes.", _times.SceneNote);
+
         _times.Off.IsOn = false;
+        Assert.Empty(_sent);
 
-        Assert.Equal(
-            [
-                new WholeHouseTimes([new LoadTime(new TimeOnly(6, 30)), ElevenPm], OffScene: "Alles uit"),
-                new WholeHouseTimes(OffScene: "Alles uit"),
-            ],
-            _sent);
-        Assert.Equal("Uit om zet de scène 'Alles uit' aan. Die heeft nog 1 andere tijd(en); die verander je op Scènes.", _times.SceneNote);
+        _times.On.IsOn = true;
+        Assert.Equal([new WholeHouseTimes([HalfPastSixAm, ElevenPm], [SevenAm], OffScene: "Alles uit")], _sent);
+    }
+
+    [Fact]
+    public void SceneWithMoreTimes_SaysHowMany_AndOneTimeCanBeChangedAgain()
+    {
+        _times.Show(new WholeHouseTimes([SevenAm, new LoadTime(new TimeOnly(22, 0)), ElevenPm], OffScene: "Alles uit"));
+        Assert.Equal("Uit om zet de scène 'Alles uit' aan. Die heeft nog 2 andere tijden, dus Uit om verander je op Scènes.", _times.SceneNote);
+
+        _times.Show(new WholeHouseTimes([ElevenPm], OffScene: "Alles uit"));
+        Assert.True(_times.Off.IsEditable);
+        _times.Off.IsOn = false;
+        Assert.Equal([new WholeHouseTimes(OffScene: "Alles uit")], _sent);
     }
 
     [Fact]

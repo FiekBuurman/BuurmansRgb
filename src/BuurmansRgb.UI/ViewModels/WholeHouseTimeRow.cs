@@ -49,6 +49,11 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     [ObservableProperty]
     public partial bool IsOn { get; set; }
 
+    // False while the row only shows a time that is changed elsewhere: "Uit om" of a scene "Alles
+    // uit" with more times, which are all on Scènes.
+    [ObservableProperty]
+    public partial bool IsEditable { get; private set; } = true;
+
     // Set by the field when it loses the focus or with Enter, not on every key.
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
@@ -78,11 +83,12 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     }
 
     // The saved time, or off for null, which keeps the time in the field for when it goes on again.
-    public void Show(LoadTime? time)
+    public void Show(LoadTime? time, bool isEditable = true)
     {
         _showing = true;
         try
         {
+            IsEditable = isEditable;
             IsOn = time is not null;
             if (time is not null)
             {

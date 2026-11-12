@@ -10,7 +10,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // switch, a day, or the time once the field loses the focus or gets Enter. This only asks;
 // MainViewModel sends it to the engine, which keeps "Uit om" as the times of the scene "Alles uit"
 // (so Scènes shows them too) and "Aan om" apart, and shows what the engine saved. A scene with
-// more times shows the first here; the rest stays as it is.
+// more times shows the first here, and the row cannot be changed: those times change on Scènes.
 public sealed partial class WholeHouseTimesViewModel : ObservableObject
 {
     // What the engine has, so only a change is sent, and the times after the first stay.
@@ -41,9 +41,10 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     public string? OffScene => _saved.OffScene;
 
     // That "Uit om" puts on that scene, and so shows on Scènes too; with more times than the first,
-    // that the rest is there.
+    // how many more, and that they change there.
     public string? SceneNote => _saved.OffScene is not { } scene ? null
-        : _saved.Off.Count > 1 ? UiText.Format(Strings.WholeHouseSceneMoreTimes, scene, _saved.Off.Count - 1)
+        : _saved.Off.Count == 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimesOne, scene)
+        : _saved.Off.Count > 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimes, scene, _saved.Off.Count - 1)
         : UiText.Format(Strings.WholeHouseSceneNote, scene);
 
     public bool HasSceneNote => SceneNote is not null;
@@ -74,7 +75,7 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     public void Show(WholeHouseTimes times)
     {
         _saved = times;
-        Off.Show(times.Off.FirstOrDefault());
+        Off.Show(times.Off.FirstOrDefault(), isEditable: times.Off.Count <= 1);
         On.Show(times.On.FirstOrDefault());
         IsAvailable = true;
         Error = FindClash(times);
@@ -97,7 +98,7 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
 
     private void OnRowChanged(object? sender, EventArgs e)
     {
-        if (!IsAvailable)
+        if (!IsAvailable || sender is WholeHouseTimeRow { IsEditable: false })
         {
             return;
         }
@@ -106,7 +107,7 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
         WholeHouseTimes? times = null;
         if (error is null && Off.TryRead(out var off) && On.TryRead(out var on))
         {
-            times = new WholeHouseTimes(Replace(_saved.Off, off), Replace(_saved.On, on), _saved.OffScene);
+            times = new WholeHouseTimes(Replace(Off, _saved.Off, off), Replace(On, _saved.On, on), _saved.OffScene);
             error = FindClash(times);
         }
 
@@ -122,9 +123,9 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     private static string? FindClash(WholeHouseTimes times) =>
         times.On.Any(on => times.Off.Any(off => off.At == on.At && (off.Days & on.Days) != WeekDays.None)) ? Strings.WholeHouseTimesClash : null;
 
-    // The first time is the one of the row; off, there is none, also not the rest.
-    private static IReadOnlyList<LoadTime> Replace(IReadOnlyList<LoadTime> saved, LoadTime? first) =>
-        first is null ? [] : [first, .. saved.Skip(1)];
+    // The time of the row, or none while it is off; a row that cannot be changed keeps what was saved.
+    private static IReadOnlyList<LoadTime> Replace(WholeHouseTimeRow row, IReadOnlyList<LoadTime> saved, LoadTime? time) =>
+        !row.IsEditable ? saved : time is null ? [] : [time];
 
     private static string? FindError(WholeHouseTimeRow row) =>
         !row.IsOn ? null

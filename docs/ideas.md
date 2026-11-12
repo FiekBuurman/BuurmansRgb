@@ -612,7 +612,8 @@ uitbreidingen in `docs/bouwplan.md`.
   van alle vijf; met "Minder beweging" van Windows aan eventueel zonder de bewegende
   (`startscenes`)
 - Bij "Uit om" en "Aan om" op Apparaten alle tijden van "Alles uit" kunnen zien en bewerken; nu
-  toont de regel de eerste en zegt hij hoeveel er nog bij Scènes staan (`uit-om`)
+  is de regel grijs zodra de scène meer dan één tijd heeft, en zegt hij hoeveel er nog bij
+  Scènes staan (`uit-om`)
 - "Aan om" laten kiezen wat er aangaat: nu komt na "Alles uit" de verlichting van daarvoor terug
   en anders gaat alles aan zoals "Alles aan"; een keuze voor een scène ("Rustig wit om 07:00")
   kan ook al met een tijd bij die scène (`uit-om`)

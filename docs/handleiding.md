@@ -181,7 +181,9 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
     ook. Onder de regels staat dat ("Uit om zet de scène 'Alles uit' aan."). buurmansRgb herkent
     die scène niet aan zijn naam maar aan een vaste markering, dus ook na het hernoemen (met de
     hand in `profiles.json`) hoort hij erbij. Heeft de scène bij Scènes meer tijden gekregen,
-    dan toont deze regel de eerste en zegt hij hoeveel er nog zijn; de rest blijft staan. Is
+    dan toont deze regel de eerste, is hij grijs en zegt de melding eronder hoeveel er nog zijn
+    ("Die heeft nog 1 andere tijd, dus Uit om verander je op Scènes."): alle tijden verander je
+    dan bij de scène op Scènes. Haal je daar de tijden terug tot één, dan kan het hier weer. Is
     "Alles uit" er niet (verwijderd, of je installatie is van vóór de startscènes), dan bewaart
     buurmansRgb de tijd apart, buiten je scènes: dan gaan om die tijd alle apparaten uit met hun
     eigen kleur, zoals **Alles uit** in het tray-menu. Verwijder je "Alles uit" terwijl hij een

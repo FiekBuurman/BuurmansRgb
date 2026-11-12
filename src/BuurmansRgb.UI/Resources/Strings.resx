@@ -1674,8 +1674,12 @@
     <comment>{0} = de naam van de startscène "Alles uit", ook als de gebruiker hem met de hand hernoemde.</comment>
   </data>
   <data name="WholeHouseSceneMoreTimes" xml:space="preserve">
-    <value>Uit om zet de scène '{0}' aan. Die heeft nog {1} andere tijd(en); die verander je op Scènes.</value>
-    <comment>{0} = de naam van de scène, {1} = hoeveel tijden er naast de eerste zijn.</comment>
+    <value>Uit om zet de scène '{0}' aan. Die heeft nog {1} andere tijden, dus Uit om verander je op Scènes.</value>
+    <comment>{0} = de naam van de scène, {1} = hoeveel tijden er naast de eerste zijn (2 of meer; bij 1 WholeHouseSceneMoreTimesOne). De regel Uit om is dan grijs.</comment>
+  </data>
+  <data name="WholeHouseSceneMoreTimesOne" xml:space="preserve">
+    <value>Uit om zet de scène '{0}' aan. Die heeft nog 1 andere tijd, dus Uit om verander je op Scènes.</value>
+    <comment>{0} = de naam van de scène. De regel Uit om is dan grijs.</comment>
   </data>
   <data name="WholeHouseTimesSaved" xml:space="preserve">
     <value>Uit en aan op tijd opgeslagen.</value>

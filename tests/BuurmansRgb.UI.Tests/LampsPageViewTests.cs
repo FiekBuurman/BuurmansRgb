@@ -185,6 +185,25 @@ public sealed class LampsPageViewTests
         });
     }
 
+    // A scene "Alles uit" with more times: the row of Uit om is grey, its switch too, and the note
+    // says where the times change; Aan om can still be changed.
+    [Fact]
+    public async Task WholeHouseTimes_SceneWithMoreTimes_GreysOutUitOm()
+    {
+        using var viewModel = await PageViews.ConnectAsync(engine =>
+            engine.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(7, 0)), new LoadTime(new TimeOnly(23, 0))], OffScene: "Alles uit"));
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<LampsPage>(panel, viewModel);
+
+            Assert.False(PageViews.Named<Views.ToggleSwitch>(page, Strings.WholeHouseOff).IsEnabled);
+            Assert.False(PageViews.Named<TextBox>(page, "Tijd voor Uit om").IsEnabled);
+            Assert.True(PageViews.Named<Views.ToggleSwitch>(page, Strings.WholeHouseOn).IsEnabled);
+            Assert.True(PageViews.ById<TextBlock>(page, "WholeHouseSceneNote").IsVisible);
+        });
+    }
+
     // "Uit om" and "Aan om" in Hele huis: a switch that a screen reader hears as on or off with the
     // name of the row, a named time field and the days as named toggle buttons, all grey while the
     // switch is off. Reached with Tab. Enter in the field sends the time without leaving it.
