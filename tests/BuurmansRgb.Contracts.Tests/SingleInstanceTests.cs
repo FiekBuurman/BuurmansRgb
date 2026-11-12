@@ -282,6 +282,20 @@ public sealed class SingleInstanceTests
         Assert.Equal(2, await next);
     }
 
+    // On a thread of the pool, where an exception would end the process (and this test run).
+    [Fact]
+    public async Task SendCommand_CallbackThrows_IsNull_AndTheListenerKeepsAnswering()
+    {
+        using var primary = SingleInstance.Acquire(_name);
+        using var listening = primary.ListenForCommand(command => command == "bad" ? throw new IOException("Kapot") : 5);
+
+        var bad = await Task.Run(() => SingleInstance.SendCommand(_name, "bad", TimeSpan.FromMilliseconds(300)), Ct);
+        var good = await Task.Run(() => SingleInstance.SendCommand(_name, "good", TestTimeouts.Short), Ct);
+
+        Assert.Null(bad);
+        Assert.Equal(5, good);
+    }
+
     [Fact]
     public void SendCommand_TooLong_Throws()
     {

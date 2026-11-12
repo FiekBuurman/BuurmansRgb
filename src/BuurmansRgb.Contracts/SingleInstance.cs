@@ -223,7 +223,9 @@ public sealed class SingleInstance : IDisposable
     }
 
     // Reads the command, lets onCommand answer it and tells the sender. The mailbox is gone when
-    // the sender gave up already: nobody waits for an answer then.
+    // the sender gave up already: nobody waits for an answer then. Runs on a thread of the pool,
+    // where an exception would end the process: any failure is only logged, and the sender gets
+    // no answer.
     private void Answer(Func<string, int> onCommand)
     {
         if (!OperatingSystem.IsWindows())
@@ -231,6 +233,19 @@ public sealed class SingleInstance : IDisposable
             return;
         }
 
+        try
+        {
+            AnswerFromMailbox(onCommand);
+        }
+        catch (Exception exception)
+        {
+            Trace.TraceError($"A command of another start failed: {exception}");
+        }
+    }
+
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    private void AnswerFromMailbox(Func<string, int> onCommand)
+    {
         MemoryMappedFile mailbox;
         try
         {
