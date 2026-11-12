@@ -842,8 +842,8 @@ Hoe het vanzelf aanzetten werkt:
   (elke dag) en aan om 07:00 (werkdagen)"). Staat "Gemiste tijden inhalen" aan
   en heeft een scène een tijd, dan staat eronder dat bij het starten de scène aankomt waarvan de
   tijd het laatst voorbij is, ook als je daarna met de hand een kleur of andere scène koos (zie
-  "Gemiste tijden inhalen" bij Scènes); met Uit om of Aan om staat er dat buurmansRgb die bij het
-  starten alsnog doet als ze voorbij gingen terwijl de pc uit stond. Daaronder staat of dat vanzelf gebeurt: "Starten met
+  "Gemiste tijden inhalen" bij Scènes); met Uit om of Aan om staat er dat buurmansRgb die alsnog
+  doet als ze voorbij gingen terwijl de pc uit stond of sliep. Daaronder staat of dat vanzelf gebeurt: "Starten met
   Windows" staat aan, of staat uit, en dan komt je verlichting na een herstart van de pc niet
   vanzelf terug, pas als je buurmansRgb zelf opent. Dan staat er ook de knop **Starten met Windows
   aanzetten**, die hetzelfde doet als de schakelaar bij "Opstarten" (en dus ook telt als je eigen

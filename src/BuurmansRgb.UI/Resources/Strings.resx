@@ -1702,6 +1702,6 @@
     <comment>Een regel in "Na een herstart". {0} = bijv. "uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)".</comment>
   </data>
   <data name="AfterRestartWholeHouseCatchUp" xml:space="preserve">
-    <value>"Gemiste tijden inhalen" staat aan, dus ging Uit om of Aan om voorbij terwijl de pc uit stond, dan doet buurmansRgb dat bij het starten alsnog.</value>
+    <value>"Gemiste tijden inhalen" staat aan: ging Uit om of Aan om voorbij terwijl de pc uit stond of sliep, dan doet buurmansRgb dat alsnog.</value>
   </data>
 </root>
