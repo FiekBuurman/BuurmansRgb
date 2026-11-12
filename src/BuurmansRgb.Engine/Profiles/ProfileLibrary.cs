@@ -87,6 +87,36 @@ internal sealed class ProfileLibrary
         }
     }
 
+    // The scenes of a new installation (StartScenes), written only when there is no profiles.json
+    // yet. A file, also one with an empty list, is from a pc that had scenes, or whose user
+    // deleted them all, and stays as it is. True once that is settled: the scenes are written, or
+    // a file was there already. False when it could not be written now, so a next start tries
+    // again; the engine runs on without them.
+    public bool AddStartScenes(IReadOnlyList<Profile> scenes)
+    {
+        try
+        {
+            lock (_gate)
+            {
+                if (_store.Exists)
+                {
+                    return true;
+                }
+
+                Store([.. scenes.OrderBy(profile => profile.Name, ProfileNames.Comparer)]);
+            }
+        }
+        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        {
+            Trace.TraceError($"Could not write the start scenes; the next start tries again: {exception}");
+            return false;
+        }
+
+        Trace.TraceInformation($"A new installation: made the start scenes {string.Join(", ", scenes.Select(scene => $"'{scene.Name}'"))}.");
+        Changed?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
     // Saves the lighting as it is now. A profile with the same name is replaced and takes the new
     // spelling, but keeps its automation. The list only changes once the file is written. What
     // burns then is that scene, so it is the one that is on.

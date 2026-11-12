@@ -14,6 +14,9 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => filePath + ".broken";
 
+    // Also a file that is not valid JSON: Load moves that one aside.
+    public bool Exists => File.Exists(filePath);
+
     // A profile without a valid name, or with the name of an earlier one, is skipped.
     public IReadOnlyList<Profile> Load()
     {

@@ -70,6 +70,7 @@ internal sealed class EngineHost(
         lighting.Apply(settings.ToLightingState());
         if (profiles is not null)
         {
+            settings = StartScenesOnce(settings, profiles);
             profiles.RestoreActive(settings.ActiveScene);
             settings = settings with { ActiveScene = profiles.ActiveName };
         }
@@ -285,13 +286,14 @@ internal sealed class EngineHost(
         }
     }
 
-    // With autoStartChosen and hadRealDevices of this pc (SettingsArchive.WithThisPc): the Run key
-    // stays as it is, and what the user chose about it here still counts at the next update.
+    // With autoStartChosen, hadRealDevices and startScenesCreated of this pc
+    // (SettingsArchive.WithThisPc): the Run key stays as it is, what the user chose about it here
+    // still counts at the next update, and the start scenes do not come again on this pc.
     private void ReplaceSettings(byte[] json)
     {
         var saver = _saver ?? throw new InvalidOperationException("The engine has not started yet.");
         var options = saver.Options;
-        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true));
+        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true, options.StartScenesCreated));
         if (_reloader is not null)
         {
             // Normally applied when this returns; a file that cannot be read yet only later.
@@ -420,6 +422,16 @@ internal sealed class EngineHost(
 
         return settings;
     }
+
+    // A new installation gets the start scenes, once (startScenesCreated): only without a
+    // profiles.json, so a pc from before this option that has one, also with all its scenes
+    // deleted, gets none. That is settled at the first start and goes along with the next save,
+    // as autoStartChosen does; until then the profiles.json that is there now tells the same. A
+    // save of its own would write the defaults over a settings.json that did not read.
+    private static EngineSettings StartScenesOnce(EngineSettings settings, ProfileLibrary library) =>
+        !settings.StartScenesCreated && library.AddStartScenes(StartScenes.Create())
+            ? settings with { StartScenesCreated = true }
+            : settings;
 
     // From the tray menu or the settings app, on any thread.
     private void OnAutoStartChosen(object? sender, EventArgs e)
