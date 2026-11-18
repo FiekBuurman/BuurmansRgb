@@ -194,14 +194,7 @@ internal sealed class ProfileLibrary
             }
         }
 
-        if (profile.DeviceIds is null)
-        {
-            Show(profile.Lighting, profile.Name);
-        }
-        else
-        {
-            Show(profile.LightingOver, profile.Name);
-        }
+        Show(profile.LightingOver, profile.Name);
     }
 
     // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
