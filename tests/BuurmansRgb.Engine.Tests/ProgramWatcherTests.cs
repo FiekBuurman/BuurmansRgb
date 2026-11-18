@@ -12,6 +12,9 @@ public sealed class ProgramWatcherTests : IDisposable
 {
     private const string EldenRing = "eldenring.exe";
     private const string Forza = "forza.exe";
+    private const string Valorant = "valorant.exe";
+    private const string Cs2 = "cs2.exe";
+    private const string Apex = "r5apex.exe";
 
     private static readonly TimeSpan Interval = ProgramWatcher.DefaultPollInterval;
 
@@ -498,6 +501,88 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(Red, ShownColor());
     }
 
+    // One scene for Valorant, CS2 and Apex: each of them loads it.
+    [Theory]
+    [InlineData(Valorant)]
+    [InlineData(Cs2)]
+    [InlineData("R5Apex.EXE")]
+    public void ProfileWithMorePrograms_EachOfThemLoadsIt(string program)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2, Apex)];
+        StartWatcher();
+
+        StartProgram(program);
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(program);
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // Two programs of the same scene stack as two of different scenes: the lighting from before
+    // comes back once the last of them stops, whichever stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TwoProgramsOfOneProfile_GoBackOnlyWhenBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // A name on two scenes goes with the first in alphabetical order, as one program does; the
+    // other names of the second scene still load it.
+    [Fact]
+    public void NameOnTwoProfilesWithMorePrograms_GoesWithTheFirstAndTheOthersStillCount()
+    {
+        _store.Profiles = [Profile("Race", Blue, Cs2, Forza), Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+
+        StartProgram(Cs2);
+        Assert.Equal(Red, ShownColor());
+        StopProgram(Cs2);
+
+        StartProgram(Forza);
+        Assert.Equal(Blue, ShownColor());
+    }
+
+    // A name taken off the list stops counting; the others go on.
+    [Fact]
+    public void ProgramTakenOffTheList_StopsWatchingOnlyThatOne()
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+
+        _profiles.SetAutomation("Gamen", new ProfileAutomation(Times: null, Programs: [Cs2]));
+        StartProgram(Valorant);
+        Assert.Equal(Green, ShownColor());
+
+        StartProgram(Cs2);
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // More names cost no more looks: all of them go in one look.
+    [Fact]
+    public void ProfileWithMorePrograms_LooksForAllOfThemAtOnce()
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2, Apex)];
+        StartWatcher();
+        var looks = _programs.FindCount;
+
+        _time.Advance(Interval);
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal([Cs2, Apex, Valorant], _programs.LastFound.Order(StringComparer.Ordinal));
+    }
+
     [Fact]
     public void ProgramRemovedFromItsProfile_StopsWatchingWithoutGoingBack()
     {
@@ -577,6 +662,9 @@ public sealed class ProgramWatcherTests : IDisposable
 
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
+
+    private static Profile Profile(string name, RgbColor color, params string[] programs) =>
+        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs) };
 
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(IAwayState? away = null)

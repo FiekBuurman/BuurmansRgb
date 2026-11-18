@@ -192,7 +192,7 @@ public sealed class ProfileLibraryTests
 
         _library.SetAutomation("Gamen", new ProfileAutomation(Program: @"C:\Games\eldenring"));
 
-        Assert.Equal("eldenring.exe", _store.Profiles[0].Automation.Program);
+        Assert.Equal(["eldenring.exe"], _store.Profiles[0].Automation.Programs);
     }
 
     [Fact]

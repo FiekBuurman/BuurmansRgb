@@ -67,7 +67,7 @@ internal static class SceneLook
 
     // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond".
     public static string Describe(LightingInfo lighting, ProfileAutomation automation) =>
-        Describe(lighting, automation.Times, automation is { Program: { } program, ForegroundOnly: true } ? UiText.Format(Strings.SceneProgramInForeground, program) : automation.Program);
+        Describe(lighting, automation.Times, automation is { Programs: [var program, ..], ForegroundOnly: true } ? UiText.Format(Strings.SceneProgramInForeground, program) : automation.Programs.FirstOrDefault());
 
     private static string Describe(LightingInfo lighting, IReadOnlyList<LoadTime> times, string? program) => (times, program) switch
     {

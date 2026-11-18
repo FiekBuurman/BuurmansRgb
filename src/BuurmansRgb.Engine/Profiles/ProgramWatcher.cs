@@ -21,6 +21,11 @@ namespace BuurmansRgb.Engine.Profiles;
 // Right after, it looks once at once, so what started or stopped in the meantime counts then;
 // a time that comes meanwhile looks once too (HoldUntilProgramsStop).
 //
+// A profile with more programs (ProfileAutomation.Programs) gives each its own rule, so each counts
+// as a program of its own: two of them that run stack as above, and its lighting from before comes
+// back once the last of them stops. All names are in the same set the look goes through once, so
+// more names cost no extra look.
+//
 // A program whose profile says ForegroundOnly counts only while its window is in the foreground
 // (IForegroundWindow), as if it started when it comes to the front and stopped when another program
 // does; that needs no polling, and it is followed only while some profile asks for it. Going from
@@ -46,7 +51,8 @@ internal sealed class ProgramWatcher : IProfileTrigger
     // The programs whose profile was loaded, in the order they started; the last one shows.
     private readonly List<Activation> _activations = [];
 
-    // The profile to load by program; the first in alphabetical order when two have the same one.
+    // The profile to load by program; the first in alphabetical order when two have the same one,
+    // with its ForegroundOnly.
     private Dictionary<string, Rule> _rules = new(ProgramNames.Comparer);
 
     // The programs that count while they run, and of those the ones that run.
@@ -194,7 +200,7 @@ internal sealed class ProgramWatcher : IProfileTrigger
             var rules = new Dictionary<string, Rule>(ProgramNames.Comparer);
             foreach (var (name, automation) in _profiles.TryGetAutomated())
             {
-                if (automation.Program is { } program)
+                foreach (var program in automation.Programs)
                 {
                     rules.TryAdd(program, new Rule(name, automation.ForegroundOnly));
                 }

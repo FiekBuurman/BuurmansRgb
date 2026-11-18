@@ -195,7 +195,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         {
             _saved = automation;
             ProfileName = profileName;
-            ProgramText = automation.Program ?? string.Empty;
+            ProgramText = string.Join(", ", automation.Programs);
             ForegroundOnly = automation.ForegroundOnly;
             LoadTime?[] times = [.. automation.Times.DefaultIfEmpty()];
             while (Times.Count > times.Length)

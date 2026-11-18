@@ -6,10 +6,13 @@ using BuurmansRgb.Engine.Profiles;
 namespace BuurmansRgb.Engine.Settings;
 
 // One profile in profiles.json: its name, the same lighting fields as settings.json and, when it
-// loads by itself, its times and "program" as "eldenring.exe". One time is "loadAt" as "HH:mm"
+// loads by itself, its times and programs. One time is "loadAt" as "HH:mm"
 // with "loadOn" as "mon,tue,wed,thu,fri" (without it every day), as before there were more; more
 // times are "loadTimes", a list of { "at": "07:00", "on": "mon,tue,wed,thu,fri" }. A file with
-// both counts all of them. "foregroundOnly": true goes with the program, only while it is in the
+// both counts all of them. One program is "program" as "eldenring.exe", as before there were more;
+// more are "programs", a list like [ "valorant.exe", "cs2.exe" ], so with one an older engine still
+// reads it, and with more it skips them and its next save leaves them out. A file with both counts
+// all of them. "foregroundOnly": true goes with the programs, only while one is in the
 // foreground; it is left out while off. Older files have none of them; a value that does not read
 // leaves that one off, and the rest of the profile still counts. A time edited by hand reads as one
 // typed in the app, such as "7:30" (LoadTime.TryParseAt). "role" is "allOff" on the start scene
@@ -47,14 +50,17 @@ internal sealed record ProfileSettings : LightingStateSettings
 
     public JsonText? Program { get; set; }
 
+    // A name that is not text reads as such and is left out.
+    public List<JsonText?>? Programs { get; set; }
+
     // Null, as when it is not in the file, is off; so is a value that is not true or false.
     public bool? ForegroundOnly { get; set; }
 
     // An id that is not text reads as such and is skipped.
     public List<JsonText?>? OnlyDevices { get; set; }
 
-    // One time as "loadAt" and "loadOn", so an older engine still reads it; only more go in
-    // "loadTimes".
+    // One time as "loadAt" and "loadOn", and one program as "program", so an older engine still
+    // reads them; only more go in "loadTimes" and "programs".
     public static ProfileSettings From(Profile profile)
     {
         var automation = profile.Automation;
@@ -68,7 +74,8 @@ internal sealed record ProfileSettings : LightingStateSettings
             LoadTimes = automation.Times.Count > 1
                 ? [.. automation.Times.Select(time => new LoadTimeSettings { At = WriteTime(time.At), On = WriteDays(time.Days) })]
                 : null,
-            Program = JsonText.From(automation.Program),
+            Program = automation.Programs.Count == 1 ? JsonText.From(automation.Programs[0]) : null,
+            Programs = automation.Programs.Count > 1 ? [.. automation.Programs.Select(JsonText.From)] : null,
             ForegroundOnly = automation.ForegroundOnly ? true : null,
             OnlyDevices = profile.DeviceIds is { } deviceIds ? [.. deviceIds.Select(JsonText.From)] : null,
         };
@@ -85,7 +92,7 @@ internal sealed record ProfileSettings : LightingStateSettings
         var role = ReadRole() is ProfileRole.AllOff ? ProfileRole.AllOff : ProfileRole.None;
         return new(name, ToLightingState())
         {
-            Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name), ForegroundOnly == true).Normalize(),
+            Automation = new ProfileAutomation(ReadTimes(name), ReadPrograms(name), ForegroundOnly == true).Normalize(),
             Role = role,
             DeviceIds = ReadDeviceIds(name, role),
         };
@@ -233,21 +240,43 @@ internal sealed record ProfileSettings : LightingStateSettings
         return null;
     }
 
-    private string? ReadProgram(string name)
+    // "program" first, then "programs"; the same name twice (in any case) counts once, and past
+    // MaxPrograms the rest is left out.
+    private List<string> ReadPrograms(string name)
     {
-        if (IsEmpty(Program))
+        var programs = new List<string>();
+        AddProgram(programs, name, "program", Program);
+        var more = Programs ?? [];
+        for (var i = 0; i < more.Count; i++)
         {
-            return null;
+            AddProgram(programs, name, $"programs[{i}]", more[i]);
         }
 
-        var value = Program!.Value;
-        if (value.IsText && ProgramNames.Normalize(value.Value) is { } program)
+        if (programs.Count > ProfileAutomation.MaxPrograms)
         {
-            return program;
+            Trace.TraceWarning($"profiles.json: profile '{name}' has {programs.Count} programs, more than {ProfileAutomation.MaxPrograms}; the rest is left out.");
+            programs.RemoveRange(ProfileAutomation.MaxPrograms, programs.Count - ProfileAutomation.MaxPrograms);
         }
 
-        LeaveOut(name, "program", value, "the name of an .exe");
-        return null;
+        return programs;
+    }
+
+    private static void AddProgram(List<string> programs, string name, string field, JsonText? text)
+    {
+        if (IsEmpty(text))
+        {
+            return;
+        }
+
+        var value = text!.Value;
+        if (!value.IsText || ProgramNames.Normalize(value.Value) is not { } program)
+        {
+            LeaveOut(name, field, value, "the name of an .exe");
+        }
+        else if (!programs.Contains(program, ProgramNames.Comparer))
+        {
+            programs.Add(program);
+        }
     }
 }
 
