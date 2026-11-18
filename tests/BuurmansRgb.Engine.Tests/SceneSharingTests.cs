@@ -181,6 +181,28 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(brought.Id, _profiles.Get("Feest").Lighting.Global.EffectId);
     }
 
+    // An own effect that only a device that is not here shows is left out with that device.
+    [Fact]
+    public async Task Import_OwnEffectOnlyOfADeviceNotHere_IsNotAdded()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var json = Bytes("""
+            { "version": 1, "kind": "scene", "name": "Feest",
+              "lighting": { "color": "#FF8800", "brightness": 1, "effect": "static" },
+              "devices": [ { "id": "openrgb:k70-22222222", "type": "keyboard", "name": "K70 RGB",
+                             "lighting": { "color": "#FF0000", "brightness": 1, "effect": "custom:abc" } } ],
+              "effects": [ { "id": "custom:abc", "name": "Disco", "steps": [ { "colors": [ "#FF0000" ], "hold": 1, "fade": 1 } ] } ] }
+            """);
+
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(["K70 RGB"], result.UnmatchedDevices!);
+        Assert.Empty(result.AddedEffects!);
+        Assert.Empty(await _api.GetCustomEffectsAsync(Ct));
+        Assert.Empty(_profiles.Get("Feest").Lighting.Devices);
+    }
+
     // A profiles.json that cannot be written adds no scene, and so none of its own effects either:
     // the effects go again, no event goes out, and the error reaches the settings app.
     [Fact]

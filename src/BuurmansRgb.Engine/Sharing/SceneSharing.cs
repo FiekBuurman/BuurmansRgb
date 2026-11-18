@@ -55,20 +55,27 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
             return ShareImportResult.Refused(ShareImportOutcome.NoDevices);
         }
 
+        // Only the own effects that the lighting of all devices, or of a device here, still shows.
+        var shown = new[] { scene.Lighting.Global }
+            .Concat(scene.Lighting.Devices.Where(pair => map.ContainsKey(pair.Key)).Select(pair => pair.Value))
+            .Select(device => device.EffectId)
+            .ToHashSet(StringComparer.Ordinal);
+        List<CustomEffect> sharedEffects = [.. scene.Effects.Where(effect => shown.Contains(effect.Id))];
+
         // A profiles.json that does not read fails here, before an own effect is added.
         _ = profiles.Names;
         var effectIds = new Dictionary<string, string>(StringComparer.Ordinal);
         var addedEffects = new List<string>();
         string? name = null;
-        if (scene.Effects.Count == 0)
+        if (sharedEffects.Count == 0)
         {
             name = AddScene(scene, map, effectIds, onlyDevices);
         }
-        else if (customEffects?.Import(scene.Effects, effects =>
+        else if (customEffects?.Import(sharedEffects, effects =>
         {
             for (var i = 0; i < effects.Count; i++)
             {
-                effectIds[scene.Effects[i].Id] = effects[i].Effect.Id;
+                effectIds[sharedEffects[i].Id] = effects[i].Effect.Id;
                 if (effects[i].Added)
                 {
                     addedEffects.Add(effects[i].Effect.Name);
