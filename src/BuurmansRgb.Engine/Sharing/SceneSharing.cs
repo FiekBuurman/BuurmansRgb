@@ -10,8 +10,9 @@ namespace BuurmansRgb.Engine.Sharing;
 // SharedFileReader accepted it, in as a new scene or own effect. The devices of a scene become
 // those here (SharedDeviceMatcher); a device that is not here is left out of its lighting and
 // devices, and named in the result. Its own effects come first (CustomEffectLibrary.Import), so the
-// scene shows them by their ids here. Without the library of own effects (in tests) a scene with
-// one, or an own effect, is refused as TooManyEffects, as none can be kept.
+// scene shows them by their ids here; the scene is added within that import, so when it cannot be
+// saved the effects go again and nothing is added. Without the library of own effects (in tests) a
+// scene with one, or an own effect, is refused as TooManyEffects, as none can be kept.
 internal sealed class SceneSharing(ProfileLibrary profiles, LightingController lighting, CustomEffectLibrary? customEffects)
 {
     public byte[] ExportScene(string name) =>
@@ -54,15 +55,17 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
             return ShareImportResult.Refused(ShareImportOutcome.NoDevices);
         }
 
+        // A profiles.json that does not read fails here, before an own effect is added.
+        _ = profiles.Names;
         var effectIds = new Dictionary<string, string>(StringComparer.Ordinal);
         var addedEffects = new List<string>();
-        if (scene.Effects.Count > 0)
+        string? name = null;
+        if (scene.Effects.Count == 0)
         {
-            if (customEffects?.Import(scene.Effects) is not { } effects)
-            {
-                return ShareImportResult.Refused(ShareImportOutcome.TooManyEffects);
-            }
-
+            name = AddScene(scene, map, effectIds, onlyDevices);
+        }
+        else if (customEffects?.Import(scene.Effects, effects =>
+        {
             for (var i = 0; i < effects.Count; i++)
             {
                 effectIds[scene.Effects[i].Id] = effects[i].Effect.Id;
@@ -71,17 +74,28 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
                     addedEffects.Add(effects[i].Effect.Name);
                 }
             }
+
+            // When this throws, the library takes the effects it added out again.
+            name = AddScene(scene, map, effectIds, onlyDevices);
+        }) is null)
+        {
+            return ShareImportResult.Refused(ShareImportOutcome.TooManyEffects);
         }
 
+        List<string> notHere = [.. unmatched.Select(device => device.Name ?? device.Id)];
+        Trace.TraceInformation($"Imported the scene '{scene.Name}' as '{name!}'; {map.Count} devices here, {notHere.Count} not.");
+        return new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, name!, scene.Name, UnmatchedDevices: notHere, AddedEffects: addedEffects);
+    }
+
+    // The scene with the devices and own effects of this pc.
+    private string AddScene(SharedScene scene, IReadOnlyDictionary<string, string> map, Dictionary<string, string> effectIds, List<string>? onlyDevices)
+    {
         var state = scene.Lighting;
         var shared = new LightingState(
             WithEffect(state.Global, effectIds),
             state.Devices.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => WithEffect(pair.Value, effectIds)),
             state.LedColors.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => pair.Value));
-        var name = profiles.Add(scene.Name, shared, onlyDevices);
-        List<string> notHere = [.. unmatched.Select(device => device.Name ?? device.Id)];
-        Trace.TraceInformation($"Imported the scene '{scene.Name}' as '{name}'; {map.Count} devices here, {notHere.Count} not.");
-        return new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, name, scene.Name, UnmatchedDevices: notHere, AddedEffects: addedEffects);
+        return profiles.Add(scene.Name, shared, onlyDevices);
     }
 
     private static DeviceLighting WithEffect(DeviceLighting lighting, Dictionary<string, string> effectIds) =>

@@ -181,6 +181,39 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(brought.Id, _profiles.Get("Feest").Lighting.Global.EffectId);
     }
 
+    // A profiles.json that cannot be written adds no scene, and so none of its own effects either:
+    // the effects go again, no event goes out, and the error reaches the settings app.
+    [Fact]
+    public async Task Import_SceneThatCannotBeSaved_AddsNoOwnEffect()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _api.ProfilesChanged += (_, _) => changes++;
+        _api.CustomEffectsChanged += (_, _) => changes++;
+        _profileStore.SaveException = new IOException("profiles.json is read-only");
+
+        await Assert.ThrowsAsync<IOException>(() => _api.ImportSharedAsync(SceneWithAnOwnEffect, Ct));
+
+        Assert.Empty(await _api.GetCustomEffectsAsync(Ct));
+        Assert.Empty(await _api.GetProfilesAsync(Ct));
+        Assert.Equal(0, changes);
+    }
+
+    // One that cannot be read fails before an own effect is added.
+    [Fact]
+    public async Task Import_SceneWhileTheScenesDoNotRead_AddsNoOwnEffect()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var changes = 0;
+        _api.CustomEffectsChanged += (_, _) => changes++;
+        _profileStore.LoadException = new IOException("profiles.json is locked");
+
+        await Assert.ThrowsAsync<IOException>(() => _api.ImportSharedAsync(SceneWithAnOwnEffect, Ct));
+
+        Assert.Empty(await _api.GetCustomEffectsAsync(Ct));
+        Assert.Equal(0, changes);
+    }
+
     [Fact]
     public async Task ExportEffectThenImport_IsThereAlready_ElseAdded()
     {
@@ -258,6 +291,12 @@ public sealed class SceneSharingTests : IDisposable
         await Assert.ThrowsAsync<ArgumentException>(() => _api.ExportSceneAsync("Nergens", Ct));
         await Assert.ThrowsAsync<ArgumentException>(() => _api.ExportCustomEffectAsync("custom:nergens", Ct));
     }
+
+    private static byte[] SceneWithAnOwnEffect => Bytes("""
+        { "version": 1, "kind": "scene", "name": "Feest",
+          "lighting": { "color": "#FF8800", "brightness": 1, "effect": "custom:abc" },
+          "effects": [ { "id": "custom:abc", "name": "Disco", "steps": [ { "colors": [ "#FF0000" ], "hold": 1, "fade": 1 } ] } ] }
+        """);
 
     private static JsonObject Parse(byte[] json) => JsonNode.Parse(json)!.AsObject();
 
