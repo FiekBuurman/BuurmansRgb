@@ -191,6 +191,58 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal(after, _automation.ProgramText);
     }
 
+    // A name with a comma, which an earlier version saved, would come back as two names; it says
+    // so and applies nothing, also after another change, until the name is out of the field.
+    [Fact]
+    public void Show_SavedProgramWithAComma_SaysSoAndCannotApply()
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+
+        Assert.Equal("a,b.exe, cs2.exe", _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.ForegroundOnly = true;
+        _automation.Times[0].Text = "23:00";
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.ProgramText = "cs2.exe";
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Picking an .exe with a comma in its name, from the list or with "Bladeren", leaves the field
+    // as it is and says why; the next change takes the error away.
+    [Fact]
+    public void PickProgram_WithAComma_IsRefusedWithAnError()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe";
+
+        _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
+
+        Assert.Equal("cs2.exe", _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.PickProgramCommand.Execute("cs2.exe");
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void PickRunningProgram_WithAComma_IsRefusedWithAnError()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.PickRunningProgramCommand.Execute(new RunningProgramItem(new RunningProgram("a,b.exe", "A, B")));
+
+        Assert.Equal(string.Empty, _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+    }
+
     [Fact]
     public void Show_ForegroundOnly_TicksIt()
     {

@@ -643,6 +643,12 @@
   <data name="ProfileProgramShortcutNamed" xml:space="preserve">
     <value>'{0}' is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
   </data>
+  <data name="ProfileProgramCommaPicked" xml:space="preserve">
+    <value>'{0}' heeft een komma in de naam. Zo'n programma kan niet bij een scène, want de komma zet hier de namen uit elkaar.</value>
+  </data>
+  <data name="ProfileProgramCommaSaved" xml:space="preserve">
+    <value>'{0}' heeft een komma in de naam, en de komma zet hier de namen uit elkaar. Haal de naam uit het veld om iets te veranderen.</value>
+  </data>
   <data name="ProfileProgramsTooMany" xml:space="preserve">
     <value>Een scène kan hoogstens {0} programma's hebben.</value>
   </data>

@@ -11,7 +11,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // When the selected profile loads by itself: at times, each on its own days, and while one of its
 // programs runs, or only while it is in the foreground. The programs are one field with a comma
 // between the names ("valorant.exe, cs2.exe"), so one program is typed as before. An empty field
-// leaves that way off. This only asks; MainViewModel sends the change to the engine and shows what
+// leaves that way off. A name with a comma cannot be in the field. This only asks; MainViewModel sends the change to the engine and shows what
 // the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
@@ -71,7 +71,8 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     private void PickRunningProgram(RunningProgramItem? item) => PickProgram(item?.Program.ExeName);
 
     // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts. It
-    // comes after the names in the field, unless it is there already.
+    // comes after the names in the field, unless it is there already. A name with a comma would
+    // fall apart in two names in the field, so it is refused with an error until the next change.
     [RelayCommand]
     private void PickProgram(string? program)
     {
@@ -80,10 +81,20 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             return;
         }
 
+        if (name.Contains(ProgramSeparator))
+        {
+            Error = UiText.Format(Strings.ProfileProgramCommaPicked, name);
+            return;
+        }
+
         var names = SplitPrograms(ProgramText);
         if (!names.Any(other => ProgramNames.Comparer.Equals(ProgramNames.Normalize(other) ?? other, name)))
         {
             ProgramText = string.Join(ProgramSeparator + " ", names.Append(name));
+        }
+        else
+        {
+            Error = FindError();
         }
     }
 
@@ -148,6 +159,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // reader hears it once and not on every key.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasError))]
+    [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial string? Error { get; private set; }
 
     public bool HasError => Error is not null;
@@ -279,8 +291,11 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
         : FindProgramError(SplitPrograms(ProgramText));
 
-    private static string? FindProgramError(List<string> programs) =>
-        programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed)
+    // A name with a comma, which an earlier version let a scene have ("a,b.exe"), shows as it was
+    // saved, but would come back as two names; as long as it is in the field, nothing is applied.
+    private string? FindProgramError(List<string> programs) =>
+        _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && ProgramText.Contains(program, StringComparison.OrdinalIgnoreCase)) is { } withComma ? UiText.Format(Strings.ProfileProgramCommaSaved, withComma)
+        : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed)
         : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed)
         : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > ProfileAutomation.MaxPrograms ? UiText.Format(Strings.ProfileProgramsTooMany, ProfileAutomation.MaxPrograms)
         : null;

@@ -762,7 +762,11 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   een lege plek tussen twee komma's en dezelfde naam nog eens (ook in andere letters of zonder
   `.exe`) tellen niet mee, en na "Toepassen" staan de namen er met `.exe` en een komma ertussen.
   Klopt er een naam niet, dan zegt de melding welke ("'game?.exe' is geen naam van een
-  programma."). Een naam met een komma erin kan dus niet. Achter elke tijd
+  programma."). Een naam met een komma erin kan dus niet: kies je zo'n .exe bij "Kies uit wat nu
+  draait" of "Bladeren…", dan blijft het veld zoals het was en zegt de melding waarom. Had een
+  scène zo'n naam al uit een eerdere versie (bijv. `a,b.exe`), dan staat hij in het veld met een
+  melding, en kan "Toepassen" pas als je die naam uit het veld haalt; tot dan blijft de scène
+  zoals hij was opgeslagen, en zet dat programma hem nog gewoon aan. Achter elke tijd
   staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv. alleen
   ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
   "In het weekend om 10:00" of "ma, wo, vr om 19:00".
