@@ -415,14 +415,6 @@ internal sealed class ProfileLibrary
         }
     }
 
-    public LightingState GetLighting(string name)
-    {
-        lock (_gate)
-        {
-            return FindLocked(name).Lighting;
-        }
-    }
-
     // What the card of the scene shows: its global lighting, or for a scene of some devices that of
     // the first of them, which may differ from the global one that the others keep.
     public DeviceLighting GetLook(string name)

@@ -130,7 +130,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Remove(EldenRing);
         var looks = _programs.FindCount;
 
-        Assert.False(HoldScene("Nacht"));
+        Assert.False(_watcher!.HoldScene(_profiles, "Nacht"));
 
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Green, ShownColor());
@@ -145,7 +145,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
 
-        Assert.True(HoldScene("Nacht"));
+        Assert.True(_watcher!.HoldScene(_profiles, "Nacht"));
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Red, ShownColor());
 
@@ -161,13 +161,13 @@ public sealed class ProgramWatcherTests : IDisposable
         StartWatcher();
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
-        Assert.False(HoldScene("Nacht"));
+        Assert.False(_watcher!.HoldScene(_profiles, "Nacht"));
         Assert.Equal(looks, _programs.FindCount);
 
         _session.Raise(SessionSwitchReason.SessionUnlock);
         StartProgram(EldenRing);
         looks = _programs.FindCount;
-        Assert.True(HoldScene("Nacht"));
+        Assert.True(_watcher!.HoldScene(_profiles, "Nacht"));
         Assert.Equal(looks, _programs.FindCount);
     }
 
@@ -184,7 +184,7 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.True(_watcher!.HoldUntilProgramsStop(held =>
         {
             given = held;
-            return new HeldLighting(_profiles.GetLighting("Race"), "Race");
+            return new HeldLighting(_profiles.Get("Race").Lighting, "Race");
         }));
 
         Assert.Equal(Orange, given?.Lighting.Global.Color);
@@ -573,7 +573,7 @@ public sealed class ProgramWatcherTests : IDisposable
         StartProgram(Valorant);
         StartProgram(Cs2);
 
-        Assert.True(HoldScene("Nacht"));
+        Assert.True(_watcher!.HoldScene(_profiles, "Nacht"));
         Assert.Equal(Red, ShownColor());
 
         StopProgram(firstStopsFirst ? Valorant : Cs2);
@@ -812,9 +812,6 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Add(program);
         _foreground.Bring(program);
     }
-
-    // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.
-    private bool HoldScene(string scene) => _watcher!.HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
 
     private RgbColor ShownColor() => _lighting.GetLighting(null).Color;
 
