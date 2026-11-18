@@ -203,20 +203,7 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         IsBusy = true;
         try
         {
-            var json = await export(engine);
-
-            // Next to it first and then moved over it, as "Instellingen bewaren…" does.
-            var tempPath = path + ".tmp";
-            try
-            {
-                await File.WriteAllBytesAsync(tempPath, json);
-                File.Move(tempPath, path, overwrite: true);
-            }
-            catch
-            {
-                DeleteQuietly(tempPath);
-                throw;
-            }
+            await UserFiles.WriteReplacingAsync(path, await export(engine));
 
             Say(UiText.Format(Strings.ShareExported, name, Path.GetFileName(path)));
         }
@@ -282,15 +269,4 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
 
     private void Say(string message) => Message?.Invoke(this, message);
 
-    private static void DeleteQuietly(string path)
-    {
-        try
-        {
-            File.Delete(path);
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            Trace.TraceWarning($"Could not delete {path}: {exception.Message}");
-        }
-    }
 }
