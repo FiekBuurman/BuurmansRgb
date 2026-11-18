@@ -538,6 +538,82 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(Green, ShownColor());
     }
 
+    // Alt+Tab from one program of a foreground scene to another of the same scene keeps the scene,
+    // without the lighting from before in between; a program of no scene then brings it back.
+    [Fact]
+    public void ForegroundSceneWithTwoPrograms_SwitchingBetweenThemKeepsIt()
+    {
+        _store.Profiles = [Profile("Gamen", Red, foregroundOnly: true, Valorant, Cs2), Profile("Nacht", Orange)];
+        StartWatcher();
+        _profiles.Load("Nacht");
+        BringToFront(Valorant);
+        Assert.Equal(Red, ShownColor());
+        var shown = new List<RgbColor>();
+        _lighting.LightingChanged += (_, _) => shown.Add(ShownColor());
+
+        BringToFront(Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+        Assert.DoesNotContain(Orange, shown);
+
+        _foreground.Bring("explorer.exe");
+        Assert.Equal(Orange, ShownColor());
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    // A time that comes while two programs of one scene run waits until both stopped, whichever
+    // stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HoldWhileTwoProgramsOfOneProfileRun_WaitsUntilBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2), Profile("Nacht", Orange)];
+        StartWatcher();
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+
+        Assert.True(HoldScene("Nacht"));
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(Orange, ShownColor());
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    // A scene of some devices with two programs: once both stopped, every device is as before,
+    // the ones of the scene and the others, whichever stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SceneOfSomeDevicesWithTwoPrograms_AllDevicesAsBeforeOnceBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"], Automation = new ProfileAutomation(Times: null, Programs: [Valorant, Cs2]) }];
+        var before = WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Orange) });
+        _profiles.Show(before, scene: null);
+        StartWatcher();
+
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+        Assert.Equal(StaticLighting(Red), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+        Assert.Equal(StaticLighting(Green), _lighting.State.Global);
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(StaticLighting(Red), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(StaticLighting(Green), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+        Assert.Equal(StaticLighting(Green), _lighting.State.Global);
+        Assert.Null(_profiles.ActiveName);
+    }
+
     // A name on two scenes goes with the first in alphabetical order, as one program does; the
     // other names of the second scene still load it.
     [Fact]
@@ -666,6 +742,9 @@ public sealed class ProgramWatcherTests : IDisposable
     private static Profile Profile(string name, RgbColor color, params string[] programs) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs) };
 
+    private static Profile Profile(string name, RgbColor color, bool foregroundOnly, params string[] programs) =>
+        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs, ForegroundOnly: foregroundOnly) };
+
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(IAwayState? away = null)
     {
@@ -725,6 +804,13 @@ public sealed class ProgramWatcherTests : IDisposable
     {
         _programs.Running.Remove(program);
         _time.Advance(Interval);
+    }
+
+    // A window of program comes to the front; a program in front runs.
+    private void BringToFront(string program)
+    {
+        _programs.Running.Add(program);
+        _foreground.Bring(program);
     }
 
     // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.
