@@ -433,7 +433,16 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task<string?> GetActiveProfileAsync(CancellationToken ct = default) => Task.FromResult(_profiles.ActiveName);
 
     public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
-        Task.FromResult(ToInfo(_profiles.GetLighting(name).Global));
+        Task.FromResult(ToInfo(_profiles.GetLook(name)));
+
+    public Task<IReadOnlyList<string>?> GetProfileDevicesAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(_profiles.GetDevices(name));
+
+    public Task SetProfileDevicesAsync(string name, IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        _profiles.SetDevices(name, deviceIds);
+        return Task.CompletedTask;
+    }
 
     public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
         Task.FromResult(_profiles.GetAutomation(name));

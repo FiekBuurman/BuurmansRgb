@@ -310,8 +310,9 @@ public partial interface IEngineApi
     // that name is replaced.
     Task SaveProfileAsync(string name, CancellationToken ct = default);
 
-    // Shows the lighting of the profile on every device; it becomes the current lighting and is
-    // saved as such.
+    // Shows the lighting of the profile on every device, or for a profile of some devices
+    // (GetProfileDevicesAsync) on those, while the others keep theirs; it becomes the current
+    // lighting and is saved as such.
     Task LoadProfileAsync(string name, CancellationToken ct = default);
 
     Task DeleteProfileAsync(string name, CancellationToken ct = default);
@@ -321,8 +322,18 @@ public partial interface IEngineApi
     Task<string?> GetActiveProfileAsync(CancellationToken ct = default);
 
     // The lighting the profile gives all devices, without the devices that differ from it, such as
-    // to show what the profile looks like.
+    // to show what the profile looks like; for a profile of some devices that of the first of them.
     Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default);
+
+    // The ids of the devices the profile is for (DeviceInfo.Id), in the order they were given; null
+    // when it is for every device, also one that comes later.
+    Task<IReadOnlyList<string>?> GetProfileDevicesAsync(string name, CancellationToken ct = default);
+
+    // Saved as SceneDevices.Normalize gives them, or null for every device; the lighting of the
+    // profile stays as it is, and a device that is not there now still counts. A list without an
+    // id throws, and so does any list for the profile "Alles uit" (WholeHouseTimes.OffScene), which
+    // switches every device off. ProfilesChanged follows.
+    Task SetProfileDevicesAsync(string name, IReadOnlyList<string>? deviceIds, CancellationToken ct = default);
 
     // When the engine loads the profile by itself; ProfileAutomation.None when it never does.
     Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default);

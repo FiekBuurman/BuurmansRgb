@@ -160,6 +160,25 @@ public sealed class EngineRpcTests : IDisposable
             _api.AutomationCalls);
     }
 
+    // Null, every device, stays null over the pipe instead of an empty list.
+    [Fact]
+    public async Task ProfileDevices_CrossThePipe()
+    {
+        var client = await ConnectAsync();
+
+        var some = await client.Api.GetProfileDevicesAsync("Nacht", Ct);
+        var every = await client.Api.GetProfileDevicesAsync("Werk", Ct);
+        await client.Api.SetProfileDevicesAsync("Nacht", ["fan"], Ct);
+        await client.Api.SetProfileDevicesAsync("Werk", null, Ct);
+
+        Assert.Equal(["openrgb-strip-1a2b", "fan"], some);
+        Assert.Null(every);
+        Assert.Equal(2, _api.DeviceCalls.Count);
+        Assert.Equal("Nacht", _api.DeviceCalls[0].Name);
+        Assert.Equal(["fan"], _api.DeviceCalls[0].DeviceIds);
+        Assert.Equal(("Werk", (IReadOnlyList<string>?)null), _api.DeviceCalls[1]);
+    }
+
     [Fact]
     public async Task WholeHouseTimes_CrossThePipe()
     {
@@ -1029,6 +1048,18 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
         {
             AutomationCalls.Add((name, automation));
+            return Task.CompletedTask;
+        }
+
+        public List<(string Name, IReadOnlyList<string>? DeviceIds)> DeviceCalls { get; } = [];
+
+        // "Nacht" is for two devices, the rest for every device.
+        public Task<IReadOnlyList<string>?> GetProfileDevicesAsync(string name, CancellationToken ct = default) =>
+            Task.FromResult<IReadOnlyList<string>?>(name == "Nacht" ? ["openrgb-strip-1a2b", "fan"] : null);
+
+        public Task SetProfileDevicesAsync(string name, IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+        {
+            DeviceCalls.Add((name, deviceIds));
             return Task.CompletedTask;
         }
 
