@@ -20,8 +20,12 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     public event EventHandler<string>? DeleteRequested;
 
-    // Raised with the selected profile when its automation is to be shown: when another profile is
-    // selected. Not for the same profile again, so what the user typed there stays.
+    // "Bijwerken met wat nu brandt" of the chosen scene, once the user said yes.
+    public event EventHandler<string>? UpdateRequested;
+
+    // Raised with the selected profile when its automation and devices are to be shown: when
+    // another profile is selected. Not for the same profile again, so what the user typed there
+    // stays.
     public event EventHandler<string>? AutomationNeeded;
 
     // findPrograms lists the programs to pick from for Automation (WindowedPrograms.Find).
@@ -29,6 +33,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     // When the selected profile loads by itself.
     public ProfileAutomationViewModel Automation { get; }
+
+    // The devices the selected profile is for.
+    public SceneDevicesViewModel SceneDevices { get; } = new();
 
     // In the order of the engine, which is alphabetical.
     public ObservableCollection<string> Names { get; } = [];
@@ -53,7 +60,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection), nameof(EditTitle))]
-    [NotifyCanExecuteChangedFor(nameof(LoadCommand), nameof(DeleteCommand), nameof(OverwriteCommand))]
+    [NotifyCanExecuteChangedFor(nameof(LoadCommand), nameof(DeleteCommand), nameof(UpdateCommand))]
     public partial string? SelectedName { get; set; }
 
     public bool HasSelection => SelectedName is not null;
@@ -76,6 +83,10 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // Asked before a profile is deleted, with its name; the view shows the question. Without it,
     // a profile is deleted without asking.
     public Func<string, bool>? ConfirmDelete { get; set; }
+
+    // Asked before "Bijwerken met wat nu brandt" replaces the lighting of a scene, with its name, as
+    // ConfirmDelete; without it, the scene is updated without asking.
+    public Func<string, bool>? ConfirmUpdate { get; set; }
 
     // Shows the names of the engine and selects select, or else the profile that was selected,
     // when it is still there.
@@ -148,6 +159,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
         }
 
         Automation.Clear();
+        SceneDevices.Clear();
         if (SelectedName is { } selected)
         {
             AutomationNeeded?.Invoke(this, selected);
@@ -170,13 +182,21 @@ public sealed partial class ProfilesViewModel : ObservableObject
     [RelayCommand]
     private void LoadScene(SceneCard card) => LoadRequested?.Invoke(this, card.Name);
 
-    // Chooses the scene to overwrite, delete or load by itself.
+    // Chooses the scene to update, delete, choose the devices of or load by itself.
     [RelayCommand]
     private void Edit(SceneCard card) => SelectedName = card.Name;
 
-    // Saves the lighting as it is now under the chosen scene.
+    // "Bijwerken met wat nu brandt": saves the lighting as it is now under the chosen scene, once
+    // the user said yes, as the lighting it had does not come back. The scene keeps its devices.
     [RelayCommand(CanExecute = nameof(HasSelection))]
-    private void Overwrite() => SaveRequested?.Invoke(this, SelectedName!);
+    private void Update()
+    {
+        var name = SelectedName!;
+        if (ConfirmUpdate?.Invoke(name) ?? true)
+        {
+            UpdateRequested?.Invoke(this, name);
+        }
+    }
 
     // An empty name, so saving makes a new scene instead of overwriting the chosen one.
     [RelayCommand]

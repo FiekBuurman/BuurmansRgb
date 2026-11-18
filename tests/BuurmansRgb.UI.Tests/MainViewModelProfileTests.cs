@@ -191,6 +191,115 @@ public sealed class MainViewModelProfileTests
         Assert.Equal("", viewModel.Profiles.Automation.Times[0].Text);
     }
 
+    // "Bijwerken met wat nu brandt" saves the lighting as it is now under the scene, once the user
+    // said yes, and says so in its own words.
+    [Fact]
+    public async Task Update_SavesUnderTheSceneAfterTheQuestion()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
+        viewModel.Profiles.ConfirmUpdate = _ => true;
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        viewModel.Profiles.UpdateCommand.Execute(null);
+
+        Assert.Equal(["profile save Nacht"], Api.Calls);
+        Assert.Equal("Nacht", viewModel.Profiles.SelectedName);
+        Assert.Equal("Scène 'Nacht' bijgewerkt.", viewModel.StatusMessage);
+    }
+
+    // The boxes have the names of the devices, checked for those of the scene; a device of the scene
+    // that is not there now is named by how many there are, and stays in the scene.
+    [Fact]
+    public async Task SelectProfile_ShowsItsDevices()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Gamen", "Lezen"]);
+            api.ProfileDevices["Lezen"] = ["fan", "headset"];
+        });
+
+        viewModel.Profiles.SelectedName = "Gamen";
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.AllDevices);
+        Assert.False(devices.CanPick);
+        Assert.Equal([("LED strip", true), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+
+        viewModel.Profiles.SelectedName = "Lezen";
+        Assert.False(devices.AllDevices);
+        Assert.True(devices.CanPick);
+        Assert.Equal([("LED strip", false), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+        Assert.Equal("Doet ook mee: 1 apparaat dat er nu niet is.", devices.AwayNote);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task CheckDevices_SendsThemAtOnceAndKeepsTheOnesThatAreAway()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan", "headset"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        devices.Options[0].IsChecked = true;
+        devices.Options[1].IsChecked = false;
+        devices.AllDevices = true;
+
+        Assert.Equal(["profile devices Lezen strip,fan,headset", "profile devices Lezen strip,headset", "profile devices Lezen all"], Api.Calls);
+        Assert.Equal("Apparaten van 'Lezen' opgeslagen.", viewModel.StatusMessage);
+        Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
+    }
+
+    // "Alle apparaten" off starts with every device there is now checked; then a scene of no device
+    // is not saved, as it would do nothing, and the message says why until a box is on again.
+    [Fact]
+    public async Task UncheckEveryDevice_SaysSoAndSendsNothing()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.Add("Lezen"));
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        devices.AllDevices = false;
+        Assert.All(devices.Options, option => Assert.True(option.IsChecked));
+        devices.Options[0].IsChecked = false;
+        devices.Options[1].IsChecked = false;
+
+        Assert.Equal(["profile devices Lezen strip,fan", "profile devices Lezen fan"], Api.Calls);
+        Assert.Equal("Kies minstens één apparaat; een scène zonder apparaten doet niets.", devices.Error);
+        Assert.Equal(["fan"], Api.ProfileDevices["Lezen"]);
+
+        devices.Options[0].IsChecked = true;
+        Assert.Null(devices.Error);
+        Assert.Equal("profile devices Lezen strip", Api.Calls[^1]);
+    }
+
+    // "Alles uit" switches every device off for "Uit om", so it has no choice, and says why.
+    [Fact]
+    public async Task SelectAllOff_HasNoChoiceOfDevices()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Alles uit", "Lezen"]);
+            api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        });
+
+        viewModel.Profiles.SelectedName = "Alles uit";
+
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.IsAllOff);
+        Assert.False(devices.CanChoose);
+        Assert.Contains("'Alles uit'", devices.AllOffNote, StringComparison.Ordinal);
+        devices.AllDevices = false;
+        Assert.Empty(Api.Calls);
+
+        viewModel.Profiles.SelectedName = "Lezen";
+        Assert.False(devices.IsAllOff);
+        Assert.True(devices.CanChoose);
+        Assert.Null(devices.AllOffNote);
+    }
+
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>

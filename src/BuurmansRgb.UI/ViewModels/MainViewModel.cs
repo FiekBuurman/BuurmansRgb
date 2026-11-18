@@ -182,6 +182,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = ShowSelectionAsync();
         });
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        Profiles.UpdateRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.SceneUpdated);
+        // The boxes show the change already (SceneDevicesViewModel takes it as saved).
+        Profiles.SceneDevices.ApplyRequested += (_, change) =>
+            SendProfileCall(change.Name, api => api.SetProfileDevicesAsync(change.Name, change.DeviceIds), Strings.SceneDevicesSaved);
         // The engine saves the automation as Normalize gives it, which the change already is.
         Profiles.Automation.ApplyRequested += (_, change) =>
             SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
@@ -1127,6 +1131,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
         Lamps.ShowDevices(Devices);
+        Profiles.SceneDevices.ShowDevices(Devices);
         OnPropertyChanged(nameof(SelectedLamp));
         _ = _lampSync.RefreshAsync();
 
@@ -1697,6 +1702,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
         {
             Profiles.Automation.Show(name, automation);
+        }
+
+        var (devicesOk, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
+        if (devicesOk && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        {
+            Profiles.SceneDevices.Show(name, deviceIds, WholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
         }
     }
 

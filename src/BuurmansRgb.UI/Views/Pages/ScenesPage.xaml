@@ -1,5 +1,5 @@
 <!-- Scènes (§ 5.3 and § 6): the saved profiles as cards in three or four columns. A click on a card puts
-     the scene on; its wrench chooses it to overwrite, delete or put on by itself, below the cards.
+     the scene on; its wrench chooses it to update, delete, choose its devices or put on by itself, below the cards.
      "+ Nieuwe scène" saves the lighting as it is now under a new name. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ScenesPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -97,18 +97,56 @@
             <!-- The name of the new scene, the same card as after "Bewaar als scène" on Kleur. -->
             <views:SceneNameCard x:Name="SceneName" Margin="0,16,0,0" ReturnFocusTo="{Binding ElementName=NewScene}" />
 
-            <!-- The chosen scene: put it on, overwrite it, delete it, or let it go on by itself. -->
+            <!-- The chosen scene: put it on, update it, delete it, choose its devices, or let it go on by itself. -->
             <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
                     <TextBlock Style="{StaticResource SectionHeader}" Text="{Binding Profiles.EditTitle}" AutomationProperties.HeadingLevel="Level2" />
                     <WrapPanel Margin="0,12,0,0">
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileLoad}"
                                 ToolTip="{x:Static res:Strings.ProfileLoadToolTip}" Command="{Binding Profiles.LoadCommand}" />
-                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneOverwrite}"
-                                ToolTip="{x:Static res:Strings.SceneOverwriteToolTip}" Command="{Binding Profiles.OverwriteCommand}" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SceneUpdate}"
+                                ToolTip="{x:Static res:Strings.SceneUpdateToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.SceneUpdateToolTip}"
+                                Command="{Binding Profiles.UpdateCommand}" />
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileDelete}"
                                 Command="{Binding Profiles.DeleteCommand}" />
                     </WrapPanel>
+
+                    <!-- The devices the scene is for: "Alle apparaten", also one that comes later, or a box per device,
+                         grey while "Alle apparaten" is on. "Alles uit" is always for every device, for "Uit om" and "Aan om". -->
+                    <TextBlock x:Name="DevicesHeader" Margin="0,14,0,4" Style="{StaticResource Body}" Text="{x:Static res:Strings.SceneDevicesHeader}" AutomationProperties.HeadingLevel="Level3" />
+                    <TextBlock Style="{StaticResource SubText}" Text="{Binding Profiles.SceneDevices.AllOffNote}"
+                               Visibility="{Binding Profiles.SceneDevices.IsAllOff, Converter={StaticResource BoolToVisibility}}" />
+                    <StackPanel IsEnabled="{Binding Profiles.SceneDevices.CanChoose}"
+                                Visibility="{Binding Profiles.SceneDevices.IsAllOff, Converter={StaticResource InverseBoolToVisibility}}">
+                        <CheckBox x:Name="AllDevices" HorizontalAlignment="Left" IsChecked="{Binding Profiles.SceneDevices.AllDevices}"
+                                  Content="{x:Static res:Strings.SceneDevicesAll}" ToolTip="{x:Static res:Strings.SceneDevicesAllHint}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.SceneDevicesAllHint}" />
+                        <ItemsControl x:Name="DeviceOptions" Margin="32,0,0,0" ItemsSource="{Binding Profiles.SceneDevices.Options}" Focusable="False" IsTabStop="False"
+                                      IsEnabled="{Binding Profiles.SceneDevices.CanPick}" AutomationProperties.Name="{x:Static res:Strings.SceneDevicesListName}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:SceneDeviceOption}">
+                                    <!-- A TextBlock, so an underscore in the name of a device is no access key. -->
+                                    <CheckBox Margin="0,0,20,0" IsChecked="{Binding IsChecked}" AutomationProperties.Name="{Binding Name}">
+                                        <TextBlock Text="{Binding Name}" />
+                                    </CheckBox>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Margin="32,4,0,0" Style="{StaticResource SubText}" Text="{Binding Profiles.SceneDevices.AwayNote}"
+                                   Visibility="{Binding Profiles.SceneDevices.AwayNote, Converter={StaticResource NullToCollapsed}}" />
+                        <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" Text="{x:Static res:Strings.SceneDevicesAllHint}" />
+                    </StackPanel>
+                    <DockPanel Margin="0,8,0,0" Visibility="{Binding Profiles.SceneDevices.HasError, Converter={StaticResource BoolToVisibility}}">
+                        <TextBlock DockPanel.Dock="Left" Style="{StaticResource WarningMark}" AutomationProperties.Name="{x:Static res:Strings.Warning}" />
+                        <TextBlock TextWrapping="Wrap" Text="{Binding Profiles.SceneDevices.Error, NotifyOnTargetUpdated=True}"
+                                   AutomationProperties.AutomationId="SceneDevicesError" AutomationProperties.LiveSetting="Polite"
+                                   views:LiveRegion.AnnouncesUpdates="True" />
+                    </DockPanel>
 
                     <TextBlock Margin="0,14,0,8" Style="{StaticResource Body}" Text="{Binding Profiles.Automation.Header}" AutomationProperties.HeadingLevel="Level3" />
                     <StackPanel IsEnabled="{Binding Profiles.Automation.HasProfile}">

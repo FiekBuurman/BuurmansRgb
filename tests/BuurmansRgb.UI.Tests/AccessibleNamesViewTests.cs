@@ -204,6 +204,12 @@ public sealed class AccessibleNamesViewTests
             var dots = Assert.Single(tree, peer => peer.GetClassName() == nameof(DecorativeItemsControl) && peer.IsControlElement());
             Assert.Equal(("Aan: oranje", AutomationControlType.Image), (dots.GetName(), dots.GetAutomationControlType()));
             Assert.Equal(["Tijd 1", "Tijd 2"], ItemNames<LoadTimeRow>(tree));
+            Assert.Equal(["LED strip", "Fan"], ItemNames<SceneDeviceOption>(tree));
+            var boxes = tree.Where(peer => peer.GetAutomationControlType() == AutomationControlType.CheckBox).Select(peer => peer.GetName()).ToList();
+            Assert.Contains("Alle apparaten", boxes);
+            Assert.Contains("LED strip", boxes);
+            Assert.Contains("Fan", boxes);
+            Assert.Contains(tree, peer => peer.GetAutomationControlType() == AutomationControlType.List && peer.GetName() == "Apparaten van de scène");
         });
     }
 

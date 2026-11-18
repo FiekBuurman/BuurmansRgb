@@ -135,6 +135,7 @@ public sealed class HeadingStructureViewTests
                     "1 Scènes",
                     "2 Avond",
                     $"2 {viewModel.Profiles.EditTitle}",
+                    "3 Apparaten die meedoen",
                     $"3 {viewModel.Profiles.Automation.Header}",
                 ],
                 Headings(page));

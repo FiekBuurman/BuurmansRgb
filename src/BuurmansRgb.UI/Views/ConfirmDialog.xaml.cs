@@ -39,6 +39,11 @@ public partial class ConfirmDialog : Window
     internal static ConfirmDialog ForScene(Window owner, string name) =>
         For(owner, UiText.Format(Strings.ProfileDeleteConfirm, name));
 
+    // The question before "Bijwerken met wat nu brandt" replaces the lighting of a scene, with its
+    // name, what then goes, and "Bijwerken" as the answer.
+    internal static ConfirmDialog ForSceneUpdate(Window owner, string name) =>
+        For(owner, UiText.Format(Strings.SceneUpdateConfirm, name), Strings.SceneUpdateConfirmDetail, Strings.SceneUpdateConfirmButton);
+
     // The question before an own effect is deleted, with its name, and what then happens to the
     // devices and scenes that have it.
     internal static ConfirmDialog ForCustomEffect(Window owner, string name) =>

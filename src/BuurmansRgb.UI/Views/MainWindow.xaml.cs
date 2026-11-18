@@ -15,6 +15,7 @@ public partial class MainWindow : Window
             if (DataContext is MainViewModel viewModel)
             {
                 viewModel.Profiles.ConfirmDelete = ConfirmDeleteProfile;
+                viewModel.Profiles.ConfirmUpdate = name => ConfirmDialog.ForSceneUpdate(this, name).Ask();
                 viewModel.CustomEffectEditor.ConfirmDelete = ConfirmDeleteCustomEffect;
                 viewModel.Backup.ChooseSaveFile = ChooseBackupToSave;
                 viewModel.Backup.ChooseRestoreFile = ChooseBackupToRestore;
