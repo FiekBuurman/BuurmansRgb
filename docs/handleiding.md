@@ -55,6 +55,16 @@ Op **Scènes** staan al vijf scènes klaar: **Alles uit**, **Rustig wit**, **Reg
 **Pastel** en **Gamen**. Klik op een kaart en al je apparaten doen mee. Heb je liever je eigen
 scènes, verwijder ze dan gerust: ze komen niet terug.
 
+### Een kleur bewaren als scène
+
+1. Zet op **Kleur** de kleur, helderheid en het effect zoals je ze mooi vindt.
+2. Kies rechts, onder je eigen kleuren, **Bewaar als scène**.
+3. Typ een naam, bijvoorbeeld **Avond**, en druk op Enter (of kies **Opslaan**).
+
+De scène bewaart hoe al je apparaten nu staan, niet alleen het apparaat dat je rechtsboven
+koos. Op **Scènes** staat hij daarna als kaart, met de witte rand van de scène die aan staat.
+Klik later op die kaart en alles staat weer zo.
+
 ### Opslaan hoeft niet
 
 Alles wordt vanzelf bewaard. Rechtsonder in de app staat daarna **Opgeslagen ✓** met de tijd.
@@ -329,6 +339,16 @@ schakelaar ernaast.
   als je de app sluit: de engine bewaart ze als `customColors` in `settings.json`. Een andere
   instellingen-app die tegelijk open is, ziet ze meteen. Ze zijn iets anders dan de kleuren van
   een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
+- **Bewaar als scène:** de knop rechts onder je eigen kleuren bewaart de verlichting van alle
+  apparaten zoals die nu is als scène, zonder dat je naar Scènes hoeft. Hij opent dezelfde kaart
+  als "+ Nieuwe scène" op Scènes: typ een naam en kies **Opslaan** of druk op Enter; **Annuleren**
+  of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven** en
+  vervangt hij die scène (zijn tijden en programma blijven). Daarna staat de scène aan: op Scènes
+  heeft zijn kaart de witte rand, rechtsonder staat "Scène '…' opgeslagen." en de focus gaat
+  terug naar de knop. Een kleur die je verder verandert, zet de scène weer uit, zoals elke
+  wijziging met de hand; de scène zelf blijft zoals je hem bewaarde. Het is één kaart: ga je
+  halverwege een naam naar Scènes, dan staat hij daar nog open met je naam. Zonder verbinding met
+  de engine is de hele pagina grijs, met de reden erover, en dus ook deze knop.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven, het effect, de
   snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de nieuwe verlichting.
@@ -682,13 +702,16 @@ startscène komt niet terug, ook niet als je ze allemaal verwijdert of `profiles
 Alleen een pc zonder `profiles.json` krijgt ze, bij de eerste start van de engine; wie al
 scènes had (of ze allemaal verwijderde) vóór er startscènes waren, krijgt ze niet ongevraagd. De
 namen zijn Nederlands, zoals de rest van de app. Zijn er geen scènes, dan zegt de pagina wat een
-scène is en dat je er een maakt met "Nieuwe scène" eronder.
+scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als scène" op Kleur.
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
   richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
   van de scène, en ook de opgeslagen verlichting.
-- **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu
-  is.
+- **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu is; de focus staat
+  meteen in het naamveld. Enter of **Opslaan** bewaart, Escape of **Annuleren** niet, en daarna
+  gaat de focus terug naar "+ Nieuwe scène". Heeft een scène die naam al, dan heet de knop
+  **Overschrijven**. De nieuwe scène staat meteen aan (witte rand) en is gekozen, met zijn
+  instellingen eronder. "Bewaar als scène" op Kleur doet hetzelfde met dezelfde kaart.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
 - **Verwijderen** vraagt eerst "Scène '…' verwijderen?" in een klein venster boven de app, met
@@ -1102,7 +1125,7 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
-  De lege staat van Scènes zegt wat een scène is en noemt "Nieuwe scène".
+  De lege staat van Scènes zegt wat een scène is en noemt "Nieuwe scène" en "Bewaar als scène".
 - **Uit en aan op tijd:** de kaart Hele huis heeft in het ontwerp alleen de telling, de grote
   schakelaar en de strip. Onderaan staat nu ook "Uit om" en "Aan om" (testpanel, Truus en Henk:
   "elke avond om … uit" zonder eerst een scène te bouwen), in de stijl van de rest: een
@@ -1119,6 +1142,11 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Bij
   Regenboog, dat geen kleur van het apparaat gebruikt, zegt een regel onder de hex-code dat de
   kleur die je mengt nergens heen gaat.
+  Op de plek van "Op de strip zetten", onder de kleuren rechts, staat nu "Bewaar als scène"
+  (testpanel 1-11-2026, Lotte en Noor): een gewone knop, geen primaire, want de kleur staat al op
+  het apparaat en bewaren als scène is een extra stap. Hij opent dezelfde naamkaart als "+ Nieuwe
+  scène"; in die kaart staan "Opslaan" en "Annuleren" onder het naamveld in plaats van ernaast,
+  zodat het veld ook in de smalle kolom van Kleur breed genoeg blijft.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
   van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
   eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de

@@ -578,7 +578,15 @@ uitbreidingen in `docs/bouwplan.md`.
 - Ook inhalen als de klok van Windows over een tijd heen springt (nu alleen na het ontwaken en
   bij het starten; `IClockEvents` zegt niet of de klok verzet werd of de pc ontwaakte)
 - "Overschrijven met wat nu brandt" ook eerst laten vragen, met dezelfde vraag als Verwijderen;
-  nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug
+  nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug. Hetzelfde voor
+  "Overschrijven" in de naamkaart van "+ Nieuwe scène" en "Bewaar als scène" op Kleur, als je een
+  naam typt die al bestaat (`bewaar-als-scene`)
+- "Bewaar als scène" op Kleur met een keuze "alleen dit apparaat" als je rechtsboven één
+  apparaat koos; nu bewaart een scène altijd alle apparaten, zoals "+ Nieuwe scène"
+  (`bewaar-als-scene`)
+- Na "Bewaar als scène" een link "Naar Scènes" in de melding, om meteen een tijd of programma
+  bij de nieuwe scène te zetten; nu staat de scène gekozen klaar als je zelf naar Scènes gaat
+  (`bewaar-als-scene`)
 - Een tijd of programma bij "Vanzelf aanzetten" dat je wel typte maar niet toepaste, zichtbaar
   maken (bijv. "Nog niet toegepast") of vanzelf
   opslaan, zoals de rest van de app; nu staat 22:00 na het wisselen van pagina nog in het veld,
