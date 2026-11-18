@@ -6,8 +6,9 @@ using BuurmansRgb.Engine.Profiles;
 
 namespace BuurmansRgb.Engine.Sharing;
 
-// Makes the JSON of a shared scene or own effect (SharedFile), as SharedFileReader reads it. What
-// belongs to this pc stays out: the times, programs and role of a scene, and whether it is on.
+// Makes the JSON of a shared scene or own effect (SharedFile), as SharedFileReader reads it; the
+// rules they share are in SharedFormat. What belongs to this pc stays out: the times, programs
+// and role of a scene, and whether it is on.
 internal static class SharedFileWriter
 {
     // The scene with each device it names (its devices, and those with lighting or colors per LED
@@ -29,8 +30,8 @@ internal static class SharedFileWriter
 
         var file = new SharedFile
         {
-            Version = SharedFileReader.Version,
-            Kind = SharedFileReader.SceneKind,
+            Version = SharedFormat.Version,
+            Kind = SharedFormat.SceneKind,
             Name = SharedFiles.ForSharing(scene.Name),
             Lighting = Write(lighting.Global, effects, shown),
             Devices = ids.Count > 0 ? [.. ids.Select(id => WriteDevice(id, lighting, devices, effects, shown))] : null,
@@ -42,18 +43,18 @@ internal static class SharedFileWriter
     public static byte[] WriteEffect(CustomEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
-        return Serialize(new SharedFile { Version = SharedFileReader.Version, Kind = SharedFileReader.EffectKind, Effects = [ToShared(effect)] });
+        return Serialize(new SharedFile { Version = SharedFormat.Version, Kind = SharedFormat.EffectKind, Effects = [ToShared(effect)] });
     }
 
     private static SharedDevice WriteDevice(string id, LightingState lighting, IReadOnlyList<RgbDevice> devices, IReadOnlyList<CustomEffect> effects, List<CustomEffect> shown)
     {
         var device = devices.FirstOrDefault(known => known.Id == id);
-        var name = device?.Name is { Length: > 0 and <= SharedFiles.MaxDeviceNameLength } known && !SharedFileReader.HasHiddenCharacter(known) ? known : null;
+        var name = device?.Name is { } known && SharedFormat.IsValidDeviceName(known) ? known : null;
         var colors = lighting.LedColors.GetValueOrDefault(id);
         return new SharedDevice
         {
             Id = id,
-            Type = device is null ? null : SharedFileReader.WriteType(device.Type),
+            Type = device is null ? null : SharedFormat.WriteType(device.Type),
             Name = name,
             Lighting = lighting.Devices.TryGetValue(id, out var own) ? Write(own, effects, shown) : null,
             LedColors = colors is null ? null : [.. colors.Colors],

@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Text.Json;
+using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Sharing;
@@ -95,4 +98,29 @@ internal sealed record SharedStep
     public required double Hold { get; init; }
 
     public required double Fade { get; init; }
+}
+
+// The rules of the format that SharedFileWriter and SharedFileReader share, so the writer only
+// makes what the reader takes.
+internal static class SharedFormat
+{
+    public const int Version = 1;
+
+    public const string SceneKind = "scene";
+
+    public const string EffectKind = "effect";
+
+    // The type of a device as the file has it, such as "ledStrip"; the name in camelCase of DeviceType.
+    public static string WriteType(DeviceType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
+
+    // A control character such as a line break, or one of format that does not show, such as
+    // U+200B (zero width space) or U+202E (right-to-left override), which makes a device look like
+    // another in the result.
+    public static bool HasHiddenCharacter(string value) =>
+        value.Any(character => char.IsControl(character) || char.GetUnicodeCategory(character) == UnicodeCategory.Format);
+
+    // A device name as the file may have it: not empty, at most SharedFiles.MaxDeviceNameLength
+    // characters and without a hidden character.
+    public static bool IsValidDeviceName(string name) =>
+        name.Length is > 0 and <= SharedFiles.MaxDeviceNameLength && !HasHiddenCharacter(name);
 }

@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using System.Text.Json;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
@@ -17,12 +16,6 @@ namespace BuurmansRgb.Engine.Sharing;
 // file; the trace says what, for whoever made it.
 internal static class SharedFileReader
 {
-    public const int Version = 1;
-
-    public const string SceneKind = "scene";
-
-    public const string EffectKind = "effect";
-
     public static SharedContent Read(byte[] json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -42,7 +35,7 @@ internal static class SharedFileReader
         {
             var file = JsonSerializer.Deserialize(text.Span, SharingJsonContext.Default.SharedFile)
                 ?? throw new InvalidShareException("the file is null");
-            return file.Kind == SceneKind
+            return file.Kind == SharedFormat.SceneKind
                 ? new SharedContent(ShareImportOutcome.Imported, SharedKind.Scene, Scene: ReadScene(file))
                 : new SharedContent(ShareImportOutcome.Imported, SharedKind.Effect, Effect: ReadEffectFile(file));
         }
@@ -57,15 +50,6 @@ internal static class SharedFileReader
             return SharedContent.Refused(ShareImportOutcome.Invalid);
         }
     }
-
-    // The type of a device as the file has it, such as "ledStrip"; the name in camelCase of DeviceType.
-    public static string WriteType(DeviceType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
-
-    // A control character such as a line break, or one of format that does not show, such as
-    // U+200B (zero width space) or U+202E (right-to-left override), which makes a device look like
-    // another in the result.
-    public static bool HasHiddenCharacter(string value) =>
-        value.Any(character => char.IsControl(character) || char.GetUnicodeCategory(character) == UnicodeCategory.Format);
 
     // First only "version" and "kind", so a file of a newer version, which may have fields this
     // engine does not know, says so instead of that it is wrong. Null when they are right.
@@ -83,21 +67,21 @@ internal static class SharedFileReader
                 return SharedContent.Refused(ShareImportOutcome.NotShared);
             }
 
-            if (!version.TryGetInt32(out var number) || number < Version)
+            if (!version.TryGetInt32(out var number) || number < SharedFormat.Version)
             {
                 Trace.TraceWarning($"Import: version {version.GetRawText()} is not one the app makes.");
                 return SharedContent.Refused(ShareImportOutcome.Invalid);
             }
 
-            if (number > Version)
+            if (number > SharedFormat.Version)
             {
-                Trace.TraceWarning($"Import: version {number} is newer than {Version}.");
+                Trace.TraceWarning($"Import: version {number} is newer than {SharedFormat.Version}.");
                 return SharedContent.Refused(ShareImportOutcome.NewerVersion);
             }
 
-            if (kind.GetString() is not (SceneKind or EffectKind))
+            if (kind.GetString() is not (SharedFormat.SceneKind or SharedFormat.EffectKind))
             {
-                Trace.TraceWarning($"Import: kind {kind.GetRawText()} is not \"{SceneKind}\" or \"{EffectKind}\".");
+                Trace.TraceWarning($"Import: kind {kind.GetRawText()} is not \"{SharedFormat.SceneKind}\" or \"{SharedFormat.EffectKind}\".");
                 return SharedContent.Refused(ShareImportOutcome.Invalid);
             }
 
@@ -184,15 +168,15 @@ internal static class SharedFileReader
     private static SharedDeviceRef ReadDevice(SharedDevice device)
     {
         var id = device.Id;
-        Check(id.Length is > 0 and <= SharedFiles.MaxDeviceIdLength && !HasHiddenCharacter(id) && id.Trim().Length == id.Length, $"a device id of {id.Length} characters is empty, too long or has a hidden character");
+        Check(id.Length is > 0 and <= SharedFiles.MaxDeviceIdLength && !SharedFormat.HasHiddenCharacter(id) && id.Trim().Length == id.Length, $"a device id of {id.Length} characters is empty, too long or has a hidden character");
         DeviceType? type = null;
         if (device.Type is { } typeName)
         {
-            type = Enum.GetValues<DeviceType>().Cast<DeviceType?>().FirstOrDefault(known => WriteType(known!.Value) == typeName)
+            type = Enum.GetValues<DeviceType>().Cast<DeviceType?>().FirstOrDefault(known => SharedFormat.WriteType(known!.Value) == typeName)
                 ?? throw new InvalidShareException($"a device type of {typeName.Length} characters is not known");
         }
 
-        Check(device.Name is null || (device.Name.Length is > 0 and <= SharedFiles.MaxDeviceNameLength && !HasHiddenCharacter(device.Name)), $"a device name of {device.Name?.Length} characters is empty, too long or has a hidden character");
+        Check(device.Name is null || SharedFormat.IsValidDeviceName(device.Name), $"a device name of {device.Name?.Length} characters is empty, too long or has a hidden character");
         return new SharedDeviceRef(id, type, device.Name);
     }
 
