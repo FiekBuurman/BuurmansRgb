@@ -14,8 +14,7 @@ public partial class ScenesPage : UserControl
     private ProfileAutomationViewModel? Automation => (DataContext as MainViewModel)?.Profiles.Automation;
 
     // The name field shows instead of the button; the focus goes with it, so typing can start at once.
-    private void OnNewSceneClick(object sender, RoutedEventArgs e) =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () => NewSceneName.Focus());
+    private void OnNewSceneClick(object sender, RoutedEventArgs e) => SceneName.FocusName();
 
     // The new time is the last row; the focus goes to its field, so typing can start at once.
     private void OnAddTimeClick(object sender, RoutedEventArgs e) =>
