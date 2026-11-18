@@ -1734,9 +1734,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var (ok, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
         if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
         {
-            Profiles.SceneDevices.Show(name, deviceIds, WholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
+            ShowSceneDevices(name, deviceIds);
         }
     }
+
+    private void ShowSceneDevices(string name, IReadOnlyList<string>? deviceIds) =>
+        Profiles.SceneDevices.Show(name, deviceIds, WholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
 
     private void ClearLedSelection()
     {
@@ -1761,8 +1764,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Another settings app saved or deleted a scene, or this one did: the list and the cards
-    // follow, the selection stays, and so do fields being typed in for the same scene. In the
-    // queue, so it reads the engine after the calls of this app that wait.
+    // follow, the selection stays, and so do fields being typed in for the same scene. The boxes
+    // of the devices of the open scene follow too, so the next click does not undo a change made
+    // elsewhere. In the queue, so it reads the engine after the calls of this app that wait.
     private void OnProfilesChanged(object? sender, EventArgs e) => RunOnUi(() =>
     {
         if (_connection is not { } connection)
@@ -1770,10 +1774,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var open = Profiles.SelectedName;
         _calls.Post(ProfilesReloadCall, async () =>
         {
             var names = await connection.Api.GetProfilesAsync();
             var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
+            var (devicesRead, deviceIds) = open is not null && names.Contains(open, ProfileNames.Comparer)
+                ? await TryCallAsync(connection, api => api.GetProfileDevicesAsync(open))
+                : (false, null);
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
@@ -1782,6 +1790,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     _ = _sceneCards.ShowAsync();
                     _ = _sceneCards.ShowActiveAsync();
                     ShowWholeHouseTimes(wholeHouse);
+                    if (devicesRead && Profiles.SelectedName == open)
+                    {
+                        ShowSceneDevices(open!, deviceIds);
+                    }
                 }
             });
         });

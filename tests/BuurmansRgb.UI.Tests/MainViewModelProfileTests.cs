@@ -279,6 +279,32 @@ public sealed class MainViewModelProfileTests
         Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
     }
 
+    // Another settings app, or restoring the settings, changed the devices of the open scene: the
+    // boxes follow, so the next click sends the change on top of it and does not undo it.
+    [Fact]
+    public async Task DevicesChangedElsewhere_TheOpenSceneFollows()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        Api.ProfileDevices.Remove("Lezen");
+        Api.RaiseProfilesChanged();
+        Assert.True(devices.AllDevices);
+        Assert.All(devices.Options, option => Assert.True(option.IsChecked));
+
+        Api.ProfileDevices["Lezen"] = ["strip", "fan"];
+        Api.RaiseProfilesChanged();
+        devices.Options[0].IsChecked = false;
+
+        Assert.Equal(["profile devices Lezen fan"], Api.Calls);
+        Assert.Equal("Lezen", viewModel.Profiles.SelectedName);
+    }
+
     // "Alle apparaten" off starts with every device there is now checked; then a scene of no device
     // is not saved, as it would do nothing, and the message says why until a box is on again.
     [Fact]
