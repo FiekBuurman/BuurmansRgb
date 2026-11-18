@@ -99,14 +99,16 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
 
     // A file goes out only when another pc would take it: one beyond the limits of SharedFileReader,
     // such as a scene that still has the lighting of more than SharedFiles.MaxDevices devices, some
-    // long gone, or larger than SharedFiles.MaxJsonBytes, throws instead. The reader traced why.
+    // long gone, or larger than SharedFiles.MaxJsonBytes, throws instead. The reader traced why, as
+    // an "Import:" warning, though it is the check of the export.
     private static byte[] Importable(byte[] json)
     {
         var outcome = SharedFileReader.Read(json).Outcome;
         return outcome == ShareImportOutcome.Imported
             ? json
-            : throw new InvalidOperationException($"The file would not import on another pc ({outcome}); see the warning before this.");
+            : throw new InvalidOperationException($"Export: checking the file as another pc would import it failed ({outcome}); the \"Import:\" warning before this says why.");
     }
+
     // The scene with the devices and own effects of this pc.
     private string AddScene(SharedScene scene, IReadOnlyDictionary<string, string> map, Dictionary<string, string> effectIds, List<string>? onlyDevices)
     {
