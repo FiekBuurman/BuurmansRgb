@@ -345,14 +345,16 @@ public sealed class JsonProfileStoreTests : IDisposable
     }
 
     // "program" first, then "programs"; a name there twice (in any case, with or without ".exe")
-    // counts once, and one that does not read is left out with a trace.
+    // counts once, and one that does not read is left out with a trace, as is "programs" that is
+    // not a list.
     [Fact]
     public void Load_ProgramAndPrograms_CountsAllOfThemOnce()
     {
         File.WriteAllText(_directory.File("profiles.json"), """
             { "profiles": [
                 { "name": "Gamen", "program": "valorant.exe", "programs": [ "cs2", "VALORANT.exe", "", 42, "game?.exe", "r5apex.exe", "cs2.exe" ] },
-                { "name": "Lijst", "programs": [ "cs2.exe" ], "foregroundOnly": true }
+                { "name": "Lijst", "programs": [ "cs2.exe" ], "foregroundOnly": true },
+                { "name": "Tekst", "program": "valorant.exe", "programs": "cs2.exe" }
             ] }
             """);
         using var trace = new TraceCapture();
@@ -361,6 +363,7 @@ public sealed class JsonProfileStoreTests : IDisposable
 
         Assert.Equal(["valorant.exe", "cs2.exe", "r5apex.exe"], profiles[0].Automation.Programs);
         Assert.Equal(new ProfileAutomation(Program: "cs2.exe", ForegroundOnly: true), profiles[1].Automation);
+        Assert.Equal(new ProfileAutomation(Program: "valorant.exe"), profiles[2].Automation);
         var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
         Assert.Contains(messages, message => message.Contains("'Gamen' has programs[3] 42", StringComparison.Ordinal));
         Assert.Contains(messages, message => message.Contains("'Gamen' has programs[4] game?.exe", StringComparison.Ordinal));
