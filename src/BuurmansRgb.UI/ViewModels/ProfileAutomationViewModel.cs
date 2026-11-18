@@ -172,6 +172,15 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         }
     }
 
+    // Also takes away the error of a refused pick, like any other change does.
+    partial void OnForegroundOnlyChanged(bool value)
+    {
+        if (!_displaying)
+        {
+            Error = FindError();
+        }
+    }
+
     private void OnTimesChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         foreach (var row in e.OldItems?.OfType<LoadTimeRow>() ?? [])

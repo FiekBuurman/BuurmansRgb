@@ -287,6 +287,21 @@ public sealed class ProfileAutomationViewModelTests
         Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
     }
 
+    // After a refused pick, only changing "Alleen op de voorgrond" also takes the error away.
+    [Fact]
+    public void PickProgram_WithAComma_ErrorGoesWithForegroundOnly()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe";
+        _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
+        Assert.NotNull(_automation.Error);
+
+        _automation.ForegroundOnly = true;
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
     [Fact]
     public void Show_ForegroundOnly_TicksIt()
     {
