@@ -254,7 +254,7 @@ public sealed class MainViewModelSharingTests : IDisposable
         { new(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen", "Gamen", UnmatchedDevices: [], AddedEffects: []), "Scène 'Gamen' toegevoegd." },
         {
             new(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen (2)", "Gamen", UnmatchedDevices: ["K70 RGB", "Fan 2"], AddedEffects: ["Disco"]),
-            "Scène 'Gamen (2)' toegevoegd; 'Gamen' had je al. Wat niet paste: K70 RGB, Fan 2; die apparaten zijn hier niet gevonden. Eigen effecten erbij: Disco."
+            "Scène 'Gamen (2)' toegevoegd; 'Gamen' had je al. Wat niet paste: K70 RGB, Fan 2; niet gevonden op deze pc. Eigen effecten erbij: Disco."
         },
         { new(ShareImportOutcome.Imported, SharedKind.Effect, "Disco", "Disco"), "Eigen effect 'Disco' toegevoegd; je kiest het bij Effect op Kleur." },
         { new(ShareImportOutcome.Imported, SharedKind.Effect, "Disco (2)", "Disco"), "Eigen effect 'Disco (2)' toegevoegd; 'Disco' had je al." },

@@ -167,8 +167,8 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         _ => Strings.ShareInvalid,
     };
 
-    // "Scène 'Gamen (2)' toegevoegd; 'Gamen' bestond al. Wat niet paste: K70 RGB (dat apparaat is
-    // hier niet). Eigen effect erbij: Disco."
+    // "Scène 'Gamen (2)' toegevoegd; 'Gamen' had je al. Wat niet paste: K70 RGB; niet gevonden op
+    // deze pc. Eigen effecten erbij: Disco."
     private static string ImportedMessage(ShareImportResult result)
     {
         var name = result.Name ?? string.Empty;

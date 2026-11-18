@@ -841,7 +841,7 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
   zoals "Corsair K70" als toetsenbord. Twee van hetzelfde type en dezelfde naam (twee
   RAM-latjes die OpenRGB gelijk noemt) gaan op volgorde: het eerste van de scène naar het eerste
   hier, enzovoort. Een apparaat dat er hier niet is, laat de scène weg; de melding noemt het
-  ("Wat niet paste: K70 RGB; die apparaten zijn hier niet gevonden."). Doet de scène maar een
+  ("Wat niet paste: K70 RGB; niet gevonden op deze pc."). Doet de scène maar een
   paar apparaten en is er daarvan hier geen een, dan komt hij er niet bij: hij zou niets doen.
 - **Dezelfde naam:** er wordt nooit iets overschreven. Heb je al een scène "Gamen", dan heet de
   nieuwe "Gamen (2)", en de melding zegt dat. Een eigen effect dat je al had met dezelfde naam en

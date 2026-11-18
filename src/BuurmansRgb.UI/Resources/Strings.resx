@@ -1885,7 +1885,7 @@
     <value>Het eigen effect '{0}' had je al, precies zo. Er is niets toegevoegd.</value>
   </data>
   <data name="ShareUnmatchedDevices" xml:space="preserve">
-    <value>Wat niet paste: {0}; die apparaten zijn hier niet gevonden.</value>
+    <value>Wat niet paste: {0}; niet gevonden op deze pc.</value>
     <comment>{0} zijn de namen van de apparaten, met een komma ertussen.</comment>
   </data>
   <data name="ShareAddedEffects" xml:space="preserve">
