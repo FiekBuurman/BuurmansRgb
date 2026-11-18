@@ -11,10 +11,13 @@ namespace BuurmansRgb.UI.ViewModels;
 // When the selected profile loads by itself: at times, each on its own days, and while one of its
 // programs runs, or only while it is in the foreground. The programs are one field with a comma
 // between the names ("valorant.exe, cs2.exe"), so one program is typed as before. An empty field
-// leaves that way off. A name with a comma cannot be in the field. This only asks; MainViewModel sends the change to the engine and shows what
-// the engine saved.
+// leaves that way off. A name with a comma cannot be in the field. This only asks; MainViewModel
+// sends the change to the engine and shows what the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
+    // Between the names in the field.
+    private const char ProgramSeparator = ',';
+
     private readonly Func<Task<IReadOnlyList<RunningProgram>>> _findPrograms;
 
     // What the engine has, so Apply only runs for a change.
@@ -62,9 +65,6 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             RunningPrograms = [.. programs.Select(program => new RunningProgramItem(program))];
         }
     }
-
-    // Between the names in the field.
-    private const char ProgramSeparator = ',';
 
     // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
     [RelayCommand]
@@ -291,6 +291,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // The names in the field, without the empty ones between two commas.
     private static List<string> SplitPrograms(string text) =>
         [.. text.Split(ProgramSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
+
     // With more times it says which one, the first that is wrong, by the number a screen reader
     // gives its field; with one time a number only gets in the way. The same for the programs, by
     // the name that is wrong; the last one only by its name once a comma comes after it, so the
