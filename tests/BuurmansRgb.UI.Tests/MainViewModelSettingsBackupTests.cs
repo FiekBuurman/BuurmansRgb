@@ -163,9 +163,10 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         Assert.Empty(Api.Calls);
     }
 
-    // A file far larger than a backup is not read at all: no question, nothing to the engine.
+    // A file larger than a backup is read no further than the limit: no question, nothing to the
+    // engine.
     [Fact]
-    public async Task Restore_FileTooLarge_IsNotRead()
+    public async Task Restore_FileTooLarge_IsNotSent()
     {
         using var viewModel = await ConnectAsync();
         var path = Path.Combine(_folder, "groot.zip");

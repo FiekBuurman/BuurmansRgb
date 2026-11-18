@@ -88,21 +88,21 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         IsBusy = true;
         try
         {
-            byte[] json;
+            byte[]? json;
             try
             {
-                if (new FileInfo(path).Length > SharedFiles.MaxJsonBytes)
-                {
-                    Say(Strings.ShareTooLarge);
-                    return;
-                }
-
-                json = await File.ReadAllBytesAsync(path);
+                json = await UserFiles.ReadAtMostAsync(path, SharedFiles.MaxJsonBytes);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
                 Trace.TraceError(exception.ToString());
                 Say(Strings.ShareReadFailed);
+                return;
+            }
+
+            if (json is null)
+            {
+                Say(Strings.ShareTooLarge);
                 return;
             }
 

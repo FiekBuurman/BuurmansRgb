@@ -83,7 +83,7 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
         IsBusy = true;
         try
         {
-            if (new FileInfo(path).Length > SettingsBackup.MaxArchiveBytes)
+            if (await UserFiles.ReadAtMostAsync(path, SettingsBackup.MaxArchiveBytes) is not { } archive)
             {
                 Say(Strings.BackupTooLarge);
                 return;
@@ -94,7 +94,6 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
                 return;
             }
 
-            var archive = await File.ReadAllBytesAsync(path);
             Say(await RestoreOnAsync(engine, archive));
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)

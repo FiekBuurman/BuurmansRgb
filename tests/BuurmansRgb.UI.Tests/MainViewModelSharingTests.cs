@@ -147,9 +147,9 @@ public sealed class MainViewModelSharingTests : IDisposable
         Assert.Equal(["Gamen", "Werk"], viewModel.Profiles.Names);
     }
 
-    // A file far larger than a scene is not read at all.
+    // A file larger than a scene is read no further than the limit.
     [Fact]
-    public async Task Import_FileTooLarge_IsNotRead()
+    public async Task Import_FileTooLarge_IsNotSent()
     {
         using var viewModel = await ConnectAsync();
         var path = Path.Combine(_folder, "groot.brgb.json");
