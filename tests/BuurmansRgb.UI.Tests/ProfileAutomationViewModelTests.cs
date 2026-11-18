@@ -238,6 +238,24 @@ public sealed class ProfileAutomationViewModelTests
         Assert.True(_automation.ApplyCommand.CanExecute(null));
     }
 
+    // Only the saved name as a piece of its own counts, between commas or at the start or end, with
+    // spaces around it; inside a longer name it is gone from the field.
+    [Theory]
+    [InlineData("A,B.exe", true)]
+    [InlineData("cs2.exe ,  a,b.exe  ", true)]
+    [InlineData("a,b.exe, cs2.exe", true)]
+    [InlineData("xa,b.exe", false)]
+    [InlineData("a,b.exex, cs2.exe", false)]
+    [InlineData("cs2.exe, a,b.exe.exe", false)]
+    public void SavedProgramWithAComma_CountsOnlyAsAPieceOfItsOwn(string text, bool error)
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+
+        _automation.ProgramText = text;
+
+        Assert.Equal(error, _automation.Error?.StartsWith("'a,b.exe' heeft een komma in de naam", StringComparison.Ordinal) == true);
+    }
+
     // Picking an .exe with a comma in its name, from the list or with "Bladeren", leaves the field
     // as it is and says why; the next change takes the error away.
     [Fact]

@@ -294,11 +294,28 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // A name with a comma, which an earlier version let a scene have ("a,b.exe"), shows as it was
     // saved, but would come back as two names; as long as it is in the field, nothing is applied.
     private string? FindProgramError(List<string> programs) =>
-        _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && ProgramText.Contains(program, StringComparison.OrdinalIgnoreCase)) is { } withComma ? UiText.Format(Strings.ProfileProgramCommaSaved, withComma)
+        _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && HasPiece(ProgramText, program)) is { } withComma ? UiText.Format(Strings.ProfileProgramCommaSaved, withComma)
         : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed, Strings.ProfileProgramShortcutLast)
         : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed, Strings.ProfileProgramInvalidLast)
         : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > ProfileAutomation.MaxPrograms ? UiText.Format(Strings.ProfileProgramsTooMany, ProfileAutomation.MaxPrograms)
         : null;
+
+    // Whether the name is a piece of its own in the field: at the start or after a comma, and at the
+    // end or before a comma, with spaces around it; "xa,b.exe" does not hold "a,b.exe".
+    private static bool HasPiece(string text, string name)
+    {
+        for (var start = text.IndexOf(name, StringComparison.OrdinalIgnoreCase); start >= 0; start = text.IndexOf(name, start + 1, StringComparison.OrdinalIgnoreCase))
+        {
+            var before = text.AsSpan(0, start).TrimEnd();
+            var after = text.AsSpan(start + name.Length).TrimStart();
+            if ((before.IsEmpty || before[^1] == ProgramSeparator) && (after.IsEmpty || after[0] == ProgramSeparator))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     private string ForRow(LoadTimeRow row, string single, string numbered) =>
         Times.Count == 1 ? single : UiText.Format(numbered, row.Number);
