@@ -138,6 +138,35 @@ internal sealed class ProfileLibrary
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
+    // A scene from someone else (SceneSharing) as a new scene: under name, or when a scene has that
+    // name already under the first free one of "name (2)" and so on (SharedFiles.FreeName), so nothing
+    // is overwritten. Without times, programs or a role, and not on. Returns the name it got.
+    public string Add(string name, LightingState lighting, IReadOnlyList<string>? deviceIds)
+    {
+        var normalized = ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+        string added;
+        lock (_gate)
+        {
+            var scenes = ScenesLocked().ToList();
+            added = SharedFiles.FreeName(normalized, ProfileNames.MaxLength, candidate => scenes.Exists(scene => Matches(scene, candidate)));
+            List<Profile> profiles = [.. ProfilesLocked(), new Profile(added, lighting) { DeviceIds = deviceIds }];
+            profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+            Store(profiles);
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        return added;
+    }
+
+    // The scene as it is saved, such as to share it.
+    public Profile Get(string name)
+    {
+        lock (_gate)
+        {
+            return FindLocked(name);
+        }
+    }
+
     // The scene that was on when the engine stopped, from settings.json, once the saved lighting is
     // back on. Only a scene that still exists, in its saved spelling; null or an unknown name
     // leaves none on. Raises no ActiveChanged: nothing changed since the scene was saved.

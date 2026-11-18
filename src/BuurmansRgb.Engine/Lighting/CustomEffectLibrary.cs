@@ -175,6 +175,59 @@ internal sealed class CustomEffectLibrary : IDisposable
         return saved;
     }
 
+    // Own effects from someone else (SceneSharing), by the id they had there: one here with the same
+    // name and steps is taken as it is; any other gets a new id and, when its name is taken by an
+    // own effect or one of the engine, the first free one of "name (2)" and so on (SharedFiles.FreeName),
+    // so nothing is overwritten. All or none: null, and nothing added, when they would make more
+    // than CustomEffects.MaxEffects.
+    public IReadOnlyList<(CustomEffect Effect, bool Added)>? Import(IReadOnlyList<CustomEffect> shared)
+    {
+        ArgumentNullException.ThrowIfNull(shared);
+        var imported = new List<(CustomEffect Effect, bool Added)>();
+        lock (_gate)
+        {
+            var effects = EffectsLocked();
+            var added = new List<CustomEffect>();
+            foreach (var effect in shared)
+            {
+                var all = effects.Concat(added).ToList();
+                if (all.Find(other => CustomEffects.NameComparer.Equals(other.Name, effect.Name) && other.Steps.SequenceEqual(effect.Steps)) is { } same)
+                {
+                    imported.Add((same, false));
+                    continue;
+                }
+
+                var name = SharedFiles.FreeName(effect.Name, CustomEffects.MaxNameLength, candidate =>
+                    EffectNames.IsBuiltIn(candidate) || all.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
+                var id = CustomEffects.NewId();
+                while (all.Exists(other => other.Id == id))
+                {
+                    id = CustomEffects.NewId();
+                }
+
+                var saved = CustomEffects.Normalize(effect with { Id = id, Name = name });
+                added.Add(saved);
+                imported.Add((saved, true));
+            }
+
+            if (effects.Count + added.Count > CustomEffects.MaxEffects)
+            {
+                return null;
+            }
+
+            if (added.Count == 0)
+            {
+                return imported;
+            }
+
+            Store([.. effects, .. added]);
+            TakeLoadedAfterFailure();
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        return imported;
+    }
+
     public void Delete(string id)
     {
         lock (_gate)
