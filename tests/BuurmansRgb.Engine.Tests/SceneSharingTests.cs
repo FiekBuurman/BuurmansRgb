@@ -254,21 +254,24 @@ public sealed class SceneSharingTests : IDisposable
     }
 
     // A profiles.json that cannot be written adds no scene, and so none of its own effects either:
-    // the effects go again, no event goes out, and the error reaches the settings app.
+    // the effects go again, and the error reaches the settings app. An app that read the effects
+    // meanwhile hears that they changed, so it asks again.
     [Fact]
     public async Task Import_SceneThatCannotBeSaved_AddsNoOwnEffect()
     {
         await _lighting.DiscoverAsync(Ct);
-        var changes = 0;
-        _api.ProfilesChanged += (_, _) => changes++;
-        _api.CustomEffectsChanged += (_, _) => changes++;
+        var sceneChanges = 0;
+        var effectChanges = 0;
+        _api.ProfilesChanged += (_, _) => sceneChanges++;
+        _api.CustomEffectsChanged += (_, _) => effectChanges++;
         _profileStore.SaveException = new IOException("profiles.json is read-only");
 
         await Assert.ThrowsAsync<IOException>(() => _api.ImportSharedAsync(SceneWithAnOwnEffect, Ct));
 
         Assert.Empty(await _api.GetCustomEffectsAsync(Ct));
         Assert.Empty(await _api.GetProfilesAsync(Ct));
-        Assert.Equal(0, changes);
+        Assert.Equal(0, sceneChanges);
+        Assert.Equal(1, effectChanges);
     }
 
     // One that cannot be read fails before an own effect is added.

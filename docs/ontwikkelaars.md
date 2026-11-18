@@ -787,8 +787,11 @@ toetsenbord. Een paar dingen om te proberen:
   (`CustomEffectLibrary.Import`: hetzelfde effect hergebruikt, anders een nieuwe id en zo nodig
   een nummer, alles of niets onder `MaxEffects`) met daarbinnen de scène (`ProfileLibrary.Add`,
   met `SharedFiles.FreeName`) en de ids van de effecten van hier: lukt de scène niet (een
-  `profiles.json` die niet te lezen of te schrijven is), dan gaan de effecten er weer uit, zonder
-  `CustomEffectsChanged`. Niets wordt overschreven, en niets
+  `profiles.json` die niet te lezen of te schrijven is), dan gaan de effecten er weer uit, met
+  één `CustomEffectsChanged` (een app die ze tussendoor las, vraagt opnieuw). Imports gaan één
+  voor één (`_importGate` rond de hele `Import`, ook de scène), zodat een tweede import geen effect
+  van de eerste hergebruikt dat daarna weer weggaat; bewaren en verwijderen wachten daar niet op.
+  Niets wordt overschreven, en niets
   gebeurt zonder klik: geen timer, polling of luisteraar.
 - **"Na een herstart" bij Instellingen:** `AfterRestartViewModel` leest alleen wat de app al heeft:
   `ProfilesViewModel.ActiveName` (de scène die aan staat, nu een observable property), de keuze
