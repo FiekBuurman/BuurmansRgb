@@ -14,8 +14,9 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class SceneNameCardViewTests
 {
-    // The focus goes to the name, and after Enter back to the button, which shows again; else it
-    // would be nowhere once the card goes. The scene is saved and on.
+    // The button has the help of "Bewaar als scène" for a screen reader. The focus goes to the name,
+    // and after Enter back to the button, which shows again; else it would be nowhere once the card
+    // goes. The scene is saved and on.
     [Fact]
     public async Task ScenesPage_NewSceneSavedWithEnter_GivesTheFocusBackToTheButton()
     {
@@ -26,6 +27,7 @@ public sealed class SceneNameCardViewTests
         {
             var page = PageViews.Show<ScenesPage>(panel, viewModel);
             var button = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.NewScene));
+            Assert.Equal(Strings.NewSceneHint, AutomationProperties.GetHelpText(button));
             Assert.True(button.Focus());
 
             PageViews.Click(button);

@@ -90,7 +90,8 @@
             </ItemsControl>
 
             <Button x:Name="NewScene" Margin="0,16,0,0" Style="{StaticResource NewButton}" Content="{x:Static res:Strings.NewScene}"
-                    ToolTip="{x:Static res:Strings.NewSceneHint}" Command="{Binding Profiles.StartNewCommand}" Click="OnNewSceneClick"
+                    ToolTip="{x:Static res:Strings.NewSceneHint}" AutomationProperties.HelpText="{x:Static res:Strings.NewSceneHint}"
+                    Command="{Binding Profiles.StartNewCommand}" Click="OnNewSceneClick"
                     Visibility="{Binding Profiles.IsNaming, Converter={StaticResource InverseBoolToVisibility}}" />
 
             <!-- The name of the new scene, the same card as after "Bewaar als scène" on Kleur. -->
