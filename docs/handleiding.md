@@ -346,15 +346,15 @@ schakelaar ernaast.
   apparaten zoals die nu is als scène, zonder dat je naar Scènes hoeft. Hij opent dezelfde kaart
   als "+ Nieuwe scène" op Scènes: typ een naam en kies **Opslaan** of druk op Enter; **Annuleren**
   of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven**, staat
-  onder het naamveld "Overschrijft de scène '…'." (een schermlezer leest dat voor) en
-  vervangt hij die scène (zijn tijden en programma's blijven). Daarna staat de scène aan: op Scènes
-  heeft zijn kaart de witte rand, rechtsonder staat "Scène '…' opgeslagen." en de focus gaat
-  terug naar de knop. Een kleur die je verder verandert, zet de scène weer uit, zoals elke
-  wijziging met de hand; de scène zelf blijft zoals je hem bewaarde. Het is één kaart: ga je
-  halverwege een naam naar Scènes, dan staat hij daar nog open met je naam. Zonder verbinding met
-  de engine is de hele pagina grijs, met de reden erover, en dus ook deze knop. Bewaar je tijdens
-  een spel met een eigen scène, dan bewaar je de verlichting van het spel; stopt het spel, dan
-  komt de verlichting van daarvoor terug.
+  onder het naamveld "Overschrijft de scène '…'." (een schermlezer leest dat voor) en vervangt
+  hij die scène (zijn tijden en programma's blijven). Daarna staat de scène aan: op Scènes heeft
+  zijn kaart de witte rand, rechtsonder staat "Scène '…' opgeslagen." en de focus gaat terug naar
+  de knop. Een kleur die je verder verandert, zet de scène weer uit, zoals elke wijziging met de
+  hand; de scène zelf blijft zoals je hem bewaarde. Het is één kaart: ga je halverwege een naam
+  naar Scènes, dan staat hij daar nog open met je naam. Zonder verbinding met de engine is de
+  hele pagina grijs, met de reden erover, en dus ook deze knop. Bewaar je tijdens een spel met een
+  eigen scène, dan bewaar je de verlichting van het spel; stopt het spel, dan komt de verlichting
+  van daarvoor terug.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
   scène die op tijd of bij een programma aangaat), dan tonen de schuiven, het effect, de
   snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de nieuwe verlichting.
