@@ -667,6 +667,10 @@ uitbreidingen in `docs/bouwplan.md`.
     pc's gelijk wil hebben
   - Meer scènes en effecten in één bestand, en een `.brgb.json` openen met een dubbelklik (een
     bestandskoppeling in de installer)
+  - Een eigen melding als exporteren niet kan omdat een ander de scène zou weigeren (meer dan 64
+    apparaten, groter dan 2 MB), met de reden; nu gooit de engine en zegt de app alleen
+    "Exporteren is niet gelukt.". Of de verlichting van apparaten die er al lang niet meer zijn
+    niet meenemen, zodat zo'n scène wel past
 
 ## Tray-menu
 

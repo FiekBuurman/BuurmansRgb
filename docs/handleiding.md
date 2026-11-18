@@ -832,7 +832,8 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
   kiest. De ander kiest op Scènes **Importeren…** en dat bestand.
 - **Wat meegaat:** de naam, de verlichting van elk apparaat (kleur, helderheid, effect, snelheid,
   richting, kleurenloop, kleuren van een effect, aan/uit en per-LED-kleuren), welke apparaten
-  meedoen, en de eigen effecten die de scène gebruikt. **Wat niet meegaat:** de tijden, de
+  meedoen, en de eigen effecten die de scène gebruikt (een eigen effect van alleen een apparaat dat
+  er bij de ander niet is, komt daar niet bij). **Wat niet meegaat:** de tijden, de
   programma's en "Alleen op de voorgrond" (die horen bij jouw pc en jouw spellen), en of de scène
   "Uit om" is: een geïmporteerde scène is altijd een gewone scène. Een scène met `/`, `\` of `:` in
   de naam gaat met een `-` op die plek.
@@ -855,6 +856,9 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
   2 MB, of iets wat niet klopt (een onbekend veld, een kleur of getal dat niet kan, een naam die
   op een pad lijkt). Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er
   nog bij kunnen, dan komt er niets bij.
+  Exporteren of de code kopiëren lukt niet ("Exporteren is niet gelukt.") bij een scène die een
+  ander niet zou kunnen importeren: met de verlichting van meer dan 64 apparaten (ook van apparaten
+  die je allang niet meer hebt), of groter dan 2 MB.
 - De knoppen werken met Tab en Enter, een schermlezer noemt ze "Scène exporteren…", "Code van de
   scène kopiëren", "Scène of eigen effect importeren…" en "Code van een scène of eigen effect
   plakken", en ze volgen het contrastthema en de tekstgrootte van Windows. De dialogen voor het
