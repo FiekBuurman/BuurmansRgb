@@ -24,21 +24,15 @@ public sealed record ProfileAutomation
         this.ForegroundOnly = ForegroundOnly;
     }
 
-    // The times with one program, or none for null, as before there were more.
-    public ProfileAutomation(IReadOnlyList<LoadTime>? Times, string? Program, bool ForegroundOnly = false)
-        : this(Times, Program is { } program ? [program] : null, ForegroundOnly)
-    {
-    }
-
     // One program, or none for null.
     public ProfileAutomation(string? Program, bool ForegroundOnly = false)
-        : this(null, Program, ForegroundOnly)
+        : this(null, OneProgram(Program), ForegroundOnly)
     {
     }
 
     // One time, on Days.
     public ProfileAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
-        : this([new LoadTime(LoadAt, Days)], Program)
+        : this([new LoadTime(LoadAt, Days)], OneProgram(Program))
     {
     }
 
@@ -89,6 +83,8 @@ public sealed record ProfileAutomation
 
         return new(times, programs, ForegroundOnly && programs.Length > 0);
     }
+
+    private static string[]? OneProgram(string? program) => program is null ? null : [program];
 
     public bool Equals(ProfileAutomation? other) =>
         other is not null && Times.SequenceEqual(other.Times) && Programs.SequenceEqual(other.Programs, StringComparer.Ordinal) && ForegroundOnly == other.ForegroundOnly;

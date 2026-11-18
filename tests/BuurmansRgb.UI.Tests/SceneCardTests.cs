@@ -211,7 +211,7 @@ public sealed class SceneCardTests
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
         Assert.Equal("Bij vlc.exe op de voorgrond", _card.Description);
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], "vlc.exe", ForegroundOnly: true));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], ["vlc.exe"], ForegroundOnly: true));
         Assert.Equal("Elke dag om 20:00 · bij vlc.exe op de voorgrond", _card.Description);
     }
 
@@ -238,7 +238,7 @@ public sealed class SceneCardTests
     {
         LoadTime[] times = [new(new TimeOnly(7, 0), WeekDays.Workdays), new(new TimeOnly(9, 0), WeekDays.Weekend), new(new TimeOnly(23, 0))];
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program is null ? null : [program]));
 
         Assert.Equal(expected, _card.Description);
     }

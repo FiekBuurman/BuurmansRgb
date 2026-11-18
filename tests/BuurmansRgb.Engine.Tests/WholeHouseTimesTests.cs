@@ -71,7 +71,7 @@ public sealed class WholeHouseTimesTests : IDisposable
 
         _profiles.SetWholeHouseTimes(new WholeHouseTimes([ElevenPm]));
 
-        Assert.Equal(new ProfileAutomation([ElevenPm], "slaap.exe"), _profiles.GetAutomation("Alles uit"));
+        Assert.Equal(new ProfileAutomation([ElevenPm], ["slaap.exe"]), _profiles.GetAutomation("Alles uit"));
     }
 
     // The role counts, not the name: renamed by hand, it is still "Alles uit"; a scene of that name
