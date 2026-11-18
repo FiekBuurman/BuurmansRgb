@@ -1407,6 +1407,9 @@
   <data name="SceneWithProgram" xml:space="preserve">
     <value>Bij {0}</value>
   </data>
+  <data name="SceneProgramAndMore" xml:space="preserve">
+    <value>{0} en nog {1}</value>
+  </data>
   <data name="SceneProgramInForeground" xml:space="preserve">
     <value>{0} op de voorgrond</value>
   </data>

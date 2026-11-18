@@ -6,7 +6,7 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // What a scene card shows of a saved profile: five bulbs with the colors of its lighting for all
 // devices, and when it loads by itself, or else what it shows, such as "Regenboog · 80%". Of more
-// times only the first fits, with how many more: "Werkdagen om 07:00 en nog 1".
+// times or programs only the first fits, with how many more: "Werkdagen om 07:00 en nog 1".
 internal static class SceneLook
 {
     public const int DotCount = 5;
@@ -65,9 +65,21 @@ internal static class SceneLook
         return flames[place < flames.Length ? place : period - place];
     }
 
-    // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond".
+    // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond". Of more
+    // programs only the first fits, with how many more, as with the times: "Bij valorant.exe en nog 2".
     public static string Describe(LightingInfo lighting, ProfileAutomation automation) =>
-        Describe(lighting, automation.Times, automation is { Programs: [var program, ..], ForegroundOnly: true } ? UiText.Format(Strings.SceneProgramInForeground, program) : automation.Programs.FirstOrDefault());
+        Describe(lighting, automation.Times, Programs(automation));
+
+    private static string? Programs(ProfileAutomation automation)
+    {
+        var programs = automation.Programs switch
+        {
+            [] => null,
+            [var program] => program,
+            [var program, ..] => UiText.Format(Strings.SceneProgramAndMore, program, automation.Programs.Count - 1),
+        };
+        return programs is not null && automation.ForegroundOnly ? UiText.Format(Strings.SceneProgramInForeground, programs) : programs;
+    }
 
     private static string Describe(LightingInfo lighting, IReadOnlyList<LoadTime> times, string? program) => (times, program) switch
     {
