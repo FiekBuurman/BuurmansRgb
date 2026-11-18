@@ -16,12 +16,12 @@ namespace BuurmansRgb.Engine.Sharing;
 internal sealed class SceneSharing(ProfileLibrary profiles, LightingController lighting, CustomEffectLibrary? customEffects)
 {
     public byte[] ExportScene(string name) =>
-        SharedFileWriter.WriteScene(profiles.Get(name), lighting.Devices, customEffects?.Effects ?? []);
+        Importable(SharedFileWriter.WriteScene(profiles.Get(name), lighting.Devices, customEffects?.Effects ?? []));
 
     public byte[] ExportEffect(string id) =>
-        SharedFileWriter.WriteEffect(
+        Importable(SharedFileWriter.WriteEffect(
             (customEffects?.Effects ?? []).FirstOrDefault(effect => effect.Id == id)
-            ?? throw new ArgumentException($"There is no own effect '{id}'.", nameof(id)));
+            ?? throw new ArgumentException($"There is no own effect '{id}'.", nameof(id))));
 
     public ShareImportResult Import(byte[] json)
     {
@@ -94,6 +94,16 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
         return new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, name!, scene.Name, UnmatchedDevices: notHere, AddedEffects: addedEffects);
     }
 
+    // A file goes out only when another pc would take it: one beyond the limits of SharedFileReader,
+    // such as a scene that still has the lighting of more than SharedFiles.MaxDevices devices, some
+    // long gone, or larger than SharedFiles.MaxJsonBytes, throws instead. The reader traced why.
+    private static byte[] Importable(byte[] json)
+    {
+        var outcome = SharedFileReader.Read(json).Outcome;
+        return outcome == ShareImportOutcome.Imported
+            ? json
+            : throw new InvalidOperationException($"The file would not import on another pc ({outcome}); see the warning before this.");
+    }
     // The scene with the devices and own effects of this pc.
     private string AddScene(SharedScene scene, IReadOnlyDictionary<string, string> map, Dictionary<string, string> effectIds, List<string>? onlyDevices)
     {

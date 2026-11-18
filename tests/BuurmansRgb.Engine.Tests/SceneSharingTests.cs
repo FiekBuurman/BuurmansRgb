@@ -357,6 +357,21 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal("Film-TV", result.Name);
     }
 
+    // A scene that still has the lighting of more devices than a file may have, most of them long
+    // gone, would not import anywhere; it does not go out.
+    [Fact]
+    public async Task ExportScene_BeyondTheLimitsOfAnImport_Throws()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var devices = Enumerable.Range(0, SharedFiles.MaxDevices + 1).ToDictionary(i => "openrgb:gone-" + i, _ => new DeviceLighting(Red, 1.0, EffectIds.Static));
+        _profileStore.Profiles = [new Profile("Vol", new LightingState(DeviceLighting.Default, devices, new Dictionary<string, LedColorEntry>()))];
+        using var trace = new TraceCapture();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _api.ExportSceneAsync("Vol", Ct));
+
+        Assert.Contains(trace.Messages, message => message.Contains($"{SharedFiles.MaxDevices + 1} devices, more than {SharedFiles.MaxDevices}", StringComparison.Ordinal));
+    }
+
     [Fact]
     public async Task Export_Unknown_Throws()
     {
