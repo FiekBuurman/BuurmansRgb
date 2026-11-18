@@ -19,7 +19,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         Label = label;
         Hint = hint;
         _usual = usual;
-        Text = Write(usual);
+        Text = LoadTime.WriteAt(usual);
         foreach (var day in Days)
         {
             day.PropertyChanged += (_, _) => RaiseChanged();
@@ -88,7 +88,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
             IsOn = time is not null;
             if (time is not null)
             {
-                Text = Write(time.At);
+                Text = LoadTime.WriteAt(time.At);
             }
 
             DayOption.Check(Days, time?.Days);
@@ -104,7 +104,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         if (value && !_showing && !HasValidTime)
         {
             _showing = true;
-            Text = Write(_usual);
+            Text = LoadTime.WriteAt(_usual);
             _showing = false;
         }
 
@@ -120,6 +120,4 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
             Changed?.Invoke(this, EventArgs.Empty);
         }
     }
-
-    private static string Write(TimeOnly time) => LoadTime.WriteAt(time);
 }
