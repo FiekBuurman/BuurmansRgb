@@ -133,5 +133,4 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
     };
 
     private void Say(string message) => Message?.Invoke(this, message);
-
 }

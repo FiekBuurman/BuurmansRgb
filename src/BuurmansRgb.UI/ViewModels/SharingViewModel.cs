@@ -288,5 +288,4 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
     }
 
     private void Say(string message) => Message?.Invoke(this, message);
-
 }
