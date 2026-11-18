@@ -677,7 +677,7 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 
 ### Scènes
 
-![De pagina Scènes](images/scenes.png)
+![De pagina Scènes, met de naam van een nieuwe scène in de kaart van "+ Nieuwe scène"](images/scenes.png)
 
 Een scène bewaart de verlichting van alle apparaten onder een naam (in de code en in
 `profiles.json` heet dat een profiel). De scènes staan als kaarten, drie of vier naast elkaar:
