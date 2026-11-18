@@ -715,8 +715,9 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
 - **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu is; de focus staat
   meteen in het naamveld. Enter of **Opslaan** bewaart, Escape of **Annuleren** niet, en daarna
   gaat de focus terug naar "+ Nieuwe scène". Heeft een scène die naam al, dan heet de knop
-  **Overschrijven** en zegt een regel onder het naamveld welke scène je vervangt. De nieuwe scène staat meteen aan (witte rand) en is gekozen, met zijn
-  instellingen eronder. "Bewaar als scène" op Kleur doet hetzelfde met dezelfde kaart.
+  **Overschrijven** en zegt een regel onder het naamveld welke scène je vervangt. De nieuwe
+  scène staat meteen aan (witte rand) en is gekozen, met zijn instellingen eronder. "Bewaar als
+  scène" op Kleur doet hetzelfde met dezelfde kaart.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
 - **Verwijderen** vraagt eerst "Scène '…' verwijderen?" in een klein venster boven de app, met
