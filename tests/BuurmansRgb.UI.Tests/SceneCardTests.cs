@@ -219,7 +219,7 @@ public sealed class SceneCardTests
     // times; one tick for all of them.
     [Theory]
     [InlineData(false, "Bij valorant.exe en nog 2")]
-    [InlineData(true, "Bij valorant.exe en nog 2 op de voorgrond")]
+    [InlineData(true, "Bij valorant.exe en nog 2, op de voorgrond")]
     public void Show_MorePrograms_SaysTheFirstAndHowManyMore(bool foregroundOnly, string expected)
     {
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], foregroundOnly));

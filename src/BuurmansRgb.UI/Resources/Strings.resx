@@ -1425,6 +1425,9 @@
   <data name="SceneProgramInForeground" xml:space="preserve">
     <value>{0} op de voorgrond</value>
   </data>
+  <data name="SceneMoreProgramsInForeground" xml:space="preserve">
+    <value>{0}, op de voorgrond</value>
+  </data>
   <data name="SceneAtTimeAndProgram" xml:space="preserve">
     <value>{0} om {1:HH:mm} · bij {2}</value>
   </data>

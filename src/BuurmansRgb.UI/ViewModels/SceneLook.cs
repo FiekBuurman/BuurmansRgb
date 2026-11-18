@@ -66,7 +66,9 @@ internal static class SceneLook
     }
 
     // A program that counts only in the foreground says so: "Bij vlc.exe op de voorgrond". Of more
-    // programs only the first fits, with how many more, as with the times: "Bij valorant.exe en nog 2".
+    // programs only the first fits, with how many more, as with the times: "Bij valorant.exe en nog 2",
+    // and with a comma before the foreground, so that is not about the 2: "Bij valorant.exe en nog 2,
+    // op de voorgrond".
     public static string Describe(LightingInfo lighting, ProfileAutomation automation) =>
         Describe(lighting, automation.Times, Programs(automation));
 
@@ -78,7 +80,8 @@ internal static class SceneLook
             [var program] => program,
             [var program, ..] => UiText.Format(Strings.SceneProgramAndMore, program, automation.Programs.Count - 1),
         };
-        return programs is not null && automation.ForegroundOnly ? UiText.Format(Strings.SceneProgramInForeground, programs) : programs;
+        var inForeground = automation.Programs.Count > 1 ? Strings.SceneMoreProgramsInForeground : Strings.SceneProgramInForeground;
+        return programs is not null && automation.ForegroundOnly ? UiText.Format(inForeground, programs) : programs;
     }
 
     private static string Describe(LightingInfo lighting, IReadOnlyList<LoadTime> times, string? program) => (times, program) switch

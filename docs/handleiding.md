@@ -865,7 +865,7 @@ Hoe het vanzelf aanzetten werkt:
   meteen en niet pas binnen 2 seconden, en komt de verlichting van daarvoor terug zodra je naar
   iets anders wisselt of het programma stopt. Draait het alleen op de achtergrond, dan telt het
   niet. De kaart zegt dan "Bij vlc.exe op de voorgrond", met meer programma's "Bij valorant.exe
-  en nog 2 op de voorgrond"; het vinkje geldt voor alle programma's van de scène. Handig voor
+  en nog 2, op de voorgrond"; het vinkje geldt voor alle programma's van de scène. Handig voor
   bijv. een filmspeler of een tekenprogramma dat je de hele dag open laat staan.
   - *Twee van zulke programma's:* wissel je van het ene naar het andere, dan gaat de ene scène
     rechtstreeks over in de andere, zonder de verlichting van daarvoor ertussen. Wissel je daarna
