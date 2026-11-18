@@ -114,7 +114,7 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     }
 
     private static string Describe(LoadTime time) =>
-        UiText.Format(Strings.WholeHouseSummaryTime, time.At.ToString("HH:mm", CultureInfo.InvariantCulture), UiText.Days(time.Days).ToLower(CultureInfo.CurrentCulture));
+        UiText.Format(Strings.WholeHouseSummaryTime, LoadTime.WriteAt(time.At), UiText.Days(time.Days).ToLower(CultureInfo.CurrentCulture));
 
     private void OnRowChanged(object? sender, EventArgs e)
     {

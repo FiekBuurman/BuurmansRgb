@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,8 +8,6 @@ namespace BuurmansRgb.UI.ViewModels;
 // empty field is no time, and its days count for nothing.
 public sealed partial class LoadTimeRow : ObservableObject
 {
-    private const string TimeFormat = "HH:mm";
-
     // Empty, on every day, without a time.
     public LoadTimeRow(LoadTime? time = null)
     {
@@ -47,18 +44,14 @@ public sealed partial class LoadTimeRow : ObservableObject
 
     public string RemoveAccessibleName => UiText.Format(Strings.ProfileTimeRemoveAccessibleName, Number);
 
-    public WeekDays CheckedDays =>
-        Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+    public WeekDays CheckedDays => DayOption.Checked(Days);
 
     // The time and its days, or empty on every day for null. In the same row, so the field that has
     // the focus keeps it.
     public void Show(LoadTime? time)
     {
-        Text = time?.At.ToString(TimeFormat, CultureInfo.InvariantCulture) ?? string.Empty;
-        foreach (var day in Days)
-        {
-            day.IsChecked = ((time?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
-        }
+        Text = time is null ? string.Empty : LoadTime.WriteAt(time.At);
+        DayOption.Check(Days, time?.Days);
     }
 
     // False when the text is not a time; true with a null time when it is empty.

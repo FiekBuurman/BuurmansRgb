@@ -38,4 +38,20 @@ public sealed class LoadTimeTests
     [InlineData("half elf")]
     public void TryParseAt_NoTime_ReadsNothing(string? text) =>
         Assert.False(LoadTime.TryParseAt(text, out _));
+
+    [Fact]
+    public void WriteAt_Time_WritesHoursAndMinutesWithTwoDigits() =>
+        Assert.Equal("07:05", LoadTime.WriteAt(new TimeOnly(7, 5)));
+
+    [Theory]
+    [InlineData(0, 0)]
+    [InlineData(7, 5)]
+    [InlineData(23, 59)]
+    public void WriteAt_Time_ReadsBackWithTryParseAt(int hour, int minute)
+    {
+        var time = new TimeOnly(hour, minute);
+
+        Assert.True(LoadTime.TryParseAt(LoadTime.WriteAt(time), out var at));
+        Assert.Equal(time, at);
+    }
 }

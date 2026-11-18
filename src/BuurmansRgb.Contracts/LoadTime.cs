@@ -26,4 +26,7 @@ public sealed record LoadTime(TimeOnly At, WeekDays Days = WeekDays.Every)
 
         return TimeOnly.TryParseExact(trimmed, AtFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out at);
     }
+
+    // A time as the app shows it and the engine saves it: "07:05", which TryParseAt reads back.
+    public static string WriteAt(TimeOnly at) => at.ToString("HH:mm", CultureInfo.InvariantCulture);
 }

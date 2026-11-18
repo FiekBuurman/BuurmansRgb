@@ -20,6 +20,19 @@ public sealed partial class DayOption(WeekDays day) : ObservableObject
         [.. new[] { WeekDays.Monday, WeekDays.Tuesday, WeekDays.Wednesday, WeekDays.Thursday, WeekDays.Friday, WeekDays.Saturday, WeekDays.Sunday }
             .Select(day => new DayOption(day))];
 
+    // The days that are checked.
+    public static WeekDays Checked(IEnumerable<DayOption> days) =>
+        days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (checkedDays, day) => checkedDays | day.Day);
+
+    // Checks the days in selected and unchecks the others; null is every day.
+    public static void Check(IEnumerable<DayOption> days, WeekDays? selected)
+    {
+        foreach (var day in days)
+        {
+            day.IsChecked = ((selected ?? WeekDays.Every) & day.Day) != WeekDays.None;
+        }
+    }
+
     // A screen reader names a button in a list by its ToString.
     public override string ToString() => Name;
 }

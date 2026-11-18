@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,8 +9,6 @@ namespace BuurmansRgb.UI.ViewModels;
 // field gets the usual time of the row (23:00 to go off, 07:00 to go on).
 public sealed partial class WholeHouseTimeRow : ObservableObject
 {
-    private const string TimeFormat = "HH:mm";
-
     private readonly TimeOnly _usual;
 
     // While Show fills in the row.
@@ -58,8 +55,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
-    public WeekDays CheckedDays =>
-        Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+    public WeekDays CheckedDays => DayOption.Checked(Days);
 
     public bool HasValidTime => LoadTime.TryParseAt(Text, out _);
 
@@ -95,10 +91,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
                 Text = Write(time.At);
             }
 
-            foreach (var day in Days)
-            {
-                day.IsChecked = ((time?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
-            }
+            DayOption.Check(Days, time?.Days);
         }
         finally
         {
@@ -128,5 +121,5 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         }
     }
 
-    private static string Write(TimeOnly time) => time.ToString(TimeFormat, CultureInfo.InvariantCulture);
+    private static string Write(TimeOnly time) => LoadTime.WriteAt(time);
 }
