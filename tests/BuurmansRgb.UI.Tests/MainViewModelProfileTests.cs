@@ -252,6 +252,33 @@ public sealed class MainViewModelProfileTests
         Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
     }
 
+    // Such as profiles.json that cannot be written: the boxes show again what the engine has, so the
+    // next change is sent too.
+    [Fact]
+    public async Task CheckDevices_RejectedByTheEngine_ShowsWhatTheEngineHas()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+        Api.SetException = new RemoteInvocationException("Disk full", 0, errorData: null);
+
+        devices.AllDevices = true;
+
+        Assert.Equal("De engine kon de wijziging niet verwerken.", viewModel.StatusMessage);
+        Assert.False(devices.AllDevices);
+        Assert.Equal([("LED strip", false), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+
+        Api.SetException = null;
+        devices.AllDevices = true;
+
+        Assert.Equal(["profile devices Lezen all"], Api.Calls);
+        Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
+    }
+
     // "Alle apparaten" off starts with every device there is now checked; then a scene of no device
     // is not saved, as it would do nothing, and the message says why until a box is on again.
     [Fact]

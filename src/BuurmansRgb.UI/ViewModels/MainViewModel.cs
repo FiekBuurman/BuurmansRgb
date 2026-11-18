@@ -183,9 +183,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         });
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
         Profiles.UpdateRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.SceneUpdated);
-        // The boxes show the change already (SceneDevicesViewModel takes it as saved).
+        // The boxes show the change already (SceneDevicesViewModel takes it as saved); when the
+        // engine refuses it, they show again what the engine has.
         Profiles.SceneDevices.ApplyRequested += (_, change) =>
-            SendProfileCall(change.Name, api => api.SetProfileDevicesAsync(change.Name, change.DeviceIds), Strings.SceneDevicesSaved);
+            SendProfileCall(change.Name, api => api.SetProfileDevicesAsync(change.Name, change.DeviceIds), Strings.SceneDevicesSaved,
+                failed: () => _ = ShowSceneDevicesAsync(change.Name));
         // The engine saves the automation as Normalize gives it, which the change already is.
         Profiles.Automation.ApplyRequested += (_, change) =>
             SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
@@ -1635,8 +1637,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
-    // lighting of a loaded profile. isNew is for saving, where the scene need not exist yet.
-    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false)
+    // lighting of a loaded profile. When the engine refuses the call for a scene that is still
+    // there, failed runs as well as the refusal is shown. isNew is for saving, where the scene need
+    // not exist yet.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false, Action? failed = null)
     {
         if (_connection is not { } connection)
         {
@@ -1657,6 +1661,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var current = await connection.Api.GetProfilesAsync();
                 if (current.Contains(name, ProfileNames.Comparer))
                 {
+                    if (failed is not null)
+                    {
+                        RunOnUi(() =>
+                        {
+                            if (ReferenceEquals(connection, _connection))
+                            {
+                                failed();
+                            }
+                        });
+                    }
+
                     throw;
                 }
 
@@ -1704,8 +1719,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Profiles.Automation.Show(name, automation);
         }
 
-        var (devicesOk, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
-        if (devicesOk && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        await ShowSceneDevicesAsync(name);
+    }
+
+    // The devices the engine saved for the scene, unless the user picked another scene in the
+    // meantime or the connection was made again.
+    private async Task ShowSceneDevicesAsync(string name)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var (ok, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
+        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
         {
             Profiles.SceneDevices.Show(name, deviceIds, WholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
         }

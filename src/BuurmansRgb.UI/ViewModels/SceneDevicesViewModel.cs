@@ -179,7 +179,8 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
         }
 
         // Taken as saved now, so a box that goes off and on again before the engine answers sends
-        // both changes, not only the first.
+        // both changes, not only the first. When the engine refuses it, MainViewModel shows what the
+        // engine has again.
         _saved = deviceIds;
         ApplyRequested?.Invoke(this, new SceneDevicesChange(ProfileName!, deviceIds));
     }
