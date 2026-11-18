@@ -598,9 +598,6 @@ uitbreidingen in `docs/bouwplan.md`.
   `StreamStateChanged` meldt; "Aanzetten als dit programma start" ziet alleen dat OBS draait, niet
   dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
   verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
-- De lege staat van Scènes laten verwijzen naar "Bewaar als scène" op Kleur zodra die knop er is;
-  nu noemt hij alleen "Nieuwe scène" eronder, omdat de knop op Kleur nog niet bestaat
-  (`startscenes`)
 - De startscènes terug kunnen halen, bijv. met "Startscènes terugzetten" bij Instellingen, voor wie
   ze verwijderde en ze toch weer wil; een scène met dezelfde naam laten staan. Nu komen ze nooit
   terug (`startScenesCreated`) (`startscenes`)
