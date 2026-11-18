@@ -81,6 +81,56 @@ public sealed class SceneSharingTests : IDisposable
         Assert.NotEqual("Gamen (2)", _profiles.ActiveName);
     }
 
+    // Every field of the lighting that is not its default, of all devices and of one, and the
+    // colors per LED with their zones, comes back as it went.
+    [Fact]
+    public async Task ExportThenImport_EveryFieldNotItsDefault_ComesBackTheSame()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var disco = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Red), new CustomEffectStep(Blue, 2, 0)]), Ct);
+        var global = new DeviceLighting(Orange, 0.4, EffectIds.Comet, 2.5)
+        {
+            Loop = new ColorLoop([Red, Green, Blue, Orange], Spread: false),
+            EffectColors = new EffectColors(new Dictionary<string, IReadOnlyList<RgbColor>> { [EffectIds.Comet] = [Red, Blue], [EffectIds.Fire] = [Orange] }),
+            On = false,
+            Direction = 90,
+        };
+        var fan = new DeviceLighting(Green, 0.7, disco.Id, 0.3)
+        {
+            Loop = new ColorLoop([Blue, Red], Spread: true),
+            EffectColors = new EffectColors(new Dictionary<string, IReadOnlyList<RgbColor>> { [EffectIds.Twinkle] = [Green] }),
+            On = false,
+            Direction = 0,
+        };
+        // The colors of the default loop, but not spread, is no default either.
+        var keyboard = global with { EffectId = EffectIds.PerLed, On = true, Direction = 359, Loop = ColorLoop.Default with { Spread = false } };
+        var ledColors = new LedColorEntry([Red, null, Blue], [2, 1]);
+        _profileStore.Profiles =
+        [
+            new Profile("Alles", new LightingState(
+                global,
+                new Dictionary<string, DeviceLighting> { ["simulated-fan"] = fan, ["simulated-keyboard"] = keyboard },
+                new Dictionary<string, LedColorEntry> { ["simulated-keyboard"] = ledColors }))
+            {
+                DeviceIds = ["simulated-fan", "simulated-keyboard"],
+            },
+        ];
+
+        var result = await _api.ImportSharedAsync(await _api.ExportSceneAsync("Alles", Ct), Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        var copy = _profiles.Get(result.Name!);
+        Assert.Equal(global, copy.Lighting.Global);
+        Assert.Equal(fan, copy.Lighting.Devices["simulated-fan"]);
+        Assert.Equal(keyboard, copy.Lighting.Devices["simulated-keyboard"]);
+        Assert.Equal(["simulated-fan", "simulated-keyboard"], copy.Lighting.Devices.Keys.Order());
+        var colors = Assert.Single(copy.Lighting.LedColors);
+        Assert.Equal("simulated-keyboard", colors.Key);
+        Assert.Equal(ledColors.Colors, colors.Value.Colors);
+        Assert.Equal(ledColors.ZoneLengths, colors.Value.ZoneLengths);
+        Assert.Equal(["simulated-fan", "simulated-keyboard"], copy.DeviceIds!);
+    }
+
     // What belongs to this pc stays out: times, programs and role.
     [Fact]
     public async Task ExportScene_LeavesTheTimesProgramsAndRoleOut()
