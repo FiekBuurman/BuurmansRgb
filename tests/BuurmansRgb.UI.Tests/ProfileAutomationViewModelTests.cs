@@ -141,7 +141,10 @@ public sealed class ProfileAutomationViewModelTests
     // With more names the error says which one is wrong, the first one.
     [Theory]
     [InlineData("cs2.exe, game?.exe, x|y", "'game?.exe' is geen naam van een programma.")]
-    [InlineData("cs2.exe, start-game.bat", "'start-game.bat' is een snelkoppeling of script.")]
+    [InlineData("cs2.exe, start-game.bat, ", "'start-game.bat' is een snelkoppeling of script.")]
+    [InlineData("cs2.exe, x|y ,", "'x|y' is geen naam van een programma.")]
+    [InlineData("cs2.exe, start-game.bat", "De laatste naam is een snelkoppeling of script.")]
+    [InlineData("cs2.exe, x|y", "De laatste naam is geen naam van een programma.")]
     public void MoreProgramsWithAWrongOne_NamesItAndCannotApply(string text, string error)
     {
         _automation.Show("Gamen", ProfileAutomation.None);
@@ -150,6 +153,29 @@ public sealed class ProfileAutomationViewModelTests
 
         Assert.StartsWith(error, _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // The last name is only named once a comma comes after it, so typing a path or quotes does not
+    // change the error on each key, and a screen reader hears it once.
+    [Fact]
+    public void TypingAWrongLastProgram_RaisesTheErrorOnce()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe, ";
+        var raised = 0;
+        _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
+
+        _automation.ProgramText = "cs2.exe, \"D:";
+        _automation.ProgramText = "cs2.exe, \"D:|";
+        _automation.ProgramText = "cs2.exe, \"D:|G";
+        _automation.ProgramText = "cs2.exe, \"D:|Ga";
+
+        Assert.Equal(1, raised);
+        Assert.StartsWith("De laatste naam is geen naam van een programma.", _automation.Error);
+
+        _automation.ProgramText = "cs2.exe, \"D:|Ga\",";
+
+        Assert.StartsWith("'\"D:|Ga\"' is geen naam van een programma.", _automation.Error);
     }
 
     [Fact]

@@ -762,7 +762,8 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   een lege plek tussen twee komma's en dezelfde naam nog eens (ook in andere letters of zonder
   `.exe`) tellen niet mee, en na "Toepassen" staan de namen er met `.exe` en een komma ertussen.
   Klopt er een naam niet, dan zegt de melding welke ("'game?.exe' is geen naam van een
-  programma."). Een naam met een komma erin kan dus niet: kies je zo'n .exe bij "Kies uit wat nu
+  programma."). De naam die je nog typt, noemt hij pas als er een komma achter staat; tot dan
+  zegt hij "De laatste naam is …", zodat de melding niet bij elke toets verandert. Een naam met een komma erin kan dus niet: kies je zo'n .exe bij "Kies uit wat nu
   draait" of "Bladeren…", dan blijft het veld zoals het was en zegt de melding waarom. Had een
   scène zo'n naam al uit een eerdere versie (bijv. `a,b.exe`), dan staat hij in het veld met een
   melding, en kan "Toepassen" pas als je die naam uit het veld haalt; tot dan blijft de scène

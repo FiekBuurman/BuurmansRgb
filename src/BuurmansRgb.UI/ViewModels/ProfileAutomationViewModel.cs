@@ -282,10 +282,10 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // The names in the field, without the empty ones between two commas.
     private static List<string> SplitPrograms(string text) =>
         [.. text.Split(ProgramSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
-
     // With more times it says which one, the first that is wrong, by the number a screen reader
     // gives its field; with one time a number only gets in the way. The same for the programs, by
-    // the name that is wrong.
+    // the name that is wrong; the last one only by its name once a comma comes after it, so the
+    // error does not change on each key while that name is typed.
     private string? FindError() =>
         Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.ProfileLoadAtInvalid, Strings.ProfileTimeInvalid)
         : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
@@ -295,14 +295,16 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // saved, but would come back as two names; as long as it is in the field, nothing is applied.
     private string? FindProgramError(List<string> programs) =>
         _saved.Programs.FirstOrDefault(program => program.Contains(ProgramSeparator) && ProgramText.Contains(program, StringComparison.OrdinalIgnoreCase)) is { } withComma ? UiText.Format(Strings.ProfileProgramCommaSaved, withComma)
-        : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed)
-        : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed)
+        : programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed, Strings.ProfileProgramShortcutLast)
+        : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed, Strings.ProfileProgramInvalidLast)
         : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > ProfileAutomation.MaxPrograms ? UiText.Format(Strings.ProfileProgramsTooMany, ProfileAutomation.MaxPrograms)
         : null;
 
     private string ForRow(LoadTimeRow row, string single, string numbered) =>
         Times.Count == 1 ? single : UiText.Format(numbered, row.Number);
 
-    private static string ForProgram(List<string> programs, string program, string single, string named) =>
-        programs.Count == 1 ? single : UiText.Format(named, program);
+    private string ForProgram(List<string> programs, string program, string single, string named, string last) =>
+        programs.Count == 1 ? single
+        : programs.IndexOf(program) == programs.Count - 1 && !ProgramText.TrimEnd().EndsWith(ProgramSeparator) ? last
+        : UiText.Format(named, program);
 }
