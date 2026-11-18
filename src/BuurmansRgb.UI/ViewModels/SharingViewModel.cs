@@ -180,9 +180,9 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
             { IsRenamed: true } => UiText.Format(Strings.ShareSceneImportedRenamed, name, result.SharedName),
             _ => UiText.Format(Strings.ShareSceneImported, name),
         };
-        if (result.UnmatchedDevices is { Count: > 0 } unmatched)
+        if (UnmatchedDevices(result) is { } unmatched)
         {
-            message += " " + UiText.Format(Strings.ShareUnmatchedDevices, string.Join(", ", unmatched));
+            message += " " + UiText.Format(Strings.ShareUnmatchedDevices, unmatched);
         }
 
         if (result.AddedEffects is { Count: > 0 } effects)
@@ -191,6 +191,26 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
         }
 
         return message;
+    }
+
+    // "K70 RGB, Fan 2 en 1 apparaat zonder naam": the devices without a name are only counted, as
+    // their id means nothing to the user. Null when every device was found.
+    private static string? UnmatchedDevices(ShareImportResult result)
+    {
+        var named = string.Join(", ", result.UnmatchedDevices ?? []);
+        var unnamed = result.UnnamedUnmatchedDevices switch
+        {
+            <= 0 => null,
+            1 => Strings.ShareUnnamedDevicesOne,
+            var count => UiText.Format(Strings.ShareUnnamedDevices, count),
+        };
+        return (named, unnamed) switch
+        {
+            ("", null) => null,
+            (_, null) => named,
+            ("", _) => unnamed,
+            _ => UiText.Format(Strings.ShareNamedAndUnnamedDevices, named, unnamed),
+        };
     }
 
     private async Task ExportAsync(string name, string title, Func<IEngineApi, Task<byte[]>> export)

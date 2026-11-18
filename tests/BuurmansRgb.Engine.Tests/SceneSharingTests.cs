@@ -175,6 +175,29 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Empty(scene.Lighting.LedColors);
     }
 
+    // A device that is not here and has no name in the file is counted, not named by its id, which
+    // only means something to OpenRGB.
+    [Fact]
+    public async Task Import_DevicesNotHereWithoutAName_AreCountedNotNamed()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var json = Bytes("""
+            { "version": 1, "kind": "scene", "name": "Avond",
+              "lighting": { "color": "#FF8800", "brightness": 0.5, "effect": "static" },
+              "devices": [
+                { "id": "openrgb:k70-22222222", "type": "keyboard", "name": "K70 RGB", "ledColors": [ "#FF0000" ] },
+                { "id": "openrgb:fan-33333333", "type": "fan", "lighting": { "color": "#0000FF", "brightness": 1, "effect": "static" } },
+                { "id": "openrgb:strip-44444444", "lighting": { "color": "#00FF00", "brightness": 1, "effect": "static" } }
+              ] }
+            """);
+
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(["K70 RGB"], result.UnmatchedDevices!);
+        Assert.Equal(2, result.UnnamedUnmatchedDevices);
+    }
+
     // A scene of some devices of which none is here would do nothing; nothing is added.
     [Fact]
     public async Task Import_NoneOfItsDevicesHere_AddsNothing()

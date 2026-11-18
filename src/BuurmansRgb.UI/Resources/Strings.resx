@@ -1886,7 +1886,17 @@
   </data>
   <data name="ShareUnmatchedDevices" xml:space="preserve">
     <value>Wat niet paste: {0}; niet gevonden op deze pc.</value>
-    <comment>{0} zijn de namen van de apparaten, met een komma ertussen.</comment>
+    <comment>{0} zijn de namen van de apparaten, met een komma ertussen, of ShareUnnamedDevices.</comment>
+  </data>
+  <data name="ShareUnnamedDevices" xml:space="preserve">
+    <value>{0} apparaten zonder naam</value>
+  </data>
+  <data name="ShareUnnamedDevicesOne" xml:space="preserve">
+    <value>1 apparaat zonder naam</value>
+  </data>
+  <data name="ShareNamedAndUnnamedDevices" xml:space="preserve">
+    <value>{0} en {1}</value>
+    <comment>{0} zijn de namen van de apparaten, {1} is ShareUnnamedDevices.</comment>
   </data>
   <data name="ShareAddedEffects" xml:space="preserve">
     <value>Eigen effecten erbij: {0}.</value>

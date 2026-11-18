@@ -89,9 +89,12 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
             return ShareImportResult.Refused(ShareImportOutcome.TooManyEffects);
         }
 
-        List<string> notHere = [.. unmatched.Select(device => device.Name ?? device.Id)];
-        Trace.TraceInformation($"Imported the scene '{scene.Name}' as '{name!}'; {map.Count} devices here, {notHere.Count} not.");
-        return new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, name!, scene.Name, UnmatchedDevices: notHere, AddedEffects: addedEffects);
+        // A device without a name is only counted: its id means nothing to the user.
+        List<string> notHere = [.. unmatched.Select(device => device.Name).OfType<string>()];
+        var unnamed = unmatched.Count(device => device.Name is null);
+        Trace.TraceInformation($"Imported the scene '{scene.Name}' as '{name!}'; {map.Count} devices here, {notHere.Count + unnamed} not.");
+        return new ShareImportResult(
+            ShareImportOutcome.Imported, SharedKind.Scene, name!, scene.Name, UnmatchedDevices: notHere, AddedEffects: addedEffects, UnnamedUnmatchedDevices: unnamed);
     }
 
     // A file goes out only when another pc would take it: one beyond the limits of SharedFileReader,

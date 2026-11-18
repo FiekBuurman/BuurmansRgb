@@ -532,6 +532,7 @@ public sealed class EngineRpcTests : IDisposable
         Assert.True(result.IsRenamed);
         Assert.Equal(["K70"], result.UnmatchedDevices);
         Assert.Equal(["Disco"], result.AddedEffects);
+        Assert.Equal(2, result.UnnamedUnmatchedDevices);
     }
 
     // The other RGB software comes over the pipe with its ids and names, and a dismissed id goes back.
@@ -1024,7 +1025,7 @@ public sealed class EngineRpcTests : IDisposable
         public Task<ShareImportResult> ImportSharedAsync(byte[] json, CancellationToken ct = default)
         {
             ImportedShares.Add(json);
-            return Task.FromResult(new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen (2)", "Gamen", UnmatchedDevices: ["K70"], AddedEffects: ["Disco"]));
+            return Task.FromResult(new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen (2)", "Gamen", UnmatchedDevices: ["K70"], AddedEffects: ["Disco"], UnnamedUnmatchedDevices: 2));
         }
 
         public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
