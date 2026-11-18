@@ -114,6 +114,39 @@ public sealed class SceneNameCardViewTests
         });
     }
 
+    // One card: a name half typed on Kleur is still there on Scènes, in place of "+ Nieuwe scène",
+    // and Escape there closes it without saving.
+    [Fact]
+    public async Task ColorPageThenScenesPage_KeepsTheCardWithTheName()
+    {
+        FakeEngineApi? engine = null;
+        using var viewModel = await PageViews.ConnectAsync(api => engine = api);
+
+        AppTheme.Run(panel =>
+        {
+            var color = PageViews.Show<ColorPage>(panel, viewModel);
+            PageViews.Click(SaveAsScene(color));
+            NameBox(color).Text = "Klusmodus";
+            OffscreenWindow.WaitUntilIdle();
+
+            panel.Children.Clear();
+            var scenes = PageViews.Show<ScenesPage>(panel, viewModel);
+            var box = NameBox(scenes);
+            var newScene = SaveButton(scenes, Strings.NewScene);
+            Assert.True(box.IsVisible);
+            Assert.Equal("Klusmodus", box.Text);
+            Assert.False(newScene.IsVisible);
+
+            Assert.True(box.Focus());
+            PageViews.Press(box, Key.Escape);
+
+            Assert.DoesNotContain(engine!.Calls, call => call.StartsWith("profile save", StringComparison.Ordinal));
+            Assert.False(box.IsVisible);
+            Assert.True(newScene.IsVisible);
+            Assert.True(newScene.IsKeyboardFocused);
+        });
+    }
+
     private static Button SaveAsScene(DependencyObject page) => SaveButton(page, Strings.SaveAsScene);
 
     private static TextBox NameBox(DependencyObject page) => PageViews.Named<TextBox>(page, Strings.ProfileNameLabel);
