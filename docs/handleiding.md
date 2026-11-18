@@ -268,7 +268,7 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
 
 ### Kleur
 
-![De pagina Kleur: kleur mengen voor het hele huis](images/kleur.png)
+![De pagina Kleur: kleur mengen voor het hele huis, met "Bewaar als scène" onder de eigen kleuren](images/kleur.png)
 
 Bovenaan kies je een apparaat of "Hele huis" (een schermlezer noemt de keuze "Welk apparaat?"), met de
 schakelaar ernaast.
@@ -703,6 +703,8 @@ Alleen een pc zonder `profiles.json` krijgt ze, bij de eerste start van de engin
 scènes had (of ze allemaal verwijderde) vóór er startscènes waren, krijgt ze niet ongevraagd. De
 namen zijn Nederlands, zoals de rest van de app. Zijn er geen scènes, dan zegt de pagina wat een
 scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als scène" op Kleur.
+
+![De pagina Scènes zonder scènes: de uitleg die naar "Nieuwe scène" en "Bewaar als scène" op Kleur verwijst, met "+ Nieuwe scène" eronder](images/scenes-leeg.png)
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
   richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
