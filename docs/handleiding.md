@@ -342,7 +342,8 @@ schakelaar ernaast.
 - **Bewaar als scène:** de knop rechts onder je eigen kleuren bewaart de verlichting van alle
   apparaten zoals die nu is als scène, zonder dat je naar Scènes hoeft. Hij opent dezelfde kaart
   als "+ Nieuwe scène" op Scènes: typ een naam en kies **Opslaan** of druk op Enter; **Annuleren**
-  of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven** en
+  of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven**, staat
+  onder het naamveld "Overschrijft de scène '…'." (een schermlezer leest dat voor) en
   vervangt hij die scène (zijn tijden en programma blijven). Daarna staat de scène aan: op Scènes
   heeft zijn kaart de witte rand, rechtsonder staat "Scène '…' opgeslagen." en de focus gaat
   terug naar de knop. Een kleur die je verder verandert, zet de scène weer uit, zoals elke
@@ -714,7 +715,7 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
 - **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu is; de focus staat
   meteen in het naamveld. Enter of **Opslaan** bewaart, Escape of **Annuleren** niet, en daarna
   gaat de focus terug naar "+ Nieuwe scène". Heeft een scène die naam al, dan heet de knop
-  **Overschrijven**. De nieuwe scène staat meteen aan (witte rand) en is gekozen, met zijn
+  **Overschrijven** en zegt een regel onder het naamveld welke scène je vervangt. De nieuwe scène staat meteen aan (witte rand) en is gekozen, met zijn
   instellingen eronder. "Bewaar als scène" op Kleur doet hetzelfde met dezelfde kaart.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
   "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
