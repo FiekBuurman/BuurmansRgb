@@ -24,7 +24,7 @@
   hij blijft staan en overloopt naar de volgende.
 - **Scènes** zoals "Gamen" of "Rustig wit" (vijf staan al klaar): met één klik, uit het
   tray-menu, op vaste tijden of zolang een spel draait, of van buitenaf met een Stream Deck of
-  Home Assistant.
+  Home Assistant. Delen met anderen kan als bestand of als korte code om te plakken.
 - **Slim met je pc:** pauzeert bij vergrendelen, slaapstand, scherm uit en schermbeveiliging en
   zet de kleuren na het ontwaken terug.
 - **Eén melding tegelijk:** bovenaan staat hooguit één statusregel met wat je nu moet weten (de

@@ -53,7 +53,8 @@ zachter, naar rechts feller. Net als de kleur geldt dit meteen voor wat je recht
 
 Op **Scènes** staan al vijf scènes klaar: **Alles uit**, **Rustig wit**, **Regenboog**,
 **Pastel** en **Gamen**. Klik op een kaart en al je apparaten doen mee. Heb je liever je eigen
-scènes, verwijder ze dan gerust: ze komen niet terug.
+scènes, verwijder ze dan gerust: ze komen niet terug. Kreeg je een scène van iemand anders, als
+code of als bestand? Kies op **Scènes** **Code plakken** of **Importeren…**.
 
 ### Een kleur bewaren als scène
 
@@ -517,6 +518,12 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   dit effect Statisch in de kleur van het apparaat. De scènekaart zegt bij een eigen effect
   "Eigen effect", niet zijn naam, met bolletjes in de kleur van het apparaat.
 - Een eigen effect met één stap staat stil, net als Statisch: er draait dan geen animatie.
+- **Delen:** in het paneel Eigen effect zet **Code kopiëren** een korte code van het effect op
+  het klembord en bewaart **Exporteren…** het als bestand (`<naam>.brgb.json`). Onder de
+  effectkeuze staan **Importeren…** en **Code plakken** voor een effect (of een scène) van iemand
+  anders. Het effect komt in de effectkeuze; een effect met dezelfde naam blijft staan en het
+  nieuwe krijgt een nummer ("Disco (2)"). Had je precies dit effect al, dan zegt de melding dat
+  en komt er niets bij. Zie "Scènes en eigen effecten delen" bij Scènes.
 
 #### Voorbeeld
 
@@ -724,7 +731,8 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   scène staat meteen aan (witte rand) en is gekozen, met zijn instellingen eronder. "Bewaar als
   scène" op Kleur doet hetzelfde met dezelfde kaart.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
-  "Bijwerken met wat nu brandt", "Verwijderen", "Apparaten die meedoen" en "Vanzelf aanzetten".
+  "Bijwerken met wat nu brandt", "Verwijderen", "Exporteren…", "Code kopiëren", "Apparaten die
+  meedoen" en "Vanzelf aanzetten".
 - **Bijwerken met wat nu brandt** bewaart de verlichting zoals die nu is onder de gekozen scène.
   Eerst vraagt een klein venster "Scène '…' bijwerken met wat nu brandt?", met de knoppen
   "Annuleren" en "Bijwerken", want de verlichting die de scène had, komt niet terug. Het werkt
@@ -811,6 +819,46 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   de scène van daarvoor weer aan. Ook na een herstart van de engine (of de pc) staat dezelfde
   scène nog aan, zolang hij nog bestaat.
 - Zonelengtes en "Zones gelijk" horen niet bij een scène.
+
+#### Scènes en eigen effecten delen
+
+Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
+
+- **Code kopiëren** (bij een gekozen scène, onder de moersleutel) zet een korte code op het
+  klembord, zoals `brgb1:G6IAAMT…`, een paar honderd tekens. Plak hem in een chat of mail. De
+  ander kopieert de hele code en kiest op Scènes **Code plakken**. Spaties of een regel die een
+  mailprogramma erin zet, tellen niet mee.
+- **Exporteren…** bewaart dezelfde scène als bestand, `<naam>.brgb.json`, op een plek die je zelf
+  kiest. De ander kiest op Scènes **Importeren…** en dat bestand.
+- **Wat meegaat:** de naam, de verlichting van elk apparaat (kleur, helderheid, effect, snelheid,
+  richting, kleurenloop, kleuren van een effect, aan/uit en per-LED-kleuren), welke apparaten
+  meedoen, en de eigen effecten die de scène gebruikt. **Wat niet meegaat:** de tijden, de
+  programma's en "Alleen op de voorgrond" (die horen bij jouw pc en jouw spellen), en of de scène
+  "Uit om" is: een geïmporteerde scène is altijd een gewone scène. Een scène met `/`, `\` of `:` in
+  de naam gaat met een `-` op die plek.
+- **Apparaten:** elk apparaat van de scène zoekt eerst een apparaat met dezelfde id (op dezelfde
+  pc, of hetzelfde model op dezelfde plek), en anders een met hetzelfde type en dezelfde naam,
+  zoals "Corsair K70" als toetsenbord. Twee van hetzelfde type en dezelfde naam (twee
+  RAM-latjes die OpenRGB gelijk noemt) gaan op volgorde: het eerste van de scène naar het eerste
+  hier, enzovoort. Een apparaat dat er hier niet is, laat de scène weg; de melding noemt het
+  ("Wat niet paste: K70 RGB; die apparaten zijn hier niet gevonden."). Doet de scène maar een
+  paar apparaten en is er daarvan hier geen een, dan komt hij er niet bij: hij zou niets doen.
+- **Dezelfde naam:** er wordt nooit iets overschreven. Heb je al een scène "Gamen", dan heet de
+  nieuwe "Gamen (2)", en de melding zegt dat. Een eigen effect dat je al had met dezelfde naam en
+  stappen, gebruikt de scène gewoon; een ander effect met die naam komt erbij als "Disco (2)".
+  Een eigen effect met de naam van een ingebouwd effect krijgt ook een nummer.
+- **Na het importeren** is de nieuwe scène gekozen, met eronder zijn apparaten. Hij staat nog
+  niet aan: klik op de kaart om hem te zien.
+- **Wat niet lukt**, zegt de melding onderaan, die een schermlezer voorleest; er is dan niets
+  toegevoegd: een bestand of code die niet van buurmansRgb is, een code die niet heel is
+  (kopieer hem opnieuw), iets uit een nieuwere versie van buurmansRgb, een bestand groter dan
+  2 MB, of iets wat niet klopt (een onbekend veld, een kleur of getal dat niet kan, een naam die
+  op een pad lijkt). Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er
+  nog bij kunnen, dan komt er niets bij.
+- De knoppen werken met Tab en Enter, een schermlezer noemt ze "Scène exporteren…", "Code van de
+  scène kopiëren", "Scène of eigen effect importeren…" en "Code van een scène of eigen effect
+  plakken", en ze volgen het contrastthema en de tekstgrootte van Windows. De dialogen voor het
+  bestand zijn die van Windows; ze openen in de map waar je de vorige keer was.
 
 Hoe het vanzelf aanzetten werkt:
 
@@ -1190,7 +1238,10 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   "Alle apparaten" en een vinkje per apparaat, in de stijl van "Vanzelf aanzetten" eronder.
   Het programmaveld van "Vanzelf aanzetten" neemt meer namen met een komma ertussen
   (panelvoorstel G, testpanel): één tekstveld zoals in het ontwerp, in plaats van een lijst met
-  knoppen om toe te voegen en weg te halen.
+  knoppen om toe te voegen en weg te halen. "Exporteren…" en "Code kopiëren" bij de gekozen
+  scène, en "Importeren…" en "Code plakken" onder "+ Nieuwe scène", staan niet in het ontwerp
+  (panelvoorstel D, testpanel): gewone tweede knoppen, zoals "Instellingen bewaren…". Op Kleur
+  staan ze in het paneel Eigen effect, en als link onder "+ Eigen effect maken".
 - **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.

@@ -243,7 +243,7 @@ uitbreidingen in `docs/bouwplan.md`.
     LED's loopt in plaats van over de volgorde, met de richting
   - Andere manieren van overlopen: zacht beginnen en eindigen (`SmoothStep`), via zwart, of een
     veeg van de ene naar de andere kant in plaats van alle LED's tegelijk
-  - Een effect dupliceren, en exporteren of importeren (delen met anderen)
+  - Een effect dupliceren (exporteren en importeren kan sinds `scene-delen`)
   - De stappen slepen om ze te ordenen (nu met ← en →), en de tijden ook als getal typen
   - Verwijderen ongedaan maken, bijv. met "Ongedaan maken" in de statusregel, ook voor scènes; nu
     vraagt Verwijderen het eerst, maar een verwijderd effect of een verwijderde scène komt niet terug
@@ -656,6 +656,17 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een oudere versie van buurmansRgb slaat `programs` in `profiles.json` over en laat het bij de
   volgende wijziging weg; eventueel `program` met de eerste naam erbij blijven schrijven, zodat
   die versie ten minste het eerste spel nog herkent (`scene-programmas`)
+- Scènes delen, na de eerste versie (`scene-delen`):
+  - Bij een naam die er al is zelf kiezen, in de naamkaart van "+ Nieuwe scène": een andere naam
+    of (na een vraag) overschrijven. Nu krijgt de nieuwe altijd " (2)"
+  - Vóór het toevoegen laten zien wat er komt: de bolletjes van de scène en welke apparaten
+    passen, met een knop "Toevoegen"
+  - Een apparaat dat niet paste zelf aan een apparaat van hier koppelen, bijv. een "K70" aan je
+    eigen toetsenbord van een ander merk; nu valt het weg
+  - De tijden en programma's op verzoek meenemen (een vinkje bij Exporteren), voor wie twee eigen
+    pc's gelijk wil hebben
+  - Meer scènes en effecten in één bestand, en een `.brgb.json` openen met een dubbelklik (een
+    bestandskoppeling in de installer)
 
 ## Tray-menu
 
