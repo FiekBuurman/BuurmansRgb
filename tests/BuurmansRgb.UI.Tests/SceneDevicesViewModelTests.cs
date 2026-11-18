@@ -22,6 +22,20 @@ public sealed class SceneDevicesViewModelTests
     public void ShowDevices_LeavesOutAllDevices() =>
         Assert.Equal(["strip", "fan"], _devices.Options.Select(option => option.DeviceId));
 
+    // Devices of the scene that are not there now are counted, in one or more.
+    [Fact]
+    public void Show_DevicesAway_SaysHowMany()
+    {
+        _devices.Show("Lezen", ["fan"], isAllOff: false);
+        Assert.Null(_devices.AwayNote);
+
+        _devices.Show("Lezen", ["fan", "headset"], isAllOff: false);
+        Assert.Equal("Doet ook mee: 1 apparaat dat er nu niet is.", _devices.AwayNote);
+
+        _devices.Show("Lezen", ["fan", "headset", "mouse"], isAllOff: false);
+        Assert.Equal("Doen ook mee: 2 apparaten die er nu niet zijn.", _devices.AwayNote);
+    }
+
     // The same devices keep their boxes, so the box that has the focus keeps it once its change is
     // saved; another device list gets new ones.
     [Fact]

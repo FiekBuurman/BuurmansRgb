@@ -13,7 +13,11 @@ internal static class UiText
     // A text from Strings.resx named "<prefix>_<key>", such as "Effect_rainbow"; null when there is none.
     public static string? Lookup(string prefix, object key) => Strings.ResourceManager.GetString($"{prefix}_{key}", Strings.Culture);
 
-    public static string LedCount(int count) => count == 1 ? Strings.LedCountOne : Format(Strings.LedCount, count);
+    // The text for one ("<Name>One" in Strings.resx) or for more ("<Name>"), filled in with values.
+    public static string ForCount(int count, string one, string many, params ReadOnlySpan<object?> values) =>
+        Format(count == 1 ? one : many, values);
+
+    public static string LedCount(int count) => ForCount(count, Strings.LedCountOne, Strings.LedCount, count);
 
     // "Elke dag", "Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
     public static string Days(WeekDays days) => (days & WeekDays.Every) switch
