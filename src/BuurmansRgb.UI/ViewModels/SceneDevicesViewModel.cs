@@ -72,6 +72,16 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
     // What the engine saved for the scene; isAllOff for "Alles uit" (WholeHouseTimes.OffScene).
     public void Show(string profileName, IReadOnlyList<string>? deviceIds, bool isAllOff) => Display(profileName, deviceIds, isAllOff);
 
+    // "Alles uit" became another scene, such as after restoring the settings: the same scene and
+    // devices, with or without a choice.
+    public void ShowIsAllOff(bool isAllOff)
+    {
+        if (ProfileName is not null && isAllOff != IsAllOff)
+        {
+            Display(ProfileName, _saved, isAllOff);
+        }
+    }
+
     public void Clear() => Display(null, null, isAllOff: false);
 
     private void Display(string? profileName, IReadOnlyList<string>? deviceIds, bool isAllOff)

@@ -327,6 +327,31 @@ public sealed class MainViewModelProfileTests
         Assert.Null(devices.AllOffNote);
     }
 
+    // Such as after restoring the settings: the open scene gets or loses its choice of devices.
+    [Fact]
+    public async Task AllOffChanges_TheOpenSceneFollows()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Alles uit", "Nacht"]);
+            api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        });
+        viewModel.Profiles.SelectedName = "Nacht";
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.CanChoose);
+
+        Api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Nacht");
+        Api.RaiseProfilesChanged();
+        Assert.True(devices.IsAllOff);
+        Assert.False(devices.CanChoose);
+
+        Api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        Api.RaiseProfilesChanged();
+        Assert.False(devices.IsAllOff);
+        Assert.True(devices.CanChoose);
+        Assert.Empty(Api.Calls);
+    }
+
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>

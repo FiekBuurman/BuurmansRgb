@@ -1083,7 +1083,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
-        WholeHouseTimes.Show(await api.GetWholeHouseTimesAsync());
+        ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         ShowOptions(await ReadOptionsAsync(api));
@@ -1788,11 +1788,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     });
 
     // "Uit om" and "Aan om" as the engine saved them. They are the times of "Alles uit": when that
-    // scene is open on Scènes, its times there follow a change here.
+    // scene is open on Scènes, its times there follow a change here. Whether the open scene has a
+    // choice of devices follows which scene is "Alles uit".
     private void ShowWholeHouseTimes(WholeHouseTimes times)
     {
         var before = WholeHouseTimes.Saved.Off;
         WholeHouseTimes.Show(times);
+        if (Profiles.SceneDevices.ProfileName is { } open)
+        {
+            Profiles.SceneDevices.ShowIsAllOff(times.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, open));
+        }
+
         if (times.OffScene is { } scene && Profiles.SelectedName is { } selected && ProfileNames.Comparer.Equals(scene, selected) && !before.SequenceEqual(times.Off))
         {
             _ = ShowProfileAutomationAsync(selected);
