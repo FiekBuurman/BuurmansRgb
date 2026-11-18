@@ -688,7 +688,8 @@ vijf bolletjes met de kleuren van de scène (bij Komeet, Scanner en Fonkelen de 
 effect om de beurt; bij Vuur zijn kleuren heen en terug, met drie of meer kleuren zonder de
 eerste, de gloed: zonder eigen kleuren rood, oranje, geel, oranje en rood; van meer dan vijf
 kleuren zie je de eerste vijf), de naam en wanneer
-hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe"), of anders wat hij laat zien
+hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe", "Bij valorant.exe en nog 2"), of
+anders wat hij laat zien
 ("Regenboog · 80%", "Alles uit").
 
 Een nieuwe installatie begint met vijf **startscènes**, die op alle apparaten slaan, ook op een
@@ -754,15 +755,22 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   schermlezer leest de vraag voor. Een verwijderde scène komt niet terug.
 - **Vanzelf aanzetten:** vul bij "Aanzetten om" een tijd in (`23:00`, `23.00` of zonder iets
   ertussen `2300`; `930` en `0930` worden 09:30) en/of bij
-  "Aanzetten als dit programma start" de naam van een .exe (`eldenring.exe`; `eldenring` of een
-  heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit. Achter elke tijd
+  "Aanzetten als een van deze programma's start" de naam van een .exe (`eldenring.exe`;
+  `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
+  Meer programma's voor één scène, zoals Valorant, CS2 en Apex voor "Gamen"? Zet een komma tussen
+  de namen: `valorant.exe, cs2.exe, r5apex.exe`. Een scène kan tot twintig programma's hebben;
+  een lege plek tussen twee komma's en dezelfde naam nog eens (ook in andere letters of zonder
+  `.exe`) tellen niet mee, en na "Toepassen" staan de namen er met `.exe` en een komma ertussen.
+  Klopt er een naam niet, dan zegt de melding welke ("'game?.exe' is geen naam van een
+  programma."). Een naam met een komma erin kan dus niet. Achter elke tijd
   staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv. alleen
   ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
   "In het weekend om 10:00" of "ma, wo, vr om 19:00".
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
-  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld. De lijst
+  kies "Bladeren…" en zoek het .exe-bestand op; alleen de naam komt in het veld, achter de namen
+  die er al staan (een naam die er al staat, komt er niet nog eens bij). De lijst
   noemt elk programma bij de naam die het zelf in zijn .exe-bestand heeft, met de exe-naam
   erachter, bijv. "Microsoft Outlook (olk.exe)", op alfabet van die naam; heeft het geen naam,
   of alleen zijn exe-naam nog eens ("game"), dan de titel van zijn venster, en anders alleen
@@ -777,7 +785,8 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   wel. De lijst wordt gelezen zodra je een scène opent, en bij elke keer openklappen opnieuw;
   een programma dat je net startte, komt er na een ogenblik bij. Met een vinkje
   bij "Alleen als het op de voorgrond staat" (daaronder, grijs zonder programma) telt het
-  programma alleen zolang je het voor je hebt, zie "Alleen op de voorgrond" hieronder.
+  programma alleen zolang je het voor je hebt, zie "Alleen op de voorgrond" hieronder. Het
+  vinkje geldt voor alle programma's van de scène.
 - **Meer tijden:** "+ Nog een tijd" zet onder de tijden een lege rij erbij, met eigen dagen;
   zo gaat "Ochtend" om 07:00 op werkdagen en om 09:00 in het weekend aan. Een scène kan tot acht
   tijden hebben. "−" achter een rij haalt die tijd weg (de enige tijd wordt leeg), en een lege
@@ -838,12 +847,21 @@ Hoe het vanzelf aanzetten werkt:
   Meteen na het ontgrendelen of ontwaken kijkt hij één keer: een programma dat intussen
   startte, zet dan zijn scène aan, en een dat intussen stopte, zet de verlichting van daarvoor
   terug. Alleen een tijd die intussen komt, laat hem één keer eerder kijken (zie hieronder).
+- **Meer programma's bij één scène:** elk programma zet de scène aan, alsof het een programma
+  met een eigen scène was. Start je CS2 terwijl Valorant nog draait, dan gaat dezelfde scène
+  opnieuw aan; de verlichting van daarvoor komt pas terug als het laatste van de twee stopt. Met
+  "Alleen op de voorgrond" gaat wisselen tussen twee programma's van dezelfde scène zonder de
+  verlichting van daarvoor ertussen. Noemen twee scènes hetzelfde programma, dan zet dat
+  programma de eerste op alfabet aan, net als met één programma per scène; de andere programma's
+  van de tweede scène blijven die gewoon aanzetten. Uit om en een tijd wachten tot het laatste
+  programma met een eigen scène stopt (zie "Tijd tijdens een spel").
 - **Alleen op de voorgrond** (standaard uit): met het vinkje gaat de scène aan zodra een venster
   van het programma op de voorgrond komt (je klikt erop of wisselt er met Alt+Tab naartoe),
   meteen en niet pas binnen 2 seconden, en komt de verlichting van daarvoor terug zodra je naar
   iets anders wisselt of het programma stopt. Draait het alleen op de achtergrond, dan telt het
-  niet. De kaart zegt dan "Bij vlc.exe op de voorgrond". Handig voor bijv. een filmspeler of een
-  tekenprogramma dat je de hele dag open laat staan.
+  niet. De kaart zegt dan "Bij vlc.exe op de voorgrond", met meer programma's "Bij valorant.exe
+  en nog 2 op de voorgrond"; het vinkje geldt voor alle programma's van de scène. Handig voor
+  bijv. een filmspeler of een tekenprogramma dat je de hele dag open laat staan.
   - *Twee van zulke programma's:* wissel je van het ene naar het andere, dan gaat de ene scène
     rechtstreeks over in de andere, zonder de verlichting van daarvoor ertussen. Wissel je daarna
     naar een derde programma, dan komt de verlichting van vóór het eerste terug.
@@ -1162,6 +1180,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
   "Apparaten die meedoen" staat niet in het ontwerp (panelvoorstel D, testpanel): een kop met
   "Alle apparaten" en een vinkje per apparaat, in de stijl van "Vanzelf aanzetten" eronder.
+  Het programmaveld van "Vanzelf aanzetten" neemt meer namen met een komma ertussen
+  (panelvoorstel G, testpanel): één tekstveld zoals in het ontwerp, in plaats van een lijst met
+  knoppen om toe te voegen en weg te halen.
 - **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
@@ -1766,16 +1787,18 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 ### profiles.json
 
 De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color` t/m
-`ledColorZoneLengths`) en, als hij vanzelf aangaat, zijn tijden en/of `program`. Eén tijd staat
+`ledColorZoneLengths`) en, als hij vanzelf aangaat, zijn tijden en/of programma's. Eén tijd staat
 als `loadAt` (`"HH:mm"`) met eventueel `loadOn`, zoals vóór er meer tijden waren; meer tijden
-staan in `loadTimes`, elk met `at` en eventueel `on`. `"foregroundOnly": true` naast `program`
-laat het programma alleen tellen zolang het op de voorgrond staat:
+staan in `loadTimes`, elk met `at` en eventueel `on`. Zo ook de programma's: één staat als
+`program`, meer staan als lijst in `programs`. `"foregroundOnly": true` naast `program` of
+`programs` laat de programma's alleen tellen zolang een ervan op de voorgrond staat:
 
 ```json
 {
   "profiles": [
     { "name": "Film", "color": "#8000FF", "brightness": 0.3, "program": "vlc.exe", "foregroundOnly": true },
     { "name": "Gamen", "color": "#FF0000", "effect": "rainbow", "program": "eldenring.exe" },
+    { "name": "Shooters", "color": "#00FF00", "programs": [ "valorant.exe", "cs2.exe", "r5apex.exe" ] },
     { "name": "Nacht", "color": "#FF8800", "brightness": 0.1, "loadAt": "23:00" },
     { "name": "Ochtend", "color": "#FFFFFF", "loadTimes": [
       { "at": "07:00", "on": "mon,tue,wed,thu,fri" },
@@ -1786,14 +1809,22 @@ laat het programma alleen tellen zolang het op de voorgrond staat:
 }
 ```
 
-Zonder tijd en `program` gaat een scène nooit vanzelf aan. Zonder `loadOn` of `on` geldt die
-tijd elke dag; de dagen staan als `mon` t/m `sun` (met de hand mag ook `ma` t/m `zo`). Een
+Zonder tijd en programma gaat een scène nooit vanzelf aan. Een scène met één programma schrijft
+de engine als `program`, zodat een oudere versie hem ook leest; met meer schrijft hij alleen
+`programs`. Een oudere versie slaat `programs` over: zo'n scène gaat daar niet bij een programma
+aan, en na een wijziging in die versie is de lijst weg. Staan `program` en `programs` er met de
+hand allebei, dan tellen ze allebei; dezelfde naam twee keer (ook in andere letters) telt één
+keer, een naam die niet te lezen is (een getal, `"game?.exe"`) laat de engine weg, en na twintig
+programma's ook de rest. Een `programs` die geen lijst is, laat hij weg.
+
+Zonder `loadOn` of `on` geldt die tijd elke dag; de dagen staan als `mon` t/m `sun` (met de hand
+mag ook `ma` t/m `zo`). Een
 bestaand bestand met `loadAt` en `loadOn` blijft gewoon werken, en een scène met één tijd
 schrijft de engine nog zo, zodat een oudere versie hem ook leest. Staan `loadAt` en `loadTimes`
 er met de hand allebei, dan tellen ze allebei; dezelfde tijd twee keer telt één keer, en na acht
 tijden laat de engine de rest weg. Zonder `foregroundOnly` (of met `false`) telt een programma
 zolang het draait, zoals in een bestand van vóór deze keuze; de engine schrijft het alleen als
-het aan staat. Zonder `program` doet het niets, en een waarde die geen `true` of `false` is,
+het aan staat. Zonder programma doet het niets, en een waarde die geen `true` of `false` is,
 telt als uit. Een tijd met de hand leest de engine zoals de app hem leest: ook `"7:30"`,
 `"21.30"` en `"2130"`, als tekst tussen aanhalingstekens (een getal als `2130` zonder
 aanhalingstekens niet). Zelf schrijft de engine hem als `"21:30"`. Een oudere versie leest

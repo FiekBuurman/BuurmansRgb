@@ -602,16 +602,16 @@ uitbreidingen in `docs/bouwplan.md`.
   op het toetsenbord alleen de speeltoetsen (WASD, de cijfers) laat branden en de rest dimt, en
   intussen geen scène laat wisselen op een tijd of een ander programma; het liefst vanzelf aan als
   een spel op volledig scherm vooraan komt (een venster zonder rand zo groot als de monitor, via
-  `ForegroundHook`) en weer uit als het sluit. Bouwt op "Aanzetten als dit programma start" en
-  "Alleen op de voorgrond", die nu alleen een scène kiezen (testpanel 1-11-2026, Jayden)
+  `ForegroundHook`) en weer uit als het sluit. Bouwt op "Aanzetten als een van deze programma's
+  start" en "Alleen op de voorgrond", die nu alleen een scène kiezen (testpanel 1-11-2026, Jayden)
 - Een scène vanzelf aanzetten bij zonsondergang (en zonsopkomst) naast een vaste tijd: de tijden
   zijn zonder internet uit te rekenen uit een plaats (de NOAA-formule, met de breedte- en
   lengtegraad die je bij Instellingen invult of uit de locatieservice van Windows), elke dag
   opnieuw gepland zoals de tijden van "Vanzelf aanzetten" nu (testpanel 1-11-2026, Noor)
 - Een scène vanzelf aanzetten zodra OBS live gaat (en terug als de stream stopt): OBS 28 en nieuwer
   heeft obs-websocket ingebouwd (localhost, poort 4455, met een wachtwoord), dat
-  `StreamStateChanged` meldt; "Aanzetten als dit programma start" ziet alleen dat OBS draait, niet
-  dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
+  `StreamStateChanged` meldt; "Aanzetten als een van deze programma's start" ziet alleen dat OBS
+  draait, niet dat de stream loopt. Hoort bij de brug onder "Integraties", of een eigen luisteraar die alleen
   verbindt zolang een scène het vraagt (testpanel 1-11-2026, Noor)
 - De startscènes terug kunnen halen, bijv. met "Startscènes terugzetten" bij Instellingen, voor wie
   ze verwijderde en ze toch weer wil; een scène met dezelfde naam laten staan. Nu komen ze nooit
@@ -642,6 +642,20 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een oudere versie van buurmansRgb laat `role` en `internal` in `profiles.json` bij het opslaan
   weg, dus na teruggaan naar een oudere versie en weer terug moet je "Uit om" en "Aan om" opnieuw
   aanzetten; eventueel bij het terugzetten van een backup (#115) melden (`uit-om`)
+- Bij "Vanzelf aanzetten" melden als een programma al bij een andere scène staat, bijv. "cs2.exe
+  zet al 'Shooters' aan"; nu wint stil de eerste scène op alfabet, ook met meer programma's per
+  scène (`scene-programmas`)
+- Start een tweede programma van dezelfde scène terwijl het eerste draait (CS2 naast Valorant),
+  dan gaat de scène opnieuw aan, en verdwijnt wat je tijdens het eerste spel zelf veranderde;
+  overwegen de scène dan te laten staan zolang hij onaangeraakt of aangepast van dezelfde scène
+  is (`scene-programmas`)
+- De programma's van een scène als lijst met een knop "weghalen" per naam, als het tekstveld met
+  komma's in een gebruikerstest lastig blijkt (bijv. voor een schermlezer, die het veld als één
+  regel voorleest); ook nodig voor een exe-naam met een komma erin, die nu niet kan
+  (`scene-programmas`)
+- Een oudere versie van buurmansRgb slaat `programs` in `profiles.json` over en laat het bij de
+  volgende wijziging weg; eventueel `program` met de eerste naam erbij blijven schrijven, zodat
+  die versie ten minste het eerste spel nog herkent (`scene-programmas`)
 
 ## Tray-menu
 
