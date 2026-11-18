@@ -577,13 +577,20 @@ uitbreidingen in `docs/bouwplan.md`.
   (na 07:00 op werkdagen dus za en zo); nu begint hij op elke dag
 - Ook inhalen als de klok van Windows over een tijd heen springt (nu alleen na het ontwaken en
   bij het starten; `IClockEvents` zegt niet of de klok verzet werd of de pc ontwaakte)
-- "Overschrijven met wat nu brandt" ook eerst laten vragen, met dezelfde vraag als Verwijderen;
-  nu overschrijft hij meteen en komt de oude verlichting van de scène niet terug. Hetzelfde voor
-  "Overschrijven" in de naamkaart van "+ Nieuwe scène" en "Bewaar als scène" op Kleur, als je een
-  naam typt die al bestaat (`bewaar-als-scene`)
+- "Overschrijven" in de naamkaart van "+ Nieuwe scène" en "Bewaar als scène" op Kleur eerst laten
+  vragen, als je een naam typt die al bestaat, zoals "Bijwerken met wat nu brandt" nu doet; nu
+  overschrijft hij meteen en komt de oude verlichting van de scène niet terug
+  (`bewaar-als-scene`, `scene-bewerken`)
 - "Bewaar als scène" op Kleur met een keuze "alleen dit apparaat" als je rechtsboven één
-  apparaat koos; nu bewaart een scène altijd alle apparaten, zoals "+ Nieuwe scène"
-  (`bewaar-als-scene`)
+  apparaat koos; nu bewaart een nieuwe scène altijd alle apparaten en kies je de apparaten daarna
+  op Scènes bij "Apparaten die meedoen" (`bewaar-als-scene`, `scene-bewerken`)
+- Op de kaart van een scène van een paar apparaten zeggen voor hoeveel ("Lezen · 2 apparaten"),
+  ook voor een schermlezer; nu zie je dat alleen in het blok "… aanpassen", en tonen de bolletjes
+  de verlichting van het eerste apparaat (`scene-bewerken`)
+- Als er een nieuw apparaat bij komt, zeggen dat het bij scènes met een keuze van apparaten niet
+  meedoet, met een link naar Scènes; nu merk je dat pas als zo'n scène aangaat (`scene-bewerken`)
+- "Apparaten die meedoen" ook in het tray-menu tonen, bijv. "Lezen (2 apparaten)", zodat je ziet
+  dat die scène niet alles verandert (`scene-bewerken`)
 - Na "Bewaar als scène" een link "Naar Scènes" in de melding, om meteen een tijd of programma
   bij de nieuwe scène te zetten; nu staat de scène gekozen klaar als je zelf naar Scènes gaat
   (`bewaar-als-scene`)

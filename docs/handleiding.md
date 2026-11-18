@@ -63,7 +63,9 @@ scènes, verwijder ze dan gerust: ze komen niet terug.
 
 De scène bewaart hoe al je apparaten nu staan, niet alleen het apparaat dat je rechtsboven
 koos. Op **Scènes** staat hij daarna als kaart, met de witte rand van de scène die aan staat.
-Klik later op die kaart en alles staat weer zo.
+Klik later op die kaart en alles staat weer zo. Moet een scène maar een paar apparaten
+veranderen, bijv. alleen je bureaulamp om te lezen? Haal dan op **Scènes**, met de moersleutel op
+de kaart, het vinkje bij **Alle apparaten** weg en kies de apparaten die meedoen.
 
 ### Opslaan hoeft niet
 
@@ -680,7 +682,8 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 ![De pagina Scènes, met de naam van een nieuwe scène in de kaart van "+ Nieuwe scène"](images/scenes.png)
 
 Een scène bewaart de verlichting van alle apparaten onder een naam (in de code en in
-`profiles.json` heet dat een profiel). De scènes staan als kaarten, drie of vier naast elkaar:
+`profiles.json` heet dat een profiel). Standaard doen alle apparaten mee als hij aangaat; bij
+**Apparaten die meedoen** kies je dat hij er maar een paar verandert. De scènes staan als kaarten, drie of vier naast elkaar:
 vijf bolletjes met de kleuren van de scène (bij Komeet, Scanner en Fonkelen de kleuren van het
 effect om de beurt; bij Vuur zijn kleuren heen en terug, met drie of meer kleuren zonder de
 eerste, de gloed: zonder eigen kleuren rood, oranje, geel, oranje en rood; van meer dan vijf
@@ -710,8 +713,9 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
 ![De pagina Scènes zonder scènes: de uitleg die naar "Nieuwe scène" en "Bewaar als scène" op Kleur verwijst, met "+ Nieuwe scène" eronder](images/scenes-leeg.png)
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
-  richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van alle apparaten worden die
-  van de scène, en ook de opgeslagen verlichting.
+  richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van de apparaten die meedoen
+  (standaard alle) worden die van de scène, en ook de opgeslagen verlichting. De andere apparaten
+  houden wat ze hadden.
 - **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu is; de focus staat
   meteen in het naamveld. Enter of **Opslaan** bewaart, Escape of **Annuleren** niet, en daarna
   gaat de focus terug naar "+ Nieuwe scène". Heeft een scène die naam al, dan heet de knop
@@ -719,7 +723,29 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   scène staat meteen aan (witte rand) en is gekozen, met zijn instellingen eronder. "Bewaar als
   scène" op Kleur doet hetzelfde met dezelfde kaart.
 - **De moersleutel** op een kaart kiest de scène (lichtere rand) en toont eronder "Aanzetten",
-  "Overschrijven met wat nu brandt", "Verwijderen" en "Vanzelf aanzetten".
+  "Bijwerken met wat nu brandt", "Verwijderen", "Apparaten die meedoen" en "Vanzelf aanzetten".
+- **Bijwerken met wat nu brandt** bewaart de verlichting zoals die nu is onder de gekozen scène.
+  Eerst vraagt een klein venster "Scène '…' bijwerken met wat nu brandt?", met de knoppen
+  "Annuleren" en "Bijwerken", want de verlichting die de scène had, komt niet terug. Het werkt
+  zoals de vraag bij Verwijderen: de focus begint op Annuleren, Tab gaat naar Bijwerken, Enter of
+  Spatie doet de knop met de focus, Escape of het kruisje is Annuleren, en een schermlezer leest
+  de vraag voor. Daarna staat de scène aan en zegt de melding "Scène '…' bijgewerkt.". De scène
+  houdt zijn apparaten, tijden en programma; bij een scène van een paar apparaten tellen alleen
+  die als hij aangaat. "Overschrijven" in de kaart van "+ Nieuwe scène" vraagt (nog) niets.
+- **Apparaten die meedoen:** met een vinkje bij **Alle apparaten** (standaard) verandert de scène
+  elk apparaat, ook een dat er later bij komt. Haal je het weg, dan staan eronder alle apparaten
+  met hun naam, eerst allemaal aangevinkt; vink uit wat niet mee moet doen. Die houden hun eigen
+  kleur, effect en aan/uit als de scène aangaat, bijv. "Lezen" alleen voor de bureaulamp terwijl
+  de ventilatoren blijven zoals ze zijn. Elke klik is meteen bewaard ("Apparaten van '…'
+  opgeslagen."). Een apparaat dat er later bij komt, doet bij zo'n scène niet mee; vink het aan
+  als het wel moet. Een apparaat van de scène dat er nu niet is (uit, of OpenRGB ziet het even
+  niet), blijft erbij en doet weer mee als het terug is; de regel onder de lijst zegt hoeveel dat
+  er zijn. Zonder één aangevinkt apparaat zou de scène niets doen: dan zegt een melding "Kies
+  minstens één apparaat; een scène zonder apparaten doet niets." en blijft bewaard wat er was. Bij
+  **Alles uit** (de scène van **Uit om**) doen altijd alle apparaten mee, want "Aan om" zet daarna
+  alles weer aan; daar staat in plaats van de vinkjes waarom. De vinkjes werken met Tab en
+  Spatie, een schermlezer noemt elk apparaat bij zijn naam, en ze volgen het contrastthema en de
+  tekstgrootte van Windows.
 - **Verwijderen** vraagt eerst "Scène '…' verwijderen?" in een klein venster boven de app, met
   de knoppen "Annuleren" en "Verwijderen". De focus begint op Annuleren, dus een Enter te veel
   laat de scène staan; Tab gaat naar Verwijderen, Enter of Spatie doet de knop met de focus, en
@@ -762,7 +788,7 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
 - **De scène die aan staat** heeft een witte rand van 2 px, zoals in het ontwerp, en in het
   tray-menu een vinkje; een schermlezer zegt "Staat aan". Dat is de scène die het laatst aanging
   (met een klik, uit het tray-menu, op tijd of bij een programma) of die je net opsloeg of
-  overschreef. Verandert de verlichting daarna op een andere manier (een kleur, de helderheid,
+  bijwerkte. Verandert de verlichting daarna op een andere manier (een kleur, de helderheid,
   een apparaat uit), dan staat er geen scène meer aan. Stopt een spel met een eigen scène, dan staat
   de scène van daarvoor weer aan. Ook na een herstart van de engine (of de pc) staat dezelfde
   scène nog aan, zolang hij nog bestaat.
@@ -850,6 +876,11 @@ Hoe het vanzelf aanzetten werkt:
   zelf iets veranderd, dan komt hij meteen. Komt de tijd terwijl Windows vergrendeld is of
   slaapt, dan kijkt de engine eerst één keer of het programma nog draait: stopte het intussen,
   dan komt de scène van de tijd meteen, en niet pas na het ontgrendelen.
+- **Een scène van een paar apparaten** gaat overal zo aan: met een klik, uit het tray-menu, met
+  `--scene`, op tijd en bij een programma verandert hij alleen zijn apparaten. Stopt het
+  programma, dan komt de verlichting van daarvoor terug voor alle apparaten, zoals altijd. Komt
+  zijn tijd tijdens een spel, dan komt hij na het spel over de verlichting van vóór het spel.
+  **Uit om** en **Aan om** zetten altijd alle apparaten uit en aan.
 
 ### Instellingen
 
@@ -1128,6 +1159,8 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Scènes = profielen:** wat in de app een scène heet, is in de code en in `profiles.json`
   een profiel. Elke kaart heeft een moersleutel om hem aan te passen; de gekozen kaart krijgt
   dan een lichtere rand, en de witte rand van het ontwerp blijft voor de scène die aan staat.
+  "Apparaten die meedoen" staat niet in het ontwerp (panelvoorstel D, testpanel): een kop met
+  "Alle apparaten" en een vinkje per apparaat, in de stijl van "Vanzelf aanzetten" eronder.
 - **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
@@ -1185,6 +1218,7 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   "Annuleren" ernaast, die een gewone knop is. Zo zijn de knoppen Nederlands, ook op een Windows in
   een andere taal, wat een `MessageBox` van Windows niet is. Dezelfde vraag staat voor
   "Instellingen terugzetten…", met **Terugzetten** als primaire knop: de knop zegt wat er gebeurt.
+  Zo ook voor "Bijwerken met wat nu brandt" bij een scène, met **Bijwerken**.
   Het kiezen van een bestand gaat wel met de dialogen van Windows (Opslaan als en Openen), in de
   taal van Windows.
 - **Instellingen** staat niet in het ontwerp; de pagina volgt de kaarten van de andere pagina's,
@@ -1771,8 +1805,23 @@ bestand geen geldige JSON, dan zet de engine het opzij als `profiles.json.broken
 hij met een lege lijst. Een scène zonder naam, met een naam van meer dan 40 tekens, of met
 dezelfde naam als een eerdere (hoofdletters tellen niet), slaat de engine over.
 
+Een scène van een paar apparaten ("Apparaten die meedoen") heeft `onlyDevices`: de ids van die
+apparaten, dezelfde als de sleutels van `devices` (de verlichting per apparaat, zoals in
+`settings.json`), in de volgorde van de lijst in de app. Zonder `onlyDevices` doen alle apparaten
+mee, ook een die er later bij komt, zoals in elk bestand van daarvoor:
+
+```json
+{ "name": "Lezen", "color": "#FFF4E5", "onlyDevices": ["openrgb-bureaulamp-3f2a91c0"] }
+```
+
+Een id die geen tekst of leeg is, of die er twee keer staat, laat de engine weg; een lege lijst,
+een lijst zonder geldige id of `onlyDevices` bij "Alles uit" (`"role": "allOff"`) telt als alle
+apparaten. Een oudere versie van buurmansRgb kent `onlyDevices` niet: die leest het bestand
+gewoon, maar zet zo'n scène op alle apparaten aan en laat `onlyDevices` bij de volgende wijziging
+van de scènes weg. Met deze versie kies je de apparaten dan opnieuw.
+
 Is er bij de eerste start van de engine nog geen `profiles.json`, dan schrijft hij er een met de
-vijf startscènes (zie "Scènes"), alle vijf zonder `devices`, dus voor alle apparaten. Dat
+vijf startscènes (zie "Scènes"), alle vijf zonder `onlyDevices`, dus voor alle apparaten. Dat
 gebeurt één keer per pc (`startScenesCreated` in `settings.json`): een `profiles.json` met een
 lege lijst, of geen `profiles.json` meer nadat je hem weghaalde, blijft zo. Een `profiles.json`
 die niet te lezen was en naar `profiles.json.broken` ging, telt ook als een bestand dat er was.
