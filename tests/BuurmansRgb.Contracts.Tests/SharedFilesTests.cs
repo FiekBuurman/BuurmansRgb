@@ -38,4 +38,16 @@ public sealed class SharedFilesTests
         Assert.Equal(new string('a', 36) + " (2)", free);
         Assert.True(free.Length <= 40);
     }
+
+    // An emoji is two chars; cutting between them would leave half of one.
+    [Fact]
+    public void FreeName_CutInAnEmoji_LeavesTheWholeEmojiOut()
+    {
+        var name = new string('a', 35) + "\U0001F3AE" + "bcd";
+
+        var free = SharedFiles.FreeName(name, 40, other => other == name);
+
+        Assert.Equal(new string('a', 35) + " (2)", free);
+        Assert.DoesNotContain(free, char.IsSurrogate);
+    }
 }

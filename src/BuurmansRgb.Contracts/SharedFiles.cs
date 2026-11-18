@@ -46,7 +46,8 @@ public static class SharedFiles
     }
 
     // The name, or when that is taken the first of "name (2)", "name (3)" and so on that is free,
-    // with the end of the name cut off where the number would make it longer than maxLength.
+    // with the end of the name cut off where the number would make it longer than maxLength, but not
+    // in the middle of a character.
     public static string FreeName(string name, int maxLength, Func<string, bool> isTaken)
     {
         ArgumentNullException.ThrowIfNull(name);
@@ -59,7 +60,14 @@ public static class SharedFiles
         for (var number = 2; ; number++)
         {
             var suffix = string.Create(CultureInfo.InvariantCulture, $" ({number})");
-            var candidate = name[..Math.Min(name.Length, maxLength - suffix.Length)].TrimEnd() + suffix;
+            // Not between the two halves of a character outside the BMP, such as an emoji.
+            var length = Math.Min(name.Length, maxLength - suffix.Length);
+            if (length is > 0 && length < name.Length && char.IsHighSurrogate(name[length - 1]))
+            {
+                length--;
+            }
+
+            var candidate = name[..length].TrimEnd() + suffix;
             if (!isTaken(candidate))
             {
                 return candidate;
