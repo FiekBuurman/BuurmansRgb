@@ -1,7 +1,7 @@
 <!-- Kleur mengen (§ 5.2 and § 6): the lamp to change at the top; left a big preview with the strip and the
      hex code, and under it the colors of the loop or of the effect, or the editor of an own effect; right the
      Rood, Groen and Blauw sliders, the presets and the own colors, whose color goes on at once (without the
-     design's "Op de strip zetten"). Below them the brightness,
+     design's "Op de strip zetten"), and in its place "Bewaar als scène". Below them the brightness,
      effect, speed and direction of the lamp, and the preview of its LEDs with the per-LED editor
      and the zone lengths. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ColorPage"
@@ -411,6 +411,15 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </DockPanel>
+
+                    <!-- The lighting of all devices as a scene, without going to Scènes: at the place of the design's
+                         "Op de strip zetten" (§ 5.2), with the name card of "+ Nieuwe scène" instead of it while naming. -->
+                    <Button x:Name="SaveAsScene" Margin="0,10,0,0" HorizontalAlignment="Left" Style="{StaticResource SecondaryButton}"
+                            Content="{x:Static res:Strings.SaveAsScene}" ToolTip="{x:Static res:Strings.NewSceneHint}" ToolTipService.ShowOnDisabled="True"
+                            AutomationProperties.HelpText="{x:Static res:Strings.NewSceneHint}"
+                            Command="{Binding Profiles.StartNewCommand}" Click="OnSaveAsSceneClick"
+                            Visibility="{Binding Profiles.IsNaming, Converter={StaticResource InverseBoolToVisibility}}" />
+                    <views:SceneNameCard x:Name="SceneName" Margin="0,10,0,0" ReturnFocusTo="{Binding ElementName=SaveAsScene}" />
                 </StackPanel>
             </views:CardGrid>
 

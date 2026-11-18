@@ -28,6 +28,9 @@ public partial class ColorPage : UserControl
         });
     }
 
+    // The name card shows instead of the button; the focus goes with it, so typing can start at once.
+    private void OnSaveAsSceneClick(object sender, RoutedEventArgs e) => SceneName.FocusName();
+
     // A hex code that is no color makes way for the code of the color once the field loses the focus.
     private void OnHexLostFocus(object sender, RoutedEventArgs e)
     {

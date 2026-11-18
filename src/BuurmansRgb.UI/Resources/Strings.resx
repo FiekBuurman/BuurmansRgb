@@ -1307,6 +1307,10 @@
   <data name="NewSceneHint" xml:space="preserve">
     <value>Bewaart de verlichting van alle apparaten zoals die nu is, onder een naam die je kiest.</value>
   </data>
+  <data name="SaveAsScene" xml:space="preserve">
+    <value>Bewaar als scène</value>
+    <comment>Knop op Kleur die dezelfde naamkaart opent als Nieuwe scène op Scènes; de tekst koos de gebruiker na het testpanel (1-11-2026). Bewaart alle apparaten, niet alleen het gekozen apparaat.</comment>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Annuleren</value>
   </data>

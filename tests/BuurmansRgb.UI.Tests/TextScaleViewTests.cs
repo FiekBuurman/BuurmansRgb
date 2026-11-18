@@ -77,6 +77,13 @@ public sealed class TextScaleViewTests
             Check(AppPage.Color, "strip, komeet", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.Comet));
             Check(AppPage.Color, "strip, per LED", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.PerLed));
             Check(AppPage.Color, "strip, eigen effect", () => viewModel.SelectedEffect = Effect(viewModel, Disco.Id));
+            Check(AppPage.Color, "Bewaar als scène", () =>
+            {
+                viewModel.Profiles.StartNewCommand.Execute(null);
+                viewModel.Profiles.Name = "Klusmodus";
+            });
+            Check(AppPage.Scenes, "naam van een nieuwe scène");
+            viewModel.Profiles.CancelNewCommand.Execute(null);
             Check(AppPage.Scenes, "");
             Check(AppPage.Scenes, "Klusmodus aanpassen", () => viewModel.Profiles.EditCommand.Execute(viewModel.Profiles.Cards[0]));
             Check(AppPage.Settings, "");
