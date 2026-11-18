@@ -451,6 +451,50 @@ public sealed class CustomEffectLibraryTests : IDisposable
         }
     }
 
+    // An import that is the first read after a failed Load, and whose next step fails: the
+    // exception goes on, the effects go again, and the apps hear once of the list that was read.
+    [Fact]
+    public void Import_AfterAFailedLoad_NextStepThrows_AddsNothingAndTellsTheAppsOnce()
+    {
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+        _store.LoadException = null;
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            _library.Import([Effect("custom:abc", "Disco")], _ => throw new InvalidOperationException("scene not saved")));
+        _time.Advance(Delay);
+
+        Assert.Equal("scene not saved", exception.Message);
+        Assert.Equal(1, changes);
+        Assert.Empty(_library.Effects);
+        Assert.Empty(_store.Effects);
+        Assert.Equal(1, changes);
+    }
+
+    // The next step runs before the apps hear of the effects, so they never see effects that go
+    // again; once it went through, they hear of them once.
+    [Fact]
+    public void Import_AfterAFailedLoad_TellsTheAppsOnceAfterTheNextStep()
+    {
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+        _store.LoadException = null;
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+        var changesInNextStep = -1;
+
+        var imported = _library.Import([Effect("custom:abc", "Disco")], _ => changesInNextStep = changes);
+
+        Assert.Equal(0, changesInNextStep);
+        Assert.Equal(1, changes);
+        var (effect, added) = Assert.Single(imported!);
+        Assert.True(added);
+        Assert.Equal([effect], _library.Effects);
+        Assert.Equal(1, changes);
+    }
+
     // A backup replaces the list, also a change that still waited: that is not written over it.
     [Fact]
     public void Replace_TakesTheFileAndDropsWhatWaited()
