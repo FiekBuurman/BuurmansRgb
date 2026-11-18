@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text.Json;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
@@ -59,6 +60,12 @@ internal static class SharedFileReader
 
     // The type of a device as the file has it, such as "ledStrip"; the name in camelCase of DeviceType.
     public static string WriteType(DeviceType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
+
+    // A control character such as a line break, or one of format that does not show, such as
+    // U+200B (zero width space) or U+202E (right-to-left override), which makes a device look like
+    // another in the result.
+    public static bool HasHiddenCharacter(string value) =>
+        value.Any(character => char.IsControl(character) || char.GetUnicodeCategory(character) == UnicodeCategory.Format);
 
     // First only "version" and "kind", so a file of a newer version, which may have fields this
     // engine does not know, says so instead of that it is wrong. Null when they are right.
@@ -147,7 +154,7 @@ internal static class SharedFileReader
 
     private static string ReadName(string? name, Func<string?, string?> normalize, string what)
     {
-        var normalized = normalize(name) ?? throw new InvalidShareException($"the {what} name '{name}' is empty, too long or has a control character");
+        var normalized = normalize(name) ?? throw new InvalidShareException($"the {what} name of {name?.Length ?? 0} characters is empty, too long or has a control character");
         Check(!SharedFiles.IsPathLike(normalized), $"the {what} name '{normalized}' is like a path");
         return normalized;
     }
@@ -158,7 +165,7 @@ internal static class SharedFileReader
         var effects = new List<CustomEffect>();
         foreach (var effect in shared)
         {
-            Check(CustomEffects.IsCustom(effect.Id), $"'{effect.Id}' is not the id of an own effect");
+            Check(CustomEffects.IsCustom(effect.Id), $"an effect id of {effect.Id.Length} characters is not the id of an own effect");
             Check(!effects.Exists(other => other.Id == effect.Id), $"the own effect '{effect.Id}' twice");
             var name = ReadName(effect.Name, CustomEffects.NormalizeName, "effect");
             try
@@ -177,15 +184,15 @@ internal static class SharedFileReader
     private static SharedDeviceRef ReadDevice(SharedDevice device)
     {
         var id = device.Id;
-        Check(id.Length is > 0 and <= SharedFiles.MaxDeviceIdLength && !id.Any(char.IsControl) && id.Trim().Length == id.Length, $"the device id '{id}' is empty, too long or has a control character");
+        Check(id.Length is > 0 and <= SharedFiles.MaxDeviceIdLength && !HasHiddenCharacter(id) && id.Trim().Length == id.Length, $"a device id of {id.Length} characters is empty, too long or has a hidden character");
         DeviceType? type = null;
         if (device.Type is { } typeName)
         {
             type = Enum.GetValues<DeviceType>().Cast<DeviceType?>().FirstOrDefault(known => WriteType(known!.Value) == typeName)
-                ?? throw new InvalidShareException($"the device type '{typeName}' is not known");
+                ?? throw new InvalidShareException($"a device type of {typeName.Length} characters is not known");
         }
 
-        Check(device.Name is null || (device.Name.Length is > 0 and <= SharedFiles.MaxDeviceNameLength && !device.Name.Any(char.IsControl)), $"the device name '{device.Name}' is empty, too long or has a control character");
+        Check(device.Name is null || (device.Name.Length is > 0 and <= SharedFiles.MaxDeviceNameLength && !HasHiddenCharacter(device.Name)), $"a device name of {device.Name?.Length} characters is empty, too long or has a hidden character");
         return new SharedDeviceRef(id, type, device.Name);
     }
 
@@ -212,7 +219,7 @@ internal static class SharedFileReader
     private static DeviceLighting ReadLighting(SharedLighting lighting, IReadOnlySet<string> effectIds)
     {
         Check(lighting.Brightness is >= 0.0 and <= 1.0, $"brightness {lighting.Brightness} is not 0 to 1");
-        Check(EffectCatalog.IsKnown(lighting.Effect) || effectIds.Contains(lighting.Effect), $"the effect '{lighting.Effect}' is not known, nor in the file");
+        Check(EffectCatalog.IsKnown(lighting.Effect) || effectIds.Contains(lighting.Effect), $"an effect id of {lighting.Effect.Length} characters is not known, nor in the file");
         Check(lighting.Speed is null || EffectSpeed.IsValid(lighting.Speed.Value), $"speed {lighting.Speed} is not {EffectSpeed.Min} to {EffectSpeed.Max}");
         Check(EffectDirection.IsValid(lighting.Direction), $"direction {lighting.Direction} is not {EffectDirection.Min} to {EffectDirection.Max}");
         var loop = lighting.ColorLoop is { } shared ? new ColorLoop([.. shared.Colors], shared.Spread) : ColorLoop.Default;

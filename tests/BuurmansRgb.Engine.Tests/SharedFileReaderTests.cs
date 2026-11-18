@@ -163,6 +163,11 @@ public sealed class SharedFileReaderTests
         { "unknown device type", root => Device(root)["type"] = "toaster" },
         { "device type as a number", root => Device(root)["type"] = 6 },
         { "device name too long", root => Device(root)["name"] = new string('a', SharedFiles.MaxDeviceNameLength + 1) },
+        { "device id with a right-to-left override", root => Device(root)["id"] = "openrgb:k70\u202E" },
+        { "device id with a zero width space", root => Device(root)["id"] = "openrgb:\u200Bk70" },
+        { "device name with a right-to-left override", root => Device(root)["name"] = "K70\u202Elcip" },
+        { "device name with a zero width space", root => Device(root)["name"] = "K\u200B70" },
+        { "device name with a line break", root => Device(root)["name"] = "K70\nFan" },
         { "too many devices", root => AddDevices(root, SharedFiles.MaxDevices) },
         { "too many led colors", root => Device(root)["ledColors"] = Reds(SharedFiles.MaxLedsPerDevice + 1) },
         { "no led colors", root => Device(root)["ledColors"] = new JsonArray() },
@@ -189,6 +194,18 @@ public sealed class SharedFileReaderTests
         Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, change));
     }
 
+    // The trace is for whoever made the file; a refused name or id could hold a line break that
+    // starts a line of its own there, so only its length is told.
+    [Fact]
+    public void Read_DeviceNameRefused_TraceLeavesTheNameOut()
+    {
+        using var trace = new TraceCapture();
+
+        Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, root => Device(root)["name"] = "K70\nImport: something else"));
+
+        Assert.Contains(trace.Messages, message => message.Contains("a device name of 26 characters", StringComparison.Ordinal));
+        Assert.DoesNotContain(trace.Messages, message => message.Contains("something else", StringComparison.Ordinal));
+    }
     // The serializer would take the last of two; which one was meant is anyone's guess.
     [Fact]
     public void Read_NameTwiceInOneObject_IsInvalid() =>

@@ -48,7 +48,7 @@ internal static class SharedFileWriter
     private static SharedDevice WriteDevice(string id, LightingState lighting, IReadOnlyList<RgbDevice> devices, IReadOnlyList<CustomEffect> effects, List<CustomEffect> shown)
     {
         var device = devices.FirstOrDefault(known => known.Id == id);
-        var name = device?.Name is { Length: > 0 and <= SharedFiles.MaxDeviceNameLength } known && !known.Any(char.IsControl) ? known : null;
+        var name = device?.Name is { Length: > 0 and <= SharedFiles.MaxDeviceNameLength } known && !SharedFileReader.HasHiddenCharacter(known) ? known : null;
         var colors = lighting.LedColors.GetValueOrDefault(id);
         return new SharedDevice
         {
