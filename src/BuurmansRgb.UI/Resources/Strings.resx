@@ -656,7 +656,7 @@
     <value>'{0}' heeft een komma in de naam, en de komma zet hier de namen uit elkaar. Haal de naam uit het veld om iets te veranderen.</value>
   </data>
   <data name="ProfileProgramsTooMany" xml:space="preserve">
-    <value>Een scène kan hoogstens {0} programma's hebben.</value>
+    <value>Een scène kan hooguit {0} programma's hebben.</value>
   </data>
   <data name="ProfileAutomationSaved" xml:space="preserve">
     <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>

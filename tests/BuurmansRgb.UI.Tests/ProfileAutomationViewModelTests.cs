@@ -185,7 +185,7 @@ public sealed class ProfileAutomationViewModelTests
 
         _automation.ProgramText = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 1).Select(i => $"game{i}"));
 
-        Assert.Equal($"Een scène kan hoogstens {ProfileAutomation.MaxPrograms} programma's hebben.", _automation.Error);
+        Assert.Equal($"Een scène kan hooguit {ProfileAutomation.MaxPrograms} programma's hebben.", _automation.Error);
         Assert.False(_automation.ApplyCommand.CanExecute(null));
     }
 
