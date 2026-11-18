@@ -740,8 +740,9 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   opgeslagen."). Een apparaat dat er later bij komt, doet bij zo'n scène niet mee; vink het aan
   als het wel moet. Een apparaat van de scène dat er nu niet is (uit, of OpenRGB ziet het even
   niet), blijft erbij en doet weer mee als het terug is; de regel onder de lijst zegt hoeveel dat
-  er zijn. Zonder één aangevinkt apparaat zou de scène niets doen: dan zegt een melding "Kies
-  minstens één apparaat; een scène zonder apparaten doet niets." en blijft bewaard wat er was. Bij
+  er zijn. Zonder één aangevinkt apparaat (en zonder zo'n apparaat dat er nu niet is) zou de
+  scène niets doen: dan zegt een melding "Kies minstens één apparaat; een scène zonder apparaten
+  doet niets." en blijft bewaard wat er was. Bij
   **Alles uit** (de scène van **Uit om**) doen altijd alle apparaten mee, want "Aan om" zet daarna
   alles weer aan; daar staat in plaats van de vinkjes waarom. De vinkjes werken met Tab en
   Spatie, een schermlezer noemt elk apparaat bij zijn naam, en ze volgen het contrastthema en de

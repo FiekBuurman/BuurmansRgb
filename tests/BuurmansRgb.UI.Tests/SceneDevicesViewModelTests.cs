@@ -52,6 +52,20 @@ public sealed class SceneDevicesViewModelTests
         Assert.Equal([["strip"], ["strip", "fan"]], _changes.Select(change => change.DeviceIds!.ToArray()));
     }
 
+    // A device that is away, such as a headset that is off, still counts: the scene can go back to
+    // only that device.
+    [Fact]
+    public void UncheckEveryBox_WithADeviceAway_SendsThatDevice()
+    {
+        _devices.Show("Bellen", ["headset"], isAllOff: false);
+
+        _devices.Options[1].IsChecked = true;
+        _devices.Options[1].IsChecked = false;
+
+        Assert.Null(_devices.Error);
+        Assert.Equal([["fan", "headset"], ["headset"]], _changes.Select(change => change.DeviceIds!.ToArray()));
+    }
+
     // Without a scene there is nothing to choose for, and nothing is sent.
     [Fact]
     public void Clear_HasNoChoice()

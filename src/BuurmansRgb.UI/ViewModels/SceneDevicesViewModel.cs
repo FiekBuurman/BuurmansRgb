@@ -165,7 +165,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
     }
 
     // The checked devices in the order of the list, and after them those of the scene that are
-    // not there now. Without a checked device nothing is saved: the scene would do nothing now.
+    // not there now. Without any device nothing is saved: the scene would do nothing.
     private void Apply()
     {
         if (!CanChoose)
@@ -173,7 +173,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
             return;
         }
 
-        if (!AllDevices && !Options.Any(option => option.IsChecked))
+        if (!AllDevices && !Options.Any(option => option.IsChecked) && AwayIds().Count == 0)
         {
             Error = Strings.SceneDevicesNone;
             return;
