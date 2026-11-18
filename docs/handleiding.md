@@ -347,7 +347,7 @@ schakelaar ernaast.
   als "+ Nieuwe scène" op Scènes: typ een naam en kies **Opslaan** of druk op Enter; **Annuleren**
   of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven**, staat
   onder het naamveld "Overschrijft de scène '…'." (een schermlezer leest dat voor) en
-  vervangt hij die scène (zijn tijden en programma blijven). Daarna staat de scène aan: op Scènes
+  vervangt hij die scène (zijn tijden en programma's blijven). Daarna staat de scène aan: op Scènes
   heeft zijn kaart de witte rand, rechtsonder staat "Scène '…' opgeslagen." en de focus gaat
   terug naar de knop. Een kleur die je verder verandert, zet de scène weer uit, zoals elke
   wijziging met de hand; de scène zelf blijft zoals je hem bewaarde. Het is één kaart: ga je
@@ -739,7 +739,7 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   zoals de vraag bij Verwijderen: de focus begint op Annuleren, Tab gaat naar Bijwerken, Enter of
   Spatie doet de knop met de focus, Escape of het kruisje is Annuleren, en een schermlezer leest
   de vraag voor. Daarna staat de scène aan en zegt de melding "Scène '…' bijgewerkt.". De scène
-  houdt zijn apparaten, tijden en programma; bij een scène van een paar apparaten tellen alleen
+  houdt zijn apparaten, tijden en programma's; bij een scène van een paar apparaten tellen alleen
   die als hij aangaat. "Overschrijven" in de kaart van "+ Nieuwe scène" vraagt (nog) niets.
 - **Apparaten die meedoen:** met een vinkje bij **Alle apparaten** (standaard) verandert de scène
   elk apparaat, ook een dat er later bij komt. Haal je het weg, dan staan eronder alle apparaten
