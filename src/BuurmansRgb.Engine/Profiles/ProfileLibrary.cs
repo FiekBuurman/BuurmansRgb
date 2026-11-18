@@ -179,7 +179,8 @@ internal sealed class ProfileLibrary
 
     // Shows the lighting of the profile, of a scene of some devices only theirs (Profile.LightingOver),
     // and saves it as the current lighting. For "Alles uit" (the role AllOff) the lighting it replaces
-    // is kept first, for "Aan om".
+    // is kept first, for "Aan om". The other devices of a scene of some devices keep the lighting
+    // they have when it is shown, also after a change of one of them just before.
     public void Load(string name)
     {
         var lightingNow = _lighting.State;
@@ -193,7 +194,14 @@ internal sealed class ProfileLibrary
             }
         }
 
-        Show(profile.LightingOver(lightingNow), profile.Name);
+        if (profile.DeviceIds is null)
+        {
+            Show(profile.Lighting, profile.Name);
+        }
+        else
+        {
+            Show(profile.LightingOver, profile.Name);
+        }
     }
 
     // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
@@ -361,7 +369,12 @@ internal sealed class ProfileLibrary
     // Shows lighting and saves it as the current lighting, with scene as the scene that is on, or
     // null for none: for example the lighting from before a game, which may have been a scene.
     // Outside _gate: the controller has its own lock.
-    public void Show(LightingState state, string? scene)
+    public void Show(LightingState state, string? scene) => Showing(scene, () => _lighting.Replace(state));
+
+    // The same with what change makes of the lighting now, read under the lock of the controller.
+    private void Show(Func<LightingState, LightingState> change, string? scene) => Showing(scene, () => _lighting.Replace(change));
+
+    private void Showing(string? scene, Action replace)
     {
         lock (_activeGate)
         {
@@ -371,7 +384,7 @@ internal sealed class ProfileLibrary
 
         try
         {
-            _lighting.Replace(state);
+            replace();
         }
         finally
         {

@@ -335,6 +335,26 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         return applied;
     }
 
+    // Replace with what change makes of the lighting now, read and applied under the same lock,
+    // so a change of another device in between is not lost: for example a scene of some devices
+    // over the others (Profile.LightingOver). change runs under the lock, so it only computes.
+    public LightingState Replace(Func<LightingState, LightingState> change)
+    {
+        ArgumentNullException.ThrowIfNull(change);
+        bool rendered;
+        LightingState applied;
+        lock (_gate)
+        {
+            ApplyLocked(change(StateLocked()));
+            applied = StateLocked();
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
+        return applied;
+    }
+
     // A null deviceId means the global lighting.
     public DeviceLighting GetLighting(string? deviceId)
     {
@@ -1069,10 +1089,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         LightingState? applied;
         lock (_gate)
         {
-            state = WithoutMissingCustomLocked(state);
-            _lighting.Replace(state.Global, state.Devices);
-            _ledColors.Replace(state.LedColors);
-            _ledColors.Adopt(_outputs.All.Select(output => output.Device));
+            ApplyLocked(state);
             applied = read ? StateLocked() : null;
 
             rendered = RenderLocked();
@@ -1080,6 +1097,14 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
         Publish(rendered);
         return applied;
+    }
+
+    private void ApplyLocked(LightingState state)
+    {
+        state = WithoutMissingCustomLocked(state);
+        _lighting.Replace(state.Global, state.Devices);
+        _ledColors.Replace(state.LedColors);
+        _ledColors.Adopt(_outputs.All.Select(output => output.Device));
     }
 
     private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
