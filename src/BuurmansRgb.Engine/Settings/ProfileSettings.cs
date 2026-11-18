@@ -136,7 +136,7 @@ internal sealed record ProfileSettings : LightingStateSettings
         return deviceIds;
     }
 
-    private ProfileRole ReadRole() =>Role is { IsText: true } role ? ProfileRoles.Read(role.Value) : ProfileRole.None;
+    private ProfileRole ReadRole() => Role is { IsText: true } role ? ProfileRoles.Read(role.Value) : ProfileRole.None;
 
     private static JsonText? WriteTime(TimeOnly time) => JsonText.From(time.ToString(TimeFormat, CultureInfo.InvariantCulture));
 
