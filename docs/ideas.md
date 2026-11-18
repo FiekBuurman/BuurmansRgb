@@ -671,6 +671,9 @@ uitbreidingen in `docs/bouwplan.md`.
     apparaten, groter dan 2 MB), met de reden; nu gooit de engine en zegt de app alleen
     "Exporteren is niet gelukt.". Of de verlichting van apparaten die er al lang niet meer zijn
     niet meenemen, zodat zo'n scène wel past
+- De teksten met "en nog" gelijktrekken: de kaart van een scène zegt "Bij valorant.exe en nog 2",
+  Hele huis "uit om 23:00 (elke dag) en nog 1 tijd". Verandert zichtbare tekst, dus niet in een
+  refactor (refactorreview 18-11-2026)
 
 ## Tray-menu
 
@@ -818,6 +821,13 @@ uitbreidingen in `docs/bouwplan.md`.
   `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
   `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
   (refactorreview 3-11-2026)
+- De regel "`onlyDevices` is nooit leeg en nooit bij "Alles uit"" als één invariant in `Profile`.
+  Nu staat hij op drie plekken, elk met een eigen reactie: `ProfileLibrary.SetDevices` gooit,
+  `SharedFileReader` weigert het hele bestand en `ProfileSettings` laat de lijst met een regel in
+  het log weg (refactorreview 18-11-2026)
+- `ProfileNames.Normalize` en `CustomEffects.NormalizeName` zijn gelijk, op hun eigen constante
+  voor de maximale lengte na (nu allebei 40); één gedeelde helper met de lengte erbij
+  (refactorreview 18-11-2026)
 
 ## Integraties
 
@@ -1013,3 +1023,6 @@ uitbreidingen in `docs/bouwplan.md`.
   (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
   `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
   het wissen een tijd opnieuw. Faalt hij weer, leg dan vast op welke regel
+- De rij "Scènes" in de testtabel van `docs/ontwikkelaars.md` is één enorme cel; herschrijven als
+  een lijst per onderwerp (startscènes, tijden, Hele huis, programma's, apparaten van een scène),
+  zodat je een test terugvindt (refactorreview 18-11-2026)
