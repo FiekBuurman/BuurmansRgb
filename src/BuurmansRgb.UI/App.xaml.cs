@@ -61,7 +61,7 @@ public partial class App : Application
         _animationEffects = new SystemAnimationEffects();
         _processMeter = new SystemProcessMeter();
 
-        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: _processMeter);
+        _viewModel = new MainViewModel(PipeEngineConnector.ForEngine(), appInfo: AppInfoViewModel.ForThisApp(ShellLauncher.Open), animationEffects: _animationEffects, processMeter: _processMeter, clipboard: SystemClipboard.Instance);
         var window = new MainWindow { DataContext = _viewModel };
         MainWindow = window;
         window.Show();

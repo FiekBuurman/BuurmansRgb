@@ -97,6 +97,20 @@
             <!-- The name of the new scene, the same card as after "Bewaar als scène" on Kleur. -->
             <views:SceneNameCard x:Name="SceneName" Margin="0,16,0,0" ReturnFocusTo="{Binding ElementName=NewScene}" />
 
+            <!-- A scene or own effect of someone else, from a file or a code on the clipboard (SharingViewModel);
+                 nothing is overwritten. What came of it is in the status line, which a screen reader reads. -->
+            <WrapPanel Margin="0,12,0,0">
+                <Button Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareImport}"
+                        ToolTip="{x:Static res:Strings.ShareImportToolTip}"
+                        AutomationProperties.Name="{x:Static res:Strings.ShareImportAccessibleName}"
+                        Command="{Binding Sharing.ImportCommand}" />
+                <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.SharePasteCode}"
+                        ToolTip="{x:Static res:Strings.SharePasteCodeToolTip}"
+                        AutomationProperties.Name="{x:Static res:Strings.SharePasteCodeAccessibleName}"
+                        Command="{Binding Sharing.PasteCodeCommand}" />
+            </WrapPanel>
+            <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.ShareImportHint}" />
+
             <!-- The chosen scene: put it on, update it, delete it, choose its devices, or let it go on by itself. -->
             <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel>
@@ -109,6 +123,15 @@
                                 Command="{Binding Profiles.UpdateCommand}" />
                         <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ProfileDelete}"
                                 Command="{Binding Profiles.DeleteCommand}" />
+                        <!-- Sharing the scene, as a file or as a code to paste (SharingViewModel); its times and programs stay here. -->
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
+                                ToolTip="{x:Static res:Strings.ShareExportSceneToolTip}"
+                                AutomationProperties.Name="{x:Static res:Strings.ShareExportSceneAccessibleName}"
+                                Command="{Binding Sharing.ExportSceneCommand}" CommandParameter="{Binding Profiles.SelectedName}" />
+                        <Button Margin="0,0,8,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareCopyCode}"
+                                ToolTip="{x:Static res:Strings.ShareCopySceneCodeToolTip}"
+                                AutomationProperties.Name="{x:Static res:Strings.ShareCopySceneCodeAccessibleName}"
+                                Command="{Binding Sharing.CopySceneCodeCommand}" CommandParameter="{Binding Profiles.SelectedName}" />
                     </WrapPanel>
 
                     <!-- The devices the scene is for: "Alle apparaten", also one that comes later, or a box per device,

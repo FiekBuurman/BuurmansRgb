@@ -1794,4 +1794,131 @@
   <data name="AfterRestartWholeHouseCatchUp" xml:space="preserve">
     <value>"Gemiste tijden inhalen" staat aan: ging Uit om of Aan om voorbij terwijl de pc uit stond of sliep, dan doet buurmansRgb dat alsnog.</value>
   </data>
+  <data name="ShareExport" xml:space="preserve">
+    <value>Exporteren…</value>
+  </data>
+  <data name="ShareCopyCode" xml:space="preserve">
+    <value>Code kopiëren</value>
+  </data>
+  <data name="ShareExportSceneAccessibleName" xml:space="preserve">
+    <value>Scène exporteren…</value>
+  </data>
+  <data name="ShareCopySceneCodeAccessibleName" xml:space="preserve">
+    <value>Code van de scène kopiëren</value>
+  </data>
+  <data name="ShareExportSceneToolTip" xml:space="preserve">
+    <value>Bewaart deze scène als bestand om te delen, met de eigen effecten die hij gebruikt. Tijden en programma's gaan niet mee.</value>
+  </data>
+  <data name="ShareCopySceneCodeToolTip" xml:space="preserve">
+    <value>Zet een korte code van deze scène op het klembord, om in een chat of mail te plakken.</value>
+  </data>
+  <data name="ShareExportEffectAccessibleName" xml:space="preserve">
+    <value>Eigen effect exporteren…</value>
+  </data>
+  <data name="ShareCopyEffectCodeAccessibleName" xml:space="preserve">
+    <value>Code van het eigen effect kopiëren</value>
+  </data>
+  <data name="ShareExportEffectToolTip" xml:space="preserve">
+    <value>Bewaart dit eigen effect als bestand om te delen.</value>
+  </data>
+  <data name="ShareCopyEffectCodeToolTip" xml:space="preserve">
+    <value>Zet een korte code van dit eigen effect op het klembord, om in een chat of mail te plakken.</value>
+  </data>
+  <data name="ShareImport" xml:space="preserve">
+    <value>Importeren…</value>
+  </data>
+  <data name="SharePasteCode" xml:space="preserve">
+    <value>Code plakken</value>
+  </data>
+  <data name="ShareImportAccessibleName" xml:space="preserve">
+    <value>Scène of eigen effect importeren…</value>
+  </data>
+  <data name="SharePasteCodeAccessibleName" xml:space="preserve">
+    <value>Code van een scène of eigen effect plakken</value>
+  </data>
+  <data name="ShareImportToolTip" xml:space="preserve">
+    <value>Voegt een scène of eigen effect uit een bestand (.brgb.json) toe. Wat er al is, blijft staan.</value>
+  </data>
+  <data name="SharePasteCodeToolTip" xml:space="preserve">
+    <value>Voegt de scène of het eigen effect toe waarvan je de code hebt gekopieerd. Wat er al is, blijft staan.</value>
+  </data>
+  <data name="ShareImportHint" xml:space="preserve">
+    <value>Een scène van iemand anders? Kies Importeren… voor een bestand, of kopieer de code en kies Code plakken. Een scène of effect met dezelfde naam blijft staan; de nieuwe krijgt een nummer.</value>
+  </data>
+  <data name="ShareExportSceneTitle" xml:space="preserve">
+    <value>Scène exporteren</value>
+  </data>
+  <data name="ShareExportEffectTitle" xml:space="preserve">
+    <value>Eigen effect exporteren</value>
+  </data>
+  <data name="ShareImportTitle" xml:space="preserve">
+    <value>Scène of eigen effect importeren</value>
+  </data>
+  <data name="ShareFilter" xml:space="preserve">
+    <value>Scène of effect van buurmansRgb (*.brgb.json)|*.brgb.json|Alle bestanden (*.*)|*.*</value>
+  </data>
+  <data name="ShareExported" xml:space="preserve">
+    <value>'{0}' bewaard in {1}.</value>
+  </data>
+  <data name="ShareExportFailed" xml:space="preserve">
+    <value>Exporteren is niet gelukt.</value>
+  </data>
+  <data name="ShareCodeCopied" xml:space="preserve">
+    <value>De code van '{0}' staat op het klembord. Plak hem in een chat of mail; de ander kiest Code plakken.</value>
+  </data>
+  <data name="ShareCopyFailed" xml:space="preserve">
+    <value>De code kon niet op het klembord. Probeer het nog een keer.</value>
+  </data>
+  <data name="ShareSceneImported" xml:space="preserve">
+    <value>Scène '{0}' toegevoegd.</value>
+  </data>
+  <data name="ShareSceneImportedRenamed" xml:space="preserve">
+    <value>Scène '{0}' toegevoegd; '{1}' had je al.</value>
+  </data>
+  <data name="ShareEffectImported" xml:space="preserve">
+    <value>Eigen effect '{0}' toegevoegd; je kiest het bij Effect op Kleur.</value>
+  </data>
+  <data name="ShareEffectImportedRenamed" xml:space="preserve">
+    <value>Eigen effect '{0}' toegevoegd; '{1}' had je al.</value>
+  </data>
+  <data name="ShareEffectAlreadyThere" xml:space="preserve">
+    <value>Het eigen effect '{0}' had je al, precies zo. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareUnmatchedDevices" xml:space="preserve">
+    <value>Wat niet paste: {0}; die apparaten zijn hier niet gevonden.</value>
+    <comment>{0} zijn de namen van de apparaten, met een komma ertussen.</comment>
+  </data>
+  <data name="ShareAddedEffects" xml:space="preserve">
+    <value>Eigen effecten erbij: {0}.</value>
+  </data>
+  <data name="ShareNotShared" xml:space="preserve">
+    <value>Dit is geen scène of eigen effect van buurmansRgb. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareNoCode" xml:space="preserve">
+    <value>Op het klembord staat geen code van een scène of eigen effect. Kopieer de hele code en probeer het opnieuw.</value>
+  </data>
+  <data name="ShareNewerVersion" xml:space="preserve">
+    <value>Dit komt uit een nieuwere versie van buurmansRgb. Werk buurmansRgb bij en probeer het opnieuw.</value>
+  </data>
+  <data name="ShareTooLarge" xml:space="preserve">
+    <value>Dit is te groot voor een scène of eigen effect. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareInvalid" xml:space="preserve">
+    <value>Er klopt iets niet in deze scène of dit effect. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareNoDevices" xml:space="preserve">
+    <value>Geen van de apparaten van deze scène is hier gevonden. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareTooManyEffects" xml:space="preserve">
+    <value>Er passen hooguit {0} eigen effecten. Verwijder er eerst een. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareReadFailed" xml:space="preserve">
+    <value>Het bestand kon niet worden gelezen. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareImportFailed" xml:space="preserve">
+    <value>Importeren is niet gelukt. Er is niets toegevoegd.</value>
+  </data>
+  <data name="ShareImportUnknown" xml:space="preserve">
+    <value>De verbinding met de engine viel weg tijdens het importeren. Kijk of de scène of het effect erbij staat.</value>
+  </data>
 </root>
