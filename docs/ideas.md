@@ -309,6 +309,10 @@ uitbreidingen in `docs/bouwplan.md`.
   (en "Zones gelijk" in het voorbeeld op Kleur) volgen hetzelfde patroon, nu elk met de hand in de XAML. Meer dan
   verplaatsen, omdat de rijen een `x:Name` hebben waar `FocusFallback` naar wijst en de boom voor
   UI Automation gelijk moet blijven (refactorreview 4-11-2026)
+- Zes oudere plekken kiezen de tekst voor één of meer nog met de hand en kunnen ook
+  `UiText.ForCount` gebruiken: `DeviceItem.cs:41`, `EffectOption.cs:34`,
+  `OpenRgbStatusViewModel.cs:35`, `StatusLineViewModel.cs:71`, `ZoneCountPaceOption.cs:16` en
+  `ZoneCountViewModel.cs:105` (refactorreview 18-11-2026)
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
