@@ -47,7 +47,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     // Picking a profile in the list fills in its name, so saving then updates that profile.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SaveLabel))]
+    [NotifyPropertyChangedFor(nameof(SaveLabel), nameof(NameHelp))]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial string Name { get; set; } = string.Empty;
 
@@ -68,6 +68,10 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     // Says so when saving replaces a profile that exists.
     public string SaveLabel => Find(Name) is null ? Strings.ProfileSave : Strings.ProfileOverwrite;
+
+    // The help of the name field for a screen reader: that Enter replaces the scene that has this name
+    // already, which SaveLabel only shows on the button; empty for a new name.
+    public string NameHelp => Find(Name) is { } existing ? UiText.Format(Strings.SceneNameOverwrites, existing) : string.Empty;
 
     // Asked before a profile is deleted, with its name; the view shows the question. Without it,
     // a profile is deleted without asking.
@@ -96,6 +100,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
             SelectedName = Find(selected);
         });
         OnPropertyChanged(nameof(SaveLabel));
+        OnPropertyChanged(nameof(NameHelp));
         OnPropertyChanged(nameof(HasScenes));
         OnPropertyChanged(nameof(HasSceneTimes));
         RequestAutomation();

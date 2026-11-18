@@ -46,8 +46,8 @@ public sealed class SceneNameCardViewTests
 
     // "Bewaar als scène" opens the card of "+ Nieuwe scène" in its place, with the focus in the name;
     // its name and help tell a screen reader that it keeps all devices. A name a scene already has
-    // says "Overschrijven", as on Scènes; Enter saves it over that scene, which is then on, also on
-    // Scènes, and the focus goes back to the button.
+    // says "Overschrijven", as on Scènes, and the help of the name says so; Enter saves it over that
+    // scene, which is then on, also on Scènes, and the focus goes back to the button.
     [Fact]
     public async Task ColorPage_SaveAsSceneOverAScene_PutsItOnAndGivesTheFocusBack()
     {
@@ -75,6 +75,7 @@ public sealed class SceneNameCardViewTests
             box.Text = "Avond";
             OffscreenWindow.WaitUntilIdle();
             Assert.True(SaveButton(page, Strings.ProfileOverwrite).IsVisible);
+            Assert.Equal(UiText.Format(Strings.SceneNameOverwrites, "Avond"), AutomationProperties.GetHelpText(box));
             PageViews.Press(box, Key.Enter);
 
             Assert.Equal(["profile save Avond"], engine!.Calls.TakeLast(1));

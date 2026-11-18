@@ -1,6 +1,6 @@
 <!-- The name of a new scene, after "+ Nieuwe scène" on Scènes or "Bewaar als scène" on Kleur: one card on
      both pages, so saving works the same everywhere. A name that a scene already has turns "Opslaan" into
-     "Overschrijven". It shows while Profiles.IsNaming; once it goes, after saving or cancelling, the
+     "Overschrijven", and a screen reader hears it in the help of the name. It shows while Profiles.IsNaming; once it goes, after saving or cancelling, the
      keyboard focus goes back to ReturnFocusTo, the button that opened it. The DataContext is MainViewModel. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.SceneNameCard"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -19,7 +19,7 @@
             <TextBlock Margin="0,0,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileNameLabel}" />
             <TextBlock Margin="0,0,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NewSceneHint}" />
             <TextBox x:Name="NameBox" MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
+                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}" AutomationProperties.HelpText="{Binding Profiles.NameHelp}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
                     <KeyBinding Key="Escape" Command="{Binding Profiles.CancelNewCommand}" />
