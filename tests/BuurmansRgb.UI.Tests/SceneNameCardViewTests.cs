@@ -46,7 +46,8 @@ public sealed class SceneNameCardViewTests
 
     // "Bewaar als scène" opens the card of "+ Nieuwe scène" in its place, with the focus in the name;
     // its name and help tell a screen reader that it keeps all devices. A name a scene already has
-    // says "Overschrijven", as on Scènes, and the help of the name says so; Enter saves it over that
+    // says "Overschrijven", as on Scènes, and a line under the name says so, which a screen reader
+    // reads when it comes (a changed HelpText it does not hear); Enter saves it over that
     // scene, which is then on, also on Scènes, and the focus goes back to the button.
     [Fact]
     public async Task ColorPage_SaveAsSceneOverAScene_PutsItOnAndGivesTheFocusBack()
@@ -58,6 +59,7 @@ public sealed class SceneNameCardViewTests
             api.Profiles.AddRange(["Avond", "Nacht"]);
             api.ActiveProfile = "Nacht";
         });
+        using var live = LiveRegionCapture.Start();
 
         AppTheme.Run(panel =>
         {
@@ -72,10 +74,16 @@ public sealed class SceneNameCardViewTests
             Assert.True(box.IsKeyboardFocused);
             Assert.False(button.IsVisible);
             Assert.True(SaveButton(page, Strings.ProfileSave).IsVisible);
+            var overwrites = UiText.Format(Strings.SceneNameOverwrites, "Avond");
+            Assert.DoesNotContain(AppTheme.Descendants<TextBlock>(page), block => block.IsVisible && block.Text == overwrites);
             box.Text = "Avond";
             OffscreenWindow.WaitUntilIdle();
             Assert.True(SaveButton(page, Strings.ProfileOverwrite).IsVisible);
-            Assert.Equal(UiText.Format(Strings.SceneNameOverwrites, "Avond"), AutomationProperties.GetHelpText(box));
+            var line = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == overwrites);
+            Assert.True(line.IsVisible);
+            Assert.True(line.TranslatePoint(default, box).Y >= box.ActualHeight);
+            Assert.Equal(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(line));
+            Assert.Equal([line], live.Announced);
             PageViews.Press(box, Key.Enter);
 
             Assert.Equal(["profile save Avond"], engine!.Calls.TakeLast(1));

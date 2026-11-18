@@ -64,7 +64,7 @@ public sealed class ProfilesViewModelTests
 
         _profiles.Name = "Gamen 2";
 
-        Assert.Equal(string.Empty, _profiles.NameHelp);
+        Assert.Null(_profiles.NameHelp);
     }
 
     [Fact]

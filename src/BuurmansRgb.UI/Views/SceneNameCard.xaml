@@ -1,7 +1,8 @@
 <!-- The name of a new scene, after "+ Nieuwe scène" on Scènes or "Bewaar als scène" on Kleur: one card on
      both pages, so saving works the same everywhere. A name that a scene already has turns "Opslaan" into
-     "Overschrijven", and a screen reader hears it in the help of the name. It shows while Profiles.IsNaming; once it goes, after saving or cancelling, the
-     keyboard focus goes back to ReturnFocusTo, the button that opened it. The DataContext is MainViewModel. -->
+     "Overschrijven", and a line under the name says so, which a screen reader reads when it comes. It
+     shows while Profiles.IsNaming; once it goes, after saving or cancelling, the keyboard focus goes back
+     to ReturnFocusTo, the button that opened it. The DataContext is MainViewModel. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.SceneNameCard"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,6 +10,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:contracts="clr-namespace:BuurmansRgb.Contracts;assembly=BuurmansRgb.Contracts"
              xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
+             xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
              xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
@@ -19,12 +21,17 @@
             <TextBlock Margin="0,0,0,6" Style="{StaticResource Body}" Text="{x:Static res:Strings.ProfileNameLabel}" />
             <TextBlock Margin="0,0,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NewSceneHint}" />
             <TextBox x:Name="NameBox" MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}" AutomationProperties.HelpText="{Binding Profiles.NameHelp}">
+                     AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
                 <TextBox.InputBindings>
                     <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
                     <KeyBinding Key="Escape" Command="{Binding Profiles.CancelNewCommand}" />
                 </TextBox.InputBindings>
             </TextBox>
+            <!-- WPF does not tell a screen reader that a HelpText changed, so the overwrite is a line that it reads. -->
+            <TextBlock Margin="0,6,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap"
+                       Text="{Binding Profiles.NameHelp, NotifyOnTargetUpdated=True}"
+                       Visibility="{Binding Profiles.NameHelp, Converter={StaticResource NullToCollapsed}}"
+                       AutomationProperties.LiveSetting="Polite" views:LiveRegion.AnnouncesUpdates="True" />
             <!-- Under the name, so it keeps its width in the column of Kleur too. -->
             <StackPanel Margin="0,10,0,0" HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Style="{StaticResource SecondaryButton}" Content="{Binding Profiles.SaveLabel}"

@@ -1309,7 +1309,7 @@
   </data>
   <data name="SceneNameOverwrites" xml:space="preserve">
     <value>Overschrijft de scène '{0}'.</value>
-    <comment>Hulptekst van het naamveld van een nieuwe scène voor een schermlezer, als een scène die naam al heeft: Enter vervangt dan die scène. {0} is de naam van die scène.</comment>
+    <comment>Regel onder het naamveld van een nieuwe scène, die een schermlezer voorleest als hij verschijnt, als een scène die naam al heeft: Enter vervangt dan die scène. {0} is de naam van die scène.</comment>
   </data>
   <data name="SaveAsScene" xml:space="preserve">
     <value>Bewaar als scène</value>

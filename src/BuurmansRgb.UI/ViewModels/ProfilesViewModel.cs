@@ -69,9 +69,9 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // Says so when saving replaces a profile that exists.
     public string SaveLabel => Find(Name) is null ? Strings.ProfileSave : Strings.ProfileOverwrite;
 
-    // The help of the name field for a screen reader: that Enter replaces the scene that has this name
-    // already, which SaveLabel only shows on the button; empty for a new name.
-    public string NameHelp => Find(Name) is { } existing ? UiText.Format(Strings.SceneNameOverwrites, existing) : string.Empty;
+    // The line under the name field, which a screen reader reads when it comes: that Enter replaces the
+    // scene that has this name already, which SaveLabel only shows on the button; null for a new name.
+    public string? NameHelp => Find(Name) is { } existing ? UiText.Format(Strings.SceneNameOverwrites, existing) : null;
 
     // Asked before a profile is deleted, with its name; the view shows the question. Without it,
     // a profile is deleted without asking.
