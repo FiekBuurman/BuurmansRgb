@@ -8,9 +8,11 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// When the selected profile loads by itself: at times, each on its own days, and while a program
-// runs, or only while it is in the foreground. An empty field leaves that way off. This only asks;
-// MainViewModel sends the change to the engine and shows what the engine saved.
+// When the selected profile loads by itself: at times, each on its own days, and while one of its
+// programs runs, or only while it is in the foreground. The programs are one field with a comma
+// between the names ("valorant.exe, cs2.exe"), so one program is typed as before. An empty field
+// leaves that way off. This only asks; MainViewModel sends the change to the engine and shows what
+// the engine saved.
 public sealed partial class ProfileAutomationViewModel : ObservableObject
 {
     private readonly Func<Task<IReadOnlyList<RunningProgram>>> _findPrograms;
@@ -61,17 +63,27 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         }
     }
 
+    // Between the names in the field.
+    private const char ProgramSeparator = ',';
+
     // From "Kies uit wat nu draait": the field gets the exe name, not the name the list shows.
     [RelayCommand]
     private void PickRunningProgram(RunningProgramItem? item) => PickProgram(item?.Program.ExeName);
 
-    // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts.
+    // From the list, or from "Bladeren": an .exe anywhere, of which only the file name counts. It
+    // comes after the names in the field, unless it is there already.
     [RelayCommand]
     private void PickProgram(string? program)
     {
-        if (ProgramNames.Normalize(program) is { } name)
+        if (ProgramNames.Normalize(program) is not { } name)
         {
-            ProgramText = name;
+            return;
+        }
+
+        var names = SplitPrograms(ProgramText);
+        if (!names.Any(other => ProgramNames.Comparer.Equals(ProgramNames.Normalize(other) ?? other, name)))
+        {
+            ProgramText = string.Join(ProgramSeparator + " ", names.Append(name));
         }
     }
 
@@ -117,9 +129,10 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     // The choice only counts with a program, so it is grey without one; it stays as it is, so
     // emptying the field and typing again keeps it.
-    public bool HasProgramText => !string.IsNullOrWhiteSpace(ProgramText);
+    public bool HasProgramText => SplitPrograms(ProgramText).Count > 0;
 
-    // Whether the program counts only while it is in the foreground, instead of all the time it runs.
+    // Whether the programs count only while one is in the foreground, instead of all the time they
+    // run; one choice for all of them.
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ApplyCommand))]
     public partial bool ForegroundOnly { get; set; }
@@ -195,7 +208,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
         {
             _saved = automation;
             ProfileName = profileName;
-            ProgramText = string.Join(", ", automation.Programs);
+            ProgramText = string.Join(ProgramSeparator + " ", automation.Programs);
             ForegroundOnly = automation.ForegroundOnly;
             LoadTime?[] times = [.. automation.Times.DefaultIfEmpty()];
             while (Times.Count > times.Length)
@@ -251,18 +264,30 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
             }
         }
 
-        return new ProfileAutomation(times, ProgramText, ForegroundOnly).Normalize();
+        return new ProfileAutomation(times, SplitPrograms(ProgramText), ForegroundOnly).Normalize();
     }
 
+    // The names in the field, without the empty ones between two commas.
+    private static List<string> SplitPrograms(string text) =>
+        [.. text.Split(ProgramSeparator, StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)];
+
     // With more times it says which one, the first that is wrong, by the number a screen reader
-    // gives its field; with one time a number only gets in the way.
+    // gives its field; with one time a number only gets in the way. The same for the programs, by
+    // the name that is wrong.
     private string? FindError() =>
         Times.FirstOrDefault(row => !row.TryRead(out _)) is { } invalid ? ForRow(invalid, Strings.ProfileLoadAtInvalid, Strings.ProfileTimeInvalid)
         : Times.FirstOrDefault(row => row.HasTime && row.CheckedDays == WeekDays.None) is { } dayless ? ForRow(dayless, Strings.ProfileDaysNone, Strings.ProfileTimeDaysNone)
-        : ProgramNames.IsShortcutOrScript(ProgramText) ? Strings.ProfileProgramShortcut
-        : !string.IsNullOrWhiteSpace(ProgramText) && ProgramNames.Normalize(ProgramText) is null ? Strings.ProfileProgramInvalid
+        : FindProgramError(SplitPrograms(ProgramText));
+
+    private static string? FindProgramError(List<string> programs) =>
+        programs.FirstOrDefault(ProgramNames.IsShortcutOrScript) is { } shortcut ? ForProgram(programs, shortcut, Strings.ProfileProgramShortcut, Strings.ProfileProgramShortcutNamed)
+        : programs.FirstOrDefault(program => ProgramNames.Normalize(program) is null) is { } wrong ? ForProgram(programs, wrong, Strings.ProfileProgramInvalid, Strings.ProfileProgramInvalidNamed)
+        : programs.Select(program => ProgramNames.Normalize(program)!).Distinct(ProgramNames.Comparer).Count() > ProfileAutomation.MaxPrograms ? UiText.Format(Strings.ProfileProgramsTooMany, ProfileAutomation.MaxPrograms)
         : null;
 
     private string ForRow(LoadTimeRow row, string single, string numbered) =>
         Times.Count == 1 ? single : UiText.Format(numbered, row.Number);
+
+    private static string ForProgram(List<string> programs, string program, string single, string named) =>
+        programs.Count == 1 ? single : UiText.Format(named, program);
 }

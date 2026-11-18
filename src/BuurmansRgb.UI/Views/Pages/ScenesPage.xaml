@@ -205,7 +205,8 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Style="{StaticResource SubText}" Margin="0,0,0,6" Text="{x:Static res:Strings.ProfileProgramLabel}" />
-                                <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}"
+                                <!-- One or more programs, with a comma between the names; it wraps so all of them show. -->
+                                <TextBox Text="{Binding Profiles.Automation.ProgramText, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap"
                                          ToolTip="{x:Static res:Strings.ProfileProgramHint}"
                                          AutomationProperties.Name="{x:Static res:Strings.ProfileProgramLabel}"
                                          AutomationProperties.HelpText="{x:Static res:Strings.ProfileProgramHint}">

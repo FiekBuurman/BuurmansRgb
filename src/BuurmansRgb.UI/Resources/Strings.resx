@@ -589,7 +589,7 @@
     <value>Bladeren…</value>
   </data>
   <data name="ProgramBrowseToolTip" xml:space="preserve">
-    <value>Kies het .exe-bestand van een programma; alleen de naam telt.</value>
+    <value>Kies het .exe-bestand van een programma; alleen de naam komt erbij in het veld.</value>
   </data>
   <data name="ProgramBrowseTitle" xml:space="preserve">
     <value>Kies een programma</value>
@@ -605,25 +605,25 @@
     <comment>Een programma in "Kies uit wat nu draait". {0} = de naam, zoals Outlook, {1} = de naam van de exe, zoals olk.exe.</comment>
   </data>
   <data name="ProgramPickToolTip" xml:space="preserve">
-    <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij.</value>
+    <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij. Wat je kiest, komt erbij in het veld.</value>
   </data>
   <data name="ProfileProgramLabel" xml:space="preserve">
-    <value>Aanzetten als dit programma start</value>
+    <value>Aanzetten als een van deze programma's start</value>
   </data>
   <data name="ProfileProgramHint" xml:space="preserve">
-    <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
+    <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Meer programma's: zet een komma tussen de namen, zoals valorant.exe, cs2.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
   </data>
   <data name="ProfileForegroundOnlyLabel" xml:space="preserve">
     <value>Alleen als het op de voorgrond staat</value>
   </data>
   <data name="ProfileForegroundOnlyHint" xml:space="preserve">
-    <value>Met een vinkje gaat de scène aan als je naar het programma wisselt, en komt de verlichting van daarvoor terug als je naar iets anders wisselt (Alt+Tab) of het stopt. Zonder vinkje telt het zolang het draait.</value>
+    <value>Met een vinkje gaat de scène aan als je naar het programma wisselt, en komt de verlichting van daarvoor terug als je naar iets anders wisselt (Alt+Tab) of het stopt. Zonder vinkje telt het zolang het draait. Het vinkje geldt voor alle programma's van de scène.</value>
   </data>
   <data name="ProfileAutomationApply" xml:space="preserve">
     <value>Toepassen</value>
   </data>
   <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
-    <value>Bewaart de tijden en het programma bij de gekozen scène.</value>
+    <value>Bewaart de tijden en de programma's bij de gekozen scène.</value>
   </data>
   <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
     <value>Vanzelf aanzetten toepassen</value>
@@ -636,6 +636,15 @@
   </data>
   <data name="ProfileProgramInvalid" xml:space="preserve">
     <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
+  </data>
+  <data name="ProfileProgramInvalidNamed" xml:space="preserve">
+    <value>'{0}' is geen naam van een programma. Vul namen in zoals eldenring.exe, met een komma ertussen.</value>
+  </data>
+  <data name="ProfileProgramShortcutNamed" xml:space="preserve">
+    <value>'{0}' is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
+  </data>
+  <data name="ProfileProgramsTooMany" xml:space="preserve">
+    <value>Een scène kan hoogstens {0} programma's hebben.</value>
   </data>
   <data name="ProfileAutomationSaved" xml:space="preserve">
     <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>

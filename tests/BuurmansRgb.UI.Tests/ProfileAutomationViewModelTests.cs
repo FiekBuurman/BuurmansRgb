@@ -101,6 +101,96 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Program: "eldenring.exe"))], _requests);
     }
 
+    // Valorant, CS2 and Apex for one scene: a comma between the names, empty ones and doubles left
+    // out, and one tick for all of them.
+    [Fact]
+    public void Apply_MorePrograms_AsksWithAllOfThem()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = " valorant, cs2.exe,, R5Apex.exe , VALORANT.exe,";
+        _automation.ForegroundOnly = true;
+        Assert.Null(_automation.Error);
+        _automation.ApplyCommand.Execute(null);
+
+        Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "R5Apex.exe"], ForegroundOnly: true))], _requests);
+    }
+
+    [Fact]
+    public void Show_MorePrograms_PutsACommaBetweenThem()
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe"]));
+
+        Assert.Equal("valorant.exe, cs2.exe", _automation.ProgramText);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Only commas, without a name, is no program.
+    [Fact]
+    public void OnlyCommas_IsNoProgram()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = " , ,";
+
+        Assert.False(_automation.HasProgramText);
+        Assert.Null(_automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // With more names the error says which one is wrong, the first one.
+    [Theory]
+    [InlineData("cs2.exe, game?.exe, x|y", "'game?.exe' is geen naam van een programma.")]
+    [InlineData("cs2.exe, start-game.bat", "'start-game.bat' is een snelkoppeling of script.")]
+    public void MoreProgramsWithAWrongOne_NamesItAndCannotApply(string text, string error)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = text;
+
+        Assert.StartsWith(error, _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void MoreProgramsThanTheMost_SaysSoAndCannotApply()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 1).Select(i => $"game{i}"));
+
+        Assert.Equal($"Een scène kan hoogstens {ProfileAutomation.MaxPrograms} programma's hebben.", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // The same name again, also another way, does not count against the most.
+    [Fact]
+    public void TheSameProgramMoreTimes_CountsOnce()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = string.Join(", ", Enumerable.Repeat("cs2", ProfileAutomation.MaxPrograms + 1));
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Picking adds the program after the ones in the field, not twice.
+    [Theory]
+    [InlineData("valorant.exe", "valorant.exe, cs2.exe")]
+    [InlineData("valorant.exe, ", "valorant.exe, cs2.exe")]
+    [InlineData("valorant, cs2", "valorant, cs2")]
+    [InlineData("valorant.exe, CS2.EXE", "valorant.exe, CS2.EXE")]
+    public void PickProgram_AddsItAfterTheOthers(string before, string after)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = before;
+
+        _automation.PickProgramCommand.Execute(@"C:\Games\Counter-Strike\cs2.exe");
+
+        Assert.Equal(after, _automation.ProgramText);
+    }
+
     [Fact]
     public void Show_ForegroundOnly_TicksIt()
     {

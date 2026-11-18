@@ -5,9 +5,9 @@ using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// "Kies uit wat nu draait" under "Aanzetten als dit programma start", on the real ScenesPage in a
-// window off screen, with made-up programs. The list is filled without opening it, as its popup
-// would show on the screen; closed, it has no items for UI Automation yet.
+// "Kies uit wat nu draait" under "Aanzetten als een van deze programma's start", on the real
+// ScenesPage in a window off screen, with made-up programs. The list is filled without opening it,
+// as its popup would show on the screen; closed, it has no items for UI Automation yet.
 [Collection(AppThemeCollection.Name)]
 public sealed class RunningProgramsViewTests
 {
@@ -55,6 +55,7 @@ public sealed class RunningProgramsViewTests
     }
 
     // The list shows "Outlook (olk.exe)"; the field gets the exe name, and the list its hint again.
+    // A second program comes after the first, with a comma between them.
     [Fact]
     public async Task PickingAProgram_PutsItsExeNameInTheField()
     {
@@ -73,6 +74,12 @@ public sealed class RunningProgramsViewTests
             Assert.Equal("Outlook (olk.exe)", list.Items[0].ToString());
             Assert.Equal("olk.exe", viewModel.Profiles.Automation.ProgramText);
             Assert.Equal("olk.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
+            Assert.Null(list.SelectedItem);
+
+            list.SelectedItem = list.Items[1];
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Equal("olk.exe, game.exe", PageViews.Named<TextBox>(page, Strings.ProfileProgramLabel).Text);
             Assert.Null(list.SelectedItem);
         });
     }
