@@ -758,19 +758,22 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
   "Aanzetten als een van deze programma's start" de naam van een .exe (`eldenring.exe`;
   `eldenring` of een heel pad mag ook), en kies "Toepassen". Leeg en "Toepassen" zet het uit.
   Meer programma's voor één scène, zoals Valorant, CS2 en Apex voor "Gamen"? Zet een komma tussen
-  de namen: `valorant.exe, cs2.exe, r5apex.exe`. Een scène kan tot twintig programma's hebben;
-  een lege plek tussen twee komma's en dezelfde naam nog eens (ook in andere letters of zonder
-  `.exe`) tellen niet mee, en na "Toepassen" staan de namen er met `.exe` en een komma ertussen.
-  Klopt er een naam niet, dan zegt de melding welke ("'game?.exe' is geen naam van een
-  programma."). De naam die je nog typt, noemt hij pas als er een komma achter staat; tot dan
-  zegt hij "De laatste naam is …", zodat de melding niet bij elke toets verandert. Een naam met een komma erin kan dus niet: kies je zo'n .exe bij "Kies uit wat nu
-  draait" of "Bladeren…", dan blijft het veld zoals het was en zegt de melding waarom. Had een
-  scène zo'n naam al uit een eerdere versie (bijv. `a,b.exe`), dan staat hij in het veld met een
-  melding, en kan "Toepassen" pas als je die naam uit het veld haalt; tot dan blijft de scène
-  zoals hij was opgeslagen, en zet dat programma hem nog gewoon aan. Achter elke tijd
-  staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of uit, bijv. alleen
-  ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan "Werkdagen om 09:00",
-  "In het weekend om 10:00" of "ma, wo, vr om 19:00".
+  de namen: `valorant.exe, cs2.exe, r5apex.exe`. Een naam met een komma erin kan dus niet: kies
+  je zo'n .exe bij "Kies uit wat nu draait" of "Bladeren…", dan blijft het veld zoals het was en
+  zegt de melding waarom. Ook een getypt pad met een komma in een mapnaam
+  (`C:\Games\Valorant, Riot\valorant.exe`) valt in twee namen uiteen; kies het programma dan met
+  "Bladeren…", dan komt alleen de bestandsnaam in het veld. Een scène kan tot twintig
+  programma's hebben; een lege plek tussen twee komma's en dezelfde naam nog eens (ook in andere
+  letters of zonder `.exe`) tellen niet mee, en na "Toepassen" staan de namen er met `.exe` en
+  een komma ertussen. Klopt er een naam niet, dan zegt de melding welke ("'game?.exe' is geen
+  naam van een programma."). De naam die je nog typt, noemt hij pas als er een komma achter
+  staat; tot dan zegt hij "De laatste naam is …", zodat de melding niet bij elke toets
+  verandert. Had een scène een naam met een komma al uit een eerdere versie (bijv. `a,b.exe`),
+  dan staat hij in het veld met een melding, en kan "Toepassen" pas als je die naam uit het veld
+  haalt; tot dan blijft de scène zoals hij was opgeslagen, en zet dat programma hem nog gewoon
+  aan. Achter elke tijd staan zijn dagen, ma t/m zo; standaard alle zeven. Klik een dag aan of
+  uit, bijv. alleen ma t/m vr voor "Werk"; zonder tijd zijn ze grijs. De kaart zegt dan
+  "Werkdagen om 09:00", "In het weekend om 10:00" of "ma, wo, vr om 19:00".
   Een snelkoppeling of script (`.lnk`, `.url`, `.bat`, `.cmd`) weigert de app: vul het doel
   in (Eigenschappen van de snelkoppeling). Weet je de naam niet, kies dan onder het veld bij
   "Kies uit wat nu draait" een programma dat nu een venster heeft (start het spel eerst), of
