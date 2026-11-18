@@ -207,6 +207,8 @@ public sealed class AccessibleNamesViewTests
             Assert.Equal(["LED strip", "Fan"], ItemNames<SceneDeviceOption>(tree));
             var boxes = tree.Where(peer => peer.GetAutomationControlType() == AutomationControlType.CheckBox).Select(peer => peer.GetName()).ToList();
             Assert.Contains("Alle apparaten", boxes);
+            // Its hint stands below the boxes, so it is no help text as well: read once.
+            Assert.Equal(string.Empty, tree.Single(peer => peer.GetAutomationControlType() == AutomationControlType.CheckBox && peer.GetName() == "Alle apparaten").GetHelpText());
             Assert.Contains("LED strip", boxes);
             Assert.Contains("Fan", boxes);
             Assert.Contains(tree, peer => peer.GetAutomationControlType() == AutomationControlType.List && peer.GetName() == "Apparaten van de scène");

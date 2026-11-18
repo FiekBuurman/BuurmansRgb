@@ -112,15 +112,15 @@
                     </WrapPanel>
 
                     <!-- The devices the scene is for: "Alle apparaten", also one that comes later, or a box per device,
-                         grey while "Alle apparaten" is on. "Alles uit" is always for every device, for "Uit om" and "Aan om". -->
+                         grey while "Alle apparaten" is on. "Alles uit" is always for every device, for "Uit om" and "Aan om".
+                         The hint below the boxes is no tool tip, which WPF also gives as help text, so a screen reader reads it once. -->
                     <TextBlock x:Name="DevicesHeader" Margin="0,14,0,4" Style="{StaticResource Body}" Text="{x:Static res:Strings.SceneDevicesHeader}" AutomationProperties.HeadingLevel="Level3" />
                     <TextBlock Style="{StaticResource SubText}" Text="{Binding Profiles.SceneDevices.AllOffNote}"
                                Visibility="{Binding Profiles.SceneDevices.IsAllOff, Converter={StaticResource BoolToVisibility}}" />
                     <StackPanel IsEnabled="{Binding Profiles.SceneDevices.CanChoose}"
                                 Visibility="{Binding Profiles.SceneDevices.IsAllOff, Converter={StaticResource InverseBoolToVisibility}}">
                         <CheckBox x:Name="AllDevices" HorizontalAlignment="Left" IsChecked="{Binding Profiles.SceneDevices.AllDevices}"
-                                  Content="{x:Static res:Strings.SceneDevicesAll}" ToolTip="{x:Static res:Strings.SceneDevicesAllHint}"
-                                  AutomationProperties.HelpText="{x:Static res:Strings.SceneDevicesAllHint}" />
+                                  Content="{x:Static res:Strings.SceneDevicesAll}" />
                         <ItemsControl x:Name="DeviceOptions" Margin="32,0,0,0" ItemsSource="{Binding Profiles.SceneDevices.Options}" Focusable="False" IsTabStop="False"
                                       IsEnabled="{Binding Profiles.SceneDevices.CanPick}" AutomationProperties.Name="{x:Static res:Strings.SceneDevicesListName}">
                             <ItemsControl.ItemsPanel>
