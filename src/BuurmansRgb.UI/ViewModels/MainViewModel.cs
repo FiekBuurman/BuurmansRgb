@@ -2011,7 +2011,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void RebuildPreview()
     {
         var deviceId = SelectedDevice?.DeviceId;
-        Preview.ShowDevices(_devices.Where(device => deviceId is null || device.Id == deviceId));
+        Preview.ShowDevices(_devices.Where(device => deviceId is null || device.Id == deviceId), wholeHouse: deviceId is null);
     }
 
     private void OnDisconnected(object? sender, EventArgs e) => RunOnUi(() =>

@@ -1,12 +1,15 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using BuurmansRgb.Contracts;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace BuurmansRgb.UI.ViewModels;
 
 // Shows the frames the engine renders for the devices in view, and the LEDs selected in the
 // per-LED editor. Use it from the UI thread. time runs the delay before a new zone length goes to
 // the engine (ZoneLengthViewModel).
-public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewActions, IDisposable
+public sealed partial class PreviewViewModel(TimeProvider? time = null) : ObservableObject, IPreviewActions, IDisposable
 {
     private readonly TimeProvider _time = time ?? TimeProvider.System;
     private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
@@ -48,7 +51,22 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // As long as a flash in the engine lasts: three blinks of half a second (DeviceFlash.Duration).
     public static TimeSpan FlashTime { get; } = TimeSpan.FromSeconds(1.5);
 
+    // The devices whose card is open while the app runs (DESIGN.md § 9.7): it is not kept in
+    // settings.json, so the app starts with all cards closed. A device that comes back with the same
+    // id, such as when OpenRGB loads again after a new length, keeps its place in it.
+    private readonly HashSet<string> _openCards = [];
+
     public ObservableCollection<DevicePreviewViewModel> Devices { get; } = [];
+
+    // The devices show as cards that open and close, with the chips and "Alles openklappen" and
+    // "Alles dichtklappen" above them: with "Hele huis" and two or more devices. Otherwise, with one
+    // chosen device or a house with one device, its card is always open.
+    [ObservableProperty]
+    public partial bool UsesCards { get; private set; }
+
+    // Without devices, "Per apparaat" says how to find them instead of showing cards.
+    [ObservableProperty]
+    public partial bool HasDevices { get; private set; }
 
     // Raised when the user clicks an LED in one of the device previews.
     public event EventHandler<LedClick>? LedClicked;
@@ -255,21 +273,34 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
     // preview does not jump back while the engine reports the devices again (for example after the
     // previous resize); it goes out when its delay is over. A zone that no longer shows sends it now,
     // also halfway a drag. The keys go on from the LED where they were.
-    public void ShowDevices(IEnumerable<DeviceInfo> devices)
+    // wholeHouse: the devices of "Hele huis", whose cards open and close when there are two or more;
+    // each keeps the stand it had while the app runs, and a new one comes closed.
+    public void ShowDevices(IEnumerable<DeviceInfo> devices, bool wholeHouse = false)
     {
         DevicePreviewViewModel[] previous = [.. Devices];
+        DeviceInfo[] shown = [.. devices];
+        foreach (var preview in previous)
+        {
+            preview.PropertyChanged -= OnDeviceChanged;
+        }
+
+        UsesCards = wholeHouse && shown.Length > 1;
         Devices.Clear();
-        foreach (var device in devices)
+        foreach (var device in shown)
         {
             var preview = new DevicePreviewViewModel(device, this, time);
+            preview.ShowAsCard(UsesCards, _openCards.Contains(device.Id), Devices.Count + 1, shown.Length);
             preview.ShowLedSelection(_ledSelection);
             if (previous.FirstOrDefault(before => before.DeviceId == device.Id) is { } before)
             {
                 preview.ContinueAt(before);
             }
 
+            preview.PropertyChanged += OnDeviceChanged;
             Devices.Add(preview);
         }
+
+        HasDevices = Devices.Count > 0;
 
         foreach (var length in LengthsOf(previous).Where(length => length.HasUnsentChange))
         {
@@ -292,6 +323,49 @@ public sealed class PreviewViewModel(TimeProvider? time = null) : IPreviewAction
         ActionsHint.HasButtons = Devices.Count > 0;
         ShowFlashMark();
         ShowFrame(_latestFrame);
+    }
+
+    // "Alles openklappen" and "Alles dichtklappen".
+    [RelayCommand]
+    public void ExpandAll() => ExpandAll(true);
+
+    [RelayCommand]
+    public void CollapseAll() => ExpandAll(false);
+
+    private void ExpandAll(bool expanded)
+    {
+        foreach (var device in Devices.Where(device => device.IsFoldable))
+        {
+            device.IsExpanded = expanded;
+        }
+    }
+
+    // A card that opens or closes keeps that stand while the app runs. Closing it stops what runs in
+    // it (DESIGN.md § 9.7): a count this app started stops, so the zone gets its own length back,
+    // and chosen LEDs are let go, so a color does not go to LEDs out of sight. A flash runs out.
+    private void OnDeviceChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(DevicePreviewViewModel.IsExpanded) || sender is not DevicePreviewViewModel { IsFoldable: true } device)
+        {
+            return;
+        }
+
+        if (device.IsExpanded)
+        {
+            _openCards.Add(device.DeviceId);
+            return;
+        }
+
+        _openCards.Remove(device.DeviceId);
+        if (Count is { } count && count.DeviceId == device.DeviceId && IsOwn(count))
+        {
+            ((IPreviewActions)this).StopZoneCount(new ZoneCountStop(count.DeviceId, count.ZoneIndex));
+        }
+
+        if (_ledSelection?.DeviceId == device.DeviceId)
+        {
+            ((IPreviewActions)this).ClearLedSelection();
+        }
     }
 
     // While the preview stands still, a flash shows as a mark on the card of its device instead of

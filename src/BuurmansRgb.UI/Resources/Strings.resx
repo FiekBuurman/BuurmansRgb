@@ -167,8 +167,29 @@
   <data name="EffectHeader" xml:space="preserve">
     <value>Effect</value>
   </data>
-  <data name="PreviewHeader" xml:space="preserve">
-    <value>Voorbeeld</value>
+  <data name="PerDeviceHeader" xml:space="preserve">
+    <value>Per apparaat</value>
+  </data>
+  <data name="PerDeviceHint" xml:space="preserve">
+    <value>Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen.</value>
+  </data>
+  <data name="ExpandAllCards" xml:space="preserve">
+    <value>Alles openklappen</value>
+  </data>
+  <data name="ExpandAllCardsAccessibleName" xml:space="preserve">
+    <value>Alle apparaten openklappen</value>
+  </data>
+  <data name="CollapseAllCards" xml:space="preserve">
+    <value>Alles dichtklappen</value>
+  </data>
+  <data name="CollapseAllCardsAccessibleName" xml:space="preserve">
+    <value>Alle apparaten dichtklappen</value>
+  </data>
+  <data name="DeviceChipsName" xml:space="preserve">
+    <value>Naar een apparaat</value>
+  </data>
+  <data name="DeviceChipHelp" xml:space="preserve">
+    <value>Klapt de kaart open en gaat erheen</value>
   </data>
   <data name="Effect_static" xml:space="preserve">
     <value>Statisch</value>

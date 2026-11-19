@@ -69,6 +69,7 @@
     <!-- The wrench of the settings button in the design. -->
     <Geometry x:Key="IconSettings">M14.7,6.3 A4,4 0 0 0 9.3,11.7 L3,18 V21 H6 L12.3,14.7 A4,4 0 0 0 17.7,9.3 L15.1,11.9 L12.7,11.3 L12.1,8.9 Z</Geometry>
     <Geometry x:Key="IconChevronDown">M6,9 L12,15 L18,9</Geometry>
+    <Geometry x:Key="IconChevronRight">M9,5 L16,12 L9,19</Geometry>
 
     <Style x:Key="LineIcon" TargetType="Path">
         <Setter Property="Width" Value="22" />
@@ -755,6 +756,119 @@
                 <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- The head of a device card on Kleur (DESIGN.md § 9.3): the part HeaderSite of DeviceCard, one
+         click area with the arrow (right when closed, down when open) and the icon, name and line of
+         its content. Without a face of its own: under the mouse the surface-raised of the design, and
+         in a contrast theme a line in the highlight. -->
+    <Style x:Key="DeviceCardHeader" TargetType="ToggleButton">
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="10,8" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Face" CornerRadius="12" BorderThickness="1" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                        <DockPanel>
+                            <Path x:Name="Chevron" DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Style="{StaticResource LineIcon}"
+                                  Data="{StaticResource IconChevronRight}" Stroke="{TemplateBinding Foreground}" />
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Chevron" Property="Data" Value="{StaticResource IconChevronDown}" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource HoverOutlineBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The head keeps 14 em of its text for the name beside the small strip and Knipperen; with less
+         room they go under the name, on the right (§ 9.6). -->
+    <views:EmConverter x:Key="DeviceCardHeadingWidth" Ems="14" />
+
+    <!-- A device card on Kleur that opens and closes (DeviceCard, § 9.3): a card with the head on top,
+         Note under it (also closed), and the content under a line of 1 px only while open, without an
+         animation. -->
+    <Style TargetType="views:DeviceCard">
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:DeviceCard">
+                    <Border CornerRadius="{StaticResource CardRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                        <StackPanel>
+                            <views:HeaderPanel Margin="8,6,18,6" MinHeight="44" Gap="6" StackedAsideAlignment="Right"
+                                               MinHeadingWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource DeviceCardHeadingWidth}}">
+                                <ToggleButton x:Name="HeaderSite" Style="{StaticResource DeviceCardHeader}"
+                                              Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" />
+                                <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center" Content="{TemplateBinding Aside}" />
+                            </views:HeaderPanel>
+                            <ContentPresenter Content="{TemplateBinding Note}" />
+                            <Border x:Name="Body" Padding="18,14,18,8" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding BorderBrush}" Visibility="Collapsed">
+                                <ContentPresenter x:Name="ExpandSite" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="Body" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- A chip of the row "Naar een apparaat" on Kleur (§ 9.3 "Apparaat-chip"): a pill with a bulb in the
+         color of the device and its name; it jumps, it has no chosen stand. -->
+    <Style x:Key="DeviceChip" TargetType="Button">
+        <Style.Resources>
+            <Style TargetType="views:LedBulb" BasedOn="{StaticResource {x:Type views:LedBulb}}">
+                <Setter Property="OffRingBrush" Value="{DynamicResource CardLedOffRingBrush}" />
+            </Style>
+        </Style.Resources>
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="Padding" Value="14,6" />
+        <Setter Property="FontSize" Value="{DynamicResource SmallBodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource ButtonTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource ButtonFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ButtonBorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingRound}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Face" CornerRadius="22" BorderThickness="1" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Face" Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Sliders: a led-off rail, filled up to the thumb in the accent color in Foreground (text by

@@ -35,6 +35,9 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
             zone.PropertyChanged += OnZoneChanged;
         }
 
+        LedLine = DeviceItem.LedLineOf(device);
+        Strip = [.. Enumerable.Range(0, StripLength).Select(_ => new StripLed())];
+        IsExpanded = true;
         Colors = new RgbColor[device.LedCount];
         MoveActiveLed(LedCount > 0 ? 0 : LedMatrix.NoLed);
     }
@@ -51,6 +54,35 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     public bool LacksDirectMode { get; }
 
     public IReadOnlyList<ZonePreviewViewModel> Zones { get; }
+
+    // The bulbs of the small strip in the head of its card, and the bulb of its chip (the first).
+    public const int StripLength = 12;
+
+    // The number of LEDs under the name on its card: "92 LED's in 2 zones", "60 LED's" or "1 LED",
+    // without the type, which the icon shows; a screen reader reads it as the help of the card.
+    public string LedLine { get; }
+
+    // Twelve LEDs spread over the device, in the colors it shows now: the small strip in the head of
+    // its card, only decoration. A black LED, such as of a device that is off, shows led-off.
+    public IReadOnlyList<StripLed> Strip { get; }
+
+    // The bulb of its chip ("Naar een apparaat"): the first LED of the small strip.
+    public StripLed ChipLed => Strip[0];
+
+    // A card that opens and closes (DeviceCard), as with "Hele huis" and two or more devices;
+    // otherwise its card is always open (IsExpanded stays true). Set by PreviewViewModel.
+    public bool IsFoldable { get; private set; }
+
+    // Whether its card is open: only an open card shows the zones, LEDs and lengths, so a closed one
+    // gives its zones no colors. Closing it sends a length that still waits (ZoneLengthViewModel);
+    // PreviewViewModel stops a count and lets go of chosen LEDs in it.
+    [ObservableProperty]
+    public partial bool IsExpanded { get; set; }
+
+    // The place of its chip in the row, for a screen reader: "1 van 9".
+    public int Position { get; private set; } = 1;
+
+    public int SetSize { get; private set; } = 1;
 
     // What a screen reader calls the flash button; every device in the preview has one.
     public string FlashAccessibleName { get; }
@@ -199,12 +231,63 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
 
     private bool CanFlash() => _actions?.CanFlash ?? true;
 
+    // How its card shows: foldable or always open, open or closed, and its place among the chips.
+    internal void ShowAsCard(bool foldable, bool expanded, int position, int setSize)
+    {
+        IsFoldable = foldable;
+        IsExpanded = !foldable || expanded;
+        Position = position;
+        SetSize = setSize;
+    }
+
     partial void OnColorsChanged(IReadOnlyList<RgbColor> value)
     {
-        var colors = value as RgbColor[] ?? [.. value];
+        ShowStrip(value);
+        if (IsExpanded)
+        {
+            ShowZoneColors();
+        }
+    }
+
+    // An opened card shows the colors of now; a closed one lets a length that waits go out now, as if
+    // Toepassen was chosen: what the user set does not get lost out of sight.
+    partial void OnIsExpandedChanged(bool value)
+    {
+        if (value)
+        {
+            ShowZoneColors();
+            return;
+        }
+
+        foreach (var length in Zones.Select(zone => zone.Length).OfType<ZoneLengthViewModel>())
+        {
+            length.EndDrag();
+        }
+    }
+
+    private void ShowZoneColors()
+    {
+        if (Colors is null)
+        {
+            return;
+        }
+
+        var colors = Colors as RgbColor[] ?? [.. Colors];
         foreach (var zone in Zones)
         {
             zone.ShowDeviceColors(colors);
+        }
+    }
+
+    // The LED in the middle of each twelfth of the device, as the strip of "Hele huis" on Lampen.
+    private void ShowStrip(IReadOnlyList<RgbColor> colors)
+    {
+        for (var i = 0; i < Strip.Count; i++)
+        {
+            var led = (int)((i + 0.5) * colors.Count / Strip.Count);
+            var color = led < colors.Count ? colors[led] : RgbColor.Black;
+            Strip[i].Color = color;
+            Strip[i].IsLit = color != RgbColor.Black;
         }
     }
 
