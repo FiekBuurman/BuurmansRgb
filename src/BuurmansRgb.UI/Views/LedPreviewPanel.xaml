@@ -349,7 +349,8 @@
                             MaxWidth="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChipMaxWidth}}"
                             ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
                             AutomationProperties.HelpText="{x:Static res:Strings.DeviceChipHelp}"
-                            AutomationProperties.PositionInSet="{Binding Position}" AutomationProperties.SizeOfSet="{Binding SetSize}">
+                            AutomationProperties.PositionInSet="{Binding Position}" AutomationProperties.SizeOfSet="{Binding SetSize}"
+                            views:FocusKeeper.Key="{Binding DeviceId, StringFormat={}device-chip/{0}}">
                         <DockPanel>
                             <views:LedBulb DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Diameter="12" GlowBlur="10" GlowSpread="2"
                                            IsLit="{Binding ChipLed.IsLit}" Color="{Binding ChipLed.Color}" />

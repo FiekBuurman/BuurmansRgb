@@ -417,6 +417,34 @@ public sealed class DeviceCardsViewTests
         });
     }
 
+    // The engine reports the devices again with the focus on a chip: the chip of the same device,
+    // made anew, gets the focus back (FocusKeeper), so it does not fall to the window.
+    [Fact]
+    public async Task DevicesComeAgain_TheFocusStaysOnTheSameChip()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.Devices = [Argb, Strip, Fan];
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var chip = Chips(preview).Chips()[1];
+            Assert.True(chip.Focus());
+
+            api!.RaiseDevicesChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            var again = Chips(preview).Chips()[1];
+            Assert.NotSame(chip, again);
+            Assert.Equal(Strip.Name, AutomationProperties.GetName(again));
+            Assert.True(again.IsKeyboardFocused);
+        });
+    }
+
     // Without devices "Per apparaat" says only how to find them: no chips, links or cards (§ 9.6).
     [Fact]
     public async Task NoDevices_ShowsOnlyTheLineHowToFindThem()
