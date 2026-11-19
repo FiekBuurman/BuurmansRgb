@@ -360,7 +360,6 @@ uitbreidingen in `docs/bouwplan.md`.
   nu bouwt de app de zones, LED's en lengtes van elke kaart al bij het tonen van de pagina (ze
   krijgen dicht alleen geen kleuren), wat met veel apparaten geheugen en tijd bij het openen van
   Kleur kost (`kleur-lagen`)
-
 - Op de effecttegels van Kleur in lagen (§ 9.3 van `design/DESIGN.md`) een klein stilstaand
   plaatje van het effect (bijv. een strip in de kleuren van Regenboog of Vuur), zodat je ziet wat
   een effect doet vóór je het kiest; geen animatie, voor minder beweging en geen werk per beeld
