@@ -172,7 +172,7 @@ h1,h3,h4{margin:0}
 <!-- ============================================================ Staat 2 -->
 <section class="state" aria-labelledby="s2">
   <h2 id="s2">2 · Eén apparaat open (na de chip "Gesimuleerde ARGB-controller"), effect Regenboog</h2>
-  <p>De volgorde van het effect: bij Regenboog is er geen kleur te mengen, dus kaart 2 is één zin. Richting staat op "Volgorde" (geen richting); met een richting staat er de hoek, en onder de schuif de link "Volgorde van de LED's". De chip klapte de kaart open en zette de focus op zijn kop (de ring). Open staat de inhoud van nu: Zones gelijk, per zone de naam als link, Tellen en Knipperen op een vaste plek, de LED's en de stepper voor de lengte.</p>
+  <p>De volgorde van het effect: bij Regenboog is er geen kleur te mengen, dus kaart 2 is één zin. Richting staat op "Volgorde" (geen richting); met een richting staat er de hoek, en onder de schuif de link "Volgorde van de LED's". De chip klapte de kaart open en zette de focus op zijn kop (de ring). Open staat bovenaan de uitleg hoe je LED's kiest (die stond onder de kop "Voorbeeld"), en daaronder de inhoud van nu: Zones gelijk, per zone de naam als link, Tellen en Knipperen op een vaste plek, de LED's en de stepper voor de lengte.</p>
 
   <div class="win" role="region" aria-label="Venster: Kleur, Regenboog, één apparaat open" data-frame="2">
     <div class="titlebar"><span aria-hidden="true">▣</span><b>buurmans<span class="r">R</span><span class="g">g</span><span class="bl">b</span></b></div>
@@ -301,6 +301,8 @@ const dots = (c, n, rb, off) => Array.from({ length: n }, (_, i) => dot(c, i + (
 const chev = '<svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>';
 const icon = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A9A6A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"></rect><path d="M7 12h.01M11 12h.01M15 12h.01"></path></svg>';
 
+// At the top of every open card: how to choose LEDs (PreviewHint, as now under the head "Voorbeeld").
+const ledHint = '<div class="sub">Klik op een LED en kies hierboven een kleur: de LED krijgt hem meteen. Met Shift+klik kies je een reeks, met een klik op de naam van een zone (bijv. een ring van een ventilator) de hele zone.</div>';
 // The open body of the ARGB controller: Zones gelijk, two zones with their head, LEDs and stepper.
 const zone = (name, n, max, rb) =>
   '<div style="display:flex;flex-direction:column;gap:8px">' +
@@ -344,7 +346,7 @@ document.querySelectorAll('[data-cards]').forEach(el => {
         '<div class="devright"><span class="mini" aria-hidden="true">' + dots(d.color, 12, rb && d.color) + '</span>' +
           '<button class="knop" aria-label="' + d.name + ' laten knipperen">Knipperen</button></div>' +
       '</div>' +
-      '<div class="devbody"' + (open ? '' : ' hidden') + '>' + (d.id === 'argb' ? argbBody(rb) : '<div class="sub">Zones en LED\'s zoals nu in het voorbeeld.</div>') + '</div>' +
+      '<div class="devbody"' + (open ? '' : ' hidden') + '>' + ledHint + (d.id === 'argb' ? argbBody(rb) : '<div class="sub">Zones en LED\'s zoals nu in het voorbeeld.</div>') + '</div>' +
     '</article>';
   }).join('');
 });
