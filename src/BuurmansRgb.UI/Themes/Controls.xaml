@@ -675,30 +675,39 @@
         <Setter Property="views:Corners.Radius" Value="{StaticResource SmallTileRadius}" />
     </Style>
 
-    <!-- A text link as a button, such as "Hoe komt een apparaat erbij?". One that does nothing now, such as
-         "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey, so it no longer looks like a
-         link: a link has no frame or fill, so fading alone would leave it blue. The muted text at 0.6
-         gives the same grey as the text of a disabled button at 0.4. The hand goes by itself, as WPF
-         shows the cursor of the parent over a disabled element. Under the mouse a link gets lighter;
-         in a contrast theme it takes the highlight and a line under it (HoverOutlineBrush), so
-         the hover shows by more than color. The links of the design have no line, so without a
-         contrast theme that line is transparent. -->
-    <Style x:Key="LinkButton" TargetType="Button">
+    <!-- The one link of the app (DESIGN.md § 4, "Link"): a text action as a button, such as "Hoe komt
+         een apparaat erbij?", the name of a zone in the preview and "Alles selecteren". It is always
+         underlined, also in a contrast theme, so it is a link by more than its color (WCAG 1.4.1). The
+         line is a text decoration, drawn in the color of the text: in a contrast theme HotTrack at
+         rest and the highlight under the mouse. The text wraps when its place is narrower, such as a
+         long zone name. Keyboard focus gives it the focus ring of the app. One that does nothing now,
+         such as "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey without the line, so
+         it no longer looks like a link: a link has no frame or fill, so fading alone would leave it
+         blue. Its grey is DisabledLinkBrush: the muted text at 0.6, in a contrast theme GrayText
+         without opacity, as the text of a disabled button. The
+         hand goes by itself, as WPF shows the cursor of the parent over a disabled element. Under the
+         mouse a link gets lighter. Its content is a text, shown as it is: the app has no access keys, so
+         an underscore, as in a zone name of OpenRGB such as "D_LED1", stays an underscore. It is
+         the style of every LinkButton, which a screen reader reads as a link, so a link is always a
+         LinkButton and always looks like one. -->
+    <Style TargetType="views:LinkButton">
         <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource SmallBodySize}" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
+                <ControlTemplate TargetType="views:LinkButton">
                     <Grid VerticalAlignment="Center" Margin="4,0">
-                        <ContentPresenter RecognizesAccessKey="True" />
-                        <Border x:Name="Underline" Height="1" VerticalAlignment="Bottom" Background="Transparent" />
+                        <TextBlock x:Name="Text" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                   TextWrapping="Wrap" TextDecorations="Underline" />
                     </Grid>
                     <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Underline" Property="Background" Value="{DynamicResource HoverOutlineBrush}" />
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="Text" Property="TextDecorations" Value="{x:Null}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -709,8 +718,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource LinkHoverBrush}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledLinkBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -745,15 +753,6 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <Style TargetType="Hyperlink">
-        <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{DynamicResource LinkHoverBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>

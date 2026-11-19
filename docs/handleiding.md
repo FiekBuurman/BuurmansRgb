@@ -562,6 +562,10 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
 - **Zones** staan er met naam en aantal LED's zoals OpenRGB ze geeft; een apparaat met één zone
   toont geen zonenaam. Naast de naam van een zone met LED's staat **Knipperen** (zie "Welk
   apparaat is wat?"), behalve bij "Overige LED's": de LED's die OpenRGB bij geen zone indeelt.
+  Knipperen en **Tellen** staan in de kop van een zone altijd op dezelfde plek: Knipperen
+  helemaal rechts, recht onder Knipperen van het apparaat, en Tellen links ernaast. Een zone die
+  wel Tellen heeft maar (nog) niets te knipperen, zoals een header zonder LED's of de enige zone
+  van een ledstrip, houdt de plek van Knipperen vrij, zodat Tellen niet verspringt.
 - **Zones gelijk:** een apparaat met twee of meer zones met LED's heeft onder zijn naam de
   schakelaar **Zones gelijk**, met in één regel wat hij doet (meer in de tooltip). Aan rendert
   het effect één keer, over de langste zone, en krijgt elke andere zone hetzelfde beeld,
@@ -606,7 +610,8 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   met 0 LED's zegt "Nog geen LED's ingesteld", met uitleg. De lengte wordt bewaard (zie
   `zoneLengths` bij "settings.json").
 - **LED's tellen:** weet je niet hoeveel LED's de fan of strip op een header heeft, kies dan
-  **Tellen**, naast "Knipperen" (bij een apparaat met één zone staat het rechts boven de LED's).
+  **Tellen**, links naast "Knipperen" in de kop van de zone (bij een apparaat met één zone links
+  naast de plek van Knipperen, rechts boven de LED's).
   De zone gaat even naar zijn grootste aantal LED's en er gaat elke seconde één LED meer aan: de
   nieuwste groen, die ervoor wit, de rest van de zone uit; de rest van het apparaat houdt zijn
   effect. In het voorbeeld staat, op de plek van de lengte, een grote teller ("LED 37") met:
@@ -1134,7 +1139,7 @@ Wat de app doet voor wie met het toetsenbord, een schermlezer, een contrastthema
 of minder beweging werkt.
 
 - **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
-  knop, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
+  knop, link, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
   actieve LED (zie "Per-LED-editor").
 - **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
@@ -1183,7 +1188,7 @@ of minder beweging werkt.
   plaats van de kleur van het apparaat. Een schakelaar die uit staat is een rand in de
   tekstkleur met de knop in de tekstkleur, en het spoor van een schuif een rand in de
   tekstkleur. Onder de muis krijgt alles de markeerkleur: de rand van een knop, kaart of veld, de streepjesrand van "+ nieuw", de
-  rand om een schakelaar, de schuifbalk en een link, die dan ook een streep eronder krijgt; de
+  rand om een schakelaar, de schuifbalk en een link, met zijn streep eronder; de
   grote knop draait zijn kleuren om en krijgt een rand. Dat gaat terwijl de app open is, en zet
   je het thema weer uit, dan is de app weer donker. De LED's in het voorbeeld met hun gloed, de
   bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
@@ -1227,6 +1232,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **Hele huis:** de strip toont de echte kleuren van de apparaten, niet de vaste regenboog van het
   ontwerp; zo zegt hij iets over het huis.
 - **Knoppen** hebben ronde hoeken (12 px) in plaats van pilvormen.
+- **Links** zijn op elke pagina dezelfde: blauw en altijd onderstreept, niet pas onder de muis
+  (testpanel 1-11-2026, voorstel van Fatima, 9 tegen 1). De schermen van het ontwerp tonen links
+  zonder streep, maar dan zie je alleen aan de kleur dat je erop kunt klikken; § 4 van het ontwerp
+  legt nu de onderstreepte link vast, met de gewone knop en de stepper. Onder de muis worden ze
+  lichter, met de toetsenbordfocus krijgen ze de ring van 2 px, en een link die nu niets doet is
+  grijs zonder streep. Ook de naam van een zone en "Alles selecteren" in het voorbeeld zijn zo'n
+  link. Wat je met een knop of link kunt doen, staat er altijd: er komt niets pas tevoorschijn
+  als je er met de muis overheen gaat. Zie § 4 van `design/DESIGN.md`.
 - **Gewone woorden op knoppen:** het ontwerp (§ 8) kiest overal een knipoog naar klussen ("Erbij
   knutselen", "Uit de gereedschapskist", "In elkaar zetten"). Het testpanel vond dat onduidelijk,
   dus een knop of link zegt in gewone woorden wat hij doet, en alleen een kop mag de knipoog
@@ -1388,9 +1401,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   onder de bolletjes blijft donker, zodat de LED's erop gloeien. Een schakelaar die aan staat,
   toont de markeerkleur in plaats van de kleur van het apparaat, zoals de schakelaars van Windows;
   de kleur zie je in het voorbeeld en op de kaart. Het waarschuwingsteken ⚠ krijgt de tekstkleur
-  in plaats van geel, dat op een licht thema wegvalt. Een link krijgt onder de muis alleen in een
-  contrastthema een streep eronder, waar de kleur alleen niet genoeg zegt; de links van het
-  ontwerp hebben geen streep, en zonder contrastthema blijft dat zo.
+  in plaats van geel, dat op een licht thema wegvalt. Een link heeft de kleur van links in dat
+  thema en zijn streep eronder in dezelfde kleur, net als zonder contrastthema (zie "Links"
+  hierboven).
 - **De tekstgrootte van Windows** noemt het ontwerp niet: daar hebben de letters vaste maten (§ 2).
   De app vermenigvuldigt ze met de tekstgrootte (zie "Tekstgrootte" bij "Toegankelijkheid"), en maakt dan plaats:
   de navigatiebalk is minstens 88 px en breder als de labels dat vragen (het ontwerp zegt
@@ -2188,7 +2201,7 @@ geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat
   "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
   knipperen, net zo als hierboven; de rest van het apparaat houdt zijn kleuren.
   Zo zie je welke header welke fan of strip is. Een zone zonder LED's knippert niet en heeft
-  dus geen knop: stel eerst het aantal LED's in. Ook hier knippert er steeds één ding: een
+  dus geen knop (zijn plek blijft vrij als de zone Tellen heeft): stel eerst het aantal LED's in. Ook hier knippert er steeds één ding: een
   nieuwe zone of een nieuw apparaat neemt het over, bij een pauze is "Knipperen" grijs, en verandert de
   apparatenlijst (bijv. een nieuwe lengte of OpenRGB dat opnieuw zoekt), dan stopt het
   knipperen en krijgt het apparaat zijn eigen kleuren terug. Klik je vlak na − of + op

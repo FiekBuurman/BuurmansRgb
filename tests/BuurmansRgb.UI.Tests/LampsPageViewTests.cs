@@ -27,7 +27,9 @@ public sealed class LampsPageViewTests
             var page = PageViews.Show<LampsPage>(panel, viewModel);
             var button = HowDevicesCome(page);
             Assert.Equal(Strings.HowDevicesCome, button.Content);
-            Assert.Equal(Strings.HowDevicesCome, new ButtonAutomationPeer(button).GetName());
+            var peer = UIElementAutomationPeer.CreatePeerForElement(button);
+            Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
+            Assert.Equal(Strings.HowDevicesCome, peer.GetName());
             Assert.Equal(Strings.HowDevicesComeToolTip, button.ToolTip);
             Assert.Equal(Strings.HowDevicesComeToolTip, AutomationProperties.GetHelpText(button));
             Assert.Contains("OpenRGB", Strings.HowDevicesComeToolTip, StringComparison.Ordinal);

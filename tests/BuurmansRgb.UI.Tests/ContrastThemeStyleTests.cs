@@ -109,17 +109,31 @@ public sealed class ContrastThemeStyleTests
         Assert.NotNull(AppTheme.Part<Border>(button, "HoverRing"));
     });
 
-    // A link takes the highlight under the mouse instead of the HotTrack it has at rest, with a
-    // line under it.
+    // A link is HotTrack at rest and takes the highlight under the mouse, underlined in both: the
+    // line has no pen of its own, so it has the color of the text.
     [Fact]
-    public void LinkButton_OnHover_HasTheHighlightAndALineUnderIt() => InContrastTheme(panel =>
+    public void LinkButton_IsUnderlinedInHotTrackAndHasTheHighlightOnHover() => InContrastTheme(panel =>
     {
-        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "Hoe komt een apparaat erbij?" });
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Hoe komt een apparaat erbij?" });
+        var line = Assert.Single(AppTheme.Part<TextBlock>(link, "Text").TextDecorations);
 
         Assert.Same(SystemColors.HotTrackBrush, link.Foreground);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Style.Triggers)[(null, Control.ForegroundProperty)]));
-        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Template.Triggers)[("Underline", Border.BackgroundProperty)]));
-        Assert.Equal(Colors.Transparent, Assert.IsType<SolidColorBrush>(AppTheme.Part<Border>(link, "Underline").Background).Color);
+        Assert.Equal(TextDecorationLocation.Underline, line.Location);
+        Assert.Null(line.Pen);
+    });
+
+    // A link that does nothing now has GrayText, which in a contrast theme means disabled, without
+    // any opacity, as the text of a disabled button; without its line, as outside the theme.
+    [Fact]
+    public void LinkButton_Disabled_HasGrayTextWithoutOpacity() => InContrastTheme(panel =>
+    {
+        var link = AppTheme.Show(panel, new LinkButton { Content = "LED-kleuren van dit apparaat overnemen", IsEnabled = false });
+
+        Assert.Same(SystemColors.GrayTextBrush, link.Foreground);
+        Assert.Equal(1.0, link.Foreground.Opacity);
+        Assert.Equal(1.0, link.Opacity);
+        Assert.Empty(AppTheme.Part<TextBlock>(link, "Text").TextDecorations ?? []);
     });
 
     // The dashed border of "+ new" and the thumb of a scroll bar: the text color at rest, the

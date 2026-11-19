@@ -102,6 +102,7 @@ public sealed class ContrastThemeTests
         ["DisabledFaceBrush"] = "Transparent",
         ["DisabledTextBrush"] = "DisabledTextColor",
         ["DisabledBorderBrush"] = "BorderBrush",
+        ["DisabledLinkBrush"] = "TextMutedBrush",
         ["SwitchOnCoverBrush"] = "Transparent",
         ["ControlOutlineBrush"] = "Transparent",
         ["HoverOutlineBrush"] = "Transparent",

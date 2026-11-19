@@ -426,9 +426,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een gewone knop die je indrukt in een contrastthema `Highlight` met `HighlightText` geven, zoals
   Windows; nu wordt hij `Window` (`SurfaceRaisedBrush`), wat op `ButtonFace` weinig of niets
   verandert
-- De streep onder een link in een contrastthema is een rand onder de regel, iets lager dan een
-  echte onderstreping; `TextDecorations` zou dichter bij de letters staan, maar dat is geen brush
-  en past dus niet in `ContrastTheme.SystemBrushes`
 - De primaire knop onder de muis en ingedrukt (`Face.Opacity` 0,9 en 0,8) alleen zonder
   contrastthema doorzichtiger maken; in een contrastthema mengt dat `HighlightText` en
   `Highlight` met het vlak erachter, terwijl de omgedraaide kleuren en de ring de hover al tonen.
@@ -459,6 +456,9 @@ uitbreidingen in `docs/bouwplan.md`.
   (`ContrastTheme.SystemBrushes` blijft de baas) en geen animatie bij het omkleuren (minder
   beweging); eerst een keuze in `design/DESIGN.md`, dat de accentkleuren nu vast kiest (testpanel
   1-11-2026, Sanne)
+- De stepper van § 4 (`design/DESIGN.md`) als eigen control: nu zet `LedPreviewPanel` de −, de
+  schuif, de +, het veld en Toepassen met de hand in een `Grid`, en hebben − en + bij Tellen
+  (vorige en volgende LED) gewone knoppen in plaats van knoppen die herhalen als je ze vasthoudt
 
 ### Voorbeeld en per-LED-editor
 

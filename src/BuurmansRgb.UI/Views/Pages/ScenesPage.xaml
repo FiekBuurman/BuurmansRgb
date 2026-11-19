@@ -213,7 +213,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <Button x:Name="AddTime" HorizontalAlignment="Left" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.ProfileTimeAdd}"
+                        <views:LinkButton x:Name="AddTime" HorizontalAlignment="Left" Content="{x:Static res:Strings.ProfileTimeAdd}"
                                 ToolTip="{x:Static res:Strings.ProfileTimeAddToolTip}" Command="{Binding Profiles.Automation.AddTimeCommand}" Click="OnAddTimeClick" />
 
                         <Grid Margin="0,12,0,0">

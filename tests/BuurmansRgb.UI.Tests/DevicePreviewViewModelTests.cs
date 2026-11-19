@@ -427,6 +427,18 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal([true, false], rest.Zones.Select(zone => zone.ShowsFlash));
     }
 
+    // A zone with "Tellen" keeps the place of Knipperen free when it has no Knipperen, so Tellen
+    // stands at the same place in every zone: the empty header and the one zone of a strip.
+    [Fact]
+    public void KeepsFlashPlace_ForAZoneWithTellenButNoKnipperen()
+    {
+        var strip = new DevicePreviewViewModel(new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 10, [new RgbZone("Strip", 10, 0, 60)]) { Source = DeviceSource.Hardware });
+        var board = new DevicePreviewViewModel(Motherboard);
+
+        Assert.True(strip.Zones[0].KeepsFlashPlace);
+        Assert.Equal([false, false, true], board.Zones.Select(zone => zone.KeepsFlashPlace));
+    }
+
     [Fact]
     public void FlashZone_WhilePaused_IsGrey()
     {

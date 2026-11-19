@@ -333,7 +333,7 @@
                                         Command="{Binding MoveStepLaterCommand}" Click="OnStepButtonClick" />
                             </WrapPanel>
                             <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedStepText}" />
-                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                            <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                                     Content="{x:Static res:Strings.CustomEffectTakePattern}" ToolTip="{x:Static res:Strings.CustomEffectTakePatternToolTip}"
                                     ToolTipService.ShowOnDisabled="True"
                                     Command="{Binding DataContext.TakeLedPatternCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" />
@@ -472,17 +472,17 @@
                                 <TextBlock Style="{StaticResource SubText}" Text="{Binding SelectedEffect.Description}" />
                             </Grid>
                             <!-- A new own effect of steps, which the editor above then shows. -->
-                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                            <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                                     Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
                                     ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
                             <!-- An own effect of someone else, from a file or a code (SharingViewModel); a scene that comes
                                  this way shows on Scènes. -->
                             <WrapPanel>
-                                <Button Margin="0,4,12,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.ShareImport}"
+                                <views:LinkButton Margin="0,4,12,0" Content="{x:Static res:Strings.ShareImport}"
                                         ToolTip="{x:Static res:Strings.ShareImportToolTip}"
                                         AutomationProperties.Name="{x:Static res:Strings.ShareImportAccessibleName}"
                                         Command="{Binding Sharing.ImportCommand}" />
-                                <Button Margin="0,4,0,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.SharePasteCode}"
+                                <views:LinkButton Margin="0,4,0,0" Content="{x:Static res:Strings.SharePasteCode}"
                                         ToolTip="{x:Static res:Strings.SharePasteCodeToolTip}"
                                         AutomationProperties.Name="{x:Static res:Strings.SharePasteCodeAccessibleName}"
                                         Command="{Binding Sharing.PasteCodeCommand}" />
@@ -521,7 +521,7 @@
                                     AutomationProperties.ItemStatus="{Binding DirectionText}"
                                     ToolTip="{x:Static res:Strings.DirectionHelp}"
                                     PreviewKeyDown="OnDirectionKeyDown" Thumb.DragCompleted="OnDirectionThumbDragCompleted" />
-                            <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
+                            <views:LinkButton Margin="0,4,0,0" HorizontalAlignment="Left"
                                     Content="{x:Static res:Strings.DirectionClear}" Command="{Binding ClearDirectionCommand}"
                                     AutomationProperties.Name="{x:Static res:Strings.DirectionClearAccessibleName}"
                                     Visibility="{Binding HasDirection, Converter={StaticResource BoolToVisibility}}"

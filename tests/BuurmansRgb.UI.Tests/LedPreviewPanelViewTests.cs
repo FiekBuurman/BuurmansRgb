@@ -29,16 +29,31 @@ public sealed class LedPreviewPanelViewTests
         AppTheme.Run(panel =>
         {
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
-            var link = AppTheme.Descendants<TextBlock>(preview)
-                .Where(text => text.IsVisible)
-                .Select(text => text.Inlines.FirstInline)
-                .OfType<Hyperlink>()
-                .Single(link => link.Inlines.FirstInline is Run { Text: var text } && text == Strings.SelectAll);
-            var peer = ContentElementAutomationPeer.CreatePeerForElement(link);
+            var link = VisibleLinks(preview).Single(link => Equals(link.Content, Strings.SelectAll));
+            var peer = UIElementAutomationPeer.CreatePeerForElement(link);
 
             Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
-            Assert.StartsWith(Strings.SelectAll, peer.GetName(), StringComparison.Ordinal);
+            Assert.Equal(UiText.Format(Strings.SelectAllAccessibleName, "LED strip"), peer.GetName());
             Assert.Equal("Alles selecteren, alle LED's van LED strip", peer.GetName());
+        });
+    }
+
+    // A zone of OpenRGB with an underscore in its name, such as "D_LED1", keeps it in its link, on
+    // the screen and for a screen reader.
+    [Fact]
+    public async Task ZoneLink_KeepsAnUnderscoreInTheName()
+    {
+        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
+            [RgbZone.Fixed("D_LED1", 2), RgbZone.Fixed("Mainboard", 2)]) { Source = DeviceSource.Hardware };
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [board]);
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var link = VisibleLinks(preview).Single(link => link.Content is string text && text.StartsWith("D_LED1", StringComparison.Ordinal));
+
+            Assert.StartsWith("D_LED1", AppTheme.Part<TextBlock>(link, "Text").Text, StringComparison.Ordinal);
+            Assert.Contains("D_LED1", UIElementAutomationPeer.CreatePeerForElement(link).GetName(), StringComparison.Ordinal);
         });
     }
 
@@ -88,16 +103,17 @@ public sealed class LedPreviewPanelViewTests
             foreach (var view in views)
             {
                 var zone = (StackPanel)VisualTreeHelper.GetParent(view);
-                var name = AppTheme.Descendants<TextBlock>(zone).Single(text => text.IsVisible && text.Inlines.FirstInline is Hyperlink);
+                var link = VisibleLinks(zone).Single();
+                Assert.Equal(AutomationControlType.Hyperlink, UIElementAutomationPeer.CreatePeerForElement(link).GetAutomationControlType());
+                var name = AppTheme.Part<TextBlock>(link, "Text");
                 var first = view.BoundsOf(0);
 
                 var aboveFirst = preview.InputHitTest(view.TranslatePoint(new Point(first.X + first.Width / 2.0, first.Y - 3.5), preview));
                 var onName = preview.InputHitTest(name.TranslatePoint(new Point(4.0, name.ActualHeight / 2.0), preview));
 
-                var link = (Hyperlink)name.Inlines.FirstInline;
-                names.Add(((Run)link.Inlines.FirstInline).Text);
+                names.Add((string)link.Content);
                 Assert.Same(view, aboveFirst);
-                Assert.True(onName == link || (onName is Run run && run.Parent == link));
+                Assert.Same(link, AncestorButton(onName as DependencyObject));
 
                 if (((ZonePreviewViewModel)view.DataContext).Length is { } length)
                 {
@@ -140,5 +156,62 @@ public sealed class LedPreviewPanelViewTests
             OffscreenWindow.WaitUntilIdle();
             Assert.False(message.IsVisible);
         });
+    }
+
+    // Knipperen and Tellen have a fixed place in the head of a zone: Knipperen on the right, under
+    // that of the device, and Tellen just left of it, also in a zone without LEDs and in the one
+    // zone of a device, where Knipperen is that of the device and its place stays free. Both are
+    // there without hovering.
+    [Fact]
+    public async Task FlashAndCount_HaveAFixedPlaceInTheHeadOfAZone()
+    {
+        var header = new DeviceInfo("header", "Header", DeviceType.Motherboard, 2,
+            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 2", 0, 0, 60)]) { Source = DeviceSource.Hardware };
+        var strip = new DeviceInfo("strip", "Strip", DeviceType.LedStrip, 10, [new RgbZone("Strip", 10, 0, 60)]) { Source = DeviceSource.Hardware };
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, header, strip]);
+
+        AppTheme.Run(panel =>
+        {
+            Window.GetWindow(panel)!.Width = 900;
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var heads = AppTheme.Descendants<Grid>(preview).Where(grid => grid.Name == "ZoneHead" && grid.IsVisible).ToList();
+            var deviceFlashes = new[] { "Board", "Header", "Strip" }
+                .Select(name => PageViews.ButtonNamed(preview, string.Format(Strings.FlashDeviceAccessibleName, name)))
+                .ToList();
+            var flashRight = RightOf(deviceFlashes[0], preview);
+            Assert.All(deviceFlashes, flash => Assert.Equal(flashRight, RightOf(flash, preview), 1));
+
+            var counts = heads.Select(head => (Button)head.FindName("CountButton")).Where(count => count.IsVisible).ToList();
+            var flashes = heads.Select(head => (Button)head.FindName("FlashButton")).Where(flash => flash.Visibility != Visibility.Collapsed).ToList();
+            Assert.Equal(3, counts.Count);
+            Assert.Equal(5, flashes.Count);
+            Assert.Equal(3, flashes.Count(flash => flash.IsVisible));
+
+            var countRight = RightOf(counts[0], preview);
+            Assert.All(counts, count => Assert.Equal(countRight, RightOf(count, preview), 1));
+            Assert.All(flashes, flash => Assert.Equal(flashRight, RightOf(flash, preview), 1));
+            Assert.Equal(flashRight - flashes[0].ActualWidth - 10.0, countRight, 1);
+            Assert.All(counts.Concat(flashes.Where(flash => flash.IsVisible)), button =>
+            {
+                Assert.Equal(Visibility.Visible, button.Visibility);
+                Assert.Equal(1.0, button.Opacity);
+            });
+        });
+    }
+
+    private static double RightOf(FrameworkElement element, UIElement page) =>
+        element.TranslatePoint(new Point(element.ActualWidth, 0), page).X;
+
+    private static IEnumerable<LinkButton> VisibleLinks(DependencyObject parent) =>
+        AppTheme.Descendants<LinkButton>(parent).Where(link => link.IsVisible);
+
+    private static Button? AncestorButton(DependencyObject? element)
+    {
+        while (element is not null and not Button)
+        {
+            element = element is Visual ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element);
+        }
+
+        return element as Button;
     }
 }
