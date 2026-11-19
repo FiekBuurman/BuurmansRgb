@@ -14,6 +14,7 @@ Bestanden in dit pakket:
 | `screens/Main.dc.html` | Referentie: Lampen-scherm (home). |
 | `screens/Kleur.dc.html` | Referentie: Kleur mengen (met werkende RGB-schuifjes). |
 | `screens/Scenes.dc.html` | Referentie: Scènes. |
+| `screens/KleurLagen.dc.html` | Ontwerp voor nacht 6: Kleur in lagen (§ 9), als desktopvenster in drie staten. Gewone HTML zonder template-runtime: opent zo in een browser. |
 
 De `.dc.html`-bestanden zijn **ontwerpreferenties, geen draaibare code**: ze gebruiken een eigen template-runtime (`{{hole}}`-plaatshouders en `<sc-for>`-lussen). De data die in de plaatshouders komt staat onderaan elk bestand in het `<script type="text/x-dc">`-blok (`renderVals()`). Lees ze voor exacte maten, kleuren en teksten.
 

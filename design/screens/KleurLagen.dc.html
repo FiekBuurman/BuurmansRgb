@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<title>buurmansRgb – Kleur in lagen (ontwerp voor nacht 6)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&amp;family=IBM+Plex+Mono:wght@500&amp;display=swap">
+<!--
+  Ontwerpreferentie bij design/DESIGN.md § 9 (Kleur in lagen), geen draaibare code. Anders dan
+  Kleur.dc.html is dit een desktopvenster (§ 6) en gebruikt het geen template-runtime: het opent
+  zo in een browser. De tokens zijn die van § 1; --t is de tekstgrootte van Windows (1 = 100 %,
+  2 = 200 %): alleen tekst groeit mee, zoals in WPF, niet de minimale klikvlakken van 44 px.
+  Het script onderaan vult de chips en de dichte kaarten uit de data, zoals renderVals() in de
+  andere schermen, en laat de koppen open- en dichtklappen en de chips springen.
+-->
+<style>
+body{margin:0;background:#0B0B0D;color:#F4F1EA;font-family:'Bricolage Grotesque','Segoe UI Variable','Segoe UI',system-ui,sans-serif;padding:32px;display:flex;flex-direction:column;gap:40px}
+.state{display:flex;flex-direction:column;gap:12px}
+.state>h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-0.02em}
+.state>p{margin:0;max-width:1000px;font-size:14px;color:#A9A6A0}
+.win{--t:1;width:1000px;background:#16161A;border:1px solid #2E2E36;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.big{--t:2}
+.big .rail{width:auto;padding:14px 8px 0 8px}
+.big .rail a{width:auto;padding:0 10px}
+.titlebar{display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-bottom:1px solid #2E2E36}
+.titlebar b{font-size:18px;font-weight:800;letter-spacing:-0.02em}
+.titlebar .r{color:#FF5A5A}.titlebar .g{color:#3DDC84}.titlebar .bl{color:#5B93FF}
+.body{display:flex;min-height:0}
+.rail{width:88px;flex-shrink:0;background:#1A1A1F;border-right:1px solid #2E2E36;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:14px}
+.rail a{display:flex;flex-direction:column;align-items:center;gap:4px;width:70px;min-height:56px;justify-content:center;border-radius:12px;color:#A9A6A0;text-decoration:none;font-size:calc(var(--t)*12px)}
+.rail a[aria-current]{background:#24242B;color:#F4F1EA;font-weight:600}
+.page{flex:1;min-width:0;padding:28px 32px 32px 32px;display:flex;flex-direction:column;gap:18px}
+h1,h3,h4{margin:0}
+.h1{font-size:calc(var(--t)*22px);font-weight:800;letter-spacing:-0.02em}
+.sec{font-size:calc(var(--t)*18px);font-weight:600}
+.ctitle{font-size:calc(var(--t)*16px);font-weight:600}
+.lbl{font-size:calc(var(--t)*15px);font-weight:600}
+.sub{font-size:calc(var(--t)*13px);color:#A9A6A0}
+.mono{font-family:'IBM Plex Mono','Cascadia Mono',Consolas,monospace;font-weight:500}
+.card{background:#212128;border:1px solid #2E2E36;border-radius:22px;padding:18px}
+.knop{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;box-sizing:border-box;padding:0 16px;background:#212128;border:1px solid #2E2E36;border-radius:12px;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;white-space:nowrap}
+.knop:hover{border-color:#4A4A54}
+.rond{padding:0;border-radius:22px;width:44px}
+.link{display:inline-flex;align-items:center;min-height:44px;background:none;border:0;padding:0;color:#7FB0FF;text-decoration:underline;font:inherit;font-size:calc(var(--t)*14px);cursor:pointer;text-align:left}
+.link:hover{color:#A9C9FF}
+.link.klein{font-size:calc(var(--t)*13px)}
+:focus-visible,.focus{outline:2px solid #F4F1EA;outline-offset:3px}
+.select{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;box-sizing:border-box;padding:0 14px;background:#212128;border:1px solid #4A4A54;border-radius:12px;font-size:calc(var(--t)*15px)}
+.switch{width:52px;height:32px;box-sizing:border-box;padding:4px;border-radius:16px;background:#F4F1EA;display:flex;justify-content:flex-end;flex-shrink:0}
+.switch span{width:24px;height:24px;border-radius:12px;background:#16161A}
+.switch.off{background:#3A3A42;justify-content:flex-start}.switch.off span{background:#8C8A85}
+.dot{width:12px;height:12px;border-radius:6px;display:block;flex-shrink:0}
+.dot.uit{background:#3A3A42;box-shadow:inset 0 0 0 1.5px #8C8A85}
+.strip{background:#26262D;border-radius:8px;height:22px;padding:0 10px;display:flex;align-items:center;justify-content:space-between}
+.mini{display:flex;gap:6px;align-items:center;background:#26262D;border-radius:8px;height:22px;padding:0 8px}
+.mini .dot{width:8px;height:8px;border-radius:4px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--t)*7.5em),1fr));gap:10px}
+.tile{min-height:44px;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:6px 10px}
+.tile[aria-checked=true]{border:3px solid #F4F1EA}
+.swatches{display:flex;flex-wrap:wrap;gap:8px}
+.sw{width:32px;height:32px;border-radius:10px;border:1px solid #2E2E36;box-sizing:border-box}
+.sw.sel{border:3px solid #F4F1EA}
+.sw.plus{border:2px dashed #4A4A54;background:transparent;color:#F4F1EA;display:flex;align-items:center;justify-content:center;font-size:16px}
+.slider{height:28px;display:flex;align-items:center}
+.slider i{display:block;height:6px;border-radius:3px;flex:1;background:#3A3A42;position:relative}
+.slider i b{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
+.slider i u{position:absolute;top:-6px;width:18px;height:18px;border-radius:9px;margin-left:-9px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;box-sizing:border-box;padding:4px 14px;border-radius:22px;background:#212128;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*14px);font-weight:600;cursor:pointer;max-width:100%}
+.chip:hover{border-color:#4A4A54}
+.dev{background:#212128;border:1px solid #2E2E36;border-radius:18px}
+.devhead{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 8px;min-height:56px;flex-wrap:wrap}
+.toggle{display:flex;align-items:center;gap:10px;flex:1 1 calc(var(--t)*14em);min-height:44px;background:none;border:0;padding:4px 6px;border-radius:12px;color:#F4F1EA;font:inherit;text-align:left;cursor:pointer}
+.toggle:hover{background:#24242B}
+.chev{transition:none;flex-shrink:0}
+.toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
+.devright{display:flex;align-items:center;gap:12px;margin-left:auto}
+.devbody{border-top:1px solid #2E2E36;padding:14px 18px 18px 18px;display:flex;flex-direction:column;gap:14px}
+.devbody[hidden]{display:none}
+.zonehead{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:start}
+.leds{display:flex;flex-wrap:wrap;gap:6px;background:#0E0E11;border-radius:12px;padding:12px}
+.leds .dot{width:10px;height:10px;border-radius:5px}
+.stepper{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.field{min-height:44px;box-sizing:border-box;width:calc(var(--t)*64px + 8px);display:flex;align-items:center;justify-content:center;border:1px solid #4A4A54;border-radius:10px;background:#16161A;font-size:calc(var(--t)*15px)}
+.note{border:2px dashed #4A4A54;border-radius:14px;padding:12px 16px;font-size:14px;color:#A9A6A0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px}
+.row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.big .cols,.big .row3{grid-template-columns:minmax(0,1fr)}
+.hdr{display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.hdr .pick{display:flex;align-items:center;gap:14px;margin-left:auto;flex:0 1 380px}
+.big .hdr .pick{margin-left:0;flex:1 1 100%}
+.secline{display:flex;align-items:flex-end;gap:6px 16px;flex-wrap:wrap}
+.secline .links{margin-left:auto;display:flex;gap:18px}
+.big .secline .links{margin-left:0}
+</style>
+</head>
+<body>
+
+<!-- ============================================================ Staat 1 -->
+<section class="state" aria-labelledby="s1">
+  <h2 id="s1">1 · Hele huis, alle apparaatkaarten dicht</h2>
+  <p>Bovenaan alleen het effect, wat bij het effect hoort (hier Statisch: de kleur), helderheid en snelheid, en "Bewaar als scène". Eronder "Per apparaat" met de chiprij en negen dichte kaarten: elk met naam, één regel, een kleine strip in zijn echte kleuren en Knipperen.</p>
+
+  <div class="win" role="region" aria-label="Venster: Kleur, Hele huis, alle kaarten dicht" data-frame="1">
+    <div class="titlebar"><span aria-hidden="true">▣</span><b>buurmans<span class="r">R</span><span class="g">g</span><span class="bl">b</span></b></div>
+    <div class="body">
+      <nav class="rail" aria-label="Hoofdmenu">
+        <a href="#">Apparaten</a><a href="#" aria-current="page">Kleur</a><a href="#">Scènes</a>
+      </nav>
+      <main class="page">
+
+        <header class="hdr">
+          <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+        </header>
+
+        <section class="card" aria-labelledby="eff1">
+          <h2 id="eff1" class="sec" style="margin:0 0 12px 0">Effect</h2>
+          <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Statisch"></div>
+          <div class="sub" style="margin-top:10px">Eén kleur die blijft staan.</div>
+        </section>
+
+        <section class="card" aria-labelledby="kl1">
+          <h2 id="kl1" class="sec" style="margin:0 0 12px 0">Kleur</h2>
+          <div class="cols">
+            <div style="background:#0E0E11;border:1px solid #2E2E36;border-radius:22px;padding:22px 18px 18px 18px;display:flex;flex-direction:column;gap:18px;align-self:start">
+              <div class="strip" aria-hidden="true" data-strip="#FF9A3D" data-n="12"></div>
+              <div><div class="sub">Huidige kleur</div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><span class="sec">Oranje ·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:2px 14px">#FF9A3D</span></div>
+                <div class="mono sub" style="margin-top:6px">255 · 154 · 61</div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div><div style="display:flex;justify-content:space-between"><span class="lbl">Rood</span><span class="mono sub">255</span></div><div class="slider"><i><b style="width:100%;background:#FF5A5A"></b><u style="left:100%;background:#FF5A5A"></u></i></div></div>
+              <div><div style="display:flex;justify-content:space-between"><span class="lbl">Groen</span><span class="mono sub">154</span></div><div class="slider"><i><b style="width:60%;background:#3DDC84"></b><u style="left:60%;background:#3DDC84"></u></i></div></div>
+              <div><div style="display:flex;justify-content:space-between"><span class="lbl">Blauw</span><span class="mono sub">61</span></div><div class="slider"><i><b style="width:24%;background:#5B93FF"></b><u style="left:24%;background:#5B93FF"></u></i></div></div>
+              <h3 class="sub" style="margin-top:6px">Kleuren</h3>
+              <div class="swatches" data-swatches="#FFF4E5 #FF3B3B #FF9A3D* #1FC46A #2F6BFF #A97BFF #FF0000 #00FF00 #0000FF #FF6EB4 #FFB6C1 #C8A2FF #98FFCC #8CCBF0"></div>
+              <h3 class="sub">Eigen kleuren</h3>
+              <div class="swatches"><span class="sw plus">+</span><span class="sw" style="background:#FF6EB4"></span><span class="sw" style="background:#7FC8FF"></span></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="hs1">
+          <h2 id="hs1" class="sec" style="margin:0 0 12px 0">Helderheid en snelheid</h2>
+          <div class="row3">
+            <div><div style="display:flex;justify-content:space-between"><span class="lbl">Helderheid</span><span class="mono sub">85%</span></div><div class="slider"><i><b style="width:85%;background:#F4F1EA"></b><u style="left:85%;background:#F4F1EA"></u></i></div></div>
+            <div style="opacity:.55"><div style="display:flex;justify-content:space-between"><span class="lbl">Snelheid</span><span class="mono sub">100%</span></div><div class="slider"><i><b style="width:33%;background:#8C8A85"></b><u style="left:33%;background:#8C8A85"></u></i></div><div class="sub">Alleen voor bewegende effecten.</div></div>
+            <div></div>
+          </div>
+        </section>
+
+        <div><button class="knop">Bewaar als scène</button></div>
+
+        <section aria-labelledby="pa1" style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+          <div class="secline">
+            <div><h2 id="pa1" class="sec">Per apparaat</h2><div class="sub">Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen.</div></div>
+            <div class="links"><button class="link" aria-label="Alle apparaten openklappen" data-all="open">Alles openklappen</button><button class="link" aria-label="Alle apparaten dichtklappen" data-all="dicht">Alles dichtklappen</button></div>
+          </div>
+          <div class="chips" role="toolbar" aria-label="Naar een apparaat" data-chips="huis"></div>
+          <div style="display:flex;flex-direction:column;gap:10px" data-cards="huis"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ Staat 2 -->
+<section class="state" aria-labelledby="s2">
+  <h2 id="s2">2 · Eén apparaat open (na de chip "Gesimuleerde ARGB-controller"), effect Regenboog</h2>
+  <p>De volgorde van het effect: bij Regenboog is er geen kleur te mengen, dus kaart 2 is één zin. De chip klapte de kaart open en zette de focus op zijn kop (de ring). Open staat de inhoud van nu: Zones gelijk, per zone de naam als link, Tellen en Knipperen op een vaste plek, de LED's en de stepper voor de lengte.</p>
+
+  <div class="win" role="region" aria-label="Venster: Kleur, Regenboog, één apparaat open" data-frame="2">
+    <div class="titlebar"><span aria-hidden="true">▣</span><b>buurmans<span class="r">R</span><span class="g">g</span><span class="bl">b</span></b></div>
+    <div class="body">
+      <nav class="rail" aria-label="Hoofdmenu">
+        <a href="#">Apparaten</a><a href="#" aria-current="page">Kleur</a><a href="#">Scènes</a>
+      </nav>
+      <main class="page">
+
+        <header class="hdr">
+          <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+        </header>
+
+        <section class="card" aria-labelledby="eff2">
+          <h2 id="eff2" class="sec" style="margin:0 0 12px 0">Effect</h2>
+          <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Regenboog"></div>
+          <div class="sub" style="margin-top:10px">Alle kleuren van de regenboog lopen over de LED's.</div>
+        </section>
+
+        <section class="card" aria-labelledby="kl2">
+          <h2 id="kl2" class="sec" style="margin:0 0 6px 0">Geen kleur nodig</h2>
+          <div class="sub" style="color:#F4F1EA;font-size:calc(var(--t)*15px)">Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.</div>
+        </section>
+
+        <section class="card" aria-labelledby="hs2">
+          <h2 id="hs2" class="sec" style="margin:0 0 12px 0">Helderheid en snelheid</h2>
+          <div class="row3">
+            <div><div style="display:flex;justify-content:space-between"><span class="lbl">Helderheid</span><span class="mono sub">85%</span></div><div class="slider"><i><b style="width:85%;background:#F4F1EA"></b><u style="left:85%;background:#F4F1EA"></u></i></div></div>
+            <div><div style="display:flex;justify-content:space-between"><span class="lbl">Snelheid</span><span class="mono sub">150%</span></div><div class="slider"><i><b style="width:48%;background:#F4F1EA"></b><u style="left:48%;background:#F4F1EA"></u></i></div></div>
+            <div><div style="display:flex;justify-content:space-between"><span class="lbl">Richting →</span><span class="mono sub">0°</span></div><div class="slider"><i><b style="width:0%;background:#F4F1EA"></b><u style="left:0%;background:#F4F1EA"></u></i></div><button class="link">Geen richting</button></div>
+          </div>
+        </section>
+
+        <div><button class="knop">Bewaar als scène</button></div>
+
+        <section aria-labelledby="pa2" style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+          <div class="secline">
+            <div><h2 id="pa2" class="sec">Per apparaat</h2><div class="sub">Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen.</div></div>
+            <div class="links"><button class="link" aria-label="Alle apparaten openklappen" data-all="open">Alles openklappen</button><button class="link" aria-label="Alle apparaten dichtklappen" data-all="dicht">Alles dichtklappen</button></div>
+          </div>
+          <div class="chips" role="toolbar" aria-label="Naar een apparaat" data-chips="regenboog"></div>
+          <div style="display:flex;flex-direction:column;gap:10px" data-cards="regenboog" data-open="argb" data-focus="argb"></div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ Staat 3 -->
+<section class="state" aria-labelledby="s3">
+  <h2 id="s3">3 · Tekstgrootte van Windows op 200 % (Hele huis, kaarten dicht)</h2>
+  <p>Zelfde venster (1000 px), de tekst twee keer zo groot. De keuze van het apparaat gaat onder de titel, de effecttegels lopen om, de kolommen van Kleur en van Helderheid en snelheid gaan onder elkaar, de links onder de sectiekop, de chips over meer rijen, en in een dichte kaart gaan de kleine strip en Knipperen onder de naam. Geen horizontale schuifbalk, niets afgekapt. Het middenstuk is ingekort (gestippeld vak).</p>
+
+  <div class="win big" role="region" aria-label="Venster: Kleur bij 200 procent tekst" data-frame="3">
+    <div class="titlebar"><span aria-hidden="true">▣</span><b>buurmans<span class="r">R</span><span class="g">g</span><span class="bl">b</span></b></div>
+    <div class="body">
+      <nav class="rail" aria-label="Hoofdmenu">
+        <a href="#">Apparaten</a><a href="#" aria-current="page">Kleur</a><a href="#">Scènes</a>
+      </nav>
+      <main class="page">
+
+        <header class="hdr">
+          <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+        </header>
+
+        <section class="card" aria-labelledby="eff3">
+          <h2 id="eff3" class="sec" style="margin:0 0 12px 0">Effect</h2>
+          <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Statisch"></div>
+          <div class="sub" style="margin-top:10px">Eén kleur die blijft staan.</div>
+        </section>
+
+        <section class="card" aria-labelledby="kl3">
+          <h2 id="kl3" class="sec" style="margin:0 0 12px 0">Kleur</h2>
+          <div style="background:#0E0E11;border:1px solid #2E2E36;border-radius:22px;padding:22px 18px 18px 18px;display:flex;flex-direction:column;gap:18px">
+            <div class="strip" aria-hidden="true" data-strip="#FF9A3D" data-n="12"></div>
+            <div><div class="sub">Huidige kleur</div>
+              <div class="sec" style="margin-top:4px">Oranje</div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px"><span class="sec">·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:2px 14px">#FF9A3D</span></div>
+              <div class="mono sub" style="margin-top:6px">255 · 154 · 61</div></div>
+          </div>
+          <div class="note" style="margin-top:14px">Rood, Groen en Blauw, Kleuren en Eigen kleuren onder het voorbeeld; daarna de kaart Helderheid en snelheid met de drie schuiven onder elkaar, en Bewaar als scène.</div>
+        </section>
+
+        <section aria-labelledby="pa3" style="display:flex;flex-direction:column;gap:12px;margin-top:10px">
+          <div class="secline">
+            <div><h2 id="pa3" class="sec">Per apparaat</h2><div class="sub">Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen.</div></div>
+            <div class="links"><button class="link" aria-label="Alle apparaten openklappen" data-all="open">Alles openklappen</button><button class="link" aria-label="Alle apparaten dichtklappen" data-all="dicht">Alles dichtklappen</button></div>
+          </div>
+          <div class="chips" role="toolbar" aria-label="Naar een apparaat" data-chips="huis"></div>
+          <div style="display:flex;flex-direction:column;gap:10px" data-cards="huis" data-limit="3"></div>
+          <div class="note">… en de andere zes kaarten op dezelfde manier.</div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+</section>
+
+<script>
+// De data van de mock, zoals renderVals() in de andere schermen.
+const effects = ['Statisch', 'Ademen', 'Regenboog', 'Golf', 'Kleurenloop', 'Fonkelen', 'Komeet', 'Scanner', 'Vuur', 'Per LED', 'Eigen effect'];
+const rainbow = ['#FF5A5A', '#FF9A3D', '#FFD84D', '#3DDC84', '#3DD6D0', '#5B93FF', '#A97BFF'];
+const devices = [
+  { id: 'strip', name: 'Gesimuleerde ledstrip', line: '1 zone · 60 LED\'s', color: '#FF9A3D' },
+  { id: 'fan', name: 'Gesimuleerde ventilator', line: '1 zone · 16 LED\'s', color: '#FF9A3D' },
+  { id: 'kbd', name: 'Gesimuleerd toetsenbord', line: '1 zone · 104 LED\'s', color: '#5B93FF' },
+  { id: 'mb', name: 'Gesimuleerd moederbord', line: '3 zones · 28 LED\'s', color: '#FF9A3D' },
+  { id: 'ram1', name: 'Gesimuleerd RAM-latje 1', line: '1 zone · 8 LED\'s · uit', color: null },
+  { id: 'ram2', name: 'Gesimuleerd RAM-latje 2', line: '1 zone · 8 LED\'s · uit', color: null },
+  { id: 'gpu', name: 'Gesimuleerde videokaart', line: '2 zones · 22 LED\'s', color: '#FF9A3D' },
+  { id: 'fan2', name: 'Gesimuleerde ventilator met twee ringen', line: '2 zones · 36 LED\'s', color: '#FF9A3D' },
+  { id: 'argb', name: 'Gesimuleerde ARGB-controller', line: '2 zones · 92 LED\'s', color: '#FF9A3D' }
+];
+
+const dot = (c, i, rb) => {
+  const col = rb ? rainbow[i % rainbow.length] : c;
+  return col ? '<span class="dot" style="background:' + col + ';box-shadow:0 0 10px 2px ' + col + '"></span>'
+             : '<span class="dot uit"></span>';
+};
+const dots = (c, n, rb, off) => Array.from({ length: n }, (_, i) => dot(c, i + (off || 0), rb)).join('');
+const chev = '<svg class="chev" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"></path></svg>';
+const icon = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#A9A6A0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="10" rx="2"></rect><path d="M7 12h.01M11 12h.01M15 12h.01"></path></svg>';
+
+// The open body of the ARGB controller: Zones gelijk, two zones with their head, LEDs and stepper.
+const zone = (name, n, max, rb) =>
+  '<div style="display:flex;flex-direction:column;gap:8px">' +
+    '<div class="zonehead"><div><button class="link klein">' + name + '</button><div class="sub">' + n + ' LED\'s</div></div>' +
+    '<button class="knop">Tellen</button><button class="knop">Knipperen</button></div>' +
+    '<div class="leds">' + dots('#FF9A3D', n, rb) + '</div>' +
+    '<div class="sub">Aantal LED\'s (0–' + max + '):</div>' +
+    '<div class="stepper"><button class="knop rond" aria-label="Aantal LED\'s van ' + name + ' verlagen">−</button>' +
+      '<div class="slider" style="flex:1 1 160px"><i><b style="width:' + Math.round(n / max * 100) + '%;background:#F4F1EA"></b><u style="left:' + Math.round(n / max * 100) + '%;background:#F4F1EA"></u></i></div>' +
+      '<button class="knop rond" aria-label="Aantal LED\'s van ' + name + ' verhogen">+</button>' +
+      '<span class="field mono">' + n + '</span><button class="knop">Toepassen</button></div>' +
+  '</div>';
+const argbBody = rb =>
+  '<div style="display:flex;align-items:center;gap:12px"><span class="switch off"><span></span></span><div><div class="lbl">Zones gelijk</div><div class="sub">Alle zones krijgen hetzelfde beeld, uitgerekt over hun lengte.</div></div></div>' +
+  zone('Kanaal 1', 60, 120, rb) + zone('Kanaal 2', 32, 120, rb);
+
+document.querySelectorAll('[data-effects]').forEach(el => {
+  const chosen = el.dataset.effects;
+  el.innerHTML = effects.map((e, i) =>
+    '<button class="tile" role="radio" aria-checked="' + (e === chosen) + '" tabindex="' + (e === chosen ? 0 : -1) + '">' + (e === chosen ? '✓ ' : '') + e + '</button>').join('');
+});
+document.querySelectorAll('[data-strip]').forEach(el => { el.innerHTML = dots(el.dataset.strip, +el.dataset.n); });
+document.querySelectorAll('[data-swatches]').forEach(el => {
+  el.innerHTML = el.dataset.swatches.split(' ').map(s => '<span class="sw' + (s.endsWith('*') ? ' sel' : '') + '" style="background:' + s.replace('*', '') + '"></span>').join('');
+});
+document.querySelectorAll('[data-chips]').forEach(el => {
+  const rb = el.dataset.chips === 'regenboog';
+  el.innerHTML = devices.map((d, i) =>
+    '<button class="chip" data-jump="' + d.id + '" title="' + d.name + '" tabindex="' + (i === 0 ? 0 : -1) + '">' + dot(d.color, i, rb && d.color) + d.name + '</button>').join('');
+});
+document.querySelectorAll('[data-cards]').forEach(el => {
+  const rb = el.dataset.cards === 'regenboog';
+  const limit = +(el.dataset.limit || devices.length);
+  el.innerHTML = devices.slice(0, limit).map(d => {
+    const open = el.dataset.open === d.id;
+    const focus = el.dataset.focus === d.id ? ' focus' : '';
+    return '<article class="dev" data-dev="' + d.id + '">' +
+      '<div class="devhead">' +
+        '<button class="toggle' + focus + '" aria-expanded="' + open + '" aria-describedby="l-' + d.id + '">' + chev + icon +
+          '<span><span class="ctitle" role="heading" aria-level="3" style="display:block">' + d.name + '</span><span class="sub" id="l-' + d.id + '">' + d.line + '</span></span></button>' +
+        '<div class="devright"><span class="mini" aria-hidden="true">' + dots(d.color, 12, rb && d.color) + '</span>' +
+          '<button class="knop" aria-label="' + d.name + ' laten knipperen">Knipperen</button></div>' +
+      '</div>' +
+      '<div class="devbody"' + (open ? '' : ' hidden') + '>' + (d.id === 'argb' ? argbBody(rb) : '<div class="sub">Zones en LED\'s zoals nu in het voorbeeld.</div>') + '</div>' +
+    '</article>';
+  }).join('');
+});
+
+// Open- en dichtklappen, zonder animatie; → opent, ← sluit.
+const setOpen = (card, open) => {
+  card.querySelector('.toggle').setAttribute('aria-expanded', open);
+  card.querySelector('.devbody').hidden = !open;
+};
+document.addEventListener('click', e => {
+  const t = e.target.closest('.toggle');
+  if (t) { const c = t.closest('.dev'); setOpen(c, t.getAttribute('aria-expanded') !== 'true'); return; }
+  const all = e.target.closest('[data-all]');
+  if (all) { all.closest('section').querySelectorAll('.dev').forEach(c => setOpen(c, all.dataset.all === 'open')); return; }
+  const chip = e.target.closest('[data-jump]');
+  if (chip) {
+    const c = chip.closest('section').querySelector('[data-dev="' + chip.dataset.jump + '"]');
+    if (!c) return;
+    setOpen(c, true);
+    c.scrollIntoView({ block: 'start', behavior: 'instant' });
+    c.querySelector('.toggle').focus();
+  }
+});
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('.toggle');
+  if (t && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { setOpen(t.closest('.dev'), e.key === 'ArrowRight'); e.preventDefault(); return; }
+  const group = e.target.closest && e.target.closest('[role=toolbar],[role=radiogroup]');
+  if (!group || !['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+  const items = [...group.querySelectorAll('button')];
+  let i = items.indexOf(e.target);
+  i = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : (i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+  items.forEach(b => b.tabIndex = -1);
+  items[i].tabIndex = 0; items[i].focus(); e.preventDefault();
+  if (group.getAttribute('role') === 'radiogroup') items.forEach(b => { const on = b === items[i]; b.setAttribute('aria-checked', on); b.textContent = (on ? '✓ ' : '') + b.textContent.replace('✓ ', ''); });
+});
+</script>
+</body>
+</html>
