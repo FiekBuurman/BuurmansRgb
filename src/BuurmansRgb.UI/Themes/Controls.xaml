@@ -685,7 +685,8 @@
          it no longer looks like a link: a link has no frame or fill, so fading alone would leave it
          blue. The muted text at 0.6 gives the same grey as the text of a disabled button at 0.4. The
          hand goes by itself, as WPF shows the cursor of the parent over a disabled element. Under the
-         mouse a link gets lighter. Its content is a text; an underscore in it is an access key. It is
+         mouse a link gets lighter. Its content is a text, shown as it is: the app has no access keys, so
+         an underscore, as in a zone name of OpenRGB such as "D_LED1", stays an underscore. It is
          the style of every LinkButton, which a screen reader reads as a link, so a link is always a
          LinkButton and always looks like one. -->
     <Style TargetType="views:LinkButton">
@@ -699,9 +700,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="views:LinkButton">
                     <Grid VerticalAlignment="Center" Margin="4,0">
-                        <AccessText x:Name="Text" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
-                                    HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                    TextWrapping="Wrap" TextDecorations="Underline" />
+                        <TextBlock x:Name="Text" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
+                                   HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                   TextWrapping="Wrap" TextDecorations="Underline" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsEnabled" Value="False">

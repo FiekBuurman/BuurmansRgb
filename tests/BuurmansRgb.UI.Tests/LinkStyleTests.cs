@@ -19,7 +19,7 @@ public sealed partial class LinkStyleTests
     public void LinkButton_IsUnderlinedWithoutTheMouse() => AppTheme.Run(panel =>
     {
         var link = AppTheme.Show(panel, new LinkButton { Content = "Verversen" });
-        var text = AppTheme.Part<AccessText>(link, "Text");
+        var text = AppTheme.Part<TextBlock>(link, "Text");
         var line = Assert.Single(text.TextDecorations);
 
         Assert.False(link.IsMouseOver);
@@ -35,7 +35,7 @@ public sealed partial class LinkStyleTests
     {
         var link = AppTheme.Show(panel, new LinkButton { Content = "LED-kleuren van dit apparaat overnemen", IsEnabled = false });
 
-        Assert.Empty(AppTheme.Part<AccessText>(link, "Text").TextDecorations ?? []);
+        Assert.Empty(AppTheme.Part<TextBlock>(link, "Text").TextDecorations ?? []);
         AppTheme.AssertColor(panel, "TextMutedBrush", link.Foreground);
     });
 
@@ -52,6 +52,17 @@ public sealed partial class LinkStyleTests
         Assert.IsAssignableFrom<IInvokeProvider>(peer.GetPattern(PatternInterface.Invoke));
     });
 
+    // A zone name of OpenRGB with an underscore keeps it, on the screen and for a screen reader: the
+    // app has no access keys.
+    [Fact]
+    public void LinkButton_KeepsAnUnderscore() => AppTheme.Run(panel =>
+    {
+        var link = AppTheme.Show(panel, new LinkButton { Content = "D_LED1" });
+
+        Assert.Equal("D_LED1", AppTheme.Part<TextBlock>(link, "Text").Text);
+        Assert.Equal("D_LED1", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
+    });
+
     // A long link wraps instead of being cut off, such as the name of a zone in a narrow column.
     [Fact]
     public void LinkButton_WrapsALongText() => AppTheme.Run(panel =>
@@ -62,8 +73,8 @@ public sealed partial class LinkStyleTests
             Width = 120,
         });
 
-        Assert.Equal(TextWrapping.Wrap, AppTheme.Part<AccessText>(link, "Text").TextWrapping);
-        Assert.True(AppTheme.Part<AccessText>(link, "Text").ActualHeight > link.FontSize * 2.0);
+        Assert.Equal(TextWrapping.Wrap, AppTheme.Part<TextBlock>(link, "Text").TextWrapping);
+        Assert.True(AppTheme.Part<TextBlock>(link, "Text").ActualHeight > link.FontSize * 2.0);
     });
 
     // One link style: no Hyperlink with the look of WPF, and the colors of a link only in LinkButton.

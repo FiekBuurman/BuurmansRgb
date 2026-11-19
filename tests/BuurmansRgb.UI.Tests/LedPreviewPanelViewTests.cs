@@ -38,6 +38,25 @@ public sealed class LedPreviewPanelViewTests
         });
     }
 
+    // A zone of OpenRGB with an underscore in its name, such as "D_LED1", keeps it in its link, on
+    // the screen and for a screen reader.
+    [Fact]
+    public async Task ZoneLink_KeepsAnUnderscoreInTheName()
+    {
+        var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 4,
+            [RgbZone.Fixed("D_LED1", 2), RgbZone.Fixed("Mainboard", 2)]) { Source = DeviceSource.Hardware };
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [board]);
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var link = VisibleLinks(preview).Single(link => link.Content is string text && text.StartsWith("D_LED1", StringComparison.Ordinal));
+
+            Assert.StartsWith("D_LED1", AppTheme.Part<TextBlock>(link, "Text").Text, StringComparison.Ordinal);
+            Assert.Contains("D_LED1", UIElementAutomationPeer.CreatePeerForElement(link).GetName(), StringComparison.Ordinal);
+        });
+    }
+
     // The button of the device and those of its zones all say "Knipperen"; their names for a
     // screen reader tell them apart.
     [Fact]
@@ -86,7 +105,7 @@ public sealed class LedPreviewPanelViewTests
                 var zone = (StackPanel)VisualTreeHelper.GetParent(view);
                 var link = VisibleLinks(zone).Single();
                 Assert.Equal(AutomationControlType.Hyperlink, UIElementAutomationPeer.CreatePeerForElement(link).GetAutomationControlType());
-                var name = AppTheme.Part<AccessText>(link, "Text");
+                var name = AppTheme.Part<TextBlock>(link, "Text");
                 var first = view.BoundsOf(0);
 
                 var aboveFirst = preview.InputHitTest(view.TranslatePoint(new Point(first.X + first.Width / 2.0, first.Y - 3.5), preview));
