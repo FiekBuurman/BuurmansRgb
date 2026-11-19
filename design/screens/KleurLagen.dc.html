@@ -190,7 +190,7 @@ h1,h3,h4{margin:0}
         <section class="card" aria-labelledby="eff2">
           <h2 id="eff2" class="sec" style="margin:0 0 12px 0">Effect</h2>
           <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Regenboog"></div>
-          <div class="sub" style="margin-top:10px">Alle kleuren van de regenboog lopen over de LED's.</div>
+          <div class="sub" style="margin-top:10px">Alle kleuren van de regenboog schuiven over de LED's.</div>
           <div class="implinks"><button class="link" aria-label="Scène of eigen effect importeren…">Importeren…</button><button class="link" aria-label="Code van een scène of eigen effect plakken">Code plakken</button></div>
         </section>
 
@@ -316,7 +316,9 @@ const zone = (name, n, max, rb) =>
       '<span class="field mono">' + n + '</span><button class="knop">Toepassen</button></div>' +
   '</div>';
 const argbBody = rb =>
-  '<div style="display:flex;align-items:center;gap:12px"><span class="switch off"><span></span></span><div><div class="lbl">Zones gelijk</div><div class="sub">Alle zones krijgen hetzelfde beeld, uitgerekt over hun lengte.</div></div></div>' +
+  // As in LedPreviewPanel: the text left, the switch on the right (DockPanel.Dock="Right"), at the top.
+  '<div style="display:flex;align-items:flex-start;gap:14px"><div style="flex:1;min-width:0"><div class="lbl">Zones gelijk</div><div class="sub">Elke zone krijgt het beeld van de langste.</div></div>' +
+    '<span class="switch off" role="switch" tabindex="0" aria-checked="false" aria-label="Zones gelijk bij Gesimuleerde ARGB-controller"><span></span></span></div>' +
   zone('Kanaal 1', 60, 120, rb) + zone('Kanaal 2', 32, 120, rb);
 
 document.querySelectorAll('[data-effects]').forEach(el => {
