@@ -1,6 +1,9 @@
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -15,7 +18,7 @@ public sealed partial class LinkStyleTests
     [Fact]
     public void LinkButton_IsUnderlinedWithoutTheMouse() => AppTheme.Run(panel =>
     {
-        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "Verversen" });
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Verversen" });
         var text = AppTheme.Part<AccessText>(link, "Text");
         var line = Assert.Single(text.TextDecorations);
 
@@ -30,19 +33,31 @@ public sealed partial class LinkStyleTests
     [Fact]
     public void LinkButton_Disabled_IsGreyWithoutALine() => AppTheme.Run(panel =>
     {
-        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "LED-kleuren van dit apparaat overnemen", IsEnabled = false });
+        var link = AppTheme.Show(panel, new LinkButton { Content = "LED-kleuren van dit apparaat overnemen", IsEnabled = false });
 
         Assert.Empty(AppTheme.Part<AccessText>(link, "Text").TextDecorations ?? []);
         AppTheme.AssertColor(panel, "TextMutedBrush", link.Foreground);
+    });
+
+    // A screen reader reads a link as a link, as a Hyperlink was, and invokes it as a button.
+    [Fact]
+    public void LinkButton_IsALinkForAScreenReader() => AppTheme.Run(panel =>
+    {
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Alles selecteren" });
+        var peer = UIElementAutomationPeer.CreatePeerForElement(link);
+
+        Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
+        Assert.Equal(nameof(LinkButton), peer.GetClassName());
+        Assert.Equal("Alles selecteren", peer.GetName());
+        Assert.IsAssignableFrom<IInvokeProvider>(peer.GetPattern(PatternInterface.Invoke));
     });
 
     // A long link wraps instead of being cut off, such as the name of a zone in a narrow column.
     [Fact]
     public void LinkButton_WrapsALongText() => AppTheme.Run(panel =>
     {
-        var link = AppTheme.Show(panel, new Button
+        var link = AppTheme.Show(panel, new LinkButton
         {
-            Style = (Style)panel.FindResource("LinkButton"),
             Content = "ARGB-header met een heel lange naam · nog geen LED's ingesteld",
             Width = 120,
         });

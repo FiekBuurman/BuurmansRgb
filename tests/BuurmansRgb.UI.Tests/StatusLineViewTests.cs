@@ -430,7 +430,9 @@ public sealed class StatusLineViewTests
             Assert.False(PageViews.ById<StackPanel>(page, "StatusLineExplanationPanel").IsVisible);
             var link = PageViews.ById<Button>(page, "StatusLineDetailExplanationLink");
             Assert.True(link.IsVisible);
-            Assert.Equal(Strings.OtherRgbSoftwareGuideLinkAccessibleName, new ButtonAutomationPeer(link).GetName());
+            var peer = UIElementAutomationPeer.CreatePeerForElement(link);
+            Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
+            Assert.Equal(Strings.OtherRgbSoftwareGuideLinkAccessibleName, peer.GetName());
 
             PageViews.Click(link);
 

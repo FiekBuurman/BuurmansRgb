@@ -685,8 +685,10 @@
          it no longer looks like a link: a link has no frame or fill, so fading alone would leave it
          blue. The muted text at 0.6 gives the same grey as the text of a disabled button at 0.4. The
          hand goes by itself, as WPF shows the cursor of the parent over a disabled element. Under the
-         mouse a link gets lighter. Its content is a text; an underscore in it is an access key. -->
-    <Style x:Key="LinkButton" TargetType="Button">
+         mouse a link gets lighter. Its content is a text; an underscore in it is an access key. It is
+         the style of every LinkButton, which a screen reader reads as a link, so a link is always a
+         LinkButton and always looks like one. -->
+    <Style TargetType="views:LinkButton">
         <Setter Property="Foreground" Value="{DynamicResource LinkBrush}" />
         <Setter Property="FontSize" Value="{DynamicResource SmallBodySize}" />
         <Setter Property="Cursor" Value="Hand" />
@@ -695,7 +697,7 @@
         <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="Button">
+                <ControlTemplate TargetType="views:LinkButton">
                     <Grid VerticalAlignment="Center" Margin="4,0">
                         <AccessText x:Name="Text" Text="{Binding Content, RelativeSource={RelativeSource TemplatedParent}}"
                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"

@@ -141,13 +141,13 @@
                  the keyboard focus stays on it, and a second click while it searches does nothing. -->
             <DockPanel Margin="0,22,0,4">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                    <Button Margin="0,0,12,0" Style="{StaticResource LinkButton}" Content="{Binding DeviceRescan.ButtonText}"
+                    <views:LinkButton Margin="0,0,12,0" Content="{Binding DeviceRescan.ButtonText}"
                             ToolTip="{x:Static res:Strings.RescanToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.RescanToolTip}"
                             AutomationProperties.Name="{Binding DeviceRescan.ButtonText}" AutomationProperties.AutomationId="RescanDevices"
                             Command="{Binding DeviceRescan.RescanCommand}" />
                     <!-- "Hoe komt een apparaat erbij?" goes to Instellingen, where the OpenRGB block explains it: OpenRGB
                          adds the devices, not buurmansRgb. The one link to Instellingen on this page. -->
-                    <Button Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.HowDevicesCome}"
+                    <views:LinkButton Content="{x:Static res:Strings.HowDevicesCome}"
                             ToolTip="{x:Static res:Strings.HowDevicesComeToolTip}" AutomationProperties.HelpText="{x:Static res:Strings.HowDevicesComeToolTip}"
                             AutomationProperties.AutomationId="HowDevicesCome"
                             Command="{Binding Navigation.GoToCommand}" CommandParameter="{x:Static vm:AppPage.Settings}" />

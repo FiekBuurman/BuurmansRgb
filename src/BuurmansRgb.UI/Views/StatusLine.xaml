@@ -62,7 +62,7 @@
                         Visibility="{Binding ShowsExplanation, Converter={StaticResource BoolToVisibility}, FallbackValue=Collapsed}"
                         AutomationProperties.AutomationId="StatusLineExplanationPanel">
                 <TextBlock Style="{StaticResource StatusLineDetailText}" Text="{Binding Explanation}" AutomationProperties.AutomationId="StatusLineExplanation" />
-                <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" Content="{Binding ExplanationLinkText}" Command="{Binding ExplanationLinkCommand}"
+                <views:LinkButton HorizontalAlignment="Left" Content="{Binding ExplanationLinkText}" Command="{Binding ExplanationLinkCommand}"
                         IsVisibleChanged="OnButtonIsVisibleChanged"
                         Visibility="{Binding HasExplanationLink, Converter={StaticResource BoolToVisibility}}"
                         AutomationProperties.Name="{Binding ExplanationLinkAccessibleName}" AutomationProperties.AutomationId="StatusLineExplanationLink" />
@@ -104,7 +104,7 @@
                                             AutomationProperties.AutomationId="StatusLineDetailExplanationPanel">
                                     <TextBlock Style="{StaticResource StatusLineDetailText}" Text="{Binding Explanation}"
                                                AutomationProperties.AutomationId="StatusLineDetailExplanation" />
-                                    <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" Content="{Binding ExplanationLinkText}"
+                                    <views:LinkButton HorizontalAlignment="Left" Content="{Binding ExplanationLinkText}"
                                             Command="{Binding ExplanationLinkCommand}" IsVisibleChanged="OnButtonIsVisibleChanged"
                                             Visibility="{Binding HasExplanationLink, Converter={StaticResource BoolToVisibility}}"
                                             AutomationProperties.Name="{Binding ExplanationLinkAccessibleName}"

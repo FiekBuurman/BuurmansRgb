@@ -85,13 +85,13 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                                    <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" FontSize="{DynamicResource SubTextSize}"
+                                                    <views:LinkButton HorizontalAlignment="Left" FontSize="{DynamicResource SubTextSize}"
                                                             Content="{Binding Header}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}"
                                                             Command="{Binding SelectZoneCommand}"
                                                             Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}" />
                                                     <TextBlock Style="{StaticResource SubText}" Text="{Binding Header}"
                                                                Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                                    <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" FontSize="{DynamicResource SubTextSize}"
+                                                    <views:LinkButton HorizontalAlignment="Left" FontSize="{DynamicResource SubTextSize}"
                                                             Content="{x:Static res:Strings.SelectAll}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
                                                             Command="{Binding SelectZoneCommand}" AutomationProperties.Name="{Binding SelectAllAccessibleName}"
                                                             Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}" />

@@ -114,7 +114,7 @@ public sealed class ContrastThemeStyleTests
     [Fact]
     public void LinkButton_IsUnderlinedInHotTrackAndHasTheHighlightOnHover() => InContrastTheme(panel =>
     {
-        var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "Hoe komt een apparaat erbij?" });
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Hoe komt een apparaat erbij?" });
         var line = Assert.Single(AppTheme.Part<AccessText>(link, "Text").TextDecorations);
 
         Assert.Same(SystemColors.HotTrackBrush, link.Foreground);

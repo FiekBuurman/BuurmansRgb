@@ -30,8 +30,9 @@ public sealed class LedPreviewPanelViewTests
         {
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
             var link = VisibleLinks(preview).Single(link => Equals(link.Content, Strings.SelectAll));
-            var peer = new ButtonAutomationPeer(link);
+            var peer = UIElementAutomationPeer.CreatePeerForElement(link);
 
+            Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
             Assert.StartsWith(Strings.SelectAll, peer.GetName(), StringComparison.Ordinal);
             Assert.Equal("Alles selecteren, alle LED's van LED strip", peer.GetName());
         });
@@ -84,6 +85,7 @@ public sealed class LedPreviewPanelViewTests
             {
                 var zone = (StackPanel)VisualTreeHelper.GetParent(view);
                 var link = VisibleLinks(zone).Single();
+                Assert.Equal(AutomationControlType.Hyperlink, UIElementAutomationPeer.CreatePeerForElement(link).GetAutomationControlType());
                 var name = AppTheme.Part<AccessText>(link, "Text");
                 var first = view.BoundsOf(0);
 
@@ -181,8 +183,8 @@ public sealed class LedPreviewPanelViewTests
     private static double RightOf(FrameworkElement element, UIElement page) =>
         element.TranslatePoint(new Point(element.ActualWidth, 0), page).X;
 
-    private static IEnumerable<Button> VisibleLinks(DependencyObject parent) =>
-        AppTheme.Descendants<Button>(parent).Where(button => button.IsVisible && button.Style == (Style)button.FindResource("LinkButton"));
+    private static IEnumerable<LinkButton> VisibleLinks(DependencyObject parent) =>
+        AppTheme.Descendants<LinkButton>(parent).Where(link => link.IsVisible);
 
     private static Button? AncestorButton(DependencyObject? element)
     {
