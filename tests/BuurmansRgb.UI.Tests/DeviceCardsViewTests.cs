@@ -331,6 +331,110 @@ public sealed class DeviceCardsViewTests
         });
     }
 
+    // The last card goes with the focus in it: without a next card the head of the card before it
+    // gets the focus.
+    [Fact]
+    public async Task LastDeviceGoes_WithTheFocusInItsCard_ThePreviousHeadGetsIt()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.Devices = [Argb, Strip, Fan];
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            Assert.True(Cards(preview)[2].FocusHeader());
+
+            api!.Devices = [Argb, Strip];
+            api.RaiseDevicesChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            var cards = Cards(preview);
+            Assert.Equal(Strip.Name, AutomationProperties.GetName(cards[1]));
+            Assert.True(cards[1].HeaderSite!.IsKeyboardFocused);
+        });
+    }
+
+    // Every device goes with the focus in a card: the focus goes to "Welk apparaat?" at the top of
+    // Kleur, not to the window.
+    [Fact]
+    public async Task EveryDeviceGoes_WithTheFocusInACard_TheDeviceChoiceGetsIt()
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.Devices = [Argb, Strip];
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            Assert.True(Cards(page)[1].FocusHeader());
+
+            api!.Devices = [];
+            api.RaiseDevicesChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            Assert.Empty(Cards(page));
+            Assert.Same(page.FindName("DeviceChoice"), Keyboard.FocusedElement);
+        });
+    }
+
+    // A device that comes back with the same id, as when OpenRGB loads again, gives the focus back to
+    // the same place: the head of its card, or a stepper of a length in it.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeviceComesBack_TheFocusStaysOnTheSamePlace(bool onStepper)
+    {
+        FakeEngineApi? api = null;
+        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        {
+            api = arranged;
+            arranged.Devices = [Argb, Strip];
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var card = Cards(preview)[0];
+            card.IsExpanded = true;
+            OffscreenWindow.WaitUntilIdle();
+            var stepperName = viewModel.Preview.Devices[0].Zones[1].Length!.IncreaseAccessibleName;
+            Assert.True(onStepper ? PageViews.Named<RepeatButton>(preview, stepperName).Focus() : card.FocusHeader());
+
+            api!.RaiseDevicesChanged();
+            OffscreenWindow.WaitUntilIdle();
+
+            var again = Cards(preview)[0];
+            Assert.NotSame(card, again);
+            Assert.True(again.IsExpanded);
+            Assert.True(onStepper ? PageViews.Named<RepeatButton>(preview, stepperName).IsKeyboardFocused : again.HeaderSite!.IsKeyboardFocused);
+        });
+    }
+
+    // Without devices "Per apparaat" says only how to find them: no chips, links or cards (§ 9.6).
+    [Fact]
+    public async Task NoDevices_ShowsOnlyTheLineHowToFindThem()
+    {
+        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = []);
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+
+            Assert.Contains(AppTheme.Descendants<TextBlock>(preview), text => text.IsVisible && text.Text == Strings.NoLamps);
+            Assert.Empty(Cards(preview));
+            Assert.False(Chips(preview).IsVisible);
+            Assert.DoesNotContain(AppTheme.Descendants<LinkButton>(preview), link => link.IsVisible);
+            Assert.DoesNotContain(AppTheme.Descendants<Button>(preview), button => button.IsVisible);
+        });
+    }
+
     // While the preview stands still, the mark of a flash stands under the head also of a closed card.
     [Fact]
     public async Task ClosedCard_ShowsTheMarkOfAFlash()
