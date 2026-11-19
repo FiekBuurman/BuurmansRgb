@@ -82,8 +82,8 @@ public sealed class HeadingStructureViewTests
         });
     }
 
-    // With the colors of the loop, the blocks beside the sliders are headings too, and the device of
-    // the preview is a card one level deeper.
+    // With the colors of the loop, the blocks beside the sliders are headings too, and each device
+    // under "Per apparaat" is a card one level deeper, also while it is closed.
     [Theory]
     [InlineData(EffectIds.Static, null)]
     [InlineData(EffectIds.ColorLoop, "2 Kleuren van de loop")]
@@ -104,12 +104,12 @@ public sealed class HeadingStructureViewTests
 
             Assert.Equal(
                 [
-                    "1 Kleur mengen",
+                    "1 Kleur",
                     .. blockOfTheEffect is null ? Array.Empty<string>() : [blockOfTheEffect],
                     "2 Kleuren",
                     "2 Eigen kleuren",
                     "2 Licht en beweging",
-                    "2 Voorbeeld",
+                    "2 Per apparaat",
                     "3 LED strip",
                     "3 Fan",
                 ],

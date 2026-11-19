@@ -273,6 +273,11 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
 
 ![De pagina Kleur: kleur mengen voor het hele huis, met "Bewaar als scène" onder de eigen kleuren](images/kleur.png)
 
+De pagina is in lagen opgebouwd: bovenaan wat iedereen nodig heeft (welk apparaat, de kleur,
+helderheid, effect en snelheid, en "Bewaar als scène"), daaronder bij **Per apparaat** een kaart
+per apparaat die je openklapt voor zones, LED's, lengtes, Knipperen en Tellen (zie "Per
+apparaat").
+
 Bovenaan kies je een apparaat of "Hele huis" (een schermlezer noemt de keuze "Welk apparaat?"), met de
 schakelaar ernaast.
 
@@ -371,8 +376,8 @@ schakelaar ernaast.
 - Bovenaan staat dezelfde statusregel als op Apparaten (zie "Statusregel" daar): de verbinding
   met je apparaten weg, een pauze met de reden (bij de pauze uit het tray-menu met "Hervatten",
   zie "Pauzeren") of het voorbeeld dat stilstaat; de belangrijkste in de regel, de rest onder
-  "Details". Zijn de effecten gepauzeerd, dan staat boven de kaarten van het voorbeeld ook één
-  regel waarom "Knipperen" en "Tellen" grijs zijn (zie "Voorbeeld").
+  "Details". Zijn de effecten gepauzeerd, dan staat onder de kop "Per apparaat" ook één
+  regel waarom "Knipperen" en "Tellen" grijs zijn (zie "Per apparaat").
 
 #### Effecten
 
@@ -474,7 +479,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   staan, elk met zijn eigen helderheid en snelheid.
 - **Aanpassen:** met een eigen effect gekozen staat onder het kleurvoorbeeld het paneel **Eigen
   effect**. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
-  apparaten met dit effect (en het voorbeeld onderaan) laten hem meteen zien; een tweede
+  apparaten met dit effect (en hun kaarten bij **Per apparaat**) laten hem meteen zien; een tweede
   instellingen-app die open is, ook:
   - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en een
     eigen effect kan niet heten als een ander effect: een ander eigen effect of een ingebouwd
@@ -525,35 +530,78 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   nieuwe krijgt een nummer ("Disco (2)"). Had je precies dit effect al, dan zegt de melding dat
   en komt er niets bij. Zie "Scènes en eigen effecten delen" bij Scènes.
 
-#### Voorbeeld
+#### Per apparaat
 
-![Het voorbeeld van een toetsenbord met de regenboog op 45°, schuin over de toetsen](images/voorbeeld.png)
+![Per apparaat bij "Hele huis": de chips om naar een apparaat te springen en de dichte kaarten, de kaart van het toetsenbord open met de regenboog op 45°](images/voorbeeld.png)
 
-Onder "Licht en beweging" staat per apparaat een kaart met het icoon van zijn type, de naam en
-**Knipperen**, en per zone een bolletje per LED. Het toont wat de engine echt rendert,
-ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per seconde. Op een pagina zonder
-voorbeeld (Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine
-geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
+Onder "Licht en beweging" staat de kop **Per apparaat**, met per apparaat een kaart. Bij "Hele
+huis" zijn die kaarten eerst dicht, zodat je niet langs alle LED's van alle apparaten hoeft te
+scrollen; klap een apparaat open voor zijn zones, LED's, lengtes, Knipperen en Tellen.
+
+- **Een dichte kaart** toont een pijltje, het icoon van het type, de naam met eronder het aantal
+  LED's ("92 LED's in 2 zones", "60 LED's"), een kleine strip van twaalf bolletjes in de kleuren
+  die het apparaat nu toont (allemaal grijs als het uit staat) en **Knipperen**. Klik op de kop
+  (pijltje, icoon, naam of regel) om hem open of dicht te klappen; Knipperen werkt ook met de
+  kaart dicht.
+- **Alles openklappen** en **Alles dichtklappen**, rechts naast de kop (bij grote tekst eronder),
+  doen dat in één keer voor alle kaarten.
+- **Naar een apparaat:** onder de kop staat per apparaat een chip met een bolletje in zijn kleur
+  en zijn naam. Een klik op een chip klapt de kaart van dat apparaat open en zet hem bovenaan in
+  beeld, met de focus op zijn kop. Een chip kiest niets: de kleur die je mengt, blijft voor "Hele
+  huis" gelden. Een lange naam eindigt op "…", met de hele naam in de tooltip.
+- **Onthouden:** welke kaarten open staan, onthoudt de app tot je hem sluit, ook als je naar een
+  andere pagina gaat of even één apparaat kiest. Na het opnieuw openen is alles weer dicht. Het
+  hoort niet bij een scène en staat niet in `settings.json`. Een nieuw apparaat komt er dicht bij.
+- **Dichtklappen stopt wat er in de kaart loopt:** een telling stopt en de zone krijgt zijn eigen
+  aantal LED's terug, en gekozen LED's worden losgelaten, zodat een kleur niet naar LED's gaat
+  die je niet ziet. Een lengte die nog op zijn 0,6 seconde wachtte, gaat meteen naar het
+  apparaat, alsof je Toepassen koos. Knipperen loopt gewoon af.
+- **Eén apparaat:** kies je bovenaan één apparaat, of heeft je huis er maar één, dan is er één
+  kaart en die staat altijd open, zonder pijltje, chips of links. Komt er een tweede apparaat
+  bij, of ga je terug naar "Hele huis", dan komt die kaart dicht, tenzij je hem bij "Hele huis"
+  had opengeklapt; dicht stopt hij wat erin liep, zoals bij dichtklappen.
+- **Toetsenbord:** met Tab kom je na "Licht en beweging" bij Alles openklappen, Alles
+  dichtklappen, Hervatten (alleen tijdens een pauze), dan de chips (één Tab-stop: ← en → naar de
+  vorige of volgende chip, Home en End naar de eerste en de laatste, Enter of Spatie springt) en
+  per kaart de kop en Knipperen. Op de kop klappen Enter en Spatie de kaart open of dicht, →
+  klapt hem open en ← dicht, zoals een map in Verkenner. Van een dichte kaart slaat Tab de inhoud
+  over. Klap je een kaart dicht terwijl de focus erin stond, dan gaat de focus naar zijn kop; komt
+  je bij de chips terug, dan sta je op de chip van het apparaat waar je het laatst heen sprong.
+  Verdwijnt een apparaat terwijl de focus in zijn kaart stond, dan gaat de focus naar de kop van
+  de volgende kaart (of de vorige, of zonder kaarten naar "Welk apparaat?").
+- **Schermlezer:** Verteller leest een kaart als groep met zijn naam en of hij open is, bijv.
+  "Gesimuleerde ARGB-controller, samengevouwen", met het aantal LED's als hulptekst, en na Enter
+  "uitgevouwen". De naam is een kop van niveau 3 onder "Per apparaat" (niveau 2). De chips zijn
+  een werkbalk "Naar een apparaat" ("Gesimuleerde ledstrip, knop, 1 van 9"); de kleine strip en het
+  bolletje van een chip slaat hij over.
+
+In een open kaart staat eerst hoe je LED's kiest, en daaronder per zone een bolletje per LED. Het
+toont wat de engine echt rendert, ook als de effecten gepauzeerd zijn, met hooguit 20 beelden per
+seconde; een dichte kaart tekent alleen zijn kleine strip. Op een pagina zonder voorbeeld
+(Scènes, Instellingen) of met het venster geminimaliseerd stuurt de engine geen beelden; terug op
+Apparaten of Kleur staat meteen het nieuwste beeld er.
 
 - **Animaties uit:** staan in Windows de animaties uit (zie "Minder beweging" bij "Toegankelijkheid"), dan
   staat het voorbeeld stil en stuurt de engine geen beelden. Na elke wijziging, van jou of van
   een scène, een pauze of een andere pagina komt er één nieuw beeld. **Knipperen** flitst dan
   niet wit aan en uit in het voorbeeld: de kaart van het apparaat krijgt zolang de markering
-  "Knippert nu op het apparaat" (bij een zone met de naam van de zone), en het voorbeeld houdt
+  "Knippert nu op het apparaat" (bij een zone met de naam van de zone), onder de kop, ook als de
+  kaart dicht is, en het voorbeeld houdt
   zijn beeld tot het knipperen voorbij is. Tijdens een pauze knippert er niets, en dan komt er
   ook geen markering. Bij **Tellen** komt er per stap één beeld: één LED
   meer, er gaat niets aan en uit. Met "Laten lopen" in de statusregel bovenaan beweegt het weer
-  zoals altijd.
+  zoals altijd. Openklappen gaat nooit met een animatie, en een sprong naar een kaart schuift
+  niet zacht maar staat meteen op zijn plek.
 - **Knipperen en Tellen grijs:** zolang de effecten gepauzeerd zijn, knippert en telt er niets,
-  en zijn "Knipperen" en "Tellen" op alle kaarten grijs (hun tooltip blijft). Boven de kaarten
-  staat dan één regel die zegt waarom, ook bij "Hele huis": "Knipperen en Tellen kunnen niet
+  en zijn "Knipperen" en "Tellen" op alle kaarten grijs (hun tooltip blijft). Onder de kop "Per
+  apparaat" staat dan één regel die zegt waarom, ook bij "Hele huis": "Knipperen en Tellen kunnen niet
   zolang de effecten gepauzeerd zijn.", bij de pauze uit het tray-menu met de knop **Hervatten**
   ernaast (dezelfde als in de melding bovenaan, met Tab te bereiken), en anders met de reden
   erachter: omdat Windows vergrendeld is, de pc in de slaapstand is, de schermbeveiliging loopt
   of het scherm uit is. Een schermlezer leest de regel als hij komt. Eindigt de pauze, dan gaat de
   regel weg en doen de knoppen het weer.
 
-  ![Het voorbeeld op Kleur tijdens een pauze: de regel "Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn." met "Hervatten", en grijze knoppen Knipperen en Tellen](images/kleur-gepauzeerd.png)
+  ![Per apparaat op Kleur tijdens een pauze: de regel "Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn." met "Hervatten", en grijze knoppen Knipperen op de dichte kaarten](images/kleur-gepauzeerd.png)
 
 - **Zwarte LED's** (bijv. in Per LED, een stap van een eigen effect, of een apparaat dat uit
   staat) krijgen een grijze ring binnen hun rand, zodat je ziet waar ze zitten en erop kunt
@@ -627,7 +675,7 @@ geen beelden; terug op Apparaten of Kleur staat meteen het nieuwste beeld er.
   zone kan hebben, stopt het tellen vanzelf; Doorgaan begint dan weer bij LED 1. Nog eens
   Tellen begint ook opnieuw bij LED 1. Er telt steeds één zone. Het tellen stopt ook, en de zone
   krijgt zijn eigen aantal LED's terug, als je een andere zone laat tellen, een ander apparaat
-  kiest, van Kleur weggaat, de app sluit, op Verversen klikt, of als de effecten pauzeren (via
+  kiest, de kaart van het apparaat dichtklapt, van Kleur weggaat, de app sluit, op Verversen klikt, of als de effecten pauzeren (via
   het tray-menu, of omdat Windows vergrendelt, slaapt, het scherm uitgaat of de
   schermbeveiliging start); bij een pauze is Tellen grijs. Verdwijnt het apparaat, of krijgt de
   zone ergens anders een ander aantal LED's (bijv. in de app van OpenRGB), dan stopt het tellen
@@ -1140,20 +1188,24 @@ of minder beweging werkt.
 
 - **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
   knop, link, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
-  actieve LED (zie "Per-LED-editor").
+  actieve LED (zie "Per-LED-editor"). De kaarten bij "Per apparaat" op Kleur klap je open en dicht
+  met Enter, Spatie, → en ←, en de chips erboven zijn één Tab-stop met de pijltjes (zie "Per
+  apparaat").
 - **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
   ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
   een tijd bij "Vanzelf aanzetten" ("Tijd 1"). De bolletjes op een scènekaart zijn samen één
   afbeelding met de namen van hun kleuren, elke naam één keer ("Aan: oranje, fel blauw" of
   "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
-  want de tekst ernaast zegt al wat ze tonen.
+  want de tekst ernaast zegt al wat ze tonen, en zo ook de kleine strip op een kaart bij "Per
+  apparaat" en het bolletje van een chip. Zo'n kaart zegt of hij open is: "samengevouwen" of
+  "uitgevouwen".
 - **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
   naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
   (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Kleuren",
-  "Licht en beweging", "Voorbeeld", een scènekaart en elk blok op Instellingen) en een
-  apparaatkaart niveau 3, op Apparaten en in het voorbeeld op Kleur. De lijsten hebben een naam,
-  zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Voorbeeld", "Apparaten in
+  "Licht en beweging", "Per apparaat", een scènekaart en elk blok op Instellingen) en een
+  apparaatkaart niveau 3, op Apparaten en bij "Per apparaat" op Kleur, ook als hij dicht is. De lijsten hebben een naam,
+  zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Per apparaat", "Apparaten in
   huis", "Kleuren van de loop", "Kleuren van het effect" en "Stappen".
 - **Schakelaars** zeggen voor een schermlezer "aan" of "uit" (bijv. "Sneltoetsen, schakelaar,
   aan") in plaats van "ingedrukt", en naast elke schakelaar staat ook in woorden **Aan** of
@@ -1194,14 +1246,18 @@ of minder beweging werkt.
   bolletjes op een scènekaart, de vakjes met kleuren, de schuiven R, G en B en het woordmerk
   houden hun eigen kleuren: dat zijn de kleuren die je instelt. Alleen de ring van een LED die
   uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
-  van Kleur, die donker blijft, blijft hij grijs.
+  van Kleur, die donker blijft, blijft hij grijs, net als op de kleine strip van een kaart bij "Per
+  apparaat". De chips bij "Per apparaat" krijgen de knopkleuren met hun bolletje in de kleur van
+  het apparaat, en het pijltje op een kaart de tekstkleur.
 - **Tekstgrootte:** maak je in Windows de tekst groter (Instellingen → Toegankelijkheid →
   Tekstgrootte, tot 225 %), dan groeit de tekst van de app mee, ook terwijl hij open is: zodra je
   op "Toepassen" klikt. Zodat alles blijft passen, wordt de navigatiebalk breder als de namen
   van de pagina's dat nodig hebben, loopt tekst om naar een volgende regel in plaats van
   afgekapt te worden, worden velden en keuzelijsten breder (het veld van de hex-code past altijd
   een hele code) en gaan kolommen onder elkaar als ze naast elkaar niet meer passen: op Kleur
-  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, en bij "Licht en
+  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, bij "Per apparaat"
+  de links onder de kop, de chips over meer rijen en op een kaart de kleine strip en Knipperen
+  onder de naam, en bij "Licht en
   beweging" twee of drie in plaats van vier naast elkaar. De dagen bij een scènetijd worden
   pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
   klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
@@ -1219,7 +1275,9 @@ of minder beweging werkt.
   regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
   schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
   niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
-  het voorbeeld, ook terwijl de app open is (zie "Voorbeeld" bij Kleur).
+  het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
+  apparaat" klapt altijd zonder animatie open en dicht, en een sprong naar een kaart staat meteen
+  op zijn plek; met de animaties uit staat ook de kleine strip op een dichte kaart stil.
 
 ### Ontwerp en bewuste afwijkingen
 
@@ -1285,9 +1343,14 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   het apparaat en bewaren als scène is een extra stap. Hij opent dezelfde naamkaart als "+ Nieuwe
   scène"; in die kaart staan "Opslaan" en "Annuleren" onder het naamveld in plaats van ernaast,
   zodat het veld ook in de smalle kolom van Kleur breed genoeg blijft.
-  Een nieuwe opzet van deze pagina, "Kleur in lagen" (eerst het effect, en de apparaten in het
-  voorbeeld als kaarten die je openklapt), staat als ontwerp in § 9 van `design/DESIGN.md`; hij
-  is nog niet gebouwd, dus de pagina werkt zoals hierboven.
+  De nieuwe opzet van deze pagina, "Kleur in lagen" (§ 9 van `design/DESIGN.md`), is voor een
+  deel gebouwd: de pagina heet "Kleur", en de apparaten staan bij "Per apparaat" als kaarten die
+  je openklapt, met de chips en "Alles openklappen" en "Alles dichtklappen" (zie "Per apparaat").
+  De volgorde van het effect (eerst het effect als tegels, dan wat bij dat effect hoort, § 9.2)
+  volgt nog; tot dan staat het effect zoals hierboven bij "Licht en beweging". De kaart van één
+  gekozen apparaat is de kaart van eerst, met de donkere achtergrond van het voorbeeld; de kaarten
+  die dichtklappen hebben de kaartkleur van het ontwerp, ook achter de LED's (de mock zet de LED's
+  van een zone nog op een eigen donker vlak).
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
   van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
   eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de
@@ -1689,8 +1752,8 @@ De engine pauzeert de bewegende effecten om vijf redenen, die elk op zichzelf af
   apparaten weg, dan gaat die melding voor en staat de pauze onder "Details" (zie "Statusregel"
   bij "Apparaten"). Eindigt de pauze, dan staat er 5 seconden "Effecten lopen weer.". Het vinkje
   in het tray-menu hoort alleen bij de pauze uit het menu.
-  Boven het voorbeeld op Kleur zegt een regel dat Knipperen en Tellen zolang niet kunnen, met
-  dezelfde reden en bij de pauze uit het menu ook "Hervatten" (zie "Voorbeeld" bij "Kleur").
+  Onder "Per apparaat" op Kleur zegt een regel dat Knipperen en Tellen zolang niet kunnen, met
+  dezelfde reden en bij de pauze uit het menu ook "Hervatten" (zie "Per apparaat" bij "Kleur").
 - Uitzetten: de schakelaar "Pauzeren bij vergrendelen, slaapstand en scherm uit" bovenaan
   Instellingen, bij "Als de pc slaapt of vergrendeld is" (of `"pauseOnLockAndSleep": false` in
   `settings.json`); die geldt ook voor de schermbeveiliging. Uitzetten tijdens zo'n pauze laat
@@ -2171,7 +2234,7 @@ geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat
 - **Toetsenbord, muis en headset** gaan via USB. Regenboog en Golf lopen over de LED-volgorde
   van OpenRGB; met een **Richting** (zie "Effecten") lopen ze over de plek van de toetsen. Een
   muis of headset met een paar zones van één LED krijgt daardoor per zone een andere kleur; wil
-  je ze gelijk, zet dan "Zones gelijk" aan (zie "Voorbeeld"). OpenRGB ondersteunt maar een deel
+  je ze gelijk, zet dan "Zones gelijk" aan (zie "Per apparaat" bij Kleur). OpenRGB ondersteunt maar een deel
   van de headsets (zie "Supported Devices" op [openrgb.org](https://openrgb.org)); een headset die
   OpenRGB niet kent, staat ook niet in BuurmansRgb, en er komt geen eigen driver.
 - **Overige types:** muismat, headsetstandaard, speaker, gamepad, microfoon en keypad hebben
@@ -2192,13 +2255,13 @@ geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat
 
 - **Knipperen:** open je een apparaat (een klik op zijn kaart, of de apparaatkeuze bij Kleur),
   dan knippert het op de hardware 1,5 seconde: drie keer fel wit en uit, ook bij een lage
-  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam in het
-  voorbeeld doet het nog eens. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
+  helderheid. Daarna krijgt het zijn eigen verlichting terug. "Knipperen" naast de naam op de
+  kaart van het apparaat bij "Per apparaat" doet het nog eens, ook als de kaart dicht is. Loop je met de pijltjes door de apparaatkeuze, dan knippert alleen
   het apparaat waar je 0,3 seconde op blijft staan. Er knippert steeds één apparaat; knipperen
   wordt niet opgeslagen, en bij een pauze knippert er niets: dan is "Knipperen" grijs, en een
-  regel boven de kaarten van het voorbeeld zegt waarom (zie "Voorbeeld"). Staat het
+  regel onder "Per apparaat" zegt waarom (zie "Per apparaat"). Staat het
   voorbeeld stil omdat de animaties van Windows uit staan, dan knippert het voorbeeld niet mee:
-  de kaart zegt dan "Knippert nu op het apparaat" (zie "Animaties uit" bij "Voorbeeld").
+  de kaart zegt dan "Knippert nu op het apparaat" (zie "Animaties uit" bij "Per apparaat").
 - **Eén zone knipperen:** heeft een apparaat meer zones, zoals een moederbord met een paar
   ARGB-headers, dan staat naast elke zonenaam in het voorbeeld **Knipperen**, behalve bij
   "Overige LED's" (de LED's die bij geen zone horen). Dat laat alleen de LED's van die zone
@@ -2214,7 +2277,7 @@ geblokkeerd is, kijk dan in [installatie.md](installatie.md#games-met-anti-cheat
   "Zone ARGB 1 van Moederbord laten knipperen".
 - **Hoeveel LED's?** Bij een zone waarvan je de lengte instelt, laat **Tellen** de LED's één voor
   één aangaan, zodat je ziet hoeveel de fan of strip erop heeft; zie "LED's tellen" bij
-  "Voorbeeld".
+  "Per apparaat".
 - **Plek:** staan er twee of meer apparaten van hetzelfde type en met dezelfde naam, zoals de
   RAM-sticks van een kit, dan staat op hun kaart het deel van hun OpenRGB-locatie dat verschilt:
   het adres ("Adres 0x52"), of anders de bus ("Op NVIDIA GPU 1"). De hele locatie staat in de

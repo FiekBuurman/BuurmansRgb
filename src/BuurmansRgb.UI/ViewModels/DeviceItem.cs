@@ -43,13 +43,17 @@ public sealed record DeviceItem(
     public static DeviceItem For(DeviceInfo device, string? locationLabel = null)
     {
         var typeName = TypeNameOf(device.Type);
-        var leds = device.Zones.Count > 1
-            ? UiText.Format(Strings.LedCountInZones, device.LedCount, device.Zones.Count)
-            : UiText.LedCount(device.LedCount);
+        var leds = LedLineOf(device);
         var details = typeName is null ? leds : UiText.Format(Strings.DeviceDetailsWithType, typeName, leds);
         return new(device.Id, device.Name, details, device.Type, typeName, UiText.Lookup("DeviceSource", device.Source),
             locationLabel, ToolTipOf(device.Location), !device.HasDirectMode, device.Source == DeviceSource.Simulated);
     }
+
+    // The number of LEDs, with the zones when there are more: "92 LED's in 2 zones", "60 LED's" or
+    // "1 LED"; Details puts the type before it, the card of a device on Kleur shows it as it is.
+    public static string LedLineOf(DeviceInfo device) => device.Zones.Count > 1
+        ? UiText.Format(Strings.LedCountInZones, device.LedCount, device.Zones.Count)
+        : UiText.LedCount(device.LedCount);
 
     // A screen reader names a ComboBox item, such as in the lamp choice, by its ToString.
     public override string ToString() => DisplayName;

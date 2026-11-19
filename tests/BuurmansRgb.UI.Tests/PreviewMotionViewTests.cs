@@ -111,6 +111,8 @@ public sealed class PreviewMotionViewTests
         AppTheme.Run(panel =>
         {
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            viewModel.Preview.ExpandAll();
+            OffscreenWindow.WaitUntilIdle();
             Assert.Empty(AppTheme.Descendants<StatusLine>(preview));
             var flash = PageViews.ButtonNamed(preview, string.Format(Strings.FlashDeviceAccessibleName, "Fan"));
             var fan = AppTheme.Descendants<LedPreviewView>(preview).Single(view => view.IsVisible && view.Colors.Count == 2);

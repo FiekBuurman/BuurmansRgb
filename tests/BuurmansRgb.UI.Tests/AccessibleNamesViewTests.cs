@@ -121,7 +121,8 @@ public sealed class AccessibleNamesViewTests
             AssertNoNameOfCode(tree);
             Assert.Equal(ColorPickerViewModel.Presets.Select(preset => preset.Name), ItemNames<ColorPreset>(tree));
             Assert.Empty(ItemNames<int>(tree));
-            // The strip of the preview, and the hidden sentences that keep the room under the effect choice.
+            // The strip of the preview, and the hidden sentences that keep the room under the effect
+            // choice; the small strip on a device card has no peer at all (SmallLedStrip).
             Assert.Equal([false, false], tree.Where(peer => peer.GetClassName() == nameof(DecorativeItemsControl)).Select(peer => peer.IsControlElement()));
         });
     }
@@ -152,7 +153,7 @@ public sealed class AccessibleNamesViewTests
 
             Assert.Contains(lists, list => list.GetName() == Strings.ToolboxHeader && list.GetChildren().Count == ColorPickerViewModel.Presets.Count);
             Assert.Contains(lists, list => list.GetName() == Strings.CustomColorsHeader && list.GetChildren().Count == 1);
-            Assert.Contains(lists, list => list.GetName() == Strings.PreviewHeader && list.GetChildren().Count == 1);
+            Assert.Contains(lists, list => list.GetName() == Strings.PerDeviceHeader && list.GetChildren().Count == 1);
             Assert.DoesNotContain(lists, list => list.IsControlElement() && string.IsNullOrEmpty(list.GetName()));
             if (listOfTheEffect is not null)
             {

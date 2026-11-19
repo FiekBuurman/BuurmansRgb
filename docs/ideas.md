@@ -347,8 +347,19 @@ uitbreidingen in `docs/bouwplan.md`.
   hoort (de kleur, de kleuren van de loop of het effect, de stappen); nu kies je het effect pas
   halverwege bij "Licht en beweging", en blijft bij Statisch en Regenboog links onder het
   kleurvoorbeeld een groot leeg vlak (gebruikerstest 28-10, B7). Een grote verbouwing.
-  Ontworpen als `kleur-volgorde` in § 9 van `design/DESIGN.md` (Kleur in lagen, nacht 6), samen
-  met het open- en dichtklappen van de kaarten in het voorbeeld; blijft hier tot het gebouwd is
+  Ontworpen als `kleur-volgorde` in § 9.2 van `design/DESIGN.md` (Kleur in lagen, nacht 6); het
+  open- en dichtklappen van de kaarten is gebouwd (`kleur-lagen`), dit deel blijft hier tot het
+  gebouwd is
+- Een dichte kaart bij "Per apparaat" laten zien dat er in die kaart iets loopt dat een ander
+  venster van de app startte, zoals een telling: dichtklappen stopt alleen een telling van dit
+  venster, en die van een ander venster telt dan onzichtbaar door (`kleur-lagen`)
+- De kaart van één gekozen apparaat op Kleur dezelfde vorm geven als de kaarten die dichtklappen
+  (de kaartkleur, en de LED's van een zone op een eigen donker vlak zoals in de mock van § 9);
+  nu houdt hij de donkere achtergrond van het voorbeeld van eerst (`kleur-lagen`)
+- De inhoud van een dichte kaart bij "Per apparaat" pas opbouwen als hij voor het eerst opengaat;
+  nu bouwt de app de zones, LED's en lengtes van elke kaart al bij het tonen van de pagina (ze
+  krijgen dicht alleen geen kleuren), wat met veel apparaten geheugen en tijd bij het openen van
+  Kleur kost (`kleur-lagen`)
 - Op de effecttegels van Kleur in lagen (§ 9.3 van `design/DESIGN.md`) een klein stilstaand
   plaatje van het effect (bijv. een strip in de kleuren van Regenboog of Vuur), zodat je ziet wat
   een effect doet vóór je het kiest; geen animatie, voor minder beweging en geen werk per beeld
@@ -523,11 +534,6 @@ uitbreidingen in `docs/bouwplan.md`.
   de titelbalk (gebruikerstest 28-10, B4), zoals Kleur, Scènes en Instellingen een eigen kop
   hebben; dat vraagt eerst een keuze in het ontwerp, want § 5.1 zet het woordmerk bovenaan de
   pagina Lampen en § 6 ook in de titelbalk
-- In het voorbeeld bij "Hele huis" de kaarten van de apparaten in- en uitklappen, of met één
-  klik naar een apparaat springen; nu staan alle apparaten met hun LED's, knoppen en
-  LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10). Ontworpen als
-  `kleur-lagen` in § 9 van `design/DESIGN.md` (dichte apparaatkaarten met een chiprij, testpanel
-  1-11-2026, voorstel E, 10 van de 10), te bouwen in nacht 6; blijft hier tot het gebouwd is
 - In het voorbeeld meteen laten zien welke LED een klik kiest, bijv. een dunne ring om de LED die
   `LedLayout.NearestLed` onder de muis vindt; nu kiest een klik naast een LED de dichtstbijzijnde
   ("led-klikdoel"), maar dat zie je pas aan de tooltip, na zijn vertraging
