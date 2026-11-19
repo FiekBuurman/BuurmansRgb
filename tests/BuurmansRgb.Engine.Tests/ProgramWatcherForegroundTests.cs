@@ -399,7 +399,7 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
         StartWatcher();
         BringToFront(Film);
 
-        Assert.True(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.True(HoldScene("Nacht"));
         Assert.Equal(Purple, ShownColor());
 
         _foreground.Bring(Explorer);
@@ -422,6 +422,9 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
         _programs.Running.Add(program);
         _foreground.Bring(program);
     }
+
+    // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.
+    private bool HoldScene(string scene) => _watcher!.HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
 
     private RgbColor ShownColor() => _lighting.GetLighting(null).Color;
 

@@ -12,7 +12,8 @@ namespace BuurmansRgb.Engine.Settings;
 // both counts all of them. "foregroundOnly": true goes with the program, only while it is in the
 // foreground; it is left out while off. Older files have none of them; a value that does not read
 // leaves that one off, and the rest of the profile still counts. A time edited by hand reads as one
-// typed in the app, such as "7:30" (LoadTime.TryParseAt).
+// typed in the app, such as "7:30" (LoadTime.TryParseAt). "role" is "allOff" on the start scene
+// "Alles uit" (ProfileRole); an internal profile, in "internal" of the file, has a role and no name.
 internal sealed record ProfileSettings : LightingStateSettings
 {
     private const string TimeFormat = "HH:mm";
@@ -30,6 +31,8 @@ internal sealed record ProfileSettings : LightingStateSettings
     ];
 
     public string? Name { get; set; }
+
+    public JsonText? Role { get; set; }
 
     public JsonText? LoadAt { get; set; }
 
@@ -51,7 +54,8 @@ internal sealed record ProfileSettings : LightingStateSettings
         var single = automation.Times.Count == 1 ? automation.Times[0] : null;
         var settings = new ProfileSettings
         {
-            Name = profile.Name,
+            Name = profile.IsInternal ? null : profile.Name,
+            Role = JsonText.From(ProfileRoles.Write(profile.Role)),
             LoadAt = single is null ? null : WriteTime(single.At),
             LoadOn = single is null ? null : WriteDays(single.Days),
             LoadTimes = automation.Times.Count > 1
@@ -67,8 +71,29 @@ internal sealed record ProfileSettings : LightingStateSettings
     // name is the checked spelling of Name. A time, days or program that do not read are left out,
     // and so gone from the file after the next save; the trace says which, for whoever edited it.
     // Without a program, foregroundOnly goes too.
+    // A scene of the user can only have the role AllOff.
     public Profile ToProfile(string name) =>
-        new(name, ToLightingState()) { Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name), ForegroundOnly == true).Normalize() };
+        new(name, ToLightingState())
+        {
+            Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name), ForegroundOnly == true).Normalize(),
+            Role = ReadRole() is ProfileRole.AllOff ? ProfileRole.AllOff : ProfileRole.None,
+        };
+
+    // An internal profile of "internal", or null when its role does not read. Only its times count,
+    // not a program.
+    public Profile? ToInternalProfile()
+    {
+        var role = ReadRole();
+        if (role == ProfileRole.None)
+        {
+            Trace.TraceWarning($"profiles.json: an internal profile has role {Role?.Value ?? "null"}, which is not \"allOff\" or \"backOn\"; it is left out.");
+            return null;
+        }
+
+        return Profile.Internal(role, ToLightingState(), new ProfileAutomation(ReadTimes(ProfileRoles.Write(role)!)).Normalize());
+    }
+
+    private ProfileRole ReadRole() => Role is { IsText: true } role ? ProfileRoles.Read(role.Value) : ProfileRole.None;
 
     private static JsonText? WriteTime(TimeOnly time) => JsonText.From(time.ToString(TimeFormat, CultureInfo.InvariantCulture));
 
@@ -195,4 +220,8 @@ internal sealed record LoadTimeSettings
 internal sealed record ProfilesFile
 {
     public List<ProfileSettings>? Profiles { get; set; }
+
+    // The internal profiles (Profile.IsInternal), apart from the scenes, so an older engine, which
+    // does not know them, shows no scene for them.
+    public List<ProfileSettings>? Internal { get; set; }
 }

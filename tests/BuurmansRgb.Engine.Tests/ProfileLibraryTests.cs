@@ -50,6 +50,38 @@ public sealed class ProfileLibraryTests
         Assert.Equal(_lighting.State.Global, _store.Profiles[0].Lighting.Global);
     }
 
+    // The internal profiles of "Uit om" and "Aan om" are no scenes: not in the names, not to load,
+    // save over or delete by the name of their role.
+    [Fact]
+    public void InternalProfiles_AreNoScenes()
+    {
+        _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Green)), ProfileAutomation.None)];
+
+        Assert.Equal(["Werk"], _library.Names);
+        Assert.Throws<ArgumentException>(() => _library.Load("backOn"));
+        Assert.Throws<ArgumentException>(() => _library.Delete("backOn"));
+        Assert.Throws<ArgumentException>(() => _library.GetAutomation("backOn"));
+        _library.Save("backOn");
+        Assert.Equal(["backOn", "Werk"], _library.Names);
+        Assert.Equal(3, _store.Profiles.Count);
+        Assert.Equal(Green, Assert.Single(_store.Profiles, profile => profile.IsInternal).Lighting.Global.Color);
+    }
+
+    // Overwriting "Alles uit" keeps its role, as it keeps its times; a new scene of that name after
+    // deleting it has none.
+    [Fact]
+    public void Save_OverAScene_KeepsItsRole()
+    {
+        _store.Profiles = [new Profile("Alles uit", Uniform(StaticLighting(Red))) { Role = ProfileRole.AllOff }];
+
+        _library.Save("Alles uit");
+        Assert.Equal(ProfileRole.AllOff, Assert.Single(_store.Profiles).Role);
+
+        _library.Delete("Alles uit");
+        _library.Save("Alles uit");
+        Assert.Equal(ProfileRole.None, Assert.Single(_store.Profiles).Role);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("Twee\nregels")]

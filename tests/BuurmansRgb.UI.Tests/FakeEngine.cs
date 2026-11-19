@@ -620,6 +620,21 @@ internal sealed class FakeEngineApi : IEngineApi
         ProfileAutomations[name] = automation.Normalize();
     }
 
+    // "Uit om" and "Aan om"; OffScene stays as the test gives it, as the engine keeps the scene.
+    public WholeHouseTimes WholeHouseTimes { get; set; } = WholeHouseTimes.None;
+
+    public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) => Task.FromResult(WholeHouseTimes);
+
+    // Like the engine: saved as Normalize gives the times.
+    public async Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default)
+    {
+        await Record($"whole house off {WriteTimes(times.Off)} on {WriteTimes(times.On)}");
+        WholeHouseTimes = new WholeHouseTimes(new ProfileAutomation(times.Off).Normalize().Times, new ProfileAutomation(times.On).Normalize().Times, WholeHouseTimes.OffScene);
+    }
+
+    private static string WriteTimes(IReadOnlyList<LoadTime> times) =>
+        times.Count == 0 ? "-" : string.Join(",", times.Select(time => time.At.ToString("HH:mm", CultureInfo.InvariantCulture) + (time.Days == WeekDays.Every ? string.Empty : $"/{time.Days}")));
+
     // When set, a call that changes something counts once this task completes, like a busy engine,
     // so the calls after it wait in the queue of the app.
     public Task? SetGate { get; set; }

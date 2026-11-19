@@ -13,12 +13,13 @@ public sealed class AfterRestartViewModelTests
     private readonly EffectOptionsViewModel _effectOptions = new();
     private readonly SwitchOptionViewModel _autoStart = new(isOn: false);
     private readonly SwitchOptionViewModel _sceneTimes = new(isOn: false);
+    private readonly WholeHouseTimesViewModel _wholeHouse = new();
     private readonly List<string?> _changed = [];
     private readonly AfterRestartViewModel _afterRestart;
 
     public AfterRestartViewModelTests()
     {
-        _afterRestart = new(_profiles, _effectOptions, _autoStart, _sceneTimes);
+        _afterRestart = new(_profiles, _effectOptions, _autoStart, _sceneTimes, _wholeHouse);
         _afterRestart.PropertyChanged += (_, e) => _changed.Add(e.PropertyName);
     }
 
@@ -122,6 +123,30 @@ public sealed class AfterRestartViewModelTests
         _profiles.Show([]);
 
         Assert.False(_afterRestart.CatchesUpSceneTimes);
+    }
+
+    // "Uit om" and "Aan om" of Hele huis are named while one is on, and with "Gemiste tijden inhalen"
+    // that one that passed comes at the start.
+    [Fact]
+    public void WholeHouseTimes_AreNamedWhileOn()
+    {
+        Assert.False(_afterRestart.HasWholeHouseTimes);
+        Assert.Null(_afterRestart.WholeHouseText);
+
+        _wholeHouse.Show(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]));
+
+        Assert.True(_afterRestart.HasWholeHouseTimes);
+        Assert.Equal("de tijden van Hele huis op Apparaten: uit om 23:00 (elke dag) en aan om 07:00 (werkdagen)", _afterRestart.WholeHouseText);
+        Assert.Contains(nameof(AfterRestartViewModel.WholeHouseText), _changed);
+        Assert.False(_afterRestart.CatchesUpWholeHouseTimes);
+
+        _sceneTimes.IsOn = true;
+        Assert.True(_afterRestart.CatchesUpWholeHouseTimes);
+        Assert.Contains(nameof(AfterRestartViewModel.CatchesUpWholeHouseTimes), _changed);
+
+        _wholeHouse.Show(WholeHouseTimes.None);
+        Assert.False(_afterRestart.HasWholeHouseTimes);
+        Assert.False(_afterRestart.CatchesUpWholeHouseTimes);
     }
 
     private static LightingInfo Lighting => new(RgbColor.White, 1.0, EffectIds.Static);

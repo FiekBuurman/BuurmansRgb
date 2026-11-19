@@ -127,7 +127,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Remove(EldenRing);
         var looks = _programs.FindCount;
 
-        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.False(HoldScene("Nacht"));
 
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Green, ShownColor());
@@ -142,7 +142,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
 
-        Assert.True(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.True(HoldScene("Nacht"));
         Assert.Equal(looks + 1, _programs.FindCount);
         Assert.Equal(Red, ShownColor());
 
@@ -158,14 +158,39 @@ public sealed class ProgramWatcherTests : IDisposable
         StartWatcher();
         _session.Raise(SessionSwitchReason.SessionLock);
         var looks = _programs.FindCount;
-        Assert.False(_watcher!.HoldUntilProgramsStop("Nacht"));
+        Assert.False(HoldScene("Nacht"));
         Assert.Equal(looks, _programs.FindCount);
 
         _session.Raise(SessionSwitchReason.SessionUnlock);
         StartProgram(EldenRing);
         looks = _programs.FindCount;
-        Assert.True(_watcher.HoldUntilProgramsStop("Nacht"));
+        Assert.True(HoldScene("Nacht"));
         Assert.Equal(looks, _programs.FindCount);
+    }
+
+    // next gets the lighting from before the game with the scene that was on then, and what it
+    // gives is what comes back once the game stops.
+    [Fact]
+    public void Hold_NextGetsTheLightingFromBefore_AndWhatItGivesComesBack()
+    {
+        _profiles.Load("Nacht");
+        StartWatcher();
+        StartProgram(EldenRing);
+        HeldLighting? given = null;
+
+        Assert.True(_watcher!.HoldUntilProgramsStop(held =>
+        {
+            given = held;
+            return new HeldLighting(_profiles.GetLighting("Race"), "Race");
+        }));
+
+        Assert.Equal(Orange, given?.Lighting.Global.Color);
+        Assert.Equal("Nacht", given?.Scene);
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(EldenRing);
+        Assert.Equal(Blue, ShownColor());
+        Assert.Equal("Race", _profiles.ActiveName);
     }
 
     // An engine that starts late after sign-in may start on the lock screen.
@@ -613,6 +638,9 @@ public sealed class ProgramWatcherTests : IDisposable
         _programs.Running.Remove(program);
         _time.Advance(Interval);
     }
+
+    // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.
+    private bool HoldScene(string scene) => _watcher!.HoldUntilProgramsStop(_ => new HeldLighting(_profiles.GetLighting(scene), scene));
 
     private RgbColor ShownColor() => _lighting.GetLighting(null).Color;
 

@@ -10,6 +10,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // devices do while the pc sleeps), and whether it starts with Windows, which decides whether that
 // happens by itself. With "Gemiste tijden inhalen" and a scene with a time, it says that the scene
 // of the time that passed last comes on instead (ProfileTimer.CatchUpAtStart in the engine). It
+// names "Uit om" and "Aan om" of Hele huis while they are on, which the engine keeps too. It
 // follows the scene that is on, the scene times, the sleep choice and "Starten met Windows" as they
 // change; "Starten met Windows aanzetten" switches AutoStart on, the same as its switch, so the
 // engine keeps it as the choice of the user (autoStartChosen).
@@ -19,17 +20,20 @@ public sealed partial class AfterRestartViewModel : ObservableObject
     private readonly EffectOptionsViewModel _effectOptions;
     private readonly SwitchOptionViewModel _autoStart;
     private readonly SwitchOptionViewModel _sceneTimes;
+    private readonly WholeHouseTimesViewModel _wholeHouse;
 
-    public AfterRestartViewModel(ProfilesViewModel profiles, EffectOptionsViewModel effectOptions, SwitchOptionViewModel autoStart, SwitchOptionViewModel sceneTimes)
+    public AfterRestartViewModel(ProfilesViewModel profiles, EffectOptionsViewModel effectOptions, SwitchOptionViewModel autoStart, SwitchOptionViewModel sceneTimes, WholeHouseTimesViewModel wholeHouse)
     {
         _profiles = profiles;
         _effectOptions = effectOptions;
         _autoStart = autoStart;
         _sceneTimes = sceneTimes;
+        _wholeHouse = wholeHouse;
         _profiles.PropertyChanged += OnProfilesChanged;
         _effectOptions.PropertyChanged += OnEffectOptionsChanged;
         _autoStart.PropertyChanged += OnAutoStartChanged;
         _sceneTimes.PropertyChanged += OnSceneTimesChanged;
+        _wholeHouse.PropertyChanged += OnWholeHouseChanged;
     }
 
     // The scene that is on, or else the color and effect of every device.
@@ -45,6 +49,14 @@ public sealed partial class AfterRestartViewModel : ObservableObject
     // "Gemiste tijden inhalen" is on and a scene has a time: at the start the engine puts on the
     // scene of the time that passed last, also after a color chosen by hand.
     public bool CatchesUpSceneTimes => _sceneTimes.IsOn && _profiles.HasSceneTimes;
+
+    // "de tijden van Hele huis op Apparaten: uit om 23:00 (elke dag) …", while one of them is on.
+    public string? WholeHouseText => _wholeHouse.Summary is { } summary ? UiText.Format(Strings.AfterRestartWholeHouse, summary) : null;
+
+    public bool HasWholeHouseTimes => _wholeHouse.HasTimes;
+
+    // With "Gemiste tijden inhalen", Uit om or Aan om that passed while the pc was off comes at the start.
+    public bool CatchesUpWholeHouseTimes => _sceneTimes.IsOn && _wholeHouse.HasTimes;
 
     public bool StartsWithWindows => _autoStart.IsOn;
 
@@ -82,6 +94,21 @@ public sealed partial class AfterRestartViewModel : ObservableObject
         if (e.PropertyName is nameof(SwitchOptionViewModel.IsOn) or null or "")
         {
             OnPropertyChanged(nameof(CatchesUpSceneTimes));
+            OnPropertyChanged(nameof(CatchesUpWholeHouseTimes));
+        }
+    }
+
+    private void OnWholeHouseChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(WholeHouseTimesViewModel.Summary) or null or "")
+        {
+            OnPropertyChanged(nameof(WholeHouseText));
+        }
+
+        if (e.PropertyName is nameof(WholeHouseTimesViewModel.HasTimes) or null or "")
+        {
+            OnPropertyChanged(nameof(HasWholeHouseTimes));
+            OnPropertyChanged(nameof(CatchesUpWholeHouseTimes));
         }
     }
 

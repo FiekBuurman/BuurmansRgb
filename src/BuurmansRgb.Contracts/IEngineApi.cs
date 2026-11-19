@@ -331,4 +331,14 @@ public partial interface IEngineApi
     // minutes and the program follows ProgramNames. More than ProfileAutomation.MaxTimes times or
     // an invalid program throws.
     Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default);
+
+    // "Uit om" and "Aan om" of Hele huis (WholeHouseTimes). The times go where the engine keeps the
+    // times of scenes: "Uit om" on the scene "Alles uit" while there is one, so Scènes shows the same
+    // times and a change there shows here, and else on an internal profile; "Aan om" always on an
+    // internal one. ProfilesChanged follows, as after SetProfileAutomationAsync.
+    Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default);
+
+    // OffScene is not read. Saved as ProfileAutomation.Normalize gives the times; more than
+    // ProfileAutomation.MaxTimes of either throws.
+    Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default);
 }

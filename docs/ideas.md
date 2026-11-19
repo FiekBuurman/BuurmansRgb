@@ -611,6 +611,25 @@ uitbreidingen in `docs/bouwplan.md`.
 - Bij de eerste keer openen van de instellingen-app kiezen welke startscènes je wilt, in plaats
   van alle vijf; met "Minder beweging" van Windows aan eventueel zonder de bewegende
   (`startscenes`)
+- Bij "Uit om" en "Aan om" op Apparaten alle tijden van "Alles uit" kunnen zien en bewerken; nu
+  is de regel grijs zodra de scène meer dan één tijd heeft, en zegt hij hoeveel er nog bij
+  Scènes staan (`uit-om`)
+- "Aan om" laten kiezen wat er aangaat: nu komt na "Alles uit" de verlichting van daarvoor terug
+  en anders gaat alles aan zoals "Alles aan"; een keuze voor een scène ("Rustig wit om 07:00")
+  kan ook al met een tijd bij die scène (`uit-om`)
+- De verlichting van vóór "Alles uit" bij elke keer "Alles uit" bewaren, ook als "Aan om" nog
+  uit staat; nu bewaart buurmansRgb hem alleen als "Aan om" al een tijd heeft, dus zet je "Aan
+  om" aan terwijl "Alles uit" al aan staat, dan komt 's ochtends Rustig wit terug (de
+  verlichting van het moment dat je Aan om aanzette). Kost een schrijfactie van `profiles.json`
+  per "Alles uit" en een intern profiel zonder tijden (`uit-om`)
+- Bij "Alles uit" ook de naam van de scène van daarvoor bewaren voor "Aan om", zodat die scène
+  's ochtends weer als aan telt (haar kaart bij Scènes actief); nu bewaart buurmansRgb alleen de
+  verlichting, dus komen de kleuren terug maar staat er geen scène aan (`uit-om`)
+- "Vanavond niet": één keer "Uit om" overslaan zonder de schakelaar uit te zetten, bijv. vanuit
+  het tray-menu (`uit-om`)
+- Een oudere versie van buurmansRgb laat `role` en `internal` in `profiles.json` bij het opslaan
+  weg, dus na teruggaan naar een oudere versie en weer terug moet je "Uit om" en "Aan om" opnieuw
+  aanzetten; eventueel bij het terugzetten van een backup (#115) melden (`uit-om`)
 
 ## Tray-menu
 

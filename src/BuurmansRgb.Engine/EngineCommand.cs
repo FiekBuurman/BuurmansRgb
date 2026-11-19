@@ -148,7 +148,7 @@ internal sealed record EngineCommand(EngineCommandKind Kind, string Scene = "")
 
         try
         {
-            if (profiles.Load().Any(profile => Matches(profile.Name)))
+            if (profiles.Load().Any(profile => !profile.IsInternal && Matches(profile.Name)))
             {
                 return EngineCommandResult.Done;
             }

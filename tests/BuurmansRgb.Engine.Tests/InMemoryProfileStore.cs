@@ -31,11 +31,16 @@ internal sealed class InMemoryProfileStore : IProfileStore
         return Profiles;
     }
 
-    // As JsonProfileStore reads it: a profile without a valid name is left out.
+    // As JsonProfileStore reads it: a profile without a valid name is left out, and so is an
+    // internal one without a role.
     public void Replace(byte[] json)
     {
         var file = LenientJson.Deserialize(json, EngineSettingsJsonContext.Default.ProfilesFile);
-        Profiles = [.. (file?.Profiles ?? []).Where(settings => ProfileNames.Normalize(settings?.Name) is not null).Select(settings => settings!.ToProfile(ProfileNames.Normalize(settings.Name)!))];
+        Profiles =
+        [
+            .. (file?.Profiles ?? []).Where(settings => ProfileNames.Normalize(settings?.Name) is not null).Select(settings => settings!.ToProfile(ProfileNames.Normalize(settings.Name)!)),
+            .. (file?.Internal ?? []).Select(settings => settings?.ToInternalProfile()).OfType<Profile>(),
+        ];
         Exists = true;
     }
 
