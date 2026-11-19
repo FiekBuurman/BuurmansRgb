@@ -66,6 +66,16 @@ public sealed partial class LinkStyleTests
         Assert.Equal("D_LED1", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
     });
 
+    // A name set on the link wins over its text, as on a button.
+    [Fact]
+    public void LinkButton_NameWinsOverItsText() => AppTheme.Run(panel =>
+    {
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Alles selecteren" });
+        AutomationProperties.SetName(link, "Alles selecteren, alle LED's van Board");
+
+        Assert.Equal("Alles selecteren, alle LED's van Board", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
+    });
+
     // A label the link points to wins over its text, where a button of WPF would keep its own text
     // and drop the underscore from it.
     [Fact]
@@ -77,6 +87,18 @@ public sealed partial class LinkStyleTests
         AppTheme.Show(panel, new StackPanel { Children = { label, link } });
 
         Assert.Equal("Zone kiezen", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
+    });
+
+    // A new text is the new name, without a new peer.
+    [Fact]
+    public void LinkButton_NewTextIsItsName() => AppTheme.Run(panel =>
+    {
+        var link = AppTheme.Show(panel, new LinkButton { Content = "Oud" });
+        var peer = UIElementAutomationPeer.CreatePeerForElement(link);
+
+        link.Content = "Nieuw";
+
+        Assert.Equal("Nieuw", peer.GetName());
     });
 
     // A long link wraps instead of being cut off, such as the name of a zone in a narrow column.

@@ -33,7 +33,7 @@ public sealed class LedPreviewPanelViewTests
             var peer = UIElementAutomationPeer.CreatePeerForElement(link);
 
             Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
-            Assert.StartsWith(Strings.SelectAll, peer.GetName(), StringComparison.Ordinal);
+            Assert.Equal(UiText.Format(Strings.SelectAllAccessibleName, "LED strip"), peer.GetName());
             Assert.Equal("Alles selecteren, alle LED's van LED strip", peer.GetName());
         });
     }
