@@ -479,7 +479,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   staan, elk met zijn eigen helderheid en snelheid.
 - **Aanpassen:** met een eigen effect gekozen staat onder het kleurvoorbeeld het paneel **Eigen
   effect**. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
-  apparaten met dit effect (en het voorbeeld onderaan) laten hem meteen zien; een tweede
+  apparaten met dit effect (en hun kaarten bij **Per apparaat**) laten hem meteen zien; een tweede
   instellingen-app die open is, ook:
   - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en een
     eigen effect kan niet heten als een ander effect: een ander eigen effect of een ingebouwd
