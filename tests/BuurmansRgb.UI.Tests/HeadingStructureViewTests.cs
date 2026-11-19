@@ -104,7 +104,7 @@ public sealed class HeadingStructureViewTests
 
             Assert.Equal(
                 [
-                    "1 Kleur mengen",
+                    "1 Kleur",
                     .. blockOfTheEffect is null ? Array.Empty<string>() : [blockOfTheEffect],
                     "2 Kleuren",
                     "2 Eigen kleuren",
