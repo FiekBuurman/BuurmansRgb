@@ -264,7 +264,7 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     }
 
     // A length that waits for its delay, or a drag, goes out now.
-    public void SendWaitingLengths()
+    internal void SendWaitingLengths()
     {
         foreach (var length in Zones.Select(zone => zone.Length).OfType<ZoneLengthViewModel>())
         {
