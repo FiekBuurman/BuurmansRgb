@@ -16,7 +16,18 @@ public sealed class HeaderPanel : Panel
     public static readonly DependencyProperty GapProperty = DependencyProperty.Register(
         nameof(Gap), typeof(double), typeof(HeaderPanel), new FrameworkPropertyMetadata(12.0, FrameworkPropertyMetadataOptions.AffectsMeasure));
 
+    // Where the second child goes when it is under the heading: on the left, or on the right as in the
+    // head of a device card on Kleur, where Knipperen stays on the right of every card.
+    public static readonly DependencyProperty StackedAsideAlignmentProperty = DependencyProperty.Register(
+        nameof(StackedAsideAlignment), typeof(HorizontalAlignment), typeof(HeaderPanel), new FrameworkPropertyMetadata(HorizontalAlignment.Left, FrameworkPropertyMetadataOptions.AffectsArrange));
+
     private bool _sideBySide = true;
+
+    public HorizontalAlignment StackedAsideAlignment
+    {
+        get => (HorizontalAlignment)GetValue(StackedAsideAlignmentProperty);
+        set => SetValue(StackedAsideAlignmentProperty, value);
+    }
 
     public double MinHeadingWidth
     {
@@ -76,7 +87,9 @@ public sealed class HeaderPanel : Panel
         else
         {
             heading!.Arrange(new Rect(0, 0, finalSize.Width, heading.DesiredSize.Height));
-            aside.Arrange(new Rect(0, heading.DesiredSize.Height + Gap, Math.Min(aside.DesiredSize.Width, finalSize.Width), aside.DesiredSize.Height));
+            var asideWidth = Math.Min(aside.DesiredSize.Width, finalSize.Width);
+            var left = StackedAsideAlignment == HorizontalAlignment.Right ? finalSize.Width - asideWidth : 0;
+            aside.Arrange(new Rect(left, heading.DesiredSize.Height + Gap, asideWidth, aside.DesiredSize.Height));
         }
 
         return finalSize;
