@@ -18,10 +18,14 @@ public sealed class LinkButton : Button
     {
         protected override AutomationControlType GetAutomationControlTypeCore() => AutomationControlType.Hyperlink;
 
+        // A name set on the link wins, then the text of a label it points to (a button of WPF reads its
+        // own text before that label), then its own text.
         protected override string GetNameCore() =>
-            string.IsNullOrEmpty(AutomationProperties.GetName(owner)) && AutomationProperties.GetLabeledBy(owner) is null && owner.Content is string text
-                ? text
-                : base.GetNameCore();
+            !string.IsNullOrEmpty(AutomationProperties.GetName(owner)) ? base.GetNameCore()
+            : AutomationProperties.GetLabeledBy(owner) is { } labeledBy
+                && CreatePeerForElement(labeledBy)?.GetName() is { Length: > 0 } label ? label
+            : owner.Content is string text ? text
+            : base.GetNameCore();
 
         protected override string GetClassNameCore() => nameof(LinkButton);
     }

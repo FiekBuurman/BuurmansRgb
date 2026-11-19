@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Automation.Peers;
 using System.Windows.Automation.Provider;
 using System.Windows.Controls;
@@ -63,6 +64,19 @@ public sealed partial class LinkStyleTests
 
         Assert.Equal("D_LED1", AppTheme.Part<TextBlock>(link, "Text").Text);
         Assert.Equal("D_LED1", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
+    });
+
+    // A label the link points to wins over its text, where a button of WPF would keep its own text
+    // and drop the underscore from it.
+    [Fact]
+    public void LinkButton_LabeledByWinsOverItsText() => AppTheme.Run(panel =>
+    {
+        var label = new TextBlock { Text = "Zone kiezen" };
+        var link = new LinkButton { Content = "D_LED1" };
+        AutomationProperties.SetLabeledBy(link, label);
+        AppTheme.Show(panel, new StackPanel { Children = { label, link } });
+
+        Assert.Equal("Zone kiezen", UIElementAutomationPeer.CreatePeerForElement(link).GetName());
     });
 
     // A long link wraps instead of being cut off, such as the name of a zone in a narrow column.
