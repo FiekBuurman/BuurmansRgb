@@ -140,6 +140,7 @@ Er is geen lichte modus in richting A: de app is bewust altijd donker, zodat de 
 4. "Uit de gereedschapskist": 6 presets (Klus-wit, Rood, Oranje, Groen, Blauw, Paars).
 5. Primaire knop "Op de strip zetten".
 Gedrag: schuiven en presets werken de strip, hexcode en waarden direct bij (live voorbeeld); pas bij de knop gaat de kleur naar de lamp.
+De pagina in lagen en in de volgorde van het effect, zoals nacht 6 hem bouwt: zie § 9.
 
 ### 5.3 Scènes – `screens/Scenes.dc.html`
 1. Titel "Scènes", subregel "Eén tik, en het hele huis doet mee".
@@ -156,7 +157,7 @@ Nog niet ontworpen; vierde navigatie-item. Zelfde stijl, met `buren-*`-kleuren.
 - **Venster:** donkere titelbalk in `bg` (eigen titelbalk met het kleine donkere icoon en woordmerk), minimale grootte ca. 960 × 640.
 - **Inhoud:** marges 32 px, inhoud max. ~1200 px breed.
   - *Lampen:* "Hele huis"-kaart over de volle breedte; lampenlijst als raster van kaarten (2–3 kolommen afhankelijk van breedte); buren-kaart als smalle kolom rechts of onder de lijst.
-  - *Kleur mengen:* twee kolommen – links groot voorbeeld (strip + hexcode), rechts de schuiven, presets en de knop. Bovenaan een keuzelijst welke lamp je bewerkt.
+  - *Kleur mengen:* twee kolommen – links groot voorbeeld (strip + hexcode), rechts de schuiven, presets en de knop. Bovenaan een keuzelijst welke lamp je bewerkt. De pagina in lagen staat in § 9.
   - *Scènes:* buren-kaart bovenaan over de volle breedte, scènekaarten in een raster van 3–4 kolommen.
 - **Bediening met muis en toetsenbord:** hover-toestand op kaarten en knoppen (rand `border` → `#4A4A54`), duidelijke focusring (2 px `text`), schuiven bedienbaar met pijltjestoetsen. Hover laat alleen zien waar de muis is; een actie verschijnt er nooit pas door (zie "Altijd zichtbaar" in § 4).
 - **Icoon:** `buurmansrgb.ico` voor de applicatie en het venster. Voor MSIX-verpakking kunnen de benodigde formaten uit `buurmansrgb-icon.svg` gegenereerd worden (en `-small.svg` voor de allerkleinste).
@@ -172,3 +173,100 @@ Nog niet ontworpen; vierde navigatie-item. Zelfde stijl, met `buren-*`-kleuren.
 ## 8. Toon
 
 Speels Nederlands met een knipoog naar klussen: "Erbij knutselen", "Uit de gereedschapskist", "In elkaar zetten", "Klusmodus". Kort, vriendelijk, nooit technisch jargon in de UI.
+
+## 9. Kleur in lagen (ontwerp voor nacht 6) – `screens/KleurLagen.dc.html`
+
+**Status: ontwerp, nog niet gebouwd.** Dit hoofdstuk legt vast hoe de pagina Kleur wordt als de gebruiker het goedkeurt; tot dan blijft de pagina zoals de handleiding hem beschrijft. Het testpanel van 1-11-2026 (voorstel E, "Kleur in lagen") koos met 10 van de 10 stemmen voor één pagina in lagen, niet voor een aparte eenvoudige stand: bovenaan wat iedereen nodig heeft, eronder per apparaat wat alleen sommigen nodig hebben, dicht tot je het openklapt. Twee ideeën uit `docs/ideas.md` komen hier samen: de kaarten van het voorbeeld open- en dichtklappen met een sprong naar één apparaat (`kleur-lagen`), en de pagina in de volgorde van het effect (`kleur-volgorde`). De mock toont drie staten: "Hele huis" met alle kaarten dicht, één apparaat open, en de tekstgrootte van Windows op 200 %.
+
+### 9.1 Opbouw van boven naar beneden
+
+| # | Onderdeel | Component | Nieuw of bestaand |
+|---|---|---|---|
+| 1 | Titel "Kleur" met subregel ("Hele huis · 9 apparaten"); rechts "Welk apparaat?" en de schakelaar | schermtitel klein, keuzelijst, **Schakelaar** | bestaand (de titel was "Kleur mengen", zie open vraag 8) |
+| 2 | Statusregel | **Statusregel** | bestaand |
+| 3 | Kaart **Effect**: het effect kiezen, met de zin over wat het doet eronder | grote **Kaart**, **Effecttegel** (9.3) | nieuw: de tegels (zie open vraag 1); de zin bestaat al |
+| 4 | Kaart met **wat bij het effect hoort** (9.2) | grote **Kaart**, het mengpaneel van § 5.2, **Preset-tegel**, de lijst met kleuren | bestaand, op een nieuwe plek |
+| 5 | Kaart **Helderheid en snelheid**: Helderheid, Snelheid en (bij Regenboog, Golf en een verspreide Kleurenloop) Richting naast elkaar | grote **Kaart**, schuiven, **Link** "Geen richting" | bestaand (nu "Licht en beweging", zonder het effect) |
+| 6 | **Bewaar als scène**, met de naamkaart eronder | **Knop**, de naamkaart van Scènes | bestaand |
+| 7 | Sectiekop **Per apparaat** met de subtekst "Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen."; rechts de links **Alles openklappen** en **Alles dichtklappen** | sectiekop, subtekst, **Link** | nieuw (vervangt de kop "Voorbeeld") |
+| 8 | Tijdens een pauze de regel waarom Knipperen en Tellen grijs zijn, met **Hervatten** | **Knop** | bestaand, nu onder de kop van 7 |
+| 9 | **Chiprij**: per apparaat een chip om naar zijn kaart te springen | **Apparaat-chip** (9.3) | nieuw |
+| 10 | De **apparaatkaarten**, dicht of open | **Apparaatkaart** (9.3) | nieuw: de kop en het dichtklappen; de inhoud bestaat al |
+
+Op een breed venster staan 3, 4 en 5 onder elkaar over de volle breedte, en heeft 4 twee kolommen: links het voorbeeld met strip, naam en hex-code, rechts de schuiven, "Kleuren" en "Eigen kleuren", zoals de bovenkant van de pagina nu. Zijn er LED's gekozen in een open kaart, dan staat boven kaart 4 de regel "Je kleurt nu 5 LED's van …" met de link **Selectie opheffen**: de kleur die je mengt gaat dan naar die LED's, die verderop staan.
+
+### 9.2 In de volgorde van het effect
+
+Je kiest eerst het effect; kaart 4 toont daarna alleen wat dat effect gebruikt. Zijn kop (kop niveau 2 voor een schermlezer) zegt wat erin staat:
+
+| Effect | Kop van kaart 4 | Inhoud |
+|---|---|---|
+| Statisch, Ademen, Golf | Kleur | het mengpaneel (voorbeeld, hex-code, Rood, Groen, Blauw), "Kleuren", "Eigen kleuren" |
+| Kleurenloop | Kleuren van de loop | de lijst van de loop, en het mengpaneel voor de gekozen kleur daarin |
+| Fonkelen, Komeet, Scanner, Vuur | Kleuren van het effect | de lijst van het effect met "Kleur van het apparaat", en het mengpaneel voor de gekozen kleur |
+| Eigen effect | Jouw effect | naam, stappen, tijden en delen; het mengpaneel voor de gekozen stap |
+| Per LED | Kleur voor de LED's | het mengpaneel, met de zin "Kies LED's in een apparaat hieronder; de kleur gaat naar die LED's." en de link **Naar de apparaten** (springt naar 7) |
+| Regenboog | Geen kleur nodig | één zin: "Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting." Geen mengpaneel |
+
+Bij Regenboog valt het mengpaneel dus weg, in plaats van een kleur te mengen die nergens heen gaat; de zin die dat nu onder de hex-code uitlegt, is dan niet meer nodig. Wisselt het effect, dan blijft de focus op de effectkeuze en verandert alleen kaart 4; wat eronder staat, schuift zonder animatie naar zijn nieuwe plek.
+
+### 9.3 Nieuwe componenten
+
+**Effecttegel** – een tegel per effect, in een rij die omloopt: radius 12, min. 44 px hoog, min. 7,5 em breed, vlak `surface-raised`, 1 px `border`, tekst 15 px/600 in `text`. Gekozen: 3 px rand in `text`, zoals een gekozen **Preset-tegel**, en een ✓ voor de naam, zodat de keuze niet alleen aan de rand te zien is. Geen bewegend plaatje op de tegel (minder beweging, en geen werk per beeld). Volgorde: Statisch, Ademen, Regenboog, Golf, Kleurenloop, Fonkelen, Komeet, Scanner, Vuur, Per LED en als laatste **Eigen effect**; gekozen toont die in kaart 4 de keuzelijst met je eigen effecten en de links "+ Eigen effect maken", "Importeren…" en "Code plakken". Samen zijn de tegels één groep keuzerondjes. Onder de groep staat de zin over het gekozen effect (subtekst 13 px), zoals nu onder de keuzelijst.
+
+**Apparaat-chip** – een pil (volledig rond), min. 44 px hoog, 14 px opzij, vlak `surface`, 1 px `border`; links een **LED-bolletje** van 12 px in de huidige kleur van het apparaat (met gloed; uit: `led-off` met de ring van § 4), dan de naam, 14 px/600 in `text`. Onder de muis de rand `border-strong`, met de focus de ring van 2 px in `text`. Een chip heeft geen gekozen stand: hij springt, hij kiest niets. Een lange naam eindigt op "…" met de hele naam in de tooltip; bij 200 % mag de chip twee regels hoog worden. De chips staan in een rij die omloopt, zonder horizontale schuifbalk. In een contrastthema: `ButtonFace` met `ButtonText`, rand `ButtonText`, onder de muis `Highlight`; het bolletje houdt zijn kleur met een ring in `ButtonText`. De rij staat er alleen bij "Hele huis" met twee of meer apparaten.
+
+**Apparaatkaart** – een **Kaart** (radius 18, `surface`, 1 px `border`) met een kop die openklapt:
+
+- **Kop, dicht:** links een pijltje (lijnicoon 22 px, wijst naar rechts; open: naar beneden), het icoon van het type, de naam als kaarttitel (16 px/600) met eronder één regel subtekst ("2 zones · 92 LED's"); rechts een kleine strip van 12 bolletjes in de kleuren die het apparaat nu toont (**Ledstrip-voorbeeld**, ter versiering) en helemaal rechts **Knipperen** (gewone **Knop**, op dezelfde plek als in een open kaart). Pijltje, icoon, naam en regel zijn samen één klikvlak dat open- en dichtklapt; Knipperen is een eigen knop ernaast. De kop is minstens 56 px hoog.
+- **Open:** onder de kop een lijn van 1 px `border`, en daaronder de inhoud van de kaart van nu: **Zones gelijk**, per zone de **Kop van een zone** met de naam als **Link**, **Tellen** en **Knipperen**, de LED's, de **Stepper** voor de lengte en de teller van Tellen. Daarvan verandert niets.
+- **Knipperen met minder beweging:** de markering "Knippert nu op het apparaat" staat in de kop, onder de naam, ook als de kaart dicht is.
+- **Bij één gekozen apparaat** ("Welk apparaat?" bovenaan) is er één kaart, en die is open, zonder pijltje en zonder dichtklappen: je koos dat apparaat om het te zien. De kop is dan geen klikvlak maar gewoon de titel, zoals nu.
+
+### 9.4 Toetsenbord
+
+**Tab-volgorde**, van boven naar beneden zoals je leest: navigatie → "Welk apparaat?" → schakelaar → knoppen van de statusregel → effecttegels (één Tab-stop: de gekozen tegel) → wat bij het effect hoort (lijst, hex-code, Rood, Groen, Blauw, "Kleuren", "Eigen kleuren", +) → Helderheid → Snelheid → Richting → Bewaar als scène → Alles openklappen → Alles dichtklappen → de chiprij (één Tab-stop) → per apparaatkaart de kop en dan Knipperen; in een open kaart daarna de inhoud in de volgorde van nu (Zones gelijk, per zone de link, Tellen, Knipperen, de LED's, de stepper). Een dichte kaart heeft dus twee Tab-stops; zijn inhoud slaat Tab over.
+
+- **Effect kiezen:** ← → ↑ ↓ gaan naar de vorige of volgende tegel en kiezen hem meteen, zoals keuzerondjes; Home en End naar de eerste en de laatste.
+- **Openen en sluiten:** op de kop van een kaart klappen Enter en Spatie hem open of dicht; → klapt een dichte kaart open en ← een open kaart dicht, zoals een map in Verkenner. De focus blijft op de kop. Na Alles openklappen of Alles dichtklappen blijft de focus op de link.
+- **Naar een apparaat springen:** in de chiprij gaan ← → naar de vorige of volgende chip (Home, End naar de eerste en laatste); Enter of Spatie springt: de kaart klapt open als hij dicht was, staat bovenaan in beeld en de focus gaat naar zijn kop. Kom je later weer in de chiprij, dan staat de focus op de chip van het laatste apparaat waar je heen sprong.
+- **Dichtklappen met de focus in de kaart** (met de muis op de kop, of met Alles dichtklappen terwijl de focus nog in een kaart stond) zet de focus op de kop van die kaart, zodat hij niet naar het venster valt.
+
+### 9.5 Wat een schermlezer hoort
+
+- **Kop van een kaart:** het klikvlak heeft het patroon ExpandCollapse van UI Automation (een `Expander`, geen `ToggleButton`: die zegt "aan" en "uit"). Verteller zegt bijv. "Gesimuleerde ARGB-controller, samengevouwen" met de regel "2 zones · 92 LED's" als hulptekst, en na Enter "uitgevouwen". De naam is een kop niveau 3, zoals de kaarten nu; "Per apparaat" is niveau 2. **Knipperen** houdt zijn naam van nu ("Gesimuleerde ARGB-controller laten knipperen").
+- **Alles openklappen en Alles dichtklappen** zijn een **Link** ("link"), met de naam "Alle apparaten openklappen" en "Alle apparaten dichtklappen".
+- **Chiprij:** een werkbalk met de naam "Naar een apparaat", elke chip een knop met de naam van het apparaat en de hulptekst "Klapt de kaart open en gaat erheen". Verteller: "Naar een apparaat, werkbalk, Gesimuleerde ledstrip, knop, 1 van 9". Na de sprong leest hij de kop waar de focus landt: "Gesimuleerde ledstrip, uitgevouwen".
+- **Effecttegels:** een groep keuzerondjes met de naam "Effect", met de zin over wat elk effect doet als hulptekst: "Regenboog, keuzerondje, geselecteerd, 3 van 11". De kop van kaart 4 hoort hij als hij er komt, niet bij elke wissel: het is geen live region, want de keuze zegt het al.
+- **De kleine strip in een dichte kaart** en het bolletje in een chip zijn versiering en worden overgeslagen; de LED's van een open kaart noemen hun kleur zoals nu.
+
+### 9.6 Weergave
+
+- **Contrastthema:** kaarten, tegels en chips volgen § 4 en `ContrastTheme.SystemBrushes`: vlakken `Window` of `ButtonFace`, tekst `WindowText` of `ButtonText`, een gekozen effecttegel `Highlight` met `HighlightText`, het pijltje in de kleur van de tekst. LED's, bolletjes en de kleine strip houden hun echte kleur (dat is wat het apparaat doet), met de ring van § 4.
+- **Tekstgrootte 200 %:** niets wordt afgekapt en er komt geen horizontale schuifbalk. De keuze van het apparaat gaat onder de titel (zoals nu); de effecttegels lopen om naar twee of drie per rij; kaart 4 zet het voorbeeld boven de schuiven (zoals nu); Helderheid, Snelheid en Richting komen onder elkaar; Alles openklappen en Alles dichtklappen gaan onder de sectiekop; de chips lopen om over meer rijen; in de kop van een apparaatkaart loopt de naam om, en gaan de kleine strip en Knipperen samen onder de naam als de regel te smal wordt, Knipperen rechts zoals in elke kaart. Breedtes in em groeien mee met de tekst, zoals de kolommen van Kleur nu.
+- **Minder beweging:** openklappen gebeurt nooit met een animatie, ook zonder die instelling (zoals Details en Uitleg van de statusregel); een sprong naar een kaart schuift niet zacht maar staat meteen op zijn plek. De kleine strip staat dan stil, zoals het voorbeeld.
+- **Lege staat:** zonder apparaten staan de bovenste lagen er (je kiest het effect, de kleur en de helderheid voor "Hele huis", en een apparaat dat later komt krijgt ze), maar onder "Per apparaat" staan geen chips, geen links en geen kaarten, alleen de zin van nu: "Nog geen apparaten gevonden. Kijk bij Instellingen of OpenRGB draait, of zet de gesimuleerde apparaten aan." Zonder verbinding met de engine is de hele pagina grijs met de reden erover, zoals nu.
+
+### 9.7 Wat de pagina onthoudt
+
+- **Open of dicht** geldt per apparaat (zijn id) zolang de app open is: ga je naar Scènes en terug, of kies je even één apparaat en dan weer "Hele huis", dan staan de kaarten zoals je ze liet. Na het opnieuw openen van de app zijn alle kaarten dicht. Het staat niet in `settings.json` en hoort niet bij een scène (zie open vraag 3).
+- **Een nieuw apparaat** komt er dicht bij; een apparaat dat verdwijnt, neemt zijn stand mee. Heeft het huis één apparaat, dan is zijn kaart open zonder pijltje, zoals bij één gekozen apparaat, en is er geen chiprij.
+- **Dichtklappen stopt wat er in de kaart loopt:** een telling stopt en de zone krijgt zijn eigen aantal LED's terug, zoals bij een ander apparaat kiezen, en gekozen LED's worden losgelaten, zodat een kleur niet naar LED's gaat die je niet ziet. Knipperen loopt gewoon af.
+- **Scènes en "Bewaar als scène":** de knop staat in de bovenste laag, onder Helderheid en snelheid, en bewaart zoals nu de verlichting van alle apparaten, ook bij één gekozen apparaat. Wat open of dicht is, hoort niet bij de scène. Gaat er een scène aan (tray-menu, op tijd, bij een programma), dan lopen de bovenste lagen mee zoals nu ("Loopt mee"); verandert het effect daarbij, dan verandert kaart 4 mee, maar klapt er geen kaart open of dicht.
+
+### 9.8 Voor het bouwen
+
+- Alles blijft in de app (`BuurmansRgb.UI`); de engine en de IPC veranderen niet. Een dichte kaart tekent geen LED's, dus de app doet minder per beeld; meet het tekenen met alle kaarten open en dicht.
+- De inhoud van een open kaart is `LedPreviewPanel` van nu. De kop wordt een eigen stijl voor `Expander` in `Themes/Controls.xaml` (die heeft het patroon ExpandCollapse al), de chiprij een `ItemsControl` met een `WrapPanel` en de pijltjes van een werkbalk, de effecttegels `RadioButton`s in een `WrapPanel` (of een `ListBox` met die stijl) op dezelfde `EffectOption`s als de keuzelijst nu.
+
+### 9.9 Open vragen voor nacht 6
+
+1. **Effecttegels of een keuzelijst?** Aanbeveling: tegels voor de tien vaste effecten en één tegel "Eigen effect" met de keuzelijst van je eigen effecten erachter. Tegels laten zien wat er is zonder eerst te klikken (Truus, Henk) en passen bij "eerst het effect"; een keuzelijst met tien vaste en een rij eigen effecten wordt lang.
+2. **Het mengpaneel (schuiven en hex-code) altijd zichtbaar, of achter een knop "Zelf mengen"?** Aanbeveling: altijd zichtbaar. De lagen gaan over de apparaten, niet over de kleur; de vaste kleuren staan er al voor wie niet wil mengen, en verbergen kost wie wel mengt (Sanne, Noor) bij elke kleur een klik.
+3. **Open of dicht onthouden tot de app sluit, of bewaren in `settings.json`?** Aanbeveling: tot de app sluit. Iedereen begint bij hetzelfde rustige beeld, en er komt geen instelling bij die terugzetten of een andere pc moet begrijpen.
+4. **Wat doet een chip: springen en openklappen, alleen dat apparaat tonen, of dat apparaat bovenaan kiezen?** Aanbeveling: springen en openklappen. Kiezen blijft de keuzelijst bovenaan, zodat je bij "Hele huis" blijft en een kleur niet ongemerkt naar één apparaat gaat.
+5. **Wat staat er op een dichte kaart?** Aanbeveling: pijltje, icoon, naam, één regel met zones en LED's, een kleine strip van 12 bolletjes in de echte kleuren, en Knipperen. Knipperen blijft omdat "welk apparaat is wat?" juist de vraag is waarvoor je de lijst langsloopt; Tellen en de lengtes horen bij het werk in een open kaart.
+6. **Wat doet dichtklappen met een telling of met gekozen LED's?** Aanbeveling: de telling stopt en de LED's worden losgelaten, zoals bij een ander apparaat kiezen. Het alternatief, een kaart die niet dicht kan zolang hij telt, is een klikvlak dat soms niets doet.
+7. **Hoe begint "Hele huis": alle kaarten dicht, of de eerste open?** Aanbeveling: alle dicht. De chiprij en "Alles openklappen" staan er direct boven, en een open eerste kaart duwt de rest weer een scherm naar beneden.
+8. **Heet de pagina nog "Kleur mengen"?** Aanbeveling: "Kleur", zoals in de navigatie, nu het effect voorop staat en er bij Regenboog niets te mengen is.
+9. **De chiprij: één Tab-stop met pijltjes, of elke chip een Tab-stop?** Aanbeveling: één Tab-stop met pijltjes (een werkbalk), zodat negen apparaten geen negen keer Tab kosten op weg naar de kaarten. Bij de acceptatie laten nalopen met het toetsenbord en Verteller (Fatima, Kees).
