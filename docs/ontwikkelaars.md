@@ -135,7 +135,9 @@ met `RepoFiles` (`Root`, `AppSource`), en de XAML van de app als tekst met `AppX
 ## Met de gesimuleerde apparaten bekijken
 
 Start de engine en de instellingen-app zonder OpenRGB en loop de pagina's langs met muis en
-toetsenbord. Een paar dingen om te proberen:
+toetsenbord. Bij "Hele huis" op Kleur beginnen de apparaatkaarten dicht: klik eerst "Alles
+openklappen" (of klap de kaart van het apparaat open) als een stap hieronder naar de LED's van een
+apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
 
 - Kies "Regenboog": het voorbeeld en de strip bij "Hele huis" lopen mee.
 - Kies bij Kleur "Hele huis": onder "Per apparaat" staan de gesimuleerde apparaten als dichte
@@ -145,8 +147,8 @@ toetsenbord. Een paar dingen om te proberen:
   "uitgevouwen". Klap een kaart open, kies Tellen en klap hem dicht: het tellen stopt. Ga naar
   Scènes en terug, of kies even één apparaat en dan weer "Hele huis": de kaarten staan zoals je ze
   liet; na het opnieuw starten van de app zijn ze weer dicht.
-- Kies "Fonkelen", "Komeet", "Scanner" en "Vuur" bij "Hele huis" en kijk naar de ledstrip, de
-  ventilator en de "Gesimuleerde headset" (twee oorschelpen van één LED): de komeet loopt de
+- Kies "Fonkelen", "Komeet", "Scanner" en "Vuur" bij "Hele huis", klik "Alles openklappen" en
+  kijk naar de ledstrip, de ventilator en de "Gesimuleerde headset" (twee oorschelpen van één LED): de komeet loopt de
   ring rond, de scanner gaat heen en terug en remt bij de uiteinden af, en bij de headset
   gaan de komeet en de scanner om de beurt naar de ene en de andere oorschelp. Bij Fonkelen en
   Vuur heeft elk apparaat zijn eigen toeval: geen twee apparaten fonkelen of flakkeren gelijk, ook
@@ -169,8 +171,8 @@ toetsenbord. Een paar dingen om te proberen:
   "Volgorde van de LED's" zet het beeld terug zoals het was. Bij Statisch, Komeet, Scanner,
   Fonkelen, Vuur en Per LED is de schuif weg, en bij de Kleurenloop als "Kleuren over de LED's
   verdelen" uit staat. Bewaar het als scène, kies een andere en weer deze: de richting komt mee.
-- Kies "Regenboog" en zet bij "Gesimuleerde headset" (twee oorschelpen van één LED) "Zones
-  gelijk" aan: in het voorbeeld hebben beide LED's nu dezelfde kleur, en bij de ventilator met
+- Kies bij "Hele huis" "Regenboog", klik "Alles openklappen" en zet bij "Gesimuleerde headset"
+  (twee oorschelpen van één LED) "Zones gelijk" aan: in het voorbeeld hebben beide LED's nu dezelfde kleur, en bij de ventilator met
   twee ringen lopen de ringen gelijk op. Bij Komeet en Scanner pulseren de oorschelpen dan
   tegelijk, en Vuur flakkert als een kaars. Herstart de engine: de schakelaar staat nog aan.
   Kies "Per LED": elke LED houdt zijn eigen kleur.
@@ -183,17 +185,18 @@ toetsenbord. Een paar dingen om te proberen:
   Home en End, kies met Spatie, breid uit met Shift+→, kies alles met Ctrl+A en hef op met
   Escape. Kies een reeks, ga met Shift+Tab terug naar de schuif Rood en druk een paar keer →:
   de reeks kleurt bij elke stap mee. Bij de ventilator met twee ringen gaat → van de binnenste
-  ring door naar de buitenste, en de focus gaat mee. Klik bij "Hele huis" met de focus in de
-  toetsen op een LED van een ander apparaat: de ring gaat mee. Zet daarna Verteller aan
+  ring door naar de buitenste, en de focus gaat mee. Kies "Hele huis", klik "Alles openklappen"
+  en klik met de focus in de toetsen op een LED van een ander apparaat: de ring gaat mee. Zet daarna Verteller aan
   (Ctrl+Win+Enter): bij elke stap hoort hij de naam van de LED te zeggen ("Escape (LED 1)") en
   of hij geselecteerd is.
 - Kies bij Kleur "Hele huis" en **+ Eigen effect maken** onder het effect: alle apparaten knipperen
   rustig tussen hun kleur en zwart, en onder het kleurvoorbeeld staat het paneel "Eigen effect".
   Klik op de tweede stap en kies "Fel blauw", voeg met + een stap toe en zet "Blijven staan" op
-  0,3 s en "Overlopen" op 0: in het voorbeeld onderaan loopt het meteen mee. Kies daarna
+  0,3 s en "Overlopen" op 0: in de kleine strips van de dichte kaarten onderaan loopt het meteen
+  mee, en na "Alles openklappen" ook in het voorbeeld. Kies daarna
   "Gesimuleerd toetsenbord", kies Per LED en kleur een paar toetsen, kies je effect weer, klik een
-  stap en "LED-kleuren van dit apparaat overnemen": het vakje wordt een verloop, en de ventilator
-  en de strip (bij "Hele huis") tonen het patroon uitgerekt. Hernoem het (Enter), bewaar het als
+  stap en "LED-kleuren van dit apparaat overnemen": het vakje wordt een verloop, en bij "Hele
+  huis" tonen de ventilator en de strip het patroon uitgerekt (klap hun kaarten open). Hernoem het (Enter), bewaar het als
   scène, en verwijder het met Verwijderen: de app vraagt het eerst (kies eerst Annuleren: het
   effect blijft, met de focus op Verwijderen), en daarna staan de apparaten op Statisch en toont
   de scène bij het laden ook Statisch. Doe het ook alleen met het toetsenbord: Tab door de
@@ -241,7 +244,7 @@ toetsenbord. Een paar dingen om te proberen:
   #FF8800") en een stap van een eigen effect noemen de kleur net zo.
 - Kies bij "Hele huis" het effect "Komeet": onder het kleurvoorbeeld staat één vakje in de kleur
   van het apparaat. Voeg met + twee kleuren toe en geef ze een andere kleur: de ventilator krijgt elke
-  ronde de volgende kleur. Kies "Vuur" (de warme kleuren staan klaar), maak er donkerblauw, blauw,
+  ronde de volgende kleur (klap zijn kaart open). Kies "Vuur" (de warme kleuren staan klaar), maak er donkerblauw, blauw,
   lichtblauw en wit van, en kies weer "Komeet": die heeft zijn eigen kleuren nog. Bewaar het als
   scène: de kaart toont de kleuren. Kies ook "Scanner" en "Fonkelen" met een paar kleuren.
 - Kies bij Kleur het effect "Regenboog", bij "Hele huis" en bij één apparaat: onder de hex-code
@@ -1562,7 +1565,7 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 2. Vergelijk per apparaat het aantal LED's en de zones met OpenRGB.
 3. Kies een statische kleur, verander de helderheid en kies "Regenboog". Kies daarna
    "Fonkelen", "Komeet", "Scanner" en "Vuur": lopen ze op het apparaat zelf even vloeiend als
-   in het voorbeeld, en gaat de komeet bij een fan netjes rond (OpenRGB zegt niet waar LED 1
+   in het voorbeeld (kies het apparaat bij Kleur, of klap bij "Hele huis" zijn kaart open), en gaat de komeet bij een fan netjes rond (OpenRGB zegt niet waar LED 1
    zit, dus hij kan de andere kant op draaien)?
 4. Zet de pc in slaapstand, maak hem wakker en wacht 10 seconden: de kleuren horen terug te
    zijn.
@@ -1656,7 +1659,8 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 
 ### Toetsenbord, muis en headset
 
-1. Klik in het voorbeeld op bijv. Esc, W, A, S, D en de spatiebalk, geef ze een kleur en
+1. Kies bij Kleur het toetsenbord (of klap bij "Hele huis" zijn kaart open), klik in het
+   voorbeeld op bijv. Esc, W, A, S, D en de spatiebalk, geef ze een kleur en
    controleer dat precies die toetsen oplichten. Kijk of de tooltip de goede naam geeft en of
    de brede toetsen niet over een andere toets heen lopen.
 2. Loop met Tab en de pijltjes door de toetsen van het echte toetsenbord in het voorbeeld en
