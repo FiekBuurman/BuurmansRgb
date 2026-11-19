@@ -282,6 +282,17 @@
                                            AutomationProperties.HeadingLevel="Level2" />
                             </DockPanel>
                             <TextBlock Margin="0,4,0,0" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.CustomEffectHint}" />
+                            <!-- Sharing the effect, as a file or as a code to paste (SharingViewModel of the page). -->
+                            <WrapPanel Margin="0,8,0,0">
+                                <Button Margin="0,0,8,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareExport}"
+                                        ToolTip="{x:Static res:Strings.ShareExportEffectToolTip}"
+                                        AutomationProperties.Name="{x:Static res:Strings.ShareExportEffectAccessibleName}"
+                                        Command="{Binding DataContext.Sharing.ExportEffectCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                                <Button Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ShareCopyCode}"
+                                        ToolTip="{x:Static res:Strings.ShareCopyEffectCodeToolTip}"
+                                        AutomationProperties.Name="{x:Static res:Strings.ShareCopyEffectCodeAccessibleName}"
+                                        Command="{Binding DataContext.Sharing.CopyEffectCodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" />
+                            </WrapPanel>
 
                             <TextBlock Margin="0,12,0,0" Style="{StaticResource Label}" Text="{x:Static res:Strings.CustomEffectNameLabel}" />
                             <!-- The name counts with Enter, or when the box loses the focus: then one that is not kept
@@ -464,6 +475,18 @@
                             <Button Margin="0,4,0,0" HorizontalAlignment="Left" Style="{StaticResource LinkButton}"
                                     Content="{x:Static res:Strings.CustomEffectNew}" ToolTip="{x:Static res:Strings.CustomEffectNewToolTip}"
                                     ToolTipService.ShowOnDisabled="True" Command="{Binding NewCustomEffectCommand}" />
+                            <!-- An own effect of someone else, from a file or a code (SharingViewModel); a scene that comes
+                                 this way shows on Scènes. -->
+                            <WrapPanel>
+                                <Button Margin="0,4,12,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.ShareImport}"
+                                        ToolTip="{x:Static res:Strings.ShareImportToolTip}"
+                                        AutomationProperties.Name="{x:Static res:Strings.ShareImportAccessibleName}"
+                                        Command="{Binding Sharing.ImportCommand}" />
+                                <Button Margin="0,4,0,0" Style="{StaticResource LinkButton}" Content="{x:Static res:Strings.SharePasteCode}"
+                                        ToolTip="{x:Static res:Strings.SharePasteCodeToolTip}"
+                                        AutomationProperties.Name="{x:Static res:Strings.SharePasteCodeAccessibleName}"
+                                        Command="{Binding Sharing.PasteCodeCommand}" />
+                            </WrapPanel>
                         </StackPanel>
                         <StackPanel>
                             <DockPanel IsEnabled="{Binding IsSpeedEnabled}">

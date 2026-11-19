@@ -451,6 +451,102 @@ public sealed class CustomEffectLibraryTests : IDisposable
         }
     }
 
+    // An import that is the first read after a failed Load, and whose next step fails: the
+    // exception goes on, the effects go again, and the apps hear once of the list that was read.
+    [Fact]
+    public void Import_AfterAFailedLoad_NextStepThrows_AddsNothingAndTellsTheAppsOnce()
+    {
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+        _store.LoadException = null;
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            _library.Import([Effect("custom:abc", "Disco")], _ => throw new InvalidOperationException("scene not saved")));
+        _time.Advance(Delay);
+
+        Assert.Equal("scene not saved", exception.Message);
+        Assert.Equal(1, changes);
+        Assert.Empty(_library.Effects);
+        Assert.Empty(_store.Effects);
+        Assert.Equal(1, changes);
+    }
+
+    // The next step runs before the apps hear of the effects, so they never see effects that go
+    // again; once it went through, they hear of them once.
+    [Fact]
+    public void Import_AfterAFailedLoad_TellsTheAppsOnceAfterTheNextStep()
+    {
+        _store.LoadException = new IOException("in use");
+        _library.Load();
+        _store.LoadException = null;
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+        var changesInNextStep = -1;
+
+        var imported = _library.Import([Effect("custom:abc", "Disco")], _ => changesInNextStep = changes);
+
+        Assert.Equal(0, changesInNextStep);
+        Assert.Equal(1, changes);
+        var (effect, added) = Assert.Single(imported!);
+        Assert.True(added);
+        Assert.Equal([effect], _library.Effects);
+        Assert.Equal(1, changes);
+    }
+
+    // A question while the next step ran may have seen the effects; after the rollback the apps
+    // hear that the list changed, so they ask again.
+    [Fact]
+    public void Import_NextStepThrows_TellsTheAppsOnce()
+    {
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+        IReadOnlyList<CustomEffect>? seen = null;
+
+        Assert.Throws<InvalidOperationException>(() =>
+            _library.Import([Effect("custom:abc", "Disco")], _ =>
+            {
+                seen = _library.Effects;
+                throw new InvalidOperationException("scene not saved");
+            }));
+
+        Assert.Equal(["Disco"], seen!.Select(effect => effect.Name));
+        Assert.Empty(_library.Effects);
+        Assert.Equal(1, changes);
+    }
+
+    // A second import waits until the first one is done, also its next step, so it never takes an
+    // effect of the first as its own that the rollback of the first then takes away.
+    [Fact]
+    public async Task Import_WhileAnotherRuns_WaitsForIt()
+    {
+        using var inNextStep = new ManualResetEventSlim();
+        using var release = new ManualResetEventSlim();
+        var first = Task.Run(() => Assert.Throws<InvalidOperationException>(() =>
+            _library.Import([Effect("custom:abc", "Disco")], _ =>
+            {
+                inNextStep.Set();
+                release.Wait(Ct);
+                throw new InvalidOperationException("scene not saved");
+            })));
+        Assert.True(inNextStep.Wait(TimeSpan.FromSeconds(10), Ct));
+
+        var second = Task.Run(() => _library.Import([Effect("custom:abc", "Disco")]));
+        await Task.Delay(200, Ct);
+        Assert.False(second.IsCompleted);
+
+        // Other changes do not wait for an import.
+        Assert.Equal("Feest", _library.Save(Effect("", "Feest")).Name);
+        release.Set();
+        await first;
+        var (effect, added) = Assert.Single((await second)!);
+
+        Assert.True(added);
+        Assert.Equal(["Disco", "Feest"], _library.Effects.Select(other => other.Name));
+        Assert.Contains(effect, _library.Effects);
+    }
+
     // A backup replaces the list, also a change that still waited: that is not written over it.
     [Fact]
     public void Replace_TakesTheFileAndDropsWhatWaited()

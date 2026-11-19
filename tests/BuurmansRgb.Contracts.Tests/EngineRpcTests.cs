@@ -1,3 +1,4 @@
+using System.Text;
 using BuurmansRgb.Core;
 using StreamJsonRpc;
 
@@ -511,6 +512,29 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.ProfilesFileName), result);
     }
 
+    // A shared scene or effect is bytes both ways, and the answer to an import comes back with its
+    // names and the devices that were not there.
+    [Fact]
+    public async Task Sharing_CrossesThePipeBothWays()
+    {
+        var client = await ConnectAsync();
+
+        var scene = await client.Api.ExportSceneAsync("Gamen", Ct);
+        var effect = await client.Api.ExportCustomEffectAsync("custom:1a2b3c4d", Ct);
+        var result = await client.Api.ImportSharedAsync(scene, Ct);
+
+        Assert.Equal("Gamen"u8.ToArray(), scene);
+        Assert.Equal("custom:1a2b3c4d"u8.ToArray(), effect);
+        Assert.Equal(scene, Assert.Single(_api.ImportedShares));
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(SharedKind.Scene, result.Kind);
+        Assert.Equal("Gamen (2)", result.Name);
+        Assert.True(result.IsRenamed);
+        Assert.Equal(["K70"], result.UnmatchedDevices);
+        Assert.Equal(["Disco"], result.AddedEffects);
+        Assert.Equal(2, result.UnnamedUnmatchedDevices);
+    }
+
     // The other RGB software comes over the pipe with its ids and names, and a dismissed id goes back.
     [Fact]
     public async Task OtherRgbSoftware_CrossesThePipeBothWays()
@@ -991,6 +1015,18 @@ public sealed class EngineRpcTests : IDisposable
         public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(4242);
 
         public Task<byte[]> ExportSettingsAsync(CancellationToken ct = default) => Task.FromResult(ExportedSettings);
+
+        public List<byte[]> ImportedShares { get; } = [];
+
+        public Task<byte[]> ExportSceneAsync(string name, CancellationToken ct = default) => Task.FromResult(Encoding.UTF8.GetBytes(name));
+
+        public Task<byte[]> ExportCustomEffectAsync(string id, CancellationToken ct = default) => Task.FromResult(Encoding.UTF8.GetBytes(id));
+
+        public Task<ShareImportResult> ImportSharedAsync(byte[] json, CancellationToken ct = default)
+        {
+            ImportedShares.Add(json);
+            return Task.FromResult(new ShareImportResult(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen (2)", "Gamen", UnmatchedDevices: ["K70"], AddedEffects: ["Disco"], UnnamedUnmatchedDevices: 2));
+        }
 
         public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default)
         {

@@ -7,6 +7,7 @@ using BuurmansRgb.Engine.Power;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Programs;
 using BuurmansRgb.Engine.Settings;
+using BuurmansRgb.Engine.Sharing;
 
 namespace BuurmansRgb.Engine.Ipc;
 
@@ -30,6 +31,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly Action? _restart;
     private readonly OtherRgbSoftwareCheck? _otherRgbSoftware;
     private readonly ISettingsTransfer? _settingsTransfer;
+    private readonly SceneSharing _sharing;
     private readonly PreviewFrames _frames;
 
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
@@ -55,6 +57,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         ISettingsTransfer? settingsTransfer = null)
     {
         _settingsTransfer = settingsTransfer;
+        _sharing = new SceneSharing(profiles, lighting, customEffects);
         _restart = restart;
         _otherRgbSoftware = otherRgbSoftware;
         _zoneCounter = zoneCounter;
@@ -312,6 +315,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default) =>
         Task.FromResult(SettingsTransferOrThrow().Restore(archive ?? throw new ArgumentNullException(nameof(archive))));
+
+    public Task<byte[]> ExportSceneAsync(string name, CancellationToken ct = default) => Task.FromResult(_sharing.ExportScene(name));
+
+    public Task<byte[]> ExportCustomEffectAsync(string id, CancellationToken ct = default) => Task.FromResult(_sharing.ExportEffect(id));
+
+    // On the IPC thread of this call, as RestoreSettingsAsync: ProfilesChanged and
+    // CustomEffectsChanged go out before the answer.
+    public Task<ShareImportResult> ImportSharedAsync(byte[] json, CancellationToken ct = default) =>
+        Task.FromResult(_sharing.Import(json ?? throw new ArgumentNullException(nameof(json))));
 
     public Task<int> GetProcessIdAsync(CancellationToken ct = default) => Task.FromResult(Environment.ProcessId);
 

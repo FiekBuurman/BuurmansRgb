@@ -24,6 +24,9 @@ internal sealed class CustomEffectLibrary : IDisposable
     private readonly ITimer _timer;
     private readonly ITimer _loadTimer;
     private readonly Lock _gate = new();
+
+    // Held for a whole Import, also while andThen runs outside _gate; only imports take it.
+    private readonly Lock _importGate = new();
     private List<CustomEffect>? _effects;
 
     // Whether the list in memory still has to go to the file: from a change until a write that
@@ -175,6 +178,27 @@ internal sealed class CustomEffectLibrary : IDisposable
         return saved;
     }
 
+    // Own effects from someone else (SceneSharing), by the id they had there: one here with the same
+    // name and steps is taken as it is; any other gets a new id and, when its name is taken by an
+    // own effect or one of the engine, the first free one of "name (2)" and so on (SharedFiles.FreeName),
+    // so nothing is overwritten. All or none: null, and nothing added, when they would make more
+    // than CustomEffects.MaxEffects. With andThen, such as adding the scene that shows them, that
+    // runs once they are kept and before Changed; when it throws, the effects it added go again
+    // and the exception goes on, so the import is all or nothing. Meanwhile a question or a Save
+    // may see them already; so a rollback always raises Changed, and a list read in between is
+    // asked again. Imports go one at a time (_importGate), so a second one never takes an effect
+    // of the first as its own and then loses it to the rollback of the first.
+    public IReadOnlyList<(CustomEffect Effect, bool Added)>? Import(
+        IReadOnlyList<CustomEffect> shared,
+        Action<IReadOnlyList<(CustomEffect Effect, bool Added)>>? andThen = null)
+    {
+        ArgumentNullException.ThrowIfNull(shared);
+        lock (_importGate)
+        {
+            return ImportOneAtATime(shared, andThen);
+        }
+    }
+
     public void Delete(string id)
     {
         lock (_gate)
@@ -206,6 +230,90 @@ internal sealed class CustomEffectLibrary : IDisposable
     // there was none: no own effects then, in the file and in memory, and a device with one gets
     // static. As with Replace, a delete that fails changes nothing.
     public void Reset() => ReplaceFile(_store.Delete);
+
+    private IReadOnlyList<(CustomEffect Effect, bool Added)>? ImportOneAtATime(
+        IReadOnlyList<CustomEffect> shared,
+        Action<IReadOnlyList<(CustomEffect Effect, bool Added)>>? andThen)
+    {
+        var imported = new List<(CustomEffect Effect, bool Added)>();
+        lock (_gate)
+        {
+            var effects = EffectsLocked();
+            var added = new List<CustomEffect>();
+            foreach (var effect in shared)
+            {
+                var all = effects.Concat(added).ToList();
+                if (all.Find(other => CustomEffects.NameComparer.Equals(other.Name, effect.Name) && other.Steps.SequenceEqual(effect.Steps)) is { } same)
+                {
+                    imported.Add((same, false));
+                    continue;
+                }
+
+                var name = SharedFiles.FreeName(effect.Name, CustomEffects.MaxNameLength, candidate =>
+                    EffectNames.IsBuiltIn(candidate) || all.Exists(other => CustomEffects.NameComparer.Equals(other.Name, candidate)));
+                var id = CustomEffects.NewId();
+                while (all.Exists(other => other.Id == id))
+                {
+                    id = CustomEffects.NewId();
+                }
+
+                var saved = CustomEffects.Normalize(effect with { Id = id, Name = name });
+                added.Add(saved);
+                imported.Add((saved, true));
+            }
+
+            if (effects.Count + added.Count > CustomEffects.MaxEffects)
+            {
+                return null;
+            }
+
+            if (added.Count > 0)
+            {
+                Store([.. effects, .. added]);
+
+                // Changed below, or that of the rollback, also tells of a list read after a failed Load.
+                TakeLoadedAfterFailure();
+            }
+        }
+
+        // Outside the lock, as andThen takes that of the scenes; _importGate stays held.
+        if (!imported.Exists(effect => effect.Added))
+        {
+            andThen?.Invoke(imported);
+            return imported;
+        }
+
+        try
+        {
+            andThen?.Invoke(imported);
+        }
+        catch
+        {
+            RemoveImported([.. imported.Where(effect => effect.Added).Select(effect => effect.Effect.Id)]);
+            throw;
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
+        return imported;
+    }
+
+    // The effects an Import added, taken out again when what came after it failed. Changed always
+    // goes out: a question may have seen them meanwhile, and the Import may have been the first
+    // read after a failed Load, which the apps still have to hear of.
+    private void RemoveImported(IReadOnlyList<string> ids)
+    {
+        lock (_gate)
+        {
+            var effects = EffectsLocked();
+            if (effects.Exists(effect => ids.Contains(effect.Id)))
+            {
+                Store([.. effects.Where(effect => !ids.Contains(effect.Id))]);
+            }
+        }
+
+        Trace.TraceWarning($"Took the {ids.Count} own effects of the import out again.");
+        Changed?.Invoke(this, EventArgs.Empty);
+    }
 
     private void ReplaceFile(Action write)
     {

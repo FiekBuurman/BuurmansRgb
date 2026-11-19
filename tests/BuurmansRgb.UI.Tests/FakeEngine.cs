@@ -516,6 +516,38 @@ internal sealed class FakeEngineApi : IEngineApi
         return RestoreResult;
     }
 
+    // What "Exporteren…" and "Code kopiëren" get, and what an import answers; the JSON it got.
+    public byte[] ExportedShare { get; set; } = "{\"version\":1}"u8.ToArray();
+
+    public ShareImportResult ImportResult { get; set; } = new(ShareImportOutcome.Imported, SharedKind.Scene, "Gamen", "Gamen");
+
+    public List<byte[]> ImportedShares { get; } = [];
+
+    public async Task<byte[]> ExportSceneAsync(string name, CancellationToken ct = default)
+    {
+        await Record($"export scene {name}");
+        return ExportedShare;
+    }
+
+    public async Task<byte[]> ExportCustomEffectAsync(string id, CancellationToken ct = default)
+    {
+        await Record($"export effect {id}");
+        return ExportedShare;
+    }
+
+    public async Task<ShareImportResult> ImportSharedAsync(byte[] json, CancellationToken ct = default)
+    {
+        await Record("import");
+        ImportedShares.Add(json);
+        if (ImportResult is { Outcome: ShareImportOutcome.Imported, Kind: SharedKind.Scene, Name: { } name } && !Profiles.Contains(name))
+        {
+            Profiles.Add(name);
+            Profiles.Sort(StringComparer.CurrentCultureIgnoreCase);
+        }
+
+        return ImportResult;
+    }
+
     public event EventHandler? CustomEffectsChanged;
 
     public void RaiseCustomEffectsChanged() => CustomEffectsChanged?.Invoke(this, EventArgs.Empty);

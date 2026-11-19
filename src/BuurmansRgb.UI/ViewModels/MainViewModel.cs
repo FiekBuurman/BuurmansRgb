@@ -121,14 +121,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Logbestand openen" opens nothing, so a test that passes none never opens Kladblok.
     // animationEffects is "Animatie-effecten" of Windows (SystemAnimationEffects in App); without
     // it the animations are on, so the preview moves. processMeter reads the memory and CPU of the
-    // engine for Instellingen (SystemProcessMeter in App); without it nothing is read.
-    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null)
+    // engine for Instellingen (SystemProcessMeter in App); without it nothing is read. clipboard is
+    // the one of Windows for "Code kopiëren" and "Code plakken" (SystemClipboard in App); without it
+    // the app has one of its own (AppClipboard), so a test never touches that of the user.
+    public MainViewModel(IEngineConnector connector, TimeProvider? time = null, Func<Task<IReadOnlyList<RunningProgram>>>? findPrograms = null, AppInfoViewModel? appInfo = null, IAnimationEffects? animationEffects = null, IProcessMeter? processMeter = null, IClipboard? clipboard = null)
     {
         _connector = connector;
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
         Backup = new SettingsBackupViewModel(() => _connection?.Api, time);
         Backup.Message += (_, message) => StatusMessage = message;
+        Sharing = new SharingViewModel(() => _connection?.Api, clipboard ?? new AppClipboard());
+        Sharing.Message += (_, message) => StatusMessage = message;
+        Sharing.Imported += (_, result) => ShowImported(result);
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
@@ -375,6 +380,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // "Instellingen bewaren…" and "Instellingen terugzetten…" on Instellingen.
     public SettingsBackupViewModel Backup { get; }
 
+    // "Exporteren…", "Code kopiëren", "Importeren…" and "Code plakken" on Scènes and Kleur.
+    public SharingViewModel Sharing { get; }
+
     // "Licht op de achtergrond" on Instellingen: the memory and CPU of the engine.
     public EngineUsageViewModel EngineUsage { get; }
 
@@ -472,7 +480,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     partial void OnHadRealDevicesChanged(bool? value) => OpenRgbStatus.DevicesExpected = value == true;
 
     // Backing up and restoring go through the engine, so only while connected.
-    partial void OnConnectionStateChanged(ConnectionState value) => Backup.IsConnected = value == ConnectionState.Connected;
+    partial void OnConnectionStateChanged(ConnectionState value)
+    {
+        Backup.IsConnected = value == ConnectionState.Connected;
+        Sharing.IsConnected = value == ConnectionState.Connected;
+    }
 
     [RelayCommand]
     private async Task ConnectAsync()
@@ -1701,6 +1713,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 _ = _sceneCards.ShowActiveAsync();
                 StatusMessage = UiText.Format(doneMessage, name);
                 done?.Invoke();
+            });
+        });
+    }
+
+    // An imported scene is chosen on Scènes, so its block "… aanpassen" shows the devices it got. In
+    // the queue with a key of its own, so the reload of ProfilesChanged, which keeps the scene that
+    // is chosen, does not take its place. An own effect needs nothing: CustomEffectsChanged puts it
+    // in the effect choice.
+    private void ShowImported(ShareImportResult result)
+    {
+        if (result.Kind != SharedKind.Scene || result.Name is not { } name || _connection is not { } connection)
+        {
+            return;
+        }
+
+        _calls.Post(new object(), async () =>
+        {
+            var names = await connection.Api.GetProfilesAsync();
+            RunOnUi(() =>
+            {
+                if (ReferenceEquals(connection, _connection))
+                {
+                    Profiles.Show(names, select: name);
+                    _ = _sceneCards.ShowAsync();
+                }
             });
         });
     }

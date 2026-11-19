@@ -20,6 +20,8 @@ public partial class MainWindow : Window
                 viewModel.Backup.ChooseSaveFile = ChooseBackupToSave;
                 viewModel.Backup.ChooseRestoreFile = ChooseBackupToRestore;
                 viewModel.Backup.ConfirmRestore = fileName => ConfirmDialog.ForRestore(this, fileName).Ask();
+                viewModel.Sharing.ChooseExportFile = ChooseShareToSave;
+                viewModel.Sharing.ChooseImportFile = ChooseShareToImport;
             }
         };
         StateChanged += (_, _) =>
@@ -84,6 +86,27 @@ public partial class MainWindow : Window
     private string? ChooseBackupToRestore()
     {
         var dialog = new Microsoft.Win32.OpenFileDialog { Title = Strings.BackupRestoreTitle, Filter = Strings.BackupFilter, CheckFileExists = true };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    // The dialogs of Windows for "Exporteren…" and "Importeren…" of a scene or own effect; null when
+    // cancelled. They open where Windows opened them last, no folder of the user is set here.
+    private string? ChooseShareToSave(string title, string suggestedName)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = title,
+            Filter = Strings.ShareFilter,
+            FileName = suggestedName,
+            AddExtension = true,
+            OverwritePrompt = true,
+        };
+        return dialog.ShowDialog(this) == true ? dialog.FileName : null;
+    }
+
+    private string? ChooseShareToImport()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Title = Strings.ShareImportTitle, Filter = Strings.ShareFilter, CheckFileExists = true };
         return dialog.ShowDialog(this) == true ? dialog.FileName : null;
     }
 }

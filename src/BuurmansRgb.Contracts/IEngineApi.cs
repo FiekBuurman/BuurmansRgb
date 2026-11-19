@@ -220,6 +220,25 @@ public partial interface IEngineApi
     // of now go into a zip in the backups folder next to them; anything wrong replaces nothing.
     Task<SettingsRestoreResult> RestoreSettingsAsync(byte[] archive, CancellationToken ct = default);
 
+    // "Exporteren…" and "Code kopiëren" of a scene: the JSON to share (SharedFiles, ShareCode), UTF-8,
+    // with its name, its lighting, the devices it is for and, for each device with lighting of its
+    // own, its id, type and name, so another pc can find it; and the own effects it shows. Not its
+    // times, programs or role. Throws for a scene the engine does not know (any more).
+    Task<byte[]> ExportSceneAsync(string name, CancellationToken ct = default);
+
+    // The same for an own effect, by its id. Throws for an id the engine does not know (any more).
+    Task<byte[]> ExportCustomEffectAsync(string id, CancellationToken ct = default);
+
+    // "Importeren…" and "Code plakken": adds the scene or own effect in json, as ExportSceneAsync or
+    // ExportCustomEffectAsync gave it on this or another pc, after every check (SharedFiles: not too
+    // large, valid JSON, no field it does not know, no value out of range, no name like a path);
+    // anything wrong adds nothing. A name that is taken gets a number after it; nothing is
+    // overwritten. A device of a scene is the one here with the same id, or else the next one with
+    // the same type and name; one that is not here is left out and named in the result. The own
+    // effects of a scene come along, or the one here with the same name and steps. ProfilesChanged
+    // and CustomEffectsChanged follow.
+    Task<ShareImportResult> ImportSharedAsync(byte[] json, CancellationToken ct = default);
+
     // The process id of the engine, so the settings app can show its memory and CPU on Instellingen:
     // the app measures them itself while that page is open, and the engine does nothing for it.
     Task<int> GetProcessIdAsync(CancellationToken ct = default);
