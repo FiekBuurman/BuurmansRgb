@@ -280,16 +280,18 @@ h1,h3,h4{margin:0}
 // De data van de mock, zoals renderVals() in de andere schermen.
 const effects = ['Statisch', 'Ademen', 'Regenboog', 'Golf', 'Kleurenloop', 'Fonkelen', 'Komeet', 'Scanner', 'Vuur', 'Per LED', 'Eigen effect'];
 const rainbow = ['#FF5A5A', '#FF9A3D', '#FFD84D', '#3DDC84', '#3DD6D0', '#5B93FF', '#A97BFF'];
+// line: the LED count of DeviceItem.Details without the type in front (LedCountInZones with more zones,
+// else LedCount); the icon shows the type. Whether a device is off, only its dots show (color null).
 const devices = [
-  { id: 'strip', name: 'Gesimuleerde ledstrip', line: '1 zone · 60 LED\'s', color: '#FF9A3D' },
-  { id: 'fan', name: 'Gesimuleerde ventilator', line: '1 zone · 16 LED\'s', color: '#FF9A3D' },
-  { id: 'kbd', name: 'Gesimuleerd toetsenbord', line: '1 zone · 104 LED\'s', color: '#5B93FF' },
-  { id: 'mb', name: 'Gesimuleerd moederbord', line: '3 zones · 28 LED\'s', color: '#FF9A3D' },
-  { id: 'ram1', name: 'Gesimuleerd RAM-latje 1', line: '1 zone · 8 LED\'s · uit', color: null },
-  { id: 'ram2', name: 'Gesimuleerd RAM-latje 2', line: '1 zone · 8 LED\'s · uit', color: null },
-  { id: 'gpu', name: 'Gesimuleerde videokaart', line: '2 zones · 22 LED\'s', color: '#FF9A3D' },
-  { id: 'fan2', name: 'Gesimuleerde ventilator met twee ringen', line: '2 zones · 36 LED\'s', color: '#FF9A3D' },
-  { id: 'argb', name: 'Gesimuleerde ARGB-controller', line: '2 zones · 92 LED\'s', color: '#FF9A3D' }
+  { id: 'strip', name: 'Gesimuleerde ledstrip', line: '60 LED\'s', color: '#FF9A3D' },
+  { id: 'fan', name: 'Gesimuleerde ventilator', line: '16 LED\'s', color: '#FF9A3D' },
+  { id: 'kbd', name: 'Gesimuleerd toetsenbord', line: '104 LED\'s', color: '#5B93FF' },
+  { id: 'mb', name: 'Gesimuleerd moederbord', line: '28 LED\'s in 3 zones', color: '#FF9A3D' },
+  { id: 'ram1', name: 'Gesimuleerd RAM-latje 1', line: '8 LED\'s', color: null },
+  { id: 'ram2', name: 'Gesimuleerd RAM-latje 2', line: '8 LED\'s', color: null },
+  { id: 'gpu', name: 'Gesimuleerde videokaart', line: '22 LED\'s in 2 zones', color: '#FF9A3D' },
+  { id: 'fan2', name: 'Gesimuleerde ventilator met twee ringen', line: '36 LED\'s in 2 zones', color: '#FF9A3D' },
+  { id: 'argb', name: 'Gesimuleerde ARGB-controller', line: '92 LED\'s in 2 zones', color: '#FF9A3D' }
 ];
 
 const dot = (c, i, rb) => {
