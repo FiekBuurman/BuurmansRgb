@@ -456,6 +456,111 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.True(_lighting.GetLighting(null).On);
     }
 
+    // --scene from the command line, as "Scène aanzetten" in the menu, without regard to case.
+    [Fact]
+    public async Task Run_Scene_PutsItOn()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+        var presenter = await StartedPresenterAsync();
+        using var trace = new TraceCapture();
+
+        var result = presenter.Run(new EngineCommand(EngineCommandKind.Scene, " nacht "));
+
+        Assert.Equal(EngineCommandResult.Done, result);
+        Assert.Equal(StaticLighting(Red, 0.1), _lighting.GetLighting(null));
+        Assert.Equal("Nacht", _profiles.ActiveName);
+        Assert.Empty(_view.Notifications);
+        Assert.Contains(trace.Messages, message => message.Contains("Command line: --scene ' nacht ' done.", StringComparison.Ordinal));
+    }
+
+    // Only a line in the log: the script that asked reads the exit code.
+    [Fact]
+    public async Task Run_UnknownScene_ChangesNothing_WithALineInTheLog()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+        var presenter = await StartedPresenterAsync();
+        var changes = 0;
+        _lighting.LightingChanged += (_, _) => changes++;
+        using var trace = new TraceCapture();
+
+        var result = presenter.Run(new EngineCommand(EngineCommandKind.Scene, "Nachtje"));
+
+        Assert.Equal(EngineCommandResult.UnknownScene, result);
+        Assert.Equal(0, changes);
+        Assert.Null(_profiles.ActiveName);
+        Assert.Empty(_view.Notifications);
+        Assert.Contains(trace.Messages, message => message.Contains("there is no scene 'Nachtje'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Run_ScenesUnreadable_FailsAsTheMenuDoes()
+    {
+        var presenter = await StartedPresenterAsync();
+        _profileStore.LoadException = new UnauthorizedAccessException();
+
+        var result = presenter.Run(new EngineCommand(EngineCommandKind.Scene, "Nacht"));
+
+        Assert.Equal(EngineCommandResult.Failed, result);
+        Assert.Equal([(Strings.ProfilesUnreadable, TrayNotificationKind.Warning)], _view.Notifications);
+    }
+
+    // As "Alles aan" and "Alles uit" in the menu.
+    [Fact]
+    public async Task Run_AllOffAndAllOn_SwitchEveryLight()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var presenter = await StartedPresenterAsync();
+
+        Assert.Equal(EngineCommandResult.Done, presenter.Run(EngineCommand.AllOff));
+        Assert.False(_lighting.GetLighting(null).On);
+
+        Assert.Equal(EngineCommandResult.Done, presenter.Run(EngineCommand.AllOn));
+        Assert.True(_lighting.GetLighting(null).On);
+        Assert.Empty(_view.Notifications);
+    }
+
+    // The saved lighting that the engine puts on next would overwrite it.
+    [Fact]
+    public async Task Run_BeforeTheEngineStarted_DoesNothing()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+        var presenter = CreatePresenter();
+
+        Assert.Equal(EngineCommandResult.NotStarted, presenter.Run(EngineCommand.AllOff));
+        Assert.Equal(EngineCommandResult.NotStarted, presenter.Run(new EngineCommand(EngineCommandKind.Scene, "Nacht")));
+        Assert.True(_lighting.GetLighting(null).On);
+        Assert.Null(_profiles.ActiveName);
+    }
+
+    // An engine that --scene started, as no engine ran yet: once the saved lighting is on.
+    [Fact]
+    public async Task StartAsync_WithACommand_RunsItOnceStarted()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _profileStore.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+        var presenter = CreatePresenter(commandAfterStart: new EngineCommand(EngineCommandKind.Scene, "Nacht"));
+        Assert.Null(_profiles.ActiveName);
+
+        await presenter.StartAsync(Ct);
+
+        Assert.Equal("Nacht", _profiles.ActiveName);
+        Assert.Equal(StaticLighting(Red, 0.1), _lighting.GetLighting(null));
+    }
+
+    [Fact]
+    public async Task StartAsync_HostFails_DoesNotRunTheCommand()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _host.StartException = new IOException("Disk unavailable.");
+
+        await CreatePresenter(commandAfterStart: EngineCommand.AllOff).StartAsync(Ct);
+
+        Assert.True(_lighting.GetLighting(null).On);
+    }
+
     [Fact]
     public void OpenLog_Opens_ShowsNothing()
     {
@@ -786,8 +891,9 @@ public sealed class TrayPresenterTests : IDisposable
         Action? openLog = null,
         EngineRestarter? restarter = null,
         ServicesRestartReport? restartedWith = null,
-        bool openSettingsAfterStart = false) =>
-        new(_host, _autoStartSwitch, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view, restarter, restartedWith, openSettingsAfterStart);
+        bool openSettingsAfterStart = false,
+        EngineCommand? commandAfterStart = null) =>
+        new(_host, _autoStartSwitch, _launcher, _profiles, _lighting, _hotkeys, _globalHotkeys, openLog ?? (() => { }), _view, restarter, restartedWith, openSettingsAfterStart, commandAfterStart);
 
     // The engine as a settings app talks to it, beside the tray menu of the same engine.
     private sealed class SettingsAppSide : IDisposable

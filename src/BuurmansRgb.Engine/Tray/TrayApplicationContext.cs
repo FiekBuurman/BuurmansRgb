@@ -42,7 +42,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         Action? trimMemory = null,
         EngineRestarter? restarter = null,
         ServicesRestartReport? restartedWith = null,
-        bool openSettingsAfterStart = false)
+        bool openSettingsAfterStart = false,
+        EngineCommand? commandAfterStart = null)
     {
         _presenter = new TrayPresenter(
             host,
@@ -56,7 +57,8 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             this,
             restarter,
             restartedWith,
-            openSettingsAfterStart);
+            openSettingsAfterStart,
+            commandAfterStart);
         _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
         _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
         _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
@@ -132,6 +134,15 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
 
     // From another thread (--exit): the same as "Afsluiten" in the menu.
     public void RequestExit() => _uiContext.Post(_ => ExitThread(), state: null);
+
+    // From another thread (--scene, --all-on or --all-off of a second start): runs the command on
+    // this thread, as the menu does, and gives what came of it as the exit code of that start.
+    public int RunCommand(string message) => (int)EngineCommand.Answer(
+        message,
+        action => _uiContext.Post(_ => action(), state: null),
+        _presenter.Run,
+        EngineCommand.RunTimeout,
+        _shutdown.Token);
 
     // From another thread (the settings app through IEngineApi.RestartAsync): the same as
     // "Herstarten" in the menu. RestartAsync never throws, so nothing is lost by not awaiting it.

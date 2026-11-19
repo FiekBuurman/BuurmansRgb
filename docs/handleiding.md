@@ -1254,7 +1254,8 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Eén instantie:** start je de engine nog een keer, dan stopt die meteen en vraagt de
   draaiende engine om de instellingen-app (`BuurmansRgb.UI.exe` naast de engine) te openen.
   Lukt dat niet (bijv. geblokkeerd door SmartScreen), dan meldt het icoon dat. Elke ingelogde
-  Windows-gebruiker heeft zijn eigen engine.
+  Windows-gebruiker heeft zijn eigen engine. Met `--scene`, `--all-on` of `--all-off` opent hij
+  de app niet, maar doet hij dat (zie "Van buitenaf bedienen" hieronder).
 - **Afsluiten vanaf de commandline:** `BuurmansRgb.Engine.exe --exit` sluit de draaiende engine
   af zoals "Afsluiten" in het menu, dus met het bewaren van de laatste wijziging en zonder een
   icoon dat in de tray blijft hangen. Draait er geen engine, dan doet het niets.
@@ -1263,6 +1264,123 @@ De engine draait zonder venster, met een tray-icoon rechtsonder bij de klok.
 - **Eén venster:** is de instellingen-app al open, dan komt dat venster naar voren (ook als het
   geminimaliseerd was) in plaats van een tweede, bij "Instellingen openen", een dubbelklik op het
   icoon of een tweede start van `BuurmansRgb.UI.exe`.
+
+### Van buitenaf bedienen
+
+Een scène aanzetten of alles aan en uit kan ook zonder het tray-menu, met een opdracht. Zo zet je
+het onder een knop van een Stream Deck, in Home Assistant of in een eigen script.
+
+| Opdracht | Doet hetzelfde als |
+|---|---|
+| `BuurmansRgb.Engine.exe --scene "Gamen"` | "Scène aanzetten" → "Gamen" in het tray-menu |
+| `BuurmansRgb.Engine.exe --all-on` | "Alles aan" |
+| `BuurmansRgb.Engine.exe --all-off` | "Alles uit" |
+
+`BuurmansRgb.Engine.exe` staat in de map waar je buurmansRgb installeerde, standaard
+`C:\Program Files\BuurmansRgb`.
+
+- **Naam van de scène:** zoals op de pagina Scènes, met aanhalingstekens als er een spatie in
+  staat (`--scene "Film kijken"`). Hoofdletters maken niet uit: `--scene gamen` zet "Gamen" aan.
+- **Draait buurmansRgb al**, dan geeft de opdracht het door en stopt meteen; buurmansRgb zelf
+  blijft draaien. Er gaat niets over het netwerk en er staat geen poort open: de opdracht bereikt
+  alleen buurmansRgb van jouw eigen Windows-sessie.
+- **Draait buurmansRgb nog niet**, dan start het en zet het de scène aan (of alles aan of uit)
+  zodra de opgeslagen verlichting staat. Het blijft daarna draaien, met het icoon bij de klok.
+- **Een scène die niet bestaat** verandert niets. In `engine.log` (zie "Logbestanden") staat dan
+  bijv. "Command line: there is no scene 'Gamen2'.". Draaide buurmansRgb nog niet, dan start het
+  in dat geval ook niet.
+- **Elke opdracht** staat in `engine.log`, bijv. "Command line: --scene 'gamen' done.". Lukt het
+  niet omdat een apparaat een fout geeft, dan meldt het icoon dat, net als bij het tray-menu.
+- **De eerste seconden na het starten** van buurmansRgb, tot de opgeslagen verlichting staat,
+  doet een opdracht nog niets (zoals het tray-menu dan grijs is); probeer het dan opnieuw.
+
+Een script kan aan de **exitcode** zien hoe het ging:
+
+| Exitcode | Betekenis |
+|---|---|
+| 0 | Gelukt |
+| 1 | Mislukt: een apparaat of `profiles.json` gaf een fout (zie `engine.log`) |
+| 2 | Deze scène bestaat niet |
+| 3 | buurmansRgb is net gestart en heeft de opgeslagen verlichting nog niet gezet |
+| 4 | Geen antwoord van buurmansRgb: een oudere versie die deze opdrachten niet kent (dan meteen), of een die binnen 10 seconden niet antwoordt omdat hij hangt of net stopt |
+
+In PowerShell wacht je zo op de exitcode (buurmansRgb heeft geen consolevenster, dus zonder
+`| Out-Null` wacht PowerShell niet):
+
+```powershell
+& "C:\Program Files\BuurmansRgb\BuurmansRgb.Engine.exe" --scene "Gamen" | Out-Null
+$LASTEXITCODE
+```
+
+Draaide buurmansRgb nog niet, dan wordt deze opdracht zelf buurmansRgb en wacht PowerShell tot je
+het afsluit; start buurmansRgb dus eerst (of zet "Starten met Windows" aan) als een script op de
+exitcode wacht.
+
+#### Stream Deck
+
+1. Sleep in de Stream Deck-app de actie **Openen** (onder **Systeem**) op een knop.
+2. Vul bij **App / Bestand** de opdracht in, met het pad tussen aanhalingstekens:
+   `"C:\Program Files\BuurmansRgb\BuurmansRgb.Engine.exe" --scene "Gamen"`.
+3. Maak zo een knop per scène, en desgewenst een voor `--all-on` en een voor `--all-off`.
+
+Neemt jouw versie van de Stream Deck-app geen opdracht met een extra stuk erachter, maak dan een
+snelkoppeling: klik met de rechtermuisknop op het bureaublad, kies **Nieuw** → **Snelkoppeling**,
+vul dezelfde opdracht in en geef hem een naam als "buurmansRgb Gamen". Kies bij **App / Bestand**
+die snelkoppeling.
+
+#### Home Assistant
+
+Home Assistant draait meestal op een ander apparaat (een Raspberry Pi of een server), en een
+`shell_command` draait op dat apparaat, niet op je pc. De opdracht moet op de pc terechtkomen in
+jouw Windows-sessie, waar het icoon van buurmansRgb staat. Een opdracht die rechtstreeks via `ssh`
+binnenkomt, draait in een eigen sessie: die vindt jouw buurmansRgb niet en zou er een tweede
+starten zonder icoon. Daarom start Home Assistant via `ssh` een **geplande taak**, die wel in
+jouw sessie draait:
+
+1. Zet op de pc **OpenSSH-server** aan (Instellingen → Systeem → Optionele onderdelen) en zorg dat
+   Home Assistant met een sleutel kan inloggen (zie de documentatie van Home Assistant over
+   `shell_command` en `ssh`).
+2. Maak op de pc per opdracht een geplande taak die alleen draait als jij bent aangemeld (`/it`),
+   in een opdrachtprompt als jijzelf (dus niet als administrator):
+
+   ```bat
+   schtasks /create /tn "buurmansRgb Gamen" /sc once /st 00:00 /it /f /tr "\"C:\Program Files\BuurmansRgb\BuurmansRgb.Engine.exe\" --scene \"Gamen\""
+   ```
+
+   De waarschuwing dat de begintijd al voorbij is, mag je negeren: de taak hoeft nooit vanzelf
+   te starten.
+
+   Zet ook **"Starten met Windows"** aan (tray-menu of Instellingen), zodat buurmansRgb al draait
+   als de taak komt: de taak geeft de opdracht dan alleen door en is meteen klaar. Draait
+   buurmansRgb nog niet, dan wordt de taak zelf buurmansRgb, en een geplande taak krijgt van
+   Windows standaard beperkingen mee: hij stopt na 72 uur, start niet als een laptop op de accu
+   werkt en draait met een lage voorrang. Wil je dat toch, haal die beperkingen dan weg in
+   **Taakplanner** (zoek in Start op "Taakplanner"): dubbelklik op de taak, zet op het tabblad
+   **Voorwaarden** het vinkje bij starten alleen op netstroom uit, en op het tabblad
+   **Instellingen** het vinkje bij stoppen als de taak langer loopt dan 3 dagen.
+3. Zet in `configuration.yaml` van Home Assistant:
+
+   ```yaml
+   shell_command:
+     pc_gamen: >-
+       ssh -i /config/.ssh/id_ed25519
+       -o UserKnownHostsFile=/config/.ssh/known_hosts
+       -o StrictHostKeyChecking=accept-new
+       jij@mijn-pc 'schtasks /run /tn "buurmansRgb Gamen"'
+   ```
+
+   en roep `shell_command.pc_gamen` aan vanuit een automatisering, script of knop.
+
+   De twee regels met `-o` zijn nodig omdat Home Assistant geen venster heeft waarin `ssh` kan
+   vragen of je de pc vertrouwt, en de lijst met bekende pc's anders bij een herstart kwijtraakt.
+   Zonder die regels mislukt de eerste aanroep met "Host key verification failed". Nu onthoudt
+   `ssh` de pc bij de eerste aanroep in `/config/.ssh/known_hosts`, en weigert hij daarna als een
+   ander apparaat zich als jouw pc voordoet.
+
+Home Assistant krijgt zo de exitcode van `schtasks` (of de taak startte), niet die van
+buurmansRgb; of de scène bestond, staat in `engine.log`. Draait Home Assistant op dezelfde pc
+in jouw sessie, of gebruik je een programma op de pc dat opdrachten van Home Assistant in jouw
+sessie uitvoert, dan kan de opdracht daar rechtstreeks in.
 
 ### Pauzeren
 
