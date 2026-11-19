@@ -571,6 +571,8 @@ internal sealed class FakeEngineApi : IEngineApi
     public async Task SaveProfileAsync(string name, CancellationToken ct = default)
     {
         await Record($"profile save {name}");
+        // Like the engine, a scene with the same name is replaced; it takes the new spelling.
+        Profiles.RemoveAll(other => ProfileNames.Comparer.Equals(other, name));
         Profiles.Add(name);
         Profiles.Sort(StringComparer.CurrentCultureIgnoreCase);
         ActiveProfile = name;

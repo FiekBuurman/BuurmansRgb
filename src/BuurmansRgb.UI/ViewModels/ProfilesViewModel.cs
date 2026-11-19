@@ -47,7 +47,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
 
     // Picking a profile in the list fills in its name, so saving then updates that profile.
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(SaveLabel))]
+    [NotifyPropertyChangedFor(nameof(SaveLabel), nameof(NameHelp))]
     [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
     public partial string Name { get; set; } = string.Empty;
 
@@ -61,12 +61,17 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // The heading of the settings of the chosen scene, such as "Klusmodus aanpassen".
     public string? EditTitle => SelectedName is { } name ? UiText.Format(Strings.SceneEditAccessibleName, name) : null;
 
-    // The name field for a new scene shows, after "+ Nieuwe scène".
+    // The name field for a new scene shows, after "+ Nieuwe scène" on Scènes or "Bewaar als scène" on
+    // Kleur (SceneNameCard).
     [ObservableProperty]
     public partial bool IsNaming { get; private set; }
 
     // Says so when saving replaces a profile that exists.
     public string SaveLabel => Find(Name) is null ? Strings.ProfileSave : Strings.ProfileOverwrite;
+
+    // The line under the name field, which a screen reader reads when it comes: that Enter replaces the
+    // scene that has this name already, which SaveLabel only shows on the button; null for a new name.
+    public string? NameHelp => Find(Name) is { } existing ? UiText.Format(Strings.SceneNameOverwrites, existing) : null;
 
     // Asked before a profile is deleted, with its name; the view shows the question. Without it,
     // a profile is deleted without asking.
@@ -95,6 +100,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
             SelectedName = Find(selected);
         });
         OnPropertyChanged(nameof(SaveLabel));
+        OnPropertyChanged(nameof(NameHelp));
         OnPropertyChanged(nameof(HasScenes));
         OnPropertyChanged(nameof(HasSceneTimes));
         RequestAutomation();

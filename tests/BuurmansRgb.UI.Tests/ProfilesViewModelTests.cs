@@ -54,6 +54,17 @@ public sealed class ProfilesViewModelTests
         _profiles.Name = "gamen";
 
         Assert.Equal("Overschrijven", _profiles.SaveLabel);
+        Assert.Equal("Overschrijft de scène 'Gamen'.", _profiles.NameHelp);
+    }
+
+    [Fact]
+    public void Name_New_HasNoHelp()
+    {
+        _profiles.Show(["Gamen"]);
+
+        _profiles.Name = "Gamen 2";
+
+        Assert.Null(_profiles.NameHelp);
     }
 
     [Fact]

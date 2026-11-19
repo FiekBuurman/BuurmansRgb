@@ -6,17 +6,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:contracts="clr-namespace:BuurmansRgb.Contracts;assembly=BuurmansRgb.Contracts"
              xmlns:res="clr-namespace:BuurmansRgb.UI.Resources"
              xmlns:vm="clr-namespace:BuurmansRgb.UI.ViewModels"
              xmlns:views="clr-namespace:BuurmansRgb.UI.Views"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
     <UserControl.Resources>
-        <Style x:Key="Label" TargetType="TextBlock" BasedOn="{StaticResource Body}">
-            <Setter Property="Margin" Value="0,0,0,6" />
-        </Style>
-
         <!-- A time of five characters of 0.6 em in the mono font, plus the padding and the border: 110 px
              at 100 %, wider with a larger text size of Windows. -->
         <views:EmConverter x:Key="TimeBoxWidth" Ems="3" Extra="65" />
@@ -94,30 +89,13 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <Button Margin="0,16,0,0" Style="{StaticResource NewButton}" Content="{x:Static res:Strings.NewScene}"
-                    ToolTip="{x:Static res:Strings.NewSceneHint}" Command="{Binding Profiles.StartNewCommand}" Click="OnNewSceneClick"
+            <Button x:Name="NewScene" Margin="0,16,0,0" Style="{StaticResource NewButton}" Content="{x:Static res:Strings.NewScene}"
+                    ToolTip="{x:Static res:Strings.NewSceneHint}" AutomationProperties.HelpText="{x:Static res:Strings.NewSceneHint}"
+                    Command="{Binding Profiles.StartNewCommand}" Click="OnNewSceneClick"
                     Visibility="{Binding Profiles.IsNaming, Converter={StaticResource InverseBoolToVisibility}}" />
 
-            <!-- The name of the new scene. -->
-            <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.IsNaming, Converter={StaticResource BoolToVisibility}}">
-                <StackPanel>
-                    <TextBlock Style="{StaticResource Label}" Text="{x:Static res:Strings.ProfileNameLabel}" />
-                    <TextBlock Margin="0,0,0,10" Style="{StaticResource SubText}" Text="{x:Static res:Strings.NewSceneHint}" />
-                    <DockPanel>
-                        <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.Cancel}"
-                                Command="{Binding Profiles.CancelNewCommand}" />
-                        <Button DockPanel.Dock="Right" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding Profiles.SaveLabel}"
-                                ToolTip="{x:Static res:Strings.ProfileSaveToolTip}" Command="{Binding Profiles.SaveCommand}" />
-                        <TextBox x:Name="NewSceneName" MaxLength="{x:Static contracts:ProfileNames.MaxLength}" Text="{Binding Profiles.Name, UpdateSourceTrigger=PropertyChanged}"
-                                 AutomationProperties.Name="{x:Static res:Strings.ProfileNameLabel}">
-                            <TextBox.InputBindings>
-                                <KeyBinding Key="Enter" Command="{Binding Profiles.SaveCommand}" />
-                                <KeyBinding Key="Escape" Command="{Binding Profiles.CancelNewCommand}" />
-                            </TextBox.InputBindings>
-                        </TextBox>
-                    </DockPanel>
-                </StackPanel>
-            </Border>
+            <!-- The name of the new scene, the same card as after "Bewaar als scène" on Kleur. -->
+            <views:SceneNameCard x:Name="SceneName" Margin="0,16,0,0" ReturnFocusTo="{Binding ElementName=NewScene}" />
 
             <!-- The chosen scene: put it on, overwrite it, delete it, or let it go on by itself. -->
             <Border Margin="0,16,0,0" Style="{StaticResource LargeCard}" Visibility="{Binding Profiles.HasSelection, Converter={StaticResource BoolToVisibility}}">
