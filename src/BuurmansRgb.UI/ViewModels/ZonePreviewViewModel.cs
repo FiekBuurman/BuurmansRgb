@@ -150,6 +150,11 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     // other zones and so shows no zone name.
     public bool ShowsCount => CanResize;
 
+    // A zone with "Tellen" but without "Knipperen" (no LEDs yet, or the one zone of a device, whose
+    // Knipperen is that of the device) keeps the place of Knipperen free, so Tellen stands at the
+    // same place in the head of every zone.
+    public bool KeepsFlashPlace => ShowsCount && !ShowsFlash;
+
     // What a screen reader calls "Tellen", with the device name, as zone names repeat.
     public string CountAccessibleName { get; }
 
