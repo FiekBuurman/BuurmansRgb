@@ -194,7 +194,7 @@ Speels Nederlands met een knipoog naar klussen: "Erbij knutselen", "Uit de geree
 | 9 | **Chiprij**: per apparaat een chip om naar zijn kaart te springen | **Apparaat-chip** (9.3) | nieuw |
 | 10 | De **apparaatkaarten**, dicht of open | **Apparaatkaart** (9.3) | nieuw: de kop en het dichtklappen; de inhoud bestaat al |
 
-Op een breed venster staan 3, 4 en 5 onder elkaar over de volle breedte, en heeft 4 twee kolommen: links het voorbeeld met strip, naam en hex-code, rechts de schuiven, "Kleuren" en "Eigen kleuren", zoals de bovenkant van de pagina nu. Zijn er LED's gekozen in een open kaart, dan staat boven kaart 4 de regel "Je kleurt nu 5 LED's van …" met de link **Selectie opheffen**: de kleur die je mengt gaat dan naar die LED's, die verderop staan.
+Op een breed venster staan 3, 4 en 5 onder elkaar over de volle breedte, en heeft 4 twee kolommen: links het voorbeeld met strip, naam en hex-code, rechts de schuiven, "Kleuren" en "Eigen kleuren", zoals de bovenkant van de pagina nu. Wat kaart 4 toont als er LED's gekozen zijn, staat onder de tabel van 9.2.
 
 ### 9.2 In de volgorde van het effect
 
@@ -206,10 +206,14 @@ Je kiest eerst het effect; kaart 4 toont daarna alleen wat dat effect gebruikt. 
 | Kleurenloop | Kleuren van de loop | de lijst van de loop met eronder het vinkje "Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)" (een `CheckBox`, zoals nu), en het mengpaneel voor de gekozen kleur daarin |
 | Fonkelen, Komeet, Scanner, Vuur | Kleuren van het effect | de lijst van het effect met **Standaardkleuren** eronder, en het mengpaneel voor de gekozen kleur. Standaardkleuren haalt de eigen kleuren weg: Fonkelen, Komeet en Scanner volgen dan weer de kleur van het apparaat, Vuur brandt weer in zijn vier warme kleuren (de kleur van het apparaat doet bij Vuur nooit mee) |
 | Eigen effect | Jouw effect | naam, stappen, tijden en delen; het mengpaneel voor de gekozen stap |
-| Per LED | Kleur voor de LED's | het mengpaneel, met de zin "Kies LED's in een apparaat hieronder; de kleur gaat naar die LED's." en de link **Naar de apparaten** (springt naar 7) |
+| Per LED | Kleur voor de LED's | het mengpaneel (met gekozen LED's ook Verloop vullen en Selectie opheffen, zie onder de tabel), zonder gekozen LED's met de zin "Kies LED's in een apparaat hieronder; de kleur gaat naar die LED's." en de link **Naar de apparaten** (springt naar 7) |
 | Regenboog | Geen kleur nodig | één zin: "Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting." Geen mengpaneel |
 
-Bij Regenboog valt het mengpaneel dus weg, in plaats van een kleur te mengen die nergens heen gaat; de zin die dat nu onder de hex-code uitlegt, is dan niet meer nodig. Wisselt het effect, dan blijft de focus op de effectkeuze en verandert alleen kaart 4; wat eronder staat, schuift zonder animatie naar zijn nieuwe plek.
+Bij Regenboog valt het mengpaneel dus weg, in plaats van een kleur te mengen die nergens heen gaat; de zin die dat nu onder de hex-code uitlegt, is dan niet meer nodig.
+
+**LED's gekozen, bij elk effect.** LED's kiezen kan in elke open kaart, welk effect er ook loopt: de eerste kleur zet dat apparaat op Per LED (zoals nu, zie de Per-LED-editor in de handleiding). Zolang er LED's gekozen zijn, toont kaart 4 dus altijd het mengpaneel, zoals bij Per LED, welk effect er ook gekozen is: kop "Kleur voor de LED's", en bovenaan in de kaart, boven het voorbeeld, de regel van nu met welke LED's het zijn ("LED 3 t/m 7 van Gesimuleerde ledstrip") en de hulptekst eronder; rechts op die regel de gewone knoppen **Verloop vullen** en **Selectie opheffen**, in die volgorde (bij 200 % gaan ze onder de regel). Wat er bij het effect hoort (een lijst van de loop of van het effect, de tekst bij Regenboog) staat er dan niet: de kleur gaat naar de LED's, niet naar de lijst. Na **Selectie opheffen** (of Escape in de LED's, dichtklappen, een ander apparaat kiezen) toont kaart 4 weer wat bij het effect hoort: bij Per LED als de LED's al een kleur kregen (de effecttegels volgen dat vanaf de eerste kleur, zoals de keuzelijst nu), anders bij het effect van ervoor. Met de knop Selectie opheffen gaat de focus daarna naar de gekozen effecttegel, niet naar het venster; met Escape blijft hij in de LED's.
+
+Wisselt het effect, dan blijft de focus op de effectkeuze en verandert alleen kaart 4; wat eronder staat, schuift zonder animatie naar zijn nieuwe plek.
 
 ### 9.3 Nieuwe componenten
 
@@ -226,7 +230,7 @@ Bij Regenboog valt het mengpaneel dus weg, in plaats van een kleur te mengen die
 
 ### 9.4 Toetsenbord
 
-**Tab-volgorde**, van boven naar beneden zoals je leest: navigatie → "Welk apparaat?" → schakelaar → knoppen van de statusregel → effecttegels (één Tab-stop: de gekozen tegel) → wat bij het effect hoort (de lijst met + en −; bij Kleurenloop het vinkje "Kleuren over de LED's verdelen…", bij Fonkelen, Komeet, Scanner en Vuur Standaardkleuren; hex-code, Rood, Groen, Blauw, "Kleuren", "Eigen kleuren", +) → Helderheid → Snelheid → Richting → Volgorde van de LED's (alleen met een richting) → Bewaar als scène → Alles openklappen → Alles dichtklappen → de chiprij (één Tab-stop) → per apparaatkaart de kop en dan Knipperen; in een open kaart daarna de inhoud in de volgorde van nu (Zones gelijk, per zone de link, Tellen, Knipperen, de LED's, de stepper). Een dichte kaart heeft dus twee Tab-stops; zijn inhoud slaat Tab over.
+**Tab-volgorde**, van boven naar beneden zoals je leest: navigatie → "Welk apparaat?" → schakelaar → knoppen van de statusregel → effecttegels (één Tab-stop: de gekozen tegel) → wat bij het effect hoort (met gekozen LED's eerst Verloop vullen en Selectie opheffen en dan het mengpaneel; anders de lijst met + en −; bij Kleurenloop het vinkje "Kleuren over de LED's verdelen…", bij Fonkelen, Komeet, Scanner en Vuur Standaardkleuren; hex-code, Rood, Groen, Blauw, "Kleuren", "Eigen kleuren", +) → Helderheid → Snelheid → Richting → Volgorde van de LED's (alleen met een richting) → Bewaar als scène → Alles openklappen → Alles dichtklappen → de chiprij (één Tab-stop) → per apparaatkaart de kop en dan Knipperen; in een open kaart daarna de inhoud in de volgorde van nu (Zones gelijk, per zone de link, Tellen, Knipperen, de LED's, de stepper). Een dichte kaart heeft dus twee Tab-stops; zijn inhoud slaat Tab over.
 
 - **Effect kiezen:** ← → ↑ ↓ gaan naar de vorige of volgende tegel en kiezen hem meteen, zoals keuzerondjes; Home en End naar de eerste en de laatste.
 - **Openen en sluiten:** op de kop van een kaart klappen Enter en Spatie hem open of dicht; → klapt een dichte kaart open en ← een open kaart dicht, zoals een map in Verkenner. De focus blijft op de kop. Na Alles openklappen of Alles dichtklappen blijft de focus op de link.
