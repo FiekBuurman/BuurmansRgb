@@ -324,7 +324,7 @@ const argbBody = rb =>
 document.querySelectorAll('[data-effects]').forEach(el => {
   const chosen = el.dataset.effects;
   el.innerHTML = effects.map((e, i) =>
-    '<button class="tile" role="radio" aria-checked="' + (e === chosen) + '" tabindex="' + (e === chosen ? 0 : -1) + '"><span class="check" aria-hidden="true">✓ </span>' + e + '</button>').join('');
+    '<button class="tile" role="radio"' + (e === 'Eigen effect' ? ' data-custom' : '') + ' aria-checked="' + (e === chosen) + '" tabindex="' + (e === chosen ? 0 : -1) + '"><span class="check" aria-hidden="true">✓ </span>' + e + '</button>').join('');
 });
 document.querySelectorAll('[data-strip]').forEach(el => { el.innerHTML = dots(el.dataset.strip, +el.dataset.n); });
 document.querySelectorAll('[data-swatches]').forEach(el => {
@@ -385,7 +385,14 @@ document.addEventListener('keydown', e => {
   i = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : (i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items.forEach(b => b.tabIndex = -1);
   items[i].tabIndex = 0; items[i].focus(); e.preventDefault();
-  if (group.getAttribute('role') === 'radiogroup') items.forEach(b => b.setAttribute('aria-checked', b === items[i]));
+  if (group.getAttribute('role') !== 'radiogroup') return;
+  // The mock has no own effects, so the tile Eigen effect chooses nothing (§ 9.3): the previous tile stays
+  // chosen and keeps the Tab stop.
+  if (items[i].dataset.custom !== undefined) {
+    items.forEach(b => b.tabIndex = b.getAttribute('aria-checked') === 'true' ? 0 : -1);
+    return;
+  }
+  items.forEach(b => b.setAttribute('aria-checked', b === items[i]));
 });
 </script>
 </body>
