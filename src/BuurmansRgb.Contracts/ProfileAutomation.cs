@@ -3,26 +3,36 @@ using System.Text.Json.Serialization;
 namespace BuurmansRgb.Contracts;
 
 // When the engine loads a profile by itself. Times are times of day in whole minutes, each on its
-// own days, such as 07:00 on workdays and 09:00 in the weekend; Program is a program
-// (ProgramNames) that loads the profile while it runs, or with ForegroundOnly only while one of its
-// windows is in the foreground. No times and a null program leave that way off. Two automations
-// are equal when they have the same times in the same order.
+// own days, such as 07:00 on workdays and 09:00 in the weekend; Programs are programs
+// (ProgramNames) that each load the profile while they run, or with ForegroundOnly only while one of
+// their windows is in the foreground, such as valorant.exe, cs2.exe and r5apex.exe for "Gamen".
+// ForegroundOnly counts for all of them. No times and no programs leave that way off. Two
+// automations are equal when they have the same times and programs in the same order.
 public sealed record ProfileAutomation
 {
     // As many times as a profile can have; more is a mistake rather than a plan for the week.
     public const int MaxTimes = 8;
 
+    // As many programs as a profile can have: enough for every game of one scene.
+    public const int MaxPrograms = 20;
+
     [JsonConstructor]
-    public ProfileAutomation(IReadOnlyList<LoadTime>? Times = null, string? Program = null, bool ForegroundOnly = false)
+    public ProfileAutomation(IReadOnlyList<LoadTime>? Times = null, IReadOnlyList<string>? Programs = null, bool ForegroundOnly = false)
     {
         this.Times = Times is null ? [] : [.. Times];
-        this.Program = Program;
+        this.Programs = Programs is null ? [] : [.. Programs];
         this.ForegroundOnly = ForegroundOnly;
+    }
+
+    // One program, or none for null.
+    public ProfileAutomation(string? Program, bool ForegroundOnly = false)
+        : this(null, OneProgram(Program), ForegroundOnly)
+    {
     }
 
     // One time, on Days.
     public ProfileAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
-        : this([new LoadTime(LoadAt, Days)], Program)
+        : this([new LoadTime(LoadAt, Days)], OneProgram(Program))
     {
     }
 
@@ -30,16 +40,18 @@ public sealed record ProfileAutomation
 
     public IReadOnlyList<LoadTime> Times { get; init; }
 
-    public string? Program { get; init; }
+    public IReadOnlyList<string> Programs { get; init; }
 
-    // The program counts only while one of its windows is in the foreground, not all the time it runs.
+    // The programs count only while one of their windows is in the foreground, not all the time
+    // they run.
     public bool ForegroundOnly { get; init; }
 
     // As the engine saves it: each time as LoadTime.Normalize gives it, from early to late, and one
     // time of day once, on the days of all of them (07:00 on workdays and 07:00 in the weekend is
-    // 07:00 every day); the program as ProgramNames gives it, or null for an empty one, and
-    // ForegroundOnly only with a program. Throws ArgumentException for a missing time, more than
-    // MaxTimes or a program that is not a valid name.
+    // 07:00 every day); each program as ProgramNames gives it, in the order given, without empty
+    // ones and the same name again (in any case, also "cs2" after "cs2.exe"); ForegroundOnly only
+    // with a program. Throws ArgumentException for a missing time, more than MaxTimes times or
+    // MaxPrograms programs, or a program that is not a valid name.
     public ProfileAutomation Normalize()
     {
         if (Times.Any(time => time is null))
@@ -58,14 +70,24 @@ public sealed record ProfileAutomation
             throw new ArgumentException($"A profile has at most {MaxTimes} times, not {times.Length}.", nameof(Times));
         }
 
-        var program = string.IsNullOrWhiteSpace(Program)
-            ? null
-            : ProgramNames.Normalize(Program) ?? throw new ArgumentException($"'{Program}' is not a valid program name.", nameof(Program));
-        return new(times, program, ForegroundOnly && program is not null);
+        string[] programs =
+        [
+            .. Programs.Where(program => !string.IsNullOrWhiteSpace(program))
+                .Select(program => ProgramNames.Normalize(program) ?? throw new ArgumentException($"'{program}' is not a valid program name.", nameof(Programs)))
+                .Distinct(ProgramNames.Comparer),
+        ];
+        if (programs.Length > MaxPrograms)
+        {
+            throw new ArgumentException($"A profile has at most {MaxPrograms} programs, not {programs.Length}.", nameof(Programs));
+        }
+
+        return new(times, programs, ForegroundOnly && programs.Length > 0);
     }
 
+    private static string[]? OneProgram(string? program) => program is null ? null : [program];
+
     public bool Equals(ProfileAutomation? other) =>
-        other is not null && Times.SequenceEqual(other.Times) && Program == other.Program && ForegroundOnly == other.ForegroundOnly;
+        other is not null && Times.SequenceEqual(other.Times) && Programs.SequenceEqual(other.Programs, StringComparer.Ordinal) && ForegroundOnly == other.ForegroundOnly;
 
     public override int GetHashCode()
     {
@@ -75,7 +97,11 @@ public sealed record ProfileAutomation
             hash.Add(time);
         }
 
-        hash.Add(Program);
+        foreach (var program in Programs)
+        {
+            hash.Add(program, StringComparer.Ordinal);
+        }
+
         hash.Add(ForegroundOnly);
         return hash.ToHashCode();
     }

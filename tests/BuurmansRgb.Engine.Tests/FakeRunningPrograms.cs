@@ -11,9 +11,13 @@ internal sealed class FakeRunningPrograms : IRunningPrograms
 
     public int FindCount { get; private set; }
 
+    // The names the last look was for.
+    public IReadOnlyList<string> LastFound { get; private set; } = [];
+
     public IReadOnlySet<string> Find(IReadOnlySet<string> names)
     {
         FindCount++;
+        LastFound = [.. names];
         if (FindException is not null)
         {
             throw FindException;

@@ -6,7 +6,7 @@ namespace BuurmansRgb.Contracts.Tests;
 public sealed class EngineRpcTests : IDisposable
 {
     // 07:00 on workdays and 09:00 in the weekend.
-    private static readonly ProfileAutomation MoreTimes = new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], "eldenring.exe");
+    private static readonly ProfileAutomation MoreTimes = new([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], ["eldenring.exe"]);
 
     private readonly string _pipeName = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
     private readonly FakeEngineApi _api = new();

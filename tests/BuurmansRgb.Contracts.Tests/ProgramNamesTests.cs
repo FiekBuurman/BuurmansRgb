@@ -63,7 +63,7 @@ public sealed class ProgramNamesTests
     [InlineData("")]
     [InlineData("  ")]
     public void ProfileAutomation_Normalize_EmptyProgram_IsOff(string? program) =>
-        Assert.Null(new ProfileAutomation(Program: program).Normalize().Program);
+        Assert.Empty(new ProfileAutomation(Program: program).Normalize().Programs);
 
     [Fact]
     public void ProfileAutomation_Normalize_InvalidProgram_Throws() =>

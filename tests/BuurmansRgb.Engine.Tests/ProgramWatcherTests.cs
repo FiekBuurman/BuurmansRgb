@@ -12,6 +12,9 @@ public sealed class ProgramWatcherTests : IDisposable
 {
     private const string EldenRing = "eldenring.exe";
     private const string Forza = "forza.exe";
+    private const string Valorant = "valorant.exe";
+    private const string Cs2 = "cs2.exe";
+    private const string Apex = "r5apex.exe";
 
     private static readonly TimeSpan Interval = ProgramWatcher.DefaultPollInterval;
 
@@ -498,6 +501,164 @@ public sealed class ProgramWatcherTests : IDisposable
         Assert.Equal(Red, ShownColor());
     }
 
+    // One scene for Valorant, CS2 and Apex: each of them loads it.
+    [Theory]
+    [InlineData(Valorant)]
+    [InlineData(Cs2)]
+    [InlineData("R5Apex.EXE")]
+    public void ProfileWithMorePrograms_EachOfThemLoadsIt(string program)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2, Apex)];
+        StartWatcher();
+
+        StartProgram(program);
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(program);
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // Two programs of the same scene stack as two of different scenes: the lighting from before
+    // comes back once the last of them stops, whichever stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TwoProgramsOfOneProfile_GoBackOnlyWhenBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(Green, ShownColor());
+    }
+
+    // Alt+Tab from one program of a foreground scene to another of the same scene keeps the scene,
+    // without the lighting from before in between; a program of no scene then brings it back.
+    [Fact]
+    public void ForegroundSceneWithTwoPrograms_SwitchingBetweenThemKeepsIt()
+    {
+        _store.Profiles = [Profile("Gamen", Red, foregroundOnly: true, Valorant, Cs2), Profile("Nacht", Orange)];
+        StartWatcher();
+        _profiles.Load("Nacht");
+        BringToFront(Valorant);
+        Assert.Equal(Red, ShownColor());
+        var shown = new List<RgbColor>();
+        _lighting.LightingChanged += (_, _) => shown.Add(ShownColor());
+
+        BringToFront(Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+        Assert.DoesNotContain(Orange, shown);
+
+        _foreground.Bring("explorer.exe");
+        Assert.Equal(Orange, ShownColor());
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    // A time that comes while two programs of one scene run waits until both stopped, whichever
+    // stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HoldWhileTwoProgramsOfOneProfileRun_WaitsUntilBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2), Profile("Nacht", Orange)];
+        StartWatcher();
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+
+        Assert.True(HoldScene("Nacht"));
+        Assert.Equal(Red, ShownColor());
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(Red, ShownColor());
+        Assert.Equal("Gamen", _profiles.ActiveName);
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(Orange, ShownColor());
+        Assert.Equal("Nacht", _profiles.ActiveName);
+    }
+
+    // A scene of some devices with two programs: once both stopped, every device is as before,
+    // the ones of the scene and the others, whichever stops first.
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void SceneOfSomeDevicesWithTwoPrograms_AllDevicesAsBeforeOnceBothStopped(bool firstStopsFirst)
+    {
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"], Automation = new ProfileAutomation(Times: null, Programs: [Valorant, Cs2]) }];
+        var before = WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Orange) });
+        _profiles.Show(before, scene: null);
+        StartWatcher();
+
+        StartProgram(Valorant);
+        StartProgram(Cs2);
+        Assert.Equal(StaticLighting(Red), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+        Assert.Equal(StaticLighting(Green), _lighting.State.Global);
+
+        StopProgram(firstStopsFirst ? Valorant : Cs2);
+        Assert.Equal(StaticLighting(Red), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+
+        StopProgram(firstStopsFirst ? Cs2 : Valorant);
+        Assert.Equal(StaticLighting(Green), _lighting.State.For("strip"));
+        Assert.Equal(StaticLighting(Orange), _lighting.State.For("fan"));
+        Assert.Equal(StaticLighting(Green), _lighting.State.Global);
+        Assert.Null(_profiles.ActiveName);
+    }
+
+    // A name on two scenes goes with the first in alphabetical order, as one program does; the
+    // other names of the second scene still load it.
+    [Fact]
+    public void NameOnTwoProfilesWithMorePrograms_GoesWithTheFirstAndTheOthersStillCount()
+    {
+        _store.Profiles = [Profile("Race", Blue, Cs2, Forza), Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+
+        StartProgram(Cs2);
+        Assert.Equal(Red, ShownColor());
+        StopProgram(Cs2);
+
+        StartProgram(Forza);
+        Assert.Equal(Blue, ShownColor());
+    }
+
+    // A name taken off the list stops counting; the others go on.
+    [Fact]
+    public void ProgramTakenOffTheList_StopsWatchingOnlyThatOne()
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2)];
+        StartWatcher();
+
+        _profiles.SetAutomation("Gamen", new ProfileAutomation(Times: null, Programs: [Cs2]));
+        StartProgram(Valorant);
+        Assert.Equal(Green, ShownColor());
+
+        StartProgram(Cs2);
+        Assert.Equal(Red, ShownColor());
+    }
+
+    // More names cost no more looks: all of them go in one look.
+    [Fact]
+    public void ProfileWithMorePrograms_LooksForAllOfThemAtOnce()
+    {
+        _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2, Apex)];
+        StartWatcher();
+        var looks = _programs.FindCount;
+
+        _time.Advance(Interval);
+
+        Assert.Equal(looks + 1, _programs.FindCount);
+        Assert.Equal([Cs2, Apex, Valorant], _programs.LastFound.Order(StringComparer.Ordinal));
+    }
+
     [Fact]
     public void ProgramRemovedFromItsProfile_StopsWatchingWithoutGoingBack()
     {
@@ -578,6 +739,12 @@ public sealed class ProgramWatcherTests : IDisposable
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
         new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
 
+    private static Profile Profile(string name, RgbColor color, params string[] programs) =>
+        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs) };
+
+    private static Profile Profile(string name, RgbColor color, bool foregroundOnly, params string[] programs) =>
+        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs, ForegroundOnly: foregroundOnly) };
+
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(IAwayState? away = null)
     {
@@ -637,6 +804,13 @@ public sealed class ProgramWatcherTests : IDisposable
     {
         _programs.Running.Remove(program);
         _time.Advance(Interval);
+    }
+
+    // A window of program comes to the front; a program in front runs.
+    private void BringToFront(string program)
+    {
+        _programs.Running.Add(program);
+        _foreground.Bring(program);
     }
 
     // A scene whose time came while the watcher holds it, as ProfileLibrary.LoadTimed does.

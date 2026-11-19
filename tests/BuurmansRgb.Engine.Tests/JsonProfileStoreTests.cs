@@ -270,7 +270,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         var automation = Assert.Single(_store.Load()).Automation;
 
         Assert.Equal([new LoadTime(new TimeOnly(7, 30)), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)], automation.Times);
-        Assert.Equal("eldenring.exe", automation.Program);
+        Assert.Equal(["eldenring.exe"], automation.Programs);
         var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
         Assert.Contains(messages, message => message.Contains("'Ochtend' has loadTimes[0].at 25:00", StringComparison.Ordinal));
         Assert.Contains(messages, message => message.Contains("'Ochtend' has loadTimes[4].at 700", StringComparison.Ordinal));
@@ -327,7 +327,60 @@ public sealed class JsonProfileStoreTests : IDisposable
         _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = new ProfileAutomation(Program: "eldenring.exe") }]);
 
         Assert.Contains("\"program\": \"eldenring.exe\"", File.ReadAllText(_directory.File("profiles.json")));
-        Assert.Equal("eldenring.exe", Assert.Single(_store.Load()).Automation.Program);
+        Assert.Equal(["eldenring.exe"], Assert.Single(_store.Load()).Automation.Programs);
+    }
+
+    // One program stays "program", so an older engine still reads it; more go in "programs".
+    [Fact]
+    public void Save_MorePrograms_WritesThemAsAListWithoutProgram()
+    {
+        var automation = new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], ForegroundOnly: true);
+        _store.Save([new Profile("Gamen", Uniform(StaticLighting(Red))) { Automation = automation }]);
+
+        var json = File.ReadAllText(_directory.File("profiles.json"));
+        Assert.Contains("\"programs\": [", json);
+        Assert.DoesNotContain("\"program\":", json);
+        Assert.Contains("\"foregroundOnly\": true", json);
+        Assert.Equal(automation, Assert.Single(_store.Load()).Automation);
+    }
+
+    // "program" first, then "programs"; a name there twice (in any case, with or without ".exe")
+    // counts once, and one that does not read is left out with a trace, as is "programs" that is
+    // not a list.
+    [Fact]
+    public void Load_ProgramAndPrograms_CountsAllOfThemOnce()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [
+                { "name": "Gamen", "program": "valorant.exe", "programs": [ "cs2", "VALORANT.exe", "", 42, "game?.exe", "r5apex.exe", "cs2.exe" ] },
+                { "name": "Lijst", "programs": [ "cs2.exe" ], "foregroundOnly": true },
+                { "name": "Tekst", "program": "valorant.exe", "programs": "cs2.exe" }
+            ] }
+            """);
+        using var trace = new TraceCapture();
+
+        var profiles = _store.Load();
+
+        Assert.Equal(["valorant.exe", "cs2.exe", "r5apex.exe"], profiles[0].Automation.Programs);
+        Assert.Equal(new ProfileAutomation(Program: "cs2.exe", ForegroundOnly: true), profiles[1].Automation);
+        Assert.Equal(new ProfileAutomation(Program: "valorant.exe"), profiles[2].Automation);
+        var messages = trace.Messages.Where(message => message.StartsWith("profiles.json:", StringComparison.Ordinal)).ToList();
+        Assert.Contains(messages, message => message.Contains("'Gamen' has programs[3] 42", StringComparison.Ordinal));
+        Assert.Contains(messages, message => message.Contains("'Gamen' has programs[4] game?.exe", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Load_MoreProgramsThanTheMost_LeavesTheRestOut()
+    {
+        var names = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 2).Select(i => $"\"game{i}.exe\""));
+        File.WriteAllText(_directory.File("profiles.json"), $$"""
+            { "profiles": [ { "name": "Gamen", "programs": [ {{names}} ] } ] }
+            """);
+
+        var programs = Assert.Single(_store.Load()).Automation.Programs;
+
+        Assert.Equal(ProfileAutomation.MaxPrograms, programs.Count);
+        Assert.Equal("game0.exe", programs[0]);
     }
 
     [Fact]
@@ -424,7 +477,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), profiles[0].Automation);
         Assert.Equal(ProfileAutomation.None, profiles[1].Automation);
         Assert.Equal(ProfileAutomation.None, profiles[2].Automation);
-        Assert.Equal("eldenring.exe", profiles[3].Automation.Program);
+        Assert.Equal(["eldenring.exe"], profiles[3].Automation.Programs);
     }
 
     // Files from before the automation have no "loadAt"; a value that does not read leaves the
@@ -587,7 +640,7 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.True(backOn.IsInternal);
         Assert.Equal(ProfileRole.BackOn, backOn.Role);
         Assert.Equal([new LoadTime(new TimeOnly(7, 0))], backOn.Automation.Times);
-        Assert.Null(backOn.Automation.Program);
+        Assert.Empty(backOn.Automation.Programs);
     }
 
     [Fact]

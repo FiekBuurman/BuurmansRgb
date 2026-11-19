@@ -101,6 +101,207 @@ public sealed class ProfileAutomationViewModelTests
         Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Program: "eldenring.exe"))], _requests);
     }
 
+    // Valorant, CS2 and Apex for one scene: a comma between the names, empty ones and doubles left
+    // out, and one tick for all of them.
+    [Fact]
+    public void Apply_MorePrograms_AsksWithAllOfThem()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = " valorant, cs2.exe,, R5Apex.exe , VALORANT.exe,";
+        _automation.ForegroundOnly = true;
+        Assert.Null(_automation.Error);
+        _automation.ApplyCommand.Execute(null);
+
+        Assert.Equal([new ProfileAutomationChange("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "R5Apex.exe"], ForegroundOnly: true))], _requests);
+    }
+
+    [Fact]
+    public void Show_MorePrograms_PutsACommaBetweenThem()
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe"]));
+
+        Assert.Equal("valorant.exe, cs2.exe", _automation.ProgramText);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Only commas, without a name, is no program.
+    [Fact]
+    public void OnlyCommas_IsNoProgram()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = " , ,";
+
+        Assert.False(_automation.HasProgramText);
+        Assert.Null(_automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // With more names the error says which one is wrong, the first one.
+    [Theory]
+    [InlineData("cs2.exe, game?.exe, x|y", "'game?.exe' is geen naam van een programma.")]
+    [InlineData("cs2.exe, start-game.bat, ", "'start-game.bat' is een snelkoppeling of script.")]
+    [InlineData("cs2.exe, x|y ,", "'x|y' is geen naam van een programma.")]
+    [InlineData("cs2.exe, start-game.bat", "De laatste naam is een snelkoppeling of script.")]
+    [InlineData("cs2.exe, x|y", "De laatste naam is geen naam van een programma.")]
+    public void MoreProgramsWithAWrongOne_NamesItAndCannotApply(string text, string error)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = text;
+
+        Assert.StartsWith(error, _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // The last name is only named once a comma comes after it, so typing a path or quotes does not
+    // change the error on each key, and a screen reader hears it once.
+    [Fact]
+    public void TypingAWrongLastProgram_RaisesTheErrorOnce()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe, ";
+        var raised = 0;
+        _automation.PropertyChanged += (_, e) => raised += e.PropertyName == nameof(ProfileAutomationViewModel.Error) ? 1 : 0;
+
+        _automation.ProgramText = "cs2.exe, \"D:";
+        _automation.ProgramText = "cs2.exe, \"D:|";
+        _automation.ProgramText = "cs2.exe, \"D:|G";
+        _automation.ProgramText = "cs2.exe, \"D:|Ga";
+
+        Assert.Equal(1, raised);
+        Assert.StartsWith("De laatste naam is geen naam van een programma.", _automation.Error);
+
+        _automation.ProgramText = "cs2.exe, \"D:|Ga\",";
+
+        Assert.StartsWith("'\"D:|Ga\"' is geen naam van een programma.", _automation.Error);
+    }
+
+    [Fact]
+    public void MoreProgramsThanTheMost_SaysSoAndCannotApply()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = string.Join(", ", Enumerable.Range(0, ProfileAutomation.MaxPrograms + 1).Select(i => $"game{i}"));
+
+        Assert.Equal($"Een scène kan hooguit {ProfileAutomation.MaxPrograms} programma's hebben.", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // The same name again, also another way, does not count against the most.
+    [Fact]
+    public void TheSameProgramMoreTimes_CountsOnce()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.ProgramText = string.Join(", ", Enumerable.Repeat("cs2", ProfileAutomation.MaxPrograms + 1));
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Picking adds the program after the ones in the field, not twice.
+    [Theory]
+    [InlineData("valorant.exe", "valorant.exe, cs2.exe")]
+    [InlineData("valorant.exe, ", "valorant.exe, cs2.exe")]
+    [InlineData("valorant, cs2", "valorant, cs2")]
+    [InlineData("valorant.exe, CS2.EXE", "valorant.exe, CS2.EXE")]
+    public void PickProgram_AddsItAfterTheOthers(string before, string after)
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = before;
+
+        _automation.PickProgramCommand.Execute(@"C:\Games\Counter-Strike\cs2.exe");
+
+        Assert.Equal(after, _automation.ProgramText);
+    }
+
+    // A name with a comma, which an earlier version saved, would come back as two names; it says
+    // so and applies nothing, also after another change, until the name is out of the field.
+    [Fact]
+    public void Show_SavedProgramWithAComma_SaysSoAndCannotApply()
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+
+        Assert.Equal("a,b.exe, cs2.exe", _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.ForegroundOnly = true;
+        _automation.Times[0].Text = "23:00";
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.ProgramText = "cs2.exe";
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    // Only the saved name as a piece of its own counts, between commas or at the start or end, with
+    // spaces around it; inside a longer name it is gone from the field.
+    [Theory]
+    [InlineData("A,B.exe", true)]
+    [InlineData("cs2.exe ,  a,b.exe  ", true)]
+    [InlineData("a,b.exe, cs2.exe", true)]
+    [InlineData("xa,b.exe", false)]
+    [InlineData("a,b.exex, cs2.exe", false)]
+    [InlineData("cs2.exe, a,b.exe.exe", false)]
+    public void SavedProgramWithAComma_CountsOnlyAsAPieceOfItsOwn(string text, bool error)
+    {
+        _automation.Show("Gamen", new ProfileAutomation(Times: null, Programs: ["a,b.exe", "cs2.exe"]));
+
+        _automation.ProgramText = text;
+
+        Assert.Equal(error, _automation.Error?.StartsWith("'a,b.exe' heeft een komma in de naam", StringComparison.Ordinal) == true);
+    }
+
+    // Picking an .exe with a comma in its name, from the list or with "Bladeren", leaves the field
+    // as it is and says why; the next change takes the error away.
+    [Fact]
+    public void PickProgram_WithAComma_IsRefusedWithAnError()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe";
+
+        _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
+
+        Assert.Equal("cs2.exe", _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+        Assert.False(_automation.ApplyCommand.CanExecute(null));
+
+        _automation.PickProgramCommand.Execute("cs2.exe");
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
+    [Fact]
+    public void PickRunningProgram_WithAComma_IsRefusedWithAnError()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+
+        _automation.PickRunningProgramCommand.Execute(new RunningProgramItem(new RunningProgram("a,b.exe", "A, B")));
+
+        Assert.Equal(string.Empty, _automation.ProgramText);
+        Assert.StartsWith("'a,b.exe' heeft een komma in de naam", _automation.Error);
+    }
+
+    // After a refused pick, only changing "Alleen op de voorgrond" also takes the error away.
+    [Fact]
+    public void PickProgram_WithAComma_ErrorGoesWithForegroundOnly()
+    {
+        _automation.Show("Gamen", ProfileAutomation.None);
+        _automation.ProgramText = "cs2.exe";
+        _automation.PickProgramCommand.Execute(@"C:\Games\a,b.exe");
+        Assert.NotNull(_automation.Error);
+
+        _automation.ForegroundOnly = true;
+
+        Assert.Null(_automation.Error);
+        Assert.True(_automation.ApplyCommand.CanExecute(null));
+    }
+
     [Fact]
     public void Show_ForegroundOnly_TicksIt()
     {

@@ -5,15 +5,24 @@ public sealed class ProfileAutomationTests
     [Fact]
     public void OneTime_IsAListOfOne() =>
         Assert.Equal(
-            new ProfileAutomation([new LoadTime(new TimeOnly(9, 0), WeekDays.Workdays)], "eldenring.exe"),
+            new ProfileAutomation([new LoadTime(new TimeOnly(9, 0), WeekDays.Workdays)], ["eldenring.exe"]),
             new ProfileAutomation(new TimeOnly(9, 0), "eldenring.exe", WeekDays.Workdays));
 
     [Fact]
     public void None_HasNoTimesAndNoProgram()
     {
         Assert.Empty(ProfileAutomation.None.Times);
-        Assert.Null(ProfileAutomation.None.Program);
+        Assert.Empty(ProfileAutomation.None.Programs);
         Assert.Equal(ProfileAutomation.None, new ProfileAutomation(Times: null));
+    }
+
+    // Times and null for the programs is one constructor, not two to choose from.
+    [Fact]
+    public void TimesWithoutPrograms_HasNoProgram()
+    {
+        LoadTime[] times = [new LoadTime(new TimeOnly(7, 0))];
+
+        Assert.Equal(new ProfileAutomation(times), new ProfileAutomation(times, null));
     }
 
     // A list changed afterwards does not change the automation.
@@ -39,7 +48,7 @@ public sealed class ProfileAutomationTests
         Assert.Equal(new ProfileAutomation([morning, weekend]).GetHashCode(), new ProfileAutomation([morning with { }, weekend with { }]).GetHashCode());
         Assert.NotEqual(new ProfileAutomation([morning, weekend]), new ProfileAutomation([weekend, morning]));
         Assert.NotEqual(new ProfileAutomation([morning]), new ProfileAutomation([morning, weekend]));
-        Assert.NotEqual(new ProfileAutomation([morning]), new ProfileAutomation([morning], "eldenring.exe"));
+        Assert.NotEqual(new ProfileAutomation([morning]), new ProfileAutomation([morning], ["eldenring.exe"]));
     }
 
     [Fact]
@@ -122,7 +131,44 @@ public sealed class ProfileAutomationTests
     [InlineData("")]
     [InlineData("  ")]
     public void Normalize_ForegroundOnlyWithoutAProgram_IsOff(string? program) =>
-        Assert.False(new ProfileAutomation([new LoadTime(new TimeOnly(7, 0))], program, ForegroundOnly: true).Normalize().ForegroundOnly);
+        Assert.False(new ProfileAutomation([new LoadTime(new TimeOnly(7, 0))], program is null ? null : [program], ForegroundOnly: true).Normalize().ForegroundOnly);
+
+    // In the order given, each as ProgramNames gives it, without empty ones and doubles in any
+    // case; ForegroundOnly counts for all of them.
+    [Fact]
+    public void Normalize_Programs_KeepsTheOrderAndDropsEmptyOnesAndDoubles() =>
+        Assert.Equal(
+            new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], ForegroundOnly: true),
+            new ProfileAutomation(Times: null, Programs: [" valorant ", "", "cs2.exe", "  ", "VALORANT.EXE", @"C:\Games\r5apex.exe", "cs2", null!], ForegroundOnly: true).Normalize());
+
+    [Fact]
+    public void Normalize_Programs_OneInvalidThrows() =>
+        Assert.Throws<ArgumentException>(() => new ProfileAutomation(Times: null, Programs: ["cs2.exe", "game?.exe"]).Normalize());
+
+    [Fact]
+    public void Normalize_TheMostPrograms_IsValidAndOneMoreThrows()
+    {
+        string[] programs = [.. Enumerable.Range(0, ProfileAutomation.MaxPrograms + 1).Select(i => $"game{i}.exe")];
+
+        Assert.Equal(ProfileAutomation.MaxPrograms, new ProfileAutomation(Times: null, Programs: programs[..^1]).Normalize().Programs.Count);
+        Assert.Throws<ArgumentException>(() => new ProfileAutomation(Times: null, Programs: programs).Normalize());
+    }
+
+    // Doubles do not count against the most, as with the times.
+    [Fact]
+    public void Normalize_DoubleProgramsDoNotCountAgainstTheMost() =>
+        Assert.Single(new ProfileAutomation(Times: null, Programs: [.. Enumerable.Repeat("cs2.exe", ProfileAutomation.MaxPrograms + 1)]).Normalize().Programs);
+
+    // The order counts, as with the times, and so does the spelling the user gave.
+    [Fact]
+    public void Equals_ComparesTheProgramsInOrder()
+    {
+        Assert.Equal(new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]), new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]));
+        Assert.Equal(new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]).GetHashCode(), new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]).GetHashCode());
+        Assert.NotEqual(new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]), new ProfileAutomation(Times: null, Programs: ["b.exe", "a.exe"]));
+        Assert.NotEqual(new ProfileAutomation(Program: "a.exe"), new ProfileAutomation(Times: null, Programs: ["a.exe", "b.exe"]));
+        Assert.NotEqual(new ProfileAutomation(Program: "a.exe"), new ProfileAutomation(Program: "A.exe"));
+    }
 
     // As the pipe can give it.
     [Fact]

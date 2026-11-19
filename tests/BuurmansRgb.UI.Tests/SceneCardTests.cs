@@ -211,8 +211,22 @@ public sealed class SceneCardTests
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
         Assert.Equal("Bij vlc.exe op de voorgrond", _card.Description);
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], "vlc.exe", ForegroundOnly: true));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], ["vlc.exe"], ForegroundOnly: true));
         Assert.Equal("Elke dag om 20:00 · bij vlc.exe op de voorgrond", _card.Description);
+    }
+
+    // Of more programs only the first fits on the card, with how many more there are, as with the
+    // times; one tick for all of them.
+    [Theory]
+    [InlineData(false, "Bij valorant.exe en nog 2")]
+    [InlineData(true, "Bij valorant.exe en nog 2, op de voorgrond")]
+    public void Show_MorePrograms_SaysTheFirstAndHowManyMore(bool foregroundOnly, string expected)
+    {
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], foregroundOnly));
+        Assert.Equal(expected, _card.Description);
+
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0)), new LoadTime(new TimeOnly(22, 0))], ["valorant.exe", "cs2.exe"]));
+        Assert.Equal("Elke dag om 20:00 en nog 1 · bij valorant.exe en nog 1", _card.Description);
     }
 
     // Only the first time fits on the card, with how many more there are.
@@ -224,7 +238,7 @@ public sealed class SceneCardTests
     {
         LoadTime[] times = [new(new TimeOnly(7, 0), WeekDays.Workdays), new(new TimeOnly(9, 0), WeekDays.Weekend), new(new TimeOnly(23, 0))];
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program is null ? null : [program]));
 
         Assert.Equal(expected, _card.Description);
     }
