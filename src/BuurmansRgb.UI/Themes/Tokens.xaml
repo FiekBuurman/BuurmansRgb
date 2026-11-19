@@ -104,6 +104,10 @@
     <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
     <SolidColorBrush x:Key="DisabledBorderBrush" Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="DisabledFaceBrush" Color="Transparent" />
+    <!-- A link that does nothing now (LinkButton): the muted text at 0.6, the same grey as the text
+         of a disabled button. A contrast theme gives it GrayText without the opacity, as the text of
+         a disabled button. -->
+    <SolidColorBrush x:Key="DisabledLinkBrush" Color="{StaticResource TextMutedColor}" Opacity="0.6" />
     <!-- Outlines: lines that show only in a contrast theme, so they are transparent here. Around the
          track of a switch and the rail of a slider in the text color, and in the highlight on what
          is under the mouse: the ring of the primary button and of a switch. A link has its own line,

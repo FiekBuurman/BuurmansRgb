@@ -37,6 +37,8 @@ public sealed partial class LinkStyleTests
 
         Assert.Empty(AppTheme.Part<TextBlock>(link, "Text").TextDecorations ?? []);
         AppTheme.AssertColor(panel, "TextMutedBrush", link.Foreground);
+        Assert.Equal(0.6, link.Foreground.Opacity, 6);
+        Assert.Equal(1.0, link.Opacity);
     });
 
     // A screen reader reads a link as a link, as a Hyperlink was, and invokes it as a button.

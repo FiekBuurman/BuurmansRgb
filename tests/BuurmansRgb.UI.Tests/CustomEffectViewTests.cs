@@ -339,8 +339,8 @@ public sealed class CustomEffectViewTests
             var take = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectTakePattern));
 
             Assert.False(take.IsEnabled);
-            Assert.Same(page.FindResource("TextMutedBrush"), take.Foreground);
-            Assert.True(take.Opacity < 1);
+            Assert.Same(page.FindResource("DisabledLinkBrush"), take.Foreground);
+            Assert.True(take.Foreground.Opacity < 1);
 
             viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
             OffscreenWindow.WaitUntilIdle();

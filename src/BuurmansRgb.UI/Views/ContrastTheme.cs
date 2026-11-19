@@ -68,10 +68,12 @@ public sealed class ContrastTheme : IDisposable
         ["KnobOffBrush"] = () => SystemColors.WindowTextBrush,
 
         // A button that does nothing now: the face of a button with GrayText, which in a contrast
-        // theme means disabled, as the text and the border.
+        // theme means disabled, as the text and the border; a link that does nothing now has
+        // GrayText too, without the opacity it has in the colors of the design.
         ["DisabledFaceBrush"] = () => SystemColors.ControlBrush,
         ["DisabledTextBrush"] = () => SystemColors.GrayTextBrush,
         ["DisabledBorderBrush"] = () => SystemColors.GrayTextBrush,
+        ["DisabledLinkBrush"] = () => SystemColors.GrayTextBrush,
 
         // The ring of an LED that is off or black, in the text color like the outline of a switch
         // that is off: it shows where an LED is on the window, which the preview and the card of

@@ -683,7 +683,8 @@
          long zone name. Keyboard focus gives it the focus ring of the app. One that does nothing now,
          such as "LED-kleuren van dit apparaat overnemen" with Hele huis, is grey without the line, so
          it no longer looks like a link: a link has no frame or fill, so fading alone would leave it
-         blue. The muted text at 0.6 gives the same grey as the text of a disabled button at 0.4. The
+         blue. Its grey is DisabledLinkBrush: the muted text at 0.6, in a contrast theme GrayText
+         without opacity, as the text of a disabled button. The
          hand goes by itself, as WPF shows the cursor of the parent over a disabled element. Under the
          mouse a link gets lighter. Its content is a text, shown as it is: the app has no access keys, so
          an underscore, as in a zone name of OpenRGB such as "D_LED1", stays an underscore. It is
@@ -717,8 +718,7 @@
                 <Setter Property="Foreground" Value="{DynamicResource LinkHoverBrush}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-                <Setter Property="Opacity" Value="0.6" />
+                <Setter Property="Foreground" Value="{DynamicResource DisabledLinkBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
