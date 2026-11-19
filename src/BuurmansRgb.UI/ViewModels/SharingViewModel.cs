@@ -198,12 +198,8 @@ public sealed partial class SharingViewModel(Func<IEngineApi?> api, IClipboard c
     private static string? UnmatchedDevices(ShareImportResult result)
     {
         var named = string.Join(", ", result.UnmatchedDevices ?? []);
-        var unnamed = result.UnnamedUnmatchedDevices switch
-        {
-            <= 0 => null,
-            1 => Strings.ShareUnnamedDevicesOne,
-            var count => UiText.Format(Strings.ShareUnnamedDevices, count),
-        };
+        var count = result.UnnamedUnmatchedDevices;
+        var unnamed = count <= 0 ? null : UiText.ForCount(count, Strings.ShareUnnamedDevicesOne, Strings.ShareUnnamedDevices, count);
         return (named, unnamed) switch
         {
             ("", null) => null,

@@ -309,6 +309,10 @@ uitbreidingen in `docs/bouwplan.md`.
   (en "Zones gelijk" in het voorbeeld op Kleur) volgen hetzelfde patroon, nu elk met de hand in de XAML. Meer dan
   verplaatsen, omdat de rijen een `x:Name` hebben waar `FocusFallback` naar wijst en de boom voor
   UI Automation gelijk moet blijven (refactorreview 4-11-2026)
+- Zes oudere plekken kiezen de tekst voor één of meer nog met de hand en kunnen ook
+  `UiText.ForCount` gebruiken: `DeviceItem.cs:41`, `EffectOption.cs:34`,
+  `OpenRgbStatusViewModel.cs:35`, `StatusLineViewModel.cs:71`, `ZoneCountPaceOption.cs:16` en
+  `ZoneCountViewModel.cs:105` (refactorreview 18-11-2026)
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
@@ -671,6 +675,9 @@ uitbreidingen in `docs/bouwplan.md`.
     apparaten, groter dan 2 MB), met de reden; nu gooit de engine en zegt de app alleen
     "Exporteren is niet gelukt.". Of de verlichting van apparaten die er al lang niet meer zijn
     niet meenemen, zodat zo'n scène wel past
+- De teksten met "en nog" gelijktrekken: de kaart van een scène zegt "Bij valorant.exe en nog 2",
+  Hele huis "uit om 23:00 (elke dag) en nog 1 tijd". Verandert zichtbare tekst, dus niet in een
+  refactor (refactorreview 18-11-2026)
 
 ## Tray-menu
 
@@ -818,6 +825,13 @@ uitbreidingen in `docs/bouwplan.md`.
   `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
   `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
   (refactorreview 3-11-2026)
+- De regel "`onlyDevices` is nooit leeg en nooit bij "Alles uit"" als één invariant in `Profile`.
+  Nu staat hij op drie plekken, elk met een eigen reactie: `ProfileLibrary.SetDevices` gooit,
+  `SharedFileReader` weigert het hele bestand en `ProfileSettings` laat de lijst met een regel in
+  het log weg (refactorreview 18-11-2026)
+- `ProfileNames.Normalize` en `CustomEffects.NormalizeName` zijn gelijk, op hun eigen constante
+  voor de maximale lengte na (nu allebei 40); één gedeelde helper met de lengte erbij
+  (refactorreview 18-11-2026)
 
 ## Integraties
 
@@ -1013,3 +1027,6 @@ uitbreidingen in `docs/bouwplan.md`.
   (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
   `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
   het wissen een tijd opnieuw. Faalt hij weer, leg dan vast op welke regel
+- De rij "Scènes" in de testtabel van `docs/ontwikkelaars.md` is één enorme cel; herschrijven als
+  een lijst per onderwerp (startscènes, tijden, Hele huis, programma's, apparaten van een scène),
+  zodat je een test terugvindt (refactorreview 18-11-2026)

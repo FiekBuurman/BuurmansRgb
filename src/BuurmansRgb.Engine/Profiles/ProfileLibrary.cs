@@ -123,15 +123,14 @@ internal sealed class ProfileLibrary
     // file is written. What burns then is that scene, so it is the one that is on.
     public void Save(string name)
     {
-        var normalized = ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+        var normalized = NormalizedName(name);
         var lightingNow = _lighting.State;
         lock (_gate)
         {
             var old = ScenesLocked().FirstOrDefault(other => Matches(other, normalized));
             var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None, Role = old?.Role ?? ProfileRole.None, DeviceIds = old?.DeviceIds };
             List<Profile> profiles = [.. ProfilesLocked().Where(other => !ReferenceEquals(other, old)), profile];
-            profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
-            Store(profiles);
+            StoreSorted(profiles);
         }
 
         SetActive(normalized);
@@ -143,15 +142,14 @@ internal sealed class ProfileLibrary
     // is overwritten. Without times, programs or a role, and not on. Returns the name it got.
     public string Add(string name, LightingState lighting, IReadOnlyList<string>? deviceIds)
     {
-        var normalized = ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+        var normalized = NormalizedName(name);
         string added;
         lock (_gate)
         {
             var scenes = ScenesLocked().ToList();
             added = SharedFiles.FreeName(normalized, ProfileNames.MaxLength, candidate => scenes.Exists(scene => Matches(scene, candidate)));
             List<Profile> profiles = [.. ProfilesLocked(), new Profile(added, lighting) { DeviceIds = deviceIds }];
-            profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
-            Store(profiles);
+            StoreSorted(profiles);
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -373,7 +371,7 @@ internal sealed class ProfileLibrary
             ];
             if (scene is null && off.Times.Count > 0)
             {
-                profiles.Add(Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, off));
+                profiles.Add(InternalAllOff(off));
             }
 
             if (on.Times.Count > 0)
@@ -381,8 +379,7 @@ internal sealed class ProfileLibrary
                 profiles.Add(Profile.Internal(ProfileRole.BackOn, backOn?.Lighting ?? lightingNow, on));
             }
 
-            profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
-            Store(profiles);
+            StoreSorted(profiles);
         }
 
         Changed?.Invoke(this, EventArgs.Empty);
@@ -415,14 +412,6 @@ internal sealed class ProfileLibrary
                 _showingName = null;
                 _showingThread = 0;
             }
-        }
-    }
-
-    public LightingState GetLighting(string name)
-    {
-        lock (_gate)
-        {
-            return FindLocked(name).Lighting;
         }
     }
 
@@ -484,11 +473,14 @@ internal sealed class ProfileLibrary
             if (profile.Role == ProfileRole.AllOff && profile.Automation.Times.Count > 0 && !profiles.Exists(other => !other.IsInternal && other.Role == ProfileRole.AllOff))
             {
                 profiles.RemoveAll(other => other.IsInternal && other.Role == ProfileRole.AllOff);
-                profiles.Add(Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, new ProfileAutomation(profile.Automation.Times)));
-                profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+                profiles.Add(InternalAllOff(new ProfileAutomation(profile.Automation.Times)));
+                StoreSorted(profiles);
+            }
+            else
+            {
+                Store(profiles);
             }
 
-            Store(profiles);
             deleted = profile.Name;
         }
 
@@ -645,4 +637,20 @@ internal sealed class ProfileLibrary
         _store.Save(profiles);
         _profiles = profiles;
     }
+
+    // Stores profiles in alphabetical order, as ProfilesLocked has them.
+    private void StoreSorted(List<Profile> profiles)
+    {
+        profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+        Store(profiles);
+    }
+
+    // The name as a scene gets it (ProfileNames.Normalize); throws ArgumentException for one that
+    // is empty, too long or has a control character.
+    private static string NormalizedName(string name) =>
+        ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+
+    // The internal profile that switches every device off for "Uit om" while there is no scene
+    // "Alles uit".
+    private static Profile InternalAllOff(ProfileAutomation automation) => Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, automation);
 }

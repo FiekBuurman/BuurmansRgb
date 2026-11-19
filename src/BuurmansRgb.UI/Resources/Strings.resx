@@ -1404,10 +1404,10 @@
   <data name="SceneDevicesAllOff" xml:space="preserve">
     <value>Bij '{0}' doen altijd alle apparaten mee: deze scène zet alles uit voor "Uit om", en "Aan om" zet het daarna weer aan.</value>
   </data>
-  <data name="SceneDevicesAway" xml:space="preserve">
+  <data name="SceneDevicesAwayOne" xml:space="preserve">
     <value>Doet ook mee: {0} apparaat dat er nu niet is.</value>
   </data>
-  <data name="SceneDevicesAwayMore" xml:space="preserve">
+  <data name="SceneDevicesAway" xml:space="preserve">
     <value>Doen ook mee: {0} apparaten die er nu niet zijn.</value>
   </data>
   <data name="SceneDevicesSaved" xml:space="preserve">

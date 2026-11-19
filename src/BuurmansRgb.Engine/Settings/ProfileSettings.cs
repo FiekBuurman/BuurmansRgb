@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 
@@ -23,8 +22,6 @@ namespace BuurmansRgb.Engine.Settings;
 // device again.
 internal sealed record ProfileSettings : LightingStateSettings
 {
-    private const string TimeFormat = "HH:mm";
-
     // Written in English; a hand-edited file may also have the Dutch "ma" to "zo".
     private static readonly (WeekDays Day, string Name, string DutchName)[] DayNames =
     [
@@ -145,7 +142,7 @@ internal sealed record ProfileSettings : LightingStateSettings
 
     private ProfileRole ReadRole() => Role is { IsText: true } role ? ProfileRoles.Read(role.Value) : ProfileRole.None;
 
-    private static JsonText? WriteTime(TimeOnly time) => JsonText.From(time.ToString(TimeFormat, CultureInfo.InvariantCulture));
+    private static JsonText? WriteTime(TimeOnly time) => JsonText.From(LoadTime.WriteAt(time));
 
     // Every day is left out.
     private static JsonText? WriteDays(WeekDays days) =>

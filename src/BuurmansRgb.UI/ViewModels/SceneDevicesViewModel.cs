@@ -96,7 +96,7 @@ public sealed partial class SceneDevicesViewModel : ObservableObject
             ShowOptions(deviceIds);
 
             var away = AwayIds().Count;
-            AwayNote = away == 0 ? null : UiText.Format(away == 1 ? Strings.SceneDevicesAway : Strings.SceneDevicesAwayMore, away);
+            AwayNote = away == 0 ? null : UiText.ForCount(away, Strings.SceneDevicesAwayOne, Strings.SceneDevicesAway, away);
             Error = null;
         }
         finally

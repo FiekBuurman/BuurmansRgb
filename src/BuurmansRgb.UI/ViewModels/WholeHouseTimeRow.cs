@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -10,8 +9,6 @@ namespace BuurmansRgb.UI.ViewModels;
 // field gets the usual time of the row (23:00 to go off, 07:00 to go on).
 public sealed partial class WholeHouseTimeRow : ObservableObject
 {
-    private const string TimeFormat = "HH:mm";
-
     private readonly TimeOnly _usual;
 
     // While Show fills in the row.
@@ -22,7 +19,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         Label = label;
         Hint = hint;
         _usual = usual;
-        Text = Write(usual);
+        Text = LoadTime.WriteAt(usual);
         foreach (var day in Days)
         {
             day.PropertyChanged += (_, _) => RaiseChanged();
@@ -58,8 +55,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
-    public WeekDays CheckedDays =>
-        Days.Where(day => day.IsChecked).Aggregate(WeekDays.None, (days, day) => days | day.Day);
+    public WeekDays CheckedDays => DayOption.Checked(Days);
 
     public bool HasValidTime => LoadTime.TryParseAt(Text, out _);
 
@@ -92,13 +88,10 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
             IsOn = time is not null;
             if (time is not null)
             {
-                Text = Write(time.At);
+                Text = LoadTime.WriteAt(time.At);
             }
 
-            foreach (var day in Days)
-            {
-                day.IsChecked = ((time?.Days ?? WeekDays.Every) & day.Day) != WeekDays.None;
-            }
+            DayOption.Check(Days, time?.Days);
         }
         finally
         {
@@ -111,7 +104,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
         if (value && !_showing && !HasValidTime)
         {
             _showing = true;
-            Text = Write(_usual);
+            Text = LoadTime.WriteAt(_usual);
             _showing = false;
         }
 
@@ -127,6 +120,4 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
             Changed?.Invoke(this, EventArgs.Empty);
         }
     }
-
-    private static string Write(TimeOnly time) => time.ToString(TimeFormat, CultureInfo.InvariantCulture);
 }

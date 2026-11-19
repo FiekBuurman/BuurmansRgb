@@ -43,9 +43,8 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
     // That "Uit om" puts on that scene, and so shows on Scènes too; with more times than the first,
     // how many more, and that they change there. Only while "Uit om" has a time.
     public string? SceneNote => _saved.OffScene is not { } scene || _saved.Off.Count == 0 ? null
-        : _saved.Off.Count == 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimesOne, scene)
-        : _saved.Off.Count > 2 ? UiText.Format(Strings.WholeHouseSceneMoreTimes, scene, _saved.Off.Count - 1)
-        : UiText.Format(Strings.WholeHouseSceneNote, scene);
+        : _saved.Off.Count == 1 ? UiText.Format(Strings.WholeHouseSceneNote, scene)
+        : UiText.ForCount(_saved.Off.Count - 1, Strings.WholeHouseSceneMoreTimesOne, Strings.WholeHouseSceneMoreTimes, scene, _saved.Off.Count - 1);
 
     public bool HasSceneNote => SceneNote is not null;
 
@@ -105,16 +104,12 @@ public sealed partial class WholeHouseTimesViewModel : ObservableObject
         }
 
         var first = UiText.Format(format, Describe(times[0]));
-        return times.Count switch
-        {
-            1 => first,
-            2 => UiText.Format(Strings.WholeHouseSummaryMoreTimesOne, first),
-            _ => UiText.Format(Strings.WholeHouseSummaryMoreTimes, first, times.Count - 1),
-        };
+        var more = times.Count - 1;
+        return more == 0 ? first : UiText.ForCount(more, Strings.WholeHouseSummaryMoreTimesOne, Strings.WholeHouseSummaryMoreTimes, first, more);
     }
 
     private static string Describe(LoadTime time) =>
-        UiText.Format(Strings.WholeHouseSummaryTime, time.At.ToString("HH:mm", CultureInfo.InvariantCulture), UiText.Days(time.Days).ToLower(CultureInfo.CurrentCulture));
+        UiText.Format(Strings.WholeHouseSummaryTime, LoadTime.WriteAt(time.At), UiText.Days(time.Days).ToLower(CultureInfo.CurrentCulture));
 
     private void OnRowChanged(object? sender, EventArgs e)
     {
