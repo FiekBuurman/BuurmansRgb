@@ -53,9 +53,12 @@ h1,h3,h4{margin:0}
 .strip{background:#26262D;border-radius:8px;height:22px;padding:0 10px;display:flex;align-items:center;justify-content:space-between}
 .mini{display:flex;gap:6px;align-items:center;background:#26262D;border-radius:8px;height:22px;padding:0 8px}
 .mini .dot{width:8px;height:8px;border-radius:4px}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--t)*7.5em),1fr));gap:10px}
-.tile{min-height:44px;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:8px 12px}
-.tile[aria-checked=true]{border:3px solid #F4F1EA}
+/* As a WrapPanel: every tile at least 9.5em of its own text (142 px at 100 %), into which the longest name
+   with ✓ fits on one line, so all tiles are equally wide and the row never jumps. Chosen: a 3 px border with
+   2 px less padding, so the text stays put and the tile keeps its height. */
+.tiles{display:flex;flex-wrap:wrap;gap:10px}
+.tile{box-sizing:border-box;min-height:44px;min-width:9.5em;max-width:100%;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:8px 14px;text-align:left}
+.tile[aria-checked=true]{border:3px solid #F4F1EA;padding:6px 12px}
 .tile .check{display:none}.tile[aria-checked=true] .check{display:inline}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .sw{width:32px;height:32px;border-radius:10px;border:1px solid #2E2E36;box-sizing:border-box}
