@@ -288,21 +288,10 @@
                 </views:DeviceCard.HeaderTemplate>
                 <views:DeviceCard.Aside>
                     <StackPanel Orientation="Horizontal">
-                        <!-- Twelve bulbs in the colors the device shows now; only decoration. -->
+                        <!-- Twelve bulbs in the colors the device shows now, drawn as one element; only decoration. -->
                         <Border Style="{StaticResource StripBoard}" Padding="8,0" VerticalAlignment="Center">
-                            <views:DecorativeItemsControl Width="156" ItemsSource="{Binding Strip}" Focusable="False" IsTabStop="False" VerticalAlignment="Center">
-                                <views:DecorativeItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <UniformGrid Rows="1" />
-                                    </ItemsPanelTemplate>
-                                </views:DecorativeItemsControl.ItemsPanel>
-                                <views:DecorativeItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:StripLed}">
-                                        <views:LedBulb Diameter="8" GlowBlur="8" GlowSpread="1" OffRingBrush="{StaticResource StripLedOffRingBrush}"
-                                                       IsLit="{Binding IsLit}" Color="{Binding Color}" />
-                                    </DataTemplate>
-                                </views:DecorativeItemsControl.ItemTemplate>
-                            </views:DecorativeItemsControl>
+                            <views:SmallLedStrip Width="156" VerticalAlignment="Center" Colors="{Binding Strip}"
+                                                 OffBrush="{StaticResource LedOffBrush}" OffRingBrush="{StaticResource StripLedOffRingBrush}" />
                         </Border>
                         <Button Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
                                 Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"

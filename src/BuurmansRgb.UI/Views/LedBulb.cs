@@ -119,9 +119,13 @@ public sealed class LedBulb : FrameworkElement
     // Off, or on in a color too dark to see, such as black in Per LED or a step of a custom effect.
     internal bool GivesNoLight => !IsLit || LedRing.IsDark(Color);
 
-    internal Brush Glow()
+    internal Brush Glow() => GlowOf(Diameter, GlowBlur, GlowSpread, Color);
+
+    // The glow of a bulb of this size in color, from the cache that all bulbs share, such as also the
+    // bulbs that SmallLedStrip draws itself.
+    internal static Brush GlowOf(double diameter, double glowBlur, double glowSpread, RgbColor color)
     {
-        var key = (Diameter, GlowBlur, GlowSpread, Rounded(Color));
+        var key = (diameter, glowBlur, glowSpread, Rounded(color));
         var glows = Glows;
         if (glows.TryGetValue(key, out var glow))
         {
@@ -133,7 +137,7 @@ public sealed class LedBulb : FrameworkElement
             glows.Clear();
         }
 
-        glow = CreateGlow(key.Item4);
+        glow = CreateGlow(diameter, glowBlur, glowSpread, key.Item4);
         glows[key] = glow;
         return glow;
     }
@@ -145,11 +149,11 @@ public sealed class LedBulb : FrameworkElement
 
     // A blur of b around the spread edge fades from about half its color there to nothing b further
     // out, and is about full b inside it.
-    private RadialGradientBrush CreateGlow(RgbColor color)
+    private static RadialGradientBrush CreateGlow(double diameter, double glowBlur, double glowSpread, RgbColor color)
     {
-        var outer = GlowRadius;
-        var edge = (Diameter / 2.0 + GlowSpread) / outer;
-        var blur = GlowBlur / outer;
+        var outer = diameter / 2.0 + glowSpread + glowBlur;
+        var edge = (diameter / 2.0 + glowSpread) / outer;
+        var blur = glowBlur / outer;
         var brush = new RadialGradientBrush
         {
             GradientStops =

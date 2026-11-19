@@ -170,29 +170,29 @@ public sealed class PreviewCardsViewModelTests
 
         preview.ShowFrame(new LightingFrame(1, [DeviceFrame.FromColors("strip", Enumerable.Repeat(Red, 8).ToArray())]));
         Assert.All(strip.Zones[0].Colors, color => Assert.Equal(RgbColor.Black, color));
-        Assert.All(strip.Strip, led => Assert.Equal(Red, led.Color));
+        Assert.All(strip.Strip, color => Assert.Equal(Red, color));
 
         strip.IsExpanded = true;
 
         Assert.All(strip.Zones[0].Colors, color => Assert.Equal(Red, color));
     }
 
-    // Twelve bulbs spread over the device, each the LED in the middle of its twelfth; black LEDs, as
-    // of a device that is off, show led-off.
+    // Twelve bulbs spread over the device, each the LED in the middle of its twelfth, as a new list
+    // per frame; the chip shows the first, and black, as of a device that is off, as led-off.
     [Fact]
     public void Strip_ShowsTwelveLedsSpreadOverTheDevice()
     {
         var device = new DevicePreviewViewModel(Strip(24));
         RgbColor[] colors = [.. Enumerable.Range(0, 24).Select(led => led % 2 == 0 ? RgbColor.Black : Blue)];
+        var before = device.Strip;
 
         device.Colors = colors;
 
-        Assert.Equal(DevicePreviewViewModel.StripLength, device.Strip.Count);
-        Assert.All(device.Strip, led => Assert.Equal(Blue, led.Color));
-        Assert.All(device.Strip, led => Assert.True(led.IsLit));
+        Assert.NotSame(before, device.Strip);
+        Assert.Equal(Enumerable.Repeat(Blue, DevicePreviewViewModel.StripLength), device.Strip);
+        Assert.Equal((Blue, true), (device.ChipLed.Color, device.ChipLed.IsLit));
         device.Colors = new RgbColor[24];
-        Assert.All(device.Strip, led => Assert.False(led.IsLit));
-        Assert.Same(device.Strip[0], device.ChipLed);
+        Assert.False(device.ChipLed.IsLit);
     }
 
     // The line under the name on a card: the LEDs and, with more zones, the zones, without the type.

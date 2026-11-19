@@ -373,6 +373,31 @@ public sealed class DeviceCardsViewTests
         });
     }
 
+    // The small strip of a card follows the colors of its device also while the card is closed, is
+    // one element for its twelve bulbs, and a screen reader skips it.
+    [Fact]
+    public async Task SmallStrip_FollowsTheDeviceAndIsSkippedByAScreenReader()
+    {
+        var orange = new RgbColor(255, 154, 61);
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = [Argb, Strip];
+            api.Frame = new LightingFrame(1, [DeviceFrame.FromColors(Argb.Id, [.. Enumerable.Repeat(orange, Argb.LedCount)])]);
+        });
+
+        AppTheme.Run(panel =>
+        {
+            var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            var strips = AppTheme.Descendants<SmallLedStrip>(preview).ToList();
+
+            Assert.Equal(2, strips.Count);
+            Assert.Equal(Enumerable.Repeat(orange, DevicePreviewViewModel.StripLength), strips[0].Colors);
+            Assert.True(strips[0].IsVisible);
+            Assert.DoesNotContain(PageViews.AutomationTree(preview), peer => peer is UIElementAutomationPeer { Owner: SmallLedStrip });
+            Assert.Equal([6.5, 149.5], new[] { 0, 11 }.Select(index => SmallLedStrip.CenterOf(index, 12, 156)));
+        });
+    }
+
     private static List<DeviceCard> Cards(DependencyObject parent) => [.. AppTheme.Descendants<DeviceCard>(parent)];
 
     private static DeviceChipRow Chips(DependencyObject parent) => AppTheme.Descendants<DeviceChipRow>(parent).Single();

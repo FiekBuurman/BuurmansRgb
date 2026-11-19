@@ -36,7 +36,6 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         }
 
         LedLine = DeviceItem.LedLineOf(device);
-        Strip = [.. Enumerable.Range(0, StripLength).Select(_ => new StripLed())];
         IsExpanded = true;
         Colors = new RgbColor[device.LedCount];
         MoveActiveLed(LedCount > 0 ? 0 : LedMatrix.NoLed);
@@ -63,11 +62,13 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     public string LedLine { get; }
 
     // Twelve LEDs spread over the device, in the colors it shows now: the small strip in the head of
-    // its card, only decoration. A black LED, such as of a device that is off, shows led-off.
-    public IReadOnlyList<StripLed> Strip { get; }
+    // its card (SmallLedStrip), only decoration. A black LED, such as of a device that is off, shows
+    // led-off. A new list on every frame, so the strip draws once per frame.
+    [ObservableProperty]
+    public partial IReadOnlyList<RgbColor> Strip { get; private set; }
 
     // The bulb of its chip ("Naar een apparaat"): the first LED of the small strip.
-    public StripLed ChipLed => Strip[0];
+    public StripLed ChipLed { get; } = new();
 
     // A card that opens and closes (DeviceCard), as with "Hele huis" and two or more devices;
     // otherwise its card is always open (IsExpanded stays true). Set by PreviewViewModel.
@@ -282,13 +283,16 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     // The LED in the middle of each twelfth of the device, as the strip of "Hele huis" on Lampen.
     private void ShowStrip(IReadOnlyList<RgbColor> colors)
     {
-        for (var i = 0; i < Strip.Count; i++)
+        var strip = new RgbColor[StripLength];
+        for (var i = 0; i < strip.Length; i++)
         {
-            var led = (int)((i + 0.5) * colors.Count / Strip.Count);
-            var color = led < colors.Count ? colors[led] : RgbColor.Black;
-            Strip[i].Color = color;
-            Strip[i].IsLit = color != RgbColor.Black;
+            var led = (int)((i + 0.5) * colors.Count / strip.Length);
+            strip[i] = led < colors.Count ? colors[led] : RgbColor.Black;
         }
+
+        Strip = strip;
+        ChipLed.Color = strip[0];
+        ChipLed.IsLit = strip[0] != RgbColor.Black;
     }
 
     // Where a key moves the active LED; it stops at the first and the last LED of the device. Up
