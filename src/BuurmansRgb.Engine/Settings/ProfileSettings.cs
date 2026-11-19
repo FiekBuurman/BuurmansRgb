@@ -14,6 +14,10 @@ namespace BuurmansRgb.Engine.Settings;
 // leaves that one off, and the rest of the profile still counts. A time edited by hand reads as one
 // typed in the app, such as "7:30" (LoadTime.TryParseAt). "role" is "allOff" on the start scene
 // "Alles uit" (ProfileRole); an internal profile, in "internal" of the file, has a role and no name.
+// "onlyDevices" lists the ids of the devices a scene is for, as the keys of "devices" (the lighting
+// per device, which had that name first); without it, as in older files, a scene is for every
+// device. An older engine skips it, and its next save leaves it out, so the scene is for every
+// device again.
 internal sealed record ProfileSettings : LightingStateSettings
 {
     private const string TimeFormat = "HH:mm";
@@ -46,6 +50,9 @@ internal sealed record ProfileSettings : LightingStateSettings
     // Null, as when it is not in the file, is off; so is a value that is not true or false.
     public bool? ForegroundOnly { get; set; }
 
+    // An id that is not text reads as such and is skipped.
+    public List<JsonText?>? OnlyDevices { get; set; }
+
     // One time as "loadAt" and "loadOn", so an older engine still reads it; only more go in
     // "loadTimes".
     public static ProfileSettings From(Profile profile)
@@ -63,6 +70,7 @@ internal sealed record ProfileSettings : LightingStateSettings
                 : null,
             Program = JsonText.From(automation.Program),
             ForegroundOnly = automation.ForegroundOnly ? true : null,
+            OnlyDevices = profile.DeviceIds is { } deviceIds ? [.. deviceIds.Select(JsonText.From)] : null,
         };
         settings.CopyFrom(profile.Lighting);
         return settings;
@@ -72,12 +80,16 @@ internal sealed record ProfileSettings : LightingStateSettings
     // and so gone from the file after the next save; the trace says which, for whoever edited it.
     // Without a program, foregroundOnly goes too.
     // A scene of the user can only have the role AllOff.
-    public Profile ToProfile(string name) =>
-        new(name, ToLightingState())
+    public Profile ToProfile(string name)
+    {
+        var role = ReadRole() is ProfileRole.AllOff ? ProfileRole.AllOff : ProfileRole.None;
+        return new(name, ToLightingState())
         {
             Automation = new ProfileAutomation(ReadTimes(name), ReadProgram(name), ForegroundOnly == true).Normalize(),
-            Role = ReadRole() is ProfileRole.AllOff ? ProfileRole.AllOff : ProfileRole.None,
+            Role = role,
+            DeviceIds = ReadDeviceIds(name, role),
         };
+    }
 
     // An internal profile of "internal", or null when its role does not read. Only its times count,
     // not a program.
@@ -91,6 +103,37 @@ internal sealed record ProfileSettings : LightingStateSettings
         }
 
         return Profile.Internal(role, ToLightingState(), new ProfileAutomation(ReadTimes(ProfileRoles.Write(role)!)).Normalize());
+    }
+
+    // Null, every device, without the list, and also for "Alles uit" or a list without an id that
+    // reads: a scene for no device would do nothing. An id that is not text, empty, or there twice
+    // is left out.
+    private List<string>? ReadDeviceIds(string name, ProfileRole role)
+    {
+        if (OnlyDevices is null)
+        {
+            return null;
+        }
+
+        if (role == ProfileRole.AllOff)
+        {
+            Trace.TraceWarning($"profiles.json: profile '{name}' has onlyDevices, but switches every device off for Uit om; it is left out.");
+            return null;
+        }
+
+        var deviceIds = SceneDevices.Normalize(OnlyDevices.Select(id => id is { IsText: true } text ? text.Value : null));
+        if (deviceIds.Count < OnlyDevices.Count)
+        {
+            Trace.TraceWarning($"profiles.json: profile '{name}' has {OnlyDevices.Count - deviceIds.Count} device ids in onlyDevices that are empty, not text or there twice; they are left out.");
+        }
+
+        if (deviceIds.Count == 0)
+        {
+            Trace.TraceWarning($"profiles.json: profile '{name}' has no device in onlyDevices; it is for every device.");
+            return null;
+        }
+
+        return deviceIds;
     }
 
     private ProfileRole ReadRole() => Role is { IsText: true } role ? ProfileRoles.Read(role.Value) : ProfileRole.None;

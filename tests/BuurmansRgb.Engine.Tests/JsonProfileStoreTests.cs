@@ -589,4 +589,43 @@ public sealed class JsonProfileStoreTests : IDisposable
         Assert.Equal([new LoadTime(new TimeOnly(7, 0))], backOn.Automation.Times);
         Assert.Null(backOn.Automation.Program);
     }
+
+    [Fact]
+    public void Save_SceneOfSomeDevices_WritesOnlyDevicesAndReadsThemBack()
+    {
+        var lighting = WithDevices(StaticLighting(Red), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Blue) });
+
+        _store.Save([new Profile("Lezen", lighting) { DeviceIds = ["openrgb-strip-1a2b", "fan"] }, new Profile("Werk", lighting)]);
+
+        var file = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(_directory.File("profiles.json")))!;
+        var scenes = file["profiles"]!.AsArray();
+        Assert.Equal(["openrgb-strip-1a2b", "fan"], scenes[0]!["onlyDevices"]!.AsArray().Select(id => (string?)id));
+        Assert.Equal("#0000FF", (string?)scenes[0]!["devices"]!["fan"]!["color"]);
+        Assert.Null(scenes[1]!["onlyDevices"]);
+        var loaded = _store.Load();
+        Assert.Equal(["openrgb-strip-1a2b", "fan"], loaded[0].DeviceIds!);
+        Assert.Equal(lighting.Devices["fan"], loaded[0].Lighting.Devices["fan"]);
+        Assert.Null(loaded[1].DeviceIds);
+    }
+
+    // A file from before has no onlyDevices: every scene is for every device. An id that is not
+    // text, empty or there twice is left out; a list without one, and one on "Alles uit", count as
+    // every device.
+    [Fact]
+    public void Load_OnlyDevices_ReadsWhatCountsAndElseEveryDevice()
+    {
+        File.WriteAllText(_directory.File("profiles.json"), """
+            { "profiles": [ { "name": "A" }, { "name": "B", "onlyDevices": ["fan", 3, "", "fan", null, "strip"] },
+                            { "name": "C", "onlyDevices": [] }, { "name": "D", "onlyDevices": [7] },
+                            { "name": "E", "role": "allOff", "onlyDevices": ["fan"] }, { "name": "F", "onlyDevices": "fan" } ] }
+            """);
+
+        var loaded = _store.Load();
+
+        Assert.Equal(["A", "B", "C", "D", "E", "F"], loaded.Select(profile => profile.Name));
+        Assert.Null(loaded[0].DeviceIds);
+        Assert.Equal(["fan", "strip"], loaded[1].DeviceIds!);
+        Assert.All(loaded.Skip(2), profile => Assert.Null(profile.DeviceIds));
+        Assert.Equal(ProfileRole.AllOff, loaded[4].Role);
+    }
 }

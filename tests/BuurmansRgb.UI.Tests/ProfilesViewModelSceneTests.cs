@@ -12,6 +12,7 @@ public sealed class ProfilesViewModelSceneTests
     {
         _profiles.SaveRequested += (_, name) => _requests.Add($"save {name}");
         _profiles.LoadRequested += (_, name) => _requests.Add($"load {name}");
+        _profiles.UpdateRequested += (_, name) => _requests.Add($"update {name}");
         _profiles.Show(["Filmavond", "Klusmodus"]);
     }
 
@@ -53,18 +54,39 @@ public sealed class ProfilesViewModelSceneTests
     }
 
     [Fact]
-    public void Edit_ChoosesTheSceneAndOverwriteSavesUnderIt()
+    public void Edit_ChoosesTheSceneAndUpdateUpdatesIt()
     {
-        Assert.False(_profiles.OverwriteCommand.CanExecute(null));
+        Assert.False(_profiles.UpdateCommand.CanExecute(null));
         Assert.Null(_profiles.EditTitle);
 
         _profiles.EditCommand.Execute(_profiles.Cards[0]);
-        _profiles.OverwriteCommand.Execute(null);
+        _profiles.UpdateCommand.Execute(null);
 
         Assert.Equal("Filmavond", _profiles.SelectedName);
         Assert.Equal("Filmavond aanpassen", _profiles.EditTitle);
         Assert.True(_profiles.HasSelection);
-        Assert.Equal(["save Filmavond"], _requests);
+        Assert.Equal(["update Filmavond"], _requests);
+    }
+
+    // "Bijwerken met wat nu brandt" asks first, as Verwijderen: the lighting the scene had does not
+    // come back.
+    [Theory]
+    [InlineData(true, new[] { "update Klusmodus" })]
+    [InlineData(false, new string[0])]
+    public void Update_AsksForConfirmationFirst(bool confirmed, string[] expected)
+    {
+        string? asked = null;
+        _profiles.ConfirmUpdate = name =>
+        {
+            asked = name;
+            return confirmed;
+        };
+        _profiles.EditCommand.Execute(_profiles.Cards[1]);
+
+        _profiles.UpdateCommand.Execute(null);
+
+        Assert.Equal("Klusmodus", asked);
+        Assert.Equal(expected, _requests);
     }
 
     [Fact]

@@ -91,6 +91,21 @@ public sealed class ConfirmDialogViewTests
         });
     }
 
+    // Before "Bijwerken met wat nu brandt": the name of the scene, what goes, and "Bijwerken" as the
+    // answer, with the focus on Annuleren as with the other questions.
+    [Fact]
+    public void ForSceneUpdate_AsksWithTheNameAndAnswersBijwerken()
+    {
+        Make(owner => ConfirmDialog.ForSceneUpdate(owner, "Avond"), (owner, dialog) =>
+        {
+            Assert.Same(owner, dialog.Owner);
+            Assert.Equal("Scène 'Avond' bijwerken met wat nu brandt?", dialog.Title);
+            Assert.Equal(Strings.SceneUpdateConfirmDetail, AutomationProperties.GetHelpText(dialog));
+            Assert.Equal("Bijwerken", dialog.ConfirmButton.Content);
+            Assert.Equal(Strings.Cancel, dialog.CancelButton.Content);
+        });
+    }
+
     // The other questions keep "Verwijderen".
     [Fact]
     public void ForScene_AnswersVerwijderen()

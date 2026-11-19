@@ -194,6 +194,26 @@ public sealed class LightingControllerTests
         Assert.Equal(1, changes);
     }
 
+    // A scene of some devices over the lighting now: a change of another device just before stays.
+    [Fact]
+    public async Task ReplaceWithChange_StartsFromTheLightingNow()
+    {
+        var controller = await CreateSimulatedAsync();
+        controller.Apply(Uniform(Orange, 1.0));
+        controller.SetLighting(Fan, lighting => lighting with { Color = Green });
+        var changes = 0;
+        controller.LightingChanged += (_, _) => changes++;
+        var scene = Uniform(Blue, 1.0);
+
+        var applied = controller.Replace(now => now.WithDevicesFrom(scene, [Strip]));
+
+        Assert.Equal(Green, applied.For(Fan).Color);
+        Assert.Equal(Blue, applied.For(Strip).Color);
+        Assert.All(_simulated.GetLeds(Fan), led => Assert.Equal(Green, led));
+        Assert.All(_simulated.GetLeds(Strip), led => Assert.Equal(Blue, led));
+        Assert.Equal(1, changes);
+    }
+
     [Fact]
     public async Task Rendered_OutputHasRenderedColorsWithGrowingSequence()
     {

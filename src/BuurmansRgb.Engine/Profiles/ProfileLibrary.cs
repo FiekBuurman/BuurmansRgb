@@ -119,8 +119,8 @@ internal sealed class ProfileLibrary
     }
 
     // Saves the lighting as it is now. A profile with the same name is replaced and takes the new
-    // spelling, but keeps its automation. The list only changes once the file is written. What
-    // burns then is that scene, so it is the one that is on.
+    // spelling, but keeps its automation and the devices it is for. The list only changes once the
+    // file is written. What burns then is that scene, so it is the one that is on.
     public void Save(string name)
     {
         var normalized = ProfileNames.Normalize(name) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
@@ -128,7 +128,7 @@ internal sealed class ProfileLibrary
         lock (_gate)
         {
             var old = ScenesLocked().FirstOrDefault(other => Matches(other, normalized));
-            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None, Role = old?.Role ?? ProfileRole.None };
+            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None, Role = old?.Role ?? ProfileRole.None, DeviceIds = old?.DeviceIds };
             List<Profile> profiles = [.. ProfilesLocked().Where(other => !ReferenceEquals(other, old)), profile];
             profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
             Store(profiles);
@@ -177,8 +177,10 @@ internal sealed class ProfileLibrary
         }
     }
 
-    // Shows the lighting of the profile and saves it as the current lighting. For "Alles uit" (the
-    // role AllOff) the lighting it replaces is kept first, for "Aan om".
+    // Shows the lighting of the profile, of a scene of some devices only theirs (Profile.LightingOver),
+    // and saves it as the current lighting. For "Alles uit" (the role AllOff) the lighting it replaces
+    // is kept first, for "Aan om". The other devices of a scene of some devices keep the lighting
+    // they have when it is shown, also after a change of one of them just before.
     public void Load(string name)
     {
         var lightingNow = _lighting.State;
@@ -192,7 +194,7 @@ internal sealed class ProfileLibrary
             }
         }
 
-        Show(profile.Lighting, profile.Name);
+        Show(profile.LightingOver, profile.Name);
     }
 
     // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
@@ -285,7 +287,7 @@ internal sealed class ProfileLibrary
                 RememberBeforeOffLocked(profile, held);
             }
 
-            return new HeldLighting(profile.Lighting, profile.Name);
+            return new HeldLighting(profile.LightingOver(held.Lighting), profile.Name);
         }
     }
 
@@ -360,7 +362,12 @@ internal sealed class ProfileLibrary
     // Shows lighting and saves it as the current lighting, with scene as the scene that is on, or
     // null for none: for example the lighting from before a game, which may have been a scene.
     // Outside _gate: the controller has its own lock.
-    public void Show(LightingState state, string? scene)
+    public void Show(LightingState state, string? scene) => Showing(scene, () => _lighting.Replace(state));
+
+    // The same with what change makes of the lighting now, read under the lock of the controller.
+    private void Show(Func<LightingState, LightingState> change, string? scene) => Showing(scene, () => _lighting.Replace(change));
+
+    private void Showing(string? scene, Action replace)
     {
         lock (_activeGate)
         {
@@ -370,7 +377,7 @@ internal sealed class ProfileLibrary
 
         try
         {
-            _lighting.Replace(state);
+            replace();
         }
         finally
         {
@@ -388,6 +395,52 @@ internal sealed class ProfileLibrary
         {
             return FindLocked(name).Lighting;
         }
+    }
+
+    // What the card of the scene shows: its global lighting, or for a scene of some devices that of
+    // the first of them, which may differ from the global one that the others keep.
+    public DeviceLighting GetLook(string name)
+    {
+        lock (_gate)
+        {
+            var profile = FindLocked(name);
+            return profile.DeviceIds is [var first, ..] ? profile.Lighting.Devices.GetValueOrDefault(first, profile.Lighting.Global) : profile.Lighting.Global;
+        }
+    }
+
+    // The ids of the devices the scene is for; null for every device (Profile.DeviceIds).
+    public IReadOnlyList<string>? GetDevices(string name)
+    {
+        lock (_gate)
+        {
+            return FindLocked(name).DeviceIds;
+        }
+    }
+
+    // Makes the scene one of deviceIds (SceneDevices.Normalize), or of every device for null; its
+    // lighting stays as it is. Throws ArgumentException for a list without an id, as a scene for no
+    // device does nothing, and for "Alles uit" (the role AllOff), which switches every device off
+    // for "Uit om" and "Aan om".
+    public void SetDevices(string name, IReadOnlyList<string>? deviceIds)
+    {
+        var normalized = deviceIds is null ? null : SceneDevices.Normalize(deviceIds);
+        if (normalized is { Count: 0 })
+        {
+            throw new ArgumentException("A scene is for at least one device.", nameof(deviceIds));
+        }
+
+        lock (_gate)
+        {
+            var profile = FindLocked(name);
+            if (profile.Role == ProfileRole.AllOff && normalized is not null)
+            {
+                throw new ArgumentException($"'{profile.Name}' switches every device off for Uit om; it is for every device.", nameof(deviceIds));
+            }
+
+            Store([.. ProfilesLocked().Select(other => ReferenceEquals(other, profile) ? other with { DeviceIds = normalized } : other)]);
+        }
+
+        Changed?.Invoke(this, EventArgs.Empty);
     }
 
     // Deleting "Alles uit" keeps "Uit om": its times go to an internal profile, which switches every

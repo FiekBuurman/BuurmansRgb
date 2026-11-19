@@ -16,4 +16,38 @@ internal sealed record LightingState(
         Global = Global with { On = on },
         Devices = Devices.ToDictionary(device => device.Key, device => device.Value with { On = on }),
     };
+
+    // This lighting with that of deviceIds from other, as a scene of some devices comes on: each of
+    // them gets its lighting in other (its own, or else the global one there) and its per-LED colors
+    // there, or none; every other device keeps what it has, also one that follows the global
+    // lighting, which stays this one. A device of deviceIds that is not there now gets it too, for
+    // when it comes back.
+    public LightingState WithDevicesFrom(LightingState other, IEnumerable<string> deviceIds)
+    {
+        var devices = new Dictionary<string, DeviceLighting>(Devices);
+        var ledColors = new Dictionary<string, LedColorEntry>(LedColors);
+        foreach (var deviceId in deviceIds)
+        {
+            var lighting = other.Devices.GetValueOrDefault(deviceId, other.Global);
+            if (lighting == Global)
+            {
+                devices.Remove(deviceId);
+            }
+            else
+            {
+                devices[deviceId] = lighting;
+            }
+
+            if (other.LedColors.TryGetValue(deviceId, out var colors))
+            {
+                ledColors[deviceId] = colors;
+            }
+            else
+            {
+                ledColors.Remove(deviceId);
+            }
+        }
+
+        return this with { Devices = devices, LedColors = ledColors };
+    }
 }

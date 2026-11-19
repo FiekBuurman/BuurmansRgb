@@ -622,6 +622,26 @@ internal sealed class FakeEngineApi : IEngineApi
         ProfileAutomations[name] = automation.Normalize();
     }
 
+    // By profile name, the devices it is for; a profile without an entry is for every device.
+    public Dictionary<string, IReadOnlyList<string>> ProfileDevices { get; } = [];
+
+    public Task<IReadOnlyList<string>?> GetProfileDevicesAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(ProfileDevices.GetValueOrDefault(name));
+
+    // Like the engine: saved as SceneDevices.Normalize gives them; no device throws.
+    public async Task SetProfileDevicesAsync(string name, IReadOnlyList<string>? deviceIds, CancellationToken ct = default)
+    {
+        await Record($"profile devices {name} {(deviceIds is null ? "all" : string.Join(",", deviceIds))}");
+        if (deviceIds is null)
+        {
+            ProfileDevices.Remove(name);
+            return;
+        }
+
+        var normalized = SceneDevices.Normalize(deviceIds);
+        ProfileDevices[name] = normalized.Count > 0 ? normalized : throw new ArgumentException("A scene is for at least one device.", nameof(deviceIds));
+    }
+
     // "Uit om" and "Aan om"; OffScene stays as the test gives it, as the engine keeps the scene.
     public WholeHouseTimes WholeHouseTimes { get; set; } = WholeHouseTimes.None;
 

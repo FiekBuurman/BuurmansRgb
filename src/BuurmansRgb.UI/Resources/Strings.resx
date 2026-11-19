@@ -1341,13 +1341,56 @@
     <comment>De bolletjes van een scènekaart voor een schermlezer, als de scène de verlichting uit zet.</comment>
   </data>
   <data name="SceneEditToolTip" xml:space="preserve">
-    <value>Overschrijven, verwijderen of vanzelf laten aanzetten</value>
+    <value>Bijwerken, apparaten kiezen, verwijderen of vanzelf laten aanzetten</value>
   </data>
-  <data name="SceneOverwrite" xml:space="preserve">
-    <value>Overschrijven met wat nu brandt</value>
+  <data name="SceneUpdate" xml:space="preserve">
+    <value>Bijwerken met wat nu brandt</value>
   </data>
-  <data name="SceneOverwriteToolTip" xml:space="preserve">
-    <value>Bewaart de verlichting van alle apparaten zoals die nu is onder deze scène.</value>
+  <data name="SceneUpdateToolTip" xml:space="preserve">
+    <value>Bewaart de verlichting zoals die nu is onder deze scène, voor de apparaten die meedoen. Eerst vraagt de app of het mag.</value>
+  </data>
+  <data name="SceneUpdateConfirm" xml:space="preserve">
+    <value>Scène '{0}' bijwerken met wat nu brandt?</value>
+    <comment>De vraag voor "Bijwerken met wat nu brandt", met de naam van de scène.</comment>
+  </data>
+  <data name="SceneUpdateConfirmDetail" xml:space="preserve">
+    <value>De verlichting die de scène nu heeft, komt niet terug.</value>
+  </data>
+  <data name="SceneUpdateConfirmButton" xml:space="preserve">
+    <value>Bijwerken</value>
+    <comment>De knop in de vraag voor "Bijwerken met wat nu brandt", naast Annuleren.</comment>
+  </data>
+  <data name="SceneUpdated" xml:space="preserve">
+    <value>Scène '{0}' bijgewerkt.</value>
+  </data>
+  <data name="SceneDevicesHeader" xml:space="preserve">
+    <value>Apparaten die meedoen</value>
+    <comment>Kop in het blok "… aanpassen" op Scènes.</comment>
+  </data>
+  <data name="SceneDevicesAll" xml:space="preserve">
+    <value>Alle apparaten</value>
+  </data>
+  <data name="SceneDevicesAllHint" xml:space="preserve">
+    <value>Met een vinkje doet elk apparaat mee, ook een dat er later bij komt. Zonder vinkje kies je eronder welke apparaten meedoen; de andere houden hun eigen verlichting als de scène aangaat.</value>
+  </data>
+  <data name="SceneDevicesListName" xml:space="preserve">
+    <value>Apparaten van de scène</value>
+    <comment>De naam van de lijst met selectievakjes voor een schermlezer.</comment>
+  </data>
+  <data name="SceneDevicesNone" xml:space="preserve">
+    <value>Kies minstens één apparaat; een scène zonder apparaten doet niets.</value>
+  </data>
+  <data name="SceneDevicesAllOff" xml:space="preserve">
+    <value>Bij '{0}' doen altijd alle apparaten mee: deze scène zet alles uit voor "Uit om", en "Aan om" zet het daarna weer aan.</value>
+  </data>
+  <data name="SceneDevicesAway" xml:space="preserve">
+    <value>Doet ook mee: {0} apparaat dat er nu niet is.</value>
+  </data>
+  <data name="SceneDevicesAwayMore" xml:space="preserve">
+    <value>Doen ook mee: {0} apparaten die er nu niet zijn.</value>
+  </data>
+  <data name="SceneDevicesSaved" xml:space="preserve">
+    <value>Apparaten van '{0}' opgeslagen.</value>
   </data>
   <data name="SceneAtTime" xml:space="preserve">
     <value>{0} om {1:HH:mm}</value>

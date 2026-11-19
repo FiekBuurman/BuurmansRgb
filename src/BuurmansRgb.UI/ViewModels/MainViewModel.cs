@@ -182,6 +182,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _ = ShowSelectionAsync();
         });
         Profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        Profiles.UpdateRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.SceneUpdated);
+        // The boxes show the change already (SceneDevicesViewModel takes it as saved); when the
+        // engine refuses it, they show again what the engine has.
+        Profiles.SceneDevices.ApplyRequested += (_, change) =>
+            SendProfileCall(change.Name, api => api.SetProfileDevicesAsync(change.Name, change.DeviceIds), Strings.SceneDevicesSaved,
+                failed: () => _ = ShowSceneDevicesAsync(change.Name));
         // The engine saves the automation as Normalize gives it, which the change already is.
         Profiles.Automation.ApplyRequested += (_, change) =>
             SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
@@ -1077,7 +1083,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
         Profiles.Show(await api.GetProfilesAsync());
-        WholeHouseTimes.Show(await api.GetWholeHouseTimesAsync());
+        ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
         _ = _sceneCards.ShowAsync();
         _ = _sceneCards.ShowActiveAsync();
         ShowOptions(await ReadOptionsAsync(api));
@@ -1127,6 +1133,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SelectedDevice = Devices.FirstOrDefault(item => item.DeviceId == selectedId) ?? Devices[0];
         });
         Lamps.ShowDevices(Devices);
+        Profiles.SceneDevices.ShowDevices(Devices);
         OnPropertyChanged(nameof(SelectedLamp));
         _ = _lampSync.RefreshAsync();
 
@@ -1630,8 +1637,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // In the queue behind the changes that still wait, so a profile saves what the user set last.
     // Each call has a key of its own, so two clicks are two calls. Afterwards the list shows the
     // profiles of the engine with this one selected, and then done runs, such as showing the
-    // lighting of a loaded profile. isNew is for saving, where the scene need not exist yet.
-    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false)
+    // lighting of a loaded profile. When the engine refuses the call for a scene that is still
+    // there, failed runs as well as the refusal is shown. isNew is for saving, where the scene need
+    // not exist yet.
+    private void SendProfileCall(string name, Func<IEngineApi, Task> call, string doneMessage, Action? done = null, bool isNew = false, Action? failed = null)
     {
         if (_connection is not { } connection)
         {
@@ -1652,6 +1661,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 var current = await connection.Api.GetProfilesAsync();
                 if (current.Contains(name, ProfileNames.Comparer))
                 {
+                    if (failed is not null)
+                    {
+                        RunOnUi(() =>
+                        {
+                            if (ReferenceEquals(connection, _connection))
+                            {
+                                failed();
+                            }
+                        });
+                    }
+
                     throw;
                 }
 
@@ -1698,7 +1718,28 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             Profiles.Automation.Show(name, automation);
         }
+
+        await ShowSceneDevicesAsync(name);
     }
+
+    // The devices the engine saved for the scene, unless the user picked another scene in the
+    // meantime or the connection was made again.
+    private async Task ShowSceneDevicesAsync(string name)
+    {
+        if (_connection is not { } connection)
+        {
+            return;
+        }
+
+        var (ok, deviceIds) = await TryCallAsync(connection, api => api.GetProfileDevicesAsync(name));
+        if (ok && ReferenceEquals(connection, _connection) && Profiles.SelectedName == name)
+        {
+            ShowSceneDevices(name, deviceIds);
+        }
+    }
+
+    private void ShowSceneDevices(string name, IReadOnlyList<string>? deviceIds) =>
+        Profiles.SceneDevices.Show(name, deviceIds, WholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
 
     private void ClearLedSelection()
     {
@@ -1723,8 +1764,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // Another settings app saved or deleted a scene, or this one did: the list and the cards
-    // follow, the selection stays, and so do fields being typed in for the same scene. In the
-    // queue, so it reads the engine after the calls of this app that wait.
+    // follow, the selection stays, and so do fields being typed in for the same scene. The boxes
+    // of the devices of the open scene follow too, so the next click does not undo a change made
+    // elsewhere. In the queue, so it reads the engine after the calls of this app that wait.
     private void OnProfilesChanged(object? sender, EventArgs e) => RunOnUi(() =>
     {
         if (_connection is not { } connection)
@@ -1732,10 +1774,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
+        var open = Profiles.SelectedName;
         _calls.Post(ProfilesReloadCall, async () =>
         {
             var names = await connection.Api.GetProfilesAsync();
             var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
+            var (devicesRead, deviceIds) = open is not null && names.Contains(open, ProfileNames.Comparer)
+                ? await TryCallAsync(connection, api => api.GetProfileDevicesAsync(open))
+                : (false, null);
             RunOnUi(() =>
             {
                 if (ReferenceEquals(connection, _connection))
@@ -1744,17 +1790,27 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     _ = _sceneCards.ShowAsync();
                     _ = _sceneCards.ShowActiveAsync();
                     ShowWholeHouseTimes(wholeHouse);
+                    if (devicesRead && Profiles.SelectedName == open)
+                    {
+                        ShowSceneDevices(open!, deviceIds);
+                    }
                 }
             });
         });
     });
 
     // "Uit om" and "Aan om" as the engine saved them. They are the times of "Alles uit": when that
-    // scene is open on Scènes, its times there follow a change here.
+    // scene is open on Scènes, its times there follow a change here. Whether the open scene has a
+    // choice of devices follows which scene is "Alles uit".
     private void ShowWholeHouseTimes(WholeHouseTimes times)
     {
         var before = WholeHouseTimes.Saved.Off;
         WholeHouseTimes.Show(times);
+        if (Profiles.SceneDevices.ProfileName is { } open)
+        {
+            Profiles.SceneDevices.ShowIsAllOff(times.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, open));
+        }
+
         if (times.OffScene is { } scene && Profiles.SelectedName is { } selected && ProfileNames.Comparer.Equals(scene, selected) && !before.SequenceEqual(times.Off))
         {
             _ = ShowProfileAutomationAsync(selected);

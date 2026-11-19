@@ -191,6 +191,193 @@ public sealed class MainViewModelProfileTests
         Assert.Equal("", viewModel.Profiles.Automation.Times[0].Text);
     }
 
+    // "Bijwerken met wat nu brandt" saves the lighting as it is now under the scene, once the user
+    // said yes, and says so in its own words.
+    [Fact]
+    public async Task Update_SavesUnderTheSceneAfterTheQuestion()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.AddRange(["Gamen", "Nacht"]));
+        viewModel.Profiles.ConfirmUpdate = _ => true;
+        viewModel.Profiles.SelectedName = "Nacht";
+
+        viewModel.Profiles.UpdateCommand.Execute(null);
+
+        Assert.Equal(["profile save Nacht"], Api.Calls);
+        Assert.Equal("Nacht", viewModel.Profiles.SelectedName);
+        Assert.Equal("Scène 'Nacht' bijgewerkt.", viewModel.StatusMessage);
+    }
+
+    // The boxes have the names of the devices, checked for those of the scene; a device of the scene
+    // that is not there now is named by how many there are, and stays in the scene.
+    [Fact]
+    public async Task SelectProfile_ShowsItsDevices()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Gamen", "Lezen"]);
+            api.ProfileDevices["Lezen"] = ["fan", "headset"];
+        });
+
+        viewModel.Profiles.SelectedName = "Gamen";
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.AllDevices);
+        Assert.False(devices.CanPick);
+        Assert.Equal([("LED strip", true), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+
+        viewModel.Profiles.SelectedName = "Lezen";
+        Assert.False(devices.AllDevices);
+        Assert.True(devices.CanPick);
+        Assert.Equal([("LED strip", false), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+        Assert.Equal("Doet ook mee: 1 apparaat dat er nu niet is.", devices.AwayNote);
+        Assert.Empty(Api.Calls);
+    }
+
+    [Fact]
+    public async Task CheckDevices_SendsThemAtOnceAndKeepsTheOnesThatAreAway()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan", "headset"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        devices.Options[0].IsChecked = true;
+        devices.Options[1].IsChecked = false;
+        devices.AllDevices = true;
+
+        Assert.Equal(["profile devices Lezen strip,fan,headset", "profile devices Lezen strip,headset", "profile devices Lezen all"], Api.Calls);
+        Assert.Equal("Apparaten van 'Lezen' opgeslagen.", viewModel.StatusMessage);
+        Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
+    }
+
+    // Such as profiles.json that cannot be written: the boxes show again what the engine has, so the
+    // next change is sent too.
+    [Fact]
+    public async Task CheckDevices_RejectedByTheEngine_ShowsWhatTheEngineHas()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+        Api.SetException = new RemoteInvocationException("Disk full", 0, errorData: null);
+
+        devices.AllDevices = true;
+
+        Assert.Equal("De engine kon de wijziging niet verwerken.", viewModel.StatusMessage);
+        Assert.False(devices.AllDevices);
+        Assert.Equal([("LED strip", false), ("Fan", true)], devices.Options.Select(option => (option.Name, option.IsChecked)));
+
+        Api.SetException = null;
+        devices.AllDevices = true;
+
+        Assert.Equal(["profile devices Lezen all"], Api.Calls);
+        Assert.False(Api.ProfileDevices.ContainsKey("Lezen"));
+    }
+
+    // Another settings app, or restoring the settings, changed the devices of the open scene: the
+    // boxes follow, so the next click sends the change on top of it and does not undo it.
+    [Fact]
+    public async Task DevicesChangedElsewhere_TheOpenSceneFollows()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.Add("Lezen");
+            api.ProfileDevices["Lezen"] = ["fan"];
+        });
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        Api.ProfileDevices.Remove("Lezen");
+        Api.RaiseProfilesChanged();
+        Assert.True(devices.AllDevices);
+        Assert.All(devices.Options, option => Assert.True(option.IsChecked));
+
+        Api.ProfileDevices["Lezen"] = ["strip", "fan"];
+        Api.RaiseProfilesChanged();
+        devices.Options[0].IsChecked = false;
+
+        Assert.Equal(["profile devices Lezen fan"], Api.Calls);
+        Assert.Equal("Lezen", viewModel.Profiles.SelectedName);
+    }
+
+    // "Alle apparaten" off starts with every device there is now checked; then a scene of no device
+    // is not saved, as it would do nothing, and the message says why until a box is on again.
+    [Fact]
+    public async Task UncheckEveryDevice_SaysSoAndSendsNothing()
+    {
+        var viewModel = await ConnectAsync(api => api.Profiles.Add("Lezen"));
+        viewModel.Profiles.SelectedName = "Lezen";
+        var devices = viewModel.Profiles.SceneDevices;
+
+        devices.AllDevices = false;
+        Assert.All(devices.Options, option => Assert.True(option.IsChecked));
+        devices.Options[0].IsChecked = false;
+        devices.Options[1].IsChecked = false;
+
+        Assert.Equal(["profile devices Lezen strip,fan", "profile devices Lezen fan"], Api.Calls);
+        Assert.Equal("Kies minstens één apparaat; een scène zonder apparaten doet niets.", devices.Error);
+        Assert.Equal(["fan"], Api.ProfileDevices["Lezen"]);
+
+        devices.Options[0].IsChecked = true;
+        Assert.Null(devices.Error);
+        Assert.Equal("profile devices Lezen strip", Api.Calls[^1]);
+    }
+
+    // "Alles uit" switches every device off for "Uit om", so it has no choice, and says why.
+    [Fact]
+    public async Task SelectAllOff_HasNoChoiceOfDevices()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Alles uit", "Lezen"]);
+            api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        });
+
+        viewModel.Profiles.SelectedName = "Alles uit";
+
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.IsAllOff);
+        Assert.False(devices.CanChoose);
+        Assert.Contains("'Alles uit'", devices.AllOffNote, StringComparison.Ordinal);
+        devices.AllDevices = false;
+        Assert.Empty(Api.Calls);
+
+        viewModel.Profiles.SelectedName = "Lezen";
+        Assert.False(devices.IsAllOff);
+        Assert.True(devices.CanChoose);
+        Assert.Null(devices.AllOffNote);
+    }
+
+    // Such as after restoring the settings: the open scene gets or loses its choice of devices.
+    [Fact]
+    public async Task AllOffChanges_TheOpenSceneFollows()
+    {
+        var viewModel = await ConnectAsync(api =>
+        {
+            api.Profiles.AddRange(["Alles uit", "Nacht"]);
+            api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        });
+        viewModel.Profiles.SelectedName = "Nacht";
+        var devices = viewModel.Profiles.SceneDevices;
+        Assert.True(devices.CanChoose);
+
+        Api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Nacht");
+        Api.RaiseProfilesChanged();
+        Assert.True(devices.IsAllOff);
+        Assert.False(devices.CanChoose);
+
+        Api.WholeHouseTimes = new WholeHouseTimes(OffScene: "Alles uit");
+        Api.RaiseProfilesChanged();
+        Assert.False(devices.IsAllOff);
+        Assert.True(devices.CanChoose);
+        Assert.Empty(Api.Calls);
+    }
+
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>

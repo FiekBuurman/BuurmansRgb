@@ -323,14 +323,39 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
-    public void Apply(LightingState state) => Apply(state, read: false);
+    public void Apply(LightingState state)
+    {
+        bool rendered;
+        lock (_gate)
+        {
+            ApplyLocked(state);
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+    }
 
     // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
     // Returns the lighting as it is right after, read under the same lock: State may already hold
     // a change from another thread by then.
-    public LightingState Replace(LightingState state)
+    public LightingState Replace(LightingState state) => Replace(_ => state);
+
+    // Replace with what change makes of the lighting now, read and applied under the same lock,
+    // so a change of another device in between is not lost: for example a scene of some devices
+    // over the others (Profile.LightingOver). change runs under the lock, so it only computes.
+    public LightingState Replace(Func<LightingState, LightingState> change)
     {
-        var applied = Apply(state, read: true)!;
+        ArgumentNullException.ThrowIfNull(change);
+        bool rendered;
+        LightingState applied;
+        lock (_gate)
+        {
+            ApplyLocked(change(StateLocked()));
+            applied = StateLocked();
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
         LightingChanged?.Invoke(this, EventArgs.Empty);
         return applied;
     }
@@ -1063,23 +1088,12 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private static bool IsManual(PauseReasons pause) => pause.HasFlag(PauseReasons.Manual);
 
     // With read, returns the lighting as it is once state is on.
-    private LightingState? Apply(LightingState state, bool read)
+    private void ApplyLocked(LightingState state)
     {
-        bool rendered;
-        LightingState? applied;
-        lock (_gate)
-        {
-            state = WithoutMissingCustomLocked(state);
-            _lighting.Replace(state.Global, state.Devices);
-            _ledColors.Replace(state.LedColors);
-            _ledColors.Adopt(_outputs.All.Select(output => output.Device));
-            applied = read ? StateLocked() : null;
-
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        return applied;
+        state = WithoutMissingCustomLocked(state);
+        _lighting.Replace(state.Global, state.Devices);
+        _ledColors.Replace(state.LedColors);
+        _ledColors.Adopt(_outputs.All.Select(output => output.Device));
     }
 
     private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());

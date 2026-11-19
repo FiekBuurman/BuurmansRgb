@@ -401,4 +401,124 @@ public sealed class ProfileLibraryTests
         Assert.Equal(1, changes);
         Assert.Single(_library.Names);
     }
+
+    // A scene of some devices: those get its lighting, the others keep theirs, also the fan that
+    // follows the global lighting; the strip, which is not there now, gets it for when it comes.
+    [Fact]
+    public async Task Load_SceneOfSomeDevices_LeavesTheOtherDevicesAsTheyAre()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var device = RecordingDeviceProvider.DeviceId;
+        _library.Show(WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["mouse"] = StaticLighting(Orange) }), scene: null);
+        var scene = new LightingState(
+            StaticLighting(Red),
+            new Dictionary<string, DeviceLighting> { ["mouse"] = StaticLighting(Blue) },
+            LedColors(device, Red, Blue, Red));
+        _store.Profiles = [new Profile("Lezen", scene) { DeviceIds = [device, "strip"] }];
+
+        _library.Load("Lezen");
+
+        var state = _lighting.State;
+        Assert.Equal(StaticLighting(Green), state.Global);
+        Assert.Equal(StaticLighting(Red), state.For(device));
+        Assert.Equal(StaticLighting(Red), state.For("strip"));
+        Assert.Equal(StaticLighting(Orange), state.For("mouse"));
+        Assert.Equal(StaticLighting(Green), state.For("fan"));
+        Assert.Equal([Red, Blue, Red], state.LedColors[device].Colors);
+        Assert.Equal("Lezen", _library.ActiveName);
+    }
+
+    // Per-LED colors of a device in the scene that the scene does not have go; those of a device
+    // that is not in it stay.
+    [Fact]
+    public void WithDevicesFrom_TakesThePerLedColorsOfTheDevicesInIt()
+    {
+        var now = new LightingState(StaticLighting(Green), new Dictionary<string, DeviceLighting>(), new Dictionary<string, LedColorEntry>
+        {
+            ["strip"] = new([Red], ZoneLengths: null),
+            ["fan"] = new([Blue], ZoneLengths: null),
+        });
+
+        var merged = now.WithDevicesFrom(Uniform(StaticLighting(Green)), ["strip"]);
+
+        Assert.Equal(["fan"], merged.LedColors.Keys);
+        Assert.Empty(merged.Devices);
+    }
+
+    // A time while a program holds it: what comes back once the program stops is the scene over
+    // what would have come back, not over the scene of the program.
+    [Fact]
+    public void LoadTimed_HeldSceneOfSomeDevices_ComesOverWhatWouldComeBack()
+    {
+        _store.Profiles = [new Profile("Lezen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"] }];
+        var before = WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Orange) });
+        HeldLighting? kept = null;
+
+        _library.LoadTimed(new TimedProfile("Lezen", ProfileRole.None, IsInternal: false, []), next =>
+        {
+            kept = next(new HeldLighting(before, Scene: null));
+            return true;
+        });
+
+        Assert.Equal("Lezen", kept!.Value.Scene);
+        Assert.Equal(StaticLighting(Red), kept.Value.Lighting.For("strip"));
+        Assert.Equal(StaticLighting(Orange), kept.Value.Lighting.For("fan"));
+        Assert.Equal(StaticLighting(Green), kept.Value.Lighting.Global);
+    }
+
+    // Overwriting a scene, also from the name card, keeps the devices it is for.
+    [Fact]
+    public void Save_OverASceneOfSomeDevices_KeepsThem()
+    {
+        _store.Profiles = [new Profile("Lezen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"] }];
+
+        _library.Save("lezen");
+
+        Assert.Equal(["strip"], Assert.Single(_store.Profiles).DeviceIds!);
+    }
+
+    [Fact]
+    public void SetDevices_SavesThemAsNormalizedAndNullForEveryDevice()
+    {
+        _store.Profiles = [new Profile("Lezen", Uniform(StaticLighting(Red)))];
+        var changes = 0;
+        _library.Changed += (_, _) => changes++;
+
+        _library.SetDevices("lezen", ["strip", "", "fan", "strip"]);
+        Assert.Equal(["strip", "fan"], _library.GetDevices("Lezen")!);
+        Assert.Equal(["strip", "fan"], Assert.Single(_store.Profiles).DeviceIds!);
+        Assert.Equal(StaticLighting(Red), _store.Profiles[0].Lighting.Global);
+
+        _library.SetDevices("Lezen", null);
+        Assert.Null(_library.GetDevices("Lezen"));
+        Assert.Equal(2, changes);
+    }
+
+    // A scene for no device does nothing; "Alles uit" switches every device off for "Uit om" and
+    // "Aan om", so it stays for every device. Neither changes the file.
+    [Fact]
+    public void SetDevices_NoDeviceOrAllOff_Throws()
+    {
+        _store.Profiles = [new Profile("Alles uit", Uniform(StaticLighting(Red) with { On = false })) { Role = ProfileRole.AllOff }, new Profile("Lezen", Uniform(StaticLighting(Red)))];
+
+        Assert.Throws<ArgumentException>(() => _library.SetDevices("Lezen", []));
+        Assert.Throws<ArgumentException>(() => _library.SetDevices("Lezen", [" "]));
+        Assert.Throws<ArgumentException>(() => _library.SetDevices("Alles uit", ["strip"]));
+        Assert.Throws<ArgumentException>(() => _library.SetDevices("Gamen", ["strip"]));
+        _library.SetDevices("Alles uit", null);
+
+        Assert.All(_store.Profiles, profile => Assert.Null(profile.DeviceIds));
+    }
+
+    // The card shows the lighting of the first device of the scene, which the scene gives it.
+    [Fact]
+    public void GetLook_SceneOfSomeDevices_IsThatOfTheFirst()
+    {
+        var lighting = WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Blue) });
+        _store.Profiles = [new Profile("Fan", lighting) { DeviceIds = ["fan", "strip"] }, new Profile("Strip", lighting) { DeviceIds = ["strip"] }, new Profile("Werk", lighting)];
+
+        Assert.Equal(StaticLighting(Blue), _library.GetLook("Fan"));
+        Assert.Equal(StaticLighting(Green), _library.GetLook("Strip"));
+        Assert.Equal(StaticLighting(Green), _library.GetLook("Werk"));
+    }
 }
