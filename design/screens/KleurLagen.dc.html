@@ -10,7 +10,11 @@
   zo in een browser. De tokens zijn die van § 1; --t is de tekstgrootte van Windows (1 = 100 %,
   2 = 200 %): alleen tekst groeit mee, zoals in WPF, niet de minimale klikvlakken van 44 px.
   Het script onderaan vult de chips en de dichte kaarten uit de data, zoals renderVals() in de
-  andere schermen, en laat de koppen open- en dichtklappen en de chips springen.
+  andere schermen, en laat de koppen open- en dichtklappen en de chips springen. De effecttegels
+  kiezen met de pijltjes, Home en End, een klik, Enter en Spatie; de zin eronder en kaart 4 wisselen
+  mee (wat de mock niet uittekent, beschrijft een gestippeld vak). De mock heeft geen eigen effecten,
+  dus Eigen effect kiest niets: met een klik, Enter of Spatie toont kaart 4 "Jouw effect", de pijltjes
+  gaan er alleen langs. Het script verandert niets aan Helderheid en snelheid (zoals Richting).
 -->
 <style>
 body{margin:0;background:#0B0B0D;color:#F4F1EA;font-family:'Bricolage Grotesque','Segoe UI Variable','Segoe UI',system-ui,sans-serif;padding:32px;display:flex;flex-direction:column;gap:40px}
@@ -122,11 +126,11 @@ h1,h3,h4{margin:0}
         <section class="card" aria-labelledby="eff1">
           <h2 id="eff1" class="sec" style="margin:0 0 12px 0">Effect</h2>
           <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Statisch"></div>
-          <div class="sub" style="margin-top:10px">Eén kleur die blijft staan.</div>
+          <div class="sub" style="margin-top:10px" data-desc>Eén kleur die blijft staan.</div>
           <div class="implinks"><button class="link" aria-label="Scène of eigen effect importeren…">Importeren…</button><button class="link" aria-label="Code van een scène of eigen effect plakken">Code plakken</button></div>
         </section>
 
-        <section class="card" aria-labelledby="kl1">
+        <section class="card" aria-labelledby="kl1" data-card4>
           <h2 id="kl1" class="sec" style="margin:0 0 12px 0">Kleur</h2>
           <div class="cols">
             <div style="background:#0E0E11;border:1px solid #2E2E36;border-radius:22px;padding:22px 18px 18px 18px;display:flex;flex-direction:column;gap:18px;align-self:start">
@@ -193,11 +197,11 @@ h1,h3,h4{margin:0}
         <section class="card" aria-labelledby="eff2">
           <h2 id="eff2" class="sec" style="margin:0 0 12px 0">Effect</h2>
           <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Regenboog"></div>
-          <div class="sub" style="margin-top:10px">Alle kleuren van de regenboog schuiven over de LED's.</div>
+          <div class="sub" style="margin-top:10px" data-desc>Alle kleuren van de regenboog schuiven over de LED's.</div>
           <div class="implinks"><button class="link" aria-label="Scène of eigen effect importeren…">Importeren…</button><button class="link" aria-label="Code van een scène of eigen effect plakken">Code plakken</button></div>
         </section>
 
-        <section class="card" aria-labelledby="kl2">
+        <section class="card" aria-labelledby="kl2" data-card4>
           <h2 id="kl2" class="sec" style="margin:0 0 6px 0">Geen kleur nodig</h2>
           <div class="sub" style="color:#F4F1EA;font-size:calc(var(--t)*15px)">Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.</div>
         </section>
@@ -248,11 +252,11 @@ h1,h3,h4{margin:0}
         <section class="card" aria-labelledby="eff3">
           <h2 id="eff3" class="sec" style="margin:0 0 12px 0">Effect</h2>
           <div class="tiles" role="radiogroup" aria-label="Effect" data-effects="Statisch"></div>
-          <div class="sub" style="margin-top:10px">Eén kleur die blijft staan.</div>
+          <div class="sub" style="margin-top:10px" data-desc>Eén kleur die blijft staan.</div>
           <div class="implinks"><button class="link" aria-label="Scène of eigen effect importeren…">Importeren…</button><button class="link" aria-label="Code van een scène of eigen effect plakken">Code plakken</button></div>
         </section>
 
-        <section class="card" aria-labelledby="kl3">
+        <section class="card" aria-labelledby="kl3" data-card4>
           <h2 id="kl3" class="sec" style="margin:0 0 12px 0">Kleur</h2>
           <div style="background:#0E0E11;border:1px solid #2E2E36;border-radius:22px;padding:22px 18px 18px 18px;display:flex;flex-direction:column;gap:18px">
             <div class="strip" aria-hidden="true" data-strip="#FF9A3D" data-n="12"></div>
@@ -391,13 +395,64 @@ document.addEventListener('keydown', e => {
   items.forEach(b => b.tabIndex = -1);
   items[i].tabIndex = 0; items[i].focus(); e.preventDefault();
   if (group.getAttribute('role') !== 'radiogroup') return;
-  // The mock has no own effects, so the tile Eigen effect chooses nothing (§ 9.3): the previous tile stays
-  // chosen and keeps the Tab stop.
+  // The mock has no own effects, so the arrows pass the tile Eigen effect without choosing it or changing
+  // card 4 (§ 9.3): the previous tile stays chosen and keeps the Tab stop.
   if (items[i].dataset.custom !== undefined) {
     items.forEach(b => b.tabIndex = b.getAttribute('aria-checked') === 'true' ? 0 : -1);
     return;
   }
-  items.forEach(b => b.setAttribute('aria-checked', b === items[i]));
+  chooseTile(items[i]);
+});
+
+// Card 4 follows the chosen effect (§ 9.2). The mixing panel is the one of the window, or of state 1 where
+// the window starts at Regenboog; what the mock does not draw out, a dashed note describes.
+const descriptions = {
+  'Statisch': 'Eén kleur die blijft staan.', 'Ademen': 'De kleur gloeit op en dooft weer, als ademhalen.',
+  'Regenboog': 'Alle kleuren van de regenboog schuiven over de LED\'s.', 'Golf': 'Een golf van de kleur rolt over de LED\'s.',
+  'Kleurenloop': 'Je eigen kleuren lopen in elkaar over.', 'Fonkelen': 'LED\'s lichten hier en daar op, als sterretjes.',
+  'Komeet': 'Een lichtpunt met een staart erachter loopt rond.', 'Scanner': 'Een lichtpunt gaat heen en weer, zoals bij Knight Rider.',
+  'Vuur': 'Het licht flakkert als een vuur, van gloed tot felle vlam.', 'Per LED': 'Geef elke LED in het voorbeeld een eigen kleur.'
+};
+const firstMix = [...document.querySelectorAll('[data-card4]')].find(c => c.querySelector('h2').textContent === 'Kleur');
+const mixOf = card => {
+  const own = card.querySelector('h2').textContent === 'Kleur' ? card : firstMix;
+  return own.dataset.mix || (own.dataset.mix = [...own.children].slice(1).map(n => n.outerHTML).join(''));
+};
+document.querySelectorAll('[data-card4]').forEach(mixOf);
+const note = text => '<div class="note">' + text + '</div>';
+const card4 = (effect, mix) => {
+  const sentence = text => '<div class="sub" style="color:#F4F1EA;font-size:calc(var(--t)*15px)">' + text + '</div>';
+  switch (effect) {
+    case 'Statisch': case 'Ademen': case 'Golf': return ['Kleur', mix];
+    case 'Regenboog': return ['Geen kleur nodig', sentence('Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.')];
+    case 'Kleurenloop': return ['Kleuren van de loop', note('De lijst van de loop met het vinkje "Kleuren over de LED\'s verdelen (uit: alle LED\'s tegelijk dezelfde kleur)", en het mengpaneel voor de gekozen kleur.')];
+    case 'Per LED': return ['Kleur voor de LED\'s', sentence('Kies LED\'s in een apparaat hieronder; de kleur gaat naar die LED\'s.') + '<button class="link">Naar de apparaten</button>' + note('Daaronder het mengpaneel, zoals bij Statisch.')];
+    case 'Eigen effect': return ['Jouw effect', sentence('Je hebt nog geen eigen effect.') + '<button class="link">+ Eigen effect maken</button>'];
+    default: return ['Kleuren van het effect', note('De lijst van het effect met Standaardkleuren eronder, en het mengpaneel voor de gekozen kleur.')];
+  }
+};
+const showCard4 = (tile, effect) => {
+  const card = tile.closest('.page').querySelector('[data-card4]');
+  const h2 = card.querySelector('h2');
+  const [title, body] = card4(effect, mixOf(card));
+  h2.textContent = title;
+  h2.style.margin = '0 0 12px 0';
+  card.innerHTML = h2.outerHTML + body;
+};
+const effectOf = tile => tile.textContent.replace('✓', '').trim();
+// Choosing a tile: by an arrow, a click, or Enter and Space (a button clicks on both).
+const chooseTile = tile => {
+  const items = [...tile.parentElement.children];
+  items.forEach(b => { b.setAttribute('aria-checked', b === tile); b.tabIndex = b === tile ? 0 : -1; });
+  tile.closest('.card').querySelector('[data-desc]').textContent = descriptions[effectOf(tile)];
+  showCard4(tile, effectOf(tile));
+};
+document.addEventListener('click', e => {
+  const tile = e.target.closest('.tile');
+  if (!tile) return;
+  // Eigen effect without own effects chooses nothing on a click, Enter or Space either; only card 4 changes (§ 9.8).
+  if (tile.dataset.custom !== undefined) { showCard4(tile, 'Eigen effect'); return; }
+  chooseTile(tile);
 });
 </script>
 </body>
