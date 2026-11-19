@@ -298,7 +298,9 @@ uitbreidingen in `docs/bouwplan.md`.
   (Statisch, Ademen, Golf); nu toont de kiezer dan de kleur van het apparaat, ook als een scène
   zo'n effect aanzet, en bewaar je de gemengde kleur alleen met + bij je eigen kleuren
 - Bij Regenboog de strip in het kleurvoorbeeld een regenboog laten tonen, zoals de apparaten; nu
-  toont hij de gemengde kleur, met eronder dat Regenboog geen kleur van het apparaat gebruikt
+  toont hij de gemengde kleur, met eronder dat Regenboog geen kleur van het apparaat gebruikt.
+  Vervalt als Kleur in lagen (§ 9.2 van `design/DESIGN.md`) gebouwd wordt: daar heeft Regenboog
+  geen mengpaneel
 - Ongedaan maken voor een kleur die je meteen meekleurde (van het apparaat, de kleurenloop, de
   kleuren van een effect of LED's), nu er geen knop meer tussen mengen en het apparaat zit; ook
   "de kleur van daarnet" na een scène die door een nieuwe kleur niet meer aan staat
@@ -344,7 +346,18 @@ uitbreidingen in `docs/bouwplan.md`.
 - De pagina Kleur in de volgorde van het effect: eerst het effect kiezen, dan wat bij dat effect
   hoort (de kleur, de kleuren van de loop of het effect, de stappen); nu kies je het effect pas
   halverwege bij "Licht en beweging", en blijft bij Statisch en Regenboog links onder het
-  kleurvoorbeeld een groot leeg vlak (gebruikerstest 28-10, B7). Een grote verbouwing
+  kleurvoorbeeld een groot leeg vlak (gebruikerstest 28-10, B7). Een grote verbouwing.
+  Ontworpen als `kleur-volgorde` in § 9 van `design/DESIGN.md` (Kleur in lagen, nacht 6), samen
+  met het open- en dichtklappen van de kaarten in het voorbeeld; blijft hier tot het gebouwd is
+- Op de effecttegels van Kleur in lagen (§ 9.3 van `design/DESIGN.md`) een klein stilstaand
+  plaatje van het effect (bijv. een strip in de kleuren van Regenboog of Vuur), zodat je ziet wat
+  een effect doet vóór je het kiest; geen animatie, voor minder beweging en geen werk per beeld
+- In de subregel onder de titel van Kleur ook de scène noemen die aan staat ("Hele huis · 9
+  apparaten · scène Gamen"), zodat je ziet dat een wijziging hem uitzet (`kleur-lagen-schets`)
+- Na een sprong naar een apparaat met veel LED's (een toetsenbord) een link "Naar de apparaten"
+  onder de kaart, of de chiprij laten meeschuiven bovenaan, zodat je zonder lang terugscrollen naar
+  een volgend apparaat springt; § 9 van `design/DESIGN.md` laat de chiprij nu op zijn plek
+  (`kleur-lagen-schets`)
 - De grote schakelaar bij "Hele huis" op Apparaten bij een gemengde stand (bijv. 1 van 12 aan)
   eerst alles aan laten zetten; nu staat hij aan zolang er één apparaat aan is, dus een klik zet
   alles uit, en wie alles aan wil, moet twee keer klikken (gebruikerstest 28-10)
@@ -470,7 +483,9 @@ uitbreidingen in `docs/bouwplan.md`.
   onder de actieve staat; nu gaan ze vanaf de bovenste of onderste rij naar de laatste LED van
   de zone ervoor of de eerste van de zone erna, en in een ring meteen naar de zone ernaast
 - Met het toetsenbord ook van het ene apparaat naar het andere in het voorbeeld gaan (bijv. Page Up en
-  Page Down); nu gaat dat met Tab, dat één keer per apparaat stopt
+  Page Down); nu gaat dat met Tab, dat één keer per apparaat stopt. Kleur in lagen (§ 9 van
+  `design/DESIGN.md`) springt met de chiprij naar een apparaat en geeft een dichte kaart maar twee
+  Tab-stops, maar Page Up en Page Down zitten er niet in
 - Met ← en → over de LED's heen gaan die een zone niet meer toont terwijl je een kortere lengte
   instelt; de actieve LED springt nu terug naar de laatste getoonde LED als de lengte korter
   wordt, maar → kan er in de 600 ms voordat de lengte naar de engine gaat nog op komen (zonder
@@ -510,7 +525,9 @@ uitbreidingen in `docs/bouwplan.md`.
   pagina Lampen en § 6 ook in de titelbalk
 - In het voorbeeld bij "Hele huis" de kaarten van de apparaten in- en uitklappen, of met één
   klik naar een apparaat springen; nu staan alle apparaten met hun LED's, knoppen en
-  LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10)
+  LED-aantallen onder elkaar in één lange lijst (gebruikerstest 28-10). Ontworpen als
+  `kleur-lagen` in § 9 van `design/DESIGN.md` (dichte apparaatkaarten met een chiprij, testpanel
+  1-11-2026, voorstel E, 10 van de 10), te bouwen in nacht 6; blijft hier tot het gebouwd is
 - In het voorbeeld meteen laten zien welke LED een klik kiest, bijv. een dunne ring om de LED die
   `LedLayout.NearestLed` onder de muis vindt; nu kiest een klik naast een LED de dichtstbijzijnde
   ("led-klikdoel"), maar dat zie je pas aan de tooltip, na zijn vertraging

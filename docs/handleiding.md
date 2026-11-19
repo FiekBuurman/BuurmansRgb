@@ -1285,6 +1285,9 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   het apparaat en bewaren als scène is een extra stap. Hij opent dezelfde naamkaart als "+ Nieuwe
   scène"; in die kaart staan "Opslaan" en "Annuleren" onder het naamveld in plaats van ernaast,
   zodat het veld ook in de smalle kolom van Kleur breed genoeg blijft.
+  Een nieuwe opzet van deze pagina, "Kleur in lagen" (eerst het effect, en de apparaten in het
+  voorbeeld als kaarten die je openklapt), staat als ontwerp in § 9 van `design/DESIGN.md`; hij
+  is nog niet gebouwd, dus de pagina werkt zoals hierboven.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
   van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
   eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de
