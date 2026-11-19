@@ -16,7 +16,7 @@ Bestanden in dit pakket:
 | `screens/Scenes.dc.html` | Referentie: Scènes. |
 | `screens/KleurLagen.dc.html` | Ontwerp voor nacht 6: Kleur in lagen (§ 9), als desktopvenster in drie staten. Gewone HTML zonder template-runtime: opent zo in een browser. |
 
-De `.dc.html`-bestanden zijn **ontwerpreferenties, geen draaibare code**: ze gebruiken een eigen template-runtime (`{{hole}}`-plaatshouders en `<sc-for>`-lussen). De data die in de plaatshouders komt staat onderaan elk bestand in het `<script type="text/x-dc">`-blok (`renderVals()`). Lees ze voor exacte maten, kleuren en teksten.
+De `.dc.html`-bestanden zijn **ontwerpreferenties, geen draaibare code**: ze gebruiken een eigen template-runtime (`{{hole}}`-plaatshouders en `<sc-for>`-lussen). De data die in de plaatshouders komt staat onderaan elk bestand in het `<script type="text/x-dc">`-blok (`renderVals()`). Lees ze voor exacte maten, kleuren en teksten. De uitzondering is `KleurLagen.dc.html`: gewone HTML met een gewoon script onderaan, zonder template-runtime. Hij houdt de naam `.dc.html`, zodat alle ontwerpschermen in `screens/` bij elkaar horen.
 
 ---
 
@@ -187,7 +187,7 @@ Speels Nederlands met een knipoog naar klussen: "Erbij knutselen", "Uit de geree
 | 2 | Statusregel | **Statusregel** | bestaand |
 | 3 | Kaart **Effect**: het effect kiezen, met de zin over wat het doet eronder | grote **Kaart**, **Effecttegel** (9.3) | nieuw: de tegels (zie open vraag 1); de zin bestaat al |
 | 4 | Kaart met **wat bij het effect hoort** (9.2) | grote **Kaart**, het mengpaneel van § 5.2, **Preset-tegel**, de lijst met kleuren | bestaand, op een nieuwe plek |
-| 5 | Kaart **Helderheid en snelheid**: Helderheid, Snelheid en (bij Regenboog, Golf en een verspreide Kleurenloop) Richting naast elkaar | grote **Kaart**, schuiven, **Link** "Geen richting" | bestaand (nu "Licht en beweging", zonder het effect) |
+| 5 | Kaart **Helderheid en snelheid**: Helderheid, Snelheid en (bij Regenboog, Golf en een verspreide Kleurenloop) Richting naast elkaar | grote **Kaart**, schuiven, **Link** "Volgorde van de LED's" (alleen met een richting; zonder richting staat "Volgorde" naast de schuif) | bestaand (nu "Licht en beweging", zonder het effect) |
 | 6 | **Bewaar als scène**, met de naamkaart eronder | **Knop**, de naamkaart van Scènes | bestaand |
 | 7 | Sectiekop **Per apparaat** met de subtekst "Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen."; rechts de links **Alles openklappen** en **Alles dichtklappen** | sectiekop, subtekst, **Link** | nieuw (vervangt de kop "Voorbeeld") |
 | 8 | Tijdens een pauze de regel waarom Knipperen en Tellen grijs zijn, met **Hervatten** | **Knop** | bestaand, nu onder de kop van 7 |
@@ -203,8 +203,8 @@ Je kiest eerst het effect; kaart 4 toont daarna alleen wat dat effect gebruikt. 
 | Effect | Kop van kaart 4 | Inhoud |
 |---|---|---|
 | Statisch, Ademen, Golf | Kleur | het mengpaneel (voorbeeld, hex-code, Rood, Groen, Blauw), "Kleuren", "Eigen kleuren" |
-| Kleurenloop | Kleuren van de loop | de lijst van de loop, en het mengpaneel voor de gekozen kleur daarin |
-| Fonkelen, Komeet, Scanner, Vuur | Kleuren van het effect | de lijst van het effect met "Kleur van het apparaat", en het mengpaneel voor de gekozen kleur |
+| Kleurenloop | Kleuren van de loop | de lijst van de loop met eronder het vinkje "Kleuren over de LED's verdelen (uit: alle LED's tegelijk dezelfde kleur)" (een `CheckBox`, zoals nu), en het mengpaneel voor de gekozen kleur daarin |
+| Fonkelen, Komeet, Scanner, Vuur | Kleuren van het effect | de lijst van het effect met **Standaardkleuren** eronder, en het mengpaneel voor de gekozen kleur. Standaardkleuren haalt de eigen kleuren weg: Fonkelen, Komeet en Scanner volgen dan weer de kleur van het apparaat, Vuur brandt weer in zijn vier warme kleuren (de kleur van het apparaat doet bij Vuur nooit mee) |
 | Eigen effect | Jouw effect | naam, stappen, tijden en delen; het mengpaneel voor de gekozen stap |
 | Per LED | Kleur voor de LED's | het mengpaneel, met de zin "Kies LED's in een apparaat hieronder; de kleur gaat naar die LED's." en de link **Naar de apparaten** (springt naar 7) |
 | Regenboog | Geen kleur nodig | één zin: "Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting." Geen mengpaneel |
@@ -226,7 +226,7 @@ Bij Regenboog valt het mengpaneel dus weg, in plaats van een kleur te mengen die
 
 ### 9.4 Toetsenbord
 
-**Tab-volgorde**, van boven naar beneden zoals je leest: navigatie → "Welk apparaat?" → schakelaar → knoppen van de statusregel → effecttegels (één Tab-stop: de gekozen tegel) → wat bij het effect hoort (lijst, hex-code, Rood, Groen, Blauw, "Kleuren", "Eigen kleuren", +) → Helderheid → Snelheid → Richting → Bewaar als scène → Alles openklappen → Alles dichtklappen → de chiprij (één Tab-stop) → per apparaatkaart de kop en dan Knipperen; in een open kaart daarna de inhoud in de volgorde van nu (Zones gelijk, per zone de link, Tellen, Knipperen, de LED's, de stepper). Een dichte kaart heeft dus twee Tab-stops; zijn inhoud slaat Tab over.
+**Tab-volgorde**, van boven naar beneden zoals je leest: navigatie → "Welk apparaat?" → schakelaar → knoppen van de statusregel → effecttegels (één Tab-stop: de gekozen tegel) → wat bij het effect hoort (de lijst met + en −; bij Kleurenloop het vinkje "Kleuren over de LED's verdelen…", bij Fonkelen, Komeet, Scanner en Vuur Standaardkleuren; hex-code, Rood, Groen, Blauw, "Kleuren", "Eigen kleuren", +) → Helderheid → Snelheid → Richting → Volgorde van de LED's (alleen met een richting) → Bewaar als scène → Alles openklappen → Alles dichtklappen → de chiprij (één Tab-stop) → per apparaatkaart de kop en dan Knipperen; in een open kaart daarna de inhoud in de volgorde van nu (Zones gelijk, per zone de link, Tellen, Knipperen, de LED's, de stepper). Een dichte kaart heeft dus twee Tab-stops; zijn inhoud slaat Tab over.
 
 - **Effect kiezen:** ← → ↑ ↓ gaan naar de vorige of volgende tegel en kiezen hem meteen, zoals keuzerondjes; Home en End naar de eerste en de laatste.
 - **Openen en sluiten:** op de kop van een kaart klappen Enter en Spatie hem open of dicht; → klapt een dichte kaart open en ← een open kaart dicht, zoals een map in Verkenner. De focus blijft op de kop. Na Alles openklappen of Alles dichtklappen blijft de focus op de link.
