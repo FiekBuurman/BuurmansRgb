@@ -285,6 +285,60 @@ public sealed class JsonSettingsStoreTests : IDisposable
         Assert.DoesNotContain("\"hadRealDevices\": false", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
+    // A file from before the start scenes, or without the line: not settled yet, so EngineHost
+    // looks whether there is a profiles.json. A new file has it neither.
+    [Theory]
+    [InlineData("""{ "color": "#FF8800" }""", false)]
+    [InlineData("""{ "startScenesCreated": false }""", false)]
+    [InlineData("""{ "startScenesCreated": true }""", true)]
+    public void Load_StartScenesCreated_IsOffUnlessRecorded(string json, bool expected)
+    {
+        var path = _directory.File("settings.json");
+        File.WriteAllText(path, json);
+
+        Assert.Equal(expected, new JsonSettingsStore(path).LoadOrCreate().StartScenesCreated);
+        Assert.False(new JsonSettingsStore(_directory.File("new.json")).LoadOrCreate().StartScenesCreated);
+    }
+
+    // Only a file that is there and does not read: then the engine decides nothing on what it got.
+    [Fact]
+    public void LoadDidNotRead_OnlyForAFileThatIsThereButDoesNotRead()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+
+        store.LoadOrCreate();
+        Assert.False(store.LoadDidNotRead);
+
+        using (new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            store.LoadOrCreate();
+        }
+
+        Assert.True(store.LoadDidNotRead);
+
+        store.LoadOrCreate();
+        Assert.False(store.LoadDidNotRead);
+
+        File.WriteAllText(path, "{ not json");
+        store.LoadOrCreate();
+        Assert.True(store.LoadDidNotRead);
+    }
+
+    // Also a fact the engine records: in the file only once it is true.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Save_StartScenesCreated_IsWrittenOnlyOnceTrue(bool created)
+    {
+        var path = _directory.File("settings.json");
+
+        new JsonSettingsStore(path).Save(new EngineSettings { StartScenesCreated = created });
+
+        Assert.Equal(created, File.ReadAllText(path).Contains("\"startScenesCreated\": true", StringComparison.Ordinal));
+        Assert.DoesNotContain("\"startScenesCreated\": false", File.ReadAllText(path), StringComparison.Ordinal);
+    }
+
     // A file from before the option reads as null, so EngineHost asks the Run key; a new file says
     // false, as nobody chose yet.
     [Theory]

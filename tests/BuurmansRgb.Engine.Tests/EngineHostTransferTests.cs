@@ -6,6 +6,7 @@ using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Ipc;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Settings;
 using BuurmansRgb.Providers.Simulated;
 
@@ -32,6 +33,8 @@ public sealed class EngineHostTransferTests : IDisposable
         _simulatedDevices = new SimulatedDevicesSwitch(SwitchableDeviceProvider.For(new SimulatedDeviceProvider()), _lighting);
         _zoneLengths = new ZoneLengthKeeper(_lighting);
         _store = new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName));
+        // A pc that had its start scenes, so only the files a test makes are there.
+        _store.Save(EngineSettings.CreateNew() with { StartScenesCreated = true });
         _profiles = new ProfileLibrary(new JsonProfileStore(PathOf(SettingsBackup.ProfilesFileName)), _lighting);
         _effectStore = new FlakyCustomEffectStore(new JsonCustomEffectStore(PathOf(SettingsBackup.EffectsFileName)));
         _customEffects = new CustomEffectLibrary(_effectStore, _lighting, saveDelay: TimeSpan.FromHours(1));
@@ -237,6 +240,47 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.False(file.ContainsKey("hadRealDevices"));
     }
 
+    // A backup from before the start scenes (#115), with or without profiles.json, does not bring
+    // them back once more: startScenesCreated belongs to this pc, so also after a restart there is
+    // each scene once, or only the ones of the backup.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Restore_OfABackupFromBeforeTheStartScenes_DoesNotMakeThemAgain(bool withProfiles)
+    {
+        File.Delete(PathOf(SettingsBackup.SettingsFileName));
+        using (var first = CreateHost())
+        {
+            await first.StartAsync(Ct);
+            Assert.Equal(5, _profiles.Names.Count);
+            _profiles.Delete(Strings.StartSceneAllOff);
+
+            List<(string, byte[])> files = [(SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))];
+            if (withProfiles)
+            {
+                files.Add((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [ { "name": "Oud" } ] }""")));
+            }
+
+            Assert.Equal(SettingsRestoreOutcome.Restored, first.Restore(SettingsArchiveTests.Zip([.. files])).Outcome);
+        }
+
+        Assert.True(new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName)).LoadOrCreate().StartScenesCreated);
+        IReadOnlyList<string> expected = withProfiles ? ["Oud"] : [Strings.StartScenePastel, Strings.StartSceneGaming, Strings.StartSceneRainbow, Strings.StartSceneCalmWhite];
+        Assert.Equal(expected.Order(ProfileNames.Comparer), await NamesAfterARestartAsync());
+
+        // Not even without profiles.json.
+        File.Delete(PathOf(SettingsBackup.ProfilesFileName));
+        Assert.Empty(await NamesAfterARestartAsync());
+    }
+
+    private async Task<IReadOnlyList<string>> NamesAfterARestartAsync()
+    {
+        var profiles = new ProfileLibrary(new JsonProfileStore(PathOf(SettingsBackup.ProfilesFileName)), _lighting);
+        using var host = new EngineHost(new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName)), _lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
+        await host.StartAsync(Ct);
+        return profiles.Names;
+    }
+
     // A zip that does not pass replaces nothing and makes no copy.
     [Fact]
     public async Task Restore_InvalidZip_ChangesNothing()
@@ -437,6 +481,8 @@ public sealed class EngineHostTransferTests : IDisposable
         }
 
         public void Release() => _released.Set();
+
+        public bool LoadDidNotRead => store.LoadDidNotRead;
 
         public EngineSettings LoadOrCreate() => store.LoadOrCreate();
 

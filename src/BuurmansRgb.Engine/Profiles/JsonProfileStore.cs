@@ -14,6 +14,10 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => filePath + ".broken";
 
+    // Also a file that is not valid JSON, also once Load moved it aside: that is from a pc that
+    // had a profiles.json, even when the library read it before AddStartScenes.
+    public bool Exists => File.Exists(filePath) || File.Exists(BrokenFilePath);
+
     // A profile without a valid name, or with the name of an earlier one, is skipped.
     public IReadOnlyList<Profile> Load()
     {

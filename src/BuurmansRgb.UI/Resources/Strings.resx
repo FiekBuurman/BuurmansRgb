@@ -1311,7 +1311,8 @@
     <value>Annuleren</value>
   </data>
   <data name="NoScenes" xml:space="preserve">
-    <value>Nog geen scènes. Zet de apparaten zoals je ze wilt en kies hieronder Nieuwe scène.</value>
+    <value>Nog geen scènes. Een scène bewaart hoe al je apparaten staan, zodat je dat later met één klik terugzet. Zet de apparaten zoals je ze wilt en kies hieronder Nieuwe scène.</value>
+    <comment>De lege staat van Scènes: een nieuwe installatie heeft startscènes, dus dit ziet wie ze allemaal verwijderde of een installatie van vóór de startscènes. Noemt "Nieuwe scène" (NewScene zonder "+ ") letterlijk; komt er een knop "Bewaar als scène" op Kleur, noem die dan hier ook.</comment>
   </data>
   <data name="SceneLoadAccessibleName" xml:space="preserve">
     <value>{0} aanzetten</value>

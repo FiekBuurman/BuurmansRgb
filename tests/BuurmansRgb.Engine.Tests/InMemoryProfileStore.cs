@@ -8,11 +8,17 @@ internal sealed class InMemoryProfileStore : IProfileStore
 {
     public IReadOnlyList<Profile> Profiles { get; set; } = [];
 
+    // As a profiles.json that is there, also without profiles, so the engine makes no start scenes;
+    // false for a new installation.
+    public bool Exists { get; set; } = true;
+
     public Exception? LoadException { get; set; }
 
     public Exception? SaveException { get; set; }
 
     public int LoadCount { get; private set; }
+
+    public int SaveCount { get; private set; }
 
     public IReadOnlyList<Profile> Load()
     {
@@ -30,9 +36,14 @@ internal sealed class InMemoryProfileStore : IProfileStore
     {
         var file = LenientJson.Deserialize(json, EngineSettingsJsonContext.Default.ProfilesFile);
         Profiles = [.. (file?.Profiles ?? []).Where(settings => ProfileNames.Normalize(settings?.Name) is not null).Select(settings => settings!.ToProfile(ProfileNames.Normalize(settings.Name)!))];
+        Exists = true;
     }
 
-    public void Delete() => Profiles = [];
+    public void Delete()
+    {
+        Profiles = [];
+        Exists = false;
+    }
 
     public void Save(IReadOnlyList<Profile> profiles)
     {
@@ -41,6 +52,8 @@ internal sealed class InMemoryProfileStore : IProfileStore
             throw SaveException;
         }
 
+        SaveCount++;
         Profiles = [.. profiles];
+        Exists = true;
     }
 }

@@ -17,6 +17,9 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     // Whether the file did not read when it last changed: the next save moves it aside first.
     private bool _unreadable;
 
+    // Whether the file was there at the last LoadOrCreate but did not read.
+    private bool _loadDidNotRead;
+
     public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.SettingsFileName);
 
     // Where a file that does not read goes, so the next save does not overwrite the user's settings.
@@ -27,6 +30,17 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         lock (_gate)
         {
             return LoadOrCreateLocked();
+        }
+    }
+
+    public bool LoadDidNotRead
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _loadDidNotRead;
+            }
         }
     }
 
@@ -123,6 +137,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
     private EngineSettings LoadOrCreateLocked()
     {
+        _loadDidNotRead = false;
         if (!File.Exists(filePath))
         {
             // A new installation; written at once, so from the next start it is an existing file.
@@ -145,6 +160,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
             // before the next change must not find no file at the next start and take it for a
             // new installation (with its own defaults, such as "Uitzetten" during the pause).
             Trace.TraceError(exception.ToString());
+            _loadDidNotRead = true;
             var unknown = UnknownChoices();
             if (TryMoveAside())
             {
@@ -162,6 +178,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
         catch (Exception exception) when (JsonFile.IsAccessError(exception))
         {
             // Out of reach for now; keep the user's file untouched and run on defaults meanwhile.
+            _loadDidNotRead = true;
             return UnknownChoices();
         }
     }

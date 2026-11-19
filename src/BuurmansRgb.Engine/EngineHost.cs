@@ -68,13 +68,23 @@ internal sealed class EngineHost(
         await lighting.DiscoverAsync(ct);
         customEffects?.Load();
         lighting.Apply(settings.ToLightingState());
+        var startScenes = StartScenesOutcome.AlreadySettled;
         if (profiles is not null)
         {
+            (settings, startScenes) = StartScenesOnce(settings, profiles, settingsStore.LoadDidNotRead);
             profiles.RestoreActive(settings.ActiveScene);
             settings = settings with { ActiveScene = profiles.ActiveName };
         }
 
         _saver = new LightingSettingsSaver(settingsStore, lighting, settings, saveDelay ?? LightingSettingsSaver.DefaultDelay, saveEvents: saveEvents);
+        if (startScenes == StartScenesOutcome.Written)
+        {
+            // The saver has startScenesCreated already (StartScenesOnce put it in settings); this
+            // only schedules a save, as any option gets, so it is in settings.json also when
+            // nothing else changes. Setting it again changes nothing, but says what the save is for.
+            _saver.ChangeOptions(saved => saved with { StartScenesCreated = true });
+        }
+
         simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
         simulatedDevices?.HadRealDevicesChanged += OnHadRealDevicesChanged;
         if (simulatedDevices?.HadRealDevices == true && !settings.HadRealDevices)
@@ -285,13 +295,14 @@ internal sealed class EngineHost(
         }
     }
 
-    // With autoStartChosen and hadRealDevices of this pc (SettingsArchive.WithThisPc): the Run key
-    // stays as it is, and what the user chose about it here still counts at the next update.
+    // With autoStartChosen, hadRealDevices and startScenesCreated of this pc
+    // (SettingsArchive.WithThisPc): the Run key stays as it is, what the user chose about it here
+    // still counts at the next update, and the start scenes do not come again on this pc.
     private void ReplaceSettings(byte[] json)
     {
         var saver = _saver ?? throw new InvalidOperationException("The engine has not started yet.");
         var options = saver.Options;
-        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true));
+        settingsStore.Replace(SettingsArchive.WithThisPc(json, options.AutoStartChosen, options.HadRealDevices || simulatedDevices?.HadRealDevices == true, options.StartScenesCreated));
         if (_reloader is not null)
         {
             // Normally applied when this returns; a file that cannot be read yet only later.
@@ -419,6 +430,34 @@ internal sealed class EngineHost(
         }
 
         return settings;
+    }
+
+    // A new installation gets the start scenes, once (startScenesCreated): only without a
+    // profiles.json, so a pc from before this option that has one, also with all its scenes
+    // deleted, gets none. Once the scenes are written, StartAsync has the saver write
+    // startScenesCreated right after the start, not with whatever change comes next: the user may
+    // delete the scenes, which does not save settings.json, and then profiles.json too. A
+    // settings.json that was there but did not read (settingsDidNotRead: locked by a virus scanner
+    // or OneDrive, say) decides nothing: its startScenesCreated is not known, and a save of its own
+    // would, after the saver's waits for a change by hand, write the defaults over the user's file.
+    // So no scenes and no save then; a next start that reads it decides.
+    // A file that was there already settles it as well, but goes along with the next save, as
+    // autoStartChosen does, so a start without changes still writes nothing; until then that
+    // profiles.json tells the same.
+    private static (EngineSettings Settings, StartScenesOutcome Outcome) StartScenesOnce(EngineSettings settings, ProfileLibrary library, bool settingsDidNotRead)
+    {
+        if (settings.StartScenesCreated)
+        {
+            return (settings, StartScenesOutcome.AlreadySettled);
+        }
+
+        if (settingsDidNotRead)
+        {
+            return (settings, StartScenesOutcome.NotWritten);
+        }
+
+        var outcome = library.AddStartScenes(StartScenes.Create());
+        return (outcome == StartScenesOutcome.NotWritten ? settings : settings with { StartScenesCreated = true }, outcome);
     }
 
     // From the tray menu or the settings app, on any thread.

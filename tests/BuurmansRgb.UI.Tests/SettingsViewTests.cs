@@ -106,6 +106,8 @@ public sealed class SettingsViewTests
         Assert.StartsWith(Strings.AutoStartLabel, Strings.AfterRestartTurnOnAutoStart, StringComparison.Ordinal);
         Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleep, StringComparison.OrdinalIgnoreCase);
         Assert.Contains(Strings.SleepHeader, Strings.AfterRestartSleepNoPause, StringComparison.OrdinalIgnoreCase);
+        // The empty state of Scènes names the button under it.
+        Assert.Contains(Strings.NewScene.TrimStart('+', ' '), Strings.NoScenes, StringComparison.Ordinal);
     }
 
     // "Na een herstart" comes right under the sleep block, under a heading, and says what comes back:

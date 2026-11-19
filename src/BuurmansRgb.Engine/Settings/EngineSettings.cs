@@ -19,6 +19,14 @@ internal sealed record EngineSettings : LightingStateSettings
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool HadRealDevices { get; set; }
 
+    // "startScenesCreated": whether the engine settled the start scenes on this pc
+    // (ProfileLibrary.AddStartScenes): it made them, as there was no profiles.json, or there was
+    // one already, also with an empty list. Then they never come again, also not when the user
+    // deletes them, or profiles.json as a whole. A fact the engine records, so only in the file
+    // once it is true, as hadRealDevices.
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool StartScenesCreated { get; set; }
+
     // "autoStartChosen": whether the user set "Starten met Windows" in the tray menu or the
     // settings app (AutoStartSwitch.Chosen); --first-run, which the installer gives after every
     // install, then leaves it as it is. New settings say false, so the file shows it. Null is a
