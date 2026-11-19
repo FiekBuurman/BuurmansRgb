@@ -20,13 +20,13 @@ body{margin:0;background:#0B0B0D;color:#F4F1EA;font-family:'Bricolage Grotesque'
 .win{--t:1;width:1000px;background:#16161A;border:1px solid #2E2E36;border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
 .big{--t:2}
 .big .rail{width:auto;padding:14px 8px 0 8px}
-.big .rail a{width:auto;padding:0 10px}
+.big .rail a{min-width:0;padding:8px 10px}
 .titlebar{display:flex;align-items:center;gap:10px;height:44px;padding:0 14px;border-bottom:1px solid #2E2E36}
 .titlebar b{font-size:18px;font-weight:800;letter-spacing:-0.02em}
 .titlebar .r{color:#FF5A5A}.titlebar .g{color:#3DDC84}.titlebar .bl{color:#5B93FF}
 .body{display:flex;min-height:0}
 .rail{width:88px;flex-shrink:0;background:#1A1A1F;border-right:1px solid #2E2E36;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:14px}
-.rail a{display:flex;flex-direction:column;align-items:center;gap:4px;width:70px;min-height:56px;justify-content:center;border-radius:12px;color:#A9A6A0;text-decoration:none;font-size:calc(var(--t)*12px)}
+.rail a{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:70px;box-sizing:border-box;padding:8px;min-height:56px;justify-content:center;border-radius:12px;color:#A9A6A0;text-decoration:none;font-size:calc(var(--t)*12px)}
 .rail a[aria-current]{background:#24242B;color:#F4F1EA;font-weight:600}
 .page{flex:1;min-width:0;padding:28px 32px 32px 32px;display:flex;flex-direction:column;gap:18px}
 h1,h3,h4{margin:0}
@@ -37,14 +37,14 @@ h1,h3,h4{margin:0}
 .sub{font-size:calc(var(--t)*13px);color:#A9A6A0}
 .mono{font-family:'IBM Plex Mono','Cascadia Mono',Consolas,monospace;font-weight:500}
 .card{background:#212128;border:1px solid #2E2E36;border-radius:22px;padding:18px}
-.knop{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;box-sizing:border-box;padding:0 16px;background:#212128;border:1px solid #2E2E36;border-radius:12px;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;white-space:nowrap}
+.knop{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:44px;box-sizing:border-box;padding:8px 16px;background:#212128;border:1px solid #2E2E36;border-radius:12px;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;white-space:nowrap}
 .knop:hover{border-color:#4A4A54}
-.rond{padding:0;border-radius:22px;width:44px}
+.rond{padding:8px;border-radius:22px;width:44px}
 .link{display:inline-flex;align-items:center;min-height:44px;background:none;border:0;padding:0;color:#7FB0FF;text-decoration:underline;font:inherit;font-size:calc(var(--t)*14px);cursor:pointer;text-align:left}
 .link:hover{color:#A9C9FF}
 .link.klein{font-size:calc(var(--t)*13px)}
 :focus-visible,.focus{outline:2px solid #F4F1EA;outline-offset:3px}
-.select{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;box-sizing:border-box;padding:0 14px;background:#212128;border:1px solid #4A4A54;border-radius:12px;font-size:calc(var(--t)*15px)}
+.select{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;box-sizing:border-box;padding:8px 14px;background:#212128;border:1px solid #4A4A54;border-radius:12px;font-size:calc(var(--t)*15px)}
 .switch{width:52px;height:32px;box-sizing:border-box;padding:4px;border-radius:16px;background:#F4F1EA;display:flex;justify-content:flex-end;flex-shrink:0}
 .switch span{width:24px;height:24px;border-radius:12px;background:#16161A}
 .switch.off{background:#3A3A42;justify-content:flex-start}.switch.off span{background:#8C8A85}
@@ -54,7 +54,7 @@ h1,h3,h4{margin:0}
 .mini{display:flex;gap:6px;align-items:center;background:#26262D;border-radius:8px;height:22px;padding:0 8px}
 .mini .dot{width:8px;height:8px;border-radius:4px}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--t)*7.5em),1fr));gap:10px}
-.tile{min-height:44px;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:6px 10px}
+.tile{min-height:44px;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:8px 12px}
 .tile[aria-checked=true]{border:3px solid #F4F1EA}
 .tile .check{display:none}.tile[aria-checked=true] .check{display:inline}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
@@ -66,12 +66,12 @@ h1,h3,h4{margin:0}
 .slider i b{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
 .slider i u{position:absolute;top:-6px;width:18px;height:18px;border-radius:9px;margin-left:-9px}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;box-sizing:border-box;padding:4px 14px;border-radius:22px;background:#212128;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*14px);font-weight:600;cursor:pointer;max-width:100%}
+.chip{display:inline-flex;align-items:center;gap:8px;min-height:44px;box-sizing:border-box;padding:8px 14px;border-radius:22px;background:#212128;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*14px);font-weight:600;cursor:pointer;max-width:100%}
 .chip:hover{border-color:#4A4A54}
 .dev{background:#212128;border:1px solid #2E2E36;border-radius:18px}
 .devhead{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 8px;min-height:56px;flex-wrap:wrap}
 .devhead h3{flex:1 1 calc(var(--t)*14em);margin:0;font:inherit}
-.toggle{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;background:none;border:0;padding:4px 6px;border-radius:12px;color:#F4F1EA;font:inherit;text-align:left;cursor:pointer}
+.toggle{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;background:none;border:0;padding:8px 10px;border-radius:12px;color:#F4F1EA;font:inherit;text-align:left;cursor:pointer}
 .toggle:hover{background:#24242B}
 .chev{transition:none;flex-shrink:0}
 .toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
@@ -82,7 +82,7 @@ h1,h3,h4{margin:0}
 .leds{display:flex;flex-wrap:wrap;gap:6px;background:#0E0E11;border-radius:12px;padding:12px}
 .leds .dot{width:10px;height:10px;border-radius:5px}
 .stepper{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.field{min-height:44px;box-sizing:border-box;width:calc(var(--t)*64px + 8px);display:flex;align-items:center;justify-content:center;border:1px solid #4A4A54;border-radius:10px;background:#16161A;font-size:calc(var(--t)*15px)}
+.field{min-height:44px;box-sizing:border-box;width:calc(var(--t)*64px + 8px);display:flex;align-items:center;justify-content:center;padding:8px;border:1px solid #4A4A54;border-radius:10px;background:#16161A;font-size:calc(var(--t)*15px)}
 .note{border:2px dashed #4A4A54;border-radius:14px;padding:12px 16px;font-size:14px;color:#A9A6A0}
 .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:22px}
 .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
@@ -129,7 +129,7 @@ h1,h3,h4{margin:0}
             <div style="background:#0E0E11;border:1px solid #2E2E36;border-radius:22px;padding:22px 18px 18px 18px;display:flex;flex-direction:column;gap:18px;align-self:start">
               <div class="strip" aria-hidden="true" data-strip="#FF9A3D" data-n="12"></div>
               <div><div class="sub">Huidige kleur</div>
-                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><span class="sec">Oranje ·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:2px 14px">#FF9A3D</span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px"><span class="sec">Oranje ·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:8px 14px">#FF9A3D</span></div>
                 <div class="mono sub" style="margin-top:6px">255 · 154 · 61</div></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:10px">
@@ -148,7 +148,7 @@ h1,h3,h4{margin:0}
           <h2 id="hs1" class="sec" style="margin:0 0 12px 0">Helderheid en snelheid</h2>
           <div class="row3">
             <div><div style="display:flex;justify-content:space-between"><span class="lbl">Helderheid</span><span class="mono sub">85%</span></div><div class="slider"><i><b style="width:85%;background:#F4F1EA"></b><u style="left:85%;background:#F4F1EA"></u></i></div></div>
-            <div style="opacity:.55"><div style="display:flex;justify-content:space-between"><span class="lbl">Snelheid</span><span class="mono sub">100%</span></div><div class="slider"><i><b style="width:33%;background:#8C8A85"></b><u style="left:33%;background:#8C8A85"></u></i></div><div class="sub">Alleen voor bewegende effecten.</div></div>
+            <div><div style="display:flex;justify-content:space-between"><span class="lbl">Snelheid</span><span class="mono sub">100%</span></div><div class="slider" style="opacity:.4"><i><b style="width:33%;background:#8C8A85"></b><u style="left:33%;background:#8C8A85"></u></i></div><div class="sub">Alleen voor bewegende effecten.</div></div>
             <div></div>
           </div>
         </section>
@@ -255,7 +255,7 @@ h1,h3,h4{margin:0}
             <div class="strip" aria-hidden="true" data-strip="#FF9A3D" data-n="12"></div>
             <div><div class="sub">Huidige kleur</div>
               <div class="sec" style="margin-top:4px">Oranje</div>
-              <div style="display:flex;align-items:center;gap:10px;margin-top:6px"><span class="sec">·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:2px 14px">#FF9A3D</span></div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:6px"><span class="sec">·</span><span class="mono" style="font-size:calc(var(--t)*26px);border:1px solid #4A4A54;border-radius:12px;padding:8px 14px">#FF9A3D</span></div>
               <div class="mono sub" style="margin-top:6px">255 · 154 · 61</div></div>
           </div>
           <div class="note" style="margin-top:14px">Rood, Groen en Blauw, Kleuren en Eigen kleuren onder het voorbeeld; daarna de kaart Helderheid en snelheid met de drie schuiven onder elkaar, en Bewaar als scène.</div>
