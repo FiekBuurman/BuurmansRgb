@@ -56,6 +56,7 @@ h1,h3,h4{margin:0}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(var(--t)*7.5em),1fr));gap:10px}
 .tile{min-height:44px;border-radius:12px;background:#24242B;border:1px solid #2E2E36;color:#F4F1EA;font:inherit;font-size:calc(var(--t)*15px);font-weight:600;cursor:pointer;padding:6px 10px}
 .tile[aria-checked=true]{border:3px solid #F4F1EA}
+.tile .check{display:none}.tile[aria-checked=true] .check{display:inline}
 .swatches{display:flex;flex-wrap:wrap;gap:8px}
 .sw{width:32px;height:32px;border-radius:10px;border:1px solid #2E2E36;box-sizing:border-box}
 .sw.sel{border:3px solid #F4F1EA}
@@ -69,7 +70,8 @@ h1,h3,h4{margin:0}
 .chip:hover{border-color:#4A4A54}
 .dev{background:#212128;border:1px solid #2E2E36;border-radius:18px}
 .devhead{display:flex;align-items:center;gap:12px;padding:6px 14px 6px 8px;min-height:56px;flex-wrap:wrap}
-.toggle{display:flex;align-items:center;gap:10px;flex:1 1 calc(var(--t)*14em);min-height:44px;background:none;border:0;padding:4px 6px;border-radius:12px;color:#F4F1EA;font:inherit;text-align:left;cursor:pointer}
+.devhead h3{flex:1 1 calc(var(--t)*14em);margin:0;font:inherit}
+.toggle{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;background:none;border:0;padding:4px 6px;border-radius:12px;color:#F4F1EA;font:inherit;text-align:left;cursor:pointer}
 .toggle:hover{background:#24242B}
 .chev{transition:none;flex-shrink:0}
 .toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
@@ -111,7 +113,7 @@ h1,h3,h4{margin:0}
 
         <header class="hdr">
           <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
-          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" tabindex="0" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" tabindex="0" aria-checked="true" aria-label="Alles aan of uit"><span></span></span><span class="lbl">Aan</span></div>
         </header>
 
         <section class="card" aria-labelledby="eff1">
@@ -182,7 +184,7 @@ h1,h3,h4{margin:0}
 
         <header class="hdr">
           <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
-          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" tabindex="0" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" tabindex="0" aria-checked="true" aria-label="Alles aan of uit"><span></span></span><span class="lbl">Aan</span></div>
         </header>
 
         <section class="card" aria-labelledby="eff2">
@@ -213,7 +215,7 @@ h1,h3,h4{margin:0}
             <div><h2 id="pa2" class="sec">Per apparaat</h2><div class="sub">Klap een apparaat open voor zones, LED's, lengtes, Knipperen en Tellen.</div></div>
             <div class="links"><button class="link" aria-label="Alle apparaten openklappen" data-all="open">Alles openklappen</button><button class="link" aria-label="Alle apparaten dichtklappen" data-all="dicht">Alles dichtklappen</button></div>
           </div>
-          <div class="chips" role="toolbar" aria-label="Naar een apparaat" data-chips="regenboog"></div>
+          <div class="chips" role="toolbar" aria-label="Naar een apparaat" data-chips="regenboog" data-jumped="argb"></div>
           <div style="display:flex;flex-direction:column;gap:10px" data-cards="regenboog" data-open="argb" data-focus="argb"></div>
         </section>
 
@@ -237,7 +239,7 @@ h1,h3,h4{margin:0}
 
         <header class="hdr">
           <div><h1 class="h1">Kleur</h1><div class="sub">Hele huis · 9 apparaten</div></div>
-          <div class="pick"><div class="select" style="flex:1" role="combobox" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" aria-checked="true" aria-label="Hele huis aan of uit"><span></span></span><span class="lbl">Aan</span></div>
+          <div class="pick"><div class="select" style="flex:1" role="combobox" tabindex="0" aria-expanded="false" aria-label="Welk apparaat?">Hele huis <span aria-hidden="true">⌄</span></div><span class="switch" role="switch" tabindex="0" aria-checked="true" aria-label="Alles aan of uit"><span></span></span><span class="lbl">Aan</span></div>
         </header>
 
         <section class="card" aria-labelledby="eff3">
@@ -318,7 +320,7 @@ const argbBody = rb =>
 document.querySelectorAll('[data-effects]').forEach(el => {
   const chosen = el.dataset.effects;
   el.innerHTML = effects.map((e, i) =>
-    '<button class="tile" role="radio" aria-checked="' + (e === chosen) + '" tabindex="' + (e === chosen ? 0 : -1) + '">' + (e === chosen ? '✓ ' : '') + e + '</button>').join('');
+    '<button class="tile" role="radio" aria-checked="' + (e === chosen) + '" tabindex="' + (e === chosen ? 0 : -1) + '"><span class="check" aria-hidden="true">✓ </span>' + e + '</button>').join('');
 });
 document.querySelectorAll('[data-strip]').forEach(el => { el.innerHTML = dots(el.dataset.strip, +el.dataset.n); });
 document.querySelectorAll('[data-swatches]').forEach(el => {
@@ -327,7 +329,7 @@ document.querySelectorAll('[data-swatches]').forEach(el => {
 document.querySelectorAll('[data-chips]').forEach(el => {
   const rb = el.dataset.chips === 'regenboog';
   el.innerHTML = devices.map((d, i) =>
-    '<button class="chip" data-jump="' + d.id + '" title="' + d.name + '" tabindex="' + (i === 0 ? 0 : -1) + '">' + dot(d.color, i, rb && d.color) + d.name + '</button>').join('');
+    '<button class="chip" data-jump="' + d.id + '" title="' + d.name + '" tabindex="' + ((el.dataset.jumped ? d.id === el.dataset.jumped : i === 0) ? 0 : -1) + '">' + dot(d.color, i, rb && d.color) + d.name + '</button>').join('');
 });
 document.querySelectorAll('[data-cards]').forEach(el => {
   const rb = el.dataset.cards === 'regenboog';
@@ -337,8 +339,8 @@ document.querySelectorAll('[data-cards]').forEach(el => {
     const focus = el.dataset.focus === d.id ? ' focus' : '';
     return '<article class="dev" data-dev="' + d.id + '">' +
       '<div class="devhead">' +
-        '<button class="toggle' + focus + '" aria-expanded="' + open + '" aria-describedby="l-' + d.id + '">' + chev + icon +
-          '<span><span class="ctitle" role="heading" aria-level="3" style="display:block">' + d.name + '</span><span class="sub" id="l-' + d.id + '">' + d.line + '</span></span></button>' +
+        '<h3><button class="toggle' + focus + '" aria-expanded="' + open + '" aria-describedby="l-' + d.id + '">' + chev + icon +
+          '<span><span class="ctitle" style="display:block">' + d.name + '</span><span class="sub" id="l-' + d.id + '" aria-hidden="true">' + d.line + '</span></span></button></h3>' +
         '<div class="devright"><span class="mini" aria-hidden="true">' + dots(d.color, 12, rb && d.color) + '</span>' +
           '<button class="knop" aria-label="' + d.name + ' laten knipperen">Knipperen</button></div>' +
       '</div>' +
@@ -362,6 +364,7 @@ document.addEventListener('click', e => {
     const c = chip.closest('section').querySelector('[data-dev="' + chip.dataset.jump + '"]');
     if (!c) return;
     setOpen(c, true);
+    chip.parentElement.querySelectorAll('[data-jump]').forEach(b => b.tabIndex = b === chip ? 0 : -1);
     c.scrollIntoView({ block: 'start', behavior: 'instant' });
     c.querySelector('.toggle').focus();
   }
@@ -369,14 +372,16 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   const t = e.target.closest && e.target.closest('.toggle');
   if (t && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { setOpen(t.closest('.dev'), e.key === 'ArrowRight'); e.preventDefault(); return; }
+  // Tiles: all four arrows, as radio buttons. Chip row: only left and right, as a toolbar.
   const group = e.target.closest && e.target.closest('[role=toolbar],[role=radiogroup]');
-  if (!group || !['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+  const keys = group && group.getAttribute('role') === 'toolbar' ? ['ArrowRight', 'ArrowLeft', 'Home', 'End'] : ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'];
+  if (!group || !keys.includes(e.key)) return;
   const items = [...group.querySelectorAll('button')];
   let i = items.indexOf(e.target);
   i = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : (i + (e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
   items.forEach(b => b.tabIndex = -1);
   items[i].tabIndex = 0; items[i].focus(); e.preventDefault();
-  if (group.getAttribute('role') === 'radiogroup') items.forEach(b => { const on = b === items[i]; b.setAttribute('aria-checked', on); b.textContent = (on ? '✓ ' : '') + b.textContent.replace('✓ ', ''); });
+  if (group.getAttribute('role') === 'radiogroup') items.forEach(b => b.setAttribute('aria-checked', b === items[i]));
 });
 </script>
 </body>
