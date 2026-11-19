@@ -179,7 +179,7 @@ h1,h3,h4{margin:0}
 <!-- ============================================================ Staat 2 -->
 <section class="state" aria-labelledby="s2">
   <h2 id="s2">2 · Eén apparaat open (na de chip "Gesimuleerde ARGB-controller"), effect Regenboog</h2>
-  <p>De volgorde van het effect: bij Regenboog is er geen kleur te mengen, dus kaart 2 is één zin. Richting staat op "Volgorde" (geen richting); met een richting staat er de hoek, en onder de schuif de link "Volgorde van de LED's". De chip klapte de kaart open en zette de focus op zijn kop (de ring). Open staat bovenaan de uitleg hoe je LED's kiest (die stond onder de kop "Voorbeeld"), en daaronder de inhoud van nu: Zones gelijk, per zone de naam als link, Tellen en Knipperen op een vaste plek, de LED's en de stepper voor de lengte.</p>
+  <p>De volgorde van het effect: bij Regenboog is er geen kleur te mengen, dus kaart 4 is één zin. Richting staat op "Volgorde" (geen richting); met een richting staat er de hoek, en onder de schuif de link "Volgorde van de LED's". De chip klapte de kaart open en zette de focus op zijn kop (de ring). Open staat bovenaan de uitleg hoe je LED's kiest (die stond onder de kop "Voorbeeld"), en daaronder de inhoud van nu: Zones gelijk, per zone de naam als link, Tellen en Knipperen op een vaste plek, de LED's en de stepper voor de lengte.</p>
 
   <div class="win" role="region" aria-label="Venster: Kleur, Regenboog, één apparaat open" data-frame="2">
     <div class="titlebar"><span aria-hidden="true">▣</span><b>buurmans<span class="r">R</span><span class="g">g</span><span class="bl">b</span></b></div>
@@ -315,7 +315,7 @@ const ledHint = '<div class="sub">Klik op een LED en kies hierboven een kleur: d
 // The open body of the ARGB controller: Zones gelijk, two zones with their head, LEDs and stepper.
 const zone = (name, n, max, rb) =>
   '<div style="display:flex;flex-direction:column;gap:8px">' +
-    '<div class="zonehead"><div><button class="link klein">' + name + '</button><div class="sub">' + n + ' LED\'s</div></div>' +
+    '<div class="zonehead"><div><button class="link klein">' + name + ' · ' + n + ' LED\'s</button></div>' +
     '<button class="knop">Tellen</button><button class="knop">Knipperen</button></div>' +
     '<div class="leds">' + dots('#FF9A3D', n, rb) + '</div>' +
     '<div class="sub">Aantal LED\'s (0–' + max + '):</div>' +
