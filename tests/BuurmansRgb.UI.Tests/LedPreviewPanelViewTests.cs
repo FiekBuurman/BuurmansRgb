@@ -29,14 +29,9 @@ public sealed class LedPreviewPanelViewTests
         AppTheme.Run(panel =>
         {
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
-            var link = AppTheme.Descendants<TextBlock>(preview)
-                .Where(text => text.IsVisible)
-                .Select(text => text.Inlines.FirstInline)
-                .OfType<Hyperlink>()
-                .Single(link => link.Inlines.FirstInline is Run { Text: var text } && text == Strings.SelectAll);
-            var peer = ContentElementAutomationPeer.CreatePeerForElement(link);
+            var link = VisibleLinks(preview).Single(link => Equals(link.Content, Strings.SelectAll));
+            var peer = new ButtonAutomationPeer(link);
 
-            Assert.Equal(AutomationControlType.Hyperlink, peer.GetAutomationControlType());
             Assert.StartsWith(Strings.SelectAll, peer.GetName(), StringComparison.Ordinal);
             Assert.Equal("Alles selecteren, alle LED's van LED strip", peer.GetName());
         });
@@ -88,16 +83,16 @@ public sealed class LedPreviewPanelViewTests
             foreach (var view in views)
             {
                 var zone = (StackPanel)VisualTreeHelper.GetParent(view);
-                var name = AppTheme.Descendants<TextBlock>(zone).Single(text => text.IsVisible && text.Inlines.FirstInline is Hyperlink);
+                var link = VisibleLinks(zone).Single();
+                var name = AppTheme.Part<AccessText>(link, "Text");
                 var first = view.BoundsOf(0);
 
                 var aboveFirst = preview.InputHitTest(view.TranslatePoint(new Point(first.X + first.Width / 2.0, first.Y - 3.5), preview));
                 var onName = preview.InputHitTest(name.TranslatePoint(new Point(4.0, name.ActualHeight / 2.0), preview));
 
-                var link = (Hyperlink)name.Inlines.FirstInline;
-                names.Add(((Run)link.Inlines.FirstInline).Text);
+                names.Add((string)link.Content);
                 Assert.Same(view, aboveFirst);
-                Assert.True(onName == link || (onName is Run run && run.Parent == link));
+                Assert.Same(link, AncestorButton(onName as DependencyObject));
 
                 if (((ZonePreviewViewModel)view.DataContext).Length is { } length)
                 {
@@ -140,5 +135,18 @@ public sealed class LedPreviewPanelViewTests
             OffscreenWindow.WaitUntilIdle();
             Assert.False(message.IsVisible);
         });
+    }
+
+    private static IEnumerable<Button> VisibleLinks(DependencyObject parent) =>
+        AppTheme.Descendants<Button>(parent).Where(button => button.IsVisible && button.Style == (Style)button.FindResource("LinkButton"));
+
+    private static Button? AncestorButton(DependencyObject? element)
+    {
+        while (element is not null and not Button)
+        {
+            element = element is Visual ? VisualTreeHelper.GetParent(element) : LogicalTreeHelper.GetParent(element);
+        }
+
+        return element as Button;
     }
 }

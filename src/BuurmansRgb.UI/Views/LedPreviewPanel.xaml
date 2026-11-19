@@ -87,21 +87,16 @@
                                                         ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding CountFocusKey}"
                                                         Visibility="{Binding ShowsCount, Converter={StaticResource BoolToVisibility}}" />
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock FontSize="{DynamicResource SubTextSize}" TextWrapping="Wrap"
-                                                               Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}">
-                                                        <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}">
-                                                            <Run Text="{Binding Header, Mode=OneWay}" />
-                                                        </Hyperlink>
-                                                    </TextBlock>
+                                                    <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" FontSize="{DynamicResource SubTextSize}"
+                                                            Content="{Binding Header}" ToolTip="{x:Static res:Strings.SelectZoneToolTip}"
+                                                            Command="{Binding SelectZoneCommand}"
+                                                            Visibility="{Binding ShowsHeaderLink, Converter={StaticResource BoolToVisibility}}" />
                                                     <TextBlock Style="{StaticResource SubText}" Text="{Binding Header}"
                                                                Visibility="{Binding ShowsHeaderText, Converter={StaticResource BoolToVisibility}}" />
-                                                    <TextBlock FontSize="{DynamicResource SubTextSize}"
-                                                               Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}">
-                                                        <Hyperlink Command="{Binding SelectZoneCommand}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
-                                                                   AutomationProperties.Name="{Binding SelectAllAccessibleName}">
-                                                            <Run Text="{x:Static res:Strings.SelectAll}" />
-                                                        </Hyperlink>
-                                                    </TextBlock>
+                                                    <Button HorizontalAlignment="Left" Style="{StaticResource LinkButton}" FontSize="{DynamicResource SubTextSize}"
+                                                            Content="{x:Static res:Strings.SelectAll}" ToolTip="{x:Static res:Strings.SelectAllToolTip}"
+                                                            Command="{Binding SelectZoneCommand}" AutomationProperties.Name="{Binding SelectAllAccessibleName}"
+                                                            Visibility="{Binding ShowsSelectAllLink, Converter={StaticResource BoolToVisibility}}" />
                                                 </StackPanel>
                                             </DockPanel>
                                             <!-- The LEDs, also with the keys of the per-LED editor; they keep the focus

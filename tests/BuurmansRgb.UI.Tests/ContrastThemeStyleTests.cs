@@ -109,17 +109,18 @@ public sealed class ContrastThemeStyleTests
         Assert.NotNull(AppTheme.Part<Border>(button, "HoverRing"));
     });
 
-    // A link takes the highlight under the mouse instead of the HotTrack it has at rest, with a
-    // line under it.
+    // A link is HotTrack at rest and takes the highlight under the mouse, underlined in both: the
+    // line has no pen of its own, so it has the color of the text.
     [Fact]
-    public void LinkButton_OnHover_HasTheHighlightAndALineUnderIt() => InContrastTheme(panel =>
+    public void LinkButton_IsUnderlinedInHotTrackAndHasTheHighlightOnHover() => InContrastTheme(panel =>
     {
         var link = AppTheme.Show(panel, new Button { Style = (Style)panel.FindResource("LinkButton"), Content = "Hoe komt een apparaat erbij?" });
+        var line = Assert.Single(AppTheme.Part<AccessText>(link, "Text").TextDecorations);
 
         Assert.Same(SystemColors.HotTrackBrush, link.Foreground);
         Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Style.Triggers)[(null, Control.ForegroundProperty)]));
-        Assert.Same(SystemColors.HighlightBrush, panel.FindResource(HoverSetters(link.Template.Triggers)[("Underline", Border.BackgroundProperty)]));
-        Assert.Equal(Colors.Transparent, Assert.IsType<SolidColorBrush>(AppTheme.Part<Border>(link, "Underline").Background).Color);
+        Assert.Equal(TextDecorationLocation.Underline, line.Location);
+        Assert.Null(line.Pen);
     });
 
     // The dashed border of "+ new" and the thumb of a scroll bar: the text color at rest, the

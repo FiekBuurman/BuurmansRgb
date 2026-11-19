@@ -19,7 +19,7 @@ public sealed class ContrastTheme : IDisposable
     // item takes the highlight, as in Windows. Buttons and cards you click take the face and text of
     // a button (in WPF Control and ControlText); the accent (the primary button, a ticked check box,
     // a day that is on) takes the highlight, like a switch that is on. Every hover shows in the
-    // highlight: a link also gets a line under it, a switch a ring in the highlight around its
+    // highlight: a link (underlined anyway) its text and line, a switch a ring in the highlight around its
     // track, and the primary button, already the highlight, swaps its colors and gets a ring. A
     // button that does nothing now gets GrayText, as a disabled button of Windows.
     internal static readonly IReadOnlyDictionary<string, Func<SolidColorBrush>> SystemBrushes = new Dictionary<string, Func<SolidColorBrush>>
