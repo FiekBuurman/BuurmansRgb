@@ -33,9 +33,9 @@
 - **Werkt zonder hardware:** zonder OpenRGB staan er twaalf gesimuleerde apparaten klaar om mee te
   spelen.
 
-| Kleur mengen | Voorbeeld per LED | Scènes |
+| Kleur | Per apparaat | Scènes |
 | --- | --- | --- |
-| ![Kleur mengen](docs/images/kleur.png) | ![Een toetsenbord met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
+| ![Kleur](docs/images/kleur.png) | ![De apparaten op Kleur als kaarten die je openklapt, het toetsenbord open met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
 
 ## Installeren
 
