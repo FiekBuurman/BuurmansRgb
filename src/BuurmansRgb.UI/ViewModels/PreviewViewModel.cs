@@ -314,6 +314,17 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
             }
         }
 
+        // A card that was always open (one chosen device, or a house with one device) comes closed
+        // when the cards start, unless the user opened it at "Hele huis" before (besluit 3 and 7):
+        // what runs in it stops, as when the user closes it (besluit 6).
+        foreach (var preview in Devices.Where(preview => !preview.IsExpanded))
+        {
+            if (previous.Any(before => before.DeviceId == preview.DeviceId && before.IsExpanded))
+            {
+                StopWhatRunsIn(preview.DeviceId);
+            }
+        }
+
         AttachCount(stopOutOfView: true);
         foreach (var preview in previous)
         {
@@ -357,12 +368,18 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
         }
 
         _openCards.Remove(device.DeviceId);
-        if (Count is { } count && count.DeviceId == device.DeviceId && IsOwn(count))
+        StopWhatRunsIn(device.DeviceId);
+    }
+
+    // A count this app started in the card of the device stops, and chosen LEDs in it are let go.
+    private void StopWhatRunsIn(string deviceId)
+    {
+        if (Count is { } count && count.DeviceId == deviceId && IsOwn(count))
         {
             ((IPreviewActions)this).StopZoneCount(new ZoneCountStop(count.DeviceId, count.ZoneIndex));
         }
 
-        if (_ledSelection?.DeviceId == device.DeviceId)
+        if (_ledSelection?.DeviceId == deviceId)
         {
             ((IPreviewActions)this).ClearLedSelection();
         }

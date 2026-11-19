@@ -141,6 +141,53 @@ public sealed class PreviewCardsViewModelTests
         Assert.Equal(1, cleared);
     }
 
+    // A house with one device gets a second one, or OpenRGB reports one device for a moment: the
+    // card that was always open comes closed (besluit 7), so what ran in it stops, as when the user
+    // closes it (besluit 6).
+    [Fact]
+    public void SecondDevice_ClosesTheAlwaysOpenCardAndStopsWhatRanInIt()
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        var cleared = 0;
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.LedSelectionCleared += (_, _) => cleared++;
+        preview.ShowDevices([Board(20, 10)], wholeHouse: true);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+        preview.ShowLedSelection(new LedSelection("board", "Board", 0, 1));
+
+        preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
+
+        Assert.False(preview.Devices[0].IsExpanded);
+        Assert.Equal([new ZoneCountStop("board", 1)], stops);
+        Assert.Null(preview.Count);
+        Assert.Equal(1, cleared);
+    }
+
+    // Back from one chosen device to "Hele huis": its card comes closed unless it was open there,
+    // and only a closed one stops what ran in it.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void BackToWholeHouse_StopsTheCountOnlyWhenTheCardComesClosed(bool openedBefore)
+    {
+        var preview = new PreviewViewModel();
+        List<ZoneCountStop> stops = [];
+        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
+        preview.Devices[0].IsExpanded = openedBefore;
+        preview.ShowDevices([Board(20, 10)]);
+        preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
+        preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
+
+        preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
+
+        Assert.Equal(openedBefore, preview.Devices[0].IsExpanded);
+        Assert.Equal(openedBefore ? 0 : 1, stops.Count);
+        Assert.Equal(openedBefore, preview.Count is not null);
+    }
+
     // A length that still waits for its delay goes to the engine when the card closes, as if
     // Toepassen was chosen.
     [Fact]

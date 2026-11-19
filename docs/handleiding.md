@@ -557,7 +557,9 @@ scrollen; klap een apparaat open voor zijn zones, LED's, lengtes, Knipperen en T
   die je niet ziet. Een lengte die nog op zijn 0,6 seconde wachtte, gaat meteen naar het
   apparaat, alsof je Toepassen koos. Knipperen loopt gewoon af.
 - **Eén apparaat:** kies je bovenaan één apparaat, of heeft je huis er maar één, dan is er één
-  kaart en die staat altijd open, zonder pijltje, chips of links.
+  kaart en die staat altijd open, zonder pijltje, chips of links. Komt er een tweede apparaat
+  bij, of ga je terug naar "Hele huis", dan komt die kaart dicht, tenzij je hem bij "Hele huis"
+  had opengeklapt; dicht stopt hij wat erin liep, zoals bij dichtklappen.
 - **Toetsenbord:** met Tab kom je na "Licht en beweging" bij Alles openklappen, Alles
   dichtklappen, Hervatten (alleen tijdens een pauze), dan de chips (één Tab-stop: ← en → naar de
   vorige of volgende chip, Home en End naar de eerste en de laatste, Enter of Spatie springt) en
