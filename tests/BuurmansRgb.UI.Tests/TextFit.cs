@@ -11,8 +11,8 @@ namespace BuurmansRgb.UI.Tests;
 
 // What a larger text can do wrong in a window, as far as it shows: text that is cut off, by the room
 // it gets or at the edge of an element around it, a field too narrow for its text, and text over
-// another text or over a control, also a text of runs or with a link in it. A name in a card title
-// may end in "…" (CardTitle), as it does at 100 % with a long name.
+// another text or over a control, also a text of runs. A name in a card title may end in "…"
+// (CardTitle), as it does at 100 % with a long name.
 internal static class TextFit
 {
     public static List<string> Problems(FrameworkElement root)
