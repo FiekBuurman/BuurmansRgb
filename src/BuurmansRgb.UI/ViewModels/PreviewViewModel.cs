@@ -316,12 +316,14 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
 
         // A card that was always open (one chosen device, or a house with one device) comes closed
         // when the cards start, unless the user opened it at "Hele huis" before (besluit 3 and 7):
-        // what runs in it stops, as when the user closes it (besluit 6).
+        // what runs in it stops and a length that waits goes out now, as when the user closes it
+        // (besluit 6, § 9.4).
         foreach (var preview in Devices.Where(preview => !preview.IsExpanded))
         {
             if (previous.Any(before => before.DeviceId == preview.DeviceId && before.IsExpanded))
             {
                 StopWhatRunsIn(preview.DeviceId);
+                preview.SendWaitingLengths();
             }
         }
 

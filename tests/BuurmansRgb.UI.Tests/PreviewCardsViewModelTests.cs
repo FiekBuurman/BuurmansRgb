@@ -165,6 +165,27 @@ public sealed class PreviewCardsViewModelTests
         Assert.Equal(1, cleared);
     }
 
+    // A length that waits in the card that was always open goes out at once when that card comes
+    // closed, as when the user closes it (§ 9.4): after a second device in the house, or back from
+    // one chosen device to "Hele huis" within the delay.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AlwaysOpenCardThatComesClosed_SendsAWaitingLength(bool wholeHouse)
+    {
+        var preview = new PreviewViewModel(new FakeTimeProvider());
+        List<ZoneResize> resizes = [];
+        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        preview.ShowDevices([Board(20, 10)], wholeHouse);
+        preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
+        Assert.Empty(resizes);
+
+        preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
+
+        Assert.False(preview.Devices[0].IsExpanded);
+        Assert.Equal([new ZoneResize("board", 0, 21)], resizes);
+    }
+
     // Back from one chosen device to "Hele huis": its card comes closed unless it was open there,
     // and only a closed one stops what ran in it.
     [Theory]
