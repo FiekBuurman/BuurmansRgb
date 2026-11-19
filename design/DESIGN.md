@@ -135,7 +135,7 @@ Er is geen lichte modus in richting A: de app is bewust altijd donker, zodat de 
 5. Buren-kaart: icoon met twee huisjes, "Buurman is online", "Zet jullie lampen in dezelfde kleur", knop "Samen".
 
 ### 5.2 Kleur mengen – `screens/Kleur.dc.html`
-1. Terugknop, titel "Kleur mengen", subregel met de gekozen lamp.
+1. Terugknop, titel "Kleur mengen" (in de app heet de pagina nu "Kleur", besluit 8 in 9.9), subregel met de gekozen lamp.
 2. Voorbeeldkaart (`preview-bg`): ledstrip van 12 bolletjes in de huidige kleur, daaronder "Huidige kleur" + hexcode (mono, 30 px) en rechts "R · G · B".
 3. Drie schuifregelaars Rood / Groen / Blauw (0–255), elk met label links en waarde rechts (mono). Accentkleur van de schuif = zijn eigen kanaalkleur.
 4. "Uit de gereedschapskist": 6 presets (Klus-wit, Rood, Oranje, Groen, Blauw, Paars).
