@@ -77,38 +77,30 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     // Shows the options of the engine, without sending them back.
     public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>
     {
-        var option = Standard.FirstOrDefault(rate => rate.FramesPerSecond == framesPerSecond);
-        if (option is null)
-        {
-            option = new FrameRateOption(framesPerSecond, string.Format(CultureInfo.CurrentCulture, Strings.FrameRateOther, framesPerSecond));
-            FrameRates = [.. Standard.Append(option).OrderBy(rate => rate.FramesPerSecond)];
-        }
-        else
-        {
-            FrameRates = Standard;
-        }
-
-        SelectedFrameRate = option;
+        (FrameRates, SelectedFrameRate) = WithValue(Standard, framesPerSecond, rate => rate.FramesPerSecond,
+            value => new FrameRateOption(value, string.Format(CultureInfo.CurrentCulture, Strings.FrameRateOther, value)));
         PauseOnLockAndSleep = pauseOnLockAndSleep;
         SelectedPausedLights = PausedLightsOptions.FirstOrDefault(mode => mode.Mode == pausedLights);
     });
 
     // Shows the fade of the engine, without sending it back.
     public void ShowSceneFade(TimeSpan fade) => _showing.Run(() =>
+        (SceneFades, SelectedSceneFade) = WithValue(StandardFades, fade, option => option.Fade,
+            value => new SceneFadeOption(value, string.Format(CultureInfo.CurrentCulture, Strings.SceneFadeOther, value.TotalSeconds))));
+
+    // The standard choices with the one for value selected, or, when value is none of them, the
+    // standard choices plus one that create makes for it, in order of their value.
+    private static (IReadOnlyList<T> Options, T Selected) WithValue<T, TValue>(IReadOnlyList<T> standard, TValue value, Func<T, TValue> valueOf, Func<TValue, T> create)
+        where T : class
     {
-        var option = StandardFades.FirstOrDefault(standard => standard.Fade == fade);
-        if (option is null)
+        if (standard.FirstOrDefault(option => EqualityComparer<TValue>.Default.Equals(valueOf(option), value)) is { } known)
         {
-            option = new SceneFadeOption(fade, string.Format(CultureInfo.CurrentCulture, Strings.SceneFadeOther, fade.TotalSeconds));
-            SceneFades = [.. StandardFades.Append(option).OrderBy(standard => standard.Fade)];
-        }
-        else
-        {
-            SceneFades = StandardFades;
+            return (standard, known);
         }
 
-        SelectedSceneFade = option;
-    });
+        var other = create(value);
+        return ([.. standard.Append(other).OrderBy(valueOf)], other);
+    }
 
     partial void OnSelectedSceneFadeChanged(SceneFadeOption? value)
     {
