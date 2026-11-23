@@ -101,6 +101,31 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Single(_profiles.Get("Gamen (2)").Lighting.Overlays);
     }
 
+    // A layer from a device with more LEDs than the one here comes in without an error and as it is:
+    // the colors beyond the end show nowhere, but stay in the scene (see docs/ideas.md).
+    [Fact]
+    public async Task Import_LayerLongerThanTheDevice_ComesInAsItIs()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var keyboard = _lighting.Devices.Single(device => device.Id == "simulated-keyboard");
+        var overlay = new JsonArray([.. Enumerable.Range(0, keyboard.LedCount + 5).Select(index => (JsonNode?)(index == keyboard.LedCount + 4 ? "#FF0000" : null))]);
+        var root = new JsonObject
+        {
+            ["version"] = 2,
+            ["kind"] = "scene",
+            ["name"] = "Lang",
+            ["lighting"] = new JsonObject { ["color"] = "#FF8800", ["brightness"] = 1, ["effect"] = "static" },
+            ["devices"] = new JsonArray(new JsonObject { ["id"] = "simulated-keyboard", ["type"] = "keyboard", ["name"] = keyboard.Name, ["overlay"] = overlay }),
+        };
+
+        var result = await _api.ImportSharedAsync(Bytes(root.ToJsonString()), Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        var layer = _profiles.Get("Lang").Lighting.Overlays["simulated-keyboard"];
+        Assert.Equal(keyboard.LedCount + 5, layer.Count);
+        Assert.Equal(Red, layer[^1]);
+    }
+
     // Without a layer the file is as before the layer, so a version from before it reads the scene.
     [Fact]
     public async Task Export_WithoutALayer_HasNoOverlayField()

@@ -277,6 +277,10 @@ uitbreidingen in `docs/bouwplan.md`.
   scène die alleen meegaat bij een spel (bouwt op de gamemodus onder Scènes)
 - Op een apparaatkaart laten zien dat er een laag is (bijv. "Laag op 4 LED's" in de regel met het
   aantal LED's) en "Hele laag weghalen" zonder eerst alle LED's te kiezen
+- Laag weghalen met Ctrl+A haalt ook de laagkleuren voorbij het eind van het apparaat weg. Nu
+  houdt een geïmporteerde scène met een laag van een apparaat met meer LED's onzichtbare kleuren
+  vast, en Ctrl+A bereikt alleen de LED's die het apparaat nu heeft, zodat een export version 2
+  blijft
 
 ## Instellingen-app en ontwerp
 
