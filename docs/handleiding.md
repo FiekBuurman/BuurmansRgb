@@ -38,15 +38,18 @@ inhalen** op **Instellingen** aan staat.
 1. Ga naar **Kleur**.
 2. Klik rechtsboven op de lijst met apparaten en kies **Hele huis** voor alles, of één
    apparaat.
-3. Klik onder **Kleuren** op een kleur, bijvoorbeeld **Warm wit** of **Fel rood**.
+3. Kies bovenaan bij **Effect** de tegel **Statisch**: één kleur die blijft staan.
+4. Klik in het blok **Kleur** eronder, bij **Kleuren**, op een kleur, bijvoorbeeld **Warm wit** of
+   **Fel rood**.
 
 De kleur gaat meteen naar je apparaten; bevestigen hoeft niet. Een apparaat dat uit stond, gaat
-vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet. Zie je geen verschil, kies dan bij
-**Effect** eerst **Statisch**.
+vanzelf aan. Bij **Huidige kleur** staat hoe de kleur heet. Bij een ander effect staat onder de
+tegels wat bij dat effect hoort, bijvoorbeeld de kleuren van de loop; bij **Regenboog** is er
+niets te mengen.
 
 ### Hoe fel
 
-Op **Kleur** staat in het blok **Licht en beweging** de schuif **Helderheid**. Naar links is
+Op **Kleur** staat in het blok **Helderheid en snelheid** de schuif **Helderheid**. Naar links is
 zachter, naar rechts feller. Net als de kleur geldt dit meteen voor wat je rechtsboven koos.
 
 ### Scènes uitproberen
@@ -59,7 +62,7 @@ code of als bestand? Kies op **Scènes** **Code plakken** of **Importeren…**.
 ### Een kleur bewaren als scène
 
 1. Zet op **Kleur** de kleur, helderheid en het effect zoals je ze mooi vindt.
-2. Kies rechts, onder je eigen kleuren, **Bewaar als scène**.
+2. Kies onder het blok **Helderheid en snelheid** **Bewaar als scène**.
 3. Typ een naam, bijvoorbeeld **Avond**, en druk op Enter (of kies **Opslaan**).
 
 De scène bewaart hoe al je apparaten nu staan, niet alleen het apparaat dat je rechtsboven
@@ -271,15 +274,40 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
 
 ### Kleur
 
-![De pagina Kleur: kleur mengen voor het hele huis, met "Bewaar als scène" onder de eigen kleuren](images/kleur.png)
+![De pagina Kleur voor het hele huis: bovenaan de effecttegels met Statisch gekozen, eronder het blok Kleur met het voorbeeld, de schuiven en de vaste kleuren](images/kleur.png)
 
-De pagina is in lagen opgebouwd: bovenaan wat iedereen nodig heeft (welk apparaat, de kleur,
-helderheid, effect en snelheid, en "Bewaar als scène"), daaronder bij **Per apparaat** een kaart
+De pagina is in lagen opgebouwd, in de volgorde waarin je het licht instelt: bovenaan wat iedereen
+nodig heeft, eerst het effect, dan wat bij dat effect hoort (een kleur, een lijst met kleuren of
+niets), dan helderheid en snelheid en "Bewaar als scène"; daaronder bij **Per apparaat** een kaart
 per apparaat die je openklapt voor zones, LED's, lengtes, Knipperen en Tellen (zie "Per
 apparaat").
 
 Bovenaan kies je een apparaat of "Hele huis" (een schermlezer noemt de keuze "Welk apparaat?"), met de
-schakelaar ernaast.
+schakelaar ernaast. Daaronder, van boven naar beneden:
+
+1. **Effect:** een tegel per effect (zie "Effecten"), met onder de tegels één zin over wat het
+   gekozen effect doet en de links **Importeren…** en **Code plakken**.
+2. **Wat bij het effect hoort**, een blok waarvan de kop zegt wat erin staat:
+   - **Kleur** bij Statisch, Ademen en Golf: het mengpaneel (zie hieronder);
+   - **Kleuren van de loop** bij Kleurenloop: de kleuren van de loop met het vinkje "Kleuren over
+     de LED's verdelen", en daaronder het mengpaneel voor de gekozen kleur (zie "Effecten");
+   - **Kleuren van het effect** bij Fonkelen, Komeet, Scanner en Vuur: de kleuren van het effect
+     met **Standaardkleuren**, en daaronder het mengpaneel voor de gekozen kleur;
+   - **Jouw effect** bij een eigen effect (zie "Eigen effecten");
+   - **Kleur voor de LED's** bij Per LED: zonder gekozen LED's de zin "Kies LED's in een apparaat
+     hieronder; de kleur gaat naar die LED's." met de link **Naar de apparaten**, die "Per
+     apparaat" bovenaan zet met de focus op Alles openklappen (of Knipperen van de ene kaart), en
+     het mengpaneel;
+   - **Geen kleur nodig** bij Regenboog: alleen de zin "Regenboog maakt zijn eigen kleuren. Kies
+     hieronder de helderheid, de snelheid en de richting.", zonder mengpaneel.
+
+   Heb je LED's gekozen in een kaart bij "Per apparaat", dan is dit blok bij elk effect **Kleur
+   voor de LED's**: bovenaan welke LED's het zijn met **Verloop vullen** en **Selectie opheffen**,
+   daaronder het mengpaneel (zie "Per-LED-editor"). Na Selectie opheffen staat er weer wat bij het
+   effect hoort, en staat de focus op de tegel van het gekozen effect.
+3. **Helderheid en snelheid:** de helderheid, de snelheid en bij Regenboog, Golf en een verspreide
+   Kleurenloop de richting, naast elkaar (zie "Effecten").
+4. **Bewaar als scène** (zie hieronder).
 
 - **Kleur mengen:** links een groot voorbeeld met een strip in de gemengde kleur, de naam van de
   kleur met de hex-code erachter ("Warm wit · #FFF4E5"; je kunt ook een code typen) en de
@@ -314,26 +342,26 @@ schakelaar ernaast.
   veld staat. Ga je naar een ander venster (bijv. met Alt+Tab), dan is je tekst niet meer
   beschermd: verandert de kleur intussen, dan staat bij terugkomst de code van die kleur erin.
 - **Regenboog gebruikt geen kleur:** met Regenboog gekozen (voor één apparaat of bij "Hele huis")
-  staat onder de hex-code "Regenboog gebruikt geen kleur van het apparaat. Een kleur die je hier
-  mengt, kun je bij je eigen kleuren bewaren voor een ander effect.": de regenboog heeft zijn
-  eigen tinten, dus de kleur die je mengt gaat niet naar het apparaat. De schuiven, de hex-code
-  en de vaste kleuren werken wel, en met **+** zet je de gemengde kleur bij je eigen kleuren.
-  Kies je daarna bijv. Statisch, of zet een scène (bijv. uit het tray-menu) Statisch aan, dan
-  staat de kleur van het apparaat weer in de kiezer en gaat een nieuwe kleur weer meteen op het
-  apparaat; de kleur die je bij Regenboog mengde, klik je dan aan bij je eigen kleuren.
+  heet het blok onder de tegels **Geen kleur nodig** en staat er geen mengpaneel: de regenboog
+  heeft zijn eigen tinten, dus een kleur mengen zou nergens heen gaan. Kies je daarna bijv.
+  Statisch, of zet een scène (bijv. uit het tray-menu) Statisch aan, dan staat het mengpaneel er
+  weer met de kleur van het apparaat. Kies je bij Regenboog LED's in een kaart, dan staat het
+  mengpaneel er wel: die kleur gaat naar de LED's en zet het apparaat op Per LED.
 - **Een apparaat dat uit staat, gaat aan** bij de eerste kleur die je mengt, één keer, zoals bij
   de meeste lamp-apps: het komt meteen in de nieuwe kleur aan en de schakelaar (hier en op
   Apparaten) gaat mee. Dat geldt ook voor een kleur van de kleurenloop, van een effect of van een
-  stap van een eigen effect en voor de per-LED-editor. Alleen mengen bij Regenboog, of + en − bij
-  de kleuren, laat het uit. Bij "Hele huis"
+  stap van een eigen effect en voor de per-LED-editor. Alleen + en − bij de kleuren laten het uit.
+  Bij "Hele huis"
   gaan alle apparaten aan als er één uit staat, want de kleur gaat naar allemaal. Kies je één
   apparaat, dan blijven de andere apparaten zoals ze zijn.
-- **Licht en beweging:** de helderheid (0–100 %), het effect, de snelheid en bij Regenboog, Golf
-  en een verspreide Kleurenloop de richting. De helderheid werkt op elk effect. Onder de
-  effectkeuze zegt één korte zin wat het gekozen effect doet, bijv. "Een lichtpunt gaat heen en
-  weer, zoals bij Knight Rider." bij Scanner, en bij een eigen effect hoeveel stappen het heeft
-  ("Jouw effect: 3 stappen."). Een schermlezer leest die zin als de hulptekst van de keuze. Hij
-  verandert mee met het effect, ook als een scène of het tray-menu het effect wijzigt.
+- **Effect en Helderheid en snelheid:** het effect kies je met de tegels bovenaan, de helderheid
+  (0–100 %), de snelheid en bij Regenboog, Golf en een verspreide Kleurenloop de richting in het
+  blok **Helderheid en snelheid**. De helderheid werkt op elk effect. Onder de tegels zegt één
+  korte zin wat het gekozen effect doet, bijv. "Een lichtpunt gaat heen en weer, zoals bij Knight
+  Rider." bij Scanner, en bij een eigen effect hoeveel stappen het heeft ("Jouw effect: 3
+  stappen."). Een schermlezer leest bij elke tegel de zin van dat effect als hulptekst, zodat je
+  hoort wat een effect doet vóór je het kiest. De zin verandert mee met het effect, ook als een
+  scène of het tray-menu het effect wijzigt; de tegels en de links eronder verschuiven dan niet.
 - **Hele huis of één apparaat:** een wijziging bij "Hele huis" geldt voor alle apparaten, maar
   alleen voor wat je wijzigt: zet je de helderheid, dan houdt een apparaat met een eigen kleur die
   kleur. Een wijziging bij één apparaat geldt alleen voor dat apparaat. Is een apparaat weer
@@ -347,7 +375,7 @@ schakelaar ernaast.
   als je de app sluit: de engine bewaart ze als `customColors` in `settings.json`. Een andere
   instellingen-app die tegelijk open is, ziet ze meteen. Ze zijn iets anders dan de kleuren van
   een effect (zie "Kleuren van een effect"): die horen bij een effect op een apparaat.
-- **Bewaar als scène:** de knop rechts onder je eigen kleuren bewaart de verlichting van alle
+- **Bewaar als scène:** de knop onder het blok Helderheid en snelheid bewaart de verlichting van alle
   apparaten zoals die nu is als scène, zonder dat je naar Scènes hoeft. Hij opent dezelfde kaart
   als "+ Nieuwe scène" op Scènes: typ een naam en kies **Opslaan** of druk op Enter; **Annuleren**
   of Escape bewaart niets. Heeft een scène die naam al, dan heet de knop **Overschrijven**, staat
@@ -361,18 +389,15 @@ schakelaar ernaast.
   eigen scène, dan bewaar je de verlichting van het spel; stopt het spel, dan komt de verlichting
   van daarvoor terug.
 - **Loopt mee:** verandert de verlichting buiten de pagina (een scène uit het tray-menu, een
-  scène die op tijd of bij een programma aangaat), dan tonen de schuiven, het effect, de
-  snelheid, de richting, de kleurenloop en de kleuren van het effect meteen de nieuwe verlichting.
+  scène die op tijd of bij een programma aangaat), dan tonen de schuiven, de tegel van het effect
+  (met het blok eronder dat bij dat effect hoort), de snelheid, de richting, de kleurenloop en de
+  kleuren van het effect meteen de nieuwe verlichting; er klapt geen kaart open of dicht.
   Een kleur die je net koos, staat al op het apparaat, en een schuif die je net verschoof,
   springt niet terug, ook niet als je nog sleept terwijl de nieuwe verlichting binnenkomt. Een
   getypte code blijft staan zoals je hem typte ("ff00ff"). Komt er zo de kleurenloop, Fonkelen,
-  Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan. Alleen bij een
-  effect dat geen kleur van het apparaat gebruikt, zoals Regenboog, kan het mengpaneel een kleur
-  tonen die niet op het apparaat staat: die blijft staan zolang het effect geen kleur gebruikt,
-  ook als de apparaten opnieuw binnenkomen (een zone met een nieuwe lengte, apparaten die OpenRGB
-  opnieuw meldt, de schakelaar **Zones gelijk**) en hetzelfde apparaat gekozen blijft; komt er
-  een effect met een kleur op, dan toont het mengpaneel de kleur van het apparaat. Verdwijnt het
-  gekozen apparaat, dan toont de pagina "Hele huis" met zijn kleur.
+  Komeet, Scanner of Vuur op, dan toont het mengpaneel de gekozen kleur daarvan; komt er
+  Regenboog op, dan gaat het mengpaneel weg. Verdwijnt het gekozen apparaat, dan toont de pagina
+  "Hele huis" met zijn kleur.
 - Bovenaan staat dezelfde statusregel als op Apparaten (zie "Statusregel" daar): de verbinding
   met je apparaten weg, een pauze met de reden (bij de pauze uit het tray-menu met "Hervatten",
   zie "Pauzeren") of het voorbeeld dat stilstaat; de belangrijkste in de regel, de rest onder
@@ -381,7 +406,34 @@ schakelaar ernaast.
 
 #### Effecten
 
-Onder de effectkeuze staat van elk effect een korte zin; hier staat precies wat het doet.
+![De effecttegels met Regenboog gekozen, met het vinkje voor de naam en de dikke witte rand, de zin over wat Regenboog doet, de links Importeren… en Code plakken, en eronder het blok "Geen kleur nodig"](images/effecten.png)
+
+Bovenaan Kleur staat een tegel per effect: Statisch, Ademen, Regenboog, Golf, Kleurenloop,
+Fonkelen, Komeet, Scanner, Vuur, Per LED en als laatste **Eigen effect**. Een klik op een tegel
+kiest het effect meteen; de gekozen tegel heeft een dikke witte rand en een ✓ voor de naam. Alle
+tegels zijn even groot, dus de rij verspringt niet als je een ander effect kiest; in een smal
+venster of bij grote tekst lopen ze om naar een volgende rij. Er beweegt niets op een tegel.
+
+- **Eigen effect** kiest het eigen effect dat je het laatst gebruikte (zolang de app open is), of
+  anders het eerste van je eigen effecten; het blok eronder heet dan **Jouw effect**, met een
+  keuzelijst om een ander eigen effect te kiezen (zie "Eigen effecten"). Heb je nog geen eigen
+  effect, dan kiest de tegel niets: het licht houdt zijn effect en de tegel van dat effect blijft
+  gekozen, en het blok eronder toont "Je hebt nog geen eigen effect." met **+ Eigen effect
+  maken**. Een klik op de gekozen tegel brengt het blok van dat effect terug.
+- **Importeren…** en **Code plakken** staan altijd onder de tegels, bij elk effect, want ze halen
+  ook scènes binnen (zie "Scènes en eigen effecten delen" bij Scènes).
+- **Toetsenbord:** de tegels zijn samen één Tab-stop: Tab komt op de gekozen tegel. ←, →, ↑ en ↓
+  gaan naar de vorige of volgende tegel en kiezen hem meteen, na de laatste weer de eerste; Home
+  en End naar de eerste en de laatste. Zonder eigen effecten gaan de pijltjes over **Eigen
+  effect** zonder iets te veranderen. Tab vanaf een tegel gaat naar **Importeren…**, Shift+Tab
+  terug naar de gekozen tegel.
+- **Schermlezer:** Verteller leest de tegels als een groep keuzerondjes "Effect", bijv.
+  "Regenboog, keuzerondje, geselecteerd, 3 van 11", met de zin over wat het effect doet als
+  hulptekst. Zonder eigen effecten zegt hij bij Eigen effect "niet geselecteerd" en als hulptekst
+  "Nog geen eigen effect. Maak er een met + Eigen effect maken.". De kop van het blok eronder hoor
+  je als je erbij komt, niet bij elke wissel.
+
+Onder de tegels staat van het gekozen effect een korte zin; hier staat precies wat elk effect doet.
 
 | Effect | In `settings.json` | Wat het doet |
 | --- | --- | --- |
@@ -421,19 +473,19 @@ Onder de effectkeuze staat van elk effect een korte zin; hier staat precies wat 
   waar LED 1 van een echte fan zit en welke kant hij op telt; loopt de kleur op de fan zelf een
   andere kant op dan in het voorbeeld, draai dan de hoek bij. Een apparaat onthoudt zijn richting
   ook bij een ander effect, en een scène neemt hem mee.
-- **Kleurenloop:** kies het effect, dan verschijnen onder het kleurvoorbeeld de kleuren van de
-  loop. Klik op een kleur (hij krijgt een dikke witte rand) en meng een nieuwe, met de hex-code
-  erboven of met de schuiven en vaste kleuren rechts: het vakje
+- **Kleurenloop:** kies het effect, dan staan in het blok **Kleuren van de loop** onder de tegels
+  de kleuren van de loop, met het mengpaneel eronder. Klik op een kleur (hij krijgt een dikke
+  witte rand) en meng hieronder een nieuwe, met de hex-code, de schuiven of de vaste kleuren: het vakje
   en het apparaat veranderen meteen mee, en de loop wordt bewaard. Klik je daarna een andere kleur,
   dan houdt de vorige wat je mengde. + voegt een kleur toe na de gekozen, − haalt de gekozen
   weg. Een loop heeft 2 tot 12 kleuren; de vakjes staan in rijen van hooguit zes, met + en −
   rechts naast de eerste rij (in een smal venster eronder). Zonder vinkje bij "Kleuren over de
   LED's verdelen" krijgen alle LED's tegelijk dezelfde kleur. Een apparaat onthoudt zijn loop, ook als je
   tussendoor een ander effect kiest. Standaard: geel, groen, blauw.
-- **Kleuren van een effect:** bij Fonkelen, Komeet, Scanner en Vuur verschijnen onder het
-  kleurvoorbeeld "Kleuren van het effect", met dezelfde vakjes, + en − als bij de kleurenloop,
-  en een regel die zegt wat de kleuren doen. Klik op een vakje en meng een nieuwe kleur: het
-  vakje en het apparaat veranderen meteen mee. Een effect heeft 1 tot 12 kleuren. Wat ze doen:
+- **Kleuren van een effect:** bij Fonkelen, Komeet, Scanner en Vuur heet het blok onder de tegels
+  "Kleuren van het effect", met dezelfde vakjes, + en − als bij de kleurenloop, een regel die zegt
+  wat de kleuren doen en het mengpaneel eronder. Klik op een vakje en meng hieronder een nieuwe
+  kleur: het vakje en het apparaat veranderen meteen mee. Een effect heeft 1 tot 12 kleuren. Wat ze doen:
   - **Komeet:** elke ronde de volgende kleur, en na de laatste weer de eerste.
   - **Scanner:** elke keer heen of terug de volgende kleur.
   - **Fonkelen:** elke fonkeling een willekeurige kleur uit de lijst; een fonkeling houdt zijn
@@ -462,7 +514,7 @@ Onder de effectkeuze staat van elk effect een korte zin; hier staat precies wat 
 
 #### Eigen effecten
 
-![Het paneel Eigen effect op de pagina Kleur](images/eigen-effect.png)
+![Het blok Jouw effect op de pagina Kleur: de keuzelijst met Zonsondergang, + Eigen effect maken, de naam, de stappen en hun tijden, en eronder het mengpaneel voor de gekozen stap](images/eigen-effect.png)
 
 Een eigen effect maak je van **stappen**. Elke stap is één kleur voor het hele apparaat, of een
 patroon over de LED's, en heeft twee tijden: hoe lang hij **blijft staan** en hoe lang hij
@@ -470,15 +522,18 @@ patroon over de LED's, en heeft twee tijden: hoe lang hij **blijft staan** en ho
 bijv. een zwaailicht (rood en blauw, elk 0,3 s, zonder overlopen) of een zonsondergang (oranje,
 een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
 
-- **Maken:** kies bij "Licht en beweging" **+ Eigen effect maken** onder het effect. Er komt een
+- **Maken:** kies de tegel **Eigen effect** en in het blok **Jouw effect** eronder **+ Eigen effect
+  maken**. Er komt een
   effect "Eigen effect 1" (of 2, 3, …) met twee stappen, de kleur van het apparaat en zwart, elk
   1 seconde met 1 seconde overlopen, en het apparaat (of bij "Hele huis" alles) toont het meteen.
   Je kunt tot 32 eigen effecten maken; daarna is de link grijs.
-- **Kiezen:** de eigen effecten staan in de effectkeuze onder hun naam, na de gewone effecten en
-  op alfabet. Ze gelden voor alle apparaten: hetzelfde effect kan op meer apparaten tegelijk
-  staan, elk met zijn eigen helderheid en snelheid.
-- **Aanpassen:** met een eigen effect gekozen staat onder het kleurvoorbeeld het paneel **Eigen
-  effect**. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
+- **Kiezen:** de tegel **Eigen effect** kiest het eigen effect dat je het laatst gebruikte; een
+  ander kies je in **Jouw effect** in de keuzelijst (een schermlezer noemt hem "Welk eigen
+  effect?"), waar je eigen effecten op alfabet staan. Ze gelden voor alle apparaten: hetzelfde
+  effect kan op meer apparaten tegelijk staan, elk met zijn eigen helderheid en snelheid.
+- **Aanpassen:** met een eigen effect gekozen staan in **Jouw effect**, onder de keuzelijst, de
+  uitleg met **Verwijderen**, **Exporteren…** en **Code kopiëren**, de naam, de stappen en de
+  twee tijden, en daaronder het mengpaneel voor de gekozen stap. Elke wijziging gaat meteen naar de engine, die hem in `effects.json` bewaart, en de
   apparaten met dit effect (en hun kaarten bij **Per apparaat**) laten hem meteen zien; een tweede
   instellingen-app die open is, ook:
   - **Naam:** typ een nieuwe naam en druk Enter of Tab. Een naam is 1 tot 40 tekens, en een
@@ -486,7 +541,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
     effect zoals Statisch of Regenboog (hoofdletters en spaties eromheen tellen niet). Dan staat
     er onder het vak "Deze naam heeft al een effect.", bij een lege naam "Geef het effect een
     naam."; een schermlezer leest de melding voor. Na Enter kun je de naam nog verbeteren; zodra
-    je het vak verlaat, staat de echte naam van het effect er weer in, zoals in de effectkeuze,
+    je het vak verlaat, staat de echte naam van het effect er weer in, zoals in de keuzelijst,
     en zegt de melding welke naam niet kon en dat de oude blijft, bijv. "Er is al een effect dat
     'Regenboog' heet; de naam blijft 'Disco'.". Die melding staat tot je een goede naam geeft of
     een ander effect kiest. Met Escape staat de naam van het effect weer in het vak, zonder
@@ -511,7 +566,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   - **Verwijderen** vraagt eerst "Eigen effect '…' verwijderen?", met erbij dat apparaten en
     scènes met dit effect dan Statisch worden. Kies je "Verwijderen", dan gaat het effect weg:
     apparaten die het tonen, krijgen Statisch in hun eigen kleur, en de focus gaat naar de
-    effectkeuze. "Annuleren" (of Escape) laat alles staan, met de focus weer op Verwijderen.
+    tegel Statisch. "Annuleren" (of Escape) laat alles staan, met de focus weer op Verwijderen.
     Hoe de vraag werkt, staat bij Scènes.
 - **Patroon op een ander apparaat:** een patroon wordt over de LED's van het apparaat **uitgerekt**
   (of samengedrukt), net als bij "Zones gelijk": elke LED krijgt de kleur op dezelfde plek in
@@ -523,10 +578,10 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
   dit effect Statisch in de kleur van het apparaat. De scènekaart zegt bij een eigen effect
   "Eigen effect", niet zijn naam, met bolletjes in de kleur van het apparaat.
 - Een eigen effect met één stap staat stil, net als Statisch: er draait dan geen animatie.
-- **Delen:** in het paneel Eigen effect zet **Code kopiëren** een korte code van het effect op
+- **Delen:** in **Jouw effect** zet **Code kopiëren** een korte code van het effect op
   het klembord en bewaart **Exporteren…** het als bestand (`<naam>.brgb.json`). Onder de
-  effectkeuze staan **Importeren…** en **Code plakken** voor een effect (of een scène) van iemand
-  anders. Het effect komt in de effectkeuze; een effect met dezelfde naam blijft staan en het
+  effecttegels staan altijd **Importeren…** en **Code plakken** voor een effect (of een scène) van
+  iemand anders. Het effect komt bij je eigen effecten in **Jouw effect**; een effect met dezelfde naam blijft staan en het
   nieuwe krijgt een nummer ("Disco (2)"). Had je precies dit effect al, dan zegt de melding dat
   en komt er niets bij. Zie "Scènes en eigen effecten delen" bij Scènes.
 
@@ -534,7 +589,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
 
 ![Per apparaat bij "Hele huis": de chips om naar een apparaat te springen en de dichte kaarten, de kaart van het toetsenbord open met de regenboog op 45°](images/voorbeeld.png)
 
-Onder "Licht en beweging" staat de kop **Per apparaat**, met per apparaat een kaart. Bij "Hele
+Onder "Bewaar als scène" staat de kop **Per apparaat**, met per apparaat een kaart. Bij "Hele
 huis" zijn die kaarten eerst dicht, zodat je niet langs alle LED's van alle apparaten hoeft te
 scrollen; klap een apparaat open voor zijn zones, LED's, lengtes, Knipperen en Tellen.
 
@@ -559,8 +614,9 @@ scrollen; klap een apparaat open voor zijn zones, LED's, lengtes, Knipperen en T
 - **Eén apparaat:** kies je bovenaan één apparaat, of heeft je huis er maar één, dan is er één
   kaart en die staat altijd open, zonder pijltje, chips of links. Komt er een tweede apparaat
   bij, of ga je terug naar "Hele huis", dan komt die kaart dicht, tenzij je hem bij "Hele huis"
-  had opengeklapt; dicht stopt hij wat erin liep, zoals bij dichtklappen.
-- **Toetsenbord:** met Tab kom je na "Licht en beweging" bij Alles openklappen, Alles
+  had opengeklapt; dicht stopt hij wat erin liep, zoals bij dichtklappen. Met Tab ga je dan van
+  "Bewaar als scène" meteen naar Knipperen van die kaart (tijdens een pauze eerst Hervatten).
+- **Toetsenbord:** met Tab kom je na "Bewaar als scène" bij Alles openklappen, Alles
   dichtklappen, Hervatten (alleen tijdens een pauze), dan de chips (één Tab-stop: ← en → naar de
   vorige of volgende chip, Home en End naar de eerste en de laatste, Enter of Spatie springt) en
   per kaart de kop en Knipperen. Op de kop klappen Enter en Spatie de kaart open of dicht, →
@@ -1188,9 +1244,10 @@ of minder beweging werkt.
 
 - **Toetsenbord:** met Tab kom je in de navigatiebalk, met de pijltjes kies je een pagina. Elke
   knop, link, kaart en schuif krijgt bij toetsenbordfocus een ring van 2 px, en in het voorbeeld de
-  actieve LED (zie "Per-LED-editor"). De kaarten bij "Per apparaat" op Kleur klap je open en dicht
-  met Enter, Spatie, → en ←, en de chips erboven zijn één Tab-stop met de pijltjes (zie "Per
-  apparaat").
+  actieve LED (zie "Per-LED-editor"). De effecttegels op Kleur zijn één Tab-stop, de gekozen tegel,
+  en de pijltjes kiezen de tegel ernaast (zie "Effecten"). De kaarten bij "Per apparaat" op Kleur
+  klap je open en dicht met Enter, Spatie, → en ←, en de chips erboven zijn één Tab-stop met de
+  pijltjes (zie "Per apparaat").
 - **Schermlezer:** een schermlezer zoals Verteller noemt de lijstitems bij hun naam in plaats
   van een technische naam: een apparaatkaart naar het apparaat, een vaste kleur naar de kleur
   ("Warm wit"), een scènekaart naar de scène, het tempo van Tellen ("2 LED's per seconde") en
@@ -1199,12 +1256,16 @@ of minder beweging werkt.
   "Uit"), en zolang de app nog niet weet hoe de scène eruitziet slaat hij ze over; de strip van "Hele huis" en die in het kleurvoorbeeld slaat hij ook over,
   want de tekst ernaast zegt al wat ze tonen, en zo ook de kleine strip op een kaart bij "Per
   apparaat" en het bolletje van een chip. Zo'n kaart zegt of hij open is: "samengevouwen" of
-  "uitgevouwen".
+  "uitgevouwen". De effecttegels zijn een groep keuzerondjes "Effect" ("Regenboog, keuzerondje,
+  geselecteerd, 3 van 11"), geen lijst, met wat het effect doet als hulptekst; het vinkje voor de
+  gekozen naam leest hij niet voor, want "geselecteerd" zegt het al.
 - **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
   naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
-  (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Kleuren",
-  "Licht en beweging", "Per apparaat", een scènekaart en elk blok op Instellingen) en een
-  apparaatkaart niveau 3, op Apparaten en bij "Per apparaat" op Kleur, ook als hij dicht is. De lijsten hebben een naam,
+  (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Effect", het
+  blok eronder dat bij het effect hoort, bijv. "Kleur" of "Kleuren van de loop", "Helderheid en
+  snelheid", "Per apparaat", een scènekaart en elk blok op Instellingen) en wat in een blok ligt
+  niveau 3: "Kleuren" en "Eigen kleuren" in het mengpaneel, en een apparaatkaart, op Apparaten en
+  bij "Per apparaat" op Kleur, ook als hij dicht is. De lijsten hebben een naam,
   zodat je hoort in welke lijst je komt: "Kleuren", "Eigen kleuren", "Per apparaat", "Apparaten in
   huis", "Kleuren van de loop", "Kleuren van het effect" en "Stappen".
 - **Schakelaars** zeggen voor een schermlezer "aan" of "uit" (bijv. "Sneltoetsen, schakelaar,
@@ -1248,17 +1309,19 @@ of minder beweging werkt.
   uit staat of zwart is, krijgt de tekstkleur, net als een schakelaar die uit staat; op de strip
   van Kleur, die donker blijft, blijft hij grijs, net als op de kleine strip van een kaart bij "Per
   apparaat". De chips bij "Per apparaat" krijgen de knopkleuren met hun bolletje in de kleur van
-  het apparaat, en het pijltje op een kaart de tekstkleur.
+  het apparaat, en het pijltje op een kaart de tekstkleur. De effecttegels krijgen de knopkleuren,
+  en de gekozen tegel de markeerkleur met zijn rand en vinkje.
 - **Tekstgrootte:** maak je in Windows de tekst groter (Instellingen → Toegankelijkheid →
   Tekstgrootte, tot 225 %), dan groeit de tekst van de app mee, ook terwijl hij open is: zodra je
   op "Toepassen" klikt. Zodat alles blijft passen, wordt de navigatiebalk breder als de namen
   van de pagina's dat nodig hebben, loopt tekst om naar een volgende regel in plaats van
   afgekapt te worden, worden velden en keuzelijsten breder (het veld van de hex-code past altijd
   een hele code) en gaan kolommen onder elkaar als ze naast elkaar niet meer passen: op Kleur
-  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, bij "Per apparaat"
+  het voorbeeld boven de schuiven en de keuze van het apparaat onder de titel, de effecttegels
+  met twee of drie per rij (ze worden breder met de tekst, en een lange naam loopt om in plaats van
+  afgekapt te worden), bij "Helderheid en snelheid" de schuiven onder elkaar, bij "Per apparaat"
   de links onder de kop, de chips over meer rijen en op een kaart de kleine strip en Knipperen
-  onder de naam, en bij "Licht en
-  beweging" twee of drie in plaats van vier naast elkaar. De dagen bij een scènetijd worden
+  onder de naam. De dagen bij een scènetijd worden
   pillen in plaats van rondjes. Iconen, LED's, de bolletjes, de vakjes met kleuren, de
   klikmaten en het woordmerk in de titelbalk blijven even groot: het woordmerk is het logo, in
   een titelbalk die even hoog blijft. Een lange naam van een apparaat of scène op een kaart eindigt
@@ -1277,7 +1340,9 @@ of minder beweging werkt.
   niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
   het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
   apparaat" klapt altijd zonder animatie open en dicht, en een sprong naar een kaart staat meteen
-  op zijn plek; met de animaties uit staat ook de kleine strip op een dichte kaart stil.
+  op zijn plek; met de animaties uit staat ook de kleine strip op een dichte kaart stil. Op de
+  effecttegels beweegt nooit iets, en een ander effect laat het blok eronder zonder animatie
+  wisselen.
 
 ### Ontwerp en bewuste afwijkingen
 
@@ -1317,7 +1382,7 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   knoppen om toe te voegen en weg te halen. "Exporteren…" en "Code kopiëren" bij de gekozen
   scène, en "Importeren…" en "Code plakken" onder "+ Nieuwe scène", staan niet in het ontwerp
   (panelvoorstel D, testpanel): gewone tweede knoppen, zoals "Instellingen bewaren…". Op Kleur
-  staan ze in het paneel Eigen effect, en als link onder "+ Eigen effect maken".
+  staan ze in het blok Jouw effect, en als link altijd onder de effecttegels.
 - **Startscènes:** het ontwerp toont als voorbeeld Klusmodus, Filmavond, Feestje en Even
   bijkomen; een nieuwe installatie krijgt Alles uit, Rustig wit, Regenboog, Pastel en Gamen (de
   keuze van de gebruiker na het testpanel), gemaakt van effecten en kleuren die de app al heeft.
@@ -1334,23 +1399,20 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
   zetten" (§ 4 en § 5.2): de kleur gaat meteen op het apparaat terwijl je schuift, typt of een
   kleur kiest, zoals al bij de kleurenloop en gekozen LED's. De app slaat elke wijziging meteen
   op, dus een knop die de kleur pas op het apparaat zet, sprak "Wijzigingen worden automatisch
-  opgeslagen" tegen (testpanel, Henk). Extra ten opzichte van het ontwerp: "Licht en beweging"
-  (helderheid, effect, snelheid, richting) en het LED-voorbeeld met de per-LED-editor. Bij
-  Regenboog, dat geen kleur van het apparaat gebruikt, zegt een regel onder de hex-code dat de
-  kleur die je mengt nergens heen gaat.
-  Op de plek van "Op de strip zetten", onder de kleuren rechts, staat nu "Bewaar als scène"
-  (testpanel 1-11-2026, Lotte en Noor): een gewone knop, geen primaire, want de kleur staat al op
-  het apparaat en bewaren als scène is een extra stap. Hij opent dezelfde naamkaart als "+ Nieuwe
-  scène"; in die kaart staan "Opslaan" en "Annuleren" onder het naamveld in plaats van ernaast,
-  zodat het veld ook in de smalle kolom van Kleur breed genoeg blijft.
-  De nieuwe opzet van deze pagina, "Kleur in lagen" (§ 9 van `design/DESIGN.md`), is voor een
-  deel gebouwd: de pagina heet "Kleur", en de apparaten staan bij "Per apparaat" als kaarten die
-  je openklapt, met de chips en "Alles openklappen" en "Alles dichtklappen" (zie "Per apparaat").
-  De volgorde van het effect (eerst het effect als tegels, dan wat bij dat effect hoort, § 9.2)
-  volgt nog; tot dan staat het effect zoals hierboven bij "Licht en beweging". De kaart van één
-  gekozen apparaat is de kaart van eerst, met de donkere achtergrond van het voorbeeld; de kaarten
-  die dichtklappen hebben de kaartkleur van het ontwerp, ook achter de LED's (de mock zet de LED's
-  van een zone nog op een eigen donker vlak).
+  opgeslagen" tegen (testpanel, Henk). De pagina volgt "Kleur in lagen" (§ 9 van
+  `design/DESIGN.md`): eerst het effect als tegels, dan wat bij dat effect hoort, dan helderheid en
+  snelheid, "Bewaar als scène" en de apparaten bij "Per apparaat". "Bewaar als scène" staat daarmee
+  niet meer op de plek van "Op de strip zetten" van § 5.2 maar onder "Helderheid en snelheid" (§ 9.1),
+  in een kolom zo breed als die van het mengpaneel: een gewone knop, geen primaire (testpanel
+  1-11-2026, Lotte en Noor), want de kleur staat al op het apparaat en bewaren als scène is een
+  extra stap. Hij opent dezelfde naamkaart als "+ Nieuwe scène"; in die kaart staan "Opslaan" en
+  "Annuleren" onder het naamveld in plaats van ernaast, zodat het veld ook in een smalle kolom breed
+  genoeg blijft. De kaart van één gekozen apparaat is de kaart van eerst, met de donkere
+  achtergrond van het voorbeeld; de kaarten die dichtklappen hebben de kaartkleur van het ontwerp,
+  ook achter de LED's (de mock zet de LED's van een zone nog op een eigen donker vlak). Kleine
+  afwijkingen van § 9 staan daar als regels *Gebouwd:*, bijv. dat "Kleuren" en "Eigen kleuren" in
+  het mengpaneel een kop van niveau 3 zijn, en dat bij Jouw effect **Verwijderen** naast de uitleg
+  staat en de twee tijden van een stap naast elkaar.
 - **Kleuren** (de gereedschapskist van het ontwerp): de vakjes zijn 32 px in plaats van de 44 px
   van het ontwerp (§ 4, "Preset tile"), zodat de negen eerste vaste kleuren in een breed venster op één rij passen en de
   eigen kleuren eronder ruimte hebben; de rest loopt door op een volgende rij. Ze zijn met de Tab-toets te bereiken, krijgen de
@@ -1363,19 +1425,21 @@ De app volgt `design/DESIGN.md`. Bewust anders, of (nog) niet gebouwd:
 - **LED's tellen** staat niet in het ontwerp: "Tellen" naast "Knipperen" en de teller op de plek
   van de lengte van een zone gebruiken dezelfde knoppen en kaarten; de tempo's zijn ronde knopjes
   zoals de dagen bij een scène, en de teller staat in het monolettertype.
-- **Richting** staat niet in het ontwerp: een vierde schuif in "Licht en beweging", naast en in
-  de stijl van de snelheid, met de graden in het monolettertype en een pijltje dat de kant op
-  wijst. "Volgorde van de LED's" eronder is een link, zoals Verversen. Bij een effect zonder
-  richting blijft de plek van de schuif leeg, zodat de andere drie niet verspringen.
-- **Uitleg bij het effect** staat niet in het ontwerp: de zin onder de effectkeuze is subtekst,
-  zoals "Alleen voor bewegende effecten." onder de snelheid. Hij houdt de ruimte van de langste
-  zin vrij, zodat de schuiven ernaast, "+ Eigen effect maken" eronder en de kaart niet
-  verspringen als je een ander effect kiest.
-- **Eigen effect** staat niet in het ontwerp: het paneel onder het kleurvoorbeeld gebruikt de
+- **Richting** staat niet in § 5.2 van het ontwerp, wel in § 9: een derde schuif in "Helderheid
+  en snelheid", naast en in de stijl van de snelheid, met de graden in het monolettertype en een
+  pijltje dat de kant op wijst. "Volgorde van de LED's" eronder is een link, zoals Verversen. Bij
+  een effect zonder richting blijft de plek van de schuif leeg, zodat de andere twee niet
+  verspringen.
+- **Uitleg bij het effect:** de zin onder de effecttegels is subtekst, zoals "Alleen voor
+  bewegende effecten." onder de snelheid. Hij houdt de ruimte van de langste zin vrij, zodat
+  "Importeren…" en "Code plakken" eronder en de blokken daaronder niet verspringen door de zin als
+  je een ander effect kiest (wel door het blok dat bij het effect hoort).
+- **Eigen effect** staat niet in § 5.2 van het ontwerp: het blok "Jouw effect" (§ 9.2) gebruikt de
   kaart, de vakjes (44 px) met + en − van de kleurenloop, met ← en → in dezelfde ronde knopjes,
-  en de schuiven en het monolettertype van "Licht en beweging". "+ Eigen effect maken" onder de
-  effectkeuze is een link, zoals Verversen. Een eigen pagina met een lijst van alle eigen effecten
-  is er niet: je kiest ze in de effectkeuze, en het paneel past het gekozen effect aan.
+  en de schuiven en het monolettertype van "Helderheid en snelheid". "+ Eigen effect maken" is een
+  link, zoals Verversen. Een eigen pagina met een lijst van alle eigen effecten is er niet: je
+  kiest ze met de tegel "Eigen effect" en de keuzelijst van "Jouw effect", en dat blok past het
+  gekozen effect aan.
 - **De vraag voor het verwijderen** van een scène of een eigen effect staat niet in het ontwerp:
   een klein venster met dezelfde eigen titelbalk (icoon, woordmerk en kruisje) als het
   hoofdvenster, in `bg` met een rand in `border`, de vraag als sectiekop en de uitleg als
