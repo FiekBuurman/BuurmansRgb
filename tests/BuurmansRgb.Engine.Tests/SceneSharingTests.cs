@@ -216,7 +216,6 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Empty(await _api.GetProfilesAsync(Ct));
     }
 
-    // A file that is wrong adds nothing, and no event goes out.
     // The scene fade is an option of the pc, not of a scene: a shared scene goes without it, so
     // an older version still reads it, and here it comes on with the fade of this pc.
     [Fact]
@@ -238,6 +237,7 @@ public sealed class SceneSharingTests : IDisposable
         Assert.True(_lighting.IsFading);
     }
 
+    // A file that is wrong adds nothing, and no event goes out.
     [Fact]
     public async Task Import_Invalid_AddsNothing()
     {
