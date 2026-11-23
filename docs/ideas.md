@@ -294,13 +294,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - "+" van de eigen kleuren achter het laatste vakje zetten in plaats van ervoor, met een paneel
   dat de vakjes en + samen laat omlopen; nu staat + vooraan, zodat de vakjes binnen de kolom
   omlopen
-- Een kleur die je bij Regenboog mengt, meenemen als je daarna een effect met één kleur kiest
-  (Statisch, Ademen, Golf); nu toont de kiezer dan de kleur van het apparaat, ook als een scène
-  zo'n effect aanzet, en bewaar je de gemengde kleur alleen met + bij je eigen kleuren
-- Bij Regenboog de strip in het kleurvoorbeeld een regenboog laten tonen, zoals de apparaten; nu
-  toont hij de gemengde kleur, met eronder dat Regenboog geen kleur van het apparaat gebruikt.
-  Vervalt als Kleur in lagen (§ 9.2 van `design/DESIGN.md`) gebouwd wordt: daar heeft Regenboog
-  geen mengpaneel
 - Ongedaan maken voor een kleur die je meteen meekleurde (van het apparaat, de kleurenloop, de
   kleuren van een effect of LED's), nu er geen knop meer tussen mengen en het apparaat zit; ook
   "de kleur van daarnet" na een scène die door een nieuwe kleur niet meer aan staat
@@ -318,9 +311,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - Een kleur op een apparaat dat uit staat, zet het nu aan; de helderheid of een effect kiezen doet
   dat (nog) niet. Misschien moet ook een helderheid boven 0 % het apparaat aanzetten, zoals bij een
   dimmer
-- De zin over wat een effect doet ook in de open effectkeuze tonen (als tweede regel of tooltip
-  bij elk effect), zodat je het leest vóór je kiest; nu staat hij alleen onder de keuze, bij het
-  gekozen effect (sinds "effect-uitleg")
+- De zin over wat een effect doet ook als tooltip op elke effecttegel van Kleur, zodat je hem met
+  de muis leest vóór je kiest; nu staat hij alleen onder de tegels, bij het gekozen effect, en
+  hoort een schermlezer hem als hulptekst van elke tegel (`kleur-volgorde`)
 - De navigatiebalk uitklapbaar maken (~240 px met het label naast het icoon), het alternatief uit
   § 6 van het ontwerp
 - De Snap Layouts van Windows 11 (het menu bij het aanwijzen van de maximaliseerknop) ook bij de
@@ -343,13 +336,6 @@ uitbreidingen in `docs/bouwplan.md`.
   laatste melding staan, bijv. "Vanzelf aanzetten van 'Avond' opgeslagen." van Scènes nog op
   Kleur, zodat hij bij die pagina lijkt te horen (gebruikerstest 28-10, B3). Geldt ook voor de
   meldingen van Instellingen, zoals "Starten met Windows kon niet worden aangepast."
-- De pagina Kleur in de volgorde van het effect: eerst het effect kiezen, dan wat bij dat effect
-  hoort (de kleur, de kleuren van de loop of het effect, de stappen); nu kies je het effect pas
-  halverwege bij "Licht en beweging", en blijft bij Statisch en Regenboog links onder het
-  kleurvoorbeeld een groot leeg vlak (gebruikerstest 28-10, B7). Een grote verbouwing.
-  Ontworpen als `kleur-volgorde` in § 9.2 van `design/DESIGN.md` (Kleur in lagen, nacht 6); het
-  open- en dichtklappen van de kaarten is gebouwd (`kleur-lagen`), dit deel blijft hier tot het
-  gebouwd is
 - Een dichte kaart bij "Per apparaat" laten zien dat er in die kaart iets loopt dat een ander
   venster van de app startte, zoals een telling: dichtklappen stopt alleen een telling van dit
   venster, en die van een ander venster telt dan onzichtbaar door (`kleur-lagen`)
@@ -363,6 +349,15 @@ uitbreidingen in `docs/bouwplan.md`.
 - Op de effecttegels van Kleur in lagen (§ 9.3 van `design/DESIGN.md`) een klein stilstaand
   plaatje van het effect (bijv. een strip in de kleuren van Regenboog of Vuur), zodat je ziet wat
   een effect doet vóór je het kiest; geen animatie, voor minder beweging en geen werk per beeld
+- Een eigen effect dat je importeert of plakt terwijl kaart 4 "Jouw effect" zonder eigen effecten
+  toont, meteen kiezen; nu blijft de kaart staan met de keuzelijst zonder keuze, en verandert het
+  licht pas als je het effect daar kiest (`kleur-volgorde`)
+- Onthouden welk eigen effect de tegel "Eigen effect" kiest, ook na het opnieuw openen van de app
+  (bijv. het eigen effect van de verlichting van "Hele huis", of in `settings.json`); nu kiest de
+  tegel na het opstarten het eerste eigen effect op alfabet tot je er een gebruikt (`kleur-volgorde`)
+- Een bewaker in `LinkStyleTests` of een eigen test die elke `RadioButton` van de app langsloopt
+  (Tellen, de effecttegels) op een naam, een plek in de groep ("3 van 11") en de focusring, zoals
+  `PlainWordsTests` dat voor knoppen doet (`kleur-volgorde`)
 - In de subregel onder de titel van Kleur ook de scène noemen die aan staat ("Hele huis · 9
   apparaten · scène Gamen"), zodat je ziet dat een wijziging hem uitzet (`kleur-lagen-schets`)
 - Na een sprong naar een apparaat met veel LED's (een toetsenbord) een link "Naar de apparaten"
