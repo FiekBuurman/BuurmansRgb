@@ -546,10 +546,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         bool rendered;
         lock (_gate)
         {
-            var device = KnownDeviceLocked(deviceId);
-            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+            var device = LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _ledColors.Set(device, firstLed, colors);
             _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
@@ -580,10 +577,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         bool rendered;
         lock (_gate)
         {
-            var device = KnownDeviceLocked(deviceId);
-            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+            LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _overlays.Set(deviceId, firstLed, colors);
             EndFadesLocked(deviceId);
@@ -1325,6 +1319,17 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
+
+    // The device, when count colors from firstLed on fit on its LEDs. An exception names colors, the
+    // list that is too long, as the callers take it.
+    private RgbDevice LedRangeLocked(string deviceId, int firstLed, int count)
+    {
+        var device = KnownDeviceLocked(deviceId);
+        ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, device.LedCount - firstLed, "colors");
+        return device;
+    }
 
     private DeviceOutput KnownOutputLocked(string deviceId) =>
         _outputs.Find(deviceId)
