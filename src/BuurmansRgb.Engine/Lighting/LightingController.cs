@@ -1073,40 +1073,24 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Gives every device that fades the end of its fade at once, as when a pause starts or the
     // engine stops, so no device stays halfway and nothing waits for the fade. Returns true when
     // there was one.
-    private bool StopFadesLocked()
-    {
-        var time = EffectTime;
-        var stopped = false;
-        foreach (var output in _outputs.All)
-        {
-            if (output.IsFading)
-            {
-                output.EndFade();
-                output.Render(time);
-                output.Send(SendScaleLocked);
-                stopped = true;
-            }
-        }
-
-        if (stopped)
-        {
-            _sequence++;
-        }
-
-        return stopped;
-    }
+    private bool StopFadesLocked() => StopLocked(static output => output.IsFading, static output => output.EndFade());
 
     // Gives every device that is flashing, but except, its own colors again. Returns true when
     // there was one.
-    private bool StopFlashesLocked(DeviceOutput? except = null)
+    private bool StopFlashesLocked(DeviceOutput? except = null) =>
+        StopLocked(static output => output.IsFlashing, static output => output.StopFlash(), except);
+
+    // Ends with stop what runs on every device for which runs is true, but except, and sends what
+    // the device shows then. Returns true when there was one.
+    private bool StopLocked(Func<DeviceOutput, bool> runs, Action<DeviceOutput> stop, DeviceOutput? except = null)
     {
         var time = EffectTime;
         var stopped = false;
         foreach (var output in _outputs.All)
         {
-            if (output.IsFlashing && output != except)
+            if (output != except && runs(output))
             {
-                output.StopFlash();
+                stop(output);
                 output.Render(time);
                 output.Send(SendScaleLocked);
                 stopped = true;
