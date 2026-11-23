@@ -32,6 +32,13 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     private int _countFirstLed;
     private int _countLedCount;
 
+    // A crossfade (BeginFade): the colors the device showed when it began, made once per output
+    // and kept for the next fade, so a frame during a fade allocates nothing.
+    private RgbColor[]? _fadeFrom;
+    private bool _fading;
+    private TimeSpan _fadeStart;
+    private TimeSpan _fadeDuration;
+
     public IDeviceProvider Provider { get; } = provider;
 
     public RgbDevice Device { get; } = device;
@@ -40,11 +47,13 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     public EffectClock Clock { get; } = clock ?? new();
 
-    // A device that flashes needs frames until the flash is over, whatever its effect, and one
-    // with a count that runs until the count stops.
-    public bool IsAnimated => _effect.IsAnimated || _flash is not null || _count is { Running: true };
+    // A device that flashes needs frames until the flash is over, whatever its effect, one with a
+    // count that runs until the count stops, and one that fades until the fade is over.
+    public bool IsAnimated => _effect.IsAnimated || _flash is not null || _count is { Running: true } || _fading;
 
     public bool IsFlashing => _flash is not null;
+
+    public bool IsFading => _fading;
 
     public bool IsCounting => _count is not null;
 
@@ -71,6 +80,24 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
 
     public void StopFlash() => _flash = null;
 
+    // From time on, for duration, the renders go over from the colors the device shows at time,
+    // in the middle of a fade too, to what its lighting shows then: call it before Show gives the
+    // new effect. Without a flash or a count, which go over the fade as before. The fade runs on
+    // the engine time, so a lower frame rate or a frame that comes late does not make it longer.
+    public void BeginFade(TimeSpan time, TimeSpan duration)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(duration, TimeSpan.Zero);
+        var from = _fadeFrom ??= new RgbColor[Buffer.Length];
+        RenderLighting(Buffer, time);
+        Buffer.AsSpan().CopyTo(from);
+        _fadeStart = time;
+        _fadeDuration = duration;
+        _fading = true;
+    }
+
+    // The next render shows the lighting itself, as at the end of the fade.
+    public void EndFade() => _fading = false;
+
     // From now on, the renders show the count over the effect on the LEDs firstLed to
     // firstLed + ledCount: the zone that is counted, as long as the device has it now. Null ends
     // it. The count itself moves on in LightingController, so it goes on when the device list is
@@ -88,6 +115,26 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     public void Render(TimeSpan time)
     {
         var leds = Buffer.AsSpan();
+        RenderLighting(leds, time);
+
+        _count?.Render(leds.Slice(_countFirstLed, _countLedCount));
+
+        if (_flash is { } flash)
+        {
+            if (flash.IsOver(time))
+            {
+                _flash = null;
+            }
+            else
+            {
+                leds.Slice(flash.FirstLed, flash.LedCount).Fill(flash.ColorAt(time));
+            }
+        }
+    }
+
+    // The effect at the brightness, over the colors a fade comes from as far as it got.
+    private void RenderLighting(Span<RgbColor> leds, TimeSpan time)
+    {
         var effectTime = Clock.Tick(time);
         if (_zonesAlike && _parts.Length > 1)
         {
@@ -111,18 +158,26 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
             }
         }
 
-        _count?.Render(leds.Slice(_countFirstLed, _countLedCount));
-
-        if (_flash is { } flash)
+        if (_fading)
         {
-            if (flash.IsOver(time))
-            {
-                _flash = null;
-            }
-            else
-            {
-                leds.Slice(flash.FirstLed, flash.LedCount).Fill(flash.ColorAt(time));
-            }
+            Fade(leds, time);
+        }
+    }
+
+    // The last render of a fade shows the lighting itself, and ends it.
+    private void Fade(Span<RgbColor> leds, TimeSpan time)
+    {
+        var amount = (time - _fadeStart) / _fadeDuration;
+        if (amount >= 1.0)
+        {
+            _fading = false;
+            return;
+        }
+
+        var from = _fadeFrom!;
+        for (var i = 0; i < leds.Length; i++)
+        {
+            leds[i] = RgbColor.Lerp(from[i], leds[i], amount);
         }
     }
 

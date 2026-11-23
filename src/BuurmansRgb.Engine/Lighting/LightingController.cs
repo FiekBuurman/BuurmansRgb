@@ -9,8 +9,9 @@ namespace BuurmansRgb.Engine.Lighting;
 // thread pool; the lock guards all state. Events are raised outside the lock, so a listener can
 // see a newer output than the render that raised the event: LightingOutput.Sequence orders them.
 // An AnimationLoop renders the frames, and only while an animated effect shows, a device
-// flashes or the LEDs of a zone are counted, and nothing is paused; with static lighting no timer
-// runs at all.
+// flashes, fades over to a scene (SceneFade) or the LEDs of a zone are counted, and nothing is
+// paused; with static lighting no timer runs at all, also not once a fade is over. A pause, and
+// stopping the engine, end a fade at once.
 //
 // A pause has reasons (PauseReasons). Any reason stops the animation and ends a flash and a count
 // of LEDs. Only a manual pause also leaves the devices alone; while Windows is locked or asleep,
@@ -78,6 +79,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private long _sequence;
     private int _framesPerSecond = DefaultFramesPerSecond;
     private PausedLightsMode _pausedLights = PausedLightsMode.Keep;
+    private TimeSpan _sceneFade = Contracts.SceneFade.Default;
 
     // Effects run on the time of timeProvider, counted from the moment the controller was made.
     public LightingController(IReadOnlyList<IDeviceProvider> providers, TimeProvider? timeProvider = null)
@@ -230,6 +232,50 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
+    // Raised when SceneFade got another value; read SceneFade for the newest one.
+    public event EventHandler? SceneFadeChanged;
+
+    // How long a change with fade (a scene, "Alles aan" or "Alles uit") takes to go over from the
+    // colors the devices show to the new ones, kept between zero and SceneFade.Max; zero is at once.
+    // A fade that runs keeps its own length.
+    public TimeSpan SceneFade
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _sceneFade;
+            }
+        }
+        set
+        {
+            bool changed;
+            lock (_gate)
+            {
+                var fade = Contracts.SceneFade.Clamp(value);
+                changed = fade != _sceneFade;
+                _sceneFade = fade;
+            }
+
+            if (changed)
+            {
+                SceneFadeChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+    }
+
+    // True while a device fades over to a new lighting.
+    public bool IsFading
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _outputs.All.Any(output => output.IsFading);
+            }
+        }
+    }
+
     // Raised when ZonesAlike got other devices; read ZonesAlike for the newest ones.
     public event EventHandler? ZonesAlikeChanged;
 
@@ -337,20 +383,28 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
     // Returns the lighting as it is right after, read under the same lock: State may already hold
-    // a change from another thread by then.
-    public LightingState Replace(LightingState state) => Replace(_ => state);
+    // a change from another thread by then. With fade, the devices go over to it in SceneFade
+    // (FadeLocked).
+    public LightingState Replace(LightingState state, bool fade = false) => Replace(_ => state, fade);
 
     // Replace with what change makes of the lighting now, read and applied under the same lock,
     // so a change of another device in between is not lost: for example a scene of some devices
     // over the others (Profile.LightingOver). change runs under the lock, so it only computes.
-    public LightingState Replace(Func<LightingState, LightingState> change)
+    public LightingState Replace(Func<LightingState, LightingState> change, bool fade = false)
     {
         ArgumentNullException.ThrowIfNull(change);
         bool rendered;
         LightingState applied;
         lock (_gate)
         {
-            ApplyLocked(change(StateLocked()));
+            // The colors of now are taken before the per-LED colors of the new lighting come in.
+            var next = change(StateLocked());
+            if (fade)
+            {
+                FadeLocked();
+            }
+
+            ApplyLocked(next);
             applied = StateLocked();
             rendered = RenderLocked();
         }
@@ -388,8 +442,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // a device's own brightness and the other way round. Changing one device starts from what
     // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect, also
     // an own effect that does not exist (SetCustomEffects), throws ArgumentException and changes
-    // nothing.
-    public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change)
+    // nothing. With fade the devices go over to it in SceneFade, as with Replace: for "Alles aan"
+    // and "Alles uit".
+    public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change, bool fade = false)
     {
         bool rendered;
         lock (_gate)
@@ -402,6 +457,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             {
                 KnownDeviceLocked(deviceId);
                 _lighting.Set(deviceId, ThrowIfMissingCustomLocked(change(_lighting.Get(deviceId))));
+            }
+
+            if (fade)
+            {
+                FadeLocked();
             }
 
             rendered = RenderLocked();
@@ -646,7 +706,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                     var sent = false;
                     if (old == PauseReasons.None)
                     {
-                        rendered = StopFlashesLocked();
+                        rendered = StopFadesLocked();
+                        rendered |= StopFlashesLocked();
                         countStopped = StopCountLocked();
                         rendered |= countStopped;
                     }
@@ -759,7 +820,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 _countSequence++;
             }
 
-            var flashEnded = false;
+            var ended = false;
             foreach (var output in _outputs.All)
             {
                 // The step that ends a count is drawn too, also on a device that needs no more
@@ -767,14 +828,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
                 if (output.IsAnimated || (counted && output.IsCounting))
                 {
                     var flashing = output.IsFlashing;
+                    var fading = output.IsFading;
                     output.Render(time);
-                    flashEnded |= flashing && !output.IsFlashing;
+                    ended |= (flashing && !output.IsFlashing) || (fading && !output.IsFading);
                     rendered |= output.SendIfChanged();
                 }
             }
 
-            // With only static effects left, the timer stops again.
-            if (flashEnded || (counted && _count is { Running: false }))
+            // With only static effects left after a flash or a fade, the timer stops again.
+            if (ended || (counted && _count is { Running: false }))
             {
                 UpdateAnimationLocked();
             }
@@ -802,7 +864,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             // The engine leaves the devices as they are when it stops, but not white or dark from
-            // a flash or a count that is still running.
+            // a flash or a count that is still running, nor halfway a fade: they get its end at
+            // once, without waiting for it.
+            StopFadesLocked();
             StopFlashesLocked();
             StopCountLocked();
             _disposed = true;
@@ -945,6 +1009,53 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
 
         Publish(rendered);
+    }
+
+    // Lets every device go over from the colors it shows now, also in the middle of a fade, to
+    // what the next RenderLocked gives it, in SceneFade. At once, so a fade that runs ends, with a
+    // fade of zero, before there is lighting, and during a pause: no frames run then, and what
+    // goes to the devices, such as a scene on time while Windows is locked, does not wait.
+    private void FadeLocked()
+    {
+        var fade = _disposed || _pause != PauseReasons.None || !_lighting.IsSet ? TimeSpan.Zero : _sceneFade;
+        var time = EffectTime;
+        foreach (var output in _outputs.All)
+        {
+            if (fade > TimeSpan.Zero)
+            {
+                output.BeginFade(time, fade);
+            }
+            else
+            {
+                output.EndFade();
+            }
+        }
+    }
+
+    // Gives every device that fades the end of its fade at once, as when a pause starts or the
+    // engine stops, so no device stays halfway and nothing waits for the fade. Returns true when
+    // there was one.
+    private bool StopFadesLocked()
+    {
+        var time = EffectTime;
+        var stopped = false;
+        foreach (var output in _outputs.All)
+        {
+            if (output.IsFading)
+            {
+                output.EndFade();
+                output.Render(time);
+                output.Send(SendScaleLocked);
+                stopped = true;
+            }
+        }
+
+        if (stopped)
+        {
+            _sequence++;
+        }
+
+        return stopped;
     }
 
     // Gives every device that is flashing, but except, its own colors again. Returns true when
