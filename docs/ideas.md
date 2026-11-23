@@ -845,6 +845,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - Wijzigingen in `profiles.json` met de hand live oppikken, zoals `settings.json` nu
   (`SettingsFileWatcher` en `SettingsReloader`); daarvoor moet `ProfileLibrary` zijn lijst opnieuw
   lezen en moeten de triggers (tijden, programma's) opnieuw plannen. Nu pas na een herstart
+- Eén IPC-aanroep die meer stukken LED's tegelijk zet (bijv. `SetLedRunsAsync` en
+  `SetOverlayRunsAsync` met een lijst van eerste LED en kleuren), met één render en één
+  `LightingChanged`. Sinds `ctrl-klik-selectie` stuurt de app per aaneengesloten stuk gekozen
+  LED's een eigen `SetLedColorsAsync` of `SetOverlayAsync`, en elk stuk geeft in de engine een
+  render en een `LightingChanged`; met veel losse toetsen kunnen stukken na elkaar oplichten.
+  Eerst op echte hardware kijken of dat te zien is (stap 7 bij "Losse LED's en letters op de
+  toetsen" in `ontwikkelaars.md`)
 - `activeScene` met de hand in `settings.json` zetten om een scène aan te zetten; nu neemt de
   engine dat veld bij een wijziging met de hand niet over
 - Na een start met een `settings.json` die er wel was maar niet las (vergrendeld door een

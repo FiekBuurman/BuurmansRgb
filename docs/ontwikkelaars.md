@@ -1857,6 +1857,10 @@ doe je zelf. Noteer wat werkt in [hardware.md](hardware.md).
 6. Zet de tekstgrootte van Windows op 200 % (Instellingen > Toegankelijkheid > Tekengrootte):
    het toetsenbord is breder en past zonder horizontale schuifbalk, ook in het kleinste venster;
    lange woorden vallen weg, letters en cijfers blijven. Zet de tekstgrootte daarna terug.
+7. Kies met Ctrl+klik veel losse toetsen (bijv. elke tweede toets van de bovenste rij) en sleep
+   met veel losse toetsen de schuif Rood heen en weer: let op haperen of stukken die na elkaar
+   oplichten. Elk aaneengesloten stuk is een eigen aanroep met een eigen beeld van de engine;
+   zie je het, noteer dan hoeveel stukken het waren.
 
 ### Eigen effecten
 
