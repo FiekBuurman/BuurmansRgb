@@ -25,6 +25,14 @@ public sealed class LedSetTests
     }
 
     [Fact]
+    public void Runs_SplitsAtEveryGap()
+    {
+        Assert.Equal([(0, 0), (2, 4), (7, 7)], LedSet.Of([0, 2, 3, 4, 7]).Runs());
+        Assert.Equal([(2, 4)], LedSet.Range(2, 4).Runs());
+        Assert.Empty(LedSet.Empty.Runs());
+    }
+
+    [Fact]
     public void Empty_HasNoFirstOrLast()
     {
         Assert.Equal((-1, -1), (LedSet.Empty.First, LedSet.Empty.Last));

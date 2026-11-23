@@ -471,7 +471,94 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(LedSet.Of([0, 2]), viewModel.LedEditor.Selection!.Leds);
         var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
         Assert.Equal(LedSet.Of([0, 2]), strip.Zones.Single().Selection);
-        Assert.Equal(["leds strip 0 #00FF00,#090807,#00FF00"], Api.Calls);
+        Assert.Equal(["leds strip 0 #00FF00", "leds strip 2 #00FF00"], Api.Calls);
+    }
+
+    // A scene from the tray, a shortcut or a time changes the LEDs while they are chosen: the next
+    // color goes to the chosen LEDs only, so the one between them keeps what the scene gave it.
+    [Fact]
+    public async Task CtrlClick_SceneMeanwhile_ColorLeavesTheLedBetweenAlone()
+    {
+        var viewModel = await ConnectAsync();
+        Api.LedColors["strip"] = [Blue, Blue, Blue];
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+
+        Api.LedColors["strip"] = [new RgbColor(1, 2, 3), new RgbColor(9, 8, 7), new RgbColor(4, 5, 6)];
+        Api.RaiseLightingChanged();
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["leds strip 0 #00FF00", "leds strip 2 #00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task CtrlClick_SceneMeanwhile_GradientLeavesTheLedBetweenAlone()
+    {
+        var viewModel = await ConnectAsync();
+        Api.LedColors["strip"] = [new RgbColor(255, 0, 0), Blue, Blue];
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+
+        Api.LedColors["strip"] = [new RgbColor(255, 0, 0), new RgbColor(9, 8, 7), Blue];
+        Api.RaiseLightingChanged();
+        viewModel.FillGradientCommand.Execute(null);
+
+        Assert.Equal(["leds strip 0 #FF0000", "leds strip 2 #0000FF"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task CtrlClick_SceneMeanwhile_LayerLeavesTheLedBetweenAlone()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.LedEditor.PaintsLayer = true;
+
+        Api.Overlays["strip"] = [null, Blue, null];
+        Api.RaiseLightingChanged();
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(["overlay strip 0 #00FF00", "overlay strip 2 #00FF00"], Api.Calls);
+    }
+
+    [Fact]
+    public async Task CtrlClick_SceneMeanwhile_RemoveLayerLeavesTheLedBetweenAlone()
+    {
+        var viewModel = await ConnectAsync();
+        var red = new RgbColor(255, 0, 0);
+        Api.Overlays["strip"] = [red, null, red];
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+
+        Api.Overlays["strip"] = [red, Blue, red];
+        Api.RaiseLightingChanged();
+        viewModel.RemoveLayerCommand.Execute(null);
+
+        Assert.Equal(["overlay strip 0 -", "overlay strip 2 -"], Api.Calls);
+    }
+
+    // Each run of chosen LEDs is its own call, but one edit keeps one place in the queue: a dragged
+    // slider sends the runs of its latest color only, not a call per run for every step.
+    [Fact]
+    public async Task DragSlider_WithLooseLeds_SendsTheLastColorOnce()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        for (var red = 1; red <= 255; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        var last = viewModel.ColorPicker.Color.ToHex();
+        await Eventually.TrueAsync(() => Api.Calls.Contains($"leds strip 2 {last}"));
+        Assert.Equal(4, Api.Calls.Count);
+        Assert.Equal([$"leds strip 0 {last}", $"leds strip 2 {last}"], Api.Calls.Skip(2));
     }
 
     // Ctrl+Space on the active LED does what Ctrl+click does; Ctrl+arrows only move.

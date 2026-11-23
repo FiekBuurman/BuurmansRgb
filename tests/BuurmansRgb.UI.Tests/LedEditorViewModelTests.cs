@@ -93,9 +93,8 @@ public sealed class LedEditorViewModelTests
         _editor.Start("strip", "Strip", [White, White, White, White], 1);
         _editor.Select(2, extend: true);
 
-        var edit = _editor.Paint(Red);
+        var edit = Assert.Single(_editor.Paint(Red)!);
 
-        Assert.NotNull(edit);
         Assert.Equal(("strip", 1), (edit.DeviceId, edit.FirstLed));
         Assert.Equal([Red, Red], edit.Colors);
         Assert.Equal(Red, _editor.AnchorColor);
@@ -107,9 +106,8 @@ public sealed class LedEditorViewModelTests
         _editor.Start("strip", "Strip", [Red, White, White, White, Blue], 0);
         _editor.Select(4, extend: true);
 
-        var edit = _editor.FillGradient();
+        var edit = Assert.Single(_editor.FillGradient()!);
 
-        Assert.NotNull(edit);
         Assert.Equal(0, edit.FirstLed);
         Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.25), RgbColor.Lerp(Red, Blue, 0.5), RgbColor.Lerp(Red, Blue, 0.75), Blue], edit.Colors);
     }
@@ -131,9 +129,9 @@ public sealed class LedEditorViewModelTests
         _editor.Paint(Blue);
 
         _editor.Select(0, extend: true);
-        var edit = _editor.FillGradient();
+        var edit = Assert.Single(_editor.FillGradient()!);
 
-        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), Blue], edit!.Colors);
+        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), Blue], edit.Colors);
     }
 
     // Ctrl+click adds an LED without losing the others, and on a chosen one takes it out.
@@ -193,17 +191,21 @@ public sealed class LedEditorViewModelTests
         Assert.Equal(Red, _editor.AnchorColor);
     }
 
-    // The LEDs between the chosen ones go along with the colors they had, so they stay as they are.
+    // One piece per run of chosen LEDs: the LEDs between them are not sent, so the colors the editor
+    // fetched for them earlier cannot undo a scene that came since.
     [Fact]
-    public void Paint_WithGaps_KeepsTheLedsBetween()
+    public void Paint_WithGaps_SendsEveryRunOnItsOwn()
     {
-        _editor.Start("strip", "Strip", [White, Blue, White, Blue, White], 1);
+        _editor.Start("strip", "Strip", [White, Blue, White, Blue, White, White], 1);
         _editor.Toggle(3, extend: false);
+        _editor.Toggle(4, extend: false);
 
-        var edit = _editor.Paint(Red);
+        var edits = _editor.Paint(Red)!;
 
-        Assert.Equal(("strip", 1), (edit!.DeviceId, edit.FirstLed));
-        Assert.Equal([Red, White, Red], edit.Colors);
+        Assert.All(edits, edit => Assert.Equal("strip", edit.DeviceId));
+        Assert.Equal([1, 3], edits.Select(edit => edit.FirstLed));
+        Assert.Equal([Red], edits[0].Colors);
+        Assert.Equal([Red, Red], edits[1].Colors);
     }
 
     // A gradient over LEDs with gaps runs in even steps over the chosen ones.
@@ -214,10 +216,11 @@ public sealed class LedEditorViewModelTests
         _editor.Toggle(1, extend: false);
         _editor.Toggle(6, extend: false);
 
-        var edit = _editor.FillGradient();
+        var edits = _editor.FillGradient()!;
 
-        Assert.Equal(0, edit!.FirstLed);
-        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), White, White, White, White, Blue], edit.Colors);
+        Assert.Equal([0, 6], edits.Select(edit => edit.FirstLed));
+        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5)], edits[0].Colors);
+        Assert.Equal([Blue], edits[1].Colors);
     }
 
     [Fact]

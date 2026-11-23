@@ -8,8 +8,9 @@ namespace BuurmansRgb.UI.ViewModels;
 // effect. An edit changes those colors here first and returns what the engine must store, so the
 // caller only has to send it. PaintsLayer says where a color goes: "Per LED" (the per-LED effect,
 // which the device then shows) or "Als laag boven het effect" (a fixed color over any effect).
-// The picked LEDs can have gaps (Ctrl+click); an edit then sends the LEDs from the first to the last
-// picked one, the others with the colors they already had, so they stay as they are.
+// The picked LEDs can have gaps (Ctrl+click); an edit then holds one piece per run of picked LEDs
+// without a gap, so an LED that is not picked is never sent: the colors kept here for it can be
+// older than what the engine has now, after a scene from the tray for example.
 public sealed partial class LedEditorViewModel : ObservableObject
 {
     private RgbColor[] _colors = [];
@@ -157,7 +158,7 @@ public sealed partial class LedEditorViewModel : ObservableObject
         Selection = selection with { Leds = LedSet.Range(first, last) };
     }
 
-    public LedEdit? Paint(RgbColor color)
+    public IReadOnlyList<LedEdit>? Paint(RgbColor color)
     {
         if (Selection is not { } selection)
         {
@@ -169,12 +170,12 @@ public sealed partial class LedEditorViewModel : ObservableObject
             _colors[led] = color;
         }
 
-        return EditOf(selection);
+        return EditsOf(selection);
     }
 
     // From the color of the first selected LED to that of the last one, in even steps over the chosen
     // LEDs, also with gaps between them.
-    public LedEdit? FillGradient()
+    public IReadOnlyList<LedEdit>? FillGradient()
     {
         if (Selection is not { Count: >= 2 } selection)
         {
@@ -188,11 +189,11 @@ public sealed partial class LedEditorViewModel : ObservableObject
             _colors[selection.Leds[i]] = RgbColor.Lerp(from, to, i / (double)(selection.Count - 1));
         }
 
-        return EditOf(selection);
+        return EditsOf(selection);
     }
 
     // The chosen LEDs get color in the layer, over whatever effect the device shows.
-    public LayerEdit? PaintLayer(RgbColor color)
+    public IReadOnlyList<LayerEdit>? PaintLayer(RgbColor color)
     {
         if (Selection is not { } selection)
         {
@@ -204,12 +205,12 @@ public sealed partial class LedEditorViewModel : ObservableObject
             _layer[led] = color;
         }
 
-        return LayerEditOf(selection);
+        return LayerEditsOf(selection);
     }
 
     // A gradient in the layer, from the first chosen LED to the last; an end without a layer color
     // starts from what the per-LED effect gives it, as the picker shows it.
-    public LayerEdit? FillLayerGradient()
+    public IReadOnlyList<LayerEdit>? FillLayerGradient()
     {
         if (Selection is not { Count: >= 2 } selection)
         {
@@ -223,11 +224,11 @@ public sealed partial class LedEditorViewModel : ObservableObject
             _layer[selection.Leds[i]] = RgbColor.Lerp(from, to, i / (double)(selection.Count - 1));
         }
 
-        return LayerEditOf(selection);
+        return LayerEditsOf(selection);
     }
 
     // "Laag weghalen": the chosen LEDs show the effect again.
-    public LayerEdit? RemoveLayer()
+    public IReadOnlyList<LayerEdit>? RemoveLayer()
     {
         if (!CanRemoveLayer || Selection is not { } selection)
         {
@@ -239,7 +240,7 @@ public sealed partial class LedEditorViewModel : ObservableObject
             _layer[led] = null;
         }
 
-        return LayerEditOf(selection);
+        return LayerEditsOf(selection);
     }
 
     public void Clear()
@@ -249,15 +250,14 @@ public sealed partial class LedEditorViewModel : ObservableObject
         _layer = [];
     }
 
-    // From the first to the last chosen LED: those between them that are not chosen keep the colors
-    // they have.
-    private LedEdit EditOf(LedSelection selection) =>
-        new(selection.DeviceId, selection.First, _colors.AsSpan(selection.First, selection.Last - selection.First + 1).ToArray());
+    // One piece per run of chosen LEDs: those between them that are not chosen are left out.
+    private List<LedEdit> EditsOf(LedSelection selection) =>
+        [.. selection.Leds.Runs().Select(run => new LedEdit(selection.DeviceId, run.First, _colors[run.First..(run.Last + 1)]))];
 
-    private LayerEdit LayerEditOf(LedSelection selection)
+    private List<LayerEdit> LayerEditsOf(LedSelection selection)
     {
-        var edit = new LayerEdit(selection.DeviceId, selection.First, _layer.AsSpan(selection.First, selection.Last - selection.First + 1).ToArray());
+        List<LayerEdit> edits = [.. selection.Leds.Runs().Select(run => new LayerEdit(selection.DeviceId, run.First, _layer[run.First..(run.Last + 1)]))];
         OnPropertyChanged(nameof(CanRemoveLayer));
-        return edit;
+        return edits;
     }
 }

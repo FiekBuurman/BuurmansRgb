@@ -42,6 +42,24 @@ public sealed class LedSet : IReadOnlyList<int>, IEquatable<LedSet>
 
     public LedSet Union(LedSet other) => Of(_leds.Concat(other._leds));
 
+    // The pieces without a gap, from low to high: one for a range, one per LED on its own.
+    public IReadOnlyList<(int First, int Last)> Runs()
+    {
+        var runs = new List<(int First, int Last)>();
+        for (var i = 0; i < _leds.Length; i++)
+        {
+            var first = _leds[i];
+            while (i + 1 < _leds.Length && _leds[i + 1] == _leds[i] + 1)
+            {
+                i++;
+            }
+
+            runs.Add((first, _leds[i]));
+        }
+
+        return runs;
+    }
+
     // The LEDs from first to last, moved by offset: the part of a device that one zone shows.
     public LedSet Slice(int first, int last, int offset) =>
         Of(_leds.Where(led => led >= first && led <= last).Select(led => led + offset));

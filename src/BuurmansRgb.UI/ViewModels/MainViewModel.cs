@@ -1627,39 +1627,58 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
     // when the edited device is the selected one. A lamp that is off goes on after its colors, as
-    // with SwitchOnForColor.
-    private void SendLeds(LedEdit? edit)
+    // with SwitchOnForColor. Each run of chosen LEDs is its own engine call, so LEDs between them
+    // that are not chosen are never sent (Ctrl+click); the runs of one edit share one place in the
+    // queue, so a dragged slider still sends only its latest value, however many runs there are.
+    private void SendLeds(IReadOnlyList<LedEdit>? edits)
     {
-        if (edit is null || _connection is not { } connection)
+        if (edits is not [var first, ..] || _connection is not { } connection)
         {
             return;
         }
 
         _sentChanges++;
-        _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
-        Lamps.SwitchOn(edit.DeviceId);
-        if (SelectedDevice?.DeviceId == edit.DeviceId)
+        _calls.Post((LedsCall, first.DeviceId, LedsOf(edits.Select(edit => (edit.FirstLed, edit.Colors.Count)))), async () =>
+        {
+            foreach (var edit in edits)
+            {
+                await connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors);
+            }
+        });
+        Lamps.SwitchOn(first.DeviceId);
+        if (SelectedDevice?.DeviceId == first.DeviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
         }
     }
 
     // The layer keeps the effect of the device, so the effect list stays as it is. A lamp that is off
-    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is.
-    private void SendLayer(LayerEdit? edit, bool switchOn = true)
+    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is. One call
+    // per run of chosen LEDs, in one place in the queue, as with SendLeds.
+    private void SendLayer(IReadOnlyList<LayerEdit>? edits, bool switchOn = true)
     {
-        if (edit is null || _connection is not { } connection)
+        if (edits is not [var first, ..] || _connection is not { } connection)
         {
             return;
         }
 
         _sentChanges++;
-        _calls.Post((LayerCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        _calls.Post((LayerCall, first.DeviceId, LedsOf(edits.Select(edit => (edit.FirstLed, edit.Colors.Count)))), async () =>
+        {
+            foreach (var edit in edits)
+            {
+                await connection.Api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors);
+            }
+        });
         if (switchOn)
         {
-            Lamps.SwitchOn(edit.DeviceId);
+            Lamps.SwitchOn(first.DeviceId);
         }
     }
+
+    // The LEDs that runs of an edit cover, as the key of its place in the call queue.
+    private static LedSet LedsOf(IEnumerable<(int FirstLed, int Count)> runs) =>
+        LedSet.Of(runs.SelectMany(run => Enumerable.Range(run.FirstLed, run.Count)));
 
     // The engine reports the device with its new length through DevicesChanged, which rebuilds
     // the preview; an LED edit of that device ends then, because its LEDs moved.
