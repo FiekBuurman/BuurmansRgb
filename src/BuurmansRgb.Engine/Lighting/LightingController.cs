@@ -1047,10 +1047,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
-    // Whether device shows other lighting or other per-LED colors now than in before.
-    private bool ChangedLocked(RgbDevice device, LightingState before) =>
-        before.Devices.GetValueOrDefault(device.Id, before.Global) != _lighting.Get(device.Id)
-        || !_ledColors.SameAs(before.LedColors, device);
+    // Whether device shows other lighting or other per-LED colors now than in before. Only the
+    // per-LED effect shows those colors, so they count only for a device that shows it, before and
+    // now (with another effect before or now, the lighting differs already).
+    private bool ChangedLocked(RgbDevice device, LightingState before)
+    {
+        var lighting = _lighting.Get(device.Id);
+        return before.Devices.GetValueOrDefault(device.Id, before.Global) != lighting
+            || (lighting.EffectId == EffectIds.PerLed && !_ledColors.SameAs(before.LedColors, device));
+    }
 
     // A change of its own, without fade, shows at once: it ends the fade of the device it changes,
     // or of every device for a null deviceId (a global change, or all lighting at once). The

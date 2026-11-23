@@ -297,6 +297,21 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
     }
 
+    // Only the per-LED effect shows per-LED colors: a device with another effect, before and after,
+    // shows nothing else with other ones, so it does not fade.
+    [Fact]
+    public async Task Replace_WithOtherLedColors_WithoutThePerLedEffect_StartsNoFade()
+    {
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(StaticLighting(Red)) with { LedColors = LedColors(RecordingDeviceProvider.DeviceId, Green) });
+
+        _controller.Replace(Uniform(StaticLighting(Red)) with { LedColors = LedColors(RecordingDeviceProvider.DeviceId, Blue, Blue, Blue) }, fade: true);
+
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
     // A color, effect or on/off of one device of its own goes at once, also during a scene fade:
     // the fade of that device ends, the others go on with theirs, on time.
     [Fact]
