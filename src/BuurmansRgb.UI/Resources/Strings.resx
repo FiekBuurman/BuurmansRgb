@@ -295,6 +295,83 @@
     <value>{0} van {1}</value>
     <comment>Gekozen LED's met gaten ertussen (Ctrl+klik): {0} = het aantal (LedCount, bijv. 4 LED's), {1} = de naam van het apparaat.</comment>
   </data>
+  <data name="KeyCapEscape" xml:space="preserve">
+    <value>Esc</value>
+    <comment>KeyCap…: de korte tekst op een toets in het voorbeeld van een toetsenbord, zoals op de toets zelf. Kort houden: valt weg als hij niet op de toets past. Volg de toetsenborden van de taal (bijv. Strg in het Duits).</comment>
+  </data>
+  <data name="KeyCapTab" xml:space="preserve">
+    <value>Tab</value>
+  </data>
+  <data name="KeyCapCapsLock" xml:space="preserve">
+    <value>Caps</value>
+  </data>
+  <data name="KeyCapShift" xml:space="preserve">
+    <value>Shift</value>
+  </data>
+  <data name="KeyCapControl" xml:space="preserve">
+    <value>Ctrl</value>
+  </data>
+  <data name="KeyCapWindows" xml:space="preserve">
+    <value>Win</value>
+  </data>
+  <data name="KeyCapAlt" xml:space="preserve">
+    <value>Alt</value>
+  </data>
+  <data name="KeyCapAltGr" xml:space="preserve">
+    <value>Alt</value>
+    <comment>De rechter Alt-toets; op een toetsenbord met AltGr kan hier AltGr staan.</comment>
+  </data>
+  <data name="KeyCapMenu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="KeyCapEnter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
+  <data name="KeyCapBackspace" xml:space="preserve">
+    <value>⌫</value>
+  </data>
+  <data name="KeyCapPrintScreen" xml:space="preserve">
+    <value>PrtSc</value>
+  </data>
+  <data name="KeyCapScrollLock" xml:space="preserve">
+    <value>ScrLk</value>
+  </data>
+  <data name="KeyCapPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="KeyCapInsert" xml:space="preserve">
+    <value>Ins</value>
+  </data>
+  <data name="KeyCapDelete" xml:space="preserve">
+    <value>Del</value>
+  </data>
+  <data name="KeyCapHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="KeyCapEnd" xml:space="preserve">
+    <value>End</value>
+  </data>
+  <data name="KeyCapPageUp" xml:space="preserve">
+    <value>PgUp</value>
+  </data>
+  <data name="KeyCapPageDown" xml:space="preserve">
+    <value>PgDn</value>
+  </data>
+  <data name="KeyCapNumLock" xml:space="preserve">
+    <value>Num</value>
+  </data>
+  <data name="KeyCapUp" xml:space="preserve">
+    <value>↑</value>
+  </data>
+  <data name="KeyCapDown" xml:space="preserve">
+    <value>↓</value>
+  </data>
+  <data name="KeyCapLeft" xml:space="preserve">
+    <value>←</value>
+  </data>
+  <data name="KeyCapRight" xml:space="preserve">
+    <value>→</value>
+  </data>
   <data name="LedSelectionHint" xml:space="preserve">
     <value>Kies hieronder een kleur: deze LED's krijgen hem meteen.</value>
   </data>

@@ -145,6 +145,29 @@ public sealed class DevicePreviewViewModelTests
         Assert.Null(preview.Zones[1].Matrix);
     }
 
+    // Only a key map with names gets text on its keys: a zone without a map, such as the logo, or a
+    // map without names, has nothing to write on them.
+    [Fact]
+    public void KeyCaps_OnlyForAKeyMapWithNames()
+    {
+        var keys = new LedMatrix(1, 3, [0, 1, 2]);
+        var device = new DeviceInfo("keyboard", "Keyboard", DeviceType.Keyboard, 8,
+            [
+                RgbZone.Fixed("Keys", 3) with { Matrix = keys, LedNames = ["Escape", "W", "Space"] },
+                RgbZone.Fixed("Logo", 1) with { LedNames = ["Logo"] },
+                RgbZone.Fixed("Unnamed", 3) with { Matrix = keys },
+                RgbZone.Fixed("Plain", 1),
+            ])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+        var zones = new DevicePreviewViewModel(device).Zones;
+
+        Assert.Equal(["Esc", "W", string.Empty], zones[0].KeyCaps);
+        Assert.All(zones.Skip(1), zone => Assert.Null(zone.KeyCaps));
+    }
+
     // The number counts from the start of the device, as the per-LED editor says "LED 4".
     [Fact]
     public void LedLabels_GiveTheNameAndTheNumberInTheDevice()

@@ -49,6 +49,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         // over the ring as it shows.
         IsRing = LedPlaces.IsRing(device.Type, layout.Zone, layout.LedCount);
         LedLabels = CreateLabels();
+        KeyCaps = layout.Zone is { Matrix: not null, LedNames: { } names } ? KeyCapText.Of(names) : null;
     }
 
     public string Name => _layout.Zone.Name;
@@ -70,6 +71,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     // The names of the LEDs as the provider gave them, such as "Space"; null without names.
     public IReadOnlyList<string>? LedNames => _layout.Zone.LedNames;
+
+    // What the preview writes on each key, such as "W" or "Esc" (KeyCapText): only for a key map
+    // with names, as of a keyboard; null for other zones.
+    public IReadOnlyList<string>? KeyCaps { get; }
 
     // The LEDs of a fan, which the view draws as a ring instead of a row.
     public bool IsRing { get; }
