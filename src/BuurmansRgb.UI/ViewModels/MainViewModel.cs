@@ -23,6 +23,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string EffectColorsCall = "effect-colors";
     private const string ColorCall = "color";
     private const string LedsCall = "leds";
+    private const string LayerCall = "layer";
     private const string ResizeCall = "resize";
     private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
@@ -174,11 +175,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview.ZoneCountStartRequested += (_, start) => SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => StartZoneCountAsync(api, start));
         Preview.ZoneCountChangeRequested += (_, update) => SendZoneCount(update.DeviceId, update.ZoneIndex, update.Change, api => api.SetZoneCountAsync(update.DeviceId, update.ZoneIndex, update.Change));
         Preview.ZoneCountStopRequested += (_, stop) => SendZoneCount(stop.DeviceId, stop.ZoneIndex, "stop", api => api.StopZoneCountAsync(stop.DeviceId, stop.ZoneIndex));
-        LedEditor.PropertyChanged += (_, _) =>
+        LedEditor.PropertyChanged += (_, e) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
+            RemoveLayerCommand.NotifyCanExecuteChanged();
             SetPickerMode();
             ShowColorCard();
+            if (e.PropertyName == nameof(LedEditorViewModel.PaintsLayer))
+            {
+                ShowPickerColor();
+            }
         };
         // A tile of the effect that is already chosen still takes card 4 back from "Jouw effect".
         EffectTiles.EffectChosen += (_, effect) =>
@@ -1390,7 +1396,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // in most lamp apps. A color of the device ends the scene that is on, as any change by hand.
     private void OnColorPicked(RgbColor color)
     {
-        if (LedEditor.HasSelection)
+        if (LedEditor.HasSelection && LedEditor.PaintsLayer)
+        {
+            SendLayer(LedEditor.PaintLayer(color));
+        }
+        else if (LedEditor.HasSelection)
         {
             SendLeds(LedEditor.Paint(color));
         }
@@ -1512,10 +1522,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // Only with a list of its own: without one the effect has its default already.
     private bool CanResetEffectColors() => SelectedEffect is { } effect && _effectColors.Lists.ContainsKey(effect.Id);
 
+    // In the layer too, when the colors go there.
     [RelayCommand(CanExecute = nameof(CanFillGradient))]
-    private void FillGradient() => SendLeds(LedEditor.FillGradient());
+    private void FillGradient()
+    {
+        if (LedEditor.PaintsLayer)
+        {
+            SendLayer(LedEditor.FillLayerGradient());
+        }
+        else
+        {
+            SendLeds(LedEditor.FillGradient());
+        }
+    }
 
     private bool CanFillGradient() => LedEditor.CanFillGradient;
+
+    // "Laag weghalen": the chosen LEDs show the effect again; the picker then shows what they show.
+    [RelayCommand(CanExecute = nameof(CanRemoveLayer))]
+    private void RemoveLayer()
+    {
+        SendLayer(LedEditor.RemoveLayer(), switchOn: false);
+        ShowPickerColor();
+    }
+
+    private bool CanRemoveLayer() => LedEditor.CanRemoveLayer;
 
     // Back to coloring the selected device.
     [RelayCommand]
@@ -1548,17 +1579,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             if (_startingEdit is not { } starting || starting.DeviceId != deviceId || !ReferenceEquals(starting.Connection, connection))
             {
-                starting = new(connection, deviceId, firstIndex, TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)));
+                starting = new(connection, deviceId, firstIndex, TryCallAsync(connection, api => api.GetLedColorsAsync(deviceId)), TryCallAsync(connection, api => api.GetOverlayAsync(deviceId)));
                 _startingEdit = starting;
             }
 
             var (ok, colors) = await starting.Colors;
+            var (layerOk, layer) = await starting.Layer;
             if (ReferenceEquals(_startingEdit, starting))
             {
                 _startingEdit = null;
             }
 
-            if (!ok || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
+            if (!ok || !layerOk || !ReferenceEquals(connection, _connection) || _devices.FirstOrDefault(device => device.Id == deviceId) is not { } device)
             {
                 return;
             }
@@ -1566,7 +1598,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             // The first click or key that waited for the colors started already.
             if (!LedEditor.IsEditing(deviceId))
             {
-                LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex);
+                LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex, layer);
             }
         }
 
@@ -1591,6 +1623,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (SelectedDevice?.DeviceId == edit.DeviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
+        }
+    }
+
+    // The layer keeps the effect of the device, so the effect list stays as it is. A lamp that is off
+    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is.
+    private void SendLayer(LayerEdit? edit, bool switchOn = true)
+    {
+        if (edit is null || _connection is not { } connection)
+        {
+            return;
+        }
+
+        _sentChanges++;
+        _calls.Post((LayerCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
+        if (switchOn)
+        {
+            Lamps.SwitchOn(edit.DeviceId);
         }
     }
 
@@ -2261,7 +2310,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private sealed record FlashTarget(string DeviceId, int? ZoneIndex);
 
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
-    private sealed record StartingEdit(IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors);
+    private sealed record StartingEdit(
+        IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors, Task<(bool Ok, IReadOnlyList<RgbColor?> Value)> Layer);
 
     // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting
     // and after OptionsChanged.

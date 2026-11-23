@@ -294,6 +294,30 @@
   <data name="LedSelectionHint" xml:space="preserve">
     <value>Kies hieronder een kleur: deze LED's krijgen hem meteen.</value>
   </data>
+  <data name="LedLayerHint" xml:space="preserve">
+    <value>Kies hieronder een kleur: deze LED's houden hem boven elk effect, ook als je een ander effect kiest.</value>
+  </data>
+  <data name="LedPaintModeLabel" xml:space="preserve">
+    <value>Waar komt de kleur?</value>
+  </data>
+  <data name="LedPaintPerLed" xml:space="preserve">
+    <value>Per LED</value>
+  </data>
+  <data name="LedPaintPerLedHelp" xml:space="preserve">
+    <value>De gekozen LED's krijgen een eigen kleur en het apparaat het effect Per LED.</value>
+  </data>
+  <data name="LedPaintLayer" xml:space="preserve">
+    <value>Als laag boven het effect</value>
+  </data>
+  <data name="LedPaintLayerHelp" xml:space="preserve">
+    <value>De gekozen LED's houden een vaste kleur boven het effect van het apparaat, bijvoorbeeld WASD rood over Regenboog.</value>
+  </data>
+  <data name="RemoveLayer" xml:space="preserve">
+    <value>Laag weghalen</value>
+  </data>
+  <data name="RemoveLayerToolTip" xml:space="preserve">
+    <value>Haalt de vaste kleur van de gekozen LED's weg, zodat ze het effect weer tonen. Met Ctrl+A haal je de hele laag van het apparaat weg.</value>
+  </data>
   <data name="LedLabel" xml:space="preserve">
     <value>LED {0}</value>
   </data>
