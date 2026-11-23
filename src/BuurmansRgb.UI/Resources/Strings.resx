@@ -1558,6 +1558,42 @@
   <data name="CustomEffectNewName" xml:space="preserve">
     <value>Eigen effect {0}</value>
   </data>
+  <data name="EffectTileCustomHelp" xml:space="preserve">
+    <value>Kiest je eigen effect '{0}'. Een ander eigen effect kies je bij Jouw effect.</value>
+  </data>
+  <data name="EffectTileCustomNoneHelp" xml:space="preserve">
+    <value>Nog geen eigen effect. Maak er een met + Eigen effect maken.</value>
+  </data>
+  <data name="ColorHeader" xml:space="preserve">
+    <value>Kleur</value>
+  </data>
+  <data name="CustomEffectCardHeader" xml:space="preserve">
+    <value>Jouw effect</value>
+  </data>
+  <data name="CustomEffectChoiceName" xml:space="preserve">
+    <value>Welk eigen effect?</value>
+  </data>
+  <data name="NoCustomEffects" xml:space="preserve">
+    <value>Je hebt nog geen eigen effect.</value>
+  </data>
+  <data name="LedColorHeader" xml:space="preserve">
+    <value>Kleur voor de LED's</value>
+  </data>
+  <data name="PerLedHint" xml:space="preserve">
+    <value>Kies LED's in een apparaat hieronder; de kleur gaat naar die LED's.</value>
+  </data>
+  <data name="GoToDevices" xml:space="preserve">
+    <value>Naar de apparaten</value>
+  </data>
+  <data name="GoToDevicesToolTip" xml:space="preserve">
+    <value>Gaat naar Per apparaat, waar je in een apparaat LED's kiest.</value>
+  </data>
+  <data name="NoColorHeader" xml:space="preserve">
+    <value>Geen kleur nodig</value>
+  </data>
+  <data name="NoColorText" xml:space="preserve">
+    <value>{0} maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.</value>
+  </data>
   <data name="CustomEffectHeader" xml:space="preserve">
     <value>Eigen effect</value>
   </data>
