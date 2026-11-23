@@ -355,8 +355,10 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   effect er niet goed in staat. De app leidt er alleen uit af wat de kiezer met de kleur doet
   (`MainViewModel.SetPickerMode`): heeft het effect geen lijst, loop of stappen die de
   kleur krijgen en gebruikt het de kleur van het apparaat niet, dan is `ColorPicker.IsUnused`
-  waar: een gemengde kleur gaat dan nergens heen, met de regel `DeviceColorUnused` met de naam
-  van het effect. Zo krijgt een later effect zonder kleur die regel vanzelf.
+  waar: een gemengde kleur gaat dan nergens heen. Kaart 4 is dan `ColorCardContent.NoColor`
+  (`MainViewModel.ColorCard`): de kop "Geen kleur nodig" (`NoColorHeader`) en één zin met de naam
+  van het effect (`NoColorText`), zonder mengpaneel. Zo krijgt een later effect zonder kleur die
+  kaart vanzelf.
 - **Richting:** zonder `Direction` (null) rendert een effect over de buffer van het apparaat zoals
   altijd, met `i / n` per LED. Met een richting rekent `DeviceOutput` bij de eerste `Show` met een
   andere hoek (en voor elke nieuwe apparatenlijst, die nieuwe outputs maakt) per LED zijn plek uit
