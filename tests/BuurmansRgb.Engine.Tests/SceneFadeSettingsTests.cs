@@ -1,3 +1,4 @@
+using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
@@ -76,6 +77,28 @@ public sealed class SceneFadeSettingsTests : IDisposable
 
         Assert.Contains("\"sceneFade\": 1.25", File.ReadAllText(path), StringComparison.Ordinal);
         Assert.Equal(TimeSpan.FromSeconds(1.25), store.LoadOrCreate().ReadSceneFade());
+    }
+
+    // settings.json is the same on every pc: a point, also when the region format has a comma.
+    [Fact]
+    public void Save_SceneFade_UnderADutchRegionFormat_WritesAPoint()
+    {
+        var path = _directory.File("settings.json");
+        var store = new JsonSettingsStore(path);
+        var current = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("nl-NL");
+
+            store.Save(EngineSettings.CreateDefault().WithSceneFade(TimeSpan.FromSeconds(1.25)));
+
+            Assert.Contains("\"sceneFade\": 1.25", File.ReadAllText(path), StringComparison.Ordinal);
+            Assert.Equal(TimeSpan.FromSeconds(1.25), store.LoadOrCreate().ReadSceneFade());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = current;
+        }
     }
 
     [Fact]

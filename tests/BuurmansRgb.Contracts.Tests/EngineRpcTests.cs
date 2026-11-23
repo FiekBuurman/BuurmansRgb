@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using BuurmansRgb.Core;
 using StreamJsonRpc;
@@ -966,7 +967,7 @@ public sealed class EngineRpcTests : IDisposable
 
         public Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default)
         {
-            OptionCalls.Add($"scene fade {fade.TotalMilliseconds}");
+            OptionCalls.Add(string.Create(CultureInfo.InvariantCulture, $"scene fade {fade.TotalMilliseconds}"));
             return Task.CompletedTask;
         }
 
