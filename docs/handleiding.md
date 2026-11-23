@@ -811,7 +811,8 @@ hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe", "Bij valorant.exe
 anders wat hij laat zien
 ("Regenboog · 80%", "Alles uit").
 Een scène gaat aan met een zachte overgang van de kleuren van dat moment naar die van de scène,
-standaard in een halve seconde; zie "Overgang naar een scène" bij Instellingen.
+standaard in een halve seconde; zie "Overgang naar een scène" bij Instellingen. Alleen de
+apparaten die veranderen gaan over; de andere lopen gewoon door.
 
 Een nieuwe installatie begint met vijf **startscènes**, die op alle apparaten slaan, ook op een
 apparaat dat er later bij komt:
@@ -1168,7 +1169,9 @@ Hoe het vanzelf aanzetten werkt:
   een andere scène over te gaan, en naar alles aan of alles uit (met **Hele huis** op Apparaten,
   het tray-menu, de sneltoetsen of "Uit om" en "Aan om"): "Direct (geen overgang)", "Kort"
   (0,25 s), "Normaal" (0,5 s, standaard), "Rustig" (1 s) of "Langzaam" (2 s). De kleuren lopen in
-  die tijd over van wat de apparaten lieten zien naar de nieuwe scène. Kies je tijdens een
+  die tijd over van wat de apparaten lieten zien naar de nieuwe scène. Alleen apparaten die
+  echt veranderen gaan over: een apparaat buiten een scène van een paar apparaten, of dat bij
+  "Alles aan" al aan stond, loopt gewoon door, ook met een bewegend effect. Kies je tijdens een
   overgang al een andere scène, dan begint de nieuwe overgang bij de kleuren van dat moment. Een
   kleur, effect of apparaat dat je zelf verandert, gaat direct, ook midden in een overgang: dat
   apparaat slaat de rest van de overgang over (een wijziging voor alle apparaten: elk apparaat).
