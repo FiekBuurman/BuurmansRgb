@@ -131,11 +131,12 @@ internal static class SharedFormat
     // The type of a device as the file has it, such as "ledStrip"; the name in camelCase of DeviceType.
     public static string WriteType(DeviceType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
 
-    // A control character such as a line break, or one of format that does not show, such as
-    // U+200B (zero width space) or U+202E (right-to-left override), which makes a device look like
-    // another in the result.
+    // A control character such as a line break, a line or paragraph separator (U+2028, U+2029) that
+    // breaks a line as well, or one of format that does not show, such as U+200B (zero width space)
+    // or U+202E (right-to-left override), which makes a device look like another in the result.
     public static bool HasHiddenCharacter(string value) =>
-        value.Any(character => char.IsControl(character) || char.GetUnicodeCategory(character) == UnicodeCategory.Format);
+        value.Any(character => char.IsControl(character)
+            || char.GetUnicodeCategory(character) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator);
 
     // A device name as the file may have it: not empty, at most SharedFiles.MaxDeviceNameLength
     // characters and without a hidden character.
