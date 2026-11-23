@@ -15,7 +15,10 @@ public static class FocusKeeper
         "Key", typeof(string), typeof(FocusKeeper), new PropertyMetadata(null, OnKeyChanged));
 
     // The key of a focused element that was just removed. Forgotten once the dispatcher is idle, so
-    // the focus only goes to an element made in the same pass and never jumps later on.
+    // the focus only goes to an element made in the same pass and never jumps later on. One per UI
+    // thread, as the focus is: a thread whose dispatcher stops before it is idle (such as a UI test)
+    // must not hand its key to the elements of another.
+    [ThreadStatic]
     private static string? s_lostKey;
 
     public static string? GetKey(DependencyObject element) => (string?)element.GetValue(KeyProperty);
