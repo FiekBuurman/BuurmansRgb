@@ -180,6 +180,64 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.False(_controller.IsFading);
     }
 
+    // A scene that changes the global lighting and leaves a device with an effect of its own that
+    // moves as it is: that device is compared with its own lighting, not the global one, so it goes
+    // on as if nothing happened.
+    [Fact]
+    public async Task SceneThatKeepsTheOwnLightingOfAMovingDevice_LeavesItAsItWas()
+    {
+        var rainbow = new DeviceLighting(Green, 1.0, EffectIds.Rainbow);
+        var devices = new Dictionary<string, DeviceLighting> { ["real"] = rainbow };
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 8));
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(WithDevices(StaticLighting(Red), devices));
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(DynamicDeviceProvider.Device("real", ledCount: 8));
+        using var direct = new LightingController([new RecordingDeviceProvider(), dynamic], _clock) { SceneFade = Second };
+        await direct.DiscoverAsync(Ct);
+        direct.Apply(WithDevices(StaticLighting(Red), devices));
+        _clock.Advance(Second / 3);
+        _controller.RenderAnimationFrame();
+        direct.RenderAnimationFrame();
+
+        _controller.Replace(WithDevices(StaticLighting(Blue), devices), fade: true);
+        direct.Replace(WithDevices(StaticLighting(Blue), devices));
+
+        Assert.True(_controller.IsFading);
+        for (var frame = 0; frame < 4; frame++)
+        {
+            _clock.Advance(Second / 4);
+            _controller.RenderAnimationFrame();
+            direct.RenderAnimationFrame();
+            Assert.Equal(dynamic.Leds["real"], _dynamic.Leds["real"]);
+        }
+
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+    }
+
+    // "Alles uit" while one device is off of its own already: only the others go over, that device
+    // starts no fade. An own change of the other device ends the only fade there is.
+    [Fact]
+    public async Task AllOff_WhileADeviceIsOffOfItsOwn_FadesOnlyTheOthers()
+    {
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await StartAsync(Red);
+        _controller.SetLighting("real", lighting => lighting with { On = false });
+
+        _controller.SetLighting(null, lighting => lighting with { On = false }, fade: true);
+
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+        Assert.Equal([RgbColor.Black, RgbColor.Black], _dynamic.Leds["real"]);
+        Assert.True(_controller.IsFading);
+
+        _controller.SetLighting(RecordingDeviceProvider.DeviceId, lighting => lighting with { Color = Blue });
+
+        Assert.Equal([RgbColor.Black, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
     // "Alles aan" while every device is on already changes nothing: a static effect gets no frames.
     [Fact]
     public async Task AllOn_WhileAllIsOn_StartsNoFade_AndNoRenderLoop()
