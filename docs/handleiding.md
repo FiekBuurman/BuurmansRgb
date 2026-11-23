@@ -22,7 +22,7 @@ app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en 
 Een apparaat dat uit staat, onthoudt zijn kleur voor als het weer aan gaat.
 Alles aan of uit gaat met een zachte overgang van een halve seconde; hoe lang die duurt, kies je
 bij **Instellingen** (zie "Overgang naar een scène" bij Effecten). Eén apparaat aan- of uitzetten
-gaat direct.
+gaat direct, ook midden in een overgang.
 
 ### Elke avond vanzelf uit
 
@@ -1170,9 +1170,10 @@ Hoe het vanzelf aanzetten werkt:
   (0,25 s), "Normaal" (0,5 s, standaard), "Rustig" (1 s) of "Langzaam" (2 s). De kleuren lopen in
   die tijd over van wat de apparaten lieten zien naar de nieuwe scène. Kies je tijdens een
   overgang al een andere scène, dan begint de nieuwe overgang bij de kleuren van dat moment. Een
-  kleur, effect of apparaat dat je zelf verandert, gaat direct. Vergrendel je de pc, gaat hij
-  slapen, gaat het scherm uit, pauzeer je, sluit je de engine af of valt OpenRGB weg, dan wacht
-  dat niet op de overgang: de apparaten krijgen meteen de nieuwe kleuren. Een scène die op tijd
+  kleur, effect of apparaat dat je zelf verandert, gaat direct, ook midden in een overgang: dat
+  apparaat slaat de rest van de overgang over (een wijziging voor alle apparaten: elk apparaat).
+  Vergrendel je de pc, gaat hij slapen, gaat het scherm uit, pauzeer je, sluit je de engine af of
+  valt OpenRGB weg, dan wacht dat niet op de overgang: de apparaten krijgen meteen de nieuwe kleuren. Een scène die op tijd
   aangaat terwijl de pc vergrendeld is, gaat ook direct. In `settings.json` heet het `sceneFade`
   (in seconden); staat daar een andere waarde tussen 0 en 2, dan staat die er als zesde keuze bij.
   Met "Minder beweging" van Windows (animaties uit) blijft de overgang zoals je hem koos: het is

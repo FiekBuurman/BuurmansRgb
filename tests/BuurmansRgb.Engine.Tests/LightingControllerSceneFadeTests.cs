@@ -145,6 +145,100 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // A color, effect or on/off of one device of its own goes at once, also during a scene fade:
+    // the fade of that device ends, the others go on with theirs, on time.
+    [Fact]
+    public async Task OwnChangeOfOneDevice_DuringAFade_EndsOnlyItsFade()
+    {
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _clock.Advance(Second / 4);
+
+        _controller.SetLighting("real", lighting => lighting with { Color = Green });
+
+        Assert.Equal([Green, Green], _dynamic.Leds["real"]);
+        Assert.Equal(RgbColor.Lerp(Red, Blue, 0.25), _provider.LastColors[0]);
+        Assert.True(_controller.IsFading);
+
+        _clock.Advance(Second * 3 / 4);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.Equal([Green, Green], _dynamic.Leds["real"]);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task OwnOff_OfOneDevice_DuringAFade_IsAtOnce()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        _controller.SetLighting(RecordingDeviceProvider.DeviceId, lighting => lighting with { On = false });
+
+        Assert.Equal([RgbColor.Black, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // A global change of its own, such as a color for all devices, ends the fade of every device.
+    [Fact]
+    public async Task OwnGlobalChange_DuringAFade_EndsEveryFade_AndStopsTheRenderLoop()
+    {
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _clock.Advance(Second / 4);
+
+        _controller.SetLighting(null, lighting => lighting with { Color = Green });
+
+        Assert.Equal([Green, Green, Green], _provider.LastColors);
+        Assert.Equal([Green, Green], _dynamic.Leds["real"]);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task OwnLedColors_DuringAFade_AreAtOnce()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        _controller.SetLedColors(RecordingDeviceProvider.DeviceId, 0, [Green, Green, Green]);
+
+        Assert.Equal([Green, Green, Green], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    [Fact]
+    public async Task Replace_WithoutFade_DuringAFade_IsAtOnce()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        _controller.Replace(Uniform(StaticLighting(Green)));
+
+        Assert.Equal([Green, Green, Green], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // A change that is refused changes nothing, also not the fade that runs.
+    [Fact]
+    public async Task OwnChange_ThatThrows_DuringAFade_KeepsTheFade()
+    {
+        await StartAsync(Red);
+        _controller.SetCustomEffects([]);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        Assert.Throws<ArgumentException>(() => _controller.SetLighting(null, lighting => lighting with { EffectId = "custom:gone" }));
+
+        Assert.True(_controller.IsFading);
+        Assert.True(_controller.IsAnimating);
+    }
+
     [Fact]
     public async Task ZeroFade_DuringAFade_EndsItAtOnce()
     {

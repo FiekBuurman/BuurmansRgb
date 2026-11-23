@@ -384,7 +384,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
     // Returns the lighting as it is right after, read under the same lock: State may already hold
     // a change from another thread by then. With fade, the devices go over to it in SceneFade
-    // (FadeLocked).
+    // (FadeLocked); without, it shows at once and ends a fade that runs.
     public LightingState Replace(LightingState state, bool fade = false) => Replace(_ => state, fade);
 
     // Replace with what change makes of the lighting now, read and applied under the same lock,
@@ -402,6 +402,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             if (fade)
             {
                 FadeLocked();
+            }
+            else
+            {
+                EndFadesLocked();
             }
 
             ApplyLocked(next);
@@ -443,7 +447,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect, also
     // an own effect that does not exist (SetCustomEffects), throws ArgumentException and changes
     // nothing. With fade the devices go over to it in SceneFade, as with Replace: for "Alles aan"
-    // and "Alles uit".
+    // and "Alles uit". Without, it shows at once, also on a device that was fading: its fade ends
+    // (EndFadesLocked).
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change, bool fade = false)
     {
         bool rendered;
@@ -462,6 +467,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             if (fade)
             {
                 FadeLocked();
+            }
+            else
+            {
+                EndFadesLocked(deviceId);
             }
 
             rendered = RenderLocked();
@@ -542,6 +551,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             _ledColors.Set(device, firstLed, colors);
             _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
+            EndFadesLocked(deviceId);
             rendered = RenderLocked();
         }
 
@@ -1029,6 +1039,24 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             {
                 output.EndFade();
             }
+        }
+    }
+
+    // A change of its own, without fade, shows at once: it ends the fade of the device it changes,
+    // or of every device for a null deviceId (a global change, or all lighting at once). The
+    // RenderLocked that follows sends the new lighting, and stops the render loop when nothing
+    // else moves.
+    private void EndFadesLocked(string? deviceId = null)
+    {
+        if (deviceId is not null)
+        {
+            _outputs.Find(deviceId)?.EndFade();
+            return;
+        }
+
+        foreach (var output in _outputs.All)
+        {
+            output.EndFade();
         }
     }
 
