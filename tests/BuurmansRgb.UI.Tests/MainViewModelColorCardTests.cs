@@ -151,6 +151,39 @@ public sealed class MainViewModelColorCardTests
         Assert.Empty(Api.Calls);
     }
 
+    // Another device or a scene with the same effect shows the card of that effect again, not the
+    // "Jouw effect" that was open for the device before.
+    [Fact]
+    public async Task JouwEffectWithoutOwnEffects_AnotherDeviceWithTheSameEffect_ShowsItsCard()
+    {
+        var viewModel = await ConnectAsync(EffectIds.Static);
+        viewModel.EffectTiles.ChooseCommand.Execute(viewModel.EffectTiles.Tiles.Single(tile => tile.IsCustom));
+        Assert.Equal(ColorCardContent.CustomEffect, viewModel.ColorCard);
+
+        viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
+
+        Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
+        Assert.Equal(ColorCardContent.Color, viewModel.ColorCard);
+        Assert.True(viewModel.ShowsMixer);
+    }
+
+    [Fact]
+    public async Task JouwEffectWithoutOwnEffects_ASceneWithTheSameEffect_ShowsItsCard()
+    {
+        var viewModel = await ConnectAsync(EffectIds.Static, api =>
+        {
+            api.Profiles.Add("Avond");
+            api.ProfileLighting["Avond"] = api.Lighting[""] with { EffectId = EffectIds.Static };
+        });
+        viewModel.EffectTiles.ChooseCommand.Execute(viewModel.EffectTiles.Tiles.Single(tile => tile.IsCustom));
+
+        viewModel.Profiles.LoadSceneCommand.Execute(viewModel.Profiles.Cards[0]);
+
+        Assert.Equal(["profile load Avond"], Api.Calls);
+        Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
+        Assert.Equal(ColorCardContent.Color, viewModel.ColorCard);
+    }
+
     // With own effects "Eigen effect" chooses the one used last, and the choice in card 4 another.
     [Fact]
     public async Task EigenEffect_ChoosesTheOwnEffectUsedLast()
@@ -190,10 +223,14 @@ public sealed class MainViewModelColorCardTests
     private static EffectTileItem Tile(MainViewModel viewModel, string effectId) =>
         viewModel.EffectTiles.Tiles.Single(tile => tile.Effect?.Id == effectId);
 
-    private async Task<MainViewModel> ConnectAsync(string effectId, params CustomEffect[] customEffects)
+    private Task<MainViewModel> ConnectAsync(string effectId, params CustomEffect[] customEffects) =>
+        ConnectAsync(effectId, _ => { }, customEffects);
+
+    private async Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi> arrange, params CustomEffect[] customEffects)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
         {
+            arrange(api);
             api.Effects =
             [
                 EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop,

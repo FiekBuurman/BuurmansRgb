@@ -332,7 +332,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public EffectTilesViewModel EffectTiles { get; } = new();
 
     // "Eigen effect" was clicked without own effects: card 4 shows "Jouw effect" while the light
-    // keeps its effect, until another effect comes (OnSelectedEffectChanged).
+    // keeps its effect, until another effect comes (OnSelectedEffectChanged) or another device or
+    // scene is shown (ShowSelectionAsync).
     [ObservableProperty]
     public partial bool ShowsCustomCard { get; private set; }
 
@@ -1267,8 +1268,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Another device, a scene this app put on, a new connection or Selectie opheffen: card 4 shows
+    // what belongs to the effect again, also when "Jouw effect" was open without own effects and
+    // the effect stayed the same.
     private async Task ShowSelectionAsync()
     {
+        ShowsCustomCard = false;
         RebuildPreview();
         if (_connection is not { } connection)
         {
