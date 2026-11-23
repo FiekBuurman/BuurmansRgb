@@ -15,11 +15,37 @@ public static class LedLayout
     // A wide key map shrinks to fit, but no further than this, so the keys stay clickable.
     public const double MinScale = 0.5;
 
+    // A key map with text on its keys (KeyCapText) is drawn up to this much larger, so a letter fits on
+    // a key: keys of 21 px instead of 14, a full-size keyboard 642 px wide, which fits on the Kleur
+    // page of the smallest window (960 px) at every text size. With a larger text size of Windows
+    // the keys grow along with the letters (KeyCapGrowFor), as far as the width allows.
+    public const double KeyCapScale = 1.5;
+
+    // KeyCapSize of the tokens at 100 %.
+    public const double KeyCapDesignSize = 9.0;
+
+    // How much larger a key map with text on its keys may be drawn, for letters of fontSize: the
+    // keys grow with the text size of Windows, so at 200 % the letters still fit where there is room.
+    public static double KeyCapGrowFor(double fontSize) =>
+        KeyCapScale * (double.IsFinite(fontSize) ? Math.Max(1.0, fontSize / KeyCapDesignSize) : 1.0);
+
     // The distance from one cell to the next when the layout is drawn in width. Only a layout
     // that shrinks, such as a key map, gets a smaller pitch when it is wider than width; dots wrap
     // to the next row instead. An unbounded width, as in a measure pass, keeps the full pitch.
-    public static double PitchFor(LedMatrix layout, double width, bool shrinks) =>
-        shrinks ? Pitch * ScaleFor(layout.Width * Pitch - Spacing, width) : Pitch;
+    // grow lets a layout that shrinks be drawn up to that much larger where width has room for it,
+    // as KeyCapGrowFor does; it shrinks no further than MinScale of its size without grow, so a
+    // key map with text needs no more room than one without.
+    public static double PitchFor(LedMatrix layout, double width, bool shrinks, double grow = 1.0)
+    {
+        if (!shrinks)
+        {
+            return Pitch;
+        }
+
+        grow = Math.Max(grow, 1.0);
+        var natural = layout.Width * Pitch - Spacing;
+        return Pitch * (double.IsFinite(width) ? Math.Clamp(width / natural, MinScale, grow) : grow);
+    }
 
     // How much a layout of naturalWidth at full size shrinks to fit in width, down to MinScale.
     public static double ScaleFor(double naturalWidth, double width) =>

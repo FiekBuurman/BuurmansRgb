@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Automation.Peers;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -11,9 +12,10 @@ namespace BuurmansRgb.UI.Views;
 // Draws the LEDs of a zone in one of three ways. Without a Matrix, such as for a strip, every LED
 // is a dot, wrapping to the available width; with IsRing, such as for a fan, the dots form a
 // ring. With a Matrix, such as the key map of a keyboard, every LED is a key at its own position,
-// and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them.
-// A ring and a key map shrink when they are wider than the available width. One element per
-// zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED, or
+// and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them;
+// with KeyCaps each key shows its text, such as "W" (KeyCapDrawings), on larger keys. A ring and
+// a key map shrink when they are wider than the available width. One element per zone instead of
+// one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED, or
 // within LedLayout.HitRadius of its middle (the nearest LED), runs ClickCommand with a LedHit
 // (Shift extends, Ctrl toggles); the LEDs in Selection get a selection ring. A
 // black LED gets the ring of an LED that is off (OffRingBrush), so you still see where it is.
@@ -62,6 +64,18 @@ public sealed class LedPreviewView : FrameworkElement
     public static readonly DependencyProperty OffRingBrushProperty = DependencyProperty.Register(
         nameof(OffRingBrush), typeof(Brush), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty KeyCapsProperty = DependencyProperty.Register(
+        nameof(KeyCaps), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty KeyCapFontSizeProperty = DependencyProperty.Register(
+        nameof(KeyCapFontSize), typeof(double), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedLayout.KeyCapDesignSize, FrameworkPropertyMetadataOptions.AffectsMeasure | FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty KeyCapBrushProperty = DependencyProperty.Register(
+        nameof(KeyCapBrush), typeof(Brush), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    public static readonly DependencyProperty KeyCapHaloBrushProperty = DependencyProperty.Register(
+        nameof(KeyCapHaloBrush), typeof(Brush), typeof(LedPreviewView), new FrameworkPropertyMetadata(null, FrameworkPropertyMetadataOptions.AffectsRender));
+
     private const double KeyCornerRadius = 3.0;
     private const double SelectionGap = 1.5;
 
@@ -86,6 +100,11 @@ public sealed class LedPreviewView : FrameworkElement
 
     // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
     private LedToolTip? _toolTip;
+
+    // The text on the keys, and what it was made for: made again only when one of those changes,
+    // not on every frame.
+    private KeyCapDrawings? _keyCaps;
+    private (ILedArrangement? Arrangement, IReadOnlyList<string>? Texts, FontFamily? Family, double Size, double PixelsPerDip, Brush? Brush, Brush? Halo) _keyCapsFor;
 
     // The focus shows as the ring around the active LED (OnRender), not as one around the zone.
     public LedPreviewView()
@@ -174,9 +193,44 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(OffRingBrushProperty, value);
     }
 
+    // The text on each key of a key map, such as "W" (ZonePreviewViewModel.KeyCaps); null for none.
+    // With it the key map is drawn larger where there is room (LedLayout.KeyCapGrowFor), so a letter
+    // fits on a key.
+    public IReadOnlyList<string>? KeyCaps
+    {
+        get => (IReadOnlyList<string>?)GetValue(KeyCapsProperty);
+        set => SetValue(KeyCapsProperty, value);
+    }
+
+    // KeyCapSize of the tokens, which follows the text size of Windows (set by the style in
+    // Controls.xaml): a text that no longer fits on its key falls away.
+    public double KeyCapFontSize
+    {
+        get => (double)GetValue(KeyCapFontSizeProperty);
+        set => SetValue(KeyCapFontSizeProperty, value);
+    }
+
+    // The color of the text on the keys; null, or a brush without color as in the tokens, for black
+    // or white per key, whichever stands out more against its color. In a contrast theme the text
+    // of Windows, with a halo in KeyCapHaloBrush (its window color) around the letters.
+    public Brush? KeyCapBrush
+    {
+        get => (Brush?)GetValue(KeyCapBrushProperty);
+        set => SetValue(KeyCapBrushProperty, value);
+    }
+
+    public Brush? KeyCapHaloBrush
+    {
+        get => (Brush?)GetValue(KeyCapHaloBrushProperty);
+        set => SetValue(KeyCapHaloBrushProperty, value);
+    }
+
     // Where the mouse is on the view; null for where Windows says it is. A test puts it on an LED
     // here, as it cannot move the mouse.
     internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
+
+    // The text on the keys as the last frame drew it, for a test; null without KeyCaps.
+    internal KeyCapDrawings? DrawnKeyCaps => _keyCaps;
 
     // The keys held with a click; null for what Windows says. A test holds Shift or Ctrl here.
     internal Func<ModifierKeys>? ClickModifiers { get; set; }
@@ -305,6 +359,7 @@ public sealed class LedPreviewView : FrameworkElement
         var selectionRing = SelectionRing();
         var offRing = LedRing.PenOf(OffRingBrush);
         var count = Math.Min(colors.Count, arrangement.Bounds.Count);
+        var keyCaps = arrangement.Keys ? KeyCapsFor(arrangement) : null;
 
         // Unseen, and first, so under the LEDs: WPF only asks HitTestCore for a point within its own
         // size together with what the view draws, and this reaches LedLayout.HitRadius beyond its
@@ -339,6 +394,11 @@ public sealed class LedPreviewView : FrameworkElement
                 key.Inflate(-inset, -inset);
                 var keyRadius = Math.Max(0.0, cornerRadius - inset);
                 drawingContext.DrawRoundedRectangle(brush, ring ?? Outline, key, keyRadius, keyRadius);
+                if (keyCaps?.For(led, color) is { } keyCap)
+                {
+                    drawingContext.DrawDrawing(keyCap);
+                }
+
                 if (selected)
                 {
                     bounds.Inflate(SelectionGap, SelectionGap);
@@ -594,6 +654,33 @@ public sealed class LedPreviewView : FrameworkElement
         return pen;
     }
 
+    // The text on the keys of arrangement; the one of the last call when nothing changed. null
+    // without texts.
+    private KeyCapDrawings? KeyCapsFor(ILedArrangement arrangement)
+    {
+        if (KeyCaps is not { } texts)
+        {
+            return null;
+        }
+
+        var family = TextElement.GetFontFamily(this);
+        var size = KeyCapFontSize;
+        var pixelsPerDip = VisualTreeHelper.GetDpi(this).PixelsPerDip;
+        var brush = KeyCapBrush is SolidColorBrush { Color.A: 0 } ? null : KeyCapBrush;
+        var halo = KeyCapHaloBrush is SolidColorBrush { Color.A: 0 } ? null : KeyCapHaloBrush;
+        var key = (arrangement, texts, family, size, pixelsPerDip, brush, halo);
+        if (_keyCaps is null || !ReferenceEquals(_keyCapsFor.Arrangement, arrangement) || !ReferenceEquals(_keyCapsFor.Texts, texts)
+            || !Equals(_keyCapsFor.Family, family) || _keyCapsFor.Size != size || _keyCapsFor.PixelsPerDip != pixelsPerDip
+            || !ReferenceEquals(_keyCapsFor.Brush, brush) || !ReferenceEquals(_keyCapsFor.Halo, halo))
+        {
+            var typeface = new Typeface(family, FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
+            _keyCaps = KeyCapDrawings.Create(arrangement.Bounds, texts, typeface, size, pixelsPerDip, brush, halo);
+            _keyCapsFor = key;
+        }
+
+        return _keyCaps;
+    }
+
     // The arrangement of the LEDs in a width; the one of the last call when nothing changed.
     private ILedArrangement ArrangementFor(double width)
     {
@@ -610,7 +697,8 @@ public sealed class LedPreviewView : FrameworkElement
         }
 
         var layout = PlaceLeds(width);
-        var pitch = LedLayout.PitchFor(layout, width, shrinks: Matrix is not null);
+        var grow = Matrix is not null && KeyCaps is not null ? LedLayout.KeyCapGrowFor(KeyCapFontSize) : 1.0;
+        var pitch = LedLayout.PitchFor(layout, width, shrinks: Matrix is not null, grow);
         if (_arrangement is not CellArrangement cells || !ReferenceEquals(cells.Layout, layout) || cells.Pitch != pitch)
         {
             _arrangement = new CellArrangement(layout, pitch, count, keys: Matrix is not null);

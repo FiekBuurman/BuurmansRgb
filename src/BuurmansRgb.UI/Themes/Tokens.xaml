@@ -136,6 +136,11 @@
          StripBgBrush): so not in ContrastTheme.SystemBrushes, or the text color of a light theme
          would vanish on it. -->
     <SolidColorBrush x:Key="StripLedOffRingBrush" Color="{StaticResource LedOffRingColor}" />
+    <!-- The text on the keys of a keyboard in the preview (KeyCapDrawings). Without color it is black or
+         white per key, whichever stands out more against the color of that key; a contrast theme gives
+         it the text of Windows with a halo in the window color, which stands out on every key. -->
+    <SolidColorBrush x:Key="KeyCapBrush" Color="Transparent" />
+    <SolidColorBrush x:Key="KeyCapHaloBrush" Color="Transparent" />
 
     <!-- LED colors, with a glow, except black (LedRing.IsDark), which gets the ring instead (LedBulb). -->
     <Color x:Key="LedRedColor">#FF5A5A</Color>
@@ -178,6 +183,9 @@
     <sys:Double x:Key="NewButtonSize">16</sys:Double>
     <sys:Double x:Key="SmallBodySize">14</sys:Double>
     <sys:Double x:Key="CountValueSize">44</sys:Double>
+    <!-- The text on a key of a keyboard in the preview, such as "W" (KeyCapDrawings): small, as on the
+         key itself; a text that no longer fits on its key at a larger text size falls away. -->
+    <sys:Double x:Key="KeyCapSize">9</sys:Double>
 
     <!-- § 3 Sizes -->
     <CornerRadius x:Key="LargeCardRadius">22</CornerRadius>

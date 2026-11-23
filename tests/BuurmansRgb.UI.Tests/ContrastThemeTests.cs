@@ -54,6 +54,8 @@ public sealed class ContrastThemeTests
     [InlineData("WarningBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("LedOffRingBrush", nameof(SystemColors.WindowTextBrush))]
     [InlineData("CardLedOffRingBrush", nameof(SystemColors.ControlTextBrush))]
+    [InlineData("KeyCapBrush", nameof(SystemColors.WindowTextBrush))]
+    [InlineData("KeyCapHaloBrush", nameof(SystemColors.WindowBrush))]
     public void ContrastThemeOn_GivesTheTokenItsSystemBrush(string token, string systemBrush) => Sta.Run(() =>
     {
         var resources = LoadTheme();
@@ -113,6 +115,9 @@ public sealed class ContrastThemeTests
         ["HoverOutlineBrush"] = "Transparent",
         ["LedOffRingBrush"] = "LedOffRingColor",
         ["CardLedOffRingBrush"] = "LedOffRingColor",
+        // Without a color the text on a key is black or white per key (KeyCapDrawings).
+        ["KeyCapBrush"] = "Transparent",
+        ["KeyCapHaloBrush"] = "Transparent",
     };
 
     public static TheoryData<string> RoleTokens => [.. RoleDesignColors.Keys];

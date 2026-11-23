@@ -181,6 +181,32 @@ public sealed class ContrastThemeStyleTests
         Assert.Same(SystemColors.HighlightTextBrush, panel.FindResource(hover[(null, Control.ForegroundProperty)]));
     });
 
+    // The text on the keys of a keyboard in the preview: the text of Windows with a halo in the window
+    // color around every letter, the same on every color of a key.
+    [Fact]
+    public void KeyboardPreview_KeyTextHasTheTextOfWindowsWithAHalo() => InContrastTheme(panel =>
+    {
+        var view = AppTheme.Show(panel, new LedPreviewView
+        {
+            Colors = new BuurmansRgb.Core.RgbColor[TestKeyboards.Names.Count],
+            Matrix = TestKeyboards.KeyMap,
+            LedNames = TestKeyboards.Names,
+            KeyCaps = BuurmansRgb.UI.ViewModels.KeyCapText.Of(TestKeyboards.Names),
+            Width = 700,
+        });
+        OffscreenWindow.WaitUntilIdle();
+
+        var drawing = (DrawingGroup)view.DrawnKeyCaps!.For(39, BuurmansRgb.Core.RgbColor.White)!;
+        var halo = (GeometryDrawing)KeyCapDrawingsTests.Flatten(drawing).First();
+        var text = KeyCapDrawingsTests.Flatten(drawing).OfType<GlyphRunDrawing>().Single();
+
+        Assert.Same(SystemColors.WindowTextBrush, view.KeyCapBrush);
+        Assert.Same(SystemColors.WindowBrush, view.KeyCapHaloBrush);
+        Assert.Same(drawing, view.DrawnKeyCaps.For(39, BuurmansRgb.Core.RgbColor.Black));
+        Assert.Equal(SystemColors.WindowTextColor, ((SolidColorBrush)text.ForegroundBrush).Color);
+        Assert.Equal(SystemColors.WindowColor, ((SolidColorBrush)halo.Pen.Brush).Color);
+    });
+
     // The setters of the trigger on IsMouseOver that set a DynamicResource, by the element they set
     // (null: the control itself) and the property, each with the key of its resource.
     private static Dictionary<(string? TargetName, DependencyProperty Property), object> HoverSetters(TriggerCollection triggers) => triggers

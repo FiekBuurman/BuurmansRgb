@@ -113,7 +113,7 @@
                                      before it (the name, Knipperen) wins above it through YieldsAt, and what
                                      comes after it (8 px below, such as the label of the length) wins below. -->
                                 <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
-                                                      IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
+                                                      IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}" KeyCaps="{Binding KeyCaps}"
                                                       Selection="{Binding Selection}"
                                                       ClickCommand="{Binding ClickLedCommand}"
                                                       ActiveLed="{Binding ActiveLed}" KeyCommand="{Binding PressKeyCommand}" KeyGroup="{Binding DeviceId}"
