@@ -62,6 +62,15 @@ public sealed class EffectOptionsViewModelTests
         Assert.Equal(0, raised);
     }
 
+    // A long number from settings.json shows with at most two decimals.
+    [Fact]
+    public void ShowSceneFade_ALongNumber_ShowsTwoDecimals()
+    {
+        _options.ShowSceneFade(TimeSpan.FromSeconds(1.23456));
+
+        Assert.Equal("1,23 seconde", _options.SelectedSceneFade?.DisplayName);
+    }
+
     [Fact]
     public void PickingASceneFade_RaisesIt()
     {

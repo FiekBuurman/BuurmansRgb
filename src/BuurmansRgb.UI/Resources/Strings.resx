@@ -1009,7 +1009,7 @@
     <value>Langzaam (2 seconden)</value>
   </data>
   <data name="SceneFadeOther" xml:space="preserve">
-    <value>{0} seconde</value>
+    <value>{0:0.##} seconde</value>
     <comment>Een waarde uit settings.json die geen van de vijf keuzes is, zoals 1,5.</comment>
   </data>
   <data name="PauseOnLockLabel" xml:space="preserve">
