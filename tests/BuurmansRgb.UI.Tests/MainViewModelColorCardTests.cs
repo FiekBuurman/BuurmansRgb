@@ -127,6 +127,30 @@ public sealed class MainViewModelColorCardTests
         Assert.Equal(ColorCardContent.NoColor, viewModel.ColorCard);
     }
 
+    // An own effect that comes while card 4 shows "Jouw effect" without own effects (another settings
+    // app made one, or it was imported) does not choose itself (§ 9.3): the card stays with the
+    // choice empty, and the light keeps its effect.
+    [Fact]
+    public async Task OwnEffectThatComes_WhileJouwEffectIsEmpty_KeepsTheCardAndTheLight()
+    {
+        var viewModel = await ConnectAsync(EffectIds.Static);
+        var custom = viewModel.EffectTiles.Tiles.Single(tile => tile.IsCustom);
+        viewModel.EffectTiles.ChooseCommand.Execute(custom);
+
+        Api.CustomEffects = [Disco];
+        Api.RaiseCustomEffectsChanged();
+
+        Assert.Equal([Disco.Id], viewModel.EffectTiles.CustomEffects.Select(effect => effect.Id));
+        Assert.Equal(ColorCardContent.CustomEffect, viewModel.ColorCard);
+        Assert.False(viewModel.ShowsMixer);
+        Assert.Null(viewModel.EffectTiles.SelectedCustomEffect);
+        Assert.True(custom.CanChoose);
+        Assert.False(custom.IsChosen);
+        Assert.True(Tile(viewModel, EffectIds.Static).IsChosen);
+        Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
+        Assert.Empty(Api.Calls);
+    }
+
     // With own effects "Eigen effect" chooses the one used last, and the choice in card 4 another.
     [Fact]
     public async Task EigenEffect_ChoosesTheOwnEffectUsedLast()
