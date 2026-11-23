@@ -336,6 +336,10 @@ uitbreidingen in `docs/bouwplan.md`.
   laatste melding staan, bijv. "Vanzelf aanzetten van 'Avond' opgeslagen." van Scènes nog op
   Kleur, zodat hij bij die pagina lijkt te horen (gebruikerstest 28-10, B3). Geldt ook voor de
   meldingen van Instellingen, zoals "Starten met Windows kon niet worden aangepast."
+- Het grote lege vlak links onder het kleurvoorbeeld in kaart 4 bij Statisch (en Ademen en Golf)
+  vullen of kleiner maken, bijv. met de kleuren en eigen kleuren onder het voorbeeld in plaats van
+  onder de schuiven (zie `docs/images/kleur.png`). Het restant van gebruikerstest 28-10, B7: de
+  volgorde van het effect is gebouwd (`kleur-volgorde`), het lege vlak bleef
 - Een dichte kaart bij "Per apparaat" laten zien dat er in die kaart iets loopt dat een ander
   venster van de app startte, zoals een telling: dichtklappen stopt alleen een telling van dit
   venster, en die van een ander venster telt dan onzichtbaar door (`kleur-lagen`)
