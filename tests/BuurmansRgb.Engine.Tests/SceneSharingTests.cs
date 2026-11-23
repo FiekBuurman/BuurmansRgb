@@ -81,6 +81,111 @@ public sealed class SceneSharingTests : IDisposable
         Assert.NotEqual("Gamen (2)", _profiles.ActiveName);
     }
 
+    // The layer over the effect goes along with the device it is on, and comes in on that device here.
+    [Fact]
+    public async Task ExportThenImport_TheLayer_ComesBackOnItsDevice()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetEffectAsync(null, EffectIds.Rainbow, Ct);
+        _lighting.SetOverlay("simulated-keyboard", 2, [Red, null, Red]);
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = await _api.ExportSceneAsync("Gamen", Ct);
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(
+            ["#FF0000", null, "#FF0000"],
+            JsonNode.Parse(json)!["devices"]!.AsArray().Single(device => (string?)device!["id"] == "simulated-keyboard")!["overlay"]!.AsArray().Skip(2).Select(color => (string?)color));
+        Assert.Equal([null, null, Red, null, Red], _profiles.Get("Gamen (2)").Lighting.Overlays["simulated-keyboard"]);
+        Assert.Single(_profiles.Get("Gamen (2)").Lighting.Overlays);
+    }
+
+    // A layer from a device with more LEDs than the one here comes in without an error and as it is:
+    // the colors beyond the end show nowhere, but stay in the scene (see docs/ideas.md).
+    [Fact]
+    public async Task Import_LayerLongerThanTheDevice_ComesInAsItIs()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var keyboard = _lighting.Devices.Single(device => device.Id == "simulated-keyboard");
+        var overlay = new JsonArray([.. Enumerable.Range(0, keyboard.LedCount + 5).Select(index => (JsonNode?)(index == keyboard.LedCount + 4 ? "#FF0000" : null))]);
+        var root = new JsonObject
+        {
+            ["version"] = 2,
+            ["kind"] = "scene",
+            ["name"] = "Lang",
+            ["lighting"] = new JsonObject { ["color"] = "#FF8800", ["brightness"] = 1, ["effect"] = "static" },
+            ["devices"] = new JsonArray(new JsonObject { ["id"] = "simulated-keyboard", ["type"] = "keyboard", ["name"] = keyboard.Name, ["overlay"] = overlay }),
+        };
+
+        var result = await _api.ImportSharedAsync(Bytes(root.ToJsonString()), Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        var layer = _profiles.Get("Lang").Lighting.Overlays["simulated-keyboard"];
+        Assert.Equal(keyboard.LedCount + 5, layer.Count);
+        Assert.Equal(Red, layer[^1]);
+    }
+
+    // Without a layer the file is as before the layer, so a version from before it reads the scene.
+    [Fact]
+    public async Task Export_WithoutALayer_HasNoOverlayField()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = Encoding.UTF8.GetString(await _api.ExportSceneAsync("Gamen", Ct));
+
+        Assert.DoesNotContain("overlay", json, StringComparison.Ordinal);
+    }
+
+    // A scene with a layer is version 2, which a version from before the layer calls newer instead of
+    // wrong; without one it stays version 1, which that version reads. As a file and as a code, which
+    // holds the same JSON.
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public async Task ExportScene_IsVersion2OnlyWithALayer(bool layer, int version)
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
+        if (layer)
+        {
+            _lighting.SetOverlay("simulated-keyboard", 0, [Red]);
+        }
+
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = await _api.ExportSceneAsync("Gamen", Ct);
+        Assert.True(ShareCode.TryDecode(ShareCode.Encode(json), out var fromCode, out _));
+
+        Assert.Equal(version, (int)Parse(json)["version"]!);
+        Assert.Equal(version, (int)Parse(fromCode)["version"]!);
+        Assert.Equal(ShareImportOutcome.Imported, (await _api.ImportSharedAsync(fromCode, Ct)).Outcome);
+    }
+
+    // A code of a newer version says so, as a file does.
+    [Fact]
+    public async Task Import_CodeOfANewerVersion_SaysSo()
+    {
+        var code = ShareCode.Encode(Bytes("""{ "version": 3, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF0000", "brightness": 1, "effect": "static" } }"""));
+        Assert.True(ShareCode.TryDecode(code, out var json, out _));
+
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.NewerVersion, result.Outcome);
+        Assert.Empty(await _api.GetProfilesAsync(Ct));
+    }
+
+    // An own effect has no layer: always version 1.
+    [Fact]
+    public async Task ExportEffect_IsVersion1()
+    {
+        var disco = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Red)]), Ct);
+
+        Assert.Equal(1, (int)Parse(await _api.ExportCustomEffectAsync(disco.Id, Ct))["version"]!);
+    }
+
     // Every field of the lighting that is not its default, of all devices and of one, and the
     // colors per LED with their zones, comes back as it went.
     [Fact]
@@ -245,7 +350,7 @@ public sealed class SceneSharingTests : IDisposable
         _api.ProfilesChanged += (_, _) => changes++;
         _api.CustomEffectsChanged += (_, _) => changes++;
 
-        var result = await _api.ImportSharedAsync(Bytes("""{ "version": 1, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF8800", "brightness": 1, "effect": "static" }, "loadAt": "07:00" }"""), Ct);
+        var result = await _api.ImportSharedAsync(Bytes("""{ "version": 1, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF8800", "brightness": 1.5, "effect": "static" } }"""), Ct);
 
         Assert.Equal(ShareImportOutcome.Invalid, result.Outcome);
         Assert.Empty(await _api.GetProfilesAsync(Ct));

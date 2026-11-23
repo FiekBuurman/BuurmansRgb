@@ -153,6 +153,30 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), _lighting.SceneFade);
     }
 
+    // The layer over the effect goes into the zip, in settings.json and in a scene, and comes back
+    // from it; a backup from before the layer, without it, has none.
+    [Fact]
+    public async Task ExportAndRestore_KeepTheLayer()
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        _lighting.SetOverlay("simulated-keyboard", 1, [new RgbColor(255, 0, 0)]);
+        _profiles.Save("Gamen");
+
+        var files = Unzip(host.Export());
+        var withLayer = host.Restore(SettingsArchiveTests.Zip(
+            (SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5, "overlay": { "simulated-fan": ["#0000FF"] } }"""))));
+        var layer = _lighting.State.Overlays;
+        var withoutLayer = host.Restore(SettingsArchiveTests.Zip((SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))));
+
+        Assert.Equal("#FF0000", JsonNode.Parse(files[SettingsBackup.SettingsFileName])!["overlay"]!["simulated-keyboard"]![1]!.GetValue<string>());
+        Assert.Contains("\"overlay\"", Encoding.UTF8.GetString(files[SettingsBackup.ProfilesFileName]), StringComparison.Ordinal);
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Restored), withLayer);
+        Assert.Equal([new RgbColor(0, 0, 255)], layer["simulated-fan"]);
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Restored), withoutLayer);
+        Assert.Empty(_lighting.State.Overlays);
+    }
+
     // First a copy of the files of now, as they were with the last change, in the backups folder.
     [Fact]
     public async Task Restore_CopiesTheFilesOfNowFirst()

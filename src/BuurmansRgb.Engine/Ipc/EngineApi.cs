@@ -233,6 +233,16 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<IReadOnlyList<RgbColor?>> GetOverlayAsync(string deviceId, CancellationToken ct = default) =>
+        Task.FromResult(_lighting.GetOverlay(deviceId));
+
+    public Task SetOverlayAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        _lighting.SetOverlay(deviceId, firstLed, colors);
+        return Task.CompletedTask;
+    }
+
     // Through the counter when there is one, so a count of the zone ends with this length.
     public Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
     {

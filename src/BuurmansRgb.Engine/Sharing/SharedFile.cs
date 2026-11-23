@@ -5,15 +5,19 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Engine.Sharing;
 
-// The JSON of a shared scene or own effect (Contracts.SharedFiles), version 1. Read strictly, unlike
-// the files of the engine: it comes from someone else, so a field the engine does not know, a
-// name twice in one object, a value of the wrong type or a missing one that is required refuses
-// the whole file (SharingJsonContext), and SharedFileReader checks every value. A scene:
+// The JSON of a shared scene or own effect (Contracts.SharedFiles), version 1 or 2 (SharedFormat).
+// Version 2 is a scene with a layer over the effect ("overlay"); any other file is version 1, as
+// before the layer, so a version from before it still reads that. Read strictly, unlike
+// the files of the engine: it comes from someone else, so a name twice in one object, a value of
+// the wrong type or a missing one that is required refuses the whole file (SharingJsonContext),
+// and SharedFileReader checks every value. A field the engine does not know is skipped, so a scene
+// of a newer version with a field this one lacks still comes in without it. A scene:
 //
-// { "version": 1, "kind": "scene", "name": "Gamen",
+// { "version": 2, "kind": "scene", "name": "Gamen",
 //   "lighting": { "color": "#FF0000", "brightness": 1, "effect": "custom:1a2b3c4d" },
 //   "devices": [ { "id": "openrgb:k70-1a2b3c4d", "type": "keyboard", "name": "K70",
-//                  "lighting": { ... }, "ledColors": [ "#FF0000", null ], "zoneLengths": [ 104 ] } ],
+//                  "lighting": { ... }, "ledColors": [ "#FF0000", null ], "zoneLengths": [ 104 ],
+//                  "overlay": [ null, null, "#FF0000" ] } ],
 //   "onlyDevices": [ "openrgb:k70-1a2b3c4d" ],
 //   "effects": [ { "id": "custom:1a2b3c4d", "name": "Disco",
 //                  "steps": [ { "colors": [ "#FF0000" ], "hold": 1, "fade": 1 } ] } ] }
@@ -65,8 +69,11 @@ internal sealed record SharedColorLoop
 }
 
 // A device of a scene: its id on the pc it came from and, when that pc knew it then, its type and
-// name, by which another pc finds its own; its lighting when it differs from that of the scene, and
-// its color per LED with the zone lengths they were chosen for.
+// name, by which another pc finds its own; its lighting when it differs from that of the scene, its
+// color per LED with the zone lengths they were chosen for, and its layer over the effect (null for an
+// LED that shows the effect). The layer is only there for a device that has one, and then the file is
+// version 2: a version from before the layer refused a field it did not know, and so says of version 2
+// that it is of a newer version instead of that it is wrong. A scene without a layer stays version 1.
 internal sealed record SharedDevice
 {
     public required string Id { get; init; }
@@ -80,6 +87,8 @@ internal sealed record SharedDevice
     public List<RgbColor?>? LedColors { get; init; }
 
     public List<int>? ZoneLengths { get; init; }
+
+    public List<RgbColor?>? Overlay { get; init; }
 }
 
 internal sealed record SharedEffect
@@ -101,10 +110,19 @@ internal sealed record SharedStep
 }
 
 // The rules of the format that SharedFileWriter and SharedFileReader share, so the writer only
-// makes what the reader takes.
+// makes what the reader takes. The reader takes MinVersion to Version: below is wrong, above is of a
+// newer version. A field that only adds may come in the same version, as long as an older version
+// can skip it; a field that changes what the file means, or that an older version would refuse,
+// raises the version. The writer writes the lowest version that holds what is in the file
+// (LayerVersion only for a scene with a layer, else MinVersion), so an older version reads the rest.
 internal static class SharedFormat
 {
-    public const int Version = 1;
+    public const int MinVersion = 1;
+
+    // A scene with a layer over the effect ("overlay" of a device), which version 1 refused.
+    public const int LayerVersion = 2;
+
+    public const int Version = LayerVersion;
 
     public const string SceneKind = "scene";
 
@@ -113,11 +131,12 @@ internal static class SharedFormat
     // The type of a device as the file has it, such as "ledStrip"; the name in camelCase of DeviceType.
     public static string WriteType(DeviceType type) => JsonNamingPolicy.CamelCase.ConvertName(type.ToString());
 
-    // A control character such as a line break, or one of format that does not show, such as
-    // U+200B (zero width space) or U+202E (right-to-left override), which makes a device look like
-    // another in the result.
+    // A control character such as a line break, a line or paragraph separator (U+2028, U+2029) that
+    // breaks a line as well, or one of format that does not show, such as U+200B (zero width space)
+    // or U+202E (right-to-left override), which makes a device look like another in the result.
     public static bool HasHiddenCharacter(string value) =>
-        value.Any(character => char.IsControl(character) || char.GetUnicodeCategory(character) == UnicodeCategory.Format);
+        value.Any(character => char.IsControl(character)
+            || char.GetUnicodeCategory(character) is UnicodeCategory.Format or UnicodeCategory.LineSeparator or UnicodeCategory.ParagraphSeparator);
 
     // A device name as the file may have it: not empty, at most SharedFiles.MaxDeviceNameLength
     // characters and without a hidden character.

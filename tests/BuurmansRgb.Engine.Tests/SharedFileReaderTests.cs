@@ -53,10 +53,100 @@ public sealed class SharedFileReaderTests
         Assert.Equal([Green], keyboard.EffectColors.Lists[EffectIds.Comet]);
         Assert.Equal([Red, null, Green], scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].Colors);
         Assert.Equal([3], scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].ZoneLengths!);
+        Assert.Empty(scene.Lighting.Overlays);
         Assert.Equal([new SharedDeviceRef("openrgb:k70-1a2b3c4d", DeviceType.Keyboard, "K70"), new SharedDeviceRef("openrgb:fan-5e6f7a8b", DeviceType.Fan, "Fan")], scene.Devices);
         Assert.Equal(["openrgb:k70-1a2b3c4d", "openrgb:fan-5e6f7a8b"], scene.OnlyDevices!);
         var effect = Assert.Single(scene.Effects);
         Assert.Equal(new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0.5)]), effect);
+    }
+
+    // The layer over the effect of a device, a color or null per LED; without the nulls at the end.
+    // The app writes a scene with a layer as version 2, but one of version 1 with it reads as well.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void Read_SceneWithALayer_GivesIt(int version)
+    {
+        var content = SharedFileReader.Read(Bytes(SceneWithALayer(version)));
+
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Equal([null, Red], content.Scene!.Lighting.Overlays["openrgb:k70-1a2b3c4d"]);
+    }
+
+    [Fact]
+    public void Read_Version2WithoutALayer_GivesIt()
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["version"] = 2;
+
+        var content = SharedFileReader.Read(Bytes(root.ToJsonString()));
+
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Empty(content.Scene!.Lighting.Overlays);
+    }
+
+    // A scene of a newer version may have a field this one does not know: it comes in without it.
+    // That also holds for what never goes along, such as a program or a role: nothing of it is read.
+    public static TheoryData<string, Action<JsonObject>> FieldsItDoesNotKnow() => new()
+    {
+        { "at the top", root => root["loadTimes"] = new JsonArray() },
+        { "a program", root => root["program"] = "eldenring.exe" },
+        { "a role", root => root["role"] = "allOff" },
+        { "in the lighting", root => Lighting(root)["glow"] = true },
+        { "in a device", root => Device(root)["path"] = @"C:\Windows" },
+        { "an object in a device", root => Device(root)["future"] = new JsonObject { ["leds"] = new JsonArray(1, 2) } },
+        { "in a step", root => Step(root)["loop"] = 2 },
+    };
+
+    [Theory]
+    [MemberData(nameof(FieldsItDoesNotKnow))]
+    public void Read_SceneWithAFieldItDoesNotKnow_SkipsIt(string where, Action<JsonObject> change)
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        change(root);
+
+        var content = SharedFileReader.Read(Bytes(root.ToJsonString()));
+
+        Assert.NotNull(where);
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Equal("Gamen", content.Scene!.Name);
+        Assert.Equal([Red, null, Green], content.Scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].Colors);
+    }
+
+    // The trace names what it skipped, at the top and in a device; a name with a line break only by
+    // its length, as it would start a line of its own there.
+    [Fact]
+    public void Read_FieldsItDoesNotKnow_TraceNamesThem()
+    {
+        using var trace = new TraceCapture();
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["glowTimes"] = new JsonArray();
+        Device(root)["glowZone"] = 1;
+        Device(root)["x\nImport: something else"] = 1;
+
+        Assert.Equal(ShareImportOutcome.Imported, SharedFileReader.Read(Bytes(root.ToJsonString())).Outcome);
+
+        var message = Assert.Single(trace.Messages, message => message.Contains("glowTimes", StringComparison.Ordinal));
+        Assert.Contains("\"glowZone\" (in a device)", message, StringComparison.Ordinal);
+        Assert.Contains("a name of 24 characters (in a device)", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("something else", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"lighting\"", message, StringComparison.Ordinal);
+    }
+
+    // A file that is refused after all does not first say what it skipped: only what was wrong.
+    [Fact]
+    public void Read_RefusedWithAFieldItDoesNotKnow_TraceSaysNothingSkipped()
+    {
+        using var trace = new TraceCapture();
+
+        Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, root =>
+        {
+            root["glowTimes"] = new JsonArray();
+            Lighting(root)["brightness"] = 1.5;
+        }));
+
+        Assert.Contains(trace.Messages, message => message.Contains("is not 0 to 1", StringComparison.Ordinal));
+        Assert.DoesNotContain(trace.Messages, message => message.Contains("skipped", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -107,9 +197,20 @@ public sealed class SharedFileReaderTests
     public void Read_NotAFileOfTheApp_IsNotShared(string json) =>
         Assert.Equal(ShareImportOutcome.NotShared, SharedFileReader.Read(Bytes(json)).Outcome);
 
-    [Fact]
-    public void Read_NewerVersion_SaysSo() =>
-        Assert.Equal(ShareImportOutcome.NewerVersion, Read(Scene, root => root["version"] = 2));
+    [Theory]
+    [InlineData(3)]
+    [InlineData(100)]
+    public void Read_NewerVersion_SaysSo(int version)
+    {
+        Assert.Equal(ShareImportOutcome.NewerVersion, Read(Scene, root => root["version"] = version));
+        Assert.Equal(ShareImportOutcome.NewerVersion, Read(SceneWithALayer(version), _ => { }));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Read_VersionBeforeTheFirst_IsInvalid(int version) =>
+        Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, root => root["version"] = version));
 
     public static TheoryData<string, Action<JsonObject>> WrongScenes() => new()
     {
@@ -117,12 +218,6 @@ public sealed class SharedFileReaderTests
         { "version 1.5", root => root["version"] = 1.5 },
         { "another kind", root => root["kind"] = "lamp" },
         { "kind in capitals", root => root["kind"] = "Scene" },
-        { "unknown field at the top", root => root["loadTimes"] = new JsonArray() },
-        { "program", root => root["program"] = "eldenring.exe" },
-        { "role", root => root["role"] = "allOff" },
-        { "unknown field in the lighting", root => Lighting(root)["glow"] = true },
-        { "unknown field in a device", root => Device(root)["path"] = @"C:\Windows" },
-        { "unknown field in a step", root => Step(root)["loop"] = 2 },
         { "no name", root => root.Remove("name") },
         { "empty name", root => root["name"] = " " },
         { "name too long", root => root["name"] = new string('a', ProfileNames.MaxLength + 1) },
@@ -168,11 +263,20 @@ public sealed class SharedFileReaderTests
         { "device name with a right-to-left override", root => Device(root)["name"] = "K70\u202Elcip" },
         { "device name with a zero width space", root => Device(root)["name"] = "K\u200B70" },
         { "device name with a line break", root => Device(root)["name"] = "K70\nFan" },
+        { "device name with a line separator", root => Device(root)["name"] = "K70\u2028Fan" },
+        { "device name with a paragraph separator", root => Device(root)["name"] = "K70\u2029Fan" },
+        { "device id with a line separator", root => Device(root)["id"] = "openrgb:k70\u2028fan" },
         { "too many devices", root => AddDevices(root, SharedFiles.MaxDevices) },
         { "too many led colors", root => Device(root)["ledColors"] = Reds(SharedFiles.MaxLedsPerDevice + 1) },
         { "no led colors", root => Device(root)["ledColors"] = new JsonArray() },
         { "negative zone length", root => Device(root)["zoneLengths"] = new JsonArray(-1) },
         { "zone lengths without colors", root => Device(root).Remove("ledColors") },
+        { "layer color as a word", root => Device(root)["overlay"] = new JsonArray("red") },
+        { "layer color as a number", root => Device(root)["overlay"] = new JsonArray(42) },
+        { "layer not a list", root => Device(root)["overlay"] = "#FF0000" },
+        { "too many layer leds", root => Device(root)["overlay"] = Reds(SharedFiles.MaxLedsPerDevice + 1) },
+        { "no layer leds", root => Device(root)["overlay"] = new JsonArray() },
+        { "layer without a color", root => Device(root)["overlay"] = new JsonArray(null, null) },
         { "only devices empty", root => root["onlyDevices"] = new JsonArray() },
         { "only device not in devices", root => root["onlyDevices"] = new JsonArray("openrgb:other") },
         { "only device twice", root => root["onlyDevices"] = new JsonArray("openrgb:fan-5e6f7a8b", "openrgb:fan-5e6f7a8b") },
@@ -236,6 +340,14 @@ public sealed class SharedFileReaderTests
         var root = JsonNode.Parse(json)!.AsObject();
         change(root);
         return SharedFileReader.Read(Bytes(root.ToJsonString())).Outcome;
+    }
+
+    private static string SceneWithALayer(int version)
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["version"] = version;
+        Device(root)["overlay"] = new JsonArray(null, "#FF0000", null);
+        return root.ToJsonString();
     }
 
     private static JsonObject Lighting(JsonObject root) => root["lighting"]!.AsObject();

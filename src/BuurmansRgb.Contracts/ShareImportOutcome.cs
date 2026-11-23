@@ -15,8 +15,8 @@ public enum ShareImportOutcome
     // Larger than SharedFiles.MaxJsonBytes, or a code longer than ShareCode.MaxLength.
     TooLarge,
 
-    // The JSON is of the app, but something in it is not right: a field the engine does not know,
-    // a value of the wrong type or out of range, a name that is too long or like a path, or more
+    // The JSON is of the app, but something in it is not right: a name twice in one object, a value
+    // of the wrong type or out of range, a name that is too long or like a path, or more
     // devices or effects than SharedFiles allows.
     Invalid,
 

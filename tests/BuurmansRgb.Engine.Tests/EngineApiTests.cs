@@ -410,6 +410,25 @@ public sealed class EngineApiTests : IDisposable
     }
 
     [Fact]
+    public async Task SetOverlayAsync_StoresTheLayer_AndKeepsTheEffect()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(LightingStates.Uniform(new DeviceLighting(new RgbColor(9, 9, 9), 1.0, EffectIds.Rainbow)));
+        using var api = CreateApi();
+        var changes = 0;
+        api.LightingChanged += (_, _) => changes++;
+
+        await api.SetOverlayAsync("simulated-keyboard", 1, [new RgbColor(255, 0, 0), null], Ct);
+
+        var overlay = await api.GetOverlayAsync("simulated-keyboard", Ct);
+        Assert.Equal(104, overlay.Count);
+        Assert.Equal([null, new RgbColor(255, 0, 0), null], overlay.Take(3));
+        Assert.Equal(EffectIds.Rainbow, (await api.GetLightingAsync("simulated-keyboard", Ct)).EffectId);
+        Assert.Equal(1, changes);
+        await Assert.ThrowsAsync<ArgumentNullException>(() => api.SetOverlayAsync("simulated-keyboard", 0, null!, Ct));
+    }
+
+    [Fact]
     public async Task ResizeZoneAsync_ResizesTheZoneRemembersItAndReportsTheNewDevice()
     {
         await _lighting.DiscoverAsync(Ct);

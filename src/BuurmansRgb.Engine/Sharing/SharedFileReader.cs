@@ -6,16 +6,22 @@ using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Sharing;
 
-// Reads a shared scene or own effect (SharedFile) with every check before anything is added, as
-// strictly as a backup of the settings (SettingsArchive): not larger than SharedFiles.MaxJsonBytes,
-// valid JSON with "version" and "kind", no field the engine does not know (SharingJsonContext), and
-// every value within what the app itself can make: names as the app allows them and not like a
-// path (SharedFiles.IsPathLike), at most SharedFiles.MaxDevices devices and SharedFiles.MaxEffects effects,
-// colors as "#RRGGBB", brightness, speed and direction in range, only effects the engine knows or
-// the file brings, and each effect it brings shown by the scene. Anything wrong refuses the whole
-// file; the trace says what, for whoever made it.
+// Reads a shared scene or own effect (SharedFile) with every check before anything is added. Strict
+// is: the size (not larger than SharedFiles.MaxJsonBytes), valid JSON with "version" from
+// SharedFormat.MinVersion to Version and a known "kind", no name twice in one object, every known
+// field of the right type and a required one there (SharingJsonContext), and every value within what
+// the app itself can make: names as the app allows them and not like a path (SharedFiles.IsPathLike),
+// at most SharedFiles.MaxDevices devices and SharedFiles.MaxEffects effects, colors as "#RRGGBB",
+// brightness, speed and direction in range, only effects the engine knows or the file brings, and
+// each effect it brings shown by the scene. Anything wrong refuses the whole file; the trace says
+// what, for whoever made it. Not strict: a field the engine does not know is skipped, so a scene of
+// a newer version with a field that only adds still comes in; the trace names it.
 internal static class SharedFileReader
 {
+    private const int MaxTracedFields = 10;
+
+    private const int MaxTracedFieldLength = 40;
+
     public static SharedContent Read(byte[] json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -35,9 +41,11 @@ internal static class SharedFileReader
         {
             var file = JsonSerializer.Deserialize(text.Span, SharingJsonContext.Default.SharedFile)
                 ?? throw new InvalidShareException("the file is null");
-            return file.Kind == SharedFormat.SceneKind
+            var content = file.Kind == SharedFormat.SceneKind
                 ? new SharedContent(ShareImportOutcome.Imported, SharedKind.Scene, Scene: ReadScene(file))
                 : new SharedContent(ShareImportOutcome.Imported, SharedKind.Effect, Effect: ReadEffectFile(file));
+            TraceUnknownFields(text);
+            return content;
         }
         catch (JsonException exception)
         {
@@ -67,7 +75,7 @@ internal static class SharedFileReader
                 return SharedContent.Refused(ShareImportOutcome.NotShared);
             }
 
-            if (!version.TryGetInt32(out var number) || number < SharedFormat.Version)
+            if (!version.TryGetInt32(out var number) || number < SharedFormat.MinVersion)
             {
                 Trace.TraceWarning($"Import: version {version.GetRawText()} is not one the app makes.");
                 return SharedContent.Refused(ShareImportOutcome.Invalid);
@@ -94,6 +102,45 @@ internal static class SharedFileReader
         }
     }
 
+    // The fields the engine skips, at the top and in a device, for whoever wonders where something
+    // went: likely of a newer version. A name that is long or has a hidden character, such as a line
+    // break that would start a line of its own in the trace, goes by its length only. Only for a file
+    // that came in, so a refused one does not first say what it skipped; read once more for it, as
+    // that is rare and the file small.
+    private static void TraceUnknownFields(ReadOnlyMemory<byte> text)
+    {
+        using var document = JsonDocument.Parse(text);
+        var root = document.RootElement;
+        var unknown = UnknownFields(root, SharingJsonContext.Default.SharedFile.Properties.Select(property => property.Name)).ToList();
+        if (root.TryGetProperty("devices", out var devices) && devices.ValueKind == JsonValueKind.Array)
+        {
+            var known = SharingJsonContext.Default.GetTypeInfo(typeof(SharedDevice))!.Properties.Select(property => property.Name).ToList();
+            unknown.AddRange(devices.EnumerateArray().SelectMany(device => UnknownFields(device, known)).Select(name => name + " (in a device)"));
+        }
+
+        var names = unknown.Distinct(StringComparer.Ordinal).ToList();
+        if (names.Count > 0)
+        {
+            var shown = string.Join(", ", names.Take(MaxTracedFields));
+            Trace.TraceInformation($"Import: skipped {names.Count} field(s) it does not know: {shown}{(names.Count > MaxTracedFields ? ", ..." : string.Empty)}.");
+        }
+    }
+
+    private static IEnumerable<string> UnknownFields(JsonElement element, IEnumerable<string> known)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        var names = known.ToHashSet(StringComparer.Ordinal);
+        return element.EnumerateObject()
+            .Select(property => property.Name)
+            .Where(name => !names.Contains(name))
+            .Select(name => name.Length <= MaxTracedFieldLength && !SharedFormat.HasHiddenCharacter(name) ? $"\"{name}\"" : $"a name of {name.Length} characters")
+            .ToList();
+    }
+
     private static SharedScene ReadScene(SharedFile file)
     {
         var name = ReadName(file.Name, ProfileNames.Normalize, "scene");
@@ -106,6 +153,7 @@ internal static class SharedFileReader
         var devices = new List<SharedDeviceRef>();
         var deviceLighting = new Dictionary<string, DeviceLighting>(StringComparer.Ordinal);
         var ledColors = new Dictionary<string, LedColorEntry>(StringComparer.Ordinal);
+        var overlays = new Dictionary<string, IReadOnlyList<RgbColor?>>(StringComparer.Ordinal);
         foreach (var device in sharedDevices)
         {
             var reference = ReadDevice(device);
@@ -120,9 +168,14 @@ internal static class SharedFileReader
             {
                 ledColors[reference.Id] = colors;
             }
+
+            if (ReadOverlay(device) is { } overlay)
+            {
+                overlays[reference.Id] = overlay;
+            }
         }
 
-        var state = new LightingState(ReadLighting(lighting, effectIds), deviceLighting, ledColors);
+        var state = new LightingState(ReadLighting(lighting, effectIds), deviceLighting, ledColors) { Overlays = overlays };
         var used = new[] { state.Global }.Concat(deviceLighting.Values).Select(device => device.EffectId).ToHashSet(StringComparer.Ordinal);
         Check(effectIds.All(used.Contains), "an own effect that the scene does not show");
         return new SharedScene(name, state, devices, ReadOnlyDevices(file.OnlyDevices, devices), effects);
@@ -197,6 +250,19 @@ internal static class SharedFileReader
         }
 
         return new LedColorEntry([.. colors], device.ZoneLengths is { } zones ? [.. zones] : null);
+    }
+
+    // As the colors per LED: 1 to SharedFiles.MaxLedsPerDevice, each a color or null, and at least one
+    // color, as the app only shares a layer that has one.
+    private static RgbColor?[]? ReadOverlay(SharedDevice device)
+    {
+        if (device.Overlay is not { } colors)
+        {
+            return null;
+        }
+
+        Check(colors.Count is > 0 and <= SharedFiles.MaxLedsPerDevice, $"the device '{device.Id}' has a layer of {colors.Count} LEDs, not 1 to {SharedFiles.MaxLedsPerDevice}");
+        return LedOverlayStore.Normalize(colors) ?? throw new InvalidShareException($"the device '{device.Id}' has a layer without a color");
     }
 
     // effectIds are the own effects the file brings; any other effect is one of the engine.

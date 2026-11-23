@@ -137,6 +137,15 @@ public partial interface IEngineApi
     // The other LEDs keep following the device color.
     Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default);
 
+    // The layer over the effect ("Als laag boven het effect"), one per LED the device has now: a fixed
+    // color that shows over any effect, or null for an LED that shows the effect.
+    Task<IReadOnlyList<RgbColor?>> GetOverlayAsync(string deviceId, CancellationToken ct = default);
+
+    // Gives the LEDs from firstLed on a fixed color over the effect, or takes it away for a null; the
+    // other LEDs keep theirs, and the effect stays. Part of the lighting: saved, in a scene, and off
+    // with the device. LightingChanged follows.
+    Task SetOverlayAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors, CancellationToken ct = default);
+
     // Gives a resizable zone (an index into the device's zones) another number of LEDs, within its
     // range. The device may get its new length a little later; DevicesChanged then follows. The
     // engine saves the length and gives it back when the device reports another one, for example
@@ -231,8 +240,8 @@ public partial interface IEngineApi
 
     // "Importeren…" and "Code plakken": adds the scene or own effect in json, as ExportSceneAsync or
     // ExportCustomEffectAsync gave it on this or another pc, after every check (SharedFiles: not too
-    // large, valid JSON, no field it does not know, no value out of range, no name like a path);
-    // anything wrong adds nothing. A name that is taken gets a number after it; nothing is
+    // large, valid JSON, no value out of range, no name like a path; a field it does not know, such as
+    // one of a newer version, is skipped); anything wrong adds nothing. A name that is taken gets a number after it; nothing is
     // overwritten. A device of a scene is the one here with the same id, or else the next one with
     // the same type and name; one that is not here is left out and named in the result. The own
     // effects of a scene come along, or the one here with the same name and steps. ProfilesChanged

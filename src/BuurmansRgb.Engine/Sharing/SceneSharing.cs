@@ -116,7 +116,10 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
         var shared = new LightingState(
             WithEffect(state.Global, effectIds),
             state.Devices.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => WithEffect(pair.Value, effectIds)),
-            state.LedColors.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => pair.Value));
+            state.LedColors.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => pair.Value))
+        {
+            Overlays = state.Overlays.Where(pair => map.ContainsKey(pair.Key)).ToDictionary(pair => map[pair.Key], pair => pair.Value, StringComparer.Ordinal),
+        };
         return profiles.Add(scene.Name, shared, onlyDevices);
     }
 
