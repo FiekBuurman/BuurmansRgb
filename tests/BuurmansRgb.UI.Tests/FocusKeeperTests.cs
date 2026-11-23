@@ -84,6 +84,33 @@ public sealed class FocusKeeperTests
         Assert.False(after.IsKeyboardFocused);
     });
 
+    // A UI thread that removes a focused keyed element and stops before its dispatcher is idle, as a
+    // test can, leaves nothing for another UI thread: the key belongs to the thread that lost it.
+    [Fact]
+    public void KeyOfAThreadThatStopped_DoesNotGoToAnotherThread()
+    {
+        OffscreenWindow.Run(panel =>
+        {
+            var before = Keyed(panel, "left-behind");
+            Assert.True(before.Focus());
+            panel.Children.Remove(before);
+
+            // Unloaded runs in this wait and the keeper queues forgetting the key behind it.
+            OffscreenWindow.WaitUntilIdle();
+        });
+
+        OffscreenWindow.Run(panel =>
+        {
+            var focused = Keyed(panel, "minus");
+            Assert.True(focused.Focus());
+
+            var other = Keyed(panel, "left-behind");
+
+            Assert.True(focused.IsKeyboardFocused);
+            Assert.False(other.IsKeyboardFocused);
+        });
+    }
+
     private static Button Keyed(Panel panel, string key)
     {
         var button = new Button { Content = key };
