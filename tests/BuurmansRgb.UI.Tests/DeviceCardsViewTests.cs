@@ -280,8 +280,8 @@ public sealed class DeviceCardsViewTests
     }
 
     // One chosen device, and a house with one device: the card of before, always open, without
-    // ExpandCollapse, the name a heading of level 3, and no Tab stop on its title: the stop before
-    // its Knipperen is above "Per apparaat".
+    // ExpandCollapse, the name a heading of level 3, and no Tab stop on its title: Tab from "Bewaar
+    // als scène" (without a pause) goes straight to its Knipperen (DESIGN.md § 9.8).
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -307,9 +307,10 @@ public sealed class DeviceCardsViewTests
             Assert.DoesNotContain(AppTheme.Descendants<LinkButton>(preview), link => link.IsVisible && AutomationProperties.GetName(link) == Strings.ExpandAllCardsAccessibleName);
 
             var flash = PageViews.ButtonNamed(page, string.Format(Strings.FlashDeviceAccessibleName, Argb.Name));
-            Assert.True(flash.Focus());
-            Assert.True(flash.MoveFocus(new TraversalRequest(FocusNavigationDirection.Previous)));
-            Assert.False(preview.IsKeyboardFocusWithin);
+            var saveAsScene = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.SaveAsScene));
+            Assert.True(saveAsScene.Focus());
+            Assert.True(saveAsScene.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)));
+            Assert.True(flash.IsKeyboardFocused);
         });
     }
 

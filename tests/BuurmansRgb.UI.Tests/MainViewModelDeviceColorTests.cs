@@ -58,15 +58,15 @@ public sealed class MainViewModelDeviceColorTests
         Assert.Empty(BuiltInEffects.Except(rows));
     }
 
-    // The message names the effect, so a later effect without a color says its own name.
+    // The sentence of card 4 names the effect, so a later effect without a color says its own name.
     [Fact]
-    public async Task Rainbow_TheMessageNamesTheEffect()
+    public async Task Rainbow_TheSentenceNamesTheEffect()
     {
         var viewModel = await ConnectAsync(api => api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow });
 
         Assert.True(viewModel.ColorPicker.IsUnused);
-        Assert.Equal(UiText.Format(Strings.DeviceColorUnused, "Regenboog"), viewModel.DeviceColorUnusedText);
-        Assert.StartsWith("Regenboog gebruikt geen kleur", viewModel.DeviceColorUnusedText, StringComparison.Ordinal);
+        Assert.Equal(UiText.Format(Strings.NoColorText, "Regenboog"), viewModel.NoColorText);
+        Assert.StartsWith("Regenboog maakt zijn eigen kleuren", viewModel.NoColorText, StringComparison.Ordinal);
     }
 
     // Mixing sends nothing; the mixed color can still become an own color. After choosing Statisch

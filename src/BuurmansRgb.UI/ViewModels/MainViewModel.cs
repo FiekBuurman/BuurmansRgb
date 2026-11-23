@@ -175,7 +175,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             FillGradientCommand.NotifyCanExecuteChanged();
             SetPickerMode();
+            ShowColorCard();
         };
+        // A tile of the effect that is already chosen still takes card 4 back from "Jouw effect".
+        EffectTiles.EffectChosen += (_, effect) =>
+        {
+            ShowsCustomCard = false;
+            SelectedEffect = effect;
+        };
+        EffectTiles.CustomCardRequested += (_, _) => ShowsCustomCard = true;
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
         ColorLoopEditor.PropertyChanged += (_, e) => OnColorLoopEditorChanged(e.PropertyName);
@@ -320,8 +328,62 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // rainbow: SetPickerMode then leaves the picker unused, unless it colors a tile, a step or LEDs.
     private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
 
-    // "Regenboog gebruikt geen kleur van het apparaat. ...", under the mixed color.
-    public string DeviceColorUnusedText => SelectedEffect is { } effect ? UiText.Format(Strings.DeviceColorUnused, effect.DisplayName) : string.Empty;
+    // The effect tiles at the top of Kleur, with the choice of the own effects behind "Eigen effect".
+    public EffectTilesViewModel EffectTiles { get; } = new();
+
+    // "Eigen effect" was clicked without own effects: card 4 shows "Jouw effect" while the light
+    // keeps its effect, until another effect comes (OnSelectedEffectChanged) or another device or
+    // scene is shown (ShowSelectionAsync).
+    [ObservableProperty]
+    public partial bool ShowsCustomCard { get; private set; }
+
+    // What card 4 shows, in this order: chosen LEDs, "Jouw effect", the list of the loop or of the
+    // effect, Per LED, an effect without a color such as Regenboog, and else the color.
+    public ColorCardContent ColorCard =>
+        LedEditor.HasSelection ? ColorCardContent.Leds
+        : ShowsCustomCard || IsCustomEffect ? ColorCardContent.CustomEffect
+        : IsColorLoop ? ColorCardContent.ColorLoop
+        : HasEffectColors ? ColorCardContent.EffectColors
+        : SelectedEffect?.Id == EffectIds.PerLed ? ColorCardContent.PerLed
+        : IsDeviceColorUnused ? ColorCardContent.NoColor
+        : ColorCardContent.Color;
+
+    // The heading of card 4, which says what is in it (a heading of level 2, no live region).
+    public string ColorCardHeader => ColorCard switch
+    {
+        ColorCardContent.ColorLoop => Strings.ColorLoopHeader,
+        ColorCardContent.EffectColors => Strings.EffectColorsHeader,
+        ColorCardContent.CustomEffect => Strings.CustomEffectCardHeader,
+        ColorCardContent.PerLed or ColorCardContent.Leds => Strings.LedColorHeader,
+        ColorCardContent.NoColor => Strings.NoColorHeader,
+        _ => Strings.ColorHeader,
+    };
+
+    // The mixing panel is always there (besluit 2), but not where there is nothing to mix: with
+    // Regenboog, and with "Jouw effect" without a chosen own effect.
+    public bool ShowsMixer => ColorCard switch
+    {
+        ColorCardContent.NoColor => false,
+        ColorCardContent.CustomEffect => IsCustomEffect,
+        _ => true,
+    };
+
+    public bool ShowsColorLoopList => ColorCard == ColorCardContent.ColorLoop;
+
+    public bool ShowsEffectColorsList => ColorCard == ColorCardContent.EffectColors;
+
+    public bool ShowsCustomEffectCard => ColorCard == ColorCardContent.CustomEffect;
+
+    public bool ShowsPerLedHint => ColorCard == ColorCardContent.PerLed;
+
+    public bool ShowsNoColor => ColorCard == ColorCardContent.NoColor;
+
+    // "Regenboog maakt zijn eigen kleuren. ...", the one sentence of card 4 with such an effect. It
+    // names the direction only when the effect has one (IsDirectionVisible).
+    public string NoColorText => SelectedEffect is { } effect ? NoColorSentence(effect.DisplayName, IsDirectionVisible) : string.Empty;
+
+    internal static string NoColorSentence(string effectName, bool hasDirection) =>
+        UiText.Format(hasDirection ? Strings.NoColorText : Strings.NoColorTextWithoutDirection, effectName);
 
     // What the colors do in the selected effect, such as "every round the next color".
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;
@@ -404,7 +466,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect), nameof(DeviceColorUnusedText))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect), nameof(NoColorText))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
@@ -752,6 +814,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // tiles show the list of the new effect, from its first color.
     partial void OnSelectedEffectChanged(EffectOption? value)
     {
+        EffectTiles.ShowChosen(value);
+        ShowsCustomCard = false;
+        ShowColorCard();
         ShowEffectColors(selectFirst: true);
         ShowCustomEffectEditor();
         SetPickerMode();
@@ -862,10 +927,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             }
         });
 
+        EffectTiles.Show(Effects, SelectedEffect);
         Lamps.ShowEffectNames();
         ShowCustomEffectEditor();
         NewCustomEffectCommand.NotifyCanExecuteChanged();
     }
+
+    // Card 4 follows the effect, chosen LEDs and "Jouw effect" (ColorCard).
+    private void ShowColorCard()
+    {
+        OnPropertyChanged(nameof(ColorCard));
+        OnPropertyChanged(nameof(ColorCardHeader));
+        OnPropertyChanged(nameof(ShowsMixer));
+        OnPropertyChanged(nameof(ShowsColorLoopList));
+        OnPropertyChanged(nameof(ShowsEffectColorsList));
+        OnPropertyChanged(nameof(ShowsCustomEffectCard));
+        OnPropertyChanged(nameof(ShowsPerLedHint));
+        OnPropertyChanged(nameof(ShowsNoColor));
+    }
+
+    partial void OnShowsCustomCardChanged(bool value) => ShowColorCard();
 
     // The editor shows the chosen own effect as it is known here; the picker follows its step.
     private void ShowCustomEffectEditor()
@@ -1187,8 +1268,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         }
     }
 
+    // Another device, a scene this app put on, a new connection or Selectie opheffen: card 4 shows
+    // what belongs to the effect again, also when "Jouw effect" was open without own effects and
+    // the effect stayed the same.
     private async Task ShowSelectionAsync()
     {
+        ShowsCustomCard = false;
         RebuildPreview();
         if (_connection is not { } connection)
         {

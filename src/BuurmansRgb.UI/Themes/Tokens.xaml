@@ -78,6 +78,14 @@
     <SolidColorBrush x:Key="ButtonFaceBrush" Color="{StaticResource SurfaceColor}" />
     <SolidColorBrush x:Key="ButtonTextBrush" Color="{StaticResource TextColor}" />
     <SolidColorBrush x:Key="ButtonBorderBrush" Color="{StaticResource BorderColor}" />
+    <!-- An effect tile on Kleur (§ 9.3): surface-raised with a border, and chosen a border of 3 px in
+         text. A contrast theme gives a tile the face and text of a button, and the chosen one the
+         highlight with the text on it, as Windows marks a choice. -->
+    <SolidColorBrush x:Key="TileFaceBrush" Color="{StaticResource SurfaceRaisedColor}" />
+    <SolidColorBrush x:Key="TileTextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="ChosenTileFaceBrush" Color="{StaticResource SurfaceRaisedColor}" />
+    <SolidColorBrush x:Key="ChosenTileTextBrush" Color="{StaticResource TextColor}" />
+    <SolidColorBrush x:Key="ChosenTileBorderBrush" Color="{StaticResource TextColor}" />
     <!-- The accent: what is primary or on, which a contrast theme gives the highlight, as Windows does.
          Text-colored with bg on it: the primary button, a day that is on and a ticked check box, with
          the text, the tick and the knob of a switch that is on in OnAccentBrush. Under the mouse the

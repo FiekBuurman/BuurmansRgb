@@ -17,7 +17,8 @@
   dus geen aparte app per merk.
 - **Licht op de achtergrond.** Een kleine engine met een tray-icoon houdt de verlichting aan
   (zo'n 0,2–0,5 % van één CPU-kern, ~25 MB geheugen). De instellingen-app open je alleen als je iets wilt veranderen.
-- **Kleur mengen en effecten:** statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
+- **Eerst het effect, dan de kleur:** kies een effecttegel en meng daaronder wat bij dat effect
+  hoort. Statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
   vuur (fonkelen, komeet, scanner en vuur in je eigen kleuren, bijv. blauw vuur), een eigen
   kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
 - **Eigen effecten** van stappen: elke stap een kleur of een patroon over de LED's, met hoe lang
@@ -35,7 +36,7 @@
 
 | Kleur | Per apparaat | Scènes |
 | --- | --- | --- |
-| ![Kleur](docs/images/kleur.png) | ![De apparaten op Kleur als kaarten die je openklapt, het toetsenbord open met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
+| ![Kleur: bovenaan de effecttegels, eronder de kleur mengen](docs/images/kleur.png) | ![De apparaten op Kleur als kaarten die je openklapt, het toetsenbord open met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
 
 ## Installeren
 

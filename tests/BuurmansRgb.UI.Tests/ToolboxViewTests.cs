@@ -214,11 +214,11 @@ public sealed class ToolboxViewTests
         });
     }
 
-    // With the rainbow, which uses no color of the device, the preview says why a tile changes
-    // nothing on the device; the toolbox and "+" stay. With Statisch the message goes and a tile
-    // puts its color on again.
+    // With the rainbow, which makes its own colors, card 4 has one sentence instead of the mixing
+    // panel (DESIGN.md § 9.2): no toolbox to click that would change nothing. With Statisch the
+    // sentence goes, the mixing panel comes back, and a tile puts its color on.
     [Fact]
-    public async Task Rainbow_ThePreviewSaysWhyATileChangesNothing()
+    public async Task Rainbow_ShowsOneSentenceInsteadOfTheMixingPanel()
     {
         FakeEngineApi? api = null;
         using var viewModel = await PageViews.ConnectAsync(fake =>
@@ -231,22 +231,20 @@ public sealed class ToolboxViewTests
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var message = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == viewModel.DeviceColorUnusedText);
-            api!.Calls.Clear();
+            var sentence = AppTheme.Descendants<TextBlock>(page).Single(block => block.Text == viewModel.NoColorText);
 
-            PageViews.Click(PresetTiles(page)[1]);
-
-            Assert.True(message.IsVisible);
-            Assert.StartsWith("Regenboog", message.Text, StringComparison.Ordinal);
-            Assert.Empty(api.Calls);
-            Assert.True(AddButton(page).IsEnabled);
+            Assert.True(sentence.IsVisible);
+            Assert.StartsWith("Regenboog", sentence.Text, StringComparison.Ordinal);
+            Assert.All(PresetTiles(page), tile => Assert.False(tile.IsVisible));
+            Assert.False(AddButton(page).IsVisible);
+            Assert.False(PageViews.Named<TextBox>(page, Strings.HexLabel).IsVisible);
 
             viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
             OffscreenWindow.WaitUntilIdle();
-            api.Calls.Clear();
+            api!.Calls.Clear();
             PageViews.Click(PresetTiles(page)[2]);
 
-            Assert.False(message.IsVisible);
+            Assert.False(sentence.IsVisible);
             Assert.Equal(["color all #FF9A3D"], api.Calls);
         });
     }

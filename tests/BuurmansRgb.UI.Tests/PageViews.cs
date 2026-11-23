@@ -78,13 +78,21 @@ internal static class PageViews
         where T : DependencyObject =>
         AppTheme.Descendants<T>(parent).Where(element => AutomationProperties.GetAutomationId(element) == automationId);
 
-    // From the first stop of the page, Tab after Tab, as the keyboard would.
+    // From the first stop of the page, Tab after Tab, as the keyboard would. A stop may hand the focus
+    // on as it comes, as the effect tiles give it to the chosen tile: then MoveFocus says no, though
+    // the focus moved, so what counts is whether it moved.
     internal static bool ReachedWithTab(FrameworkElement scope, UIElement target)
     {
         Assert.True(scope.MoveFocus(new TraversalRequest(FocusNavigationDirection.First)));
         for (var step = 0; step < 40 && !target.IsKeyboardFocused; step++)
         {
-            if (Keyboard.FocusedElement is not UIElement focused || !focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next)))
+            if (Keyboard.FocusedElement is not UIElement focused)
+            {
+                return false;
+            }
+
+            focused.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            if (ReferenceEquals(Keyboard.FocusedElement, focused))
             {
                 return false;
             }

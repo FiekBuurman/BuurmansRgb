@@ -55,6 +55,14 @@ public partial class LedPreviewPanel : UserControl
         card.FocusHeader();
     }
 
+    // "Naar de apparaten" on Kleur (DESIGN.md § 9.2): "Per apparaat" comes at the top of the page and
+    // the focus goes to its first Tab stop, such as "Alles openklappen", or Knipperen of the one card.
+    public void JumpToDevices()
+    {
+        ScrollToTop(this);
+        MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
+    }
+
     // The card of a device that opens and closes; null for one that is always open.
     public DeviceCard? CardOf(DevicePreviewViewModel device) =>
         Cards.ItemContainerGenerator.ContainerFromItem(device) is DependencyObject container
