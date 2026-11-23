@@ -37,7 +37,7 @@
 
 | Kleur | Per apparaat | Scènes |
 | --- | --- | --- |
-| ![Kleur: bovenaan de effecttegels, eronder de kleur mengen](docs/images/kleur.png) | ![De apparaten op Kleur als kaarten die je openklapt, het toetsenbord open met de regenboog schuin over de toetsen](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
+| ![Kleur: bovenaan de effecttegels, eronder de kleur mengen](docs/images/kleur.png) | ![De apparaten op Kleur als kaarten die je openklapt, het toetsenbord open met de regenboog schuin over de toetsen en de letters erop](docs/images/voorbeeld.png) | ![Scènes](docs/images/scenes.png) |
 
 ## Installeren
 

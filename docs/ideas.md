@@ -520,6 +520,18 @@ uitbreidingen in `docs/bouwplan.md`.
   verloop met meer dan twee kleuren
 - In de per-LED-editor een rechthoek van toetsen selecteren (slepen over de matrix) in plaats
   van een reeks in LED-volgorde
+- De letters op de toetsen (`ctrl-klik-selectie`) volgen de Amerikaanse namen van OpenRGB; op een
+  AZERTY- of QWERTZ-toetsenbord kan het voorbeeld `Q` zeggen waar `A` op de toets staat. De
+  indeling van Windows gebruiken (`MapVirtualKeyEx` en `ToUnicodeEx` met de scancode van de toets)
+  of een keuze "Indeling van het toetsenbord" per apparaat
+- Op een toets van één vakje vallen `Shift`, `Caps`, `Enter`, `PrtSc` en `Home` nu weg (bij 200 %
+  in een klein venster bijna alle woorden). Een teken dat wel past, zoals ⇧, ⇪ en ⏎, of een tweede,
+  kortere tekst als het woord niet past (`Sh`), zou meer toetsen een tekst geven; wel nagaan of
+  Bricolage Grotesque die tekens heeft of dat WPF ze uit een ander lettertype haalt
+- De letters op de toetsen in een eigen laag (een `DrawingVisual` onder de view) die alleen opnieuw
+  tekent als een toets van zwart naar wit wisselt of andersom. Nu neemt elk beeld de 92 bevroren
+  tekeningen opnieuw op: gemeten ~8 µs en 13,5 KB (van WPF) per beeld extra, bij 20 beelden per
+  seconde ~0,2 ms CPU en ~270 KB per seconde, alleen zolang het toetsenbord open in beeld is
 - Per fan-ring kunnen kiezen waar LED 1 zit en welke kant hij op telt (draaien en spiegelen),
   bewaard per zone. OpenRGB zegt dat niet; het voorbeeld zet LED 1 nu bovenaan en telt met de
   klok mee
