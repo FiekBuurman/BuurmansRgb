@@ -518,7 +518,7 @@
                  direction; three columns, or fewer when the text of a larger text size of Windows needs the room. -->
             <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                 <StackPanel>
-                    <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.LightingHeader}" AutomationProperties.HeadingLevel="Level2" />
+                    <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BrightnessSpeedHeader}" AutomationProperties.HeadingLevel="Level2" />
                     <views:CardGrid MaxColumns="3" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource LightingColumnWidth}}">
                         <StackPanel>
                             <DockPanel>

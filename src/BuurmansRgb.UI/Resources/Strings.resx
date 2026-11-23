@@ -1336,7 +1336,7 @@
   <data name="CustomColorRemove" xml:space="preserve">
     <value>Weghalen</value>
   </data>
-  <data name="LightingHeader" xml:space="preserve">
+  <data name="BrightnessSpeedHeader" xml:space="preserve">
     <value>Helderheid en snelheid</value>
   </data>
   <data name="NewScene" xml:space="preserve">
