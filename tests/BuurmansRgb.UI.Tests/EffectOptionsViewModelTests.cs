@@ -1,3 +1,4 @@
+using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
@@ -54,7 +55,7 @@ public sealed class EffectOptionsViewModelTests
         _options.ShowSceneFade(TimeSpan.FromSeconds(1.5));
 
         Assert.Equal([0.0, 0.25, 0.5, 1.0, 1.5, 2.0], _options.SceneFades.Select(option => option.Fade.TotalSeconds));
-        Assert.Equal("1,5 seconde", _options.SelectedSceneFade?.DisplayName);
+        Assert.Equal(UiText.Format(Strings.SceneFadeOther, 1.5), _options.SelectedSceneFade?.DisplayName);
 
         _options.ShowSceneFade(TimeSpan.Zero);
         Assert.Equal(5, _options.SceneFades.Count);
@@ -62,13 +63,26 @@ public sealed class EffectOptionsViewModelTests
         Assert.Equal(0, raised);
     }
 
-    // A long number from settings.json shows with at most two decimals.
-    [Fact]
-    public void ShowSceneFade_ALongNumber_ShowsTwoDecimals()
+    // A long number from settings.json shows with at most two decimals, in the region format of
+    // the user like the other numbers in the app: a comma in Dutch, a point in English.
+    [Theory]
+    [InlineData("nl-NL", "1,23 seconde")]
+    [InlineData("en-US", "1.23 seconde")]
+    public void ShowSceneFade_ALongNumber_ShowsTwoDecimals(string regionFormat, string expected)
     {
-        _options.ShowSceneFade(TimeSpan.FromSeconds(1.23456));
+        var current = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(regionFormat);
 
-        Assert.Equal("1,23 seconde", _options.SelectedSceneFade?.DisplayName);
+            _options.ShowSceneFade(TimeSpan.FromSeconds(1.23456));
+
+            Assert.Equal(expected, _options.SelectedSceneFade?.DisplayName);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = current;
+        }
     }
 
     [Fact]

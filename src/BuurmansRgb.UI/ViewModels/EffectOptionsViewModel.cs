@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -78,7 +77,7 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     public void Show(int framesPerSecond, bool pauseOnLockAndSleep, PausedLightsMode pausedLights) => _showing.Run(() =>
     {
         (FrameRates, SelectedFrameRate) = WithValue(Standard, framesPerSecond, rate => rate.FramesPerSecond,
-            value => new FrameRateOption(value, string.Format(CultureInfo.CurrentCulture, Strings.FrameRateOther, value)));
+            value => new FrameRateOption(value, UiText.Format(Strings.FrameRateOther, value)));
         PauseOnLockAndSleep = pauseOnLockAndSleep;
         SelectedPausedLights = PausedLightsOptions.FirstOrDefault(mode => mode.Mode == pausedLights);
     });
@@ -86,7 +85,7 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
     // Shows the fade of the engine, without sending it back.
     public void ShowSceneFade(TimeSpan fade) => _showing.Run(() =>
         (SceneFades, SelectedSceneFade) = WithValue(StandardFades, fade, option => option.Fade,
-            value => new SceneFadeOption(value, string.Format(CultureInfo.CurrentCulture, Strings.SceneFadeOther, value.TotalSeconds))));
+            value => new SceneFadeOption(value, UiText.Format(Strings.SceneFadeOther, value.TotalSeconds))));
 
     // The standard choices with the one for value selected, or, when value is none of them, the
     // standard choices plus one that create makes for it, in order of their value.
