@@ -19,7 +19,7 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         Api.LedColors["fan"] = [new RgbColor(1, 2, 3), new RgbColor(9, 8, 7)];
 
-        Click(viewModel, "fan", 1);
+        viewModel.ClickLed("fan", 1);
 
         Assert.Equal(new LedSelection("fan", "Fan", 1, 1), viewModel.LedEditor.Selection);
         Assert.Equal(new RgbColor(9, 8, 7), viewModel.ColorPicker.Color);
@@ -33,8 +33,8 @@ public sealed class MainViewModelLedEditorTests
     public async Task ColorPicked_WithLedsSelected_ColorsOnlyThoseLeds()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 1, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 1, extend: true);
 
         viewModel.ColorPicker.Pick("#00FF00");
 
@@ -46,8 +46,8 @@ public sealed class MainViewModelLedEditorTests
     public async Task MixColor_WithLedsSelected_ColorsThemAtOnce()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 1, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 1, extend: true);
 
         viewModel.ColorPicker.HexColor = "#00FF00";
         viewModel.ColorPicker.Blue = 255;
@@ -62,7 +62,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
 
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
         Assert.False(viewModel.ColorPicker.IsUnused);
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
@@ -79,7 +79,7 @@ public sealed class MainViewModelLedEditorTests
         Api.LedColors["fan"] = [new RgbColor(0, 0, 255), new RgbColor(0, 0, 255)];
         viewModel.ColorPicker.HexColor = "#00FF00";
 
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
@@ -94,7 +94,7 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         viewModel.ColorPicker.HexColor = "#00FF00";
 
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         Assert.False(viewModel.ColorPicker.IsUnused);
         Assert.Equal(new RgbColor(0, 255, 0), viewModel.ColorPicker.Color);
@@ -107,10 +107,10 @@ public sealed class MainViewModelLedEditorTests
     public async Task ClickAnotherLed_AfterMixing_SendsNothingMore()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
         viewModel.ColorPicker.HexColor = "#00FF00";
 
-        Click(viewModel, "strip", 2);
+        viewModel.ClickLed("strip", 2);
 
         Assert.Equal(["leds strip 0 #00FF00"], Api.Calls);
         Assert.Equal(new RgbColor(255, 0, 0), viewModel.ColorPicker.Color);
@@ -120,7 +120,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task DragSlider_WithLedsSelected_SendsFewCallsAndTheLastColorWins()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
 
@@ -142,7 +142,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
         Api.Calls.Clear();
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
@@ -172,7 +172,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
         viewModel.ColorPicker.Red = 255;
         Api.Calls.Clear();
 
@@ -195,8 +195,8 @@ public sealed class MainViewModelLedEditorTests
             [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 2, 0, 120)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
 
-        Click(viewModel, "board", 1);
-        Click(viewModel, "board", 2, extend: true);
+        viewModel.ClickLed("board", 1);
+        viewModel.ClickLed("board", 2, extend: true);
         viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
@@ -226,7 +226,7 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         Api.Devices = [new DeviceInfo("fan", "Fan", DeviceType.Fan, 5, [RgbZone.Fixed("Inner ring", 2), RgbZone.Fixed("Outer ring", 3)]) { Source = DeviceSource.Hardware }];
         Api.RaiseDevicesChanged();
-        Click(viewModel, "fan", 3);
+        viewModel.ClickLed("fan", 3);
 
         viewModel.Preview.Devices[0].Zones[0].SelectZoneCommand.Execute(null);
 
@@ -290,7 +290,7 @@ public sealed class MainViewModelLedEditorTests
         var board = new DeviceInfo("board", "Board", DeviceType.Motherboard, 2, [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 0, 0, 120)]) { Source = DeviceSource.Hardware };
         Api.Devices = [board];
         Api.RaiseDevicesChanged();
-        Click(viewModel, "board", 1);
+        viewModel.ClickLed("board", 1);
 
         Api.Devices = [board with { LedCount = 26, Zones = [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", 24, 0, 120)] }];
         Api.RaiseDevicesChanged();
@@ -304,8 +304,8 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.LedColors["strip"] = [new RgbColor(255, 0, 0), RgbColor.White, new RgbColor(0, 0, 255)];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, extend: true);
 
         Assert.True(viewModel.FillGradientCommand.CanExecute(null));
         viewModel.FillGradientCommand.Execute(null);
@@ -318,7 +318,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
 
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
 
         Assert.False(viewModel.FillGradientCommand.CanExecute(null));
     }
@@ -328,7 +328,7 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "fan");
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.ColorPicker.Pick("#00FF00");
 
@@ -342,7 +342,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ChooseAnotherEffect_WithLedsSelected_ClearsThemAndTheColorGoesToTheLamp()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Wave);
 
@@ -359,7 +359,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ChooseColorLoop_WithLedsSelected_ThePickerColorsTheLoop()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.ColorLoop);
         viewModel.ColorPicker.Pick("#FF00FF");
@@ -375,7 +375,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ChooseScanner_WithLedsSelected_ThePickerColorsItsList()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Scanner);
         viewModel.ColorPicker.Pick("#FF00FF");
@@ -389,7 +389,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ChoosePerLed_WithLedsSelected_KeepsThem()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.PerLed);
         viewModel.ColorPicker.Pick("#00FF00");
@@ -403,7 +403,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task EffectChangedInTheEngine_WithLedsSelected_KeepsThem()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         Api.Lighting[""] = Api.Lighting[""] with { EffectId = EffectIds.PerLed };
         Api.RaiseLightingChanged();
@@ -417,7 +417,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ClearLedSelection_GivesThePickerBackToTheDevice()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         await viewModel.ClearLedSelectionCommand.ExecuteAsync(null);
         viewModel.ColorPicker.Pick("#00FF00");
@@ -464,10 +464,10 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         Api.LedColors["strip"] = [new RgbColor(1, 2, 3), new RgbColor(9, 8, 7), new RgbColor(4, 5, 6)];
 
-        Click(viewModel, "strip", 0, toggle: true);
-        Click(viewModel, "strip", 2, toggle: true);
-        Click(viewModel, "strip", 1, toggle: true);
-        Click(viewModel, "strip", 1, toggle: true);
+        viewModel.ClickLed("strip", 0, toggle: true);
+        viewModel.ClickLed("strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 1, toggle: true);
+        viewModel.ClickLed("strip", 1, toggle: true);
         viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(LedSet.Of([0, 2]), viewModel.LedEditor.Selection!.Leds);
@@ -483,8 +483,8 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.LedColors["strip"] = [Blue, Blue, Blue];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
 
         Api.LedColors["strip"] = [new RgbColor(1, 2, 3), new RgbColor(9, 8, 7), new RgbColor(4, 5, 6)];
         Api.RaiseLightingChanged();
@@ -498,8 +498,8 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.LedColors["strip"] = [new RgbColor(255, 0, 0), Blue, Blue];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
 
         Api.LedColors["strip"] = [new RgbColor(255, 0, 0), new RgbColor(9, 8, 7), Blue];
         Api.RaiseLightingChanged();
@@ -512,8 +512,8 @@ public sealed class MainViewModelLedEditorTests
     public async Task CtrlClick_SceneMeanwhile_LayerLeavesTheLedBetweenAlone()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
         viewModel.LedEditor.PaintsLayer = true;
 
         Api.Overlays["strip"] = [null, Blue, null];
@@ -529,8 +529,8 @@ public sealed class MainViewModelLedEditorTests
         var viewModel = await ConnectAsync();
         var red = new RgbColor(255, 0, 0);
         Api.Overlays["strip"] = [red, null, red];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
 
         Api.Overlays["strip"] = [red, Blue, red];
         Api.RaiseLightingChanged();
@@ -545,8 +545,8 @@ public sealed class MainViewModelLedEditorTests
     public async Task DragSlider_WithLooseLeds_SendsTheLastColorOnce()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
 
@@ -569,9 +569,9 @@ public sealed class MainViewModelLedEditorTests
     public async Task LooseLeds_SecondRunFails_StopsThereAndTheNextStepSendsAll()
     {
         var viewModel = await ConnectAsync(api => api.Devices = [TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 5)]);
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
-        Click(viewModel, "strip", 4, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 4, toggle: true);
         var messages = 0;
         viewModel.PropertyChanged += (_, e) =>
         {
@@ -600,8 +600,8 @@ public sealed class MainViewModelLedEditorTests
     {
         var viewModel = await ConnectAsync();
         Api.LedColors["strip"] = [Blue, Blue, Blue];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, toggle: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, toggle: true);
         var busy = new TaskCompletionSource();
         Api.SetGate = busy.Task;
 
@@ -610,7 +610,7 @@ public sealed class MainViewModelLedEditorTests
             viewModel.ColorPicker.Red = red;
         }
 
-        Click(viewModel, "strip", 1, toggle: true);
+        viewModel.ClickLed("strip", 1, toggle: true);
         for (var red = 101; red <= 255; red++)
         {
             viewModel.ColorPicker.Red = red;
@@ -648,9 +648,9 @@ public sealed class MainViewModelLedEditorTests
     public async Task CtrlClick_TheLastChosenLed_GivesThePickerBackToTheDevice()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
-        Click(viewModel, "fan", 0, toggle: true);
+        viewModel.ClickLed("fan", 0, toggle: true);
         viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Null(viewModel.LedEditor.Selection);
@@ -663,7 +663,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ClearLedSelectionFromThePreview_GivesThePickerBackToTheDevice()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         ((IPreviewActions)viewModel.Preview).ClearLedSelection();
         viewModel.ColorPicker.Pick("#00FF00");
@@ -713,7 +713,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task ExtendWithAnchor_WhileEditingTheDevice_KeepsTheChosenLed()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
 
         ((IPreviewActions)viewModel.Preview).ClickLed(new LedClick("strip", 2, Extend: true, Anchor: 1));
 
@@ -724,7 +724,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task SelectAnotherDevice_ClearsTheLedSelection()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
 
@@ -735,7 +735,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task DevicesChanged_EditedDeviceGone_ClearsTheLedSelection()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
 
         Api.Devices = [Api.Devices[0]];
         Api.RaiseDevicesChanged();
@@ -747,7 +747,7 @@ public sealed class MainViewModelLedEditorTests
     public async Task DevicesChanged_EditedDeviceGotFewerLeds_ClearsTheLedSelection()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 2);
+        viewModel.ClickLed("strip", 2);
 
         Api.Devices = [Api.Devices[0] with { LedCount = 2 }, Api.Devices[1]];
         Api.RaiseDevicesChanged();
@@ -759,16 +759,13 @@ public sealed class MainViewModelLedEditorTests
     public async Task DevicesChanged_EditedDeviceUnchanged_KeepsTheLedSelection()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 2);
+        viewModel.ClickLed("strip", 2);
 
         Api.Devices = [.. Api.Devices];
         Api.RaiseDevicesChanged();
 
         Assert.Equal(new LedSelection("strip", "LED strip", 2, 2), viewModel.LedEditor.Selection);
     }
-
-    private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false, bool toggle = false) =>
-        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend, toggle);
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {

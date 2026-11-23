@@ -49,15 +49,7 @@ internal sealed class LedColorStore
     {
         var now = For(device);
         var then = before.TryGetValue(device.Id, out var entry) ? Layout(entry, device) : [];
-        for (var i = 0; i < Math.Max(now.Count, then.Count); i++)
-        {
-            if ((i < now.Count ? now[i] : null) != (i < then.Count ? then[i] : null))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return LedColorLists.Same(now, then, Math.Max(now.Count, then.Count));
     }
 
     // What the per-LED effect shows: the stored color, or fallback for an LED without one. The

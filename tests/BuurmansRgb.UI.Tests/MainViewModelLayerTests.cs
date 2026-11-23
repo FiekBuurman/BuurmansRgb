@@ -17,8 +17,8 @@ public sealed class MainViewModelLayerTests
     {
         var viewModel = await ConnectAsync();
         viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "strip");
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 1, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 1, extend: true);
         viewModel.LedEditor.PaintsLayer = true;
 
         viewModel.ColorPicker.Pick("#00FF00");
@@ -34,7 +34,7 @@ public sealed class MainViewModelLayerTests
     public async Task ColorPicked_PerLed_SendsTheLedColors()
     {
         var viewModel = await ConnectAsync();
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
 
         viewModel.ColorPicker.Pick("#00FF00");
 
@@ -49,7 +49,7 @@ public sealed class MainViewModelLayerTests
         var viewModel = await ConnectAsync();
         Api.Overlays["strip"] = [null, new RgbColor(0, 0, 255), null];
 
-        Click(viewModel, "strip", 1);
+        viewModel.ClickLed("strip", 1);
 
         Assert.True(viewModel.LedEditor.PaintsLayer);
         Assert.Equal(new RgbColor(0, 0, 255), viewModel.ColorPicker.Color);
@@ -62,7 +62,7 @@ public sealed class MainViewModelLayerTests
     {
         var viewModel = await ConnectAsync();
         Api.Overlays["strip"] = [new RgbColor(0, 0, 255), null, null];
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
 
         viewModel.LedEditor.PaintsPerLed = true;
 
@@ -75,8 +75,8 @@ public sealed class MainViewModelLayerTests
     {
         var viewModel = await ConnectAsync();
         Api.Overlays["strip"] = [new RgbColor(0, 0, 255), new RgbColor(0, 0, 255), null];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, extend: true);
 
         Assert.True(viewModel.RemoveLayerCommand.CanExecute(null));
         viewModel.RemoveLayerCommand.Execute(null);
@@ -92,7 +92,7 @@ public sealed class MainViewModelLayerTests
         var viewModel = await ConnectAsync();
         Api.Overlays["strip"] = [null, null, new RgbColor(0, 0, 255)];
 
-        Click(viewModel, "strip", 0);
+        viewModel.ClickLed("strip", 0);
 
         Assert.False(viewModel.RemoveLayerCommand.CanExecute(null));
     }
@@ -102,8 +102,8 @@ public sealed class MainViewModelLayerTests
     {
         var viewModel = await ConnectAsync();
         Api.Overlays["strip"] = [new RgbColor(255, 0, 0), null, new RgbColor(0, 0, 255)];
-        Click(viewModel, "strip", 0);
-        Click(viewModel, "strip", 2, extend: true);
+        viewModel.ClickLed("strip", 0);
+        viewModel.ClickLed("strip", 2, extend: true);
 
         viewModel.FillGradientCommand.Execute(null);
 
@@ -115,16 +115,13 @@ public sealed class MainViewModelLayerTests
     public async Task ColorPicked_AsALayer_OnALampThatIsOff_SwitchesItOn()
     {
         var viewModel = await ConnectAsync(api => api.Lighting["fan"] = api.Lighting["fan"] with { On = false });
-        Click(viewModel, "fan", 0);
+        viewModel.ClickLed("fan", 0);
         viewModel.LedEditor.PaintsLayer = true;
 
         viewModel.ColorPicker.Pick("#00FF00");
 
         Assert.Equal(["overlay fan 0 #00FF00", "on fan on"], Api.Calls);
     }
-
-    private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false) =>
-        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend);
 
     private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {

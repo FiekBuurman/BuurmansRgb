@@ -94,15 +94,7 @@ internal sealed class LedOverlayStore
     {
         var now = For(device.Id);
         var then = before.GetValueOrDefault(device.Id) ?? [];
-        for (var i = 0; i < device.LedCount; i++)
-        {
-            if ((i < now.Count ? now[i] : null) != (i < then.Count ? then[i] : null))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return LedColorLists.Same(now, then, device.LedCount);
     }
 
     // Without the nulls at the end, which show the effect as an LED past the end does, and at most

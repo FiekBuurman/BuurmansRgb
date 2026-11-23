@@ -13,6 +13,10 @@ internal static class PreviewTestExtensions
         zone.ClickLedCommand.Execute(new LedHit(index - zone.FirstLed, extend, toggle));
     }
 
+    // Clicks an LED in the preview of the device, as ClickLed on that preview does.
+    public static void ClickLed(this MainViewModel viewModel, string deviceId, int index, bool extend = false, bool toggle = false) =>
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend, toggle);
+
     // Presses a key in the zone that holds the active LED, as the view with the keyboard focus
     // does; false when the key does nothing there, so the view leaves it to the window.
     public static bool PressKey(this DevicePreviewViewModel preview, LedKey key, bool extend = false, int target = LedMatrix.NoLed)

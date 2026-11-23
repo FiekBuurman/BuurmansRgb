@@ -543,13 +543,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // following the device color.
     public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
     {
+        ArgumentNullException.ThrowIfNull(colors);
         bool rendered;
         lock (_gate)
         {
-            var device = KnownDeviceLocked(deviceId);
-            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+            var device = LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _ledColors.Set(device, firstLed, colors);
             _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
@@ -580,10 +578,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         bool rendered;
         lock (_gate)
         {
-            var device = KnownDeviceLocked(deviceId);
-            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
-            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+            LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _overlays.Set(deviceId, firstLed, colors);
             EndFadesLocked(deviceId);
@@ -1060,13 +1055,14 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Call it once the new lighting is in, before the RenderLocked that shows it. Lets every
-    // device whose lighting or per-LED colors differ from before go over from the colors it shows
-    // now, also in the middle of a fade, to what the next RenderLocked gives it, in SceneFade. A
-    // device that stays the same goes on as it was: an effect that moves does not stand still for
-    // a moment, and a fade that runs goes on, on time. At once, so a fade that runs ends, with a
-    // fade of zero, before there was lighting (a null before), and during a pause: no frames run
-    // then, and what goes to the devices, such as a scene on time while Windows is locked, does
-    // not wait. Show has not given the new effects yet, so BeginFade still renders the old ones.
+    // device whose lighting, per-LED colors or layer differ from before go over from the colors
+    // it shows now, also in the middle of a fade, to what the next RenderLocked gives it, in
+    // SceneFade. A device that stays the same goes on as it was: an effect that moves does not
+    // stand still for a moment, and a fade that runs goes on, on time. At once, so a fade that
+    // runs ends, with a fade of zero, before there was lighting (a null before), and during a
+    // pause: no frames run then, and what goes to the devices, such as a scene on time while
+    // Windows is locked, does not wait. Show has not given the new effects yet, so BeginFade still
+    // renders the old ones.
     private void FadeLocked(LightingState? before)
     {
         var fade = _disposed || _pause != PauseReasons.None || before is null ? TimeSpan.Zero : _sceneFade;
@@ -1324,6 +1320,17 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     private RgbDevice KnownDeviceLocked(string deviceId) => KnownOutputLocked(deviceId).Device;
+
+    // The device, when count colors from firstLed on fit on its LEDs. An exception names colors, the
+    // list that is too long, as the callers take it.
+    private RgbDevice LedRangeLocked(string deviceId, int firstLed, int count)
+    {
+        var device = KnownDeviceLocked(deviceId);
+        ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(count, device.LedCount - firstLed, "colors");
+        return device;
+    }
 
     private DeviceOutput KnownOutputLocked(string deviceId) =>
         _outputs.Find(deviceId)

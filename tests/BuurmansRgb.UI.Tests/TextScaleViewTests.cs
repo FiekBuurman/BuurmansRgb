@@ -214,7 +214,7 @@ public sealed class TextScaleViewTests
             var slot = (FrameworkElement)VisualTreeHelper.GetParent(view);
             var problems = TextFit.Problems(page);
 
-            Assert.Equal(9.0 * factor, view.KeyCapFontSize, 6);
+            Assert.Equal(LedLayout.KeyCapDesignSize * factor, view.KeyCapFontSize, 6);
             Assert.True(view.DesiredSize.Width <= slot.ActualWidth + 0.5, $"The keyboard needs {view.DesiredSize.Width:0.#} px of {slot.ActualWidth:0.#}.");
             Assert.Null(LayoutInformation.GetLayoutClip(view));
             Assert.True(view.BoundsOf(39).Width >= minKey, $"A key is {view.BoundsOf(39).Width:0.#} px.");

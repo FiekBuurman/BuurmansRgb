@@ -19,5 +19,9 @@ internal static class LightingStates
     public static Dictionary<string, LedColorEntry> LedColors(string deviceId, params IReadOnlyList<RgbColor?> colors) =>
         new() { [deviceId] = new(colors, ZoneLengths: null) };
 
+    // The layer of one device: a null shows the effect.
+    public static Dictionary<string, IReadOnlyList<RgbColor?>> Overlays(string deviceId, params IReadOnlyList<RgbColor?> colors) =>
+        new() { [deviceId] = colors };
+
     public static DeviceLighting For(this LightingState state, string deviceId) => state.Devices.GetValueOrDefault(deviceId, state.Global);
 }

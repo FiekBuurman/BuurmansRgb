@@ -135,6 +135,15 @@ public sealed class LightingControllerLedColorTests
     }
 
     [Fact]
+    public async Task SetLedColors_NoColors_ThrowsArgumentNull()
+    {
+        await StartAsync();
+
+        Assert.Throws<ArgumentNullException>(() => _controller.SetLedColors(Device, 0, null!));
+        Assert.Equal([Orange, Orange, Orange], _controller.GetLedColors(Device));
+    }
+
+    [Fact]
     public async Task LedColors_UnknownDevice_Throws()
     {
         await StartAsync();

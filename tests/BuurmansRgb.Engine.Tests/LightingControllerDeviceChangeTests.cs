@@ -20,7 +20,7 @@ public sealed class LightingControllerDeviceChangeTests
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
 
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
 
         Assert.Equal("real", _controller.Devices[^1].Id);
         Assert.Equal(["simulated-strip", "simulated-fan", "simulated-keyboard"], _controller.Devices.Take(3).Select(device => device.Id));
@@ -46,7 +46,7 @@ public sealed class LightingControllerDeviceChangeTests
     {
         await _controller.DiscoverAsync(Ct);
 
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
 
         Assert.Contains(_controller.Devices, device => device.Id == "real");
         Assert.Empty(_dynamic.Leds);
@@ -55,15 +55,15 @@ public sealed class LightingControllerDeviceChangeTests
     [Fact]
     public async Task DevicesChanged_DeviceGone_KeepsItsOwnLightingForWhenItReturns()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         _controller.Apply(LightingStates.WithDevices(StaticLighting(Orange), new Dictionary<string, DeviceLighting> { ["real"] = StaticLighting(Green) }));
 
-        await ChangeDevicesAsync();
+        await _controller.ChangeDevicesAsync(_dynamic);
         Assert.DoesNotContain(_controller.Devices, device => device.Id == "real");
         Assert.Equal(StaticLighting(Green), _controller.State.Devices["real"]);
 
         _dynamic.Leds.Clear();
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         Assert.Equal([Green, Green], _dynamic.Leds["real"]);
     }
 
@@ -74,7 +74,7 @@ public sealed class LightingControllerDeviceChangeTests
         _controller.Apply(LightingStates.Uniform(StaticLighting(Orange)));
         _controller.SetPaused(PauseReasons.Manual, true);
 
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
 
         Assert.Empty(_dynamic.Leds);
     }
@@ -135,21 +135,5 @@ public sealed class LightingControllerDeviceChangeTests
         _controller.Dispose();
 
         _controller.Dispose();
-    }
-
-    private async Task ChangeDevicesAsync(params IReadOnlyList<RgbDevice> devices)
-    {
-        var changed = new TaskCompletionSource();
-        void OnChanged(object? sender, EventArgs e) => changed.TrySetResult();
-        _controller.DevicesChanged += OnChanged;
-        try
-        {
-            _dynamic.SetDevices(devices);
-            await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
-        }
-        finally
-        {
-            _controller.DevicesChanged -= OnChanged;
-        }
     }
 }

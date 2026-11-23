@@ -210,10 +210,10 @@ public sealed class LightingControllerOverlayTests : IDisposable
         await StartAsync(Orange);
         _controller.SetOverlay(Strip, 6, [Red]);
 
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device(Strip, ledCount: 4));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device(Strip, ledCount: 4));
         var shorter = _dynamic.Leds[Strip];
         var overlay = _controller.GetOverlay(Strip);
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device(Strip, ledCount: 8));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device(Strip, ledCount: 8));
 
         Assert.Equal([Orange, Orange, Orange, Orange], shorter);
         Assert.Equal([null, null, null, null], overlay);
@@ -226,7 +226,7 @@ public sealed class LightingControllerOverlayTests : IDisposable
     public async Task Replace_WithFade_FadesADeviceWhoseLayerChanges_AndOnlyThatDevice()
     {
         await StartAsync(Orange);
-        var scene = Uniform(StaticLighting(Orange)) with { Overlays = Overlay(Device, Red) };
+        var scene = Uniform(StaticLighting(Orange)) with { Overlays = Overlays(Device, Red) };
 
         _controller.Replace(scene, fade: true);
         var start = _provider.LastColors;
@@ -260,7 +260,7 @@ public sealed class LightingControllerOverlayTests : IDisposable
         await StartAsync(Orange);
         _controller.SetOverlay(Device, 0, [Red]);
 
-        _controller.Replace(Uniform(StaticLighting(Orange)) with { Overlays = Overlay(Device, Red) }, fade: true);
+        _controller.Replace(Uniform(StaticLighting(Orange)) with { Overlays = Overlays(Device, Red) }, fade: true);
 
         Assert.False(_controller.IsFading);
         Assert.False(_controller.IsAnimating);
@@ -272,7 +272,7 @@ public sealed class LightingControllerOverlayTests : IDisposable
     public void WithDevicesFrom_TakesTheLayerOfThoseDevicesOnly()
     {
         var now = Uniform(StaticLighting(Orange)) with { Overlays = new Dictionary<string, IReadOnlyList<RgbColor?>> { ["a"] = [Red], ["b"] = [Blue] } };
-        var scene = Uniform(StaticLighting(Orange)) with { Overlays = Overlay("c", Green) };
+        var scene = Uniform(StaticLighting(Orange)) with { Overlays = Overlays("c", Green) };
 
         var over = now.WithDevicesFrom(scene, ["a", "c"]);
 
@@ -315,28 +315,9 @@ public sealed class LightingControllerOverlayTests : IDisposable
         Assert.Equal(Red.Scale(0.5), simulated.GetLeds("simulated-keyboard")[0]);
     }
 
-    private static Dictionary<string, IReadOnlyList<RgbColor?>> Overlay(string deviceId, params IReadOnlyList<RgbColor?> colors) =>
-        new() { [deviceId] = colors };
-
     private async Task StartAsync(RgbColor color)
     {
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(Uniform(StaticLighting(color)));
-    }
-
-    private async Task ChangeDevicesAsync(params IReadOnlyList<RgbDevice> devices)
-    {
-        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        void OnRendered(object? sender, EventArgs e) => changed.TrySetResult();
-        _controller.DevicesChanged += OnRendered;
-        try
-        {
-            _dynamic.SetDevices(devices);
-            await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
-        }
-        finally
-        {
-            _controller.DevicesChanged -= OnRendered;
-        }
     }
 }
