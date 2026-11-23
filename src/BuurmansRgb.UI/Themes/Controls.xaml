@@ -297,9 +297,13 @@
         <Setter Property="OffBrush" Value="{StaticResource LedOffBrush}" />
         <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
     </Style>
-    <!-- The preview of the LEDs of a device: a black LED gets the same ring. -->
+    <!-- The preview of the LEDs of a device: a black LED gets the same ring. The text on the keys of a
+         keyboard grows with the text size of Windows and follows the contrast theme (KeyCapBrush). -->
     <Style TargetType="views:LedPreviewView">
         <Setter Property="OffRingBrush" Value="{DynamicResource LedOffRingBrush}" />
+        <Setter Property="KeyCapFontSize" Value="{DynamicResource KeyCapSize}" />
+        <Setter Property="KeyCapBrush" Value="{DynamicResource KeyCapBrush}" />
+        <Setter Property="KeyCapHaloBrush" Value="{DynamicResource KeyCapHaloBrush}" />
     </Style>
 
     <!-- The LED strip (§ 4): a row of evenly spread bulbs on the "circuit board". -->

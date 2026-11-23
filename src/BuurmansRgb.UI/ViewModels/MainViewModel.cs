@@ -1556,9 +1556,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
-    // A range that the keyboard starts on a device without a selection begins at its Anchor.
-    private Task OnLedClickedAsync(LedClick click) =>
-        EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
+    // A range that the keyboard starts on a device without a selection begins at its Anchor. A
+    // Ctrl+click on a device without a selection chooses that LED, as a click does; on a device
+    // with one, it puts the LED in or takes it out.
+    private Task OnLedClickedAsync(LedClick click) => click.Toggle
+        ? EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Toggle(click.Index, click.Extend), selectOnStart: click.Extend)
+        : EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
 
     private Task OnLedsSelectedAsync(LedSelection leds) =>
         EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
@@ -1567,9 +1570,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // on the same device reuse them, so they also hold the edits that are still on their way to
     // the engine. A click or key on the same device before they came waits for the same colors
     // and starts at the same LED, so two quick Shift+arrows give one range from where the first
-    // one came. select then picks the LEDs.
-    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select)
+    // one came. select then picks the LEDs; without selectOnStart not when this call started the
+    // edit, which already picked the LED at firstIndex. When select took out the last chosen LED
+    // (Ctrl+click), it goes as "Selectie opheffen" does.
+    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select, bool selectOnStart = true)
     {
+        var started = false;
         if (_connection is not { } connection)
         {
             return;
@@ -1599,48 +1605,82 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (!LedEditor.IsEditing(deviceId))
             {
                 LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex, layer);
+                started = true;
             }
         }
 
-        select(LedEditor);
+        var hadSelection = LedEditor.HasSelection;
+        if (selectOnStart || !started)
+        {
+            select(LedEditor);
+        }
+
+        if (hadSelection && !LedEditor.HasSelection)
+        {
+            await ClearLedSelectionAsync();
+            return;
+        }
+
         Preview.ShowLedSelection(LedEditor.Selection);
         _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
     }
 
     // The engine also switches the device to the per-LED effect, so the effect list shows that
     // when the edited device is the selected one. A lamp that is off goes on after its colors, as
-    // with SwitchOnForColor.
-    private void SendLeds(LedEdit? edit)
+    // with SwitchOnForColor. Each run of chosen LEDs is its own engine call, so LEDs between them
+    // that are not chosen are never sent (Ctrl+click); the runs of one edit share one place in the
+    // queue, so a dragged slider still sends only its latest value, however many runs there are.
+    private void SendLeds(IReadOnlyList<LedEdit>? edits)
     {
-        if (edit is null || _connection is not { } connection)
+        if (edits is not [var first, ..] || !PostRuns(LedsCall, first.DeviceId, edits, (api, edit) => api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
         {
             return;
         }
 
-        _sentChanges++;
-        _calls.Post((LedsCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
-        Lamps.SwitchOn(edit.DeviceId);
-        if (SelectedDevice?.DeviceId == edit.DeviceId)
+        Lamps.SwitchOn(first.DeviceId);
+        if (SelectedDevice?.DeviceId == first.DeviceId)
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
         }
     }
 
     // The layer keeps the effect of the device, so the effect list stays as it is. A lamp that is off
-    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is.
-    private void SendLayer(LayerEdit? edit, bool switchOn = true)
+    // goes on after its colors, as with SendLeds; taking the layer away leaves it as it is. One call
+    // per run of chosen LEDs, in one place in the queue, as with SendLeds.
+    private void SendLayer(IReadOnlyList<LayerEdit>? edits, bool switchOn = true)
     {
-        if (edit is null || _connection is not { } connection)
+        if (edits is not [var first, ..] || !PostRuns(LayerCall, first.DeviceId, edits, (api, edit) => api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
         {
             return;
         }
 
-        _sentChanges++;
-        _calls.Post((LayerCall, edit.DeviceId, edit.FirstLed, edit.Colors.Count), () => connection.Api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors));
         if (switchOn)
         {
-            Lamps.SwitchOn(edit.DeviceId);
+            Lamps.SwitchOn(first.DeviceId);
         }
+    }
+
+    // The runs of one edit as one call in the queue, keyed by the chosen LEDs the editor just made
+    // them from. False when there is no engine to send them to.
+    private bool PostRuns<T>(string kind, string deviceId, IReadOnlyList<T> edits, Func<IEngineApi, T, Task> send)
+    {
+        if (_connection is not { } connection || LedEditor.Selection is not { } selection)
+        {
+            return false;
+        }
+
+        _sentChanges++;
+        _calls.Post((kind, deviceId, selection.Leds), async () =>
+        {
+            // Stopping at the first run that fails is good enough: the runs go in rising order, what
+            // makes one fail (a lost engine, a device that went) makes the rest fail too, and the
+            // next step of the edit sends all runs again.
+            foreach (var edit in edits)
+            {
+                await send(connection.Api, edit);
+            }
+        });
+        return true;
     }
 
     // The engine reports the device with its new length through DevicesChanged, which rebuilds

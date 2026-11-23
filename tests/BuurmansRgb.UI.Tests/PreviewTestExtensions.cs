@@ -7,10 +7,10 @@ namespace BuurmansRgb.UI.Tests;
 internal static class PreviewTestExtensions
 {
     // index counts from the start of the device.
-    public static void ClickLed(this DevicePreviewViewModel preview, int index, bool extend = false)
+    public static void ClickLed(this DevicePreviewViewModel preview, int index, bool extend = false, bool toggle = false)
     {
         var zone = preview.Zones.Single(zone => index >= zone.FirstLed && index < zone.FirstLed + zone.LedCount);
-        zone.ClickLedCommand.Execute(new LedHit(index - zone.FirstLed, extend));
+        zone.ClickLedCommand.Execute(new LedHit(index - zone.FirstLed, extend, toggle));
     }
 
     // Presses a key in the zone that holds the active LED, as the view with the keyboard focus
@@ -35,9 +35,9 @@ internal static class PreviewTestExtensions
     // The LEDs the zones show as selected, counted from the start of the device; (-1, -1) for none.
     public static (int First, int Last) ShownSelection(this DevicePreviewViewModel preview)
     {
-        var selected = preview.Zones.Where(zone => zone.SelectionFirst >= 0).ToList();
+        var selected = preview.Zones.Where(zone => zone.Selection.First >= 0).ToList();
         return selected.Count == 0
             ? (-1, -1)
-            : (selected[0].FirstLed + selected[0].SelectionFirst, selected[^1].FirstLed + selected[^1].SelectionLast);
+            : (selected[0].FirstLed + selected[0].Selection.First, selected[^1].FirstLed + selected[^1].Selection.Last);
     }
 }

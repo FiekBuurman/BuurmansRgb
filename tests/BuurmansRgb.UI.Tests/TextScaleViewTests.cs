@@ -188,6 +188,41 @@ public sealed class TextScaleViewTests
         }
     }
 
+    // A full-size keyboard in Per LED, with text on its keys, in the smallest window: it fits on the
+    // page without being cut off (the page does not scroll sideways), its letters take the text size,
+    // and its keys grow with them as far as the page has room, so most letters still show at 225 %.
+    [Theory]
+    [InlineData(1.0, 21.0, 90)]
+    [InlineData(2.0, 22.0, 60)]
+    [InlineData(2.25, 22.0, 60)]
+    public async Task KeyboardWithKeyText_FitsThePageAtTheTextSize(double factor, double minKey, int minShown)
+    {
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = [TestKeyboards.Create()];
+            api.Effects = [EffectIds.Static, EffectIds.PerLed];
+        });
+
+        Show(viewModel, factor, window =>
+        {
+            viewModel.Navigation.GoTo(AppPage.Color);
+            viewModel.SelectedDevice = viewModel.Devices.Single(device => device.DeviceId == "keyboard");
+            viewModel.SelectedEffect = Effect(viewModel, EffectIds.PerLed);
+            OffscreenWindow.WaitUntilIdle();
+            var page = (FrameworkElement)window.Content;
+            var view = AppTheme.Descendants<LedPreviewView>(page).Single(view => view.IsVisible && view.KeyCaps is not null);
+            var slot = (FrameworkElement)VisualTreeHelper.GetParent(view);
+            var problems = TextFit.Problems(page);
+
+            Assert.Equal(9.0 * factor, view.KeyCapFontSize, 6);
+            Assert.True(view.DesiredSize.Width <= slot.ActualWidth + 0.5, $"The keyboard needs {view.DesiredSize.Width:0.#} px of {slot.ActualWidth:0.#}.");
+            Assert.Null(LayoutInformation.GetLayoutClip(view));
+            Assert.True(view.BoundsOf(39).Width >= minKey, $"A key is {view.BoundsOf(39).Width:0.#} px.");
+            Assert.True(view.DrawnKeyCaps!.Count >= minShown, $"{view.DrawnKeyCaps.Count} keys show their text.");
+            Assert.True(problems.Count == 0, string.Join(Environment.NewLine, problems));
+        });
+    }
+
     // The question before an own effect is deleted, the longest of the two, with its buttons beside
     // each other: nothing cut off or over another.
     [Theory]

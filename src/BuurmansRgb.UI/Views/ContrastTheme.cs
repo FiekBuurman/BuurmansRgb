@@ -86,6 +86,11 @@ public sealed class ContrastTheme : IDisposable
         // (CardButton) become. The LED itself keeps its colors.
         ["LedOffRingBrush"] = () => SystemColors.WindowTextBrush,
         ["CardLedOffRingBrush"] = () => SystemColors.ControlTextBrush,
+
+        // The text on the keys of a keyboard in the preview: the text of the window with a halo in
+        // the window color, so it stands out on every color a key shows.
+        ["KeyCapBrush"] = () => SystemColors.WindowTextBrush,
+        ["KeyCapHaloBrush"] = () => SystemColors.WindowBrush,
     };
 
     private readonly ResourceOverlay _colors;

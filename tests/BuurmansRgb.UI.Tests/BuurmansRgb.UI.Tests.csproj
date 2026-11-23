@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.UI\BuurmansRgb.UI.csproj" />
+    <!-- The simulated keyboard, for TestKeyboards; the app itself does not reference it. -->
+    <ProjectReference Include="..\..\src\BuurmansRgb.Providers.Simulated\BuurmansRgb.Providers.Simulated.csproj" />
   </ItemGroup>
 
   <ItemGroup>

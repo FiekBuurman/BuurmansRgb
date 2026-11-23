@@ -144,6 +144,18 @@ public sealed class DevicePreviewKeyboardTests
         Assert.Equal([new LedClick("board", 2, Extend: false), new LedClick("board", 2, Extend: true)], actions.Requests);
     }
 
+    [Fact]
+    public void Toggle_CtrlClicksTheActiveLed()
+    {
+        var actions = new RecordingPreviewActions();
+        var preview = new DevicePreviewViewModel(Motherboard, actions);
+        preview.PressKey(LedKey.Next);
+
+        preview.PressKey(LedKey.Toggle);
+
+        Assert.Equal([new LedClick("board", 1, Extend: false, Toggle: true)], actions.Requests);
+    }
+
     // Moving alone chooses nothing; with Shift it is a Shift+click on the next LED, which starts
     // at the LED it came from when nothing of the device is chosen yet.
     [Fact]

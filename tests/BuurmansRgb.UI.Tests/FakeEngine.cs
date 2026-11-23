@@ -721,11 +721,20 @@ internal sealed class FakeEngineApi : IEngineApi
         await RecordNow(call);
     }
 
+    // When set, the call with this text fails once with this exception; the calls around it go.
+    public (string Call, Exception Exception)? FailOnce { get; set; }
+
     private Task RecordNow(string call)
     {
         if (SetException is not null)
         {
             return Task.FromException(SetException);
+        }
+
+        if (FailOnce is { } fail && fail.Call == call)
+        {
+            FailOnce = null;
+            return Task.FromException(fail.Exception);
         }
 
         Calls.Add(call);

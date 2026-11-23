@@ -144,11 +144,10 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     {
         var mine = selection?.DeviceId == DeviceId;
         _hasSelection = mine;
-        var first = mine ? selection!.First : LedSelection.NoSelection;
-        var last = mine ? selection!.Last : LedSelection.NoSelection;
+        var leds = mine ? selection!.Leds : LedSet.Empty;
         foreach (var zone in Zones)
         {
-            zone.ShowDeviceSelection(first, last);
+            zone.ShowDeviceSelection(leds);
         }
     }
 
@@ -200,8 +199,8 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     internal bool CanPressKey(LedKeyPress press) => LedCount > 0 && (press.Key != LedKey.ClearSelection || _hasSelection);
 
     // The keys go through the actions as clicks and selections do, so the editor treats them alike:
-    // Space or Enter as a click on the active LED, Shift+arrow as a Shift+click on the LED it
-    // moves to.
+    // Space or Enter as a click on the active LED, Ctrl+Space as a Ctrl+click on it, Shift+arrow as
+    // a Shift+click on the LED it moves to.
     internal void PressKey(LedKeyPress press)
     {
         if (!CanPressKey(press))
@@ -213,6 +212,9 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
         {
             case LedKey.Select:
                 _actions?.ClickLed(new LedClick(DeviceId, ActiveLed, press.Extend));
+                break;
+            case LedKey.Toggle:
+                _actions?.ClickLed(new LedClick(DeviceId, ActiveLed, Extend: false, Toggle: true));
                 break;
             case LedKey.SelectAll:
                 _actions?.SelectLeds(new LedSelection(DeviceId, Name, 0, LedCount - 1));

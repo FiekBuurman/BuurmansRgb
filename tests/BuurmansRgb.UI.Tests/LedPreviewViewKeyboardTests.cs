@@ -26,6 +26,10 @@ public sealed class LedPreviewViewKeyboardTests
         { Key.Enter, ModifierKeys.None, LedKey.Select, false },
         { Key.Enter, ModifierKeys.Shift, LedKey.Select, true },
         { Key.A, ModifierKeys.Control, LedKey.SelectAll, false },
+        { Key.Space, ModifierKeys.Control, LedKey.Toggle, false },
+        { Key.Right, ModifierKeys.Control, LedKey.Next, false },
+        { Key.Up, ModifierKeys.Control, LedKey.Up, false },
+        { Key.Home, ModifierKeys.Control, LedKey.First, false },
         { Key.Escape, ModifierKeys.None, LedKey.ClearSelection, false },
     };
 
@@ -38,7 +42,9 @@ public sealed class LedPreviewViewKeyboardTests
     [Theory]
     [InlineData(Key.Tab, ModifierKeys.None)]
     [InlineData(Key.A, ModifierKeys.None)]
-    [InlineData(Key.Right, ModifierKeys.Control)]
+    [InlineData(Key.Tab, ModifierKeys.Control)]
+    [InlineData(Key.Right, ModifierKeys.Control | ModifierKeys.Shift)]
+    [InlineData(Key.Space, ModifierKeys.Control | ModifierKeys.Shift)]
     [InlineData(Key.Left, ModifierKeys.Alt)]
     [InlineData(Key.A, ModifierKeys.Control | ModifierKeys.Shift)]
     [InlineData(Key.Escape, ModifierKeys.Shift)]
@@ -215,7 +221,7 @@ public sealed class LedPreviewViewKeyboardTests
     {
         var view = Added(panel, new LedPreviewView
         {
-            Colors = new RgbColor[3], LedLabels = ["Escape (LED 1)", "LED 2", "F1 (LED 3)"], ActiveLed = 1, SelectionFirst = 1, SelectionLast = 1,
+            Colors = new RgbColor[3], LedLabels = ["Escape (LED 1)", "LED 2", "F1 (LED 3)"], ActiveLed = 1, Selection = LedSet.Range(1, 1),
         });
         OffscreenWindow.WaitUntilIdle();
         var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();

@@ -138,6 +138,33 @@ public sealed class LedLayoutTests
     public void PitchFor_Dots_NeverShrink() =>
         Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), 20.0, shrinks: false));
 
+    // A key map with text on its keys: 1.5 times as large where there is room (264 px for ten keys),
+    // as large as the width allows below that, and no smaller than one without text.
+    [Theory]
+    [InlineData(500.0, 1.5)]
+    [InlineData(264.0, 1.5)]
+    [InlineData(220.0, 1.25)]
+    [InlineData(176.0, 1.0)]
+    [InlineData(132.0, 0.75)]
+    [InlineData(20.0, 0.5)]
+    [InlineData(double.PositiveInfinity, 1.5)]
+    public void PitchFor_Grow_GrowsAsFarAsTheWidthAllows(double width, double scale) =>
+        Assert.Equal(LedLayout.Pitch * scale, LedLayout.PitchFor(TenKeys(), width, shrinks: true, grow: 1.5), 9);
+
+    [Fact]
+    public void PitchFor_GrowOfDots_NeverGrows() =>
+        Assert.Equal(LedLayout.Pitch, LedLayout.PitchFor(TenKeys(), 500.0, shrinks: false, grow: 1.5));
+
+    // 1.5 times at the text size of the design (9), and along with a larger text size of Windows.
+    [Theory]
+    [InlineData(9.0, 1.5)]
+    [InlineData(18.0, 3.0)]
+    [InlineData(20.25, 3.375)]
+    [InlineData(6.0, 1.5)]
+    [InlineData(double.NaN, 1.5)]
+    public void KeyCapGrowFor_FollowsTheTextSize(double fontSize, double grow) =>
+        Assert.Equal(grow, LedLayout.KeyCapGrowFor(fontSize), 9);
+
     [Theory]
     [InlineData(500.0, 1.0)]
     [InlineData(double.PositiveInfinity, 1.0)]

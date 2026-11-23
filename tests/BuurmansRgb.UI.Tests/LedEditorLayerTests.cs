@@ -72,12 +72,12 @@ public sealed class LedEditorLayerTests
         _editor.Start("kb", "Toetsenbord", [White, White, White, White], 1);
         _editor.Select(2, extend: true);
 
-        var edit = _editor.PaintLayer(Red);
+        var edit = Assert.Single(_editor.PaintLayer(Red)!);
 
-        Assert.Equal(("kb", 1), (edit!.DeviceId, edit.FirstLed));
+        Assert.Equal(("kb", 1), (edit.DeviceId, edit.FirstLed));
         Assert.Equal([Red, Red], edit.Colors);
         Assert.True(_editor.CanRemoveLayer);
-        Assert.Equal(White, _editor.Paint(White)!.Colors[0]);
+        Assert.Equal(White, _editor.Paint(White)![0].Colors[0]);
     }
 
     [Fact]
@@ -86,9 +86,9 @@ public sealed class LedEditorLayerTests
         _editor.Start("kb", "Toetsenbord", [White, White, White], 0, [Red, Red, Red]);
         _editor.Select(1, extend: true);
 
-        var edit = _editor.RemoveLayer();
+        var edit = Assert.Single(_editor.RemoveLayer()!);
 
-        Assert.Equal("kb", edit!.DeviceId);
+        Assert.Equal("kb", edit.DeviceId);
         Assert.Equal(0, edit.FirstLed);
         Assert.Equal([null, null], edit.Colors);
         Assert.False(_editor.CanRemoveLayer);
@@ -102,9 +102,30 @@ public sealed class LedEditorLayerTests
         _editor.Start("kb", "Toetsenbord", [White, White, Blue], 0, [Red]);
         _editor.Select(2, extend: true);
 
-        var edit = _editor.FillLayerGradient();
+        var edit = Assert.Single(_editor.FillLayerGradient()!);
 
-        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), Blue], edit!.Colors);
+        Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), Blue], edit.Colors);
+    }
+
+    // WASD with Ctrl+click: the keys between them are not sent, so they keep the layer the engine
+    // has for them, or none.
+    [Fact]
+    public void PaintLayer_WithGaps_LeavesOutTheLedsBetween()
+    {
+        _editor.Start("kb", "Toetsenbord", [White, White, White, White], 0, [null, Blue, null, null]);
+        _editor.Toggle(3, extend: false);
+
+        var edits = _editor.PaintLayer(Red)!;
+
+        Assert.Equal([0, 3], edits.Select(edit => edit.FirstLed));
+        Assert.All(edits, edit => Assert.Equal([Red], edit.Colors));
+
+        _editor.Toggle(0, extend: false);
+        var removed = Assert.Single(_editor.RemoveLayer()!);
+
+        Assert.Equal(3, removed.FirstLed);
+        Assert.Equal([null], removed.Colors);
+        Assert.False(_editor.CanRemoveLayer);
     }
 
     [Fact]

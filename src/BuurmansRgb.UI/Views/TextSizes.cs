@@ -16,7 +16,7 @@ public sealed class TextSizes : IDisposable
     [
         "ScreenTitleSize", "BigValueSize", "CountValueSize", "SmallScreenTitleSize", "SectionHeaderSize", "CardTitleSize",
         "SceneCardTitleSize", "PrimaryButtonSize", "NewButtonSize", "BodySize", "SmallBodySize", "SubTextSize",
-        "NavLabelSize", "HexCodeSize",
+        "NavLabelSize", "HexCodeSize", "KeyCapSize",
     ];
 
     private static readonly Uri Tokens = new("/BuurmansRgb.UI;component/Themes/Tokens.xaml", UriKind.Relative);

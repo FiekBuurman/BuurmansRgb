@@ -49,6 +49,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         // over the ring as it shows.
         IsRing = LedPlaces.IsRing(device.Type, layout.Zone, layout.LedCount);
         LedLabels = CreateLabels();
+        KeyCaps = layout.Zone is { Matrix: not null, LedNames: { } names } ? KeyCapText.Of(names) : null;
     }
 
     public string Name => _layout.Zone.Name;
@@ -70,6 +71,10 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
 
     // The names of the LEDs as the provider gave them, such as "Space"; null without names.
     public IReadOnlyList<string>? LedNames => _layout.Zone.LedNames;
+
+    // What the preview writes on each key, such as "W" or "Esc" (KeyCapText): only for a key map
+    // with names, as of a keyboard; null for other zones.
+    public IReadOnlyList<string>? KeyCaps { get; }
 
     // The LEDs of a fan, which the view draws as a ring instead of a row.
     public bool IsRing { get; }
@@ -174,11 +179,9 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial IReadOnlyList<RgbColor> Colors { get; private set; }
 
+    // The chosen LEDs of the zone, counted from its start; empty when none of them is chosen.
     [ObservableProperty]
-    public partial int SelectionFirst { get; private set; } = LedSelection.NoSelection;
-
-    [ObservableProperty]
-    public partial int SelectionLast { get; private set; } = LedSelection.NoSelection;
+    public partial LedSet Selection { get; private set; } = LedSet.Empty;
 
     // The LED of the device that the keys move and choose (DevicePreviewViewModel.ActiveLed),
     // counted from the start of the zone; LedMatrix.NoLed while it is in another zone.
@@ -198,14 +201,8 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         ShowColors();
     }
 
-    // first and last count from the start of the device, LedSelection.NoSelection for no selection.
-    internal void ShowDeviceSelection(int first, int last)
-    {
-        var zoneLast = FirstLed + LedCount - 1;
-        var overlaps = first >= 0 && first <= zoneLast && last >= FirstLed;
-        SelectionFirst = overlaps ? Math.Max(first, FirstLed) - FirstLed : LedSelection.NoSelection;
-        SelectionLast = overlaps ? Math.Min(last, zoneLast) - FirstLed : LedSelection.NoSelection;
-    }
+    // leds count from the start of the device; the zone keeps the ones it has.
+    internal void ShowDeviceSelection(LedSet leds) => Selection = leds.Slice(FirstLed, FirstLed + LedCount - 1, -FirstLed);
 
     // led counts from the start of the device.
     internal bool Holds(int led) => led >= FirstLed && led < FirstLed + LedCount;
@@ -225,7 +222,7 @@ public sealed partial class ZonePreviewViewModel : ObservableObject, IDisposable
         if (hit.Index < LedCount)
         {
             _device?.Activate(FirstLed + hit.Index);
-            _actions?.ClickLed(new LedClick(_deviceId, FirstLed + hit.Index, hit.Extend));
+            _actions?.ClickLed(new LedClick(_deviceId, FirstLed + hit.Index, hit.Extend, Toggle: hit.Toggle));
         }
     }
 

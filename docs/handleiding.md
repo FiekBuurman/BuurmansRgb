@@ -590,7 +590,7 @@ een verloop van rood naar paars, donkerblauw, met een paar seconden overlopen).
 
 #### Per apparaat
 
-![Per apparaat bij "Hele huis": de chips om naar een apparaat te springen en de dichte kaarten, de kaart van het toetsenbord open met de regenboog op 45°](images/voorbeeld.png)
+![Per apparaat bij "Hele huis": de chips om naar een apparaat te springen en de dichte kaarten, de kaart van het toetsenbord open met de regenboog op 45° en de letters op de toetsen](images/voorbeeld.png)
 
 Onder "Bewaar als scène" staat de kop **Per apparaat**, met per apparaat een kaart. Bij "Hele
 huis" zijn die kaarten eerst dicht, zodat je niet langs alle LED's van alle apparaten hoeft te
@@ -694,6 +694,15 @@ Apparaten of Kleur staat meteen het nieuwste beeld er.
   maken de toetsen kleiner in een smal venster. LED's buiten de map (bijv. een logo) staan in
   een rij eronder. Met toetsnamen tekent het voorbeeld Tab, Caps Lock, Shift, Ctrl, Backspace,
   Enter, de spatiebalk en de 0 van het numerieke blok breder over de lege vakjes ernaast.
+- **Letters op de toetsen:** met toetsnamen staat op elke toets een korte tekst zoals op de toets
+  zelf: `W`, `7`, `F5`, `Esc`, `Ctrl`, `↑`. De letter is zwart of wit, wat het best afsteekt
+  tegen de kleur van de toets op dat moment; in een contrastthema van Windows heeft hij de
+  tekstkleur van Windows met een rand in de vensterkleur. Daarvoor is een toetsenbord met letters
+  anderhalf keer zo groot (toetsen van 21 px in plaats van 14), zolang het venster breed genoeg is;
+  met een grotere tekst in Windows groeien de toetsen mee. Past een tekst niet op zijn toets, dan
+  valt hij weg: bij 100 % bijv. `Shift` en `Caps` op een smalle toets, bij 200 % in een klein
+  venster de meeste woorden; letters, cijfers en pijltjes blijven. De spatiebalk heeft geen tekst.
+  De naam van een toets voor de muis en de schermlezer blijft zoals hij was (`W (LED 40)`).
 - **Namen:** wijs een LED aan voor zijn naam en nummer, bijv. "Escape (LED 1)", of "LED 5"
   zonder naam. Een schermlezer noemt de LED's zo ook, met de kleur die de LED op dat moment toont
   erachter ("LED 5, rood", "Escape (LED 1), warm wit"; zie "Kleurnamen" bij "Toegankelijkheid"), en kan ze selecteren
@@ -758,6 +767,13 @@ LED's, meteen terwijl je schuift, een hex-code typt of een vaste kleur kiest. St
 uit, dan gaat het aan bij de eerste kleur, ook bij "Verloop vullen". Kies je een andere LED, dan
 toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 
+Met **Ctrl+klik** zet je een losse LED bij de gekozen LED's of haal je hem eruit, zoals in
+Verkenner: zo kies je bijv. W, A, S en D zonder de toetsen ertussen. Ctrl+Shift+klik zet de reeks
+vanaf de vorige klik erbij. Boven het mengpaneel staat dan hoeveel het er zijn ("4 LED's van
+Gesimuleerd toetsenbord") in plaats van "LED 3 t/m 7".
+
+![Het gesimuleerde toetsenbord met de letters op de toetsen; W, A, S en D zijn met Ctrl+klik gekozen en hebben elk een selectiering, de toetsen ertussen niet](images/toetsen-wasd.png)
+
 - **Naast een LED klikken mag:** een klik tot 12 px van het midden van een LED kiest die LED,
   ook als het bolletje kleiner is, ook net boven of naast het voorbeeld en ook met Shift. Zo is
   elke LED een doel van minstens 24 px, ook bij een verkleind toetsenbord. Tussen twee LED's kies
@@ -781,14 +797,22 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
   | Home en End | Naar de eerste of laatste LED van het apparaat |
   | Spatie of Enter | Kiest de actieve LED, zoals een klik |
   | Shift+pijltje, Shift+Home of Shift+End | Breidt de reeks uit tot de LED waar je heen gaat, zoals Shift+klik; zonder keuze begint de reeks bij de LED waar je vandaan kwam |
+  | Ctrl+pijltje, Ctrl+Home of Ctrl+End | Gaat naar die LED zonder de keuze te veranderen |
+  | Ctrl+Spatie | Zet de actieve LED bij de gekozen LED's of haalt hem eruit, zoals Ctrl+klik |
   | Ctrl+A | Kiest alle LED's van het apparaat, zoals "Alles selecteren" |
   | Escape | Heft de selectie op, zoals "Selectie opheffen" |
 
   Daarna ga je met Shift+Tab terug naar boven, naar de schuiven en de vaste kleuren: elke
   stap kleurt de gekozen LED's meteen.
-  Een schermlezer noemt de actieve LED bij zijn naam en kleur en zegt of hij gekozen is.
+  Een schermlezer noemt de actieve LED bij zijn naam en kleur en zegt of hij gekozen is
+  ("geselecteerd"); met de opdrachten van de schermlezer om een item aan de selectie toe te voegen
+  of eruit te halen werkt hij zoals Ctrl+klik. Haal je de laatste gekozen LED eruit, dan is het
+  alsof je Selectie opheffen koos.
+- **Losse LED's en de rest:** een kleur, een vaste kleur en de laag gaan alleen naar de gekozen
+  LED's; de LED's ertussen houden hun eigen kleur of laag.
 - **Verloop vullen** vult de reeks met een verloop van de kleur van de eerste naar die van de
-  laatste LED (geef die dus eerst een kleur).
+  laatste LED (geef die dus eerst een kleur). Met losse LED's gaat het verloop in gelijke stappen
+  over de gekozen LED's; de LED's ertussen houden hun kleur.
 - **Selectie opheffen**, een ander apparaat kiezen of een ander effect dan Per LED kiezen, geeft
   het mengpaneel weer aan het apparaat (bij Kleurenloop aan de kleur van de loop); een kleur zet
   het apparaat dan niet terug op Per LED.
@@ -807,7 +831,7 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
   Met Ctrl+A (of "Alles selecteren") en Laag weghalen haal je de hele laag van het apparaat weg.
   De knop is grijs zolang geen van de gekozen LED's een laag heeft.
 
-  ![Kleur voor de LED's met een toets van het gesimuleerde toetsenbord gekozen: onder "Waar komt de kleur?" staat "Als laag boven het effect" aan naast "Per LED", met "Laag weghalen" ernaast en daaronder het mengpaneel op rood](images/kleur-laag.png)
+  ![Kleur voor de LED's met W, A, S en D van het gesimuleerde toetsenbord gekozen ("4 LED's van Gesimuleerd toetsenbord"): onder "Waar komt de kleur?" staat "Als laag boven het effect" aan naast "Per LED", met "Laag weghalen" ernaast en daaronder het mengpaneel op rood](images/kleur-laag.png)
 
 - De laag hoort bij de verlichting: hij wordt bewaard, gaat mee in een scène (ook met "Bewaar als
   scène" en "Bijwerken met wat nu brandt") en in een gedeelde scène, en gaat mee in de overgang

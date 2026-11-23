@@ -19,7 +19,7 @@ public sealed class LedPreviewViewTests
     [Fact]
     public void AutomationPeer_IsAListWithAnItemPerLed() => Sta.Run(() =>
     {
-        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], LedLabels = Labels, SelectionFirst = 1, SelectionLast = 1 });
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], LedLabels = Labels, Selection = LedSet.Range(1, 1) });
 
         var peer = UIElementAutomationPeer.CreatePeerForElement(view);
         var leds = peer.GetChildren();
@@ -79,19 +79,22 @@ public sealed class LedPreviewViewTests
         Assert.Equal(["Escape (LED 1), fel rood", "Tab (LED 2), geel", "F1 (LED 3), donkerblauw"], leds.Select(led => led.GetName()));
     });
 
-    // Selecting an LED item does what a click does, adding it what Shift+click does.
+    // Selecting an LED item does what a click does; adding or removing it what Ctrl+click does, and
+    // only for an LED that is not or is selected, so the others stay.
     [Fact]
     public void AutomationPeer_SelectingAnItem_ClicksTheLed() => Sta.Run(() =>
     {
         List<LedHit> hits = [];
-        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], ClickCommand = new RelayCommand<LedHit>(hit => hits.Add(hit!)) });
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[3], Selection = LedSet.Of([1]), ClickCommand = new RelayCommand<LedHit>(hit => hits.Add(hit!)) });
         var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
 
         SelectionItem(leds[2]).Select();
         SelectionItem(leds[0]).AddToSelection();
+        SelectionItem(leds[1]).AddToSelection();
+        SelectionItem(leds[1]).RemoveFromSelection();
+        SelectionItem(leds[2]).RemoveFromSelection();
 
-        Assert.Equal([new LedHit(2, false), new LedHit(0, true)], hits);
-        Assert.Throws<InvalidOperationException>(() => SelectionItem(leds[0]).RemoveFromSelection());
+        Assert.Equal([new LedHit(2, false), new LedHit(0, false, Toggle: true), new LedHit(1, false, Toggle: true)], hits);
     });
 
     [Fact]
@@ -142,23 +145,28 @@ public sealed class LedPreviewViewTests
         var view = Arranged(new LedPreviewView { Colors = new RgbColor[3] });
 
         view.Colors = new RgbColor[2];
-        view.SelectionFirst = 0;
-        view.SelectionLast = 1;
+        view.Selection = LedSet.Range(0, 1);
 
         Assert.Null(UIElementAutomationPeer.FromElement(view));
     });
 
-    // The selection changes in two steps; the items follow both.
+    // The items follow the selection, also with gaps from Ctrl+click, and the list says more than
+    // one can be selected.
     [Fact]
     public void AutomationPeer_SelectionOfTheView_IsTheSelectionOfTheItems() => Sta.Run(() =>
     {
         var view = Arranged(new LedPreviewView { Colors = new RgbColor[4] });
-        var leds = UIElementAutomationPeer.CreatePeerForElement(view).GetChildren();
+        var peer = UIElementAutomationPeer.CreatePeerForElement(view);
+        var leds = peer.GetChildren();
 
-        view.SelectionFirst = 1;
-        view.SelectionLast = 2;
-
+        view.Selection = LedSet.Range(1, 2);
         Assert.Equal([false, true, true, false], leds.Select(led => SelectionItem(led).IsSelected));
+
+        view.Selection = LedSet.Of([0, 3]);
+        var selection = (ISelectionProvider)peer.GetPattern(PatternInterface.Selection);
+        Assert.Equal([true, false, false, true], leds.Select(led => SelectionItem(led).IsSelected));
+        Assert.Equal(2, selection.GetSelection().Length);
+        Assert.True(selection.CanSelectMultiple);
     });
 
     // Where the view says an LED is drawn is where a click picks that LED: on a ring, in a row
@@ -264,6 +272,19 @@ public sealed class LedPreviewViewTests
         Assert.False(Click(view, led + away * 13.0));
 
         Assert.Equal([new LedHit(2, false), new LedHit(2, false), new LedHit(3, true)], hits);
+    });
+
+    // Ctrl+click toggles one LED, and Ctrl+Shift+click asks for both.
+    [Fact]
+    public void Click_WithCtrl_TogglesTheLed() => Sta.Run(() =>
+    {
+        var hits = new List<LedHit>();
+        var view = Arranged(new LedPreviewView { Colors = new RgbColor[6], ClickCommand = new RelayCommand<LedHit>(hit => hits.Add(hit!)) });
+
+        Assert.True(Click(view, Middle(view, 4), ModifierKeys.Control));
+        Assert.True(Click(view, Middle(view, 1), ModifierKeys.Control | ModifierKeys.Shift));
+
+        Assert.Equal([new LedHit(4, false, Toggle: true), new LedHit(1, true, Toggle: true)], hits);
     });
 
     // The tooltip names the LED a click picks: beside one too, and none far from every LED.
