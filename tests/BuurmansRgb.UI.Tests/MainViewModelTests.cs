@@ -655,6 +655,7 @@ public sealed class MainViewModelTests
             api.FramesPerSecond = 60;
             api.PauseOnLockAndSleep = false;
             api.PausedLights = PausedLightsMode.Off;
+            api.SceneFade = TimeSpan.FromSeconds(2);
             api.CatchUpSceneTimes = true;
             api.Hotkeys = false;
             api.CustomColors = [new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)];
@@ -663,6 +664,7 @@ public sealed class MainViewModelTests
         Assert.Equal(60, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Off, viewModel.EffectOptions.SelectedPausedLights?.Mode);
+        Assert.Equal(TimeSpan.FromSeconds(2), viewModel.EffectOptions.SelectedSceneFade?.Fade);
         Assert.True(viewModel.SceneTimes.IsOn);
         Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Equal([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], viewModel.CustomColors.Colors.Select(item => item.Color));
@@ -677,12 +679,13 @@ public sealed class MainViewModelTests
         viewModel.EffectOptions.SelectedFrameRate = viewModel.EffectOptions.FrameRates.Single(rate => rate.FramesPerSecond == 15);
         viewModel.EffectOptions.PauseOnLockAndSleep = false;
         viewModel.EffectOptions.SelectedPausedLights = EffectOptionsViewModel.PausedLightsOptions.Single(option => option.Mode == PausedLightsMode.Dim);
+        viewModel.EffectOptions.SelectedSceneFade = viewModel.EffectOptions.SceneFades[0];
         viewModel.SceneTimes.IsOn = true;
         viewModel.Hotkeys.IsOn = false;
         viewModel.ColorPicker.HexColor = "#00FF00";
         viewModel.CustomColors.AddCommand.Execute(null);
 
-        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "catch up True", "hotkeys False", "color all #00FF00", "custom colors #00FF00"], Api.Calls);
+        Assert.Equal(["fps 15", "pause on lock False", "paused lights Dim", "scene fade 0", "catch up True", "hotkeys False", "color all #00FF00", "custom colors #00FF00"], Api.Calls);
     }
 
     [Fact]
@@ -803,6 +806,7 @@ public sealed class MainViewModelTests
         Api.FramesPerSecond = 15;
         Api.PauseOnLockAndSleep = false;
         Api.PausedLights = PausedLightsMode.Dim;
+        Api.SceneFade = TimeSpan.FromSeconds(1.5);
         Api.CatchUpSceneTimes = true;
         Api.Hotkeys = false;
         Api.CustomColors = [new RgbColor(0, 255, 0)];
@@ -812,6 +816,7 @@ public sealed class MainViewModelTests
         Assert.Equal(15, viewModel.EffectOptions.SelectedFrameRate?.FramesPerSecond);
         Assert.False(viewModel.EffectOptions.PauseOnLockAndSleep);
         Assert.Equal(PausedLightsMode.Dim, viewModel.EffectOptions.SelectedPausedLights?.Mode);
+        Assert.Equal(TimeSpan.FromSeconds(1.5), viewModel.EffectOptions.SelectedSceneFade?.Fade);
         Assert.True(viewModel.SceneTimes.IsOn);
         Assert.False(viewModel.Hotkeys.IsOn);
         Assert.Equal([new RgbColor(0, 255, 0)], viewModel.CustomColors.Colors.Select(item => item.Color));

@@ -32,6 +32,47 @@ public sealed class EffectOptionsViewModelTests
         Assert.Equal([15, 30, 60], _options.FrameRates.Select(rate => rate.FramesPerSecond));
     }
 
+    // From at once to two seconds, with half a second, the default, chosen before the engine tells.
+    [Fact]
+    public void SceneFades_AreTheFiveStandardFadesInPlainDutch_WithNormalChosen()
+    {
+        Assert.Equal(
+            ["Direct (geen overgang)", "Kort (0,25 seconde)", "Normaal (0,5 seconde)", "Rustig (1 seconde)", "Langzaam (2 seconden)"],
+            _options.SceneFades.Select(option => option.DisplayName));
+        Assert.Equal([0.0, 0.25, 0.5, 1.0, 2.0], _options.SceneFades.Select(option => option.Fade.TotalSeconds));
+        Assert.Equal(SceneFade.Default, _options.SelectedSceneFade?.Fade);
+        Assert.Equal("Normaal (0,5 seconde)", _options.SelectedSceneFade?.ToString());
+    }
+
+    // A fade written in settings.json by hand stays as it is until the user picks another.
+    [Fact]
+    public void ShowSceneFade_AnotherFade_AddsItInOrder_WithoutRaising()
+    {
+        var raised = 0;
+        _options.SceneFadeChanged += (_, _) => raised++;
+
+        _options.ShowSceneFade(TimeSpan.FromSeconds(1.5));
+
+        Assert.Equal([0.0, 0.25, 0.5, 1.0, 1.5, 2.0], _options.SceneFades.Select(option => option.Fade.TotalSeconds));
+        Assert.Equal("1,5 seconde", _options.SelectedSceneFade?.DisplayName);
+
+        _options.ShowSceneFade(TimeSpan.Zero);
+        Assert.Equal(5, _options.SceneFades.Count);
+        Assert.Equal(TimeSpan.Zero, _options.SelectedSceneFade?.Fade);
+        Assert.Equal(0, raised);
+    }
+
+    [Fact]
+    public void PickingASceneFade_RaisesIt()
+    {
+        var fades = new List<TimeSpan>();
+        _options.SceneFadeChanged += (_, fade) => fades.Add(fade);
+
+        _options.SelectedSceneFade = _options.SceneFades[^1];
+
+        Assert.Equal([SceneFade.Max], fades);
+    }
+
     [Fact]
     public void PausedLightsOptions_AreTheThreeModesInPlainDutch_WithOffFirst()
     {

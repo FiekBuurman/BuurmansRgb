@@ -5,7 +5,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// The options of the effects on Instellingen: how smooth they move, whether they pause while
+// The options of the effects on Instellingen: how smooth they move, how long they take to go
+// over to a scene or to everything on or off (SceneFade), whether they pause while
 // Windows is locked or asleep, the screen is off or the screen saver runs, and what the devices do
 // then (the block "Als de pc slaapt of vergrendeld is" at the top). This only asks; MainViewModel
 // sends a change to the engine, which saves it.
@@ -18,7 +19,19 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
         new(60, Strings.FrameRateSmooth),
     ];
 
+    private static readonly IReadOnlyList<SceneFadeOption> StandardFades =
+    [
+        new(TimeSpan.Zero, Strings.SceneFadeNone),
+        new(TimeSpan.FromSeconds(0.25), Strings.SceneFadeShort),
+        new(SceneFade.Default, Strings.SceneFadeNormal),
+        new(TimeSpan.FromSeconds(1), Strings.SceneFadeCalm),
+        new(SceneFade.Max, Strings.SceneFadeSlow),
+    ];
+
     private readonly ReentrancyGuard _showing = new();
+
+    // Raised when the user picks another fade to a scene.
+    public event EventHandler<TimeSpan>? SceneFadeChanged;
 
     // Raised when the user picks another frame rate.
     public event EventHandler<int>? FramesPerSecondChanged;
@@ -39,6 +52,13 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial FrameRateOption? SelectedFrameRate { get; set; }
+
+    // The five standard fades, plus the one from settings.json when that is another.
+    [ObservableProperty]
+    public partial IReadOnlyList<SceneFadeOption> SceneFades { get; private set; } = StandardFades;
+
+    [ObservableProperty]
+    public partial SceneFadeOption? SelectedSceneFade { get; set; } = StandardFades[2];
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(PausedLightsHelpText))]
@@ -73,6 +93,31 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
         SelectedPausedLights = PausedLightsOptions.FirstOrDefault(mode => mode.Mode == pausedLights);
     });
 
+    // Shows the fade of the engine, without sending it back.
+    public void ShowSceneFade(TimeSpan fade) => _showing.Run(() =>
+    {
+        var option = StandardFades.FirstOrDefault(standard => standard.Fade == fade);
+        if (option is null)
+        {
+            option = new SceneFadeOption(fade, string.Format(CultureInfo.CurrentCulture, Strings.SceneFadeOther, fade.TotalSeconds));
+            SceneFades = [.. StandardFades.Append(option).OrderBy(standard => standard.Fade)];
+        }
+        else
+        {
+            SceneFades = StandardFades;
+        }
+
+        SelectedSceneFade = option;
+    });
+
+    partial void OnSelectedSceneFadeChanged(SceneFadeOption? value)
+    {
+        if (!_showing.IsActive && value is not null)
+        {
+            SceneFadeChanged?.Invoke(this, value.Fade);
+        }
+    }
+
     partial void OnSelectedFrameRateChanged(FrameRateOption? value)
     {
         if (!_showing.IsActive && value is not null)
@@ -101,5 +146,11 @@ public sealed partial class EffectOptionsViewModel : ObservableObject
 public sealed record FrameRateOption(int FramesPerSecond, string DisplayName)
 {
     // A screen reader names a ComboBox item by its ToString, not by DisplayMemberPath.
+    public override string ToString() => DisplayName;
+}
+
+public sealed record SceneFadeOption(TimeSpan Fade, string DisplayName)
+{
+    // As FrameRateOption, for a screen reader.
     public override string ToString() => DisplayName;
 }

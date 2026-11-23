@@ -987,6 +987,31 @@
     <value>{0} beelden per seconde</value>
     <comment>Een waarde uit settings.json die geen van de drie keuzes is.</comment>
   </data>
+  <data name="SceneFadeLabel" xml:space="preserve">
+    <value>Overgang naar een scène</value>
+  </data>
+  <data name="SceneFadeHint" xml:space="preserve">
+    <value>Hoe lang de apparaten erover doen om naar een andere scène over te gaan, en als je alles aan- of uitzet. Direct wisselt meteen.</value>
+  </data>
+  <data name="SceneFadeNone" xml:space="preserve">
+    <value>Direct (geen overgang)</value>
+  </data>
+  <data name="SceneFadeShort" xml:space="preserve">
+    <value>Kort (0,25 seconde)</value>
+  </data>
+  <data name="SceneFadeNormal" xml:space="preserve">
+    <value>Normaal (0,5 seconde)</value>
+  </data>
+  <data name="SceneFadeCalm" xml:space="preserve">
+    <value>Rustig (1 seconde)</value>
+  </data>
+  <data name="SceneFadeSlow" xml:space="preserve">
+    <value>Langzaam (2 seconden)</value>
+  </data>
+  <data name="SceneFadeOther" xml:space="preserve">
+    <value>{0} seconde</value>
+    <comment>Een waarde uit settings.json die geen van de vijf keuzes is, zoals 1,5.</comment>
+  </data>
   <data name="PauseOnLockLabel" xml:space="preserve">
     <value>Pauzeren bij vergrendelen, slaapstand en scherm uit</value>
   </data>

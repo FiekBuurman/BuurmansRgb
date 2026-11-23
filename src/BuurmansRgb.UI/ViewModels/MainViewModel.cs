@@ -30,6 +30,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
     private const string PausedLightsCall = "paused-lights";
+    private const string SceneFadeCall = "scene-fade";
     private const string CatchUpCall = "catch-up";
     private const string HotkeysCall = "hotkeys";
     private const string AutoStartCall = "autostart";
@@ -233,6 +234,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectOptions.PausedLightsChanged += (_, mode) =>
             SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
+        EffectOptions.SceneFadeChanged += (_, fade) =>
+            SendOption(SceneFadeCall, api => api.SetSceneFadeAsync(fade));
         SceneTimes.Switched += (_, enabled) =>
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         Hotkeys.Switched += (_, enabled) =>
@@ -1994,6 +1997,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await api.GetFramesPerSecondAsync(),
         await api.GetPauseOnLockAndSleepAsync(),
         await api.GetPausedLightsAsync(),
+        await api.GetSceneFadeAsync(),
         await api.GetCatchUpSceneTimesAsync(),
         await api.GetHotkeysAsync(),
         await api.GetAutoStartAsync(),
@@ -2004,6 +2008,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SimulatedDevices.Show(options.SimulatedDevices);
         HadRealDevices = options.HadRealDevices;
         EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
+        EffectOptions.ShowSceneFade(options.SceneFade);
         SceneTimes.Show(options.CatchUpSceneTimes);
         Hotkeys.Show(options.Hotkeys);
         AutoStart.Show(options.AutoStart);
@@ -2242,6 +2247,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int FramesPerSecond,
         bool PauseOnLockAndSleep,
         PausedLightsMode PausedLights,
+        TimeSpan SceneFade,
         bool CatchUpSceneTimes,
         bool Hotkeys,
         bool AutoStart,

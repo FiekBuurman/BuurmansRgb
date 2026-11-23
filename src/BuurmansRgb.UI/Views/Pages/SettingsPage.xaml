@@ -155,7 +155,9 @@
                     </StackPanel>
                 </Border>
 
-                <!-- How smooth the effects move. -->
+                <!-- How smooth the effects move, and how long the lights take to go over to a scene or to everything on
+                     or off (sceneFade). The fade is light in the room, not motion on the screen, so "Minder beweging" of
+                     Windows leaves it as the user set it. -->
                 <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                     <StackPanel>
                         <TextBlock Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.EffectOptionsHeader}" AutomationProperties.HeadingLevel="Level2" />
@@ -165,6 +167,13 @@
                                   SelectedItem="{Binding EffectOptions.SelectedFrameRate}"
                                   AutomationProperties.Name="{x:Static res:Strings.FrameRateLabel}"
                                   AutomationProperties.HelpText="{x:Static res:Strings.FrameRateHint}" />
+                        <TextBlock Margin="0,18,0,0" Style="{StaticResource Body}" Text="{x:Static res:Strings.SceneFadeLabel}" />
+                        <TextBlock Margin="0,2,0,8" Style="{StaticResource SubText}" TextWrapping="Wrap" Text="{x:Static res:Strings.SceneFadeHint}" />
+                        <ComboBox Width="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource ChoiceWidth}}" HorizontalAlignment="Left" ItemsSource="{Binding EffectOptions.SceneFades}" DisplayMemberPath="DisplayName"
+                                  SelectedItem="{Binding EffectOptions.SelectedSceneFade}"
+                                  AutomationProperties.Name="{x:Static res:Strings.SceneFadeLabel}"
+                                  AutomationProperties.HelpText="{x:Static res:Strings.SceneFadeHint}"
+                                  AutomationProperties.AutomationId="SceneFade" />
                     </StackPanel>
                 </Border>
 
