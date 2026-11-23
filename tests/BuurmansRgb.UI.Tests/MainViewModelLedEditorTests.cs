@@ -1,7 +1,9 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Extensions.Time.Testing;
+using StreamJsonRpc;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -561,6 +563,68 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal([$"leds strip 0 {last}", $"leds strip 2 {last}"], Api.Calls.Skip(2));
     }
 
+    // The engine refuses the second run: the runs after it do not go, the message comes once, and
+    // the next step sends all runs again.
+    [Fact]
+    public async Task LooseLeds_SecondRunFails_StopsThereAndTheNextStepSendsAll()
+    {
+        var viewModel = await ConnectAsync(api => api.Devices = [TestDevices.Create("strip", "LED strip", DeviceType.LedStrip, 5)]);
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+        Click(viewModel, "strip", 4, toggle: true);
+        var messages = 0;
+        viewModel.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.StatusMessage) && viewModel.StatusMessage == Strings.ChangeRejected)
+            {
+                messages++;
+            }
+        };
+        Api.FailOnce = ("leds strip 2 #00FF00", new RemoteInvocationException("There is no LED 2.", 0, errorData: null));
+
+        viewModel.ColorPicker.Pick("#00FF00");
+        await Eventually.TrueAsync(() => viewModel.StatusMessage == Strings.ChangeRejected);
+        Assert.Equal(["leds strip 0 #00FF00"], Api.Calls);
+
+        viewModel.ColorPicker.Pick("#0000FF");
+        await Eventually.TrueAsync(() => Api.Calls.Count == 4);
+        Assert.Equal(["leds strip 0 #00FF00", "leds strip 0 #0000FF", "leds strip 2 #0000FF", "leds strip 4 #0000FF"], Api.Calls);
+        Assert.Equal(1, messages);
+        Assert.Null(viewModel.StatusMessage);
+    }
+
+    // A Ctrl+click while a slider is dragged gives a new set of runs: the runs of the old set all
+    // go, in order, before the new one.
+    [Fact]
+    public async Task DragSlider_CtrlClickMeanwhile_SendsTheOldRunsBeforeTheNewOnes()
+    {
+        var viewModel = await ConnectAsync();
+        Api.LedColors["strip"] = [Blue, Blue, Blue];
+        Click(viewModel, "strip", 0);
+        Click(viewModel, "strip", 2, toggle: true);
+        var busy = new TaskCompletionSource();
+        Api.SetGate = busy.Task;
+
+        for (var red = 1; red <= 100; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Click(viewModel, "strip", 1, toggle: true);
+        for (var red = 101; red <= 255; red++)
+        {
+            viewModel.ColorPicker.Red = red;
+        }
+
+        Api.SetGate = null;
+        busy.SetResult();
+        var last = viewModel.ColorPicker.Color.ToHex();
+        await Eventually.TrueAsync(() => Api.Calls.Count >= 5);
+        Assert.Equal(
+            ["leds strip 0 #0100FF", "leds strip 2 #0100FF", "leds strip 0 #6400FF", "leds strip 2 #6400FF", $"leds strip 0 {last},{last},{last}"],
+            Api.Calls);
+    }
+
     // Ctrl+Space on the active LED does what Ctrl+click does; Ctrl+arrows only move.
     [Fact]
     public async Task Keys_CtrlSpaceAddsTheActiveLedWithoutLosingTheRest()
@@ -706,10 +770,13 @@ public sealed class MainViewModelLedEditorTests
     private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false, bool toggle = false) =>
         viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend, toggle);
 
-    private async Task<MainViewModel> ConnectAsync()
+    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
     {
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
-            api.Effects = [EffectIds.Static, EffectIds.Wave, EffectIds.Scanner, EffectIds.ColorLoop, EffectIds.PerLed]));
+        {
+            api.Effects = [EffectIds.Static, EffectIds.Wave, EffectIds.Scanner, EffectIds.ColorLoop, EffectIds.PerLed];
+            arrange?.Invoke(api);
+        }));
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
