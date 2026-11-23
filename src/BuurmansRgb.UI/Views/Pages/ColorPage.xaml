@@ -258,14 +258,15 @@
                     <!-- Where the mixed color goes (DESIGN.md § 4, Kleur in lagen): "Per LED", the per-LED effect, or
                          "Als laag boven het effect", a fixed color over any effect; two round toggles as the pace of
                          Tellen, each its own Tab stop, grouped by their panel: a GroupName would join those of another
-                         ColorPage in the same window. Laag weghalen is always there, grey with its tooltip while no
+                         ColorPage in the same window. The panel is a ChoiceGroup, so a screen reader hears them as
+                         the group "Waar komt de kleur?". Laag weghalen is always there, grey with its tooltip while no
                          chosen LED has a layer. Hidden with the selection, as the panel above. -->
                     <StackPanel Margin="0,0,0,14" Visibility="{Binding LedEditor.HasSelection, Converter={StaticResource BoolToVisibility}}"
                                 views:FocusFallback.Target="{Binding ElementName=EffectTiles}">
                         <TextBlock Style="{StaticResource SubText}" Text="{x:Static res:Strings.LedPaintModeLabel}" />
                         <WrapPanel Margin="0,4,0,0">
-                            <StackPanel x:Name="LedPaintMode" Margin="0,0,18,8" Orientation="Horizontal"
-                                        AutomationProperties.Name="{x:Static res:Strings.LedPaintModeLabel}">
+                            <views:ChoiceGroup x:Name="LedPaintMode" Margin="0,0,18,8" Orientation="Horizontal"
+                                               AutomationProperties.Name="{x:Static res:Strings.LedPaintModeLabel}">
                                 <RadioButton x:Name="PaintPerLed" Margin="0,0,6,0" Style="{StaticResource DayToggle}"
                                              Content="{x:Static res:Strings.LedPaintPerLed}" IsChecked="{Binding LedEditor.PaintsPerLed}"
                                              ToolTip="{x:Static res:Strings.LedPaintPerLedHelp}"
@@ -276,7 +277,7 @@
                                              ToolTip="{x:Static res:Strings.LedPaintLayerHelp}"
                                              AutomationProperties.Name="{x:Static res:Strings.LedPaintLayer}"
                                              AutomationProperties.HelpText="{x:Static res:Strings.LedPaintLayerHelp}" />
-                            </StackPanel>
+                            </views:ChoiceGroup>
                             <Button x:Name="RemoveLayerButton" Margin="0,0,0,8" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.RemoveLayer}"
                                     ToolTip="{x:Static res:Strings.RemoveLayerToolTip}" ToolTipService.ShowOnDisabled="True"
                                     AutomationProperties.HelpText="{x:Static res:Strings.RemoveLayerToolTip}"

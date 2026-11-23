@@ -42,6 +42,13 @@ public sealed class LedLayerViewTests
             Assert.Equal(AutomationControlType.RadioButton, peer.GetAutomationControlType());
             Assert.Equal(Strings.LedPaintLayerHelp, peer.GetHelpText());
             Assert.Equal(Strings.LedPaintPerLedHelp, AutomationProperties.GetHelpText(perLed));
+
+            // In UI Automation the two are in the group "Waar komt de kleur?", which a screen reader names.
+            var group = UIElementAutomationPeer.CreatePeerForElement((UIElement)page.FindName("LedPaintMode"));
+            Assert.Equal(AutomationControlType.Group, group.GetAutomationControlType());
+            Assert.Equal(Strings.LedPaintModeLabel, group.GetName());
+            Assert.Equal([perLed, layer], group.GetChildren().OfType<UIElementAutomationPeer>().Select(child => child.Owner));
+            Assert.Same(group, peer.GetParent());
             Assert.True(remove.IsVisible);
             Assert.False(remove.IsEnabled);
             Assert.True(ToolTipService.GetShowOnDisabled(remove));
