@@ -368,10 +368,10 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   pauze (ook slaapstand, scherm uit en vergrendelen) en `Dispose` maken een lopende overgang meteen
   af met `StopFadesLocked` en sturen de eindkleuren, zoals een flits; een nieuwe apparatenlijst
   maakt nieuwe `DeviceOutput`s zonder overgang. Niets wacht dus op een overgang. Een eigen
-  wijziging zonder `fade` (`SetLighting`, `SetLedColors`, `SetOverlay`, `Replace`) roept `EndFadesLocked` aan:
-  de overgang van het apparaat dat ze raakt eindigt (bij een globale wijziging van elk apparaat),
-  en de `RenderLocked` daarna stuurt de nieuwe kleuren en zet de render-loop stil als niets meer
-  beweegt.
+  wijziging zonder `fade` (`SetLighting`, `SetLedColors`, `SetOverlay`, `Replace`) roept
+  `EndFadesLocked` aan: de overgang van het apparaat dat ze raakt eindigt (bij een globale
+  wijziging van elk apparaat), en de `RenderLocked` daarna stuurt de nieuwe kleuren en zet de
+  render-loop stil als niets meer beweegt.
 - **Laag boven het effect** (`toetsenbord-laag`, "Als laag boven het effect" in de
   Per-LED-editor): `LedOverlayStore` bewaart per apparaat een `RgbColor?` per LED (`null` toont
   het effect), zonder `null`s aan het eind en hooguit 4096 LED's; een lijst zonder kleur valt weg.
