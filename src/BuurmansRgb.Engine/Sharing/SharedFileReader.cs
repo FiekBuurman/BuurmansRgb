@@ -8,8 +8,8 @@ namespace BuurmansRgb.Engine.Sharing;
 
 // Reads a shared scene or own effect (SharedFile) with every check before anything is added, as
 // strictly as a backup of the settings (SettingsArchive): not larger than SharedFiles.MaxJsonBytes,
-// valid JSON with "version" and "kind", no field the engine does not know (SharingJsonContext), and
-// every value within what the app itself can make: names as the app allows them and not like a
+// valid JSON with "version" and "kind", a field the engine does not know skipped (SharingJsonContext),
+// and every value within what the app itself can make: names as the app allows them and not like a
 // path (SharedFiles.IsPathLike), at most SharedFiles.MaxDevices devices and SharedFiles.MaxEffects effects,
 // colors as "#RRGGBB", brightness, speed and direction in range, only effects the engine knows or
 // the file brings, and each effect it brings shown by the scene. Anything wrong refuses the whole
@@ -106,6 +106,7 @@ internal static class SharedFileReader
         var devices = new List<SharedDeviceRef>();
         var deviceLighting = new Dictionary<string, DeviceLighting>(StringComparer.Ordinal);
         var ledColors = new Dictionary<string, LedColorEntry>(StringComparer.Ordinal);
+        var overlays = new Dictionary<string, IReadOnlyList<RgbColor?>>(StringComparer.Ordinal);
         foreach (var device in sharedDevices)
         {
             var reference = ReadDevice(device);
@@ -120,9 +121,14 @@ internal static class SharedFileReader
             {
                 ledColors[reference.Id] = colors;
             }
+
+            if (ReadOverlay(device) is { } overlay)
+            {
+                overlays[reference.Id] = overlay;
+            }
         }
 
-        var state = new LightingState(ReadLighting(lighting, effectIds), deviceLighting, ledColors);
+        var state = new LightingState(ReadLighting(lighting, effectIds), deviceLighting, ledColors) { Overlays = overlays };
         var used = new[] { state.Global }.Concat(deviceLighting.Values).Select(device => device.EffectId).ToHashSet(StringComparer.Ordinal);
         Check(effectIds.All(used.Contains), "an own effect that the scene does not show");
         return new SharedScene(name, state, devices, ReadOnlyDevices(file.OnlyDevices, devices), effects);
@@ -197,6 +203,19 @@ internal static class SharedFileReader
         }
 
         return new LedColorEntry([.. colors], device.ZoneLengths is { } zones ? [.. zones] : null);
+    }
+
+    // As the colors per LED: 1 to SharedFiles.MaxLedsPerDevice, each a color or null, and at least one
+    // color, as the app only shares a layer that has one.
+    private static RgbColor?[]? ReadOverlay(SharedDevice device)
+    {
+        if (device.Overlay is not { } colors)
+        {
+            return null;
+        }
+
+        Check(colors.Count is > 0 and <= SharedFiles.MaxLedsPerDevice, $"the device '{device.Id}' has a layer of {colors.Count} LEDs, not 1 to {SharedFiles.MaxLedsPerDevice}");
+        return LedOverlayStore.Normalize(colors) ?? throw new InvalidShareException($"the device '{device.Id}' has a layer without a color");
     }
 
     // effectIds are the own effects the file brings; any other effect is one of the engine.

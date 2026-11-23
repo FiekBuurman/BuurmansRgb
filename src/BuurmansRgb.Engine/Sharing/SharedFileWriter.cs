@@ -11,8 +11,8 @@ namespace BuurmansRgb.Engine.Sharing;
 // and role of a scene, and whether it is on.
 internal static class SharedFileWriter
 {
-    // The scene with each device it names (its devices, and those with lighting or colors per LED
-    // of their own) by the type and name it has in devices, the devices here now; a device that is
+    // The scene with each device it names (its devices, and those with lighting, colors per LED or a
+    // layer of their own) by the type and name it has in devices, the devices here now; a device that is
     // not here now goes by its id only. The own effects it shows that are in effects come along; an
     // own effect that is gone shows static here (LightingController), and so in the file.
     public static byte[] WriteScene(Profile scene, IReadOnlyList<RgbDevice> devices, IReadOnlyList<CustomEffect> effects)
@@ -23,8 +23,8 @@ internal static class SharedFileWriter
         List<string> ids =
         [
             .. (scene.DeviceIds ?? [])
-                .Concat(devices.Select(device => device.Id).Where(id => lighting.Devices.ContainsKey(id) || lighting.LedColors.ContainsKey(id)))
-                .Concat(lighting.Devices.Keys.Concat(lighting.LedColors.Keys).Order(StringComparer.Ordinal))
+                .Concat(devices.Select(device => device.Id).Where(id => lighting.Devices.ContainsKey(id) || lighting.LedColors.ContainsKey(id) || lighting.Overlays.ContainsKey(id)))
+                .Concat(lighting.Devices.Keys.Concat(lighting.LedColors.Keys).Concat(lighting.Overlays.Keys).Order(StringComparer.Ordinal))
                 .Distinct(StringComparer.Ordinal),
         ];
 
@@ -59,6 +59,9 @@ internal static class SharedFileWriter
             Lighting = lighting.Devices.TryGetValue(id, out var own) ? Write(own, effects, shown) : null,
             LedColors = colors is null ? null : [.. colors.Colors],
             ZoneLengths = colors?.ZoneLengths is { Count: > 0 } lengths ? [.. lengths] : null,
+
+            // Only with a layer, so a scene without one stays as a version before the layer reads it.
+            Overlay = lighting.Overlays.GetValueOrDefault(id) is { } overlay ? [.. overlay] : null,
         };
     }
 

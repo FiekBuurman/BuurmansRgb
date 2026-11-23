@@ -6,14 +6,16 @@ using BuurmansRgb.Core;
 namespace BuurmansRgb.Engine.Sharing;
 
 // The JSON of a shared scene or own effect (Contracts.SharedFiles), version 1. Read strictly, unlike
-// the files of the engine: it comes from someone else, so a field the engine does not know, a
-// name twice in one object, a value of the wrong type or a missing one that is required refuses
-// the whole file (SharingJsonContext), and SharedFileReader checks every value. A scene:
+// the files of the engine: it comes from someone else, so a name twice in one object, a value of
+// the wrong type or a missing one that is required refuses the whole file (SharingJsonContext),
+// and SharedFileReader checks every value. A field the engine does not know is skipped, so a scene
+// of a newer version with a field this one lacks still comes in without it. A scene:
 //
 // { "version": 1, "kind": "scene", "name": "Gamen",
 //   "lighting": { "color": "#FF0000", "brightness": 1, "effect": "custom:1a2b3c4d" },
 //   "devices": [ { "id": "openrgb:k70-1a2b3c4d", "type": "keyboard", "name": "K70",
-//                  "lighting": { ... }, "ledColors": [ "#FF0000", null ], "zoneLengths": [ 104 ] } ],
+//                  "lighting": { ... }, "ledColors": [ "#FF0000", null ], "zoneLengths": [ 104 ],
+//                  "overlay": [ null, null, "#FF0000" ] } ],
 //   "onlyDevices": [ "openrgb:k70-1a2b3c4d" ],
 //   "effects": [ { "id": "custom:1a2b3c4d", "name": "Disco",
 //                  "steps": [ { "colors": [ "#FF0000" ], "hold": 1, "fade": 1 } ] } ] }
@@ -65,8 +67,11 @@ internal sealed record SharedColorLoop
 }
 
 // A device of a scene: its id on the pc it came from and, when that pc knew it then, its type and
-// name, by which another pc finds its own; its lighting when it differs from that of the scene, and
-// its color per LED with the zone lengths they were chosen for.
+// name, by which another pc finds its own; its lighting when it differs from that of the scene, its
+// color per LED with the zone lengths they were chosen for, and its layer over the effect (null for an
+// LED that shows the effect). The layer is only there for a device that has one, so a scene without
+// one is the same file as before the layer, which a version from before reads; that version refused
+// a field it did not know, and so a scene with a layer.
 internal sealed record SharedDevice
 {
     public required string Id { get; init; }
@@ -80,6 +85,8 @@ internal sealed record SharedDevice
     public List<RgbColor?>? LedColors { get; init; }
 
     public List<int>? ZoneLengths { get; init; }
+
+    public List<RgbColor?>? Overlay { get; init; }
 }
 
 internal sealed record SharedEffect

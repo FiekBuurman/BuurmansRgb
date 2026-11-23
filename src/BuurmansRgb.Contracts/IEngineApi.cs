@@ -231,8 +231,8 @@ public partial interface IEngineApi
 
     // "Importeren…" and "Code plakken": adds the scene or own effect in json, as ExportSceneAsync or
     // ExportCustomEffectAsync gave it on this or another pc, after every check (SharedFiles: not too
-    // large, valid JSON, no field it does not know, no value out of range, no name like a path);
-    // anything wrong adds nothing. A name that is taken gets a number after it; nothing is
+    // large, valid JSON, no value out of range, no name like a path; a field it does not know, such as
+    // one of a newer version, is skipped); anything wrong adds nothing. A name that is taken gets a number after it; nothing is
     // overwritten. A device of a scene is the one here with the same id, or else the next one with
     // the same type and name; one that is not here is left out and named in the result. The own
     // effects of a scene come along, or the one here with the same name and steps. ProfilesChanged

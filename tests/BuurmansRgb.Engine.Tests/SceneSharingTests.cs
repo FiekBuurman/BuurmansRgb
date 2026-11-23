@@ -81,6 +81,39 @@ public sealed class SceneSharingTests : IDisposable
         Assert.NotEqual("Gamen (2)", _profiles.ActiveName);
     }
 
+    // The layer over the effect goes along with the device it is on, and comes in on that device here.
+    [Fact]
+    public async Task ExportThenImport_TheLayer_ComesBackOnItsDevice()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetEffectAsync(null, EffectIds.Rainbow, Ct);
+        _lighting.SetOverlay("simulated-keyboard", 2, [Red, null, Red]);
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = await _api.ExportSceneAsync("Gamen", Ct);
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(
+            ["#FF0000", null, "#FF0000"],
+            JsonNode.Parse(json)!["devices"]!.AsArray().Single(device => (string?)device!["id"] == "simulated-keyboard")!["overlay"]!.AsArray().Skip(2).Select(color => (string?)color));
+        Assert.Equal([null, null, Red, null, Red], _profiles.Get("Gamen (2)").Lighting.Overlays["simulated-keyboard"]);
+        Assert.Single(_profiles.Get("Gamen (2)").Lighting.Overlays);
+    }
+
+    // Without a layer the file is as before the layer, so a version from before it reads the scene.
+    [Fact]
+    public async Task Export_WithoutALayer_HasNoOverlayField()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = Encoding.UTF8.GetString(await _api.ExportSceneAsync("Gamen", Ct));
+
+        Assert.DoesNotContain("overlay", json, StringComparison.Ordinal);
+    }
+
     // Every field of the lighting that is not its default, of all devices and of one, and the
     // colors per LED with their zones, comes back as it went.
     [Fact]
@@ -245,7 +278,7 @@ public sealed class SceneSharingTests : IDisposable
         _api.ProfilesChanged += (_, _) => changes++;
         _api.CustomEffectsChanged += (_, _) => changes++;
 
-        var result = await _api.ImportSharedAsync(Bytes("""{ "version": 1, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF8800", "brightness": 1, "effect": "static" }, "loadAt": "07:00" }"""), Ct);
+        var result = await _api.ImportSharedAsync(Bytes("""{ "version": 1, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF8800", "brightness": 1.5, "effect": "static" } }"""), Ct);
 
         Assert.Equal(ShareImportOutcome.Invalid, result.Outcome);
         Assert.Empty(await _api.GetProfilesAsync(Ct));

@@ -53,10 +53,49 @@ public sealed class SharedFileReaderTests
         Assert.Equal([Green], keyboard.EffectColors.Lists[EffectIds.Comet]);
         Assert.Equal([Red, null, Green], scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].Colors);
         Assert.Equal([3], scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].ZoneLengths!);
+        Assert.Empty(scene.Lighting.Overlays);
         Assert.Equal([new SharedDeviceRef("openrgb:k70-1a2b3c4d", DeviceType.Keyboard, "K70"), new SharedDeviceRef("openrgb:fan-5e6f7a8b", DeviceType.Fan, "Fan")], scene.Devices);
         Assert.Equal(["openrgb:k70-1a2b3c4d", "openrgb:fan-5e6f7a8b"], scene.OnlyDevices!);
         var effect = Assert.Single(scene.Effects);
         Assert.Equal(new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0.5)]), effect);
+    }
+
+    // The layer over the effect of a device, a color or null per LED; without the nulls at the end.
+    [Fact]
+    public void Read_SceneWithALayer_GivesIt()
+    {
+        var content = SharedFileReader.Read(Bytes(Scene.Replace("\"zoneLengths\": [ 3 ] }", "\"zoneLengths\": [ 3 ], \"overlay\": [ null, \"#FF0000\", null ] }", StringComparison.Ordinal)));
+
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Equal([null, Red], content.Scene!.Lighting.Overlays["openrgb:k70-1a2b3c4d"]);
+    }
+
+    // A scene of a newer version may have a field this one does not know: it comes in without it.
+    // That also holds for what never goes along, such as a program or a role: nothing of it is read.
+    public static TheoryData<string, Action<JsonObject>> FieldsItDoesNotKnow() => new()
+    {
+        { "at the top", root => root["loadTimes"] = new JsonArray() },
+        { "a program", root => root["program"] = "eldenring.exe" },
+        { "a role", root => root["role"] = "allOff" },
+        { "in the lighting", root => Lighting(root)["glow"] = true },
+        { "in a device", root => Device(root)["path"] = @"C:\Windows" },
+        { "an object in a device", root => Device(root)["future"] = new JsonObject { ["leds"] = new JsonArray(1, 2) } },
+        { "in a step", root => Step(root)["loop"] = 2 },
+    };
+
+    [Theory]
+    [MemberData(nameof(FieldsItDoesNotKnow))]
+    public void Read_SceneWithAFieldItDoesNotKnow_SkipsIt(string where, Action<JsonObject> change)
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        change(root);
+
+        var content = SharedFileReader.Read(Bytes(root.ToJsonString()));
+
+        Assert.NotNull(where);
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Equal("Gamen", content.Scene!.Name);
+        Assert.Equal([Red, null, Green], content.Scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].Colors);
     }
 
     [Fact]
@@ -117,12 +156,6 @@ public sealed class SharedFileReaderTests
         { "version 1.5", root => root["version"] = 1.5 },
         { "another kind", root => root["kind"] = "lamp" },
         { "kind in capitals", root => root["kind"] = "Scene" },
-        { "unknown field at the top", root => root["loadTimes"] = new JsonArray() },
-        { "program", root => root["program"] = "eldenring.exe" },
-        { "role", root => root["role"] = "allOff" },
-        { "unknown field in the lighting", root => Lighting(root)["glow"] = true },
-        { "unknown field in a device", root => Device(root)["path"] = @"C:\Windows" },
-        { "unknown field in a step", root => Step(root)["loop"] = 2 },
         { "no name", root => root.Remove("name") },
         { "empty name", root => root["name"] = " " },
         { "name too long", root => root["name"] = new string('a', ProfileNames.MaxLength + 1) },
@@ -173,6 +206,12 @@ public sealed class SharedFileReaderTests
         { "no led colors", root => Device(root)["ledColors"] = new JsonArray() },
         { "negative zone length", root => Device(root)["zoneLengths"] = new JsonArray(-1) },
         { "zone lengths without colors", root => Device(root).Remove("ledColors") },
+        { "layer color as a word", root => Device(root)["overlay"] = new JsonArray("red") },
+        { "layer color as a number", root => Device(root)["overlay"] = new JsonArray(42) },
+        { "layer not a list", root => Device(root)["overlay"] = "#FF0000" },
+        { "too many layer leds", root => Device(root)["overlay"] = Reds(SharedFiles.MaxLedsPerDevice + 1) },
+        { "no layer leds", root => Device(root)["overlay"] = new JsonArray() },
+        { "layer without a color", root => Device(root)["overlay"] = new JsonArray(null, null) },
         { "only devices empty", root => root["onlyDevices"] = new JsonArray() },
         { "only device not in devices", root => root["onlyDevices"] = new JsonArray("openrgb:other") },
         { "only device twice", root => root["onlyDevices"] = new JsonArray("openrgb:fan-5e6f7a8b", "openrgb:fan-5e6f7a8b") },
