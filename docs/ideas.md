@@ -598,6 +598,13 @@ uitbreidingen in `docs/bouwplan.md`.
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
   het weg kan; dat raakt o.a. `MainViewModelDeviceColorTests.Rainbow_MixedColorGoesOnlyToTheOwnColors`
   (refactorreview 23-11-2026)
+- De handleiding (`docs/handleiding.md`, "Als laag boven het effect") en `design/DESIGN.md`
+  (9.10, "Wat de keuze doet") zeggen dat de keuze naar "Als laag boven het effect" springt als je
+  een LED klikt die al een laagkleur heeft. In de code gebeurt dat alleen bij de eerste LED van
+  een bewerking (`LedEditorViewModel.Start`), niet bij een volgende LED op hetzelfde apparaat
+  (een gewone klik, Shift+klik of Ctrl+klik) zolang die bewerking loopt. Een productkeuze: het
+  gedrag of de docs gelijktrekken
+  (refactorreview 23-11-2026)
 
 ## Scènes
 
@@ -907,6 +914,13 @@ uitbreidingen in `docs/bouwplan.md`.
 - `ProfileNames.Normalize` en `CustomEffects.NormalizeName` zijn gelijk, op hun eigen constante
   voor de maximale lengte na (nu allebei 40); één gedeelde helper met de lengte erbij
   (refactorreview 18-11-2026)
+- De grenzen van de twee `SameAs` gelijktrekken: `LedOverlayStore.SameAs` vergelijkt alleen de
+  LED's die het apparaat nu heeft, maar `LedColorStore.SameAs` ook de per-LED-kleuren voorbij
+  het eind van het apparaat. Een verschil dat je niet ziet (bijv. bewaard voor een zone die nu
+  korter is) geeft zo bij een scène toch een overgang, en 0,5 s render-loop voor niets. Allebei
+  lopen ze via `LedColorLists.Same`, dus het is één getal (`device.LedCount`) en een test
+  (`LedColorStoreTests.SameAs_DifferencePastTheEndOfTheDevice_IsFalse`) aanpassen
+  (refactorreview 23-11-2026)
 
 ## Integraties
 
@@ -1105,3 +1119,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - De rij "Scènes" in de testtabel van `docs/ontwikkelaars.md` is één enorme cel; herschrijven als
   een lijst per onderwerp (startscènes, tijden, Hele huis, programma's, apparaten van een scène),
   zodat je een test terugvindt (refactorreview 18-11-2026)
+- Eén helper voor de 0-bytes-per-frame-tests van de engine: de opzet (`Rendered` abonneren, de
+  klok een paar frames laten opwarmen, dan `Allocations.During` over een reeks
+  `RenderAnimationFrame`s) staat nu los in 9 testklassen (`LightingControllerAnimationTests`,
+  `...CustomEffectTests`, `...DirectionTests`, `...FlashTests`, `...OverlayTests`,
+  `...SceneFadeTests`, `...ZoneCountTests`, `...ZoneFlashTests`, `...ZonesAlikeTests`)
+  (refactorreview 23-11-2026)
