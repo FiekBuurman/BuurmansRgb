@@ -170,6 +170,7 @@ Nog niet ontworpen; vierde navigatie-item. Zelfde stijl, met `buren-*`-kleuren.
 - Kleur is nooit de enige drager van betekenis: aan/uit staat ook in tekst ("3 van 4 aan", "uit" in de subregel), en een link is onderstreept.
 - De Statusregel is een live region: een schermlezer leest een melding voor als hij komt of verandert. De knoppen erin en Details staan in de Tab-volgorde met de focusring; Details zegt hoeveel meldingen eronder staan ("Details: nog 1 melding"). De knoppen van de melding over andere RGB-software noemen het programma ("Uitleg over SignalRGB", "SignalRGB niet meer melden"), en Uitleg zegt of de uitleg open staat (ingedrukt of niet, zoals Details); een knop die zijn melding wegneemt, geeft de focus door aan de volgende knop.
 - Een getal dat vanzelf blijft veranderen, zoals wat de engine gebruikt bij Instellingen, is geen live region: het heeft een naam en een schermlezer leest het als je erop komt, niet bij elke meting.
+- "Minder beweging" van Windows geldt voor wat op het scherm beweegt (het voorbeeld en de kleine strip op een dichte kaart), niet voor het licht in de kamer: de overgang naar een scène ("Overgang naar een scène" bij Instellingen, `sceneFade`) blijft zoals de gebruiker hem koos; wie hem niet wil, kiest daar "Direct".
 
 ## 8. Toon
 
