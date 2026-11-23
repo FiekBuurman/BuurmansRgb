@@ -9,8 +9,9 @@ namespace BuurmansRgb.UI.Views;
 
 // One LED of a LedPreviewView for UI Automation: its name, where it is drawn, whether it is
 // selected and, for the active LED of a focused view, that it has the focus. Selecting it does
-// what a click does, and adding it to the selection what Shift+click does. It has no element of
-// its own, so it asks the view for all of that.
+// what a click does; adding it to the selection or removing it what Ctrl+click does, and only when
+// it is not or is selected, so the others stay. It has no element of its own, so it asks the view
+// for all of that.
 internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPreviewView view, int led) : AutomationPeer, ISelectionItemProvider
 {
     private string? _label;
@@ -22,12 +23,23 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     public IRawElementProviderSimple SelectionContainer => ProviderFromPeer(list);
 
-    public void Select() => Click(extend: false);
+    public void Select() => Click(toggle: false);
 
-    public void AddToSelection() => Click(extend: true);
+    public void AddToSelection()
+    {
+        if (!IsSelected)
+        {
+            Click(toggle: true);
+        }
+    }
 
-    // The editor has no way to drop one LED from a range.
-    public void RemoveFromSelection() => throw new InvalidOperationException("An LED cannot leave the selection on its own.");
+    public void RemoveFromSelection()
+    {
+        if (IsSelected)
+        {
+            Click(toggle: true);
+        }
+    }
 
     public override object? GetPattern(PatternInterface patternInterface) =>
         patternInterface == PatternInterface.SelectionItem ? this : null;
@@ -126,9 +138,9 @@ internal sealed class LedAutomationPeer(LedPreviewAutomationPeer list, LedPrevie
 
     protected override List<AutomationPeer>? GetChildrenCore() => null;
 
-    private void Click(bool extend)
+    private void Click(bool toggle)
     {
-        if (!view.ClickLed(led, extend))
+        if (!view.ClickLed(led, extend: false, toggle))
         {
             throw new ElementNotEnabledException();
         }

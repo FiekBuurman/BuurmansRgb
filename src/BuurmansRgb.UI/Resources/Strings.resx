@@ -291,6 +291,10 @@
   <data name="LedSelectionRange" xml:space="preserve">
     <value>LED {0} t/m {1} van {2}</value>
   </data>
+  <data name="LedSelectionLoose" xml:space="preserve">
+    <value>{0} van {1}</value>
+    <comment>Gekozen LED's met gaten ertussen (Ctrl+klik): {0} = het aantal (LedCount, bijv. 4 LED's), {1} = de naam van het apparaat.</comment>
+  </data>
   <data name="LedSelectionHint" xml:space="preserve">
     <value>Kies hieronder een kleur: deze LED's krijgen hem meteen.</value>
   </data>

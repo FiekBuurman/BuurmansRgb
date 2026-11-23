@@ -107,6 +107,26 @@ public sealed class LedEditorLayerTests
         Assert.Equal([Red, RgbColor.Lerp(Red, Blue, 0.5), Blue], edit!.Colors);
     }
 
+    // WASD with Ctrl+click: the keys between them keep their layer, or none.
+    [Fact]
+    public void PaintLayer_WithGaps_KeepsTheLayerOfTheLedsBetween()
+    {
+        _editor.Start("kb", "Toetsenbord", [White, White, White, White], 0, [null, Blue, null, null]);
+        _editor.Toggle(3, extend: false);
+
+        var edit = _editor.PaintLayer(Red);
+
+        Assert.Equal(0, edit!.FirstLed);
+        Assert.Equal([Red, Blue, null, Red], edit.Colors);
+
+        _editor.Toggle(0, extend: false);
+        var removed = _editor.RemoveLayer();
+
+        Assert.Equal(3, removed!.FirstLed);
+        Assert.Equal([null], removed.Colors);
+        Assert.False(_editor.CanRemoveLayer);
+    }
+
     [Fact]
     public void Clear_ForgetsTheLayer()
     {

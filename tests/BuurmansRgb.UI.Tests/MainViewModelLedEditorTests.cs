@@ -199,7 +199,7 @@ public sealed class MainViewModelLedEditorTests
 
         Assert.Equal(new LedSelection("board", "Board", 1, 2), viewModel.LedEditor.Selection);
         var board = Assert.Single(viewModel.Preview.Devices);
-        Assert.Equal([(1, 1), (0, 0)], board.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
+        Assert.Equal([(1, 1), (0, 0)], board.Zones.Select(zone => (zone.Selection.First, zone.Selection.Last)));
         Assert.Equal(["leds board 1 #00FF00,#00FF00"], Api.Calls);
     }
 
@@ -454,6 +454,59 @@ public sealed class MainViewModelLedEditorTests
         Assert.False(strip.PressKey(LedKey.ClearSelection));
     }
 
+    // Ctrl+click: the first one on a device chooses that LED, the next ones add or take out an LED,
+    // and the color goes to the chosen ones only, not to the LED between them.
+    [Fact]
+    public async Task CtrlClick_ChoosesLooseLedsThatTheColorGoesTo()
+    {
+        var viewModel = await ConnectAsync();
+        Api.LedColors["strip"] = [new RgbColor(1, 2, 3), new RgbColor(9, 8, 7), new RgbColor(4, 5, 6)];
+
+        Click(viewModel, "strip", 0, toggle: true);
+        Click(viewModel, "strip", 2, toggle: true);
+        Click(viewModel, "strip", 1, toggle: true);
+        Click(viewModel, "strip", 1, toggle: true);
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Equal(LedSet.Of([0, 2]), viewModel.LedEditor.Selection!.Leds);
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+        Assert.Equal(LedSet.Of([0, 2]), strip.Zones.Single().Selection);
+        Assert.Equal(["leds strip 0 #00FF00,#090807,#00FF00"], Api.Calls);
+    }
+
+    // Ctrl+Space on the active LED does what Ctrl+click does; Ctrl+arrows only move.
+    [Fact]
+    public async Task Keys_CtrlSpaceAddsTheActiveLedWithoutLosingTheRest()
+    {
+        var viewModel = await ConnectAsync();
+        var strip = viewModel.Preview.Devices.Single(preview => preview.DeviceId == "strip");
+
+        strip.PressKey(LedKey.Select);
+        strip.PressKey(LedKey.Next);
+        strip.PressKey(LedKey.Next);
+        strip.PressKey(LedKey.Toggle);
+
+        Assert.Equal(LedSet.Of([0, 2]), viewModel.LedEditor.Selection!.Leds);
+
+        strip.PressKey(LedKey.Toggle);
+        Assert.Equal(LedSet.Of([0]), viewModel.LedEditor.Selection!.Leds);
+    }
+
+    // Taking out the last chosen LED goes as "Selectie opheffen": the picker colors the device again.
+    [Fact]
+    public async Task CtrlClick_TheLastChosenLed_GivesThePickerBackToTheDevice()
+    {
+        var viewModel = await ConnectAsync();
+        Click(viewModel, "fan", 0);
+
+        Click(viewModel, "fan", 0, toggle: true);
+        viewModel.ColorPicker.Pick("#00FF00");
+
+        Assert.Null(viewModel.LedEditor.Selection);
+        Assert.All(viewModel.Preview.Devices, preview => Assert.Equal((-1, -1), preview.ShownSelection()));
+        Assert.Equal(["color all #00FF00"], Api.Calls);
+    }
+
     // Escape in the preview.
     [Fact]
     public async Task ClearLedSelectionFromThePreview_GivesThePickerBackToTheDevice()
@@ -563,8 +616,8 @@ public sealed class MainViewModelLedEditorTests
         Assert.Equal(new LedSelection("strip", "LED strip", 2, 2), viewModel.LedEditor.Selection);
     }
 
-    private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false) =>
-        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend);
+    private static void Click(MainViewModel viewModel, string deviceId, int index, bool extend = false, bool toggle = false) =>
+        viewModel.Preview.Devices.Single(preview => preview.DeviceId == deviceId).ClickLed(index, extend, toggle);
 
     private async Task<MainViewModel> ConnectAsync()
     {

@@ -1556,9 +1556,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await ShowSelectionAsync();
     }
 
-    // A range that the keyboard starts on a device without a selection begins at its Anchor.
-    private Task OnLedClickedAsync(LedClick click) =>
-        EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
+    // A range that the keyboard starts on a device without a selection begins at its Anchor. A
+    // Ctrl+click on a device without a selection chooses that LED, as a click does; on a device
+    // with one, it puts the LED in or takes it out.
+    private Task OnLedClickedAsync(LedClick click) => click.Toggle
+        ? EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Toggle(click.Index, click.Extend), selectOnStart: click.Extend)
+        : EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
 
     private Task OnLedsSelectedAsync(LedSelection leds) =>
         EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
@@ -1567,9 +1570,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // on the same device reuse them, so they also hold the edits that are still on their way to
     // the engine. A click or key on the same device before they came waits for the same colors
     // and starts at the same LED, so two quick Shift+arrows give one range from where the first
-    // one came. select then picks the LEDs.
-    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select)
+    // one came. select then picks the LEDs; without selectOnStart not when this call started the
+    // edit, which already picked the LED at firstIndex. When select took out the last chosen LED
+    // (Ctrl+click), it goes as "Selectie opheffen" does.
+    private async Task EditLedsAsync(string deviceId, int firstIndex, Action<LedEditorViewModel> select, bool selectOnStart = true)
     {
+        var started = false;
         if (_connection is not { } connection)
         {
             return;
@@ -1599,10 +1605,22 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (!LedEditor.IsEditing(deviceId))
             {
                 LedEditor.Start(device.Id, device.Name, colors, starting.FirstIndex, layer);
+                started = true;
             }
         }
 
-        select(LedEditor);
+        var hadSelection = LedEditor.HasSelection;
+        if (selectOnStart || !started)
+        {
+            select(LedEditor);
+        }
+
+        if (hadSelection && !LedEditor.HasSelection)
+        {
+            await ClearLedSelectionAsync();
+            return;
+        }
+
         Preview.ShowLedSelection(LedEditor.Selection);
         _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
     }

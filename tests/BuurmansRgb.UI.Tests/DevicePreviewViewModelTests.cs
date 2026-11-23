@@ -326,7 +326,7 @@ public sealed class DevicePreviewViewModelTests
         Assert.Equal((4, 6), preview.ShownSelection());
         Assert.Equal(
             [(4, 5), (0, 0), (-1, -1)],
-            preview.Zones.Select(zone => (zone.SelectionFirst, zone.SelectionLast)));
+            preview.Zones.Select(zone => (zone.Selection.First, zone.Selection.Last)));
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public sealed class DevicePreviewViewModelTests
 
         preview.ShowLedSelection(new LedSelection("fan", "Fan", 0, 1));
 
-        Assert.All(preview.Zones, zone => Assert.Equal((-1, -1), (zone.SelectionFirst, zone.SelectionLast)));
+        Assert.All(preview.Zones, zone => Assert.Equal((-1, -1), (zone.Selection.First, zone.Selection.Last)));
     }
 
     [Fact]

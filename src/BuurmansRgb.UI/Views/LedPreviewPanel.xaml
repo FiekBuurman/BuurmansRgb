@@ -114,7 +114,7 @@
                                      comes after it (8 px below, such as the label of the length) wins below. -->
                                 <views:LedPreviewView Colors="{Binding Colors}" Matrix="{Binding Matrix}" HorizontalAlignment="Stretch"
                                                       IsRing="{Binding IsRing}" LedNames="{Binding LedNames}" LedLabels="{Binding LedLabels}"
-                                                      SelectionFirst="{Binding SelectionFirst}" SelectionLast="{Binding SelectionLast}"
+                                                      Selection="{Binding Selection}"
                                                       ClickCommand="{Binding ClickLedCommand}"
                                                       ActiveLed="{Binding ActiveLed}" KeyCommand="{Binding PressKeyCommand}" KeyGroup="{Binding DeviceId}"
                                                       views:FocusKeeper.Key="{Binding LedsFocusKey}"

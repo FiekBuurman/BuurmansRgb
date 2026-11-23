@@ -21,7 +21,7 @@ internal sealed class LedPreviewAutomationPeer(LedPreviewView owner) : Framework
         }
     };
 
-    // Shift+click selects a range, so more than one LED can be selected.
+    // Shift+click selects a range and Ctrl+click adds an LED, so more than one LED can be selected.
     public bool CanSelectMultiple => true;
 
     public bool IsSelectionRequired => false;

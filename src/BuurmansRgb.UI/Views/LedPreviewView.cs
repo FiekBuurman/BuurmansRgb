@@ -14,8 +14,8 @@ namespace BuurmansRgb.UI.Views;
 // and keys that LedNames call wide, such as the space bar, reach into the empty cells beside them.
 // A ring and a key map shrink when they are wider than the available width. One element per
 // zone instead of one per LED keeps a 104-key keyboard cheap to redraw. A click on an LED, or
-// within LedLayout.HitRadius of its middle (the nearest LED), runs ClickCommand with a LedHit;
-// the LEDs SelectionFirst to SelectionLast get a selection ring. A
+// within LedLayout.HitRadius of its middle (the nearest LED), runs ClickCommand with a LedHit
+// (Shift extends, Ctrl toggles); the LEDs in Selection get a selection ring. A
 // black LED gets the ring of an LED that is off (OffRingBrush), so you still see where it is.
 // With the keyboard focus, a key runs KeyCommand with a LedKeyPress and ActiveLed gets a focus
 // ring. The views of one KeyGroup, such as the zones of a device, share one active LED, and only
@@ -44,11 +44,8 @@ public sealed class LedPreviewView : FrameworkElement
     public static readonly DependencyProperty LedLabelsProperty = DependencyProperty.Register(
         nameof(LedLabels), typeof(IReadOnlyList<string>), typeof(LedPreviewView), new PropertyMetadata(null));
 
-    public static readonly DependencyProperty SelectionFirstProperty = DependencyProperty.Register(
-        nameof(SelectionFirst), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender, OnSelectionFirstChanged));
-
-    public static readonly DependencyProperty SelectionLastProperty = DependencyProperty.Register(
-        nameof(SelectionLast), typeof(int), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSelection.NoSelection, FrameworkPropertyMetadataOptions.AffectsRender, OnSelectionLastChanged));
+    public static readonly DependencyProperty SelectionProperty = DependencyProperty.Register(
+        nameof(Selection), typeof(LedSet), typeof(LedPreviewView), new FrameworkPropertyMetadata(LedSet.Empty, FrameworkPropertyMetadataOptions.AffectsRender, OnSelectionChanged));
 
     public static readonly DependencyProperty ClickCommandProperty = DependencyProperty.Register(
         nameof(ClickCommand), typeof(ICommand), typeof(LedPreviewView), new PropertyMetadata(null, OnClickCommandChanged));
@@ -132,16 +129,12 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(LedLabelsProperty, value);
     }
 
-    public int SelectionFirst
+    // The LEDs with a selection ring, counted from the start of the view; with Ctrl+click they can
+    // have gaps between them.
+    public LedSet Selection
     {
-        get => (int)GetValue(SelectionFirstProperty);
-        set => SetValue(SelectionFirstProperty, value);
-    }
-
-    public int SelectionLast
-    {
-        get => (int)GetValue(SelectionLastProperty);
-        set => SetValue(SelectionLastProperty, value);
+        get => (LedSet)GetValue(SelectionProperty);
+        set => SetValue(SelectionProperty, value);
     }
 
     public ICommand? ClickCommand
@@ -185,20 +178,33 @@ public sealed class LedPreviewView : FrameworkElement
     // here, as it cannot move the mouse.
     internal Func<MouseEventArgs, Point>? MousePosition { get; set; }
 
-    // The keys held with a click; null for what Windows says. A test holds Shift here.
+    // The keys held with a click; null for what Windows says. A test holds Shift or Ctrl here.
     internal Func<ModifierKeys>? ClickModifiers { get; set; }
 
     // The LED the tooltip names, LedMatrix.NoLed while it is hidden.
     internal int ToolTipLed => _toolTip?.Led ?? LedMatrix.NoLed;
 
     // What a key does in the preview: the arrows, Home and End move the active LED, with Shift
-    // they extend the range, Space and Enter choose the active LED, Ctrl+A chooses all and Escape
-    // none. null for any other key, which the window gets.
+    // they extend the range, Space and Enter choose the active LED, Ctrl+Space puts it in the
+    // selection or takes it out, Ctrl+A chooses all and Escape none. With Ctrl the arrows, Home and
+    // End move the active LED as without it, leaving the selection, as in a list of Windows. null
+    // for any other key, which the window gets.
     internal static LedKeyPress? KeyPressOf(Key key, ModifierKeys modifiers)
     {
         if (modifiers == ModifierKeys.Control)
         {
-            return key == Key.A ? new(LedKey.SelectAll) : null;
+            return key switch
+            {
+                Key.A => new(LedKey.SelectAll),
+                Key.Space => new(LedKey.Toggle),
+                Key.Left => new(LedKey.Previous),
+                Key.Right => new(LedKey.Next),
+                Key.Up => new(LedKey.Up),
+                Key.Down => new(LedKey.Down),
+                Key.Home => new(LedKey.First),
+                Key.End => new(LedKey.Last),
+                _ => null,
+            };
         }
 
         if (modifiers is not (ModifierKeys.None or ModifierKeys.Shift))
@@ -247,7 +253,7 @@ public sealed class LedPreviewView : FrameworkElement
     // The label of an LED from LedLabels; null for no LED or when there are no labels.
     internal string? LabelOf(int led) => LedLabels is { } labels && led >= 0 && led < labels.Count ? labels[led] : null;
 
-    internal bool IsSelected(int led) => led >= SelectionFirst && led <= SelectionLast;
+    internal bool IsSelected(int led) => Selection.Contains(led);
 
     // Where an LED is drawn, from the top left of the view; Rect.Empty for an LED it does not show.
     internal Rect BoundsOf(int led)
@@ -260,11 +266,11 @@ public sealed class LedPreviewView : FrameworkElement
     // LedLayout.HitRadius; NoLed farther away.
     internal int LedAt(Point position) => ArrangementFor(ActualWidth).LedAt(position);
 
-    // Runs ClickCommand for an LED, as a click (with Shift: extend) on it does; UI Automation
-    // selects an LED this way too. False when there is no command or it cannot run.
-    internal bool ClickLed(int led, bool extend)
+    // Runs ClickCommand for an LED, as a click (with Shift: extend, with Ctrl: toggle) on it does; UI
+    // Automation selects an LED this way too. False when there is no command or it cannot run.
+    internal bool ClickLed(int led, bool extend, bool toggle = false)
     {
-        var hit = new LedHit(led, extend);
+        var hit = new LedHit(led, extend, toggle);
         if (ClickCommand is not { } command || !command.CanExecute(hit))
         {
             return false;
@@ -429,7 +435,7 @@ public sealed class LedPreviewView : FrameworkElement
         _toolTip?.Hide();
         var led = LedAt(PositionOf(e));
         var modifiers = ClickModifiers?.Invoke() ?? Keyboard.Modifiers;
-        if (led == LedMatrix.NoLed || !ClickLed(led, modifiers.HasFlag(ModifierKeys.Shift)))
+        if (led == LedMatrix.NoLed || !ClickLed(led, modifiers.HasFlag(ModifierKeys.Shift), modifiers.HasFlag(ModifierKeys.Control)))
         {
             return;
         }
@@ -526,32 +532,21 @@ public sealed class LedPreviewView : FrameworkElement
         }
     }
 
-    private static void OnSelectionFirstChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
+    // Tells a screen reader which LEDs left or joined the selection.
+    private static void OnSelectionChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
     {
         var view = (LedPreviewView)element;
-        view.RaiseSelectionChanged((int)e.OldValue, view.SelectionLast);
-    }
-
-    private static void OnSelectionLastChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
-    {
-        var view = (LedPreviewView)element;
-        view.RaiseSelectionChanged(view.SelectionFirst, (int)e.OldValue);
-    }
-
-    // Tells a screen reader which LEDs left or joined the selection, from the range oldFirst to
-    // oldLast to the one of now.
-    private void RaiseSelectionChanged(int oldFirst, int oldLast)
-    {
-        if (UIElementAutomationPeer.FromElement(this) is not LedPreviewAutomationPeer peer
+        var before = (LedSet)e.OldValue;
+        if (UIElementAutomationPeer.FromElement(view) is not LedPreviewAutomationPeer peer
             || !AutomationPeer.ListenerExists(AutomationEvents.PropertyChanged))
         {
             return;
         }
 
-        for (var led = 0; led < Colors.Count; led++)
+        for (var led = 0; led < view.Colors.Count; led++)
         {
-            var wasSelected = led >= oldFirst && led <= oldLast;
-            if (wasSelected != IsSelected(led))
+            var wasSelected = before.Contains(led);
+            if (wasSelected != view.IsSelected(led))
             {
                 peer.RaiseSelectionChanged(led, wasSelected);
             }
