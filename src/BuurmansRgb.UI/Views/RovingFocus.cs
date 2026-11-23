@@ -12,7 +12,7 @@ namespace BuurmansRgb.UI.Views;
 internal static class RovingFocus
 {
     // The control of the row that a key takes the focus to: null for a key that is handled already,
-    // with Alt, Ctrl or Shift held, from a source outside the row, or that moves nothing (NextIndex).
+    // with a modifier key held, from a source outside the row, or that moves nothing (NextIndex).
     internal static T? TargetOf<T>(this ItemsControl items, KeyEventArgs e, bool upDownMoves) where T : UIElement =>
         items.TargetOf<T>(e, Keyboard.Modifiers, upDownMoves);
 
