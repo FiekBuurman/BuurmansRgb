@@ -26,22 +26,13 @@ public sealed class DeviceChipRow : ItemsControl
         }
 
         var chips = Chips();
-        var current = chips.FindIndex(chip => chip == source || chip.IsAncestorOf(source));
+        var current = chips.IndexHolding(source);
         if (current < 0)
         {
             return;
         }
 
-        int? next = e.Key switch
-        {
-            Key.Left => (current - 1 + chips.Count) % chips.Count,
-            Key.Right => (current + 1) % chips.Count,
-            Key.Home => 0,
-            Key.End => chips.Count - 1,
-            Key.Up or Key.Down => current,
-            _ => null,
-        };
-        if (next is { } index)
+        if (RovingFocus.NextIndex(chips.Count, current, e.Key, upDownMoves: false) is { } index)
         {
             chips[index].Focus();
             e.Handled = true;
@@ -49,12 +40,7 @@ public sealed class DeviceChipRow : ItemsControl
     }
 
     // The chips in the order of the row.
-    internal List<ButtonBase> Chips() =>
-        [.. Enumerable.Range(0, Items.Count)
-            .Select(ItemContainerGenerator.ContainerFromIndex)
-            .OfType<DependencyObject>()
-            .Select(VisualTreeSearch.FirstDescendant<ButtonBase>)
-            .OfType<ButtonBase>()];
+    internal List<ButtonBase> Chips() => this.Containers<ButtonBase>();
 
     private sealed class DeviceChipRowAutomationPeer(DeviceChipRow owner) : FrameworkElementAutomationPeer(owner)
     {

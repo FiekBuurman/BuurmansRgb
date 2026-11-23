@@ -16,12 +16,7 @@ namespace BuurmansRgb.UI.Views;
 public sealed class EffectTileGroup : ItemsControl
 {
     // The tiles in the order of the group.
-    internal List<EffectTile> Tiles() =>
-        [.. Enumerable.Range(0, Items.Count)
-            .Select(ItemContainerGenerator.ContainerFromIndex)
-            .OfType<DependencyObject>()
-            .Select(VisualTreeSearch.FirstDescendant<EffectTile>)
-            .OfType<EffectTile>()];
+    internal List<EffectTile> Tiles() => this.Containers<EffectTile>();
 
     internal EffectTile? ChosenTile() => Tiles().FirstOrDefault(tile => tile.IsChecked == true);
 
@@ -61,21 +56,13 @@ public sealed class EffectTileGroup : ItemsControl
         }
 
         var tiles = Tiles();
-        var current = tiles.FindIndex(tile => tile == source || tile.IsAncestorOf(source));
+        var current = tiles.IndexHolding(source);
         if (current < 0)
         {
             return;
         }
 
-        int? next = e.Key switch
-        {
-            Key.Left or Key.Up => (current - 1 + tiles.Count) % tiles.Count,
-            Key.Right or Key.Down => (current + 1) % tiles.Count,
-            Key.Home => 0,
-            Key.End => tiles.Count - 1,
-            _ => null,
-        };
-        if (next is not { } index)
+        if (RovingFocus.NextIndex(tiles.Count, current, e.Key, upDownMoves: true) is not { } index)
         {
             return;
         }
