@@ -39,6 +39,12 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
     private TimeSpan _fadeStart;
     private TimeSpan _fadeDuration;
 
+    // The layer over the effect (ShowOverlay): the LEDs that have a color in it, within the LEDs of
+    // the device, with those colors. Made when the layer changes, so a frame only copies them.
+    private IReadOnlyList<RgbColor?>? _overlay;
+    private int[] _overlayLeds = [];
+    private RgbColor[] _overlayColors = [];
+
     public IDeviceProvider Provider { get; } = provider;
 
     public RgbDevice Device { get; } = device;
@@ -71,6 +77,42 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         _zonesAlike = zonesAlike;
         Clock.Speed = speed;
         Aim(direction);
+    }
+
+    // From the next render on, every LED with a color in overlay shows that color over the effect,
+    // before the brightness, so a dimmed device dims its layer too; null shows the effect. An LED
+    // past the end of the device, which may have fewer LEDs now, is skipped. Like Show, call it
+    // after BeginFade, so a fade goes over from the layer before. The same list again does nothing.
+    public void ShowOverlay(IReadOnlyList<RgbColor?> overlay)
+    {
+        if (ReferenceEquals(overlay, _overlay))
+        {
+            return;
+        }
+
+        _overlay = overlay;
+        var count = 0;
+        for (var i = 0; i < Math.Min(overlay.Count, Buffer.Length); i++)
+        {
+            count += overlay[i] is null ? 0 : 1;
+        }
+
+        if (count != _overlayLeds.Length)
+        {
+            _overlayLeds = new int[count];
+            _overlayColors = new RgbColor[count];
+        }
+
+        var next = 0;
+        for (var i = 0; i < Math.Min(overlay.Count, Buffer.Length); i++)
+        {
+            if (overlay[i] is { } color)
+            {
+                _overlayLeds[next] = i;
+                _overlayColors[next] = color;
+                next++;
+            }
+        }
     }
 
     // From time on, the renders show the flash over the effect on the LEDs firstLed to
@@ -132,7 +174,8 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         }
     }
 
-    // The effect at the brightness, over the colors a fade comes from as far as it got.
+    // The effect with the layer over it at the brightness, over the colors a fade comes from as far
+    // as it got.
     private void RenderLighting(Span<RgbColor> leds, TimeSpan time)
     {
         var effectTime = Clock.Tick(time);
@@ -148,6 +191,11 @@ internal sealed class DeviceOutput(IDeviceProvider provider, RgbDevice device, E
         else
         {
             RenderEffect(leds, _positions, effectTime);
+        }
+
+        for (var i = 0; i < _overlayLeds.Length; i++)
+        {
+            leds[_overlayLeds[i]] = _overlayColors[i];
         }
 
         if (_brightness < 1.0)

@@ -48,6 +48,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     private readonly DeviceOutputs _outputs;
     private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
+    private readonly LedOverlayStore _overlays = new();
     private readonly HashSet<string> _zonesAlike = new(StringComparer.Ordinal);
 
     // The own effects by effect id, each with the effect that plays it: one for every device, as
@@ -106,7 +107,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // Listeners read the colors with GetOutput, so nothing is copied while nobody listens.
     public event EventHandler? Rendered;
 
-    // Raised when the lighting is changed through SetLighting, SetLedColors or Replace; not when it
+    // Raised when the lighting is changed through SetLighting, SetLedColors, SetOverlay or Replace; not when it
     // is applied from settings, and not when a zone gets another length: the stored LED colors keep
     // the zone lengths they were chosen for and follow the zones by themselves (LedColorStore).
     public event EventHandler? LightingChanged;
@@ -560,6 +561,39 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         LightingChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // The layer over the effect of the device, one per LED it has now: a fixed color, or null for an
+    // LED that shows the effect.
+    public IReadOnlyList<RgbColor?> GetOverlay(string deviceId)
+    {
+        lock (_gate)
+        {
+            return _overlays.Resolve(KnownDeviceLocked(deviceId));
+        }
+    }
+
+    // Gives the LEDs from firstLed on a fixed color over the effect, whatever the effect, or takes it
+    // away for a null; the other LEDs keep theirs. The effect stays, and the change shows at once.
+    // A device that is off stays off, layer and all, until it goes on.
+    public void SetOverlay(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors)
+    {
+        ArgumentNullException.ThrowIfNull(colors);
+        bool rendered;
+        lock (_gate)
+        {
+            var device = KnownDeviceLocked(deviceId);
+            ArgumentOutOfRangeException.ThrowIfNegative(firstLed);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(firstLed, device.LedCount);
+            ArgumentOutOfRangeException.ThrowIfGreaterThan(colors.Count, device.LedCount - firstLed, nameof(colors));
+
+            _overlays.Set(deviceId, firstLed, colors);
+            EndFadesLocked(deviceId);
+            rendered = RenderLocked();
+        }
+
+        Publish(rendered);
+        LightingChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     // Gives a resizable zone another length. The provider applies it, possibly in the background,
     // and reports the device again through DevicesChanged; the lights follow then.
     public void ResizeZone(string deviceId, int zoneIndex, int ledCount)
@@ -965,6 +999,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             var effect = lighting.On ? EffectLocked(lighting, output.Device) : Off;
             var zonesAlike = lighting.EffectId != EffectIds.PerLed && _zonesAlike.Contains(output.Device.Id);
             output.Show(effect, lighting.Brightness, lighting.Speed, zonesAlike, lighting.Direction);
+
+            // Off is off: black without the layer too.
+            output.ShowOverlay(lighting.On ? _overlays.For(output.Device.Id) : []);
             output.Render(time);
             if (!IsManual(_pause))
             {
@@ -1047,14 +1084,16 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
-    // Whether device shows other lighting or other per-LED colors now than in before. Only the
-    // per-LED effect shows those colors, so they count only for a device that shows it, before and
-    // now (with another effect before or now, the lighting differs already).
+    // Whether device shows other lighting, other per-LED colors or another layer now than in
+    // before. Only the per-LED effect shows those colors, so they count only for a device that
+    // shows it, before and now (with another effect before or now, the lighting differs already);
+    // the layer shows with any effect, but not on a device that is off, before and now.
     private bool ChangedLocked(RgbDevice device, LightingState before)
     {
         var lighting = _lighting.Get(device.Id);
         return before.Devices.GetValueOrDefault(device.Id, before.Global) != lighting
-            || (lighting.EffectId == EffectIds.PerLed && !_ledColors.SameAs(before.LedColors, device));
+            || (lighting.EffectId == EffectIds.PerLed && !_ledColors.SameAs(before.LedColors, device))
+            || (lighting.On && !_overlays.SameAs(before.Overlays, device));
     }
 
     // A change of its own, without fade, shows at once: it ends the fade of the device it changes,
@@ -1232,9 +1271,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         _lighting.Replace(state.Global, state.Devices);
         _ledColors.Replace(state.LedColors);
         _ledColors.Adopt(_outputs.All.Select(output => output.Device));
+        _overlays.Replace(state.Overlays);
     }
 
-    private LightingState StateLocked() => new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot());
+    private LightingState StateLocked() =>
+        new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot()) { Overlays = _overlays.Snapshot() };
 
     // The effect a device shows with lighting: an own effect plays its steps, and one that is gone
     // shows the device color: only for a moment once the effects are known (see
