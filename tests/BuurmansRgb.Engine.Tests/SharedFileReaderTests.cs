@@ -113,6 +113,26 @@ public sealed class SharedFileReaderTests
         Assert.Equal([Red, null, Green], content.Scene.Lighting.LedColors["openrgb:k70-1a2b3c4d"].Colors);
     }
 
+    // The trace names what it skipped, at the top and in a device; a name with a line break only by
+    // its length, as it would start a line of its own there.
+    [Fact]
+    public void Read_FieldsItDoesNotKnow_TraceNamesThem()
+    {
+        using var trace = new TraceCapture();
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["glowTimes"] = new JsonArray();
+        Device(root)["glowZone"] = 1;
+        Device(root)["x\nImport: something else"] = 1;
+
+        Assert.Equal(ShareImportOutcome.Imported, SharedFileReader.Read(Bytes(root.ToJsonString())).Outcome);
+
+        var message = Assert.Single(trace.Messages, message => message.Contains("glowTimes", StringComparison.Ordinal));
+        Assert.Contains("\"glowZone\" (in a device)", message, StringComparison.Ordinal);
+        Assert.Contains("a name of 24 characters (in a device)", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("something else", message, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"lighting\"", message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Read_Effect_GivesIt()
     {

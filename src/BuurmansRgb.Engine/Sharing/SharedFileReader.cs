@@ -6,16 +6,22 @@ using BuurmansRgb.Engine.Lighting;
 
 namespace BuurmansRgb.Engine.Sharing;
 
-// Reads a shared scene or own effect (SharedFile) with every check before anything is added, as
-// strictly as a backup of the settings (SettingsArchive): not larger than SharedFiles.MaxJsonBytes,
-// valid JSON with "version" and "kind", a field the engine does not know skipped (SharingJsonContext),
-// and every value within what the app itself can make: names as the app allows them and not like a
-// path (SharedFiles.IsPathLike), at most SharedFiles.MaxDevices devices and SharedFiles.MaxEffects effects,
-// colors as "#RRGGBB", brightness, speed and direction in range, only effects the engine knows or
-// the file brings, and each effect it brings shown by the scene. Anything wrong refuses the whole
-// file; the trace says what, for whoever made it.
+// Reads a shared scene or own effect (SharedFile) with every check before anything is added. Strict
+// is: the size (not larger than SharedFiles.MaxJsonBytes), valid JSON with "version" from
+// SharedFormat.MinVersion to Version and a known "kind", no name twice in one object, every known
+// field of the right type and a required one there (SharingJsonContext), and every value within what
+// the app itself can make: names as the app allows them and not like a path (SharedFiles.IsPathLike),
+// at most SharedFiles.MaxDevices devices and SharedFiles.MaxEffects effects, colors as "#RRGGBB",
+// brightness, speed and direction in range, only effects the engine knows or the file brings, and
+// each effect it brings shown by the scene. Anything wrong refuses the whole file; the trace says
+// what, for whoever made it. Not strict: a field the engine does not know is skipped, so a scene of
+// a newer version with a field that only adds still comes in; the trace names it.
 internal static class SharedFileReader
 {
+    private const int MaxTracedFields = 10;
+
+    private const int MaxTracedFieldLength = 40;
+
     public static SharedContent Read(byte[] json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -85,6 +91,7 @@ internal static class SharedFileReader
                 return SharedContent.Refused(ShareImportOutcome.Invalid);
             }
 
+            TraceUnknownFields(root);
             return null;
         }
         catch (JsonException exception)
@@ -92,6 +99,41 @@ internal static class SharedFileReader
             Trace.TraceWarning($"Import: not JSON: {exception.Message}");
             return SharedContent.Refused(ShareImportOutcome.NotShared);
         }
+    }
+
+    // The fields the engine skips, at the top and in a device, for whoever wonders where something
+    // went: likely of a newer version. A name that is long or has a hidden character, such as a line
+    // break that would start a line of its own in the trace, goes by its length only.
+    private static void TraceUnknownFields(JsonElement root)
+    {
+        var unknown = UnknownFields(root, SharingJsonContext.Default.SharedFile.Properties.Select(property => property.Name)).ToList();
+        if (root.TryGetProperty("devices", out var devices) && devices.ValueKind == JsonValueKind.Array)
+        {
+            var known = SharingJsonContext.Default.GetTypeInfo(typeof(SharedDevice))!.Properties.Select(property => property.Name).ToList();
+            unknown.AddRange(devices.EnumerateArray().SelectMany(device => UnknownFields(device, known)).Select(name => name + " (in a device)"));
+        }
+
+        var names = unknown.Distinct(StringComparer.Ordinal).ToList();
+        if (names.Count > 0)
+        {
+            var shown = string.Join(", ", names.Take(MaxTracedFields));
+            Trace.TraceInformation($"Import: skipped {names.Count} field(s) it does not know: {shown}{(names.Count > MaxTracedFields ? ", ..." : string.Empty)}.");
+        }
+    }
+
+    private static IEnumerable<string> UnknownFields(JsonElement element, IEnumerable<string> known)
+    {
+        if (element.ValueKind != JsonValueKind.Object)
+        {
+            return [];
+        }
+
+        var names = known.ToHashSet(StringComparer.Ordinal);
+        return element.EnumerateObject()
+            .Select(property => property.Name)
+            .Where(name => !names.Contains(name))
+            .Select(name => name.Length <= MaxTracedFieldLength && !SharedFormat.HasHiddenCharacter(name) ? $"\"{name}\"" : $"a name of {name.Length} characters")
+            .ToList();
     }
 
     private static SharedScene ReadScene(SharedFile file)
