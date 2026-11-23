@@ -124,14 +124,23 @@ public sealed class DeviceCardsViewTests
             Assert.True(expandAll.Focus());
             PageViews.Click(expandAll);
             Assert.All(Cards(preview), card => Assert.True(card.IsExpanded));
-            Assert.True(expandAll.IsKeyboardFocused);
+            Assert.True(expandAll.IsKeyboardFocused, FocusNow());
 
             Assert.True(collapseAll.Focus());
             PageViews.Click(collapseAll);
             Assert.All(Cards(preview), card => Assert.False(card.IsExpanded));
-            Assert.True(collapseAll.IsKeyboardFocused);
+            Assert.True(collapseAll.IsKeyboardFocused, FocusNow());
         });
     }
+
+    // Where the keyboard focus is, for a failure message: the element, its name and its key.
+    private static string FocusNow() => Keyboard.FocusedElement switch
+    {
+        null => "the keyboard focus is nowhere",
+        FrameworkElement element => $"the keyboard focus is on {element.GetType().Name} \"{AutomationProperties.GetName(element)}\" "
+            + $"(key {FocusKeeper.GetKey(element) ?? "none"}, window active {Window.GetWindow(element)?.IsActive})",
+        var other => $"the keyboard focus is on {other.GetType().Name}",
+    };
 
     // The chips are one Tab stop, a toolbar "Naar een apparaat": ← and → go round, Home and End to
     // the ends, ↑ and ↓ do nothing; each chip is a button with its place in the row (besluit 9).
