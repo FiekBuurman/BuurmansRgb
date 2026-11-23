@@ -95,6 +95,8 @@ public sealed class LedPreviewPanelViewTests
         {
             Window.GetWindow(panel)!.Width = 600;
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            viewModel.Preview.ExpandAll();
+            OffscreenWindow.WaitUntilIdle();
             var views = AppTheme.Descendants<LedPreviewView>(preview).Where(view => view.IsVisible).ToList();
             Assert.Equal(3, views.Count);
 
@@ -174,6 +176,8 @@ public sealed class LedPreviewPanelViewTests
         {
             Window.GetWindow(panel)!.Width = 900;
             var preview = PageViews.Show<LedPreviewPanel>(panel, viewModel);
+            viewModel.Preview.ExpandAll();
+            OffscreenWindow.WaitUntilIdle();
             var heads = AppTheme.Descendants<Grid>(preview).Where(grid => grid.Name == "ZoneHead" && grid.IsVisible).ToList();
             var deviceFlashes = new[] { "Board", "Header", "Strip" }
                 .Select(name => PageViews.ButtonNamed(preview, string.Format(Strings.FlashDeviceAccessibleName, name)))

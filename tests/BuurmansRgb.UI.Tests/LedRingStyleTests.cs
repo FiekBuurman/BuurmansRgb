@@ -83,7 +83,9 @@ public sealed class LedRingStyleTests
             var page = PageViews.Show<ColorPage>(panel, viewModel);
             PageViews.Named<TextBox>(page, Strings.HexLabel).Text = "000000";
             OffscreenWindow.WaitUntilIdle();
-            var strip = AppTheme.Descendants<LedBulb>(page).ToList();
+            // The bulb of a chip is on the face of a button, with the ring of the theme (§ 9.6).
+            var chips = AppTheme.Descendants<DeviceChipRow>(page).Single();
+            var strip = AppTheme.Descendants<LedBulb>(page).Where(bulb => !chips.IsAncestorOf(bulb)).ToList();
             Assert.NotEmpty(strip);
             var design = (Color)page.FindResource("LedOffRingColor");
 

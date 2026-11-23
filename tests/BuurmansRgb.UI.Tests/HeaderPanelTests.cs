@@ -45,4 +45,19 @@ public sealed class HeaderPanelTests
             Assert.Equal(30 + 12 + 44, panel.DesiredSize.Height);
         }
     });
+
+    // Under the heading, the second child can stay on the right, as Knipperen in the head of a device
+    // card on Kleur.
+    [Fact]
+    public void Arrange_UnderOnTheRight() => Sta.Run(() =>
+    {
+        var heading = new Border { Height = 30 };
+        var aside = new Border { Width = 250, Height = 44 };
+        var panel = new HeaderPanel { MinHeadingWidth = 180, Gap = 12, StackedAsideAlignment = HorizontalAlignment.Right, Children = { heading, aside } };
+
+        panel.Measure(new Size(400, double.PositiveInfinity));
+        panel.Arrange(new Rect(panel.DesiredSize with { Width = 400 }));
+
+        Assert.Equal(new Point(150, 42), aside.TranslatePoint(default, panel));
+    });
 }

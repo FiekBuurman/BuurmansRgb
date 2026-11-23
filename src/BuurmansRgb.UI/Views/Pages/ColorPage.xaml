@@ -1,9 +1,9 @@
-<!-- Kleur mengen (§ 5.2 and § 6): the lamp to change at the top; left a big preview with the strip and the
-     hex code, and under it the colors of the loop or of the effect, or the editor of an own effect; right the
-     Rood, Groen and Blauw sliders, the presets and the own colors, whose color goes on at once (without the
-     design's "Op de strip zetten"), and in its place "Bewaar als scène". Below them the brightness,
-     effect, speed and direction of the lamp, and the preview of its LEDs with the per-LED editor
-     and the zone lengths. -->
+<!-- Kleur (§ 5.2, § 6 and the layers of § 9): the lamp to change at the top; left a big preview with the
+     strip and the hex code, and under it the colors of the loop or of the effect, or the editor of an own
+     effect; right the Rood, Groen and Blauw sliders, the presets and the own colors, whose color goes on at
+     once (without the design's "Op de strip zetten"), and in its place "Bewaar als scène". Below them the
+     brightness, effect, speed and direction of the lamp, and under "Per apparaat" a card per device with its
+     LEDs, the per-LED editor and the zone lengths, closed for "Hele huis" until you open it. -->
 <UserControl x:Class="BuurmansRgb.UI.Views.Pages.ColorPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -100,7 +100,7 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <ComboBox MinWidth="280" VerticalAlignment="Center"
+                    <ComboBox x:Name="DeviceChoice" MinWidth="280" VerticalAlignment="Center"
                               ItemsSource="{Binding Source={StaticResource GroupedDevices}}" SelectedItem="{Binding SelectedDevice}"
                               AutomationProperties.Name="{x:Static res:Strings.LampChoiceLabel}">
                         <!-- The location label tells twins apart, such as the RAM sticks of a kit. On the
@@ -531,7 +531,7 @@
                 </StackPanel>
             </Border>
 
-            <views:LedPreviewPanel Margin="0,28,0,0" />
+            <views:LedPreviewPanel Margin="0,28,0,0" FallbackFocus="{Binding ElementName=DeviceChoice}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
