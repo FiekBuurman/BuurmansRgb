@@ -268,6 +268,18 @@ uitbreidingen in `docs/bouwplan.md`.
     effect, of zonder melding aan de verbinding die het zelf bewaarde. Nu haalt elke app bij elke
     stap van een slepende schuif alle eigen effecten op; dat is het grootste deel van de CPU van
     de engine tijdens het slepen (zie "Metingen" in `docs/ontwikkelaars.md`)
+- De laag boven het effect (`toetsenbord-laag`) de zones laten volgen zoals de per-LED-kleuren
+  (`LedColorStore.Layout`): nu hoort een laagkleur bij een LED-nummer, dus wordt een zone vóór
+  de laag langer of korter, dan schuift de laag mee naar andere LED's
+- Een laag op volle helderheid boven een gedimd effect (een vinkje "Laag niet dimmen"), voor wie
+  's avonds het toetsenbord laag zet maar WASD fel wil; nu dimt de laag mee met het apparaat
+- Een laag met een eigen beweging (ademen of knipperen op de gekozen toetsen), of een laag per
+  scène die alleen meegaat bij een spel (bouwt op de gamemodus onder Scènes)
+- Op een apparaatkaart laten zien dat er een laag is (bijv. "Laag op 4 LED's" in de regel met het
+  aantal LED's) en "Hele laag weghalen" zonder eerst alle LED's te kiezen
+- Een gedeelde scène met een laag kan een versie van vóór de laag niet lezen (die weigerde een
+  onbekend veld); een melding bij het exporteren dat de ander dan de nieuwste versie nodig heeft,
+  of bij een laag `version` 2 schrijven zodat zo'n versie zegt dat het bestand nieuwer is
 
 ## Instellingen-app en ontwerp
 
@@ -639,7 +651,8 @@ uitbreidingen in `docs/bouwplan.md`.
   intussen geen scène laat wisselen op een tijd of een ander programma; het liefst vanzelf aan als
   een spel op volledig scherm vooraan komt (een venster zonder rand zo groot als de monitor, via
   `ForegroundHook`) en weer uit als het sluit. Bouwt op "Aanzetten als een van deze programma's
-  start" en "Alleen op de voorgrond", die nu alleen een scène kiezen (testpanel 1-11-2026, Jayden)
+  start" en "Alleen op de voorgrond", die nu alleen een scène kiezen; de speeltoetsen kunnen al een
+  vaste kleur boven het effect krijgen met de laag van `toetsenbord-laag` (testpanel 1-11-2026, Jayden)
 - Een scène vanzelf aanzetten bij zonsondergang (en zonsopkomst) naast een vaste tijd: de tijden
   zijn zonder internet uit te rekenen uit een plaats (de NOAA-formule, met de breedte- en
   lengtegraad die je bij Instellingen invult of uit de locatieservice van Windows), elke dag

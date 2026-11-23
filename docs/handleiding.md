@@ -795,6 +795,21 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 - Het apparaat krijgt bij de eerste wijziging het effect "Per LED". LED's die je niet kleurt,
   volgen de kleur van het apparaat. De kleuren blijven bewaard, ook als je tussendoor een ander
   effect kiest of een zone van lengte verandert.
+- **Als laag boven het effect:** onder "Waar komt de kleur?" kies je **Per LED** (zoals
+  hierboven) of **Als laag boven het effect**. Met de laag houden de gekozen LED's een vaste kleur
+  boven het effect, en het effect blijft lopen: klik bij een toetsenbord met Regenboog op de toets
+  W, kies Als laag boven het effect en rood, en doe hetzelfde met A, S en D (de keuze blijft op de
+  laag staan); WASD blijft rood terwijl de regenboog eromheen loopt. Dat werkt bij elk
+  apparaat, ook een fan of strip, en blijft staan als je een ander effect kiest. Klik je een LED
+  die al een laagkleur heeft, dan staat de keuze vanzelf op de laag en toont het mengpaneel die
+  kleur. Verloop vullen werkt ook in de laag.
+- **Een laag weghalen:** kies de LED's en klik **Laag weghalen**; ze tonen dan weer het effect.
+  Met Ctrl+A (of "Alles selecteren") en Laag weghalen haal je de hele laag van het apparaat weg.
+  De knop is grijs zolang geen van de gekozen LED's een laag heeft.
+- De laag hoort bij de verlichting: hij wordt bewaard, gaat mee in een scène (ook met "Bewaar als
+  scène" en "Bijwerken met wat nu brandt") en in een gedeelde scène, en gaat mee in de overgang
+  naar een scène. Staat het apparaat uit (ook met "Alles uit"), dan is de laag ook uit. De
+  helderheid geldt ook voor de laag; Knipperen en Tellen gaan er even overheen.
 
 ### Scènes
 
@@ -836,8 +851,8 @@ scène is en dat je er een maakt met "Nieuwe scène" eronder of met "Bewaar als 
 ![De pagina Scènes zonder scènes: de uitleg die naar "Nieuwe scène" en "Bewaar als scène" op Kleur verwijst, met "+ Nieuwe scène" eronder](images/scenes-leeg.png)
 
 - **Een klik op een kaart** zet de scène aan: kleur, helderheid, aan/uit, effect, snelheid,
-  richting, kleurenloop, kleuren van de effecten en per-LED-kleuren van de apparaten die meedoen
-  (standaard alle) worden die van de scène, en ook de opgeslagen verlichting. De andere apparaten
+  richting, kleurenloop, kleuren van de effecten, per-LED-kleuren en de laag boven het effect van
+  de apparaten die meedoen (standaard alle) worden die van de scène, en ook de opgeslagen verlichting. De andere apparaten
   houden wat ze hadden.
 - **"+ Nieuwe scène"** vraagt een naam en bewaart de verlichting zoals die nu is; de focus staat
   meteen in het naamveld. Enter of **Opslaan** bewaart, Escape of **Annuleren** niet, en daarna
@@ -946,7 +961,8 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
 - **Exporteren…** bewaart dezelfde scène als bestand, `<naam>.brgb.json`, op een plek die je zelf
   kiest. De ander kiest op Scènes **Importeren…** en dat bestand.
 - **Wat meegaat:** de naam, de verlichting van elk apparaat (kleur, helderheid, effect, snelheid,
-  richting, kleurenloop, kleuren van een effect, aan/uit en per-LED-kleuren), welke apparaten
+  richting, kleurenloop, kleuren van een effect, aan/uit, per-LED-kleuren en de laag boven het
+  effect), welke apparaten
   meedoen, en de eigen effecten die de scène gebruikt (een eigen effect van alleen een apparaat dat
   er bij de ander niet is, komt daar niet bij). **Wat niet meegaat:** de tijden, de
   programma's en "Alleen op de voorgrond" (die horen bij jouw pc en jouw spellen), en of de scène
@@ -969,8 +985,10 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
 - **Wat niet lukt**, zegt de melding onderaan, die een schermlezer voorleest; er is dan niets
   toegevoegd: een bestand of code die niet van buurmansRgb is, een code die niet heel is
   (kopieer hem opnieuw), iets uit een nieuwere versie van buurmansRgb, een bestand groter dan
-  2 MB, of iets wat niet klopt (een onbekend veld, een kleur of getal dat niet kan, een naam die
-  op een pad lijkt). Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er
+  2 MB, of iets wat niet klopt (een kleur of getal dat niet kan, een naam die op een pad lijkt).
+  Een veld dat deze versie niet kent (van een nieuwere versie), slaat hij over: de scène komt
+  binnen zonder dat veld. Een versie van vóór de laag boven het effect weigerde zo'n veld nog:
+  daar komt een scène met een laag niet binnen ("klopt niet"), een scène zonder laag wel. Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er
   nog bij kunnen, dan komt er niets bij.
   Exporteren of de code kopiëren lukt niet ("Exporteren is niet gelukt.") bij een scène die een
   ander niet zou kunnen importeren: met de verlichting van meer dan 64 apparaten (ook van apparaten
@@ -1927,6 +1945,9 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "ledColorZoneLengths": {
     "simulated-fan": [12]
   },
+  "overlay": {
+    "simulated-keyboard": [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "#FF0000"]
+  },
   "simulatedDevices": "automatic",
   "hadRealDevices": true,
   "startScenesCreated": true,
@@ -1959,6 +1980,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `devices` | Per apparaat de velden hierboven, alleen voor apparaten die afwijken van de algemene waarden |
 | `ledColors` | Per apparaat een kleur per LED voor het effect `per-led`; `null`, of een LED voorbij het eind van de lijst, volgt de kleur van het apparaat |
 | `ledColorZoneLengths` | Per apparaat de lengte van elke zone (in volgorde) waarvoor die kleuren gekozen zijn, zodat ze een zone met een andere lengte volgen |
+| `overlay` | Per apparaat de laag boven het effect ("Als laag boven het effect" in de Per-LED-editor): een kleur per LED die boven elk effect blijft, of `null` voor een LED die het effect toont. Zonder (een bestand van vóór de laag) is er geen laag. Een kleur die niet te lezen is, toont daar het effect; een lijst zonder kleur of die geen lijst is, slaat de engine over, en na 4096 LED's ook de rest. Een LED voorbij het eind van het apparaat (een zone die nu korter is) toont niets van de laag, tot de zone weer langer is. Een oudere versie leest het veld niet en laat het weg als hij het bestand opnieuw schrijft |
 | `simulatedDevices` | `"automatic"` (standaard), `"always"` of `"never"`. Iets anders leest als `"automatic"`; oud `true` is `"automatic"`, oud `false` is `"never"` |
 | `hadRealDevices` | `true` zodra OpenRGB op deze pc ooit een echt apparaat gaf: bij `"automatic"` komen de gesimuleerde apparaten dan niet meer in de plaats van de echte als OpenRGB weg is. De engine zet dit zelf en schrijft het alleen als het `true` is; zonder (of `false`) had de pc nog nooit een echt apparaat. Op `false` zetten of weghalen draait het terug, tot OpenRGB weer een echt apparaat geeft |
 | `startScenesCreated` | `true` zodra de engine op deze pc over de startscènes besliste: hij maakte ze (er was geen `profiles.json`), of er was al een `profiles.json`, ook met een lege lijst. Daarna maakt hij ze nooit meer, ook niet zonder `profiles.json`. De engine zet dit zelf bij de eerste start, alleen als het `true` is: maakte hij de startscènes, dan schrijft hij het meteen; was er al een `profiles.json`, dan gaat het mee met de eerstvolgende wijziging. Een teruggezette zip houdt de waarde van deze pc |
@@ -2024,7 +2046,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 ### profiles.json
 
 De scènes, met per scène een naam, de lichtvelden van `settings.json` (`color` t/m
-`ledColorZoneLengths`) en, als hij vanzelf aangaat, zijn tijden en/of programma's. Eén tijd staat
+`overlay`) en, als hij vanzelf aangaat, zijn tijden en/of programma's. Eén tijd staat
 als `loadAt` (`"HH:mm"`) met eventueel `loadOn`, zoals vóór er meer tijden waren; meer tijden
 staan in `loadTimes`, elk met `at` en eventueel `on`. Zo ook de programma's: één staat als
 `program`, meer staan als lijst in `programs`. `"foregroundOnly": true` naast `program` of

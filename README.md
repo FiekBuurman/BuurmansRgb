@@ -20,7 +20,8 @@
 - **Eerst het effect, dan de kleur:** kies een effecttegel en meng daaronder wat bij dat effect
   hoort. Statisch, ademen, regenboog, golf, fonkelen, komeet, scanner,
   vuur (fonkelen, komeet, scanner en vuur in je eigen kleuren, bijv. blauw vuur), een eigen
-  kleurenloop, of per LED een eigen kleur. Helderheid en snelheid werken op elk effect.
+  kleurenloop, of per LED een eigen kleur. Een vaste kleur op gekozen toetsen boven het effect kan
+  ook, bijv. WASD rood over de regenboog. Helderheid en snelheid werken op elk effect.
 - **Eigen effecten** van stappen: elke stap een kleur of een patroon over de LED's, met hoe lang
   hij blijft staan en overloopt naar de volgende.
 - **Scènes** zoals "Gamen" of "Rustig wit" (vijf staan al klaar): met één klik, uit het
