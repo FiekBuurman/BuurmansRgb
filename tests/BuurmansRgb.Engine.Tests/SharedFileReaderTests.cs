@@ -133,6 +133,22 @@ public sealed class SharedFileReaderTests
         Assert.DoesNotContain("\"lighting\"", message, StringComparison.Ordinal);
     }
 
+    // A file that is refused after all does not first say what it skipped: only what was wrong.
+    [Fact]
+    public void Read_RefusedWithAFieldItDoesNotKnow_TraceSaysNothingSkipped()
+    {
+        using var trace = new TraceCapture();
+
+        Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, root =>
+        {
+            root["glowTimes"] = new JsonArray();
+            Lighting(root)["brightness"] = 1.5;
+        }));
+
+        Assert.Contains(trace.Messages, message => message.Contains("is not 0 to 1", StringComparison.Ordinal));
+        Assert.DoesNotContain(trace.Messages, message => message.Contains("skipped", StringComparison.Ordinal));
+    }
+
     [Fact]
     public void Read_Effect_GivesIt()
     {

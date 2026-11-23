@@ -41,9 +41,11 @@ internal static class SharedFileReader
         {
             var file = JsonSerializer.Deserialize(text.Span, SharingJsonContext.Default.SharedFile)
                 ?? throw new InvalidShareException("the file is null");
-            return file.Kind == SharedFormat.SceneKind
+            var content = file.Kind == SharedFormat.SceneKind
                 ? new SharedContent(ShareImportOutcome.Imported, SharedKind.Scene, Scene: ReadScene(file))
                 : new SharedContent(ShareImportOutcome.Imported, SharedKind.Effect, Effect: ReadEffectFile(file));
+            TraceUnknownFields(text);
+            return content;
         }
         catch (JsonException exception)
         {
@@ -91,7 +93,6 @@ internal static class SharedFileReader
                 return SharedContent.Refused(ShareImportOutcome.Invalid);
             }
 
-            TraceUnknownFields(root);
             return null;
         }
         catch (JsonException exception)
@@ -103,9 +104,13 @@ internal static class SharedFileReader
 
     // The fields the engine skips, at the top and in a device, for whoever wonders where something
     // went: likely of a newer version. A name that is long or has a hidden character, such as a line
-    // break that would start a line of its own in the trace, goes by its length only.
-    private static void TraceUnknownFields(JsonElement root)
+    // break that would start a line of its own in the trace, goes by its length only. Only for a file
+    // that came in, so a refused one does not first say what it skipped; read once more for it, as
+    // that is rare and the file small.
+    private static void TraceUnknownFields(ReadOnlyMemory<byte> text)
     {
+        using var document = JsonDocument.Parse(text);
+        var root = document.RootElement;
         var unknown = UnknownFields(root, SharingJsonContext.Default.SharedFile.Properties.Select(property => property.Name)).ToList();
         if (root.TryGetProperty("devices", out var devices) && devices.ValueKind == JsonValueKind.Array)
         {
