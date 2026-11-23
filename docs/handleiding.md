@@ -990,9 +990,12 @@ Een scène die je mooi vindt, kun je aan iemand anders geven, en andersom:
   (kopieer hem opnieuw), iets uit een nieuwere versie van buurmansRgb, een bestand groter dan
   2 MB, of iets wat niet klopt (een kleur of getal dat niet kan, een naam die op een pad lijkt).
   Een veld dat deze versie niet kent (van een nieuwere versie), slaat hij over: de scène komt
-  binnen zonder dat veld. Een versie van vóór de laag boven het effect weigerde zo'n veld nog:
-  daar komt een scène met een laag niet binnen ("klopt niet"), een scène zonder laag wel. Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er
-  nog bij kunnen, dan komt er niets bij.
+  binnen zonder dat veld. Een scène met een laag boven het effect gaat uit als een nieuwere versie
+  van het bestand: een buurmansRgb van vóór de laag zegt dan "Dit komt uit een nieuwere versie van
+  buurmansRgb. Werk buurmansRgb bij en probeer het opnieuw." in plaats van dat het niet klopt. Een
+  scène zonder laag en een eigen effect leest zo'n oudere versie gewoon, als bestand en als code.
+  Er passen hooguit 32 eigen effecten; brengt een scène er meer mee dan er nog bij kunnen, dan
+  komt er niets bij.
   Exporteren of de code kopiëren lukt niet ("Exporteren is niet gelukt.") bij een scène die een
   ander niet zou kunnen importeren: met de verlichting van meer dan 64 apparaten (ook van apparaten
   die je allang niet meer hebt), of groter dan 2 MB.

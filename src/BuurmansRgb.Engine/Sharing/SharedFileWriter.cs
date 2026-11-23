@@ -28,13 +28,16 @@ internal static class SharedFileWriter
                 .Distinct(StringComparer.Ordinal),
         ];
 
+        var global = Write(lighting.Global, effects, shown);
+        List<SharedDevice>? sharedDevices = ids.Count > 0 ? [.. ids.Select(id => WriteDevice(id, lighting, devices, effects, shown))] : null;
         var file = new SharedFile
         {
-            Version = SharedFormat.Version,
+            // Version 2 only with a layer, so a version from before it reads a scene without one.
+            Version = sharedDevices?.Exists(device => device.Overlay is not null) == true ? SharedFormat.LayerVersion : SharedFormat.MinVersion,
             Kind = SharedFormat.SceneKind,
             Name = SharedFiles.ForSharing(scene.Name),
-            Lighting = Write(lighting.Global, effects, shown),
-            Devices = ids.Count > 0 ? [.. ids.Select(id => WriteDevice(id, lighting, devices, effects, shown))] : null,
+            Lighting = global,
+            Devices = sharedDevices,
             OnlyDevices = scene.DeviceIds is { } only ? [.. only] : null,
         };
         return Serialize(file with { Effects = shown.Count > 0 ? [.. shown.Select(ToShared)] : null });
@@ -43,7 +46,7 @@ internal static class SharedFileWriter
     public static byte[] WriteEffect(CustomEffect effect)
     {
         ArgumentNullException.ThrowIfNull(effect);
-        return Serialize(new SharedFile { Version = SharedFormat.Version, Kind = SharedFormat.EffectKind, Effects = [ToShared(effect)] });
+        return Serialize(new SharedFile { Version = SharedFormat.MinVersion, Kind = SharedFormat.EffectKind, Effects = [ToShared(effect)] });
     }
 
     private static SharedDevice WriteDevice(string id, LightingState lighting, IReadOnlyList<RgbDevice> devices, IReadOnlyList<CustomEffect> effects, List<CustomEffect> shown)
@@ -60,7 +63,7 @@ internal static class SharedFileWriter
             LedColors = colors is null ? null : [.. colors.Colors],
             ZoneLengths = colors?.ZoneLengths is { Count: > 0 } lengths ? [.. lengths] : null,
 
-            // Only with a layer, so a scene without one stays as a version before the layer reads it.
+            // Only with a layer, so a scene without one stays version 1, as a version before the layer reads it.
             Overlay = lighting.Overlays.GetValueOrDefault(id) is { } overlay ? [.. overlay] : null,
         };
     }

@@ -67,7 +67,7 @@ internal static class SharedFileReader
                 return SharedContent.Refused(ShareImportOutcome.NotShared);
             }
 
-            if (!version.TryGetInt32(out var number) || number < SharedFormat.Version)
+            if (!version.TryGetInt32(out var number) || number < SharedFormat.MinVersion)
             {
                 Trace.TraceWarning($"Import: version {version.GetRawText()} is not one the app makes.");
                 return SharedContent.Refused(ShareImportOutcome.Invalid);

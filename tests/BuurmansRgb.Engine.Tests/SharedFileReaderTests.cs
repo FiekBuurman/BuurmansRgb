@@ -61,13 +61,28 @@ public sealed class SharedFileReaderTests
     }
 
     // The layer over the effect of a device, a color or null per LED; without the nulls at the end.
-    [Fact]
-    public void Read_SceneWithALayer_GivesIt()
+    // The app writes a scene with a layer as version 2, but one of version 1 with it reads as well.
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void Read_SceneWithALayer_GivesIt(int version)
     {
-        var content = SharedFileReader.Read(Bytes(Scene.Replace("\"zoneLengths\": [ 3 ] }", "\"zoneLengths\": [ 3 ], \"overlay\": [ null, \"#FF0000\", null ] }", StringComparison.Ordinal)));
+        var content = SharedFileReader.Read(Bytes(SceneWithALayer(version)));
 
         Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
         Assert.Equal([null, Red], content.Scene!.Lighting.Overlays["openrgb:k70-1a2b3c4d"]);
+    }
+
+    [Fact]
+    public void Read_Version2WithoutALayer_GivesIt()
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["version"] = 2;
+
+        var content = SharedFileReader.Read(Bytes(root.ToJsonString()));
+
+        Assert.Equal(ShareImportOutcome.Imported, content.Outcome);
+        Assert.Empty(content.Scene!.Lighting.Overlays);
     }
 
     // A scene of a newer version may have a field this one does not know: it comes in without it.
@@ -146,9 +161,20 @@ public sealed class SharedFileReaderTests
     public void Read_NotAFileOfTheApp_IsNotShared(string json) =>
         Assert.Equal(ShareImportOutcome.NotShared, SharedFileReader.Read(Bytes(json)).Outcome);
 
-    [Fact]
-    public void Read_NewerVersion_SaysSo() =>
-        Assert.Equal(ShareImportOutcome.NewerVersion, Read(Scene, root => root["version"] = 2));
+    [Theory]
+    [InlineData(3)]
+    [InlineData(100)]
+    public void Read_NewerVersion_SaysSo(int version)
+    {
+        Assert.Equal(ShareImportOutcome.NewerVersion, Read(Scene, root => root["version"] = version));
+        Assert.Equal(ShareImportOutcome.NewerVersion, Read(SceneWithALayer(version), _ => { }));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Read_VersionBeforeTheFirst_IsInvalid(int version) =>
+        Assert.Equal(ShareImportOutcome.Invalid, Read(Scene, root => root["version"] = version));
 
     public static TheoryData<string, Action<JsonObject>> WrongScenes() => new()
     {
@@ -275,6 +301,14 @@ public sealed class SharedFileReaderTests
         var root = JsonNode.Parse(json)!.AsObject();
         change(root);
         return SharedFileReader.Read(Bytes(root.ToJsonString())).Outcome;
+    }
+
+    private static string SceneWithALayer(int version)
+    {
+        var root = JsonNode.Parse(Scene)!.AsObject();
+        root["version"] = version;
+        Device(root)["overlay"] = new JsonArray(null, "#FF0000", null);
+        return root.ToJsonString();
     }
 
     private static JsonObject Lighting(JsonObject root) => root["lighting"]!.AsObject();

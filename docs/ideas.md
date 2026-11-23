@@ -277,9 +277,6 @@ uitbreidingen in `docs/bouwplan.md`.
   scène die alleen meegaat bij een spel (bouwt op de gamemodus onder Scènes)
 - Op een apparaatkaart laten zien dat er een laag is (bijv. "Laag op 4 LED's" in de regel met het
   aantal LED's) en "Hele laag weghalen" zonder eerst alle LED's te kiezen
-- Een gedeelde scène met een laag kan een versie van vóór de laag niet lezen (die weigerde een
-  onbekend veld); een melding bij het exporteren dat de ander dan de nieuwste versie nodig heeft,
-  of bij een laag `version` 2 schrijven zodat zo'n versie zegt dat het bestand nieuwer is
 
 ## Instellingen-app en ontwerp
 

@@ -114,6 +114,53 @@ public sealed class SceneSharingTests : IDisposable
         Assert.DoesNotContain("overlay", json, StringComparison.Ordinal);
     }
 
+    // A scene with a layer is version 2, which a version from before the layer calls newer instead of
+    // wrong; without one it stays version 1, which that version reads. As a file and as a code, which
+    // holds the same JSON.
+    [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public async Task ExportScene_IsVersion2OnlyWithALayer(bool layer, int version)
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetLedColorsAsync("simulated-keyboard", 0, [Red], Ct);
+        if (layer)
+        {
+            _lighting.SetOverlay("simulated-keyboard", 0, [Red]);
+        }
+
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = await _api.ExportSceneAsync("Gamen", Ct);
+        Assert.True(ShareCode.TryDecode(ShareCode.Encode(json), out var fromCode, out _));
+
+        Assert.Equal(version, (int)Parse(json)["version"]!);
+        Assert.Equal(version, (int)Parse(fromCode)["version"]!);
+        Assert.Equal(ShareImportOutcome.Imported, (await _api.ImportSharedAsync(fromCode, Ct)).Outcome);
+    }
+
+    // A code of a newer version says so, as a file does.
+    [Fact]
+    public async Task Import_CodeOfANewerVersion_SaysSo()
+    {
+        var code = ShareCode.Encode(Bytes("""{ "version": 3, "kind": "scene", "name": "Gamen", "lighting": { "color": "#FF0000", "brightness": 1, "effect": "static" } }"""));
+        Assert.True(ShareCode.TryDecode(code, out var json, out _));
+
+        var result = await _api.ImportSharedAsync(json, Ct);
+
+        Assert.Equal(ShareImportOutcome.NewerVersion, result.Outcome);
+        Assert.Empty(await _api.GetProfilesAsync(Ct));
+    }
+
+    // An own effect has no layer: always version 1.
+    [Fact]
+    public async Task ExportEffect_IsVersion1()
+    {
+        var disco = await _api.SaveCustomEffectAsync(new CustomEffect(string.Empty, "Disco", [new CustomEffectStep(Red)]), Ct);
+
+        Assert.Equal(1, (int)Parse(await _api.ExportCustomEffectAsync(disco.Id, Ct))["version"]!);
+    }
+
     // Every field of the lighting that is not its default, of all devices and of one, and the
     // colors per LED with their zones, comes back as it went.
     [Fact]
