@@ -433,6 +433,23 @@ public sealed class TrayPresenterTests : IDisposable
         Assert.Empty(_view.Notifications);
     }
 
+    // "Alles aan" and "Alles uit" fade as a scene does; with a fade of zero at once.
+    [Theory]
+    [InlineData(0.5, true)]
+    [InlineData(0.0, false)]
+    public async Task SetAllOn_FadesWithTheSceneFade(double seconds, bool fades)
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Red)));
+        _lighting.SceneFade = TimeSpan.FromSeconds(seconds);
+        var presenter = await StartedPresenterAsync();
+
+        presenter.SetAllOn(false);
+
+        Assert.False(_lighting.GetLighting(null).On);
+        Assert.Equal(fades, _lighting.IsFading);
+    }
+
     [Fact]
     public async Task RefreshAllOnOff_OneLightOff_OffersBoth()
     {

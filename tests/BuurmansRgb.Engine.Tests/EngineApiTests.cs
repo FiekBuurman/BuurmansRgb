@@ -67,6 +67,21 @@ public sealed class EngineApiTests : IDisposable
         Assert.True((await api.GetLightingAsync("simulated-fan", Ct)).On);
     }
 
+    // Every device at once is "Alles aan" or "Alles uit", with the scene fade; one device not.
+    [Fact]
+    public async Task SetOnAsync_ForAllDevices_Fades_ForOneDeviceNot()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(LightingStates.Uniform(LightingStates.StaticLighting(Red)));
+        using var api = CreateApi();
+
+        await api.SetOnAsync("simulated-fan", on: false, Ct);
+        Assert.False(_lighting.IsFading);
+
+        await api.SetOnAsync(null, on: false, Ct);
+        Assert.True(_lighting.IsFading);
+    }
+
     [Fact]
     public async Task GetAllLightingAsync_GivesEveryDeviceWithItsOwnOrTheGlobalLighting()
     {

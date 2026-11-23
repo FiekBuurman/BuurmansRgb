@@ -104,7 +104,7 @@ public partial interface IEngineApi
     Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default);
 
     // Switched off, a device shows black and keeps its lighting for when it goes on again. For all
-    // devices it switches every device.
+    // devices it switches every device, as "Alles aan" or "Alles uit", with the scene fade.
     Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default);
 
     // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
