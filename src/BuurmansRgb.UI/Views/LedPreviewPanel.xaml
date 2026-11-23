@@ -272,7 +272,7 @@
              which a screen reader reads (ExpanderAutomationPeer). -->
         <DataTemplate x:Key="FoldableCard" DataType="{x:Type vm:DevicePreviewViewModel}">
             <views:DeviceCard Margin="0,0,0,10" Header="{Binding}" Content="{Binding}" ContentTemplate="{StaticResource DeviceBody}"
-                              IsExpanded="{Binding IsExpanded, Mode=TwoWay}" FocusKey="{Binding DeviceId, StringFormat={}device-card/{0}}"
+                              IsExpanded="{Binding IsExpanded, Mode=TwoWay}" FocusKey="{Binding CardFocusKey}"
                               AutomationProperties.Name="{Binding Name}" AutomationProperties.HelpText="{Binding LedLine}"
                               AutomationProperties.HeadingLevel="Level3">
                 <views:DeviceCard.HeaderTemplate>
@@ -350,7 +350,7 @@
                             ToolTip="{Binding Name}" AutomationProperties.Name="{Binding Name}"
                             AutomationProperties.HelpText="{x:Static res:Strings.DeviceChipHelp}"
                             AutomationProperties.PositionInSet="{Binding Position}" AutomationProperties.SizeOfSet="{Binding SetSize}"
-                            views:FocusKeeper.Key="{Binding DeviceId, StringFormat={}device-chip/{0}}">
+                            views:FocusKeeper.Key="{Binding ChipFocusKey}">
                         <DockPanel>
                             <views:LedBulb DockPanel.Dock="Left" Margin="0,0,8,0" VerticalAlignment="Center" Diameter="12" GlowBlur="10" GlowSpread="2"
                                            IsLit="{Binding ChipLed.IsLit}" Color="{Binding ChipLed.Color}" />

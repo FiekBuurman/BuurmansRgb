@@ -103,6 +103,22 @@ public sealed class DevicePreviewViewModelTests
         Assert.NotEqual(preview.ZonesAlikeFocusKey, preview.Zones[0].FlashFocusKey);
     }
 
+    // The card and the chip of a device keep the focus when they are made again, each its own.
+    [Fact]
+    public void CardAndChipFocusKeys_AreTheSameForTheSameDeviceOnly()
+    {
+        var preview = new DevicePreviewViewModel(Motherboard);
+        var again = new DevicePreviewViewModel(Motherboard with { ZonesAlike = true });
+        var other = new DevicePreviewViewModel(Motherboard with { Id = "board-2" });
+
+        Assert.Equal("device-card/board", preview.CardFocusKey);
+        Assert.Equal("device-chip/board", preview.ChipFocusKey);
+        Assert.Equal(preview.CardFocusKey, again.CardFocusKey);
+        Assert.Equal(preview.ChipFocusKey, again.ChipFocusKey);
+        Assert.NotEqual(preview.CardFocusKey, other.CardFocusKey);
+        Assert.NotEqual(preview.ChipFocusKey, other.ChipFocusKey);
+    }
+
     [Fact]
     public void Zones_DeviceWithOneZone_ShowsNoZoneHeader()
     {
