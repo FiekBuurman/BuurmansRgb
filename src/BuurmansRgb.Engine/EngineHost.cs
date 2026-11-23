@@ -104,6 +104,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
         autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
         lighting.PausedLightsChanged += OnPausedLightsChanged;
+        lighting.SceneFadeChanged += OnSceneFadeChanged;
         lighting.ZonesAlikeChanged += OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged += OnCatchUpChanged;
         hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
@@ -148,6 +149,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
         autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
         lighting.PausedLightsChanged -= OnPausedLightsChanged;
+        lighting.SceneFadeChanged -= OnSceneFadeChanged;
         lighting.ZonesAlikeChanged -= OnZonesAlikeChanged;
         profileTimer?.CatchUpChanged -= OnCatchUpChanged;
         hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
@@ -399,6 +401,7 @@ internal sealed class EngineHost(
         lighting.FramesPerSecond = settings.FramesPerSecond;
         autoPause?.Enabled = settings.PauseOnLockAndSleep;
         lighting.PausedLights = settings.PausedLights;
+        lighting.SceneFade = settings.ReadSceneFade();
         lighting.ZonesAlike = settings.ReadZonesAlike();
         profileTimer?.CatchUp = settings.CatchUpSceneTimes;
         hotkeys?.Enabled = settings.Hotkeys;
@@ -492,6 +495,9 @@ internal sealed class EngineHost(
 
     private void OnPausedLightsChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings with { PausedLights = lighting.PausedLights });
+
+    private void OnSceneFadeChanged(object? sender, EventArgs e) =>
+        _saver?.ChangeOptions(settings => settings.WithSceneFade(lighting.SceneFade));
 
     private void OnZonesAlikeChanged(object? sender, EventArgs e) =>
         _saver?.ChangeOptions(settings => settings.WithZonesAlike(lighting.ZonesAlike));

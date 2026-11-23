@@ -291,6 +291,13 @@ public partial interface IEngineApi
 
     Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default);
 
+    // How long the devices take to go over to a scene, or to "Alles aan" or "Alles uit": from zero,
+    // at once, to SceneFade.Max; saved like the lighting. A fade that runs keeps its length.
+    Task<TimeSpan> GetSceneFadeAsync(CancellationToken ct = default);
+
+    // A value outside zero to SceneFade.Max is kept within it.
+    Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default);
+
     // Whether a scene time that passed while the pc slept or the engine did not run is caught up
     // on: after waking up and at the start the scene of the last time that passed comes on. Off,
     // such a time is skipped. Saved like the lighting; it counts from the next wake-up or start.

@@ -86,6 +86,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices.HadRealDevicesChanged += OnOptionsChanged;
         _lighting.FramesPerSecondChanged += OnOptionsChanged;
         _lighting.PausedLightsChanged += OnOptionsChanged;
+        _lighting.SceneFadeChanged += OnOptionsChanged;
         _autoPause?.EnabledChanged += OnOptionsChanged;
         _profileTimer?.CatchUpChanged += OnOptionsChanged;
         _hotkeys?.EnabledChanged += OnOptionsChanged;
@@ -381,6 +382,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         return Task.CompletedTask;
     }
 
+    public Task<TimeSpan> GetSceneFadeAsync(CancellationToken ct = default) => Task.FromResult(_lighting.SceneFade);
+
+    public Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default)
+    {
+        _lighting.SceneFade = fade;
+        return Task.CompletedTask;
+    }
+
     // Without the timer (in tests) no scene loads at its time, so it reads as off.
     public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(_profileTimer?.CatchUp ?? false);
 
@@ -487,6 +496,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _simulatedDevices.HadRealDevicesChanged -= OnOptionsChanged;
         _lighting.FramesPerSecondChanged -= OnOptionsChanged;
         _lighting.PausedLightsChanged -= OnOptionsChanged;
+        _lighting.SceneFadeChanged -= OnOptionsChanged;
         _autoPause?.EnabledChanged -= OnOptionsChanged;
         _profileTimer?.CatchUpChanged -= OnOptionsChanged;
         _hotkeys?.EnabledChanged -= OnOptionsChanged;

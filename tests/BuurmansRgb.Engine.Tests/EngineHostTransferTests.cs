@@ -134,6 +134,25 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Contains("Dag", File.ReadAllText(PathOf(SettingsBackup.ProfilesFileName)), StringComparison.Ordinal);
     }
 
+    // The scene fade goes into the zip and comes back from it; a backup from before the option,
+    // without it, gives the default.
+    [Theory]
+    [InlineData("""{ "brightness": 0.5, "sceneFade": 1.5 }""", 1.5)]
+    [InlineData("""{ "brightness": 0.5 }""", 0.5)]
+    public async Task ExportAndRestore_KeepTheSceneFade(string backup, double expectedSeconds)
+    {
+        using var host = CreateHost();
+        await host.StartAsync(Ct);
+        _lighting.SceneFade = TimeSpan.FromSeconds(2);
+        Assert.Equal(2.0, JsonNode.Parse(Unzip(host.Export())[SettingsBackup.SettingsFileName])!["sceneFade"]!.GetValue<double>());
+        _lighting.SceneFade = TimeSpan.Zero;
+
+        var result = host.Restore(SettingsArchiveTests.Zip((SettingsBackup.SettingsFileName, Utf8(backup))));
+
+        Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Restored), result);
+        Assert.Equal(TimeSpan.FromSeconds(expectedSeconds), _lighting.SceneFade);
+    }
+
     // First a copy of the files of now, as they were with the last change, in the backups folder.
     [Fact]
     public async Task Restore_CopiesTheFilesOfNowFirst()
