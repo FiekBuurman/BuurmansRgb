@@ -543,6 +543,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // following the device color.
     public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
     {
+        ArgumentNullException.ThrowIfNull(colors);
         bool rendered;
         lock (_gate)
         {
