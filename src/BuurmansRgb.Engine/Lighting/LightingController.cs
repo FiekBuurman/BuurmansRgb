@@ -383,8 +383,8 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
     // Apply as a change, so the new lighting is saved: for example a profile that is loaded.
     // Returns the lighting as it is right after, read under the same lock: State may already hold
-    // a change from another thread by then. With fade, the devices go over to it in SceneFade
-    // (FadeLocked); without, it shows at once and ends a fade that runs.
+    // a change from another thread by then. With fade, the devices whose lighting changes go over
+    // to it in SceneFade (FadeLocked); without, it shows at once and ends a fade that runs.
     public LightingState Replace(LightingState state, bool fade = false) => Replace(_ => state, fade);
 
     // Replace with what change makes of the lighting now, read and applied under the same lock,
@@ -397,18 +397,18 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         LightingState applied;
         lock (_gate)
         {
-            // The colors of now are taken before the per-LED colors of the new lighting come in.
-            var next = change(StateLocked());
+            var wasSet = _lighting.IsSet;
+            var before = StateLocked();
+            ApplyLocked(change(before));
             if (fade)
             {
-                FadeLocked();
+                FadeLocked(wasSet ? before : null);
             }
             else
             {
                 EndFadesLocked();
             }
 
-            ApplyLocked(next);
             applied = StateLocked();
             rendered = RenderLocked();
         }
@@ -446,14 +446,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // a device's own brightness and the other way round. Changing one device starts from what
     // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect, also
     // an own effect that does not exist (SetCustomEffects), throws ArgumentException and changes
-    // nothing. With fade the devices go over to it in SceneFade, as with Replace: for "Alles aan"
-    // and "Alles uit". Without, it shows at once, also on a device that was fading: its fade ends
-    // (EndFadesLocked).
+    // nothing. With fade the devices whose lighting changes go over to it in SceneFade, as with
+    // Replace: for "Alles aan" and "Alles uit". Without, it shows at once, also on a device that
+    // was fading: its fade ends (EndFadesLocked).
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change, bool fade = false)
     {
         bool rendered;
         lock (_gate)
         {
+            var before = fade && _lighting.IsSet ? StateLocked() : null;
             if (deviceId is null)
             {
                 _lighting.SetGlobal(lighting => ThrowIfMissingCustomLocked(change(lighting)));
@@ -466,7 +467,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
 
             if (fade)
             {
-                FadeLocked();
+                FadeLocked(before);
             }
             else
             {
@@ -1021,26 +1022,35 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         Publish(rendered);
     }
 
-    // Lets every device go over from the colors it shows now, also in the middle of a fade, to
-    // what the next RenderLocked gives it, in SceneFade. At once, so a fade that runs ends, with a
-    // fade of zero, before there is lighting, and during a pause: no frames run then, and what
-    // goes to the devices, such as a scene on time while Windows is locked, does not wait.
-    private void FadeLocked()
+    // Call it once the new lighting is in, before the RenderLocked that shows it. Lets every
+    // device whose lighting or per-LED colors differ from before go over from the colors it shows
+    // now, also in the middle of a fade, to what the next RenderLocked gives it, in SceneFade. A
+    // device that stays the same goes on as it was: an effect that moves does not stand still for
+    // a moment, and a fade that runs goes on, on time. At once, so a fade that runs ends, with a
+    // fade of zero, before there was lighting (a null before), and during a pause: no frames run
+    // then, and what goes to the devices, such as a scene on time while Windows is locked, does
+    // not wait. Show has not given the new effects yet, so BeginFade still renders the old ones.
+    private void FadeLocked(LightingState? before)
     {
-        var fade = _disposed || _pause != PauseReasons.None || !_lighting.IsSet ? TimeSpan.Zero : _sceneFade;
+        var fade = _disposed || _pause != PauseReasons.None || before is null ? TimeSpan.Zero : _sceneFade;
         var time = EffectTime;
         foreach (var output in _outputs.All)
         {
-            if (fade > TimeSpan.Zero)
-            {
-                output.BeginFade(time, fade);
-            }
-            else
+            if (fade <= TimeSpan.Zero)
             {
                 output.EndFade();
             }
+            else if (ChangedLocked(output.Device, before!))
+            {
+                output.BeginFade(time, fade);
+            }
         }
     }
+
+    // Whether device shows other lighting or other per-LED colors now than in before.
+    private bool ChangedLocked(RgbDevice device, LightingState before) =>
+        before.Devices.GetValueOrDefault(device.Id, before.Global) != _lighting.Get(device.Id)
+        || !_ledColors.SameAs(before.LedColors, device);
 
     // A change of its own, without fade, shows at once: it ends the fade of the device it changes,
     // or of every device for a null deviceId (a global change, or all lighting at once). The

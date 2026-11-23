@@ -145,6 +145,100 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // A scene of one device over the others (Profile.LightingOver): a device outside it that shows
+    // an effect that moves goes on as if nothing happened, it does not mix from a still image.
+    [Fact]
+    public async Task SceneOfOneDevice_LeavesAMovingDeviceOutsideItAsItWas()
+    {
+        var rainbow = new DeviceLighting(Red, 1.0, EffectIds.Rainbow);
+        var scene = Uniform(StaticLighting(Blue));
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 8));
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(rainbow));
+        var dynamic = new DynamicDeviceProvider();
+        dynamic.SetDevices(DynamicDeviceProvider.Device("real", ledCount: 8));
+        using var direct = new LightingController([new RecordingDeviceProvider(), dynamic], _clock) { SceneFade = Second };
+        await direct.DiscoverAsync(Ct);
+        direct.Apply(Uniform(rainbow));
+        _clock.Advance(Second / 3);
+        _controller.RenderAnimationFrame();
+        direct.RenderAnimationFrame();
+
+        _controller.Replace(now => now.WithDevicesFrom(scene, [RecordingDeviceProvider.DeviceId]), fade: true);
+        direct.Replace(now => now.WithDevicesFrom(scene, [RecordingDeviceProvider.DeviceId]));
+
+        Assert.True(_controller.IsFading);
+        for (var frame = 0; frame < 4; frame++)
+        {
+            _clock.Advance(Second / 4);
+            _controller.RenderAnimationFrame();
+            direct.RenderAnimationFrame();
+            Assert.Equal(dynamic.Leds["real"], _dynamic.Leds["real"]);
+        }
+
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+    }
+
+    // "Alles aan" while every device is on already changes nothing: a static effect gets no frames.
+    [Fact]
+    public async Task AllOn_WhileAllIsOn_StartsNoFade_AndNoRenderLoop()
+    {
+        await StartAsync(Red);
+
+        _controller.SetLighting(null, lighting => lighting with { On = true }, fade: true);
+
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // A device that fades and that a next switch leaves as it is, goes on with its fade, on time:
+    // it does not start over.
+    [Fact]
+    public async Task SwitchThatLeavesAFadingDevice_LetsItsFadeGoOnOnTime()
+    {
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _clock.Advance(Second / 4);
+
+        _controller.Replace(now => now.WithDevicesFrom(Uniform(StaticLighting(Green)), ["real"]), fade: true);
+
+        _clock.Advance(Second / 4);
+        _controller.RenderAnimationFrame();
+        Assert.Equal(RgbColor.Lerp(Red, Blue, 0.5), _provider.LastColors[0]);
+        var quarter = RgbColor.Lerp(Red, Blue, 0.25);
+        Assert.Equal(RgbColor.Lerp(quarter, Green, 0.25), _dynamic.Leds["real"][0]);
+
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.True(_controller.IsFading);
+
+        _clock.Advance(Second / 4);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Green, Green], _dynamic.Leds["real"]);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // Per-LED colors of their own count as a change, also with the same lighting.
+    [Fact]
+    public async Task Replace_WithOtherLedColors_Fades()
+    {
+        var perLed = new DeviceLighting(Red, 1.0, EffectIds.PerLed);
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(perLed));
+
+        _controller.Replace(Uniform(perLed) with { LedColors = LedColors(RecordingDeviceProvider.DeviceId, Blue, Blue, Blue) }, fade: true);
+
+        Assert.Equal([Red, Red, Red], _provider.LastColors);
+        Assert.True(_controller.IsFading);
+        _clock.Advance(Second);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+    }
+
     // A color, effect or on/off of one device of its own goes at once, also during a scene fade:
     // the fade of that device ends, the others go on with theirs, on time.
     [Fact]
