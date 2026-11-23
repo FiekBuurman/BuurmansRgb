@@ -135,6 +135,24 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal([Blue, Blue, Blue], StripColors(viewModel));
     }
 
+    // A preview that comes to stand still during a fade gets its image at that moment, halfway
+    // the fade, and one more once the fade is surely over, with the colors of the scene.
+    [Fact]
+    public async Task StillDuringAFade_ShowsTheNewColorsAfterTheFade()
+    {
+        var viewModel = await ConnectAsync(Frame(1, Red), sceneFade: TimeSpan.FromSeconds(1));
+        Api.RaiseLightingChanged();
+
+        Api.Frame = Frame(2, Green);
+        _time.Advance(TimeSpan.FromSeconds(0.5));
+        _animations.Turn(on: false);
+        Assert.Equal([Green, Green], FanColors(viewModel));
+
+        Api.Frame = Frame(3, Blue);
+        _time.Advance(TimeSpan.FromSeconds(0.5) + MainViewModel.StillAfterFlash);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
     // Without a fade the image right after the change is the end: nothing more is fetched.
     [Fact]
     public async Task ChangeWithoutFade_FetchesNoImageLater()

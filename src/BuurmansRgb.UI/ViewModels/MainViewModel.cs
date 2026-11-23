@@ -792,11 +792,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // raises no event. So a preview that stands still gets one more image once such a fade is
     // surely over. The app cannot tell whether a change had a fade, so it asks after every change
     // of the lighting; one without a fade costs one image more, nothing else. Without a fade
-    // there is nothing to wait for.
+    // there is nothing to wait for. Also while the preview moves: when it comes to stand still
+    // during the fade, its first image is halfway, and this one shows the end (RequestStill
+    // fetches nothing while it moves).
     private void RequestStillAfterFade()
     {
         var fade = EffectOptions.SelectedSceneFade?.Fade ?? SceneFade.Max;
-        if (!Motion.IsStill || fade <= TimeSpan.Zero)
+        if (fade <= TimeSpan.Zero)
         {
             return;
         }
