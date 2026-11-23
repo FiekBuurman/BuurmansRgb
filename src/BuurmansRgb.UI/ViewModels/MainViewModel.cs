@@ -1632,19 +1632,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // queue, so a dragged slider still sends only its latest value, however many runs there are.
     private void SendLeds(IReadOnlyList<LedEdit>? edits)
     {
-        if (edits is not [var first, ..] || _connection is not { } connection)
+        if (edits is not [var first, ..] || !PostRuns(LedsCall, first.DeviceId, edits, (api, edit) => api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
         {
             return;
         }
 
-        _sentChanges++;
-        _calls.Post((LedsCall, first.DeviceId, LedsOf(edits.Select(edit => (edit.FirstLed, edit.Colors.Count)))), async () =>
-        {
-            foreach (var edit in edits)
-            {
-                await connection.Api.SetLedColorsAsync(edit.DeviceId, edit.FirstLed, edit.Colors);
-            }
-        });
         Lamps.SwitchOn(first.DeviceId);
         if (SelectedDevice?.DeviceId == first.DeviceId)
         {
@@ -1657,28 +1649,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // per run of chosen LEDs, in one place in the queue, as with SendLeds.
     private void SendLayer(IReadOnlyList<LayerEdit>? edits, bool switchOn = true)
     {
-        if (edits is not [var first, ..] || _connection is not { } connection)
+        if (edits is not [var first, ..] || !PostRuns(LayerCall, first.DeviceId, edits, (api, edit) => api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors)))
         {
             return;
         }
 
-        _sentChanges++;
-        _calls.Post((LayerCall, first.DeviceId, LedsOf(edits.Select(edit => (edit.FirstLed, edit.Colors.Count)))), async () =>
-        {
-            foreach (var edit in edits)
-            {
-                await connection.Api.SetOverlayAsync(edit.DeviceId, edit.FirstLed, edit.Colors);
-            }
-        });
         if (switchOn)
         {
             Lamps.SwitchOn(first.DeviceId);
         }
     }
 
-    // The LEDs that runs of an edit cover, as the key of its place in the call queue.
-    private static LedSet LedsOf(IEnumerable<(int FirstLed, int Count)> runs) =>
-        LedSet.Of(runs.SelectMany(run => Enumerable.Range(run.FirstLed, run.Count)));
+    // The runs of one edit as one call in the queue, keyed by the chosen LEDs the editor just made
+    // them from. False when there is no engine to send them to.
+    private bool PostRuns<T>(string kind, string deviceId, IReadOnlyList<T> edits, Func<IEngineApi, T, Task> send)
+    {
+        if (_connection is not { } connection || LedEditor.Selection is not { } selection)
+        {
+            return false;
+        }
+
+        _sentChanges++;
+        _calls.Post((kind, deviceId, selection.Leds), async () =>
+        {
+            // Stopping at the first run that fails is good enough: the runs go in rising order, what
+            // makes one fail (a lost engine, a device that went) makes the rest fail too, and the
+            // next step of the edit sends all runs again.
+            foreach (var edit in edits)
+            {
+                await send(connection.Api, edit);
+            }
+        });
+        return true;
+    }
 
     // The engine reports the device with its new length through DevicesChanged, which rebuilds
     // the preview; an LED edit of that device ends then, because its LEDs moved.
