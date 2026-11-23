@@ -1359,8 +1359,10 @@ of minder beweging werkt.
   regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
   schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
   niet: die doen wat je koos. Ook de overgang naar een scène blijft zoals je hem bij Instellingen
-  koos (zie "Overgang naar een scène" bij Effecten); kies daar "Direct" als je hem niet wilt. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
-  het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
+  koos (zie "Overgang naar een scène" bij Effecten); kies daar "Direct" als je hem niet wilt. Na
+  een scène of alles aan of uit met een overgang toont het stilstaande voorbeeld eerst nog de
+  kleuren van het begin en zodra de overgang voorbij is de nieuwe. Zet je de animaties weer aan,
+  dan gaat de melding weg en beweegt het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
   apparaat" klapt altijd zonder animatie open en dicht, en een sprong naar een kaart staat meteen
   op zijn plek; met de animaties uit staat ook de kleine strip op een dichte kaart stil. Op de
   effecttegels beweegt nooit iets, en een ander effect laat het blok eronder zonder animatie

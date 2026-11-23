@@ -58,6 +58,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ReentrancyGuard _syncing = new();
     private readonly ITimer _flashTimer;
     private readonly ITimer _stillTimer;
+    private readonly ITimer _fadeStillTimer;
     private long? _lastPick;
     private string? _flashPending;
     private IEngineConnection? _connection;
@@ -142,6 +143,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _stillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _fadeStillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
         Motion.StillChanged += (_, _) =>
         {
@@ -531,6 +533,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        _fadeStillTimer.Dispose();
         EngineUsage.Dispose();
         StatusLine.Dispose();
         Motion.Dispose();
@@ -781,6 +784,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 ShowFrame(frame);
             });
         });
+    }
+
+    // A change of the lighting may go over in the scene fade of the engine (a scene, "Alles aan"
+    // or "Alles uit", from here or from elsewhere, such as the tray or a scene on time): the image
+    // RequestStill takes at once can still show the colors from before, and the end of the fade
+    // raises no event. So a preview that stands still gets one more image once such a fade is
+    // surely over. The app cannot tell whether a change had a fade, so it asks after every change
+    // of the lighting; one without a fade costs one image more, nothing else. Without a fade
+    // there is nothing to wait for.
+    private void RequestStillAfterFade()
+    {
+        var fade = EffectOptions.SelectedSceneFade?.Fade ?? SceneFade.Max;
+        if (!Motion.IsStill || fade <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        _fadeStillTimer.Change(fade + StillAfterFlash, Timeout.InfiniteTimeSpan);
     }
 
     // A flash that went through runs in the engine now: until it is over (a little after, so the
@@ -2021,6 +2042,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowActiveAsync();
         FollowLighting();
         RequestStill();
+        RequestStillAfterFade();
     });
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() =>
