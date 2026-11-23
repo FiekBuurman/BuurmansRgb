@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 
@@ -5,7 +6,8 @@ namespace BuurmansRgb.Engine.Settings;
 
 // All the lighting as it is written to a file: the global lighting plus, under "devices", the
 // devices that differ from it and, under "ledColors", the stored colors of the per-LED effect with,
-// under "ledColorZoneLengths", the zone lengths they were chosen for.
+// under "ledColorZoneLengths", the zone lengths they were chosen for, and under "overlay" the layer
+// over the effect.
 internal record LightingStateSettings : LightingSettings
 {
     // More LEDs than a device has, by far; a hand-edited list of zone lengths over it would make the
@@ -23,6 +25,12 @@ internal record LightingStateSettings : LightingSettings
     // Older files have none; a list with a negative count is left out. Null for the same reason as
     // Devices.
     public Dictionary<string, int[]?>? LedColorZoneLengths { get; set; }
+
+    // "overlay": by device, the layer of fixed colors over the effect (LedOverlayStore), one
+    // "#RRGGBB" per LED or null for an LED that shows the effect. Older files have none, and an
+    // older engine skips it. A color that does not read is null; a list without a color, and every
+    // LED past LedOverlayStore.MaxLeds, is left out. Null for the same reason as Devices.
+    public Dictionary<string, RgbColor?[]?>? Overlay { get; set; }
 
     public LightingState ToLightingState()
     {
@@ -44,7 +52,7 @@ internal record LightingStateSettings : LightingSettings
             }
         }
 
-        return new(ToDeviceLighting(), devices, ledColors);
+        return new(ToDeviceLighting(), devices, ledColors) { Overlays = ReadOverlays() };
     }
 
     protected void CopyFrom(LightingState state)
@@ -60,6 +68,33 @@ internal record LightingStateSettings : LightingSettings
         LedColorZoneLengths = zoneLengths.Count > 0
             ? zoneLengths.ToDictionary(pair => pair.Key, pair => (int[]?)[.. pair.Value.ZoneLengths!])
             : null;
+        Overlay = state.Overlays.Count > 0
+            ? state.Overlays.OrderBy(pair => pair.Key, StringComparer.Ordinal).ToDictionary(pair => pair.Key, pair => (RgbColor?[]?)[.. pair.Value])
+            : null;
+    }
+
+    private Dictionary<string, IReadOnlyList<RgbColor?>> ReadOverlays()
+    {
+        var overlays = new Dictionary<string, IReadOnlyList<RgbColor?>>(StringComparer.Ordinal);
+        foreach (var (deviceId, colors) in Overlay ?? [])
+        {
+            if (colors is null)
+            {
+                continue;
+            }
+
+            if (colors.Length > LedOverlayStore.MaxLeds)
+            {
+                Trace.TraceWarning($"Settings file: the overlay of '{deviceId}' has {colors.Length} LEDs, more than {LedOverlayStore.MaxLeds}; the rest is left out.");
+            }
+
+            if (LedOverlayStore.Normalize(colors) is { } normalized)
+            {
+                overlays[deviceId] = normalized;
+            }
+        }
+
+        return overlays;
     }
 
     // Null when the file has none for the device, or counts that cannot be right: a negative one,

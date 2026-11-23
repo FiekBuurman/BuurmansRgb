@@ -1,4 +1,5 @@
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Profiles;
 using static BuurmansRgb.Engine.Tests.LightingStates;
@@ -456,6 +457,37 @@ public sealed class ProfileLibraryTests
         Assert.Equal(StaticLighting(Green), state.For("fan"));
         Assert.Equal([Red, Blue, Red], state.LedColors[device].Colors);
         Assert.Equal("Lezen", _library.ActiveName);
+    }
+
+    // "Bewaar als scène" and "Bijwerken met wat nu brandt" keep the layer over the effect, and the
+    // scene brings it back.
+    [Fact]
+    public async Task SaveThenLoad_KeepsTheLayer()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var device = RecordingDeviceProvider.DeviceId;
+        _lighting.SetOverlay(device, 0, [Red]);
+        _library.Save("Gamen");
+        _lighting.SetOverlay(device, 0, [null]);
+
+        _library.Load("Gamen");
+
+        Assert.Equal([Red], Assert.Single(_store.Profiles).Lighting.Overlays[device]);
+        Assert.Equal([Red, null, null], _lighting.GetOverlay(device));
+    }
+
+    // A scene of some devices brings the layer of those devices, or none, and leaves the others.
+    [Fact]
+    public async Task Load_SceneOfSomeDevices_TakesTheLayerOfThoseDevicesOnly()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        var device = RecordingDeviceProvider.DeviceId;
+        _library.Show(Uniform(StaticLighting(Green)) with { Overlays = new Dictionary<string, IReadOnlyList<RgbColor?>> { [device] = [Red], ["fan"] = [Blue] } }, scene: null);
+        _store.Profiles = [new Profile("Lezen", Uniform(StaticLighting(Green))) { DeviceIds = [device] }];
+
+        _library.Load("Lezen");
+
+        Assert.Equal(["fan"], _lighting.State.Overlays.Keys);
     }
 
     // Per-LED colors of a device in the scene that the scene does not have go; those of a device
