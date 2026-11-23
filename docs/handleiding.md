@@ -806,6 +806,9 @@ toont het mengpaneel diens kleur; de LED's ervoor houden wat je mengde.
 - **Een laag weghalen:** kies de LED's en klik **Laag weghalen**; ze tonen dan weer het effect.
   Met Ctrl+A (of "Alles selecteren") en Laag weghalen haal je de hele laag van het apparaat weg.
   De knop is grijs zolang geen van de gekozen LED's een laag heeft.
+
+  ![Kleur voor de LED's met een toets van het gesimuleerde toetsenbord gekozen: onder "Waar komt de kleur?" staat "Als laag boven het effect" aan naast "Per LED", met "Laag weghalen" ernaast en daaronder het mengpaneel op rood](images/kleur-laag.png)
+
 - De laag hoort bij de verlichting: hij wordt bewaard, gaat mee in een scène (ook met "Bewaar als
   scène" en "Bijwerken met wat nu brandt") en in een gedeelde scène, en gaat mee in de overgang
   naar een scène. Staat het apparaat uit (ook met "Alles uit"), dan is de laag ook uit. De
