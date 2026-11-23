@@ -368,7 +368,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   pauze (ook slaapstand, scherm uit en vergrendelen) en `Dispose` maken een lopende overgang meteen
   af met `StopFadesLocked` en sturen de eindkleuren, zoals een flits; een nieuwe apparatenlijst
   maakt nieuwe `DeviceOutput`s zonder overgang. Niets wacht dus op een overgang. Een eigen
-  wijziging zonder `fade` (`SetLighting`, `SetLedColors`, `Replace`) roept `EndFadesLocked` aan:
+  wijziging zonder `fade` (`SetLighting`, `SetLedColors`, `SetOverlay`, `Replace`) roept `EndFadesLocked` aan:
   de overgang van het apparaat dat ze raakt eindigt (bij een globale wijziging van elk apparaat),
   en de `RenderLocked` daarna stuurt de nieuwe kleuren en zet de render-loop stil als niets meer
   beweegt.
@@ -389,7 +389,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   bewaard. IPC: `GetOverlayAsync` (een per LED van nu) en `SetOverlayAsync` (een `null` haalt de
   laag weg); het effect blijft, `LightingChanged` volgt. De app: `LedEditorViewModel.PaintsLayer`
   kiest waar een kleur heen gaat (`PaintLayer`, `FillLayerGradient`, `RemoveLayer` geven een
-  `LayerEdit`), `MainViewModel.SendLayer` stuurt hem in de wachtrij met de sleutel `layer`.
+  lijst `LayerEdit`s, één per aaneengesloten stuk gekozen LED's), `MainViewModel.SendLayer`
+  stuurt ze met `PostRuns` als één plek in de wachtrij (sleutel: soort, apparaat en de gekozen
+  LED's).
 - **Effecten:** `EffectCatalog` maakt per apparaat een effect met de kleur, de per-LED-kleuren,
   de kleurenloop, `EffectColors` (de eigen kleuren van Fonkelen, Komeet, Scanner en Vuur; zonder
   lijst de kleur van het apparaat of `DefaultFire`) en een seed (`SeedOf`, FNV-1a over het id), zodat

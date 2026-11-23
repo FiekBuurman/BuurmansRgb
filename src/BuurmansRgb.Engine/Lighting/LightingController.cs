@@ -1060,13 +1060,14 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Call it once the new lighting is in, before the RenderLocked that shows it. Lets every
-    // device whose lighting or per-LED colors differ from before go over from the colors it shows
-    // now, also in the middle of a fade, to what the next RenderLocked gives it, in SceneFade. A
-    // device that stays the same goes on as it was: an effect that moves does not stand still for
-    // a moment, and a fade that runs goes on, on time. At once, so a fade that runs ends, with a
-    // fade of zero, before there was lighting (a null before), and during a pause: no frames run
-    // then, and what goes to the devices, such as a scene on time while Windows is locked, does
-    // not wait. Show has not given the new effects yet, so BeginFade still renders the old ones.
+    // device whose lighting, per-LED colors or layer differ from before go over from the colors
+    // it shows now, also in the middle of a fade, to what the next RenderLocked gives it, in
+    // SceneFade. A device that stays the same goes on as it was: an effect that moves does not
+    // stand still for a moment, and a fade that runs goes on, on time. At once, so a fade that
+    // runs ends, with a fade of zero, before there was lighting (a null before), and during a
+    // pause: no frames run then, and what goes to the devices, such as a scene on time while
+    // Windows is locked, does not wait. Show has not given the new effects yet, so BeginFade still
+    // renders the old ones.
     private void FadeLocked(LightingState? before)
     {
         var fade = _disposed || _pause != PauseReasons.None || before is null ? TimeSpan.Zero : _sceneFade;
