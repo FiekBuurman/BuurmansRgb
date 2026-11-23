@@ -139,6 +139,35 @@ public sealed class LedColorStoreTests
     }
 
     [Fact]
+    public void SameAs_NullAtTheEnd_CountsAsNoColor()
+    {
+        _store.Replace(Colors(null, Red, null, null));
+
+        Assert.True(_store.SameAs(Colors(null, Red), Strip));
+        Assert.True(_store.SameAs(Colors(null, Red, null), Strip));
+    }
+
+    [Fact]
+    public void SameAs_OtherColor_IsFalse()
+    {
+        _store.Replace(Colors(null, Red, Blue));
+
+        Assert.False(_store.SameAs(Colors(null, Red, Red), Strip));
+        Assert.False(_store.SameAs(Colors(null, Red), Strip));
+        Assert.False(_store.SameAs(new Dictionary<string, LedColorEntry>(), Strip));
+    }
+
+    // Colors past the end of the device are compared too, although the device does not show them.
+    [Fact]
+    public void SameAs_DifferencePastTheEndOfTheDevice_IsFalse()
+    {
+        _store.Replace(Colors(null, Red, Red, Red, Red, Red, Blue));
+
+        Assert.False(_store.SameAs(Colors(null, Red, Red, Red, Red, Red), Strip));
+        Assert.False(_store.SameAs(Colors(null, Red, Red, Red, Red, Red, Red, Blue), Strip));
+    }
+
+    [Fact]
     public void Replace_DropsWhatWasStored()
     {
         _store.Set(Strip, 0, [Red]);
