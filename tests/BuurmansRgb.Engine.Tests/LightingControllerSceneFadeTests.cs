@@ -296,6 +296,128 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.Equal(RgbColor.Lerp(RgbColor.Black, Red, 0.25), _provider.LastColors[0]);
     }
 
+    // "Alles uit" while a scene still fades in starts from the mixed colors of that moment.
+    [Fact]
+    public async Task AllOff_DuringASceneFade_StartsFromTheMixedColors_AndEndsBlack()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _clock.Advance(Second / 2);
+        var halfway = RgbColor.Lerp(Red, Blue, 0.5);
+
+        _controller.SetLighting(null, lighting => lighting with { On = false }, fade: true);
+        Assert.Equal([halfway, halfway, halfway], _provider.LastColors);
+
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+        Assert.Equal(RgbColor.Lerp(halfway, RgbColor.Black, 0.5), _provider.LastColors[0]);
+
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([RgbColor.Black, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // Knipperen during a fade blinks over it; the fade goes on underneath, on time, so the device
+    // shows where the fade is once the flash is over, and the render loop stops at its end.
+    [Fact]
+    public async Task Flash_DuringAFade_BlinksOverIt_AndTheFadeGoesOnOnTime()
+    {
+        await StartAsync(Red);
+        _controller.SceneFade = SceneFade.Max;
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        _controller.Flash(RecordingDeviceProvider.DeviceId);
+        Assert.Equal([RgbColor.White, RgbColor.White, RgbColor.White], _provider.LastColors);
+
+        _clock.Advance(DeviceFlash.Duration);
+        _controller.RenderAnimationFrame();
+        var fadeAmount = DeviceFlash.Duration / SceneFade.Max;
+        Assert.Equal(RgbColor.Lerp(Red, Blue, fadeAmount), _provider.LastColors[0]);
+        Assert.True(_controller.IsFading);
+        Assert.True(_controller.IsAnimating);
+
+        _clock.Advance(SceneFade.Max - DeviceFlash.Duration);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // A flash that outlasts the fade keeps the render loop until the flash is over.
+    [Fact]
+    public async Task Flash_LongerThanTheFade_KeepsTheRenderLoopUntilItsEnd()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _controller.Flash(RecordingDeviceProvider.DeviceId);
+
+        _clock.Advance(Second);
+        _controller.RenderAnimationFrame();
+        Assert.False(_controller.IsFading);
+        Assert.True(_controller.IsAnimating);
+
+        _clock.Advance(DeviceFlash.Duration - Second);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // Tellen during a fade draws over it; the fade goes on underneath, so the zone shows where the
+    // fade is when the count stops, and the end of the fade stops the render loop.
+    [Fact]
+    public async Task StartCount_DuringAFade_DrawsOverIt_AndTheFadeGoesOnOnTime()
+    {
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+
+        Assert.True(_controller.StartCount(RecordingDeviceProvider.DeviceId, 0, 3, 1));
+        Assert.Equal([ZoneCount.NewestColor, RgbColor.Black, RgbColor.Black], _provider.LastColors);
+
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+        _controller.StopCount();
+        var halfway = RgbColor.Lerp(Red, Blue, 0.5);
+        Assert.Equal([halfway, halfway, halfway], _provider.LastColors);
+        Assert.True(_controller.IsAnimating);
+
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
+    // OpenRGB that comes back during a fade with another number of LEDs on a device: no error, the
+    // device shows the end colors on all its LEDs at once, and the others end their fade on time.
+    [Fact]
+    public async Task DeviceBack_WithOtherLedCount_DuringAFade_ShowsTheEndColors()
+    {
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 2));
+        await StartAsync(Red);
+        _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
+        _clock.Advance(Second / 4);
+
+        await ChangeDevicesAsync();
+        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 5));
+
+        Assert.Equal([Blue, Blue, Blue, Blue, Blue], _dynamic.Leds["real"]);
+        Assert.True(_controller.IsFading);
+        _clock.Advance(Second * 3 / 4);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Blue, Blue, Blue, Blue, Blue], _dynamic.Leds["real"]);
+        Assert.Equal([Blue, Blue, Blue], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+
+        // A next fade works on the new LEDs too.
+        _controller.Replace(Uniform(StaticLighting(Green)), fade: true);
+        _clock.Advance(Second);
+        _controller.RenderAnimationFrame();
+        Assert.Equal([Green, Green, Green, Green, Green], _dynamic.Leds["real"]);
+        Assert.False(_controller.IsAnimating);
+    }
+
     [Fact]
     public async Task SetLighting_WithFade_ThatThrows_StartsNoFade()
     {
