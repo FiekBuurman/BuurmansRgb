@@ -22,6 +22,10 @@ public sealed class EffectTile : RadioButton
         set => SetValue(CanChooseProperty, value);
     }
 
+    // True while UI Automation (SetFocus, as from a screen reader) focuses this tile, so the group
+    // leaves the focus here instead of moving it to the chosen tile.
+    internal bool IsFocusedByAutomation { get; private set; }
+
     // As a click: the tile checks itself if it may, and runs its command.
     internal void Choose() => OnClick();
 
@@ -44,6 +48,19 @@ public sealed class EffectTile : RadioButton
         IRawElementProviderSimple? ISelectionItemProvider.SelectionContainer => null;
 
         protected override string GetClassNameCore() => nameof(EffectTile);
+
+        protected override void SetFocusCore()
+        {
+            owner.IsFocusedByAutomation = true;
+            try
+            {
+                base.SetFocusCore();
+            }
+            finally
+            {
+                owner.IsFocusedByAutomation = false;
+            }
+        }
 
         void ISelectionItemProvider.Select()
         {

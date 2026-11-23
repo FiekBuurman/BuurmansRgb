@@ -100,6 +100,38 @@ public sealed class EffectTilesViewTests
         });
     }
 
+    // Only Tab moves the focus to the chosen tile. Focus that comes back without an element before
+    // it, as after Alt+Tab, stays on "Eigen effect" where it was; a screen reader that sets the
+    // focus on a tile (SetFocus of UI Automation) gets that tile.
+    [Fact]
+    public async Task FocusThatComesBackOrFromAutomation_StaysOnItsTile()
+    {
+        using var viewModel = await ConnectAsync(EffectIds.Wave, arranged => arranged.CustomEffects = []);
+
+        AppTheme.Run(panel =>
+        {
+            var page = PageViews.Show<ColorPage>(panel, viewModel);
+            var tiles = Tiles(page);
+            Assert.True(tiles[3].Focus());
+            PageViews.Press(tiles[3], Key.End, Keyboard.PreviewKeyDownEvent);
+            Assert.True(tiles[10].IsKeyboardFocused);
+
+            Keyboard.ClearFocus();
+            Assert.True(tiles[10].Focus());
+            Assert.True(tiles[10].IsKeyboardFocused);
+
+            var import = AppTheme.Descendants<FrameworkElement>(page).First(element => AutomationProperties.GetName(element) == Strings.ShareImportAccessibleName);
+            Assert.True(import.Focus());
+            UIElementAutomationPeer.CreatePeerForElement(tiles[5]).SetFocus();
+            Assert.True(tiles[5].IsKeyboardFocused);
+            Assert.Equal(EffectIds.Wave, viewModel.SelectedEffect?.Id);
+
+            Assert.True(import.Focus());
+            tiles[5].Focus();
+            Assert.True(tiles[3].IsKeyboardFocused);
+        });
+    }
+
     // Without own effects "Eigen effect" chooses nothing on a click, Space or Select() of UI
     // Automation: the tile before stays chosen, the light keeps its effect, and card 4 is "Jouw
     // effect". The arrows pass it without changing card 4.
