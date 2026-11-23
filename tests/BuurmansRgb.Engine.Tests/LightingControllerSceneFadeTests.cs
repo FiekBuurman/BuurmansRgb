@@ -152,7 +152,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     {
         var rainbow = new DeviceLighting(Red, 1.0, EffectIds.Rainbow);
         var scene = Uniform(StaticLighting(Blue));
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 8));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real", ledCount: 8));
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(Uniform(rainbow));
         var dynamic = new DynamicDeviceProvider();
@@ -188,7 +188,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     {
         var rainbow = new DeviceLighting(Green, 1.0, EffectIds.Rainbow);
         var devices = new Dictionary<string, DeviceLighting> { ["real"] = rainbow };
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 8));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real", ledCount: 8));
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(WithDevices(StaticLighting(Red), devices));
         var dynamic = new DynamicDeviceProvider();
@@ -221,7 +221,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task AllOff_WhileADeviceIsOffOfItsOwn_FadesOnlyTheOthers()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         await StartAsync(Red);
         _controller.SetLighting("real", lighting => lighting with { On = false });
 
@@ -256,7 +256,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task SwitchThatLeavesAFadingDevice_LetsItsFadeGoOnOnTime()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         await StartAsync(Red);
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
         _clock.Advance(Second / 4);
@@ -332,7 +332,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task OwnChangeOfOneDevice_DuringAFade_EndsOnlyItsFade()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         await StartAsync(Red);
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
         _clock.Advance(Second / 4);
@@ -368,7 +368,7 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task OwnGlobalChange_DuringAFade_EndsEveryFade_AndStopsTheRenderLoop()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         await StartAsync(Red);
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
         _clock.Advance(Second / 4);
@@ -575,13 +575,13 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task DeviceBack_WithOtherLedCount_DuringAFade_ShowsTheEndColors()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 2));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real", ledCount: 2));
         await StartAsync(Red);
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
         _clock.Advance(Second / 4);
 
-        await ChangeDevicesAsync();
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real", ledCount: 5));
+        await _controller.ChangeDevicesAsync(_dynamic);
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real", ledCount: 5));
 
         Assert.Equal([Blue, Blue, Blue, Blue, Blue], _dynamic.Leds["real"]);
         Assert.True(_controller.IsFading);
@@ -683,12 +683,12 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     [Fact]
     public async Task DevicesGone_DuringAFade_TakesTheirFadeAlongAtOnce()
     {
-        await ChangeDevicesAsync(DynamicDeviceProvider.Device("real"));
+        await _controller.ChangeDevicesAsync(_dynamic, DynamicDeviceProvider.Device("real"));
         await StartAsync(Red);
         _controller.Replace(Uniform(StaticLighting(Blue)), fade: true);
         Assert.Equal([Red, Red], _dynamic.Leds["real"]);
 
-        await ChangeDevicesAsync();
+        await _controller.ChangeDevicesAsync(_dynamic);
 
         Assert.DoesNotContain(_controller.Devices, device => device.Id == "real");
         Assert.True(_controller.IsFading);
@@ -753,21 +753,5 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
     {
         await _controller.DiscoverAsync(Ct);
         _controller.Apply(Uniform(StaticLighting(color)));
-    }
-
-    private async Task ChangeDevicesAsync(params IReadOnlyList<RgbDevice> devices)
-    {
-        var changed = new TaskCompletionSource();
-        void OnChanged(object? sender, EventArgs e) => changed.TrySetResult();
-        _controller.DevicesChanged += OnChanged;
-        try
-        {
-            _dynamic.SetDevices(devices);
-            await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
-        }
-        finally
-        {
-            _controller.DevicesChanged -= OnChanged;
-        }
     }
 }

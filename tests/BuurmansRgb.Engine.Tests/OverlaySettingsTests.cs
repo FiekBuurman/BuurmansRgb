@@ -34,7 +34,7 @@ public sealed class OverlaySettingsTests : IDisposable
     {
         var path = _directory.File("settings.json");
         var store = new JsonSettingsStore(path);
-        var lighting = Uniform(StaticLighting(Orange)) with { Overlays = Overlay("simulated-keyboard", null, Red, null, Blue) };
+        var lighting = Uniform(StaticLighting(Orange)) with { Overlays = Overlays("simulated-keyboard", null, Red, null, Blue) };
 
         store.Save(EngineSettings.From(lighting));
 
@@ -118,7 +118,7 @@ public sealed class OverlaySettingsTests : IDisposable
     {
         var path = _directory.File("profiles.json");
         var store = new JsonProfileStore(path);
-        var lighting = Uniform(StaticLighting(Orange)) with { Overlays = Overlay("kb", Red, null, Red) };
+        var lighting = Uniform(StaticLighting(Orange)) with { Overlays = Overlays("kb", Red, null, Red) };
 
         store.Save([new Profile("Gamen", lighting), new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))]);
         var loaded = store.Load();
@@ -145,10 +145,7 @@ public sealed class OverlaySettingsTests : IDisposable
     {
         var plain = Uniform(StaticLighting(Orange));
 
-        Assert.False(EngineSettings.SameLighting(plain, plain with { Overlays = Overlay("kb", Red) }));
-        Assert.True(EngineSettings.SameLighting(plain with { Overlays = Overlay("kb", Red) }, plain with { Overlays = Overlay("kb", Red) }));
+        Assert.False(EngineSettings.SameLighting(plain, plain with { Overlays = Overlays("kb", Red) }));
+        Assert.True(EngineSettings.SameLighting(plain with { Overlays = Overlays("kb", Red) }, plain with { Overlays = Overlays("kb", Red) }));
     }
-
-    private static Dictionary<string, IReadOnlyList<RgbColor?>> Overlay(string deviceId, params IReadOnlyList<RgbColor?> colors) =>
-        new() { [deviceId] = colors };
 }
