@@ -55,25 +55,12 @@ public sealed class EffectTileGroup : ItemsControl
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         base.OnPreviewKeyDown(e);
-        if (e.Handled || Keyboard.Modifiers != ModifierKeys.None || e.OriginalSource is not DependencyObject source)
-        {
-            return;
-        }
-
-        var tiles = Tiles();
-        var current = tiles.IndexHolding(source);
-        if (current < 0)
-        {
-            return;
-        }
-
-        if (RovingFocus.NextIndex(tiles.Count, current, e.Key, upDownMoves: true) is not { } index)
+        if (this.TargetOf<EffectTile>(e, upDownMoves: true) is not { } tile)
         {
             return;
         }
 
         e.Handled = true;
-        var tile = tiles[index];
         tile.Focus();
         if (tile.CanChoose)
         {

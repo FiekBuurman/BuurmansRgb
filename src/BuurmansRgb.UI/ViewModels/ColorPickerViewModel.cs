@@ -10,8 +10,9 @@ namespace BuurmansRgb.UI.ViewModels;
 // presets and the own colors change Color, and every mixed color goes on at once by raising
 // ColorPicked, for the whole device as for a color of the loop or of chosen LEDs; the call queue of
 // MainViewModel lets the last one of a drag win. With IsUnused, as for the rainbow, the effect uses
-// no color of the device: a mixed color only shows, for the own colors, and raises nothing. Show
-// shows the color the device has and raises nothing.
+// no color of the device: card 4 then shows no mixing panel (ColorCard NoColor, ShowsMixer) but the
+// sentence NoColorText, and IsUnused stays as a safety net: a color that is mixed all the same
+// raises nothing and goes nowhere. Show shows the color the device has and raises nothing.
 public sealed partial class ColorPickerViewModel : ObservableObject
 {
     private readonly ReentrancyGuard _showing = new();
@@ -75,8 +76,9 @@ public sealed partial class ColorPickerViewModel : ObservableObject
     public string ColorName => ColorNames.StandaloneNameOf(Color);
 
     // The picker shows a color that is not on the device. Outside IsUnused every mixed color goes
-    // on at once (Mix), so this only stays true for a color mixed while IsUnused, as with the
-    // rainbow, until Show shows the device again.
+    // on at once (Mix), so this only stays true for a color mixed while IsUnused, until Show shows
+    // the device again. Card 4 shows no mixing panel then (ColorCard NoColor), so that is the
+    // safety net for a color that is mixed all the same.
     public bool HasColorNotOnDevice => Color != _applied;
 
     // The effect of the device uses no color of its own, so a mixed color goes nowhere. Ending it

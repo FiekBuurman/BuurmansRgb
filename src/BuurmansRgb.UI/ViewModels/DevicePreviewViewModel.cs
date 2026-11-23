@@ -112,6 +112,12 @@ public sealed partial class DevicePreviewViewModel : ObservableObject, IDisposab
     // The switch keeps the focus when the preview is made again, as it is after a change of it.
     public string ZonesAlikeFocusKey => $"zones-alike/{DeviceId}";
 
+    // The card of the device keeps the focus when the cards are made again.
+    public string CardFocusKey => $"device-card/{DeviceId}";
+
+    // The chip of the device ("Naar een apparaat") keeps the focus when the chips are made again.
+    public string ChipFocusKey => $"device-chip/{DeviceId}";
+
     // The LED the keys move and choose, counted from the start of the device: the first one until
     // the user moves it or clicks another one; LedMatrix.NoLed for a device without LEDs. The view
     // of the zone that holds it is where Tab brings the keyboard focus (LedPreviewView).

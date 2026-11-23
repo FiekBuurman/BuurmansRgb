@@ -563,6 +563,16 @@ uitbreidingen in `docs/bouwplan.md`.
 - Bewaarde instellingen van een andere pc met andere apparaten: de verlichting per apparaat en
   de zonelengtes horen bij apparaat-id's die daar misschien niet zijn. Ze blijven bewaard tot
   zo'n apparaat komt, maar eventueel vragen welk apparaat welk is ("instellingen-beheer")
+- De volgorde "gekozen LED's → kleurenloop → lijst van het effect → eigen effect → apparaat" staat
+  vier keer in `MainViewModel` (`ColorCard`, `OnColorPicked`, `ShowPickerColor`,
+  `SetPickerMode`). Eén enum van "wat de kiezer kleurt" kan dat samenbrengen. Een herontwerp met
+  gedragsrisico, want `ShowsCustomCard` en Per LED wijken van die volgorde af, dus niet in een
+  refactor (refactorreview 23-11-2026)
+- `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
+  `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
+  een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of
+  het weg kan; dat raakt o.a. `MainViewModelDeviceColorTests.Rainbow_MixedColorGoesOnlyToTheOwnColors`
+  (refactorreview 23-11-2026)
 
 ## Scènes
 

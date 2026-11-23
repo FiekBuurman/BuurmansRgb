@@ -8,8 +8,6 @@ namespace BuurmansRgb.UI.Tests;
 // shows what belongs to it, or with chosen LEDs the color for those LEDs.
 public sealed class MainViewModelColorCardTests
 {
-    private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
-
     private static readonly CustomEffect Avond = new("custom:avond", "Avond", [new CustomEffectStep(Green, 1, 0)]);
 
     private readonly FakeEngineConnector _connector = new();
@@ -137,10 +135,10 @@ public sealed class MainViewModelColorCardTests
         var custom = viewModel.EffectTiles.Tiles.Single(tile => tile.IsCustom);
         viewModel.EffectTiles.ChooseCommand.Execute(custom);
 
-        Api.CustomEffects = [Disco];
+        Api.CustomEffects = [TestEffects.Disco];
         Api.RaiseCustomEffectsChanged();
 
-        Assert.Equal([Disco.Id], viewModel.EffectTiles.CustomEffects.Select(effect => effect.Id));
+        Assert.Equal([TestEffects.Disco.Id], viewModel.EffectTiles.CustomEffects.Select(effect => effect.Id));
         Assert.Equal(ColorCardContent.CustomEffect, viewModel.ColorCard);
         Assert.False(viewModel.ShowsMixer);
         Assert.Null(viewModel.EffectTiles.SelectedCustomEffect);
@@ -188,17 +186,17 @@ public sealed class MainViewModelColorCardTests
     [Fact]
     public async Task EigenEffect_ChoosesTheOwnEffectUsedLast()
     {
-        var viewModel = await ConnectAsync(EffectIds.Static, Avond, Disco);
+        var viewModel = await ConnectAsync(EffectIds.Static, Avond, TestEffects.Disco);
         var custom = viewModel.EffectTiles.Tiles.Single(tile => tile.IsCustom);
 
         viewModel.EffectTiles.ChooseCommand.Execute(custom);
         Assert.Equal(Avond.Id, viewModel.SelectedEffect?.Id);
 
-        viewModel.EffectTiles.SelectedCustomEffect = viewModel.EffectTiles.CustomEffects.Single(effect => effect.Id == Disco.Id);
+        viewModel.EffectTiles.SelectedCustomEffect = viewModel.EffectTiles.CustomEffects.Single(effect => effect.Id == TestEffects.Disco.Id);
         viewModel.EffectTiles.ChooseCommand.Execute(Tile(viewModel, EffectIds.Static));
         viewModel.EffectTiles.ChooseCommand.Execute(custom);
 
-        Assert.Equal(Disco.Id, viewModel.SelectedEffect?.Id);
+        Assert.Equal(TestEffects.Disco.Id, viewModel.SelectedEffect?.Id);
         Assert.True(custom.IsChosen);
         Assert.Equal(["effect all custom:avond", "effect all custom:disco", "effect all static", "effect all custom:disco"], Api.Calls);
     }
@@ -231,12 +229,8 @@ public sealed class MainViewModelColorCardTests
         var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
         {
             arrange(api);
-            api.Effects =
-            [
-                EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop,
-                EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed,
-            ];
-            api.CustomEffects = customEffects.Length > 0 || !CustomEffects.IsCustom(effectId) ? [.. customEffects] : [Disco];
+            api.Effects = TestEffects.AllEffects;
+            api.CustomEffects = customEffects.Length > 0 || !CustomEffects.IsCustom(effectId) ? [.. customEffects] : [TestEffects.Disco];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         }));
         await viewModel.ConnectCommand.ExecuteAsync(null);

@@ -108,7 +108,7 @@ public sealed class AccessibleNamesViewTests
         using var viewModel = await PageViews.ConnectAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
-            api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)])];
+            api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         });
@@ -141,7 +141,7 @@ public sealed class AccessibleNamesViewTests
         {
             api.Devices = [Board];
             api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
-            api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)])];
+            api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         });

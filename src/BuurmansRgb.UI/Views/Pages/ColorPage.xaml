@@ -38,12 +38,12 @@
         <!-- Least widths in em of the body text, which a larger text size of Windows makes wider, so
              fewer columns fit and the rest goes under them. A column of the preview and the sliders
              fits the hex code (8.4 em + 54 px) beside "255 · 255 · 255" (7.8 em + 12 px) in the padding
-             and border of the preview (38 px), with a little to spare: 358 px at 100 %. A column of
-             brightness, speed, direction or a time of a step fits its name beside its value: 150 px.
+             and border of the preview (38 px), with a little to spare: 358 px at 100 %. A column with
+             a value (brightness, speed, direction or a time of a step) fits its name beside it: 150 px.
              The title of the page (10 em) keeps 12 em beside the choice of the lamp, and the line of
              the chosen LEDs as much beside Verloop vullen and Selectie opheffen. -->
         <views:EmConverter x:Key="MixColumnWidth" Ems="16.5" Extra="110" />
-        <views:EmConverter x:Key="LightingColumnWidth" Ems="10" />
+        <views:EmConverter x:Key="ValueColumnWidth" Ems="10" />
         <views:EmConverter x:Key="HeadingWidth" Ems="12" />
 
         <!-- The hex code in the preview, in the mono font of the design; typing a code mixes that color.
@@ -355,7 +355,7 @@
 
                             <!-- The two times of the chosen step side by side, or under each other when the text of a
                                  larger text size of Windows needs the room. -->
-                            <views:CardGrid Margin="0,10,0,0" MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource LightingColumnWidth}}">
+                            <views:CardGrid Margin="0,10,0,0" MaxColumns="2" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
                                 <StackPanel>
                                     <DockPanel>
                                         <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding HoldText}" />
@@ -519,7 +519,7 @@
             <Border Margin="0,14,0,0" Style="{StaticResource LargeCard}">
                 <StackPanel>
                     <TextBlock Margin="0,0,0,14" Style="{StaticResource SectionHeader}" Text="{x:Static res:Strings.BrightnessSpeedHeader}" AutomationProperties.HeadingLevel="Level2" />
-                    <views:CardGrid MaxColumns="3" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource LightingColumnWidth}}">
+                    <views:CardGrid MaxColumns="3" Gap="24" MinColumnWidth="{Binding (TextElement.FontSize), RelativeSource={RelativeSource Self}, Converter={StaticResource ValueColumnWidth}}">
                         <StackPanel>
                             <DockPanel>
                                 <TextBlock DockPanel.Dock="Right" Style="{StaticResource MonoValue}" Text="{Binding Brightness, StringFormat={}{0:0}%}" />

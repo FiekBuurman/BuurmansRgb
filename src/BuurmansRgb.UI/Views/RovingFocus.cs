@@ -7,9 +7,29 @@ namespace BuurmansRgb.UI.Views;
 
 // The arrow keys of a row of controls with one Tab stop, such as the chip row (DeviceChipRow) and
 // the effect tiles (EffectTileGroup): which control of the row holds the focus, and where an arrow,
-// Home or End takes it, from the last back to the first.
+// Home or End takes it, from the last back to the first. The rows ask TargetOf in OnPreviewKeyDown
+// for the control a key goes to, and focus it.
 internal static class RovingFocus
 {
+    // The control of the row that a key takes the focus to: null for a key that is handled already,
+    // with a modifier key held, from a source outside the row, or that moves nothing (NextIndex).
+    internal static T? TargetOf<T>(this ItemsControl items, KeyEventArgs e, bool upDownMoves) where T : UIElement =>
+        items.TargetOf<T>(e, Keyboard.Modifiers, upDownMoves);
+
+    // As above, with the modifier keys given, so a test can hold Ctrl without touching the keyboard.
+    internal static T? TargetOf<T>(this ItemsControl items, KeyEventArgs e, ModifierKeys modifiers, bool upDownMoves)
+        where T : UIElement
+    {
+        if (e.Handled || modifiers != ModifierKeys.None || e.OriginalSource is not DependencyObject source)
+        {
+            return null;
+        }
+
+        var controls = items.Containers<T>();
+        var current = controls.IndexHolding(source);
+        return current >= 0 && NextIndex(controls.Count, current, e.Key, upDownMoves) is { } index ? controls[index] : null;
+    }
+
     // The first T in each container of the items, in the order of the items.
     internal static List<T> Containers<T>(this ItemsControl items) where T : DependencyObject =>
         [.. Enumerable.Range(0, items.Items.Count)
