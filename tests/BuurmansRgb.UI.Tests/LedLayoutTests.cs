@@ -165,6 +165,11 @@ public sealed class LedLayoutTests
     public void KeyCapGrowFor_FollowsTheTextSize(double fontSize, double grow) =>
         Assert.Equal(grow, LedLayout.KeyCapGrowFor(fontSize), 9);
 
+    // The size KeyCapGrowFor counts from is KeyCapSize of the tokens at 100 %.
+    [Fact]
+    public void KeyCapDesignSize_IsTheKeyCapSizeOfTheTokens() => Sta.Run(() =>
+        Assert.Equal(LedLayout.KeyCapDesignSize, TextSizes.DesignSizes["KeyCapSize"]));
+
     [Theory]
     [InlineData(500.0, 1.0)]
     [InlineData(double.PositiveInfinity, 1.0)]
