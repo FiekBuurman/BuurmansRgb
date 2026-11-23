@@ -113,6 +113,60 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal([Green, Green], FanColors(viewModel));
     }
 
+    // A scene with a fade, here from the tray: the image right after the change still shows the
+    // colors from before, as the fade has just begun, and the end of the fade raises no event. One
+    // more image once the fade is surely over shows the colors of the scene.
+    [Fact]
+    public async Task SceneWithFade_ShowsTheNewColorsAfterTheFade()
+    {
+        _animations.IsOn = false;
+        var viewModel = await ConnectAsync(Frame(1, Red), sceneFade: TimeSpan.FromSeconds(1));
+
+        Api.Frame = Frame(2, Red);
+        Api.RaiseLightingChanged();
+        Assert.Equal([Red, Red], FanColors(viewModel));
+
+        Api.Frame = Frame(3, Blue);
+        _time.Advance(TimeSpan.FromSeconds(1));
+        Assert.Equal([Red, Red], FanColors(viewModel));
+
+        _time.Advance(MainViewModel.StillAfterFlash);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+        Assert.Equal([Blue, Blue, Blue], StripColors(viewModel));
+    }
+
+    // A preview that comes to stand still during a fade gets its image at that moment, halfway
+    // the fade, and one more once the fade is surely over, with the colors of the scene.
+    [Fact]
+    public async Task StillDuringAFade_ShowsTheNewColorsAfterTheFade()
+    {
+        var viewModel = await ConnectAsync(Frame(1, Red), sceneFade: TimeSpan.FromSeconds(1));
+        Api.RaiseLightingChanged();
+
+        Api.Frame = Frame(2, Green);
+        _time.Advance(TimeSpan.FromSeconds(0.5));
+        _animations.Turn(on: false);
+        Assert.Equal([Green, Green], FanColors(viewModel));
+
+        Api.Frame = Frame(3, Blue);
+        _time.Advance(TimeSpan.FromSeconds(0.5) + MainViewModel.StillAfterFlash);
+        Assert.Equal([Blue, Blue], FanColors(viewModel));
+    }
+
+    // Without a fade the image right after the change is the end: nothing more is fetched.
+    [Fact]
+    public async Task ChangeWithoutFade_FetchesNoImageLater()
+    {
+        _animations.IsOn = false;
+        await ConnectAsync(Frame(1, Red), sceneFade: TimeSpan.Zero);
+
+        Api.RaiseLightingChanged();
+        var after = Api.FrameCalls;
+        _time.Advance(SceneFade.Max + MainViewModel.StillAfterFlash);
+
+        Assert.Equal(after, Api.FrameCalls);
+    }
+
     // Each step of a count gives an image: one LED more each time, nothing that goes on and off.
     [Fact]
     public async Task CountStep_ShowsANewImage()
@@ -391,9 +445,13 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal([RgbColor.White, RgbColor.White], FanColors(viewModel));
     }
 
-    private async Task<MainViewModel> ConnectAsync(LightingFrame frame)
+    private async Task<MainViewModel> ConnectAsync(LightingFrame frame, TimeSpan? sceneFade = null)
     {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => api.Frame = frame), _time, animationEffects: _animations);
+        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+        {
+            api.Frame = frame;
+            api.SceneFade = sceneFade ?? SceneFade.Default;
+        }), _time, animationEffects: _animations);
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;

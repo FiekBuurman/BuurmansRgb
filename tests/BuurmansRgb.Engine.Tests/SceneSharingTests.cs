@@ -216,6 +216,27 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Empty(await _api.GetProfilesAsync(Ct));
     }
 
+    // The scene fade is an option of the pc, not of a scene: a shared scene goes without it, so
+    // an older version still reads it, and here it comes on with the fade of this pc.
+    [Fact]
+    public async Task ExportScene_LeavesTheSceneFadeOut_AndTheImportFadesWithThisPc()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        await _api.SetSceneFadeAsync(TimeSpan.FromSeconds(2), Ct);
+        await _api.SetColorAsync(null, Orange, Ct);
+        await _api.SaveProfileAsync("Gamen", Ct);
+
+        var json = await _api.ExportSceneAsync("Gamen", Ct);
+        var result = await _api.ImportSharedAsync(json, Ct);
+        await _api.SetColorAsync(null, Blue, Ct);
+        await _api.LoadProfileAsync(result.Name!, Ct);
+
+        Assert.DoesNotContain("fade", Encoding.UTF8.GetString(json), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(ShareImportOutcome.Imported, result.Outcome);
+        Assert.Equal(Orange, _lighting.State.Global.Color);
+        Assert.True(_lighting.IsFading);
+    }
+
     // A file that is wrong adds nothing, and no event goes out.
     [Fact]
     public async Task Import_Invalid_AddsNothing()

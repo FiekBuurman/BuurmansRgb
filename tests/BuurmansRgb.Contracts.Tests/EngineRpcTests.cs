@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using BuurmansRgb.Core;
 using StreamJsonRpc;
@@ -581,6 +582,8 @@ public sealed class EngineRpcTests : IDisposable
         await client.Api.SetHotkeysAsync(false, Ct);
         var pausedLights = await client.Api.GetPausedLightsAsync(Ct);
         await client.Api.SetPausedLightsAsync(PausedLightsMode.Off, Ct);
+        var sceneFade = await client.Api.GetSceneFadeAsync(Ct);
+        await client.Api.SetSceneFadeAsync(TimeSpan.FromSeconds(0.25), Ct);
         var customColors = await client.Api.GetCustomColorsAsync(Ct);
         await client.Api.SetCustomColorsAsync([new RgbColor(0, 0, 255), RgbColor.White], Ct);
 
@@ -589,8 +592,9 @@ public sealed class EngineRpcTests : IDisposable
         Assert.False(catchUp);
         Assert.True(hotkeys);
         Assert.Equal(PausedLightsMode.Dim, pausedLights);
+        Assert.Equal(TimeSpan.FromSeconds(1.5), sceneFade);
         Assert.Equal([new RgbColor(255, 0, 0)], customColors);
-        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off", "custom colors #0000FF #FFFFFF"], _api.OptionCalls);
+        Assert.Equal(["fps 60", "pause on lock False", "catch up True", "hotkeys False", "paused lights Off", "scene fade 250", "custom colors #0000FF #FFFFFF"], _api.OptionCalls);
     }
 
     // "Starten met Windows" crosses the pipe both ways, with whether Windows let it change.
@@ -956,6 +960,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default)
         {
             OptionCalls.Add($"paused lights {mode}");
+            return Task.CompletedTask;
+        }
+
+        public Task<TimeSpan> GetSceneFadeAsync(CancellationToken ct = default) => Task.FromResult(TimeSpan.FromSeconds(1.5));
+
+        public Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default)
+        {
+            OptionCalls.Add(string.Create(CultureInfo.InvariantCulture, $"scene fade {fade.TotalMilliseconds}"));
             return Task.CompletedTask;
         }
 

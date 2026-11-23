@@ -30,6 +30,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string FramesPerSecondCall = "frames-per-second";
     private const string PauseOnLockCall = "pause-on-lock";
     private const string PausedLightsCall = "paused-lights";
+    private const string SceneFadeCall = "scene-fade";
     private const string CatchUpCall = "catch-up";
     private const string HotkeysCall = "hotkeys";
     private const string AutoStartCall = "autostart";
@@ -57,6 +58,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly ReentrancyGuard _syncing = new();
     private readonly ITimer _flashTimer;
     private readonly ITimer _stillTimer;
+    private readonly ITimer _fadeStillTimer;
     private long? _lastPick;
     private string? _flashPending;
     private IEngineConnection? _connection;
@@ -141,6 +143,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Preview = new PreviewViewModel(_time);
         _flashTimer = _time.CreateTimer(_ => RunOnUi(FlashPending), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _stillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _fadeStillTimer = _time.CreateTimer(_ => RunOnUi(RequestStill), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
         Motion.StillChanged += (_, _) =>
         {
@@ -233,6 +236,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
         EffectOptions.PausedLightsChanged += (_, mode) =>
             SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
+        EffectOptions.SceneFadeChanged += (_, fade) =>
+            SendOption(SceneFadeCall, api => api.SetSceneFadeAsync(fade));
         SceneTimes.Switched += (_, enabled) =>
             SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
         Hotkeys.Switched += (_, enabled) =>
@@ -528,6 +533,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         _flashTimer.Dispose();
         _stillTimer.Dispose();
+        _fadeStillTimer.Dispose();
         EngineUsage.Dispose();
         StatusLine.Dispose();
         Motion.Dispose();
@@ -778,6 +784,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 ShowFrame(frame);
             });
         });
+    }
+
+    // A change of the lighting may go over in the scene fade of the engine (a scene, "Alles aan"
+    // or "Alles uit", from here or from elsewhere, such as the tray or a scene on time): the image
+    // RequestStill takes at once can still show the colors from before, and the end of the fade
+    // raises no event. So a preview that stands still gets one more image once such a fade is
+    // surely over. The app cannot tell whether a change had a fade, so it asks after every change
+    // of the lighting; one without a fade costs one image more, nothing else. Without a fade
+    // there is nothing to wait for. Also while the preview moves: when it comes to stand still
+    // during the fade, its first image is halfway, and this one shows the end (RequestStill
+    // fetches nothing while it moves).
+    private void RequestStillAfterFade()
+    {
+        var fade = EffectOptions.SelectedSceneFade?.Fade ?? SceneFade.Max;
+        if (fade <= TimeSpan.Zero)
+        {
+            return;
+        }
+
+        _fadeStillTimer.Change(fade + StillAfterFlash, Timeout.InfiniteTimeSpan);
     }
 
     // A flash that went through runs in the engine now: until it is over (a little after, so the
@@ -1994,6 +2020,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         await api.GetFramesPerSecondAsync(),
         await api.GetPauseOnLockAndSleepAsync(),
         await api.GetPausedLightsAsync(),
+        await api.GetSceneFadeAsync(),
         await api.GetCatchUpSceneTimesAsync(),
         await api.GetHotkeysAsync(),
         await api.GetAutoStartAsync(),
@@ -2004,6 +2031,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         SimulatedDevices.Show(options.SimulatedDevices);
         HadRealDevices = options.HadRealDevices;
         EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
+        EffectOptions.ShowSceneFade(options.SceneFade);
         SceneTimes.Show(options.CatchUpSceneTimes);
         Hotkeys.Show(options.Hotkeys);
         AutoStart.Show(options.AutoStart);
@@ -2016,6 +2044,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ = _sceneCards.ShowActiveAsync();
         FollowLighting();
         RequestStill();
+        RequestStillAfterFade();
     });
 
     private void OnDevicesChanged(object? sender, EventArgs e) => RunOnUi(() =>
@@ -2242,6 +2271,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         int FramesPerSecond,
         bool PauseOnLockAndSleep,
         PausedLightsMode PausedLights,
+        TimeSpan SceneFade,
         bool CatchUpSceneTimes,
         bool Hotkeys,
         bool AutoStart,

@@ -104,7 +104,7 @@ public partial interface IEngineApi
     Task SetEffectAsync(string? deviceId, string effectId, CancellationToken ct = default);
 
     // Switched off, a device shows black and keeps its lighting for when it goes on again. For all
-    // devices it switches every device.
+    // devices it switches every device, as "Alles aan" or "Alles uit", with the scene fade.
     Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default);
 
     // Speed runs from EffectSpeed.Min to EffectSpeed.Max; it only shows on animated effects.
@@ -290,6 +290,13 @@ public partial interface IEngineApi
     Task<PausedLightsMode> GetPausedLightsAsync(CancellationToken ct = default);
 
     Task SetPausedLightsAsync(PausedLightsMode mode, CancellationToken ct = default);
+
+    // How long the devices take to go over to a scene, or to "Alles aan" or "Alles uit": from zero,
+    // at once, to SceneFade.Max; saved like the lighting. A fade that runs keeps its length.
+    Task<TimeSpan> GetSceneFadeAsync(CancellationToken ct = default);
+
+    // A value outside zero to SceneFade.Max is kept within it.
+    Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default);
 
     // Whether a scene time that passed while the pc slept or the engine did not run is caught up
     // on: after waking up and at the start the scene of the last time that passed comes on. Off,

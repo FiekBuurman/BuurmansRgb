@@ -42,6 +42,24 @@ internal sealed class LedColorStore
     public IReadOnlyList<RgbColor?> For(RgbDevice device) =>
         _entries.TryGetValue(device.Id, out var entry) ? Layout(entry, device) : [];
 
+    // Whether device has the same colors, laid out for the zones it has now, as in before (a
+    // Snapshot): as a scene comes on, only a device whose colors change fades. A null at the end
+    // follows the device color, as an LED past the end does, so it counts the same as no color.
+    public bool SameAs(IReadOnlyDictionary<string, LedColorEntry> before, RgbDevice device)
+    {
+        var now = For(device);
+        var then = before.TryGetValue(device.Id, out var entry) ? Layout(entry, device) : [];
+        for (var i = 0; i < Math.Max(now.Count, then.Count); i++)
+        {
+            if ((i < now.Count ? now[i] : null) != (i < then.Count ? then[i] : null))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     // What the per-LED effect shows: the stored color, or fallback for an LED without one. The
     // effect itself renders it, so the rule lives in one place.
     public RgbColor[] Resolve(RgbDevice device, RgbColor fallback)

@@ -280,7 +280,7 @@ internal sealed class ProfileLibrary
             if (hold?.Invoke(held => held.Lighting.IsAnyOn ? new HeldLighting(held.Lighting.WithOn(false), null) : held) != true && _lighting.State.IsAnyOn)
             {
                 Trace.TraceInformation("Uit om: every device goes off.");
-                _lighting.SetLighting(null, lighting => lighting with { On = false });
+                _lighting.SetLighting(null, lighting => lighting with { On = false }, fade: true);
             }
 
             return;
@@ -387,11 +387,12 @@ internal sealed class ProfileLibrary
 
     // Shows lighting and saves it as the current lighting, with scene as the scene that is on, or
     // null for none: for example the lighting from before a game, which may have been a scene.
-    // Outside _gate: the controller has its own lock.
-    public void Show(LightingState state, string? scene) => Showing(scene, () => _lighting.Replace(state));
+    // The devices go over to it in the scene fade (LightingController.SceneFade). Outside _gate:
+    // the controller has its own lock.
+    public void Show(LightingState state, string? scene) => Showing(scene, () => _lighting.Replace(state, fade: true));
 
     // The same with what change makes of the lighting now, read under the lock of the controller.
-    private void Show(Func<LightingState, LightingState> change, string? scene) => Showing(scene, () => _lighting.Replace(change));
+    private void Show(Func<LightingState, LightingState> change, string? scene) => Showing(scene, () => _lighting.Replace(change, fade: true));
 
     private void Showing(string? scene, Action replace)
     {

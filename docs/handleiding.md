@@ -20,6 +20,9 @@ app te openen. Links staan de pagina's **Apparaten**, **Kleur**, **Scènes** en 
   **Alles aan** of **Alles uit**.
 
 Een apparaat dat uit staat, onthoudt zijn kleur voor als het weer aan gaat.
+Alles aan of uit gaat met een zachte overgang van een halve seconde; hoe lang die duurt, kies je
+bij **Instellingen** (zie "Overgang naar een scène" bij Effecten). Eén apparaat aan- of uitzetten
+gaat direct, ook midden in een overgang.
 
 ### Elke avond vanzelf uit
 
@@ -807,6 +810,9 @@ kleuren zie je de eerste vijf), de naam en wanneer
 hij vanzelf aangaat ("Elke dag om 23:00", "Bij eldenring.exe", "Bij valorant.exe en nog 2"), of
 anders wat hij laat zien
 ("Regenboog · 80%", "Alles uit").
+Een scène gaat aan met een zachte overgang van de kleuren van dat moment naar die van de scène,
+standaard in een halve seconde; zie "Overgang naar een scène" bij Instellingen. Alleen de
+apparaten die veranderen gaan over; de andere lopen gewoon door.
 
 Een nieuwe installatie begint met vijf **startscènes**, die op alle apparaten slaan, ook op een
 apparaat dat er later bij komt:
@@ -1073,6 +1079,8 @@ Hoe het vanzelf aanzetten werkt:
 
 ### Instellingen
 
+![Instellingen bij Effecten, met "Vloeiendheid" en "Overgang naar een scène"](images/instellingen.png)
+
 - **Als de pc slaapt of vergrendeld is:** het eerste blok. Hier kies je wat de apparaten doen
   zolang Windows vergrendeld is of slaapt, het scherm uit is of de schermbeveiliging loopt:
   "Uitzetten", "Dimmen" (op een vijfde van hun helderheid) of "Laten branden" (het laatste
@@ -1157,6 +1165,22 @@ Hoe het vanzelf aanzetten werkt:
   engine bewaart het, en een tweede instellingen-app toont de wijziging meteen. Het pauzeren
   van "Pauzeren" (bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging) staat in het
   eerste blok, "Als de pc slaapt of vergrendeld is".
+- **Overgang naar een scène:** in hetzelfde blok kies je hoe lang de apparaten erover doen om naar
+  een andere scène over te gaan, en naar alles aan of alles uit (met **Hele huis** op Apparaten,
+  het tray-menu, de sneltoetsen of "Uit om" en "Aan om"): "Direct (geen overgang)", "Kort"
+  (0,25 s), "Normaal" (0,5 s, standaard), "Rustig" (1 s) of "Langzaam" (2 s). De kleuren lopen in
+  die tijd over van wat de apparaten lieten zien naar de nieuwe scène. Alleen apparaten die
+  echt veranderen gaan over: een apparaat buiten een scène van een paar apparaten, of dat bij
+  "Alles aan" al aan stond, loopt gewoon door, ook met een bewegend effect. Kies je tijdens een
+  overgang al een andere scène, dan begint de nieuwe overgang bij de kleuren van dat moment. Een
+  kleur, effect of apparaat dat je zelf verandert, gaat direct, ook midden in een overgang: dat
+  apparaat slaat de rest van de overgang over (een wijziging voor alle apparaten: elk apparaat).
+  Vergrendel je de pc, gaat hij slapen, gaat het scherm uit, pauzeer je, sluit je de engine af of
+  valt OpenRGB weg, dan wacht dat niet op de overgang: de apparaten krijgen meteen de nieuwe kleuren. Een scène die op tijd
+  aangaat terwijl de pc vergrendeld is, gaat ook direct. In `settings.json` heet het `sceneFade`
+  (in seconden); staat daar een andere waarde tussen 0 en 2, dan staat die er als zesde keuze bij.
+  Met "Minder beweging" van Windows (animaties uit) blijft de overgang zoals je hem koos: het is
+  licht in de kamer, geen beweging op het scherm. Wil je hem niet, kies dan "Direct".
 - **Scènes op tijd:** "Gemiste tijden inhalen" (standaard uit), zie "Gemiste tijden inhalen" bij
   Scènes. Het geldt zonder herstart, de engine bewaart het, en een tweede instellingen-app toont
   de wijziging meteen.
@@ -1197,7 +1221,8 @@ Hoe het vanzelf aanzetten werkt:
   (`dismissedOtherRgbSoftware`) komt wel mee, net als wat de apparaten doen als de pc slaapt of
   vergrendeld is (`pausedLights`): een zip zonder die regel, van een versie van vóór die keuze,
   zet "Laten branden" terug, wat die pc toen deed, ook op een nieuwe installatie die met
-  "Uitzetten" begon.
+  "Uitzetten" begon. De overgang naar een scène (`sceneFade`) komt ook mee; een zip van vóór die
+  keuze zet de standaard van een halve seconde terug.
   Is de zip niet goed, dan verandert er niets en staat onderaan waarom: "Dit bestand bevat geen
   bewaarde instellingen van buurmansRgb." (geen zip, of er staat iets anders in dan die drie
   bestanden, zoals een map), "Dit bestand is te groot …" (een zip groter dan 4 MB, of een bestand
@@ -1337,8 +1362,11 @@ of minder beweging werkt.
   tegelijk een belangrijkere melding, zoals een pauze, dan staat deze onder "Details" van die
   regel, met dezelfde knop (zie "Statusregel" bij Apparaten). De knop bereik je met Tab, en een
   schermlezer leest de melding voor als hij komt of verandert. Je apparaten zelf veranderen
-  niet: die doen wat je koos. Zet je de animaties weer aan, dan gaat de melding weg en beweegt
-  het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
+  niet: die doen wat je koos. Ook de overgang naar een scène blijft zoals je hem bij Instellingen
+  koos (zie "Overgang naar een scène" bij Effecten); kies daar "Direct" als je hem niet wilt. Na
+  een scène of alles aan of uit met een overgang toont het stilstaande voorbeeld eerst nog de
+  kleuren van het begin en zodra de overgang voorbij is de nieuwe. Zet je de animaties weer aan,
+  dan gaat de melding weg en beweegt het voorbeeld, ook terwijl de app open is (zie "Per apparaat" bij Kleur). Een kaart bij "Per
   apparaat" klapt altijd zonder animatie open en dicht, en een sprong naar een kaart staat meteen
   op zijn plek; met de animaties uit staat ook de kleine strip op een dichte kaart stil. Op de
   effecttegels beweegt nooit iets, en een ander effect laat het blok eronder zonder animatie
@@ -1906,6 +1934,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
   "framesPerSecond": 30,
   "pauseOnLockAndSleep": true,
   "pausedLights": "off",
+  "sceneFade": 0.5,
   "catchUpSceneTimes": false,
   "hotkeys": true,
   "zoneLengths": {
@@ -1937,6 +1966,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `framesPerSecond` | 1–60, standaard 30: de framerate van bewegende effecten ("Vloeiendheid" bij Instellingen) |
 | `pauseOnLockAndSleep` | Standaard `true`; `false` laat de effecten doorlopen bij vergrendelen, slaapstand, scherm uit en de schermbeveiliging (ook bij Instellingen) |
 | `pausedLights` | `"off"`, `"dim"` of `"keep"`: wat de apparaten doen tijdens die pauze ("Uitzetten", "Dimmen" of "Laten branden" bij "Als de pc slaapt of vergrendeld is" op Instellingen). Een nieuw bestand zegt `"off"`; zonder het veld (een bestand van vóór deze keuze) of met iets anders leest het als `"keep"`, wat de apparaten toen deden |
+| `sceneFade` | 0–2 seconden, standaard 0,5: hoe lang de apparaten erover doen om naar een scène, "Alles aan" of "Alles uit" over te gaan ("Overgang naar een scène" bij Instellingen); `0` is direct. Zonder het veld (een bestand van vóór deze keuze) of met iets anders dan een getal is het 0,5; een waarde buiten 0–2 wordt 0 of 2. Een oudere versie leest het veld niet en wisselt direct |
 | `catchUpSceneTimes` | Standaard `false`; `true` zet na het ontwaken en bij het starten de scène van de laatste tijd aan ("Gemiste tijden inhalen" bij Instellingen) |
 | `hotkeys` | Standaard `true`; `false` zet de sneltoetsen Ctrl+Alt+Shift+A en Ctrl+Alt+Shift+U van "Alles aan" en "Alles uit" uit (ook bij Instellingen) |
 | `zoneLengths` | Per apparaat de lengte die je een instelbare zone gaf, op de naam van de zone (bij de gesimuleerde apparaten de Engelse naam die de zone eerder had, bijv. "ARGB 2" voor "Kanaal 2") |

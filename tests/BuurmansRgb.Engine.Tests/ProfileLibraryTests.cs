@@ -114,6 +114,36 @@ public sealed class ProfileLibraryTests
         Assert.Equal(1, changes);
     }
 
+    // A scene fades in (LightingController.SceneFade); with a fade of zero it is there at once.
+    [Theory]
+    [InlineData(0.5, true)]
+    [InlineData(0.0, false)]
+    public async Task Load_FadesOverToTheScene(double seconds, bool fades)
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Green)));
+        _lighting.SceneFade = TimeSpan.FromSeconds(seconds);
+        _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red, 0.1)))];
+
+        _library.Load("Nacht");
+
+        Assert.Equal(fades, _lighting.IsFading);
+        Assert.Equal(StaticLighting(Red, 0.1), _lighting.GetLighting(null));
+    }
+
+    // "Uit om" goes off as "Alles uit" does, with the fade.
+    [Fact]
+    public async Task LoadTimed_UitOm_FadesOut()
+    {
+        await _lighting.DiscoverAsync(Ct);
+        _lighting.Apply(Uniform(StaticLighting(Green)));
+
+        _library.LoadTimed(new TimedProfile("allOff", ProfileRole.AllOff, IsInternal: true, []));
+
+        Assert.False(_lighting.GetLighting(null).On);
+        Assert.True(_lighting.IsFading);
+    }
+
     [Fact]
     public void Load_UnknownName_Throws() => Assert.Throws<ArgumentException>(() => _library.Load("Gamen"));
 

@@ -49,6 +49,12 @@ internal sealed record EngineSettings : LightingStateSettings
     // starts with Off (CreateNew).
     public PausedLightsMode PausedLights { get; set; } = PausedLightsMode.Keep;
 
+    // "sceneFade": how long the devices take to go over to a scene, or to "Alles aan" or "Alles
+    // uit" (LightingController.SceneFade), in seconds. A file from before the option, without it,
+    // gets the default as well; a value outside 0 to 2 is kept within it (ReadSceneFade), and one
+    // that is no number is left out (LenientJson).
+    public double SceneFade { get; set; } = Contracts.SceneFade.Default.TotalSeconds;
+
     // Whether the scene of the last time that passed comes on after waking up and at the start
     // (ProfileTimer.CatchUp); off, such a time is skipped.
     public bool CatchUpSceneTimes { get; set; }
@@ -88,6 +94,10 @@ internal sealed record EngineSettings : LightingStateSettings
     // the pc sleeps or is locked. Not for a file that is there but does not read, or reads as null:
     // that pc had settings, and keeps the last frame as before.
     public static EngineSettings CreateNew() => CreateDefault() with { PausedLights = PausedLightsMode.Off };
+
+    public TimeSpan ReadSceneFade() => Contracts.SceneFade.FromSeconds(SceneFade);
+
+    public EngineSettings WithSceneFade(TimeSpan fade) => this with { SceneFade = fade.TotalSeconds };
 
     public IReadOnlyList<string> ReadDismissedOtherRgbSoftware() =>
         [.. (DismissedOtherRgbSoftware ?? []).Where(id => !string.IsNullOrEmpty(id)).Select(id => id!).Distinct(StringComparer.OrdinalIgnoreCase)];

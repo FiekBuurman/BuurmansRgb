@@ -710,6 +710,16 @@ uitbreidingen in `docs/bouwplan.md`.
 - De teksten met "en nog" gelijktrekken: de kaart van een scène zegt "Bij valorant.exe en nog 2",
   Hele huis "uit om 23:00 (elke dag) en nog 1 tijd". Verandert zichtbare tekst, dus niet in een
   refactor (refactorreview 18-11-2026)
+- Overgang naar een scène (`scene-overgang`), uitbreidingen:
+  - Per scène een eigen overgang (bijv. "Nacht" langzaam in 5 s, "Gamen" direct), naast de
+    algemene van Instellingen; ook langer dan 2 s voor een wekker-achtig opkomend licht
+  - Ook één apparaat aan of uit met de overgang, en een scène van een programma (voorgrond)
+    misschien juist direct, zodat alt-tabben niet traag voelt; nu gaan alleen scènes en alles aan
+    of uit zacht
+  - Een andere curve dan recht: zacht beginnen en eindigen (`SmoothStep`), of in HSV of een
+    kleurruimte die het oog gelijkmatiger vindt, zodat rood naar blauw niet even dof paars wordt
+  - Een overgang na het hervatten van een pauze of na het ontwaken (nu direct, zodat het
+    terugkomen niet wacht), als iemand dat mist
 
 ## Tray-menu
 

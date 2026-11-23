@@ -421,6 +421,16 @@ internal sealed class FakeEngineApi : IEngineApi
         PausedLights = mode;
     }
 
+    public TimeSpan SceneFade { get; set; } = Contracts.SceneFade.Default;
+
+    public Task<TimeSpan> GetSceneFadeAsync(CancellationToken ct = default) => Task.FromResult(SceneFade);
+
+    public async Task SetSceneFadeAsync(TimeSpan fade, CancellationToken ct = default)
+    {
+        await Record($"scene fade {fade.TotalSeconds.ToString(CultureInfo.InvariantCulture)}");
+        SceneFade = fade;
+    }
+
     public bool CatchUpSceneTimes { get; set; }
 
     public Task<bool> GetCatchUpSceneTimesAsync(CancellationToken ct = default) => Task.FromResult(CatchUpSceneTimes);
