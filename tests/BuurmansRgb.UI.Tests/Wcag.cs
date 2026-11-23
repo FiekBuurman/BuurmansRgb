@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using BuurmansRgb.Core;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -17,6 +18,9 @@ internal static class Wcag
         var b = RelativeLuminance(second);
         return (Math.Max(a, b) + 0.05) / (Math.Min(a, b) + 0.05);
     }
+
+    public static double ContrastRatio(RgbColor first, RgbColor second) =>
+        ContrastRatio(Color.FromRgb(first.R, first.G, first.B), Color.FromRgb(second.R, second.G, second.B));
 
     public static double RelativeLuminance(Color color) =>
         (0.2126 * Linear(color.R)) + (0.7152 * Linear(color.G)) + (0.0722 * Linear(color.B));

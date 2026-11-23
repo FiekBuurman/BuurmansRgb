@@ -48,12 +48,12 @@ public sealed class KeyCapDrawingsTests
                 {
                     var color = new RgbColor((byte)r, (byte)g, (byte)b);
                     var text = ReferenceEquals(keyCaps.For(0, color), black) ? RgbColor.Black : RgbColor.White;
-                    lowest = Math.Min(lowest, Contrast(color, text));
+                    lowest = Math.Min(lowest, Wcag.ContrastRatio(color, text));
                 }
             }
         }
 
-        Assert.True(lowest >= 4.5, $"The lowest contrast is {lowest:0.00}:1.");
+        Assert.True(lowest >= Wcag.TextContrast, $"The lowest contrast is {lowest:0.00}:1.");
     });
 
     // The drawings are made once: every frame gets the same frozen one, whatever the color.
@@ -157,15 +157,4 @@ public sealed class KeyCapDrawingsTests
     // Every drawing in drawing, also those in the groups WPF makes of a text.
     internal static IEnumerable<Drawing> Flatten(Drawing drawing) =>
         drawing is DrawingGroup group ? group.Children.SelectMany(Flatten) : [drawing];
-
-    private static double Contrast(RgbColor a, RgbColor b)
-    {
-        var (lighter, darker) = (SwitchTrackBrushConverter.Luminance(a), SwitchTrackBrushConverter.Luminance(b));
-        if (lighter < darker)
-        {
-            (lighter, darker) = (darker, lighter);
-        }
-
-        return (lighter + 0.05) / (darker + 0.05);
-    }
 }
