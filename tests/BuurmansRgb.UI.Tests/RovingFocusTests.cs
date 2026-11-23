@@ -75,4 +75,41 @@ public sealed class RovingFocusTests
         Assert.Equal(2, buttons.IndexHolding(AppTheme.Descendants<TextBlock>(buttons[2]).First()));
         Assert.Equal(-1, buttons.IndexHolding(outside));
     });
+
+    // The control a key goes to; null with Ctrl held, from a source outside the row, or for a key
+    // that is handled already.
+    [Fact]
+    public void TargetOf_TheControlTheKeyGoesTo() => OffscreenWindow.Run(panel =>
+    {
+        var button = new FrameworkElementFactory(typeof(Button));
+        button.SetBinding(ContentControl.ContentProperty, new Binding());
+        var row = new ItemsControl
+        {
+            ItemsSource = new[] { "een", "twee", "drie" },
+            ItemTemplate = new DataTemplate { VisualTree = button },
+        };
+        var outside = new TextBlock();
+        panel.Children.Add(row);
+        panel.Children.Add(outside);
+        panel.UpdateLayout();
+        var buttons = row.Containers<Button>();
+
+        KeyEventArgs Press(Key key, DependencyObject source) =>
+            new(Keyboard.PrimaryDevice, PresentationSource.FromVisual(panel), 0, key)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                Source = source,
+            };
+        Button? Target(KeyEventArgs e, ModifierKeys modifiers = ModifierKeys.None) =>
+            row.TargetOf<Button>(e, modifiers, upDownMoves: false);
+
+        Assert.Same(buttons[2], Target(Press(Key.Right, buttons[1])));
+        Assert.Same(buttons[0], Target(Press(Key.Right, AppTheme.Descendants<TextBlock>(buttons[2]).First())));
+        Assert.Null(Target(Press(Key.Right, buttons[1]), ModifierKeys.Control));
+        Assert.Null(Target(Press(Key.Right, outside)));
+        Assert.Null(Target(Press(Key.Tab, buttons[1])));
+        var handled = Press(Key.Right, buttons[1]);
+        handled.Handled = true;
+        Assert.Null(Target(handled));
+    });
 }

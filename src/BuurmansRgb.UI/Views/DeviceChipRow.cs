@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -20,21 +19,9 @@ public sealed class DeviceChipRow : ItemsControl
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
         base.OnPreviewKeyDown(e);
-        if (e.Handled || Keyboard.Modifiers != ModifierKeys.None || e.OriginalSource is not DependencyObject source)
+        if (this.TargetOf<ButtonBase>(e, upDownMoves: false) is { } chip)
         {
-            return;
-        }
-
-        var chips = Chips();
-        var current = chips.IndexHolding(source);
-        if (current < 0)
-        {
-            return;
-        }
-
-        if (RovingFocus.NextIndex(chips.Count, current, e.Key, upDownMoves: false) is { } index)
-        {
-            chips[index].Focus();
+            chip.Focus();
             e.Handled = true;
         }
     }
