@@ -350,8 +350,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   scène via `ProfileLibrary.Show`, "Uit om", "Alles aan" en "Alles uit" in het tray-menu, de
   sneltoetsen en `SetOnAsync` voor alle apparaten) nemen onder de lock de verlichting van vóór
   de wijziging (`StateLocked`), zetten de nieuwe erin en roepen dan, vóór `RenderLocked`,
-  `FadeLocked` aan: alleen een apparaat waarvan de `DeviceLighting` of de per-LED-kleuren
-  (`LedColorStore.SameAs`) verschillen, gaat over; een apparaat dat gelijk blijft, loopt door
+  `FadeLocked` aan: alleen een apparaat waarvan de `DeviceLighting` of, bij het effect Per LED,
+  de per-LED-kleuren (`LedColorStore.SameAs`, een `null` aan het eind telt als geen kleur)
+  verschillen, gaat over; een apparaat dat gelijk blijft, loopt door
   zoals het was, ook midden in een eigen overgang (die begint niet opnieuw). Dat
   `DeviceOutput` rendert met `BeginFade` de kleuren van dat moment (ook halverwege een overgang)
   in een eigen buffer die het één keer maakt en daarna hergebruikt, en mengt elk frame daarna
