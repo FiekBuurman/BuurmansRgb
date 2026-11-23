@@ -20,14 +20,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class EffectTilesViewTests
 {
-    private static readonly string[] AllEffects =
-    [
-        EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop,
-        EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed,
-    ];
-
-    private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
-
     // A screen reader hears a group "Effect" of radio buttons, not a list: "Regenboog, keuzerondje,
     // geselecteerd, 3 van 11", with what the effect does as the help. "Eigen effect" is the last.
     [Fact]
@@ -46,7 +38,7 @@ public sealed class EffectTilesViewTests
             Assert.Equal(AutomationControlType.Group, groupPeer.GetAutomationControlType());
             Assert.Equal(Strings.EffectHeader, groupPeer.GetName());
             Assert.Equal(11, tiles.Count);
-            Assert.Equal([.. AllEffects.Select(id => EffectOption.Create(id).DisplayName), Strings.Effect_custom], tiles.Select(AutomationProperties.GetName));
+            Assert.Equal([.. TestEffects.AllEffects.Select(id => EffectOption.Create(id).DisplayName), Strings.Effect_custom], tiles.Select(AutomationProperties.GetName));
             Assert.Equal(AutomationControlType.RadioButton, rainbow.GetAutomationControlType());
             Assert.Equal((Strings.Effect_rainbow, 3, 11), (rainbow.GetName(), rainbow.GetPositionInSet(), rainbow.GetSizeOfSet()));
             Assert.Equal(Strings.EffectDescription_rainbow, rainbow.GetHelpText());
@@ -208,13 +200,13 @@ public sealed class EffectTilesViewTests
 
             PageViews.Press(tiles[9], Key.Right, Keyboard.PreviewKeyDownEvent);
 
-            Assert.Equal(Disco.Id, viewModel.SelectedEffect?.Id);
+            Assert.Equal(TestEffects.Disco.Id, viewModel.SelectedEffect?.Id);
             Assert.True(tiles[10].IsChecked);
             Assert.Equal(UiText.Format(Strings.EffectTileCustomHelp, "Disco"), AutomationProperties.GetHelpText(tiles[10]));
             Assert.Equal(Strings.CustomEffectCardHeader, CardHeading(page).Text);
             var choice = PageViews.Named<ComboBox>(page, Strings.CustomEffectChoiceName);
             Assert.True(choice.IsVisible);
-            Assert.Equal(Disco.Id, Assert.IsType<EffectOption>(choice.SelectedItem).Id);
+            Assert.Equal(TestEffects.Disco.Id, Assert.IsType<EffectOption>(choice.SelectedItem).Id);
         });
     }
 
@@ -450,8 +442,8 @@ public sealed class EffectTilesViewTests
 
     private static Task<MainViewModel> ConnectAsync(string effectId, Action<FakeEngineApi>? arrange = null) => PageViews.ConnectAsync(api =>
     {
-        api.Effects = AllEffects;
-        api.CustomEffects = [Disco];
+        api.Effects = TestEffects.AllEffects;
+        api.CustomEffects = [TestEffects.Disco];
         api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         arrange?.Invoke(api);
     });

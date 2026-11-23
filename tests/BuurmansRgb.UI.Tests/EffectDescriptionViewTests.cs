@@ -13,12 +13,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class EffectDescriptionViewTests
 {
-    private static readonly string[] AllEffects =
-    [
-        EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.Wave, EffectIds.ColorLoop,
-        EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed,
-    ];
-
     private static readonly string PerLedDescription = EffectOption.Create(EffectIds.PerLed).Description;
 
     // Under the tiles, and the help of each tile for a screen reader, so it hears what an effect does
@@ -36,8 +30,8 @@ public sealed class EffectDescriptionViewTests
 
             Assert.True(description.TranslatePoint(default, page).Y > group.TranslatePoint(default, page).Y + group.ActualHeight - 1);
             Assert.Equal(
-                [.. AllEffects.Select(id => EffectOption.Create(id).Description)],
-                AppTheme.Descendants<EffectTile>(page).Take(AllEffects.Length).Select(AutomationProperties.GetHelpText));
+                [.. TestEffects.AllEffects.Select(id => EffectOption.Create(id).Description)],
+                AppTheme.Descendants<EffectTile>(page).Take(TestEffects.AllEffects.Length).Select(AutomationProperties.GetHelpText));
         });
     }
 
@@ -85,7 +79,7 @@ public sealed class EffectDescriptionViewTests
                 places.Add((effect.Id, Places(page)));
             }
 
-            Assert.Equal(AllEffects.Length + 1, places.Count);
+            Assert.Equal(TestEffects.AllEffects.Length + 1, places.Count);
             Assert.All(places, place => Assert.Equal(places[0].Place, place.Place));
         });
     }
@@ -115,8 +109,8 @@ public sealed class EffectDescriptionViewTests
 
     private static Task<MainViewModel> ConnectWithAsync(string effectId) => PageViews.ConnectAsync(api =>
     {
-        api.Effects = AllEffects;
-        api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)])];
+        api.Effects = TestEffects.AllEffects;
+        api.CustomEffects = [TestEffects.Disco];
         api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
     });
 }
