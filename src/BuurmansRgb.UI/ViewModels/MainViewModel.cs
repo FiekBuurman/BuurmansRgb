@@ -1432,8 +1432,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     // What the picker does with a mixed color: it goes on at once (OnColorPicked), unless the picker
-    // colors the device and its effect uses no color of the device, such as the rainbow (IsUnused):
-    // the mixed color then goes nowhere, and the page says so.
+    // colors the device and its effect uses no color of the device, such as the rainbow (IsUnused).
+    // Card 4 then shows no mixing panel (ColorCard NoColor, ShowsMixer) but the sentence NoColorText;
+    // IsUnused stays as a safety net, so a color that is mixed all the same goes nowhere.
     private void SetPickerMode() =>
         ColorPicker.IsUnused = !(LedEditor.HasSelection || IsColorLoop || HasEffectColors || IsCustomEffect) && IsDeviceColorUnused;
 

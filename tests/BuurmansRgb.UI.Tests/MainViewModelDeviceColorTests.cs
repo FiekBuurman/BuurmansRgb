@@ -6,9 +6,9 @@ using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;
 
-// An effect that uses no color of the device, such as the rainbow (EffectIds.UsesDeviceColor): the
-// Kleur page says so under the mixed color, and the mixed color goes nowhere: it only stays in the
-// picker, for the own colors.
+// An effect that uses no color of the device, such as the rainbow (EffectIds.UsesDeviceColor): card 4
+// shows no mixing panel (ColorCard NoColor, ShowsMixer) but the sentence NoColorText, and IsUnused
+// stays as a safety net: a color that is mixed all the same goes nowhere.
 public sealed class MainViewModelDeviceColorTests
 {
     private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red), new CustomEffectStep(Blue)]);
@@ -92,7 +92,8 @@ public sealed class MainViewModelDeviceColorTests
         Assert.Equal(["color all #FF00FF"], Api.Calls);
     }
 
-    // "Hele huis" with the rainbow says so; a device with Statisch under it takes the color.
+    // "Hele huis" with the rainbow uses no color of the device (IsUnused); a device with Statisch
+    // under it takes the color.
     [Fact]
     public async Task WholeHouseWithRainbow_AndADeviceWithStatic()
     {
