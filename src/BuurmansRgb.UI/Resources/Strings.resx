@@ -1589,7 +1589,11 @@
   </data>
   <data name="NoColorText" xml:space="preserve">
     <value>{0} maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.</value>
-    <comment>{0} is de naam van het effect, bijv. Regenboog. In kaart 4 in plaats van het mengpaneel.</comment>
+    <comment>{0} is de naam van het effect, bijv. Regenboog. In kaart 4 in plaats van het mengpaneel, bij een effect met een richting.</comment>
+  </data>
+  <data name="NoColorTextWithoutDirection" xml:space="preserve">
+    <value>{0} maakt zijn eigen kleuren. Kies hieronder de helderheid en de snelheid.</value>
+    <comment>Als NoColorText, bij een effect zonder richting.</comment>
   </data>
   <data name="CustomEffectHint" xml:space="preserve">
     <value>Het apparaat loopt de stappen af en begint na de laatste weer bij de eerste. De kleurkiezer kleurt de gekozen stap.</value>

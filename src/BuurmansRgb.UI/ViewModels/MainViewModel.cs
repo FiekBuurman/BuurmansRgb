@@ -377,8 +377,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     public bool ShowsNoColor => ColorCard == ColorCardContent.NoColor;
 
-    // "Regenboog maakt zijn eigen kleuren. ...", the one sentence of card 4 with such an effect.
-    public string NoColorText => SelectedEffect is { } effect ? UiText.Format(Strings.NoColorText, effect.DisplayName) : string.Empty;
+    // "Regenboog maakt zijn eigen kleuren. ...", the one sentence of card 4 with such an effect. It
+    // names the direction only when the effect has one (IsDirectionVisible).
+    public string NoColorText => SelectedEffect is { } effect ? NoColorSentence(effect.DisplayName, IsDirectionVisible) : string.Empty;
+
+    internal static string NoColorSentence(string effectName, bool hasDirection) =>
+        UiText.Format(hasDirection ? Strings.NoColorText : Strings.NoColorTextWithoutDirection, effectName);
 
     // What the colors do in the selected effect, such as "every round the next color".
     public string EffectColorsHint => UiText.Lookup("EffectColorsHint", SelectedEffect?.Id ?? string.Empty) ?? string.Empty;

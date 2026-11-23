@@ -357,7 +357,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   kleur krijgen en gebruikt het de kleur van het apparaat niet, dan is `ColorPicker.IsUnused`
   waar: een gemengde kleur gaat dan nergens heen. Kaart 4 is dan `ColorCardContent.NoColor`
   (`MainViewModel.ColorCard`): de kop "Geen kleur nodig" (`NoColorHeader`) en één zin met de naam
-  van het effect (`NoColorText`), zonder mengpaneel. Zo krijgt een later effect zonder kleur die
+  van het effect (`NoColorText`; de richting alleen als het effect er een heeft,
+  `IsDirectionVisible`), zonder mengpaneel. Zo krijgt een later effect zonder kleur die
   kaart vanzelf.
 - **Richting:** zonder `Direction` (null) rendert een effect over de buffer van het apparaat zoals
   altijd, met `i / n` per LED. Met een richting rekent `DeviceOutput` bij de eerste `Show` met een

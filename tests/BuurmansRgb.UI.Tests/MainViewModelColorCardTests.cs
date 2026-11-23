@@ -57,6 +57,14 @@ public sealed class MainViewModelColorCardTests
         Assert.Equal("Regenboog maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.", viewModel.NoColorText);
     }
 
+    // A later effect without a color and without a direction does not promise a direction.
+    [Fact]
+    public void NoColorSentence_NamesTheDirectionOnlyWhenThereIsOne()
+    {
+        Assert.Equal("Plasma maakt zijn eigen kleuren. Kies hieronder de helderheid en de snelheid.", MainViewModel.NoColorSentence("Plasma", hasDirection: false));
+        Assert.Equal("Plasma maakt zijn eigen kleuren. Kies hieronder de helderheid, de snelheid en de richting.", MainViewModel.NoColorSentence("Plasma", hasDirection: true));
+    }
+
     // A tile chooses its effect, as the effect choice did, and card 4 follows.
     [Fact]
     public async Task Tile_ChoosesTheEffectAndTheCardFollows()
