@@ -9,7 +9,7 @@ namespace BuurmansRgb.UI.Tests;
 // The own effects in the effect choice on Kleur, and "+ Eigen effect maken".
 public sealed class MainViewModelCustomEffectTests
 {
-    private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(Red, 1, 0), new CustomEffectStep(Blue, 1, 0)]);
+    private static readonly CustomEffect Disco = TestEffects.Disco;
 
     private static readonly CustomEffect Avond = new("custom:avond", "Avond", [new CustomEffectStep([Red, Green, Blue], 2, 3)]);
 

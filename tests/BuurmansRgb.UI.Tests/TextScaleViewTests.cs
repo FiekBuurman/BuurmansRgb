@@ -16,8 +16,6 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class TextScaleViewTests
 {
-    private static readonly CustomEffect Disco = new("custom:disco", "Disco", [new CustomEffectStep(new RgbColor(255, 0, 0), 1, 0), new CustomEffectStep(new RgbColor(0, 0, 255), 1, 0)]);
-
     // A board with an addressable header that can be counted, as on Kleur.
     private static readonly DeviceInfo Board = new("board", "ASUS ROG STRIX B550-F GAMING", DeviceType.Motherboard, 8,
         [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 6, 0, 60)]) { Source = DeviceSource.Hardware };
@@ -77,7 +75,7 @@ public sealed class TextScaleViewTests
             Check(AppPage.Color, "strip, komeet", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.Comet));
             Check(AppPage.Color, "strip, regenboog", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.Rainbow));
             Check(AppPage.Color, "strip, per LED", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.PerLed));
-            Check(AppPage.Color, "strip, eigen effect", () => viewModel.SelectedEffect = Effect(viewModel, Disco.Id));
+            Check(AppPage.Color, "strip, eigen effect", () => viewModel.SelectedEffect = Effect(viewModel, TestEffects.Disco.Id));
             Check(AppPage.Color, "Bewaar als scène", () =>
             {
                 viewModel.Profiles.StartNewCommand.Execute(null);
@@ -232,7 +230,7 @@ public sealed class TextScaleViewTests
             TestDevices.Create("fan", "Fan", DeviceType.Fan, 12),
         ];
         api.Effects = [EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.ColorLoop, EffectIds.Comet, EffectIds.PerLed];
-        api.CustomEffects = [Disco];
+        api.CustomEffects = [TestEffects.Disco];
         api.Profiles.AddRange(["Klusmodus", "Filmavond"]);
         api.ProfileAutomations["Klusmodus"] = new ProfileAutomation(new TimeOnly(7, 30));
     });
