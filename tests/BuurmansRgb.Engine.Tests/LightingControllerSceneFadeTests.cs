@@ -312,6 +312,21 @@ public sealed class LightingControllerSceneFadeTests : IDisposable
         Assert.False(_controller.IsAnimating);
     }
 
+    // A null at the end follows the device color, as an LED without a color does: the same.
+    [Fact]
+    public async Task Replace_WithLedColorsThatDifferOnlyInNullsAtTheEnd_StartsNoFade()
+    {
+        var perLed = new DeviceLighting(Red, 1.0, EffectIds.PerLed);
+        await _controller.DiscoverAsync(Ct);
+        _controller.Apply(Uniform(perLed) with { LedColors = LedColors(RecordingDeviceProvider.DeviceId, Blue, null) });
+
+        _controller.Replace(Uniform(perLed) with { LedColors = LedColors(RecordingDeviceProvider.DeviceId, Blue) }, fade: true);
+
+        Assert.Equal([Blue, Red, Red], _provider.LastColors);
+        Assert.False(_controller.IsFading);
+        Assert.False(_controller.IsAnimating);
+    }
+
     // A color, effect or on/off of one device of its own goes at once, also during a scene fade:
     // the fade of that device ends, the others go on with theirs, on time.
     [Fact]

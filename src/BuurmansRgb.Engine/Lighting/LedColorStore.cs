@@ -43,19 +43,15 @@ internal sealed class LedColorStore
         _entries.TryGetValue(device.Id, out var entry) ? Layout(entry, device) : [];
 
     // Whether device has the same colors, laid out for the zones it has now, as in before (a
-    // Snapshot): as a scene comes on, only a device whose colors change fades.
+    // Snapshot): as a scene comes on, only a device whose colors change fades. A null at the end
+    // follows the device color, as an LED past the end does, so it counts the same as no color.
     public bool SameAs(IReadOnlyDictionary<string, LedColorEntry> before, RgbDevice device)
     {
         var now = For(device);
         var then = before.TryGetValue(device.Id, out var entry) ? Layout(entry, device) : [];
-        if (now.Count != then.Count)
+        for (var i = 0; i < Math.Max(now.Count, then.Count); i++)
         {
-            return false;
-        }
-
-        for (var i = 0; i < now.Count; i++)
-        {
-            if (now[i] != then[i])
+            if ((i < now.Count ? now[i] : null) != (i < then.Count ? then[i] : null))
             {
                 return false;
             }
