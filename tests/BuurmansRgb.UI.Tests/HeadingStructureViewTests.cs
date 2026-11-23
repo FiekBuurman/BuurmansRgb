@@ -82,14 +82,16 @@ public sealed class HeadingStructureViewTests
         });
     }
 
-    // With the colors of the loop, the blocks beside the sliders are headings too, and each device
-    // under "Per apparaat" is a card one level deeper, also while it is closed.
+    // In the order of the effect (DESIGN.md § 9.2): "Effect", then card 4, whose heading says what
+    // belongs to the effect, with "Kleuren" and "Eigen kleuren" one level deeper in its mixing panel,
+    // then "Helderheid en snelheid"; each device under "Per apparaat" is a card one level deeper, also
+    // while it is closed.
     [Theory]
-    [InlineData(EffectIds.Static, null)]
+    [InlineData(EffectIds.Static, "2 Kleur")]
     [InlineData(EffectIds.ColorLoop, "2 Kleuren van de loop")]
     [InlineData(EffectIds.Comet, "2 Kleuren van het effect")]
-    [InlineData("custom:disco", "2 Eigen effect")]
-    public async Task ColorPage_HasTheTitleTheBlocksAndTheDevicesOfThePreview(string effectId, string? blockOfTheEffect)
+    [InlineData("custom:disco", "2 Jouw effect")]
+    public async Task ColorPage_HasTheTitleTheBlocksAndTheDevicesOfThePreview(string effectId, string colorCard)
     {
         using var viewModel = await PageViews.ConnectAsync(api =>
         {
@@ -105,10 +107,11 @@ public sealed class HeadingStructureViewTests
             Assert.Equal(
                 [
                     "1 Kleur",
-                    .. blockOfTheEffect is null ? Array.Empty<string>() : [blockOfTheEffect],
-                    "2 Kleuren",
-                    "2 Eigen kleuren",
-                    "2 Licht en beweging",
+                    "2 Effect",
+                    colorCard,
+                    "3 Kleuren",
+                    "3 Eigen kleuren",
+                    "2 Helderheid en snelheid",
                     "2 Per apparaat",
                     "3 LED strip",
                     "3 Fan",

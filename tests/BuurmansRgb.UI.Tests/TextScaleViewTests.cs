@@ -75,6 +75,7 @@ public sealed class TextScaleViewTests
                 viewModel.SelectedEffect = Effect(viewModel, EffectIds.ColorLoop);
             });
             Check(AppPage.Color, "strip, komeet", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.Comet));
+            Check(AppPage.Color, "strip, regenboog", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.Rainbow));
             Check(AppPage.Color, "strip, per LED", () => viewModel.SelectedEffect = Effect(viewModel, EffectIds.PerLed));
             Check(AppPage.Color, "strip, eigen effect", () => viewModel.SelectedEffect = Effect(viewModel, Disco.Id));
             Check(AppPage.Color, "Bewaar als scène", () =>

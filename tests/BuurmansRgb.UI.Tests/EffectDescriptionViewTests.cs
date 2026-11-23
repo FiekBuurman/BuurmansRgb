@@ -4,11 +4,12 @@ using System.Windows.Controls;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The sentence under the effect choice on the real ColorPage, in a window off screen.
+// The sentence under the effect tiles on the real ColorPage, in a window off screen.
 [Collection(AppThemeCollection.Name)]
 public sealed class EffectDescriptionViewTests
 {
@@ -20,25 +21,27 @@ public sealed class EffectDescriptionViewTests
 
     private static readonly string PerLedDescription = EffectOption.Create(EffectIds.PerLed).Description;
 
-    // Under the choice, and the help of the choice for a screen reader, which reads it once.
+    // Under the tiles, and the help of each tile for a screen reader, so it hears what an effect does
+    // before it chooses it.
     [Fact]
-    public async Task Description_ShowsUnderTheChoiceAsItsHelp()
+    public async Task Description_ShowsUnderTheTilesAndIsTheHelpOfEachTile()
     {
         using var viewModel = await ConnectWithAsync(EffectIds.Scanner);
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
-            var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
+            var group = AppTheme.Descendants<EffectTileGroup>(page).Single();
             var description = VisibleDescription(page, Strings.EffectDescription_scanner);
 
-            Assert.Equal(Strings.EffectDescription_scanner, AutomationProperties.GetHelpText(choice));
-            Assert.True(description.TranslatePoint(default, page).Y > choice.TranslatePoint(default, page).Y + choice.ActualHeight - 1);
-            Assert.Single(PageViews.AutomationTree(page), peer => peer.GetName() == Strings.EffectDescription_scanner);
+            Assert.True(description.TranslatePoint(default, page).Y > group.TranslatePoint(default, page).Y + group.ActualHeight - 1);
+            Assert.Equal(
+                [.. AllEffects.Select(id => EffectOption.Create(id).Description)],
+                AppTheme.Descendants<EffectTile>(page).Take(AllEffects.Length).Select(AutomationProperties.GetHelpText));
         });
     }
 
-    // Another effect, such as from a scene or the tray menu, which the choice then shows.
+    // Another effect, such as from a scene or the tray menu, which the tiles then show.
     [Fact]
     public async Task Description_AnotherEffect_ChangesAlong()
     {
@@ -51,17 +54,16 @@ public sealed class EffectDescriptionViewTests
             viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.PerLed);
             OffscreenWindow.WaitUntilIdle();
 
-            Assert.Equal(PerLedDescription, AutomationProperties.GetHelpText(PageViews.Named<ComboBox>(page, Strings.EffectHeader)));
             Assert.True(VisibleDescription(page, PerLedDescription).IsVisible);
             Assert.DoesNotContain(AppTheme.Descendants<TextBlock>(page), text => text.IsVisible && text.Text == Strings.EffectDescription_scanner);
+            Assert.Equal(PerLedDescription, AutomationProperties.GetHelpText(AppTheme.Descendants<EffectTile>(page).Single(tile => tile.IsChecked == true)));
         });
     }
 
-    // Narrow, so the sentences wrap: the sliders and "+ Eigen effect maken" stay where they are in
-    // "Licht en beweging" for every effect, an own one too, and the card keeps its height, as the
-    // room of the longest sentence is kept. The card itself moves with the panels above it, such as
-    // the color loop, so the places count from its heading. Also in the smallest window (960 × 640),
-    // where the sentences wrap the most.
+    // Narrow, so the sentences wrap: the tiles, "Importeren…" and "Code plakken" stay where they are
+    // in the card Effect for every effect, an own one too, and the card keeps its height, as the room
+    // of the longest sentence is kept. Also in the smallest window (960 × 640), where the sentences
+    // wrap the most.
     [Theory]
     [InlineData(960)]
     [InlineData(1000)]
@@ -91,24 +93,23 @@ public sealed class EffectDescriptionViewTests
     private static TextBlock VisibleDescription(DependencyObject page, string text) =>
         AppTheme.Descendants<TextBlock>(page).Single(block => block.IsVisible && block.Text == text);
 
-    // Where the brightness, the speed and "+ Eigen effect maken" are in the card, and how high it
-    // is, to a tenth of a pixel.
+    // Where the last tile and the two links are in the card Effect, and how high it is, to a tenth of
+    // a pixel.
     private static string Places(FrameworkElement page)
     {
-        var heading = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.LightingHeader);
-        var card = (FrameworkElement)heading.Parent;
+        var heading = AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.EffectHeader);
+        var card = (FrameworkElement)((FrameworkElement)heading.Parent).Parent;
         string At(FrameworkElement element)
         {
             var point = element.TranslatePoint(default, heading);
             return FormattableString.Invariant($"{point.X:0.0},{point.Y:0.0}");
         }
 
-        var newEffect = AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectNew));
         return string.Join(
             " ",
-            At(PageViews.Named<Slider>(page, Strings.BrightnessHeader)),
-            At(PageViews.Named<Slider>(page, Strings.SpeedHeader)),
-            At(newEffect),
+            At(AppTheme.Descendants<EffectTile>(page).Last()),
+            At(PageViews.Named<LinkButton>(page, Strings.ShareImportAccessibleName)),
+            At(PageViews.Named<LinkButton>(page, Strings.SharePasteCodeAccessibleName)),
             FormattableString.Invariant($"{card.ActualHeight:0.0}"));
     }
 

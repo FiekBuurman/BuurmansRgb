@@ -5,6 +5,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
@@ -41,7 +42,7 @@ public sealed class ZoneCountViewTests
             Assert.Contains(Buttons(page), button => button.IsVisible && AutomationProperties.GetName(button) == Strings.ZoneCountNext);
             Assert.Equal(
                 ZoneCountViewModel.Paces.Select(pace => string.Format(pace == 1 ? Strings.ZoneCountPaceOne : Strings.ZoneCountPace, pace)),
-                AppTheme.Descendants<RadioButton>(page).Where(option => option.IsVisible).Select(AutomationProperties.GetName));
+                AppTheme.Descendants<RadioButton>(AppTheme.Descendants<LedPreviewPanel>(page).Single()).Where(option => option.IsVisible).Select(AutomationProperties.GetName));
             Assert.DoesNotContain(AppTheme.Descendants<Slider>(page), slider => slider.IsVisible && slider.DataContext is ZonePreviewViewModel);
         });
     }

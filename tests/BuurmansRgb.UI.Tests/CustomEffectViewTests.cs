@@ -6,11 +6,12 @@ using System.Windows.Media;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
+using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The panel "Eigen effect" on the real ColorPage, in a window off screen.
+// The editor of an own effect in card 4 ("Jouw effect") on the real ColorPage, in a window off screen.
 [Collection(AppThemeCollection.Name)]
 public sealed class CustomEffectViewTests
 {
@@ -123,9 +124,9 @@ public sealed class CustomEffectViewTests
         });
     }
 
-    // Confirmed, the panel hides; the focus goes to the effect choice, which now says Statisch.
+    // Confirmed, the panel hides; the focus goes to the chosen effect tile, now Statisch.
     [Fact]
-    public async Task DeleteButton_GivesTheFocusToTheEffectChoice()
+    public async Task DeleteButton_GivesTheFocusToTheChosenEffectTile()
     {
         using var viewModel = await ConnectAsync();
         viewModel.CustomEffectEditor.ConfirmDelete = _ => true;
@@ -139,8 +140,9 @@ public sealed class CustomEffectViewTests
             PageViews.Click(delete);
 
             Assert.False(Panel(page).IsVisible);
-            var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
-            Assert.True(choice.IsKeyboardFocusWithin);
+            var tile = Assert.IsType<EffectTile>(Keyboard.FocusedElement);
+            Assert.True(tile.IsChecked);
+            Assert.Equal(Strings.Effect_static, AutomationProperties.GetName(tile));
             Assert.Equal(EffectIds.Static, viewModel.SelectedEffect?.Id);
         });
     }
@@ -264,7 +266,7 @@ public sealed class CustomEffectViewTests
 
             PageViews.Press(box, Key.Enter);
 
-            var choice = PageViews.Named<ComboBox>(page, Strings.EffectHeader);
+            var choice = PageViews.Named<ComboBox>(page, Strings.CustomEffectChoiceName);
             Assert.Equal(["Aaa", "Avond"], viewModel.Effects.Where(effect => effect.IsCustom).Select(effect => effect.DisplayName));
             Assert.Equal(Disco.Id, Assert.IsType<EffectOption>(choice.SelectedItem).Id);
             Assert.True(Panel(page).IsVisible);
@@ -352,14 +354,20 @@ public sealed class CustomEffectViewTests
         });
     }
 
+    // Without own effects, the tile "Eigen effect" shows "Jouw effect" with only the sentence and
+    // "+ Eigen effect maken"; that makes one, chooses it and shows the panel.
     [Fact]
     public async Task NewButton_MakesAnEffectAndShowsThePanel()
     {
-        using var viewModel = await ConnectAsync(effectId: EffectIds.Static);
+        using var viewModel = await ConnectAsync(api => api.CustomEffects = [], effectId: EffectIds.Static);
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<ColorPage>(panel, viewModel);
+            AppTheme.Descendants<EffectTile>(page).Last().Choose();
+            OffscreenWindow.WaitUntilIdle();
+            Assert.True(AppTheme.Descendants<TextBlock>(page).Single(text => text.Text == Strings.NoCustomEffects).IsVisible);
+            Assert.False(Panel(page).IsVisible);
 
             PageViews.Click(AppTheme.Descendants<Button>(page).Single(button => Equals(button.Content, Strings.CustomEffectNew)));
 
@@ -378,8 +386,8 @@ public sealed class CustomEffectViewTests
             arrange?.Invoke(api);
         });
 
-    private static Border Panel(DependencyObject page) =>
-        AppTheme.Descendants<Border>(page).Single(border => border.Name == "CustomEffectPanel");
+    private static FrameworkElement Panel(DependencyObject page) =>
+        AppTheme.Descendants<FrameworkElement>(page).Single(element => element.Name == "CustomEffectPanel");
 
     private static List<Button> StepTiles(DependencyObject page) =>
         [.. AppTheme.Descendants<Button>(page).Where(button => button.DataContext is CustomEffectStepItem)];

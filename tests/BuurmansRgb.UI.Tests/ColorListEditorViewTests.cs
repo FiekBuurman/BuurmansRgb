@@ -82,7 +82,8 @@ public sealed class ColorListEditorViewTests
     });
 
     // With the comet and a list of its own the card shows, with "Standaardkleuren" on; after it the
-    // tiles show the lamp color and the button is off. Without an effect with a list the card goes.
+    // tiles show the lamp color and the button is off. Without an effect with a list, card 4 has
+    // another heading and the list and its button go.
     [Fact]
     public async Task ColorPage_WithCometAndAList_ShowsTheCardAndItsDefaultButton()
     {
@@ -106,7 +107,8 @@ public sealed class ColorListEditorViewTests
             viewModel.SelectedEffect = viewModel.Effects.Single(effect => effect.Id == EffectIds.Static);
             OffscreenWindow.WaitUntilIdle();
 
-            Assert.False(header.IsVisible);
+            Assert.Equal(Strings.ColorHeader, header.Text);
+            Assert.False(reset.IsVisible);
         });
     }
 

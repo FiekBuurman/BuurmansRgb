@@ -109,6 +109,12 @@ public sealed class MainViewModelColorCardTests
         Assert.Equal(Strings.CustomEffectCardHeader, viewModel.ColorCardHeader);
         Assert.False(viewModel.ShowsMixer);
 
+        // The tile that stayed chosen takes the card back, without sending the effect again.
+        viewModel.EffectTiles.ChooseCommand.Execute(Tile(viewModel, EffectIds.Static));
+        Assert.Equal(ColorCardContent.Color, viewModel.ColorCard);
+        Assert.Empty(Api.Calls);
+
+        viewModel.EffectTiles.ChooseCommand.Execute(custom);
         viewModel.EffectTiles.ChooseCommand.Execute(Tile(viewModel, EffectIds.Rainbow));
         Assert.Equal(ColorCardContent.NoColor, viewModel.ColorCard);
     }

@@ -177,7 +177,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             SetPickerMode();
             ShowColorCard();
         };
-        EffectTiles.EffectChosen += (_, effect) => SelectedEffect = effect;
+        // A tile of the effect that is already chosen still takes card 4 back from "Jouw effect".
+        EffectTiles.EffectChosen += (_, effect) =>
+        {
+            ShowsCustomCard = false;
+            SelectedEffect = effect;
+        };
         EffectTiles.CustomCardRequested += (_, _) => ShowsCustomCard = true;
         ColorLoopEditor.LoopChanged += (_, loop) => Send(LoopCall, (api, deviceId) => api.SetColorLoopAsync(deviceId, loop.Colors, loop.Spread));
         EffectColorsEditor.ColorsChanged += (_, colors) => SendEffectColors(colors);
@@ -323,9 +328,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // rainbow: SetPickerMode then leaves the picker unused, unless it colors a tile, a step or LEDs.
     private bool IsDeviceColorUnused => SelectedEffect is { } effect && !EffectIds.UsesDeviceColor(effect.Id);
 
-    // "Regenboog gebruikt geen kleur van het apparaat. ...", under the mixed color.
-    public string DeviceColorUnusedText => SelectedEffect is { } effect ? UiText.Format(Strings.DeviceColorUnused, effect.DisplayName) : string.Empty;
-
     // The effect tiles at the top of Kleur, with the choice of the own effects behind "Eigen effect".
     public EffectTilesViewModel EffectTiles { get; } = new();
 
@@ -459,7 +461,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public partial double Brightness { get; set; } = 100;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect), nameof(DeviceColorUnusedText), nameof(NoColorText))]
+    [NotifyPropertyChangedFor(nameof(IsSpeedEnabled), nameof(IsColorLoop), nameof(HasEffectColors), nameof(EffectColorsHint), nameof(IsDirectionVisible), nameof(IsCustomEffect), nameof(NoColorText))]
     public partial EffectOption? SelectedEffect { get; set; }
 
     // A percentage of the normal speed, 10 to 300; the engine uses a factor (EffectSpeed).
