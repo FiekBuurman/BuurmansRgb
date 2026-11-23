@@ -396,6 +396,22 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(_api.LedColors, stored);
     }
 
+    // A null takes the layer away from that LED, so it goes through the pipe as null.
+    [Fact]
+    public async Task Overlay_RoundTripsThroughThePipe_WithItsNulls()
+    {
+        var client = await ConnectAsync();
+        RgbColor?[] colors = [new RgbColor(255, 0, 0), null, new RgbColor(0, 0, 255)];
+
+        await client.Api.SetOverlayAsync("keyboard", 2, colors, Ct);
+        var stored = await client.Api.GetOverlayAsync("keyboard", Ct);
+
+        var call = Assert.Single(_api.OverlayCalls);
+        Assert.Equal(("keyboard", 2), (call.DeviceId, call.FirstLed));
+        Assert.Equal(colors, call.Colors);
+        Assert.Equal(_api.Overlay, stored);
+    }
+
     [Fact]
     public async Task ResizeZoneAsync_SendsDeviceZoneAndLength()
     {
@@ -731,6 +747,10 @@ public sealed class EngineRpcTests : IDisposable
 
         public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor> Colors)> LedColorCalls { get; } = [];
 
+        public IReadOnlyList<RgbColor?> Overlay { get; } = [null, new(3, 3, 3)];
+
+        public List<(string DeviceId, int FirstLed, IReadOnlyList<RgbColor?> Colors)> OverlayCalls { get; } = [];
+
         public List<(string DeviceId, int ZoneIndex, int LedCount)> ResizeCalls { get; } = [];
 
         public void RaiseFrame(LightingFrame frame) => FrameRendered?.Invoke(this, frame);
@@ -858,6 +878,14 @@ public sealed class EngineRpcTests : IDisposable
         public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
         {
             LedColorCalls.Add((deviceId, firstLed, colors));
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyList<RgbColor?>> GetOverlayAsync(string deviceId, CancellationToken ct = default) => Task.FromResult(Overlay);
+
+        public Task SetOverlayAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors, CancellationToken ct = default)
+        {
+            OverlayCalls.Add((deviceId, firstLed, colors));
             return Task.CompletedTask;
         }
 

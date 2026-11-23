@@ -143,6 +143,9 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Dictionary<string, RgbColor[]> LedColors { get; } = [];
 
+    // The layer over the effect by device, as GetOverlayAsync gives it; a device without one has none.
+    public Dictionary<string, RgbColor?[]> Overlays { get; } = [];
+
     public LightingFrame Frame { get; set; } = LightingFrame.Empty;
 
     public List<string> Calls { get; } = [];
@@ -283,6 +286,13 @@ internal sealed class FakeEngineApi : IEngineApi
 
     public Task SetLedColorsAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors, CancellationToken ct = default) =>
         Record($"leds {deviceId} {firstLed} {string.Join(",", colors.Select(color => color.ToHex()))}");
+
+    public Task<IReadOnlyList<RgbColor?>> GetOverlayAsync(string deviceId, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<RgbColor?>>(Overlays.GetValueOrDefault(deviceId) ?? new RgbColor?[Devices.Single(device => device.Id == deviceId).LedCount]);
+
+    // A null, which takes the layer away from an LED, as "-".
+    public Task SetOverlayAsync(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors, CancellationToken ct = default) =>
+        Record($"overlay {deviceId} {firstLed} {string.Join(",", colors.Select(color => color?.ToHex() ?? "-"))}");
 
     // Like the engine: a count of the zone ends with this length.
     public async Task ResizeZoneAsync(string deviceId, int zoneIndex, int ledCount, CancellationToken ct = default)
