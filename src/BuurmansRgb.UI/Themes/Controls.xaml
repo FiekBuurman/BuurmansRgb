@@ -871,6 +871,62 @@
         </Setter>
     </Style>
 
+    <!-- An effect tile on Kleur (§ 9.3 "Effecttegel"): at least 44 px high and 9.5 em of its own text
+         wide (142 px at 100 %), into which the longest name with ✓ fits on one line, so every tile in
+         the WrapPanel is as wide as the others and the row does not jump with another choice; the name
+         may wrap rather than be cut off. Chosen: a border of 3 px with 2 px less padding, so the text
+         stays where it is and the tile keeps its height, and a ✓ before the name, so the choice shows
+         not only by the border. No picture that moves. -->
+    <views:EmConverter x:Key="EffectTileMinWidth" Ems="9.5" />
+    <Style x:Key="EffectTile" TargetType="views:EffectTile">
+        <Setter Property="MinHeight" Value="{StaticResource MinClickSize}" />
+        <Setter Property="MinWidth" Value="{Binding FontSize, RelativeSource={RelativeSource Self}, Converter={StaticResource EffectTileMinWidth}}" />
+        <Setter Property="Padding" Value="14,8" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="{DynamicResource BodySize}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TileTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource TileFaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRingButton}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="views:EffectTile">
+                    <Border x:Name="Face" CornerRadius="{StaticResource TileRadius}" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+                        <DockPanel VerticalAlignment="Center">
+                            <views:DecorativeText x:Name="Check" DockPanel.Dock="Left" Text="✓ " Visibility="Collapsed" />
+                            <TextBlock TextWrapping="Wrap" Text="{TemplateBinding Content}" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Check" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource HoverBorderBrush}" />
+            </Trigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="BorderThickness" Value="3" />
+                <Setter Property="Padding" Value="12,6" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ChosenTileBorderBrush}" />
+                <Setter Property="Background" Value="{DynamicResource ChosenTileFaceBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource ChosenTileTextBrush}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource DisabledBorderBrush}" />
+                <Setter Property="Cursor" Value="Arrow" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- Sliders: a led-off rail, filled up to the thumb in the accent color in Foreground (text by
          default; Rood, Groen and Blauw use their own color, § 5.2). Arrow keys move them. -->
     <Style x:Key="SliderRail" TargetType="RepeatButton">
