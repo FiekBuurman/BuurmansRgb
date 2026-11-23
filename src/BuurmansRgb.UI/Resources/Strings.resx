@@ -319,7 +319,7 @@
   </data>
   <data name="KeyCapAltGr" xml:space="preserve">
     <value>Alt</value>
-    <comment>De rechter Alt-toets; op een toetsenbord met AltGr kan hier AltGr staan.</comment>
+    <comment>De rechter Alt-toets ("Right Alt" van OpenRGB). Bewust gelijk aan KeyCapAlt, zoals op een Amerikaans toetsenbord; voor een vertaling of een ISO-toetsenbord met AltGr kan hier "AltGr" staan.</comment>
   </data>
   <data name="KeyCapMenu" xml:space="preserve">
     <value>Menu</value>
