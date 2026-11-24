@@ -69,10 +69,10 @@ msiexec /i OpenRGB_1.1_Windows_64_8e16de2.msi /qn /norestart ADDLOCAL=OpenRGBApp
   (2.2.0: `1F519A22E47187F70A1379A48CA604981C4FCF694F4E65B734AAA74A9FBA3032`).
 - De OpenRGB-zip bevat de PawnIO-modules (`Smbus*.bin`) en `PawnIOLib.dll`, maar **niet de
   driver**. Zonder PawnIO werken moederbord, RAM en (vaak) GPU niet.
-- **Naam van de driver (voor "Herstarten"):** vermoedelijk `PawnIO`, maar dat is een vermoeden
-  tot het op een echte pc met PawnIO is bevestigd (`sc query type= driver | findstr /i pawn`,
-  zie "Herstarten" in `ontwikkelaars.md`). Daarom zoekt `ServiceRestarter` eerst de service
-  `PawnIO` en anders de eerste kerneldriver met "PawnIO" in de naam. De bronnen:
+- **Naam van de driver (voor "Herstarten"):** `PawnIO`, met de weergavenaam "PawnIO Service";
+  bevestigd op de pc thuis (24-11-2026, PawnIO 2.2.0.0) met `sc query type= driver | findstr /i pawn`
+  (zie "Herstarten" in `ontwikkelaars.md`). `ServiceRestarter` zoekt eerst de service `PawnIO`
+  en anders de eerste kerneldriver met "PawnIO" in de naam. De bronnen van vóór die controle:
   - LibreHardwareMonitor herkent PawnIO aan de Uninstall-sleutel
     `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\PawnIO` en opent het apparaat
     `\\?\GLOBALROOT\Device\PawnIO`

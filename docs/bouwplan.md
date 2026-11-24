@@ -258,14 +258,14 @@ pagina Buren van het ontwerp is er later weer uit gehaald).
 
 **Acceptatie:**
 
-- [ ] Met OpenRGB-server actief verschijnen echte apparaten in de UI; met "Gesimuleerd: Altijd" naast de gesimuleerde (standaard, "Automatisch", verdwijnen de gesimuleerde zodra er echte zijn)
-- [ ] Statische kleur komt aan op minstens één echt apparaat
-- [ ] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart
+- [x] Met OpenRGB-server actief verschijnen echte apparaten in de UI; met "Gesimuleerd: Altijd" naast de gesimuleerde (standaard, "Automatisch", verdwijnen de gesimuleerde zodra er echte zijn) (thuistest 24-11-2026, 1.5.90: moederbord, G502, G213 en G733; Altijd, Nooit en Automatisch gezien)
+- [x] Statische kleur komt aan op minstens één echt apparaat (thuistest: moederbord met koeler, fans en strip, G213, G502 en G733)
+- [x] OpenRGB stoppen en weer starten: BuurmansRgb herstelt zonder herstart (thuistest: service gestopt en na 10 s gestart, zelfde engine, alle apparaten terug met hun eigen kleur)
 - [x] Gesimuleerde apparaten zijn uit te zetten in de instellingen (in de instellingen-app bij Instellingen: "Gesimuleerde apparaten tonen" op "Automatisch", "Altijd" of "Nooit", zonder herstart en bewaard als `simulatedDevices` in `settings.json`; "Automatisch" is de standaard en verbergt ze zodra OpenRGB echte apparaten levert)
 
-Stand taak 3: gebouwd en getest met nepdata en een kleine SDK-server. De drie open criteria
-vragen OpenRGB met echte apparaten; die test de gebruiker zelf (zie "Zelf testen op echte
-hardware" in `ontwikkelaars.md`).
+Stand taak 3: gebouwd en getest met nepdata en een kleine SDK-server, en op 24-11-2026 thuis met
+OpenRGB 1.1.0 en echte apparaten getest door de gebruiker (zie "Zelf testen op echte hardware" in
+`ontwikkelaars.md` en `hardware.md`).
 
 ### Taak 4 – Effect-engine
 
@@ -301,10 +301,23 @@ Gebruik deze opdracht vier keer, telkens met één type: **5** moederbord en RAM
 - [ ] Alle apparaten van dit type van de gebruiker verschijnen met juiste LED-aantallen
 - [ ] Statische kleur, helderheid en minstens Rainbow werken erop
 - [ ] Na slaapstand en hervatten staan de kleuren weer goed
-- [ ] `docs/hardware.md` bijgewerkt
+- [x] `docs/hardware.md` bijgewerkt (thuistest 24-11-2026)
 
-De vier criteria hierboven vragen echte hardware en staan daarom voor alle vier de types nog
-open; de gebruiker test ze zelf, zie "Zelf testen op echte hardware" in `ontwikkelaars.md`. Wat per
+De eerste drie criteria vragen echte hardware. Na de thuistest van 24-11-2026 (1.5.90, gezien
+door de gebruiker) staan ze open omdat ze niet voor elk type en elk apparaat helemaal gehaald
+zijn:
+
+- **Taak 5, moederbord en RAM:** moederbord gehaald voor alle drie (53 → 68 LED's in 5 zones,
+  gelijk aan OpenRGB; statisch, helderheid, Regenboog en de andere effecten; kleuren terug na de
+  slaapstand). Geen RGB-RAM.
+- **Taak 6, GPU:** n.v.t., de videokaart heeft geen RGB en staat niet in OpenRGB.
+- **Taak 7, fans, case-LED en ARGB-strips:** via de ARGB-headers van het moederbord gehaald voor
+  alle drie; LED-aantallen gemeten (strip 26, 10 per fan, koelerfans 3 × 10 in serie).
+- **Taak 8, toetsenbord, muis en headset:** G213 (5 gebieden) en G502 gehaald voor alle drie.
+  G733: LED-aantal klopt en een statische kleur komt aan, maar OpenRGB ziet hem niet altijd;
+  helderheid, Regenboog en de slaapstand zijn op de headset niet bevestigd.
+
+Wat per
 type gebouwd en zonder hardware getest is (met nepdata van OpenRGB, een kleine SDK-server en
 een nepklok):
 

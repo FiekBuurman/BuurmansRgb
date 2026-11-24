@@ -3,34 +3,54 @@
 Vul hier je onderdelen in. Agents gebruiken dit voor taak 5–8; de teststappen staan in
 `ontwikkelaars.md` onder "Zelf testen op echte hardware".
 
-De pc thuis, stand 23-10-2026: AMD Ryzen 7 9850X3D, Windows 11. Wat er onder "Ondersteund door
-OpenRGB?" staat, komt uit productinformatie en de USB-lijst van Windows; op deze pc is het nog
-niet in OpenRGB of BuurmansRgb getest.
+De pc thuis, stand 24-11-2026: AMD Ryzen 7 9850X3D, Windows 11 Pro 26H2 (build 26300), schaal
+125 %. Getest met BuurmansRgb 1.5.90 (`main` ff9cbca), OpenRGB 1.1.0 als service (SDK-protocol 6)
+en PawnIO 2.2.0.0, met Logitech G HUB en GIGABYTE Control Center afgesloten. "Werkt" betekent
+hieronder: de gebruiker heeft het op het apparaat zelf gezien.
 
 | Onderdeel | Merk en model | Ondersteund door OpenRGB? | Werkt in BuurmansRgb? | Opmerkingen |
 | --- | --- | --- | --- | --- |
-| Moederbord | Gigabyte B850 AORUS ELITE WIFI7, BIOS F10 (5-2-2026) | Waarschijnlijk: de RGB Fusion 2-controller, ITE `048D:5711` via USB | Nog niet getest | De ARGB-headers hebben in OpenRGB 0 LED's tot je de lengte instelt; welke header wat is, nog invullen |
-| CPU-koeler | Lian Li Galahad II Lite 360R (waterkoeling) | Via een ARGB-header van het moederbord, niet als eigen apparaat | Nog niet getest | De verlichting volgt de software van het moederbord (o.a. Gigabyte RGB Fusion), dus een ARGB-header, geen eigen USB-controller. Pomp met 16 LED's en drie doorgeluste 120 mm ARGB-fans (volgens winkels; LED's per fan onbekend). In de app een zone van het moederbord; header en totaal aantal LED's nog invullen |
-| RAM | 2× Kingston FURY Beast 16 GB DDR5-6000 CL30 (`KF560C30-16`) | Waarschijnlijk geen RGB | – | De code mist de "A" van de RGB-variant (bijv. `KF560C30BBEA-16`), maar Windows meldt alleen de verkorte code: kijk op de sticker of de modules oplichten |
-| GPU | PowerColor Radeon RX 9070 XT Hellhound 16GB OC | Nee, niet gevonden | Nee | Vaste ijsblauwe LED met een "Dark"-stand, geen RGB; geen software gevonden die hem aanstuurt. De "Microsoft Basic Display Adapter" is de grafische chip van de processor zonder driver |
-| Fans / fan-controller | Vier 120 mm ARGB PWM-fans van de Lian Li Vector V100R (drie aan de zijkant met omgekeerde luchtstroom, één achter) | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | Het aantal LED's per fan staat nergens, ook niet bij Lian Li (de handleiding op Google Drive vraagt om in te loggen). Ook niet bekend: hoe fans en strip zijn aangesloten (één ARGB-kabel of een hubje in de kast). Thuis meten, zie "Nog te meten" |
-| Case-LED / ARGB-strips | Lian Li Vector V100R midi tower: ARGB-strip langs de voedingskap en de bodem | Waarschijnlijk via een ARGB-header van het moederbord | Nog niet getest | 26 LED's (Lian Li, voor de hele V100-reeks); werkt samen met de software van het moederbord en heeft een knop op de kast |
-| Toetsenbord | Logitech G213 (`046D:C336`) | Waarschijnlijk | Nog niet getest | |
-| Muis | Logitech G502 HERO (`046D:C08B`) | Waarschijnlijk | Nog niet getest | Twee zones van één LED; met "Zones gelijk" krijgen ze tijdens een effect dezelfde kleur |
-| Headset | Logitech G733 (`046D:0AB5`) | Onbekend, te controleren | Nog niet getest | Kent OpenRGB hem niet, dan staat hij ook niet in BuurmansRgb |
+| Moederbord | Gigabyte B850 AORUS ELITE WIFI7, BIOS F10 (5-2-2026) | Ja: "B850 AORUS ELITE WIFI7", IT5711 (`048D:5711`, firmware 1.0.29.6), modus Direct | Ja: statisch, helderheid, Regenboog, Fonkelen, Komeet, Scanner, Vuur, Kleurenloop, per LED, knipperen per zone, slaapstand | Zones: `ARGB_V2_1`, `ARGB_V2_2`, `ARGB_V2_3` (Linear, 0–256 LED's, eerst 0 tot je de lengte zet), `Chipset Accent` (1 LED, een lampje op het bord) en `LED_C` (1 LED, niets zichtbaar). Welke header wat is: zie "Gemeten" |
+| CPU-koeler | Lian Li Galahad II Lite 360R (waterkoeling) | Via `ARGB_V2_2` van het moederbord, niet als eigen apparaat | Ja | Drie radiatorfans **in serie** met **10 LED's per fan** (LED 1–10, 11–20, 21–30); de pomp hangt **parallel** en toont dezelfde eerste LED's (Lian Li: 16 LED's). Zone op **30** |
+| RAM | 2× Kingston FURY Beast 16 GB DDR5-6000 CL30 (`KF560C30-16`) | Niet gevonden door OpenRGB | – | Geen RGB-variant |
+| GPU | PowerColor Radeon RX 9070 XT Hellhound 16GB OC | Nee, niet gevonden | Nee | Vaste ijsblauwe LED met een "Dark"-stand, geen RGB. Geen "Direct"-vraag van toepassing |
+| Fans / fan-controller | Vier 120 mm ARGB PWM-fans van de Lian Li Vector V100R (drie aan de zijkant met omgekeerde luchtstroom, één achter) | Via `ARGB_V2_1` van het moederbord | Ja | Alle vier **parallel** met de strip op `ARGB_V2_1`, **10 LED's per fan**. LED 1 zit van voren gezien **linksonder**, LED 2 ligt **met de klok mee** (het voorbeeld neemt LED 1 bovenaan aan). Komeet draait netjes rond |
+| Case-LED / ARGB-strips | Lian Li Vector V100R midi tower: ARGB-strip langs de voedingskap en de bodem | Via `ARGB_V2_1` van het moederbord | Ja | 26 LED's (het langste deel van `ARGB_V2_1`, zone op **26**). Lengte via `zoneLengths` in settings.json wijzigen werkt binnen een seconde, rustig |
+| Toetsenbord | Logitech G213 (`046D:C336`) | Ja: "Logitech G213", modus Direct, serienummer `0A8430503134` | Ja: statisch, helderheid, effecten, per LED, knipperen, slaapstand | **Geen losse toetsen**: één zone `Keyboard` van 5 LED's (Left Area, Middle Area, Right Area, Arrow and Homekeys, Numpad), geen matrix. De volgorde klopt. Toetsen-tests (WASD, letters op de toetsen) zijn op dit toetsenbord niet te doen |
+| Muis | Logitech G502 HERO (`046D:C08B`) | Ja: "G502 HERO Gaming Mouse" (via ontvanger, "Wireless Lightspeed Device"), modus Direct, **geen serienummer** | Ja: statisch, helderheid, effecten, Zones gelijk (ook na een herstart van de engine), knipperen per zone, slaapstand | `Primary Zone` = de streep, `Logo Zone` = het logo, elk 1 LED. Het logo ziet er met dezelfde kleur roziger uit dan de streep (paars #8800FF) |
+| Headset | Logitech G733 (`046D:0AB5`) | Ja, maar niet altijd: "G733 Gaming Headset" (via ontvanger), modus Direct, geen serienummer | Ja als OpenRGB hem ziet: statische kleur, aan/uit, knipperen | `Logo Zone` en `Primary Zone`, elk 1 LED. OpenRGB zag hem niet bij het opstarten van de service (headset wel aan), wel na een herstart van de service, en na "Herstarten" terwijl G HUB en Control Center draaiden weer niet. Uit- en weer aanzetten van de headset: blijft in de lijst, krijgt vanzelf zijn kleur terug |
 
-### Nog te meten
+### Gemeten (24-11-2026)
 
-LED's per casefan en per koelerfan, en welke header wat is:
+Met Knipperen per zone (in een donkere kast) en een LED 1/LED 2-proef per header:
 
-1. Kies bij Kleur het moederbord en laat elke zone knipperen ("Knipperen" naast de zonenaam),
-   zodat je ziet welke header de koeler, de casefans of de strip is.
-2. Klik bij een lege zone op "Tellen": er gaat elke seconde één LED meer aan, de nieuwste
-   groen. Kies Pauze zodra de groene LED niet meer aangaat, ga met − terug tot de laatste LED
-   van de laatste fan groen is en kies "Dit is de laatste". De teller zegt dan het aantal.
-   (Zonder Tellen: zet het aantal LED's met + hoger tot de laatste LED oplicht.)
-3. Hangen de vier casefans en de strip samen aan één header, trek dan 26 af voor de strip en
-   deel de rest door vier. Bij de koeler gaan er 16 af voor de pomp, de rest delen door drie.
+| Header | Lengte | Wat erop zit |
+| --- | --- | --- |
+| `ARGB_V2_1` | 26 | De strip (26 LED's) en de vier casefans (10 LED's per fan), allemaal parallel: ze krijgen hetzelfde signaal |
+| `ARGB_V2_2` | 30 | De drie koelerfans in serie (3 × 10, geteld met Tellen) en de pomp parallel |
+| `ARGB_V2_3` | 10 (uit oude instellingen) | Niets: knipperen is nergens te zien |
+| `Chipset Accent` | 1 | Een lampje op het moederbord |
+| `LED_C` | 1 | Niets zichtbaar |
+
+- Tellen bij `ARGB_V2_2` gaf 30; na "Dit is de laatste" brandde de hele pomp en niets meer.
+- OpenRGB hield de lengtes vast na een herstart van de service.
+- Knipperen duurt 1,5 s; met één klik was het in de kast makkelijk te missen.
+
+### Verversen en OpenRGB
+
+- Na "Verversen" (een echte rescan) is de lijst bij Apparaten ~1,5 s leeg en komen de apparaten
+  stapsgewijs terug (1 → 3 → 4 binnen 3,3 s). De knop zegt dan al weer "Verversen".
+- `engine.log` gaf geen "OpenRGB sent no new device list". OpenRGB 1.1.0, SDK-protocol 6.
+- Met GIGABYTE Control Center en G HUB open liep een "Verversen" vast ("Reloading the OpenRGB
+  devices failed: The operation has timed out.") en verdween de headset uit OpenRGB.
+
+### Herstarten
+
+- Naam van de driver: `PawnIO` ("PawnIO Service"), `KERNEL_DRIVER`, starttype `DEMAND_START`,
+  bestand in `DriverStore\FileRepository\pawnio.inf_amd64_…\PawnIO.sys`.
+- "Herstarten" in het tray-menu terwijl FanControl draaide (dat gebruikt PawnIO): OpenRGB werd
+  herstart, PawnIO niet ("PawnIO NotStopped", Win32-fout 1052), met een melding over PawnIO; de
+  engine en de apparaten kwamen terug.
 
 Overige USB-apparaten, geen RGB in BuurmansRgb:
 
@@ -57,7 +77,15 @@ Op de pc thuis staan vier RGB-programma's. Regelen er twee hetzelfde apparaat, d
 het of springen kleuren terug; laat per apparaat één programma de verlichting regelen.
 
 - **GIGABYTE Control Center** 25.07.21.01: moederbord, en daarmee de koeler, de casefans en de
-  strip van de behuizing aan de ARGB-headers.
-- **Logitech G HUB** 2026.6.981214: toetsenbord, muis en headset.
-- **SignalRGB** 2.5.78: kan alle apparaten aansturen.
-- **OpenRGB** 1.1.0 staat ook los geïnstalleerd; laat er één OpenRGB tegelijk draaien.
+  strip van de behuizing aan de ARGB-headers. Proces `GCC.exe`
+  (`C:\Program Files\GIGABYTE\Control Center\`), draait verhoogd, **geen service**; geen
+  `RGBFusion.exe`. BuurmansRgb 1.5.90 herkent het niet.
+- **Logitech G HUB** 2026.7.1011216: toetsenbord, muis en headset. Processen `lghub_agent.exe` en
+  `lghub_system_tray.exe` (autostart `LGHUB` in `HKCU\…\Run`), service `LGHUBUpdaterService`
+  (`lghub_updater.exe`); daarnaast de driver-service `logi_lamparray_service`. Nam tijdens de
+  test een deel van de G213 over. BuurmansRgb 1.5.90 herkent het niet.
+- **SignalRGB** 2.5.78: kan alle apparaten aansturen. Op 24-11-2026 geen proces en geen
+  Uninstall-regel meer, alleen de map `%LOCALAPPDATA%\VortxEngine`.
+- **OpenRGB** 1.1.0 staat ook los geïnstalleerd en is hier de service `OpenRGB`; laat er één
+  OpenRGB tegelijk draaien.
+- Windows **Dynamisch licht** staat uit.

@@ -57,8 +57,7 @@ instellingen-app bij **Instellingen → Gesimuleerde apparaten** voor "Nooit".
 BuurmansRgb zelf is een gewone app: geen service, geen driver, geen beheerdersrechten. Om bij de
 apparaten te komen zet de installer er twee dingen naast, ook als je BuurmansRgb afsluit of
 **Starten met Windows** uit staat: de service OpenRGB, die altijd draait, en de driver PawnIO, die
-er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is nog niet bevestigd
-(zie "Starttype" hieronder). De bronnen staan als [n] onder [Bronnen](#bronnen).
+er altijd staat (zie "Starttype" hieronder). De bronnen staan als [n] onder [Bronnen](#bronnen).
 
 ### De service OpenRGB
 
@@ -131,12 +130,18 @@ er altijd staat en waarschijnlijk vanaf het opstarten geladen is, maar dat is no
 - **Wie erbij mag:** standaard alleen beheerders, dus hier de service OpenRGB. Sinds 2.2.0 kun
   je PawnIO ook voor gewone gebruikers openzetten, maar de maker raadt dat af: toegang tot PawnIO
   staat gelijk aan beheerdersrechten [7][17]. De installer laat dat op de standaard.
-- **Starttype: onbekend.** De installer zet het niet zelf, dat doet de setup van PawnIO, en geen
-  bron noemt het. PawnIO staat als PnP-apparaat onder `ROOT\PAWNIO` [17][7], wat erop wijst dat
-  hij vanaf het opstarten geladen is, maar dat is niet bevestigd. Op een echte pc controleren
-  met `sc qc PawnIO` (de naam `PawnIO` is zelf ook nog een vermoeden; anders
-  `sc query type= driver | findstr /i pawn`, zie "Herstarten" in
-  [ontwikkelaars.md](ontwikkelaars.md)).
+- **Starttype: handmatig (`DEMAND_START`).** De installer zet het niet zelf, dat doet de setup van
+  PawnIO. Op de pc thuis (24-11-2026, PawnIO 2.2.0.0) gaf `sc qc PawnIO`: naam `PawnIO`
+  ("PawnIO Service"), `KERNEL_DRIVER`, `START_TYPE 3 DEMAND_START`, bestand
+  `\SystemRoot\System32\DriverStore\FileRepository\pawnio.inf_amd64_…\PawnIO.sys`; de driver
+  draaide (`RUNNING`). Een handmatig starttype is gewoon voor een PnP-driver: PawnIO staat als
+  apparaat onder `ROOT\PAWNIO` [17][7], en Windows laadt de driver als het dat apparaat vindt.
+  Of hij direct na het opstarten geladen is, is daar niet apart gecontroleerd (de pc is voor
+  de controle niet herstart).
+- **De service OpenRGB op dezelfde pc:** `sc qc OpenRGB` gaf `AUTO_START`, `LocalSystem` en
+  `"C:\Program Files\OpenRGB\OpenRGB.exe"` zonder argumenten, en `netstat -ano | findstr :6742`
+  gaf `127.0.0.1:6742 LISTENING`. Daar kwam de service van een eerdere installatie van
+  OpenRGB 1.1.0; de installer van BuurmansRgb liet hem staan ("OpenRGB service already exists").
 - **Bekende problemen**, alle drie gesloten in februari-maart 2026: een blauw scherm
   (`SYSTEM_THREAD_EXCEPTION_NOT_HANDLED`) na het installeren van 2.1.0, en PawnIO dat niet te
   stoppen of te verwijderen was [18].
