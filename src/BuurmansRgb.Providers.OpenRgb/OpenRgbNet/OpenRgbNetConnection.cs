@@ -48,14 +48,10 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
         Task<IReadOnlyList<OpenRgbDeviceData>> read;
         lock (_reads)
         {
-            read = _read.ContinueWith(_ => ReadDevices(), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            // Nobody may wait for it any more, such as after Dispose ended a read that went on.
+            read = _read.ContinueWith(_ => ReadDevices(), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default).Observed();
             _read = read;
         }
-
-        // Nobody may wait for it any more, such as after Dispose ended a read that went on.
-        _ = read.ContinueWith(
-            static read => _ = read.Exception, CancellationToken.None,
-            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
 
         return read.WaitAsync(ct);
     }
