@@ -128,17 +128,16 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     {
         await ConnectAsync();
         var first = _connector.LastConnection;
+        var timers = _time.Timers;
         await StartSlowReloadAsync();
         _connector.DevicesAnswered = Task.CompletedTask;
         _connector.Devices = [Strip, Headset];
 
-        await Eventually.TrueAsync(() =>
-        {
-            _time.Advance(TimeSpan.FromSeconds(1));
-            return _connector.ConnectCount == 2;
-        });
+        await PassTheReloadTimeoutAsync(timers);
         await _provider.WhenIdleAsync();
 
+        // Without moving the clock on: no wait for RetryDelay as after a lost connection.
+        Assert.Equal(2, _connector.ConnectCount);
         Assert.True(first.IsDisposed);
         Assert.False(_connector.LastConnection.IsDisposed);
         Assert.Equal(2, (await _provider.DiscoverAsync(Ct)).Count);
@@ -196,23 +195,28 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     public async Task Reload_NoListAndConnectingAgainFails_TriesAgainLater()
     {
         await ConnectAsync();
+        var timers = _time.Timers;
         await StartSlowReloadAsync();
         _connector.IsRunning = false;
 
-        await Eventually.TrueAsync(() =>
-        {
-            _time.Advance(TimeSpan.FromSeconds(1));
-            return _connector.ConnectCount == 2;
-        });
+        await PassTheReloadTimeoutAsync(timers);
         await _provider.WhenIdleAsync();
 
+        Assert.Equal(2, _connector.ConnectCount);
         Assert.Equal(ServerState.Unreachable, _provider.Status.State);
         Assert.Empty(await _provider.DiscoverAsync(Ct));
         _connector.IsRunning = true;
         _connector.DevicesAnswered = Task.CompletedTask;
-        _time.Advance(OpenRgbDeviceProvider.RetryDelay);
-        await _provider.WhenIdleAsync();
+        await RetryAsync(expectedConnects: 3);
         Assert.Single(await _provider.DiscoverAsync(Ct));
+    }
+
+    // Exactly ReloadTimeout, in its two waits: LoadTimeout, then the rest.
+    private async Task PassTheReloadTimeoutAsync(int timersBefore)
+    {
+        await _time.AdvanceAfterTimerAsync(timersBefore, OpenRgbDeviceProvider.LoadTimeout);
+        await _time.AdvanceAfterTimerAsync(
+            timersBefore + 1, OpenRgbDeviceProvider.ReloadTimeout - OpenRgbDeviceProvider.LoadTimeout);
     }
 
     private async Task ConnectAsync()
