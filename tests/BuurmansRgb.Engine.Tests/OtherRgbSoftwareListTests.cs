@@ -109,7 +109,7 @@ public sealed class OtherRgbSoftwareListTests
     [Fact]
     public void All_HasTheIdsThatSettingsKeep()
     {
-        Assert.Equal(["signalrgb", "icue", "razer", "armourycrate", "mysticlight", "rgbfusion", "ghub", "openrgb"],OtherRgbSoftwareList.All.Select(entry => entry.Id));
+        Assert.Equal(["signalrgb", "icue", "razer", "armourycrate", "mysticlight", "rgbfusion", "ghub", "openrgb"], OtherRgbSoftwareList.All.Select(entry => entry.Id));
         var processes = OtherRgbSoftwareList.All.SelectMany(entry => entry.Processes).ToList();
         Assert.Equal(processes.Count, processes.Distinct(ProgramNames.Comparer).Count());
         Assert.All(processes, process => Assert.EndsWith(".exe", process, StringComparison.Ordinal));
