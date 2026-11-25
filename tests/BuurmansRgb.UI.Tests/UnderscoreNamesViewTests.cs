@@ -136,15 +136,22 @@ public sealed class UnderscoreNamesViewTests
         });
     }
 
+    // The scene that is on, in "Na een herstart".
     [Fact]
     public async Task SettingsPage_KeepsTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, Strip]);
+        using var viewModel = await PageViews.ConnectAsync(api =>
+        {
+            api.Devices = [Board, Strip];
+            api.Profiles.Add("Avond_licht");
+            api.ActiveProfile = "Avond_licht";
+        });
 
         AppTheme.Run(panel =>
         {
             var page = PageViews.Show<SettingsPage>(panel, viewModel);
 
+            Assert.Contains(PageViews.AutomationTree(page), peer => peer.GetName() == string.Format(Strings.AfterRestartScene, "Avond_licht"));
             AssertKeepsUnderscores(page);
         });
     }
