@@ -83,16 +83,16 @@
                                     </StackPanel>
                                     <!-- "Tellen", for a zone whose length can be set; once more while counting starts
                                          again from LED 1. -->
-                                    <Button x:Name="CountButton" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Top" Style="{StaticResource SecondaryButton}"
+                                    <views:LiteralNameButton x:Name="CountButton" Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Top" Style="{StaticResource SecondaryButton}"
                                             Content="{x:Static res:Strings.CountZone}" ToolTip="{x:Static res:Strings.CountZoneToolTip}"
                                             Command="{Binding CountLedsCommand}" AutomationProperties.Name="{Binding CountAccessibleName}"
                                             ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding CountFocusKey}"
                                             Visibility="{Binding ShowsCount, Converter={StaticResource BoolToVisibility}}" />
-                                    <Button x:Name="FlashButton" Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Top"
+                                    <views:LiteralNameButton x:Name="FlashButton" Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Top"
                                             Content="{x:Static res:Strings.FlashZone}" ToolTip="{x:Static res:Strings.FlashZoneToolTip}"
                                             Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
                                             ToolTipService.ShowOnDisabled="True" views:FocusKeeper.Key="{Binding FlashFocusKey}">
-                                        <Button.Style>
+                                        <views:LiteralNameButton.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
                                                 <Setter Property="Visibility" Value="Collapsed" />
                                                 <Style.Triggers>
@@ -104,8 +104,8 @@
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </Button.Style>
-                                    </Button>
+                                        </views:LiteralNameButton.Style>
+                                    </views:LiteralNameButton>
                                 </Grid>
                                 <!-- The LEDs, also with the keys of the per-LED editor; they keep the focus
                                      when the preview is made again. The click strip of the view (HitRadius
@@ -190,7 +190,7 @@
                                             <ColumnDefinition Width="Auto" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <RepeatButton Grid.Column="0" Style="{StaticResource IconRepeatButton}" Content="−"
+                                        <views:LiteralNameRepeatButton Grid.Column="0" Style="{StaticResource IconRepeatButton}" Content="−"
                                                 ToolTip="{x:Static res:Strings.DecreaseLedCountToolTip}" Command="{Binding Length.DecreaseCommand}"
                                                 AutomationProperties.Name="{Binding Length.DecreaseAccessibleName}"
                                                 views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/decrease}" />
@@ -203,7 +203,7 @@
                                                 AutomationProperties.Name="{Binding Length.SliderAccessibleName}"
                                                 AutomationProperties.HelpText="{Binding LedCountHelpText}"
                                                 views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/slider}" />
-                                        <RepeatButton Grid.Column="2" Style="{StaticResource IconRepeatButton}" Content="+"
+                                        <views:LiteralNameRepeatButton Grid.Column="2" Style="{StaticResource IconRepeatButton}" Content="+"
                                                 ToolTip="{x:Static res:Strings.IncreaseLedCountToolTip}" Command="{Binding Length.IncreaseCommand}"
                                                 AutomationProperties.Name="{Binding Length.IncreaseAccessibleName}"
                                                 views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/increase}" />
@@ -216,7 +216,7 @@
                                                 <KeyBinding Key="Enter" Command="{Binding Length.ApplyCommand}" />
                                             </TextBox.InputBindings>
                                         </TextBox>
-                                        <Button Grid.Column="4" Margin="10,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ApplyLedCount}"
+                                        <views:LiteralNameButton Grid.Column="4" Margin="10,0,0,0" Style="{StaticResource SecondaryButton}" Content="{x:Static res:Strings.ApplyLedCount}"
                                                 ToolTip="{x:Static res:Strings.ApplyLedCountToolTip}" Command="{Binding Length.ApplyCommand}"
                                                 AutomationProperties.Name="{Binding Length.ApplyAccessibleName}"
                                                 views:FocusKeeper.Key="{Binding Length.FocusKey, StringFormat={}{0}/apply}" />
@@ -252,7 +252,7 @@
             <Border Margin="0,0,0,12" Style="{StaticResource LargeCard}" Background="{DynamicResource PreviewBgBrush}">
                 <StackPanel>
                     <DockPanel Margin="0,0,0,10">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"
+                        <views:LiteralNameButton DockPanel.Dock="Right" Style="{StaticResource SecondaryButton}"
                                 Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
                                 Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
                                 ToolTipService.ShowOnDisabled="True" />
@@ -293,7 +293,7 @@
                             <views:SmallLedStrip Width="156" VerticalAlignment="Center" Colors="{Binding Strip}"
                                                  OffBrush="{StaticResource LedOffBrush}" OffRingBrush="{StaticResource StripLedOffRingBrush}" />
                         </Border>
-                        <Button Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
+                        <views:LiteralNameButton Margin="12,0,0,0" VerticalAlignment="Center" Style="{StaticResource SecondaryButton}"
                                 Content="{x:Static res:Strings.FlashDevice}" ToolTip="{x:Static res:Strings.FlashDeviceToolTip}"
                                 Command="{Binding FlashCommand}" AutomationProperties.Name="{Binding FlashAccessibleName}"
                                 ToolTipService.ShowOnDisabled="True" />
