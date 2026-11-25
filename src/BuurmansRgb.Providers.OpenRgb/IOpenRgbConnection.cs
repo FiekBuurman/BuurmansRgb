@@ -17,6 +17,10 @@ internal interface IOpenRgbConnection : IDisposable
 
     int ProtocolVersion { get; }
 
+    // Waits for the server without a timeout of its own: the caller ends its wait with ct, or
+    // disposes the connection. A read that nobody waits for any more goes on until the server
+    // answers it, and the next one starts after it, so the list it gives is never older than
+    // the call.
     Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct);
 
     // Lets the device take colors from the SDK: OpenRGB picks its Direct or Custom mode.
@@ -32,7 +36,7 @@ internal interface IOpenRgbConnection : IDisposable
     Task RequestRescanAsync(CancellationToken ct);
 
     // Returns false, without waiting and without sending, while another call still waits for the
-    // server, such as a device reload. Callers may hold a lock, and that wait can last until the
-    // request times out.
+    // server, such as a device reload. Callers may hold a lock, and that wait can last as long as
+    // OpenRGB searches for its devices.
     bool TryUpdateLeds(int deviceIndex, ReadOnlySpan<RgbColor> colors);
 }

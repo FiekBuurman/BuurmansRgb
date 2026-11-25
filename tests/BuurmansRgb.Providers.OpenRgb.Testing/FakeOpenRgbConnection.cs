@@ -26,6 +26,7 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
     public Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct)
     {
         ThrowIfGone();
+        connector.CountDevicesRequest();
         if (connector.CloseWhileLoadingDevices)
         {
             Close();

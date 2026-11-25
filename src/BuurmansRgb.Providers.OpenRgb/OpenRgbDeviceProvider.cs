@@ -21,10 +21,23 @@ public sealed class OpenRgbDeviceProvider
     // app waits.
     public static TimeSpan RescanTimeout { get; } = TimeSpan.FromSeconds(5);
 
+    // How long connecting waits for the device list. OpenRGB runs on the same pc, so it answers
+    // at once when it runs.
+    public static TimeSpan LoadTimeout { get; } = TimeSpan.FromSeconds(5);
+
+    // How long a reload after a device list change waits for the list while the connection stays
+    // open. OpenRGB sends the change as it starts to search, and may answer only once the search
+    // got further: at home a search took 3.3 s, and with G HUB and Gigabyte Control Center open
+    // longer than 5 s. A connection that closes ends the wait at once; one that stays open but
+    // gives no list in this time is replaced by a new one.
+    public static TimeSpan ReloadTimeout { get; } = TimeSpan.FromSeconds(30);
+
     private readonly IOpenRgbConnector _connector;
     private readonly TimeProvider _time;
     private readonly TimeSpan _retryDelay;
     private readonly TimeSpan _rescanTimeout;
+    private readonly TimeSpan _loadTimeout;
+    private readonly TimeSpan _reloadTimeout;
     private readonly ITimer _retryTimer;
     private readonly Lock _gate = new();
 
@@ -46,13 +59,21 @@ public sealed class OpenRgbDeviceProvider
     private bool _started;
     private bool _disposed;
 
-    // Without rescanTimeout, RescanTimeout.
-    internal OpenRgbDeviceProvider(IOpenRgbConnector connector, TimeProvider timeProvider, TimeSpan retryDelay, TimeSpan? rescanTimeout = null)
+    // How many reloads gave up on a connection that stayed open; a rescan sees from it that the
+    // connection it asked over was replaced on purpose.
+    private int _reloadsGivenUp;
+
+    // Without a timeout, RescanTimeout, LoadTimeout and ReloadTimeout.
+    internal OpenRgbDeviceProvider(
+        IOpenRgbConnector connector, TimeProvider timeProvider, TimeSpan retryDelay, TimeSpan? rescanTimeout = null,
+        TimeSpan? loadTimeout = null, TimeSpan? reloadTimeout = null)
     {
         _connector = connector;
         _time = timeProvider;
         _retryDelay = retryDelay;
         _rescanTimeout = rescanTimeout ?? RescanTimeout;
+        _loadTimeout = loadTimeout ?? LoadTimeout;
+        _reloadTimeout = reloadTimeout ?? ReloadTimeout;
         _retryTimer = timeProvider.CreateTimer(
             _ => Enqueue(ConnectAsync), state: null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
     }
@@ -328,10 +349,14 @@ public sealed class OpenRgbDeviceProvider
         }
     }
 
-    // True once the update after the request has been loaded on this connection. False when the
-    // request could not go out, the connection closed, or no update came in time.
+    // True once the update after the request has been loaded on this connection, or its reload
+    // gave up on it and connected anew, as asking that new connection again would only start
+    // another search. False when the request could not go out, the connection closed, or no update
+    // came in time.
     private async Task<bool> TryRescanAsync(IOpenRgbConnection connection, CancellationToken ct)
     {
+        var givenUp = Volatile.Read(ref _reloadsGivenUp);
+
         // The provider's own handler came first, so the reload of the update is queued by then.
         var updated = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         EventHandler onUpdate = (_, _) => updated.TrySetResult();
@@ -365,7 +390,7 @@ public sealed class OpenRgbDeviceProvider
 
         // After the reload, or the drop of a connection that closed.
         await Enqueue(_ => Task.CompletedTask).ConfigureAwait(false);
-        return IsCurrent(connection);
+        return IsCurrent(connection) || Volatile.Read(ref _reloadsGivenUp) != givenUp;
     }
 
     // Connects and loads the devices; the new connection takes the place of the one there is, if
@@ -459,15 +484,30 @@ public sealed class OpenRgbDeviceProvider
             return;
         }
 
-        IReadOnlyList<MappedDevice> devices;
+        IReadOnlyList<MappedDevice>? devices;
         try
         {
-            devices = await LoadDevicesAsync(connection, ct).ConfigureAwait(false);
+            devices = await ReloadDevicesAsync(connection, ct).ConfigureAwait(false);
         }
         catch (Exception exception) when (!ct.IsCancellationRequested)
         {
             Trace.TraceWarning($"Reloading the OpenRGB devices failed: {exception.Message}");
             Drop(connection);
+            return;
+        }
+
+        if (devices is null)
+        {
+            // OpenRGB keeps the connection open but gives no list on it: not lost, so a new
+            // connection at once, and the retry after RetryDelay only when that fails too.
+            Trace.TraceWarning($"OpenRGB sent no device list within {_reloadTimeout.TotalSeconds:0} s while the connection stayed open; connecting again.");
+            Interlocked.Increment(ref _reloadsGivenUp);
+            if (Remove(connection))
+            {
+                SetStatus(ServerStatus.Connecting);
+                await OpenConnectionAsync(ct).ConfigureAwait(false);
+            }
+
             return;
         }
 
@@ -553,13 +593,28 @@ public sealed class OpenRgbDeviceProvider
         return Task.CompletedTask;
     });
 
+    // The connection is gone, or can no longer be trusted: the devices leave the list, and the
+    // provider connects again after RetryDelay.
     private void Drop(IOpenRgbConnection connection)
+    {
+        if (!Remove(connection))
+        {
+            return;
+        }
+
+        Trace.TraceWarning($"Lost the connection to OpenRGB, trying again in {_retryDelay.TotalSeconds:0} s.");
+        SetStatus(ServerStatus.Connecting);
+        ScheduleRetry();
+    }
+
+    // Takes the connection out with its devices; false when it was no longer the current one.
+    private bool Remove(IOpenRgbConnection connection)
     {
         lock (_gate)
         {
             if (_connection != connection)
             {
-                return;
+                return false;
             }
 
             _connection = null;
@@ -567,16 +622,69 @@ public sealed class OpenRgbDeviceProvider
         }
 
         connection.Dispose();
-        Trace.TraceWarning($"Lost the connection to OpenRGB, trying again in {_retryDelay.TotalSeconds:0} s.");
         DevicesChanged?.Invoke(this, EventArgs.Empty);
-        SetStatus(ServerStatus.Connecting);
-        ScheduleRetry();
+        return true;
+    }
+
+    private async Task<IReadOnlyList<MappedDevice>> LoadDevicesAsync(IOpenRgbConnection connection, CancellationToken ct) =>
+        Prepare(connection, await connection.GetDevicesAsync(ct).WaitAsync(_loadTimeout, _time, ct).ConfigureAwait(false));
+
+    // The devices after a device list change; null when OpenRGB gave none within the reload
+    // timeout while the connection stayed open. Throws at once when the connection closes, or
+    // when reading failed.
+    private async Task<IReadOnlyList<MappedDevice>?> ReloadDevicesAsync(IOpenRgbConnection connection, CancellationToken ct)
+    {
+        var closed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        EventHandler onClosed = (_, _) => closed.TrySetResult();
+        connection.Closed += onClosed;
+        try
+        {
+            if (connection.IsClosed)
+            {
+                throw new IOException("OpenRGB closed the connection.");
+            }
+
+            var reading = connection.GetDevicesAsync(ct);
+            var ended = Task.WhenAny(reading, closed.Task);
+            var first = _loadTimeout < _reloadTimeout ? _loadTimeout : _reloadTimeout;
+            try
+            {
+                await ended.WaitAsync(first, _time, ct).ConfigureAwait(false);
+            }
+            catch (TimeoutException) when (first < _reloadTimeout)
+            {
+                Trace.TraceInformation(
+                    $"OpenRGB has sent no device list after {first.TotalSeconds:0} s; it may still be searching, so waiting up to {_reloadTimeout.TotalSeconds:0} s while the connection stays open.");
+                try
+                {
+                    await ended.WaitAsync(_reloadTimeout - first, _time, ct).ConfigureAwait(false);
+                }
+                catch (TimeoutException)
+                {
+                    return null;
+                }
+            }
+            catch (TimeoutException)
+            {
+                return null;
+            }
+
+            if (!reading.IsCompleted)
+            {
+                throw new IOException("OpenRGB closed the connection.");
+            }
+
+            return Prepare(connection, await reading.ConfigureAwait(false));
+        }
+        finally
+        {
+            connection.Closed -= onClosed;
+        }
     }
 
     // Done on every (re)load: OpenRGB may have reset the devices, for example after a rescan.
-    private static async Task<IReadOnlyList<MappedDevice>> LoadDevicesAsync(IOpenRgbConnection connection, CancellationToken ct)
+    private static IReadOnlyList<MappedDevice> Prepare(IOpenRgbConnection connection, IReadOnlyList<OpenRgbDeviceData> devices)
     {
-        var devices = await connection.GetDevicesAsync(ct).ConfigureAwait(false);
         foreach (var device in devices)
         {
             if (OpenRgbDeviceMapper.HasDirectMode(device))

@@ -84,10 +84,11 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         var answered = new TaskCompletionSource();
         _connector.DevicesAnswered = answered.Task;
 
+        // In steps shorter than the load timeout, so the new connection is still loading.
         var rescan = _provider.RequestRescanAsync(Ct);
         await Eventually.TrueAsync(() =>
         {
-            _time.Advance(OpenRgbDeviceProvider.RescanTimeout);
+            _time.Advance(TimeSpan.FromSeconds(1));
             return _connector.ConnectCount == 2;
         });
 

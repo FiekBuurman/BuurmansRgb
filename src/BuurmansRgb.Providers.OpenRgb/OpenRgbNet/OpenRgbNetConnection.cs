@@ -8,20 +8,24 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
 {
     private readonly OpenRgbClient _client;
     private readonly OpenRgbServerWatcher _watcher;
-    private readonly TimeSpan _requestTimeout;
 
     // OpenRGB.NET is not made for calls from several threads: a packet can go out in more than
     // one send, and answers are matched by command only. So one call at a time.
     private readonly Lock _calls = new();
 
+    private readonly Lock _reads = new();
+
+    // The last device read, which the next one follows; only touched while holding _reads. Its
+    // result or failure is for whoever asked for it.
+    private Task _read = Task.CompletedTask;
+
     // Reused for every update; only touched while holding _calls.
     private Color[] _colors = [];
 
-    public OpenRgbNetConnection(OpenRgbClient client, OpenRgbServerWatcher watcher, TimeSpan requestTimeout)
+    public OpenRgbNetConnection(OpenRgbClient client, OpenRgbServerWatcher watcher)
     {
         _client = client;
         _watcher = watcher;
-        _requestTimeout = requestTimeout;
         watcher.Closed += (_, _) => Closed?.Invoke(this, EventArgs.Empty);
         watcher.DeviceListChanged += (_, _) => DeviceListChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -34,11 +38,27 @@ internal sealed class OpenRgbNetConnection : IOpenRgbConnection
 
     public int ProtocolVersion => (int)_client.CommonProtocolVersion.Number;
 
-    // OpenRGB.NET waits for an answer without a timeout. When the server does not answer in
-    // time this throws TimeoutException; the caller then disposes the connection, which ends the
-    // wait that is still running.
-    public Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct) =>
-        Task.Run(ReadDevices, ct).WaitAsync(_requestTimeout, ct);
+    // OpenRGB.NET waits for an answer without a timeout, and ct only ends the waiting here: the
+    // read goes on until the server answers or the connection is disposed. OpenRGB.NET matches an
+    // answer to the oldest request of its command, so the read that goes on takes the late answer
+    // to its own request, and the requests stay in step. A next read starts after it, without a
+    // thread that waits meanwhile, so it reads the list as the server has it once it answers again.
+    public Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct)
+    {
+        Task<IReadOnlyList<OpenRgbDeviceData>> read;
+        lock (_reads)
+        {
+            read = _read.ContinueWith(_ => ReadDevices(), CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            _read = read;
+        }
+
+        // Nobody may wait for it any more, such as after Dispose ended a read that went on.
+        _ = read.ContinueWith(
+            static read => _ = read.Exception, CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+
+        return read.WaitAsync(ct);
+    }
 
     public void SetCustomMode(int deviceIndex)
     {

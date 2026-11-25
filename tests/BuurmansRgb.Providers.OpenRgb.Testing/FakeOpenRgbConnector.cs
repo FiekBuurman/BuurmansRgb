@@ -21,8 +21,14 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
 
     public bool CloseWhileLoadingDevices { get; set; }
 
-    // The device list is answered once this completes.
+    private int _devicesRequests;
+
+    // The device list is answered once this completes; a read waits for the task of the moment it
+    // was asked.
     public Task DevicesAnswered { get; set; } = Task.CompletedTask;
+
+    // How often a connection was asked for the device list.
+    public int DevicesRequests => Volatile.Read(ref _devicesRequests);
 
     // The connection reports IsClosed from the start, but raised Closed before anyone listened.
     public bool CloseBeforeSubscribing { get; set; }
@@ -65,6 +71,8 @@ internal sealed class FakeOpenRgbConnector : IOpenRgbConnector
         _connections.Add(connection);
         return Task.FromResult<IOpenRgbConnection>(connection);
     }
+
+    internal void CountDevicesRequest() => Interlocked.Increment(ref _devicesRequests);
 
     public void Stop()
     {
