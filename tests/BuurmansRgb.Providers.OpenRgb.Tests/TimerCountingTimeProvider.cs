@@ -12,8 +12,11 @@ internal sealed class TimerCountingTimeProvider : FakeTimeProvider
 
     public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
     {
+        // Counted once the timer is set, so a test that sees it counted cannot move the clock on
+        // before the timer waits.
+        var timer = base.CreateTimer(callback, state, dueTime, period);
         Interlocked.Increment(ref _timers);
-        return base.CreateTimer(callback, state, dueTime, period);
+        return timer;
     }
 
     // Once the provider started one more timer than there were before, moves the clock on.
