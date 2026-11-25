@@ -98,9 +98,16 @@ uitbreidingen in `docs/bouwplan.md`.
 - Andere RGB-software (`conflict-melding`): een knop bij Instellingen "Meldingen over andere
   RGB-software weer tonen" die `dismissedOtherRgbSoftware` leegmaakt; nu kan dat alleen met de
   hand in `settings.json`
-- Andere RGB-software: Logitech G Hub (`lghub.exe`, `lghub_agent.exe`?), NZXT CAM, SteelSeries GG
-  en ASRock Polychrome in `OtherRgbSoftwareList`, en de namen van Synapse 4, Armoury Crate zelf en
-  RGB Fusion op een echte installatie nagaan (`docs/hardware.md`); SignalRGB noemt ze als botsend
+- Andere RGB-software: NZXT CAM, SteelSeries GG en ASRock Polychrome in `OtherRgbSoftwareList`,
+  en de namen van Synapse 4, Armoury Crate zelf en het oude RGB Fusion op een echte installatie
+  nagaan (`docs/hardware.md`); SignalRGB noemt ze als botsend
+- Andere RGB-software, G HUB: nagaan of het venster van G HUB een eigen proces heeft (`lghub.exe`
+  is een gok zonder bron, daarom niet in de lijst; de agent draait toch altijd mee), en waar
+  Gigabyte Control Center zijn autostart regelt (Opstartapps, Taakplanner of een eigen
+  instelling), zodat `installatie.md` het precies kan zeggen
+- Andere RGB-software: een programma dat maar een deel van de apparaten regelt (G HUB alleen de
+  muis en headset) zou geen melding hoeven; dat kan alleen als de app weet welke apparaten van
+  welk programma zijn, bv. op de fabrikant van het apparaat in OpenRGB (Logitech bij G HUB)
 - Andere RGB-software: de uitleg onder "Uitleg" voorlezen zodra hij opengaat (een live region,
   zoals de melding zelf); nu zegt een schermlezer alleen dat de knop ingedrukt is, en staat de
   uitleg direct na de melding in de leesvolgorde (`conflict-melding`)

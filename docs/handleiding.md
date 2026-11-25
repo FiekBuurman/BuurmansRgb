@@ -2025,7 +2025,7 @@ staat, dan schrijft de engine het bestand een seconde later wel weg, in zijn eig
 | `zonesAlike` | De apparaten (op id) met "Zones gelijk" aan: elke zone krijgt het beeld van de langste. Zonder staat het bij elk apparaat uit. Een id die geen tekst is, slaat de engine over |
 | `activeScene` | De naam van de scène die aan staat; zonder staat er geen aan. De engine houdt dit zelf bij |
 | `customColors` | De eigen kleuren onder "Kleuren" op Kleur, in volgorde; zonder zijn er geen. Een kleur die twee keer staat, telt één keer, en van meer dan 12 tellen de eerste 12 |
-| `dismissedOtherRgbSoftware` | De andere RGB-software waarvoor je **Niet meer melden** koos, op id: `signalrgb`, `icue`, `razer`, `armourycrate`, `mysticlight`, `rgbfusion` of `openrgb` (een tweede OpenRGB). Zonder krijg je bij elk programma een melding. Haal een id weg (of de hele regel) en de melding komt weer zodra de engine het programma ziet; dat geldt meteen, de engine leest het bestand opnieuw. Een id die geen tekst is, slaat de engine over |
+| `dismissedOtherRgbSoftware` | De andere RGB-software waarvoor je **Niet meer melden** koos, op id: `signalrgb`, `icue`, `razer`, `armourycrate`, `mysticlight`, `rgbfusion` (Gigabyte Control Center of RGB Fusion), `ghub` (Logitech G HUB) of `openrgb` (een tweede OpenRGB). Zonder krijg je bij elk programma een melding. Haal een id weg (of de hele regel) en de melding komt weer zodra de engine het programma ziet; dat geldt meteen, de engine leest het bestand opnieuw. Een id die geen tekst is, slaat de engine over |
 
 - Een apparaat van OpenRGB heet bijvoorbeeld `openrgb-corsair-vengeance-pro-rgb-1a2b3c4d`: de naam
   plus een code uit de locatie en het serienummer, zodat die na een herstart dezelfde blijft.
@@ -2311,8 +2311,9 @@ zet die in `services.msc` op **Handmatig**:
 - Razer Synapse
 - ASUS Armoury Crate
 - MSI Mystic Light (in MSI Center)
-- Gigabyte RGB Fusion (of Gigabyte Control Center)
-- en ook Logitech G Hub, NZXT CAM en SteelSeries GG als die je verlichting regelen
+- Gigabyte Control Center (of het oudere RGB Fusion)
+- Logitech G HUB: rechtsklik op het icoon naast de klok en kies Afsluiten
+- en ook NZXT CAM en SteelSeries GG als die je verlichting regelen
 
 Heb je OpenRGB al eens zelf geïnstalleerd, zet daarin dan **Start Server** niet aan: er kan maar
 één OpenRGB de verbinding aanbieden, en dat doet de service. Het OpenRGB-venster openen om
@@ -2325,9 +2326,11 @@ verbinden**). Daartussen kijkt hij niet, dus een programma dat je net startte of
 pas bij de volgende keer; kies Verversen om meteen opnieuw te kijken. Vindt hij er een, dan staat
 in de statusregel bovenaan Apparaten en Kleur bijvoorbeeld "SignalRGB draait ook en kan je
 kleuren overschrijven.", één melding per programma. Hij herkent SignalRGB, Corsair iCUE, Razer
-Synapse, ASUS Armoury Crate, MSI Mystic Light en Gigabyte RGB Fusion, ook als alleen hun
-achtergrondprogramma draait. Logitech G Hub, NZXT CAM en SteelSeries GG herkent hij (nog) niet.
-Van RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet werkt.
+Synapse, ASUS Armoury Crate, MSI Mystic Light, Gigabyte Control Center en Logitech G HUB, ook
+als alleen hun achtergrondprogramma draait, en ook als het programma als administrator draait
+(zoals Control Center). Van G HUB tellen de services die blijven draaien als je G HUB afsluit
+niet mee, anders kwam de melding altijd. NZXT CAM en SteelSeries GG herkent hij (nog) niet. Van het
+oudere RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet werkt.
 
 - **Een tweede OpenRGB:** draait er een OpenRGB in je eigen Windows-sessie terwijl de service
   OpenRGB ook draait, dan zegt de app "Er draait nog een OpenRGB naast de service en die kan je

@@ -5,8 +5,9 @@ namespace BuurmansRgb.Engine.Programs;
 // The RGB software that may drive the same LEDs as OpenRGB, by the exe names of its processes: the
 // one place for this list (docs/installatie.md, "Andere RGB-software afsluiten", explains it to
 // the user, with the sources). Most names come from sites with process information, not from the
-// makers, so some may be off or missing; a name that is wrong only never matches. Software with
-// a service is found by that, so also while its window is closed. In the order the app shows them.
+// makers, so some may be off or missing; a name that is wrong only never matches. The comment of an
+// entry says which names were seen on a real pc (docs/hardware.md). Software with a service is
+// found by that, so also while its window is closed. In the order the app shows them.
 internal static class OtherRgbSoftwareList
 {
     private const string ExeExtension = ".exe";
@@ -33,9 +34,19 @@ internal static class OtherRgbSoftwareList
         // MSI Center and Mystic Light (not official).
         new("mysticlight", "MSI Mystic Light", ["LEDKeeper2.exe", "Mystic_Light_Service.exe", "mysticlight2_service.exe", "LightKeeperService.exe"]),
 
-        // No process or service name of RGB Fusion or Gigabyte Control Center was found; this is a
-        // guess after the name of the program, not confirmed.
-        new("rgbfusion", "Gigabyte RGB Fusion", ["RGBFusion.exe"]),
+        // GCC.exe is Gigabyte Control Center itself, seen at home (25.07.21.01, docs/hardware.md):
+        // it runs elevated in the session of the user and has no service; the process list names
+        // it all the same (SystemProcessSnapshot). RGBFusion.exe stays a guess after the name of
+        // the older RGB Fusion, not confirmed. The id stays "rgbfusion", the one from before
+        // Control Center was known, as settings.json may keep it (dismissedOtherRgbSoftware).
+        new("rgbfusion", "Gigabyte Control Center / RGB Fusion", ["GCC.exe", "RGBFusion.exe"]),
+
+        // The agent and the tray of Logitech G HUB, both seen at home (2026.7.1011216,
+        // docs/hardware.md), in the session of the user. Not the service LGHUBUpdaterService
+        // (lghub_updater.exe) nor the driver service logi_lamparray_service: they keep running
+        // when G HUB is closed, so they would always match. The window of G HUB itself (lghub.exe) is a
+        // guess without a source, so it is left out; the agent runs whenever G HUB does.
+        new("ghub", "Logitech G HUB", ["lghub_agent.exe", "lghub_system_tray.exe"]),
 
         // A second OpenRGB next to the service: see BesideService.
         new(OtherRgbSoftware.OpenRgbId, "OpenRGB", ["OpenRGB.exe"], BesideService: true),

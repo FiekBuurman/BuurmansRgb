@@ -7,9 +7,13 @@ namespace BuurmansRgb.Engine.Programs;
 // any of them. So it also names the services, which run as LocalSystem in session 0: the engine
 // runs without admin rights and may not open those, so ProcessList (EnumProcesses with
 // QueryFullProcessImageName per process) gets no name for them, and that is where most RGB
-// software runs (Corsair.Service.exe, LightingService.exe, the service OpenRGB). It costs a few
-// milliseconds, as it reads every thread of every process too; that is fine for a check at the
-// start, after waking up and at "Verversen", not for something that runs every few seconds.
+// software runs (Corsair.Service.exe, LightingService.exe, the service OpenRGB). As it opens no
+// process, it also names elevated and protected ones, such as Gigabyte Control Center (GCC.exe),
+// which runs elevated in the session of the user. So read only ProcessName and SessionId here: a
+// property such as MainModule, StartTime or Handle opens the process, and may throw for those
+// (SystemProcessSnapshotTests, with the protected csrss). It costs a few milliseconds, as it reads
+// every thread of every process too; that is fine for a check at the start, after waking up and at
+// "Verversen", not for something that runs every few seconds.
 internal sealed class SystemProcessSnapshot : IProcessSnapshot
 {
     public IReadOnlyList<RunningProcess> Take()

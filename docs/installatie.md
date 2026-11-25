@@ -32,7 +32,7 @@ stap 2 hieronder. Wil je controleren of het bestand goed is aangekomen, vergelij
    ```
 
 2. Sluit andere RGB-software af (SignalRGB, iCUE, Synapse, Armoury Crate, Mystic Light,
-   RGB Fusion, G Hub, ...); zie [Andere RGB-software afsluiten](#andere-rgb-software-afsluiten).
+   Gigabyte Control Center of RGB Fusion, Logitech G HUB, ...); zie [Andere RGB-software afsluiten](#andere-rgb-software-afsluiten).
 3. Draai `BuurmansRgb-setup.exe` en geef één keer toestemming (UAC). SmartScreen kan
    waarschuwen omdat de installer niet ondertekend is: **Meer info → Toch uitvoeren**.
 
@@ -153,15 +153,21 @@ terug. Sluit ze af en zet hun autostart uit (**Taakbeheer → Opstartapps**), en
 op **Handmatig** of **Uitgeschakeld** (`services.msc`). SignalRGB noemt in zijn eigen lijst nog
 meer programma's die botsen, zoals NZXT CAM, SteelSeries GG en Windows Dynamic Lighting [46].
 
-De meeste namen hieronder komen van sites met procesinformatie, niet van de makers.
-Controleer ze op je eigen pc (**Taakbeheer → Details**, `sc query`).
+De meeste namen hieronder komen van sites met procesinformatie, niet van de makers; die van
+Gigabyte Control Center en Logitech G HUB zijn op een echte pc gezien (zie
+[hardware.md](hardware.md#fabrikantsoftware-die-uit-moet)). Controleer ze op je eigen pc
+(**Taakbeheer → Details**, `sc query`).
 
 BuurmansRgb kijkt bij het starten, na de slaapstand en bij **Verversen** zelf of een van deze
 programma's draait, en zegt het dan in de app (zie "Andere RGB-software" in de
 [handleiding](handleiding.md#andere-rgb-software)). Het zoekt op de exe-namen uit deze tabel,
 plus `iCUE.exe` (de app van iCUE), voor SignalRGB `SignalRgbService.exe`, `SignalRgb.exe` en
-`VortxEngine.exe` (aangenomen, niet bevestigd) en voor RGB Fusion de gok `RGBFusion.exe`. De
-lijst staat in de code op één plek, `OtherRgbSoftwareList`.
+`VortxEngine.exe` (aangenomen, niet bevestigd) en voor RGB Fusion de gok `RGBFusion.exe`. Ook
+een programma dat als administrator draait, zoals `GCC.exe`, vindt het. Van G HUB tellen
+alleen `lghub_agent.exe` en `lghub_system_tray.exe`: de updater en `logi_lamparray_service`
+blijven draaien als G HUB dicht is, dus die zouden altijd een melding geven. De lijst staat in
+de code op één plek,
+`OtherRgbSoftwareList`.
 
 | Software | Processen en services | Bron |
 | --- | --- | --- |
@@ -170,7 +176,8 @@ lijst staat in de code op één plek, `OtherRgbSoftwareList`.
 | Razer Synapse 3 | `RazerCentralService.exe`, `Razer Synapse Service.exe`, `Razer Synapse Service Process.exe`; Chroma: `RzSDKService.exe` en `RzSDKServer.exe`. Synapse 4: **onbekend** | deels officieel [38][39][40][41] |
 | ASUS Armoury Crate | `LightingService.exe` (Aura, meestal in `C:\Program Files (x86)\LightingService`), `ROGLiveService.exe`; servicenaam **onbekend** | niet officieel [27][42] |
 | MSI Mystic Light / MSI Center | `LEDKeeper2.exe`, `Mystic_Light_Service.exe`, `mysticlight2_service.exe`, `LightKeeperService.exe`; servicenaam **onbekend** | niet officieel [43][44] |
-| Gigabyte RGB Fusion / Control Center | **onbekend**; Gigabyte meldt zelf dat RGB Fusion 2.0 en GCC samen botsen | officieel, zonder namen [45] |
+| Gigabyte Control Center / RGB Fusion | Control Center: `GCC.exe` (`C:\Program Files\GIGABYTE\Control Center\`), draait als administrator, geen service. RGB Fusion: **onbekend** (de gok `RGBFusion.exe`). Gigabyte meldt zelf dat RGB Fusion 2.0 en GCC samen botsen | `GCC.exe` gezien op een echte pc (25.07.21.01); officieel, zonder namen [45] |
+| Logitech G HUB | `lghub_agent.exe` en `lghub_system_tray.exe` (in `C:\Program Files\LGHUB\`, autostart `LGHUB`); daarnaast de service `LGHUBUpdaterService` (`lghub_updater.exe`) en de driver-service `logi_lamparray_service`, die ook draaien als G HUB dicht is. Het venster van G HUB zelf: **onbekend** | gezien op een echte pc (2026.7.1011216) |
 | Een tweede OpenRGB | een OpenRGB met zijn eigen SDK-server (**Start Server**, `--server`) of een eigen service | zie hieronder |
 
 **Een tweede OpenRGB op poort 6742:** er kan maar één server op 6742 luisteren, dus het botst
@@ -181,6 +188,24 @@ dan krijgt de service de poort niet, en BuurmansRgb verbindt met die andere. Kij
 de PID van de service in `sc queryex OpenRGB`. Zijn ze verschillend, sluit dan die andere
 OpenRGB of haal zijn autostart weg. De OpenRGB-app openen naast de service mag wel:
 die verbindt als client met de service (zie [openrgb-meeleveren.md](openrgb-meeleveren.md)).
+
+**Logitech G HUB afsluiten:** klik met de rechtermuisknop op het G HUB-icoon in het systeemvak
+(naast de klok) en kies **Afsluiten** (of **Quit**). Daarmee stoppen `lghub_agent.exe` en
+`lghub_system_tray.exe`; `lghub_updater.exe` en `logi_lamparray_service` blijven als service
+draaien; daar geeft BuurmansRgb geen melding over. `logi_lamparray_service` hoort bij
+**Dynamisch licht** van Windows: staat dat aan, dan kan Windows langs die weg ook kleuren van
+Logitech-apparaten zetten (op de pc thuis stond het uit, zie [hardware.md](hardware.md)). Zet de
+autostart uit bij **Taakbeheer →
+Opstartapps → LGHUB → Uitschakelen**. Wil je G HUB houden voor een muis of headset, laat het
+dan alleen die apparaten regelen en niet de verlichting van wat BuurmansRgb aanstuurt; daar
+geeft BuurmansRgb nog wel de melding.
+
+**Gigabyte Control Center afsluiten:** sluit het venster. Draait `GCC.exe` daarna nog
+(**Taakbeheer → Details**), kies daar **Taak beëindigen**; omdat Control Center als
+administrator draait, kan Taakbeheer daarvoor om toestemming vragen. Kijk voor de autostart bij
+**Taakbeheer → Opstartapps** en in de instellingen van Control Center zelf. Programma's die als
+administrator starten, staan soms alleen in **Taakplanner**; waar Control Center zijn autostart
+regelt, is nog niet nagegaan.
 
 ## Games met anti-cheat
 

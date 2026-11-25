@@ -23,8 +23,53 @@ public sealed class OtherRgbSoftwareListTests
     [InlineData("lightingservice", "armourycrate")]
     [InlineData("LEDKeeper2", "mysticlight")]
     [InlineData("RGBFusion", "rgbfusion")]
+    [InlineData("GCC", "rgbfusion")]
+    [InlineData("gcc", "rgbfusion")]
+    [InlineData("lghub_agent", "ghub")]
+    [InlineData("lghub_system_tray", "ghub")]
+    [InlineData("LGHUB_AGENT", "ghub")]
+    [InlineData("LGHub_System_Tray", "ghub")]
     public void FindIn_AProcessOfTheList_FindsItsSoftware(string process, string id) =>
         Assert.Equal(id, Assert.Single(OtherRgbSoftwareList.FindIn([new(process, UserSession)])).Id);
+
+    // Gigabyte Control Center under its new name, by the id it had as RGB Fusion.
+    [Fact]
+    public void FindIn_GigabyteControlCenter_FindsItByTheOldId()
+    {
+        var found = Assert.Single(OtherRgbSoftwareList.FindIn([new("GCC", UserSession)]));
+
+        Assert.Equal("rgbfusion", found.Id);
+        Assert.Equal("Gigabyte Control Center / RGB Fusion", found.Name);
+    }
+
+    // As seen at home with G HUB closed: its updater and the driver service for Dynamic Lighting
+    // keep running in session 0, so they would always match.
+    [Theory]
+    [InlineData("lghub_updater", ServiceSession)]
+    [InlineData("logi_lamparray_service.AMD64", ServiceSession)]
+    [InlineData("logi_lamparray_service", ServiceSession)]
+    [InlineData("lghub_updater", UserSession)]
+    public void FindIn_TheServicesOfGHubThatRunWhileItIsClosed_FindNothing(string process, int session) =>
+        Assert.Empty(OtherRgbSoftwareList.FindIn([new(process, session)]));
+
+    [Fact]
+    public void FindIn_GHubOpenWithItsServices_FindsItOnce()
+    {
+        var found = OtherRgbSoftwareList.FindIn(
+        [
+            new("lghub_updater", ServiceSession),
+            new("logi_lamparray_service.AMD64", ServiceSession),
+            new("lghub_agent", UserSession),
+            new("lghub_system_tray", UserSession),
+        ]);
+
+        Assert.Equal("Logitech G HUB", Assert.Single(found).Name);
+    }
+
+    // The two programs of the pc at home side by side, in the order of the list.
+    [Fact]
+    public void FindIn_ControlCenterAndGHub_FindsBoth() =>
+        Assert.Equal(["rgbfusion", "ghub"], OtherRgbSoftwareList.FindIn([new("lghub_agent", UserSession), new("GCC", UserSession)]).Select(software => software.Id));
 
     // A service is found as well as an app: most of them run as a service in session 0.
     [Fact]
@@ -64,7 +109,7 @@ public sealed class OtherRgbSoftwareListTests
     [Fact]
     public void All_HasTheIdsThatSettingsKeep()
     {
-        Assert.Equal(["signalrgb", "icue", "razer", "armourycrate", "mysticlight", "rgbfusion", "openrgb"], OtherRgbSoftwareList.All.Select(entry => entry.Id));
+        Assert.Equal(["signalrgb", "icue", "razer", "armourycrate", "mysticlight", "rgbfusion", "ghub", "openrgb"], OtherRgbSoftwareList.All.Select(entry => entry.Id));
         var processes = OtherRgbSoftwareList.All.SelectMany(entry => entry.Processes).ToList();
         Assert.Equal(processes.Count, processes.Distinct(ProgramNames.Comparer).Count());
         Assert.All(processes, process => Assert.EndsWith(".exe", process, StringComparison.Ordinal));
@@ -73,6 +118,8 @@ public sealed class OtherRgbSoftwareListTests
     [Theory]
     [InlineData("signalrgb", true)]
     [InlineData("openrgb", true)]
+    [InlineData("rgbfusion", true)]
+    [InlineData("ghub", true)]
     [InlineData("SignalRGB", false)]
     [InlineData("gimp", false)]
     public void IsKnown_OnlyForTheIdsOfTheList(string id, bool known) => Assert.Equal(known, OtherRgbSoftwareList.IsKnown(id));
