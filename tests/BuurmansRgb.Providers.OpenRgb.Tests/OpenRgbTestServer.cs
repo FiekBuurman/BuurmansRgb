@@ -44,6 +44,10 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
 
     public int ControllerDataRequests => Volatile.Read(ref _controllerDataRequests);
 
+    // Device data requests are answered once this completes, from Devices as they are then, like
+    // OpenRGB that answers only once its search got further. Meanwhile that client gets nothing.
+    public Task ControllerDataAnswered { get; set; } = Task.CompletedTask;
+
     // Off: a rescan request is ignored, like OpenRGB before 1.0, which does not know it.
     public bool AnswersRescan { get; set; } = true;
 
@@ -144,6 +148,14 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
                 var deviceIndex = (int)BinaryPrimitives.ReadUInt32LittleEndian(header.AsSpan(4));
                 var data = new byte[length];
                 await stream.ReadExactlyAsync(data, _stop.Token);
+                if (command == CommandId.RequestControllerData)
+                {
+                    // Read before counting, as a test may change it once it sees the request.
+                    var answered = ControllerDataAnswered;
+                    Interlocked.Increment(ref _controllerDataRequests);
+                    await answered.WaitAsync(_stop.Token);
+                }
+
                 if (Answer(command, deviceIndex, data) is { } answer)
                 {
                     await stream.WriteAsync(answer, _stop.Token);
@@ -172,7 +184,6 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
             case CommandId.RequestControllerCount:
                 return Packet(command, 0, writer => writer.UInt32((uint)Devices.Count));
             case CommandId.RequestControllerData:
-                Interlocked.Increment(ref _controllerDataRequests);
                 return AnswersControllerData ? Packet(command, deviceIndex, writer => WriteDevice(writer, Devices[deviceIndex])) : null;
             case CommandId.SetCustomMode:
                 CustomModeIndexes.Enqueue(deviceIndex);

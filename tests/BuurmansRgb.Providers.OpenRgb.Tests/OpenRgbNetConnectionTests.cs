@@ -154,7 +154,8 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
     {
         var connection = await ConnectAsync();
         _server.AnswersControllerData = false;
-        var loading = connection.GetDevicesAsync(Ct);
+        using var waiting = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        var loading = connection.GetDevicesAsync(waiting.Token);
         await WaitUntilAsync(() => _server.ControllerDataRequests == 1);
 
         var stopwatch = Stopwatch.StartNew();
@@ -162,8 +163,40 @@ public sealed class OpenRgbNetConnectionTests : IAsyncDisposable
 
         Assert.False(sent);
         Assert.True(stopwatch.Elapsed < TimeSpan.FromMilliseconds(500), $"Waited {stopwatch.Elapsed}.");
-        await Assert.ThrowsAsync<TimeoutException>(() => loading);
+        await waiting.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => loading);
         Assert.Empty(_server.Updates);
+    }
+
+    // The caller stopped waiting while the server was busy: the read goes on and takes the late
+    // answer, and the next read starts after it, so it gets the list of that moment.
+    [Fact]
+    public async Task GetDevicesAsync_AfterAWaitThatEnded_ReadsTheListAsTheServerHasItThen()
+    {
+        _server.Devices = [TestDevices.Create(index: 0, name: "Strip")];
+        var connection = await ConnectAsync();
+        var searching = new TaskCompletionSource();
+        _server.ControllerDataAnswered = searching.Task;
+        using (var waiting = CancellationTokenSource.CreateLinkedTokenSource(Ct))
+        {
+            var first = connection.GetDevicesAsync(waiting.Token);
+            await WaitUntilAsync(() => _server.ControllerDataRequests == 1);
+            await waiting.CancelAsync();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+        }
+
+        var second = connection.GetDevicesAsync(Ct);
+        await Task.Delay(100, Ct);
+        Assert.Equal(1, _server.ControllerDataRequests);
+        _server.Devices = [TestDevices.Create(index: 0, name: "Strip"), TestDevices.Create(index: 1, name: "Headset", ledCount: 2)];
+        searching.SetResult();
+
+        var devices = await second.WaitAsync(TestTimeouts.Short, Ct);
+        Assert.Equal(["Strip", "Headset"], devices.Select(device => device.Name));
+        Assert.Equal(3, _server.ControllerDataRequests);
+        Assert.True(connection.TryUpdateLeds(1, [Orange, Orange]));
+        Assert.True(_server.Updates.TryTake(out var update, TestTimeouts.Short));
+        Assert.Equal(1, update.Index);
     }
 
     [Fact]

@@ -207,6 +207,22 @@ administrator draait, kan Taakbeheer daarvoor om toestemming vragen. Kijk voor d
 administrator starten, staan soms alleen in **Taakplanner**; waar Control Center zijn autostart
 regelt, is nog niet nagegaan.
 
+### Een apparaat verdwijnt terwijl fabrikantsoftware draait
+
+Welke apparaten er zijn, hoort BuurmansRgb van OpenRGB. Houdt fabrikantsoftware een apparaat
+vast, dan kan OpenRGB het bij het zoeken missen, en dan staat het ook niet in BuurmansRgb. Dat
+ligt aan OpenRGB en die software, niet aan BuurmansRgb. Thuis viel zo de Logitech G733 weg
+terwijl G HUB draaide; ook na een herstart van OpenRGB bleef hij weg zolang G HUB open was (zie
+[hardware.md](hardware.md#verversen-en-openrgb)). Het zoeken zelf duurde met G HUB en Gigabyte
+Control Center open ook langer.
+
+- Sluit de fabrikantsoftware af (zie hierboven) en kies **Verversen** bij Apparaten.
+- Komt het apparaat dan nog niet terug, herstart OpenRGB: **Herstarten** in het menu van het
+  tray-icoon, of de service `OpenRGB` in `services.msc`.
+- Gaf OpenRGB na Verversen zijn lijst niet op tijd door, dan zegt de app dat, en noemt ze de
+  andere RGB-software die ze tegelijk zag draaien (zie "Verversen" in de
+  [handleiding](handleiding.md)).
+
 ## Games met anti-cheat
 
 BuurmansRgb zelf laadt geen driver en heeft geen beheerdersrechten. Anti-cheat kijkt vooral naar

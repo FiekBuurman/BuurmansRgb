@@ -160,10 +160,10 @@ public sealed class SimulatedDeviceProvider : IResizableDeviceProvider, IRescann
         DevicesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    public Task<bool> RequestRescanAsync(CancellationToken ct)
+    public Task<RescanOutcome> RequestRescanAsync(CancellationToken ct)
     {
         DevicesChanged?.Invoke(this, EventArgs.Empty);
-        return Task.FromResult(true);
+        return Task.FromResult(RescanOutcome.Rescanned);
     }
 
     private static RgbDevice Simulated(string id, string name, DeviceType type, IReadOnlyList<RgbZone> zones) =>

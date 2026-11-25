@@ -1,7 +1,10 @@
 using System.Globalization;
+using System.Reflection;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.Services;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -371,11 +374,32 @@ internal sealed class FakeEngineApi : IEngineApi
     // When set, a rescan answers once this task completes, like an engine that waits for OpenRGB.
     public Task? RescanGate { get; set; }
 
-    // What a rescan answers: false as if OpenRGB could not be reached.
-    public bool RescanReaches { get; set; } = true;
+    // What a rescan answers, such as Unreachable as if OpenRGB could not be reached.
+    public RescanOutcome RescanOutcome { get; set; } = RescanOutcome.Rescanned;
+
+    // Off: like an engine before RescanDevicesWithOutcomeAsync, which does not know that method.
+    public bool KnowsRescanOutcome { get; set; } = true;
 
     // Like the engine: the new list goes out through DevicesChanged before the answer.
-    public async Task<bool> RescanDevicesAsync(CancellationToken ct = default)
+    public async Task<bool> RescanDevicesAsync(CancellationToken ct = default) =>
+        await RescanAsync() != RescanOutcome.Unreachable;
+
+    public Task<RescanOutcome> RescanDevicesWithOutcomeAsync(CancellationToken ct = default) =>
+        KnowsRescanOutcome ? RescanAsync() : Task.FromException<RescanOutcome>(MethodNotFound(nameof(RescanDevicesWithOutcomeAsync)));
+
+    // What StreamJsonRpc throws for a method the engine does not have. It makes those itself only,
+    // through an internal constructor; when a new StreamJsonRpc changes that, say so plainly.
+    private static Exception MethodNotFound(string method)
+    {
+        var constructor = typeof(RemoteMethodNotFoundException).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic, binder: null,
+            [typeof(string), typeof(string), typeof(JsonRpcErrorCode), typeof(object), typeof(object)], modifiers: null);
+        Assert.True(constructor is not null,
+            "The internal constructor of StreamJsonRpc's RemoteMethodNotFoundException has changed; update FakeEngine.MethodNotFound.");
+        return (Exception)constructor.Invoke(["Method not found", method, JsonRpcErrorCode.MethodNotFound, null, null]);
+    }
+
+    private async Task<RescanOutcome> RescanAsync()
     {
         await Record("rescan");
         if (RescanGate is { } gate)
@@ -384,7 +408,7 @@ internal sealed class FakeEngineApi : IEngineApi
         }
 
         RaiseDevicesChanged();
-        return RescanReaches;
+        return RescanOutcome;
     }
 
     public SimulatedDevicesMode SimulatedDevices { get; set; } = SimulatedDevicesMode.Automatic;

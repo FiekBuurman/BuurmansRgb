@@ -27,8 +27,8 @@ uitbreidingen in `docs/bouwplan.md`.
   met `UpdateMode` en de kleur van die modus
 - Kleuren naar OpenRGB via een eigen wachtrij per verbinding sturen. Nu slaat `SetLeds` een
   frame over zolang een herlaadactie op de server wacht (zodat de lock van
-  `LightingController` niet tot de aanvraag-timeout vastzit); bij een animatie kan dat
-  zichtbaar haperen tijdens een rescan
+  `LightingController` niet vastzit zolang OpenRGB zoekt, tot `ReloadTimeout`, 30 s); bij een
+  animatie kan dat zichtbaar haperen tijdens een rescan
 - Alleen de nieuwe apparaten aansturen als de lijst verandert; nu krijgen alle apparaten de
   kleur opnieuw als OpenRGB (opnieuw) verbindt
 - De segmenten van een zone (SDK-protocol 4) tonen en apart kunnen kiezen, bijv. als een
@@ -75,6 +75,21 @@ uitbreidingen in `docs/bouwplan.md`.
   protocolversie 5 of hoger heeft afgesproken, laat de watcher dan eerst zelf
   `REQUEST_PROTOCOL_VERSION` sturen; nu valt "Verversen" dan na 5 seconden terug op opnieuw
   verbinden, wat ook werkt maar trager is
+- Na Verversen zeggen welk apparaat er niet meer is ("De G733 Gaming Headset is bij het zoeken
+  niet gevonden"), door de lijst van voor en na te vergelijken, met de verwijzing naar andere
+  RGB-software die draait; nu verdwijnt zo'n apparaat stil uit de lijst (thuistest
+  24-11-2026, F2)
+- In `engine.log` zetten hoe lang OpenRGB over een zoekronde deed (van de vraag tot de laatste
+  `DeviceListUpdated`), om op echte hardware te zien of `ReloadTimeout` (30 s) past bij
+  OpenRGB met fabrikantsoftware open
+- Komt er na `LoadTimeout` (5 s) een nieuwe `DeviceListUpdated` binnen terwijl het herladen nog
+  op de lijst wacht, die leesactie dan opgeven en meteen opnieuw verbinden in plaats van tot
+  `ReloadTimeout` (30 s) te wachten. Hangt de lees omdat OpenRGB niet antwoordt op
+  `REQUEST_CONTROLLER_DATA` voor een index die bij het begin van de zoekronde verdween, dan
+  geeft een nieuwe verbinding de lijst sneller (thuistest 24-11-2026, F2)
+- "Zoeken…" laten staan zolang de engine nog op de lijst van OpenRGB wacht (tot 30 s), met een
+  melding van de engine dat OpenRGB nog zoekt; nu stopt de knop na 15 s met "Het zoeken duurt
+  lang" en komt het antwoord van de engine later
 - Nederlandse namen voor de toetsen van het gesimuleerde toetsenbord ("Linker Shift", "Pijl
   omhoog", "Num 7"), uit `Strings.resx` van `Providers.Simulated`; de zones heten sinds
   `gewone-taal` Nederlands, de toetsen nog Engels, zoals OpenRGB ze bij echte toetsenborden geeft

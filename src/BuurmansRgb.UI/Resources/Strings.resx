@@ -1371,6 +1371,18 @@
   <data name="RescanSlow" xml:space="preserve">
     <value>Het zoeken duurt lang. Apparaten die OpenRGB nog vindt, verschijnen vanzelf in de lijst.</value>
   </data>
+  <data name="RescanListNotLoaded" xml:space="preserve">
+    <value>OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt. Draait er andere RGB-software, sluit die dan af. Komen je apparaten niet terug, kies dan later nog eens Verversen.</value>
+    <comment>Na Verversen: OpenRGB was bereikbaar, maar gaf binnen 30 s geen nieuwe lijst, en opnieuw verbinden lukte ook niet meteen, terwijl de app geen andere RGB-software noemt (niet herkend, of Niet meer melden gekozen); daarom de algemene zin over andere RGB-software. Verdwijnt zodra OpenRGB weer verbonden is.</comment>
+  </data>
+  <data name="RescanListNotLoadedOtherRgbSoftware" xml:space="preserve">
+    <value>OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. Dat komt vaak door andere RGB-software die tegelijk draait: {0}. Sluit die af en kies weer Verversen.</value>
+    <comment>Als RescanListNotLoaded, terwijl de engine bij dit Verversen andere RGB-software vond (de meldingen OtherRgbSoftwareRuns). {0} = de namen, met UiText.Names aaneengeregen ("G HUB en Gigabyte Control Center").</comment>
+  </data>
+  <data name="NamesAnd" xml:space="preserve">
+    <value>{0} en {1}</value>
+    <comment>Een opsomming van namen: {0} = alle namen behalve de laatste, met komma's ertussen, {1} = de laatste.</comment>
+  </data>
   <data name="LampSwitchAccessibleName" xml:space="preserve">
     <value>{0} aan of uit</value>
   </data>

@@ -1,3 +1,5 @@
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Extensions.Time.Testing;
 
@@ -61,7 +63,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     {
         _rescan.RescanCommand.Execute(null);
 
-        _rescan.Finish(_requests[0], openRgbReached: true);
+        _rescan.Finish(_requests[0], RescanOutcome.Rescanned);
 
         Assert.False(_rescan.IsSearching);
         Assert.Equal("Verversen", _rescan.ButtonText);
@@ -73,10 +75,57 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     {
         _rescan.RescanCommand.Execute(null);
 
-        _rescan.Finish(_requests[0], openRgbReached: false);
+        _rescan.Finish(_requests[0], RescanOutcome.Unreachable);
 
         Assert.False(_rescan.IsSearching);
         Assert.Equal("OpenRGB is niet bereikbaar, dus er is niet opnieuw naar apparaten gezocht. Kijk of OpenRGB draait met de SDK-server aan.", _rescan.Message);
+    }
+
+    [Fact]
+    public void Finish_ListNotLoaded_SaysOpenRgbGaveNoDevices()
+    {
+        _rescan.RescanCommand.Execute(null);
+
+        _rescan.Finish(_requests[0], RescanOutcome.ListNotLoaded, []);
+
+        Assert.False(_rescan.IsSearching);
+        Assert.Equal(
+            "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt. Draait er andere RGB-software, sluit die dan af. Komen je apparaten niet terug, kies dan later nog eens Verversen.",
+            _rescan.Message);
+    }
+
+    // At home G HUB and Gigabyte Control Center held the devices while OpenRGB searched.
+    [Fact]
+    public void Finish_ListNotLoadedWithOtherRgbSoftware_NamesIt()
+    {
+        _rescan.RescanCommand.Execute(null);
+
+        _rescan.Finish(_requests[0], RescanOutcome.ListNotLoaded, [new("ghub", "Logitech G HUB"), new("gcc", "Gigabyte Control Center")]);
+
+        Assert.Equal(
+            "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. Dat komt vaak door andere RGB-software die tegelijk draait: Logitech G HUB en Gigabyte Control Center. Sluit die af en kies weer Verversen.",
+            _rescan.Message);
+    }
+
+    [Fact]
+    public void Finish_ListNotLoadedWithASecondOpenRgb_NamesIt()
+    {
+        _rescan.RescanCommand.Execute(null);
+
+        _rescan.Finish(_requests[0], RescanOutcome.ListNotLoaded, [new(OtherRgbSoftware.OpenRgbId, "OpenRGB")]);
+
+        Assert.EndsWith("die tegelijk draait: de tweede OpenRGB. Sluit die af en kies weer Verversen.", _rescan.Message);
+    }
+
+    [Fact]
+    public void OpenRgbConnected_ClearsTheListNotLoadedMessage()
+    {
+        _rescan.RescanCommand.Execute(null);
+        _rescan.Finish(_requests[0], RescanOutcome.ListNotLoaded, [new("ghub", "Logitech G HUB")]);
+
+        _rescan.OnOpenRgbConnected();
+
+        Assert.False(_rescan.HasMessage);
     }
 
     [Fact]
@@ -99,7 +148,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
         _rescan.RescanCommand.Execute(null);
         _time.Advance(DeviceRescanViewModel.SearchTimeout);
 
-        _rescan.Finish(_requests[0], openRgbReached: true);
+        _rescan.Finish(_requests[0], RescanOutcome.Rescanned);
 
         Assert.False(_rescan.HasMessage);
     }
@@ -111,7 +160,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
         _time.Advance(DeviceRescanViewModel.SearchTimeout);
         _rescan.RescanCommand.Execute(null);
 
-        _rescan.Finish(_requests[0], openRgbReached: false);
+        _rescan.Finish(_requests[0], RescanOutcome.Unreachable);
 
         Assert.True(_rescan.IsSearching);
         Assert.False(_rescan.HasMessage);
@@ -122,7 +171,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     public void Rescan_AgainAfterAMessage_ClearsIt()
     {
         _rescan.RescanCommand.Execute(null);
-        _rescan.Finish(_requests[0], openRgbReached: false);
+        _rescan.Finish(_requests[0], RescanOutcome.Unreachable);
 
         _rescan.RescanCommand.Execute(null);
 
@@ -133,7 +182,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
     public void OpenRgbConnected_ClearsTheUnreachableMessage()
     {
         _rescan.RescanCommand.Execute(null);
-        _rescan.Finish(_requests[0], openRgbReached: false);
+        _rescan.Finish(_requests[0], RescanOutcome.Unreachable);
 
         _rescan.OnOpenRgbConnected();
 
@@ -158,7 +207,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
         _rescan.RescanCommand.Execute(null);
 
         _rescan.Clear();
-        _rescan.Finish(_requests[0], openRgbReached: false);
+        _rescan.Finish(_requests[0], RescanOutcome.Unreachable);
 
         Assert.False(_rescan.IsSearching);
         Assert.False(_rescan.HasMessage);

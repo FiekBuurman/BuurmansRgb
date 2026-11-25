@@ -272,8 +272,20 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   langer dan 15 seconden, dan zegt de melding dat apparaten die OpenRGB nog vindt vanzelf
   verschijnen. Kent OpenRGB de vraag om opnieuw te zoeken
   niet (versies voor 1.0) of antwoordt het niet binnen 5 seconden, dan verbindt BuurmansRgb
-  opnieuw met OpenRGB en haalt het de apparatenlijst opnieuw op. De knop is met Tab te bereiken
-  en een schermlezer leest de melding voor.
+  opnieuw met OpenRGB en haalt het de apparatenlijst opnieuw op. Terwijl OpenRGB zoekt, kan het
+  een tijd duren voor het de lijst doorgeeft, vooral als fabrikantsoftware zoals G HUB of
+  Gigabyte Control Center de apparaten ook vasthoudt. Zolang de verbinding openstaat, wacht
+  BuurmansRgb daar tot 30 seconden op, zonder de verbinding te verbreken. Komt de lijst dan nog
+  niet, dan maakt het meteen een nieuwe verbinding. Lukt ook dat niet, dan zegt de melding
+  "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door." en probeert BuurmansRgb het
+  vanzelf opnieuw. Draait er tegelijk andere RGB-software (zie "Andere RGB-software"), dan noemt
+  de melding die programma's: sluit ze af en kies weer Verversen. Herkent BuurmansRgb het
+  programma niet, of koos je er Niet meer melden bij, dan zegt de melding in het algemeen: "Draait
+  er andere RGB-software, sluit die dan af." Ook die melding verdwijnt
+  zodra OpenRGB weer verbonden is. Blijft één apparaat weg terwijl fabrikantsoftware draait, dan
+  ligt dat aan OpenRGB en die software, niet aan BuurmansRgb (zie "Een apparaat verdwijnt
+  terwijl fabrikantsoftware draait" in [installatie.md](installatie.md)). De knop is met Tab te
+  bereiken en een schermlezer leest de melding voor.
 
 ### Kleur
 
@@ -2351,6 +2363,11 @@ oudere RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien n
   draaien, bijvoorbeeld voor een apparaat dat OpenRGB niet kent. Wil je de melding toch weer,
   haal het programma dan weg uit `dismissedOtherRgbSoftware` in `settings.json` (zie
   "Instellingenbestanden"); hoofdletters maken daar niet uit.
+- **Na Verversen:** gaf OpenRGB na het zoeken zijn apparaten niet op tijd door terwijl zo'n
+  programma draaide, dan noemt de melding onder de kop van Apparaten het ("… Dat komt vaak door
+  andere RGB-software die tegelijk draait: Logitech G HUB. Sluit die af en kies weer
+  Verversen."). Een programma waarvoor je Niet meer melden koos, noemt ze niet; dan zegt ze
+  alleen in het algemeen "Draait er andere RGB-software, sluit die dan af."
 - Een schermlezer leest de melding voor als hij komt. De knoppen bereik je met Tab en heten naar
   het programma ("Uitleg over SignalRGB", "SignalRGB niet meer melden"); Uitleg zegt, net als
   Details, of hij ingedrukt is, dus of de uitleg open staat, en de uitleg zelf volgt direct na de

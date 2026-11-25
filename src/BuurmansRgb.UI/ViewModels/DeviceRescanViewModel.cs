@@ -1,3 +1,5 @@
+using BuurmansRgb.Contracts;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -24,21 +26,28 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     // a new search started is too early for that one.
     private DateTimeOffset _deadline;
 
+    // The message of the last answer that holds until OpenRGB is connected again; another message
+    // since then stays.
+    private string? _openRgbMessage;
+
     // time runs the timeout; tests pass a fake one.
     public DeviceRescanViewModel(TimeProvider? time = null) => _time = time ?? TimeProvider.System;
 
     // Raised with the number of the search when the user asks for one; Finish takes it back.
     public event EventHandler<int>? Requested;
 
-    // The engine answers within about 11 s: 5 s for OpenRGB's first update, then connecting anew.
+    // The engine mostly answers within about 11 s: 5 s for OpenRGB's first update, then connecting
+    // anew. While OpenRGB searches slowly the engine waits up to 30 s for its list
+    // (OpenRgbDeviceProvider.ReloadTimeout); the button then ends here with "takes long", and the
+    // answer that comes later still gives its message.
     public static TimeSpan SearchTimeout { get; } = TimeSpan.FromSeconds(15);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ButtonText), nameof(ReconnectButtonText))]
     public partial bool IsSearching { get; private set; }
 
-    // What the last search left to say: OpenRGB could not be reached (until it is connected
-    // again), or it took long.
+    // What the last search left to say: OpenRGB could not be reached, or searched but did not
+    // give its devices (both until it is connected again), or it took long.
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasMessage))]
     public partial string? Message { get; private set; }
@@ -51,9 +60,10 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
     // is gone: the same search, so it says "Zoeken…" with "Verversen" meanwhile.
     public string ReconnectButtonText => IsSearching ? Strings.RescanSearching : Strings.Reconnect;
 
-    // The engine's answer to search number search: false when OpenRGB could not be reached. Also
-    // after the timeout, so the message still follows.
-    public void Finish(int search, bool openRgbReached)
+    // The engine's answer to search number search. Also after the timeout, so the message still
+    // follows. When the list did not come while other RGB software runs (as the engine found it
+    // at this search), the message names it: that software often holds the devices.
+    public void Finish(int search, RescanOutcome outcome, IReadOnlyList<OtherRgbSoftware>? otherRgbSoftware = null)
     {
         if (search != _search)
         {
@@ -62,13 +72,20 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
 
         StopTimer();
         IsSearching = false;
-        Message = openRgbReached ? null : Strings.RescanOpenRgbUnreachable;
+        Message = outcome switch
+        {
+            RescanOutcome.Unreachable => Strings.RescanOpenRgbUnreachable,
+            RescanOutcome.ListNotLoaded => ListNotLoaded(otherRgbSoftware ?? []),
+            _ => null,
+        };
+        _openRgbMessage = Message;
     }
 
-    // OpenRGB is connected again, so the message that it could not be reached no longer holds.
+    // OpenRGB is connected again, so the message that it could not be reached, or did not give its
+    // devices, no longer holds.
     public void OnOpenRgbConnected()
     {
-        if (Message == Strings.RescanOpenRgbUnreachable)
+        if (Message is not null && Message == _openRgbMessage)
         {
             Message = null;
         }
@@ -123,6 +140,13 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
             Message = Strings.RescanSlow;
         }
     }
+
+    // Without a name (not recognized, or "Niet meer melden" chosen) other RGB software may still
+    // hold the devices, so the plain message mentions it in general.
+    private static string ListNotLoaded(IReadOnlyList<OtherRgbSoftware> otherRgbSoftware) =>
+        otherRgbSoftware.Count == 0
+            ? Strings.RescanListNotLoaded
+            : UiText.Format(Strings.RescanListNotLoadedOtherRgbSoftware, UiText.Names([.. otherRgbSoftware.Select(OtherRgbSoftwareViewModel.NameFor)]));
 
     private void StopTimer() => _timeoutTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 }

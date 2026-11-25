@@ -37,7 +37,7 @@ public sealed class SimulatedDeviceProviderTests
         var changes = 0;
         provider.DevicesChanged += (_, _) => changes++;
 
-        Assert.True(await provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await provider.RequestRescanAsync(Ct));
 
         Assert.Equal(1, changes);
         Assert.Equal(before, await provider.DiscoverAsync(Ct));

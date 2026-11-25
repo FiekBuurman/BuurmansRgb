@@ -48,20 +48,20 @@ internal sealed class DynamicDeviceProvider : IRescannableDeviceProvider
 
     public IReadOnlyList<RgbDevice>? DevicesAfterRescan { get; set; }
 
-    // What a rescan answers: false as if the source of the devices could not be reached.
-    public bool RescanReaches { get; set; } = true;
+    // What a rescan answers, such as Unreachable as if the source of the devices could not be reached.
+    public RescanOutcome RescanOutcome { get; set; } = RescanOutcome.Rescanned;
 
     // When set, a rescan throws this.
     public Exception? RescanException { get; set; }
 
     public int RescanCount => Volatile.Read(ref _rescanCount);
 
-    public Task<bool> RequestRescanAsync(CancellationToken ct)
+    public Task<RescanOutcome> RequestRescanAsync(CancellationToken ct)
     {
         Interlocked.Increment(ref _rescanCount);
         if (RescanException is { } exception)
         {
-            return Task.FromException<bool>(exception);
+            return Task.FromException<RescanOutcome>(exception);
         }
 
         if (DevicesAfterRescan is { } devices)
@@ -69,6 +69,6 @@ internal sealed class DynamicDeviceProvider : IRescannableDeviceProvider
             SetDevices(devices);
         }
 
-        return Task.FromResult(RescanReaches);
+        return Task.FromResult(RescanOutcome);
     }
 }

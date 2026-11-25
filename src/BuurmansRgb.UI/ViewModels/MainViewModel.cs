@@ -1821,19 +1821,37 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // changes behind it should not wait for. The engine raises DevicesChanged before it answers,
     // but the list here follows that with its own GetDevicesAsync, which runs apart from this call,
     // so the answer may come first and the list a moment later. A call that fails has its own
-    // message; the button just ends.
+    // message; the button just ends. An engine from before RescanDevicesWithOutcomeAsync gets the
+    // old call, which only tells whether OpenRGB was reached. The other RGB software the message
+    // may name is the list the engine gave after it looked again at this search.
     private async Task RescanDevicesAsync(int search)
     {
         if (_connection is not { } connection)
         {
-            DeviceRescan.Finish(search, openRgbReached: true);
+            DeviceRescan.Finish(search, RescanOutcome.Rescanned);
             return;
         }
 
-        var (ok, reached) = await TryCallAsync(connection, api => api.RescanDevicesAsync());
+        var (ok, outcome) = await TryCallAsync(connection, async api =>
+        {
+            try
+            {
+                return await api.RescanDevicesWithOutcomeAsync();
+            }
+            catch (Exception exception) when (EngineRpc.IsUnknownToEngine(exception))
+            {
+                return await api.RescanDevicesAsync() ? RescanOutcome.Rescanned : RescanOutcome.Unreachable;
+            }
+        });
+
+        if (!ok)
+        {
+            outcome = RescanOutcome.Rescanned;
+        }
+
         if (ReferenceEquals(connection, _connection))
         {
-            DeviceRescan.Finish(search, openRgbReached: !ok || reached);
+            DeviceRescan.Finish(search, outcome, OtherRgbSoftware.Programs);
         }
     }
 

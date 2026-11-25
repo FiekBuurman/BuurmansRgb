@@ -97,17 +97,17 @@ internal class SwitchableDeviceProvider : IDynamicDeviceProvider
     }
 
     // While disabled the devices are hidden, so there is nothing to search for: that counts as done.
-    private Task<bool> RescanInnerAsync(CancellationToken ct) =>
-        IsEnabled ? ((IRescannableDeviceProvider)_inner).RequestRescanAsync(ct) : Task.FromResult(true);
+    private Task<RescanOutcome> RescanInnerAsync(CancellationToken ct) =>
+        IsEnabled ? ((IRescannableDeviceProvider)_inner).RequestRescanAsync(ct) : Task.FromResult(RescanOutcome.Rescanned);
 
     private sealed class Rescannable(IRescannableDeviceProvider inner) : SwitchableDeviceProvider(inner), IRescannableDeviceProvider
     {
-        public Task<bool> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
+        public Task<RescanOutcome> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
     }
 
     private sealed class ResizableRescannable(IResizableDeviceProvider inner) : Resizable(inner), IRescannableDeviceProvider
     {
-        public Task<bool> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
+        public Task<RescanOutcome> RequestRescanAsync(CancellationToken ct) => RescanInnerAsync(ct);
     }
 
     private class Resizable(IResizableDeviceProvider inner) : SwitchableDeviceProvider(inner), IResizableDeviceProvider

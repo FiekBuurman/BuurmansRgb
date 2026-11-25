@@ -24,7 +24,7 @@ internal sealed class OpenRgbNetConnector(string host, int port, string clientNa
         {
             // Connect blocks, and waits for the protocol version without a timeout of its own.
             await Task.Run(client.Connect, ct).WaitAsync(requestTimeout, ct).ConfigureAwait(false);
-            return new OpenRgbNetConnection(client, watcher, requestTimeout);
+            return new OpenRgbNetConnection(client, watcher);
         }
         catch
         {

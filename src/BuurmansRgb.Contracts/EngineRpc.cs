@@ -39,6 +39,9 @@ public static class EngineRpc
     // of the UI.
     public static bool IsRejectedByEngine(Exception exception) => exception is RemoteInvocationException;
 
+    // True when the engine does not know the method: an older engine than this settings app.
+    public static bool IsUnknownToEngine(Exception exception) => exception is RemoteMethodNotFoundException;
+
     private static int CurrentSessionId()
     {
         using var process = Process.GetCurrentProcess();

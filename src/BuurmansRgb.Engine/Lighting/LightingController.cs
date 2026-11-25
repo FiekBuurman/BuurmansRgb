@@ -814,11 +814,11 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // then takes over their lists, so DevicesChanged has gone out and a device that came back has
     // its lighting again once this completes. The providers report their new lists themselves
     // too; taking them over once more costs a refresh, but nobody has to wait for that report.
-    // False when a provider could not reach the source of its devices, such as OpenRGB that does
-    // not run.
-    public async Task<bool> RescanDevicesAsync(CancellationToken ct)
+    // Unreachable when a provider could not reach the source of its devices, such as OpenRGB that
+    // does not run; else ListNotLoaded when one did not get its new list in time.
+    public async Task<RescanOutcome> RescanDevicesAsync(CancellationToken ct)
     {
-        List<(int Index, Task<bool> Rescan)> rescans = [];
+        List<(int Index, Task<RescanOutcome> Rescan)> rescans = [];
         for (var index = 0; index < _providers.Count; index++)
         {
             if (_providers[index] is IRescannableDeviceProvider provider)
@@ -827,14 +827,19 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
         }
 
-        var reached = true;
+        var outcome = RescanOutcome.Rescanned;
         foreach (var (index, rescan) in rescans)
         {
-            reached &= await rescan;
+            outcome = Worse(outcome, await rescan);
             await UpdateDevicesAsync(index, render: true, ct);
         }
 
-        return reached;
+        return outcome;
+
+        static RescanOutcome Worse(RescanOutcome first, RescanOutcome second) =>
+            first == RescanOutcome.Unreachable || second == RescanOutcome.Unreachable ? RescanOutcome.Unreachable
+            : first == RescanOutcome.ListNotLoaded || second == RescanOutcome.ListNotLoaded ? RescanOutcome.ListNotLoaded
+            : RescanOutcome.Rescanned;
     }
 
     // One step of the animation: renders the animated effects and sends only the devices whose
@@ -933,7 +938,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // A provider that fails counts as one that could not reach its source; the others go on.
-    private static async Task<bool> RescanAsync(IRescannableDeviceProvider provider, CancellationToken ct)
+    private static async Task<RescanOutcome> RescanAsync(IRescannableDeviceProvider provider, CancellationToken ct)
     {
         try
         {
@@ -942,7 +947,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         catch (Exception exception) when (exception is not OperationCanceledException || !ct.IsCancellationRequested)
         {
             Trace.TraceError($"Rescanning the devices of {provider.Name} failed: {exception}");
-            return false;
+            return RescanOutcome.Unreachable;
         }
     }
 
