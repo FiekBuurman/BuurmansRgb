@@ -122,6 +122,69 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         Assert.Single(await _provider.DiscoverAsync(Ct));
     }
 
+    // The read the provider gave up on fails later, as once its connection is disposed: that must
+    // not end up in engine.log as an unobserved task exception.
+    [Fact]
+    public async Task Reload_GivenUpReadFailsLater_IsNoUnobservedException()
+    {
+        var late = new IOException($"Late read {Guid.NewGuid()}");
+        await ConnectAsync();
+        _connector.GetDevicesException = late;
+        var answered = await StartSlowReloadAsync();
+
+        _connector.LastConnection.Close();
+        await _provider.WhenIdleAsync();
+
+        await AssertNotUnobservedAsync(late, answered);
+    }
+
+    [Fact]
+    public async Task Connect_GivenUpReadFailsLater_IsNoUnobservedException()
+    {
+        var late = new IOException($"Late read {Guid.NewGuid()}");
+        var answered = new TaskCompletionSource();
+        _connector.DevicesAnswered = answered.Task;
+        _connector.GetDevicesException = late;
+        var timers = _time.Timers;
+        await _provider.DiscoverAsync(Ct);
+
+        await _time.AdvanceAfterTimerAsync(timers, OpenRgbDeviceProvider.LoadTimeout);
+        await _provider.WhenIdleAsync();
+
+        await AssertNotUnobservedAsync(late, answered);
+    }
+
+    // Lets the read fail, then collects it. The event is global and other tests run meanwhile,
+    // so only this test's own exception counts.
+    private static async Task AssertNotUnobservedAsync(Exception late, TaskCompletionSource answered)
+    {
+        var unobserved = 0;
+        EventHandler<UnobservedTaskExceptionEventArgs> onUnobserved = (_, e) =>
+        {
+            if (e.Exception.Flatten().InnerExceptions.Contains(late))
+            {
+                Interlocked.Increment(ref unobserved);
+            }
+        };
+        TaskScheduler.UnobservedTaskException += onUnobserved;
+        try
+        {
+            answered.SetResult();
+            for (var i = 0; i < 20; i++)
+            {
+                await Task.Delay(10, Ct);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+        finally
+        {
+            TaskScheduler.UnobservedTaskException -= onUnobserved;
+        }
+
+        Assert.Equal(0, Volatile.Read(ref unobserved));
+    }
+
     // Open, but no list at all: OpenRGB may hang, so a new connection at once, which gives it.
     [Fact]
     public async Task Reload_NoListWithinTheReloadTimeout_ConnectsAgainAtOnce()

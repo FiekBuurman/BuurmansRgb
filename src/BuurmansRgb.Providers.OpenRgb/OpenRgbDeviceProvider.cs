@@ -638,7 +638,17 @@ public sealed class OpenRgbDeviceProvider
     }
 
     private async Task<IReadOnlyList<MappedDevice>> LoadDevicesAsync(IOpenRgbConnection connection, CancellationToken ct) =>
-        Prepare(connection, await connection.GetDevicesAsync(ct).WaitAsync(_loadTimeout, _time, ct).ConfigureAwait(false));
+        Prepare(connection, await Observed(connection.GetDevicesAsync(ct)).WaitAsync(_loadTimeout, _time, ct).ConfigureAwait(false));
+
+    // A read the provider gave up on may still fail later, such as once its connection is
+    // disposed; observed, so engine.log does not get an "Unobserved task exception" for it.
+    private static Task<T> Observed<T>(Task<T> task)
+    {
+        _ = task.ContinueWith(
+            static task => _ = task.Exception, CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        return task;
+    }
 
     // The devices after a device list change; null when OpenRGB gave none within the reload
     // timeout while the connection stayed open. Throws at once when the connection closes, or
@@ -655,7 +665,7 @@ public sealed class OpenRgbDeviceProvider
                 throw new IOException("OpenRGB closed the connection.");
             }
 
-            var reading = connection.GetDevicesAsync(ct);
+            var reading = Observed(connection.GetDevicesAsync(ct));
             var ended = Task.WhenAny(reading, closed.Task);
             var first = _loadTimeout < _reloadTimeout ? _loadTimeout : _reloadTimeout;
             var answered = await TryWaitAsync(ended, first, ct).ConfigureAwait(false);
