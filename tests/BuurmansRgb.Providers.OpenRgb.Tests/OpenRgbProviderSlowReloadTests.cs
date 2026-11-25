@@ -16,18 +16,12 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     private readonly FakeOpenRgbConnector _connector = new() { Devices = [Strip] };
     private readonly TimerCountingTimeProvider _time = new();
     private readonly OpenRgbDeviceProvider _provider;
-    private readonly List<ServerStatus> _statuses = [];
+    private readonly ServerStatusRecorder _statuses;
 
     public OpenRgbProviderSlowReloadTests()
     {
         _provider = new OpenRgbDeviceProvider(_connector, _time, OpenRgbDeviceProvider.RetryDelay);
-        _provider.StatusChanged += (_, status) =>
-        {
-            lock (_statuses)
-            {
-                _statuses.Add(status);
-            }
-        };
+        _statuses = new ServerStatusRecorder(_provider);
     }
 
     public void Dispose() => _provider.Dispose();
@@ -74,7 +68,7 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         Assert.False(first.IsDisposed);
         Assert.Equal(["Strip", "Headset"], (await _provider.DiscoverAsync(Ct)).Select(device => device.Name));
         Assert.Equal(new ServerStatus(ServerState.Connected, 2), _provider.Status);
-        Assert.DoesNotContain(ServerStatus.Connecting, Statuses());
+        Assert.DoesNotContain(ServerStatus.Connecting, _statuses.Snapshot());
     }
 
     // A rescan that waits for the slow list answers with it, over the same connection.
@@ -316,14 +310,6 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         {
             await Task.Delay(10, Ct);
             _time.Advance(TimeSpan.FromSeconds(1));
-        }
-    }
-
-    private ServerStatus[] Statuses()
-    {
-        lock (_statuses)
-        {
-            return [.. _statuses];
         }
     }
 }
