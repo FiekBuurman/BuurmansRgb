@@ -1832,19 +1832,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        RescanOutcome outcome;
-        try
+        var (ok, outcome) = await TryCallAsync(connection, async api =>
         {
-            outcome = await connection.Api.RescanDevicesWithOutcomeAsync();
-        }
-        catch (Exception exception) when (EngineRpc.IsUnknownToEngine(exception))
+            try
+            {
+                return await api.RescanDevicesWithOutcomeAsync();
+            }
+            catch (Exception exception) when (EngineRpc.IsUnknownToEngine(exception))
+            {
+                return await api.RescanDevicesAsync() ? RescanOutcome.Rescanned : RescanOutcome.Unreachable;
+            }
+        });
+
+        if (!ok)
         {
-            var (ok, reached) = await TryCallAsync(connection, api => api.RescanDevicesAsync());
-            outcome = !ok || reached ? RescanOutcome.Rescanned : RescanOutcome.Unreachable;
-        }
-        catch (Exception exception)
-        {
-            OnCallFailed(exception);
             outcome = RescanOutcome.Rescanned;
         }
 
