@@ -23,18 +23,30 @@ public sealed class SystemProcessSnapshotTests
     public void Take_HoldsTheServicesInSessionZero() =>
         Assert.Contains(new SystemProcessSnapshot().Take(), process => process.SessionId == RunningProcess.ServiceSessionId && process.Name == "services");
 
-    // Also a process that runs elevated in the session of the user, as Gigabyte Control Center
-    // (GCC.exe) does: csrss runs in every session and no one may open it, not even an admin. Take
-    // names it all the same, so it reads nothing that opens a process (MainModule, StartTime,
-    // Handle, ...); such a read would throw here.
+    // Also a process of this session that this process may not open: csrss runs in every session
+    // as a protected process, which no one may open, not even an admin. Take names it all the
+    // same, so it reads nothing that opens a process (MainModule, StartTime, Handle, ...); such a
+    // read would throw here. An elevated process such as GCC.exe is less locked down than that.
     [Fact]
     public void Take_HoldsAProcessOfThisSessionThatItMayNotOpen()
     {
         using var self = Process.GetCurrentProcess();
-        var csrss = Process.GetProcessesByName("csrss").Single(process => process.SessionId == self.SessionId);
-        using (csrss)
+        var all = Process.GetProcessesByName("csrss");
+        try
         {
+            var csrss = all.Single(process => process.SessionId == self.SessionId);
+
+            // A precondition, not the code under test: it rests on csrss being a protected process
+            // (PPL). If it fails, the test runs on a Windows where csrss is not protected, and
+            // the code is not at fault.
             Assert.Throws<Win32Exception>(() => csrss.Handle);
+        }
+        finally
+        {
+            foreach (var process in all)
+            {
+                process.Dispose();
+            }
         }
 
         Assert.Contains(new RunningProcess("csrss", self.SessionId), new SystemProcessSnapshot().Take());
