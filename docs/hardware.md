@@ -49,7 +49,7 @@ Met Knipperen per zone (in een donkere kast) en een LED 1/LED 2-proef per header
     oorzaak. Vermoedelijk zocht OpenRGB langer dan 5 s; het kan ook zijn dat OpenRGB geen
     antwoord gaf op `REQUEST_CONTROLLER_DATA` voor een index die aan het begin van de zoekronde,
     na het leegmaken van zijn lijst, niet meer bestond, zodat de leesactie bleef hangen tot de
-    time-out. Vanaf #? wacht de engine tot 30 s zolang de verbinding openstaat, maakt hij daarna
+    time-out. Vanaf #144 wacht de engine tot 30 s zolang de verbinding openstaat, maakt hij daarna
     meteen een nieuwe, en noemt de app de draaiende RGB-software als de lijst niet komt. Komt de
     lijst bij een volgende test steeds pas na ~30 s, dan past de tweede verklaring beter.
   - Dat de **G733** wegviel, ligt bij OpenRGB en G HUB: OpenRGB zag de headset niet bij het
