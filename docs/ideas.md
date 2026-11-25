@@ -1147,8 +1147,8 @@ uitbreidingen in `docs/bouwplan.md`.
   `...CustomEffectTests`, `...DirectionTests`, `...FlashTests`, `...OverlayTests`,
   `...SceneFadeTests`, `...ZoneCountTests`, `...ZoneFlashTests`, `...ZonesAlikeTests`)
   (refactorreview 23-11-2026)
-- Een test die de XAML van de app doorloopt en faalt op een gewone `Button` of `RepeatButton` met
-  een vaste tekst als inhoud en een gebonden `AutomationProperties.Name`: die hoort een
-  `LiteralNameButton` of `LiteralNameRepeatButton` te zijn, anders verliest een naam uit OpenRGB
-  zijn eerste `_` voor de schermlezer. `UnderscoreNamesViewTests` vindt het nu alleen op de
+- Een test die de XAML van de app doorloopt en faalt op een gewone `Button`, `RepeatButton` of
+  `ToggleButton` met een vaste tekst als inhoud en een gebonden `AutomationProperties.Name`: die
+  hoort een `LiteralNameButton`, `LiteralNameRepeatButton` of `LiteralNameToggleButton` te zijn,
+  anders verliest een naam uit OpenRGB zijn eerste `_` voor de schermlezer. `UnderscoreNamesViewTests` vindt het nu alleen op de
   pagina's en in de toestanden die hij opent (`zone-namen-schermlezer`, thuistest 24-11-2026)

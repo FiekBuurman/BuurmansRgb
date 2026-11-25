@@ -33,20 +33,21 @@
                             AutomationProperties.AutomationId="StatusLineAction" />
                     <!-- "Uitleg" of a message with an explanation (other RGB software): pressed, the explanation shows
                          under the line; pressed again, it closes. A toggle like "Details", so a screen reader hears
-                         whether it is open. -->
-                    <ToggleButton x:Name="ExplanationToggle" DataContext="{Binding Current}" Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}"
-                                  Content="{x:Static res:Strings.StatusExplanation}" IsChecked="{Binding ShowsExplanation}"
-                                  ToolTip="{x:Static res:Strings.StatusExplanationToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
-                                  Visibility="{Binding HasExplanation, Converter={StaticResource BoolToVisibility}}"
-                                  AutomationProperties.Name="{Binding ExplanationAccessibleName}" AutomationProperties.HelpText="{x:Static res:Strings.StatusExplanationToolTip}"
-                                  AutomationProperties.AutomationId="StatusLineExplanationToggle" />
+                         whether it is open. Its name holds the name of that software, read as it is, also with a "_"
+                         (LiteralName), like that of "Niet meer melden". -->
+                    <views:LiteralNameToggleButton x:Name="ExplanationToggle" DataContext="{Binding Current}" Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}"
+                                                   Content="{x:Static res:Strings.StatusExplanation}" IsChecked="{Binding ShowsExplanation}"
+                                                   ToolTip="{x:Static res:Strings.StatusExplanationToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
+                                                   Visibility="{Binding HasExplanation, Converter={StaticResource BoolToVisibility}}"
+                                                   AutomationProperties.Name="{Binding ExplanationAccessibleName}" AutomationProperties.HelpText="{x:Static res:Strings.StatusExplanationToolTip}"
+                                                   AutomationProperties.AutomationId="StatusLineExplanationToggle" />
                     <!-- "Niet meer melden" of a message the user can take away for good (other RGB software): it ends the
                          message, so the focus moves on first (OnDismissClick). -->
-                    <Button x:Name="DismissButton" DataContext="{Binding Current}" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding DismissText}"
-                            ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick" IsVisibleChanged="OnButtonIsVisibleChanged"
-                            Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
-                            AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
-                            AutomationProperties.AutomationId="StatusLineDismiss" />
+                    <views:LiteralNameButton x:Name="DismissButton" DataContext="{Binding Current}" Margin="8,0,0,0" Style="{StaticResource SecondaryButton}" Content="{Binding DismissText}"
+                                             ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick" IsVisibleChanged="OnButtonIsVisibleChanged"
+                                             Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
+                                             AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
+                                             AutomationProperties.AutomationId="StatusLineDismiss" />
                     <ToggleButton x:Name="DetailsToggle" Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}" Content="{x:Static res:Strings.StatusDetails}"
                                   IsChecked="{Binding ShowsDetails}" ToolTip="{x:Static res:Strings.StatusDetailsToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
                                   Visibility="{Binding HasDetails, Converter={StaticResource BoolToVisibility}}"
@@ -76,7 +77,8 @@
                         <DataTemplate DataType="{x:Type vm:StatusMessage}">
                             <StackPanel Margin="0,6,0,0">
                                 <DockPanel>
-                                    <!-- The action, "Uitleg" and then "Niet meer melden", in reading and Tab order. -->
+                                    <!-- The action, "Uitleg" and then "Niet meer melden", in reading and Tab order; the last two
+                                         with their names as they are, as in the line. -->
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                                         <Button Style="{StaticResource SecondaryButton}"
                                                 Content="{Binding ActionText}" ToolTip="{Binding ActionHelpText}" Command="{Binding ActionCommand}" Click="OnActionClick"
@@ -84,18 +86,18 @@
                                                 Visibility="{Binding HasAction, Converter={StaticResource BoolToVisibility}}"
                                                 AutomationProperties.Name="{Binding ActionAccessibleName}" AutomationProperties.HelpText="{Binding ActionHelpText}"
                                                 AutomationProperties.AutomationId="StatusLineDetailAction" />
-                                        <ToggleButton Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}"
-                                                      Content="{x:Static res:Strings.StatusExplanation}" IsChecked="{Binding ShowsExplanation}"
-                                                      ToolTip="{x:Static res:Strings.StatusExplanationToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
-                                                      Visibility="{Binding HasExplanation, Converter={StaticResource BoolToVisibility}}"
-                                                      AutomationProperties.Name="{Binding ExplanationAccessibleName}" AutomationProperties.HelpText="{x:Static res:Strings.StatusExplanationToolTip}"
-                                                      AutomationProperties.AutomationId="StatusLineDetailExplanationToggle" />
-                                        <Button Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
-                                                Content="{Binding DismissText}" ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick"
-                                                IsVisibleChanged="OnButtonIsVisibleChanged"
-                                                Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
-                                                AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
-                                                AutomationProperties.AutomationId="StatusLineDetailDismiss" />
+                                        <views:LiteralNameToggleButton Margin="8,0,0,0" Style="{StaticResource StatusLineDetailsToggle}"
+                                                                       Content="{x:Static res:Strings.StatusExplanation}" IsChecked="{Binding ShowsExplanation}"
+                                                                       ToolTip="{x:Static res:Strings.StatusExplanationToolTip}" IsVisibleChanged="OnButtonIsVisibleChanged"
+                                                                       Visibility="{Binding HasExplanation, Converter={StaticResource BoolToVisibility}}"
+                                                                       AutomationProperties.Name="{Binding ExplanationAccessibleName}" AutomationProperties.HelpText="{x:Static res:Strings.StatusExplanationToolTip}"
+                                                                       AutomationProperties.AutomationId="StatusLineDetailExplanationToggle" />
+                                        <views:LiteralNameButton Margin="8,0,0,0" Style="{StaticResource SecondaryButton}"
+                                                                 Content="{Binding DismissText}" ToolTip="{Binding DismissHelpText}" Command="{Binding DismissCommand}" Click="OnDismissClick"
+                                                                 IsVisibleChanged="OnButtonIsVisibleChanged"
+                                                                 Visibility="{Binding HasDismiss, Converter={StaticResource BoolToVisibility}}"
+                                                                 AutomationProperties.Name="{Binding DismissAccessibleName}" AutomationProperties.HelpText="{Binding DismissHelpText}"
+                                                                 AutomationProperties.AutomationId="StatusLineDetailDismiss" />
                                     </StackPanel>
                                     <TextBlock Style="{StaticResource StatusLineDetailText}" Text="{Binding Text}"
                                                AutomationProperties.AutomationId="StatusLineDetail" />

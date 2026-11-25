@@ -192,6 +192,28 @@ public sealed class UnderscoreNamesViewTests
         });
     }
 
+    // A button of the app with a fixed text and a name set on it reads that name as it is, and stays the
+    // kind of button it is for a screen reader: a toggle button still says whether it is on.
+    [Theory]
+    [InlineData(typeof(LiteralNameButton))]
+    [InlineData(typeof(LiteralNameRepeatButton))]
+    [InlineData(typeof(LiteralNameToggleButton))]
+    public void LiteralNameControl_ReadsItsNameAsItIs(Type type)
+    {
+        AppTheme.Run(panel =>
+        {
+            var button = (ButtonBase)Activator.CreateInstance(type)!;
+            button.Content = "Knipperen";
+            AutomationProperties.SetName(button, "Zone ARGB_V2_1 laten knipperen");
+            AppTheme.Show(panel, button);
+
+            var peer = UIElementAutomationPeer.CreatePeerForElement(button);
+            Assert.Equal("Zone ARGB_V2_1 laten knipperen", peer.GetName());
+            Assert.Equal(AutomationControlType.Button, peer.GetAutomationControlType());
+            Assert.Equal(button is ToggleButton, peer.GetPattern(PatternInterface.Toggle) is not null);
+        });
+    }
+
     // What a screen reader says for the element: the name of its peer.
     private static string NameOf(UIElement element) => UIElementAutomationPeer.CreatePeerForElement(element).GetName();
 

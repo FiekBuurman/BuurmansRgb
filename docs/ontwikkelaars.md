@@ -1362,9 +1362,10 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
     (`ButtonBaseAutomationPeer`) de eerste `_` weg uit zijn naam, ook uit een eigen
     `AutomationProperties.Name`: "Zone ARGB_V2_1 van … laten knipperen" werd "ARGBV2_1". Een knop
     met een vaste tekst ("Knipperen", "−") en een naam met een naam uit OpenRGB of van de gebruiker
-    erin is daarom een `views:LiteralNameButton` of `views:LiteralNameRepeatButton` (zelfde stijlen;
-    hun peer geeft de eigen naam zoals hij is, `LiteralName`); `LinkButton` en `EffectTile` doen
-    dat ook. Een knop waarvan de inhoud zelf zo'n naam is, krijgt een `TextBlock` als inhoud, zoals
+    erin is daarom een `views:LiteralNameButton`, `views:LiteralNameRepeatButton` of
+    `views:LiteralNameToggleButton` (zelfde stijlen; hun peer geeft de eigen naam zoals hij is,
+    `LiteralName`), ook "Uitleg" en "Niet meer melden" van de statusregel met de naam van andere
+    RGB-software; `LinkButton` en `EffectTile` doen dat ook. Een knop waarvan de inhoud zelf zo'n naam is, krijgt een `TextBlock` als inhoud, zoals
     de vinkjes van de apparaten van een scène. `UnderscoreNamesViewTests` bewaakt de pagina's.
   - **Koppen:** zet `AutomationProperties.HeadingLevel` op de tekst zelf, niet in een stijl: de
     stijl `SectionHeader` zit ook op teksten die geen kop zijn (de status van OpenRGB, de vraag van
