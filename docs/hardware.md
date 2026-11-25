@@ -79,11 +79,13 @@ het of springen kleuren terug; laat per apparaat één programma de verlichting 
 - **GIGABYTE Control Center** 25.07.21.01: moederbord, en daarmee de koeler, de casefans en de
   strip van de behuizing aan de ARGB-headers. Proces `GCC.exe`
   (`C:\Program Files\GIGABYTE\Control Center\`), draait verhoogd, **geen service**; geen
-  `RGBFusion.exe`. BuurmansRgb 1.5.90 herkent het niet.
+  `RGBFusion.exe`. BuurmansRgb 1.5.90 herkent het niet; de volgende versie (branch
+  `rgb-software-herkennen`) wel.
 - **Logitech G HUB** 2026.7.1011216: toetsenbord, muis en headset. Processen `lghub_agent.exe` en
   `lghub_system_tray.exe` (autostart `LGHUB` in `HKCU\…\Run`), service `LGHUBUpdaterService`
   (`lghub_updater.exe`); daarnaast de driver-service `logi_lamparray_service`. Nam tijdens de
-  test een deel van de G213 over. BuurmansRgb 1.5.90 herkent het niet.
+  test een deel van de G213 over. BuurmansRgb 1.5.90 herkent het niet; de volgende versie (branch
+  `rgb-software-herkennen`) wel.
 - **SignalRGB** 2.5.78: kan alle apparaten aansturen. Op 24-11-2026 geen proces en geen
   Uninstall-regel meer, alleen de map `%LOCALAPPDATA%\VortxEngine`.
 - **OpenRGB** 1.1.0 staat ook los geïnstalleerd en is hier de service `OpenRGB`; laat er één
