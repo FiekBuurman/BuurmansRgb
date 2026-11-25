@@ -44,7 +44,7 @@ internal static class OtherRgbSoftwareList
         // The agent and the tray of Logitech G HUB, both seen at home (2026.7.1011216,
         // docs/hardware.md), in the session of the user. Not the service LGHUBUpdaterService
         // (lghub_updater.exe) nor the driver service logi_lamparray_service: they keep running
-        // when G HUB is closed and set no colors. The window of G HUB itself (lghub.exe) is a
+        // when G HUB is closed, so they would always match. The window of G HUB itself (lghub.exe) is a
         // guess without a source, so it is left out; the agent runs whenever G HUB does.
         new("ghub", "Logitech G HUB", ["lghub_agent.exe", "lghub_system_tray.exe"]),
 

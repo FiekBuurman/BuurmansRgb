@@ -165,7 +165,8 @@ plus `iCUE.exe` (de app van iCUE), voor SignalRGB `SignalRgbService.exe`, `Signa
 `VortxEngine.exe` (aangenomen, niet bevestigd) en voor RGB Fusion de gok `RGBFusion.exe`. Ook
 een programma dat als administrator draait, zoals `GCC.exe`, vindt het. Van G HUB tellen
 alleen `lghub_agent.exe` en `lghub_system_tray.exe`: de updater en `logi_lamparray_service`
-draaien ook als G HUB dicht is en sturen geen LED's. De lijst staat in de code op één plek,
+blijven draaien als G HUB dicht is, dus die zouden altijd een melding geven. De lijst staat in
+de code op één plek,
 `OtherRgbSoftwareList`.
 
 | Software | Processen en services | Bron |
@@ -176,7 +177,7 @@ draaien ook als G HUB dicht is en sturen geen LED's. De lijst staat in de code o
 | ASUS Armoury Crate | `LightingService.exe` (Aura, meestal in `C:\Program Files (x86)\LightingService`), `ROGLiveService.exe`; servicenaam **onbekend** | niet officieel [27][42] |
 | MSI Mystic Light / MSI Center | `LEDKeeper2.exe`, `Mystic_Light_Service.exe`, `mysticlight2_service.exe`, `LightKeeperService.exe`; servicenaam **onbekend** | niet officieel [43][44] |
 | Gigabyte Control Center / RGB Fusion | Control Center: `GCC.exe` (`C:\Program Files\GIGABYTE\Control Center\`), draait als administrator, geen service. RGB Fusion: **onbekend** (de gok `RGBFusion.exe`). Gigabyte meldt zelf dat RGB Fusion 2.0 en GCC samen botsen | `GCC.exe` gezien op een echte pc (25.07.21.01); officieel, zonder namen [45] |
-| Logitech G HUB | `lghub_agent.exe` en `lghub_system_tray.exe` (in `C:\Program Files\LGHUB\`, autostart `LGHUB`); daarnaast de service `LGHUBUpdaterService` (`lghub_updater.exe`) en de driver-service `logi_lamparray_service`, die geen LED's sturen. Het venster van G HUB zelf: **onbekend** | gezien op een echte pc (2026.7.1011216) |
+| Logitech G HUB | `lghub_agent.exe` en `lghub_system_tray.exe` (in `C:\Program Files\LGHUB\`, autostart `LGHUB`); daarnaast de service `LGHUBUpdaterService` (`lghub_updater.exe`) en de driver-service `logi_lamparray_service`, die ook draaien als G HUB dicht is. Het venster van G HUB zelf: **onbekend** | gezien op een echte pc (2026.7.1011216) |
 | Een tweede OpenRGB | een OpenRGB met zijn eigen SDK-server (**Start Server**, `--server`) of een eigen service | zie hieronder |
 
 **Een tweede OpenRGB op poort 6742:** er kan maar één server op 6742 luisteren, dus het botst
@@ -191,7 +192,10 @@ die verbindt als client met de service (zie [openrgb-meeleveren.md](openrgb-meel
 **Logitech G HUB afsluiten:** klik met de rechtermuisknop op het G HUB-icoon in het systeemvak
 (naast de klok) en kies **Afsluiten** (of **Quit**). Daarmee stoppen `lghub_agent.exe` en
 `lghub_system_tray.exe`; `lghub_updater.exe` en `logi_lamparray_service` blijven als service
-draaien, en dat mag: die sturen geen LED's. Zet de autostart uit bij **Taakbeheer →
+draaien; daar geeft BuurmansRgb geen melding over. `logi_lamparray_service` hoort bij
+**Dynamisch licht** van Windows: staat dat aan, dan kan Windows langs die weg ook kleuren van
+Logitech-apparaten zetten (op de pc thuis stond het uit, zie [hardware.md](hardware.md)). Zet de
+autostart uit bij **Taakbeheer →
 Opstartapps → LGHUB → Uitschakelen**. Wil je G HUB houden voor een muis of headset, laat het
 dan alleen die apparaten regelen en niet de verlichting van wat BuurmansRgb aanstuurt; daar
 geeft BuurmansRgb nog wel de melding.

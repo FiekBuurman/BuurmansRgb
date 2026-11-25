@@ -2328,8 +2328,8 @@ in de statusregel bovenaan Apparaten en Kleur bijvoorbeeld "SignalRGB draait ook
 kleuren overschrijven.", één melding per programma. Hij herkent SignalRGB, Corsair iCUE, Razer
 Synapse, ASUS Armoury Crate, MSI Mystic Light, Gigabyte Control Center en Logitech G HUB, ook
 als alleen hun achtergrondprogramma draait, en ook als het programma als administrator draait
-(zoals Control Center). Van G HUB telt het updateprogramma niet mee: dat blijft draaien als je
-G HUB afsluit, maar stuurt geen LED's. NZXT CAM en SteelSeries GG herkent hij (nog) niet. Van het
+(zoals Control Center). Van G HUB tellen de services die blijven draaien als je G HUB afsluit
+niet mee, anders kwam de melding altijd. NZXT CAM en SteelSeries GG herkent hij (nog) niet. Van het
 oudere RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien niet werkt.
 
 - **Een tweede OpenRGB:** draait er een OpenRGB in je eigen Windows-sessie terwijl de service

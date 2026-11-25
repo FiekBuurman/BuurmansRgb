@@ -43,7 +43,7 @@ public sealed class OtherRgbSoftwareListTests
     }
 
     // As seen at home with G HUB closed: its updater and the driver service for Dynamic Lighting
-    // keep running in session 0, but set no colors.
+    // keep running in session 0, so they would always match.
     [Theory]
     [InlineData("lghub_updater", ServiceSession)]
     [InlineData("logi_lamparray_service.AMD64", ServiceSession)]
