@@ -11,9 +11,9 @@ namespace BuurmansRgb.Engine.Programs;
 // process, it also names elevated and protected ones, such as Gigabyte Control Center (GCC.exe),
 // which runs elevated in the session of the user. So read only ProcessName and SessionId here: a
 // property such as MainModule, StartTime or Handle opens the process, and may throw for those
-// (SystemProcessSnapshotTests, with the protected csrss). It costs a few milliseconds, as it reads every thread of every process too;
-// that is fine for a check at the start, after waking up and at "Verversen", not for something
-// that runs every few seconds.
+// (SystemProcessSnapshotTests, with the protected csrss). It costs a few milliseconds, as it reads
+// every thread of every process too; that is fine for a check at the start, after waking up and at
+// "Verversen", not for something that runs every few seconds.
 internal sealed class SystemProcessSnapshot : IProcessSnapshot
 {
     public IReadOnlyList<RunningProcess> Take()

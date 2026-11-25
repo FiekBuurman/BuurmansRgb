@@ -659,10 +659,11 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   meeste RGB-software juist daar draait (`Corsair.Service.exe`, `LightingService.exe`,
   `SignalRgbService`) en de service OpenRGB ook. Omdat `SystemProcessSnapshot` geen proces opent,
   vindt hij ook verhoogde en beschermde processen, zoals Gigabyte Control Center (`GCC.exe`), dat
-  als administrator in de eigen sessie draait. `SystemProcessSnapshot` leest daarom alleen `ProcessName` en `SessionId`, nooit iets dat het
-  proces opent (`MainModule`, `StartTime`, `Handle`). `GetProcesses` haalt namen en sessie-id van
-  alle processen in één aanroep (`NtQuerySystemInformation`) zonder ze te openen; dat kost een paar
-  ms (zie "Metingen"), wat op die drie momenten niets uitmaakt. Een tweede OpenRGB: het
+  als administrator in de eigen sessie draait. Hij leest daarom alleen `ProcessName` en
+  `SessionId`, nooit iets dat het proces opent (`MainModule`, `StartTime`, `Handle`).
+  `GetProcesses` haalt namen en sessie-id van alle processen in één aanroep
+  (`NtQuerySystemInformation`) zonder ze te openen; dat kost een paar ms (zie "Metingen"), wat op
+  die drie momenten niets uitmaakt. Een tweede OpenRGB: het
   `OpenRGB.exe` in sessie 0 is de service; een `OpenRGB.exe` in een andere sessie telt alleen
   zolang dat van sessie 0 er ook is (`Entry.BesideService`), zodat een OpenRGB die je zonder
   service zelf start (zoals hierboven bij "Bouwen, starten en testen") geen melding geeft. Elke
