@@ -40,7 +40,8 @@ public sealed class EffectTile : RadioButton
     protected override AutomationPeer OnCreateAutomationPeer() => new EffectTileAutomationPeer(this);
 
     // RadioButtonAutomationPeer checks the button itself on Select(), past OnToggle and its command;
-    // this one lets Select() go the way of a click.
+    // this one lets Select() go the way of a click. The name of an own effect, such as "Mijn_effect",
+    // is read as it is (LiteralName).
     private sealed class EffectTileAutomationPeer(EffectTile owner) : RadioButtonAutomationPeer(owner), ISelectionItemProvider
     {
         bool ISelectionItemProvider.IsSelected => owner.IsChecked == true;
@@ -48,6 +49,8 @@ public sealed class EffectTile : RadioButton
         IRawElementProviderSimple? ISelectionItemProvider.SelectionContainer => null;
 
         protected override string GetClassNameCore() => nameof(EffectTile);
+
+        protected override string GetNameCore() => LiteralName.Of(owner) ?? base.GetNameCore();
 
         protected override void SetFocusCore()
         {
