@@ -279,7 +279,9 @@ beweging, staat verderop bij [Toegankelijkheid](#toegankelijkheid).
   niet, dan maakt het meteen een nieuwe verbinding. Lukt ook dat niet, dan zegt de melding
   "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door." en probeert BuurmansRgb het
   vanzelf opnieuw. Draait er tegelijk andere RGB-software (zie "Andere RGB-software"), dan noemt
-  de melding die programma's: sluit ze af en kies weer Verversen. Ook die melding verdwijnt
+  de melding die programma's: sluit ze af en kies weer Verversen. Herkent BuurmansRgb het
+  programma niet, of koos je er Niet meer melden bij, dan zegt de melding in het algemeen: "Draait
+  er andere RGB-software, sluit die dan af." Ook die melding verdwijnt
   zodra OpenRGB weer verbonden is. Blijft één apparaat weg terwijl fabrikantsoftware draait, dan
   ligt dat aan OpenRGB en die software, niet aan BuurmansRgb (zie "Een apparaat verdwijnt
   terwijl fabrikantsoftware draait" in [installatie.md](installatie.md)). De knop is met Tab te
@@ -2364,7 +2366,8 @@ oudere RGB Fusion zijn de namen niet bekend; daar is het een gok die misschien n
 - **Na Verversen:** gaf OpenRGB na het zoeken zijn apparaten niet op tijd door terwijl zo'n
   programma draaide, dan noemt de melding onder de kop van Apparaten het ("… Dat komt vaak door
   andere RGB-software die tegelijk draait: Logitech G HUB. Sluit die af en kies weer
-  Verversen."). Een programma waarvoor je Niet meer melden koos, noemt ze niet.
+  Verversen."). Een programma waarvoor je Niet meer melden koos, noemt ze niet; dan zegt ze
+  alleen in het algemeen "Draait er andere RGB-software, sluit die dan af."
 - Een schermlezer leest de melding voor als hij komt. De knoppen bereik je met Tab en heten naar
   het programma ("Uitleg over SignalRGB", "SignalRGB niet meer melden"); Uitleg zegt, net als
   Details, of hij ingedrukt is, dus of de uitleg open staat, en de uitleg zelf volgt direct na de

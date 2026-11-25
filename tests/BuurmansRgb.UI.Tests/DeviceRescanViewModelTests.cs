@@ -90,7 +90,7 @@ public sealed class DeviceRescanViewModelTests : IDisposable
 
         Assert.False(_rescan.IsSearching);
         Assert.Equal(
-            "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt; komen je apparaten niet terug, kies dan later nog eens Verversen.",
+            "OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt. Draait er andere RGB-software, sluit die dan af. Komen je apparaten niet terug, kies dan later nog eens Verversen.",
             _rescan.Message);
     }
 

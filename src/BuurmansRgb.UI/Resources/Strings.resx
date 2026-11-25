@@ -1372,8 +1372,8 @@
     <value>Het zoeken duurt lang. Apparaten die OpenRGB nog vindt, verschijnen vanzelf in de lijst.</value>
   </data>
   <data name="RescanListNotLoaded" xml:space="preserve">
-    <value>OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt; komen je apparaten niet terug, kies dan later nog eens Verversen.</value>
-    <comment>Na Verversen: OpenRGB was bereikbaar, maar gaf binnen 30 s geen nieuwe lijst, en opnieuw verbinden lukte ook niet meteen. Verdwijnt zodra OpenRGB weer verbonden is.</comment>
+    <value>OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. De verbinding wordt vanzelf opnieuw gemaakt. Draait er andere RGB-software, sluit die dan af. Komen je apparaten niet terug, kies dan later nog eens Verversen.</value>
+    <comment>Na Verversen: OpenRGB was bereikbaar, maar gaf binnen 30 s geen nieuwe lijst, en opnieuw verbinden lukte ook niet meteen, terwijl de app geen andere RGB-software noemt (niet herkend, of Niet meer melden gekozen); daarom de algemene zin over andere RGB-software. Verdwijnt zodra OpenRGB weer verbonden is.</comment>
   </data>
   <data name="RescanListNotLoadedOtherRgbSoftware" xml:space="preserve">
     <value>OpenRGB heeft gezocht, maar gaf zijn apparaten niet op tijd door. Dat komt vaak door andere RGB-software die tegelijk draait: {0}. Sluit die af en kies weer Verversen.</value>

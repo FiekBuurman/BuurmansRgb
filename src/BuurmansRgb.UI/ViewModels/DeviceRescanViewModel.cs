@@ -141,6 +141,8 @@ public sealed partial class DeviceRescanViewModel : ObservableObject, IDisposabl
         }
     }
 
+    // Without a name (not recognized, or "Niet meer melden" chosen) other RGB software may still
+    // hold the devices, so the plain message mentions it in general.
     private static string ListNotLoaded(IReadOnlyList<OtherRgbSoftware> otherRgbSoftware) =>
         otherRgbSoftware.Count == 0
             ? Strings.RescanListNotLoaded
