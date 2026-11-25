@@ -150,8 +150,10 @@ internal sealed class OpenRgbTestServer : IAsyncDisposable
                 await stream.ReadExactlyAsync(data, _stop.Token);
                 if (command == CommandId.RequestControllerData)
                 {
+                    // Read before counting, as a test may change it once it sees the request.
+                    var answered = ControllerDataAnswered;
                     Interlocked.Increment(ref _controllerDataRequests);
-                    await ControllerDataAnswered.WaitAsync(_stop.Token);
+                    await answered.WaitAsync(_stop.Token);
                 }
 
                 if (Answer(command, deviceIndex, data) is { } answer)

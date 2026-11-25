@@ -26,18 +26,22 @@ internal sealed class FakeOpenRgbConnection(FakeOpenRgbConnector connector, bool
     public Task<IReadOnlyList<OpenRgbDeviceData>> GetDevicesAsync(CancellationToken ct)
     {
         ThrowIfGone();
+
+        // Read before counting: a test that changes them once it sees the request counted must
+        // not change the answer to this one.
+        var answered = connector.DevicesAnswered;
+        var answer = connector.GetDevicesException is { } exception
+            ? Task.FromException<IReadOnlyList<OpenRgbDeviceData>>(exception)
+            : Task.FromResult(connector.Devices);
         connector.CountDevicesRequest();
         if (connector.CloseWhileLoadingDevices)
         {
             Close();
         }
 
-        var answer = connector.GetDevicesException is { } exception
-            ? Task.FromException<IReadOnlyList<OpenRgbDeviceData>>(exception)
-            : Task.FromResult(connector.Devices);
-        return connector.DevicesAnswered.IsCompleted
+        return answered.IsCompleted
             ? answer
-            : connector.DevicesAnswered.ContinueWith(_ => answer, ct, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+            : answered.ContinueWith(_ => answer, ct, TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
     }
 
     public void SetCustomMode(int deviceIndex)
