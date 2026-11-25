@@ -59,6 +59,55 @@ public sealed class MainViewModelRescanTests
         await Eventually.TrueAsync(() => !viewModel.DeviceRescan.HasMessage);
     }
 
+    // OpenRGB searched but gave no list while G HUB ran (thuistest F2): the message names it.
+    [Fact]
+    public async Task Rescan_ListNotLoadedWhileOtherRgbSoftwareRuns_NamesIt()
+    {
+        var viewModel = await ConnectAsync();
+        Api.OtherRgbSoftware = [new("ghub", "Logitech G HUB")];
+        Api.RaiseOtherRgbSoftwareChanged();
+        await Eventually.TrueAsync(() => viewModel.OtherRgbSoftware.Programs.Count == 1);
+        Api.RescanOutcome = RescanOutcome.ListNotLoaded;
+
+        viewModel.DeviceRescan.RescanCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => !viewModel.DeviceRescan.IsSearching);
+        Assert.Equal(UiText.Format(Strings.RescanListNotLoadedOtherRgbSoftware, "Logitech G HUB"), viewModel.DeviceRescan.Message);
+        Api.RaiseOpenRgbStatus(new(ServerState.Connected, 4));
+        await Eventually.TrueAsync(() => !viewModel.DeviceRescan.HasMessage);
+    }
+
+    [Fact]
+    public async Task Rescan_ListNotLoaded_SaysSo()
+    {
+        var viewModel = await ConnectAsync();
+        Api.RescanOutcome = RescanOutcome.ListNotLoaded;
+
+        viewModel.DeviceRescan.RescanCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => !viewModel.DeviceRescan.IsSearching);
+        Assert.Equal(Strings.RescanListNotLoaded, viewModel.DeviceRescan.Message);
+    }
+
+    // An engine from before the outcome: the old call, without a message about a rejected change.
+    [Theory]
+    [InlineData(RescanOutcome.Rescanned, false)]
+    [InlineData(RescanOutcome.ListNotLoaded, false)]
+    [InlineData(RescanOutcome.Unreachable, true)]
+    public async Task Rescan_OlderEngine_AsksTheOldWay(RescanOutcome outcome, bool unreachable)
+    {
+        var viewModel = await ConnectAsync();
+        Api.KnowsRescanOutcome = false;
+        Api.RescanOutcome = outcome;
+
+        viewModel.DeviceRescan.RescanCommand.Execute(null);
+
+        await Eventually.TrueAsync(() => !viewModel.DeviceRescan.IsSearching);
+        Assert.Equal(["rescan"], Api.Calls);
+        Assert.Equal(unreachable ? Strings.RescanOpenRgbUnreachable : null, viewModel.DeviceRescan.Message);
+        Assert.Null(viewModel.StatusMessage);
+    }
+
     // The engine rejected the call: its own message tells that, the button just ends.
     [Fact]
     public async Task Rescan_CallFails_EndsWithoutTheOpenRgbMessage()

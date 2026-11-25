@@ -19,6 +19,14 @@ internal static class UiText
 
     public static string LedCount(int count) => ForCount(count, Strings.LedCountOne, Strings.LedCount, count);
 
+    // "G HUB", "G HUB en SignalRGB", "G HUB, SignalRGB en iCUE".
+    public static string Names(IReadOnlyList<string> names) => names.Count switch
+    {
+        0 => string.Empty,
+        1 => names[0],
+        _ => Format(Strings.NamesAnd, string.Join(", ", names.Take(names.Count - 1)), names[^1]),
+    };
+
     // "Elke dag", "Werkdagen", "In het weekend", or the days themselves: "ma, wo, vr".
     public static string Days(WeekDays days) => (days & WeekDays.Every) switch
     {
