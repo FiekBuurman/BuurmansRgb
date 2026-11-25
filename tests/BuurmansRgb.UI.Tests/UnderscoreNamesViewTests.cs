@@ -149,6 +149,42 @@ public sealed class UnderscoreNamesViewTests
         });
     }
 
+    // A text with "_" as the content of a button or check box of the theme shows as it is: its
+    // template does not make it an AccessText that hides the first "_".
+    [Theory]
+    [InlineData("PrimaryButton")]
+    [InlineData("SecondaryButton")]
+    [InlineData("IconButton")]
+    [InlineData("NewButton")]
+    [InlineData("AddTile")]
+    [InlineData("DayToggle")]
+    [InlineData("StatusLineDetailsToggle")]
+    [InlineData("IconRepeatButton")]
+    [InlineData(null)]
+    public void StyleOfTheTheme_ShowsAnUnderscoreInItsText(string? styleKey)
+    {
+        AppTheme.Run(panel =>
+        {
+            ContentControl control = styleKey switch
+            {
+                null => new CheckBox(),
+                "DayToggle" or "StatusLineDetailsToggle" => new ToggleButton(),
+                "IconRepeatButton" => new RepeatButton(),
+                _ => new Button(),
+            };
+            if (styleKey is not null)
+            {
+                control.Style = (Style)panel.FindResource(styleKey);
+            }
+
+            control.Content = "ARGB_V2_1";
+            AppTheme.Show(panel, control);
+
+            Assert.Empty(AppTheme.Descendants<AccessText>(control));
+            Assert.Equal("ARGB_V2_1", Assert.Single(AppTheme.Descendants<TextBlock>(control)).Text);
+        });
+    }
+
     // What a screen reader says for the element: the name of its peer.
     private static string NameOf(UIElement element) => UIElementAutomationPeer.CreatePeerForElement(element).GetName();
 
@@ -156,11 +192,12 @@ public sealed class UnderscoreNamesViewTests
     private static ButtonBase ButtonNamed(DependencyObject page, string name) =>
         AppTheme.Descendants<ButtonBase>(page).Single(button => button.IsVisible && (AutomationProperties.GetName(button) == name || NameOf(button) == name));
 
-    // No text on the page hides an underscore, and every element that a screen reader finds with a name
-    // set on it, or with a text as its content, is read with that name as it is.
+    // No text on the page can hide an underscore: no template of the app recognizes access keys, so
+    // there is no AccessText at all. And every element that a screen reader finds with a name set on it,
+    // or with a text with "_" as its content, is read with that name as it is.
     private static void AssertKeepsUnderscores(FrameworkElement page)
     {
-        Assert.Empty(AppTheme.Descendants<AccessText>(page).Where(text => text.Text.Contains('_', StringComparison.Ordinal)).Select(text => text.Text));
+        Assert.Empty(AppTheme.Descendants<AccessText>(page).Select(text => text.Text));
 
         var lost = PageViews.AutomationTree(page).OfType<UIElementAutomationPeer>()
             .Select(peer => (peer.Owner, Expected: ExpectedName(peer.Owner), Heard: peer.GetName()))
