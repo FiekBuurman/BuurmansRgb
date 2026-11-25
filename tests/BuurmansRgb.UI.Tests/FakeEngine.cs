@@ -387,10 +387,17 @@ internal sealed class FakeEngineApi : IEngineApi
     public Task<RescanOutcome> RescanDevicesWithOutcomeAsync(CancellationToken ct = default) =>
         KnowsRescanOutcome ? RescanAsync() : Task.FromException<RescanOutcome>(MethodNotFound(nameof(RescanDevicesWithOutcomeAsync)));
 
-    // What StreamJsonRpc throws for a method the engine does not have; it makes those itself only.
-    private static Exception MethodNotFound(string method) => (Exception)Activator.CreateInstance(
-        typeof(RemoteMethodNotFoundException), BindingFlags.Instance | BindingFlags.NonPublic, binder: null,
-        ["Method not found", method, JsonRpcErrorCode.MethodNotFound, null, null], CultureInfo.InvariantCulture)!;
+    // What StreamJsonRpc throws for a method the engine does not have. It makes those itself only,
+    // through an internal constructor; when a new StreamJsonRpc changes that, say so plainly.
+    private static Exception MethodNotFound(string method)
+    {
+        var constructor = typeof(RemoteMethodNotFoundException).GetConstructor(
+            BindingFlags.Instance | BindingFlags.NonPublic, binder: null,
+            [typeof(string), typeof(string), typeof(JsonRpcErrorCode), typeof(object), typeof(object)], modifiers: null);
+        Assert.True(constructor is not null,
+            "The internal constructor of StreamJsonRpc's RemoteMethodNotFoundException has changed; update FakeEngine.MethodNotFound.");
+        return (Exception)constructor.Invoke(["Method not found", method, JsonRpcErrorCode.MethodNotFound, null, null]);
+    }
 
     private async Task<RescanOutcome> RescanAsync()
     {
