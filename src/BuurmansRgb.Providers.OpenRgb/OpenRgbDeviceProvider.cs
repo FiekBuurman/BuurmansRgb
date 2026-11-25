@@ -658,24 +658,15 @@ public sealed class OpenRgbDeviceProvider
             var reading = connection.GetDevicesAsync(ct);
             var ended = Task.WhenAny(reading, closed.Task);
             var first = _loadTimeout < _reloadTimeout ? _loadTimeout : _reloadTimeout;
-            try
-            {
-                await ended.WaitAsync(first, _time, ct).ConfigureAwait(false);
-            }
-            catch (TimeoutException) when (first < _reloadTimeout)
+            var answered = await TryWaitAsync(ended, first, ct).ConfigureAwait(false);
+            if (!answered && first < _reloadTimeout)
             {
                 Trace.TraceInformation(
                     $"OpenRGB has sent no device list after {first.TotalSeconds:0} s; it may still be searching, so waiting up to {_reloadTimeout.TotalSeconds:0} s while the connection stays open.");
-                try
-                {
-                    await ended.WaitAsync(_reloadTimeout - first, _time, ct).ConfigureAwait(false);
-                }
-                catch (TimeoutException)
-                {
-                    return null;
-                }
+                answered = await TryWaitAsync(ended, _reloadTimeout - first, ct).ConfigureAwait(false);
             }
-            catch (TimeoutException)
+
+            if (!answered)
             {
                 return null;
             }
@@ -690,6 +681,20 @@ public sealed class OpenRgbDeviceProvider
         finally
         {
             connection.Closed -= onClosed;
+        }
+    }
+
+    // False when the task did not end within the timeout.
+    private async Task<bool> TryWaitAsync(Task task, TimeSpan timeout, CancellationToken ct)
+    {
+        try
+        {
+            await task.WaitAsync(timeout, _time, ct).ConfigureAwait(false);
+            return true;
+        }
+        catch (TimeoutException)
+        {
+            return false;
         }
     }
 
