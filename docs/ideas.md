@@ -82,6 +82,11 @@ uitbreidingen in `docs/bouwplan.md`.
 - In `engine.log` zetten hoe lang OpenRGB over een zoekronde deed (van de vraag tot de laatste
   `DeviceListUpdated`), om op echte hardware te zien of `ReloadTimeout` (30 s) past bij
   OpenRGB met fabrikantsoftware open
+- Komt er na `LoadTimeout` (5 s) een nieuwe `DeviceListUpdated` binnen terwijl het herladen nog
+  op de lijst wacht, die leesactie dan opgeven en meteen opnieuw verbinden in plaats van tot
+  `ReloadTimeout` (30 s) te wachten. Hangt de lees omdat OpenRGB niet antwoordt op
+  `REQUEST_CONTROLLER_DATA` voor een index die bij het begin van de zoekronde verdween, dan
+  geeft een nieuwe verbinding de lijst sneller (thuistest 24-11-2026, F2)
 - "Zoeken…" laten staan zolang de engine nog op de lijst van OpenRGB wacht (tot 30 s), met een
   melding van de engine dat OpenRGB nog zoekt; nu stopt de knop na 15 s met "Het zoeken duurt
   lang" en komt het antwoord van de engine later

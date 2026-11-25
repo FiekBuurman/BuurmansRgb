@@ -45,9 +45,13 @@ Met Knipperen per zone (in een donkere kast) en een LED 1/LED 2-proef per header
   devices failed: The operation has timed out.") en verdween de headset uit OpenRGB.
   - De time-out lag bij BuurmansRgb: na de melding van OpenRGB dat zijn lijst veranderde,
     wachtte de engine 5 s op die lijst en verbrak dan de verbinding ("Lost the connection",
-    opnieuw na 5 s), ook al stond die nog open en zocht OpenRGB alleen langer. Vanaf #? wacht
-    de engine tot 30 s zolang de verbinding openstaat, maakt hij daarna meteen een nieuwe, en
-    noemt de app de draaiende RGB-software als de lijst niet komt.
+    opnieuw na 5 s), ook al stond die nog open. Het log toont alleen die time-out, niet de
+    oorzaak. Vermoedelijk zocht OpenRGB langer dan 5 s; het kan ook zijn dat OpenRGB geen
+    antwoord gaf op `REQUEST_CONTROLLER_DATA` voor een index die aan het begin van de zoekronde,
+    na het leegmaken van zijn lijst, niet meer bestond, zodat de leesactie bleef hangen tot de
+    time-out. Vanaf #? wacht de engine tot 30 s zolang de verbinding openstaat, maakt hij daarna
+    meteen een nieuwe, en noemt de app de draaiende RGB-software als de lijst niet komt. Komt de
+    lijst bij een volgende test steeds pas na ~30 s, dan past de tweede verklaring beter.
   - Dat de **G733** wegviel, ligt bij OpenRGB en G HUB: OpenRGB zag de headset niet bij het
     zoeken terwijl G HUB draaide, ook niet na "Herstarten" (OpenRGB herstart) met G HUB open. Na
     een herstart van de service zonder G HUB zag OpenRGB hem wel. BuurmansRgb krijgt de lijst
