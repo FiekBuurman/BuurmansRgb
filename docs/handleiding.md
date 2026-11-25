@@ -1348,8 +1348,8 @@ of minder beweging werkt.
   scherm en voor een schermlezer. Bij een zone als `ARGB_V2_1` of `LED_C` zegt Verteller dus
   "Zone ARGB_V2_1 van … laten knipperen", "LED's van zone ARGB_V2_1 van … tellen" en "Aantal
   LED's van … – ARGB_V2_1 verlagen", en zo ook bij een apparaat, een scène of een eigen effect
-  met een `_` in zijn naam. De app heeft geen sneltoetsen met Alt en een letter, dus een `_` is
-  nooit zo'n sneltoets.
+  met een `_` in zijn naam. Knoppen in de app hebben geen onderstreepte letter om met Alt te
+  kiezen, dus een `_` is nooit zo'n toets.
 - **Koppen:** elke pagina heeft koppen voor de schermlezer, zodat je in Verteller met H van kop
   naar kop springt (met 1, 2 of 3 naar een kop van dat niveau). De titel van de pagina is niveau 1
   (op Apparaten het woordmerk "buurmansRgb"), elk blok niveau 2 (zoals "Hele huis", "Effect", het
