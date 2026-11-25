@@ -303,7 +303,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // user knows it.
     // "Verversen" also looks for other RGB software again, as that may be why a device does not
     // show its color; a few milliseconds before the search, which takes far longer.
-    public Task<bool> RescanDevicesAsync(CancellationToken ct = default)
+    public async Task<bool> RescanDevicesAsync(CancellationToken ct = default) =>
+        await RescanDevicesWithOutcomeAsync(ct) != RescanOutcome.Unreachable;
+
+    public Task<RescanOutcome> RescanDevicesWithOutcomeAsync(CancellationToken ct = default)
     {
         _zoneCounter?.StopAll();
         _otherRgbSoftware?.Check();

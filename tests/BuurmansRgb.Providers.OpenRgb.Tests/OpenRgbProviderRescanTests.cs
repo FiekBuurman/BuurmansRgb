@@ -32,7 +32,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         await ConnectAsync();
         _connector.DevicesAfterRescan = [Strip, Headset];
 
-        Assert.True(await _provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await _provider.RequestRescanAsync(Ct));
 
         Assert.Equal(1, _connector.RescanRequests);
         Assert.Equal(1, _connector.ConnectCount);
@@ -66,7 +66,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         _connector.AnswersRescan = false;
         _connector.Devices = [Strip, Headset];
 
-        Assert.True(await RescanWhileTimePassesAsync());
+        Assert.Equal(RescanOutcome.Rescanned, await RescanWhileTimePassesAsync());
 
         Assert.Equal(2, _connector.ConnectCount);
         Assert.True(first.IsDisposed);
@@ -95,7 +95,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         Assert.Single(await _provider.DiscoverAsync(Ct));
         Assert.Equal(1, _devicesChanged);
         answered.SetResult();
-        Assert.True(await rescan);
+        Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(2, _devicesChanged);
     }
 
@@ -106,7 +106,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         _connector.LastConnection.FailSends = true;
         _connector.Devices = [Strip, Headset];
 
-        Assert.True(await _provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await _provider.RequestRescanAsync(Ct));
 
         Assert.Equal(2, _connector.ConnectCount);
         Assert.Equal(2, (await _provider.DiscoverAsync(Ct)).Count);
@@ -122,7 +122,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         await Eventually.TrueAsync(() => _connector.RescanRequests == 1);
         _connector.LastConnection.Close();
 
-        Assert.True(await rescan);
+        Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(2, _connector.ConnectCount);
         Assert.Single(await _provider.DiscoverAsync(Ct));
     }
@@ -135,7 +135,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         await ConnectAsync();
         _connector.IsRunning = true;
 
-        Assert.True(await _provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await _provider.RequestRescanAsync(Ct));
 
         Assert.Equal(2, _connector.ConnectCount);
         Assert.Equal(0, _connector.RescanRequests);
@@ -156,7 +156,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         var rescan = _provider.RequestRescanAsync(Ct);
         answered.SetResult();
 
-        Assert.True(await rescan);
+        Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(1, _connector.ConnectCount);
         Assert.Equal(1, _connector.RescanRequests);
         Assert.Equal(2, (await _provider.DiscoverAsync(Ct)).Count);
@@ -168,7 +168,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         _connector.IsRunning = false;
         await ConnectAsync();
 
-        Assert.False(await _provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Unreachable, await _provider.RequestRescanAsync(Ct));
 
         Assert.Equal(ServerState.Unreachable, _provider.Status.State);
         _connector.IsRunning = true;
@@ -187,7 +187,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         _connector.AnswersRescan = false;
         _connector.ConnectException = new InvalidOperationException("Not the protocol");
 
-        Assert.True(await RescanWhileTimePassesAsync());
+        Assert.Equal(RescanOutcome.Rescanned, await RescanWhileTimePassesAsync());
 
         Assert.False(first.IsDisposed);
         Assert.Single(await _provider.DiscoverAsync(Ct));
@@ -208,8 +208,8 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
             return first.IsCompleted && second.IsCompleted;
         });
 
-        Assert.True(await first);
-        Assert.True(await second);
+        Assert.Equal(RescanOutcome.Rescanned, await first);
+        Assert.Equal(RescanOutcome.Rescanned, await second);
         Assert.Equal(1, _connector.RescanRequests);
         Assert.Equal(2, _connector.ConnectCount);
     }
@@ -231,7 +231,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
         await ConnectAsync();
         _provider.Dispose();
 
-        Assert.False(await _provider.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Unreachable, await _provider.RequestRescanAsync(Ct));
         Assert.Equal(0, _connector.RescanRequests);
     }
 
@@ -242,7 +242,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
     }
 
     // The provider waits for the update on the fake clock, which only moves when told.
-    private async Task<bool> RescanWhileTimePassesAsync()
+    private async Task<RescanOutcome> RescanWhileTimePassesAsync()
     {
         var rescan = _provider.RequestRescanAsync(Ct);
         await Eventually.TrueAsync(() =>

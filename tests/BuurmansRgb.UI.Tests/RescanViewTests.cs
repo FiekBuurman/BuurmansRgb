@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views.Pages;
@@ -37,7 +38,7 @@ public sealed class RescanViewTests
     [Fact]
     public async Task Rescan_OpenRgbNotReached_ShowsTheMessage()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.RescanReaches = false);
+        using var viewModel = await PageViews.ConnectAsync(api => api.RescanOutcome = RescanOutcome.Unreachable);
 
         AppTheme.Run(panel =>
         {

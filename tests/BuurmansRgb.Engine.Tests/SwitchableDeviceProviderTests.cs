@@ -116,7 +116,7 @@ public sealed class SwitchableDeviceProviderTests
         await _switchable.DiscoverAsync(Ct);
         var rescannable = Assert.IsAssignableFrom<IRescannableDeviceProvider>(_switchable);
 
-        Assert.True(await rescannable.RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await rescannable.RequestRescanAsync(Ct));
 
         Assert.Equal(1, _changes);
     }
@@ -124,11 +124,11 @@ public sealed class SwitchableDeviceProviderTests
     [Fact]
     public async Task RequestRescan_Disabled_DoesNothingAndCountsAsDone()
     {
-        var inner = new DynamicDeviceProvider { RescanReaches = false };
+        var inner = new DynamicDeviceProvider { RescanOutcome = RescanOutcome.Unreachable };
         var switchable = SwitchableDeviceProvider.For(inner);
         switchable.IsEnabled = false;
 
-        Assert.True(await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
 
         Assert.Equal(0, inner.RescanCount);
     }
@@ -137,11 +137,11 @@ public sealed class SwitchableDeviceProviderTests
     [Fact]
     public async Task For_InnerCanRescanButNotResize_IsOnlyRescannable()
     {
-        var inner = new DynamicDeviceProvider { RescanReaches = false };
+        var inner = new DynamicDeviceProvider { RescanOutcome = RescanOutcome.Unreachable };
         var switchable = SwitchableDeviceProvider.For(inner);
 
         Assert.False(switchable is IResizableDeviceProvider);
-        Assert.False(await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
+        Assert.Equal(RescanOutcome.Unreachable, await Assert.IsAssignableFrom<IRescannableDeviceProvider>(switchable).RequestRescanAsync(Ct));
         Assert.Equal(1, inner.RescanCount);
     }
 }

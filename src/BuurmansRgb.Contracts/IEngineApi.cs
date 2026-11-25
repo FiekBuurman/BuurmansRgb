@@ -201,7 +201,14 @@ public partial interface IEngineApi
     // OpenRGB anew when OpenRGB does not answer the request in time. A device that came back gets
     // its own lighting. False when OpenRGB could not be reached.
     // Also looks again for other RGB software (GetOtherRgbSoftwareAsync).
+    // For a settings app before RescanDevicesWithOutcomeAsync: that one tells more.
     Task<bool> RescanDevicesAsync(CancellationToken ct = default);
+
+    // RescanDevicesAsync, with what it came to: Unreachable when OpenRGB could not be reached,
+    // ListNotLoaded when OpenRGB searched but did not give its new list in time (the engine then
+    // connects anew by itself), else Rescanned. An engine before this method answers a call of it
+    // with an error that EngineRpc.IsUnknownToEngine recognizes; then RescanDevicesAsync does it.
+    Task<RescanOutcome> RescanDevicesWithOutcomeAsync(CancellationToken ct = default);
 
     // Other RGB software that runs and may overwrite the colors, such as SignalRGB or iCUE, as the
     // engine found it the last time it looked: at its start, after waking up and at

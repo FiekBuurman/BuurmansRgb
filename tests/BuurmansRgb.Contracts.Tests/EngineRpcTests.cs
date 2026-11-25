@@ -502,6 +502,43 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal(1, _api.RescanCalls);
     }
 
+    [Fact]
+    public async Task RescanDevicesWithOutcomeAsync_GivesTheOutcomeBack()
+    {
+        var client = await ConnectAsync();
+
+        Assert.Equal(RescanOutcome.ListNotLoaded, await client.Api.RescanDevicesWithOutcomeAsync(Ct));
+
+        Assert.Equal(1, _api.RescanCalls);
+    }
+
+    // An engine from before the method, which only knows RescanDevicesAsync: the settings app sees
+    // that it does not know the method, not an error of the engine, and asks the old way.
+    [Fact]
+    public async Task RescanDevicesWithOutcomeAsync_OlderEngine_IsUnknownToEngine()
+    {
+        var pipe = EngineRpc.CreateServerStream(_pipeName);
+        var accepted = pipe.WaitForConnectionAsync(Ct);
+        _client = await EngineConnection.ConnectAsync(_pipeName, TestTimeouts.Short, Ct);
+        await accepted;
+        _server = new JsonRpc(new HeaderDelimitedMessageHandler(pipe, new SystemTextJsonFormatter()));
+        _server.AddLocalRpcTarget(new OlderEngineApi());
+        _server.StartListening();
+
+        var exception = await Assert.ThrowsAnyAsync<Exception>(() => _client.Api.RescanDevicesWithOutcomeAsync(Ct));
+
+        Assert.True(EngineRpc.IsUnknownToEngine(exception), exception.ToString());
+        Assert.False(EngineRpc.IsRejectedByEngine(exception));
+        Assert.True(await _client.Api.RescanDevicesAsync(Ct));
+    }
+
+    [Fact]
+    public void IsUnknownToEngine_RejectedOrLost_IsFalse()
+    {
+        Assert.False(EngineRpc.IsUnknownToEngine(new RemoteInvocationException("Invalid", 0, errorData: null)));
+        Assert.False(EngineRpc.IsUnknownToEngine(new ConnectionLostException()));
+    }
+
     // The process id of the engine, for its memory and CPU on Instellingen.
     [Fact]
     public async Task GetProcessIdAsync_GivesTheIdOfTheEngine()
@@ -693,6 +730,12 @@ public sealed class EngineRpcTests : IDisposable
         await accepted;
         _server = EngineRpc.StartServer(pipe, _api);
         return _client;
+    }
+
+    // What an engine before RescanDevicesWithOutcomeAsync offers for "Verversen".
+    private sealed class OlderEngineApi
+    {
+        public Task<bool> RescanDevicesAsync(CancellationToken ct = default) => Task.FromResult(true);
     }
 
     private sealed class FakeEngineApi : IEngineApi
@@ -950,6 +993,12 @@ public sealed class EngineRpcTests : IDisposable
         {
             RescanCalls++;
             return Task.FromResult(false);
+        }
+
+        public Task<RescanOutcome> RescanDevicesWithOutcomeAsync(CancellationToken ct = default)
+        {
+            RescanCalls++;
+            return Task.FromResult(RescanOutcome.ListNotLoaded);
         }
 
         public List<SimulatedDevicesMode> SimulatedDevicesCalls { get; } = [];

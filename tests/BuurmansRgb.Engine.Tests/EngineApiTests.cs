@@ -1090,6 +1090,24 @@ public sealed class EngineApiTests : IDisposable
         Assert.Equal(1, changes);
     }
 
+    // A settings app from before RescanDevicesWithOutcomeAsync only knows reached or not: a list
+    // that did not come was reached, so it shows no message that OpenRGB is not reachable.
+    [Theory]
+    [InlineData(RescanOutcome.Rescanned, true)]
+    [InlineData(RescanOutcome.ListNotLoaded, true)]
+    [InlineData(RescanOutcome.Unreachable, false)]
+    public async Task RescanDevices_GivesTheOutcomeAndToAnOlderAppWhetherItWasReached(RescanOutcome outcome, bool reached)
+    {
+        var dynamic = new DynamicDeviceProvider { RescanOutcome = outcome };
+        using var lighting = new LightingController([dynamic]);
+        using var zoneLengths = new ZoneLengthKeeper(lighting);
+        using var api = new EngineApi(lighting, zoneLengths, new ProfileLibrary(new InMemoryProfileStore(), lighting), _simulatedDevices, _openRgb);
+
+        Assert.Equal(outcome, await api.RescanDevicesWithOutcomeAsync(Ct));
+        Assert.Equal(reached, await api.RescanDevicesAsync(Ct));
+        Assert.Equal(2, dynamic.RescanCount);
+    }
+
     [Fact]
     public async Task DismissOtherRgbSoftwareAsync_TakesItOutOfTheList()
     {

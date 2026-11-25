@@ -62,7 +62,7 @@ public sealed class OpenRgbProviderServerTests
         await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
         server.DevicesAfterRescan = [Strip, Headset];
 
-        Assert.True(await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
 
         Assert.Equal(1, server.RescanRequests);
 
@@ -96,7 +96,7 @@ public sealed class OpenRgbProviderServerTests
         Assert.False(rescan.IsCompleted);
         searching.SetResult();
 
-        Assert.True(await rescan.WaitAsync(TestTimeouts.Long, Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await rescan.WaitAsync(TestTimeouts.Long, Ct));
         Assert.Equal(["Strip", "Headset"], (await provider.DiscoverAsync(Ct)).Select(device => device.Name));
         Assert.Equal(new ServerStatus(ServerState.Connected, 2), provider.Status);
         Assert.Equal(2, server.ClientNames.Count);
@@ -164,7 +164,7 @@ public sealed class OpenRgbProviderServerTests
         await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
         server.Devices = [Strip, Headset];
 
-        Assert.True(await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
+        Assert.Equal(RescanOutcome.Rescanned, await provider.RequestRescanAsync(Ct).WaitAsync(TestTimeouts.Long, Ct));
 
         await Eventually.TrueAsync(() => server.RescanRequests == 1, TestTimeouts.Long);
         Assert.Equal(2, (await provider.DiscoverAsync(Ct)).Count);

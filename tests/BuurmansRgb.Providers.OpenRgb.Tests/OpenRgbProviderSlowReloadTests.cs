@@ -71,7 +71,7 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         Assert.False(rescan.IsCompleted);
         answered.SetResult();
 
-        Assert.True(await rescan);
+        Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(1, _connector.ConnectCount);
         Assert.Equal(1, _connector.RescanRequests);
         Assert.Equal(2, (await _provider.DiscoverAsync(Ct)).Count);
@@ -142,10 +142,32 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
             return rescan.IsCompleted;
         });
 
-        Assert.True(await rescan);
+        Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(1, _connector.RescanRequests);
         Assert.Equal(2, _connector.ConnectCount);
         Assert.Single(await _provider.DiscoverAsync(Ct));
+    }
+
+    // OpenRGB searched, but its list did not come on either connection: the settings app can say
+    // so, rather than that OpenRGB is not reachable.
+    [Fact]
+    public async Task Rescan_NoListAndConnectingAgainFails_IsListNotLoaded()
+    {
+        await ConnectAsync();
+        _connector.DevicesAnswered = new TaskCompletionSource().Task;
+
+        var rescan = _provider.RequestRescanAsync(Ct);
+        await Eventually.TrueAsync(() => _connector.DevicesRequests == 2);
+        _connector.IsRunning = false;
+        await Eventually.TrueAsync(() =>
+        {
+            _time.Advance(TimeSpan.FromSeconds(1));
+            return rescan.IsCompleted;
+        });
+
+        Assert.Equal(RescanOutcome.ListNotLoaded, await rescan);
+        Assert.Equal(1, _connector.RescanRequests);
+        Assert.Equal(2, _connector.ConnectCount);
     }
 
     // Giving up and connecting anew fails too: then the next try follows after RetryDelay.

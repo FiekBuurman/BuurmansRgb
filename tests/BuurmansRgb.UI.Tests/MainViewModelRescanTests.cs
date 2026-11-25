@@ -35,7 +35,7 @@ public sealed class MainViewModelRescanTests
     public async Task Rescan_OpenRgbNotReached_SaysSo()
     {
         var viewModel = await ConnectAsync();
-        Api.RescanReaches = false;
+        Api.RescanOutcome = RescanOutcome.Unreachable;
 
         viewModel.DeviceRescan.RescanCommand.Execute(null);
 
@@ -48,7 +48,7 @@ public sealed class MainViewModelRescanTests
     public async Task Rescan_OpenRgbConnectsLater_ClearsTheMessage()
     {
         var viewModel = await ConnectAsync();
-        Api.RescanReaches = false;
+        Api.RescanOutcome = RescanOutcome.Unreachable;
         viewModel.DeviceRescan.RescanCommand.Execute(null);
         await Eventually.TrueAsync(() => viewModel.DeviceRescan.HasMessage);
 
