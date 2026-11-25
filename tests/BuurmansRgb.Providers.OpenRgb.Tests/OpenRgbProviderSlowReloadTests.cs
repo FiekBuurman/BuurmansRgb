@@ -153,14 +153,13 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         var hanging = new TaskCompletionSource();
         _connector.DevicesAnswered = hanging.Task;
 
+        // The fake sends its update with the request, so the rescan waits for it without a
+        // RescanTimeout timer: only the reload's two waits count.
+        var timers = _time.Timers;
         var rescan = _provider.RequestRescanAsync(Ct);
         await Eventually.TrueAsync(() => _connector.DevicesRequests == 2);
         _connector.DevicesAnswered = Task.CompletedTask;
-        await Eventually.TrueAsync(() =>
-        {
-            _time.Advance(TimeSpan.FromSeconds(1));
-            return rescan.IsCompleted;
-        });
+        await PassTheReloadTimeoutAsync(timers);
 
         Assert.Equal(RescanOutcome.Rescanned, await rescan);
         Assert.Equal(1, _connector.RescanRequests);
@@ -176,14 +175,11 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         await ConnectAsync();
         _connector.DevicesAnswered = new TaskCompletionSource().Task;
 
+        var timers = _time.Timers;
         var rescan = _provider.RequestRescanAsync(Ct);
         await Eventually.TrueAsync(() => _connector.DevicesRequests == 2);
         _connector.IsRunning = false;
-        await Eventually.TrueAsync(() =>
-        {
-            _time.Advance(TimeSpan.FromSeconds(1));
-            return rescan.IsCompleted;
-        });
+        await PassTheReloadTimeoutAsync(timers);
 
         Assert.Equal(RescanOutcome.ListNotLoaded, await rescan);
         Assert.Equal(1, _connector.RescanRequests);
