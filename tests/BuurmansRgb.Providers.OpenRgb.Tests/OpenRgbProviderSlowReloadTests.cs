@@ -1,5 +1,4 @@
 using BuurmansRgb.Core;
-using Microsoft.Extensions.Time.Testing;
 using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
@@ -15,7 +14,7 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
         TestDevices.Create(index: 1, name: "Headset", type: OpenRgbDeviceType.Headset, location: "HID: headset", ledCount: 2);
 
     private readonly FakeOpenRgbConnector _connector = new() { Devices = [Strip] };
-    private readonly FakeTimeProvider _time = new();
+    private readonly TimerCountingTimeProvider _time = new();
     private readonly OpenRgbDeviceProvider _provider;
     private readonly List<ServerStatus> _statuses = [];
 
@@ -36,6 +35,28 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     [Fact]
     public void ReloadTimeout_IsLongerThanTheLoadTimeout() =>
         Assert.True(OpenRgbDeviceProvider.ReloadTimeout > OpenRgbDeviceProvider.LoadTimeout * 2);
+
+    // Connecting has no list to keep, so only LoadTimeout: a list that never comes ends the new
+    // connection, and the next try follows after RetryDelay.
+    [Fact]
+    public async Task Connect_NoListWithinTheLoadTimeout_DisposesAndTriesAgain()
+    {
+        _connector.DevicesAnswered = new TaskCompletionSource().Task;
+        var timers = _time.Timers;
+        await _provider.DiscoverAsync(Ct);
+
+        await _time.AdvanceAfterTimerAsync(timers, OpenRgbDeviceProvider.LoadTimeout);
+        await _provider.WhenIdleAsync();
+
+        Assert.True(Assert.Single(_connector.Connections).IsDisposed);
+        Assert.Equal(ServerState.Failed, _provider.Status.State);
+        Assert.Empty(await _provider.DiscoverAsync(Ct));
+
+        _connector.DevicesAnswered = Task.CompletedTask;
+        await RetryAsync(expectedConnects: 2);
+        Assert.Single(await _provider.DiscoverAsync(Ct));
+        Assert.Equal(new ServerStatus(ServerState.Connected, 1), _provider.Status);
+    }
 
     [Fact]
     public async Task Reload_LongerThanTheLoadTimeout_KeepsTheConnectionAndLoadsTheList()
@@ -198,6 +219,19 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     {
         await _provider.DiscoverAsync(Ct);
         await _provider.WhenIdleAsync();
+    }
+
+    // No new try a moment before RetryDelay, one when it has passed.
+    private async Task RetryAsync(int expectedConnects)
+    {
+        var tick = TimeSpan.FromTicks(1);
+        _time.Advance(OpenRgbDeviceProvider.RetryDelay - tick);
+        await _provider.WhenIdleAsync();
+        Assert.Equal(expectedConnects - 1, _connector.ConnectCount);
+
+        _time.Advance(tick);
+        await _provider.WhenIdleAsync();
+        Assert.Equal(expectedConnects, _connector.ConnectCount);
     }
 
     // OpenRGB tells its list changed but does not answer yet; returns once the provider asked.
