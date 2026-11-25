@@ -2,14 +2,16 @@ using OpenRGB.NET;
 
 namespace BuurmansRgb.Providers.OpenRgb.OpenRgbNet;
 
-internal sealed class OpenRgbNetConnector(string host, int port, string clientName, TimeSpan connectTimeout, TimeSpan requestTimeout)
+internal sealed class OpenRgbNetConnector(string host, int port, string clientName, TimeSpan connectTimeout, TimeSpan handshakeTimeout)
     : IOpenRgbConnector
 {
     public const string LocalHost = "127.0.0.1";
     public const int DefaultPort = 6742;
     public const string ClientName = "BuurmansRgb";
 
-    // OpenRGB runs on the same pc, so it answers at once when it runs.
+    // OpenRGB runs on the same pc, so it answers at once when it runs: 1 s for the socket and 5 s
+    // for the protocol version; reading the list falls under OpenRgbDeviceProvider.LoadTimeout
+    // and ReloadTimeout.
     public static OpenRgbNetConnector ForLocalServer() =>
         new(LocalHost, DefaultPort, ClientName, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(5));
 
@@ -23,7 +25,7 @@ internal sealed class OpenRgbNetConnector(string host, int port, string clientNa
         try
         {
             // Connect blocks, and waits for the protocol version without a timeout of its own.
-            await Task.Run(client.Connect, ct).WaitAsync(requestTimeout, ct).ConfigureAwait(false);
+            await Task.Run(client.Connect, ct).WaitAsync(handshakeTimeout, ct).ConfigureAwait(false);
             return new OpenRgbNetConnection(client, watcher);
         }
         catch

@@ -124,14 +124,7 @@ public sealed class OpenRgbProviderServerTests
         using var provider = new OpenRgbDeviceProvider(server.CreateConnector(), TimeProvider.System, RetryDelay, loadTimeout: LoadTimeout);
         await provider.DiscoverAsync(Ct);
         await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
-        var statuses = new List<ServerStatus>();
-        provider.StatusChanged += (_, status) =>
-        {
-            lock (statuses)
-            {
-                statuses.Add(status);
-            }
-        };
+        var statuses = new ServerStatusRecorder(provider);
         server.ControllerDataAnswered = new TaskCompletionSource().Task;
 
         server.NotifyDeviceListUpdated();
@@ -140,18 +133,10 @@ public sealed class OpenRgbProviderServerTests
         var stopwatch = Stopwatch.StartNew();
         server.CloseClients();
 
-        await Eventually.TrueAsync(() => HasStatus(ServerStatus.Connecting), TestTimeouts.Long);
+        await Eventually.TrueAsync(() => statuses.Snapshot().Contains(ServerStatus.Connecting), TestTimeouts.Long);
         Assert.True(stopwatch.Elapsed < OpenRgbDeviceProvider.ReloadTimeout / 3, $"Dropped after {stopwatch.Elapsed}.");
         await EventuallyDevices.CountAsync(provider, 1, TestTimeouts.Long);
         await Eventually.TrueAsync(() => provider.Status == new ServerStatus(ServerState.Connected, 1), TestTimeouts.Long);
-
-        bool HasStatus(ServerStatus status)
-        {
-            lock (statuses)
-            {
-                return statuses.Contains(status);
-            }
-        }
     }
 
     // A server that ignores the request, like OpenRGB before 1.0: the provider connects anew.

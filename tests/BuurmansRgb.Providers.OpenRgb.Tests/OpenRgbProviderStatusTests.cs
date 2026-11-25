@@ -8,18 +8,12 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
     private readonly FakeOpenRgbConnector _connector = new();
     private readonly FakeTimeProvider _time = new();
     private readonly OpenRgbDeviceProvider _provider;
-    private readonly List<ServerStatus> _changes = [];
+    private readonly ServerStatusRecorder _statuses;
 
     public OpenRgbProviderStatusTests()
     {
         _provider = new OpenRgbDeviceProvider(_connector, _time, OpenRgbDeviceProvider.RetryDelay);
-        _provider.StatusChanged += (_, status) =>
-        {
-            lock (_changes)
-            {
-                _changes.Add(status);
-            }
-        };
+        _statuses = new ServerStatusRecorder(_provider);
     }
 
     public void Dispose() => _provider.Dispose();
@@ -38,7 +32,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         await ConnectAsync();
 
         Assert.Equal(new ServerStatus(ServerState.Connected, 2), _provider.Status);
-        Assert.Equal([new ServerStatus(ServerState.Connected, 2)], _changes);
+        Assert.Equal([new ServerStatus(ServerState.Connected, 2)], _statuses.Snapshot());
     }
 
     [Fact]
@@ -62,7 +56,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         await RetryAsync();
 
         Assert.Equal(3, _connector.ConnectCount);
-        Assert.Equal([new ServerStatus(ServerState.Unreachable)], _changes);
+        Assert.Equal([new ServerStatus(ServerState.Unreachable)], _statuses.Snapshot());
     }
 
     [Fact]
@@ -97,7 +91,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         _connector.IsRunning = true;
         await RetryAsync();
 
-        Assert.Equal([new ServerStatus(ServerState.Unreachable), new ServerStatus(ServerState.Connected, 1)], _changes);
+        Assert.Equal([new ServerStatus(ServerState.Unreachable), new ServerStatus(ServerState.Connected, 1)], _statuses.Snapshot());
     }
 
     [Fact]
@@ -113,7 +107,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
 
         Assert.Equal(
             [new ServerStatus(ServerState.Connected, 1), ServerStatus.Connecting, new ServerStatus(ServerState.Unreachable)],
-            _changes);
+            _statuses.Snapshot());
     }
 
     [Fact]
@@ -125,7 +119,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         _connector.LastConnection.RaiseDeviceListChanged();
         await _provider.WhenIdleAsync();
 
-        Assert.Equal([new ServerStatus(ServerState.Connected, 1), new ServerStatus(ServerState.Connected, 2)], _changes);
+        Assert.Equal([new ServerStatus(ServerState.Connected, 1), new ServerStatus(ServerState.Connected, 2)], _statuses.Snapshot());
     }
 
     [Fact]
@@ -136,7 +130,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         _provider.RestoreDevices();
         await _provider.WhenIdleAsync();
 
-        Assert.Single(_changes);
+        Assert.Single(_statuses.Snapshot());
     }
 
     [Fact]
@@ -148,7 +142,7 @@ public sealed class OpenRgbProviderStatusTests : IDisposable
         _connector.Stop();
         await _provider.WhenIdleAsync();
 
-        Assert.Single(_changes);
+        Assert.Single(_statuses.Snapshot());
     }
 
     private async Task ConnectAsync()

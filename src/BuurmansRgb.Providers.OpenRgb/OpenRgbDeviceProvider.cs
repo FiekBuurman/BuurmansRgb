@@ -652,7 +652,7 @@ public sealed class OpenRgbDeviceProvider
         {
             if (connection.IsClosed)
             {
-                throw new IOException("OpenRGB closed the connection.");
+                throw ConnectionClosed();
             }
 
             // A read the provider gives up on may still fail later.
@@ -674,7 +674,7 @@ public sealed class OpenRgbDeviceProvider
 
             if (!reading.IsCompleted)
             {
-                throw new IOException("OpenRGB closed the connection.");
+                throw ConnectionClosed();
             }
 
             return Prepare(connection, await reading.ConfigureAwait(false));
@@ -684,6 +684,8 @@ public sealed class OpenRgbDeviceProvider
             connection.Closed -= onClosed;
         }
     }
+
+    private static IOException ConnectionClosed() => new("OpenRGB closed the connection.");
 
     // False when the task did not end within the timeout.
     private async Task<bool> TryWaitAsync(Task task, TimeSpan timeout, CancellationToken ct)

@@ -1151,4 +1151,11 @@ uitbreidingen in `docs/bouwplan.md`.
   `ToggleButton` met een vaste tekst als inhoud en een gebonden `AutomationProperties.Name`: die
   hoort een `LiteralNameButton`, `LiteralNameRepeatButton` of `LiteralNameToggleButton` te zijn,
   anders verliest een naam uit OpenRGB zijn eerste `_` voor de schermlezer. `UnderscoreNamesViewTests` vindt het nu alleen op de
-  pagina's en in de toestanden die hij opent (`zone-namen-schermlezer`, thuistest 24-11-2026)
+  pagina's en in de toestanden die hij opent (`zone-namen-schermlezer`, thuistest 24-11-2026).
+  Neem in de statusregel (`Views/StatusLine.xaml`) ook de knoppen `StatusLineAction` en
+  `StatusLineDetailAction` (gewone `Button`s met een gebonden tekst als inhoud, dus de test moet
+  ook een gebonden tekst meetellen) en de `DetailsToggle` (vaste tekst "Details", gebonden
+  `DetailsAccessibleName`) mee: zolang `ActionAccessibleName` en `DetailsAccessibleName` alleen
+  eigen teksten bevatten gaat het goed, maar bevat een van beide ooit een naam van OpenRGB of de
+  gebruiker, dan verliest die zijn eerste `_`
+  (refactorreview 25-11-2026)
