@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Extensions.Time.Testing;
+using static BuurmansRgb.UI.Tests.TestDevices;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -271,13 +272,4 @@ public sealed class PreviewCardsViewModelTests
         Assert.Equal("2 LED's", new DevicePreviewViewModel(Fan).LedLine);
         Assert.Equal("1 LED", new DevicePreviewViewModel(Strip(1)).LedLine);
     }
-
-    private static DeviceInfo Board(int argb1, int argb2) =>
-        new("board", "Board", DeviceType.Motherboard, argb1 + argb2, [new RgbZone("ARGB 1", argb1, 0, 60), new RgbZone("ARGB 2", argb2, 0, 60)])
-        {
-            Source = DeviceSource.Hardware,
-        };
-
-    private static DeviceInfo Strip(int ledCount) =>
-        new("strip", "Strip", DeviceType.LedStrip, ledCount, [new RgbZone("Strip", ledCount, 1, 60)]) { Source = DeviceSource.Hardware };
 }

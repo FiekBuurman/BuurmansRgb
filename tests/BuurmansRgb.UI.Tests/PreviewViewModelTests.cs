@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 using Microsoft.Extensions.Time.Testing;
+using static BuurmansRgb.UI.Tests.TestDevices;
 
 namespace BuurmansRgb.UI.Tests;
 
@@ -630,15 +631,6 @@ public sealed class PreviewViewModelTests
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 1, 60, 1, true) { Sequence = 4 });
         Assert.Equal(1, preview.Count!.Led);
     }
-
-    private static DeviceInfo Board(int argb1, int argb2) =>
-        new("board", "Board", DeviceType.Motherboard, argb1 + argb2, [new RgbZone("ARGB 1", argb1, 0, 60), new RgbZone("ARGB 2", argb2, 0, 60)])
-        {
-            Source = DeviceSource.Hardware,
-        };
-
-    private static DeviceInfo Strip(int ledCount) =>
-        new("strip", "Strip", DeviceType.LedStrip, ledCount, [new RgbZone("Strip", ledCount, 1, 60)]) { Source = DeviceSource.Hardware };
 
     private static LightingFrame Frame(long sequence, RgbColor color) =>
         new(sequence, [DeviceFrame.FromColors("fan", [color, color])]);
