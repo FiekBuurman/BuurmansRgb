@@ -1,5 +1,4 @@
 using BuurmansRgb.UI.Resources;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.ViewModels;
 
 namespace BuurmansRgb.UI.Tests;

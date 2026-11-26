@@ -13,7 +13,7 @@ public sealed class UserFilesTests : IDisposable
     [Fact]
     public async Task WriteReplacing_WritesTheFile_AlsoOverAnOldOne()
     {
-        var path = Path.Combine(_folder.Path, "Gamen.brgb.json");
+        var path = _folder.File("Gamen.brgb.json");
         File.WriteAllBytes(path, [9, 9, 9, 9]);
 
         await UserFiles.WriteReplacingAsync(path, [1, 2, 3]);
@@ -26,7 +26,7 @@ public sealed class UserFilesTests : IDisposable
     [Fact]
     public async Task WriteReplacing_ThatFails_LeavesNoTemporaryFile()
     {
-        var path = Path.Combine(_folder.Path, "Gamen.brgb.json");
+        var path = _folder.File("Gamen.brgb.json");
         Directory.CreateDirectory(path);
 
         var exception = await Record.ExceptionAsync(() => UserFiles.WriteReplacingAsync(path, [1, 2, 3]));
@@ -70,7 +70,7 @@ public sealed class UserFilesTests : IDisposable
     [Fact]
     public async Task ReadAtMost_FileThatIsNotThere_Throws()
     {
-        await Assert.ThrowsAsync<FileNotFoundException>(() => UserFiles.ReadAtMostAsync(Path.Combine(_folder.Path, "weg.brgb.json"), 10));
+        await Assert.ThrowsAsync<FileNotFoundException>(() => UserFiles.ReadAtMostAsync(_folder.File("weg.brgb.json"), 10));
     }
 
     // Windows gives a length of 0 for a link; what counts is what it leads to.
@@ -78,7 +78,7 @@ public sealed class UserFilesTests : IDisposable
     public async Task ReadAtMost_LinkToALargeFile_GivesNull()
     {
         var target = Write("groot.brgb.json", new byte[100]);
-        var link = Path.Combine(_folder.Path, "link.brgb.json");
+        var link = _folder.File("link.brgb.json");
         try
         {
             File.CreateSymbolicLink(link, target);

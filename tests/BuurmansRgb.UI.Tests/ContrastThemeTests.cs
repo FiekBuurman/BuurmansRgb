@@ -1,7 +1,6 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;

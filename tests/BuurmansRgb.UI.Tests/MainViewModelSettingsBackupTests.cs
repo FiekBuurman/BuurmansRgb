@@ -48,7 +48,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         var time = new FakeTimeProvider(new DateTimeOffset(2026, 11, 3, 23, 15, 0, TimeSpan.Zero));
         time.SetLocalTimeZone(TimeZoneInfo.Utc);
         using var viewModel = await ConnectAsync(time);
-        var path = Path.Combine(_folder.Path, "bewaard.zip");
+        var path = _folder.File("bewaard.zip");
         string? suggested = null;
         viewModel.Backup.ChooseSaveFile = name =>
         {
@@ -169,7 +169,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileTooLarge_IsNotSent()
     {
         using var viewModel = await ConnectAsync();
-        var path = Path.Combine(_folder.Path, "groot.zip");
+        var path = _folder.File("groot.zip");
         using (var file = File.Create(path))
         {
             file.SetLength(SettingsBackup.MaxArchiveBytes + 1);
@@ -246,7 +246,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseRestoreFile = () => Path.Combine(_folder.Path, "weg.zip");
+        viewModel.Backup.ChooseRestoreFile = () => _folder.File("weg.zip");
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 

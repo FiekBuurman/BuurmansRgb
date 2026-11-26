@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;

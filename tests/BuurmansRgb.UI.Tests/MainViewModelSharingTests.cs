@@ -49,7 +49,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task ExportScene_WritesTheFileOfTheEngine()
     {
         using var viewModel = await ConnectAsync();
-        var path = Path.Combine(_folder.Path, "Gamen.brgb.json");
+        var path = _folder.File("Gamen.brgb.json");
         (string Title, string Name)? asked = null;
         viewModel.Sharing.ChooseExportFile = (title, name) =>
         {
@@ -152,7 +152,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task Import_FileTooLarge_IsNotSent()
     {
         using var viewModel = await ConnectAsync();
-        var path = Path.Combine(_folder.Path, "groot.brgb.json");
+        var path = _folder.File("groot.brgb.json");
         using (var file = File.Create(path))
         {
             file.SetLength(SharedFiles.MaxJsonBytes + 1);
@@ -170,7 +170,7 @@ public sealed class MainViewModelSharingTests : IDisposable
     public async Task Import_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Sharing.ChooseImportFile = () => Path.Combine(_folder.Path, "weg.brgb.json");
+        viewModel.Sharing.ChooseImportFile = () => _folder.File("weg.brgb.json");
 
         await viewModel.Sharing.ImportCommand.ExecuteAsync(null);
 

@@ -1,5 +1,4 @@
 using BuurmansRgb.Contracts;
-using BuurmansRgb.Core;
 using BuurmansRgb.UI.ViewModels;
 using StreamJsonRpc;
 
