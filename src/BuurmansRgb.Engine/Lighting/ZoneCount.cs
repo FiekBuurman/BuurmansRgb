@@ -39,7 +39,8 @@ internal sealed class ZoneCount
 
     public int ZoneIndex { get; }
 
-    // RgbZone.Key, which tells the zone in a new device list; ZoneName is only the name shown; it does not tell the zone.
+    // RgbZone.Key, which tells the zone in a new device list.
+    // ZoneName is only the name shown and does not tell the zone.
     public string ZoneKey { get; }
 
     public string ZoneName { get; }
