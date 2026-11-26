@@ -34,6 +34,10 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     private readonly SceneSharing _sharing;
     private readonly PreviewFrames _frames;
 
+    // Every event of the engine the api passes on, each as how it listens and how it stops, so the
+    // constructor and Dispose go through the same list.
+    private readonly (Action Listen, Action StopListening)[] _listeners;
+
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
     private volatile IReadOnlySet<string>? _frameDevices;
 
@@ -74,27 +78,34 @@ internal sealed class EngineApi : IEngineApi, IDisposable
         _openRgb = openRgb;
         _saveEvents = saveEvents;
         _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), time ?? TimeProvider.System);
-        _lighting.Rendered += OnRendered;
-        _lighting.DevicesChanged += OnDevicesChanged;
-        _lighting.ZonesAlikeChanged += OnDevicesChanged;
-        _openRgb.StatusChanged += OnOpenRgbStatusChanged;
-        _lighting.PauseChanged += OnPauseChanged;
-        _lighting.LightingChanged += OnLightingChanged;
-        _saveEvents?.Saved += OnSaved;
-        _profiles.Changed += OnProfilesChanged;
-        _simulatedDevices.ModeChanged += OnOptionsChanged;
-        _simulatedDevices.HadRealDevicesChanged += OnOptionsChanged;
-        _lighting.FramesPerSecondChanged += OnOptionsChanged;
-        _lighting.PausedLightsChanged += OnOptionsChanged;
-        _lighting.SceneFadeChanged += OnOptionsChanged;
-        _autoPause?.EnabledChanged += OnOptionsChanged;
-        _profileTimer?.CatchUpChanged += OnOptionsChanged;
-        _hotkeys?.EnabledChanged += OnOptionsChanged;
-        _customColors?.Changed += OnOptionsChanged;
-        _lighting.CountChanged += OnCountChanged;
-        _customEffects?.Changed += OnCustomEffectsChanged;
-        _autoStart?.Changed += OnOptionsChanged;
-        _otherRgbSoftware?.Changed += OnOtherRgbSoftwareChanged;
+        _listeners =
+        [
+            (() => _lighting.Rendered += OnRendered, () => _lighting.Rendered -= OnRendered),
+            (() => _lighting.DevicesChanged += OnDevicesChanged, () => _lighting.DevicesChanged -= OnDevicesChanged),
+            (() => _lighting.ZonesAlikeChanged += OnDevicesChanged, () => _lighting.ZonesAlikeChanged -= OnDevicesChanged),
+            (() => _openRgb.StatusChanged += OnOpenRgbStatusChanged, () => _openRgb.StatusChanged -= OnOpenRgbStatusChanged),
+            (() => _lighting.PauseChanged += OnPauseChanged, () => _lighting.PauseChanged -= OnPauseChanged),
+            (() => _lighting.LightingChanged += OnLightingChanged, () => _lighting.LightingChanged -= OnLightingChanged),
+            (() => _saveEvents?.Saved += OnSaved, () => _saveEvents?.Saved -= OnSaved),
+            (() => _profiles.Changed += OnProfilesChanged, () => _profiles.Changed -= OnProfilesChanged),
+            (() => _simulatedDevices.ModeChanged += OnOptionsChanged, () => _simulatedDevices.ModeChanged -= OnOptionsChanged),
+            (() => _simulatedDevices.HadRealDevicesChanged += OnOptionsChanged, () => _simulatedDevices.HadRealDevicesChanged -= OnOptionsChanged),
+            (() => _lighting.FramesPerSecondChanged += OnOptionsChanged, () => _lighting.FramesPerSecondChanged -= OnOptionsChanged),
+            (() => _lighting.PausedLightsChanged += OnOptionsChanged, () => _lighting.PausedLightsChanged -= OnOptionsChanged),
+            (() => _lighting.SceneFadeChanged += OnOptionsChanged, () => _lighting.SceneFadeChanged -= OnOptionsChanged),
+            (() => _autoPause?.EnabledChanged += OnOptionsChanged, () => _autoPause?.EnabledChanged -= OnOptionsChanged),
+            (() => _profileTimer?.CatchUpChanged += OnOptionsChanged, () => _profileTimer?.CatchUpChanged -= OnOptionsChanged),
+            (() => _hotkeys?.EnabledChanged += OnOptionsChanged, () => _hotkeys?.EnabledChanged -= OnOptionsChanged),
+            (() => _customColors?.Changed += OnOptionsChanged, () => _customColors?.Changed -= OnOptionsChanged),
+            (() => _lighting.CountChanged += OnCountChanged, () => _lighting.CountChanged -= OnCountChanged),
+            (() => _customEffects?.Changed += OnCustomEffectsChanged, () => _customEffects?.Changed -= OnCustomEffectsChanged),
+            (() => _autoStart?.Changed += OnOptionsChanged, () => _autoStart?.Changed -= OnOptionsChanged),
+            (() => _otherRgbSoftware?.Changed += OnOtherRgbSoftwareChanged, () => _otherRgbSoftware?.Changed -= OnOtherRgbSoftwareChanged),
+        ];
+        foreach (var (listen, _) in _listeners)
+        {
+            listen();
+        }
     }
 
     public event EventHandler<LightingFrame>? FrameRendered;
@@ -501,27 +512,11 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public void Dispose()
     {
-        _lighting.Rendered -= OnRendered;
-        _lighting.DevicesChanged -= OnDevicesChanged;
-        _lighting.ZonesAlikeChanged -= OnDevicesChanged;
-        _openRgb.StatusChanged -= OnOpenRgbStatusChanged;
-        _lighting.PauseChanged -= OnPauseChanged;
-        _lighting.LightingChanged -= OnLightingChanged;
-        _saveEvents?.Saved -= OnSaved;
-        _profiles.Changed -= OnProfilesChanged;
-        _simulatedDevices.ModeChanged -= OnOptionsChanged;
-        _simulatedDevices.HadRealDevicesChanged -= OnOptionsChanged;
-        _lighting.FramesPerSecondChanged -= OnOptionsChanged;
-        _lighting.PausedLightsChanged -= OnOptionsChanged;
-        _lighting.SceneFadeChanged -= OnOptionsChanged;
-        _autoPause?.EnabledChanged -= OnOptionsChanged;
-        _profileTimer?.CatchUpChanged -= OnOptionsChanged;
-        _hotkeys?.EnabledChanged -= OnOptionsChanged;
-        _customColors?.Changed -= OnOptionsChanged;
-        _lighting.CountChanged -= OnCountChanged;
-        _customEffects?.Changed -= OnCustomEffectsChanged;
-        _autoStart?.Changed -= OnOptionsChanged;
-        _otherRgbSoftware?.Changed -= OnOtherRgbSoftwareChanged;
+        foreach (var (_, stopListening) in _listeners)
+        {
+            stopListening();
+        }
+
         _frames.Dispose();
 
         // The settings app that counted went, so nobody can stop the count any more.
