@@ -14,8 +14,9 @@ internal static class SceneLook
     // A scene with the lights off, and a card until the engine has told what its scene looks like.
     public static IReadOnlyList<SceneDot> Off { get; } = [.. Enumerable.Repeat(new SceneDot(RgbColor.Black, false), DotCount)];
 
-    // Comet, scanner and twinkle show the colors of their list in turn, as they do one after the
-    // other; without a list that is the lamp color.
+    // An effect with a list of colors (EffectTraits.TakesColorList), such as comet, scanner and
+    // twinkle, shows them in turn, as it does one after the other; without a list that is the lamp
+    // color. The rainbow, the color loop and the fire each have bulbs of their own.
     public static IReadOnlyList<SceneDot> DotsOf(LightingInfo lighting)
     {
         if (!lighting.On)
@@ -23,6 +24,7 @@ internal static class SceneLook
             return Off;
         }
 
+        var traits = EffectTraits.Of(lighting.EffectId);
         var loop = (lighting.Loop ?? ColorLoop.Default).Colors;
         var colors = (lighting.EffectColors ?? EffectColors.None).For(lighting.EffectId, lighting.Color);
         return [.. Enumerable.Range(0, DotCount).Select(i => new SceneDot(lighting.EffectId switch
@@ -30,17 +32,19 @@ internal static class SceneLook
             EffectIds.Rainbow => RgbColor.FromHsv(i / (double)DotCount, 1.0, 1.0),
             EffectIds.ColorLoop => loop[i % loop.Count],
             EffectIds.Fire => FireColor(colors, i),
-            _ when EffectColors.Takes(lighting.EffectId) => colors[i % colors.Count],
+            _ when traits.TakesColorList => colors[i % colors.Count],
             _ => lighting.Color,
         }, true))];
     }
 
     // The one color a lighting shows, as with Statisch, Ademen, Golf, or Komeet, Scanner, Fonkelen
-    // and Vuur with one color; null for Regenboog, Kleurenloop, Per LED, an own effect, or an effect
+    // and Vuur with one color; null for an effect that shows neither the lamp color nor a list of
+    // its own (EffectTraits: Regenboog, Kleurenloop, an own effect), for Per LED, or for an effect
     // with more colors. The colors are those of DotsOf.
     public static RgbColor? OneColorOf(LightingInfo lighting)
     {
-        if (lighting.EffectId is EffectIds.Rainbow or EffectIds.ColorLoop or EffectIds.PerLed || CustomEffects.IsCustom(lighting.EffectId))
+        var traits = EffectTraits.Of(lighting.EffectId);
+        if (!(traits.UsesDeviceColor || traits.TakesColorList) || lighting.EffectId == EffectIds.PerLed)
         {
             return null;
         }
