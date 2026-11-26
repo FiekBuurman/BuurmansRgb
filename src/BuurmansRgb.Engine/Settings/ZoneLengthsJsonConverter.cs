@@ -1,74 +1,45 @@
-using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace BuurmansRgb.Engine.Settings;
 
 // "zoneLengths" in settings.json: by device id, the LED count of each zone by its name. A value that
 // is not a whole number, such as "30" or 2.5, leaves out only that zone, and a device whose value is
-// not an object only that device: throwing would make the engine run on the defaults, and the next
-// save would overwrite all the lighting in the file.
-internal sealed class ZoneLengthsJsonConverter : JsonConverter<Dictionary<string, Dictionary<string, int>?>>
+// not an object only that device (see DeviceMapJsonConverter).
+internal sealed class ZoneLengthsJsonConverter() : DeviceMapJsonConverter<Dictionary<string, int>>("zoneLengths", "a number of LEDs")
 {
-    public override Dictionary<string, Dictionary<string, int>?> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    protected override bool TryReadDevice(string deviceId, JsonElement value, out Dictionary<string, int>? result)
     {
-        using var document = JsonDocument.ParseValue(ref reader);
-        var lengths = new Dictionary<string, Dictionary<string, int>?>();
-        if (document.RootElement.ValueKind != JsonValueKind.Object)
+        result = null;
+        if (value.ValueKind != JsonValueKind.Object)
         {
-            LeaveOut("zoneLengths", document.RootElement);
-            return lengths;
+            return false;
         }
 
-        foreach (var device in document.RootElement.EnumerateObject())
+        var zones = new Dictionary<string, int>();
+        foreach (var zone in value.EnumerateObject())
         {
-            if (device.Value.ValueKind != JsonValueKind.Object)
+            if (JsonCounts.TryRead(zone.Value, out var ledCount))
             {
-                LeaveOut($"zoneLengths of '{device.Name}'", device.Value);
-                continue;
+                zones[zone.Name] = ledCount;
             }
-
-            var zones = new Dictionary<string, int>();
-            foreach (var zone in device.Value.EnumerateObject())
+            else
             {
-                if (JsonCounts.TryRead(zone.Value, out var ledCount))
-                {
-                    zones[zone.Name] = ledCount;
-                }
-                else
-                {
-                    LeaveOut($"the zone length of '{device.Name}', '{zone.Name}'", zone.Value);
-                }
+                LeaveOut($"the zone length of '{deviceId}', '{zone.Name}'", zone.Value, "a number of LEDs");
             }
-
-            lengths[device.Name] = zones;
         }
 
-        return lengths;
+        result = zones;
+        return true;
     }
 
-    public override void Write(Utf8JsonWriter writer, Dictionary<string, Dictionary<string, int>?> value, JsonSerializerOptions options)
+    protected override void WriteDevice(Utf8JsonWriter writer, string deviceId, Dictionary<string, int> value)
     {
-        writer.WriteStartObject();
-        foreach (var (deviceId, zones) in value)
+        writer.WriteStartObject(deviceId);
+        foreach (var (zone, ledCount) in value)
         {
-            if (zones is null)
-            {
-                continue;
-            }
-
-            writer.WriteStartObject(deviceId);
-            foreach (var (zone, ledCount) in zones)
-            {
-                writer.WriteNumber(zone, ledCount);
-            }
-
-            writer.WriteEndObject();
+            writer.WriteNumber(zone, ledCount);
         }
 
         writer.WriteEndObject();
     }
-
-    private static void LeaveOut(string what, JsonElement value) =>
-        Trace.TraceWarning($"settings.json: {what} is {value.GetRawText()}, which is not a number of LEDs; it is left out.");
 }
