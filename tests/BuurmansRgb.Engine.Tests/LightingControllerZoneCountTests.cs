@@ -425,13 +425,29 @@ public sealed class LightingControllerZoneCountTests : IDisposable
             Source = DeviceSource.Hardware,
         };
 
-    // Gives the provider the board and the fan, and waits until the controller has taken the list over.
+    // Gives the provider the board and the fan, and waits until the controller has taken this very
+    // board over (not an older list that a refresh read before).
     private async Task SetBoardAsync(RgbDevice board)
     {
-        var changed = new TaskCompletionSource();
-        _controller.DevicesChanged += (_, _) => changed.TrySetResult();
-        _provider.SetDevices(board, DynamicDeviceProvider.Device(Fan));
-        await changed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnChanged(object? sender, EventArgs e)
+        {
+            if (ReferenceEquals(_controller.FindDevice(Board), board))
+            {
+                changed.TrySetResult();
+            }
+        }
+
+        _controller.DevicesChanged += OnChanged;
+        try
+        {
+            _provider.SetDevices(board, DynamicDeviceProvider.Device(Fan));
+            await changed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
+        }
+        finally
+        {
+            _controller.DevicesChanged -= OnChanged;
+        }
     }
 
     private async Task StartAsync()
