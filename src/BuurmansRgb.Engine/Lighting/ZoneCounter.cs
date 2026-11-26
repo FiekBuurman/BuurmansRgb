@@ -48,11 +48,11 @@ internal sealed class ZoneCounter : IDisposable
         ZoneCount.ThrowIfInvalidPace(ledsPerSecond);
         lock (_gate)
         {
-            var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId) ?? throw DeviceErrors.Unknown(deviceId);
+            var device = _lighting.FindDevice(deviceId) ?? throw DeviceErrors.Unknown(deviceId);
             var zone = device.GetZone(zoneIndex);
             if (!zone.Resizable)
             {
-                throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
+                throw DeviceErrors.NotResizable(zone, deviceId);
             }
 
             if (_counting is { } counting && counting.Counts(deviceId, zoneIndex))
@@ -194,8 +194,9 @@ internal sealed class ZoneCounter : IDisposable
     // Best effort: a zone that went or changed meanwhile keeps what it has.
     private void Restore(Counting counting)
     {
-        var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == counting.DeviceId);
-        if (device is null || counting.ZoneIndex >= device.Zones.Count || device.Zones[counting.ZoneIndex].Key != counting.ZoneKey)
+        if (_lighting.FindDevice(counting.DeviceId) is not { } device
+            || !device.TryGetZone(counting.ZoneIndex, out var zone)
+            || zone.Key != counting.ZoneKey)
         {
             return;
         }
@@ -222,8 +223,8 @@ internal sealed class ZoneCounter : IDisposable
                 return;
             }
 
-            var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == counting.DeviceId);
-            var zone = device is not null && counting.ZoneIndex < device.Zones.Count ? device.Zones[counting.ZoneIndex] : null;
+            RgbZone? zone = null;
+            _ = _lighting.FindDevice(counting.DeviceId)?.TryGetZone(counting.ZoneIndex, out zone);
             if (zone is not null && zone.Key == counting.ZoneKey && zone.MaxLedCount == counting.LedCount)
             {
                 // At its longest, or any length while the longest is on its way: a list may still

@@ -21,6 +21,18 @@ public sealed class RgbDeviceTests
         Assert.Equal("zoneIndex", exception.ParamName);
     }
 
+    [Theory]
+    [InlineData(0, true)]
+    [InlineData(1, true)]
+    [InlineData(-1, false)]
+    [InlineData(2, false)]
+    public void TryGetZone_GivesTheZoneOnlyForAnIndexItHas(int zoneIndex, bool found)
+    {
+        Assert.Equal(found, Board.TryGetZone(zoneIndex, out var zone));
+
+        Assert.Equal(found ? Board.Zones[zoneIndex] : null, zone);
+    }
+
     [Fact]
     public void WithZoneLength_ChangesOnlyThatZoneAndTheTotal()
     {

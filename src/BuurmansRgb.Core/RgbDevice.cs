@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace BuurmansRgb.Core;
 
 public sealed record RgbDevice(string Id, string Name, DeviceType Type, IReadOnlyList<RgbZone> Zones, int LedCount)
@@ -22,6 +24,19 @@ public sealed record RgbDevice(string Id, string Name, DeviceType Type, IReadOnl
         ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
         ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, Zones.Count);
         return Zones[zoneIndex];
+    }
+
+    // False for an index the device has no zone at, instead of an exception.
+    public bool TryGetZone(int zoneIndex, [NotNullWhen(true)] out RgbZone? zone)
+    {
+        if (zoneIndex >= 0 && zoneIndex < Zones.Count)
+        {
+            zone = Zones[zoneIndex];
+            return true;
+        }
+
+        zone = null;
+        return false;
     }
 
     // The same device with another length for one zone; that zone must be able to hold it. The

@@ -54,6 +54,23 @@ public sealed record RgbZone(string Name, int LedCount, int MinLedCount, int Max
         return ranges;
     }
 
+    // The range of one zone, the same as RangesOf(zones, ledCount)[zoneIndex] but without building
+    // the array, so the render path and the locks can use it.
+    public static (int FirstLed, int LedCount) RangeOf(IReadOnlyList<RgbZone> zones, int ledCount, int zoneIndex)
+    {
+        ArgumentNullException.ThrowIfNull(zones);
+        ArgumentOutOfRangeException.ThrowIfNegative(ledCount);
+        ArgumentOutOfRangeException.ThrowIfNegative(zoneIndex);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(zoneIndex, zones.Count);
+        var first = 0;
+        for (var index = 0; index < zoneIndex; index++)
+        {
+            first += Math.Clamp(zones[index].LedCount, 0, ledCount - first);
+        }
+
+        return (first, Math.Clamp(zones[zoneIndex].LedCount, 0, ledCount - first));
+    }
+
     // The ranges of RangesOf, and then the LEDs after the last range, which belong to no zone, as
     // one more part, so every LED of the device is in one part: the part of a zone has its index,
     // the rest, when there is one, comes last at zones.Count. A device without zones is one part.
