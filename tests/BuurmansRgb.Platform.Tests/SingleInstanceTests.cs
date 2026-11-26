@@ -31,6 +31,24 @@ public sealed class SingleInstanceTests
         Assert.True(next.IsPrimary);
     }
 
+    // An engine or settings app of another version finds this one only by these names (a new
+    // installer over a running engine, "Herstarten"), so they never change.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public void Acquire_KernelObjectNames_AreFixed()
+    {
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
+
+        Assert.True(Mutex.TryOpenExisting($@"Local\{_name}", out var mutex));
+        Assert.True(EventWaitHandle.TryOpenExisting($@"Local\{_name}.Activate", out var activation));
+        Assert.True(EventWaitHandle.TryOpenExisting($@"Local\{_name}.Exit", out var exit));
+        Assert.True(EventWaitHandle.TryOpenExisting($@"Local\{_name}.Command", out var command));
+        mutex.Dispose();
+        activation.Dispose();
+        exit.Dispose();
+        command.Dispose();
+    }
+
     // The engine that "Herstarten" starts waits for the old one to exit.
     [Fact]
     public async Task AcquireWhenFree_FirstGoesAway_BecomesPrimary()
@@ -401,6 +419,94 @@ public sealed class SingleInstanceTests
         Assert.Equal(1, Volatile.Read(ref calls));
         Assert.Equal(2, await Task.Run(() => SingleInstance.SendCommand(_name, "bb", TestTimeouts.Short), Ct));
         Assert.Equal(2, Volatile.Read(ref calls));
+    }
+
+    // A --scene of another version: the turn, the answer signal and the mailbox exist while a
+    // command is on its way, by these names.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public async Task SendCommand_KernelObjectNames_AreFixed()
+    {
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
+        var found = new List<string>();
+        using var listening = primary.ListenForCommand(_ =>
+        {
+            if (Mutex.TryOpenExisting($@"Local\{_name}.CommandTurn", out var turn))
+            {
+                turn.Dispose();
+                found.Add("CommandTurn");
+            }
+
+            if (EventWaitHandle.TryOpenExisting($@"Local\{_name}.CommandAnswered", out var answered))
+            {
+                answered.Dispose();
+                found.Add("CommandAnswered");
+            }
+
+            try
+            {
+                System.IO.MemoryMappedFiles.MemoryMappedFile.OpenExisting($@"Local\{_name}.CommandMailbox").Dispose();
+                found.Add("CommandMailbox");
+            }
+            catch (FileNotFoundException)
+            {
+            }
+
+            return 1;
+        });
+
+        Assert.Equal(1, await Task.Run(() => SingleInstance.SendCommand(_name, "all-on", TestTimeouts.Short), Ct));
+
+        Assert.Equal(["CommandTurn", "CommandAnswered", "CommandMailbox"], found);
+    }
+
+    // The mailbox byte for byte, as a sender of another version writes it: the id at 0, the length
+    // in UTF-8 bytes at 4, the answer at 8 (the id in the low half, the answer in the high half) and
+    // the command at 16, at most 1024 bytes.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public async Task SendCommand_MailboxLayout_IsFixed()
+    {
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
+        using var listening = primary.ListenForCommand(command => command == "scène:Café" ? 7 : 0);
+        using var mailbox = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen($@"Local\{_name}.CommandMailbox", 16 + 1024);
+        using var view = mailbox.CreateViewAccessor();
+
+        Assert.Equal(7, await Task.Run(() => SingleInstance.SendCommand(_name, "scène:Café", TestTimeouts.Short), Ct));
+
+        var expected = System.Text.Encoding.UTF8.GetBytes("scène:Café");
+        var id = view.ReadInt32(0);
+        var command = new byte[expected.Length];
+        view.ReadArray(16, command, 0, command.Length);
+        Assert.NotEqual(0, id);
+        Assert.Equal(expected.Length, view.ReadInt32(4));
+        Assert.Equal(expected, command);
+        Assert.Equal((7L << 32) | (uint)id, view.ReadInt64(8));
+        Assert.Equal(1024, SingleInstance.MaxCommandBytes);
+    }
+
+    // The other way round: the listener answers a command written by hand in that layout.
+    [Fact]
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+    public async Task ListenForCommand_CommandInTheFixedLayout_IsAnswered()
+    {
+        using var primary = SingleInstance.Acquire(_name, acceptsCommands: true);
+        using var listening = primary.ListenForCommand(command => command == "all-off" ? 4 : 0);
+        using var answered = new EventWaitHandle(initialState: false, EventResetMode.AutoReset, $@"Local\{_name}.CommandAnswered");
+        using var mailbox = System.IO.MemoryMappedFiles.MemoryMappedFile.CreateOrOpen($@"Local\{_name}.CommandMailbox", 16 + 1024);
+        using var view = mailbox.CreateViewAccessor();
+        var bytes = System.Text.Encoding.UTF8.GetBytes("all-off");
+
+        view.Write(4, bytes.Length);
+        view.WriteArray(16, bytes, 0, bytes.Length);
+        view.Write(0, 12345);
+        using (var signal = EventWaitHandle.OpenExisting($@"Local\{_name}.Command"))
+        {
+            signal.Set();
+        }
+
+        Assert.True(await Task.Run(() => answered.WaitOne(TestTimeouts.Short), Ct));
+        Assert.Equal((4L << 32) | 12345u, view.ReadInt64(8));
     }
 
     [Fact]
