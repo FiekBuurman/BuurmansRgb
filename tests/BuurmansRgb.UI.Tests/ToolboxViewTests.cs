@@ -224,7 +224,7 @@ public sealed class ToolboxViewTests
         using var viewModel = await ConnectedViewModel.CreateAsync(fake =>
         {
             api = fake;
-            fake.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            fake.Effects = TestEffects.StaticAndRainbow;
             fake.Lighting[""] = fake.Lighting[""] with { EffectId = EffectIds.Rainbow };
         });
 

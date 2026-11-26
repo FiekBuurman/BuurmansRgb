@@ -380,7 +380,7 @@ public sealed class CustomEffectViewTests
         ConnectedViewModel.CreateAsync(api =>
         {
             effect ??= Disco;
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             api.CustomEffects = [effect];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId ?? effect.Id };
             arrange?.Invoke(api);

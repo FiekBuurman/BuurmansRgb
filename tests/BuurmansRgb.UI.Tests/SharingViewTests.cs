@@ -52,7 +52,7 @@ public sealed class SharingViewTests
         using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             api.CustomEffects = [disco];
             api.Lighting[""] = api.Lighting[""] with { EffectId = disco.Id };
         });

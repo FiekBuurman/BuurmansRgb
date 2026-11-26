@@ -95,7 +95,7 @@ public sealed class HeadingStructureViewTests
     {
         using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.Effects = TestEffects.StaticColorLoopAndComet;
             api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(new RgbColor(255, 0, 0), 1, 0)])];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
         });

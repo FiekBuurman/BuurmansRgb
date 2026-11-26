@@ -106,7 +106,7 @@ public sealed class AccessibleNamesViewTests
     {
         using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.Effects = TestEffects.StaticColorLoopAndComet;
             api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };
@@ -139,7 +139,7 @@ public sealed class AccessibleNamesViewTests
         using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [Board];
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
+            api.Effects = TestEffects.StaticColorLoopAndComet;
             api.CustomEffects = [TestEffects.Disco];
             api.CustomColors = [Red];
             api.Lighting[""] = api.Lighting[""] with { EffectId = effectId };

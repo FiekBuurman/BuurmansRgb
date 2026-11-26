@@ -392,7 +392,7 @@ public sealed class MainViewModelCustomEffectTests
     private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
         ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+            api.Effects = TestEffects.StaticAndRainbow;
             arrange?.Invoke(api);
         }, _connector);
 }

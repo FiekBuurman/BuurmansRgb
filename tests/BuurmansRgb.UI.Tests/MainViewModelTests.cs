@@ -849,7 +849,7 @@ public sealed class MainViewModelTests
     // An effect that uses no color of the device, so a mixed color is not put on.
     private static void UseRainbow(FakeEngineApi api)
     {
-        api.Effects = [EffectIds.Static, EffectIds.Rainbow];
+        api.Effects = TestEffects.StaticAndRainbow;
         api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.Rainbow };
     }
 

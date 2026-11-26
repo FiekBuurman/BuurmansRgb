@@ -179,7 +179,7 @@ public sealed class MainViewModelLampTests
     {
         var viewModel = await ConnectAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
+            api.Effects = TestEffects.StaticAndColorLoop;
             api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop };
             SwitchOff("fan")(api);
         });

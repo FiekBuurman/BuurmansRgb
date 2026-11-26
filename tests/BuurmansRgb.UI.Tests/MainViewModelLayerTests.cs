@@ -126,7 +126,7 @@ public sealed class MainViewModelLayerTests
     private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
         ConnectedViewModel.CreateAsync(api =>
         {
-            api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed];
+            api.Effects = TestEffects.StaticRainbowAndPerLed;
             arrange?.Invoke(api);
         }, _connector);
 }
