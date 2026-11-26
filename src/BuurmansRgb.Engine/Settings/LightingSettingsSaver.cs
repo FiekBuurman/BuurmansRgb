@@ -274,7 +274,7 @@ internal sealed class LightingSettingsSaver : IDisposable
                 _inFile = json;
                 succeeded = true;
             }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 _inFile = null;
                 if (!_disposed && ++_savesAgain <= MaxSavesAgain)

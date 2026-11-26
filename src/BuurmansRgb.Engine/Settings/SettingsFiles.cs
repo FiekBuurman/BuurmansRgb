@@ -63,7 +63,7 @@ internal sealed record SettingsFiles(string Folder)
             {
                 File.Delete(old);
             }
-            catch (Exception exception) when (JsonFile.IsAccessError(exception))
+            catch (Exception exception) when (FileErrors.IsAccessError(exception))
             {
                 Trace.TraceWarning($"Could not delete the old backup {old}: {exception.Message}");
             }

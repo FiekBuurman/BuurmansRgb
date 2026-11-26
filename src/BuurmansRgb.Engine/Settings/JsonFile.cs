@@ -18,7 +18,4 @@ internal static class JsonFile
         File.WriteAllBytes(tempPath, json);
         File.Move(tempPath, path, overwrite: true);
     }
-
-    public static bool IsAccessError(Exception exception) =>
-        exception is IOException or UnauthorizedAccessException;
 }

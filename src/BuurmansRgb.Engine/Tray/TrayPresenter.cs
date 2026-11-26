@@ -352,7 +352,7 @@ internal sealed class TrayPresenter(
             result = read(profiles);
             return true;
         }
-        catch (Exception exception) when (JsonFile.IsAccessError(exception))
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
             ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
             result = default!;
