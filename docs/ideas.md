@@ -933,9 +933,6 @@ uitbreidingen in `docs/bouwplan.md`.
   Nu staat hij op drie plekken, elk met een eigen reactie: `ProfileLibrary.SetDevices` gooit,
   `SharedFileReader` weigert het hele bestand en `ProfileSettings` laat de lijst met een regel in
   het log weg (refactorreview 18-11-2026)
-- `ProfileNames.Normalize` en `CustomEffects.NormalizeName` zijn gelijk, op hun eigen constante
-  voor de maximale lengte na (nu allebei 40); één gedeelde helper met de lengte erbij
-  (refactorreview 18-11-2026)
 - De grenzen van de twee `SameAs` gelijktrekken: `LedOverlayStore.SameAs` vergelijkt alleen de
   LED's die het apparaat nu heeft, maar `LedColorStore.SameAs` ook de per-LED-kleuren voorbij
   het eind van het apparaat. Een verschil dat je niet ziet (bijv. bewaard voor een zone die nu
