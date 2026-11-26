@@ -107,7 +107,7 @@ public sealed class EffectDescriptionViewTests
             FormattableString.Invariant($"{card.ActualHeight:0.0}"));
     }
 
-    private static Task<MainViewModel> ConnectWithAsync(string effectId) => PageViews.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectWithAsync(string effectId) => ConnectedViewModel.CreateAsync(api =>
     {
         api.Effects = TestEffects.AllEffects;
         api.CustomEffects = [TestEffects.Disco];

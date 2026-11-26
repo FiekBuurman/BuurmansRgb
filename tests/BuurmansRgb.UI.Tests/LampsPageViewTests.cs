@@ -20,7 +20,7 @@ public sealed class LampsPageViewTests
     [Fact]
     public async Task HowDevicesCome_SaysThatOpenRgbAddsTheDevicesAndGoesToTheExplanation()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -51,7 +51,7 @@ public sealed class LampsPageViewTests
     [Fact]
     public async Task SimulatedDevicesHint_OnlySimulatedDevices_IsReadOutWithoutASecondLink()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Simulated("sim-strip"), Simulated("sim-fan")]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Simulated("sim-strip"), Simulated("sim-fan")]);
 
         AppTheme.Run(panel =>
         {
@@ -73,7 +73,7 @@ public sealed class LampsPageViewTests
     [InlineData(false, SimulatedDevicesMode.Never)]
     public async Task SimulatedDevicesHint_RealDeviceOrAnotherMode_IsAway(bool withRealDevice, SimulatedDevicesMode mode)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = withRealDevice ? [TestDevices.Create("fan", "Fan", DeviceType.Fan, 2), Simulated("sim-strip")] : [Simulated("sim-strip")];
             api.SimulatedDevices = mode;
@@ -95,7 +95,7 @@ public sealed class LampsPageViewTests
     public async Task DevicesLost_NoDevicesOnAPcThatHadThem_IsTheEmptyStateUnderTheStatusLine()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [];
@@ -141,7 +141,7 @@ public sealed class LampsPageViewTests
     public async Task DevicesLost_AppearsWhileThePageIsOpen_LeavesTheReadingToTheStatusLine()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.HadRealDevices = true;
@@ -173,7 +173,7 @@ public sealed class LampsPageViewTests
     [InlineData(false, 0, true)]
     public async Task DevicesLost_WithADeviceOrWithoutRealDevicesEver_IsAway(bool hadRealDevices, int deviceCount, bool noLamps)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [.. Enumerable.Range(0, deviceCount).Select(i => Simulated($"sim-{i}"))];
             api.HadRealDevices = hadRealDevices;
@@ -192,7 +192,7 @@ public sealed class LampsPageViewTests
     [Fact]
     public async Task WholeHouseTimes_SceneWithMoreTimes_GreysOutUitOm()
     {
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
             engine.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(7, 0)), new LoadTime(new TimeOnly(23, 0))], OffScene: "Alles uit"));
 
         AppTheme.Run(panel =>
@@ -213,7 +213,7 @@ public sealed class LampsPageViewTests
     public async Task WholeHouseTimes_HaveNamesAndSwitches_AndEnterSendsTheTime()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], OffScene: "Alles uit");

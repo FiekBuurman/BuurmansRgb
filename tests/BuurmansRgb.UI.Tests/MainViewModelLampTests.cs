@@ -402,11 +402,6 @@ public sealed class MainViewModelLampTests
         }
     };
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, arrange));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi> arrange) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

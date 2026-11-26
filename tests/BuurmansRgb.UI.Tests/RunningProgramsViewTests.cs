@@ -17,7 +17,7 @@ public sealed class RunningProgramsViewTests
     [Fact]
     public async Task TheList_NamesEachProgramWithItsExeName()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Profiles.Add("Mail"), [new("olk.exe", "Outlook"), new("game.exe")]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Profiles.Add("Mail"), programs: [new("olk.exe", "Outlook"), new("game.exe")]);
 
         AppTheme.Run(panel =>
         {
@@ -38,7 +38,7 @@ public sealed class RunningProgramsViewTests
     [Fact]
     public async Task TheList_IsReadBeforeItFirstOpens()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Profiles.Add("Mail"), [new("olk.exe", "Outlook")]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Profiles.Add("Mail"), programs: [new("olk.exe", "Outlook")]);
 
         AppTheme.Run(panel =>
         {
@@ -59,7 +59,7 @@ public sealed class RunningProgramsViewTests
     [Fact]
     public async Task PickingAProgram_PutsItsExeNameInTheField()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Profiles.Add("Mail"), [new("olk.exe", "Outlook"), new("game.exe")]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Profiles.Add("Mail"), programs: [new("olk.exe", "Outlook"), new("game.exe")]);
 
         AppTheme.Run(panel =>
         {

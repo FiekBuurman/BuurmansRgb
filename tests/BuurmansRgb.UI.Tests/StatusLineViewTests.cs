@@ -29,7 +29,7 @@ public sealed class StatusLineViewTests
     public async Task PausedAndStill_PauseInTheLineAndThePreviewUnderDetails()
     {
         _animations.IsOn = false;
-        using var viewModel = await PageViews.ConnectAsync(api => api.Pause = PauseReasons.Manual, animationEffects: _animations);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Pause = PauseReasons.Manual, animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
@@ -86,7 +86,7 @@ public sealed class StatusLineViewTests
     public async Task ConnectionLost_TakesTheLineAndGivesItBackWhenItReturns()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.Pause = PauseReasons.Manual;
@@ -143,7 +143,7 @@ public sealed class StatusLineViewTests
     public async Task Hervatten_ResumesAndMovesTheFocusOn()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.Pause = PauseReasons.Manual;
@@ -172,7 +172,7 @@ public sealed class StatusLineViewTests
     {
         _animations.IsOn = false;
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.Pause = PauseReasons.Manual;
@@ -207,7 +207,7 @@ public sealed class StatusLineViewTests
     public async Task MessageUnderDetailsGoes_FocusMovesOnToThePage()
     {
         _animations.IsOn = false;
-        using var viewModel = await PageViews.ConnectAsync(engine => engine.Pause = PauseReasons.Manual, animationEffects: _animations);
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine => engine.Pause = PauseReasons.Manual, animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
@@ -236,7 +236,7 @@ public sealed class StatusLineViewTests
     {
         _animations.IsOn = false;
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.HadRealDevices = true;
@@ -269,7 +269,7 @@ public sealed class StatusLineViewTests
     public async Task ActionGoes_FocusMovesOnToThePage(bool pausedByWindows)
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.Pause = pausedByWindows ? PauseReasons.Locked : PauseReasons.None;
@@ -299,7 +299,7 @@ public sealed class StatusLineViewTests
     public async Task PauseComes_LineAppearsOnKleurAndIsReadOut()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine => api = engine);
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine => api = engine);
 
         AppTheme.Run(panel =>
         {
@@ -327,7 +327,7 @@ public sealed class StatusLineViewTests
     public async Task OtherRgbSoftware_InTheLineAndNietMeerMeldenMovesTheFocusOn()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.Pause = PauseReasons.Manual;
@@ -366,7 +366,7 @@ public sealed class StatusLineViewTests
     [Fact]
     public async Task OtherRgbSoftware_UitlegUnfoldsTheExplanationInTheLine()
     {
-        using var viewModel = await PageViews.ConnectAsync(engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")], guideAddress: null);
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")], guideAddress: null);
 
         AppTheme.Run(panel =>
         {
@@ -410,7 +410,7 @@ public sealed class StatusLineViewTests
     public async Task OtherRgbSoftware_UitlegUnderDetailsWithTheLinkToTheGuide()
     {
         var opened = new List<string>();
-        using var viewModel = await PageViews.ConnectAsync(
+        using var viewModel = await ConnectedViewModel.CreateAsync(
             engine => engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")],
             opened: opened,
             guideAddress: "https://example.org/handleiding");
@@ -446,7 +446,7 @@ public sealed class StatusLineViewTests
     public async Task OtherRgbSoftwareStops_FocusOnUitlegMovesOnToThePage()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
@@ -473,7 +473,7 @@ public sealed class StatusLineViewTests
     public async Task OtherRgbSoftwareStops_FocusOnTheGuideLinkMovesOnToThePage()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB")];
@@ -503,7 +503,7 @@ public sealed class StatusLineViewTests
     public async Task OtherRgbSoftwareUnderDetailsStops_FocusOnUitlegMovesOnToThePage()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.OtherRgbSoftware = [new OtherRgbSoftware("signalrgb", "SignalRGB"), new OtherRgbSoftware("icue", "Corsair iCUE")];
@@ -534,7 +534,7 @@ public sealed class StatusLineViewTests
     [Fact]
     public async Task OpenRgbUnreachable_WithoutRealDevices_NoLine()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
 
         AppTheme.Run(panel =>
         {

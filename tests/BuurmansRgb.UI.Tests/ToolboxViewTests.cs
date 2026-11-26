@@ -22,7 +22,7 @@ public sealed class ToolboxViewTests
     [InlineData(960)]
     public async Task Presets_AreSmallSquaresInRows(double width)
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -45,7 +45,7 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Presets_TakeTheFocusHaveTheirNameAndMixTheirColor()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -67,7 +67,7 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Add_PutsTheCurrentColorInATile()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -91,7 +91,7 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Add_MovesTheFocusToTheNewTile()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.CustomColors = [Red]);
 
         AppTheme.Run(panel =>
         {
@@ -115,7 +115,7 @@ public sealed class ToolboxViewTests
     public async Task OtherColorsFromTheEngine_KeepTheFocusOnItsColor()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api => (engine = api).CustomColors = [Red, Blue]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => (engine = api).CustomColors = [Red, Blue]);
         var green = new RgbColor(0, 255, 0);
 
         AppTheme.Run(panel =>
@@ -137,7 +137,7 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task Delete_RemovesTheTileAndMovesTheFocusOn()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red, Blue]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.CustomColors = [Red, Blue]);
 
         AppTheme.Run(panel =>
         {
@@ -162,7 +162,7 @@ public sealed class ToolboxViewTests
     [Fact]
     public async Task ContextMenuRemove_RemovesTheTileAndFocusesTheOneBefore()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.CustomColors = [Red, Blue]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.CustomColors = [Red, Blue]);
 
         AppTheme.Run(panel =>
         {
@@ -190,7 +190,7 @@ public sealed class ToolboxViewTests
     public async Task Tiles_PutTheirColorOnAtOnce_WithoutAButton()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(fake =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(fake =>
         {
             api = fake;
             fake.CustomColors = [new RgbColor(1, 2, 3)];
@@ -221,7 +221,7 @@ public sealed class ToolboxViewTests
     public async Task Rainbow_ShowsOneSentenceInsteadOfTheMixingPanel()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(fake =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(fake =>
         {
             api = fake;
             fake.Effects = [EffectIds.Static, EffectIds.Rainbow];

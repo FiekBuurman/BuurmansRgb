@@ -125,11 +125,6 @@ public sealed class MainViewModelDirectionTests
         Assert.Equal(EffectDirection.Max, MainViewModel.MaxDirection);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, arrange ?? (_ => { })));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

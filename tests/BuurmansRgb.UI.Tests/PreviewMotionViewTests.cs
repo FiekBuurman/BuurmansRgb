@@ -26,7 +26,7 @@ public sealed class PreviewMotionViewTests
     public async Task LampsPage_AnimationsOff_SaysSoWithAButtonTabReaches()
     {
         _animations.IsOn = false;
-        using var viewModel = await PageViews.ConnectAsync(animationEffects: _animations);
+        using var viewModel = await ConnectedViewModel.CreateAsync(animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
@@ -51,7 +51,7 @@ public sealed class PreviewMotionViewTests
     public async Task LetRun_SaysItRunsAndKeepsTheFocus()
     {
         _animations.IsOn = false;
-        using var viewModel = await PageViews.ConnectAsync(animationEffects: _animations);
+        using var viewModel = await ConnectedViewModel.CreateAsync(animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
@@ -76,7 +76,7 @@ public sealed class PreviewMotionViewTests
     [Fact]
     public async Task AnimationsTurnedOff_LineComesOnTheOpenPage()
     {
-        using var viewModel = await PageViews.ConnectAsync(animationEffects: _animations);
+        using var viewModel = await ConnectedViewModel.CreateAsync(animationEffects: _animations);
 
         AppTheme.Run(panel =>
         {
@@ -104,7 +104,7 @@ public sealed class PreviewMotionViewTests
     public async Task Kleur_FlashWhileStill_ShowsAMarkAndNoWhite()
     {
         _animations.IsOn = false;
-        using var viewModel = await PageViews.ConnectAsync(
+        using var viewModel = await ConnectedViewModel.CreateAsync(
             api => api.Frame = new LightingFrame(1, [DeviceFrame.FromColors("strip", [Red, Red, Red]), DeviceFrame.FromColors("fan", [Red, Red])]),
             animationEffects: _animations);
 

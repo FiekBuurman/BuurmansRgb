@@ -99,7 +99,7 @@ public sealed class ToggleSwitchTests
     [Fact]
     public async Task Pages_HaveOnlySwitchesThatSayOnOrOff()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {

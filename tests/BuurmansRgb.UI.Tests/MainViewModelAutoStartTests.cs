@@ -123,11 +123,6 @@ public sealed class MainViewModelAutoStartTests
         Assert.Empty(Api.Calls);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => arrange?.Invoke(api)));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector);
 }

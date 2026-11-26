@@ -14,7 +14,7 @@ public sealed class DeviceChoiceViewTests
     [Fact]
     public async Task DeviceChoice_MutesTheLocationWithoutABindingError()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
         using var errors = BindingErrors.Listen();
 
         AppTheme.Run(panel =>

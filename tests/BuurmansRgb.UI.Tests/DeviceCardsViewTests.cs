@@ -33,7 +33,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task Head_IsTheCardForAScreenReaderAndOpensWithEnterAndTheArrows()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -71,7 +71,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task ClosedCard_HasTwoTabStops()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -91,7 +91,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task WholeHouse_BeginsWithEveryCardClosed()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip, Fan]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip, Fan]);
 
         AppTheme.Run(panel =>
         {
@@ -113,7 +113,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task Links_OpenAndCloseEveryCardAndKeepTheFocus()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip, Fan]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip, Fan]);
 
         AppTheme.Run(panel =>
         {
@@ -147,7 +147,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task Chips_AreOneTabStopWithTheArrows()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip, Fan]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip, Fan]);
 
         AppTheme.Run(panel =>
         {
@@ -188,7 +188,7 @@ public sealed class DeviceCardsViewTests
     public async Task Chip_OpensTheCardPutsItAtTheTopAndFocusesItsHead()
     {
         DeviceInfo[] devices = [.. Enumerable.Range(1, 8).Select(i => TestDevices.Create($"d{i}", $"Apparaat {i}", DeviceType.LedStrip, 30)), Argb];
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = devices);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = devices);
 
         AppTheme.Run(panel =>
         {
@@ -223,7 +223,7 @@ public sealed class DeviceCardsViewTests
     public async Task Collapse_WhileCounting_StopsTheCountAndKeepsTheFocusOnTheHead()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip];
@@ -255,7 +255,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task OpenCard_StaysOpenAfterAnotherPageAndAnotherDevice()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip, Fan]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip, Fan]);
 
         AppTheme.Run(panel =>
         {
@@ -287,7 +287,7 @@ public sealed class DeviceCardsViewTests
     [InlineData(false)]
     public async Task OneDevice_ShowsTheCardThatIsAlwaysOpen(bool chooseOne)
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = chooseOne ? [Argb, Strip] : [Argb]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = chooseOne ? [Argb, Strip] : [Argb]);
 
         AppTheme.Run(panel =>
         {
@@ -320,7 +320,7 @@ public sealed class DeviceCardsViewTests
     public async Task DeviceGoes_WithTheFocusInItsCard_TheNextHeadGetsIt()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip, Fan];
@@ -347,7 +347,7 @@ public sealed class DeviceCardsViewTests
     public async Task LastDeviceGoes_WithTheFocusInItsCard_ThePreviousHeadGetsIt()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip, Fan];
@@ -374,7 +374,7 @@ public sealed class DeviceCardsViewTests
     public async Task EveryDeviceGoes_WithTheFocusInACard_TheDeviceChoiceGetsIt()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip];
@@ -402,7 +402,7 @@ public sealed class DeviceCardsViewTests
     public async Task DeviceComesBack_TheFocusStaysOnTheSamePlace(bool onStepper)
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip];
@@ -433,7 +433,7 @@ public sealed class DeviceCardsViewTests
     public async Task DevicesComeAgain_TheFocusStaysOnTheSameChip()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(arranged =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(arranged =>
         {
             api = arranged;
             arranged.Devices = [Argb, Strip, Fan];
@@ -459,7 +459,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task NoDevices_ShowsOnlyTheLineHowToFindThem()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = []);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = []);
 
         AppTheme.Run(panel =>
         {
@@ -477,7 +477,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task ClosedCard_ShowsTheMarkOfAFlash()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -495,7 +495,7 @@ public sealed class DeviceCardsViewTests
     [Fact]
     public async Task LargeText_PutsTheStripAndKnipperenUnderTheName()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Argb, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Argb, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -521,7 +521,7 @@ public sealed class DeviceCardsViewTests
     public async Task SmallStrip_FollowsTheDeviceAndIsSkippedByAScreenReader()
     {
         var orange = new RgbColor(255, 154, 61);
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [Argb, Strip];
             api.Frame = new LightingFrame(1, [DeviceFrame.FromColors(Argb.Id, [.. Enumerable.Repeat(orange, Argb.LedCount)])]);

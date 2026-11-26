@@ -19,7 +19,7 @@ public sealed class PreviewActionsHintViewTests
     [Fact]
     public async Task PausedFromTheTrayMenu_OneLineWithHervattenAboveTheCards()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Pause = PauseReasons.Manual);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Pause = PauseReasons.Manual);
 
         AppTheme.Run(panel =>
         {
@@ -51,7 +51,7 @@ public sealed class PreviewActionsHintViewTests
     [InlineData(PauseReasons.DisplayOff, "Knipperen en Tellen kunnen niet zolang de effecten gepauzeerd zijn omdat het scherm uit is.")]
     public async Task PausedByWindows_NamesTheReasonWithoutAButton(PauseReasons reasons, string text)
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Pause = reasons);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Pause = reasons);
 
         AppTheme.Run(panel =>
         {
@@ -70,7 +70,7 @@ public sealed class PreviewActionsHintViewTests
     public async Task PauseComesAndGoes_LineFollowsAndIsReadOut()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine => api = engine);
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine => api = engine);
 
         AppTheme.Run(panel =>
         {
@@ -100,7 +100,7 @@ public sealed class PreviewActionsHintViewTests
     [Fact]
     public async Task PausedWithoutDevices_ShowsNoLine()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Pause = PauseReasons.Manual;
             api.Devices = [];

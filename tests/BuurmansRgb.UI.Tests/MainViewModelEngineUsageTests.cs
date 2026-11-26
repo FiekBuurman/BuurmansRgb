@@ -77,11 +77,6 @@ public sealed class MainViewModelEngineUsageTests
         Assert.False(_meter.IsDisposed);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api => arrange?.Invoke(api)), processMeter: _meter);
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(arrange, _connector, processMeter: _meter);
 }

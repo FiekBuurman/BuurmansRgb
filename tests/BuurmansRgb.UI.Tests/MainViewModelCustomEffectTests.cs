@@ -389,15 +389,10 @@ public sealed class MainViewModelCustomEffectTests
         arrange?.Invoke(api);
     });
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.Rainbow];
             arrange?.Invoke(api);
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }

@@ -19,7 +19,7 @@ public sealed class HeadingStructureViewTests
     [Fact]
     public async Task LampsPage_HasTheWordMarkTheBlocksAndTheDevices()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -55,7 +55,7 @@ public sealed class HeadingStructureViewTests
     [Fact]
     public async Task SettingsPage_HasTheTitleAndEveryBlock()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -93,7 +93,7 @@ public sealed class HeadingStructureViewTests
     [InlineData("custom:disco", "2 Jouw effect")]
     public async Task ColorPage_HasTheTitleTheBlocksAndTheDevicesOfThePreview(string effectId, string colorCard)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.ColorLoop, EffectIds.Comet];
             api.CustomEffects = [new CustomEffect("custom:disco", "Disco", [new CustomEffectStep(new RgbColor(255, 0, 0), 1, 0)])];
@@ -125,7 +125,7 @@ public sealed class HeadingStructureViewTests
     [Fact]
     public async Task ScenesPage_HasTheTitleTheScenesAndTheChosenScene()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Profiles.Add("Avond"));
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Profiles.Add("Avond"));
 
         AppTheme.Run(panel =>
         {

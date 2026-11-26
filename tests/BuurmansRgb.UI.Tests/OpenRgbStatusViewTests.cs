@@ -19,7 +19,7 @@ public sealed class OpenRgbStatusViewTests
     [Fact]
     public async Task Connected_SaysHowManyDevicesWithTheTechnicalStatusInTheToolTip()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Connected, 2));
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Connected, 2));
 
         AppTheme.Run(panel =>
         {
@@ -41,7 +41,7 @@ public sealed class OpenRgbStatusViewTests
     public async Task Unreachable_SaysNoConnectionWithHerstartenThatAsksTheEngine()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
@@ -81,7 +81,7 @@ public sealed class OpenRgbStatusViewTests
     public async Task ConnectedWhileOpen_StatusFollowsAndHerstartenGoes()
     {
         FakeEngineApi? api = null;
-        using var viewModel = await PageViews.ConnectAsync(engine =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(engine =>
         {
             api = engine;
             engine.OpenRgbStatus = new ServerStatus(ServerState.Unreachable);
@@ -108,7 +108,7 @@ public sealed class OpenRgbStatusViewTests
     [Fact]
     public async Task Unreachable_WithoutRealDevicesEver_StaysCalmWithoutHerstarten()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Unreachable));
 
         AppTheme.Run(panel =>
         {
@@ -125,7 +125,7 @@ public sealed class OpenRgbStatusViewTests
     [Fact]
     public async Task Settings_SpellsOutTheTechnicalStatusWithHerstarten()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Failed));
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.OpenRgbStatus = new ServerStatus(ServerState.Failed));
 
         AppTheme.Run(panel =>
         {

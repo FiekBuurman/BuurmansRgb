@@ -123,7 +123,7 @@ public sealed class ColorListEditorViewTests
     private static List<Button> Tiles(ColorListEditor view) =>
         [.. AppTheme.Descendants<Button>(view).Where(button => button.DataContext is ColorSwatch)];
 
-    private static Task<MainViewModel> ConnectAsync(string effectId, EffectColors colors) => PageViews.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectAsync(string effectId, EffectColors colors) => ConnectedViewModel.CreateAsync(api =>
     {
         api.Effects = [EffectIds.Static, EffectIds.Comet];
         api.Lighting[""] = api.Lighting[""] with { EffectId = effectId, EffectColors = colors };

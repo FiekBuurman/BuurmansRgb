@@ -21,7 +21,7 @@ public sealed class LedLayerViewTests
     [Fact]
     public async Task ChosenLeds_ShowWhereTheColorGoes()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed]);
 
         AppTheme.Run(panel =>
         {
@@ -61,7 +61,7 @@ public sealed class LedLayerViewTests
     [Fact]
     public async Task ChooseTheLayer_ChangesTheChoiceAndTheHint()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed]);
 
         AppTheme.Run(panel =>
         {
@@ -84,7 +84,7 @@ public sealed class LedLayerViewTests
     [Fact]
     public async Task TheChoiceAndLaagWeghalen_AreReachedWithTab()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.PerLed];
             api.Overlays["strip"] = [new RgbColor(255, 0, 0), null, null];

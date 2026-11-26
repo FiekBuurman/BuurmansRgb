@@ -445,17 +445,12 @@ public sealed class MainViewModelStillPreviewTests
         Assert.Equal([RgbColor.White, RgbColor.White], FanColors(viewModel));
     }
 
-    private async Task<MainViewModel> ConnectAsync(LightingFrame frame, TimeSpan? sceneFade = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(LightingFrame frame, TimeSpan? sceneFade = null) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             api.Frame = frame;
             api.SceneFade = sceneFade ?? SceneFade.Default;
-        }), _time, animationEffects: _animations);
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector, _time, animationEffects: _animations);
 
     private static IReadOnlyList<RgbColor> FanColors(MainViewModel viewModel) =>
         viewModel.Preview.Devices.Single(device => device.DeviceId == "fan").Colors;

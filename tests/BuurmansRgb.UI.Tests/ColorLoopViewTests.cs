@@ -18,7 +18,7 @@ public sealed class ColorLoopViewTests
     [InlineData(1240)]
     public async Task Spread_ShowsItsWholeText(double windowWidth)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.ColorLoop];
             api.Lighting[""] = api.Lighting[""] with { EffectId = EffectIds.ColorLoop };

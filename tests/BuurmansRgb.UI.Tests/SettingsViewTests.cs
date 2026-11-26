@@ -20,7 +20,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task Page_HasNoCardOpslaan()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -40,7 +40,7 @@ public sealed class SettingsViewTests
     public async Task SleepBlock_IsFirst_WithTheChoiceInPlainWords()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.PausedLights = PausedLightsMode.Dim;
@@ -76,7 +76,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task SleepBlock_WithoutThePause_GreysTheChoiceAndSaysWhy()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.PauseOnLockAndSleep = false);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.PauseOnLockAndSleep = false);
 
         AppTheme.Run(panel =>
         {
@@ -119,7 +119,7 @@ public sealed class SettingsViewTests
     public async Task AfterRestartBlock_SaysWhatComesBackAndTurnsOnAutoStart()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.Profiles.Add("Gamen");
@@ -165,7 +165,7 @@ public sealed class SettingsViewTests
     public async Task AfterRestartBlock_FollowsTheSceneThatEnds()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.Profiles.Add("Gamen");
@@ -193,7 +193,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task AfterRestartBlock_ScreenReaderSkipsTheBullets()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -218,7 +218,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task AfterRestartBlock_SaysASceneTimeComesOnWithCatchUp()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Profiles.Add("Nacht");
             api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
@@ -246,7 +246,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task AfterRestartBlock_NamesTheTimesOfHeleHuis()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.WholeHouseTimes = new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))]);
             api.CatchUpSceneTimes = true;
@@ -278,7 +278,7 @@ public sealed class SettingsViewTests
     public async Task AutoStart_IsASwitchThatFollowsTheEngine()
     {
         FakeEngineApi? engine = null;
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             engine = api;
             api.AutoStart = true;
@@ -306,7 +306,7 @@ public sealed class SettingsViewTests
     public async Task OpenLog_OpensTheLogOfTheEngine()
     {
         var opened = new List<string>();
-        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+        using var viewModel = await ConnectedViewModel.CreateAsync(opened: opened);
 
         AppTheme.Run(panel =>
         {
@@ -325,7 +325,7 @@ public sealed class SettingsViewTests
     public async Task OpenDataFolder_OpensTheFolderOfTheEngine()
     {
         var opened = new List<string>();
-        using var viewModel = await PageViews.ConnectAsync(opened: opened);
+        using var viewModel = await ConnectedViewModel.CreateAsync(opened: opened);
 
         AppTheme.Run(panel =>
         {
@@ -344,7 +344,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task Backup_HasItsTwoButtons()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -367,7 +367,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task EngineUsage_HasANameButIsNoLiveRegion()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -387,7 +387,7 @@ public sealed class SettingsViewTests
     [Fact]
     public async Task Bottom_ShowsTheVersionWithoutAGuideToOpen()
     {
-        using var viewModel = await PageViews.ConnectAsync(guideAddress: null);
+        using var viewModel = await ConnectedViewModel.CreateAsync(guideAddress: null);
 
         AppTheme.Run(panel =>
         {
@@ -408,7 +408,7 @@ public sealed class SettingsViewTests
     {
         const string guideAddress = @"C:\Program Files\BuurmansRgb\handleiding.html";
         var opened = new List<string>();
-        using var viewModel = await PageViews.ConnectAsync(opened: opened, guideAddress: guideAddress);
+        using var viewModel = await ConnectedViewModel.CreateAsync(opened: opened, guideAddress: guideAddress);
 
         AppTheme.Run(panel =>
         {

@@ -338,15 +338,10 @@ public sealed class MainViewModelEffectColorsTests
         Assert.Contains("ronde", hints[1], StringComparison.Ordinal);
     }
 
-    private async Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null)
-    {
-        var viewModel = new MainViewModel(new ArrangingConnector(_connector, api =>
+    private Task<MainViewModel> ConnectAsync(Action<FakeEngineApi>? arrange = null) =>
+        ConnectedViewModel.CreateAsync(api =>
         {
             api.Effects = [EffectIds.Static, EffectIds.Rainbow, EffectIds.ColorLoop, EffectIds.Twinkle, EffectIds.Comet, EffectIds.Scanner, EffectIds.Fire, EffectIds.PerLed];
             arrange?.Invoke(api);
-        }));
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+        }, _connector);
 }

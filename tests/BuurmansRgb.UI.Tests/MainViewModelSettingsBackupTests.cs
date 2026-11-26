@@ -268,12 +268,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         return path;
     }
 
-    private async Task<MainViewModel> ConnectAsync(TimeProvider? time = null)
-    {
-        var viewModel = new MainViewModel(_connector, time);
-        await viewModel.ConnectCommand.ExecuteAsync(null);
-        Assert.True(viewModel.IsConnected);
-        return viewModel;
-    }
+    private Task<MainViewModel> ConnectAsync(TimeProvider? time = null) =>
+        ConnectedViewModel.CreateAsync(connector: _connector, time: time);
 }
 

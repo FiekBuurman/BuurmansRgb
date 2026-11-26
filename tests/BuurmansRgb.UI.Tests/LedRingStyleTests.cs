@@ -74,7 +74,7 @@ public sealed class LedRingStyleTests
     [Fact]
     public async Task ContrastTheme_StripOfColorPage_KeepsTheRingOfTheDesign()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {
@@ -108,7 +108,7 @@ public sealed class LedRingStyleTests
     [Fact]
     public async Task ContrastTheme_BulbsOnACardButton_GetTheTextColorOfAButton()
     {
-        using var viewModel = await PageViews.ConnectAsync();
+        using var viewModel = await ConnectedViewModel.CreateAsync();
 
         AppTheme.Run(panel =>
         {

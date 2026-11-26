@@ -34,7 +34,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task ColorPage_ZoneKnobs_KeepTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board]);
 
         AppTheme.Run(panel =>
         {
@@ -59,7 +59,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task ColorPage_DeviceCards_KeepTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -75,7 +75,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task ColorPage_CustomEffect_KeepsTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [Board];
             api.CustomEffects = [TestEffects.Disco with { Id = "custom:my_effect", Name = "Mijn_effect" }];
@@ -94,7 +94,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task LampsPage_KeepsTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api => api.Devices = [Board, Strip]);
+        using var viewModel = await ConnectedViewModel.CreateAsync(api => api.Devices = [Board, Strip]);
 
         AppTheme.Run(panel =>
         {
@@ -109,7 +109,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task ScenesPage_KeepsTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(
+        using var viewModel = await ConnectedViewModel.CreateAsync(
             api =>
             {
                 api.Devices = [Board, Strip];
@@ -140,7 +140,7 @@ public sealed class UnderscoreNamesViewTests
     [Fact]
     public async Task SettingsPage_KeepsTheUnderscores()
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [Board, Strip];
             api.Profiles.Add("Avond_licht");

@@ -151,7 +151,7 @@ public sealed class TextScaleViewTests
     public async Task LongDeviceName_EndsInAnEllipsisWithinThePage(double factor)
     {
         const string name = "Corsair iCUE LINK System Hub met de hele lange naam die iemand in OpenRGB gaf";
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
             api.Devices = [TestDevices.Create("hub", name, DeviceType.LedStrip, 30)]);
 
         Show(viewModel, factor, window =>
@@ -197,7 +197,7 @@ public sealed class TextScaleViewTests
     [InlineData(2.25, 22.0, 60)]
     public async Task KeyboardWithKeyText_FitsThePageAtTheTextSize(double factor, double minKey, int minShown)
     {
-        using var viewModel = await PageViews.ConnectAsync(api =>
+        using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Devices = [TestKeyboards.Create()];
             api.Effects = [EffectIds.Static, EffectIds.PerLed];
@@ -255,7 +255,7 @@ public sealed class TextScaleViewTests
         }
     });
 
-    private static Task<MainViewModel> ConnectAsync() => PageViews.ConnectAsync(api =>
+    private static Task<MainViewModel> ConnectAsync() => ConnectedViewModel.CreateAsync(api =>
     {
         api.Devices =
         [
