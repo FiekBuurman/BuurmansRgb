@@ -926,9 +926,9 @@ uitbreidingen in `docs/bouwplan.md`.
   `ontwikkelaars.md`). `AnimationLoop.Period` kan al veranderen (bij `framesPerSecond`); de
   controller moet dan bij elke wijziging nagaan of er naast de telling een bewegend effect of een
   flits loopt, en een stap mag niet later komen dan nu
-- `ProcessImageName` en `ShellLauncher` uit `BuurmansRgb.Contracts` naar een eigen gedeeld
-  project voor Windows-code van engine en app; nu staan ze bij de IPC-contracten omdat beide ze
-  gebruiken. Pas oppakken als er meer van zulke Windows-code bij komt
+- `tests/Shared/TestColors.cs` alleen meebouwen in testprojecten die `BuurmansRgb.Core` kennen,
+  zodat `BuurmansRgb.Platform.Tests` geen verwijzing naar `Core` meer nodig heeft; nu heeft het
+  die alleen voor `TestColors` (contracts-zonder-infrastructuur, refactorplan 26-11-2026)
 - De regie van terugzetten (`Restore`, `Replace`, `Remove`, `ReplaceSettings`, `PutBack` en
   `FlushSaves`) uit `EngineHost` naar een eigen klasse, zoals het lezen en de kopieën in
   `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
@@ -965,7 +965,7 @@ uitbreidingen in `docs/bouwplan.md`.
   geen netwerkcode (testpanel 1-11-2026, Noor, Kees en Bram)
 - Meer opdrachten naast `--scene`, `--all-on` en `--all-off` (`scene-commandline`): bijv.
   `--pause` en `--resume` voor "Effecten pauzeren", of `--toggle` voor één Stream Deck-knop die
-  alles aan of uit zet. Gaan over hetzelfde kanaal (`SingleInstance.SendCommand`), met een eigen
+  alles aan of uit zet. Gaan over hetzelfde kanaal (`CommandMailbox.Send`), met een eigen
   bericht in `EngineCommand`
 - Een opdracht die in de eerste seconden na het starten van de engine komt (exitcode 3), laten
   wachten tot de opgeslagen verlichting staat in plaats van hem te weigeren, zoals een opdracht
