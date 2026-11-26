@@ -57,6 +57,7 @@ public sealed class ColorLoopEffect : IDirectedEffect
     }
 
     // position 0 is the first color, 1/n the second and so on; 1 is the first again.
+    // Takes the shifted position, not (place, seconds): that measured about 5 % slower here.
     private RgbColor ColorAt(double position)
     {
         var scaled = (position - Math.Floor(position)) * _colors.Length;
