@@ -12,7 +12,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[8];
 
-        new ScannerEffect(Orange).Render(leds, TimeSpan.Zero);
+        new ScannerEffect([Orange]).Render(leds, TimeSpan.Zero);
 
         Assert.Equal([Orange, .. Dark(7)], leds);
     }
@@ -24,7 +24,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[8];
 
-        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.25));
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.25));
 
         RgbAssert.Close([.. Dark(2), Orange.Scale(1.0 / 16.0), Orange.Scale(9.0 / 16.0), Orange.Scale(0.5), .. Dark(3)], leds);
     }
@@ -34,7 +34,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[8];
 
-        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.5));
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.5));
 
         Assert.Equal([.. Dark(7), Orange], leds);
     }
@@ -44,7 +44,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[8];
 
-        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.75));
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.75));
 
         RgbAssert.Close([.. Dark(3), Orange.Scale(0.5), Orange.Scale(9.0 / 16.0), Orange.Scale(1.0 / 16.0), .. Dark(2)], leds);
     }
@@ -59,8 +59,8 @@ public sealed class ScannerEffectTests
         var backwards = new RgbColor[8];
         var forwards = new RgbColor[8];
 
-        new ScannerEffect(Orange, scansPerSecond: -1.0).Render(backwards, TimeSpan.FromSeconds(seconds));
-        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(forwards, TimeSpan.FromSeconds(seconds));
+        new ScannerEffect([Orange], scansPerSecond: -1.0).Render(backwards, TimeSpan.FromSeconds(seconds));
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(forwards, TimeSpan.FromSeconds(seconds));
 
         RgbAssert.Close(forwards, backwards);
     }
@@ -71,7 +71,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[8];
 
-        new ScannerEffect(Orange, scansPerSecond: 0.0).Render(leds, TimeSpan.FromSeconds(3));
+        new ScannerEffect([Orange], scansPerSecond: 0.0).Render(leds, TimeSpan.FromSeconds(3));
 
         Assert.Equal([Orange, .. Dark(7)], leds);
     }
@@ -81,7 +81,7 @@ public sealed class ScannerEffectTests
     {
         var start = new RgbColor[12];
         var later = new RgbColor[12];
-        var effect = new ScannerEffect(Orange);
+        var effect = new ScannerEffect([Orange]);
 
         effect.Render(start, TimeSpan.FromSeconds(0.3));
         effect.Render(later, TimeSpan.FromSeconds(0.3 + 1.0 / ScannerEffect.DefaultScansPerSecond));
@@ -95,8 +95,8 @@ public sealed class ScannerEffectTests
         var fast = new RgbColor[30];
         var normal = new RgbColor[30];
 
-        new ScannerEffect(Orange, scansPerSecond: 1.0).Render(fast, TimeSpan.FromSeconds(0.375));
-        new ScannerEffect(Orange, scansPerSecond: 0.5).Render(normal, TimeSpan.FromSeconds(0.75));
+        new ScannerEffect([Orange], scansPerSecond: 1.0).Render(fast, TimeSpan.FromSeconds(0.375));
+        new ScannerEffect([Orange], scansPerSecond: 0.5).Render(normal, TimeSpan.FromSeconds(0.75));
 
         Assert.Equal(normal, fast);
         Assert.Contains(normal, led => led.R > 150);
@@ -107,7 +107,7 @@ public sealed class ScannerEffectTests
     [Fact]
     public void Render_OneLed_LightsUpTwicePerScan()
     {
-        var levels = EffectSamples.Levels(new ScannerEffect(Orange, scansPerSecond: 1.0), 1, 0, TimeSpan.Zero, TimeSpan.FromSeconds(1), Step);
+        var levels = EffectSamples.Levels(new ScannerEffect([Orange], scansPerSecond: 1.0), 1, 0, TimeSpan.Zero, TimeSpan.FromSeconds(1), Step);
 
         Assert.Equal(0, levels[0]);
         Assert.Equal(255, levels[50]);
@@ -119,7 +119,7 @@ public sealed class ScannerEffectTests
     public void Render_TwoLeds_TakeTurns()
     {
         var leds = new RgbColor[2];
-        var effect = new ScannerEffect(Orange, scansPerSecond: 1.0);
+        var effect = new ScannerEffect([Orange], scansPerSecond: 1.0);
 
         effect.Render(leds, TimeSpan.Zero);
         Assert.Equal([Orange, RgbColor.Black], leds);
@@ -138,7 +138,7 @@ public sealed class ScannerEffectTests
     {
         var leds = new RgbColor[20];
 
-        new ScannerEffect(Orange, scansPerSecond: 3.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new ScannerEffect([Orange], scansPerSecond: 3.0).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.Contains(leds, led => led.R > 120);
     }
@@ -146,7 +146,7 @@ public sealed class ScannerEffectTests
     [Fact]
     public void Render_NoLeds_DoesNothing()
     {
-        new ScannerEffect(Orange).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
+        new ScannerEffect([Orange]).Render(Span<RgbColor>.Empty, TimeSpan.FromSeconds(1));
     }
 
     // A list of one color is the scanner of that color, as it was before the list: these are the
@@ -174,7 +174,7 @@ public sealed class ScannerEffectTests
 
         new ScannerEffect(colors, scansPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(seconds));
 
-        Assert.Equal(new ScannerEffect(colors[color], scansPerSecond: 1.0).RenderAt(8, seconds), leds);
+        Assert.Equal(new ScannerEffect([colors[color]], scansPerSecond: 1.0).RenderAt(8, seconds), leds);
     }
 
     // At the end the point turns, and with it the color.
@@ -210,13 +210,13 @@ public sealed class ScannerEffectTests
     [InlineData(double.NegativeInfinity)]
     public void Constructor_SpeedNotFinite_Throws(double scansPerSecond)
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ScannerEffect(Orange, scansPerSecond));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new ScannerEffect([Orange], scansPerSecond));
     }
 
     [Fact]
     public void IsAnimated_IsTrue()
     {
-        Assert.True(new ScannerEffect(Orange).IsAnimated);
+        Assert.True(new ScannerEffect([Orange]).IsAnimated);
     }
 
     private static RgbColor[] Dark(int count) => new RgbColor[count];

@@ -24,11 +24,6 @@ public sealed class CometEffect : IEffect
 
     private readonly RgbColor[] _colors;
 
-    public CometEffect(RgbColor color, double roundsPerSecond = DefaultRoundsPerSecond)
-        : this([color], roundsPerSecond)
-    {
-    }
-
     public CometEffect(IReadOnlyList<RgbColor> colors, double roundsPerSecond = DefaultRoundsPerSecond)
     {
         _colors = EffectMath.CopyColors(colors);

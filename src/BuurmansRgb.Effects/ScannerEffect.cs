@@ -21,11 +21,6 @@ public sealed class ScannerEffect : IEffect
 
     private readonly RgbColor[] _colors;
 
-    public ScannerEffect(RgbColor color, double scansPerSecond = DefaultScansPerSecond)
-        : this([color], scansPerSecond)
-    {
-    }
-
     public ScannerEffect(IReadOnlyList<RgbColor> colors, double scansPerSecond = DefaultScansPerSecond)
     {
         _colors = EffectMath.CopyColors(colors);

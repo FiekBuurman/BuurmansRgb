@@ -41,11 +41,6 @@ public sealed class TwinkleEffect : IEffect
     private readonly uint _peakStream;
     private readonly uint _colorStream;
 
-    public TwinkleEffect(RgbColor color, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
-        : this([color], twinklesPerSecond, seed)
-    {
-    }
-
     public TwinkleEffect(IReadOnlyList<RgbColor> colors, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
     {
         _colors = EffectMath.CopyColors(colors);
