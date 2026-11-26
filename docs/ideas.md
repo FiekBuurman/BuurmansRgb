@@ -1168,3 +1168,6 @@ uitbreidingen in `docs/bouwplan.md`.
   gelijk blijven als bewijs dat bewaren en terugzetten niet veranderden; `SettingsAppSide` in
   `TrayPresenterTests` deelt zijn verlichting met de tray en past daarom niet in `EngineApiParts`
   (refactorplan 26-11-2026)
+- `EngineApiTests` (ca. 1130 regels) per gedrag splitsen: `engine-host-dunner` raakte de klasse
+  wel (de delen komen nu uit `EngineApiParts`), maar dat waren veldnamen en geen gedrag; splitsen
+  was alleen schuiven en zou de diff van de refactor onleesbaar maken (refactorplan 26-11-2026)
