@@ -929,11 +929,6 @@ uitbreidingen in `docs/bouwplan.md`.
 - `tests/Shared/TestColors.cs` alleen meebouwen in testprojecten die `BuurmansRgb.Core` kennen,
   zodat `BuurmansRgb.Platform.Tests` geen verwijzing naar `Core` meer nodig heeft; nu heeft het
   die alleen voor `TestColors` (contracts-zonder-infrastructuur, refactorplan 26-11-2026)
-- De regie van terugzetten (`Restore`, `Replace`, `Remove`, `ReplaceSettings`, `PutBack` en
-  `FlushSaves`) uit `EngineHost` naar een eigen klasse, zoals het lezen en de kopieën in
-  `backups` al naar `SettingsFiles` gingen. Nu te riskant: die stukken hangen af van `_saver` en
-  `_reloader`, die pas in `StartAsync` ontstaan, en `Export` kan al vóór de start
-  (refactorreview 3-11-2026)
 - De regel "`onlyDevices` is nooit leeg en nooit bij "Alles uit"" als één invariant in `Profile`.
   Nu staat hij op drie plekken, elk met een eigen reactie: `ProfileLibrary.SetDevices` gooit,
   `SharedFileReader` weigert het hele bestand en `ProfileSettings` laat de lijst met een regel in
@@ -1167,3 +1162,9 @@ uitbreidingen in `docs/bouwplan.md`.
 - `EngineRpcTests` (ca. 800 regels) per deel van `IEngineApi` splitsen, zoals de partials van
   `FakeEngineApi`: bij het delen van de nep-engine bleef de klasse heel, omdat de opzet (server en
   client over een pipe) per test hetzelfde is en splitsen alleen schuiven was (refactorplan 26-11-2026)
+- `EngineHostTransferTests` ook op `EngineApiParts` zetten en daarna de korte constructor van
+  `EngineApi` (de vijf vaste delen en `settingsTransfer`) weghalen, zodat er alleen
+  `EngineApi(EngineServices)` is. Bij `engine-host-dunner` moest die testklasse byte voor byte
+  gelijk blijven als bewijs dat bewaren en terugzetten niet veranderden; `SettingsAppSide` in
+  `TrayPresenterTests` deelt zijn verlichting met de tray en past daarom niet in `EngineApiParts`
+  (refactorplan 26-11-2026)

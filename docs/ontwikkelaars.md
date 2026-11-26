@@ -102,6 +102,12 @@ een moederbord voor de zonetests van de engine uit `TestBoards` (`Of(zones)`, `B
 één klasse gebruikt (`FakeHighContrast`, `FakeProcessMeter`, `RecordingTrigger`, …) staat in
 een eigen bestand, niet genest in een testklasse.
 
+`EngineApiParts` geeft een testklasse van de engine in één veld de vijf delen die elke `EngineApi`
+nodig heeft, op gesimuleerde apparaten, en ruimt ze in `Dispose` op; `Services with { SaveEvents = … }`
+voegt toe wat een test verder nodig heeft. `EventListeners.CountEach(parts)` telt per deel de
+handlers op zijn events; zo bewijzen `EngineHostListenerTests` en `EngineApiListenerTests` dat
+`Dispose` alles afmeldt wat de host of de api aanmeldde.
+
 De nep-engine, `FakeEngineApi`, staat in het hulpproject `tests/BuurmansRgb.Contracts.Testing`
 (zonder eigen tests) en is er één keer, voor de RPC-tests van `BuurmansRgb.Contracts.Tests` en de
 tests van de instellingen-app. Hij is in partial-bestanden verdeeld per deel van `IEngineApi`
@@ -897,7 +903,8 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   niet door de bestanden zelf te lezen: zo heeft de zip de wijziging van de laatste seconde (de
   saver en `CustomEffectLibrary` schrijven eerst wat wacht, `Flush`, buiten een herlaadbeurt om:
   `SettingsReloader.RunBetweenReloads`), en schrijft geen saver van de engine bij terugzetten zijn
-  oude stand over de zip heen. De engine (`EngineHost`, als `ISettingsTransfer`) leest de bestanden
+  oude stand over de zip heen. De engine (`SettingsTransfer`, als `ISettingsTransfer`; `EngineHost` maakt
+  hem en geeft hem in `StartAsync` de saver en de reloader) leest de bestanden
   zonder de stores (`SettingsFiles.Read`), gedeeld voor schrijven en verwijderen: elk bestand komt
   er met één `File.Move` in (`JsonFile`), dus een lezer krijgt het oude of het nieuwe, nooit de
   helft. `SettingsArchive` controleert een zip helemaal voordat er iets verandert: alleen
@@ -906,7 +913,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   bestand uitgepakt mag zijn, zodat een zip met een enorme lijst entries niet eerst gelezen wordt)
   en elk bestand uitgepakt hooguit `MaxFileBytes` (16 MB, in stukken gelezen tot die grens, niet op
   de grootte die de zip zegt), en elk bestand te lezen zoals de stores het lezen (`LenientJson`).
-  Daarna zet `EngineHost` de bestanden van nu in `backups\before-restore-<datum>-<tijd>-<ms>.zip`
+  Daarna zet `SettingsTransfer` de bestanden van nu in `backups\before-restore-<datum>-<tijd>-<ms>.zip`
   (`SettingsFiles.WriteBackup`; in UTC, zodat de namen ook over de wintertijd heen op volgorde
   staan; een naam die er al is krijgt de volgende milliseconde; de nieuwste
   `SettingsFiles.BackupsKept` = 5 blijven) en vervangt ze in de volgorde effecten, scènes,
@@ -1033,6 +1040,10 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `ZoneLengthKeeper.Change` en de verlichting met `LightingController.Replace`
   (`LightingChanged`), die alleen als hij anders is dan nu (`EngineSettings.SameLighting`), zodat
   de scène bij alleen een optie aan blijft.
+  Elke optie staat één keer in `EngineHost.CreateOptions`: hoe de host naar zijn event luistert en
+  weer afmeldt, hoe een bestand hem zet en wat de saver dan bewaart; een nieuwe optie is daar één
+  regel, en `EngineHostListenerTests` ziet of `Dispose` hem afmeldt. Zo staan ook de events die
+  `EngineApi` doorgeeft één keer in zijn lijst `_listeners`.
   `activeScene` neemt hij niet over. Daarna roept hij `LightingSettingsSaver.Adopt` aan met de
   verlichting zoals het toepassen hem achterliet (die `Replace` teruggeeft, niet opnieuw gelezen):
   die, met de opties van de saver, geldt als de inhoud van het bestand (met `activeScene` uit het
@@ -1103,7 +1114,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   aan `TrayApplicationContext.RequestRestart`, hetzelfde als een klik op het tray-item
   (`TrayPresenter.RestartAsync`, `EngineRestarter`: UAC, OpenRGB en PawnIO herstarten, de app
   sluiten, een nieuwe engine starten die de app weer opent), en antwoordt meteen, vóór de
-  UAC-vraag. `EngineApi` krijgt die actie van `Program` (`restart:`); zonder (tests) doet
+  UAC-vraag. `EngineApi` krijgt die actie van `Program` (`EngineServices.Restart`); zonder (tests) doet
   `RestartAsync` niets. De app zet onderaan "buurmansRgb herstart: de app gaat zo dicht en komt
   vanzelf terug." en wacht; start de nieuwe engine niet, dan meldt het tray-icoon dat en blijft
   de app open (zie `docs/ideas.md`). Niets per frame, geen timer: het is één aanroep bij een klik.
