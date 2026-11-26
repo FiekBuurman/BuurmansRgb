@@ -121,6 +121,25 @@ public sealed class LightingControllerOverlayTests : IDisposable
         Assert.Equal([null, null, Blue], _controller.State.Overlays[Device]);
     }
 
+    // The same colors again, or a null where there is no layer, leave the layer as it was.
+    [Fact]
+    public async Task SetOverlay_ThatChangesNothing_RendersNothing_AndRaisesNoLightingChanged()
+    {
+        await StartAsync(Orange);
+        _controller.SetOverlay(Device, 2, [Blue]);
+        var changes = 0;
+        var renders = 0;
+        _controller.LightingChanged += (_, _) => changes++;
+        _controller.Rendered += (_, _) => renders++;
+
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _controller.SetOverlay(Device, 0, [null]);
+
+        Assert.Equal(0, changes);
+        Assert.Equal(0, renders);
+        Assert.Equal([null, null, Blue], _controller.State.Overlays[Device]);
+    }
+
     [Theory]
     [InlineData(-1, 1)]
     [InlineData(3, 1)]

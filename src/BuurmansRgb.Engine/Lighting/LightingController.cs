@@ -264,15 +264,19 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
 
     // Gives the LEDs from firstLed on a fixed color over the effect, whatever the effect, or takes it
     // away for a null; the other LEDs keep theirs. The effect stays, and the change shows at once.
-    // A device that is off stays off, layer and all, until it goes on.
+    // A device that is off stays off, layer and all, until it goes on. A call that leaves the layer
+    // as it was changes nothing: no render, no LightingChanged, and a fade goes on.
     public void SetOverlay(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors)
     {
         ArgumentNullException.ThrowIfNull(colors);
         Mutate(() =>
         {
             LedRangeLocked(deviceId, firstLed, colors.Count);
+            if (!_overlays.Set(deviceId, firstLed, colors))
+            {
+                return false;
+            }
 
-            _overlays.Set(deviceId, firstLed, colors);
             EndFadesLocked(deviceId);
             return true;
         });
