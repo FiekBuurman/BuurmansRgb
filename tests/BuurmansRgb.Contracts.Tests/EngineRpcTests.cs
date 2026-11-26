@@ -38,7 +38,7 @@ public sealed class EngineRpcTests : IDisposable
     private JsonRpc? _server;
     private EngineConnection? _client;
 
-    // Answers other than the defaults of the fake engine, so that each one shows it crossed the pipe.
+    // The answers the RPC tests expect, most of them unlike the defaults of the fake engine, so that they show they crossed the pipe.
     public EngineRpcTests()
     {
         _api.Devices = RpcDevices;
@@ -217,7 +217,7 @@ public sealed class EngineRpcTests : IDisposable
                 ("Werk", ProfileAutomation.None),
                 ("Ochtend", MoreTimes),
             ],
-            new[] { "Nacht", "Gamen", "Race", "Werk", "Ochtend" }.Select(name => (name, _api.ProfileAutomations[name])));
+            _api.ProfileAutomationCalls);
     }
 
     // Null, every device, stays null over the pipe instead of an empty list.
@@ -249,8 +249,8 @@ public sealed class EngineRpcTests : IDisposable
 
         Assert.Equal(new WholeHouseTimes([new LoadTime(new TimeOnly(23, 0))], [new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)], "Alles uit"), times);
         Assert.Equal(["whole house off 22:30/Weekend on -"], _api.Calls);
-        Assert.Equal(off.Off, _api.WholeHouseTimes.Off);
-        Assert.Empty(_api.WholeHouseTimes.On);
+        Assert.Equal([off], _api.WholeHouseTimesCalls);
+        Assert.Empty(Assert.Single(_api.WholeHouseTimesCalls).On);
     }
 
     [Fact]
@@ -736,7 +736,9 @@ public sealed class EngineRpcTests : IDisposable
         Assert.Equal([new CustomEffect("custom:1", "Disco", [new CustomEffectStep([new RgbColor(255, 0, 0), new RgbColor(0, 0, 255)], 0.5, 2)])], effects);
         Assert.Equal(effect with { Id = "custom:new" }, saved);
         Assert.Equal([effect with { Id = "custom:new" }], _api.CustomEffects);
-        Assert.Equal("custom-effect delete custom:1", _api.Calls[^1]);
+        Assert.Equal(2, _api.Calls.Count);
+        Assert.StartsWith("custom-effect save custom:new Feest ", _api.Calls[0]);
+        Assert.Equal("custom-effect delete custom:1", _api.Calls[1]);
         await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
     }
 

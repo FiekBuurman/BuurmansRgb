@@ -72,9 +72,13 @@ public sealed partial class FakeEngineApi
     public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
         Task.FromResult(ProfileAutomations.GetValueOrDefault(name, ProfileAutomation.None));
 
+    // What came in, as it came in, before Normalize.
+    public List<(string Name, ProfileAutomation Automation)> ProfileAutomationCalls { get; } = [];
+
     // Like the engine: saved as Normalize gives it.
     public async Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
     {
+        ProfileAutomationCalls.Add((name, automation));
         await Record($"profile automation {name} {(automation.Times.Count == 0 ? "-" : string.Join(",", automation.Times.Select(time => time.At.ToString("HH:mm", CultureInfo.InvariantCulture))))} {(automation.Programs.Count == 0 ? "-" : string.Join(",", automation.Programs))}");
         ProfileAutomations[name] = automation.Normalize();
     }
@@ -104,9 +108,13 @@ public sealed partial class FakeEngineApi
 
     public Task<WholeHouseTimes> GetWholeHouseTimesAsync(CancellationToken ct = default) => Task.FromResult(WholeHouseTimes);
 
+    // What came in, as it came in, before Normalize.
+    public List<WholeHouseTimes> WholeHouseTimesCalls { get; } = [];
+
     // Like the engine: saved as Normalize gives the times.
     public async Task SetWholeHouseTimesAsync(WholeHouseTimes times, CancellationToken ct = default)
     {
+        WholeHouseTimesCalls.Add(times);
         await Record($"whole house off {WriteTimes(times.Off)} on {WriteTimes(times.On)}");
         WholeHouseTimes = new WholeHouseTimes(new ProfileAutomation(times.Off).Normalize().Times, new ProfileAutomation(times.On).Normalize().Times, WholeHouseTimes.OffScene);
     }
