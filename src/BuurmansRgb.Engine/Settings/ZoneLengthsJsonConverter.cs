@@ -24,7 +24,7 @@ internal sealed class ZoneLengthsJsonConverter() : DeviceMapJsonConverter<Dictio
             }
             else
             {
-                LeaveOut($"the zone length of '{deviceId}', '{zone.Name}'", zone.Value, "a number of LEDs");
+                LeaveOut($"the zone length of '{deviceId}', '{zone.Name}'", zone.Value);
             }
         }
 

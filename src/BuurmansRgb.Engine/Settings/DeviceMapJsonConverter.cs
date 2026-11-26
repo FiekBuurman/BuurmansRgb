@@ -55,6 +55,8 @@ internal abstract class DeviceMapJsonConverter<T>(string propertyName, string ex
     // Writes the property of the device, name and value.
     protected abstract void WriteDevice(Utf8JsonWriter writer, string deviceId, T value);
 
-    protected static void LeaveOut(string what, JsonElement value, string expected) =>
+    protected void LeaveOut(string what, JsonElement value) => LeaveOut(what, value, expected);
+
+    private static void LeaveOut(string what, JsonElement value, string expected) =>
         Trace.TraceWarning($"Settings file: {what} is {value.GetRawText()}, which is not {expected}; it is left out.");
 }
