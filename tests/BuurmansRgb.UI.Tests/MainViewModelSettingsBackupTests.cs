@@ -11,12 +11,12 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class MainViewModelSettingsBackupTests : IDisposable
 {
     private readonly FakeEngineConnector _connector = new();
-    private readonly string _folder = Directory.CreateTempSubdirectory("BuurmansRgb.UI.Tests.").FullName;
+    private readonly TempDirectory _folder = new();
     private readonly List<string> _confirmed = [];
 
     private FakeEngineApi Api => _connector.Connection.FakeApi;
 
-    public void Dispose() => Directory.Delete(_folder, recursive: true);
+    public void Dispose() => _folder.Dispose();
 
     // Without an engine to ask nothing can be backed up or restored.
     [Fact]
@@ -48,7 +48,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
         var time = new FakeTimeProvider(new DateTimeOffset(2026, 11, 3, 23, 15, 0, TimeSpan.Zero));
         time.SetLocalTimeZone(TimeZoneInfo.Utc);
         using var viewModel = await ConnectAsync(time);
-        var path = Path.Combine(_folder, "bewaard.zip");
+        var path = Path.Combine(_folder.Path, "bewaard.zip");
         string? suggested = null;
         viewModel.Backup.ChooseSaveFile = name =>
         {
@@ -113,7 +113,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Save_FileThatCannotBeWritten_SaysSo()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseSaveFile = _ => Path.Combine(_folder, "weg", "bewaard.zip");
+        viewModel.Backup.ChooseSaveFile = _ => Path.Combine(_folder.Path, "weg", "bewaard.zip");
 
         await viewModel.Backup.SaveCommand.ExecuteAsync(null);
 
@@ -169,7 +169,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileTooLarge_IsNotSent()
     {
         using var viewModel = await ConnectAsync();
-        var path = Path.Combine(_folder, "groot.zip");
+        var path = Path.Combine(_folder.Path, "groot.zip");
         using (var file = File.Create(path))
         {
             file.SetLength(SettingsBackup.MaxArchiveBytes + 1);
@@ -246,7 +246,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
     public async Task Restore_FileGone_SaysItCouldNotBeRead()
     {
         using var viewModel = await ConnectAsync();
-        viewModel.Backup.ChooseRestoreFile = () => Path.Combine(_folder, "weg.zip");
+        viewModel.Backup.ChooseRestoreFile = () => Path.Combine(_folder.Path, "weg.zip");
 
         await viewModel.Backup.RestoreCommand.ExecuteAsync(null);
 
@@ -263,7 +263,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
 
     private string WriteZip(string name, byte[] content)
     {
-        var path = Path.Combine(_folder, name);
+        var path = Path.Combine(_folder.Path, name);
         File.WriteAllBytes(path, content);
         return path;
     }

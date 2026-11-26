@@ -161,12 +161,7 @@ public sealed class LightingSettingsSaverTests
 
         _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
 
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (_store.SaveCount == 0)
-        {
-            Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the save.");
-            await Task.Delay(10, Ct);
-        }
+        await Eventually.TrueAsync(() => _store.SaveCount != 0);
     }
 
     [Fact]

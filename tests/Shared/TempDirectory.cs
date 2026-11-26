@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace BuurmansRgb.Engine.Tests;
+namespace BuurmansRgb.Tests;
 
 internal sealed class TempDirectory : IDisposable
 {
