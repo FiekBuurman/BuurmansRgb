@@ -1161,9 +1161,5 @@ uitbreidingen in `docs/bouwplan.md`.
   eigen teksten bevatten gaat het goed, maar bevat een van beide ooit een naam van OpenRGB of de
   gebruiker, dan verliest die zijn eerste `_`
   (refactorreview 25-11-2026)
-- Drie zonetests van de engine bouwen nog een eigen moederbord (`BoardWith` in
-  `LightingControllerZoneCountTests`, `LightingControllerZoneFlashTests` en
-  `LightingControllerZonesAlikeTests`): hun zones verschillen van `TestBoards` (andere namen of een
-  ander aantal), dus delen veranderde de uitkomst van hun tests. `LedColorStoreTests` houdt zijn
-  `Board` ook: die deelt het id `device` met de andere apparaten van de store. Laat ze zo, of geef
-  `TestBoards` een parameter voor de zones als er een vierde bijkomt (refactorplan 26-11-2026)
+- `LedColorStoreTests` bouwt zijn eigen `Board` en gebruikt `TestBoards` niet: die deelt het id
+  `device` en `DeviceSource.Simulated` met de andere apparaten van de store (refactorplan 26-11-2026)

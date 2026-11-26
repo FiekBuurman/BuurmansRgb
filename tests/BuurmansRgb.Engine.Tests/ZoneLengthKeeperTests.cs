@@ -525,7 +525,6 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Single(_provider.Resizes);
     }
 
-    // A board with two fixed LEDs, an addressable header and a fixed logo.
     private static Dictionary<string, IReadOnlyDictionary<string, int>> Lengths(params (string DeviceId, string Zone, int LedCount)[] lengths) =>
         lengths.GroupBy(length => length.DeviceId).ToDictionary(
             device => device.Key,

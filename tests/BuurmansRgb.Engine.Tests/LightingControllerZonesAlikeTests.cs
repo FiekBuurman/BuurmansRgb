@@ -302,10 +302,7 @@ public sealed class LightingControllerZonesAlikeTests : IDisposable
 
     // A board with a fixed zone of four LEDs and an addressable header of the given length.
     private static RgbDevice BoardWith(int headerLeds) =>
-        new(Board, "Board", DeviceType.Motherboard, [RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB 2", headerLeds, 0, 60)])
-        {
-            Source = DeviceSource.Hardware,
-        };
+        TestBoards.Of(RgbZone.Fixed("Mainboard", 4), new RgbZone("ARGB 2", headerLeds, 0, 60));
 
     private async Task WhileDevicesChangeAsync(Action change)
     {
