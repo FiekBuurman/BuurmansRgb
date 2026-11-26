@@ -52,7 +52,7 @@ public sealed class LightingControllerDirectionTests : IDisposable
         AdvanceAndRender(Later);
 
         var keyboard = _provider.GetLeds(Keyboard);
-        var shift = Later.TotalSeconds * RainbowEffect.DefaultRoundsPerSecond;
+        var shift = Later.TotalSeconds * RainbowEffect.RoundsPerSecond;
         for (var i = 0; i < keyboard.Length; i++)
         {
             Assert.Equal(RgbColor.FromHsv(i / (double)keyboard.Length + shift, 1.0, 1.0), keyboard[i]);

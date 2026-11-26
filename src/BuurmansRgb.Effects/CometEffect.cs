@@ -7,14 +7,13 @@ namespace BuurmansRgb.Effects;
 // fades at the end. The head moves smoothly between two LEDs, so it glides also at a low frame
 // rate, and the tail is a part of the length, so it stays visible on a long device. A device of
 // fewer than MinLength LEDs shows its LEDs spread over a ring of that length, so a single LED
-// pulses: on as the head passes, then fading with the tail. A negative speed runs it towards the
-// first LED, with the tail behind it on the side of the last. With more colors every round has the
-// next one, from where the head comes in at the start of the ring: the first LED, or with a
-// negative speed the last; an LED keeps the color of the round that passed it last, so the tail of
-// the round before still fades in its own color.
+// pulses: on as the head passes, then fading with the tail. With more colors every round has the
+// next one, from where the head comes in at the start of the ring, the first LED; an LED keeps the
+// color of the round that passed it last, so the tail of the round before still fades in its own
+// color.
 public sealed class CometEffect : IEffect
 {
-    public const double DefaultRoundsPerSecond = 0.5;
+    public const double RoundsPerSecond = 0.5;
 
     private const int MinLength = 4;
 
@@ -24,15 +23,12 @@ public sealed class CometEffect : IEffect
 
     private readonly RgbColor[] _colors;
 
-    public CometEffect(IReadOnlyList<RgbColor> colors, double roundsPerSecond = DefaultRoundsPerSecond)
+    public CometEffect(IReadOnlyList<RgbColor> colors)
     {
         _colors = EffectMath.CopyColors(colors);
-        RoundsPerSecond = EffectMath.FiniteSpeed(roundsPerSecond);
     }
 
     public IReadOnlyList<RgbColor> Colors => _colors;
-
-    public double RoundsPerSecond { get; }
 
     public bool IsAnimated => true;
 
@@ -43,19 +39,18 @@ public sealed class CometEffect : IEffect
         var rounds = time.TotalSeconds * RoundsPerSecond;
         var head = EffectMath.Fraction(rounds) * length;
         var tail = Math.Max(MinTail, length * TailPart);
-        var direction = RoundsPerSecond < 0.0 ? -1 : 1;
 
-        // The round of the head counted in the way it runs, so it grows also with a negative speed.
+        // The round of the head.
         // An LED shows the color of the round that passed it last, or of the next as the head
         // arrives: one of three, so they are looked up once per frame.
-        var round = direction * (long)Math.Floor(rounds);
+        var round = (long)Math.Floor(rounds);
         var (before, now, next) = (ColorOf(round - 1), ColorOf(round), ColorOf(round + 1));
         for (var i = 0; i < leds.Length; i++)
         {
-            // How far the head is past this LED, round the ring in the way it runs; within one LED
+            // How far the head is past this LED, round the ring; within one LED
             // before it, the LED comes up as the head arrives. Behind the start of the ring (a
             // negative place, from -1 up to 0), the head passed the LED in the round before.
-            var place = direction * (head - i * spacing) / length;
+            var place = (head - i * spacing) / length;
             var thisRound = place >= 0.0;
             var part = thisRound ? place : place + 1.0;
             if (part >= 1.0)

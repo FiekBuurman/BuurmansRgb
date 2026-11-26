@@ -4,7 +4,8 @@ namespace BuurmansRgb.Effects.Tests;
 
 public sealed class TwinkleEffectTests
 {
-    private static readonly TimeSpan Step = TimeSpan.FromMilliseconds(5);
+    // The tests count in rounds of the twinkle (a time of one at a speed of one a second).
+    private static readonly TimeSpan Step = Rounds(0.005);
 
     [Fact]
     public void Render_SameTime_GivesTheSameImage()
@@ -74,10 +75,10 @@ public sealed class TwinkleEffectTests
     [InlineData(40, 800)]
     public void Render_PerRound_LightsAFifthButAtLeastTwoLeds(int ledCount, int twinkles)
     {
-        var effect = new TwinkleEffect([Orange], twinklesPerSecond: 1.0);
+        var effect = new TwinkleEffect([Orange]);
 
         var count = Enumerable.Range(0, ledCount)
-            .Sum(led => EffectSamples.LitStretches(EffectSamples.Levels(effect, ledCount, led, TimeSpan.Zero, TimeSpan.FromSeconds(100), TimeSpan.FromMilliseconds(20))).Count);
+            .Sum(led => EffectSamples.LitStretches(EffectSamples.Levels(effect, ledCount, led, TimeSpan.Zero, Rounds(100), Rounds(0.02))).Count);
 
         Assert.InRange(count, twinkles * 0.8, twinkles * 1.2);
     }
@@ -86,7 +87,7 @@ public sealed class TwinkleEffectTests
     [Fact]
     public void Render_ATwinkle_RisesQuicklyAndFadesSlowly()
     {
-        var levels = EffectSamples.Levels(new TwinkleEffect([Orange], twinklesPerSecond: 1.0), 1, 0, TimeSpan.Zero, TimeSpan.FromSeconds(5), Step);
+        var levels = EffectSamples.Levels(new TwinkleEffect([Orange]), 1, 0, TimeSpan.Zero, Rounds(5), Step);
 
         var stretches = EffectSamples.LitStretches(levels);
 
@@ -105,47 +106,9 @@ public sealed class TwinkleEffectTests
     [InlineData(2, 1)]
     public void Render_FewLeds_EveryLedLightsUpEveryRound(int ledCount, int led)
     {
-        var levels = EffectSamples.Levels(new TwinkleEffect([Orange], twinklesPerSecond: 1.0), ledCount, led, TimeSpan.Zero, TimeSpan.FromSeconds(10), Step);
+        var levels = EffectSamples.Levels(new TwinkleEffect([Orange]), ledCount, led, TimeSpan.Zero, Rounds(10), Step);
 
         Assert.InRange(EffectSamples.LitStretches(levels).Count, 9, 10);
-    }
-
-    [Fact]
-    public void Render_TwiceAsFast_ShowsAtHalfTheTimeWhatTheNormalSpeedShowsLater()
-    {
-        var fast = new RgbColor[30];
-        var normal = new RgbColor[30];
-
-        new TwinkleEffect([Orange], twinklesPerSecond: 2.0).Render(fast, TimeSpan.FromSeconds(1.75));
-        new TwinkleEffect([Orange], twinklesPerSecond: 1.0).Render(normal, TimeSpan.FromSeconds(3.5));
-
-        Assert.Equal(normal, fast);
-        Assert.Contains(normal, led => led != RgbColor.Black);
-    }
-
-    // Backwards in time a twinkle would rise slowly and go out at once.
-    [Fact]
-    public void Render_NegativeSpeed_TwinklesAsThePositiveSpeed()
-    {
-        var backwards = new RgbColor[30];
-        var forwards = new RgbColor[30];
-
-        new TwinkleEffect([Orange], twinklesPerSecond: -2.0).Render(backwards, TimeSpan.FromSeconds(1.75));
-        new TwinkleEffect([Orange], twinklesPerSecond: 2.0).Render(forwards, TimeSpan.FromSeconds(1.75));
-
-        Assert.Equal(forwards, backwards);
-    }
-
-    [Fact]
-    public void Render_TheSpeed_ChangesTheImage()
-    {
-        var fast = new RgbColor[30];
-        var normal = new RgbColor[30];
-
-        new TwinkleEffect([Orange], twinklesPerSecond: 2.0).Render(fast, TimeSpan.FromSeconds(1.75));
-        new TwinkleEffect([Orange], twinklesPerSecond: 1.0).Render(normal, TimeSpan.FromSeconds(1.75));
-
-        Assert.NotEqual(normal, fast);
     }
 
     // A NaN or an overflow somewhere would turn every LED black; days on, or before zero, the
@@ -158,7 +121,7 @@ public sealed class TwinkleEffectTests
     {
         var leds = new RgbColor[50];
 
-        new TwinkleEffect([Orange], twinklesPerSecond: 3.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new TwinkleEffect([Orange]).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.Contains(leds, led => led != RgbColor.Black);
     }
@@ -211,11 +174,11 @@ public sealed class TwinkleEffectTests
     [Fact]
     public void Render_MoreColors_ATwinkleKeepsItsColor()
     {
-        var effect = new TwinkleEffect([Red, Green, Blue], twinklesPerSecond: 1.0, seed: 5);
+        var effect = new TwinkleEffect([Red, Green, Blue], seed: 5);
         var leds = new RgbColor[4];
         var colorsPerTwinkle = new List<HashSet<int>>();
         HashSet<int>? twinkle = null;
-        for (var time = TimeSpan.Zero; time < TimeSpan.FromSeconds(60); time += TimeSpan.FromMilliseconds(20))
+        for (var time = TimeSpan.Zero; time < Rounds(60); time += Rounds(0.02))
         {
             effect.Render(leds, time);
             var led = leds[2];
@@ -245,18 +208,11 @@ public sealed class TwinkleEffectTests
         Assert.Throws<ArgumentOutOfRangeException>(() => new TwinkleEffect([]));
     }
 
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
-    public void Constructor_SpeedNotFinite_Throws(double twinklesPerSecond)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new TwinkleEffect([Orange], twinklesPerSecond));
-    }
-
     [Fact]
     public void IsAnimated_IsTrue()
     {
         Assert.True(new TwinkleEffect([Orange]).IsAnimated);
     }
+
+    private static TimeSpan Rounds(double rounds) => TimeSpan.FromSeconds(rounds / TwinkleEffect.TwinklesPerSecond);
 }

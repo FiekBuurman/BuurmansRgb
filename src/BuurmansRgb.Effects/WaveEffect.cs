@@ -5,13 +5,11 @@ namespace BuurmansRgb.Effects;
 // A band of the color that travels towards the last LED, or along a direction, one wave over the
 // length of the device. At time zero the first LED (the one furthest back) is brightest and the
 // middle one is dark.
-public sealed class WaveEffect(RgbColor color, double wavesPerSecond = WaveEffect.DefaultWavesPerSecond) : IDirectedEffect
+public sealed class WaveEffect(RgbColor color) : IDirectedEffect
 {
-    public const double DefaultWavesPerSecond = 0.5;
+    public const double WavesPerSecond = 0.5;
 
     public RgbColor Color { get; } = color;
-
-    public double WavesPerSecond { get; } = EffectMath.FiniteSpeed(wavesPerSecond);
 
     public bool IsAnimated => true;
 

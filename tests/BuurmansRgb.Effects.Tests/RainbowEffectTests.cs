@@ -23,8 +23,8 @@ public sealed class RainbowEffectTests
     {
         var leds = new RgbColor[6];
 
-        // One round per second: after a sixth of a second every LED shows the next LED's color.
-        new RainbowEffect(roundsPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(1.0 / 6.0));
+        // After a sixth of a round every LED shows the next LED's color.
+        new RainbowEffect().Render(leds, TimeSpan.FromSeconds(1.0 / 6.0 / RainbowEffect.RoundsPerSecond));
 
         Assert.Equal([Yellow, Green, Cyan, Blue, Magenta, Red], leds);
     }
@@ -37,18 +37,9 @@ public sealed class RainbowEffectTests
         var effect = new RainbowEffect();
 
         effect.Render(start, TimeSpan.Zero);
-        effect.Render(later, TimeSpan.FromSeconds(1.0 / RainbowEffect.DefaultRoundsPerSecond));
+        effect.Render(later, TimeSpan.FromSeconds(1.0 / RainbowEffect.RoundsPerSecond));
 
         Assert.Equal(start, later);
-    }
-
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
-    public void Constructor_SpeedNotFinite_Throws(double roundsPerSecond)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new RainbowEffect(roundsPerSecond));
     }
 
     [Fact]

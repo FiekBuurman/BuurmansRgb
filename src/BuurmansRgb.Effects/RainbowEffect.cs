@@ -4,11 +4,9 @@ namespace BuurmansRgb.Effects;
 
 // Spreads the whole hue circle over the LEDs by index, or by their place along a direction, and
 // shifts it along with time.
-public sealed class RainbowEffect(double roundsPerSecond = RainbowEffect.DefaultRoundsPerSecond) : IDirectedEffect
+public sealed class RainbowEffect : IDirectedEffect
 {
-    public const double DefaultRoundsPerSecond = 0.2;
-
-    public double RoundsPerSecond { get; } = EffectMath.FiniteSpeed(roundsPerSecond);
+    public const double RoundsPerSecond = 0.2;
 
     public bool IsAnimated => true;
 

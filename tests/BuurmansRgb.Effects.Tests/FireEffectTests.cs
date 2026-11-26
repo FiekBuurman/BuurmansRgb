@@ -86,7 +86,7 @@ public sealed class FireEffectTests
     public void Render_FramesOnAndBetweenTheSteps_SpreadAlike()
     {
         var leds = new RgbColor[104];
-        var effect = new FireEffect(Warm, flickersPerSecond: 2.0);
+        var effect = new FireEffect(Warm);
         var (spreads, counts) = (new double[15], new int[15]);
         for (var frame = 0; frame < 30 * 300; frame++)
         {
@@ -144,30 +144,6 @@ public sealed class FireEffectTests
         Assert.True(near < far * 0.7, $"Neighbours differ {near}, far apart {far}.");
     }
 
-    [Fact]
-    public void Render_TwiceAsFast_ShowsAtHalfTheTimeWhatTheNormalSpeedShowsLater()
-    {
-        var fast = new RgbColor[30];
-        var normal = new RgbColor[30];
-
-        new FireEffect(Warm, flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
-        new FireEffect(Warm, flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(2.75));
-
-        Assert.Equal(normal, fast);
-    }
-
-    [Fact]
-    public void Render_TheSpeed_ChangesTheImage()
-    {
-        var fast = new RgbColor[30];
-        var normal = new RgbColor[30];
-
-        new FireEffect(Warm, flickersPerSecond: 4.0).Render(fast, TimeSpan.FromSeconds(1.375));
-        new FireEffect(Warm, flickersPerSecond: 2.0).Render(normal, TimeSpan.FromSeconds(1.375));
-
-        Assert.NotEqual(normal, fast);
-    }
-
     // A NaN somewhere would turn the LEDs black; far on, or before zero, the fire still burns.
     [Theory]
     [InlineData(-3600.3)]
@@ -177,7 +153,7 @@ public sealed class FireEffectTests
     {
         var leds = new RgbColor[20];
 
-        new FireEffect(Warm, flickersPerSecond: 6.0).Render(leds, TimeSpan.FromSeconds(seconds));
+        new FireEffect(Warm).Render(leds, TimeSpan.FromSeconds(seconds));
 
         Assert.All(leds, IsWarm);
         Assert.True(leds.Distinct().Count() > 5);
@@ -252,15 +228,6 @@ public sealed class FireEffectTests
     public void Constructor_NoColors_Throws()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => new FireEffect([]));
-    }
-
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
-    public void Constructor_SpeedNotFinite_Throws(double flickersPerSecond)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new FireEffect(Warm, flickersPerSecond));
     }
 
     [Fact]

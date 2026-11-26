@@ -12,7 +12,7 @@ namespace BuurmansRgb.Effects;
 public sealed class FireEffect : IEffect
 {
     // New random values per second of the slow layer.
-    public const double DefaultFlickersPerSecond = 2.0;
+    public const double FlickersPerSecond = 2.0;
 
     // How dark the coldest heat of one color is, as the dark red of the warm fire is to its red.
     private const double OneColorDark = 0.375;
@@ -39,19 +39,16 @@ public sealed class FireEffect : IEffect
     private readonly uint _slowStream;
     private readonly uint _fastStream;
 
-    public FireEffect(IReadOnlyList<RgbColor> colors, double flickersPerSecond = DefaultFlickersPerSecond, uint seed = 0)
+    public FireEffect(IReadOnlyList<RgbColor> colors, uint seed = 0)
     {
         Colors = EffectMath.CopyColors(colors);
         _palette = colors.Count == 1 ? [colors[0].Scale(OneColorDark), colors[0]] : [.. colors];
-        FlickersPerSecond = EffectMath.FiniteSpeed(flickersPerSecond);
         Seed = seed;
         _slowStream = EffectMath.Seeded(SlowStream, seed);
         _fastStream = EffectMath.Seeded(FastStream, seed);
     }
 
     public IReadOnlyList<RgbColor> Colors { get; }
-
-    public double FlickersPerSecond { get; }
 
     public uint Seed { get; }
 

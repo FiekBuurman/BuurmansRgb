@@ -19,19 +19,10 @@ public sealed class WaveEffectTests
     {
         var leds = new RgbColor[4];
 
-        // One wave per second: after a quarter second the peak has moved one LED.
-        new WaveEffect(Orange, wavesPerSecond: 1.0).Render(leds, TimeSpan.FromSeconds(0.25));
+        // After a quarter of a wave the peak has moved one LED.
+        new WaveEffect(Orange).Render(leds, TimeSpan.FromSeconds(0.25 / WaveEffect.WavesPerSecond));
 
         RgbAssert.Close([Orange.Scale(0.5), Orange, Orange.Scale(0.5), RgbColor.Black], leds);
-    }
-
-    [Theory]
-    [InlineData(double.NaN)]
-    [InlineData(double.PositiveInfinity)]
-    [InlineData(double.NegativeInfinity)]
-    public void Constructor_SpeedNotFinite_Throws(double wavesPerSecond)
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new WaveEffect(Orange, wavesPerSecond));
     }
 
     [Fact]

@@ -8,22 +8,19 @@ namespace BuurmansRgb.Effects;
 // the same color.
 public sealed class ColorLoopEffect : IDirectedEffect
 {
-    public const double DefaultLoopsPerSecond = 0.2;
+    public const double LoopsPerSecond = 0.2;
 
     private readonly RgbColor[] _colors;
 
-    public ColorLoopEffect(IReadOnlyList<RgbColor> colors, bool spread = true, double loopsPerSecond = DefaultLoopsPerSecond)
+    public ColorLoopEffect(IReadOnlyList<RgbColor> colors, bool spread = true)
     {
         _colors = EffectMath.CopyColors(colors);
         Spread = spread;
-        LoopsPerSecond = EffectMath.FiniteSpeed(loopsPerSecond);
     }
 
     public IReadOnlyList<RgbColor> Colors => _colors;
 
     public bool Spread { get; }
-
-    public double LoopsPerSecond { get; }
 
     public bool IsAnimated => true;
 
