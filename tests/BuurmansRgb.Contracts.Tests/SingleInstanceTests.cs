@@ -149,6 +149,9 @@ public sealed class SingleInstanceTests
         Assert.True(callbackStarted.Wait(TestTimeouts.Short, Ct));
 
         var dispose = Task.Run(listener.Dispose, Ct);
+
+        // No signal exists for "still waiting": this pause can only let a broken wait stay green,
+        // never turn a good one red.
         await Task.Delay(TimeSpan.FromMilliseconds(100), Ct);
         Assert.False(dispose.IsCompleted);
         releaseCallback.Set();

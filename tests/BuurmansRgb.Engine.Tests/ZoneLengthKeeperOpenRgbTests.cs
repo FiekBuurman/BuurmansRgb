@@ -127,6 +127,8 @@ public sealed class ZoneLengthKeeperOpenRgbTests : IDisposable
         counter.StopFor(app);
         var exit = Task.Run(() => Program.WaitForResizesOnExit(_openRgb.Provider).Dispose(), Ct);
 
+        // No signal exists for "still waiting": this pause can only let a broken wait stay green,
+        // never turn a good one red.
         await Task.Delay(100, Ct);
         Assert.False(exit.IsCompleted);
         busy.SetResult();

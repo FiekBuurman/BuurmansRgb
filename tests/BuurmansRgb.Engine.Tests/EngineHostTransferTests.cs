@@ -82,6 +82,9 @@ public sealed class EngineHostTransferTests : IDisposable
         _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.25 });
 
         var export = Task.Run(host.Export, Ct);
+
+        // No signal exists for "still waiting": this pause can only let a broken wait stay green,
+        // never turn a good one red.
         await Task.Delay(100, Ct);
         Assert.False(export.IsCompleted);
         store.Release();
