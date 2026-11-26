@@ -290,7 +290,7 @@ public sealed class MainViewModelSharingTests : IDisposable
 
     private string WriteFile(string name, byte[] content)
     {
-        var path = Path.Combine(_folder.Path, name);
+        var path = _folder.File(name);
         File.WriteAllBytes(path, content);
         return path;
     }

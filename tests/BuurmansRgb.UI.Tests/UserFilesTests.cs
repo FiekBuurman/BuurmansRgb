@@ -94,7 +94,7 @@ public sealed class UserFilesTests : IDisposable
 
     private string Write(string name, byte[] content)
     {
-        var path = Path.Combine(_folder.Path, name);
+        var path = _folder.File(name);
         File.WriteAllBytes(path, content);
         return path;
     }

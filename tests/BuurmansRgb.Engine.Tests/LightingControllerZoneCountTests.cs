@@ -331,7 +331,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.StartCount(Board, Header, Longest, 1);
 
         _provider.SetDevices(
-            new RgbDevice(Board, "Board", DeviceType.Motherboard, [RgbZone.Fixed("Mainboard", 2), RgbZone.Fixed("Other", 3)]) { Source = DeviceSource.Hardware },
+            TestBoards.Of(RgbZone.Fixed("Mainboard", 2), RgbZone.Fixed("Other", 3)),
             DynamicDeviceProvider.Device(Fan));
 
         await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 5);

@@ -66,9 +66,9 @@ public sealed class PreviousEngineTests : IDisposable
     [Fact]
     public void WriteStopLog_WritesEachWarningToItsOwnFile()
     {
-        var engineLog = Path.Combine(_directory.Path, "engine.log");
+        var engineLog = _directory.File("engine.log");
         File.WriteAllText(engineLog, "old engine\n");
-        var path = Path.Combine(_directory.Path, PreviousEngine.StopLogFileName);
+        var path = _directory.File(PreviousEngine.StopLogFileName);
 
         PreviousEngine.WriteStopLog(path, ["first", "second"]);
 

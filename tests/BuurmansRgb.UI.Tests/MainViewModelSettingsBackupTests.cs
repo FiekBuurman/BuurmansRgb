@@ -263,7 +263,7 @@ public sealed class MainViewModelSettingsBackupTests : IDisposable
 
     private string WriteZip(string name, byte[] content)
     {
-        var path = Path.Combine(_folder.Path, name);
+        var path = _folder.File(name);
         File.WriteAllBytes(path, content);
         return path;
     }

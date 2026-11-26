@@ -134,7 +134,7 @@ public sealed class FileLogTests : IDisposable
     [Fact]
     public void New_FolderCannotBeMade_WritesNothingAndDoesNotThrow()
     {
-        var blocker = Path.Combine(_directory.Path, "blocker");
+        var blocker = _directory.File("blocker");
         File.WriteAllText(blocker, "a file where the logs folder should be");
 
         using var log = new FileLog(Path.Combine(blocker, "engine.log"), _clock);
