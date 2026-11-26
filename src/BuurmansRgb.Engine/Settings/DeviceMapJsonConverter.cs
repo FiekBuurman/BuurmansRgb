@@ -16,7 +16,7 @@ internal abstract class DeviceMapJsonConverter<T>(string propertyName, string ex
         var map = new Dictionary<string, T?>();
         if (document.RootElement.ValueKind != JsonValueKind.Object)
         {
-            LeaveOut(propertyName, document.RootElement, expected);
+            LeaveOut(propertyName, document.RootElement);
             return map;
         }
 
@@ -28,7 +28,7 @@ internal abstract class DeviceMapJsonConverter<T>(string propertyName, string ex
             }
             else
             {
-                LeaveOut($"{propertyName} of '{device.Name}'", device.Value, expected);
+                LeaveOut($"{propertyName} of '{device.Name}'", device.Value);
             }
         }
 
@@ -55,8 +55,6 @@ internal abstract class DeviceMapJsonConverter<T>(string propertyName, string ex
     // Writes the property of the device, name and value.
     protected abstract void WriteDevice(Utf8JsonWriter writer, string deviceId, T value);
 
-    protected void LeaveOut(string what, JsonElement value) => LeaveOut(what, value, expected);
-
-    private static void LeaveOut(string what, JsonElement value, string expected) =>
+    protected void LeaveOut(string what, JsonElement value) =>
         Trace.TraceWarning($"Settings file: {what} is {value.GetRawText()}, which is not {expected}; it is left out.");
 }
