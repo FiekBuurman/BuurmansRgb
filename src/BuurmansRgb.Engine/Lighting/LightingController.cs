@@ -110,9 +110,8 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     public LightingState Replace(Func<LightingState, LightingState> change, bool fade = false)
     {
         ArgumentNullException.ThrowIfNull(change);
-        bool rendered;
-        LightingState applied;
-        lock (_gate)
+        LightingState applied = null!;
+        Mutate(() =>
         {
             var wasSet = _lighting.IsSet;
             var before = StateLocked();
@@ -127,11 +126,8 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
             }
 
             applied = StateLocked();
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        LightingChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        });
         return applied;
     }
 
@@ -172,8 +168,7 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     // was fading: its fade ends (EndFadesLocked).
     public void SetLighting(string? deviceId, Func<DeviceLighting, DeviceLighting> change, bool fade = false)
     {
-        bool rendered;
-        lock (_gate)
+        Mutate(() =>
         {
             var before = fade && _lighting.IsSet ? StateLocked() : null;
             if (deviceId is null)
@@ -195,11 +190,8 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
                 EndFadesLocked(deviceId);
             }
 
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        LightingChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        });
     }
 
     // The own effects there are now (CustomEffectLibrary), which a lighting can show by their id.
@@ -210,30 +202,26 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     public void SetCustomEffects(IReadOnlyList<CustomEffect> effects)
     {
         ArgumentNullException.ThrowIfNull(effects);
-        var changed = false;
-        bool rendered;
-        lock (_gate)
-        {
-            _customEffects.Set(effects);
-            if (_lighting.IsSet)
+        Mutate(
+            () =>
             {
+                _customEffects.Set(effects);
+                if (!_lighting.IsSet)
+                {
+                    return false;
+                }
+
                 var state = StateLocked();
                 var kept = _customEffects.WithoutMissing(state);
-                if (!ReferenceEquals(kept, state))
+                if (ReferenceEquals(kept, state))
                 {
-                    _lighting.Replace(kept.Global, kept.Devices);
-                    changed = true;
+                    return false;
                 }
-            }
 
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        if (changed)
-        {
-            LightingChanged?.Invoke(this, EventArgs.Empty);
-        }
+                _lighting.Replace(kept.Global, kept.Devices);
+                return true;
+            },
+            alwaysRender: true);
     }
 
     // The colors the per-LED effect shows, one per LED: the stored color, or the device color for
@@ -253,19 +241,15 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     public void SetLedColors(string deviceId, int firstLed, IReadOnlyList<RgbColor> colors)
     {
         ArgumentNullException.ThrowIfNull(colors);
-        bool rendered;
-        lock (_gate)
+        Mutate(() =>
         {
             var device = LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _ledColors.Set(device, firstLed, colors);
             _lighting.Set(deviceId, _lighting.Get(deviceId) with { EffectId = EffectIds.PerLed });
             EndFadesLocked(deviceId);
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        LightingChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        });
     }
 
     // The layer over the effect of the device, one per LED it has now: a fixed color, or null for an
@@ -284,18 +268,14 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     public void SetOverlay(string deviceId, int firstLed, IReadOnlyList<RgbColor?> colors)
     {
         ArgumentNullException.ThrowIfNull(colors);
-        bool rendered;
-        lock (_gate)
+        Mutate(() =>
         {
             LedRangeLocked(deviceId, firstLed, colors.Count);
 
             _overlays.Set(deviceId, firstLed, colors);
             EndFadesLocked(deviceId);
-            rendered = RenderLocked();
-        }
-
-        Publish(rendered);
-        LightingChanged?.Invoke(this, EventArgs.Empty);
+            return true;
+        });
     }
 
     // Copies the buffers, so the caller can convert them without holding the lock.
@@ -482,6 +462,30 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
         }
 
         return EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(device), lighting.Loop, EffectCatalog.SeedOf(device.Id), lighting.EffectColors);
+    }
+
+    // A change of the lighting: changeLocked runs under the lock and returns whether it changed the
+    // lighting. It renders then, also without a change when alwaysRender is set, and outside the
+    // lock Rendered and LightingChanged go out. A changeLocked that throws has changed nothing, so
+    // nothing renders and no event goes out.
+    private void Mutate(Func<bool> changeLocked, bool alwaysRender = false)
+    {
+        bool changed;
+        var rendered = false;
+        lock (_gate)
+        {
+            changed = changeLocked();
+            if (changed || alwaysRender)
+            {
+                rendered = RenderLocked();
+            }
+        }
+
+        Publish(rendered);
+        if (changed)
+        {
+            LightingChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     private void Publish(bool rendered)
