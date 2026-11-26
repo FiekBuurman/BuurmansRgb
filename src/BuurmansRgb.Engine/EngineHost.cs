@@ -38,6 +38,10 @@ internal sealed class EngineHost(
     private LightingSettingsSaver? _saver;
     private SettingsReloader? _reloader;
 
+    // The options the saver keeps besides the lighting (CreateOptions), made at their first use in
+    // StartAsync, as a field initializer cannot use the host.
+    private OptionBinding[]? _options;
+
     // Set once the user chose autostart (AutoStartChosen); read when the saver comes, for a
     // choice before it.
     private bool _autoStartChosen;
@@ -83,12 +87,15 @@ internal sealed class EngineHost(
             _saver.ChangeOptions(saved => saved with { StartScenesCreated = true });
         }
 
-        simulatedDevices?.ModeChanged += OnSimulatedDevicesModeChanged;
-        simulatedDevices?.HadRealDevicesChanged += OnHadRealDevicesChanged;
+        foreach (var option in Options)
+        {
+            option.Listen();
+        }
+
         if (simulatedDevices?.HadRealDevices == true && !settings.HadRealDevices)
         {
             // A real device was in the first list already, before anyone listened.
-            OnHadRealDevicesChanged(this, EventArgs.Empty);
+            _saver.ChangeOptions(SaveHadRealDevices);
         }
 
         if (Volatile.Read(ref _autoStartChosen))
@@ -97,17 +104,6 @@ internal sealed class EngineHost(
             OnAutoStartChosen(this, EventArgs.Empty);
         }
 
-        zoneLengths?.LengthsChanged += OnZoneLengthsChanged;
-        profiles?.ActiveChanged += OnActiveSceneChanged;
-        lighting.FramesPerSecondChanged += OnFramesPerSecondChanged;
-        autoPause?.EnabledChanged += OnAutoPauseEnabledChanged;
-        lighting.PausedLightsChanged += OnPausedLightsChanged;
-        lighting.SceneFadeChanged += OnSceneFadeChanged;
-        lighting.ZonesAlikeChanged += OnZonesAlikeChanged;
-        profileTimer?.CatchUpChanged += OnCatchUpChanged;
-        hotkeys?.EnabledChanged += OnHotkeysEnabledChanged;
-        customColors?.Changed += OnCustomColorsChanged;
-        otherRgbSoftware?.DismissedChanged += OnOtherRgbSoftwareDismissed;
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Start();
@@ -142,19 +138,11 @@ internal sealed class EngineHost(
     {
         _reloader?.Dispose();
         autoStart?.Chosen -= OnAutoStartChosen;
-        simulatedDevices?.ModeChanged -= OnSimulatedDevicesModeChanged;
-        simulatedDevices?.HadRealDevicesChanged -= OnHadRealDevicesChanged;
-        zoneLengths?.LengthsChanged -= OnZoneLengthsChanged;
-        profiles?.ActiveChanged -= OnActiveSceneChanged;
-        lighting.FramesPerSecondChanged -= OnFramesPerSecondChanged;
-        autoPause?.EnabledChanged -= OnAutoPauseEnabledChanged;
-        lighting.PausedLightsChanged -= OnPausedLightsChanged;
-        lighting.SceneFadeChanged -= OnSceneFadeChanged;
-        lighting.ZonesAlikeChanged -= OnZonesAlikeChanged;
-        profileTimer?.CatchUpChanged -= OnCatchUpChanged;
-        hotkeys?.EnabledChanged -= OnHotkeysEnabledChanged;
-        customColors?.Changed -= OnCustomColorsChanged;
-        otherRgbSoftware?.DismissedChanged -= OnOtherRgbSoftwareDismissed;
+        foreach (var option in _options ?? [])
+        {
+            option.StopListening();
+        }
+
         foreach (var trigger in profileTriggers ?? [])
         {
             trigger.Dispose();
@@ -203,17 +191,10 @@ internal sealed class EngineHost(
     // The options besides the lighting and zone lengths, at the start and after a change by hand.
     private void ApplyOptions(EngineSettings settings)
     {
-        simulatedDevices?.Mode = settings.SimulatedDevices;
-        simulatedDevices?.HadRealDevices = settings.HadRealDevices;
-        lighting.FramesPerSecond = settings.FramesPerSecond;
-        autoPause?.Enabled = settings.PauseOnLockAndSleep;
-        lighting.PausedLights = settings.PausedLights;
-        lighting.SceneFade = settings.ReadSceneFade();
-        lighting.ZonesAlike = settings.ReadZonesAlike();
-        profileTimer?.CatchUp = settings.CatchUpSceneTimes;
-        hotkeys?.Enabled = settings.Hotkeys;
-        customColors?.Colors = settings.ReadCustomColors();
-        otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware();
+        foreach (var option in Options)
+        {
+            option.Apply?.Invoke(settings);
+        }
     }
 
     // Before the devices are fetched, so the tray menu shows it from the start. A file without
@@ -277,48 +258,99 @@ internal sealed class EngineHost(
         _saver?.ChangeOptions(settings => settings with { AutoStartChosen = true });
     }
 
-    // Reads the newest mode, so two changes that cross each other still save the last one.
-    private void OnSimulatedDevicesModeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { SimulatedDevices = simulatedDevices!.Mode });
+    private OptionBinding[] Options => _options ??= CreateOptions();
+
+    // Every option the saver keeps besides the lighting, in one list, so StartAsync listens to
+    // each, Dispose stops listening to each and ApplyOptions sets each in this order. Each save
+    // reads the newest value, so two changes that cross each other still save the last one. The
+    // zone lengths and the scene that is on have no apply: StartAsync and ApplyChangedByHand set
+    // them their own way.
+    private OptionBinding[] CreateOptions() =>
+    [
+        Bind(
+            handler => simulatedDevices?.ModeChanged += handler,
+            handler => simulatedDevices?.ModeChanged -= handler,
+            settings => simulatedDevices?.Mode = settings.SimulatedDevices,
+            settings => settings with { SimulatedDevices = simulatedDevices!.Mode }),
+        Bind(
+            handler => simulatedDevices?.HadRealDevicesChanged += handler,
+            handler => simulatedDevices?.HadRealDevicesChanged -= handler,
+            settings => simulatedDevices?.HadRealDevices = settings.HadRealDevices,
+            SaveHadRealDevices),
+        Bind(
+            handler => zoneLengths?.LengthsChanged += handler,
+            handler => zoneLengths?.LengthsChanged -= handler,
+            apply: null,
+            settings => settings.WithZoneLengths(zoneLengths!.Lengths)),
+        Bind(
+            handler => profiles?.ActiveChanged += handler,
+            handler => profiles?.ActiveChanged -= handler,
+            apply: null,
+            settings => settings with { ActiveScene = profiles!.ActiveName }),
+
+        // The options from the settings app.
+        Bind(
+            handler => lighting.FramesPerSecondChanged += handler,
+            handler => lighting.FramesPerSecondChanged -= handler,
+            settings => lighting.FramesPerSecond = settings.FramesPerSecond,
+            settings => settings with { FramesPerSecond = lighting.FramesPerSecond }),
+        Bind(
+            handler => autoPause?.EnabledChanged += handler,
+            handler => autoPause?.EnabledChanged -= handler,
+            settings => autoPause?.Enabled = settings.PauseOnLockAndSleep,
+            settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled }),
+        Bind(
+            handler => lighting.PausedLightsChanged += handler,
+            handler => lighting.PausedLightsChanged -= handler,
+            settings => lighting.PausedLights = settings.PausedLights,
+            settings => settings with { PausedLights = lighting.PausedLights }),
+        Bind(
+            handler => lighting.SceneFadeChanged += handler,
+            handler => lighting.SceneFadeChanged -= handler,
+            settings => lighting.SceneFade = settings.ReadSceneFade(),
+            settings => settings.WithSceneFade(lighting.SceneFade)),
+        Bind(
+            handler => lighting.ZonesAlikeChanged += handler,
+            handler => lighting.ZonesAlikeChanged -= handler,
+            settings => lighting.ZonesAlike = settings.ReadZonesAlike(),
+            settings => settings.WithZonesAlike(lighting.ZonesAlike)),
+        Bind(
+            handler => profileTimer?.CatchUpChanged += handler,
+            handler => profileTimer?.CatchUpChanged -= handler,
+            settings => profileTimer?.CatchUp = settings.CatchUpSceneTimes,
+            settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp }),
+        Bind(
+            handler => hotkeys?.EnabledChanged += handler,
+            handler => hotkeys?.EnabledChanged -= handler,
+            settings => hotkeys?.Enabled = settings.Hotkeys,
+            settings => settings with { Hotkeys = hotkeys!.Enabled }),
+        Bind(
+            handler => customColors?.Changed += handler,
+            handler => customColors?.Changed -= handler,
+            settings => customColors?.Colors = settings.ReadCustomColors(),
+            settings => settings.WithCustomColors(customColors!.Colors)),
+
+        // A program the user dismissed in the app, so its message stays away after a restart.
+        Bind(
+            handler => otherRgbSoftware?.DismissedChanged += handler,
+            handler => otherRgbSoftware?.DismissedChanged -= handler,
+            settings => otherRgbSoftware?.Dismissed = settings.ReadDismissedOtherRgbSoftware(),
+            settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed)),
+    ];
 
     // The fact that a real device was in the list, so it still counts after a restart.
-    private void OnHadRealDevicesChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { HadRealDevices = simulatedDevices!.HadRealDevices });
+    private EngineSettings SaveHadRealDevices(EngineSettings settings) =>
+        settings with { HadRealDevices = simulatedDevices!.HadRealDevices };
 
-    // Also reads the newest lengths, for the same reason.
-    private void OnZoneLengthsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithZoneLengths(zoneLengths!.Lengths));
+    // A change of the option, on any thread, goes to the saver once it is there.
+    private OptionBinding Bind(Action<EventHandler> listen, Action<EventHandler> stopListening, Action<EngineSettings>? apply, Func<EngineSettings, EngineSettings> save) =>
+        new(listen, stopListening, apply, (_, _) => _saver?.ChangeOptions(save));
 
-    // And the scene that is on now.
-    private void OnActiveSceneChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { ActiveScene = profiles!.ActiveName });
+    // One option: how the host listens to its event, and how a settings file sets it (Apply).
+    private sealed record OptionBinding(Action<EventHandler> Add, Action<EventHandler> Remove, Action<EngineSettings>? Apply, EventHandler Changed)
+    {
+        public void Listen() => Add(Changed);
 
-    // The options from the settings app, also the newest value each.
-    private void OnFramesPerSecondChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { FramesPerSecond = lighting.FramesPerSecond });
-
-    private void OnAutoPauseEnabledChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { PauseOnLockAndSleep = autoPause!.Enabled });
-
-    private void OnPausedLightsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { PausedLights = lighting.PausedLights });
-
-    private void OnSceneFadeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithSceneFade(lighting.SceneFade));
-
-    private void OnZonesAlikeChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithZonesAlike(lighting.ZonesAlike));
-
-    private void OnCatchUpChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { CatchUpSceneTimes = profileTimer!.CatchUp });
-
-    private void OnHotkeysEnabledChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings with { Hotkeys = hotkeys!.Enabled });
-
-    private void OnCustomColorsChanged(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithCustomColors(customColors!.Colors));
-
-    // A program the user dismissed in the app, so its message stays away after a restart.
-    private void OnOtherRgbSoftwareDismissed(object? sender, EventArgs e) =>
-        _saver?.ChangeOptions(settings => settings.WithDismissedOtherRgbSoftware(otherRgbSoftware!.Dismissed));
+        public void StopListening() => Remove(Changed);
+    }
 }
