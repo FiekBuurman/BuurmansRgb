@@ -58,7 +58,7 @@ public sealed class EngineCommandTests
     {
         var command = new EngineCommand(EngineCommandKind.Scene, new string('é', ProfileNames.MaxLength));
 
-        Assert.True(System.Text.Encoding.UTF8.GetByteCount(command.ToMessage()) <= SingleInstance.MaxCommandBytes);
+        Assert.True(System.Text.Encoding.UTF8.GetByteCount(command.ToMessage()) <= CommandMailbox.MaxCommandBytes);
     }
 
     [Theory]
