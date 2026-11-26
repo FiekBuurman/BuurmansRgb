@@ -29,18 +29,7 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     private readonly LightingTable _lighting = new();
     private readonly LedColorStore _ledColors = new();
     private readonly LedOverlayStore _overlays = new();
-
-    // The own effects by effect id, each with the effect that plays it: one for every device, as
-    // it keeps nothing between frames. SetCustomEffects fills the spare one from the current one
-    // and swaps them, so an effect with the same steps keeps its StepEffect.
-    private Dictionary<string, CustomEffectPlayer> _customEffects = new(StringComparer.Ordinal);
-    private Dictionary<string, CustomEffectPlayer> _spareCustomEffects = new(StringComparer.Ordinal);
-
-    // Whether SetCustomEffects gave the own effects there are. Until then (effects.json out of
-    // reach, or no library at all) an own effect that is not in _customEffects may still exist, so
-    // the lighting keeps its id and only shows the device color for the moment.
-    private bool _customEffectsKnown;
-
+    private readonly CustomEffectPlayers _customEffects = new();
     private bool _disposed;
     private long _sequence;
 
@@ -189,12 +178,12 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
             var before = fade && _lighting.IsSet ? StateLocked() : null;
             if (deviceId is null)
             {
-                _lighting.SetGlobal(lighting => ThrowIfMissingCustomLocked(change(lighting)));
+                _lighting.SetGlobal(lighting => _customEffects.ThrowIfMissing(change(lighting)));
             }
             else
             {
                 KnownDeviceLocked(deviceId);
-                _lighting.Set(deviceId, ThrowIfMissingCustomLocked(change(_lighting.Get(deviceId))));
+                _lighting.Set(deviceId, _customEffects.ThrowIfMissing(change(_lighting.Get(deviceId))));
             }
 
             if (fade)
@@ -225,22 +214,11 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
         bool rendered;
         lock (_gate)
         {
-            _customEffectsKnown = true;
-            (_customEffects, _spareCustomEffects) = (_spareCustomEffects, _customEffects);
-            _customEffects.Clear();
-            foreach (var effect in effects)
-            {
-                _customEffects[effect.Id] = _spareCustomEffects.TryGetValue(effect.Id, out var player) && player.Plays(effect)
-                    ? player with { Effect = effect }
-                    : new CustomEffectPlayer(effect, EffectCatalog.CreateCustom(effect));
-            }
-
-            _spareCustomEffects.Clear();
-
+            _customEffects.Set(effects);
             if (_lighting.IsSet)
             {
                 var state = StateLocked();
-                var kept = WithoutMissingCustomLocked(state);
+                var kept = _customEffects.WithoutMissing(state);
                 if (!ReferenceEquals(kept, state))
                 {
                     _lighting.Replace(kept.Global, kept.Devices);
@@ -485,7 +463,7 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     // With read, returns the lighting as it is once state is on.
     private void ApplyLocked(LightingState state)
     {
-        state = WithoutMissingCustomLocked(state);
+        state = _customEffects.WithoutMissing(state);
         _lighting.Replace(state.Global, state.Devices);
         _ledColors.Replace(state.LedColors);
         _ledColors.Adopt(_outputs.All.Select(output => output.Device));
@@ -495,43 +473,16 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
     private LightingState StateLocked() =>
         new(_lighting.Global, _lighting.Snapshot(), _ledColors.Snapshot()) { Overlays = _overlays.Snapshot() };
 
-    // The effect a device shows with lighting: an own effect plays its steps, and one that is gone
-    // shows the device color: only for a moment once the effects are known (see
-    // WithoutMissingCustomLocked), and until they are (_customEffectsKnown).
+    // The effect a device shows with lighting; an own effect comes from CustomEffectPlayers.
     private IEffect EffectLocked(DeviceLighting lighting, RgbDevice device)
     {
         if (CustomEffects.IsCustom(lighting.EffectId))
         {
-            return _customEffects.TryGetValue(lighting.EffectId, out var custom) ? custom.Steps : new StaticEffect(lighting.Color);
+            return _customEffects.EffectOf(lighting);
         }
 
         return EffectCatalog.Create(lighting.EffectId, lighting.Color, _ledColors.For(device), lighting.Loop, EffectCatalog.SeedOf(device.Id), lighting.EffectColors);
     }
-
-    // The state with the static effect in place of an own effect that does not exist (any more),
-    // such as from a scene saved before it was deleted; the same state when there is none.
-    private LightingState WithoutMissingCustomLocked(LightingState state)
-    {
-        if (!IsMissingCustomLocked(state.Global) && !state.Devices.Values.Any(IsMissingCustomLocked))
-        {
-            return state;
-        }
-
-        return state with
-        {
-            Global = WithoutMissingCustomLocked(state.Global),
-            Devices = state.Devices.ToDictionary(pair => pair.Key, pair => WithoutMissingCustomLocked(pair.Value)),
-        };
-    }
-
-    private DeviceLighting WithoutMissingCustomLocked(DeviceLighting lighting) =>
-        IsMissingCustomLocked(lighting) ? lighting with { EffectId = EffectIds.Static } : lighting;
-
-    private bool IsMissingCustomLocked(DeviceLighting lighting) =>
-        _customEffectsKnown && CustomEffects.IsCustom(lighting.EffectId) && !_customEffects.ContainsKey(lighting.EffectId);
-
-    private DeviceLighting ThrowIfMissingCustomLocked(DeviceLighting lighting) =>
-        IsMissingCustomLocked(lighting) ? throw EffectCatalog.UnknownCustom(lighting.EffectId) : lighting;
 
     private void Publish(bool rendered)
     {
@@ -539,13 +490,5 @@ internal sealed partial class LightingController : ILightingStateSource, IDispos
         {
             Rendered?.Invoke(this, EventArgs.Empty);
         }
-    }
-
-    // An own effect and the StepEffect that plays its steps. Equal steps are compared one color at a
-    // time, as an effect from the pipe is a new copy even when only its name changed.
-    private readonly record struct CustomEffectPlayer(CustomEffect Effect, StepEffect Steps)
-    {
-        public bool Plays(CustomEffect effect) =>
-            ReferenceEquals(Effect.Steps, effect.Steps) || Effect.Steps.SequenceEqual(effect.Steps);
     }
 }
