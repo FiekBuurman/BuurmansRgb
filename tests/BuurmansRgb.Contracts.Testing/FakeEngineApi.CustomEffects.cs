@@ -16,6 +16,9 @@ public sealed partial class FakeEngineApi
 
     private int _nextCustomEffect = 1;
 
+    // When set, a new effect gets this id instead of the next number.
+    public string? NewCustomEffectId { get; set; }
+
     // Such as the engine that cannot read effects.json yet.
     public Exception? GetCustomEffectsException { get; set; }
 
@@ -26,7 +29,7 @@ public sealed partial class FakeEngineApi
 
     public async Task<CustomEffect> SaveCustomEffectAsync(CustomEffect effect, CancellationToken ct = default)
     {
-        var saved = effect.Id.Length == 0 ? effect with { Id = $"custom:{_nextCustomEffect++}" } : effect;
+        var saved = effect.Id.Length == 0 ? effect with { Id = NewCustomEffectId ?? $"custom:{_nextCustomEffect++}" } : effect;
         await Record($"custom-effect save {saved.Id} {saved.Name} {string.Join(" ", saved.Steps.Select(Describe))}");
         CustomEffects = [.. CustomEffects.Where(other => other.Id != saved.Id).Append(saved).OrderBy(other => other.Name, StringComparer.CurrentCultureIgnoreCase)];
         return saved;
