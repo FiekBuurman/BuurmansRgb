@@ -157,6 +157,7 @@ BuurmansRgb.slnx
 ├─ tests/
 │  ├─ BuurmansRgb.<project>.Tests     // een testproject per project hierboven
 │  ├─ BuurmansRgb.Providers.OpenRgb.Testing // nep-OpenRGB-server, zonder eigen tests
+│  ├─ BuurmansRgb.Contracts.Testing // nep-engine (FakeEngineApi), zonder eigen tests
 │  └─ Shared                          // helpers die elk testproject meebouwt
 ├─ installer/                         // build.ps1, BuurmansRgb.iss, Sandbox-test
 └─ design/                            // ontwerppakket van de instellingen-app
