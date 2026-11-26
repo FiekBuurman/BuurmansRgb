@@ -389,10 +389,12 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   lock (`_gate`); een methode met `Locked` aan het eind loopt onder die lock, en events gaan
   altijd buiten de lock. Een wijziging van de verlichting loopt via `Mutate` (lock, wijzigen,
   renderen als er iets veranderde, `Rendered` en `LightingChanged` buiten de lock), een optie via
-  `SetOption` (het event ook als een apparaat bij het renderen faalt). Hulpklassen zonder eigen
-  lock, zoals `CustomEffectPlayers` (de `StepEffect` per eigen effect), `LedColorStore`,
-  `LedOverlayStore` en `DeviceOutputs`, zeggen in hun commentaar "Not thread-safe: LightingController uses it under its
-  lock". Een nieuw deel krijgt een eigen partial-bestand of hulpklasse, geen tweede lock.
+  `SetOption` (hetzelfde, met het eigen event van de optie). Alleen `PausedLights` gaat buiten
+  `SetOption` om: dat meldt zijn wijziging met try/finally ook als een apparaat faalt. Hulpklassen
+  zonder eigen lock, zoals `CustomEffectPlayers` (de `StepEffect` per eigen effect),
+  `LedColorStore`, `LedOverlayStore` en `DeviceOutputs`, zeggen in hun commentaar "Not
+  thread-safe: LightingController uses it under its lock". Een nieuw deel krijgt een eigen
+  partial-bestand of hulpklasse, geen tweede lock.
 - **Render-loop:** alleen als minstens één apparaat een bewegend effect toont, draait een
   `PeriodicTimer` op `framesPerSecond`; ook tijdens het knipperen. Een frame stuurt alleen de
   apparaten waarvan de kleuren veranderden, en alloceert niets zolang de instellingen-app dicht

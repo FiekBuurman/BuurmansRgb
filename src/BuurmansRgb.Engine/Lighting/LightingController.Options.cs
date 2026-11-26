@@ -58,27 +58,30 @@ internal sealed partial class LightingController
                 return _pausedLights;
             }
         }
+        // Not through SetOption: only this option is reported when a device fails.
         set
         {
-            var oldScale = 1.0;
-            SetOption(
-                () =>
+            var changed = false;
+            try
+            {
+                lock (_gate)
                 {
-                    oldScale = SendScaleLocked;
-                    var changed = _pausedLights != value;
+                    var oldScale = SendScaleLocked;
+                    changed = _pausedLights != value;
                     _pausedLights = value;
-                    return changed;
-                },
-                () => PausedLightsChanged?.Invoke(this, EventArgs.Empty),
-                () =>
-                {
                     if (SendScaleLocked != oldScale)
                     {
                         SendAllLocked();
                     }
-
-                    return false;
-                });
+                }
+            }
+            finally
+            {
+                if (changed)
+                {
+                    PausedLightsChanged?.Invoke(this, EventArgs.Empty);
+                }
+            }
         }
     }
 
@@ -138,7 +141,7 @@ internal sealed partial class LightingController
                 return true;
             },
             () => ZonesAlikeChanged?.Invoke(this, EventArgs.Empty),
-            RenderLocked);
+            render: true);
     }
 
     // One device, which must be there, such as from the switch in the settings app.
@@ -149,37 +152,31 @@ internal sealed partial class LightingController
             return alike ? _zonesAlike.Add(deviceId) : _zonesAlike.Remove(deviceId);
         },
         () => ZonesAlikeChanged?.Invoke(this, EventArgs.Empty),
-        RenderLocked);
+        render: true);
 
     private TimeSpan FramePeriodLocked => TimeSpan.FromSeconds(1.0 / _framesPerSecond);
 
     // A change of an option: changeLocked runs under the lock and returns whether the option got
-    // another value; only then showLocked lets the devices show it, and returns whether it rendered.
-    // Outside the lock Rendered goes out, then raiseChanged. The new value holds and is reported
-    // even when a device fails while it goes out.
-    private void SetOption(Func<bool> changeLocked, Action raiseChanged, Func<bool>? showLocked = null)
+    // another value; only then, with render, the devices show it. Outside the lock Rendered goes
+    // out, then raiseChanged. When a device fails while it renders, the new value holds but
+    // raiseChanged is not called (see docs/ideas.md).
+    private void SetOption(Func<bool> changeLocked, Action raiseChanged, bool render = false)
     {
-        var changed = false;
-        try
+        bool changed;
+        var rendered = false;
+        lock (_gate)
         {
-            var rendered = false;
-            lock (_gate)
+            changed = changeLocked();
+            if (changed && render)
             {
-                changed = changeLocked();
-                if (changed && showLocked is not null)
-                {
-                    rendered = showLocked();
-                }
+                rendered = RenderLocked();
             }
-
-            Publish(rendered);
         }
-        finally
+
+        Publish(rendered);
+        if (changed)
         {
-            if (changed)
-            {
-                raiseChanged();
-            }
+            raiseChanged();
         }
     }
 }
