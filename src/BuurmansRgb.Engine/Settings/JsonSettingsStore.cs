@@ -23,7 +23,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.SettingsFileName);
 
     // Where a file that does not read goes, so the next save does not overwrite the user's settings.
-    public string BrokenFilePath => filePath + ".broken";
+    public string BrokenFilePath => JsonFile.BrokenPathOf(filePath);
 
     public EngineSettings LoadOrCreate()
     {
@@ -213,7 +213,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         if (_unreadable && File.Exists(filePath))
         {
-            File.Move(filePath, BrokenFilePath, overwrite: true);
+            JsonFile.MoveAside(filePath);
         }
 
         _unreadable = false;
@@ -226,7 +226,7 @@ internal sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         try
         {
-            File.Move(filePath, BrokenFilePath, overwrite: true);
+            JsonFile.MoveAside(filePath);
             return true;
         }
         catch (Exception exception) when (FileErrors.IsAccessError(exception))

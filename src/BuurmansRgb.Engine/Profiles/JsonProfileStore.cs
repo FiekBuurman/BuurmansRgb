@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using System.Text.Json;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Settings;
 
@@ -12,7 +10,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
     public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.ProfilesFileName);
 
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
-    public string BrokenFilePath => filePath + ".broken";
+    public string BrokenFilePath => JsonFile.BrokenPathOf(filePath);
 
     // Also a file that is not valid JSON, also once Load moved it aside: that is from a pc that
     // had a profiles.json, even when the library read it before AddStartScenes.
@@ -22,22 +20,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
     // internal one without a known role, or with the role of an earlier one.
     public IReadOnlyList<Profile> Load()
     {
-        if (!File.Exists(filePath))
-        {
-            return [];
-        }
-
-        ProfilesFile? file;
-        try
-        {
-            file = LenientJson.Deserialize(File.ReadAllBytes(filePath), EngineSettingsJsonContext.Default.ProfilesFile);
-        }
-        catch (JsonException exception)
-        {
-            Trace.TraceError(exception.ToString());
-            File.Move(filePath, BrokenFilePath, overwrite: true);
-            return [];
-        }
+        var file = JsonFile.ReadOrMoveAside(filePath, EngineSettingsJsonContext.Default.ProfilesFile);
 
         var profiles = new List<Profile>();
         foreach (var settings in file?.Profiles ?? [])
