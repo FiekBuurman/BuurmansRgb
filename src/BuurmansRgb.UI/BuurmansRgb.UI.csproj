@@ -28,9 +28,10 @@
   </PropertyGroup>
 
   <!-- The engine is published to the same folder (installer\build.ps1, docs/installatie.md) and
-       loads the same BuurmansRgb.Contracts, BuurmansRgb.Platform, BuurmansRgb.Core, StreamJsonRpc,
-       MessagePack and the rest of what comes in through Contracts. The app is published second, so ReadyToRun on those
-       would change the engine too, unmeasured. Keep every assembly but the app's own as it is. -->
+       loads the same BuurmansRgb.Contracts, BuurmansRgb.Platform, BuurmansRgb.Core,
+       StreamJsonRpc, MessagePack and the rest of what comes in through Contracts. The app is
+       published second, so ReadyToRun on those would change the engine too, unmeasured. Keep
+       every assembly but the app's own as it is. -->
   <Target Name="KeepSharedAssembliesIL" AfterTargets="ComputeResolvedFilesToPublishList">
     <ItemGroup>
       <_ReadyToRunAssembly Include="$(ReadyToRunAssemblies)" />
