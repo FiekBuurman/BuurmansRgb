@@ -73,17 +73,18 @@ internal sealed class LedOverlayStore
             stored[firstLed + i] = colors[i];
         }
 
-        var before = For(deviceId);
-        if (Normalize(stored) is { } normalized)
+        if (Normalize(stored) is not { } normalized)
         {
-            _entries[deviceId] = normalized;
-        }
-        else
-        {
-            _entries.Remove(deviceId);
+            return _entries.Remove(deviceId);
         }
 
-        return !For(deviceId).SequenceEqual(before);
+        if (For(deviceId).SequenceEqual(normalized))
+        {
+            return false;
+        }
+
+        _entries[deviceId] = normalized;
+        return true;
     }
 
     // Whether device has the same layer now as in before (a Snapshot), over the LEDs it has now: as
