@@ -12,7 +12,7 @@ namespace BuurmansRgb.UI.ViewModels;
 public sealed partial class EffectsPauseViewModel : ObservableObject, IDisposable
 {
     private readonly TimeProvider _time;
-    private readonly SynchronizationContext? _uiContext = SynchronizationContext.Current;
+    private readonly UiThread _ui = new();
     private ITimer? _resumedTimer;
 
     // time runs the message after a pause; tests pass a fake one.
@@ -90,14 +90,7 @@ public sealed partial class EffectsPauseViewModel : ObservableObject, IDisposabl
     // The timer runs on the thread pool; the message belongs to the UI thread.
     private void OnResumedTimer()
     {
-        if (_uiContext is null)
-        {
-            HasResumed = false;
-        }
-        else
-        {
-            _uiContext.Post(_ => HasResumed = false, state: null);
-        }
+        _ui.Post(() => HasResumed = false);
     }
 
     private void StopTimer() => _resumedTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
