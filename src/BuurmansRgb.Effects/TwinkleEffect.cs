@@ -48,8 +48,7 @@ public sealed class TwinkleEffect : IEffect
 
     public TwinkleEffect(IReadOnlyList<RgbColor> colors, double twinklesPerSecond = DefaultTwinklesPerSecond, uint seed = 0)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        _colors = [.. colors];
+        _colors = EffectMath.CopyColors(colors);
         TwinklesPerSecond = EffectMath.FiniteSpeed(twinklesPerSecond);
         Seed = seed;
         _shiftStream = EffectMath.Seeded(ShiftStream, seed);

@@ -1,3 +1,5 @@
+using BuurmansRgb.Core;
+
 namespace BuurmansRgb.Effects.Tests;
 
 public sealed class EffectMathTests
@@ -71,6 +73,25 @@ public sealed class EffectMathTests
     public void Tail_OfNoLength_IsDark()
     {
         Assert.Equal(0.0, EffectMath.Tail(0.0, 0.0));
+    }
+
+    [Fact]
+    public void CopyColors_CopiesTheColors()
+    {
+        var colors = new List<RgbColor> { RgbColor.White, RgbColor.Black };
+
+        var copy = EffectMath.CopyColors(colors);
+        colors[0] = RgbColor.Black;
+
+        Assert.Equal([RgbColor.White, RgbColor.Black], copy);
+    }
+
+    [Fact]
+    public void CopyColors_NoColors_ThrowsForTheColorsParameter()
+    {
+        var thrown = Assert.Throws<ArgumentOutOfRangeException>(() => EffectMath.CopyColors([]));
+
+        Assert.Equal("colors", thrown.ParamName);
     }
 
     [Fact]

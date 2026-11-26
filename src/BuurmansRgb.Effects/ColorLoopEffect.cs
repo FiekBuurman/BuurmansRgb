@@ -14,8 +14,7 @@ public sealed class ColorLoopEffect : IDirectedEffect
 
     public ColorLoopEffect(IReadOnlyList<RgbColor> colors, bool spread = true, double loopsPerSecond = DefaultLoopsPerSecond)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        _colors = [.. colors];
+        _colors = EffectMath.CopyColors(colors);
         Spread = spread;
         LoopsPerSecond = EffectMath.FiniteSpeed(loopsPerSecond);
     }

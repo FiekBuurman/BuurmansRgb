@@ -43,6 +43,14 @@ internal static class EffectMath
         return left * left;
     }
 
+    // The colors of an effect with a list, copied so the caller cannot change them later; there
+    // must be at least one.
+    public static RgbColor[] CopyColors(IReadOnlyList<RgbColor> colors)
+    {
+        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
+        return [.. colors];
+    }
+
     // An effect in a direction gets one place per LED (IDirectedEffect).
     public static void ThrowIfNotOnePerLed(Span<RgbColor> leds, ReadOnlySpan<double> positions)
     {

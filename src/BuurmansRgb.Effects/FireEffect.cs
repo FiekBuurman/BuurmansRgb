@@ -41,8 +41,7 @@ public sealed class FireEffect : IEffect
 
     public FireEffect(IReadOnlyList<RgbColor> colors, double flickersPerSecond = DefaultFlickersPerSecond, uint seed = 0)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        Colors = [.. colors];
+        Colors = EffectMath.CopyColors(colors);
         _palette = colors.Count == 1 ? [colors[0].Scale(OneColorDark), colors[0]] : [.. colors];
         FlickersPerSecond = EffectMath.FiniteSpeed(flickersPerSecond);
         Seed = seed;

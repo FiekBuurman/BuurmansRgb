@@ -31,8 +31,7 @@ public sealed class CometEffect : IEffect
 
     public CometEffect(IReadOnlyList<RgbColor> colors, double roundsPerSecond = DefaultRoundsPerSecond)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        _colors = [.. colors];
+        _colors = EffectMath.CopyColors(colors);
         RoundsPerSecond = EffectMath.FiniteSpeed(roundsPerSecond);
     }
 

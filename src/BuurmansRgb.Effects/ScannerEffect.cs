@@ -28,8 +28,7 @@ public sealed class ScannerEffect : IEffect
 
     public ScannerEffect(IReadOnlyList<RgbColor> colors, double scansPerSecond = DefaultScansPerSecond)
     {
-        ArgumentOutOfRangeException.ThrowIfZero(colors.Count, nameof(colors));
-        _colors = [.. colors];
+        _colors = EffectMath.CopyColors(colors);
         ScansPerSecond = EffectMath.FiniteSpeed(scansPerSecond);
     }
 
