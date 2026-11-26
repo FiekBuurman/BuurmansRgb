@@ -134,9 +134,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session = new EngineSession(_ui, OnCallFailed, OnCallSucceeded);
         AppInfo = appInfo ?? AppInfoViewModel.ForThisApp(_ => { });
         AppInfo.Failed += (_, message) => StatusMessage = message;
-        Backup = new SettingsBackupViewModel(() => _session.Api, time);
+        Backup = new SettingsBackupViewModel(_session, time);
         Backup.Message += (_, message) => StatusMessage = message;
-        Sharing = new SharingViewModel(() => _session.Api, clipboard ?? new AppClipboard());
+        Sharing = new SharingViewModel(_session, clipboard ?? new AppClipboard());
         Sharing.Message += (_, message) => StatusMessage = message;
         Sharing.Imported += (_, result) => ShowImported(result);
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
@@ -158,7 +158,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         OtherRgbSoftware = new OtherRgbSoftwareViewModel(AppInfo);
         StatusLine = new StatusLineViewModel(OpenRgbStatus, EffectsPause, Motion, DeviceRescan, OtherRgbSoftware);
         _lampSync = new LampSync(Lamps, _session);
-        _sceneCards = new SceneCardLoader(Profiles, () => _session.Current);
+        _sceneCards = new SceneCardLoader(Profiles, _session);
         CustomColors = new CustomColorsViewModel(ColorPicker);
         CustomEffectEditor = new CustomEffectEditorViewModel(IsCustomEffectNameTaken);
         CustomEffectEditor.Changed += (_, effect) => SendCustomEffect(effect);

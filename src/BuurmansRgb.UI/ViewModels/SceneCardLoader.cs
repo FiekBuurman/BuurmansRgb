@@ -1,21 +1,20 @@
-using System.Diagnostics;
-using BuurmansRgb.Contracts;
-
 namespace BuurmansRgb.UI.ViewModels;
 
 // Shows on the scene cards what each scene looks like, when it loads by itself and which one is on.
-// connection gives the current connection, or null. Used on the UI thread.
-internal sealed class SceneCardLoader(ProfilesViewModel profiles, Func<IEngineConnection?> connection)
+// A coordinator: it reads from the engine of the session, and an answer only shows while its
+// connection is still the current one. Used on the UI thread.
+internal sealed class SceneCardLoader(ProfilesViewModel profiles, EngineSession session)
 {
     // Counts the questions for the scene that is on, so an answer that a newer question overtook
     // does not bring back an older scene.
     private int _activeQuestions;
 
     // Only reads, so a scene that fails, such as one deleted from the tray menu meanwhile, keeps its
-    // dark card and the user gets no message about a change; the other scenes still get theirs.
+    // dark card and the user gets no message about a change (OnReadFailed); the other scenes still
+    // get theirs.
     public async Task ShowAsync()
     {
-        if (connection() is not { } current)
+        if (session.Current is not { } current)
         {
             return;
         }
@@ -26,7 +25,7 @@ internal sealed class SceneCardLoader(ProfilesViewModel profiles, Func<IEngineCo
             {
                 var lighting = await current.Api.GetProfileLightingAsync(name);
                 var automation = await current.Api.GetProfileAutomationAsync(name);
-                if (!ReferenceEquals(current, connection()))
+                if (!session.IsCurrent(current))
                 {
                     return;
                 }
@@ -35,7 +34,7 @@ internal sealed class SceneCardLoader(ProfilesViewModel profiles, Func<IEngineCo
             }
             catch (Exception exception)
             {
-                Trace.TraceError(exception.ToString());
+                EngineSession.OnReadFailed(exception);
             }
         }
     }
@@ -44,7 +43,7 @@ internal sealed class SceneCardLoader(ProfilesViewModel profiles, Func<IEngineCo
     // scene ends the scene that was on.
     public async Task ShowActiveAsync()
     {
-        if (connection() is not { } current)
+        if (session.Current is not { } current)
         {
             return;
         }
@@ -53,14 +52,14 @@ internal sealed class SceneCardLoader(ProfilesViewModel profiles, Func<IEngineCo
         try
         {
             var active = await current.Api.GetActiveProfileAsync();
-            if (ReferenceEquals(current, connection()) && question == _activeQuestions)
+            if (session.IsCurrent(current) && question == _activeQuestions)
             {
                 profiles.ShowActive(active);
             }
         }
         catch (Exception exception)
         {
-            Trace.TraceError(exception.ToString());
+            EngineSession.OnReadFailed(exception);
         }
     }
 }

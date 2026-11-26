@@ -13,10 +13,18 @@ namespace BuurmansRgb.UI.ViewModels;
 // savers, so the zip has its last change and a restore is not written over by a save of what it
 // had. This app only picks the file and writes or reads it. The window gives the dialogs
 // (ChooseSaveFile, ChooseRestoreFile, ConfirmRestore); without them, as in a test that sets none,
-// nothing happens. What came of it goes to the status line (Message).
-public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeProvider? time = null) : ObservableObject
+// nothing happens. What came of it goes to the status line (Message). A coordinator: it calls the
+// engine of the session itself, outside its call queue, and says what came of it.
+public sealed partial class SettingsBackupViewModel : ObservableObject
 {
-    private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly EngineSession _session;
+    private readonly TimeProvider _time;
+
+    internal SettingsBackupViewModel(EngineSession session, TimeProvider? time = null)
+    {
+        _session = session;
+        _time = time ?? TimeProvider.System;
+    }
 
     // Raised with the message for the status line.
     public event EventHandler<string>? Message;
@@ -48,7 +56,7 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task SaveAsync()
     {
-        if (ChooseSaveFile?.Invoke(SuggestedFileName) is not { } path || api() is not { } engine)
+        if (ChooseSaveFile?.Invoke(SuggestedFileName) is not { } path || _session.Api is not { } engine)
         {
             return;
         }
@@ -75,7 +83,7 @@ public sealed partial class SettingsBackupViewModel(Func<IEngineApi?> api, TimeP
     [RelayCommand(CanExecute = nameof(CanRun))]
     private async Task RestoreAsync()
     {
-        if (ChooseRestoreFile?.Invoke() is not { } path || api() is not { } engine)
+        if (ChooseRestoreFile?.Invoke() is not { } path || _session.Api is not { } engine)
         {
             return;
         }
