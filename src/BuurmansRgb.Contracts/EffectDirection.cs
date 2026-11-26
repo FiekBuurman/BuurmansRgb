@@ -13,7 +13,6 @@ public static class EffectDirection
     public static bool IsValid(int? degrees) => degrees is null or (>= Min and <= Max);
 
     // The effects that run over the LEDs and so can take a direction: the rainbow, the wave and
-    // the color loop when it spreads over the LEDs.
-    public static bool Applies(string? effectId, bool spread) =>
-        effectId is EffectIds.Rainbow or EffectIds.Wave || (effectId == EffectIds.ColorLoop && spread);
+    // the color loop when it spreads over the LEDs (EffectTraits.Direction).
+    public static bool Applies(string? effectId, bool spread) => EffectTraits.Of(effectId).RunsInDirection(spread);
 }
