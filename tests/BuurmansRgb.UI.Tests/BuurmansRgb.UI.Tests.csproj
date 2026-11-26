@@ -13,10 +13,13 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="BuurmansRgb.Contracts.Testing" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BuurmansRgb.UI\BuurmansRgb.UI.csproj" />
+    <!-- The fake engine, FakeEngineApi. -->
+    <ProjectReference Include="..\BuurmansRgb.Contracts.Testing\BuurmansRgb.Contracts.Testing.csproj" />
     <!-- The simulated keyboard, for TestKeyboards; the app itself does not reference it. -->
     <ProjectReference Include="..\..\src\BuurmansRgb.Providers.Simulated\BuurmansRgb.Providers.Simulated.csproj" />
   </ItemGroup>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The fake engine (FakeEngineApi) for the tests of the RPC and of the settings app; no tests
+       itself, so the xUnit helpers of tests/Shared stay out (see tests/Directory.Build.props). -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>false</IsTestProject>
+    <IsTestHelperProject>true</IsTestHelperProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuurmansRgb.Contracts\BuurmansRgb.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>
