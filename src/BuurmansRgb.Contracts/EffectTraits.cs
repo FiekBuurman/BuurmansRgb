@@ -27,6 +27,8 @@ public enum DirectionUse
 public sealed record EffectTraits(bool IsAnimated, bool UsesDeviceColor, bool TakesColorList, IReadOnlyList<RgbColor>? DefaultColors, DirectionUse Direction)
 {
     // An effect the app does not know yet: still, with the device color, so it keeps the button.
+    // This is a record, so == compares the values: Static and PerLed are equal to it. Recognize
+    // Unknown and Custom only with ReferenceEquals.
     public static EffectTraits Unknown { get; } = new(IsAnimated: false, UsesDeviceColor: true, TakesColorList: false, DefaultColors: null, Direction: DirectionUse.Never);
 
     // An own effect (CustomEffects.IsCustom): its steps have their colors. Whether it moves depends

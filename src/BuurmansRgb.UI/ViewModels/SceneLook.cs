@@ -44,7 +44,8 @@ internal static class SceneLook
     public static RgbColor? OneColorOf(LightingInfo lighting)
     {
         var traits = EffectTraits.Of(lighting.EffectId);
-        if (!(traits.UsesDeviceColor || traits.TakesColorList) || lighting.EffectId == EffectIds.PerLed)
+        var colorsFromDeviceOrList = traits.UsesDeviceColor || traits.TakesColorList;
+        if (!colorsFromDeviceOrList || lighting.EffectId == EffectIds.PerLed)
         {
             return null;
         }
