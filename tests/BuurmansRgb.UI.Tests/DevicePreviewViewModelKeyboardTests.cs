@@ -6,7 +6,7 @@ using Microsoft.Extensions.Time.Testing;
 namespace BuurmansRgb.UI.Tests;
 
 // The keys of the per-LED editor in the preview of a device, as LedPreviewView hands them on.
-public sealed class DevicePreviewKeyboardTests
+public sealed class DevicePreviewViewModelKeyboardTests
 {
     private static readonly DeviceInfo Motherboard = TestDevices.Motherboard();
 

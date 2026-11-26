@@ -7,7 +7,7 @@ using static BuurmansRgb.UI.Tests.TestDevices;
 namespace BuurmansRgb.UI.Tests;
 
 // The cards of "Per apparaat" on Kleur that open and close (DESIGN.md § 9.3 and 9.7).
-public sealed class PreviewCardsViewModelTests
+public sealed class PreviewViewModelCardsTests
 {
     private static readonly RgbColor Red = new(255, 0, 0);
     private static readonly RgbColor Blue = new(0, 0, 255);

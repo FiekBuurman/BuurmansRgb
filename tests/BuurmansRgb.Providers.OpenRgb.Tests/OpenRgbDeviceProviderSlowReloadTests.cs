@@ -6,7 +6,7 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 // OpenRGB that takes its time to give its list after a device list change, as while it searches
 // with G HUB and Gigabyte Control Center open (thuistest 24-11-2026, F2): the connection stays as
 // long as it is open, and only one that closes counts as lost.
-public sealed class OpenRgbProviderSlowReloadTests : IDisposable
+public sealed class OpenRgbDeviceProviderSlowReloadTests : IDisposable
 {
     private static readonly OpenRgbDeviceData Strip = TestDevices.Create(index: 0, name: "Strip", location: "HID: strip");
 
@@ -18,7 +18,7 @@ public sealed class OpenRgbProviderSlowReloadTests : IDisposable
     private readonly OpenRgbDeviceProvider _provider;
     private readonly ServerStatusRecorder _statuses;
 
-    public OpenRgbProviderSlowReloadTests()
+    public OpenRgbDeviceProviderSlowReloadTests()
     {
         _provider = new OpenRgbDeviceProvider(_connector, _time, OpenRgbDeviceProvider.RetryDelay);
         _statuses = new ServerStatusRecorder(_provider);

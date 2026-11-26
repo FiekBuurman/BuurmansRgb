@@ -5,7 +5,7 @@ using BuurmansRgb.UI.ViewModels;
 namespace BuurmansRgb.UI.Tests;
 
 // "Als laag boven het effect" in the per-LED editor: the chosen LEDs get a fixed color over the effect.
-public sealed class LedEditorLayerTests
+public sealed class LedEditorViewModelLayerTests
 {
     private static readonly RgbColor White = RgbColor.White;
 

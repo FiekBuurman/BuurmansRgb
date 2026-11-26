@@ -638,7 +638,7 @@ public sealed class MainViewModelTests
 
     // As the catch-up of scene times and the hotkeys start before the engine answers.
     [Fact]
-    public void SceneTimesAreOffAndHotkeysOnAtFirst()
+    public void SceneTimesAndHotkeys_AtFirst_AreOffAndOn()
     {
         var viewModel = new MainViewModel(_connector);
 

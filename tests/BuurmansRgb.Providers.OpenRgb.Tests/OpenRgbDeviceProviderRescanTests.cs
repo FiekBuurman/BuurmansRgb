@@ -5,7 +5,7 @@ using OpenRgbDeviceType = OpenRGB.NET.DeviceType;
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // The button "Verversen" on Apparaten: OpenRGB searches again, or the provider connects anew.
-public sealed class OpenRgbProviderRescanTests : IDisposable
+public sealed class OpenRgbDeviceProviderRescanTests : IDisposable
 {
     private static readonly OpenRgbDeviceData Strip = TestDevices.Create(index: 0, name: "Strip", location: "HID: strip");
 
@@ -18,7 +18,7 @@ public sealed class OpenRgbProviderRescanTests : IDisposable
     private readonly OpenRgbDeviceProvider _provider;
     private int _devicesChanged;
 
-    public OpenRgbProviderRescanTests()
+    public OpenRgbDeviceProviderRescanTests()
     {
         _provider = new OpenRgbDeviceProvider(_connector, _time, OpenRgbDeviceProvider.RetryDelay);
         _provider.DevicesChanged += (_, _) => Interlocked.Increment(ref _devicesChanged);
