@@ -219,14 +219,14 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetEffectColorsAsync(string? deviceId, string effectId, IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(colors);
-        ThrowIfWithoutEffectColors(effectId);
+        EffectColors.ThrowIfNotTaken(effectId);
         _lighting.SetLighting(deviceId, lighting => lighting with { EffectColors = lighting.EffectColors.With(effectId, colors) });
         return Task.CompletedTask;
     }
 
     public Task ClearEffectColorsAsync(string? deviceId, string effectId, CancellationToken ct = default)
     {
-        ThrowIfWithoutEffectColors(effectId);
+        EffectColors.ThrowIfNotTaken(effectId);
         _lighting.SetLighting(deviceId, lighting => lighting with { EffectColors = lighting.EffectColors.Without(effectId) });
         return Task.CompletedTask;
     }
@@ -443,11 +443,7 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     public Task SetCustomColorsAsync(IReadOnlyList<RgbColor> colors, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(colors);
-        if (colors.Count > CustomColors.MaxColors)
-        {
-            throw new ArgumentException($"At most {CustomColors.MaxColors} own colors, not {colors.Count}.", nameof(colors));
-        }
-
+        CustomColorList.ThrowIfTooMany(colors);
         _customColors?.Colors = colors;
         return Task.CompletedTask;
     }
@@ -530,14 +526,6 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
         // The settings app that counted went, so nobody can stop the count any more.
         _zoneCounter?.StopFor(this);
-    }
-
-    private static void ThrowIfWithoutEffectColors(string effectId)
-    {
-        if (!EffectColors.Takes(effectId))
-        {
-            throw new ArgumentException($"The effect '{effectId}' has no colors of its own.", nameof(effectId));
-        }
     }
 
     // The wire formats are made here, so the lighting model does not know them, and outside the
