@@ -132,6 +132,17 @@ public sealed class LightingTableTests
         Assert.False(_table.IsSet);
     }
 
+    // The error names the effects that take a list of colors, in the order of the settings app.
+    [Fact]
+    public void Set_EffectColorsOfAnEffectWithoutAList_NamesTheEffectsWithOne()
+    {
+        var colors = EffectColors.None.With(EffectIds.Static, [Orange]);
+
+        var exception = Assert.Throws<ArgumentException>(() => _table.Set("device", HalfOrange with { EffectColors = colors }));
+
+        Assert.StartsWith("Only twinkle, comet, scanner and fire have colors of their own, 1 to 12 of them.", exception.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Set_SameEffectColorsAsGlobalInANewList_FollowsTheGlobalAgain()
     {
