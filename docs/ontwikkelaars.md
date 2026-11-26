@@ -91,13 +91,15 @@ daar een commentaar bij. Zet de regio-instelling (getal- en datumnotatie) van ee
 `using var language = new UseUICulture("nl-NL")`, nooit de static `Strings.Culture`: die geldt
 voor het hele proces, dus ook voor de tests die ernaast draaien.
 
-Een test die een map nodig heeft, maakt een `TempDirectory` (`Path`, `File(naam)`) en ruimt hem in `Dispose` op;
-de map wordt met een paar pogingen gewist, want Windows houdt een bestand soms nog even vast. `RepoFiles.Root`
-is de map met `BuurmansRgb.slnx`, ook voor een test die `installer/BuurmansRgb.iss` leest. Een apparaat voor de tests
-van de instellingen-app komt uit `TestDevices` (`Create`, `Board()`, `Motherboard()`, `Board(argb1, argb2)`,
-`Strip(ledCount)`), een moederbord voor de zonetests van de engine uit `TestBoards` (`Board(header)`,
-`BoardWith(header, second)`; `ResizableDeviceProvider.Board` bouwt erop). Een fake die meer dan één klasse gebruikt
-(`FakeHighContrast`, `FakeProcessMeter`, `RecordingTrigger`, …) staat in een eigen bestand, niet genest in een testklasse.
+Een test die een map nodig heeft, maakt een `TempDirectory` (`Path`, `File(naam)`) en ruimt hem
+in `Dispose` op; de map wordt met een paar pogingen gewist, want Windows houdt een bestand soms
+nog even vast. `RepoFiles.Root` is de map met `BuurmansRgb.slnx`, ook voor een test die
+`installer/BuurmansRgb.iss` leest. Een apparaat voor de tests van de instellingen-app komt uit
+`TestDevices` (`Create`, `Board()`, `Motherboard()`, `Board(argb1, argb2)`, `Strip(ledCount)`),
+een moederbord voor de zonetests van de engine uit `TestBoards` (`Of(zones)`, `Board(header)`,
+`BoardWith(header, second)`; `ResizableDeviceProvider.Board` bouwt erop). Een fake die meer dan
+één klasse gebruikt (`FakeHighContrast`, `FakeProcessMeter`, `RecordingTrigger`, …) staat in
+een eigen bestand, niet genest in een testklasse.
 
 De viewtests van de instellingen-app draaien in een echt venster buiten beeld (`OffscreenWindow`,
 op `OffscreenWindow.Offset`); `PageViews.Press` drukt er een toets zoals het toetsenbord dat doet,
