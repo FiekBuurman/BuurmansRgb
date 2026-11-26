@@ -19,7 +19,7 @@ namespace BuurmansRgb.Engine.Lighting;
 internal sealed class CustomEffectLibrary : IDisposable
 {
     private readonly ICustomEffectStore _store;
-    private readonly LightingController _lighting;
+    private readonly ICustomEffectSink _lighting;
     private readonly TimeSpan _saveDelay;
     private readonly ITimer _timer;
     private readonly ITimer _loadTimer;
@@ -41,7 +41,7 @@ internal sealed class CustomEffectLibrary : IDisposable
     // From a failed write until one that went through, so only the first failure is logged whole.
     private bool _saveFailed;
 
-    public CustomEffectLibrary(ICustomEffectStore store, LightingController lighting, TimeSpan? saveDelay = null, TimeProvider? timeProvider = null)
+    public CustomEffectLibrary(ICustomEffectStore store, ICustomEffectSink lighting, TimeSpan? saveDelay = null, TimeProvider? timeProvider = null)
     {
         _store = store;
         _lighting = lighting;

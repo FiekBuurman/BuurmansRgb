@@ -21,7 +21,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // a new device list on another thread.
 internal sealed class ZoneLengthKeeper : IDisposable
 {
-    private readonly LightingController _lighting;
+    private readonly IDeviceSource _lighting;
     private readonly Lock _gate = new();
 
     // By device id, the length of each zone by its name.
@@ -35,7 +35,7 @@ internal sealed class ZoneLengthKeeper : IDisposable
     // shows up from one that was there already.
     private readonly Dictionary<string, Dictionary<string, int>> _reported = [];
 
-    public ZoneLengthKeeper(LightingController lighting)
+    public ZoneLengthKeeper(IDeviceSource lighting)
     {
         _lighting = lighting;
         _lighting.DevicesChanged += OnDevicesChanged;
