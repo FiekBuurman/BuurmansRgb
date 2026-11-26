@@ -29,22 +29,16 @@ internal sealed partial class LightingController
                 return _framesPerSecond;
             }
         }
-        set
-        {
-            bool changed;
-            lock (_gate)
+        set => SetOption(
+            () =>
             {
                 var framesPerSecond = Math.Clamp(value, 1, MaxFramesPerSecond);
-                changed = framesPerSecond != _framesPerSecond;
+                var changed = framesPerSecond != _framesPerSecond;
                 _framesPerSecond = framesPerSecond;
                 _animation.Period = FramePeriodLocked;
-            }
-
-            if (changed)
-            {
-                FramesPerSecondChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
+                return changed;
+            },
+            () => FramesPerSecondChanged?.Invoke(this, EventArgs.Empty));
     }
 
     // Raised when PausedLights got another value; read PausedLights for the newest one.
@@ -66,27 +60,25 @@ internal sealed partial class LightingController
         }
         set
         {
-            var changed = false;
-            try
-            {
-                lock (_gate)
+            var oldScale = 1.0;
+            SetOption(
+                () =>
                 {
-                    var oldScale = SendScaleLocked;
-                    changed = _pausedLights != value;
+                    oldScale = SendScaleLocked;
+                    var changed = _pausedLights != value;
                     _pausedLights = value;
+                    return changed;
+                },
+                () => PausedLightsChanged?.Invoke(this, EventArgs.Empty),
+                () =>
+                {
                     if (SendScaleLocked != oldScale)
                     {
                         SendAllLocked();
                     }
-                }
-            }
-            finally
-            {
-                if (changed)
-                {
-                    PausedLightsChanged?.Invoke(this, EventArgs.Empty);
-                }
-            }
+
+                    return false;
+                });
         }
     }
 
@@ -105,21 +97,15 @@ internal sealed partial class LightingController
                 return _sceneFade;
             }
         }
-        set
-        {
-            bool changed;
-            lock (_gate)
+        set => SetOption(
+            () =>
             {
                 var fade = Contracts.SceneFade.Clamp(value);
-                changed = fade != _sceneFade;
+                var changed = fade != _sceneFade;
                 _sceneFade = fade;
-            }
-
-            if (changed)
-            {
-                SceneFadeChanged?.Invoke(this, EventArgs.Empty);
-            }
-        }
+                return changed;
+            },
+            () => SceneFadeChanged?.Invoke(this, EventArgs.Empty));
     }
 
     // Raised when ZonesAlike got other devices; read ZonesAlike for the newest ones.
@@ -139,50 +125,61 @@ internal sealed partial class LightingController
                 return new HashSet<string>(_zonesAlike, StringComparer.Ordinal);
             }
         }
-        set
+        set => SetOption(
+            () =>
+            {
+                if (_zonesAlike.SetEquals(value))
+                {
+                    return false;
+                }
+
+                _zonesAlike.Clear();
+                _zonesAlike.UnionWith(value);
+                return true;
+            },
+            () => ZonesAlikeChanged?.Invoke(this, EventArgs.Empty),
+            RenderLocked);
+    }
+
+    // One device, which must be there, such as from the switch in the settings app.
+    public void SetZonesAlike(string deviceId, bool alike) => SetOption(
+        () =>
         {
-            bool changed;
+            KnownDeviceLocked(deviceId);
+            return alike ? _zonesAlike.Add(deviceId) : _zonesAlike.Remove(deviceId);
+        },
+        () => ZonesAlikeChanged?.Invoke(this, EventArgs.Empty),
+        RenderLocked);
+
+    private TimeSpan FramePeriodLocked => TimeSpan.FromSeconds(1.0 / _framesPerSecond);
+
+    // A change of an option: changeLocked runs under the lock and returns whether the option got
+    // another value; only then showLocked lets the devices show it, and returns whether it rendered.
+    // Outside the lock Rendered goes out, then raiseChanged. The new value holds and is reported
+    // even when a device fails while it goes out.
+    private void SetOption(Func<bool> changeLocked, Action raiseChanged, Func<bool>? showLocked = null)
+    {
+        var changed = false;
+        try
+        {
             var rendered = false;
             lock (_gate)
             {
-                changed = !_zonesAlike.SetEquals(value);
-                if (changed)
+                changed = changeLocked();
+                if (changed && showLocked is not null)
                 {
-                    _zonesAlike.Clear();
-                    _zonesAlike.UnionWith(value);
-                    rendered = RenderLocked();
+                    rendered = showLocked();
                 }
             }
 
             Publish(rendered);
+        }
+        finally
+        {
             if (changed)
             {
-                ZonesAlikeChanged?.Invoke(this, EventArgs.Empty);
+                raiseChanged();
             }
         }
     }
-
-    // One device, which must be there, such as from the switch in the settings app.
-    public void SetZonesAlike(string deviceId, bool alike)
-    {
-        bool changed;
-        var rendered = false;
-        lock (_gate)
-        {
-            KnownDeviceLocked(deviceId);
-            changed = alike ? _zonesAlike.Add(deviceId) : _zonesAlike.Remove(deviceId);
-            if (changed)
-            {
-                rendered = RenderLocked();
-            }
-        }
-
-        Publish(rendered);
-        if (changed)
-        {
-            ZonesAlikeChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    private TimeSpan FramePeriodLocked => TimeSpan.FromSeconds(1.0 / _framesPerSecond);
 }
