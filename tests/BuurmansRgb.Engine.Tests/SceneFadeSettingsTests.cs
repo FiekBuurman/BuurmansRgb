@@ -1,4 +1,3 @@
-using System.Globalization;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
