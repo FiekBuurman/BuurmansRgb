@@ -452,6 +452,10 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
+    // "Alles aan" and "Alles uit": every device, also the ones with lighting of their own, goes on
+    // or off with a fade.
+    public void SetAllOn(bool on) => SetLighting(null, lighting => lighting with { On = on }, fade: true);
+
     // A global change also applies to every device with its own lighting, so a global color keeps
     // a device's own brightness and the other way round. Changing one device starts from what
     // that device shows now. A change to a brightness outside 0 to 1 or to an unknown effect, also

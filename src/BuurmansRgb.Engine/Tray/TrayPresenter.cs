@@ -242,7 +242,7 @@ internal sealed class TrayPresenter(
 
         try
         {
-            lighting.SetLighting(null, current => current with { On = on }, fade: true);
+            lighting.SetAllOn(on);
             return true;
         }
         catch (Exception exception)

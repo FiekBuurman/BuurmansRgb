@@ -182,7 +182,15 @@ internal sealed class EngineApi : IEngineApi, IDisposable
 
     public Task SetOnAsync(string? deviceId, bool on, CancellationToken ct = default)
     {
-        _lighting.SetLighting(deviceId, lighting => lighting with { On = on }, fade: deviceId is null);
+        if (deviceId is null)
+        {
+            _lighting.SetAllOn(on);
+        }
+        else
+        {
+            _lighting.SetLighting(deviceId, lighting => lighting with { On = on });
+        }
+
         return Task.CompletedTask;
     }
 

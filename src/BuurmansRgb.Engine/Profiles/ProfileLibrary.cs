@@ -280,7 +280,7 @@ internal sealed class ProfileLibrary
             if (hold?.Invoke(held => held.Lighting.IsAnyOn ? new HeldLighting(held.Lighting.WithOn(false), null) : held) != true && _lighting.State.IsAnyOn)
             {
                 Trace.TraceInformation("Uit om: every device goes off.");
-                _lighting.SetLighting(null, lighting => lighting with { On = false }, fade: true);
+                _lighting.SetAllOn(false);
             }
 
             return;
