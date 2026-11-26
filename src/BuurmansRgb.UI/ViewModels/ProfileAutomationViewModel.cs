@@ -24,7 +24,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     private ProfileAutomation _saved = ProfileAutomation.None;
 
     // While Display fills in the fields.
-    private bool _displaying;
+    private readonly ReentrancyGuard _displaying = new();
 
     // Counts the times the programs are read, so only the newest list shows.
     private int _programSearches;
@@ -166,7 +166,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     partial void OnProgramTextChanged(string value)
     {
-        if (!_displaying)
+        if (!_displaying.IsActive)
         {
             Error = FindError();
         }
@@ -175,7 +175,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // Also takes away the error of a refused pick, like any other change does.
     partial void OnForegroundOnlyChanged(bool value)
     {
-        if (!_displaying)
+        if (!_displaying.IsActive)
         {
             Error = FindError();
         }
@@ -204,7 +204,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
 
     private void OnTimeChanged(object? sender, EventArgs e)
     {
-        if (_displaying)
+        if (_displaying.IsActive)
         {
             return;
         }
@@ -224,8 +224,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
     // out once at the end, not for each field on the way.
     private void Display(string? profileName, ProfileAutomation automation)
     {
-        _displaying = true;
-        try
+        _displaying.Run(() =>
         {
             _saved = automation;
             ProfileName = profileName;
@@ -248,11 +247,7 @@ public sealed partial class ProfileAutomationViewModel : ObservableObject
                     Times.Add(new LoadTimeRow(times[i]));
                 }
             }
-        }
-        finally
-        {
-            _displaying = false;
-        }
+        });
 
         OnTimeChanged(this, EventArgs.Empty);
         OnPropertyChanged(nameof(Header));

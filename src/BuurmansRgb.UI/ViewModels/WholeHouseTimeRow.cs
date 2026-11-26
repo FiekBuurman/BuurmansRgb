@@ -12,7 +12,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     private readonly TimeOnly _usual;
 
     // While Show fills in the row.
-    private bool _showing;
+    private readonly ReentrancyGuard _showing = new();
 
     public WholeHouseTimeRow(string label, string hint, TimeOnly usual)
     {
@@ -81,8 +81,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
     // The saved time, or off for null, which keeps the time in the field for when it goes on again.
     public void Show(LoadTime? time, bool isEditable = true)
     {
-        _showing = true;
-        try
+        _showing.Run(() =>
         {
             IsEditable = isEditable;
             IsOn = time is not null;
@@ -92,20 +91,14 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
             }
 
             DayOption.Check(Days, time?.Days);
-        }
-        finally
-        {
-            _showing = false;
-        }
+        });
     }
 
     partial void OnIsOnChanged(bool value)
     {
-        if (value && !_showing && !HasValidTime)
+        if (value && !_showing.IsActive && !HasValidTime)
         {
-            _showing = true;
-            Text = LoadTime.WriteAt(_usual);
-            _showing = false;
+            _showing.Run(() => Text = LoadTime.WriteAt(_usual));
         }
 
         RaiseChanged();
@@ -115,7 +108,7 @@ public sealed partial class WholeHouseTimeRow : ObservableObject
 
     private void RaiseChanged()
     {
-        if (!_showing)
+        if (!_showing.IsActive)
         {
             Changed?.Invoke(this, EventArgs.Empty);
         }
