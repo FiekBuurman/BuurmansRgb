@@ -944,7 +944,8 @@ uitbreidingen in `docs/bouwplan.md`.
   korter is) geeft zo bij een scène toch een overgang, en 0,5 s render-loop voor niets. Allebei
   lopen ze via `LedColorLists.Same`, dus het is één getal (`device.LedCount`) en een test
   (`LedColorStoreTests.SameAs_DifferencePastTheEndOfTheDevice_IsFalse`) aanpassen
-  (refactorreview 23-11-2026)
+  (refactorreview 23-11-2026; refactorplan 26-11-2026 liet dit bewust liggen bij taak 11, want
+  het verandert wanneer een scène een overgang geeft en past dus een test aan)
 
 ## Integraties
 
