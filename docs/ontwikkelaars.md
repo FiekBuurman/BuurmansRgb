@@ -1040,10 +1040,6 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `ZoneLengthKeeper.Change` en de verlichting met `LightingController.Replace`
   (`LightingChanged`), die alleen als hij anders is dan nu (`EngineSettings.SameLighting`), zodat
   de scène bij alleen een optie aan blijft.
-  Elke optie staat één keer in `EngineHost.CreateOptions`: hoe de host naar zijn event luistert en
-  weer afmeldt, hoe een bestand hem zet en wat de saver dan bewaart; een nieuwe optie is daar één
-  regel, en `EngineHostListenerTests` ziet of `Dispose` hem afmeldt. Zo staan ook de events die
-  `EngineApi` doorgeeft één keer in zijn lijst `_listeners`.
   `activeScene` neemt hij niet over. Daarna roept hij `LightingSettingsSaver.Adopt` aan met de
   verlichting zoals het toepassen hem achterliet (die `Replace` teruggeeft, niet opnieuw gelezen):
   die, met de opties van de saver, geldt als de inhoud van het bestand (met `activeScene` uit het
@@ -1060,6 +1056,11 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   schrijft hij niets en probeert de saver het na zijn vertraging opnieuw; meestal heeft de
   reloader het dan toegepast en is er niets meer op te slaan. Na vijf keer schrijft hij toch (er
   is dan geen watcher die het leest), en bij afsluiten gaat de wijziging met de hand voor.
+- **Opties en events in één lijst:** elke optie staat één keer in `EngineHost.CreateOptions`: hoe
+  de host naar zijn event luistert en weer afmeldt, hoe een bestand hem zet en wat de saver dan
+  bewaart. Een nieuwe optie is daar één `Bind(...)`, naast wat hij nog in `EngineSettings` raakt,
+  en `EngineHostListenerTests` ziet of `Dispose` hem afmeldt. Zo staan ook de events die
+  `EngineApi` doorgeeft één keer in zijn lijst `_listeners`.
 - **Scènes in het geheugen:** staat er een `profiles.json`, dan leest de engine het bij het
   starten één keer, voor de tijden en programma's. Een wijziging met de hand komt pas na een
   herstart binnen.

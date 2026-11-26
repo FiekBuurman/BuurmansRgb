@@ -41,7 +41,8 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
     private volatile IReadOnlySet<string>? _frameDevices;
 
-    // The parts for a test of the engine without the rest; Program gives every part.
+    // Only for EngineHostTransferTests, which task engine-host-dunner kept unchanged; goes once that
+    // class uses EngineApiParts (docs/ideas.md).
     public EngineApi(
         LightingController lighting,
         ZoneLengthKeeper zoneLengths,
