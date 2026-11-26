@@ -338,6 +338,35 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         Assert.Equal([O, O, O, O, O], _provider.Leds[Board]);
     }
 
+    // A simulated zone has an Id apart from its Name; the count follows the Id, as ZoneCounter and
+    // the lengths do: a zone that gets another name keeps the count.
+    [Fact]
+    public async Task DevicesChanged_ZoneWithTheSameIdButAnotherName_KeepsTheCount()
+    {
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+        await StartAsync();
+        _controller.StartCount(Board, Header, Longest, 1);
+
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal een", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+
+        await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 6);
+        Assert.Equal([O, O, G, K, K, K], _provider.Leds[Board]);
+    }
+
+    // The other way round: the same name with another Id is another zone, which gets no count.
+    [Fact]
+    public async Task DevicesChanged_ZoneWithTheSameNameButAnotherId_DrawsNoCount()
+    {
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+        await StartAsync();
+        _controller.StartCount(Board, Header, Longest, 1);
+
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 2"), DynamicDeviceProvider.Device(Fan));
+
+        await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 6);
+        Assert.Equal([O, O, O, O, O, O], _provider.Leds[Board]);
+    }
+
     [Fact]
     public async Task Dispose_WhileCounting_GivesTheZoneItsOwnColorsBack()
     {
@@ -383,6 +412,16 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         [
             RgbZone.Fixed("Mainboard", 2),
             new RgbZone("ARGB 1", headerLeds, 0, Longest),
+        ])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+    private static RgbDevice BoardWithIdentifiedHeader(string name, string id) =>
+        new(Board, "Board", DeviceType.Motherboard,
+        [
+            RgbZone.Fixed("Mainboard", 2),
+            new RgbZone(name, 4, 0, Longest) { Id = id },
         ])
         {
             Source = DeviceSource.Hardware,

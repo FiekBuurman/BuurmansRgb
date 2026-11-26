@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // addressable header has: LEDs 1 to Led burn, Led green and the ones before it white, the rest of
 // the zone off; the other LEDs of the device keep showing the effect. Like DeviceFlash it runs on
 // the engine time: while Running, Led goes up by LedsPerSecond each second from where it was set,
-// whatever the frame rate, and it stops at the last LED. The zone is known by its index and name,
+// whatever the frame rate, and it stops at the last LED. The zone is known by its index and key,
 // so a device list that has another zone there does not get the count. Only used under the lock
 // of LightingController.
 internal sealed class ZoneCount
@@ -20,12 +20,13 @@ internal sealed class ZoneCount
     private int _ledSince;
 
     // ledCount is how many LEDs the count goes up to, the longest the zone can be.
-    public ZoneCount(string deviceId, int zoneIndex, string zoneName, int ledCount, int ledsPerSecond, TimeSpan time)
+    public ZoneCount(string deviceId, int zoneIndex, string zoneKey, string zoneName, int ledCount, int ledsPerSecond, TimeSpan time)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
         ThrowIfInvalidPace(ledsPerSecond);
         DeviceId = deviceId;
         ZoneIndex = zoneIndex;
+        ZoneKey = zoneKey;
         ZoneName = zoneName;
         LedCount = ledCount;
         LedsPerSecond = ledsPerSecond;
@@ -37,6 +38,9 @@ internal sealed class ZoneCount
     public string DeviceId { get; }
 
     public int ZoneIndex { get; }
+
+    // RgbZone.Key, which tells the zone in a new device list; ZoneName is the name shown, for the log.
+    public string ZoneKey { get; }
 
     public string ZoneName { get; }
 
