@@ -77,8 +77,8 @@ een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.
 
 Tests gebruiken xUnit v3 op Microsoft.Testing.Platform (ingesteld in `global.json`) en draaien
 zonder hardware. Per project een testproject in `tests/`. Helpers die elk testproject gebruikt
-(`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`, `UseCulture`) staan in `tests/Shared`;
-`tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
+(`Eventually`, `TestColors`, `TestCancellation`, `TestTimeouts`, `UseCulture`,
+`UseUICulture`) staan in `tests/Shared`; `tests/Directory.Build.props` bouwt ze mee. De OpenRGB-server in het geheugen
 (`FakeOpenRgbConnector`, `InMemoryOpenRgb`) staat in het hulpproject
 `tests/BuurmansRgb.Providers.OpenRgb.Testing`, zonder eigen tests; daarnaast is er een kleine
 SDK-server op een loopback-socket (`OpenRgbTestServer`, in `BuurmansRgb.Providers.OpenRgb.Tests`).
