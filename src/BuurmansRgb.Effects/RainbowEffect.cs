@@ -12,20 +12,22 @@ public sealed class RainbowEffect : IDirectedEffect
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        var shift = time.TotalSeconds * RoundsPerSecond;
         for (var i = 0; i < leds.Length; i++)
         {
-            leds[i] = RgbColor.FromHsv(i / (double)leds.Length + shift, 1.0, 1.0);
+            leds[i] = ColorAt(i / (double)leds.Length, time);
         }
     }
 
     public void Render(Span<RgbColor> leds, ReadOnlySpan<double> positions, TimeSpan time)
     {
         EffectMath.ThrowIfNotOnePerLed(leds, positions);
-        var shift = time.TotalSeconds * RoundsPerSecond;
         for (var i = 0; i < leds.Length; i++)
         {
-            leds[i] = RgbColor.FromHsv(positions[i] + shift, 1.0, 1.0);
+            leds[i] = ColorAt(positions[i], time);
         }
     }
+
+    // place 0 up to 1 is the whole hue circle, shifted along with time.
+    private static RgbColor ColorAt(double place, TimeSpan time) =>
+        RgbColor.FromHsv(place + time.TotalSeconds * RoundsPerSecond, 1.0, 1.0);
 }

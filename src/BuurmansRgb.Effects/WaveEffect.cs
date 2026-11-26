@@ -15,22 +15,22 @@ public sealed class WaveEffect(RgbColor color) : IDirectedEffect
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
-        var shift = time.TotalSeconds * WavesPerSecond;
         for (var i = 0; i < leds.Length; i++)
         {
-            // Half a phase ahead, so the first LED is brightest at time zero.
-            var level = EffectMath.RaisedCosine(i / (double)leds.Length - shift + 0.5);
-            leds[i] = Color.Scale(level);
+            leds[i] = ColorAt(i / (double)leds.Length, time);
         }
     }
 
     public void Render(Span<RgbColor> leds, ReadOnlySpan<double> positions, TimeSpan time)
     {
         EffectMath.ThrowIfNotOnePerLed(leds, positions);
-        var shift = time.TotalSeconds * WavesPerSecond;
         for (var i = 0; i < leds.Length; i++)
         {
-            leds[i] = Color.Scale(EffectMath.RaisedCosine(positions[i] - shift + 0.5));
+            leds[i] = ColorAt(positions[i], time);
         }
     }
+
+    // Half a phase ahead, so the first LED is brightest at time zero.
+    private RgbColor ColorAt(double place, TimeSpan time) =>
+        Color.Scale(EffectMath.RaisedCosine(place - time.TotalSeconds * WavesPerSecond + 0.5));
 }
