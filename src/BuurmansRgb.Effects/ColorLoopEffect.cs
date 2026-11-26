@@ -26,39 +26,41 @@ public sealed class ColorLoopEffect : IDirectedEffect
 
     public void Render(Span<RgbColor> leds, TimeSpan time)
     {
+        var seconds = time.TotalSeconds;
         if (!Spread)
         {
-            leds.Fill(ColorAt(0.0, time));
+            leds.Fill(ColorAt(0.0, seconds));
             return;
         }
 
         for (var i = 0; i < leds.Length; i++)
         {
-            leds[i] = ColorAt(i / (double)leds.Length, time);
+            leds[i] = ColorAt(i / (double)leds.Length, seconds);
         }
     }
 
     // Without Spread the LEDs show one color, wherever they sit.
     public void Render(Span<RgbColor> leds, ReadOnlySpan<double> positions, TimeSpan time)
     {
+        var seconds = time.TotalSeconds;
         EffectMath.ThrowIfNotOnePerLed(leds, positions);
         if (!Spread)
         {
-            leds.Fill(ColorAt(0.0, time));
+            leds.Fill(ColorAt(0.0, seconds));
             return;
         }
 
         for (var i = 0; i < leds.Length; i++)
         {
-            leds[i] = ColorAt(positions[i], time);
+            leds[i] = ColorAt(positions[i], seconds);
         }
     }
 
     // place 0 is the first color, 1/n the second and so on; 1 is the first again. Time moves the
     // whole loop along.
-    private RgbColor ColorAt(double place, TimeSpan time)
+    private RgbColor ColorAt(double place, double seconds)
     {
-        var position = place + time.TotalSeconds * LoopsPerSecond;
+        var position = place + seconds * LoopsPerSecond;
         var scaled = (position - Math.Floor(position)) * _colors.Length;
         // Rounding can land exactly on the length; that is the first color again.
         var index = Math.Min((int)scaled, _colors.Length - 1);
