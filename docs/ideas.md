@@ -1163,3 +1163,6 @@ uitbreidingen in `docs/bouwplan.md`.
   (refactorreview 25-11-2026)
 - `LedColorStoreTests` bouwt zijn eigen `Board` en gebruikt `TestBoards` niet: die deelt het id
   `device` en `DeviceSource.Simulated` met de andere apparaten van de store (refactorplan 26-11-2026)
+- `EngineRpcTests` (ca. 800 regels) per deel van `IEngineApi` splitsen, zoals de partials van
+  `FakeEngineApi`: bij het delen van de nep-engine bleef de klasse heel, omdat de opzet (server en
+  client over een pipe) per test hetzelfde is en splitsen alleen schuiven was (refactorplan 26-11-2026)
