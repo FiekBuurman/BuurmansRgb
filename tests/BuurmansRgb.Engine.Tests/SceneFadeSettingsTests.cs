@@ -85,20 +85,12 @@ public sealed class SceneFadeSettingsTests : IDisposable
     {
         var path = _directory.File("settings.json");
         var store = new JsonSettingsStore(path);
-        var current = CultureInfo.CurrentCulture;
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("nl-NL");
+        using var culture = new UseCulture("nl-NL");
 
-            store.Save(EngineSettings.CreateDefault().WithSceneFade(TimeSpan.FromSeconds(1.25)));
+        store.Save(EngineSettings.CreateDefault().WithSceneFade(TimeSpan.FromSeconds(1.25)));
 
-            Assert.Contains("\"sceneFade\": 1.25", File.ReadAllText(path), StringComparison.Ordinal);
-            Assert.Equal(TimeSpan.FromSeconds(1.25), store.LoadOrCreate().ReadSceneFade());
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = current;
-        }
+        Assert.Contains("\"sceneFade\": 1.25", File.ReadAllText(path), StringComparison.Ordinal);
+        Assert.Equal(TimeSpan.FromSeconds(1.25), store.LoadOrCreate().ReadSceneFade());
     }
 
     [Fact]

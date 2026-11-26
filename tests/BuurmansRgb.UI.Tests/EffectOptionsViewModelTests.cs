@@ -70,19 +70,11 @@ public sealed class EffectOptionsViewModelTests
     [InlineData("en-US", "1.23 seconde")]
     public void ShowSceneFade_ALongNumber_ShowsTwoDecimals(string regionFormat, string expected)
     {
-        var current = CultureInfo.CurrentCulture;
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(regionFormat);
+        using var culture = new UseCulture(regionFormat);
 
-            _options.ShowSceneFade(TimeSpan.FromSeconds(1.23456));
+        _options.ShowSceneFade(TimeSpan.FromSeconds(1.23456));
 
-            Assert.Equal(expected, _options.SelectedSceneFade?.DisplayName);
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = current;
-        }
+        Assert.Equal(expected, _options.SelectedSceneFade?.DisplayName);
     }
 
     [Fact]
