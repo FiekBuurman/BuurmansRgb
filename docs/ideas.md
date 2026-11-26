@@ -303,6 +303,11 @@ uitbreidingen in `docs/bouwplan.md`.
   houdt een geïmporteerde scène met een laag van een apparaat met meer LED's onzichtbare kleuren
   vast, en Ctrl+A bereikt alleen de LED's die het apparaat nu heeft, zodat een export version 2
   blijft
+- Wat nog per effect buiten `EffectTraits` staat (refactorplan 26-11-2026): de bolletjes van
+  Regenboog, Kleurenloop en Vuur op een scènekaart (`SceneLook.DotsOf`) en dat Per LED geen ene
+  kleur heeft (`SceneLook.OneColorOf`) zijn eigen tekenwerk van de app; en `MainViewModel` biedt de
+  snelheid ook voor een eigen effect (`IsAnimated(id) || IsCustom`). Pas in de tabel zetten als een
+  nieuw effect hier echt een tweede plek nodig heeft
 
 ## Instellingen-app en ontwerp
 
