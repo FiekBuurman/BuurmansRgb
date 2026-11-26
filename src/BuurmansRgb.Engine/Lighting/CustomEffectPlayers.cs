@@ -62,7 +62,7 @@ internal sealed class CustomEffectPlayers
         _known && CustomEffects.IsCustom(lighting.EffectId) && !_players.ContainsKey(lighting.EffectId);
 
     public DeviceLighting ThrowIfMissing(DeviceLighting lighting) =>
-        IsMissing(lighting) ? throw EffectCatalog.UnknownCustom(lighting.EffectId) : lighting;
+        IsMissing(lighting) ? throw EffectCatalog.UnknownEffect(lighting.EffectId) : lighting;
 
     // An own effect and the StepEffect that plays its steps. Equal steps are compared one color at a
     // time, as an effect from the pipe is a new copy even when only its name changed.
