@@ -2,10 +2,6 @@ using BuurmansRgb.Core;
 
 namespace BuurmansRgb.Effects;
 
-// One step of a StepEffect: one color for every LED, or more for a pattern over the LEDs, which
-// stays Hold long and then runs over into the next step in Fade.
-public sealed record EffectStep(IReadOnlyList<RgbColor> Colors, TimeSpan Hold, TimeSpan Fade);
-
 // An own effect made of steps: each step shows for its Hold, then blends into the next one for its
 // Fade; after the last step the first comes again. A pattern that is shorter or longer than the LEDs
 // is stretched over them, as with "Zones gelijk": each LED takes the color at the same place along
