@@ -29,8 +29,10 @@ public sealed class StartScenesTests : IDisposable
         var dutch = CultureInfo.GetCultureInfo("nl-NL");
         string[] names = ["StartSceneAllOff", "StartSceneCalmWhite", "StartSceneRainbow", "StartScenePastel", "StartSceneGaming"];
 
-        Assert.Equal(["Alles uit", "Rustig wit", "Regenboog", "Pastel", "Gamen"], names.Select(name => Strings.ResourceManager.GetString(name, dutch)));
-        Assert.Equal(["Alles uit", "Rustig wit", "Regenboog", "Pastel", "Gamen"], StartScenes.Create().Select(scene => scene.Name));
+        string[] expected = ["Alles uit", "Rustig wit", "Regenboog", "Pastel", "Gamen"];
+
+        Assert.Equal(expected, names.Select(name => Strings.ResourceManager.GetString(name, dutch)));
+        Assert.Equal(expected, StartScenes.Create().Select(scene => scene.Name));
     }
 
     // Valid names, no automation, and one lighting for all devices: a device that comes later
