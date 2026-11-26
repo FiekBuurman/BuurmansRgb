@@ -42,7 +42,7 @@ public sealed class StartScenesTests : IDisposable
     {
         Assert.All(StartScenes.Create(), scene =>
         {
-            Assert.Equal(scene.Name, ProfileNames.Normalize(scene.Name));
+            Assert.Equal(scene.Name, DisplayNames.Normalize(scene.Name, ProfileNames.MaxLength));
             Assert.Equal(ProfileAutomation.None, scene.Automation);
             Assert.Empty(scene.Lighting.Devices);
             Assert.Empty(scene.Lighting.LedColors);

@@ -122,7 +122,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
     public void EndNameEdit(string text)
     {
         ArgumentNullException.ThrowIfNull(text);
-        var name = CustomEffects.NormalizeName(text);
+        var name = DisplayNames.Normalize(text, CustomEffects.MaxNameLength);
         if (name is not null && (name == _name || !isNameTaken(_id, name)))
         {
             Name = text;
@@ -225,7 +225,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
             return;
         }
 
-        var name = CustomEffects.NormalizeName(value);
+        var name = DisplayNames.Normalize(value, CustomEffects.MaxNameLength);
         var error = name is null ? Strings.CustomEffectNameInvalid
             : isNameTaken(_id, name) ? Strings.CustomEffectNameTaken
             : null;

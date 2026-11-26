@@ -27,7 +27,7 @@ internal sealed record CustomEffectSettings
     public CustomEffect? ToCustomEffect()
     {
         var id = Id is { IsText: true } idText && CustomEffects.IsCustom(idText.Value) ? idText.Value : null;
-        var name = Name is { IsText: true } nameText ? CustomEffects.NormalizeName(nameText.Value) : null;
+        var name = Name is { IsText: true } nameText ? DisplayNames.Normalize(nameText.Value, CustomEffects.MaxNameLength) : null;
         CustomEffectStep[] steps = [.. (Steps ?? []).Select(step => step?.ToStep()).OfType<CustomEffectStep>().Take(CustomEffects.MaxSteps)];
         if (id is null || name is null || steps.Length == 0)
         {
