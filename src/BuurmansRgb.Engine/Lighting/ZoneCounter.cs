@@ -223,8 +223,7 @@ internal sealed class ZoneCounter : IDisposable
                 return;
             }
 
-            RgbZone? zone = null;
-            _ = _lighting.FindDevice(counting.DeviceId)?.TryGetZone(counting.ZoneIndex, out zone);
+            var zone = _lighting.FindDevice(counting.DeviceId) is { } device && device.TryGetZone(counting.ZoneIndex, out var found) ? found : null;
             if (zone is not null && zone.Key == counting.ZoneKey && zone.MaxLedCount == counting.LedCount)
             {
                 // At its longest, or any length while the longest is on its way: a list may still
