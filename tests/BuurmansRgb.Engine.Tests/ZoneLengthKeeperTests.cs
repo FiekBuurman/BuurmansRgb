@@ -5,8 +5,6 @@ namespace BuurmansRgb.Engine.Tests;
 
 public sealed class ZoneLengthKeeperTests : IDisposable
 {
-    private static readonly TimeSpan UserResizeStarts = TimeSpan.FromMilliseconds(200);
-
     private readonly ResizableDeviceProvider _provider = new();
     private readonly LightingController _lighting;
     private readonly ZoneLengthKeeper _keeper;
@@ -218,10 +216,17 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         var discovering = Task.Run(() => _lighting.DiscoverAsync(Ct), Ct);
         Assert.True(keeperResizing.Wait(TestTimeouts.Short, Ct));
 
-        var userResize = Task.Run(() => _keeper.ResizeZone("board", 1, 12), Ct);
+        var resizeThread = new TaskCompletionSource<Thread>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var userResize = Task.Run(() =>
+        {
+            resizeThread.SetResult(Thread.CurrentThread);
+            _keeper.ResizeZone("board", 1, 12);
+        }, Ct);
 
-        // Time for the user's resize to reach the keeper, where it waits for the one that is held.
-        await Task.Delay(UserResizeStarts, Ct);
+        // The user's resize is at the keeper once its thread blocks on the lock that the held
+        // resize has: ResizeZone takes that lock first and blocks on nothing before it.
+        var thread = await resizeThread.Task.WaitAsync(TestTimeouts.Short, Ct);
+        await Eventually.TrueAsync(() => thread.ThreadState.HasFlag(ThreadState.WaitSleepJoin));
         release.Set();
         await Task.WhenAll(discovering, userResize);
 
