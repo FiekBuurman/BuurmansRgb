@@ -347,9 +347,8 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         await StartAsync();
         _controller.StartCount(Board, Header, Longest, 1);
 
-        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal een", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+        await SetBoardAsync(BoardWithIdentifiedHeader("Kanaal een", "ARGB 1"));
 
-        await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 6);
         Assert.Equal([O, O, G, K, K, K], _provider.Leds[Board]);
     }
 
@@ -361,9 +360,8 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         await StartAsync();
         _controller.StartCount(Board, Header, Longest, 1);
 
-        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 2"), DynamicDeviceProvider.Device(Fan));
+        await SetBoardAsync(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 2"));
 
-        await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 6);
         Assert.Equal([O, O, O, O, O, O], _provider.Leds[Board]);
     }
 
@@ -426,6 +424,15 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         {
             Source = DeviceSource.Hardware,
         };
+
+    // Gives the provider the board and the fan, and waits until the controller has taken the list over.
+    private async Task SetBoardAsync(RgbDevice board)
+    {
+        var changed = new TaskCompletionSource();
+        _controller.DevicesChanged += (_, _) => changed.TrySetResult();
+        _provider.SetDevices(board, DynamicDeviceProvider.Device(Fan));
+        await changed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
+    }
 
     private async Task StartAsync()
     {
