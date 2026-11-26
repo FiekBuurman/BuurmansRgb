@@ -18,11 +18,7 @@ public sealed class EngineHostReloadTests : IDisposable
     private static readonly RgbColor Orange = new(255, 136, 0);
 
     private readonly TempDirectory _directory = new();
-    private readonly SwitchableDeviceProvider _simulated = SwitchableDeviceProvider.For(new SimulatedDeviceProvider());
-    private readonly LightingController _lighting;
-    private readonly SimulatedDevicesSwitch _simulatedDevices;
-    private readonly ZoneLengthKeeper _zoneLengths;
-    private readonly ProfileLibrary _profiles;
+    private readonly EngineApiParts _parts = new(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] });
     private readonly AutoPause _autoPause;
     private readonly ProfileTimer _profileTimer;
     private readonly AllOnOffHotkeys _hotkeys = new();
@@ -34,12 +30,8 @@ public sealed class EngineHostReloadTests : IDisposable
 
     public EngineHostReloadTests()
     {
-        _lighting = new LightingController([_simulated]);
-        _simulatedDevices = new SimulatedDevicesSwitch(_simulated, _lighting);
-        _zoneLengths = new ZoneLengthKeeper(_lighting);
-        _profiles = new ProfileLibrary(new InMemoryProfileStore { Profiles = [new Profile("Nacht", EngineSettings.CreateDefault().ToLightingState())] }, _lighting);
-        _autoPause = AutoPauses.WithFakes(_lighting.SetPaused);
-        _profileTimer = new ProfileTimer(_profiles, new FakeClockEvents(), TimeProvider.System);
+        _autoPause = AutoPauses.WithFakes(_parts.Lighting.SetPaused);
+        _profileTimer = new ProfileTimer(_parts.Profiles, new FakeClockEvents(), TimeProvider.System);
         _otherRgbSoftware = new OtherRgbSoftwareCheck(_processes);
     }
 
@@ -48,9 +40,7 @@ public sealed class EngineHostReloadTests : IDisposable
         _otherRgbSoftware.Dispose();
         _profileTimer.Dispose();
         _autoPause.Dispose();
-        _zoneLengths.Dispose();
-        _simulatedDevices.Dispose();
-        _lighting.Dispose();
+        _parts.Dispose();
         _directory.Dispose();
     }
 
@@ -60,7 +50,7 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         using var host = CreateHost();
         await host.StartAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), autoPause: _autoPause, profileTimer: _profileTimer, hotkeys: _hotkeys, customColors: _customColors);
+        using var api = new EngineApi(_parts.Services with { AutoPause = _autoPause, ProfileTimer = _profileTimer, Hotkeys = _hotkeys, CustomColors = _customColors });
         var changes = 0;
         api.OptionsChanged += (_, _) => Interlocked.Increment(ref changes);
 
@@ -77,11 +67,11 @@ public sealed class EngineHostReloadTests : IDisposable
         });
 
         await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 8);
-        Assert.Equal(SimulatedDevicesMode.Always, _simulatedDevices.Mode);
-        Assert.True(_simulatedDevices.HadRealDevices);
-        Assert.Equal(12, _lighting.FramesPerSecond);
+        Assert.Equal(SimulatedDevicesMode.Always, _parts.SimulatedDevices.Mode);
+        Assert.True(_parts.SimulatedDevices.HadRealDevices);
+        Assert.Equal(12, _parts.Lighting.FramesPerSecond);
         Assert.False(_autoPause.Enabled);
-        Assert.Equal(PausedLightsMode.Dim, _lighting.PausedLights);
+        Assert.Equal(PausedLightsMode.Dim, _parts.Lighting.PausedLights);
         Assert.True(_profileTimer.CatchUp);
         Assert.False(_hotkeys.Enabled);
         Assert.Equal([new RgbColor(0, 0, 255)], _customColors.Colors);
@@ -97,7 +87,7 @@ public sealed class EngineHostReloadTests : IDisposable
         var host = CreateHost();
         await host.StartAsync(Ct);
         Assert.Empty(_otherRgbSoftware.Shown);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus(), otherRgbSoftware: _otherRgbSoftware);
+        using var api = new EngineApi(_parts.Services with { OtherRgbSoftware = _otherRgbSoftware });
         var changes = 0;
         api.OtherRgbSoftwareChanged += (_, _) => Interlocked.Increment(ref changes);
 
@@ -118,7 +108,7 @@ public sealed class EngineHostReloadTests : IDisposable
 
         ChangeByHand(new EngineSettings { FramesPerSecond = 500 });
 
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == LightingController.MaxFramesPerSecond);
+        await Eventually.TrueAsync(() => _parts.Lighting.FramesPerSecond == LightingController.MaxFramesPerSecond);
     }
 
     [Fact]
@@ -126,7 +116,7 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         using var host = CreateHost();
         await host.StartAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus());
+        using var api = new EngineApi(_parts.Services);
         var changes = 0;
         api.LightingChanged += (_, _) => Interlocked.Increment(ref changes);
 
@@ -138,9 +128,9 @@ public sealed class EngineHostReloadTests : IDisposable
         });
 
         await Eventually.TrueAsync(() => Volatile.Read(ref changes) == 1);
-        Assert.Equal(Orange, _lighting.GetLighting(null).Color);
-        Assert.Equal(new RgbColor(0, 0, 255), _lighting.GetLighting("simulated-fan").Color);
-        Assert.Equal(new RgbColor(255, 0, 0), _lighting.GetLedColors("simulated-strip")[0]);
+        Assert.Equal(Orange, _parts.Lighting.GetLighting(null).Color);
+        Assert.Equal(new RgbColor(0, 0, 255), _parts.Lighting.GetLighting("simulated-fan").Color);
+        Assert.Equal(new RgbColor(255, 0, 0), _parts.Lighting.GetLedColors("simulated-strip")[0]);
     }
 
     // Only an option: the effects run on and the scene stays on.
@@ -151,13 +141,13 @@ public sealed class EngineHostReloadTests : IDisposable
         using var host = CreateHost();
         await host.StartAsync(Ct);
         var lightingChanges = 0;
-        _lighting.LightingChanged += (_, _) => Interlocked.Increment(ref lightingChanges);
+        _parts.Lighting.LightingChanged += (_, _) => Interlocked.Increment(ref lightingChanges);
 
         ChangeByHand(_store.Settings with { FramesPerSecond = 12 });
 
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12);
+        await Eventually.TrueAsync(() => _parts.Lighting.FramesPerSecond == 12);
         Assert.Equal(0, Volatile.Read(ref lightingChanges));
-        Assert.Equal("Nacht", _profiles.ActiveName);
+        Assert.Equal("Nacht", _parts.Profiles.ActiveName);
     }
 
     // Another lighting ends the scene, as any change does; the file, which still names it, then
@@ -168,11 +158,11 @@ public sealed class EngineHostReloadTests : IDisposable
         _store.Settings = new EngineSettings { ActiveScene = "Nacht" };
         var host = CreateHost();
         await host.StartAsync(Ct);
-        Assert.Equal("Nacht", _profiles.ActiveName);
+        Assert.Equal("Nacht", _parts.Profiles.ActiveName);
 
         ChangeByHand(_store.Settings with { Color = Orange });
 
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _profiles.ActiveName is null);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Orange && _parts.Profiles.ActiveName is null);
         host.Dispose();
         Assert.Equal(1, _store.SaveCount);
         Assert.Null(_store.Settings.ActiveScene);
@@ -188,8 +178,8 @@ public sealed class EngineHostReloadTests : IDisposable
 
         ChangeByHand(new EngineSettings { ActiveScene = "Nacht", FramesPerSecond = 12 });
 
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12);
-        Assert.Null(_profiles.ActiveName);
+        await Eventually.TrueAsync(() => _parts.Lighting.FramesPerSecond == 12);
+        Assert.Null(_parts.Profiles.ActiveName);
     }
 
     [Fact]
@@ -200,8 +190,8 @@ public sealed class EngineHostReloadTests : IDisposable
 
         ChangeByHand(new EngineSettings { ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
 
-        await Eventually.TrueAsync(() => _lighting.Devices.Single(device => device.Id == "simulated-argb").Zones[1].LedCount == 15);
-        Assert.Equal(15, _zoneLengths.Lengths["simulated-argb"]["ARGB 2"]);
+        await Eventually.TrueAsync(() => _parts.Lighting.Devices.Single(device => device.Id == "simulated-argb").Zones[1].LedCount == 15);
+        Assert.Equal(15, _parts.ZoneLengths.Lengths["simulated-argb"]["ARGB 2"]);
     }
 
     // In another order than the engine writes them: the file stays as the user wrote it.
@@ -212,10 +202,10 @@ public sealed class EngineHostReloadTests : IDisposable
         await host.StartAsync(Ct);
 
         ChangeByHand(new EngineSettings { ZonesAlike = ["simulated-mouse", "simulated-headset"] });
-        await Eventually.TrueAsync(() => _lighting.ZonesAlike.Count == 2);
+        await Eventually.TrueAsync(() => _parts.Lighting.ZonesAlike.Count == 2);
         host.Dispose();
 
-        Assert.Equal(new HashSet<string> { "simulated-headset", "simulated-mouse" }, _lighting.ZonesAlike);
+        Assert.Equal(new HashSet<string> { "simulated-headset", "simulated-mouse" }, _parts.Lighting.ZonesAlike);
         Assert.Equal(0, _store.SaveCount);
     }
 
@@ -224,7 +214,7 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         using var host = CreateHost();
         await host.StartAsync(Ct);
-        using var api = new EngineApi(_lighting, _zoneLengths, _profiles, _simulatedDevices, new FakeServerStatus());
+        using var api = new EngineApi(_parts.Services);
         var changes = 0;
         api.DevicesChanged += (_, _) => Interlocked.Increment(ref changes);
 
@@ -242,9 +232,9 @@ public sealed class EngineHostReloadTests : IDisposable
         await host.StartAsync(Ct);
         ChangeByHand(new EngineSettings { Color = Blue, FramesPerSecond = 12, ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
         // The lighting comes last, so then the change by hand is on.
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Blue && _lighting.FramesPerSecond == 12 && _zoneLengths.Lengths.Count == 1);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Blue && _parts.Lighting.FramesPerSecond == 12 && _parts.ZoneLengths.Lengths.Count == 1);
 
-        _lighting.SetLighting(null, lighting => lighting with { Color = Orange });
+        _parts.Lighting.SetLighting(null, lighting => lighting with { Color = Orange });
         host.Dispose();
 
         Assert.Equal(12, _store.Settings.FramesPerSecond);
@@ -260,7 +250,7 @@ public sealed class EngineHostReloadTests : IDisposable
         await host.StartAsync(Ct);
 
         ChangeByHand(new EngineSettings { Color = Orange, FramesPerSecond = 12, ZoneLengths = new() { ["simulated-argb"] = new() { ["ARGB 2"] = 15 } } });
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12 && _zoneLengths.Lengths.Count == 1);
+        await Eventually.TrueAsync(() => _parts.Lighting.FramesPerSecond == 12 && _parts.ZoneLengths.Lengths.Count == 1);
         host.Dispose();
 
         Assert.Equal(0, _store.SaveCount);
@@ -302,7 +292,7 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         var path = _directory.File("settings.json");
         using var watcher = new SettingsFileWatcher(path);
-        using var host = new EngineHost(new JsonSettingsStore(path), _lighting, saveDelay: TimeSpan.FromMilliseconds(50), settingsFileEvents: watcher);
+        using var host = new EngineHost(new JsonSettingsStore(path), _parts.Lighting, saveDelay: TimeSpan.FromMilliseconds(50), settingsFileEvents: watcher);
         await host.StartAsync(Ct);
         const string text = """
             {
@@ -313,7 +303,7 @@ public sealed class EngineHostReloadTests : IDisposable
             """;
 
         await File.WriteAllTextAsync(path, text, Ct);
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Orange && _parts.Lighting.FramesPerSecond == 12);
         await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
 
         Assert.Equal(text, File.ReadAllText(path));
@@ -326,17 +316,17 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         var path = _directory.File("settings.json");
         using var watcher = new SettingsFileWatcher(path);
-        using var host = new EngineHost(new JsonSettingsStore(path), _lighting, saveDelay: TimeSpan.FromMilliseconds(200), settingsFileEvents: watcher);
+        using var host = new EngineHost(new JsonSettingsStore(path), _parts.Lighting, saveDelay: TimeSpan.FromMilliseconds(200), settingsFileEvents: watcher);
         await host.StartAsync(Ct);
         const string text = """{ "framesPerSecond": 12, "color": "#FF8800" }""";
 
-        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+        _parts.Lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
         await File.WriteAllTextAsync(path, text, Ct);
 
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Orange && _parts.Lighting.FramesPerSecond == 12);
         await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
         Assert.Equal(text, File.ReadAllText(path));
-        Assert.Equal(1.0, _lighting.GetLighting(null).Brightness);
+        Assert.Equal(1.0, _parts.Lighting.GetLighting(null).Brightness);
     }
 
     // The whole chain with the real file, watcher and store: the change by hand comes in, and the
@@ -347,19 +337,19 @@ public sealed class EngineHostReloadTests : IDisposable
         var path = _directory.File("settings.json");
         var store = new ChangeCountingStore(new JsonSettingsStore(path));
         using var watcher = new SettingsFileWatcher(path);
-        using var host = new EngineHost(store, _lighting, saveDelay: TimeSpan.FromMilliseconds(50), settingsFileEvents: watcher);
+        using var host = new EngineHost(store, _parts.Lighting, saveDelay: TimeSpan.FromMilliseconds(50), settingsFileEvents: watcher);
         await host.StartAsync(Ct);
 
         await File.WriteAllTextAsync(path, """{ "framesPerSecond": 12, "color": "#FF8800" }""", Ct);
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange && _lighting.FramesPerSecond == 12);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Orange && _parts.Lighting.FramesPerSecond == 12);
 
         // A later change in the app writes it in the engine's words; that save brings no change.
-        _lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
+        _parts.Lighting.SetLighting(null, lighting => lighting with { Brightness = 0.5 });
         await Eventually.TrueAsync(() => FileContains(path, "\"brightness\": 0.5"));
         await Task.Delay(SettingsReloader.DefaultDelay * 2, Ct);
 
         Assert.Equal(1, store.Changes);
-        Assert.Equal(0.5, _lighting.GetLighting(null).Brightness);
+        Assert.Equal(0.5, _parts.Lighting.GetLighting(null).Brightness);
         Assert.Contains("\"framesPerSecond\": 12", File.ReadAllText(path), StringComparison.Ordinal);
     }
 
@@ -370,16 +360,16 @@ public sealed class EngineHostReloadTests : IDisposable
         var path = _directory.File("settings.json");
         var store = new JsonSettingsStore(path);
         using var watcher = new SettingsFileWatcher(path);
-        using var host = new EngineHost(store, _lighting, saveDelay: TimeSpan.FromHours(1), settingsFileEvents: watcher);
+        using var host = new EngineHost(store, _parts.Lighting, saveDelay: TimeSpan.FromHours(1), settingsFileEvents: watcher);
         await host.StartAsync(Ct);
         using var trace = new TraceCapture();
 
         await File.WriteAllTextAsync(path, """{ "framesPerSecond": 12, "color": """, Ct);
         await Eventually.TrueAsync(() => trace.Messages.Any(message => message.Contains(path, StringComparison.Ordinal)));
-        Assert.Equal(LightingController.DefaultFramesPerSecond, _lighting.FramesPerSecond);
+        Assert.Equal(LightingController.DefaultFramesPerSecond, _parts.Lighting.FramesPerSecond);
 
         await File.WriteAllTextAsync(path, """{ "framesPerSecond": 12, "color": "#FF8800" }""", Ct);
-        await Eventually.TrueAsync(() => _lighting.FramesPerSecond == 12 && _lighting.GetLighting(null).Color == Orange);
+        await Eventually.TrueAsync(() => _parts.Lighting.FramesPerSecond == 12 && _parts.Lighting.GetLighting(null).Color == Orange);
     }
 
     // Why the reloader starts after the triggers, as the IPC server does: a change by hand that
@@ -396,11 +386,11 @@ public sealed class EngineHostReloadTests : IDisposable
         var trigger = new RecordingTrigger(() =>
         {
             SpinWait.SpinUntil(() => _store.LoadIfChangedCount > 0, TimeSpan.FromMilliseconds(500));
-            _lighting.Replace(scene);
+            _parts.Lighting.Replace(scene);
         });
         using var host = new EngineHost(
             _store,
-            _lighting,
+            _parts.Lighting,
             saveDelay: TimeSpan.FromHours(1),
             profileTriggers: [trigger],
             settingsFileEvents: _fileEvents,
@@ -408,17 +398,17 @@ public sealed class EngineHostReloadTests : IDisposable
 
         await host.StartAsync(Ct);
 
-        await Eventually.TrueAsync(() => _lighting.GetLighting(null).Color == Orange);
+        await Eventually.TrueAsync(() => _parts.Lighting.GetLighting(null).Color == Orange);
     }
 
     private EngineHost CreateHost() => new(
         _store,
-        _lighting,
+        _parts.Lighting,
         saveDelay: TimeSpan.FromHours(1),
-        simulatedDevices: _simulatedDevices,
-        zoneLengths: _zoneLengths,
+        simulatedDevices: _parts.SimulatedDevices,
+        zoneLengths: _parts.ZoneLengths,
         autoPause: _autoPause,
-        profiles: _profiles,
+        profiles: _parts.Profiles,
         profileTimer: _profileTimer,
         hotkeys: _hotkeys,
         settingsFileEvents: _fileEvents,

@@ -922,7 +922,7 @@ public sealed class TrayPresenterTests : IDisposable
         {
             _zoneLengths = new ZoneLengthKeeper(lighting);
             _simulatedDevices = new SimulatedDevicesSwitch(SwitchableDeviceProvider.For(new SimulatedDeviceProvider()), lighting);
-            Api = new EngineApi(lighting, _zoneLengths, profiles, _simulatedDevices, new FakeServerStatus(), autoStart: autoStart);
+            Api = new EngineApi(new EngineServices { Lighting = lighting, ZoneLengths = _zoneLengths, Profiles = profiles, SimulatedDevices = _simulatedDevices, OpenRgb = new FakeServerStatus(), AutoStart = autoStart });
         }
 
         public EngineApi Api { get; }

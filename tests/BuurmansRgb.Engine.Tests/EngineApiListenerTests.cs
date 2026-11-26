@@ -30,20 +30,22 @@ public sealed class EngineApiListenerTests
         using var otherRgbSoftware = new OtherRgbSoftwareCheck(new FakeProcessSnapshot());
         object[] parts = [lighting, simulatedSwitch, profiles, openRgb, saveEvents, autoPause, timer, hotkeys, customColors, customEffects, autoStart, otherRgbSoftware];
         var before = EventListeners.CountEach(parts);
-        var api = new EngineApi(
-            lighting,
-            zoneLengths,
-            profiles,
-            simulatedSwitch,
-            openRgb,
-            saveEvents,
-            autoPause: autoPause,
-            profileTimer: timer,
-            hotkeys: hotkeys,
-            customColors: customColors,
-            customEffects: customEffects,
-            autoStart: autoStart,
-            otherRgbSoftware: otherRgbSoftware);
+        var api = new EngineApi(new EngineServices
+        {
+            Lighting = lighting,
+            ZoneLengths = zoneLengths,
+            Profiles = profiles,
+            SimulatedDevices = simulatedSwitch,
+            OpenRgb = openRgb,
+            SaveEvents = saveEvents,
+            AutoPause = autoPause,
+            ProfileTimer = timer,
+            Hotkeys = hotkeys,
+            CustomColors = customColors,
+            CustomEffects = customEffects,
+            AutoStart = autoStart,
+            OtherRgbSoftware = otherRgbSoftware,
+        });
         var listening = EventListeners.CountEach(parts);
 
         api.Dispose();

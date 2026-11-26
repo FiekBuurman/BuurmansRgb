@@ -151,14 +151,14 @@ internal static class Program
         // context knows; that is made after the host, so the api gets it through this variable.
         Action? requestRestart = null;
         // "Instellingen bewaren…" and "terugzetten…" asked by the settings app, which the host does; the
-        // api of a connection is made once the host is there.
-        ISettingsTransfer? settingsTransfer = null;
+        // parts of the api of a connection are made once the host is there, before it starts the server.
+        EngineServices? services = null;
         using var host = new EngineHost(
             new JsonSettingsStore(JsonSettingsStore.DefaultFilePath),
             lighting,
             new EngineIpcServer(
                 EngineRpc.PipeName,
-                () => new EngineApi(lighting, zoneLengths, profiles, simulatedDevicesSwitch, openRgb, saveEvents, autoPause: autoPause, profileTimer: profileTimer, hotkeys: hotkeys, customColors: customColors, zoneCounter: zoneCounter, customEffects: customEffects, autoStart: autoStart, restart: () => requestRestart?.Invoke(), otherRgbSoftware: otherRgbSoftware, settingsTransfer: settingsTransfer),
+                () => new EngineApi(services!),
                 MemoryTrimmer.Trim),
             simulatedDevices: simulatedDevicesSwitch,
             trimMemory: MemoryTrimmer.Trim,
@@ -176,7 +176,25 @@ internal static class Program
             firstRun: options.FirstRun,
             otherRgbSoftware: otherRgbSoftware,
             files: SettingsFiles.Default);
-        settingsTransfer = host;
+        services = new EngineServices
+        {
+            Lighting = lighting,
+            ZoneLengths = zoneLengths,
+            Profiles = profiles,
+            SimulatedDevices = simulatedDevicesSwitch,
+            OpenRgb = openRgb,
+            SaveEvents = saveEvents,
+            AutoPause = autoPause,
+            ProfileTimer = profileTimer,
+            Hotkeys = hotkeys,
+            CustomColors = customColors,
+            ZoneCounter = zoneCounter,
+            CustomEffects = customEffects,
+            AutoStart = autoStart,
+            Restart = () => requestRestart?.Invoke(),
+            OtherRgbSoftware = otherRgbSoftware,
+            SettingsTransfer = host,
+        };
 
         using var context = new TrayApplicationContext(
             host,

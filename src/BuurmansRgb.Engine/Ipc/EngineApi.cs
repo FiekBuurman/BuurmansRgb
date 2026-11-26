@@ -41,43 +41,47 @@ internal sealed class EngineApi : IEngineApi, IDisposable
     // The devices the app shows, or null for all; replaced as a whole, read by the frame timer.
     private volatile IReadOnlySet<string>? _frameDevices;
 
+    // The parts for a test of the engine without the rest; Program gives every part.
     public EngineApi(
         LightingController lighting,
         ZoneLengthKeeper zoneLengths,
         ProfileLibrary profiles,
         SimulatedDevicesSwitch simulatedDevices,
         IServerStatusSource openRgb,
-        SettingsSaveEvents? saveEvents = null,
-        TimeProvider? time = null,
-        AutoPause? autoPause = null,
-        ProfileTimer? profileTimer = null,
-        AllOnOffHotkeys? hotkeys = null,
-        CustomColorList? customColors = null,
-        ZoneCounter? zoneCounter = null,
-        CustomEffectLibrary? customEffects = null,
-        AutoStartSwitch? autoStart = null,
-        Action? restart = null,
-        OtherRgbSoftwareCheck? otherRgbSoftware = null,
         ISettingsTransfer? settingsTransfer = null)
+        : this(new EngineServices
+        {
+            Lighting = lighting,
+            ZoneLengths = zoneLengths,
+            Profiles = profiles,
+            SimulatedDevices = simulatedDevices,
+            OpenRgb = openRgb,
+            SettingsTransfer = settingsTransfer,
+        })
     {
-        _settingsTransfer = settingsTransfer;
-        _sharing = new SceneSharing(profiles, lighting, customEffects);
-        _restart = restart;
-        _otherRgbSoftware = otherRgbSoftware;
-        _zoneCounter = zoneCounter;
-        _customEffects = customEffects;
-        _autoStart = autoStart;
-        _autoPause = autoPause;
-        _profileTimer = profileTimer;
-        _hotkeys = hotkeys;
-        _customColors = customColors;
-        _lighting = lighting;
-        _zoneLengths = zoneLengths;
-        _profiles = profiles;
-        _simulatedDevices = simulatedDevices;
-        _openRgb = openRgb;
-        _saveEvents = saveEvents;
-        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), time ?? TimeProvider.System);
+    }
+
+    public EngineApi(EngineServices services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        _settingsTransfer = services.SettingsTransfer;
+        _sharing = new SceneSharing(services.Profiles, services.Lighting, services.CustomEffects);
+        _restart = services.Restart;
+        _otherRgbSoftware = services.OtherRgbSoftware;
+        _zoneCounter = services.ZoneCounter;
+        _customEffects = services.CustomEffects;
+        _autoStart = services.AutoStart;
+        _autoPause = services.AutoPause;
+        _profileTimer = services.ProfileTimer;
+        _hotkeys = services.Hotkeys;
+        _customColors = services.CustomColors;
+        _lighting = services.Lighting;
+        _zoneLengths = services.ZoneLengths;
+        _profiles = services.Profiles;
+        _simulatedDevices = services.SimulatedDevices;
+        _openRgb = services.OpenRgb;
+        _saveEvents = services.SaveEvents;
+        _frames = new PreviewFrames(_lighting.GetOutput, output => FrameRendered?.Invoke(this, ToFrame(output, _frameDevices)), services.Time);
         _listeners =
         [
             (() => _lighting.Rendered += OnRendered, () => _lighting.Rendered -= OnRendered),
