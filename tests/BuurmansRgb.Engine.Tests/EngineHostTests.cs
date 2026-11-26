@@ -883,13 +883,6 @@ public sealed class EngineHostTests : IDisposable
         Assert.Equal(Blue, store.Settings.Color);
     }
 
-    private sealed class RecordingTrigger(Action started, Action? disposed = null) : IProfileTrigger
-    {
-        public void Start() => started();
-
-        public void Dispose() => disposed?.Invoke();
-    }
-
     // Monday 1 June 2026 14:00 in Amsterdam, with Nacht (23:00) on from before the restart and
     // Ochtend (07:00) the scene whose time passed last.
     private (InMemorySettingsStore Store, ProfileLibrary Profiles, EngineHost Host) HostWithScenesAt2Pm(bool catchUp)

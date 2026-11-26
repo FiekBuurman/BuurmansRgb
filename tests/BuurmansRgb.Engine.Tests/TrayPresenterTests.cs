@@ -939,11 +939,11 @@ public sealed class TrayPresenterTests : IDisposable
     {
         public RestartFakes() => Restarter = new EngineRestarter(Services, SettingsApp, Launcher);
 
-        public EngineRestarterTests.FakeServicesRestart Services { get; } = new();
+        public FakeServicesRestart Services { get; } = new();
 
-        public EngineRestarterTests.FakeSettingsAppWindow SettingsApp { get; } = new();
+        public FakeSettingsAppWindow SettingsApp { get; } = new();
 
-        public EngineRestarterTests.FakeEngineLauncher Launcher { get; } = new();
+        public FakeEngineLauncher Launcher { get; } = new();
 
         public EngineRestarter Restarter { get; }
     }

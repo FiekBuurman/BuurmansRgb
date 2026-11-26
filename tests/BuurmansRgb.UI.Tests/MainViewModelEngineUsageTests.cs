@@ -8,7 +8,7 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class MainViewModelEngineUsageTests
 {
     private readonly FakeEngineConnector _connector = new();
-    private readonly CountingMeter _meter = new();
+    private readonly FakeProcessMeter _meter = new() { Next = new ProcessReading(TimeSpan.Zero, 1024 * 1024) };
 
     [Fact]
     public async Task OtherPages_ReadNothing()
@@ -83,28 +83,5 @@ public sealed class MainViewModelEngineUsageTests
         await viewModel.ConnectCommand.ExecuteAsync(null);
         Assert.True(viewModel.IsConnected);
         return viewModel;
-    }
-
-    private sealed class CountingMeter : IProcessMeter, IDisposable
-    {
-        public List<int> Reads { get; } = [];
-
-        public bool IsDisposed { get; private set; }
-
-        public ProcessReading? Read(int processId)
-        {
-            lock (Reads)
-            {
-                Reads.Add(processId);
-            }
-
-            return new ProcessReading(TimeSpan.Zero, 1024 * 1024);
-        }
-
-        public int Releases { get; private set; }
-
-        public void Release() => Releases++;
-
-        public void Dispose() => IsDisposed = true;
     }
 }

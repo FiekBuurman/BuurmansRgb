@@ -140,25 +140,4 @@ public sealed class EngineUsageViewModelTests
     }
 
     private EngineUsageViewModel Create(int processorCount = 1) => new(_meter, _time, processorCount);
-
-    private sealed class FakeProcessMeter : IProcessMeter, IDisposable
-    {
-        public ProcessReading? Next { get; set; } = new(TimeSpan.FromSeconds(1), 26 * Megabyte);
-
-        public List<int> Reads { get; } = [];
-
-        public bool IsDisposed { get; private set; }
-
-        public ProcessReading? Read(int processId)
-        {
-            Reads.Add(processId);
-            return Next;
-        }
-
-        public int Releases { get; private set; }
-
-        public void Release() => Releases++;
-
-        public void Dispose() => IsDisposed = true;
-    }
 }
