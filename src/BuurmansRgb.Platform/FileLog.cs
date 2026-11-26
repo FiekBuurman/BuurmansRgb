@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Reflection;
 
-namespace BuurmansRgb.Contracts;
+namespace BuurmansRgb.Platform;
 
 // Writes what the engine and the settings app trace (Trace.TraceError and the like) to a log file in
 // %AppData%\BuurmansRgb\logs, so a problem on a pc without a debugger or DebugView still leaves a

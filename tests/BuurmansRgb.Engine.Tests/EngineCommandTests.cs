@@ -1,5 +1,6 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
+using BuurmansRgb.Platform;
 using static BuurmansRgb.Engine.Tests.LightingStates;
 
 namespace BuurmansRgb.Engine.Tests;

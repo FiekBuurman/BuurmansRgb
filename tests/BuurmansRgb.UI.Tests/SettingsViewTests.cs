@@ -5,6 +5,7 @@ using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Views;
 using BuurmansRgb.UI.Views.Pages;

@@ -1,6 +1,4 @@
-using BuurmansRgb.Contracts;
-
-namespace BuurmansRgb.Contracts.Tests;
+namespace BuurmansRgb.Platform.Tests;
 
 public sealed class SingleInstanceTests
 {

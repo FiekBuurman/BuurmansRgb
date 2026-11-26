@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Microsoft.Extensions.Time.Testing;
 
-namespace BuurmansRgb.Contracts.Tests;
+namespace BuurmansRgb.Platform.Tests;
 
 public sealed class FileLogTests : IDisposable
 {

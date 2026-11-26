@@ -7,6 +7,7 @@ using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Resources;
 using BuurmansRgb.Engine.Restart;
 using BuurmansRgb.Engine.SettingsApp;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.Engine.Tray;
 

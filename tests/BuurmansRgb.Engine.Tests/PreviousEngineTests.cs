@@ -1,5 +1,5 @@
-using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Restart;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.Engine.Tests;
 

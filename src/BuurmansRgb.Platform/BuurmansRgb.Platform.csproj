@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- What the engine and the settings app share as Windows processes, apart from the contract
+       between them (BuurmansRgb.Contracts): one instance per session and the commands of a second
+       start, the log file, the data folder, the exe of a process and opening a file. -->
+  <PropertyGroup>
+    <!-- LibraryImport generates its marshalling code as unsafe code (ProcessImageName). -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace BuurmansRgb.Contracts;
+namespace BuurmansRgb.Platform;
 
 // Opens a file or a web address as Verkenner would: a .log in Kladblok or the app that opens .log
 // files, a link in the browser. Throws Win32Exception when Windows cannot open it, such as a file

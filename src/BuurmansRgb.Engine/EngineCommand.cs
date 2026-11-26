@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Profiles;
 using BuurmansRgb.Engine.Settings;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.Engine;
 

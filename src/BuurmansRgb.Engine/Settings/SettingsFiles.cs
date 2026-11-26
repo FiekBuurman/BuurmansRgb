@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.Engine.Settings;
 

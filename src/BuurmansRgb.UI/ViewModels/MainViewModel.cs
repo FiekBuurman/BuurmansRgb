@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
+using BuurmansRgb.Platform;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.Services;
 using CommunityToolkit.Mvvm.ComponentModel;

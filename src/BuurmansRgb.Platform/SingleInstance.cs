@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO.MemoryMappedFiles;
 using System.Text;
 
-namespace BuurmansRgb.Contracts;
+namespace BuurmansRgb.Platform;
 
 // One instance per Windows session, for the engine and for the settings app: a second start finds
 // the first by name, signals it and stops. The signal asks the first one to come to the front, or

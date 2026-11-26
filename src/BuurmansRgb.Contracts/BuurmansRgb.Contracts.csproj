@@ -1,10 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <!-- LibraryImport generates its marshalling code as unsafe code (ProcessImageName). -->
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
+  <!-- Only the contract between the engine and the settings app: the RPC interface, its types and
+       the rules both sides share. What they share as Windows processes is in BuurmansRgb.Platform. -->
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" />
   </ItemGroup>

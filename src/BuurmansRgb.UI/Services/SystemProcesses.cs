@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using BuurmansRgb.Contracts;
+using BuurmansRgb.Platform;
 
 namespace BuurmansRgb.UI.Services;
 

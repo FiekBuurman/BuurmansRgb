@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace BuurmansRgb.Contracts;
+namespace BuurmansRgb.Platform;
 
 // The exe of a process by its id, from QueryFullProcessImageName, which needs no admin rights, also
 // for a program that runs as administrator: for the engine its exe name as ProgramNames compares it
