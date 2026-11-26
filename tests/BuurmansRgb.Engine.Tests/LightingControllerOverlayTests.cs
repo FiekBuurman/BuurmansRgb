@@ -140,6 +140,24 @@ public sealed class LightingControllerOverlayTests : IDisposable
         Assert.Equal([null, null, Blue], _controller.State.Overlays[Device]);
     }
 
+    // Nothing changes, so a fade that runs is not ended: the device still shows colors in between.
+    [Fact]
+    public async Task SetOverlay_ThatChangesNothing_LetsAFadeGoOn()
+    {
+        await StartAsync(Orange);
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _controller.Replace(Uniform(StaticLighting(Red)) with { Overlays = Overlays(Device, null, null, Blue) }, fade: true);
+
+        _controller.SetOverlay(Device, 2, [Blue]);
+        _clock.Advance(Second / 2);
+        _controller.RenderAnimationFrame();
+
+        Assert.True(_controller.IsAnimating);
+        Assert.True(_controller.IsFading);
+        Assert.Equal(RgbColor.Lerp(Orange, Red, 0.5), _provider.LastColors[0]);
+        Assert.Equal(Blue, _provider.LastColors[2]);
+    }
+
     [Theory]
     [InlineData(-1, 1)]
     [InlineData(3, 1)]
