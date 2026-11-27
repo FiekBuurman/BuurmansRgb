@@ -80,14 +80,5 @@ public sealed class SwitchTrackBrushConverterTests
         Assert.True(track.R > value);
     }
 
-    // The luminance of the app, from a table, is the one of WCAG.
-    [Theory]
-    [InlineData(0x16, 0x16, 0x1A)]
-    [InlineData(0x00, 0x00, 0xFF)]
-    [InlineData(0x0A, 0x0B, 0x80)]
-    [InlineData(0xFF, 0xFF, 0xFF)]
-    public void Luminance_IsTheOneOfWcag(byte r, byte g, byte b) =>
-        Assert.Equal(Wcag.RelativeLuminance(Color.FromRgb(r, g, b)), SwitchTrackBrushConverter.Luminance(new RgbColor(r, g, b)), 12);
-
     private static Color ToColor(RgbColor color) => Color.FromRgb(color.R, color.G, color.B);
 }

@@ -89,7 +89,7 @@ internal sealed class KeyCapDrawings
             return null;
         }
 
-        return SwitchTrackBrushConverter.Luminance(color) > DarkTextAbove ? _onLight[led] : _onDark[led];
+        return ColorContrast.Luminance(color) > DarkTextAbove ? _onLight[led] : _onDark[led];
     }
 
     private static Drawing Draw(FormattedText text, Point origin, Pen? halo)
