@@ -16,6 +16,19 @@ public sealed class ColorContrastTests
     public void Luminance_IsTheOneOfWcag(byte r, byte g, byte b) =>
         Assert.Equal(RelativeLuminance(r, g, b), ColorContrast.Luminance(new RgbColor(r, g, b)), 12);
 
+    // The whole table: every value of each channel, not only the few colors above.
+    [Fact]
+    public void Luminance_IsTheOneOfWcag_ForEveryChannelValue()
+    {
+        for (var c = 0; c <= 255; c++)
+        {
+            var value = (byte)c;
+            Assert.Equal(RelativeLuminance(value, 0, 0), ColorContrast.Luminance(new RgbColor(value, 0, 0)), 12);
+            Assert.Equal(RelativeLuminance(0, value, 0), ColorContrast.Luminance(new RgbColor(0, value, 0)), 12);
+            Assert.Equal(RelativeLuminance(0, 0, value), ColorContrast.Luminance(new RgbColor(0, 0, value)), 12);
+        }
+    }
+
     // The formula itself, with ratios WCAG gives: black on white, a color on itself, and the grey
     // that just misses 4.5:1 on white.
     [Theory]
