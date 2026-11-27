@@ -592,8 +592,10 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   de engine niet en vraagt alles met events (zoals `AppInfoViewModel.Message`,
   `ProfilesViewModel` en `LampsViewModel`); `MainViewModel` luistert en zet het in de wachtrij.
   **Coördinator:** het krijgt de `EngineSession` en roept de engine zelf aan, met zijn eigen
-  meldingen (`SettingsBackupViewModel`, `SharingViewModel`, `LampSync`) via een event `Message`
-  dat `MainViewModel` in de statusregel zet. Sinds `mainviewmodel-opsplitsen` hebben drie delen
+  meldingen als het die heeft, via een event `Message` dat `MainViewModel` in de statusregel zet
+  (`SettingsBackupViewModel`, `SharingViewModel`, `EngineOptionsCoordinator`, `SceneCoordinator`);
+  `LampSync` en `StillPreviewCoordinator` hebben er geen en melden een fout via
+  `EngineSession.OnCallFailed`. Sinds `mainviewmodel-opsplitsen` hebben drie delen
   van `MainViewModel` zo'n eigen coördinator (intern): `StillPreviewCoordinator` (de frames, het
   stilstaande beeld van het voorbeeld en de flits), `EngineOptionsCoordinator` (de opties van
   Instellingen en de werkbalk op Kleur) en `SceneCoordinator` (de scènes op Scènes, hun kaarten en
@@ -607,8 +609,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   `MainViewModel`; de `MainViewModel*Tests` testen het geheel.
   `MainViewModel` maakt zijn kinderen in de constructor, in een vaste volgorde: eerst de
   sessie, dan de kinderen die niets nodig hebben, dan die er een paar krijgen. Scènes tonen gaat
-  overal via `SceneCoordinator.ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan
-  staat).
+  binnen `SceneCoordinator` via `ShowProfiles` (de lijst, de kaarten en zo nodig welke scène aan
+  staat), behalve bij het verbinden: `LoadAsync` leest eerst de namen, dan de tijden en dan pas de
+  kaarten.
 - **Verversen:** `IEngineApi.RescanDevicesAsync` laat elke `IRescannableDeviceProvider` tegelijk
   opnieuw zoeken (`LightingController.RescanDevicesAsync`) en neemt daarna hun lijsten over, zodat
   `DevicesChanged` vóór het antwoord over de pipe gaat. OpenRGB.NET kent geen rescan, dus
