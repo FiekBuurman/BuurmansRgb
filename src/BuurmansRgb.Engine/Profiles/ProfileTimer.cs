@@ -143,7 +143,7 @@ internal sealed class ProfileTimer : IProfileTrigger
         }
     }
 
-    // The earliest time wins; two profiles at the same time load the first in alphabetical order.
+    // The earliest time wins; two profiles at the same time load the first in the order of TryGetTimed.
     private void Schedule()
     {
         lock (_gate)
@@ -156,15 +156,11 @@ internal sealed class ProfileTimer : IProfileTrigger
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
             _next = null;
-            foreach (var profile in _profiles.TryGetTimed())
+            foreach (var occurrence in Occurrences(_profiles.TryGetTimed(), time => DailyTime.Next(time.At, now, zone, time.Days)))
             {
-                foreach (var time in profile.Times)
+                if (_next is null || occurrence.At < _next.Value.At)
                 {
-                    var at = DailyTime.Next(time.At, now, zone, time.Days);
-                    if (_next is null || at < _next.Value.At)
-                    {
-                        _next = (at, profile);
-                    }
+                    _next = occurrence;
                 }
             }
 
@@ -204,7 +200,7 @@ internal sealed class ProfileTimer : IProfileTrigger
 
     // The scene with the time that passed last, of all times of all scenes and of "Uit om" and "Aan
     // om", when that is after since and not the scene that is on. Two at the same time: the first in
-    // alphabetical order, as in Schedule. "Uit om" and "Aan om" leave alone what needs no change
+    // the order of TryGetTimed, as in Schedule. "Uit om" and "Aan om" leave alone what needs no change
     // themselves (ProfileLibrary.LoadTimed).
     private void LoadLatest(DateTimeOffset? since)
     {
@@ -218,15 +214,11 @@ internal sealed class ProfileTimer : IProfileTrigger
 
             var now = _time.GetUtcNow();
             var zone = _time.LocalTimeZone;
-            foreach (var profile in _profiles.TryGetTimed())
+            foreach (var occurrence in Occurrences(_profiles.TryGetTimed(), time => DailyTime.Previous(time.At, now, zone, time.Days)))
             {
-                foreach (var time in profile.Times)
+                if (latest is null || occurrence.At > latest.Value.At)
                 {
-                    var at = DailyTime.Previous(time.At, now, zone, time.Days);
-                    if (latest is null || at > latest.Value.At)
-                    {
-                        latest = (at, profile);
-                    }
+                    latest = occurrence;
                 }
             }
         }
@@ -235,6 +227,21 @@ internal sealed class ProfileTimer : IProfileTrigger
             && (last.Profile.IsInternal || !ProfileNames.Comparer.Equals(last.Profile.Name, _profiles.ActiveName)))
         {
             Load(last.Profile);
+        }
+    }
+
+    // Every time of every profile, at the moment at gives it (the next or the one that passed last),
+    // in the order of TryGetTimed. Schedule and LoadLatest replace the best so far only by one that is
+    // strictly earlier or later, so of two at the same moment the first in that order wins: the scenes
+    // in alphabetical order, then Uit om and Aan om.
+    private static IEnumerable<(DateTimeOffset At, TimedProfile Profile)> Occurrences(IReadOnlyList<TimedProfile> profiles, Func<LoadTime, DateTimeOffset> at)
+    {
+        foreach (var profile in profiles)
+        {
+            foreach (var time in profile.Times)
+            {
+                yield return (at(time), profile);
+            }
         }
     }
 

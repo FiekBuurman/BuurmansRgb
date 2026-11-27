@@ -14,30 +14,23 @@ namespace BuurmansRgb.Engine.Profiles;
 // "Aan om" (Profile.IsInternal) are in the same file, but no scenes: no name, no load, save or
 // delete by name finds them.
 //
-// It also knows which scene is on (ActiveName): the one loaded or saved last, until the lighting
-// changes in any other way. The engine keeps it over a restart in settings.json (RestoreActive).
+// It also knows which scene is on (ActiveName, kept by ActiveSceneTracker): the one loaded or saved
+// last, until the lighting changes in any other way. The engine keeps it over a restart in
+// settings.json (RestoreActive). Lock order: _gate, then the lock of the tracker.
 internal sealed class ProfileLibrary
 {
     private readonly IProfileStore _store;
     private readonly LightingController _lighting;
     private readonly Lock _gate = new();
+    private readonly ActiveSceneTracker _active = new();
     private List<Profile>? _profiles;
-
-    // Guards the scene that is on. Apart from _gate, because LightingChanged comes from inside the
-    // lighting controller, also while another thread holds _gate.
-    private readonly Lock _activeGate = new();
-    private string? _activeName;
-
-    // The scene that Show is putting on, and its thread: the LightingChanged of that thread is the
-    // scene coming on, any other is a change that ends it.
-    private string? _showingName;
-    private int _showingThread;
 
     public ProfileLibrary(IProfileStore store, LightingController lighting)
     {
         _store = store;
         _lighting = lighting;
-        lighting.LightingChanged += OnLightingChanged;
+        _active.Changed += (_, _) => ActiveChanged?.Invoke(this, EventArgs.Empty);
+        lighting.LightingChanged += (_, _) => _active.OnLightingChanged();
     }
 
     // Raised after the list was written: a profile was saved or deleted, or got another automation.
@@ -60,34 +53,14 @@ internal sealed class ProfileLibrary
     }
 
     // The name of the scene that is on, in its saved spelling; null when none is.
-    public string? ActiveName
-    {
-        get
-        {
-            lock (_activeGate)
-            {
-                return _activeName;
-            }
-        }
-    }
+    public string? ActiveName => _active.Name;
 
     // The profiles that load by themselves, in alphabetical order. None when profiles.json cannot
     // be read, so whoever loads them keeps running; the next change reads the file again.
-    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated()
-    {
-        try
-        {
-            lock (_gate)
-            {
-                return [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))];
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return [];
-        }
-    }
+    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated() =>
+        ReadOrDefault<IReadOnlyList<(string Name, ProfileAutomation Automation)>>(
+            () => [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))],
+            []);
 
     // The scenes of a new installation (StartScenes), written only when there is no profiles.json
     // yet. A file, also one with an empty list, is from a pc that had scenes, or whose user
@@ -133,7 +106,7 @@ internal sealed class ProfileLibrary
             StoreSorted(profiles);
         }
 
-        SetActive(normalized);
+        _active.Set(normalized);
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -168,18 +141,11 @@ internal sealed class ProfileLibrary
     // The scene that was on when the engine stopped, from settings.json, once the saved lighting is
     // back on. Only a scene that still exists, in its saved spelling; null or an unknown name
     // leaves none on. Raises no ActiveChanged: nothing changed since the scene was saved.
-    public void RestoreActive(string? name)
-    {
-        var restored = SavedNameOf(name);
-        lock (_activeGate)
-        {
-            _activeName = restored;
-        }
-    }
+    public void RestoreActive(string? name) => _active.Restore(SavedNameOf(name));
 
     // The scene that was on before a restore that failed (EngineHost.Restore), once the files of
     // before are back: as RestoreActive, but as a change (ActiveChanged), so it is saved again.
-    public void PutBackActive(string? name) => SetActive(SavedNameOf(name));
+    public void PutBackActive(string? name) => _active.Set(SavedNameOf(name));
 
     // The saved spelling of a scene that still exists; null for null, an unknown name, or a file
     // that cannot be read.
@@ -190,18 +156,8 @@ internal sealed class ProfileLibrary
             return null;
         }
 
-        try
-        {
-            lock (_gate)
-            {
-                return ScenesLocked().FirstOrDefault(profile => Matches(profile, name.Trim()))?.Name;
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return null;
-        }
+        var trimmed = name.Trim();
+        return ReadOrDefault(() => ScenesLocked().FirstOrDefault(profile => Matches(profile, trimmed))?.Name, null);
     }
 
     // Shows the lighting of the profile, of a scene of some devices only theirs (Profile.LightingOver),
@@ -227,11 +183,9 @@ internal sealed class ProfileLibrary
     // The scenes with times and then the internal profiles of "Uit om" and "Aan om" with times, for
     // ProfileTimer; the internal one of "Uit om" only while there is no scene "Alles uit", whose
     // times count instead. None when profiles.json cannot be read, as TryGetAutomated.
-    public IReadOnlyList<TimedProfile> TryGetTimed()
-    {
-        try
-        {
-            lock (_gate)
+    public IReadOnlyList<TimedProfile> TryGetTimed() =>
+        ReadOrDefault<IReadOnlyList<TimedProfile>>(
+            () =>
             {
                 var hasAllOffScene = AllOffSceneLocked() is not null;
                 return
@@ -242,14 +196,8 @@ internal sealed class ProfileLibrary
                         .OrderBy(profile => profile.Role)
                         .Select(profile => new TimedProfile(profile.Name, profile.Role, IsInternal: true, profile.Automation.Times)),
                 ];
-            }
-        }
-        catch (Exception exception) when (FileErrors.IsAccessError(exception))
-        {
-            Trace.TraceError(exception.ToString());
-            return [];
-        }
-    }
+            },
+            []);
 
     // What a time of timed does, unless hold keeps it for when the programs stop (ProgramHold):
     // - a scene comes on, as Load;
@@ -389,32 +337,10 @@ internal sealed class ProfileLibrary
     // null for none: for example the lighting from before a game, which may have been a scene.
     // The devices go over to it in the scene fade (LightingController.SceneFade). Outside _gate:
     // the controller has its own lock.
-    public void Show(LightingState state, string? scene) => Showing(scene, () => _lighting.Replace(state, fade: true));
+    public void Show(LightingState state, string? scene) => _active.Showing(scene, () => _lighting.Replace(state, fade: true));
 
     // The same with what change makes of the lighting now, read under the lock of the controller.
-    private void Show(Func<LightingState, LightingState> change, string? scene) => Showing(scene, () => _lighting.Replace(change, fade: true));
-
-    private void Showing(string? scene, Action replace)
-    {
-        lock (_activeGate)
-        {
-            _showingName = scene;
-            _showingThread = Environment.CurrentManagedThreadId;
-        }
-
-        try
-        {
-            replace();
-        }
-        finally
-        {
-            lock (_activeGate)
-            {
-                _showingName = null;
-                _showingThread = 0;
-            }
-        }
-    }
+    private void Show(Func<LightingState, LightingState> change, string? scene) => _active.Showing(scene, () => _lighting.Replace(change, fade: true));
 
     // What the card of the scene shows: its global lighting, or for a scene of some devices that of
     // the first of them, which may differ from the global one that the others keep.
@@ -485,17 +411,7 @@ internal sealed class ProfileLibrary
             deleted = profile.Name;
         }
 
-        bool activeChanged;
-        lock (_activeGate)
-        {
-            activeChanged = _activeName is not null && Matches(deleted, _activeName) && SetActiveLocked(null);
-        }
-
-        if (activeChanged)
-        {
-            ActiveChanged?.Invoke(this, EventArgs.Empty);
-        }
-
+        _active.EndIf(active => Matches(deleted, active));
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -541,17 +457,7 @@ internal sealed class ProfileLibrary
             names = [.. ScenesLocked().Select(profile => profile.Name)];
         }
 
-        bool activeGone;
-        lock (_activeGate)
-        {
-            activeGone = _activeName is { } active && !names.Exists(name => Matches(name, active)) && SetActiveLocked(null);
-        }
-
-        if (activeGone)
-        {
-            ActiveChanged?.Invoke(this, EventArgs.Empty);
-        }
-
+        _active.EndIf(active => !names.Exists(name => Matches(name, active)));
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
@@ -559,40 +465,23 @@ internal sealed class ProfileLibrary
 
     private static bool Matches(string left, string right) => ProfileNames.Comparer.Equals(left, right);
 
-    private void OnLightingChanged(object? sender, EventArgs e)
+    // What readLocked gives under the lock, or fallback when profiles.json cannot be read: for the
+    // callers that must keep running then (the triggers, the scene that was on). The error goes to
+    // the log; the next change reads the file again.
+    private T ReadOrDefault<T>(Func<T> readLocked, T fallback)
     {
-        bool changed;
-        lock (_activeGate)
+        try
         {
-            changed = SetActiveLocked(_showingThread == Environment.CurrentManagedThreadId ? _showingName : null);
+            lock (_gate)
+            {
+                return readLocked();
+            }
         }
-
-        if (changed)
+        catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
-            ActiveChanged?.Invoke(this, EventArgs.Empty);
+            Trace.TraceError(exception.ToString());
+            return fallback;
         }
-    }
-
-    private void SetActive(string? name)
-    {
-        bool changed;
-        lock (_activeGate)
-        {
-            changed = SetActiveLocked(name);
-        }
-
-        if (changed)
-        {
-            ActiveChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
-    // True when that is another scene than before.
-    private bool SetActiveLocked(string? name)
-    {
-        var changed = !string.Equals(_activeName, name, StringComparison.Ordinal);
-        _activeName = name;
-        return changed;
     }
 
     // All of them, the internal ones too (Profile.IsInternal).
