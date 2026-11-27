@@ -212,7 +212,7 @@ public sealed class EngineHostAutoStartTests : IDisposable
         host.Dispose();
 
         Assert.Equal(text, File.ReadAllText(path));
-        Assert.Empty(library.Names);
+        Assert.Empty(library.SceneNames);
         Assert.False(File.Exists(profilesPath));
     }
 

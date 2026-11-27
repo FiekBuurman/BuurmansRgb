@@ -38,7 +38,7 @@ internal sealed class InMemoryProfileStore : IProfileStore
         var file = LenientJson.Deserialize(json, EngineSettingsJsonContext.Default.ProfilesFile);
         Profiles =
         [
-            .. (file?.Profiles ?? []).Where(settings => DisplayNames.Normalize(settings?.Name, ProfileNames.MaxLength) is not null).Select(settings => settings!.ToProfile(DisplayNames.Normalize(settings.Name, ProfileNames.MaxLength)!)),
+            .. (file?.Profiles ?? []).Where(settings => DisplayNames.Normalize(settings?.Name, SceneNames.MaxLength) is not null).Select(settings => settings!.ToProfile(DisplayNames.Normalize(settings.Name, SceneNames.MaxLength)!)),
             .. (file?.Internal ?? []).Select(settings => settings?.ToInternalProfile()).OfType<Profile>(),
         ];
         Exists = true;

@@ -425,7 +425,7 @@ public sealed class ProgramWatcherTests : IDisposable
         StartWatcher();
         _programs.Running.Add("game.exe");
 
-        _profiles.SetAutomation("Nacht", new ProfileAutomation(Program: "game.exe"));
+        _profiles.SetAutomation("Nacht", new SceneAutomation(Program: "game.exe"));
         _time.Advance(Interval);
 
         Assert.Equal(Green, ShownColor());
@@ -592,7 +592,7 @@ public sealed class ProgramWatcherTests : IDisposable
     [InlineData(false)]
     public void SceneOfSomeDevicesWithTwoPrograms_AllDevicesAsBeforeOnceBothStopped(bool firstStopsFirst)
     {
-        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"], Automation = new ProfileAutomation(Times: null, Programs: [Valorant, Cs2]) }];
+        _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red))) { DeviceIds = ["strip"], Automation = new SceneAutomation(Times: null, Programs: [Valorant, Cs2]) }];
         var before = WithDevices(StaticLighting(Green), new Dictionary<string, DeviceLighting> { ["fan"] = StaticLighting(Orange) });
         _profiles.Show(before, scene: null);
         StartWatcher();
@@ -637,7 +637,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _store.Profiles = [Profile("Gamen", Red, Valorant, Cs2)];
         StartWatcher();
 
-        _profiles.SetAutomation("Gamen", new ProfileAutomation(Times: null, Programs: [Cs2]));
+        _profiles.SetAutomation("Gamen", new SceneAutomation(Times: null, Programs: [Cs2]));
         StartProgram(Valorant);
         Assert.Equal(Green, ShownColor());
 
@@ -666,7 +666,7 @@ public sealed class ProgramWatcherTests : IDisposable
         StartWatcher();
         StartProgram(EldenRing);
 
-        _profiles.SetAutomation("Gamen", ProfileAutomation.None);
+        _profiles.SetAutomation("Gamen", SceneAutomation.None);
         StopProgram(EldenRing);
 
         Assert.Equal(Red, ShownColor());
@@ -679,7 +679,7 @@ public sealed class ProgramWatcherTests : IDisposable
         _store.Profiles = [Profile("Nacht", Orange)];
         StartWatcher();
 
-        _profiles.SetAutomation("Nacht", new ProfileAutomation(Program: EldenRing));
+        _profiles.SetAutomation("Nacht", new SceneAutomation(Program: EldenRing));
         StartProgram(EldenRing);
 
         Assert.Equal(Orange, ShownColor());
@@ -737,13 +737,13 @@ public sealed class ProgramWatcherTests : IDisposable
     }
 
     private static Profile Profile(string name, RgbColor color, string? program = null) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program) };
+        new(name, Uniform(StaticLighting(color))) { Automation = new SceneAutomation(Program: program) };
 
     private static Profile Profile(string name, RgbColor color, params string[] programs) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs) };
+        new(name, Uniform(StaticLighting(color))) { Automation = new SceneAutomation(Times: null, Programs: programs) };
 
     private static Profile Profile(string name, RgbColor color, bool foregroundOnly, params string[] programs) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Times: null, Programs: programs, ForegroundOnly: foregroundOnly) };
+        new(name, Uniform(StaticLighting(color))) { Automation = new SceneAutomation(Times: null, Programs: programs, ForegroundOnly: foregroundOnly) };
 
     // As the engine wires it, with the AutoPause of the test unless another is given.
     private void StartWatcher(IAwayState? away = null)

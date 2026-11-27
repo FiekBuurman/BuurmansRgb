@@ -220,7 +220,7 @@ public sealed class LightingControllerOverlayTests : IDisposable
         var counting = _dynamic.Leds[Strip];
         _controller.StopCount();
 
-        Assert.Equal([ZoneCount.NewestColor, .. Enumerable.Repeat(RgbColor.Black, 7)], counting);
+        Assert.Equal([ZoneCountRun.NewestColor, .. Enumerable.Repeat(RgbColor.Black, 7)], counting);
         Assert.Equal([Red, Red, Red, .. Enumerable.Repeat(Orange, 5)], _dynamic.Leds[Strip]);
     }
 

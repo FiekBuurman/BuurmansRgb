@@ -65,7 +65,7 @@ public sealed class SceneSharingTests : IDisposable
         Assert.Equal(original.Lighting.Global, copy.Lighting.Global);
         Assert.Equal(original.Lighting.Devices.OrderBy(pair => pair.Key), copy.Lighting.Devices.OrderBy(pair => pair.Key));
         Assert.Equal(original.Lighting.LedColors["simulated-keyboard"].Colors, copy.Lighting.LedColors["simulated-keyboard"].Colors);
-        Assert.Equal(ProfileAutomation.None, copy.Automation);
+        Assert.Equal(SceneAutomation.None, copy.Automation);
         Assert.Equal(ProfileRole.None, copy.Role);
         Assert.NotEqual("Gamen (2)", _parts.Profiles.ActiveName);
     }
@@ -231,7 +231,7 @@ public sealed class SceneSharingTests : IDisposable
     {
         await _parts.Lighting.DiscoverAsync(Ct);
         await _api.SaveProfileAsync("Gamen", Ct);
-        await _api.SetProfileAutomationAsync("Gamen", new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], ["eldenring.exe", "cs2.exe"], ForegroundOnly: true), Ct);
+        await _api.SetProfileAutomationAsync("Gamen", new SceneAutomation([new LoadTime(new TimeOnly(20, 0))], ["eldenring.exe", "cs2.exe"], ForegroundOnly: true), Ct);
 
         var root = Parse(await _api.ExportSceneAsync("Gamen", Ct));
 

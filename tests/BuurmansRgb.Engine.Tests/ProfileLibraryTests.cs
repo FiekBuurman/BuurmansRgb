@@ -22,8 +22,8 @@ public sealed class ProfileLibraryTests
     {
         _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), new Profile("gamen", Uniform(StaticLighting(Green)))];
 
-        Assert.Equal(["gamen", "Werk"], _library.Names);
-        Assert.Equal(["gamen", "Werk"], _library.Names);
+        Assert.Equal(["gamen", "Werk"], _library.SceneNames);
+        Assert.Equal(["gamen", "Werk"], _library.SceneNames);
         Assert.Equal(1, _store.LoadCount);
     }
 
@@ -47,7 +47,7 @@ public sealed class ProfileLibraryTests
 
         _library.Save("Gamen");
 
-        Assert.Equal(["Gamen", "Werk"], _library.Names);
+        Assert.Equal(["Gamen", "Werk"], _library.SceneNames);
         Assert.Equal(_lighting.State.Global, _store.Profiles[0].Lighting.Global);
     }
 
@@ -56,14 +56,14 @@ public sealed class ProfileLibraryTests
     [Fact]
     public void InternalProfiles_AreNoScenes()
     {
-        _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Green)), ProfileAutomation.None)];
+        _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Red))), Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Green)), SceneAutomation.None)];
 
-        Assert.Equal(["Werk"], _library.Names);
+        Assert.Equal(["Werk"], _library.SceneNames);
         Assert.Throws<ArgumentException>(() => _library.Load("backOn"));
         Assert.Throws<ArgumentException>(() => _library.Delete("backOn"));
         Assert.Throws<ArgumentException>(() => _library.GetAutomation("backOn"));
         _library.Save("backOn");
-        Assert.Equal(["backOn", "Werk"], _library.Names);
+        Assert.Equal(["backOn", "Werk"], _library.SceneNames);
         Assert.Equal(3, _store.Profiles.Count);
         Assert.Equal(Green, Assert.Single(_store.Profiles, profile => profile.IsInternal).Lighting.Global.Color);
     }
@@ -98,7 +98,7 @@ public sealed class ProfileLibraryTests
         _store.SaveException = new IOException("Disk full");
 
         Assert.Throws<IOException>(() => _library.Save("Gamen"));
-        Assert.Empty(_library.Names);
+        Assert.Empty(_library.SceneNames);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public sealed class ProfileLibraryTests
         _library.Delete("GAMEN");
 
         Assert.Equal(["Werk"], _store.Profiles.Select(profile => profile.Name));
-        Assert.Equal(["Werk"], _library.Names);
+        Assert.Equal(["Werk"], _library.SceneNames);
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public sealed class ProfileLibraryTests
     [Fact]
     public void Save_ExistingProfile_KeepsItsAutomation()
     {
-        var automation = new ProfileAutomation(new TimeOnly(23, 0));
+        var automation = new SceneAutomation(new TimeOnly(23, 0));
         _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = automation }];
 
         _library.Save("nacht");
@@ -178,17 +178,17 @@ public sealed class ProfileLibraryTests
     {
         _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))), new Profile("Werk", Uniform(StaticLighting(Green)))];
 
-        _library.SetAutomation("NACHT", new ProfileAutomation(new TimeOnly(23, 0, 30)));
+        _library.SetAutomation("NACHT", new SceneAutomation(new TimeOnly(23, 0, 30)));
 
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), _store.Profiles[0].Automation);
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0)), _library.GetAutomation("Nacht"));
-        Assert.Equal(ProfileAutomation.None, _library.GetAutomation("Werk"));
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0)), _store.Profiles[0].Automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0)), _library.GetAutomation("Nacht"));
+        Assert.Equal(SceneAutomation.None, _library.GetAutomation("Werk"));
     }
 
     [Fact]
     public void TryGetAutomated_ListsOnlyTheProfilesWithAnAutomation()
     {
-        var night = new ProfileAutomation(new TimeOnly(23, 0));
+        var night = new SceneAutomation(new TimeOnly(23, 0));
         _store.Profiles = [new Profile("Werk", Uniform(StaticLighting(Green))), new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = night }];
 
         Assert.Equal([("Nacht", night)], _library.TryGetAutomated());
@@ -197,7 +197,7 @@ public sealed class ProfileLibraryTests
     [Fact]
     public void TryGetAutomated_FileCannotBeRead_ReturnsNoneAndReadsAgainNextTime()
     {
-        var night = new ProfileAutomation(new TimeOnly(23, 0));
+        var night = new SceneAutomation(new TimeOnly(23, 0));
         _store.Profiles = [new Profile("Nacht", Uniform(StaticLighting(Red))) { Automation = night }];
         _store.LoadException = new IOException("The file is in use.");
 
@@ -212,8 +212,8 @@ public sealed class ProfileLibraryTests
     {
         _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
 
-        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", new ProfileAutomation(Program: "game?.exe")));
-        Assert.Equal(ProfileAutomation.None, _store.Profiles[0].Automation);
+        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", new SceneAutomation(Program: "game?.exe")));
+        Assert.Equal(SceneAutomation.None, _store.Profiles[0].Automation);
     }
 
     [Fact]
@@ -221,14 +221,14 @@ public sealed class ProfileLibraryTests
     {
         _store.Profiles = [new Profile("Gamen", Uniform(StaticLighting(Red)))];
 
-        _library.SetAutomation("Gamen", new ProfileAutomation(Program: @"C:\Games\eldenring"));
+        _library.SetAutomation("Gamen", new SceneAutomation(Program: @"C:\Games\eldenring"));
 
         Assert.Equal(["eldenring.exe"], _store.Profiles[0].Automation.Programs);
     }
 
     [Fact]
     public void SetAutomation_UnknownName_Throws() =>
-        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", ProfileAutomation.None));
+        Assert.Throws<ArgumentException>(() => _library.SetAutomation("Gamen", SceneAutomation.None));
 
     [Fact]
     public void Changed_IsRaisedAfterEachChangeToTheList()
@@ -237,7 +237,7 @@ public sealed class ProfileLibraryTests
         _library.Changed += (_, _) => changes++;
 
         _library.Save("Nacht");
-        _library.SetAutomation("Nacht", new ProfileAutomation(new TimeOnly(23, 0)));
+        _library.SetAutomation("Nacht", new SceneAutomation(new TimeOnly(23, 0)));
         _library.Load("Nacht");
         _library.Delete("Nacht");
 
@@ -430,7 +430,7 @@ public sealed class ProfileLibraryTests
         Assert.Equal(active, _library.ActiveName);
         Assert.Equal(active is null ? 1 : 0, activeChanges);
         Assert.Equal(1, changes);
-        Assert.Single(_library.Names);
+        Assert.Single(_library.SceneNames);
     }
 
     // A scene of some devices: those get its lighting, the others keep theirs, also the fan that

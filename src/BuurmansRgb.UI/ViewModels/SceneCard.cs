@@ -43,7 +43,7 @@ public sealed partial class SceneCard(string name) : ObservableObject
     // Whether the scene has a time to come on at (Scènes op tijd).
     public bool HasTimes { get; private set; }
 
-    public void Show(LightingInfo lighting, ProfileAutomation automation)
+    public void Show(LightingInfo lighting, SceneAutomation automation)
     {
         Dots = SceneLook.DotsOf(lighting);
         Description = SceneLook.Describe(lighting, automation);

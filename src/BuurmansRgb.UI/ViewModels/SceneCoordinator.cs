@@ -30,10 +30,10 @@ internal sealed class SceneCoordinator
         _session = session;
         _profiles = profiles;
         _wholeHouseTimes = wholeHouseTimes;
-        profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.ProfileSaved, isNew: true);
-        profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.ProfileLoaded, done: () =>
+        profiles.SaveRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.SceneSaved, isNew: true);
+        profiles.LoadRequested += (_, name) => SendProfileCall(name, api => api.LoadProfileAsync(name), Strings.SceneLoaded, done: () =>
             Loaded?.Invoke(this, EventArgs.Empty));
-        profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.ProfileDeleted);
+        profiles.DeleteRequested += (_, name) => SendProfileCall(name, api => api.DeleteProfileAsync(name), Strings.SceneDeleted);
         profiles.UpdateRequested += (_, name) => SendProfileCall(name, api => api.SaveProfileAsync(name), Strings.SceneUpdated);
         // The boxes show the change already (SceneDevicesViewModel takes it as saved); when the
         // engine refuses it, they show again what the engine has.
@@ -42,7 +42,7 @@ internal sealed class SceneCoordinator
                 failed: () => _ = ShowSceneDevicesAsync(change.Name));
         // The engine saves the automation as Normalize gives it, which the change already is.
         profiles.Automation.ApplyRequested += (_, change) =>
-            SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.ProfileAutomationSaved, done: () =>
+            SendProfileCall(change.Name, api => api.SetProfileAutomationAsync(change.Name, change.Automation), Strings.SceneAutomationSaved, done: () =>
                 profiles.Automation.Show(change.Name, change.Automation));
         profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         wholeHouseTimes.ApplyRequested += (_, times) => SendWholeHouseTimes(times);
@@ -98,7 +98,7 @@ internal sealed class SceneCoordinator
         {
             var names = await connection.Api.GetProfilesAsync();
             var wholeHouse = await connection.Api.GetWholeHouseTimesAsync();
-            var (devicesRead, deviceIds) = open is not null && names.Contains(open, ProfileNames.Comparer)
+            var (devicesRead, deviceIds) = open is not null && names.Contains(open, SceneNames.Comparer)
                 ? await _session.TryCallAsync(connection, api => api.GetProfileDevicesAsync(open))
                 : (false, null);
             _session.WhenCurrent(connection, () =>
@@ -157,7 +157,7 @@ internal sealed class SceneCoordinator
                 // second settings app, or by hand in profiles.json): say so, and show the list as
                 // it is now. Otherwise the general message.
                 var current = await connection.Api.GetProfilesAsync();
-                if (current.Contains(name, ProfileNames.Comparer))
+                if (current.Contains(name, SceneNames.Comparer))
                 {
                     if (failed is not null)
                     {
@@ -171,7 +171,7 @@ internal sealed class SceneCoordinator
                 _session.WhenCurrent(connection, () =>
                 {
                     ShowProfiles(current, withActive: false);
-                    Message?.Invoke(this, UiText.Format(Strings.ProfileGone, name));
+                    Message?.Invoke(this, UiText.Format(Strings.SceneGone, name));
                 });
                 return;
             }
@@ -220,7 +220,7 @@ internal sealed class SceneCoordinator
     }
 
     private void ShowSceneDevices(string name, IReadOnlyList<string>? deviceIds) =>
-        _profiles.SceneDevices.Show(name, deviceIds, _wholeHouseTimes.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, name));
+        _profiles.SceneDevices.Show(name, deviceIds, _wholeHouseTimes.OffScene is { } offScene && SceneNames.Comparer.Equals(offScene, name));
 
     // The scenes of the engine on Scènes with select selected (Profiles.Show), and their cards.
     private void ShowProfiles(IReadOnlyList<string> names, string? select = null, bool withActive = true)
@@ -279,10 +279,10 @@ internal sealed class SceneCoordinator
         _wholeHouseTimes.Show(times);
         if (_profiles.SceneDevices.ProfileName is { } open)
         {
-            _profiles.SceneDevices.ShowIsAllOff(times.OffScene is { } offScene && ProfileNames.Comparer.Equals(offScene, open));
+            _profiles.SceneDevices.ShowIsAllOff(times.OffScene is { } offScene && SceneNames.Comparer.Equals(offScene, open));
         }
 
-        if (times.OffScene is { } scene && _profiles.SelectedName is { } selected && ProfileNames.Comparer.Equals(scene, selected) && !before.SequenceEqual(times.Off))
+        if (times.OffScene is { } scene && _profiles.SelectedName is { } selected && SceneNames.Comparer.Equals(scene, selected) && !before.SequenceEqual(times.Off))
         {
             _ = ShowProfileAutomationAsync(selected);
         }

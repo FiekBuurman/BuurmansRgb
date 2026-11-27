@@ -192,9 +192,9 @@ internal sealed class TrayPresenter(
             return;
         }
 
-        if (TryReadScenes(library => (library.Names, library.ActiveName), out var scenes))
+        if (TryReadScenes(library => (library.SceneNames, library.ActiveName), out var scenes))
         {
-            view.ShowProfiles(scenes.Names, scenes.ActiveName);
+            view.ShowProfiles(scenes.SceneNames, scenes.ActiveName);
         }
         else
         {
@@ -204,7 +204,7 @@ internal sealed class TrayPresenter(
 
     // Any failure is reported, so a click in the menu never takes the engine down: the profile can
     // be gone since the menu opened, or a device can fail.
-    public void LoadProfile(string name) => TryLoadScene(name);
+    public void LoadScene(string name) => TryLoadScene(name);
 
     // Called when the menu opens. Everything is on when all lights are, also the ones with lighting
     // of their own; switched on again, each shows its own lighting.
@@ -330,7 +330,7 @@ internal sealed class TrayPresenter(
 
     private EngineCommandResult RunScene(EngineCommand command)
     {
-        if (!TryReadScenes(library => library.Names.FirstOrDefault(command.Matches), out var name))
+        if (!TryReadScenes(library => library.SceneNames.FirstOrDefault(command.Matches), out var name))
         {
             return EngineCommandResult.Failed;
         }
@@ -354,7 +354,7 @@ internal sealed class TrayPresenter(
         }
         catch (Exception exception) when (FileErrors.IsAccessError(exception))
         {
-            ReportFailure(exception, Strings.ProfilesUnreadable, TrayNotificationKind.Warning);
+            ReportFailure(exception, Strings.ScenesUnreadable, TrayNotificationKind.Warning);
             result = default!;
             return false;
         }
@@ -370,7 +370,7 @@ internal sealed class TrayPresenter(
         }
         catch (Exception exception)
         {
-            ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.ProfileLoadFailed, name), TrayNotificationKind.Warning);
+            ReportFailure(exception, string.Format(CultureInfo.CurrentCulture, Strings.SceneLoadFailed, name), TrayNotificationKind.Warning);
             return false;
         }
     }

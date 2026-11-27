@@ -101,7 +101,7 @@ public sealed class SettingsViewTests
     {
         Assert.Contains(Strings.PauseOnLockLabel, Strings.PausedLightsNeedsPause, StringComparison.Ordinal);
         Assert.Contains(Strings.CatchUpLabel, Strings.AfterRestartSceneTimes, StringComparison.Ordinal);
-        Assert.Contains(Strings.CatchUpLabel, Strings.ProfileLoadAtHint, StringComparison.Ordinal);
+        Assert.Contains(Strings.CatchUpLabel, Strings.SceneLoadAtHint, StringComparison.Ordinal);
         Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOn, StringComparison.Ordinal);
         Assert.Contains(Strings.AutoStartLabel, Strings.AfterRestartAutoStartOff, StringComparison.Ordinal);
         Assert.StartsWith(Strings.AutoStartLabel, Strings.AfterRestartTurnOnAutoStart, StringComparison.Ordinal);
@@ -222,7 +222,7 @@ public sealed class SettingsViewTests
         using var viewModel = await ConnectedViewModel.CreateAsync(api =>
         {
             api.Profiles.Add("Nacht");
-            api.ProfileAutomations["Nacht"] = new ProfileAutomation(new TimeOnly(23, 0));
+            api.ProfileAutomations["Nacht"] = new SceneAutomation(new TimeOnly(23, 0));
             api.CatchUpSceneTimes = true;
         });
 

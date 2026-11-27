@@ -735,10 +735,10 @@ public sealed class EngineApiTests : IDisposable
         using var api = CreateApi();
         await api.SaveProfileAsync("Nacht", Ct);
 
-        await api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(23, 0, 15), " eldenring "), Ct);
+        await api.SetProfileAutomationAsync("Nacht", new SceneAutomation(new TimeOnly(23, 0, 15), " eldenring "), Ct);
 
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), await api.GetProfileAutomationAsync("nacht", Ct));
-        Assert.Equal(new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"), _parts.ProfileStore.Profiles[0].Automation);
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe"), await api.GetProfileAutomationAsync("nacht", Ct));
+        Assert.Equal(new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe"), _parts.ProfileStore.Profiles[0].Automation);
     }
 
     [Fact]
@@ -747,7 +747,7 @@ public sealed class EngineApiTests : IDisposable
         using var api = CreateApi();
         await api.SaveProfileAsync("Gamen", Ct);
 
-        await Assert.ThrowsAsync<ArgumentException>(() => api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "game?.exe"), Ct));
+        await Assert.ThrowsAsync<ArgumentException>(() => api.SetProfileAutomationAsync("Gamen", new SceneAutomation(Program: "game?.exe"), Ct));
     }
 
     [Fact]
@@ -783,7 +783,7 @@ public sealed class EngineApiTests : IDisposable
         api.ProfilesChanged += (_, _) => changes++;
 
         await api.SaveProfileAsync("Nacht", Ct);
-        await api.SetProfileAutomationAsync("Nacht", new ProfileAutomation(new TimeOnly(23, 0)), Ct);
+        await api.SetProfileAutomationAsync("Nacht", new SceneAutomation(new TimeOnly(23, 0)), Ct);
         await api.DeleteProfileAsync("Nacht", Ct);
 
         Assert.Equal(3, changes);

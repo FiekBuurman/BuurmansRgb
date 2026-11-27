@@ -28,7 +28,7 @@ public sealed class ProfilesViewModelSceneTests
     [Fact]
     public void Show_CardThatStays_KeepsWhatItLooksLike()
     {
-        _profiles.ShowCard("Klusmodus", new LightingInfo(Orange, 1.0, EffectIds.Static), ProfileAutomation.None);
+        _profiles.ShowCard("Klusmodus", new LightingInfo(Orange, 1.0, EffectIds.Static), SceneAutomation.None);
 
         _profiles.Show(["Feestje", "Klusmodus"]);
 

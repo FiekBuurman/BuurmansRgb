@@ -1,6 +1,6 @@
 namespace BuurmansRgb.Platform.Tests;
 
-// Only this own process is read: what else runs differs per pc. The engine's tests of ProcessList,
+// Only this own process is read: what else runs differs per pc. The engine's tests of RunningPrograms,
 // SystemForegroundWindow and SystemScreenSaverEvents use it too.
 public sealed class ProcessImageNameTests
 {

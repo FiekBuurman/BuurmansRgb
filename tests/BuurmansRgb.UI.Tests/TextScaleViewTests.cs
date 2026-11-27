@@ -267,7 +267,7 @@ public sealed class TextScaleViewTests
         api.Effects = [EffectIds.Static, EffectIds.Breathing, EffectIds.Rainbow, EffectIds.ColorLoop, EffectIds.Comet, EffectIds.PerLed];
         api.CustomEffects = [TestEffects.Disco];
         api.Profiles.AddRange(["Klusmodus", "Filmavond"]);
-        api.ProfileAutomations["Klusmodus"] = new ProfileAutomation(new TimeOnly(7, 30));
+        api.ProfileAutomations["Klusmodus"] = new SceneAutomation(new TimeOnly(7, 30));
     });
 
     // MainWindow in its smallest size, off screen and not activated, at factor.

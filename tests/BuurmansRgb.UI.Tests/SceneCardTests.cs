@@ -27,27 +27,27 @@ public sealed class SceneCardTests
         Assert.Equal("Klusmodus", _card.ToString());
         Assert.Equal(string.Empty, _card.DotsAccessibleName);
 
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), SceneAutomation.None);
         Assert.Equal("Aan: oranje", _card.DotsAccessibleName);
 
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green, Blue])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green, Blue])), SceneAutomation.None);
         Assert.Equal("Aan: fel groen, fel blauw", _card.DotsAccessibleName);
 
         // Two bulbs of the rainbow with the same name say it once.
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Rainbow), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Rainbow), SceneAutomation.None);
         Assert.Equal("Aan: fel rood, groen, blauw, paars", _card.DotsAccessibleName);
 
-        _card.Show(new LightingInfo(new RgbColor(255, 244, 229), 0.8, EffectIds.Static), ProfileAutomation.None);
+        _card.Show(new LightingInfo(new RgbColor(255, 244, 229), 0.8, EffectIds.Static), SceneAutomation.None);
         Assert.Equal("Aan: warm wit", _card.DotsAccessibleName);
 
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static, On: false), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static, On: false), SceneAutomation.None);
         Assert.Equal("Uit", _card.DotsAccessibleName);
     }
 
     [Fact]
     public void Show_StaticColor_FiveBulbsInThatColorAndTheEffectWithItsBrightness()
     {
-        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, EffectIds.Static), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.Equal(new SceneDot(Orange, true), dot));
         Assert.Equal("Statisch · 80%", _card.Description);
@@ -57,7 +57,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_OwnEffect_IsAnOwnEffectInTheColorOfTheLamp()
     {
-        _card.Show(new LightingInfo(Orange, 0.8, "custom:1a2b3c4d"), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.8, "custom:1a2b3c4d"), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.Equal(new SceneDot(Orange, true), dot));
         Assert.Equal("Eigen effect · 80%", _card.Description);
@@ -66,7 +66,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_Rainbow_GoesRoundTheColors()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Rainbow), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Rainbow), SceneAutomation.None);
 
         Assert.Equal(Red, _card.Dots[0].Color);
         Assert.Equal(5, _card.Dots.Select(dot => dot.Color).Distinct().Count());
@@ -76,7 +76,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_ColorLoop_RepeatsTheColorsOfTheLoop()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.ColorLoop, Loop: new ColorLoop([Red, Blue])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.ColorLoop, Loop: new ColorLoop([Red, Blue])), SceneAutomation.None);
 
         Assert.Equal([Red, Blue, Red, Blue, Red], _card.Dots.Select(dot => dot.Color));
     }
@@ -85,10 +85,10 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_TwelveColors_TheFirstFive()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.ColorLoop, Loop: new ColorLoop(Twelve)), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.ColorLoop, Loop: new ColorLoop(Twelve)), SceneAutomation.None);
         Assert.Equal(Twelve.Take(5), _card.Dots.Select(dot => dot.Color));
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, Twelve)), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, Twelve)), SceneAutomation.None);
         Assert.Equal(Twelve.Skip(1).Take(5), _card.Dots.Select(dot => dot.Color));
     }
 
@@ -96,7 +96,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_Fire_GlowsWarmWithoutTheColorOfTheLamp()
     {
-        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.True(dot.IsLit && dot.Color.R == 255 && dot.Color.B < dot.Color.G, $"{dot.Color.ToHex()} is not warm."));
         Assert.Equal(3, _card.Dots.Select(dot => dot.Color).Distinct().Count());
@@ -109,7 +109,7 @@ public sealed class SceneCardTests
     [InlineData(EffectIds.Scanner, "Scanner")]
     public void Show_AnEffectWithTheColorOfTheLamp_FiveBulbsInThatColor(string effectId, string name)
     {
-        _card.Show(new LightingInfo(Orange, 0.5, effectId), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 0.5, effectId), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.Equal(new SceneDot(Orange, true), dot));
         Assert.Equal($"{name} · 50%", _card.Description);
@@ -122,7 +122,7 @@ public sealed class SceneCardTests
     [InlineData(EffectIds.Scanner)]
     public void Show_AnEffectWithAList_ShowsItsColorsInTurn(string effectId)
     {
-        _card.Show(new LightingInfo(Orange, 1.0, effectId, EffectColors: EffectColors.None.With(effectId, [Red, Green])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, effectId, EffectColors: EffectColors.None.With(effectId, [Red, Green])), SceneAutomation.None);
 
         Assert.Equal([Red, Green, Red, Green, Red], _card.Dots.Select(dot => dot.Color));
         Assert.All(_card.Dots, dot => Assert.True(dot.IsLit));
@@ -134,7 +134,7 @@ public sealed class SceneCardTests
     {
         var (glow, flame, hottest) = (new RgbColor(0, 0, 60), Blue, new RgbColor(0, 200, 255));
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [glow, flame, hottest])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [glow, flame, hottest])), SceneAutomation.None);
 
         Assert.Equal([flame, hottest, flame, hottest, flame], _card.Dots.Select(dot => dot.Color));
     }
@@ -143,10 +143,10 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_FireWithOneOrTwoColors_ShowsThemAll()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Red, Green])), SceneAutomation.None);
         Assert.Equal([Red, Green, Red, Green, Red], _card.Dots.Select(dot => dot.Color));
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Green])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Fire, EffectColors: EffectColors.None.With(EffectIds.Fire, [Green])), SceneAutomation.None);
         Assert.All(_card.Dots, dot => Assert.Equal(Green, dot.Color));
     }
 
@@ -154,7 +154,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_FireWithoutAList_GlowsAsBefore()
     {
-        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Blue, 1.0, EffectIds.Fire), SceneAutomation.None);
 
         Assert.Equal(
             [new RgbColor(255, 24, 0), new RgbColor(255, 100, 0), new RgbColor(255, 190, 30), new RgbColor(255, 100, 0), new RgbColor(255, 24, 0)],
@@ -165,7 +165,7 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_ListOfAnotherEffect_LeavesTheLampColor()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, EffectColors: EffectColors.None.With(EffectIds.Comet, [Red, Green])), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, EffectColors: EffectColors.None.With(EffectIds.Comet, [Red, Green])), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.Equal(Orange, dot.Color));
     }
@@ -178,7 +178,7 @@ public sealed class SceneCardTests
         var changed = new List<string?>();
         _card.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), ProfileAutomation.None);
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), SceneAutomation.None);
 
         Assert.All(_card.Dots, dot => Assert.False(dot.IsLit));
         Assert.Equal("Alles uit", _card.Description);
@@ -197,8 +197,8 @@ public sealed class SceneCardTests
     public void Show_LoadsByItself_SaysWhen(string? loadAt, string? program, string expected, WeekDays days = WeekDays.Every)
     {
         var automation = loadAt is null
-            ? new ProfileAutomation(Program: program)
-            : new ProfileAutomation(TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
+            ? new SceneAutomation(Program: program)
+            : new SceneAutomation(TimeOnly.Parse(loadAt, System.Globalization.CultureInfo.InvariantCulture), program, days);
 
         _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static, On: false), automation);
 
@@ -208,10 +208,10 @@ public sealed class SceneCardTests
     [Fact]
     public void Show_ProgramInTheForeground_SaysSo()
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Program: "vlc.exe", ForegroundOnly: true));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new SceneAutomation(Program: "vlc.exe", ForegroundOnly: true));
         Assert.Equal("Bij vlc.exe op de voorgrond", _card.Description);
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0))], ["vlc.exe"], ForegroundOnly: true));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new SceneAutomation([new LoadTime(new TimeOnly(20, 0))], ["vlc.exe"], ForegroundOnly: true));
         Assert.Equal("Elke dag om 20:00 · bij vlc.exe op de voorgrond", _card.Description);
     }
 
@@ -222,10 +222,10 @@ public sealed class SceneCardTests
     [InlineData(true, "Bij valorant.exe en nog 2, op de voorgrond")]
     public void Show_MorePrograms_SaysTheFirstAndHowManyMore(bool foregroundOnly, string expected)
     {
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], foregroundOnly));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new SceneAutomation(Times: null, Programs: ["valorant.exe", "cs2.exe", "r5apex.exe"], foregroundOnly));
         Assert.Equal(expected, _card.Description);
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation([new LoadTime(new TimeOnly(20, 0)), new LoadTime(new TimeOnly(22, 0))], ["valorant.exe", "cs2.exe"]));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new SceneAutomation([new LoadTime(new TimeOnly(20, 0)), new LoadTime(new TimeOnly(22, 0))], ["valorant.exe", "cs2.exe"]));
         Assert.Equal("Elke dag om 20:00 en nog 1 · bij valorant.exe en nog 1", _card.Description);
     }
 
@@ -238,7 +238,7 @@ public sealed class SceneCardTests
     {
         LoadTime[] times = [new(new TimeOnly(7, 0), WeekDays.Workdays), new(new TimeOnly(9, 0), WeekDays.Weekend), new(new TimeOnly(23, 0))];
 
-        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new ProfileAutomation(times[..count], program is null ? null : [program]));
+        _card.Show(new LightingInfo(Orange, 1.0, EffectIds.Static), new SceneAutomation(times[..count], program is null ? null : [program]));
 
         Assert.Equal(expected, _card.Description);
     }

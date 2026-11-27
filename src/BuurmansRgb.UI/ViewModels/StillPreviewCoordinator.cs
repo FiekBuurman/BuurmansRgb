@@ -2,7 +2,7 @@ using BuurmansRgb.Contracts;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// What the preview and the lamps on Lampen get from the engine: the frames while they move, one
+// What the preview and the lamps on Apparaten get from the engine: the frames while they move, one
 // image at a time while they stand still (Animatie-effecten), and the flash of a lamp the user
 // picks. A coordinator: it calls the engine of the session itself. MainViewModel tells it when
 // something changed that can change the image or the frames it wants, and passes on every call
@@ -40,7 +40,7 @@ internal sealed class StillPreviewCoordinator : IDisposable
     // so it never shows the white of the flash (RequestStill, OnFlashStarted).
     private DateTimeOffset _stillsHeldUntil = DateTimeOffset.MinValue;
 
-    // showsPreview is whether Lampen or Kleur shows in a window that is not minimized,
+    // showsPreview is whether Apparaten or Kleur shows in a window that is not minimized,
     // wantedFrameDevice the one device Kleur shows (null for all of them), and selectedDeviceId the
     // device chosen in the list, which a flash that waits needs to still be.
     public StillPreviewCoordinator(

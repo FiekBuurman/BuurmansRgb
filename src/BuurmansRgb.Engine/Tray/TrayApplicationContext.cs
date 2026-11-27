@@ -60,7 +60,7 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
             restartedWith,
             openSettingsAfterStart,
             commandAfterStart);
-        _profilesItem = new ToolStripMenuItem(Strings.MenuLoadProfile);
+        _profilesItem = new ToolStripMenuItem(Strings.MenuLoadScene);
         _allOnItem = new ToolStripMenuItem(Strings.MenuAllOn, image: null, (_, _) => _presenter.SetAllOn(true));
         _allOffItem = new ToolStripMenuItem(Strings.MenuAllOff, image: null, (_, _) => _presenter.SetAllOn(false));
         _restartItem = new ToolStripMenuItem(Strings.MenuRestart, image: null, async (_, _) => await RestartAsync());
@@ -176,16 +176,16 @@ internal sealed class TrayApplicationContext : ApplicationContext, ITrayView
         _profilesItem.Enabled = names is not null;
         if (names is null or [])
         {
-            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(Strings.MenuNoProfiles) { Enabled = false });
+            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(Strings.MenuNoScenes) { Enabled = false });
             return;
         }
 
         foreach (var name in names)
         {
             // A single & would underline the next letter instead of showing itself.
-            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(name.Replace("&", "&&", StringComparison.Ordinal), image: null, (_, _) => _presenter.LoadProfile(name))
+            _profilesItem.DropDownItems.Add(new ToolStripMenuItem(name.Replace("&", "&&", StringComparison.Ordinal), image: null, (_, _) => _presenter.LoadScene(name))
             {
-                Checked = active is not null && ProfileNames.Comparer.Equals(name, active),
+                Checked = active is not null && SceneNames.Comparer.Equals(name, active),
             });
         }
     }

@@ -229,7 +229,7 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
 
         await DisconnectAsync(client);
 
-        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_parts.Lighting.Count.IsCounting);
+        await Eventually.TrueAsync(() => ArgbHeader() == 20 && !_parts.Lighting.CurrentZoneCount.IsCounting);
 
         int ArgbHeader() => _parts.Lighting.Devices.Single(device => device.Id == argb).Zones[0].LedCount;
     }
@@ -400,10 +400,10 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var client = await StartAndConnectAsync();
         await client.Api.SaveProfileAsync("Gamen", Ct);
 
-        await client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(new TimeOnly(20, 30), "eldenring"), Ct);
+        await client.Api.SetProfileAutomationAsync("Gamen", new SceneAutomation(new TimeOnly(20, 30), "eldenring"), Ct);
 
-        Assert.Equal(new ProfileAutomation(new TimeOnly(20, 30), "eldenring.exe"), await client.Api.GetProfileAutomationAsync("Gamen", Ct));
-        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Gamen", new ProfileAutomation(Program: "game?.exe"), Ct));
+        Assert.Equal(new SceneAutomation(new TimeOnly(20, 30), "eldenring.exe"), await client.Api.GetProfileAutomationAsync("Gamen", Ct));
+        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Gamen", new SceneAutomation(Program: "game?.exe"), Ct));
         Assert.True(EngineRpc.IsRejectedByEngine(error));
     }
 
@@ -415,14 +415,14 @@ public sealed class EngineIpcServerTests : IAsyncDisposable
         var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         client.Api.ProfilesChanged += (_, _) => changed.TrySetResult();
 
-        await client.Api.SetProfileAutomationAsync("Ochtend", new ProfileAutomation([new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]), Ct);
+        await client.Api.SetProfileAutomationAsync("Ochtend", new SceneAutomation([new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend), new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays)]), Ct);
 
         Assert.Equal(
-            new ProfileAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)]),
+            new SceneAutomation([new LoadTime(new TimeOnly(7, 0), WeekDays.Workdays), new LoadTime(new TimeOnly(9, 0), WeekDays.Weekend)]),
             await client.Api.GetProfileAutomationAsync("Ochtend", Ct));
         await changed.Task.WaitAsync(TestTimeouts.Short, Ct);
-        LoadTime[] tooMany = [.. Enumerable.Range(0, ProfileAutomation.MaxTimes + 1).Select(hour => new LoadTime(new TimeOnly(hour, 0)))];
-        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Ochtend", new ProfileAutomation(tooMany), Ct));
+        LoadTime[] tooMany = [.. Enumerable.Range(0, SceneAutomation.MaxTimes + 1).Select(hour => new LoadTime(new TimeOnly(hour, 0)))];
+        var error = await Assert.ThrowsAnyAsync<Exception>(() => client.Api.SetProfileAutomationAsync("Ochtend", new SceneAutomation(tooMany), Ct));
         Assert.True(EngineRpc.IsRejectedByEngine(error));
     }
 

@@ -2,22 +2,22 @@ using System.Text.Json.Serialization;
 
 namespace BuurmansRgb.Contracts;
 
-// When the engine loads a profile by itself. Times are times of day in whole minutes, each on its
+// When the engine loads a scene by itself. Times are times of day in whole minutes, each on its
 // own days, such as 07:00 on workdays and 09:00 in the weekend; Programs are programs
-// (ProgramNames) that each load the profile while they run, or with ForegroundOnly only while one of
+// (ProgramNames) that each load the scene while they run, or with ForegroundOnly only while one of
 // their windows is in the foreground, such as valorant.exe, cs2.exe and r5apex.exe for "Gamen".
 // ForegroundOnly counts for all of them. No times and no programs leave that way off. Two
 // automations are equal when they have the same times and programs in the same order.
-public sealed record ProfileAutomation
+public sealed record SceneAutomation
 {
-    // As many times as a profile can have; more is a mistake rather than a plan for the week.
+    // As many times as a scene can have; more is a mistake rather than a plan for the week.
     public const int MaxTimes = 8;
 
-    // As many programs as a profile can have: enough for every game of one scene.
+    // As many programs as a scene can have: enough for every game of one scene.
     public const int MaxPrograms = 20;
 
     [JsonConstructor]
-    public ProfileAutomation(IReadOnlyList<LoadTime>? Times = null, IReadOnlyList<string>? Programs = null, bool ForegroundOnly = false)
+    public SceneAutomation(IReadOnlyList<LoadTime>? Times = null, IReadOnlyList<string>? Programs = null, bool ForegroundOnly = false)
     {
         this.Times = Times is null ? [] : [.. Times];
         this.Programs = Programs is null ? [] : [.. Programs];
@@ -25,18 +25,18 @@ public sealed record ProfileAutomation
     }
 
     // One program, or none for null.
-    public ProfileAutomation(string? Program, bool ForegroundOnly = false)
+    public SceneAutomation(string? Program, bool ForegroundOnly = false)
         : this(null, OneProgram(Program), ForegroundOnly)
     {
     }
 
     // One time, on Days.
-    public ProfileAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
+    public SceneAutomation(TimeOnly LoadAt, string? Program = null, WeekDays Days = WeekDays.Every)
         : this([new LoadTime(LoadAt, Days)], OneProgram(Program))
     {
     }
 
-    public static ProfileAutomation None { get; } = new();
+    public static SceneAutomation None { get; } = new();
 
     public IReadOnlyList<LoadTime> Times { get; init; }
 
@@ -52,7 +52,7 @@ public sealed record ProfileAutomation
     // ones and the same name again (in any case, also "cs2" after "cs2.exe"); ForegroundOnly only
     // with a program. Throws ArgumentException for a missing time, more than MaxTimes times or
     // MaxPrograms programs, or a program that is not a valid name.
-    public ProfileAutomation Normalize()
+    public SceneAutomation Normalize()
     {
         if (Times.Any(time => time is null))
         {
@@ -67,7 +67,7 @@ public sealed record ProfileAutomation
         ];
         if (times.Length > MaxTimes)
         {
-            throw new ArgumentException($"A profile has at most {MaxTimes} times, not {times.Length}.", nameof(Times));
+            throw new ArgumentException($"A scene has at most {MaxTimes} times, not {times.Length}.", nameof(Times));
         }
 
         string[] programs =
@@ -78,7 +78,7 @@ public sealed record ProfileAutomation
         ];
         if (programs.Length > MaxPrograms)
         {
-            throw new ArgumentException($"A profile has at most {MaxPrograms} programs, not {programs.Length}.", nameof(Programs));
+            throw new ArgumentException($"A scene has at most {MaxPrograms} programs, not {programs.Length}.", nameof(Programs));
         }
 
         return new(times, programs, ForegroundOnly && programs.Length > 0);
@@ -86,7 +86,7 @@ public sealed record ProfileAutomation
 
     private static string[]? OneProgram(string? program) => program is null ? null : [program];
 
-    public bool Equals(ProfileAutomation? other) =>
+    public bool Equals(SceneAutomation? other) =>
         other is not null && Times.SequenceEqual(other.Times) && Programs.SequenceEqual(other.Programs, StringComparer.Ordinal) && ForegroundOnly == other.ForegroundOnly;
 
     public override int GetHashCode()

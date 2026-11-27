@@ -58,7 +58,7 @@ public sealed class ConfirmDialogViewTests
         Make(owner => ConfirmDialog.ForScene(owner, "Avond"), (owner, dialog) =>
         {
             Assert.Same(owner, dialog.Owner);
-            Assert.Equal(UiText.Format(Strings.ProfileDeleteConfirm, "Avond"), dialog.Title);
+            Assert.Equal(UiText.Format(Strings.SceneDeleteConfirm, "Avond"), dialog.Title);
             Assert.Contains("'Avond'", dialog.Title, StringComparison.Ordinal);
             Assert.Equal(string.Empty, AutomationProperties.GetHelpText(dialog));
         });

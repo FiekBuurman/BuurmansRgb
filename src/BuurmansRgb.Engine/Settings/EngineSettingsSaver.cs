@@ -9,7 +9,7 @@ namespace BuurmansRgb.Engine.Settings;
 // A save that would write what the file holds already writes nothing, and one that finds the file
 // changed by hand waits for SettingsReloader to apply that change first: the newest change wins,
 // also when it was made in an editor.
-internal sealed class LightingSettingsSaver : IDisposable
+internal sealed class EngineSettingsSaver : IDisposable
 {
     // Saves in a row that found the file changed by hand before this saves anyway: without a
     // watcher (one that did not start) nobody reads such a change, and the engine must still save.
@@ -53,7 +53,7 @@ internal sealed class LightingSettingsSaver : IDisposable
     // startupSettings are the settings the engine started with: the saver keeps their other
     // options, unless ChangeOptions changes them, and replaces the lighting. saveEvents hears about
     // every save, also a failed one.
-    public LightingSettingsSaver(
+    public EngineSettingsSaver(
         ISettingsStore store,
         ILightingStateSource lighting,
         EngineSettings startupSettings,

@@ -74,10 +74,10 @@ internal static class SceneLook
     // programs only the first fits, with how many more, as with the times: "Bij valorant.exe en nog 2",
     // and with a comma before the foreground, so that is not about the 2: "Bij valorant.exe en nog 2,
     // op de voorgrond".
-    public static string Describe(LightingInfo lighting, ProfileAutomation automation) =>
+    public static string Describe(LightingInfo lighting, SceneAutomation automation) =>
         Describe(lighting, automation.Times, Programs(automation));
 
-    private static string? Programs(ProfileAutomation automation)
+    private static string? Programs(SceneAutomation automation)
     {
         var programs = automation.Programs switch
         {

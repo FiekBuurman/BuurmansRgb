@@ -2,6 +2,7 @@ using System.Diagnostics;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Engine.Settings;
+using NameRules = BuurmansRgb.Contracts.SceneNames;
 
 namespace BuurmansRgb.Engine.Profiles;
 
@@ -41,7 +42,7 @@ internal sealed class ProfileLibrary
     public event EventHandler? ActiveChanged;
 
     // In alphabetical order.
-    public IReadOnlyList<string> Names
+    public IReadOnlyList<string> SceneNames
     {
         get
         {
@@ -57,9 +58,9 @@ internal sealed class ProfileLibrary
 
     // The profiles that load by themselves, in alphabetical order. None when profiles.json cannot
     // be read, so whoever loads them keeps running; the next change reads the file again.
-    public IReadOnlyList<(string Name, ProfileAutomation Automation)> TryGetAutomated() =>
-        ReadOrDefault<IReadOnlyList<(string Name, ProfileAutomation Automation)>>(
-            () => [.. ScenesLocked().Where(profile => profile.Automation != ProfileAutomation.None).Select(profile => (profile.Name, profile.Automation))],
+    public IReadOnlyList<(string Name, SceneAutomation Automation)> TryGetAutomated() =>
+        ReadOrDefault<IReadOnlyList<(string Name, SceneAutomation Automation)>>(
+            () => [.. ScenesLocked().Where(profile => profile.Automation != SceneAutomation.None).Select(profile => (profile.Name, profile.Automation))],
             []);
 
     // The scenes of a new installation (StartScenes), written only when there is no profiles.json
@@ -77,7 +78,7 @@ internal sealed class ProfileLibrary
                     return StartScenesOutcome.FileThere;
                 }
 
-                Store([.. scenes.OrderBy(profile => profile.Name, ProfileNames.Comparer)]);
+                Store([.. scenes.OrderBy(profile => profile.Name, NameRules.Comparer)]);
             }
         }
         catch (Exception exception) when (FileErrors.IsAccessError(exception))
@@ -101,7 +102,7 @@ internal sealed class ProfileLibrary
         lock (_gate)
         {
             var old = ScenesLocked().FirstOrDefault(other => Matches(other, normalized));
-            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? ProfileAutomation.None, Role = old?.Role ?? ProfileRole.None, DeviceIds = old?.DeviceIds };
+            var profile = new Profile(normalized, lightingNow) { Automation = old?.Automation ?? SceneAutomation.None, Role = old?.Role ?? ProfileRole.None, DeviceIds = old?.DeviceIds };
             List<Profile> profiles = [.. ProfilesLocked().Where(other => !ReferenceEquals(other, old)), profile];
             StoreSorted(profiles);
         }
@@ -120,7 +121,7 @@ internal sealed class ProfileLibrary
         lock (_gate)
         {
             var scenes = ScenesLocked().ToList();
-            added = SharedFiles.FreeName(normalized, ProfileNames.MaxLength, candidate => scenes.Exists(scene => Matches(scene, candidate)));
+            added = SharedFiles.FreeName(normalized, NameRules.MaxLength, candidate => scenes.Exists(scene => Matches(scene, candidate)));
             List<Profile> profiles = [.. ProfilesLocked(), new Profile(added, lighting) { DeviceIds = deviceIds }];
             StoreSorted(profiles);
         }
@@ -302,12 +303,12 @@ internal sealed class ProfileLibrary
     // "Uit om" goes on the scene "Alles uit" while there is one, which keeps its program, and else on
     // an internal profile; "Aan om" on an internal one, which starts with the lighting as it is now
     // until "Alles uit" comes on. Without times an internal profile goes from the file. Throws
-    // ArgumentException for more than ProfileAutomation.MaxTimes times.
+    // ArgumentException for more than SceneAutomation.MaxTimes times.
     public void SetWholeHouseTimes(WholeHouseTimes times)
     {
         ArgumentNullException.ThrowIfNull(times);
-        var off = new ProfileAutomation(times.Off).Normalize();
-        var on = new ProfileAutomation(times.On).Normalize();
+        var off = new SceneAutomation(times.Off).Normalize();
+        var on = new SceneAutomation(times.On).Normalize();
         var lightingNow = _lighting.State;
         lock (_gate)
         {
@@ -400,7 +401,7 @@ internal sealed class ProfileLibrary
             if (profile.Role == ProfileRole.AllOff && profile.Automation.Times.Count > 0 && !profiles.Exists(other => !other.IsInternal && other.Role == ProfileRole.AllOff))
             {
                 profiles.RemoveAll(other => other.IsInternal && other.Role == ProfileRole.AllOff);
-                profiles.Add(InternalAllOff(new ProfileAutomation(profile.Automation.Times)));
+                profiles.Add(InternalAllOff(new SceneAutomation(profile.Automation.Times)));
                 StoreSorted(profiles);
             }
             else
@@ -415,7 +416,7 @@ internal sealed class ProfileLibrary
         Changed?.Invoke(this, EventArgs.Empty);
     }
 
-    public ProfileAutomation GetAutomation(string name)
+    public SceneAutomation GetAutomation(string name)
     {
         lock (_gate)
         {
@@ -423,7 +424,7 @@ internal sealed class ProfileLibrary
         }
     }
 
-    public void SetAutomation(string name, ProfileAutomation automation)
+    public void SetAutomation(string name, SceneAutomation automation)
     {
         ArgumentNullException.ThrowIfNull(automation);
         var normalized = automation.Normalize();
@@ -463,7 +464,7 @@ internal sealed class ProfileLibrary
 
     private static bool Matches(Profile profile, string name) => Matches(profile.Name, name);
 
-    private static bool Matches(string left, string right) => ProfileNames.Comparer.Equals(left, right);
+    private static bool Matches(string left, string right) => NameRules.Comparer.Equals(left, right);
 
     // What readLocked gives under the lock, or fallback when profiles.json cannot be read: for the
     // callers that must keep running then (the triggers, the scene that was on). The error goes to
@@ -485,7 +486,7 @@ internal sealed class ProfileLibrary
     }
 
     // All of them, the internal ones too (Profile.IsInternal).
-    private List<Profile> ProfilesLocked() => _profiles ??= [.. _store.Load().OrderBy(profile => profile.Name, ProfileNames.Comparer)];
+    private List<Profile> ProfilesLocked() => _profiles ??= [.. _store.Load().OrderBy(profile => profile.Name, NameRules.Comparer)];
 
     // The scenes of the user: the profiles with a name, in alphabetical order.
     private IEnumerable<Profile> ScenesLocked() => ProfilesLocked().Where(profile => !profile.IsInternal);
@@ -520,7 +521,7 @@ internal sealed class ProfileLibrary
 
     private Profile FindLocked(string name) =>
         ScenesLocked().FirstOrDefault(profile => Matches(profile, name?.Trim() ?? string.Empty))
-        ?? throw new ArgumentException($"There is no profile '{name}'.", nameof(name));
+        ?? throw new ArgumentException($"There is no scene '{name}'.", nameof(name));
 
     private void Store(List<Profile> profiles)
     {
@@ -531,16 +532,16 @@ internal sealed class ProfileLibrary
     // Stores profiles in alphabetical order, as ProfilesLocked has them.
     private void StoreSorted(List<Profile> profiles)
     {
-        profiles.Sort((left, right) => ProfileNames.Comparer.Compare(left.Name, right.Name));
+        profiles.Sort((left, right) => NameRules.Comparer.Compare(left.Name, right.Name));
         Store(profiles);
     }
 
     // The name as a scene gets it (DisplayNames.Normalize); throws ArgumentException for one that
     // is empty, too long or has a control character.
     private static string NormalizedName(string name) =>
-        DisplayNames.Normalize(name, ProfileNames.MaxLength) ?? throw new ArgumentException($"'{name}' is not a valid profile name.", nameof(name));
+        DisplayNames.Normalize(name, NameRules.MaxLength) ?? throw new ArgumentException($"'{name}' is not a valid scene name.", nameof(name));
 
     // The internal profile that switches every device off for "Uit om" while there is no scene
     // "Alles uit".
-    private static Profile InternalAllOff(ProfileAutomation automation) => Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, automation);
+    private static Profile InternalAllOff(SceneAutomation automation) => Profile.Internal(ProfileRole.AllOff, StartScenes.AllOff, automation);
 }

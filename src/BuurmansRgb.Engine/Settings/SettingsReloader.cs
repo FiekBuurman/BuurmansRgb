@@ -26,7 +26,7 @@ internal sealed class SettingsReloader : IDisposable
 
     // apply gets the settings from the file, on the timer thread. The file is read once at the
     // start too: it may have changed while the engine started, before this listened. holdSaves
-    // (LightingSettingsSaver.HoldSaves) runs each read with its apply, so no save of what the
+    // (EngineSettingsSaver.HoldSaves) runs each read with its apply, so no save of what the
     // engine held before comes between them.
     public SettingsReloader(
         ISettingsFileEvents fileEvents,
@@ -73,7 +73,7 @@ internal sealed class SettingsReloader : IDisposable
     public void ReloadNow() => Reload();
 
     // Runs action while no reload runs, such as the save of the last change before a backup: a
-    // save that comes due within a reload waits for it (LightingSettingsSaver.HoldSaves), and would
+    // save that comes due within a reload waits for it (EngineSettingsSaver.HoldSaves), and would
     // then not be in the file yet.
     public void RunBetweenReloads(Action action)
     {

@@ -7,7 +7,7 @@ namespace BuurmansRgb.Engine.Profiles;
 // overwrites profiles that are only out of reach for a moment.
 internal sealed class JsonProfileStore(string filePath) : IProfileStore
 {
-    public static string DefaultFilePath { get; } = SettingsFiles.Default.PathOf(SettingsBackup.ProfilesFileName);
+    public static string DefaultFilePath { get; } = SettingsFolder.Default.PathOf(SettingsBackup.ProfilesFileName);
 
     // Where a file that is not valid JSON goes, so the next save does not overwrite it.
     public string BrokenFilePath => JsonFile.BrokenPathOf(filePath);
@@ -25,7 +25,7 @@ internal sealed class JsonProfileStore(string filePath) : IProfileStore
         var profiles = new List<Profile>();
         foreach (var settings in file?.Profiles ?? [])
         {
-            if (DisplayNames.Normalize(settings?.Name, ProfileNames.MaxLength) is { } name && !profiles.Exists(profile => ProfileNames.Comparer.Equals(profile.Name, name)))
+            if (DisplayNames.Normalize(settings?.Name, SceneNames.MaxLength) is { } name && !profiles.Exists(profile => SceneNames.Comparer.Equals(profile.Name, name)))
             {
                 profiles.Add(settings!.ToProfile(name));
             }

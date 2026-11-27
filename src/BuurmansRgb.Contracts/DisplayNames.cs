@@ -1,7 +1,7 @@
 namespace BuurmansRgb.Contracts;
 
-// The rules for a name the user gives to something that is shown and saved, such as a profile
-// (ProfileNames) or an own effect (CustomEffects), shared so the UI can check a name before it asks.
+// The rules for a name the user gives to something that is shown and saved, such as a scene
+// (SceneNames) or an own effect (CustomEffects), shared so the UI can check a name before it asks.
 public static class DisplayNames
 {
     // The name without surrounding spaces, or null when it is empty, longer than maxLength or holds

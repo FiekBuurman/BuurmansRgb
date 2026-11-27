@@ -67,7 +67,7 @@ public sealed class MainViewModelWholeHouseTimesTests
         Assert.Equal("Alles uit", viewModel.Profiles.Automation.ProfileName);
 
         // As the engine does: the times of Uit om are those of the scene.
-        Api.ProfileAutomations["Alles uit"] = new ProfileAutomation([ElevenPm]);
+        Api.ProfileAutomations["Alles uit"] = new SceneAutomation([ElevenPm]);
         viewModel.WholeHouseTimes.Off.IsOn = true;
 
         Assert.Equal("23:00", Assert.Single(viewModel.Profiles.Automation.Times).Text);

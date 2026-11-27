@@ -30,10 +30,10 @@
   <data name="MenuExit" xml:space="preserve">
     <value>Afsluiten</value>
   </data>
-  <data name="MenuLoadProfile" xml:space="preserve">
+  <data name="MenuLoadScene" xml:space="preserve">
     <value>Scène aanzetten</value>
   </data>
-  <data name="MenuNoProfiles" xml:space="preserve">
+  <data name="MenuNoScenes" xml:space="preserve">
     <value>Nog geen scènes – maak ze in de instellingen</value>
   </data>
   <data name="MenuAllOn" xml:space="preserve">
@@ -60,10 +60,10 @@
   <data name="LogOpenFailed" xml:space="preserve">
     <value>Het logbestand kon niet worden geopend.</value>
   </data>
-  <data name="ProfilesUnreadable" xml:space="preserve">
+  <data name="ScenesUnreadable" xml:space="preserve">
     <value>De scènes konden niet worden gelezen.</value>
   </data>
-  <data name="ProfileLoadFailed" xml:space="preserve">
+  <data name="SceneLoadFailed" xml:space="preserve">
     <value>Scène '{0}' kon niet worden aangezet.</value>
   </data>
   <data name="SettingsAppNotFound" xml:space="preserve">

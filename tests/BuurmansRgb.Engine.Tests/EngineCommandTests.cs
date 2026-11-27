@@ -56,7 +56,7 @@ public sealed class EngineCommandTests
     [Fact]
     public void ToMessage_LongestSceneName_Fits()
     {
-        var command = new EngineCommand(EngineCommandKind.Scene, new string('é', ProfileNames.MaxLength));
+        var command = new EngineCommand(EngineCommandKind.Scene, new string('é', SceneNames.MaxLength));
 
         Assert.True(System.Text.Encoding.UTF8.GetByteCount(command.ToMessage()) <= CommandMailbox.MaxCommandBytes);
     }
@@ -88,7 +88,7 @@ public sealed class EngineCommandTests
     [Fact]
     public void CheckBeforeStart_TheNameOfAnInternalProfile_IsUnknownScene()
     {
-        var store = new InMemoryProfileStore { Profiles = [Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Red)), ProfileAutomation.None)] };
+        var store = new InMemoryProfileStore { Profiles = [Profile.Internal(ProfileRole.BackOn, Uniform(StaticLighting(Red)), SceneAutomation.None)] };
 
         Assert.Equal(EngineCommandResult.UnknownScene, new EngineCommand(EngineCommandKind.Scene, "backOn").CheckBeforeStart(store));
     }

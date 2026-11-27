@@ -430,7 +430,7 @@
   <data name="ConnectionLost" xml:space="preserve">
     <value>De verbinding met de engine is verbroken.</value>
   </data>
-  <data name="ProfileGone" xml:space="preserve">
+  <data name="SceneGone" xml:space="preserve">
     <value>Scène '{0}' bestaat niet meer.</value>
   </data>
   <data name="ChangeRejected" xml:space="preserve">
@@ -650,65 +650,65 @@
   <data name="EffectColorsDefaultToolTip" xml:space="preserve">
     <value>Haalt de eigen kleuren van dit effect weg: komeet, scanner en fonkelen volgen weer de kleur van het apparaat, vuur brandt weer in donkerrood, rood, oranje en geel. Bij Hele huis geldt het voor alle apparaten, maar kan het alleen als het hele huis eigen kleuren heeft; kies anders het apparaat met eigen kleuren.</value>
   </data>
-  <data name="ProfilesHeader" xml:space="preserve">
+  <data name="ScenesHeader" xml:space="preserve">
     <value>Scènes</value>
   </data>
-  <data name="ProfilesHint" xml:space="preserve">
+  <data name="ScenesHint" xml:space="preserve">
     <value>Eén klik, en het hele huis doet mee</value>
   </data>
-  <data name="ProfileNameLabel" xml:space="preserve">
+  <data name="SceneNameLabel" xml:space="preserve">
     <value>Naam van de scène</value>
   </data>
-  <data name="ProfileSave" xml:space="preserve">
+  <data name="SceneSave" xml:space="preserve">
     <value>Opslaan</value>
   </data>
-  <data name="ProfileOverwrite" xml:space="preserve">
+  <data name="SceneOverwrite" xml:space="preserve">
     <value>Overschrijven</value>
   </data>
-  <data name="ProfileSaveToolTip" xml:space="preserve">
+  <data name="SceneSaveToolTip" xml:space="preserve">
     <value>Bewaart de verlichting van alle apparaten zoals die nu is onder deze naam.</value>
   </data>
-  <data name="ProfileLoad" xml:space="preserve">
+  <data name="SceneLoad" xml:space="preserve">
     <value>Aanzetten</value>
   </data>
-  <data name="ProfileLoadToolTip" xml:space="preserve">
+  <data name="SceneLoadToolTip" xml:space="preserve">
     <value>Zet de verlichting terug zoals die in deze scène is bewaard. Een klik op de kaart kan ook.</value>
   </data>
-  <data name="ProfileDelete" xml:space="preserve">
+  <data name="SceneDelete" xml:space="preserve">
     <value>Verwijderen</value>
   </data>
-  <data name="ProfileDeleteConfirm" xml:space="preserve">
+  <data name="SceneDeleteConfirm" xml:space="preserve">
     <value>Scène '{0}' verwijderen?</value>
   </data>
   <data name="ConfirmDelete" xml:space="preserve">
     <value>Verwijderen</value>
     <comment>De knop in de vraag of iets weg mag, naast Annuleren.</comment>
   </data>
-  <data name="ProfileSaved" xml:space="preserve">
+  <data name="SceneSaved" xml:space="preserve">
     <value>Scène '{0}' opgeslagen.</value>
   </data>
-  <data name="ProfileLoaded" xml:space="preserve">
+  <data name="SceneLoaded" xml:space="preserve">
     <value>Scène '{0}' staat aan.</value>
   </data>
-  <data name="ProfileDeleted" xml:space="preserve">
+  <data name="SceneDeleted" xml:space="preserve">
     <value>Scène '{0}' verwijderd.</value>
   </data>
-  <data name="ProfileAutomationHeader" xml:space="preserve">
+  <data name="SceneAutomationHeader" xml:space="preserve">
     <value>Vanzelf aanzetten</value>
   </data>
   <data name="Warning" xml:space="preserve">
     <value>Waarschuwing</value>
   </data>
-  <data name="ProfileAutomationOff" xml:space="preserve">
+  <data name="SceneAutomationOff" xml:space="preserve">
     <value>Vanzelf aanzetten: uit</value>
   </data>
-  <data name="ProfileAutomationOn" xml:space="preserve">
+  <data name="SceneAutomationOn" xml:space="preserve">
     <value>Vanzelf aanzetten: aan</value>
   </data>
-  <data name="ProfileLoadAtLabel" xml:space="preserve">
+  <data name="SceneLoadAtLabel" xml:space="preserve">
     <value>Aanzetten om</value>
   </data>
-  <data name="ProfileLoadAtHint" xml:space="preserve">
+  <data name="SceneLoadAtHint" xml:space="preserve">
     <value>Om deze tijd op de gekozen dagen, bijvoorbeeld 23:00. Met "+ Nog een tijd" krijgt de scène meer tijden, elk met eigen dagen, zoals 07:00 op werkdagen en 09:00 in het weekend. Leeg is uit. Staat de pc op dat moment uit of in slaapstand, dan slaat buurmansRgb die keer over, tenzij "Gemiste tijden inhalen" bij Instellingen aan staat.</value>
   </data>
   <data name="ProgramBrowse" xml:space="preserve">
@@ -733,58 +733,58 @@
   <data name="ProgramPickToolTip" xml:space="preserve">
     <value>De programma's die nu een venster hebben. Start het spel of programma eerst, dan staat het erbij. Wat je kiest, komt erbij in het veld.</value>
   </data>
-  <data name="ProfileProgramLabel" xml:space="preserve">
+  <data name="SceneProgramLabel" xml:space="preserve">
     <value>Aanzetten als een van deze programma's start</value>
   </data>
-  <data name="ProfileProgramHint" xml:space="preserve">
+  <data name="SceneProgramHint" xml:space="preserve">
     <value>De naam van het .exe-bestand, bijvoorbeeld eldenring.exe. Meer programma's: zet een komma tussen de namen, zoals valorant.exe, cs2.exe. Stopt het programma, dan komt de verlichting van daarvoor terug, behalve als je die intussen hebt veranderd. Leeg is uit.</value>
   </data>
-  <data name="ProfileForegroundOnlyLabel" xml:space="preserve">
+  <data name="SceneForegroundOnlyLabel" xml:space="preserve">
     <value>Alleen als het op de voorgrond staat</value>
   </data>
-  <data name="ProfileForegroundOnlyHint" xml:space="preserve">
+  <data name="SceneForegroundOnlyHint" xml:space="preserve">
     <value>Met een vinkje gaat de scène aan als je naar het programma wisselt, en komt de verlichting van daarvoor terug als je naar iets anders wisselt (Alt+Tab) of het stopt. Zonder vinkje telt het zolang het draait. Het vinkje geldt voor alle programma's van de scène.</value>
   </data>
-  <data name="ProfileAutomationApply" xml:space="preserve">
+  <data name="SceneAutomationApply" xml:space="preserve">
     <value>Toepassen</value>
   </data>
-  <data name="ProfileAutomationApplyToolTip" xml:space="preserve">
+  <data name="SceneAutomationApplyToolTip" xml:space="preserve">
     <value>Bewaart de tijden en de programma's bij de gekozen scène.</value>
   </data>
-  <data name="ProfileAutomationApplyAccessibleName" xml:space="preserve">
+  <data name="SceneAutomationApplyAccessibleName" xml:space="preserve">
     <value>Vanzelf aanzetten toepassen</value>
   </data>
-  <data name="ProfileLoadAtInvalid" xml:space="preserve">
+  <data name="SceneLoadAtInvalid" xml:space="preserve">
     <value>Vul een tijd in zoals 23:00, of laat het leeg.</value>
   </data>
-  <data name="ProfileProgramShortcut" xml:space="preserve">
+  <data name="SceneProgramShortcut" xml:space="preserve">
     <value>Dit is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
   </data>
-  <data name="ProfileProgramInvalid" xml:space="preserve">
+  <data name="SceneProgramInvalid" xml:space="preserve">
     <value>Vul de naam van een programma in zoals eldenring.exe, of laat het leeg.</value>
   </data>
-  <data name="ProfileProgramInvalidNamed" xml:space="preserve">
+  <data name="SceneProgramInvalidNamed" xml:space="preserve">
     <value>'{0}' is geen naam van een programma. Vul namen in zoals eldenring.exe, met een komma ertussen.</value>
   </data>
-  <data name="ProfileProgramShortcutNamed" xml:space="preserve">
+  <data name="SceneProgramShortcutNamed" xml:space="preserve">
     <value>'{0}' is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
   </data>
-  <data name="ProfileProgramInvalidLast" xml:space="preserve">
+  <data name="SceneProgramInvalidLast" xml:space="preserve">
     <value>De laatste naam is geen naam van een programma. Vul namen in zoals eldenring.exe, met een komma ertussen.</value>
   </data>
-  <data name="ProfileProgramShortcutLast" xml:space="preserve">
+  <data name="SceneProgramShortcutLast" xml:space="preserve">
     <value>De laatste naam is een snelkoppeling of script. Vul de naam van het .exe-bestand van het programma zelf in, zoals eldenring.exe (bij een snelkoppeling: Eigenschappen, Doel).</value>
   </data>
-  <data name="ProfileProgramCommaPicked" xml:space="preserve">
+  <data name="SceneProgramCommaPicked" xml:space="preserve">
     <value>'{0}' heeft een komma in de naam. Zo'n programma kan niet bij een scène, want de komma zet hier de namen uit elkaar.</value>
   </data>
-  <data name="ProfileProgramCommaSaved" xml:space="preserve">
+  <data name="SceneProgramCommaSaved" xml:space="preserve">
     <value>'{0}' heeft een komma in de naam, en de komma zet hier de namen uit elkaar. Haal de naam uit het veld om iets te veranderen.</value>
   </data>
-  <data name="ProfileProgramsTooMany" xml:space="preserve">
+  <data name="SceneProgramsTooMany" xml:space="preserve">
     <value>Een scène kan hooguit {0} programma's hebben.</value>
   </data>
-  <data name="ProfileAutomationSaved" xml:space="preserve">
+  <data name="SceneAutomationSaved" xml:space="preserve">
     <value>Vanzelf aanzetten van '{0}' opgeslagen.</value>
   </data>
   <data name="FlashDevice" xml:space="preserve">
@@ -1647,35 +1647,35 @@
   <data name="DaysWeekend" xml:space="preserve">
     <value>In het weekend</value>
   </data>
-  <data name="ProfileDaysNone" xml:space="preserve">
+  <data name="SceneDaysNone" xml:space="preserve">
     <value>Kies minstens één dag voor de tijd.</value>
   </data>
-  <data name="ProfileTimeInvalid" xml:space="preserve">
+  <data name="SceneTimeInvalid" xml:space="preserve">
     <value>Tijd {0}: vul een tijd in zoals 23:00, of laat het leeg.</value>
   </data>
-  <data name="ProfileTimeDaysNone" xml:space="preserve">
+  <data name="SceneTimeDaysNone" xml:space="preserve">
     <value>Tijd {0}: kies minstens één dag.</value>
   </data>
-  <data name="ProfileTimeAccessibleName" xml:space="preserve">
+  <data name="SceneTimeAccessibleName" xml:space="preserve">
     <value>Aanzetten om, tijd {0}</value>
   </data>
-  <data name="ProfileTimeName" xml:space="preserve">
+  <data name="SceneTimeName" xml:space="preserve">
     <value>Tijd {0}</value>
     <comment>Een rij met een tijd in "Vanzelf aanzetten" voor een schermlezer, rond het veld, de dagen en de "−". {0} = het nummer van de tijd.</comment>
   </data>
-  <data name="ProfileTimeDaysAccessibleName" xml:space="preserve">
+  <data name="SceneTimeDaysAccessibleName" xml:space="preserve">
     <value>Dagen van tijd {0}</value>
   </data>
-  <data name="ProfileTimeRemoveAccessibleName" xml:space="preserve">
+  <data name="SceneTimeRemoveAccessibleName" xml:space="preserve">
     <value>Tijd {0} weghalen</value>
   </data>
-  <data name="ProfileTimeRemoveToolTip" xml:space="preserve">
+  <data name="SceneTimeRemoveToolTip" xml:space="preserve">
     <value>Haalt deze tijd weg. Is het de enige, dan wordt het veld leeg.</value>
   </data>
-  <data name="ProfileTimeAdd" xml:space="preserve">
+  <data name="SceneTimeAdd" xml:space="preserve">
     <value>+ Nog een tijd</value>
   </data>
-  <data name="ProfileTimeAddToolTip" xml:space="preserve">
+  <data name="SceneTimeAddToolTip" xml:space="preserve">
     <value>Nog een tijd met eigen dagen, bijvoorbeeld 09:00 in het weekend naast 07:00 op werkdagen. Een scène kan tot acht tijden hebben.</value>
   </data>
   <data name="SceneAtTimes" xml:space="preserve">

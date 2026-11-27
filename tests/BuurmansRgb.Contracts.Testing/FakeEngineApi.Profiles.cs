@@ -29,7 +29,7 @@ public sealed partial class FakeEngineApi
     {
         await Record($"profile save {name}");
         // Like the engine, a scene with the same name is replaced; it takes the new spelling.
-        Profiles.RemoveAll(other => ProfileNames.Comparer.Equals(other, name));
+        Profiles.RemoveAll(other => SceneNames.Comparer.Equals(other, name));
         Profiles.Add(name);
         Profiles.Sort(StringComparer.CurrentCultureIgnoreCase);
         ActiveProfile = name;
@@ -63,20 +63,20 @@ public sealed partial class FakeEngineApi
     // Like the engine: the lighting a profile gives all devices; the default lighting without one.
     public Task<LightingInfo> GetProfileLightingAsync(string name, CancellationToken ct = default) =>
         GoneProfiles.Contains(name)
-            ? Task.FromException<LightingInfo>(new ArgumentException($"There is no profile '{name}'.", nameof(name)))
+            ? Task.FromException<LightingInfo>(new ArgumentException($"There is no scene '{name}'.", nameof(name)))
             : Task.FromResult(ProfileLighting.GetValueOrDefault(name, new LightingInfo(RgbColor.White, 1.0, EffectIds.Static)));
 
     // By profile name; a profile without one never loads by itself.
-    public Dictionary<string, ProfileAutomation> ProfileAutomations { get; } = [];
+    public Dictionary<string, SceneAutomation> ProfileAutomations { get; } = [];
 
-    public Task<ProfileAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
-        Task.FromResult(ProfileAutomations.GetValueOrDefault(name, ProfileAutomation.None));
+    public Task<SceneAutomation> GetProfileAutomationAsync(string name, CancellationToken ct = default) =>
+        Task.FromResult(ProfileAutomations.GetValueOrDefault(name, SceneAutomation.None));
 
     // What came in, as it came in, before Normalize.
-    public List<(string Name, ProfileAutomation Automation)> ProfileAutomationCalls { get; } = [];
+    public List<(string Name, SceneAutomation Automation)> ProfileAutomationCalls { get; } = [];
 
     // Like the engine: saved as Normalize gives it.
-    public async Task SetProfileAutomationAsync(string name, ProfileAutomation automation, CancellationToken ct = default)
+    public async Task SetProfileAutomationAsync(string name, SceneAutomation automation, CancellationToken ct = default)
     {
         ProfileAutomationCalls.Add((name, automation));
         await Record($"profile automation {name} {(automation.Times.Count == 0 ? "-" : string.Join(",", automation.Times.Select(time => time.At.ToString("HH:mm", CultureInfo.InvariantCulture))))} {(automation.Programs.Count == 0 ? "-" : string.Join(",", automation.Programs))}");
@@ -122,7 +122,7 @@ public sealed partial class FakeEngineApi
     {
         WholeHouseTimesCalls.Add(times);
         await Record($"whole house off {WriteTimes(times.Off)} on {WriteTimes(times.On)}");
-        WholeHouseTimes = new WholeHouseTimes(new ProfileAutomation(times.Off).Normalize().Times, new ProfileAutomation(times.On).Normalize().Times, WholeHouseTimes.OffScene);
+        WholeHouseTimes = new WholeHouseTimes(new SceneAutomation(times.Off).Normalize().Times, new SceneAutomation(times.On).Normalize().Times, WholeHouseTimes.OffScene);
     }
 
     private static string WriteTimes(IReadOnlyList<LoadTime> times) =>

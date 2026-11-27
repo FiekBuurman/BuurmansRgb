@@ -55,17 +55,17 @@ public sealed class ProgramNamesTests
     [Fact]
     public void ProfileAutomation_Normalize_DropsSecondsAndNormalizesTheProgram() =>
         Assert.Equal(
-            new ProfileAutomation(new TimeOnly(23, 0), "eldenring.exe"),
-            new ProfileAutomation(new TimeOnly(23, 0, 59), " eldenring ").Normalize());
+            new SceneAutomation(new TimeOnly(23, 0), "eldenring.exe"),
+            new SceneAutomation(new TimeOnly(23, 0, 59), " eldenring ").Normalize());
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
     public void ProfileAutomation_Normalize_EmptyProgram_IsOff(string? program) =>
-        Assert.Empty(new ProfileAutomation(Program: program).Normalize().Programs);
+        Assert.Empty(new SceneAutomation(Program: program).Normalize().Programs);
 
     [Fact]
     public void ProfileAutomation_Normalize_InvalidProgram_Throws() =>
-        Assert.Throws<ArgumentException>(() => new ProfileAutomation(Program: "game?.exe").Normalize());
+        Assert.Throws<ArgumentException>(() => new SceneAutomation(Program: "game?.exe").Normalize());
 }

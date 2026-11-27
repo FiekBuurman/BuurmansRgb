@@ -37,7 +37,7 @@ public partial class ConfirmDialog : Window
 
     // The question before a scene is deleted, with its name.
     internal static ConfirmDialog ForScene(Window owner, string name) =>
-        For(owner, UiText.Format(Strings.ProfileDeleteConfirm, name));
+        For(owner, UiText.Format(Strings.SceneDeleteConfirm, name));
 
     // The question before "Bijwerken met wat nu brandt" replaces the lighting of a scene, with its
     // name, what then goes, and "Bijwerken" as the answer.

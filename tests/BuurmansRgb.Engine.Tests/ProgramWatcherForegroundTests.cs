@@ -334,7 +334,7 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
         _time.Advance(Interval);
         Assert.False(_foreground.Following);
 
-        _profiles.SetAutomation("Gamen", new ProfileAutomation(Program: Game, ForegroundOnly: true));
+        _profiles.SetAutomation("Gamen", new SceneAutomation(Program: Game, ForegroundOnly: true));
         Assert.True(_foreground.Following);
         _time.Advance(Interval);
         _programs.Running.Remove(Game);
@@ -355,7 +355,7 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
         StartWatcher();
         BringToFront(Film);
 
-        _profiles.SetAutomation("Film", new ProfileAutomation(Program: Film));
+        _profiles.SetAutomation("Film", new SceneAutomation(Program: Film));
         Assert.False(_foreground.Following);
         _foreground.Bring(Explorer);
         _programs.Running.Remove(Film);
@@ -371,7 +371,7 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
 
         _profiles.Delete("Film");
         Assert.True(_foreground.Following);
-        _profiles.SetAutomation("Strategie", ProfileAutomation.None);
+        _profiles.SetAutomation("Strategie", SceneAutomation.None);
 
         Assert.False(_foreground.Following);
         Assert.Equal(2, _foreground.FollowCalls);
@@ -408,7 +408,7 @@ public sealed class ProgramWatcherForegroundTests : IDisposable
     }
 
     private static Profile Profile(string name, RgbColor color, string? program = null, bool foregroundOnly = false) =>
-        new(name, Uniform(StaticLighting(color))) { Automation = new ProfileAutomation(Program: program, ForegroundOnly: foregroundOnly) };
+        new(name, Uniform(StaticLighting(color))) { Automation = new SceneAutomation(Program: program, ForegroundOnly: foregroundOnly) };
 
     private void StartWatcher()
     {

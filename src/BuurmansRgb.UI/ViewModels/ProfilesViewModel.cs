@@ -81,7 +81,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     public partial bool IsNaming { get; private set; }
 
     // Says so when saving replaces a profile that exists.
-    public string SaveLabel => Find(Name) is null ? Strings.ProfileSave : Strings.ProfileOverwrite;
+    public string SaveLabel => Find(Name) is null ? Strings.SceneSave : Strings.SceneOverwrite;
 
     // The line under the name field, which a screen reader reads when it comes: that Enter replaces the
     // scene that has this name already, which SaveLabel only shows on the button; null for a new name.
@@ -117,7 +117,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     }
 
     // What the engine says the scene looks like and when it loads by itself.
-    public void ShowCard(string name, LightingInfo lighting, ProfileAutomation automation)
+    public void ShowCard(string name, LightingInfo lighting, SceneAutomation automation)
     {
         Cards.FirstOrDefault(card => card.Name == name)?.Show(lighting, automation);
         OnPropertyChanged(nameof(HasSceneTimes));
@@ -134,7 +134,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
         }
     }
 
-    private bool IsActiveName(string name) => ActiveName is { } active && ProfileNames.Comparer.Equals(name, active);
+    private bool IsActiveName(string name) => ActiveName is { } active && SceneNames.Comparer.Equals(name, active);
 
     partial void OnSelectedNameChanged(string? value)
     {
@@ -152,7 +152,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     // The fields of another profile are emptied right away, so they never show another profile's.
     private void RequestAutomation()
     {
-        if (SelectedName is { } name && Automation.ProfileName is { } shown && ProfileNames.Comparer.Equals(name, shown))
+        if (SelectedName is { } name && Automation.ProfileName is { } shown && SceneNames.Comparer.Equals(name, shown))
         {
             return;
         }
@@ -169,10 +169,10 @@ public sealed partial class ProfilesViewModel : ObservableObject
     private void Save()
     {
         IsNaming = false;
-        SaveRequested?.Invoke(this, DisplayNames.Normalize(Name, ProfileNames.MaxLength)!);
+        SaveRequested?.Invoke(this, DisplayNames.Normalize(Name, SceneNames.MaxLength)!);
     }
 
-    private bool CanSave() => DisplayNames.Normalize(Name, ProfileNames.MaxLength) is not null;
+    private bool CanSave() => DisplayNames.Normalize(Name, SceneNames.MaxLength) is not null;
 
     [RelayCommand(CanExecute = nameof(HasSelection))]
     private void Load() => LoadRequested?.Invoke(this, SelectedName!);
@@ -220,7 +220,7 @@ public sealed partial class ProfilesViewModel : ObservableObject
     }
 
     private string? Find(string? name) =>
-        DisplayNames.Normalize(name, ProfileNames.MaxLength) is { } normalized
-            ? Names.FirstOrDefault(other => ProfileNames.Comparer.Equals(other, normalized))
+        DisplayNames.Normalize(name, SceneNames.MaxLength) is { } normalized
+            ? Names.FirstOrDefault(other => SceneNames.Comparer.Equals(other, normalized))
             : null;
 }

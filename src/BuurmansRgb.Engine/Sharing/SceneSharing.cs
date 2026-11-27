@@ -63,7 +63,7 @@ internal sealed class SceneSharing(ProfileLibrary profiles, LightingController l
         List<CustomEffect> sharedEffects = [.. scene.Effects.Where(effect => shown.Contains(effect.Id))];
 
         // A profiles.json that does not read fails here, before an own effect is added.
-        _ = profiles.Names;
+        _ = profiles.SceneNames;
         var effectIds = new Dictionary<string, string>(StringComparer.Ordinal);
         var addedEffects = new List<string>();
         string? name = null;

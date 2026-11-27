@@ -10,7 +10,7 @@ namespace BuurmansRgb.Engine.Lighting;
 // for 104 LEDs is about 1 KB in the file), in alphabetical order of their names. Read at the start
 // (Load), before the lighting is applied, so the lighting keeps an own effect it shows. A change
 // counts at once, in memory and on the lighting; the file is written a moment after the last
-// change (as LightingSettingsSaver does), so dragging a slider in the editor writes it once, and at
+// change (as EngineSettingsSaver does), so dragging a slider in the editor writes it once, and at
 // the exit (Dispose). LightingController gets every new list, so a device that shows an effect
 // shows its new steps at once, and one that shows an effect that was deleted gets static. Called
 // from IPC threads; the lock guards the list. An invalid effect or an unknown id throws

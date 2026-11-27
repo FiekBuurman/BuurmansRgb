@@ -1,4 +1,4 @@
-<!-- Lampen (§ 5.1 and § 6): the whole house with how many lamps are on and what they show, then every
+<!-- Apparaten (§ 5.1 and § 6): the whole house with how many lamps are on and what they show, then every
      lamp as a card, the real ones and the simulated ones each under their own heading. A card opens
      the lamp on the Kleur page; its switch puts it on or off. "Verversen" at the heading is not in
      the design (see docs/handleiding.md). -->

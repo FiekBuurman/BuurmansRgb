@@ -17,7 +17,7 @@ namespace BuurmansRgb.Engine.Tests;
 public sealed class EngineHostTransferTests : IDisposable
 {
     private readonly TempDirectory _directory = new();
-    private readonly SettingsFiles _files;
+    private readonly SettingsFolder _files;
     private readonly LightingController _lighting = new([new SimulatedDeviceProvider()]);
     private readonly SimulatedDevicesSwitch _simulatedDevices;
     private readonly ZoneLengthKeeper _zoneLengths;
@@ -29,7 +29,7 @@ public sealed class EngineHostTransferTests : IDisposable
 
     public EngineHostTransferTests()
     {
-        _files = new SettingsFiles(_directory.Path);
+        _files = new SettingsFolder(_directory.Path);
         _simulatedDevices = new SimulatedDevicesSwitch(SwitchableDeviceProvider.For(new SimulatedDeviceProvider()), _lighting);
         _zoneLengths = new ZoneLengthKeeper(_lighting);
         _store = new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName));
@@ -127,7 +127,7 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(0.5, _lighting.State.Global.Brightness);
         Assert.Equal("custom:00000001", _lighting.State.Global.EffectId);
         Assert.Equal(15, _lighting.FramesPerSecond);
-        Assert.Equal(["Dag", "Nacht"], _profiles.Names);
+        Assert.Equal(["Dag", "Nacht"], _profiles.SceneNames);
         Assert.Equal(["Blauw"], _customEffects.Effects.Select(effect => effect.Name));
         Assert.Equal(1, profilesChanged);
         Assert.Equal(1, effectsChanged);
@@ -194,7 +194,7 @@ public sealed class EngineHostTransferTests : IDisposable
         var copy = Unzip(File.ReadAllBytes(Assert.Single(Directory.GetFiles(_files.BackupsFolder, "before-restore-*.zip"))));
         Assert.Contains("Oud", Encoding.UTF8.GetString(copy[SettingsBackup.ProfilesFileName]), StringComparison.Ordinal);
         Assert.Equal(0.75, JsonNode.Parse(copy[SettingsBackup.SettingsFileName])!["brightness"]!.GetValue<double>());
-        Assert.Empty(_profiles.Names);
+        Assert.Empty(_profiles.SceneNames);
     }
 
     // Two restores right after each other keep both copies, the newest last by name.
@@ -218,7 +218,7 @@ public sealed class EngineHostTransferTests : IDisposable
     public async Task Restore_KeepsTheNewestCopies()
     {
         Directory.CreateDirectory(_files.BackupsFolder);
-        for (var i = 0; i < SettingsFiles.BackupsKept + 2; i++)
+        for (var i = 0; i < SettingsFolder.BackupsKept + 2; i++)
         {
             File.WriteAllBytes(Path.Combine(_files.BackupsFolder, $"before-restore-2020010{i}-000000.zip"), []);
         }
@@ -230,7 +230,7 @@ public sealed class EngineHostTransferTests : IDisposable
         host.Restore(SettingsArchiveTests.Zip((SettingsBackup.ProfilesFileName, Utf8("""{ "profiles": [] }"""))));
 
         var left = Directory.GetFiles(_files.BackupsFolder).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
-        Assert.Equal(SettingsFiles.BackupsKept + 1, left.Count);
+        Assert.Equal(SettingsFolder.BackupsKept + 1, left.Count);
         Assert.DoesNotContain("before-restore-20200100-000000.zip", left);
         Assert.Contains("mijn-eigen.zip", left);
     }
@@ -245,7 +245,7 @@ public sealed class EngineHostTransferTests : IDisposable
 
         host.Restore(SettingsArchiveTests.Zip((SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))));
 
-        Assert.Equal(["Nacht"], _profiles.Names);
+        Assert.Equal(["Nacht"], _profiles.SceneNames);
         Assert.Equal(0.5, _lighting.State.Global.Brightness);
     }
 
@@ -298,7 +298,7 @@ public sealed class EngineHostTransferTests : IDisposable
         using (var first = CreateHost())
         {
             await first.StartAsync(Ct);
-            Assert.Equal(5, _profiles.Names.Count);
+            Assert.Equal(5, _profiles.SceneNames.Count);
             _profiles.Delete(Strings.StartSceneAllOff);
 
             List<(string, byte[])> files = [(SettingsBackup.SettingsFileName, Utf8("""{ "brightness": 0.5 }"""))];
@@ -312,7 +312,7 @@ public sealed class EngineHostTransferTests : IDisposable
 
         Assert.True(new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName)).LoadOrCreate().StartScenesCreated);
         IReadOnlyList<string> expected = withProfiles ? ["Oud"] : [Strings.StartScenePastel, Strings.StartSceneGaming, Strings.StartSceneRainbow, Strings.StartSceneCalmWhite];
-        Assert.Equal(expected.Order(ProfileNames.Comparer), await NamesAfterARestartAsync());
+        Assert.Equal(expected.Order(SceneNames.Comparer), await NamesAfterARestartAsync());
 
         // Not even without profiles.json.
         File.Delete(PathOf(SettingsBackup.ProfilesFileName));
@@ -324,7 +324,7 @@ public sealed class EngineHostTransferTests : IDisposable
         var profiles = new ProfileLibrary(new JsonProfileStore(PathOf(SettingsBackup.ProfilesFileName)), _lighting);
         using var host = new EngineHost(new JsonSettingsStore(PathOf(SettingsBackup.SettingsFileName)), _lighting, saveDelay: TimeSpan.FromHours(1), profiles: profiles);
         await host.StartAsync(Ct);
-        return profiles.Names;
+        return profiles.SceneNames;
     }
 
     // A zip that does not pass replaces nothing and makes no copy.
@@ -341,7 +341,7 @@ public sealed class EngineHostTransferTests : IDisposable
             (SettingsBackup.SettingsFileName, Utf8("kapot"))));
 
         Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Unreadable, SettingsBackup.SettingsFileName), result);
-        Assert.Equal(["Nacht"], _profiles.Names);
+        Assert.Equal(["Nacht"], _profiles.SceneNames);
         Assert.Equal(settingsBefore, File.ReadAllBytes(PathOf(SettingsBackup.SettingsFileName)));
         Assert.False(Directory.Exists(_files.BackupsFolder));
     }
@@ -365,7 +365,7 @@ public sealed class EngineHostTransferTests : IDisposable
         }
 
         Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Failed), result);
-        Assert.Equal(["Nacht"], _profiles.Names);
+        Assert.Equal(["Nacht"], _profiles.SceneNames);
         Assert.Equal(settingsBefore, File.ReadAllBytes(settingsPath));
         Assert.Equal(1.0, _lighting.State.Global.Brightness);
     }
@@ -427,7 +427,7 @@ public sealed class EngineHostTransferTests : IDisposable
         Assert.Equal(new SettingsRestoreResult(SettingsRestoreOutcome.Failed), result);
         Assert.False(File.Exists(effectsPath));
         Assert.False(File.Exists(PathOf(SettingsBackup.ProfilesFileName)));
-        Assert.Empty(_profiles.Names);
+        Assert.Empty(_profiles.SceneNames);
         Assert.Empty(_customEffects.Effects);
         Assert.Equal(2, effectsChanged);
     }

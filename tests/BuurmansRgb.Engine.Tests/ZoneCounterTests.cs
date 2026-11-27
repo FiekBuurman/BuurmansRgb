@@ -31,7 +31,7 @@ public sealed class ZoneCounterTests : IDisposable
     }
 
     // The count without its sequence, which only orders the states.
-    private ZoneCountInfo Count => _lighting.Count with { Sequence = 0 };
+    private ZoneCountInfo Count => _lighting.CurrentZoneCount with { Sequence = 0 };
 
     public void Dispose()
     {

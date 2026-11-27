@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace BuurmansRgb.UI.ViewModels;
 
-// One lamp on the Lampen page: a device, whether it is on, its brightness, and the color it shows
+// One lamp on the Apparaten page: a device, whether it is on, its brightness, and the color it shows
 // now. SwitchRequested is raised only when the user switches it, not for what Show shows.
 public sealed partial class LampItem(DeviceItem device) : ObservableObject
 {
