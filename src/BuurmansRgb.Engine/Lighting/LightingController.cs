@@ -339,6 +339,15 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
         }
     }
 
+    // The device with this id, or null; looks it up without building the list Devices gives.
+    public RgbDevice? FindDevice(string deviceId)
+    {
+        lock (_gate)
+        {
+            return _outputs.Find(deviceId)?.Device;
+        }
+    }
+
     public IReadOnlyList<RgbDevice> Devices
     {
         get
@@ -600,7 +609,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             var zone = output.Device.GetZone(zoneIndex);
             if (!zone.Resizable || output.Provider is not IResizableDeviceProvider resizable)
             {
-                throw new ArgumentException($"Zone '{zone.Name}' of device '{deviceId}' cannot be resized.", nameof(zoneIndex));
+                throw DeviceErrors.NotResizable(zone, deviceId);
             }
 
             zone.ThrowIfCannotHold(ledCount);
@@ -632,21 +641,21 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     // only the drawing; ZoneCounter gives the zone its longest length for it and its own length
     // back. It replaces the count of any zone and changes no lighting. While paused, or for a
     // device or zone the engine does not know (any more), nothing starts and it returns false. A
-    // device list that is made again keeps the count on the zone with the same index and name.
+    // device list that is made again keeps the count on the zone with the same index and key.
     public bool StartCount(string deviceId, int zoneIndex, int ledCount, int ledsPerSecond)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(ledCount, 1);
         lock (_gate)
         {
             if (_outputs.Find(deviceId) is not { } output || _pause != PauseReasons.None || !_lighting.IsSet
-                || zoneIndex < 0 || zoneIndex >= output.Device.Zones.Count)
+                || !output.Device.TryGetZone(zoneIndex, out var zone))
             {
                 return false;
             }
 
             // ZoneCount checks the pace, before the count that runs stops.
             var time = EffectTime;
-            var count = new ZoneCount(deviceId, zoneIndex, output.Device.Zones[zoneIndex].Name, ledCount, ledsPerSecond, time);
+            var count = new ZoneCount(deviceId, zoneIndex, zone.Key, zone.Name, ledCount, ledsPerSecond, time);
             StopCountLocked();
             _count = count;
             _countSequence++;
@@ -1028,14 +1037,14 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             }
 
             var (first, count) = (0, output.Buffer.Length);
-            if (zoneIndex is { } zone)
+            if (zoneIndex is { } index)
             {
-                if (zone < 0 || zone >= output.Device.Zones.Count)
+                if (!output.Device.TryGetZone(index, out _))
                 {
                     return;
                 }
 
-                (first, count) = RgbZone.RangesOf(output.Device.Zones, output.Device.LedCount)[zone];
+                (first, count) = RgbZone.RangeOf(output.Device.Zones, output.Device.LedCount, index);
             }
 
             if (count == 0)
@@ -1160,7 +1169,7 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
     }
 
     // Gives the output of the counted device the count, over the LEDs its zone has now; a device
-    // list without the zone (with the same index and name) leaves it without, until ZoneCounter
+    // list without the zone (with the same index and key) leaves it without, until ZoneCounter
     // ends the count.
     private void AttachCountLocked(DeviceOutput? output = null)
     {
@@ -1169,10 +1178,9 @@ internal sealed class LightingController : ILightingStateSource, IDisposable
             return;
         }
 
-        var zones = counted.Device.Zones;
-        if (count.ZoneIndex < zones.Count && zones[count.ZoneIndex].Name == count.ZoneName)
+        if (counted.Device.TryGetZone(count.ZoneIndex, out var zone) && zone.Key == count.ZoneKey)
         {
-            var (first, ledCount) = RgbZone.RangesOf(zones, counted.Device.LedCount)[count.ZoneIndex];
+            var (first, ledCount) = RgbZone.RangeOf(counted.Device.Zones, counted.Device.LedCount, count.ZoneIndex);
             counted.ShowCount(count, first, ledCount);
         }
         else

@@ -338,6 +338,33 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         Assert.Equal([O, O, O, O, O], _provider.Leds[Board]);
     }
 
+    // A simulated zone has an Id apart from its Name; the count follows the Id, as ZoneCounter and
+    // the lengths do: a zone that gets another name keeps the count.
+    [Fact]
+    public async Task DevicesChanged_ZoneWithTheSameIdButAnotherName_KeepsTheCount()
+    {
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+        await StartAsync();
+        _controller.StartCount(Board, Header, Longest, 1);
+
+        await SetBoardAsync(BoardWithIdentifiedHeader("Kanaal een", "ARGB 1"));
+
+        Assert.Equal([O, O, G, K, K, K], _provider.Leds[Board]);
+    }
+
+    // The other way round: the same name with another Id is another zone, which gets no count.
+    [Fact]
+    public async Task DevicesChanged_ZoneWithTheSameNameButAnotherId_DrawsNoCount()
+    {
+        _provider.SetDevices(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 1"), DynamicDeviceProvider.Device(Fan));
+        await StartAsync();
+        _controller.StartCount(Board, Header, Longest, 1);
+
+        await SetBoardAsync(BoardWithIdentifiedHeader("Kanaal 1", "ARGB 2"));
+
+        Assert.Equal([O, O, O, O, O, O], _provider.Leds[Board]);
+    }
+
     [Fact]
     public async Task Dispose_WhileCounting_GivesTheZoneItsOwnColorsBack()
     {
@@ -387,6 +414,41 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         {
             Source = DeviceSource.Hardware,
         };
+
+    private static RgbDevice BoardWithIdentifiedHeader(string name, string id) =>
+        new(Board, "Board", DeviceType.Motherboard,
+        [
+            RgbZone.Fixed("Mainboard", 2),
+            new RgbZone(name, 4, 0, Longest) { Id = id },
+        ])
+        {
+            Source = DeviceSource.Hardware,
+        };
+
+    // Gives the provider the board and the fan, and waits until the controller has taken this very
+    // board over (not an older list that a refresh read before).
+    private async Task SetBoardAsync(RgbDevice board)
+    {
+        var changed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        void OnChanged(object? sender, EventArgs e)
+        {
+            if (ReferenceEquals(_controller.FindDevice(Board), board))
+            {
+                changed.TrySetResult();
+            }
+        }
+
+        _controller.DevicesChanged += OnChanged;
+        try
+        {
+            _provider.SetDevices(board, DynamicDeviceProvider.Device(Fan));
+            await changed.Task.WaitAsync(TimeSpan.FromSeconds(10), Ct);
+        }
+        finally
+        {
+            _controller.DevicesChanged -= OnChanged;
+        }
+    }
 
     private async Task StartAsync()
     {

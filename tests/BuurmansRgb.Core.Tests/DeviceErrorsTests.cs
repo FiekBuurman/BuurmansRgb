@@ -10,4 +10,13 @@ public sealed class DeviceErrorsTests
         Assert.Equal("deviceId", exception.ParamName);
         Assert.StartsWith("Unknown device 'fan'.", exception.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void NotResizable_NamesTheZoneTheDeviceAndTheZoneIndex()
+    {
+        var exception = DeviceErrors.NotResizable(RgbZone.Fixed("Mainboard", 6), "board");
+
+        Assert.Equal("zoneIndex", exception.ParamName);
+        Assert.StartsWith("Zone 'Mainboard' of device 'board' cannot be resized.", exception.Message, StringComparison.Ordinal);
+    }
 }

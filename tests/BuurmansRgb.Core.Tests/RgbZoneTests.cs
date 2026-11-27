@@ -172,6 +172,33 @@ public sealed class RgbZoneTests
         Assert.Equal("ledCount", exception.ParamName);
     }
 
+    // Also for the cases above: a zone without LEDs, and zones that claim more than the device has.
+    [Theory]
+    [InlineData(37)]
+    [InlineData(20)]
+    [InlineData(6)]
+    [InlineData(0)]
+    public void RangeOf_IsTheRangeOfThatZoneInRangesOf(int ledCount)
+    {
+        RgbZone[] zones = [RgbZone.Fixed("Mainboard", 6), new RgbZone("ARGB header", 30, 0, 120), new RgbZone("Empty", 0, 0, 10), RgbZone.Fixed("Logo", 1)];
+        var ranges = RgbZone.RangesOf(zones, ledCount);
+
+        for (var index = 0; index < zones.Length; index++)
+        {
+            Assert.Equal(ranges[index], RgbZone.RangeOf(zones, ledCount, index));
+        }
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(1)]
+    public void RangeOf_UnknownIndex_Throws(int zoneIndex)
+    {
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => RgbZone.RangeOf([RgbZone.Fixed("A", 1)], 1, zoneIndex));
+
+        Assert.Equal("zoneIndex", exception.ParamName);
+    }
+
     [Fact]
     public void PartsOf_ZonesHoldEveryLed_AreTheRanges()
     {

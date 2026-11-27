@@ -172,9 +172,9 @@ internal sealed class ZoneLengthKeeper : IDisposable
     // LightingController.ResizeZone, and then leaves the lengths and what was asked as they were.
     private bool ResizeLocked(string deviceId, int zoneIndex, int ledCount, Remember remember)
     {
-        var device = _lighting.Devices.FirstOrDefault(candidate => candidate.Id == deviceId);
-        var zone = device is not null && zoneIndex >= 0 && zoneIndex < device.Zones.Count && IndexOf(device, device.Zones[zoneIndex].Key) == zoneIndex
-            ? device.Zones[zoneIndex]
+        var device = _lighting.FindDevice(deviceId);
+        var zone = device is not null && device.TryGetZone(zoneIndex, out var found) && IndexOf(device, found.Key) == zoneIndex
+            ? found
             : null;
         if (zone is null)
         {
