@@ -100,12 +100,14 @@ een oudere meebrengt. UI-teksten staan in `src/BuurmansRgb.UI/Resources/Strings.
   (de map, de bestandswachter en het herladen); `Interop/` (`ForegroundHook`, `MessageOnlyWindow`,
   `MemoryTrimmer`).
 - **UI** (`src/BuurmansRgb.UI`): `ViewModels/Devices/`, `Color/`, `Scenes/`, `Settings/` en
-  `Shared/` (`UiText`, `KeyCapText`, `EnumOption`, `ReentrancyGuard`, `UiThread`); de view models van het venster
-  zelf (`MainViewModel`, `NavigationViewModel`, `EngineSession`, de statusregel) staan in
-  `ViewModels/`. In `Views/` staan de eigen controls in `Controls/` (ook `LedPreviewView` en
-  `DecorativeText`), en verder `Converters/`, `Layout/` en `Automation/`; een view met XAML staat
-  in `Views/` of `Views/Pages/`. De attached behaviors (focus, Enter, schuiven) en de thema- en
-  tekstgroottehulpen blijven bewust los in `Views/`.
+  `Shared/` (`UiText`, `KeyCapText`, `EnumOption`, `ReentrancyGuard`, `UiThread`); de view
+  models van het venster zelf (`MainViewModel`, `NavigationViewModel`, `EngineSession`, de
+  statusregel) staan in `ViewModels/`. In `Views/` staan de eigen controls in `Controls/` (ook
+  `LedPreviewView` en `DecorativeText`), en verder `Converters/`, `Layout/` en `Automation/`;
+  een view met XAML staat in `Views/` of `Views/Pages/`. De attached behaviors (focus, Enter,
+  schuiven), de thema- en tekstgroottehulpen en een paar kleine hulpklassen (`DeviceIcons`,
+  `Corners`, `VisualTreeSearch`, `WindowFrame`, `ResourceOverlay`) blijven bewust los in
+  `Views/`.
 - **De namespaces volgen de mappen niet.** Een bestand in `Lighting/Rendering/` heeft
   `namespace BuurmansRgb.Engine.Lighting`, een bestand in `ViewModels/Scenes/`
   `BuurmansRgb.UI.ViewModels`, enzovoort. Zo bleven `xmlns:vm` in de XAML en alle tests gelijk.
@@ -432,14 +434,14 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
 ## Hoe de engine werkt
 
 - **Opbouw van `LightingController`** (`lichtcontroller-opsplitsen`): één klasse in
-  partial-bestanden in `Lighting/Rendering/`, behalve `.Devices` (`Lighting/Devices/`) en `.Count`
-  (`Lighting/Zones/`); de mappen ernaast staan bij "Mappen en namespaces": `LightingController.cs`
-  (de toestand, de verlichting en de render), `.Devices` (apparaten zoeken, verversen en zones),
-  `.Pause`, `.Options` (fps, apparaten tijdens
-  de pauze, overgang, zones gelijk), `.Flash`, `.Count` (LED's tellen) en `.Fade`. Ze delen één
-  lock (`_gate`); een methode met `Locked` aan het eind loopt onder die lock, en events gaan
-  altijd buiten de lock. Een wijziging van de verlichting loopt via `Mutate` (lock, wijzigen,
-  renderen als er iets veranderde, `Rendered` en `LightingChanged` buiten de lock), een optie via
+  partial-bestanden: `LightingController.cs` (de toestand, de verlichting en de render),
+  `.Devices` (apparaten zoeken, verversen en zones), `.Pause`, `.Options` (fps, apparaten
+  tijdens de pauze, overgang, zones gelijk), `.Flash`, `.Count` (LED's tellen) en `.Fade`. Ze
+  staan in `Lighting/Rendering/`, behalve `.Devices` (`Lighting/Devices/`) en `.Count`
+  (`Lighting/Zones/`); zie ook "Mappen en namespaces". Ze delen één lock (`_gate`); een
+  methode met `Locked` aan het eind loopt onder die lock, en events gaan altijd buiten de lock.
+  Een wijziging van de verlichting loopt via `Mutate` (lock, wijzigen, renderen als er iets
+  veranderde, `Rendered` en `LightingChanged` buiten de lock), een optie via
   `SetOption` (hetzelfde, met het eigen event van de optie). Alleen `PausedLights` gaat buiten
   `SetOption` om: dat meldt zijn wijziging met try/finally ook als een apparaat faalt. Hulpklassen
   zonder eigen lock, zoals `CustomEffectPlayers` (de `StepEffect` per eigen effect),
