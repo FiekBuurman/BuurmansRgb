@@ -28,20 +28,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string ResizeCall = "resize";
     private const string CountCall = "count";
     private const string ZonesAlikeCall = "zones-alike";
-    private const string SimulatedDevicesCall = "simulated-devices";
-    private const string FramesPerSecondCall = "frames-per-second";
-    private const string PauseOnLockCall = "pause-on-lock";
-    private const string PausedLightsCall = "paused-lights";
-    private const string SceneFadeCall = "scene-fade";
-    private const string CatchUpCall = "catch-up";
-    private const string HotkeysCall = "hotkeys";
-    private const string AutoStartCall = "autostart";
-    private const string CustomColorsCall = "custom-colors";
     private const string ResumeCall = "resume";
     private const string RestartCall = "restart";
     private const string FollowLightingCall = "follow-lighting";
     private const string ProfilesReloadCall = "profiles-reload";
-    private const string OptionsReloadCall = "options-reload";
     private const string CustomEffectsReloadCall = "custom-effects-reload";
     private const string OtherRgbSoftwareReloadCall = "other-rgb-software-reload";
     private const string DismissOtherRgbSoftwareCall = "dismiss-other-rgb-software";
@@ -55,6 +45,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly LampSync _lampSync;
     private readonly SceneCardLoader _sceneCards;
     private readonly StillPreviewCoordinator _stills;
+    private readonly EngineOptionsCoordinator _options;
     private readonly ReentrancyGuard _syncing = new();
     private IReadOnlyList<DeviceInfo> _devices = [];
 
@@ -208,7 +199,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 Profiles.Automation.Show(change.Name, change.Automation));
         Profiles.AutomationNeeded += (_, name) => _ = ShowProfileAutomationAsync(name);
         WholeHouseTimes.ApplyRequested += (_, times) => SendWholeHouseTimes(times);
-        SimulatedDevices.ModeChanged += (_, mode) => SendSimulatedDevices(mode);
         SimulatedDevices.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(SimulatedDevicesViewModel.SelectedOption))
@@ -228,21 +218,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 OnPropertyChanged(nameof(ShowsDevicesLost));
             }
         };
-        EffectOptions.FramesPerSecondChanged += (_, framesPerSecond) =>
-            SendOption(FramesPerSecondCall, api => api.SetFramesPerSecondAsync(framesPerSecond));
-        EffectOptions.PauseOnLockAndSleepChanged += (_, enabled) =>
-            SendOption(PauseOnLockCall, api => api.SetPauseOnLockAndSleepAsync(enabled));
-        EffectOptions.PausedLightsChanged += (_, mode) =>
-            SendOption(PausedLightsCall, api => api.SetPausedLightsAsync(mode));
-        EffectOptions.SceneFadeChanged += (_, fade) =>
-            SendOption(SceneFadeCall, api => api.SetSceneFadeAsync(fade));
-        SceneTimes.Switched += (_, enabled) =>
-            SendOption(CatchUpCall, api => api.SetCatchUpSceneTimesAsync(enabled));
-        Hotkeys.Switched += (_, enabled) =>
-            SendOption(HotkeysCall, api => api.SetHotkeysAsync(enabled));
-        AutoStart.Switched += (_, enabled) => SendAutoStart(enabled);
-        CustomColors.ColorsChanged += (_, colors) =>
-            SendOption(CustomColorsCall, api => api.SetCustomColorsAsync(colors));
+        _options = new EngineOptionsCoordinator(_session, SimulatedDevices, EffectOptions, SceneTimes, Hotkeys, AutoStart, CustomColors);
+        _options.Message += (_, message) => StatusMessage = message;
+        _options.HadRealDevicesRead += (_, hadRealDevices) => HadRealDevices = hadRealDevices;
         EffectsPause.ResumeRequested += (_, _) => ResumeEffects();
         OtherRgbSoftware.DismissRequested += (_, id) => DismissOtherRgbSoftware(id);
         Preview.ActionsHint.ResumeRequested += (_, _) => ResumeEffects();
@@ -1026,7 +1004,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Profiles.Show(await api.GetProfilesAsync());
         ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
         ShowSceneCards();
-        ShowOptions(await ReadOptionsAsync(api));
+        await _options.LoadAsync(api);
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
         if (openRgbStatusChanges == _openRgbStatusChanges)
@@ -1531,40 +1509,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _session.Post((ZonesAlikeCall, choice.DeviceId), api => api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
     }
 
-    // The engine shows or hides the simulated devices and reports the new list through
-    // DevicesChanged, so the list here follows by itself.
-    private void SendSimulatedDevices(SimulatedDevicesMode mode)
-    {
-        _session.Post(SimulatedDevicesCall, api => api.SetSimulatedDevicesAsync(mode));
-    }
-
-    // The engine saves the option itself; a pause that starts or ends by it comes through
-    // PauseChanged.
-    private void SendOption(string call, Func<IEngineApi, Task> send)
-    {
-        _session.Post(call, send);
-    }
-
-    // A change comes back through OptionsChanged. When Windows did not let it change, the switch
-    // shows what the engine has again, with the message the tray menu gives too.
-    private void SendAutoStart(bool enabled)
-    {
-        _session.PostOn(AutoStartCall, async connection =>
-        {
-            if (await connection.Api.SetAutoStartAsync(enabled))
-            {
-                return;
-            }
-
-            var current = await connection.Api.GetAutoStartAsync();
-            _session.WhenCurrent(connection, () =>
-            {
-                AutoStart.Show(current);
-                StatusMessage = Strings.AutoStartFailed;
-            });
-        });
-    }
-
     // The engine reports the pause that is left through PauseChanged, so the message follows by itself.
     private void ResumeEffects()
     {
@@ -1833,35 +1777,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        _session.Read(OptionsReloadCall, ReadOptionsAsync, ShowOptions);
+        _options.Reload();
 
         // Such as the lights during a pause: a preview that stands still shows them.
         _stills.RequestStill();
     });
-
-    private static async Task<OptionValues> ReadOptionsAsync(IEngineApi api) => new(
-        await api.GetSimulatedDevicesAsync(),
-        await api.GetHadRealDevicesAsync(),
-        await api.GetFramesPerSecondAsync(),
-        await api.GetPauseOnLockAndSleepAsync(),
-        await api.GetPausedLightsAsync(),
-        await api.GetSceneFadeAsync(),
-        await api.GetCatchUpSceneTimesAsync(),
-        await api.GetHotkeysAsync(),
-        await api.GetAutoStartAsync(),
-        await api.GetCustomColorsAsync());
-
-    private void ShowOptions(OptionValues options)
-    {
-        SimulatedDevices.Show(options.SimulatedDevices);
-        HadRealDevices = options.HadRealDevices;
-        EffectOptions.Show(options.FramesPerSecond, options.PauseOnLockAndSleep, options.PausedLights);
-        EffectOptions.ShowSceneFade(options.SceneFade);
-        SceneTimes.Show(options.CatchUpSceneTimes);
-        Hotkeys.Show(options.Hotkeys);
-        AutoStart.Show(options.AutoStart);
-        CustomColors.Show(options.CustomColors);
-    }
 
     private void OnLightingChanged(object? sender, EventArgs e) => _ui.Run(() =>
     {
@@ -1973,7 +1893,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         // A flash that went through holds the stills before the image of this call is asked.
         _stills.OnCallSucceeded(key);
-        if (key is not (StillPreviewCoordinator.FramesWantedCall or StillPreviewCoordinator.FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
+        if (key is not (StillPreviewCoordinator.FramesWantedCall or StillPreviewCoordinator.FrameDevicesCall or FollowLightingCall or ProfilesReloadCall or EngineOptionsCoordinator.OptionsReloadCall or CustomEffectsReloadCall or OtherRgbSoftwareReloadCall or RestartCall)
             and not ValueTuple<string, string> { Item1: DismissOtherRgbSoftwareCall })
         {
             _stills.RequestStill();
@@ -2022,18 +1942,4 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     // An LED edit on DeviceId that starts at the LED FirstIndex once its stored colors come.
     private sealed record StartingEdit(
         IEngineConnection Connection, string DeviceId, int FirstIndex, Task<(bool Ok, IReadOnlyList<RgbColor> Value)> Colors, Task<(bool Ok, IReadOnlyList<RgbColor?> Value)> Layer);
-
-    // The options of the engine that Instellingen and the toolbox on Kleur show, read when connecting
-    // and after OptionsChanged.
-    private sealed record OptionValues(
-        SimulatedDevicesMode SimulatedDevices,
-        bool HadRealDevices,
-        int FramesPerSecond,
-        bool PauseOnLockAndSleep,
-        PausedLightsMode PausedLights,
-        TimeSpan SceneFade,
-        bool CatchUpSceneTimes,
-        bool Hotkeys,
-        bool AutoStart,
-        IReadOnlyList<RgbColor> CustomColors);
 }
