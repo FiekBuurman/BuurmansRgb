@@ -89,9 +89,9 @@ public sealed class PreviewViewModelCardsTests
     [Fact]
     public void Collapse_StopsTheOwnCountInTheCard()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
         var board = preview.Devices[0];
         board.IsExpanded = true;
@@ -111,9 +111,9 @@ public sealed class PreviewViewModelCardsTests
     [Fact]
     public void Collapse_LeavesACountOfAnotherApp()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
         preview.Devices[0].IsExpanded = true;
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
@@ -128,18 +128,17 @@ public sealed class PreviewViewModelCardsTests
     [Fact]
     public void Collapse_LetsGoOfTheChosenLedsInTheCard()
     {
-        var preview = new PreviewViewModel();
-        var cleared = 0;
-        preview.LedSelectionCleared += (_, _) => cleared++;
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
         preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
         preview.ExpandAll();
         preview.ShowLedSelection(new LedSelection("fan", "Fan", 0, 1));
 
         preview.Devices[0].IsExpanded = false;
-        Assert.Equal(0, cleared);
+        Assert.Equal(0, actions.Requests.Count(request => request is "clear"));
         preview.Devices[1].IsExpanded = false;
 
-        Assert.Equal(1, cleared);
+        Assert.Equal(1, actions.Requests.Count(request => request is "clear"));
     }
 
     // A house with one device gets a second one, or OpenRGB reports one device for a moment: the
@@ -148,11 +147,9 @@ public sealed class PreviewViewModelCardsTests
     [Fact]
     public void SecondDevice_ClosesTheAlwaysOpenCardAndStopsWhatRanInIt()
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        var cleared = 0;
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
-        preview.LedSelectionCleared += (_, _) => cleared++;
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 10)], wholeHouse: true);
         preview.Devices[0].Zones[1].CountLedsCommand.Execute(null);
         preview.ShowZoneCount(new ZoneCountInfo("board", 1, 4, 60, 1, true));
@@ -163,7 +160,7 @@ public sealed class PreviewViewModelCardsTests
         Assert.False(preview.Devices[0].IsExpanded);
         Assert.Equal([new ZoneCountStop("board", 1)], stops);
         Assert.Null(preview.Count);
-        Assert.Equal(1, cleared);
+        Assert.Equal(1, actions.Requests.Count(request => request is "clear"));
     }
 
     // A length that waits in the card that was always open goes out at once when that card comes
@@ -174,9 +171,9 @@ public sealed class PreviewViewModelCardsTests
     [InlineData(true)]
     public void AlwaysOpenCardThatComesClosed_SendsAWaitingLength(bool wholeHouse)
     {
-        var preview = new PreviewViewModel(new FakeTimeProvider());
-        List<ZoneResize> resizes = [];
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(new FakeTimeProvider(), actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Board(20, 10)], wholeHouse);
         preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);
         Assert.Empty(resizes);
@@ -194,9 +191,9 @@ public sealed class PreviewViewModelCardsTests
     [InlineData(true)]
     public void BackToWholeHouse_StopsTheCountOnlyWhenTheCardComesClosed(bool openedBefore)
     {
-        var preview = new PreviewViewModel();
-        List<ZoneCountStop> stops = [];
-        preview.ZoneCountStopRequested += (_, stop) => stops.Add(stop);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(requests: actions);
+        var stops = actions.Of<ZoneCountStop>();
         preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
         preview.Devices[0].IsExpanded = openedBefore;
         preview.ShowDevices([Board(20, 10)]);
@@ -215,9 +212,9 @@ public sealed class PreviewViewModelCardsTests
     [Fact]
     public void Collapse_SendsAWaitingLength()
     {
-        var preview = new PreviewViewModel(new FakeTimeProvider());
-        List<ZoneResize> resizes = [];
-        preview.ZoneResizeRequested += (_, resize) => resizes.Add(resize);
+        var actions = new RecordingPreviewActions();
+        var preview = new PreviewViewModel(new FakeTimeProvider(), actions);
+        var resizes = actions.Of<ZoneResize>();
         preview.ShowDevices([Board(20, 10), Fan], wholeHouse: true);
         preview.Devices[0].IsExpanded = true;
         preview.Devices[0].Zones[0].Length!.IncreaseCommand.Execute(null);

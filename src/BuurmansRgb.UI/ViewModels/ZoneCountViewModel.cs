@@ -162,5 +162,5 @@ public sealed partial class ZoneCountViewModel : ObservableObject
         Send(new ZoneCountChange(Led: led, Running: false));
     }
 
-    private void Send(ZoneCountChange change) => _actions?.ChangeZoneCount(new ZoneCountUpdate(DeviceId, ZoneIndex, change));
+    private void Send(ZoneCountChange change) => _actions?.ChangeZoneCount(new ZoneCountChangeRequest(DeviceId, ZoneIndex, change));
 }

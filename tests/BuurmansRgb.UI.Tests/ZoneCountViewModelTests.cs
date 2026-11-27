@@ -50,7 +50,7 @@ public sealed class ZoneCountViewModelTests
         Assert.False(count.Running);
         Assert.Equal(Strings.ZoneCountResume, count.PauseOrResumeText);
         Assert.Equal(string.Format(Strings.ZoneCountPaused, 12, 60), count.Status);
-        Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(Led: 12, Running: false))], _actions.Requests);
+        Assert.Equal([new ZoneCountChangeRequest(Board, 1, new ZoneCountChange(Led: 12, Running: false))], _actions.Requests);
     }
 
     [Fact]
@@ -61,7 +61,7 @@ public sealed class ZoneCountViewModelTests
         count.PauseOrResumeCommand.Execute(null);
 
         Assert.True(count.Running);
-        Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(Running: true))], _actions.Requests);
+        Assert.Equal([new ZoneCountChangeRequest(Board, 1, new ZoneCountChange(Running: true))], _actions.Requests);
     }
 
     // At the last LED there is nothing to go on with: it starts again.
@@ -74,7 +74,7 @@ public sealed class ZoneCountViewModelTests
         count.PauseOrResumeCommand.Execute(null);
 
         Assert.Equal(1, count.Led);
-        Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(Led: 1, Running: true))], _actions.Requests);
+        Assert.Equal([new ZoneCountChangeRequest(Board, 1, new ZoneCountChange(Led: 1, Running: true))], _actions.Requests);
     }
 
     [Theory]
@@ -90,7 +90,7 @@ public sealed class ZoneCountViewModelTests
 
         Assert.Equal(expected, count.Led);
         Assert.False(count.Running);
-        Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(Led: expected, Running: false))], _actions.Requests);
+        Assert.Equal([new ZoneCountChangeRequest(Board, 1, new ZoneCountChange(Led: expected, Running: false))], _actions.Requests);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class ZoneCountViewModelTests
 
         Assert.Equal(5, count.LedsPerSecond);
         Assert.Equal([false, false, true], count.PaceOptions.Select(option => option.IsChecked));
-        Assert.Equal([new ZoneCountUpdate(Board, 1, new ZoneCountChange(LedsPerSecond: 5))], _actions.Requests);
+        Assert.Equal([new ZoneCountChangeRequest(Board, 1, new ZoneCountChange(LedsPerSecond: 5))], _actions.Requests);
         Assert.Equal(string.Format(Strings.ZoneCountPace, 5), count.PaceOptions[2].AccessibleName);
         Assert.Equal(string.Format(Strings.ZoneCountPaceOne, 1), count.PaceOptions[0].AccessibleName);
         Assert.Equal(count.PaceOptions.Select(option => option.AccessibleName), count.PaceOptions.Select(option => option.ToString()));

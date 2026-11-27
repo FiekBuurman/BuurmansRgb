@@ -625,6 +625,12 @@ uitbreidingen in `docs/bouwplan.md`.
   naar een eigen `LightingControlsViewModel` (V1 stap 7 van het refactorplan). Bleef liggen bij
   `mainviewmodel-effecten-en-leds`: zonder die enum moet zo'n klasse dezelfde volgorde opnieuw
   vier keer kennen, en hij raakt bijna elke `MainViewModel*Tests` (refactorplan 26-11-2026)
+- Eén `ZoneRef(DeviceId, ZoneIndex)` voor de records van het voorbeeld die met een apparaat en een
+  zone beginnen (`ZoneResize`, `ZoneFlash`, `ZoneCountStart`, `ZoneCountChangeRequest`,
+  `ZoneCountStop`), zodat `ZoneCountTracker` en `PreviewActionsCoordinator` er één waarde aan
+  doorgeven. Bleef liggen bij `voorbeeld-zonetelling-apart`: het raakt elke aanmaak van die
+  records in de view models en tientallen asserts in de `PreviewViewModel*Tests` en
+  `ZoneCountViewModelTests`, voor alleen kortere code (refactorplan 26-11-2026)
 - `ColorPicker.IsUnused` en het pad "gemengd maar niet op het apparaat" (`HasColorNotOnDevice`,
   `keepMixedColor` in `ShowLighting`) zijn vanuit de app niet meer te bereiken, sinds kaart 4 bij
   een effect zonder kleur en bij een lege "Jouw effect" geen mengpaneel meer toont. Besluiten of

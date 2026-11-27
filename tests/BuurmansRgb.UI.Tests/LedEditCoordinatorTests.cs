@@ -6,14 +6,15 @@ using BuurmansRgb.UI.ViewModels;
 namespace BuurmansRgb.UI.Tests;
 
 // Choosing LEDs in the preview and coloring them, without MainViewModel: a session on a fake
-// engine, a preview and lamps of its devices (a strip of three LEDs and a fan of two).
+// engine, a preview and lamps of its devices (a strip of three LEDs and a fan of two). The preview
+// hands the clicks on through a PreviewActionsCoordinator, as in the app.
 public sealed class LedEditCoordinatorTests
 {
     private static readonly RgbColor Blue = new(0, 0, 255);
 
     private readonly FakeEngineConnection _connection = new();
     private readonly EngineSession _session;
-    private readonly PreviewViewModel _preview = new();
+    private readonly PreviewViewModel _preview;
     private readonly LampsViewModel _lamps = new();
     private readonly LedEditorViewModel _editor = new();
     private readonly LedEditCoordinator _ledEdit;
@@ -26,6 +27,7 @@ public sealed class LedEditCoordinatorTests
     public LedEditCoordinatorTests()
     {
         _session = new EngineSession(new UiThread(), _ => { }, _ => { });
+        _preview = new PreviewViewModel(requests: new PreviewActionsCoordinator(_session, () => _preview!, () => throw new InvalidOperationException("no stills in this test"), () => _ledEdit!));
         _devices = Api.Devices;
         _preview.ShowDevices(_devices);
         _lamps.ShowDevices(_devices.Select(device => DeviceItem.For(device)));

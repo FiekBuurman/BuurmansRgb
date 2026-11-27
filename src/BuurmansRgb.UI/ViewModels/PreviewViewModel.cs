@@ -8,10 +8,13 @@ namespace BuurmansRgb.UI.ViewModels;
 
 // Shows the frames the engine renders for the devices in view, and the LEDs selected in the
 // per-LED editor. Use it from the UI thread. time runs the delay before a new zone length goes to
-// the engine (ZoneLengthViewModel).
-public sealed partial class PreviewViewModel(TimeProvider? time = null) : ObservableObject, IPreviewActions, IDisposable
+// the engine (ZoneLengthViewModel). requests get what the user asks for in a device preview, after
+// this has followed it for the count of LEDs (PreviewActionsCoordinator in the app); without them
+// nothing goes anywhere.
+public sealed partial class PreviewViewModel(TimeProvider? time = null, IPreviewRequests? requests = null) : ObservableObject, IPreviewActions, IDisposable
 {
     private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly IPreviewRequests? _requests = requests;
     private readonly UiThread _ui = new();
     private LightingFrame _latestFrame = LightingFrame.Empty;
 
@@ -23,30 +26,9 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     private LedSelection? _ledSelection;
     private bool _canFlash = true;
 
-    // The count as the engine reported it last, also while its zone is not in view.
-    private ZoneCountInfo _count = ZoneCountInfo.None;
-
-    // The sequence of the newest count the engine reported (ZoneCountInfo.Sequence).
-    private long _countSequence;
-
-    // The zone this app last started to count, until it asks to stop it, keeps its length ("Dit is
-    // de laatste") or the engine ends it: only that count stops by itself here. Another settings
-    // app may count a zone at the same time, also the same zone after this count ended.
-    private (string DeviceId, int ZoneIndex)? _ownCount;
-
-    // The sequence of the first state in which the engine reported the count of this app; null
-    // until then. Only a state after it that no longer counts that zone ends the count of this
-    // app: a None from before the start can still be on its way.
-    private long? _ownCountSequence;
-
-    // The sequence of the newest state when this app started its count: a state up to it is from
-    // before the start, so it does not confirm the count, such as a step of the same zone that
-    // another settings app counted.
-    private long _ownCountStartedAfter;
-
-    // The zone whose count was stopped here, until the engine reports a state that no longer
-    // counts it: a step the engine took just before the stop reached it is ignored meanwhile.
-    private (string DeviceId, int ZoneIndex)? _stoppedCount;
+    // Which count the engine runs now, also while its zone is not in view, and whether this app
+    // started it.
+    private readonly ZoneCountTracker _counts = new();
 
     // As long as a flash in the engine lasts: three blinks of half a second (DeviceFlash.Duration).
     public static TimeSpan FlashTime { get; } = TimeSpan.FromSeconds(1.5);
@@ -67,35 +49,6 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     // Without devices, "Per apparaat" says how to find them instead of showing cards.
     [ObservableProperty]
     public partial bool HasDevices { get; private set; }
-
-    // Raised when the user clicks an LED in one of the device previews.
-    public event EventHandler<LedClick>? LedClicked;
-
-    // Raised when the user clicks the name of a zone, to select all of its LEDs.
-    public event EventHandler<LedSelection>? LedsSelected;
-
-    // Raised when the user clears the selection of LEDs from the preview.
-    public event EventHandler? LedSelectionCleared;
-
-    // Raised when the user sets another length for a resizable zone.
-    public event EventHandler<ZoneResize>? ZoneResizeRequested;
-
-    // Raised when the user asks a device to flash, with its id.
-    public event EventHandler<string>? FlashRequested;
-
-    // Raised when the user asks one zone of a device to flash.
-    public event EventHandler<ZoneFlash>? ZoneFlashRequested;
-
-    // Raised when the user switches "Zones gelijk" of a device.
-    public event EventHandler<ZonesAlikeChoice>? ZonesAlikeRequested;
-
-    // Raised when the user starts, changes or stops a count of the LEDs of a zone; also stopped
-    // when the counted zone goes from view.
-    public event EventHandler<ZoneCountStart>? ZoneCountStartRequested;
-
-    public event EventHandler<ZoneCountUpdate>? ZoneCountChangeRequested;
-
-    public event EventHandler<ZoneCountStop>? ZoneCountStopRequested;
 
     // The count of LEDs the engine runs now, kept while the preview is made again; null while no
     // zone is counted, or while the counted zone is not in view.
@@ -129,7 +82,7 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
             _canFlash = value;
             if (!value)
             {
-                ForgetOwnCount();
+                _counts.ForgetOwnCount();
             }
 
             foreach (var device in Devices)
@@ -155,81 +108,31 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     // Forgets the count of a connection that went, with its sequence: a new engine starts again.
     public void ForgetZoneCount()
     {
-        _countSequence = 0;
-        _stoppedCount = null;
-        ForgetOwnCount();
-        Show(ZoneCountInfo.None);
+        _counts.Forget();
+        ShowCount();
     }
 
-    // The engine refused a start of this app, such as for a zone the list here still shows: the
-    // count is not this app's, unless the engine confirmed it meanwhile (a start after it).
+    // The engine refused a start of this app (ZoneCountTracker.ForgetStart).
     public void ForgetZoneCountStart(ZoneCountStart start)
     {
         ArgumentNullException.ThrowIfNull(start);
-        if (_ownCount == (start.DeviceId, start.ZoneIndex) && _ownCountSequence is null)
-        {
-            ForgetOwnCount();
-        }
+        _counts.ForgetStart(start.DeviceId, start.ZoneIndex);
     }
 
     // The count of LEDs as the engine reports it: the counted zone shows it, the same view model
-    // as long as the same zone counts, so the focus stays where it was. A state older than the
-    // last one is dropped: the engine reports a count from more than one thread, so a step can
-    // arrive after the pause that followed it. After a stop here, states of the stopped zone wait
-    // for the engine to end its count; their sequence is not taken, so its None still comes in.
+    // as long as the same zone counts, so the focus stays where it was. A state that is out of date
+    // is dropped (ZoneCountTracker.Take).
     public void ShowZoneCount(ZoneCountInfo count)
     {
-        if (count.Sequence < _countSequence)
+        if (_counts.Take(count))
         {
-            return;
-        }
-
-        // States can arrive out of order here too: a step of a new count of the stopped zone (such
-        // as one another settings app starts) that overtakes the None is ignored, and then the None
-        // hides the count. That misses one tick; the next step shows the count again.
-        if (_stoppedCount is { } stopped)
-        {
-            if (count.Counts(stopped.DeviceId, stopped.ZoneIndex))
-            {
-                return;
-            }
-
-            _stoppedCount = null;
-        }
-
-        _countSequence = count.Sequence;
-        FollowOwnCount(count);
-        Show(count);
-    }
-
-    // The engine confirms the count of this app, or ends it by itself, such as at a pause, at
-    // Verversen or with a new list of devices.
-    private void FollowOwnCount(ZoneCountInfo count)
-    {
-        if (_ownCount is not { } own || count.Sequence <= _ownCountStartedAfter)
-        {
-            return;
-        }
-
-        if (count.Counts(own.DeviceId, own.ZoneIndex))
-        {
-            _ownCountSequence ??= count.Sequence;
-        }
-        else if (count.Sequence > _ownCountSequence)
-        {
-            ForgetOwnCount();
+            ShowCount();
         }
     }
 
-    private void ForgetOwnCount()
+    private void ShowCount()
     {
-        _ownCount = null;
-        _ownCountSequence = null;
-    }
-
-    private void Show(ZoneCountInfo count)
-    {
-        _count = count;
+        var count = _counts.Count;
         if (Count?.Counts(count.DeviceId, count.ZoneIndex) == true)
         {
             Count.Show(count);
@@ -245,25 +148,23 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
     private void AttachCount(bool stopOutOfView)
     {
         var shown = Count;
-        var zone = _count.IsCounting ? ZoneOf(_count.DeviceId, _count.ZoneIndex) : null;
+        var count = _counts.Count;
+        var zone = count.IsCounting ? ZoneOf(count.DeviceId, count.ZoneIndex) : null;
         Count = zone is null ? null
-            : shown?.Counts(_count.DeviceId, _count.ZoneIndex) == true ? shown
-            : zone.CreateCount(_count);
+            : shown?.Counts(count.DeviceId, count.ZoneIndex) == true ? shown
+            : zone.CreateCount(count);
         foreach (var each in Devices.SelectMany(device => device.Zones))
         {
             each.ShowCount(ReferenceEquals(each, zone) ? Count : null);
         }
 
-        if (stopOutOfView && shown is not null && Count is null && _count.Counts(shown.DeviceId, shown.ZoneIndex) && IsOwn(shown))
+        if (stopOutOfView && shown is not null && Count is null && _counts.StopOwn(shown.DeviceId, shown.ZoneIndex))
         {
-            ForgetOwnCount();
-            _stoppedCount = (shown.DeviceId, shown.ZoneIndex);
-            _count = ZoneCountInfo.None;
-            ZoneCountStopRequested?.Invoke(this, new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
+            _requests?.StopZoneCount(new ZoneCountStop(shown.DeviceId, shown.ZoneIndex));
         }
     }
 
-    private bool IsOwn(ZoneCountViewModel count) => _ownCount == (count.DeviceId, count.ZoneIndex);
+    private bool IsOwn(ZoneCountViewModel count) => _counts.IsOwn(count.DeviceId, count.ZoneIndex);
 
     // A zone of a device in view whose length can be set; only those count.
     private ZonePreviewViewModel? ZoneOf(string deviceId, int zoneIndex) =>
@@ -476,57 +377,44 @@ public sealed partial class PreviewViewModel(TimeProvider? time = null) : Observ
         }
     }
 
-    // The device previews hand what the user does to these; the main view model listens to the events.
-    void IPreviewActions.ClickLed(LedClick click) => LedClicked?.Invoke(this, click);
+    // The device previews hand what the user does to these; they go on to the requests.
+    void IPreviewRequests.ClickLed(LedClick click) => _requests?.ClickLed(click);
 
-    void IPreviewActions.SelectLeds(LedSelection selection) => LedsSelected?.Invoke(this, selection);
+    void IPreviewRequests.SelectLeds(LedSelection selection) => _requests?.SelectLeds(selection);
 
-    void IPreviewActions.ClearLedSelection() => LedSelectionCleared?.Invoke(this, EventArgs.Empty);
+    void IPreviewRequests.ClearLedSelection() => _requests?.ClearLedSelection();
 
     // A new length of the counted zone, such as from "Dit is de laatste", ends its count in the
     // engine.
-    void IPreviewActions.ResizeZone(ZoneResize resize)
+    void IPreviewRequests.ResizeZone(ZoneResize resize)
     {
-        if (_ownCount == (resize.DeviceId, resize.ZoneIndex))
-        {
-            ForgetOwnCount();
-        }
-
-        ZoneResizeRequested?.Invoke(this, resize);
+        _counts.Resize(resize.DeviceId, resize.ZoneIndex);
+        _requests?.ResizeZone(resize);
     }
 
-    void IPreviewActions.FlashDevice(string deviceId) => FlashRequested?.Invoke(this, deviceId);
+    void IPreviewRequests.FlashDevice(string deviceId) => _requests?.FlashDevice(deviceId);
 
-    void IPreviewActions.FlashZone(ZoneFlash flash) => ZoneFlashRequested?.Invoke(this, flash);
+    void IPreviewRequests.FlashZone(ZoneFlash flash) => _requests?.FlashZone(flash);
 
-    void IPreviewActions.SetZonesAlike(ZonesAlikeChoice choice) => ZonesAlikeRequested?.Invoke(this, choice);
+    void IPreviewRequests.SetZonesAlike(ZonesAlikeChoice choice) => _requests?.SetZonesAlike(choice);
 
-    void IPreviewActions.StartZoneCount(ZoneCountStart start)
+    void IPreviewRequests.StartZoneCount(ZoneCountStart start)
     {
-        _ownCount = (start.DeviceId, start.ZoneIndex);
-        _ownCountSequence = null;
-        _ownCountStartedAfter = _countSequence;
-        ZoneCountStartRequested?.Invoke(this, start);
+        _counts.Start(start.DeviceId, start.ZoneIndex);
+        _requests?.StartZoneCount(start);
     }
 
-    void IPreviewActions.ChangeZoneCount(ZoneCountUpdate update) => ZoneCountChangeRequested?.Invoke(this, update);
+    void IPreviewRequests.ChangeZoneCount(ZoneCountChangeRequest request) => _requests?.ChangeZoneCount(request);
 
-    // The count ends here at once; the engine confirms it with ZoneCountInfo.None, and its states
-    // of the zone are ignored until then.
-    void IPreviewActions.StopZoneCount(ZoneCountStop stop)
+    // The count ends here at once (ZoneCountTracker.Stop).
+    void IPreviewRequests.StopZoneCount(ZoneCountStop stop)
     {
-        if (_ownCount == (stop.DeviceId, stop.ZoneIndex))
+        if (_counts.Stop(stop.DeviceId, stop.ZoneIndex))
         {
-            ForgetOwnCount();
+            ShowCount();
         }
 
-        if (_count.Counts(stop.DeviceId, stop.ZoneIndex))
-        {
-            _stoppedCount = (stop.DeviceId, stop.ZoneIndex);
-            Show(ZoneCountInfo.None);
-        }
-
-        ZoneCountStopRequested?.Invoke(this, stop);
+        _requests?.StopZoneCount(stop);
     }
 
     private static IEnumerable<ZoneLengthViewModel> LengthsOf(IEnumerable<DevicePreviewViewModel> previews) =>

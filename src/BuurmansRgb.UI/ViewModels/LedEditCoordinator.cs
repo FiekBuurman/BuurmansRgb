@@ -41,9 +41,6 @@ internal sealed class LedEditCoordinator
         _lamps = lamps;
         _devices = devices;
         _showSelection = showSelection;
-        preview.LedClicked += (_, click) => _ = OnLedClickedAsync(click);
-        preview.LedsSelected += (_, leds) => _ = OnLedsSelectedAsync(leds);
-        preview.LedSelectionCleared += (_, _) => _ = ClearSelectionAsync();
     }
 
     // A change for the lighting of a device went into the queue, so lighting fetched before it
@@ -119,14 +116,16 @@ internal sealed class LedEditCoordinator
         }
     }
 
-    // A range that the keyboard starts on a device without a selection begins at its Anchor. A
-    // Ctrl+click on a device without a selection chooses that LED, as a click does; on a device
-    // with one, it puts the LED in or takes it out.
-    private Task OnLedClickedAsync(LedClick click) => click.Toggle
+    // A click on an LED in the preview (PreviewActionsCoordinator). A range that the keyboard
+    // starts on a device without a selection begins at its Anchor. A Ctrl+click on a device without
+    // a selection chooses that LED, as a click does; on a device with one, it puts the LED in or
+    // takes it out.
+    public Task ClickLedAsync(LedClick click) => click.Toggle
         ? EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Toggle(click.Index, click.Extend), selectOnStart: click.Extend)
         : EditLedsAsync(click.DeviceId, click.Anchor >= 0 ? click.Anchor : click.Index, editor => editor.Select(click.Index, click.Extend));
 
-    private Task OnLedsSelectedAsync(LedSelection leds) =>
+    // A click on the name of a zone in the preview: all its LEDs.
+    public Task SelectLedsAsync(LedSelection leds) =>
         EditLedsAsync(leds.DeviceId, leds.First, editor => editor.SelectRange(leds.First, leds.Last));
 
     // The stored colors are fetched when editing starts on a device, at the LED firstIndex; clicks

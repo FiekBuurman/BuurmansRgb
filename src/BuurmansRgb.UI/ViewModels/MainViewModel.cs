@@ -23,9 +23,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private const string LoopCall = "loop";
     private const string EffectColorsCall = "effect-colors";
     private const string ColorCall = "color";
-    private const string ResizeCall = "resize";
-    private const string CountCall = "count";
-    private const string ZonesAlikeCall = "zones-alike";
     private const string ResumeCall = "resume";
     private const string RestartCall = "restart";
     private const string FollowLightingCall = "follow-lighting";
@@ -115,7 +112,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         EngineUsage = new EngineUsageViewModel(processMeter ?? NoProcessMeter.Instance, time);
         Profiles = new ProfilesViewModel(findPrograms);
         _time = time ?? TimeProvider.System;
-        Preview = new PreviewViewModel(_time);
+        // The coordinator asks for the preview, the stills and the LED edit only when the user acts,
+        // so after they are made here.
+        Preview = new PreviewViewModel(_time, new PreviewActionsCoordinator(_session, () => Preview!, () => _stills!, () => _ledEdit!));
         Motion = new PreviewMotionViewModel(animationEffects ?? AnimationEffectsOn.Instance);
         _stills = new StillPreviewCoordinator(_session, _time, Preview, Lamps, Motion, EffectOptions, () => ShowsPreview, () => FrameDevice, () => SelectedDevice?.DeviceId);
         _ledEdit = new LedEditCoordinator(_session, LedEditor, Preview, Lamps, () => _devices, ShowSelectionAsync);
@@ -145,13 +144,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _ledEdit.ChangeSent += (_, _) => _sentChanges++;
         _ledEdit.LedsSent += (_, deviceId) => OnLedsSent(deviceId);
         _ledEdit.SelectionShown += (_, _) => _syncing.Run(() => ColorPicker.Show(LedEditor.AnchorColor));
-        Preview.ZoneResizeRequested += (_, resize) => OnZoneResizeRequested(resize);
-        Preview.FlashRequested += (_, deviceId) => _stills.FlashDevice(deviceId);
-        Preview.ZoneFlashRequested += (_, flash) => _stills.FlashZone(flash);
-        Preview.ZonesAlikeRequested += (_, choice) => SendZonesAlike(choice);
-        Preview.ZoneCountStartRequested += (_, start) => SendZoneCount(start.DeviceId, start.ZoneIndex, "start", api => StartZoneCountAsync(api, start));
-        Preview.ZoneCountChangeRequested += (_, update) => SendZoneCount(update.DeviceId, update.ZoneIndex, update.Change, api => api.SetZoneCountAsync(update.DeviceId, update.ZoneIndex, update.Change));
-        Preview.ZoneCountStopRequested += (_, stop) => SendZoneCount(stop.DeviceId, stop.ZoneIndex, "stop", api => api.StopZoneCountAsync(stop.DeviceId, stop.ZoneIndex));
         LedEditor.PropertyChanged += (_, e) =>
         {
             FillGradientCommand.NotifyCanExecuteChanged();
@@ -1136,42 +1128,6 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _syncing.Run(() => SelectedEffect = Effects.FirstOrDefault(effect => effect.Id == EffectIds.PerLed) ?? SelectedEffect);
         }
-    }
-    // The engine reports the device with its new length through DevicesChanged, which rebuilds
-    // the preview; an LED edit of that device ends then, because its LEDs moved.
-    private void OnZoneResizeRequested(ZoneResize resize)
-    {
-        _session.Post((ResizeCall, resize.DeviceId, resize.ZoneIndex), api => api.ResizeZoneAsync(resize.DeviceId, resize.ZoneIndex, resize.LedCount));
-    }
-
-    // A count of LEDs: the engine reports how it goes through ZoneCountChanged, and the device at
-    // its longest, or with its length back, through DevicesChanged. Each kind of call has its own
-    // key, so a change does not replace a start or another change that still waits.
-    private void SendZoneCount(string deviceId, int zoneIndex, object kind, Func<IEngineApi, Task> send)
-    {
-        _stills.CancelPendingFlash();
-        _session.Post((CountCall, deviceId, zoneIndex, kind), send);
-    }
-
-    // A start that fails is not a count of this app; the failure itself goes on to OnCallFailed.
-    private async Task StartZoneCountAsync(IEngineApi api, ZoneCountStart start)
-    {
-        try
-        {
-            await api.StartZoneCountAsync(start.DeviceId, start.ZoneIndex, start.LedsPerSecond);
-        }
-        catch
-        {
-            _ui.Run(() => Preview.ForgetZoneCountStart(start));
-            throw;
-        }
-    }
-
-    // The engine reports the device with its new choice through DevicesChanged, which rebuilds the
-    // preview; the frames that follow show the zones alike, or each with its own part again.
-    private void SendZonesAlike(ZonesAlikeChoice choice)
-    {
-        _session.Post((ZonesAlikeCall, choice.DeviceId), api => api.SetZonesAlikeAsync(choice.DeviceId, choice.Alike));
     }
 
     // The engine reports the pause that is left through PauseChanged, so the message follows by itself.
