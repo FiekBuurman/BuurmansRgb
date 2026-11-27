@@ -1204,7 +1204,7 @@ uitbreidingen in `docs/bouwplan.md`.
   was alleen schuiven en zou de diff van de refactor onleesbaar maken (refactorplan 26-11-2026)
 - `FileErrors.IsAccessError` (Engine) naar `BuurmansRgb.Platform` verplaatsen, zodat `FileLog` (2×) en
   de UI (`UserFiles`, `SharingViewModel`, `SettingsBackupViewModel`) hetzelfde filter delen in plaats
-  van eigen kopieën; kost een andere `using` in zo'n 25 Engine-bestanden (refactorplan 26-11-2026)
+  van eigen kopieën; kost een andere `using` in zo'n 10 Engine-bestanden (refactorplan 26-11-2026)
 - De zes coördinatortests (`EngineSession` met `FakeEngineConnection`) slikken `onCallFailed` in
   (`_ => { }`), zodat een test een mislukte aanroep niet ziet. Dat zichtbaar maken (en dan één
   gedeelde opzet) kan uitkomsten veranderen en is dus geen refactor (refactorplan 26-11-2026)
