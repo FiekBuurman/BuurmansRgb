@@ -200,7 +200,7 @@ internal sealed class ProfileTimer : IProfileTrigger
 
     // The scene with the time that passed last, of all times of all scenes and of "Uit om" and "Aan
     // om", when that is after since and not the scene that is on. Two at the same time: the first in
-    // alphabetical order, as in Schedule. "Uit om" and "Aan om" leave alone what needs no change
+    // the order of TryGetTimed, as in Schedule. "Uit om" and "Aan om" leave alone what needs no change
     // themselves (ProfileLibrary.LoadTimed).
     private void LoadLatest(DateTimeOffset? since)
     {
