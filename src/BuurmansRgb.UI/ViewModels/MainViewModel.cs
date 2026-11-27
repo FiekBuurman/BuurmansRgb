@@ -1202,8 +1202,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ShowFrame(await api.GetFrameAsync());
         // Fetched again from this engine, also for the profile that stays selected after reconnecting.
         Profiles.Automation.Clear();
-        ShowProfiles(await api.GetProfilesAsync());
-        ShowWholeHouseTimes(await api.GetWholeHouseTimesAsync());
+        var profileNames = await api.GetProfilesAsync();
+        var wholeHouseTimes = await api.GetWholeHouseTimesAsync();
+        ShowProfiles(profileNames);
+        ShowWholeHouseTimes(wholeHouseTimes);
         ShowOptions(await ReadOptionsAsync(api));
         var openRgbStatusChanges = _openRgbStatusChanges;
         var openRgbStatus = await api.GetOpenRgbStatusAsync();
