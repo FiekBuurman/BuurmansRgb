@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using BuurmansRgb.Contracts;
 using BuurmansRgb.UI.Resources;
@@ -39,6 +40,16 @@ public sealed class WindowDialogsTests
                 Assert.Equal(UiText.Format(Strings.SceneUpdateConfirm, "Avond"), asked[1].Title);
                 Assert.Equal(UiText.Format(Strings.CustomEffectDeleteConfirm, "Disco"), asked[2].Title);
                 Assert.Equal(Strings.BackupRestoreConfirm, asked[3].Title);
+
+                // The detail and the button tell the questions apart when the title is alike.
+                Assert.Equal(string.Empty, AutomationProperties.GetHelpText(asked[0]));
+                Assert.Equal(Strings.ConfirmDelete, asked[0].ConfirmButton.Content);
+                Assert.Equal(Strings.SceneUpdateConfirmDetail, AutomationProperties.GetHelpText(asked[1]));
+                Assert.Equal(Strings.SceneUpdateConfirmButton, asked[1].ConfirmButton.Content);
+                Assert.Equal(Strings.CustomEffectDeleteConfirmDetail, AutomationProperties.GetHelpText(asked[2]));
+                Assert.Equal(Strings.ConfirmDelete, asked[2].ConfirmButton.Content);
+                Assert.Equal(UiText.Format(Strings.BackupRestoreConfirmDetail, "oud.zip"), AutomationProperties.GetHelpText(asked[3]));
+                Assert.Equal(Strings.BackupRestoreConfirmButton, asked[3].ConfirmButton.Content);
             }
             finally
             {

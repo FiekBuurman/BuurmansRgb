@@ -45,11 +45,11 @@ internal sealed class FakeDialogs : IFileDialogs, IConfirmDialogs
 
     Task<byte[]?> IFileDialogs.ReadAtMostAsync(string path, int maxBytes) => UserFiles.ReadAtMostAsync(path, maxBytes);
 
-    bool IConfirmDialogs.ConfirmDeleteScene(string name) => ConfirmDeleteScene?.Invoke(name) ?? true;
+    bool IConfirmDialogs.ConfirmDeleteScene(string name) => ConfirmDeleteScene?.Invoke(name) ?? NoDialogs.Instance.ConfirmDeleteScene(name);
 
-    bool IConfirmDialogs.ConfirmUpdateScene(string name) => ConfirmUpdateScene?.Invoke(name) ?? true;
+    bool IConfirmDialogs.ConfirmUpdateScene(string name) => ConfirmUpdateScene?.Invoke(name) ?? NoDialogs.Instance.ConfirmUpdateScene(name);
 
-    bool IConfirmDialogs.ConfirmDeleteCustomEffect(string name) => ConfirmDeleteCustomEffect?.Invoke(name) ?? true;
+    bool IConfirmDialogs.ConfirmDeleteCustomEffect(string name) => ConfirmDeleteCustomEffect?.Invoke(name) ?? NoDialogs.Instance.ConfirmDeleteCustomEffect(name);
 
-    bool IConfirmDialogs.ConfirmRestore(string fileName) => ConfirmRestore?.Invoke(fileName) ?? false;
+    bool IConfirmDialogs.ConfirmRestore(string fileName) => ConfirmRestore?.Invoke(fileName) ?? NoDialogs.Instance.ConfirmRestore(fileName);
 }
