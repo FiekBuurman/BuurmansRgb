@@ -1169,8 +1169,8 @@ uitbreidingen in `docs/bouwplan.md`.
   weer 1 keer in 6 volledige testruns. Bij `ledvoorbeeld-opsplitsen`, met de pennen van de ringen
   per thread, faalde hij niet in 3 volledige testruns en 10 losse runs van de
   `LedPreview*Tests`
-- `RunningProgramsTests.Find_SeesAProgramStartAndStop` (Engine.Tests) faalde af en toe; de oorzaak is niet gevonden
-  (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
+- `RunningProgramsTests.Find_SeesAProgramStartAndStop` (Engine.Tests) faalde af en toe; de oorzaak is
+  niet gevonden (0 van de 30 runs vóór en 0 van de 30 na de refactor na de audit van 29-10). Wel geeft
   `WaitUntilGone` het signaal van ping nu `TestTimeouts.Long`, en probeert `TempDirectory.Dispose`
   het wissen een tijd opnieuw. Faalt hij weer, leg dan vast op welke regel
 - De rij "Scènes" in de testtabel van `docs/ontwikkelaars.md` is één enorme cel; herschrijven als

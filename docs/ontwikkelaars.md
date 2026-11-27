@@ -814,8 +814,9 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   zelf stoppen dan met luisteren en proberen het bij de volgende `Follow(true)` opnieuw. De naam
   komt van `GetWindowThreadProcessId` en `ProcessImageName` (`QueryFullProcessImageName`,
   dezelfde als in `RunningPrograms` van de engine; in `BuurmansRgb.Platform`, omdat ook de
-  instellingen-app er het pad van een exe mee leest voor "Kies uit wat nu draait"), en `ProgramNames.Comparer` vergelijkt hem.
-  `ProgramWatcher` vraagt met `Follow` alleen om de vensters zolang minstens één scène de keuze aan heeft; dat
+  instellingen-app er het pad van een exe mee leest voor "Kies uit wat nu draait"), en
+  `ProgramNames.Comparer` vergelijkt hem. `ProgramWatcher` vraagt met `Follow` alleen om de vensters
+  zolang minstens één scène de keuze aan heeft; dat
   komt van elke thread, dus `Follow` post naar een verborgen message-only venster, dat op de
   tray-thread gaat luisteren of ermee stopt (ook bij afsluiten). Zonder scène met de keuze leest
   hij dus geen namen. Na het luisteren meldt hij één keer wat er nu vooraan staat. Hij meldt elk
@@ -1300,8 +1301,7 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   telling niet krijgt; een nieuwe lijst met de zone hangt hem aan de nieuwe `DeviceOutput`. Zolang
   hij loopt, draait de render-loop; bij de laatste LED of een pauze stopt die weer (bij een
   statisch effect). `CountChanged` gaat af bij een stap, zonder allocaties; `EngineApi` leest dan
-  pas `CurrentZoneCount`, met
-  een `Sequence` die onder de lock van de controller bij elke wijziging ophoogt. De render-thread
+  pas `CurrentZoneCount`, met een `Sequence` die onder de lock van de controller bij elke wijziging ophoogt. De render-thread
   en een IPC-thread kunnen hun stand in een andere volgorde versturen dan de wijzigingen, dus
   `PreviewViewModel.ShowZoneCount` laat een oudere stand vallen (`ZoneCountTracker.Take`;
   `ForgetZoneCount` begint weer bij 0 voor een nieuwe engine). De lengtes doet `ZoneCounter`, boven `ZoneLengthKeeper`:
