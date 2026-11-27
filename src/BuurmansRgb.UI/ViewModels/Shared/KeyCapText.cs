@@ -8,7 +8,7 @@ namespace BuurmansRgb.UI.ViewModels;
 // it is, such as "W", ";" or "F12", also on the number pad without "Number Pad"; known longer
 // names get the short text of Strings.resx ("Esc", "Shift", "↑"), so a translation can follow the
 // keyboards of another country. The space bar and names it does not know, longer than three letters, get none.
-public static class KeyCapText
+internal static class KeyCapText
 {
     private const string NumberPad = "Number Pad ";
     private const int MaxUnknownLength = 3;
