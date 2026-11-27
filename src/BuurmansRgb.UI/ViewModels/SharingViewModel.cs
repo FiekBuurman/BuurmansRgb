@@ -27,6 +27,7 @@ public sealed partial class SharingViewModel : ObservableObject
         _session = session;
         _clipboard = clipboard;
     }
+
     // Raised with the message for the status line.
     public event EventHandler<string>? Message;
 
