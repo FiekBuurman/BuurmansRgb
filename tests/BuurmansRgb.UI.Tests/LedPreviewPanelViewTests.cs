@@ -16,8 +16,7 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class LedPreviewPanelViewTests
 {
-    private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
-        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
+    private static readonly DeviceInfo Board = TestDevices.Board();
 
     // The name of "Alles selecteren" for a screen reader starts with the words it shows, so whoever
     // says what they see, as with Spraaktoegang of Windows, finds it (WCAG 2.5.3); the device follows.

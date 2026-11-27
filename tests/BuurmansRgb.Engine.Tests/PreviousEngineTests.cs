@@ -12,15 +12,9 @@ public sealed class PreviousEngineTests : IDisposable
     private static readonly TimeSpan Poll = TimeSpan.FromMilliseconds(20);
 
     private readonly string _name = $"BuurmansRgb.Tests.{Guid.NewGuid():N}";
-    private readonly string _directory = Path.Combine(Path.GetTempPath(), $"BuurmansRgb.Tests.{Guid.NewGuid():N}");
+    private readonly TempDirectory _directory = new();
 
-    public void Dispose()
-    {
-        if (Directory.Exists(_directory))
-        {
-            Directory.Delete(_directory, recursive: true);
-        }
-    }
+    public void Dispose() => _directory.Dispose();
 
     [Fact]
     public void AcquireAfterRestart_OldOneGone_IsPrimaryWithoutWarnings()
@@ -72,10 +66,9 @@ public sealed class PreviousEngineTests : IDisposable
     [Fact]
     public void WriteStopLog_WritesEachWarningToItsOwnFile()
     {
-        var engineLog = Path.Combine(_directory, "engine.log");
-        Directory.CreateDirectory(_directory);
+        var engineLog = _directory.File("engine.log");
         File.WriteAllText(engineLog, "old engine\n");
-        var path = Path.Combine(_directory, PreviousEngine.StopLogFileName);
+        var path = _directory.File(PreviousEngine.StopLogFileName);
 
         PreviousEngine.WriteStopLog(path, ["first", "second"]);
 

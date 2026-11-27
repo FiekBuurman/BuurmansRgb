@@ -297,15 +297,10 @@ public sealed class LightingControllerZoneFlashTests : IDisposable
 
     // Like a board in OpenRGB: LEDs on the board itself and two addressable headers.
     private static RgbDevice BoardWith(int headerLeds, int emptyHeaderLeds = 0) =>
-        new(Board, "Board", DeviceType.Motherboard,
-        [
+        TestBoards.Of(
             RgbZone.Fixed("Mainboard", 2),
             new RgbZone("ARGB 1", headerLeds, 0, 60),
-            new RgbZone("ARGB 2", emptyHeaderLeds, 0, 60),
-        ])
-        {
-            Source = DeviceSource.Hardware,
-        };
+            new RgbZone("ARGB 2", emptyHeaderLeds, 0, 60));
 
     private async Task StartAsync()
     {

@@ -1,5 +1,6 @@
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using static BuurmansRgb.Engine.Tests.TestBoards;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -523,10 +524,6 @@ public sealed class ZoneLengthKeeperTests : IDisposable
         Assert.Empty(_keeper.Lengths);
         Assert.Single(_provider.Resizes);
     }
-
-    // A board with two fixed LEDs, an addressable header and a fixed logo.
-    private static RgbDevice Board(int header) =>
-        ResizableDeviceProvider.Board(RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1));
 
     private static Dictionary<string, IReadOnlyDictionary<string, int>> Lengths(params (string DeviceId, string Zone, int LedCount)[] lengths) =>
         lengths.GroupBy(length => length.DeviceId).ToDictionary(

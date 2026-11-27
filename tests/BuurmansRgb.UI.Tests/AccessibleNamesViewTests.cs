@@ -15,8 +15,7 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class AccessibleNamesViewTests
 {
-    private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
-        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
+    private static readonly DeviceInfo Board = TestDevices.Board();
 
     // A card is named after its device; the strip of "Hele huis" has no items, as its summary says
     // in words what the bulbs show.

@@ -1,6 +1,7 @@
-namespace BuurmansRgb.UI.Tests;
+namespace BuurmansRgb.Tests;
 
-// The repo the tests are built in, for a test that reads a source file of the app itself.
+// The repo the tests are built in, for a test that reads a source file of the app itself or the
+// installer script.
 internal static class RepoFiles
 {
     // The folder with BuurmansRgb.slnx, above the output of the tests.

@@ -331,7 +331,7 @@ public sealed class LightingControllerZoneCountTests : IDisposable
         _controller.StartCount(Board, Header, Longest, 1);
 
         _provider.SetDevices(
-            new RgbDevice(Board, "Board", DeviceType.Motherboard, [RgbZone.Fixed("Mainboard", 2), RgbZone.Fixed("Other", 3)]) { Source = DeviceSource.Hardware },
+            TestBoards.Of(RgbZone.Fixed("Mainboard", 2), RgbZone.Fixed("Other", 3)),
             DynamicDeviceProvider.Device(Fan));
 
         await Eventually.TrueAsync(() => _provider.Leds[Board].Length == 5);
@@ -406,24 +406,10 @@ public sealed class LightingControllerZoneCountTests : IDisposable
     }
 
     private static RgbDevice BoardWith(int headerLeds) =>
-        new(Board, "Board", DeviceType.Motherboard,
-        [
-            RgbZone.Fixed("Mainboard", 2),
-            new RgbZone("ARGB 1", headerLeds, 0, Longest),
-        ])
-        {
-            Source = DeviceSource.Hardware,
-        };
+        TestBoards.Of(RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", headerLeds, 0, Longest));
 
     private static RgbDevice BoardWithIdentifiedHeader(string name, string id) =>
-        new(Board, "Board", DeviceType.Motherboard,
-        [
-            RgbZone.Fixed("Mainboard", 2),
-            new RgbZone(name, 4, 0, Longest) { Id = id },
-        ])
-        {
-            Source = DeviceSource.Hardware,
-        };
+        TestBoards.Of(RgbZone.Fixed("Mainboard", 2), new RgbZone(name, 4, 0, Longest) { Id = id });
 
     // Gives the provider the board and the fan, and waits until the controller has taken this very
     // board over (not an older list that a refresh read before).

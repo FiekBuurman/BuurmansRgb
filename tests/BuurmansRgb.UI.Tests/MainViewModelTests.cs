@@ -10,8 +10,7 @@ namespace BuurmansRgb.UI.Tests;
 public sealed class MainViewModelTests
 {
     // A board with LEDs of its own and an addressable header with a fan on it.
-    private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
-        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
+    private static readonly DeviceInfo Board = TestDevices.Board();
 
     private readonly FakeEngineConnector _connector = new();
 
@@ -639,7 +638,7 @@ public sealed class MainViewModelTests
 
     // As the catch-up of scene times and the hotkeys start before the engine answers.
     [Fact]
-    public void SceneTimesAreOffAndHotkeysOnAtFirst()
+    public void SceneTimesAndHotkeys_AtFirst_AreOffAndOn()
     {
         var viewModel = new MainViewModel(_connector);
 

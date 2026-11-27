@@ -28,7 +28,7 @@ internal sealed class ResizableDeviceProvider : IResizableDeviceProvider
     public int ListsReported => Volatile.Read(ref _listsReported);
 
     public static RgbDevice Board(params IReadOnlyList<RgbZone> zones) =>
-        new("board", "Board", DeviceType.Motherboard, zones) { Source = DeviceSource.Hardware };
+        TestBoards.Of(zones);
 
     public void SetDevices(params IReadOnlyList<RgbDevice> devices)
     {

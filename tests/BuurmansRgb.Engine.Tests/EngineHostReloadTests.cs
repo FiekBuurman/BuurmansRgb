@@ -393,7 +393,7 @@ public sealed class EngineHostReloadTests : IDisposable
         // The engine read the file before that change.
         _store.Settings = EngineSettings.CreateDefault();
         var scene = new EngineSettings { Color = Red }.ToLightingState();
-        var trigger = new TriggerAtStart(() =>
+        var trigger = new RecordingTrigger(() =>
         {
             SpinWait.SpinUntil(() => _store.LoadIfChangedCount > 0, TimeSpan.FromMilliseconds(500));
             _lighting.Replace(scene);
@@ -443,15 +443,6 @@ public sealed class EngineHostReloadTests : IDisposable
     {
         _store.ChangeByHand(settings);
         _fileEvents.RaiseChanged();
-    }
-
-    private sealed class TriggerAtStart(Action start) : IProfileTrigger
-    {
-        public void Start() => start();
-
-        public void Dispose()
-        {
-        }
     }
 
     // Counts the changes by hand the store found.

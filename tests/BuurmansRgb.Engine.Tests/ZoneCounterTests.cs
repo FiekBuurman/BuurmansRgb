@@ -1,6 +1,7 @@
 using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
+using static BuurmansRgb.Engine.Tests.TestBoards;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -420,14 +421,6 @@ public sealed class ZoneCounterTests : IDisposable
         _counter.Change(Board, Header, new ZoneCountChange(Led: 4, Running: false));
         Assert.Equal(new ZoneCountInfo(Board, Header, 4, Longest, 1, false), Count);
     }
-
-    // A board with two fixed LEDs, two addressable headers of up to 120 and 60 LEDs, and a logo.
-    private static RgbDevice BoardWith(int header, int secondHeader = 0) =>
-        ResizableDeviceProvider.Board(
-            RgbZone.Fixed("Mainboard", 2),
-            new RgbZone("ARGB 1", header, 0, Longest),
-            RgbZone.Fixed("Logo", 1),
-            new RgbZone("ARGB 2", secondHeader, 0, 60));
 
     private async Task StartAsync(int header)
     {

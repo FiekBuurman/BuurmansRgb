@@ -52,7 +52,7 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     [Fact]
-    public void LoadsTheProfileAtItsTime()
+    public void Profile_AtItsTime_IsLoaded()
     {
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         StartTimer();
@@ -65,7 +65,7 @@ public sealed class ProfileTimerTests : IDisposable
     }
 
     [Fact]
-    public void LoadsTheProfileAgainTheNextDay()
+    public void Profile_TheNextDay_IsLoadedAgain()
     {
         _store.Profiles = [Profile("Nacht", Red, new TimeOnly(23, 0))];
         StartTimer();

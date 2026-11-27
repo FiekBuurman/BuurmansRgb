@@ -2,6 +2,7 @@ using BuurmansRgb.Contracts;
 using BuurmansRgb.Core;
 using BuurmansRgb.Engine.Lighting;
 using BuurmansRgb.Providers.Simulated;
+using static BuurmansRgb.Engine.Tests.TestBoards;
 
 namespace BuurmansRgb.Engine.Tests;
 
@@ -142,10 +143,6 @@ public sealed class LightingControllerZoneTests
         RgbColor[] grownBack = [Orange, Orange, Blue, Blue, Green];
         await Eventually.TrueAsync(() => _dynamic.Leds["board"].SequenceEqual(grownBack));
     }
-
-    private static RgbDevice Board(int header) =>
-        new("board", "Board", DeviceType.Motherboard,
-            [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB header", header, 0, 120), RgbZone.Fixed("Logo", 1)]) { Source = DeviceSource.Hardware };
 
     private async Task WhileDevicesChangeAsync(Action change)
     {

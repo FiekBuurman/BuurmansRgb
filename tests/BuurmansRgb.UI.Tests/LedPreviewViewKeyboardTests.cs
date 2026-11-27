@@ -11,7 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 namespace BuurmansRgb.UI.Tests;
 
 // The keys of the per-LED editor in the view of a zone; what they do to the active LED and the
-// selection is in DevicePreviewKeyboardTests.
+// selection is in DevicePreviewViewModelKeyboardTests.
 public sealed class LedPreviewViewKeyboardTests
 {
     public static TheoryData<Key, ModifierKeys, LedKey, bool> Keys => new()

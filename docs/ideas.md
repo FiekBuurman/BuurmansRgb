@@ -1161,3 +1161,5 @@ uitbreidingen in `docs/bouwplan.md`.
   eigen teksten bevatten gaat het goed, maar bevat een van beide ooit een naam van OpenRGB of de
   gebruiker, dan verliest die zijn eerste `_`
   (refactorreview 25-11-2026)
+- `LedColorStoreTests` bouwt zijn eigen `Board` en gebruikt `TestBoards` niet: die deelt het id
+  `device` en `DeviceSource.Simulated` met de andere apparaten van de store (refactorplan 26-11-2026)

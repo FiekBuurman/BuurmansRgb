@@ -6,40 +6,40 @@ namespace BuurmansRgb.UI.Tests;
 // Writing and reading a file the user chose: whole or not at all.
 public sealed class UserFilesTests : IDisposable
 {
-    private readonly string _folder = Directory.CreateTempSubdirectory("BuurmansRgb.UI.Tests.").FullName;
+    private readonly TempDirectory _folder = new();
 
-    public void Dispose() => Directory.Delete(_folder, recursive: true);
+    public void Dispose() => _folder.Dispose();
 
     [Fact]
     public async Task WriteReplacing_WritesTheFile_AlsoOverAnOldOne()
     {
-        var path = Path.Combine(_folder, "Gamen.brgb.json");
+        var path = _folder.File("Gamen.brgb.json");
         File.WriteAllBytes(path, [9, 9, 9, 9]);
 
         await UserFiles.WriteReplacingAsync(path, [1, 2, 3]);
 
         Assert.Equal([1, 2, 3], File.ReadAllBytes(path));
-        Assert.Equal([path], Directory.GetFiles(_folder));
+        Assert.Equal([path], Directory.GetFiles(_folder.Path));
     }
 
     // The move that fails, here over a folder of that name, leaves no temporary file behind.
     [Fact]
     public async Task WriteReplacing_ThatFails_LeavesNoTemporaryFile()
     {
-        var path = Path.Combine(_folder, "Gamen.brgb.json");
+        var path = _folder.File("Gamen.brgb.json");
         Directory.CreateDirectory(path);
 
         var exception = await Record.ExceptionAsync(() => UserFiles.WriteReplacingAsync(path, [1, 2, 3]));
 
         Assert.True(exception is IOException or UnauthorizedAccessException, exception?.ToString());
-        Assert.Empty(Directory.GetFiles(_folder));
+        Assert.Empty(Directory.GetFiles(_folder.Path));
         Assert.True(Directory.Exists(path));
     }
 
     [Fact]
     public async Task WriteReplacing_FolderThatIsNotThere_Throws()
     {
-        var path = Path.Combine(_folder, "weg", "Gamen.brgb.json");
+        var path = Path.Combine(_folder.Path, "weg", "Gamen.brgb.json");
 
         await Assert.ThrowsAsync<DirectoryNotFoundException>(() => UserFiles.WriteReplacingAsync(path, [1, 2, 3]));
     }
@@ -70,7 +70,7 @@ public sealed class UserFilesTests : IDisposable
     [Fact]
     public async Task ReadAtMost_FileThatIsNotThere_Throws()
     {
-        await Assert.ThrowsAsync<FileNotFoundException>(() => UserFiles.ReadAtMostAsync(Path.Combine(_folder, "weg.brgb.json"), 10));
+        await Assert.ThrowsAsync<FileNotFoundException>(() => UserFiles.ReadAtMostAsync(_folder.File("weg.brgb.json"), 10));
     }
 
     // Windows gives a length of 0 for a link; what counts is what it leads to.
@@ -78,7 +78,7 @@ public sealed class UserFilesTests : IDisposable
     public async Task ReadAtMost_LinkToALargeFile_GivesNull()
     {
         var target = Write("groot.brgb.json", new byte[100]);
-        var link = Path.Combine(_folder, "link.brgb.json");
+        var link = _folder.File("link.brgb.json");
         try
         {
             File.CreateSymbolicLink(link, target);
@@ -94,7 +94,7 @@ public sealed class UserFilesTests : IDisposable
 
     private string Write(string name, byte[] content)
     {
-        var path = Path.Combine(_folder, name);
+        var path = _folder.File(name);
         File.WriteAllBytes(path, content);
         return path;
     }

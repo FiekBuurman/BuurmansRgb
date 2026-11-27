@@ -100,21 +100,11 @@ public sealed class CoalescingCallQueueTests
         await Record(call);
     }
 
-    private async Task WaitForCallsAsync(int count)
+    private Task WaitForCallsAsync(int count) => Eventually.TrueAsync(() =>
     {
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (true)
+        lock (_calls)
         {
-            lock (_calls)
-            {
-                if (_calls.Count >= count)
-                {
-                    return;
-                }
-            }
-
-            Assert.True(DateTime.UtcNow < deadline, "Timed out waiting for the calls.");
-            await Task.Delay(10, Ct);
+            return _calls.Count >= count;
         }
-    }
+    });
 }

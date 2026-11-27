@@ -5,7 +5,7 @@ namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // The provider with the real OpenRGB.NET connection, against the test server: the acceptance
 // "stop OpenRGB and start it again" without OpenRGB itself.
-public sealed class OpenRgbProviderServerTests
+public sealed class OpenRgbDeviceProviderServerTests
 {
     private static readonly TimeSpan RetryDelay = TimeSpan.FromMilliseconds(100);
 

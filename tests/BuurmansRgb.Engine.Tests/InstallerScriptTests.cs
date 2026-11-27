@@ -121,14 +121,5 @@ public sealed class InstallerScriptTests
         return Lines[start..].ToList();
     }
 
-    private static string ScriptPath()
-    {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "BuurmansRgb.slnx")))
-        {
-            directory = directory.Parent;
-        }
-
-        return Path.Combine(Assert.IsType<DirectoryInfo>(directory).FullName, "installer", "BuurmansRgb.iss");
-    }
+    private static string ScriptPath() => Path.Combine(RepoFiles.Root, "installer", "BuurmansRgb.iss");
 }

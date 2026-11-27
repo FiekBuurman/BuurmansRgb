@@ -5,12 +5,12 @@ namespace BuurmansRgb.Contracts.Tests;
 
 public sealed class FileLogTests : IDisposable
 {
-    private readonly string _directory = Directory.CreateTempSubdirectory("BuurmansRgb.Tests.").FullName;
+    private readonly TempDirectory _directory = new();
     private readonly FakeTimeProvider _clock = new(new DateTimeOffset(2026, 10, 21, 9, 30, 15, TimeSpan.Zero));
 
-    public void Dispose() => Directory.Delete(_directory, recursive: true);
+    public void Dispose() => _directory.Dispose();
 
-    private string LogPath => Path.Combine(_directory, "logs", "engine.log");
+    private string LogPath => Path.Combine(_directory.Path, "logs", "engine.log");
 
     // The settings app opens the log of the engine where the engine writes it.
     [Fact]
@@ -134,7 +134,7 @@ public sealed class FileLogTests : IDisposable
     [Fact]
     public void New_FolderCannotBeMade_WritesNothingAndDoesNotThrow()
     {
-        var blocker = Path.Combine(_directory, "blocker");
+        var blocker = _directory.File("blocker");
         File.WriteAllText(blocker, "a file where the logs folder should be");
 
         using var log = new FileLog(Path.Combine(blocker, "engine.log"), _clock);

@@ -3,11 +3,11 @@ using System.Diagnostics;
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
 // Measures the CPU time of the whole process, so no other test may run at the same time.
-[CollectionDefinition(nameof(OpenRgbProviderCpuTests), DisableParallelization = true)]
-public sealed class OpenRgbProviderCpuTestsCollection;
+[CollectionDefinition(nameof(OpenRgbDeviceProviderCpuTests), DisableParallelization = true)]
+public sealed class OpenRgbDeviceProviderCpuTestsCollection;
 
-[Collection(nameof(OpenRgbProviderCpuTests))]
-public sealed class OpenRgbProviderCpuTests
+[Collection(nameof(OpenRgbDeviceProviderCpuTests))]
+public sealed class OpenRgbDeviceProviderCpuTests
 {
     [Fact]
     public async Task ServerClosesTheConnection_ProviderLetsGoOfIt()

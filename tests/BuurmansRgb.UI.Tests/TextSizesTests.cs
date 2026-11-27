@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
-using BuurmansRgb.UI.Services;
 using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
@@ -188,18 +187,4 @@ public sealed partial class TextSizesTests
     private static Dictionary<string, double> Sizes(ResourceDictionary resources) =>
         AppTheme.Keys(resources).Where(key => key.EndsWith("Size", StringComparison.Ordinal) && resources[key] is double)
             .ToDictionary(key => key, key => (double)resources[key]);
-}
-
-// A text size that a test sets, as Windows would.
-internal sealed class FakeTextScale : ITextScale
-{
-    public event EventHandler? Changed;
-
-    public double Factor { get; set; } = 1.0;
-
-    public void Set(double factor)
-    {
-        Factor = factor;
-        Changed?.Invoke(this, EventArgs.Empty);
-    }
 }

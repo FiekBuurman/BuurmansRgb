@@ -3,14 +3,14 @@ using Microsoft.Extensions.Time.Testing;
 
 namespace BuurmansRgb.Providers.OpenRgb.Tests;
 
-public sealed class OpenRgbProviderStatusTests : IDisposable
+public sealed class OpenRgbDeviceProviderStatusTests : IDisposable
 {
     private readonly FakeOpenRgbConnector _connector = new();
     private readonly FakeTimeProvider _time = new();
     private readonly OpenRgbDeviceProvider _provider;
     private readonly ServerStatusRecorder _statuses;
 
-    public OpenRgbProviderStatusTests()
+    public OpenRgbDeviceProviderStatusTests()
     {
         _provider = new OpenRgbDeviceProvider(_connector, _time, OpenRgbDeviceProvider.RetryDelay);
         _statuses = new ServerStatusRecorder(_provider);

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using BuurmansRgb.Contracts;
-using BuurmansRgb.Core;
 using BuurmansRgb.UI.Resources;
 using BuurmansRgb.UI.ViewModels;
 using BuurmansRgb.UI.Views;
@@ -14,8 +13,7 @@ namespace BuurmansRgb.UI.Tests;
 [Collection(AppThemeCollection.Name)]
 public sealed class ZoneCountViewTests
 {
-    private static readonly DeviceInfo Board = new("board", "Board", DeviceType.Motherboard, 5,
-        [RgbZone.Fixed("Mainboard", 2), new RgbZone("ARGB 1", 3, 0, 60)]) { Source = DeviceSource.Hardware };
+    private static readonly DeviceInfo Board = TestDevices.Board();
 
     // The count replaces the length controls; its counter and controls have names for a screen
     // reader, and its status is a live region.
