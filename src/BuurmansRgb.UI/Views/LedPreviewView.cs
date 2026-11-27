@@ -91,12 +91,8 @@ public sealed class LedPreviewView : FrameworkElement
     // 2 px in the text color, as the focus ring of the other controls (design/DESIGN.md § 6).
     private static Pen? _focusRing;
 
-    // The cells of a row or key map, holding only LEDs below Colors.Count, and the arrangement of
-    // the LEDs. Both are made again only when the number of LEDs, the width, the matrix or the LED
-    // names change, not on every frame.
-    private LedMatrix _layout = LedPlaces.Wrap(0, 1);
-    private (int LedCount, int Columns, LedMatrix? Matrix, IReadOnlyList<string>? Names) _layoutFor;
-    private ILedArrangement? _arrangement;
+    // The arrangement of the LEDs, made again only when what it depends on changes.
+    private readonly LedArrangementCache _arrangements = new();
 
     // Made on the first hover, so a preview nobody points at has no tooltip and no timer.
     private LedToolTip? _toolTip;
@@ -562,16 +558,6 @@ public sealed class LedPreviewView : FrameworkElement
         }
     }
 
-    private static int ColumnsFor(double width, int count)
-    {
-        if (double.IsInfinity(width) || double.IsNaN(width))
-        {
-            return Math.Max(count, 1);
-        }
-
-        return Math.Clamp((int)((width + LedLayout.Spacing) / LedLayout.Pitch), 1, Math.Max(count, 1));
-    }
-
     // Only made again when the highlight color changed. Rendering runs on the UI thread only.
     private static Pen SelectionRing()
     {
@@ -631,44 +617,6 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     // The arrangement of the LEDs in a width; the one of the last call when nothing changed.
-    private ILedArrangement ArrangementFor(double width)
-    {
-        var count = Colors.Count;
-        if (IsRing)
-        {
-            var scale = LedLayout.ScaleFor(RingLayout.Size(count), width);
-            if (_arrangement is not RingArrangement ring || ring.LedCount != count || ring.Scale != scale)
-            {
-                _arrangement = new RingArrangement(count, scale);
-            }
-
-            return _arrangement;
-        }
-
-        var layout = PlaceLeds(width);
-        var grow = Matrix is not null && KeyCaps is not null ? LedLayout.KeyCapGrowFor(KeyCapFontSize) : 1.0;
-        var pitch = LedLayout.PitchFor(layout, width, shrinks: Matrix is not null, grow);
-        if (_arrangement is not CellArrangement cells || !ReferenceEquals(cells.Layout, layout) || cells.Pitch != pitch)
-        {
-            _arrangement = new CellArrangement(layout, pitch, count, keys: Matrix is not null);
-        }
-
-        return _arrangement;
-    }
-
-    private LedMatrix PlaceLeds(double width)
-    {
-        var count = Colors.Count;
-        var matrix = Matrix;
-        var names = LedNames;
-        var columns = matrix is null ? ColumnsFor(width, count) : 0;
-        if (_layoutFor.LedCount != count || _layoutFor.Columns != columns || !ReferenceEquals(_layoutFor.Matrix, matrix)
-            || !ReferenceEquals(_layoutFor.Names, names))
-        {
-            _layout = matrix is null ? LedPlaces.Wrap(count, columns) : WideKeys.Widen(LedPlaces.Place(matrix, count), names);
-            _layoutFor = (count, columns, matrix, names);
-        }
-
-        return _layout;
-    }
+    private ILedArrangement ArrangementFor(double width) =>
+        _arrangements.For(Colors.Count, width, IsRing, Matrix, LedNames, KeyCaps is null ? null : KeyCapFontSize);
 }
