@@ -366,8 +366,8 @@ uitbreidingen in `docs/bouwplan.md`.
 - Eén gedeelde stijl voor een melding onder een veld (een `DockPanel` met `WarningMark` en een
   `TextBlock` als live region met `LiveRegion.AnnouncesUpdates`); nu staat dat blok zeven keer in
   de XAML, onder andere bij de hex-code in `ColorMixer.xaml`, de naam van een eigen effect in
-  `CustomEffectEditor.xaml`, bij de lengte van
-  een zone in `LedPreviewPanel.xaml` en bij "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
+  `CustomEffectEditor.xaml`, bij de lengte van een zone in `LedPreviewPanel.xaml` en bij
+  "Vanzelf aanzetten" in `ScenesPage.xaml` (die met
   `HasError` en `BoolToVisibility`, de andere drie met `NullToCollapsed`). Geen control met een
   eigen `Text`-property: die slikt dezelfde melding opnieuw in, zodat er geen nieuwe aankondiging
   komt, terwijl `CustomEffectViewTests` juist controleert dat een schermlezer hem dan weer hoort.
