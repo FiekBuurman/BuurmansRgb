@@ -544,13 +544,17 @@ apparaat in het voorbeeld kijkt. Een paar dingen om te proberen:
   nieuwe naam bij de volgende wijziging. De app kijkt vóór hij iets stuurt
   (`CustomEffectsCoordinator.IsNameTaken`, met de namen van `GetEffectsAsync`) en zet de melding
   (`NameError`) onder het vak, een live region. Het vak schrijft de naam alleen bij Enter en als
-  het de focus verliest (`UpdateSourceTrigger=Explicit`, `ColorPage.xaml.cs`): dan bewaart
+  het de focus verliest (`UpdateSourceTrigger=Explicit`, met `CommitOnEnter` voor Enter en Escape en
+  `ColorPage.xaml.cs` voor de focus): dan bewaart
   `CustomEffectEditorViewModel.EndNameEdit` een goede naam, of zet de echte naam terug met een
   melding die de geweigerde en de echte naam noemt (`CustomEffectNameTakenKept`,
   `CustomEffectNameEmptyKept`), zodat een schermlezer één melding hoort. Die melding gaat weg bij
   een goede naam, een ander effect of een nieuwe naam van de engine; dezelfde melding voor een
   volgende naam leest een schermlezer opnieuw voor. Escape zet met
-  `CustomEffectEditorViewModel.CancelNameEdit` de echte naam terug, zonder melding.
+  `CustomEffectEditorViewModel.CancelNameEditCommand` (`CommitOnEnter.CancelCommand`) de echte
+  naam terug, zonder melding. `CommitOnEnter` (in `Views`) is er voor elk tekstvak dat pas telt
+  bij Enter of als het de focus verliest: `IsEnabled` voor alleen Enter, zoals het tijdveld van "Uit om" en
+  "Aan om" op Apparaten, een `CancelCommand` voor ook Escape (`CommitOnEnterTests`).
   `effects.json` met de hand aanpassen terwijl de engine draait, pikt hij niet op, net als
   `profiles.json` (zie `docs/ideas.md`).
 - **Beelden voor het voorbeeld:** een render zegt `PreviewFrames` (één per verbonden app) alleen

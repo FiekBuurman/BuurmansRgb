@@ -141,6 +141,7 @@ public sealed partial class CustomEffectEditorViewModel(Func<string, string, boo
 
     // Escape in the text box: the box shows the name the effect has again, without a message, as
     // nothing was refused.
+    [RelayCommand]
     public void CancelNameEdit()
     {
         _showing.Run(() => Name = _name);
