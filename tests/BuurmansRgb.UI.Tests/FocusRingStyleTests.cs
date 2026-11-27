@@ -3,7 +3,7 @@ using System.Windows.Controls;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The focus rings of the theme (Themes/Controls.xaml): one template, and a ring per style that
+// The focus rings of the theme (Themes/Controls.Focus.xaml): one template, and a ring per style that
 // differs only in its corners.
 [Collection(AppThemeCollection.Name)]
 public sealed class FocusRingStyleTests

@@ -8,7 +8,7 @@ using BuurmansRgb.UI.Views;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The one link of the app (LinkButton in Themes/Controls.xaml, DESIGN.md § 4 "Link"), in a window
+// The one link of the app (LinkButton in Themes/Controls.Buttons.xaml, DESIGN.md § 4 "Link"), in a window
 // off screen, and the XAML of the app as text: every link uses it, it is underlined without the
 // mouse on it, and no action of the app shows only under the mouse.
 [Collection(AppThemeCollection.Name)]
@@ -122,13 +122,13 @@ public sealed partial class LinkStyleTests
         foreach (var (name, xaml) in AppXaml.Files())
         {
             Assert.DoesNotContain("<Hyperlink", xaml, StringComparison.Ordinal);
-            if (name != Path.Combine("Themes", "Tokens.xaml") && name != Path.Combine("Themes", "Controls.xaml"))
+            if (name != Path.Combine("Themes", "Tokens.xaml") && name != Path.Combine("Themes", "Controls.Buttons.xaml"))
             {
                 Assert.DoesNotMatch(LinkBrushPattern(), xaml);
             }
         }
 
-        var controls = AppXaml.Files().Single(file => file.Name == Path.Combine("Themes", "Controls.xaml")).Xaml;
+        var controls = AppXaml.Files().Single(file => file.Name == Path.Combine("Themes", "Controls.Buttons.xaml")).Xaml;
         Assert.Single(LinkBrushPattern().Matches(controls));
     }
 

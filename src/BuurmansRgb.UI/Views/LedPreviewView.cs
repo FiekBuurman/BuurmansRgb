@@ -184,7 +184,7 @@ public sealed class LedPreviewView : FrameworkElement
         set => SetValue(KeyGroupProperty, value);
     }
 
-    // The ring of a black LED (LedOffRingBrush of the tokens, set by its style in Controls.xaml), in
+    // The ring of a black LED (LedOffRingBrush of the tokens, set by its style in Controls.Cards.xaml), in
     // place of the faint outline of the others: black hardly stands out on the dark preview. Without
     // one, such as outside the app, a black LED gets that outline too.
     public Brush? OffRingBrush
@@ -203,7 +203,7 @@ public sealed class LedPreviewView : FrameworkElement
     }
 
     // KeyCapSize of the tokens, which follows the text size of Windows (set by the style in
-    // Controls.xaml): a text that no longer fits on its key falls away.
+    // Controls.Cards.xaml): a text that no longer fits on its key falls away.
     public double KeyCapFontSize
     {
         get => (double)GetValue(KeyCapFontSizeProperty);

@@ -4,7 +4,7 @@ using System.Windows.Controls.Primitives;
 
 namespace BuurmansRgb.UI.Tests;
 
-// The border of the fields of the theme (Themes/Controls.xaml): a text box, a list to pick from and a
+// The border of the fields of the theme (Themes/Controls.Inputs.xaml): a text box, a list to pick from and a
 // check box show the border of InputBorderBrush, which stands out 3:1 (TokenContrastTests), and a
 // lighter one under the mouse; a text box with the focus gets the ring of 2 px in text.
 [Collection(AppThemeCollection.Name)]

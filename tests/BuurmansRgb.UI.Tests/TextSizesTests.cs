@@ -17,7 +17,7 @@ public sealed partial class TextSizesTests
     // The styles that may have a number as their font size, by file and key: the glyphs of the
     // caption buttons, the "+" tile and the ⓘ are icons, which keep their size. Any other number,
     // also one that one of these happens to have, makes the test red.
-    private static readonly HashSet<string> FixedFontSizeStyles = ["Controls.xaml CaptionButton", "Controls.xaml AddTile", "Theme.xaml InfoMark"];
+    private static readonly HashSet<string> FixedFontSizeStyles = ["Controls.Window.xaml CaptionButton", "Controls.Buttons.xaml AddTile", "Theme.xaml InfoMark"];
 
     [Theory]
     [InlineData(1.5)]
